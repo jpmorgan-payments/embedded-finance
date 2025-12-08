@@ -2,7 +2,7 @@ import { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 /**
  * Mock client with error state beneficial ownership - demonstrates parties needing additional information.
- * 
+ *
  * Features:
  * - Ross Geller: Needs additional documentation (INFORMATION_REQUESTED status)
  * - Demonstrates error handling workflow

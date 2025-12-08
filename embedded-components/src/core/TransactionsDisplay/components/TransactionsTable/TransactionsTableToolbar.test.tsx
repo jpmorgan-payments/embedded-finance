@@ -104,11 +104,11 @@ describe('TransactionsTableToolbar', () => {
       expect(typeSelect).toBeInTheDocument();
     });
 
-    test('renders view options button', () => {
+    test('renders columns options button', () => {
       render(<ToolbarWrapper data={mockTransactions} />);
 
-      const viewButton = screen.getByRole('button', { name: /view/i });
-      expect(viewButton).toBeInTheDocument();
+      const columnsButton = screen.getByRole('button', { name: /columns/i });
+      expect(columnsButton).toBeInTheDocument();
     });
   });
 

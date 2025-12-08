@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 
-import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { ClientResponse } from '@/api/generated/smbdo.schemas';
+import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
 import { IndirectOwnership } from './IndirectOwnership';
 
@@ -23,61 +23,61 @@ const mockClientWithOwners: ClientResponse = {
       organizationDetails: {
         organizationName: 'Test Company Inc.',
         organizationType: 'LIMITED_LIABILITY_COMPANY',
-        countryOfFormation: 'US'
+        countryOfFormation: 'US',
       },
-      createdAt: '2024-01-01T00:00:00.000Z'
+      createdAt: '2024-01-01T00:00:00.000Z',
     },
     // BENEFICIAL OWNER - Direct
     {
-      id: 'party-2', 
+      id: 'party-2',
       partyType: 'INDIVIDUAL',
       roles: ['BENEFICIAL_OWNER'],
       profileStatus: 'APPROVED',
       active: true,
       individualDetails: {
         firstName: 'John',
-        lastName: 'Doe'
+        lastName: 'Doe',
       },
-      createdAt: '2024-01-01T00:00:00.000Z'
+      createdAt: '2024-01-01T00:00:00.000Z',
     },
     // BENEFICIAL OWNER - Indirect (has hierarchy chain)
     {
       id: 'party-3',
       parentPartyId: 'party-intermediate',
-      partyType: 'INDIVIDUAL', 
+      partyType: 'INDIVIDUAL',
       roles: ['BENEFICIAL_OWNER'],
       profileStatus: 'APPROVED',
       active: true,
       individualDetails: {
         firstName: 'Jane',
-        lastName: 'Smith'
+        lastName: 'Smith',
       },
-      createdAt: '2024-01-01T00:00:00.000Z'
+      createdAt: '2024-01-01T00:00:00.000Z',
     },
     // Intermediate entity in hierarchy chain
     {
       id: 'party-intermediate',
       partyType: 'ORGANIZATION',
       roles: [],
-      profileStatus: 'APPROVED', 
+      profileStatus: 'APPROVED',
       active: true,
       organizationDetails: {
         organizationName: 'Intermediate LLC',
         organizationType: 'LIMITED_LIABILITY_COMPANY',
-        countryOfFormation: 'US'
+        countryOfFormation: 'US',
       },
-      createdAt: '2024-01-01T00:00:00.000Z'
-    }
+      createdAt: '2024-01-01T00:00:00.000Z',
+    },
   ],
   outstanding: {
     partyIds: [],
     partyRoles: [],
     questionIds: [],
     documentRequestIds: [],
-    attestationDocumentIds: []
+    attestationDocumentIds: [],
   },
   attestations: [],
-  createdAt: '2024-01-01T00:00:00Z'
+  createdAt: '2024-01-01T00:00:00Z',
 };
 
 const mockEmptyClient: ClientResponse = {
@@ -95,20 +95,20 @@ const mockEmptyClient: ClientResponse = {
       organizationDetails: {
         organizationName: 'Empty Company Inc.',
         organizationType: 'LIMITED_LIABILITY_COMPANY',
-        countryOfFormation: 'US'
+        countryOfFormation: 'US',
       },
-      createdAt: '2024-01-01T00:00:00.000Z'
-    }
+      createdAt: '2024-01-01T00:00:00.000Z',
+    },
   ],
   outstanding: {
     partyIds: [],
     partyRoles: [],
     questionIds: [],
     documentRequestIds: [],
-    attestationDocumentIds: []
+    attestationDocumentIds: [],
   },
   attestations: [],
-  createdAt: '2024-01-01T00:00:00Z'
+  createdAt: '2024-01-01T00:00:00Z',
 };
 
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -133,12 +133,12 @@ describe('IndirectOwnership Component', () => {
     expect(
       screen.getByText(/Who are your beneficial owners?/i)
     ).toBeInTheDocument();
-    
+
     // Add beneficial owner button
     expect(
       screen.getByRole('button', { name: /Add new beneficial owner/i })
     ).toBeInTheDocument();
-    
+
     // Empty state message
     expect(
       screen.getByText(/No beneficial owners added yet/i)
@@ -156,7 +156,7 @@ describe('IndirectOwnership Component', () => {
     expect(
       screen.getByText(/Who are your beneficial owners?/i)
     ).toBeInTheDocument();
-    
+
     // Should show beneficial owners from mock data
     expect(screen.getByText(/John Doe/i)).toBeInTheDocument();
     expect(screen.getAllByText(/Jane Smith/i)).toHaveLength(2); // Appears in owner list and hierarchy chain
@@ -173,7 +173,7 @@ describe('IndirectOwnership Component', () => {
     expect(
       screen.getByText(/No beneficial owners added yet/i)
     ).toBeInTheDocument();
-    
+
     // Should show add button
     expect(
       screen.getByRole('button', { name: /Add new beneficial owner/i })
@@ -183,7 +183,7 @@ describe('IndirectOwnership Component', () => {
   it('respects readOnly prop', () => {
     render(
       <TestWrapper>
-        <IndirectOwnership client={mockClientWithOwners} readOnly={true} />
+        <IndirectOwnership client={mockClientWithOwners} readOnly />
       </TestWrapper>
     );
 
@@ -191,18 +191,18 @@ describe('IndirectOwnership Component', () => {
     expect(
       screen.queryByRole('button', { name: /Add Beneficial Owner/i })
     ).not.toBeInTheDocument();
-    
+
     // Should still show beneficial owners
     expect(screen.getByText(/John Doe/i)).toBeInTheDocument();
   });
 
   it('calls onOwnershipComplete callback when complete button is clicked', () => {
     const onCompleteMock = vi.fn();
-    
+
     render(
       <TestWrapper>
-        <IndirectOwnership 
-          client={mockClientWithOwners} 
+        <IndirectOwnership
+          client={mockClientWithOwners}
           onOwnershipComplete={onCompleteMock}
         />
       </TestWrapper>
@@ -210,18 +210,18 @@ describe('IndirectOwnership Component', () => {
 
     // Complete button should be present for hierarchy management
     const completeButton = screen.queryByRole('button', { name: /Complete/i });
-    
+
     // This test verifies the callback prop is accepted
     expect(completeButton).toBeInTheDocument();
   });
 
   it('accepts onValidationChange callback prop', () => {
     const onValidationMock = vi.fn();
-    
+
     render(
       <TestWrapper>
-        <IndirectOwnership 
-          client={mockClientWithOwners} 
+        <IndirectOwnership
+          client={mockClientWithOwners}
           onValidationChange={onValidationMock}
         />
       </TestWrapper>
@@ -229,16 +229,18 @@ describe('IndirectOwnership Component', () => {
 
     // This test verifies the callback prop is accepted without errors
     // The component should render successfully with the callback
-    expect(screen.getByText(/Who are your beneficial owners?/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Who are your beneficial owners?/i)
+    ).toBeInTheDocument();
   });
 
   it('applies custom className and testId', () => {
     const customClass = 'custom-test-class';
     const customTestId = 'custom-test-id';
-    
+
     render(
       <TestWrapper>
-        <IndirectOwnership 
+        <IndirectOwnership
           client={mockEmptyClient}
           className={customClass}
           testId={customTestId}

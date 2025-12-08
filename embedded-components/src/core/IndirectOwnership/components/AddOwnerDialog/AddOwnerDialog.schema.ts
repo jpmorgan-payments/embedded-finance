@@ -4,7 +4,8 @@ import { z } from 'zod';
  * Zod schema for AddOwnerDialog form validation
  * Uses direct schema definition following established codebase patterns
  */
-export const addOwnerFormSchema = z.object({
+export const addOwnerFormSchema = z
+  .object({
     firstName: z
       .string()
       .min(1, 'First name is required')
@@ -37,8 +38,8 @@ export const addOwnerFormSchema = z.object({
 
     ownershipType: z.enum(['DIRECT', 'INDIRECT'], {
       required_error: 'Please select an ownership type',
-      invalid_type_error: 'Please select either Direct or Indirect ownership'
-    })
+      invalid_type_error: 'Please select either Direct or Indirect ownership',
+    }),
   })
   .refine(
     (data) => {
@@ -47,7 +48,7 @@ export const addOwnerFormSchema = z.object({
     },
     {
       message: 'First name and last name cannot be the same',
-      path: ['general']
+      path: ['general'],
     }
   );
 

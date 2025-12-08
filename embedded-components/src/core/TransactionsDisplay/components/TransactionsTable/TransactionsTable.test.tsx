@@ -76,8 +76,8 @@ describe('TransactionsTable', () => {
       expect(screen.getByText('Status')).toBeInTheDocument();
       expect(screen.getByText('Type')).toBeInTheDocument();
       expect(screen.getByText('Amount')).toBeInTheDocument();
+      expect(screen.getByText('Currency')).toBeInTheDocument();
       expect(screen.getByText('Counterpart')).toBeInTheDocument();
-      expect(screen.getByText('Reference ID')).toBeInTheDocument();
     });
 
     test('renders transaction data', () => {
@@ -90,7 +90,6 @@ describe('TransactionsTable', () => {
 
       expect(screen.getByText('John Doe')).toBeInTheDocument();
       expect(screen.getByText('Jane Smith')).toBeInTheDocument();
-      expect(screen.getByText('REF-12345')).toBeInTheDocument();
     });
 
     test('renders empty state when no data', () => {
@@ -196,6 +195,19 @@ describe('TransactionsTable', () => {
         />
       );
 
+      // First, show the Reference ID column
+      const columnsButton = screen.getByRole('button', { name: /columns/i });
+      await user.click(columnsButton);
+
+      // Find and check the Reference ID checkbox to show the column
+      const refIdCheckbox = screen.getByRole('menuitemcheckbox', {
+        name: /reference id/i,
+      });
+      await user.click(refIdCheckbox);
+
+      // Close the menu by pressing Escape
+      await user.keyboard('{Escape}');
+
       const refFilter = screen.getByPlaceholderText('Filter reference ID...');
       await user.type(refFilter, 'REF-12345');
 
@@ -238,9 +250,9 @@ describe('TransactionsTable', () => {
         />
       );
 
-      // There may be multiple view buttons (one in toolbar, one in column header)
-      const viewButtons = screen.getAllByRole('button', { name: /view/i });
-      expect(viewButtons.length).toBeGreaterThan(0);
+      // Check for Columns button in toolbar
+      const columnsButton = screen.getByRole('button', { name: /columns/i });
+      expect(columnsButton).toBeInTheDocument();
     });
 
     test('toggles column visibility', async () => {
@@ -252,10 +264,9 @@ describe('TransactionsTable', () => {
         />
       );
 
-      // Get the view button from the toolbar (first one)
-      const viewButtons = screen.getAllByRole('button', { name: /view/i });
-      const toolbarViewButton = viewButtons[0];
-      await user.click(toolbarViewButton);
+      // Get the Columns button from the toolbar
+      const columnsButton = screen.getByRole('button', { name: /columns/i });
+      await user.click(columnsButton);
 
       // Should show column toggle menu
       expect(screen.getByText('Toggle columns')).toBeInTheDocument();

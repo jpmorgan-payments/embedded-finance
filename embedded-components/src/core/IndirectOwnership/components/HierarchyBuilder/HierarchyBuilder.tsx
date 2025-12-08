@@ -1,15 +1,14 @@
 'use client';
 
 import React from 'react';
-import { ArrowLeft, Building, CheckCircle, Plus, X, User } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { ArrowLeft, Building, Plus, User, X } from 'lucide-react';
 
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import type { HierarchyBuilderProps } from './types';
 
@@ -25,13 +24,13 @@ export const HierarchyBuilder: React.FC<HierarchyBuilderProps> = ({
   kycCompanyName = 'your company',
   maxLevels = 10,
 }) => {
-  const { t } = useTranslation();
-
   const [currentCompanyName, setCurrentCompanyName] = React.useState('');
-  const [isKycCompany, setIsKycCompany] = React.useState<'yes' | 'no' | null>(null);
+  const [isKycCompany, setIsKycCompany] = React.useState<'yes' | 'no' | null>(
+    null
+  );
   const [errors, setErrors] = React.useState<string[]>([]);
 
-  const hasKycCompany = hierarchyChain.some(company => company.isKycCompany);
+  const hasKycCompany = hierarchyChain.some((company) => company.isKycCompany);
   const canAddMore = hierarchyChain.length < maxLevels && !hasKycCompany;
 
   const handleAddCompany = () => {
@@ -42,14 +41,17 @@ export const HierarchyBuilder: React.FC<HierarchyBuilderProps> = ({
     }
 
     if (isKycCompany === null) {
-      newErrors.push('Please specify whether this is the business being onboarded or an intermediary owner');
+      newErrors.push(
+        'Please specify whether this is the business being onboarded or an intermediary owner'
+      );
     }
 
     // Check for duplicate company names
     const isDuplicate = hierarchyChain.some(
-      company => company.companyName.toLowerCase() === currentCompanyName.toLowerCase()
+      (company) =>
+        company.companyName.toLowerCase() === currentCompanyName.toLowerCase()
     );
-    
+
     if (isDuplicate) {
       newErrors.push('This company is already in the chain');
     }
@@ -74,14 +76,16 @@ export const HierarchyBuilder: React.FC<HierarchyBuilderProps> = ({
 
   const handleRemoveCompany = (companyId: string) => {
     const updatedChain = hierarchyChain
-      .filter(company => company.id !== companyId)
+      .filter((company) => company.id !== companyId)
       .map((company, index) => ({ ...company, level: index + 1 }));
     onHierarchyChange(updatedChain);
   };
 
   const handleContinue = () => {
     if (!hasKycCompany) {
-      setErrors(['Please identify which company directly owns the business being onboarded']);
+      setErrors([
+        'Please identify which company directly owns the business being onboarded',
+      ]);
       return;
     }
     onContinue();
@@ -91,7 +95,7 @@ export const HierarchyBuilder: React.FC<HierarchyBuilderProps> = ({
     if (hierarchyChain.length === 0) {
       return `${owner.firstName} ${owner.lastName} directly owns:`;
     }
-    
+
     const lastCompany = hierarchyChain[hierarchyChain.length - 1];
     return `${lastCompany.companyName} owns:`;
   };
@@ -109,8 +113,14 @@ export const HierarchyBuilder: React.FC<HierarchyBuilderProps> = ({
           {/* Context info */}
           <Alert>
             <AlertDescription>
-              Build the ownership chain from <strong>{owner.firstName} {owner.lastName}</strong> to{' '}
-              <strong>{kycCompanyName}</strong>. An ownership chain shows the path of companies between an individual and the final company being onboarded, where the individual ultimately owns 25% or more of {kycCompanyName}.
+              Build the ownership chain from{' '}
+              <strong>
+                {owner.firstName} {owner.lastName}
+              </strong>{' '}
+              to <strong>{kycCompanyName}</strong>. An ownership chain shows the
+              path of companies between an individual and the final company
+              being onboarded, where the individual ultimately owns 25% or more
+              of {kycCompanyName}.
             </AlertDescription>
           </Alert>
 
@@ -118,43 +128,53 @@ export const HierarchyBuilder: React.FC<HierarchyBuilderProps> = ({
           {hierarchyChain.length > 0 && (
             <div className="eb-space-y-3">
               <h3 className="eb-font-medium">Current Ownership Chain:</h3>
-              <div className="eb-flex eb-items-center eb-gap-2 eb-p-3 eb-bg-gray-50 eb-border eb-rounded eb-flex-wrap">
+              <div className="eb-flex eb-flex-wrap eb-items-center eb-gap-2 eb-rounded eb-border eb-bg-gray-50 eb-p-3">
                 {/* Owner at the start */}
-                <div className="eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-1.5 eb-bg-blue-50 eb-border eb-border-blue-200 eb-rounded eb-text-sm eb-shrink-0">
+                <div className="eb-flex eb-shrink-0 eb-items-center eb-gap-2 eb-rounded eb-border eb-border-blue-200 eb-bg-blue-50 eb-px-3 eb-py-1.5 eb-text-sm">
                   <User className="eb-h-3 eb-w-3 eb-text-blue-600" />
-                  <span className="eb-font-medium eb-text-blue-900">{owner.firstName} {owner.lastName}</span>
+                  <span className="eb-font-medium eb-text-blue-900">
+                    {owner.firstName} {owner.lastName}
+                  </span>
                 </div>
-                
-                <span className="eb-text-gray-400 eb-text-sm eb-shrink-0">→</span>
+
+                <span className="eb-shrink-0 eb-text-sm eb-text-gray-400">
+                  →
+                </span>
 
                 {/* Company chain */}
-                {hierarchyChain.map((company, index) => (
+                {hierarchyChain.map((company) => (
                   <React.Fragment key={company.id}>
-                    <div className="eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-1.5 eb-bg-white eb-border eb-rounded eb-text-sm eb-shrink-0">
+                    <div className="eb-flex eb-shrink-0 eb-items-center eb-gap-2 eb-rounded eb-border eb-bg-white eb-px-3 eb-py-1.5 eb-text-sm">
                       <Building className="eb-h-3 eb-w-3 eb-text-gray-600" />
-                      <span className="eb-font-medium">{company.companyName}</span>
-                      <span className="eb-text-xs eb-px-1.5 eb-py-0.5 eb-bg-green-100 eb-text-green-700 eb-rounded">
+                      <span className="eb-font-medium">
+                        {company.companyName}
+                      </span>
+                      <span className="eb-rounded eb-bg-green-100 eb-px-1.5 eb-py-0.5 eb-text-xs eb-text-green-700">
                         Intermediary
                       </span>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => handleRemoveCompany(company.id)}
-                        className="eb-h-4 eb-w-4 eb-p-0 eb-text-red-500 hover:eb-text-red-700 hover:eb-bg-red-50"
+                        className="eb-h-4 eb-w-4 eb-p-0 eb-text-red-500 hover:eb-bg-red-50 hover:eb-text-red-700"
                       >
                         <X className="eb-h-3 eb-w-3" />
                       </Button>
                     </div>
-                    <span className="eb-text-gray-400 eb-text-sm eb-shrink-0">→</span>
+                    <span className="eb-shrink-0 eb-text-sm eb-text-gray-400">
+                      →
+                    </span>
                   </React.Fragment>
                 ))}
-                
+
                 {/* Always show the business being onboarded at the end */}
                 {hasKycCompany && (
-                  <div className="eb-flex eb-items-center eb-gap-2 eb-px-3 eb-py-1.5 eb-bg-green-50 eb-border eb-border-green-200 eb-rounded eb-text-sm eb-shrink-0">
+                  <div className="eb-flex eb-shrink-0 eb-items-center eb-gap-2 eb-rounded eb-border eb-border-green-200 eb-bg-green-50 eb-px-3 eb-py-1.5 eb-text-sm">
                     <Building className="eb-h-3 eb-w-3 eb-text-green-600" />
-                    <span className="eb-font-medium eb-text-green-900">{kycCompanyName}</span>
-                    <span className="eb-text-xs eb-px-1.5 eb-py-0.5 eb-bg-green-200 eb-text-green-800 eb-rounded">
+                    <span className="eb-font-medium eb-text-green-900">
+                      {kycCompanyName}
+                    </span>
+                    <span className="eb-rounded eb-bg-green-200 eb-px-1.5 eb-py-0.5 eb-text-xs eb-text-green-800">
                       Business
                     </span>
                   </div>
@@ -165,9 +185,11 @@ export const HierarchyBuilder: React.FC<HierarchyBuilderProps> = ({
 
           {/* Add new company form */}
           {canAddMore && (
-            <div className="eb-space-y-4 eb-p-4 eb-border eb-rounded-lg eb-bg-gray-50">
-              <h3 className="eb-font-medium">{getCurrentOwnershipDescription()}</h3>
-              
+            <div className="eb-space-y-4 eb-rounded-lg eb-border eb-bg-gray-50 eb-p-4">
+              <h3 className="eb-font-medium">
+                {getCurrentOwnershipDescription()}
+              </h3>
+
               <div className="eb-space-y-4">
                 <div className="eb-space-y-2">
                   <Label htmlFor="companyName">Company Name *</Label>
@@ -180,8 +202,15 @@ export const HierarchyBuilder: React.FC<HierarchyBuilderProps> = ({
                 </div>
 
                 <div className="eb-space-y-3">
-                  <Label>Does this company own {kycCompanyName} directly?</Label>
-                  <RadioGroup value={isKycCompany || ''} onValueChange={(value) => setIsKycCompany(value as 'yes' | 'no')}>
+                  <Label>
+                    Does this company own {kycCompanyName} directly?
+                  </Label>
+                  <RadioGroup
+                    value={isKycCompany || ''}
+                    onValueChange={(value) =>
+                      setIsKycCompany(value as 'yes' | 'no')
+                    }
+                  >
                     <div className="eb-flex eb-items-center eb-space-x-2">
                       <RadioGroupItem value="yes" id="kyc-yes" />
                       <Label htmlFor="kyc-yes">
@@ -197,12 +226,12 @@ export const HierarchyBuilder: React.FC<HierarchyBuilderProps> = ({
                   </RadioGroup>
                 </div>
 
-                <Button 
+                <Button
                   onClick={handleAddCompany}
                   className="eb-w-full"
                   variant="outline"
                 >
-                  <Plus className="eb-h-4 eb-w-4 eb-mr-2" />
+                  <Plus className="eb-mr-2 eb-h-4 eb-w-4" />
                   Add Company
                 </Button>
               </div>
@@ -213,7 +242,7 @@ export const HierarchyBuilder: React.FC<HierarchyBuilderProps> = ({
           {errors.length > 0 && (
             <Alert variant="destructive">
               <AlertDescription>
-                <ul className="eb-list-disc eb-list-inside">
+                <ul className="eb-list-inside eb-list-disc">
                   {errors.map((error, index) => (
                     <li key={index}>{error}</li>
                   ))}
@@ -226,8 +255,8 @@ export const HierarchyBuilder: React.FC<HierarchyBuilderProps> = ({
           {hierarchyChain.length >= maxLevels && !hasKycCompany && (
             <Alert>
               <AlertDescription>
-                Maximum ownership levels reached ({maxLevels}). If you need to add more levels, 
-                please contact support.
+                Maximum ownership levels reached ({maxLevels}). If you need to
+                add more levels, please contact support.
               </AlertDescription>
             </Alert>
           )}
@@ -236,15 +265,17 @@ export const HierarchyBuilder: React.FC<HierarchyBuilderProps> = ({
           {hasKycCompany && (
             <Alert>
               <AlertDescription>
-                ✅ Ownership chain complete! You have successfully mapped the path from {owner.firstName} {owner.lastName} to {kycCompanyName}.
+                ✅ Ownership chain complete! You have successfully mapped the
+                path from {owner.firstName} {owner.lastName} to {kycCompanyName}
+                .
               </AlertDescription>
             </Alert>
           )}
 
           {/* Navigation */}
-          <div className="eb-flex eb-justify-between eb-items-center eb-pt-4">
-            <Button 
-              variant="outline" 
+          <div className="eb-flex eb-items-center eb-justify-between eb-pt-4">
+            <Button
+              variant="outline"
               onClick={onBack}
               className="eb-flex eb-items-center eb-gap-2"
             >
@@ -252,7 +283,7 @@ export const HierarchyBuilder: React.FC<HierarchyBuilderProps> = ({
               Back
             </Button>
 
-            <Button 
+            <Button
               onClick={handleContinue}
               disabled={!hasKycCompany}
               className="eb-min-w-32"

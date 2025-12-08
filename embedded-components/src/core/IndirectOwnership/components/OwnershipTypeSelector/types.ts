@@ -1,5 +1,3 @@
-import type React from 'react';
-
 /**
  * Props for the OwnershipTypeSelector component
  */

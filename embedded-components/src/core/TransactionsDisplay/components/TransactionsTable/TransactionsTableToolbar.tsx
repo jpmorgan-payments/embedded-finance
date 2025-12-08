@@ -54,8 +54,8 @@ export function TransactionsTableToolbar<TData>({
     ?.getFilterValue() as string | undefined;
 
   return (
-    <div className="eb-flex eb-items-center eb-justify-between">
-      <div className="eb-flex eb-flex-1 eb-items-center eb-space-x-2">
+    <div className="eb-flex eb-flex-col eb-gap-2 sm:eb-flex-row sm:eb-items-center sm:eb-justify-between">
+      <div className="eb-flex eb-flex-1 eb-flex-wrap eb-items-center eb-gap-2">
         {/* Status Filter */}
         <Select
           value={

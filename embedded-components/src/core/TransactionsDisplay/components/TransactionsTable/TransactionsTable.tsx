@@ -8,6 +8,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   SortingState,
+  Table as TanStackTable,
   useReactTable,
   VisibilityState,
 } from '@tanstack/react-table';
@@ -21,6 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+import { TransactionDetailsDialogTrigger } from '../../TransactionDetailsSheet/TransactionDetailsSheet';
 import type { ModifiedTransaction } from '../../utils';
 import { DataTablePagination } from './DataTablePagination';
 import { TransactionsTableToolbar } from './TransactionsTableToolbar';
@@ -31,6 +33,7 @@ import { TransactionsTableToolbar } from './TransactionsTableToolbar';
 interface TransactionsTableProps {
   columns: ColumnDef<ModifiedTransaction>[];
   data: ModifiedTransaction[];
+  table?: TanStackTable<ModifiedTransaction>;
 }
 
 /**
@@ -43,13 +46,19 @@ interface TransactionsTableProps {
  * - Pagination with page size control
  * - Client-side filtering and sorting
  */
-export function TransactionsTable({ columns, data }: TransactionsTableProps) {
+export function TransactionsTable({
+  columns,
+  data,
+  table: providedTable,
+}: TransactionsTableProps) {
+  // Use provided table or create own table instance
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
+      transactionReferenceId: false,
       createdAt: false,
       effectiveDate: false,
       memo: false,
@@ -58,10 +67,9 @@ export function TransactionsTable({ columns, data }: TransactionsTableProps) {
       ledgerBalance: false,
       postingVersion: false,
       payinOrPayout: false,
-      currency: false,
     });
 
-  const table = useReactTable({
+  const internalTable = useReactTable({
     data,
     columns,
     onSortingChange: setSorting,
@@ -89,9 +97,11 @@ export function TransactionsTable({ columns, data }: TransactionsTableProps) {
     },
   });
 
+  const table = providedTable || internalTable;
+
   return (
     <div className="eb-w-full eb-space-y-4">
-      <TransactionsTableToolbar table={table} />
+      {!providedTable && <TransactionsTableToolbar table={table} />}
       <div className="eb-rounded-md eb-border">
         <Table>
           <TableHeader>
@@ -114,21 +124,39 @@ export function TransactionsTable({ columns, data }: TransactionsTableProps) {
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                const transaction = row.original;
+                const transactionId = transaction.id ?? '';
+                return (
+                  <TransactionDetailsDialogTrigger
+                    key={row.id}
+                    transactionId={transactionId}
+                  >
+                    <TableRow
+                      data-state={row.getIsSelected() && 'selected'}
+                      className="eb-cursor-pointer eb-transition-colors hover:eb-bg-muted/50"
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          // Trigger click on the row to open dialog
+                          (e.currentTarget as HTMLElement).click();
+                        }
+                      }}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </TransactionDetailsDialogTrigger>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell
@@ -142,7 +170,7 @@ export function TransactionsTable({ columns, data }: TransactionsTableProps) {
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+      {!providedTable && <DataTablePagination table={table} />}
     </div>
   );
 }

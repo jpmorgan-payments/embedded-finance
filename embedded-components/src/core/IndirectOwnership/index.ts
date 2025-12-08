@@ -6,13 +6,13 @@
 export { IndirectOwnership } from './IndirectOwnership';
 
 // Public types only
-export type { 
-  IndirectOwnershipProps, 
-  BeneficialOwner, 
+export type {
+  IndirectOwnershipProps,
+  BeneficialOwner,
   BeneficialOwnerStatus,
   ValidationSummary,
   OwnershipHierarchy,
-  HierarchyStep 
+  HierarchyStep,
 } from './IndirectOwnership.types';
 
 // ❌ DON'T export internals:

@@ -24,7 +24,7 @@ export const efClientPendingHierarchy: ClientResponse = {
         countryOfFormation: 'US',
       },
     },
-    
+
     // DIRECT BENEFICIAL OWNER: Monica Geller - Complete, no hierarchy needed
     {
       id: 'party-monica',

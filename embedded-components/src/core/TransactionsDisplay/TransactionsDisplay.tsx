@@ -1,4 +1,14 @@
-import { forwardRef, useImperativeHandle } from 'react';
+import { forwardRef, useImperativeHandle, useState } from 'react';
+import {
+  ColumnFiltersState,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  SortingState,
+  useReactTable,
+  VisibilityState,
+} from '@tanstack/react-table';
 import { RefreshCw } from 'lucide-react';
 
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -7,8 +17,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 
 import { TransactionCard } from './components/TransactionCard/TransactionCard';
+import { DataTablePagination } from './components/TransactionsTable/DataTablePagination';
 import { TransactionsTable } from './components/TransactionsTable/TransactionsTable';
 import { transactionsColumns } from './components/TransactionsTable/TransactionsTable.columns';
+import { TransactionsTableToolbar } from './components/TransactionsTable/TransactionsTableToolbar';
 import { useAccountsData, useTransactionsData } from './hooks';
 import type {
   TransactionsDisplayProps,
@@ -26,6 +38,50 @@ export const TransactionsDisplay = forwardRef<
     });
 
   const isMobile = useMediaQuery('(max-width: 640px)');
+
+  // Table state management (shared for both table and card views)
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    transactionReferenceId: false,
+    createdAt: false,
+    effectiveDate: false,
+    memo: false,
+    debtorName: false,
+    creditorName: false,
+    ledgerBalance: false,
+    postingVersion: false,
+    payinOrPayout: false,
+  });
+
+  // Create table instance for filtering, sorting, and pagination
+  const table = useReactTable({
+    data: transactions,
+    columns: transactionsColumns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+    },
+    initialState: {
+      pagination: {
+        pageSize: 25,
+      },
+      sorting: [
+        {
+          id: 'paymentDate',
+          desc: true, // Most recent first
+        },
+      ],
+    },
+  });
 
   // Expose internal methods to parent component
   useImperativeHandle(
@@ -85,23 +141,36 @@ export const TransactionsDisplay = forwardRef<
             showDetails={false}
           />
         )}
-        {status === 'success' &&
-          transactions.length > 0 &&
-          (isMobile ? (
-            <div>
-              {transactions.map((transaction) => (
-                <TransactionCard
-                  key={transaction.id}
-                  transaction={transaction}
-                />
-              ))}
-            </div>
-          ) : (
-            <TransactionsTable
-              columns={transactionsColumns}
-              data={transactions}
-            />
-          ))}
+        {status === 'success' && transactions.length > 0 && (
+          <div className="eb-w-full eb-space-y-4">
+            <TransactionsTableToolbar table={table} />
+            {isMobile ? (
+              <div>
+                {table.getRowModel().rows.length ? (
+                  table
+                    .getRowModel()
+                    .rows.map((row) => (
+                      <TransactionCard
+                        key={row.original.id ?? `transaction-${row.id}`}
+                        transaction={row.original}
+                      />
+                    ))
+                ) : (
+                  <div className="eb-py-8 eb-text-center eb-text-muted-foreground">
+                    No results.
+                  </div>
+                )}
+              </div>
+            ) : (
+              <TransactionsTable
+                columns={transactionsColumns}
+                data={transactions}
+                table={table}
+              />
+            )}
+            <DataTablePagination table={table} />
+          </div>
+        )}
         {status === 'success' && transactions.length === 0 && (
           <div className="eb-py-8 eb-text-center eb-text-muted-foreground">
             No transactions found
