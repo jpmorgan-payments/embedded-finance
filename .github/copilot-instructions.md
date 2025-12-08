@@ -371,6 +371,45 @@ test("responds to context changes", async () => {
    - Test accessibility features
    - Include integration tests for complex flows
 
+## ⚠️ CRITICAL: Code Quality Workflow
+
+**After making ANY code changes, you MUST:**
+
+1. **Run tests**: `cd embedded-components && yarn test`
+
+   - This runs: typecheck → format:check → lint → test:unit
+   - **DO NOT skip this step** - tests must pass before proceeding
+
+2. **Fix any errors that appear**:
+
+   - **TypeScript errors**: Fix type issues in the code
+   - **Prettier/formatting errors**: Run `yarn format` to auto-fix
+   - **Linting errors**: Run `yarn lint:fix` to auto-fix, or fix manually
+   - **Test failures**: Update tests or fix implementation
+
+3. **Re-run tests** until all pass:
+   ```powershell
+   cd embedded-components
+   yarn test
+   ```
+
+**Never commit code with:**
+
+- ❌ TypeScript errors
+- ❌ Formatting errors (Prettier)
+- ❌ Linting errors
+- ❌ Failing tests
+
+**Quick Fix Commands:**
+
+```powershell
+cd embedded-components
+yarn format          # Auto-fix formatting
+yarn lint:fix        # Auto-fix linting
+yarn typecheck       # Check types only
+yarn test            # Full test suite
+```
+
 ### Storybook Stories
 
 Generate stories as:
