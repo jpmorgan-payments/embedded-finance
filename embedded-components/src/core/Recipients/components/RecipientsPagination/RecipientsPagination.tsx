@@ -34,8 +34,6 @@ export const RecipientsPagination: React.FC<RecipientsPaginationProps> = ({
   totalPages,
   pageSize,
   totalItems,
-  startIndex,
-  endIndex,
   onPageChange,
   onPageSizeChange,
 }) => {

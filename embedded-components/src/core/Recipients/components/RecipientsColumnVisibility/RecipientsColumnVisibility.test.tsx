@@ -1,13 +1,14 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import type {
-  RecipientColumnKey,
-  RecipientsColumnConfiguration,
+import {
+  defaultRecipientsColumnConfig,
+  type RecipientsColumnConfiguration,
 } from '../../Recipients.columns';
 import { RecipientsColumnVisibility } from './RecipientsColumnVisibility';
 
 const mockColumnConfig: RecipientsColumnConfiguration = {
+  ...defaultRecipientsColumnConfig,
   name: { visible: true, sortable: true, label: 'Name' },
   type: { visible: true, sortable: true, label: 'Type' },
   status: { visible: true, sortable: true, label: 'Status' },
