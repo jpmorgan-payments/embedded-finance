@@ -36,10 +36,10 @@ export function DataTableViewOptions<TData>({
           className="eb-ml-auto eb-hidden eb-h-8 lg:eb-flex"
         >
           <Settings2 className="eb-mr-2 eb-h-4 eb-w-4" />
-          View
+          Columns
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="eb-w-[150px]">
+      <DropdownMenuContent align="end" className="eb-w-[220px]">
         <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {table
