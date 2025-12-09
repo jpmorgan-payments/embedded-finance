@@ -89,8 +89,17 @@ const mockAccountBalance = {
   currency: 'USD',
 };
 
+// Default payment methods for testing
+const defaultPaymentMethods = [
+  { id: 'ACH', name: 'ACH', fee: 2.5 },
+  { id: 'RTP', name: 'RTP', fee: 1 },
+  { id: 'WIRE', name: 'WIRE', fee: 25 },
+];
+
 // Component rendering helper
-const renderComponent = () => {
+const renderComponent = (props?: {
+  paymentMethods?: typeof defaultPaymentMethods;
+}) => {
   // Reset MSW handlers before each render
   server.resetHandlers();
 
@@ -126,7 +135,9 @@ const renderComponent = () => {
       }}
     >
       <QueryClientProvider client={queryClient}>
-        <MakePayment />
+        <MakePayment
+          paymentMethods={props?.paymentMethods || defaultPaymentMethods}
+        />
       </QueryClientProvider>
     </EBComponentsProvider>
   );
@@ -302,8 +313,15 @@ describe('MakePayment (Refactored)', () => {
 
     // Fill out the form
     // Since there's only one recipient, it should be displayed as text, not a select
+    // The auto-selection hook should set the recipient value automatically
     await waitFor(() => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
+    });
+
+    // Wait a bit for auto-selection to complete
+    await waitFor(() => {
+      // Payment methods should appear once recipient is selected
+      // But we need to select account first
     });
 
     // Select account - find combobox (skip currency selector)
@@ -329,15 +347,24 @@ describe('MakePayment (Refactored)', () => {
     const amountInput = screen.getByPlaceholderText('0.00');
     await userEvent.type(amountInput, '100.00');
 
-    // Select payment method - find by text content in the label
-    await waitFor(() => {
-      expect(screen.getByText(/ACH/i)).toBeInTheDocument();
-    });
-    // Click on the label that contains ACH text
-    const achOption = screen.getByText(/ACH/i).closest('label');
-    if (achOption) {
-      await userEvent.click(achOption);
-    }
+    // Payment methods should appear after recipient is selected
+    // Since there's only one recipient, it should be auto-selected
+    // Wait for payment method section to appear (only shown when recipientMode !== 'manual' AND recipient is selected)
+    await waitFor(
+      () => {
+        expect(screen.getByText('How do you want to pay?')).toBeInTheDocument();
+        // Payment methods should be available - filtered by recipient's supported methods
+        // The mock recipient supports ACH and RTP (from routingInformation)
+        expect(screen.getByText(/ACH/i)).toBeInTheDocument();
+      },
+      { timeout: 3000 }
+    );
+
+    // Click on the ACH payment method
+    const achText = screen.getByText(/ACH/i);
+    const achLabel = achText.closest('label');
+    expect(achLabel).toBeInTheDocument();
+    await userEvent.click(achLabel!);
 
     // Submit the form
     const submitButton = screen.getByRole('button', {
@@ -395,14 +422,22 @@ describe('MakePayment (Refactored)', () => {
     const amountInput = screen.getByPlaceholderText('0.00');
     await userEvent.type(amountInput, '100.00');
 
-    await waitFor(() => {
-      expect(screen.getByText(/ACH/i)).toBeInTheDocument();
-    });
-    // Click on the label that contains ACH text
-    const achOption = screen.getByText(/ACH/i).closest('label');
-    if (achOption) {
-      await userEvent.click(achOption);
-    }
+    // Payment methods should appear after recipient is selected
+    // Wait for payment method section to appear (only shown when recipientMode !== 'manual' AND recipient is selected)
+    await waitFor(
+      () => {
+        expect(screen.getByText('How do you want to pay?')).toBeInTheDocument();
+        // Payment methods should be available - filtered by recipient's supported methods
+        expect(screen.getByText(/ACH/i)).toBeInTheDocument();
+      },
+      { timeout: 3000 }
+    );
+
+    // Click on the ACH payment method
+    const achText = screen.getByText(/ACH/i);
+    const achLabel = achText.closest('label');
+    expect(achLabel).toBeInTheDocument();
+    await userEvent.click(achLabel!);
 
     const submitButton = screen.getByRole('button', {
       name: /confirm payment/i,
@@ -565,6 +600,19 @@ describe('MakePayment (Refactored)', () => {
     // Switch back to existing mode
     await userEvent.click(screen.getByText('Select existing'));
 
+    // Payment methods should NOT appear until a recipient is selected
+    // Since no recipient is selected, payment methods should not be visible
+    await waitFor(() => {
+      expect(screen.queryByText('How do you want to pay?')).not.toBeInTheDocument();
+    });
+
+    // Now select a recipient - since there's only one, it should be auto-selected
+    // Wait for recipient to be displayed
+    await waitFor(() => {
+      expect(screen.getByText('John Doe')).toBeInTheDocument();
+    });
+
+    // Now payment methods should appear after recipient is selected
     await waitFor(() => {
       expect(screen.getByText('How do you want to pay?')).toBeInTheDocument();
     });

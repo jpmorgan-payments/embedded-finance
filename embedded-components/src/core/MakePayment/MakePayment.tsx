@@ -492,18 +492,22 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                           </Card>
 
                           {/* Section 4: How do you want to pay? */}
-                          {form.watch('recipientMode') !== 'manual' && (
-                            <Card className="eb-p-4">
-                              <CardContent className="eb-p-0">
-                                <PaymentMethodSelector
-                                  paymentMethods={paymentMethods}
-                                  isFormFilled={validation.isFormFilled}
-                                  amount={validation.amount}
-                                  fee={validation.fee}
-                                />
-                              </CardContent>
-                            </Card>
-                          )}
+                          {form.watch('recipientMode') !== 'manual' &&
+                            form.watch('to') && (
+                              <Card className="eb-p-4">
+                                <CardContent className="eb-p-0">
+                                  <PaymentMethodSelector
+                                    paymentMethods={
+                                      paymentData.dynamicPaymentMethods
+                                    }
+                                    isFormFilled={validation.isFormFilled}
+                                    amount={validation.amount}
+                                    fee={validation.fee}
+                                    accountsStatus={paymentData.accountsStatus}
+                                  />
+                                </CardContent>
+                              </Card>
+                            )}
 
                           {/* Section 5: Additional Information (optional) */}
                           <Card className="eb-p-4">

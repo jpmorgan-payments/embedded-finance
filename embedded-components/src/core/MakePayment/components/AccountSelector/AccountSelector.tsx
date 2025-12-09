@@ -44,7 +44,7 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
   accountBalance,
   isBalanceLoading,
   isBalanceError,
-  balanceError,
+  balanceError: _balanceError,
   refetchBalance,
 }) => {
   const { t } = useTranslation(['make-payment']);

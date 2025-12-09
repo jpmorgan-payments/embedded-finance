@@ -109,8 +109,10 @@ describe('PaymentMethodSelector', () => {
       </TestWrapper>
     );
 
-    expect(
-      screen.getByText('No payment methods available for this recipient.')
-    ).toBeInTheDocument();
+    // When payment methods are empty, the title should still be shown
+    expect(screen.getByText('How do you want to pay?')).toBeInTheDocument();
+    // But no payment method options should be rendered
+    expect(screen.queryByText(/ACH/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/RTP/i)).not.toBeInTheDocument();
   });
 });

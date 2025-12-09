@@ -33,6 +33,7 @@ interface PaymentMethodSelectorProps {
   isFormFilled: boolean;
   amount: number;
   fee: number;
+  accountsStatus?: 'pending' | 'error' | 'success';
 }
 
 export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
@@ -40,6 +41,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   isFormFilled,
   amount,
   fee,
+  accountsStatus,
 }) => {
   const { t } = useTranslation(['make-payment']);
   const form = useFormContext<PaymentFormData>();
@@ -84,49 +86,62 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
         render={({ field }) => (
           <FormItem className="eb-space-y-3">
             <FormControl>
-              <RadioGroup
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                value={field.value}
-                className="eb-flex eb-flex-row eb-gap-2"
-              >
-                {paymentMethods.map((paymentMethod) => (
-                  <div key={paymentMethod.id} className="eb-flex-1">
-                    <RadioGroupItem
-                      value={paymentMethod.id}
-                      id={paymentMethod.id.toLowerCase()}
-                      className="eb-sr-only"
-                    />
-                    <Label
-                      htmlFor={paymentMethod.id.toLowerCase()}
-                      className={cn(
-                        'eb-flex eb-cursor-pointer eb-items-center eb-gap-2 eb-rounded-lg eb-border eb-p-3 eb-transition-all',
-                        'eb-border-border eb-bg-card',
-                        'hover:eb-border-primary/50 hover:eb-bg-accent/50',
-                        'focus-within:eb-ring-2 focus-within:eb-ring-ring focus-within:eb-ring-offset-2',
-                        field.value === paymentMethod.id
-                          ? 'eb-border-2 eb-border-primary eb-bg-primary/5 eb-shadow-sm'
-                          : ''
-                      )}
-                    >
-                      <div className="eb-flex eb-items-center eb-gap-2 eb-text-primary">
-                        {getPaymentIcon(paymentMethod.id)}
-                      </div>
-                      <div className="eb-flex eb-flex-1 eb-flex-col eb-gap-0.5">
-                        <span className="eb-text-sm eb-font-medium">
-                          {getPaymentLabel(
-                            paymentMethod.id,
-                            paymentMethod.name
-                          )}
-                        </span>
-                        <span className="eb-text-xs eb-text-muted-foreground">
-                          ${paymentMethod.fee.toFixed(2)} fee
-                        </span>
-                      </div>
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
+              {paymentMethods.length === 0 ? (
+                <div className="eb-text-sm eb-text-destructive">
+                  {accountsStatus === 'error'
+                    ? t('errors.noPaymentMethodsAvailable', {
+                        defaultValue:
+                          'No payment methods available for this recipient.',
+                      })
+                    : t('errors.noPaymentMethods', {
+                        defaultValue: 'No payment methods available.',
+                      })}
+                </div>
+              ) : (
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  value={field.value}
+                  className="eb-flex eb-flex-row eb-gap-2"
+                >
+                  {paymentMethods.map((paymentMethod) => (
+                    <div key={paymentMethod.id} className="eb-flex-1">
+                      <RadioGroupItem
+                        value={paymentMethod.id}
+                        id={paymentMethod.id.toLowerCase()}
+                        className="eb-sr-only"
+                      />
+                      <Label
+                        htmlFor={paymentMethod.id.toLowerCase()}
+                        className={cn(
+                          'eb-flex eb-cursor-pointer eb-items-center eb-gap-2 eb-rounded-lg eb-border eb-p-3 eb-transition-all',
+                          'eb-border-border eb-bg-card',
+                          'hover:eb-border-primary/50 hover:eb-bg-accent/50',
+                          'focus-within:eb-ring-2 focus-within:eb-ring-ring focus-within:eb-ring-offset-2',
+                          field.value === paymentMethod.id
+                            ? 'eb-border-2 eb-border-primary eb-bg-primary/5 eb-shadow-sm'
+                            : ''
+                        )}
+                      >
+                        <div className="eb-flex eb-items-center eb-gap-2 eb-text-primary">
+                          {getPaymentIcon(paymentMethod.id)}
+                        </div>
+                        <div className="eb-flex eb-flex-1 eb-flex-col eb-gap-0.5">
+                          <span className="eb-text-sm eb-font-medium">
+                            {getPaymentLabel(
+                              paymentMethod.id,
+                              paymentMethod.name
+                            )}
+                          </span>
+                          <span className="eb-text-xs eb-text-muted-foreground">
+                            ${paymentMethod.fee.toFixed(2)} fee
+                          </span>
+                        </div>
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              )}
             </FormControl>
             <FormMessage />
           </FormItem>
