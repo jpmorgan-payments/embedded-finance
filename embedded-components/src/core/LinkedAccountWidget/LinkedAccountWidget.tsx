@@ -67,6 +67,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   // Use custom hook for data fetching and state management
   const {
     linkedAccounts,
+    metadata,
     hasActiveAccount,
     isLoading,
     isError,
@@ -135,7 +136,9 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                 {t('title')}{' '}
                 {!isLoading && !isError && (
                   <span className="eb-animate-fade-in">
-                    {t('count', { count: linkedAccounts.length })}
+                    {t('count', {
+                      count: metadata?.total_items || linkedAccounts.length,
+                    })}
                   </span>
                 )}
               </CardTitle>
