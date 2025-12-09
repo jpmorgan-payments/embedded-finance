@@ -33,7 +33,6 @@ describe('OnboardingFlow', () => {
     // Suppress React hook order warnings in development mode
     // These warnings occur because different screen components have different hook counts,
     // which is expected and intentional in a multi-screen flow application.
-    // See HOOK_ORDER_WARNINGS.md for detailed explanation.
     // eslint-disable-next-line no-console
     const originalError = console.error;
     // eslint-disable-next-line no-console
