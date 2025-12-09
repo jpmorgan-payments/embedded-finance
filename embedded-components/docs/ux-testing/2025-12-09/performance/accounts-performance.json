@@ -1,0 +1,11 @@
+{
+  "component": "Accounts",
+  "date": "2025-12-09",
+  "url": "https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=accounts&theme=Empty",
+  "metrics": {
+    "load_time": "~2-3 seconds",
+    "interactive_time": "~3 seconds",
+    "note": "Performance metrics collected via browser automation. Component loads quickly with account data."
+  }
+}
+

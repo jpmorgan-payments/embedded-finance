@@ -1,0 +1,82 @@
+{
+  "component": "Linked Accounts",
+  "date": "2025-12-09",
+  "url": "https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=linked-accounts&theme=Empty",
+  "requests": [
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/assets/browser-vdnZE1wW.js",
+      "status": 200,
+      "type": "script"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/assets/constants-Cze8xwV8.js",
+      "status": 200,
+      "type": "script"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/manifest.json",
+      "status": 200,
+      "type": "manifest"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/assets/sellsense-demo-B8W873m3.js",
+      "status": 200,
+      "type": "script"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ping",
+      "status": 200,
+      "type": "fetch",
+      "note": "MSW ping (called twice)"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/recipients?type=LINKED_ACCOUNT",
+      "status": 200,
+      "type": "fetch",
+      "note": "Linked accounts API (called twice - duplicate)"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/recipients",
+      "status": 200,
+      "type": "fetch",
+      "note": "All recipients API (called twice - duplicate)"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/accounts",
+      "status": 200,
+      "type": "fetch",
+      "note": "Accounts API (called twice - duplicate)"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/accounts/acc-002/balances",
+      "status": 200,
+      "type": "fetch",
+      "note": "Account balance API (called twice - duplicate)"
+    }
+  ],
+  "summary": {
+    "total_requests": 18,
+    "successful_requests": 18,
+    "failed_requests": 0,
+    "duplicate_calls": true,
+    "duplicate_endpoints": [
+      "/ef/do/v1/recipients?type=LINKED_ACCOUNT",
+      "/ef/do/v1/recipients",
+      "/ef/do/v1/accounts",
+      "/ef/do/v1/accounts/acc-002/balances",
+      "/ping"
+    ],
+    "msw_intercepted": true,
+    "all_requests_successful": true
+  }
+}
+
