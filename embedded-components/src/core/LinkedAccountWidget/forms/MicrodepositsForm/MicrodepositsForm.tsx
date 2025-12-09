@@ -113,7 +113,10 @@ export const MicrodepositsFormDialogTrigger: FC<
               ...oldData,
               recipients: oldData.recipients.map((r) =>
                 r.id === recipientId
-                  ? { ...r, status: data.status === 'VERIFIED' ? 'ACTIVE' : r.status }
+                  ? {
+                      ...r,
+                      status: data.status === 'VERIFIED' ? 'ACTIVE' : r.status,
+                    }
                   : r
               ),
             };

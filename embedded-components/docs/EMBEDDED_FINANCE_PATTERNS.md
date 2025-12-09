@@ -2214,6 +2214,7 @@ const paymentData = usePaymentData(paymentMethods, form);
 
 ```typescript
 import { useQueryClient } from '@tanstack/react-query';
+
 import { getGetAllRecipientsQueryKey } from '@/api/generated/ep-recipients';
 import { ListRecipientsResponse } from '@/api/generated/ep-recipients.schemas';
 
@@ -2224,7 +2225,7 @@ const createMutation = useCreateRecipient({
       const queryKey = getGetAllRecipientsQueryKey({
         type: 'LINKED_ACCOUNT',
       });
-      
+
       // 1. Optimistically update the cache
       queryClient.setQueryData(
         queryKey,
@@ -2241,12 +2242,12 @@ const createMutation = useCreateRecipient({
           };
         }
       );
-      
+
       // 2. Invalidate queries for eventual consistency
       queryClient.invalidateQueries({
         queryKey,
       });
-      
+
       onSuccess?.(response);
     },
   },
@@ -2259,7 +2260,7 @@ const editMutation = useAmendRecipient({
       const queryKey = getGetAllRecipientsQueryKey({
         type: 'LINKED_ACCOUNT',
       });
-      
+
       // 1. Optimistically update the cache
       queryClient.setQueryData(
         queryKey,
@@ -2274,12 +2275,12 @@ const editMutation = useAmendRecipient({
           };
         }
       );
-      
+
       // 2. Invalidate queries for eventual consistency
       queryClient.invalidateQueries({
         queryKey,
       });
-      
+
       onSuccess?.(response);
     },
   },
@@ -2292,7 +2293,7 @@ const removeMutation = useAmendRecipient({
       const queryKey = getGetAllRecipientsQueryKey({
         type: 'LINKED_ACCOUNT',
       });
-      
+
       // 1. Optimistically update the cache (remove item)
       queryClient.setQueryData(
         queryKey,
@@ -2301,18 +2302,16 @@ const removeMutation = useAmendRecipient({
 
           return {
             ...oldData,
-            recipients: oldData.recipients.filter(
-              (r) => r.id !== response.id
-            ),
+            recipients: oldData.recipients.filter((r) => r.id !== response.id),
           };
         }
       );
-      
+
       // 2. Invalidate queries for eventual consistency
       queryClient.invalidateQueries({
         queryKey,
       });
-      
+
       onSuccess?.(response);
     },
   },
@@ -2325,7 +2324,7 @@ const verifyMutation = useRecipientsVerification({
       const queryKey = getGetAllRecipientsQueryKey({
         type: 'LINKED_ACCOUNT',
       });
-      
+
       // 1. Optimistically update the cache (change status)
       queryClient.setQueryData(
         queryKey,
@@ -2336,18 +2335,21 @@ const verifyMutation = useRecipientsVerification({
             ...oldData,
             recipients: oldData.recipients.map((r) =>
               r.id === recipientId
-                ? { ...r, status: data.status === 'VERIFIED' ? 'ACTIVE' : r.status }
+                ? {
+                    ...r,
+                    status: data.status === 'VERIFIED' ? 'ACTIVE' : r.status,
+                  }
                 : r
             ),
           };
         }
       );
-      
+
       // 2. Invalidate queries for eventual consistency
       queryClient.invalidateQueries({
         queryKey,
       });
-      
+
       onSuccess?.(data);
     },
   },
@@ -2378,6 +2380,7 @@ const verifyMutation = useRecipientsVerification({
 **When to Use**:
 
 ✅ **Use optimistic updates for**:
+
 - Create operations (add new item to list)
 - Update operations (modify existing item)
 - Delete operations (remove item from list)
@@ -2385,6 +2388,7 @@ const verifyMutation = useRecipientsVerification({
 - All mutations that affect list/grid data
 
 ❌ **Don't use optimistic updates for**:
+
 - Read operations (queries already cached)
 - Operations with complex side effects
 - Operations that might fail validation
@@ -2403,18 +2407,20 @@ const verifyMutation = useRecipientsVerification({
 
 ```typescript
 // CREATE: Add to list
-recipients: [...oldData.recipients, response]
+recipients: [...oldData.recipients, response];
 
 // UPDATE: Replace in list
-recipients: oldData.recipients.map((r) => r.id === response.id ? response : r)
+recipients: oldData.recipients.map((r) =>
+  r.id === response.id ? response : r
+);
 
 // DELETE: Remove from list
-recipients: oldData.recipients.filter((r) => r.id !== response.id)
+recipients: oldData.recipients.filter((r) => r.id !== response.id);
 
 // STATUS UPDATE: Update specific field
-recipients: oldData.recipients.map((r) => 
+recipients: oldData.recipients.map((r) =>
   r.id === recipientId ? { ...r, status: newStatus } : r
-)
+);
 ```
 
 **Refinement Needed**:
