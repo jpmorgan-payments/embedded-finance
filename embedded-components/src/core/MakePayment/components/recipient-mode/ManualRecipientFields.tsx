@@ -2,6 +2,7 @@ import React from 'react';
 import { useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   FormControl,
   FormField,
@@ -264,6 +265,35 @@ export const ManualRecipientFields: React.FC = () => {
           />
         </div>
       )}
+
+      {/* Save Recipient Checkbox */}
+      <FormField
+        control={form.control}
+        name="saveRecipient"
+        render={({ field }) => (
+          <FormItem className="eb-flex eb-flex-row eb-items-start eb-space-x-3 eb-space-y-0 eb-rounded-md eb-border eb-p-4">
+            <FormControl>
+              <Checkbox
+                checked={field.value || false}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+            <div className="eb-space-y-1 eb-leading-none">
+              <FormLabel className="eb-cursor-pointer">
+                {t('fields.saveRecipient.label', {
+                  defaultValue: 'Save recipient for future payments',
+                })}
+              </FormLabel>
+              <p className="eb-text-xs eb-text-muted-foreground">
+                {t('fields.saveRecipient.description', {
+                  defaultValue:
+                    'Save this recipient so you can use it for future payments',
+                })}
+              </p>
+            </div>
+          </FormItem>
+        )}
+      />
     </div>
   );
 };

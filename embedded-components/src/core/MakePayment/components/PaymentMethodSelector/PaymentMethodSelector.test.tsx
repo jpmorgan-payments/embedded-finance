@@ -77,8 +77,26 @@ describe('PaymentMethodSelector', () => {
     );
 
     expect(screen.getByText('How do you want to pay?')).toBeInTheDocument();
-    expect(screen.getByText('ACH')).toBeInTheDocument();
-    expect(screen.getByText('RTP')).toBeInTheDocument();
+    // Payment methods should be rendered with icons and labels
+    expect(screen.getByText(/ACH/i)).toBeInTheDocument();
+    expect(screen.getByText(/RTP/i)).toBeInTheDocument();
+  });
+
+  test('renders with manual label when forceAllMethods is true', () => {
+    render(
+      <TestWrapper>
+        <PaymentMethodSelector
+          dynamicPaymentMethods={mockPaymentMethods}
+          paymentMethods={mockPaymentMethods}
+          isFormFilled={false}
+          amount={0}
+          fee={0}
+          forceAllMethods
+        />
+      </TestWrapper>
+    );
+
+    expect(screen.getByText('Payment method')).toBeInTheDocument();
   });
 
   test('displays payment method fees', () => {

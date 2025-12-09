@@ -46,11 +46,11 @@ export const AmountInput: React.FC<AmountInputProps> = ({
 
   return (
     <div className="eb-space-y-4">
-      <div className="eb-text-sm eb-font-medium eb-text-foreground">
+      <h3 className="eb-text-base eb-font-semibold">
         {t('sections.amount.label', {
           defaultValue: 'How much are you paying?',
         })}
-      </div>
+      </h3>
 
       {/* Currency and Amount on same line */}
       <div className="eb-flex eb-gap-2">

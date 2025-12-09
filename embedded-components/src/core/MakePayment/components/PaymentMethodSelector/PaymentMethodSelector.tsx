@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  ArrowRightLeftIcon,
+  BanknoteIcon,
+  ChevronDown,
+  ChevronUp,
+  ZapIcon,
+} from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -14,7 +20,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
@@ -46,22 +51,48 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   const [isOpen, setIsOpen] = useState(true);
   const list = forceAllMethods ? paymentMethods : dynamicPaymentMethods;
 
+  // Get icon for payment method type (matching LinkedAccountWidget/BankAccountForm)
+  const getPaymentIcon = (methodId: string) => {
+    switch (methodId) {
+      case 'ACH':
+        return <BanknoteIcon className="eb-h-4 eb-w-4" />;
+      case 'WIRE':
+        return <ArrowRightLeftIcon className="eb-h-4 eb-w-4" />;
+      case 'RTP':
+        return <ZapIcon className="eb-h-4 eb-w-4" />;
+      default:
+        return null;
+    }
+  };
+
+  // Get label for payment method (matching LinkedAccountWidget pattern)
+  const getPaymentLabel = (methodId: string, methodName: string) => {
+    // Try translation first, fallback to method name
+    const translated = t(`paymentMethods.${methodId}`, {
+      defaultValue: methodName,
+    });
+    // If translation returns the key, use method name
+    return translated === `paymentMethods.${methodId}`
+      ? methodName
+      : translated;
+  };
+
   return (
-    <>
+    <div className="eb-space-y-4">
+      <h3 className="eb-text-sm eb-font-semibold">
+        {forceAllMethods
+          ? t('fields.method.manualLabel', {
+              defaultValue: 'Payment method',
+            })
+          : t('fields.method.label', {
+              defaultValue: 'How do you want to pay?',
+            })}
+      </h3>
       <FormField
         control={form.control}
         name="method"
         render={({ field }) => (
           <FormItem className="eb-space-y-3">
-            <FormLabel>
-              {forceAllMethods
-                ? t('fields.method.manualLabel', {
-                    defaultValue: 'Payment method',
-                  })
-                : t('fields.method.label', {
-                    defaultValue: 'How do you want to pay?',
-                  })}
-            </FormLabel>
             {!forceAllMethods && (
               <div className="eb-text-xs eb-text-muted-foreground">
                 {t('helpers.method', {
@@ -75,7 +106,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                 onValueChange={field.onChange}
                 defaultValue={field.value}
                 value={field.value}
-                className="eb-flex eb-flex-row eb-flex-wrap eb-gap-3"
+                className="eb-flex eb-flex-row eb-gap-2"
               >
                 {!forceAllMethods && list.length === 0 && (
                   <div className="eb-py-2 eb-text-xs eb-text-muted-foreground">
@@ -83,10 +114,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                   </div>
                 )}
                 {list.map((paymentMethod) => (
-                  <div
-                    key={paymentMethod.id}
-                    className="eb-relative eb-min-w-[120px] eb-max-w-[160px] eb-flex-1"
-                  >
+                  <div key={paymentMethod.id} className="eb-flex-1">
                     <RadioGroupItem
                       value={paymentMethod.id}
                       id={paymentMethod.id.toLowerCase()}
@@ -95,36 +123,28 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                     <Label
                       htmlFor={paymentMethod.id.toLowerCase()}
                       className={cn(
-                        'eb-flex eb-min-h-[80px] eb-cursor-pointer eb-flex-col eb-items-center eb-justify-center eb-rounded-lg eb-border-2 eb-p-3 eb-transition-all eb-duration-200 eb-ease-in-out',
-                        'eb-border-border eb-bg-card eb-text-card-foreground',
-                        'hover:eb-border-primary hover:eb-shadow-md',
+                        'eb-flex eb-cursor-pointer eb-items-center eb-gap-2 eb-rounded-lg eb-border eb-p-3 eb-transition-all',
+                        'eb-border-border eb-bg-card',
+                        'hover:eb-border-primary/50 hover:eb-bg-accent/50',
                         'focus-within:eb-ring-2 focus-within:eb-ring-ring focus-within:eb-ring-offset-2',
                         field.value === paymentMethod.id
-                          ? 'eb-border-primary eb-bg-primary/5 eb-shadow-md'
-                          : 'eb-border-border hover:eb-border-primary/50'
+                          ? 'eb-border-2 eb-border-primary eb-bg-primary/5 eb-shadow-sm'
+                          : ''
                       )}
                     >
-                      <div className="eb-flex eb-flex-col eb-items-center eb-space-y-2 eb-text-center">
-                        <div
-                          className={cn(
-                            'eb-flex eb-h-6 eb-w-6 eb-items-center eb-justify-center eb-rounded-full eb-text-xs eb-font-semibold',
-                            field.value === paymentMethod.id
-                              ? 'eb-bg-primary eb-text-primary-foreground'
-                              : 'eb-bg-muted eb-text-muted-foreground'
+                      <div className="eb-flex eb-items-center eb-gap-2 eb-text-primary">
+                        {getPaymentIcon(paymentMethod.id)}
+                      </div>
+                      <div className="eb-flex eb-flex-1 eb-flex-col eb-gap-0.5">
+                        <span className="eb-text-sm eb-font-medium">
+                          {getPaymentLabel(
+                            paymentMethod.id,
+                            paymentMethod.name
                           )}
-                        >
-                          {paymentMethod.id.charAt(0)}
-                        </div>
-                        <div className="eb-space-y-1">
-                          <div className="eb-text-xs eb-font-medium">
-                            {t(`paymentMethods.${paymentMethod.id}`, {
-                              defaultValue: paymentMethod.name,
-                            })}
-                          </div>
-                          <div className="eb-text-xs eb-text-muted-foreground">
-                            ${paymentMethod.fee.toFixed(2)} fee
-                          </div>
-                        </div>
+                        </span>
+                        <span className="eb-text-xs eb-text-muted-foreground">
+                          ${paymentMethod.fee.toFixed(2)} fee
+                        </span>
                       </div>
                     </Label>
                   </div>
@@ -189,6 +209,6 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
           </div>
         </>
       )}
-    </>
+    </div>
   );
 };

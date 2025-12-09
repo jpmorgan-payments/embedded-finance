@@ -5,6 +5,8 @@ import * as LucideIcons from 'lucide-react';
 import { FormProvider } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
+import { useCreateRecipient } from '@/api/generated/ep-recipients';
+import type { RecipientRequest } from '@/api/generated/ep-recipients.schemas';
 import { useCreateTransactionV2 } from '@/api/generated/ep-transactions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -84,6 +86,17 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     reset: resetPayment,
   } = useCreateTransactionV2();
 
+  // Recipient creation mutation
+  const { mutate: createRecipient, isPending: isCreatingRecipient } =
+    useCreateRecipient({
+      mutation: {
+        onSuccess: () => {
+          // Refetch recipients after creating
+          paymentData.refetchRecipients();
+        },
+      },
+    });
+
   // Derived state for recipient selection and warning
   const recipientSelectionState = React.useMemo(() => {
     if (!recipientId || paymentData.filteredRecipients?.length === 0) {
@@ -128,7 +141,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     if (values.recipientMode === 'manual') {
       const routingInfo = [
         {
-          routingCodeType: 'USABA',
+          routingCodeType: 'USABA' as const,
           routingNumber: values.routingNumber,
           transactionType: values.method,
         },
@@ -136,35 +149,108 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
       const partyDetails =
         values.partyType === 'INDIVIDUAL'
           ? {
-              type: 'INDIVIDUAL',
+              type: 'INDIVIDUAL' as const,
               firstName: values.firstName,
               lastName: values.lastName,
               address:
-                values.method === 'RTP'
+                values.method === 'RTP' || values.method === 'WIRE'
                   ? {
                       addressLine1: values.addressLine1,
                       city: values.city,
                       state: values.state,
-                      countryCode: 'US',
+                      countryCode: 'US' as const,
                       postalCode: values.postalCode,
                     }
                   : undefined,
             }
           : {
-              type: 'ORGANIZATION',
+              type: 'ORGANIZATION' as const,
               businessName: values.businessName,
               address:
-                values.method === 'RTP'
+                values.method === 'RTP' || values.method === 'WIRE'
                   ? {
                       addressLine1: values.addressLine1,
                       city: values.city,
                       state: values.state,
-                      countryCode: 'US',
+                      countryCode: 'US' as const,
                       postalCode: values.postalCode,
                     }
                   : undefined,
             };
 
+      // If saveRecipient is checked, create the recipient first
+      if (values.saveRecipient) {
+        const recipientRequest: RecipientRequest = {
+          type: 'RECIPIENT',
+          account: {
+            countryCode: 'US' as const,
+            number: values.accountNumber,
+            type: values.accountType,
+            routingInformation: routingInfo.map((info) => ({
+              routingCodeType: 'USABA' as const,
+              routingNumber: info.routingNumber,
+              transactionType: info.transactionType,
+            })),
+          },
+          partyDetails,
+        };
+
+        createRecipient(
+          { data: recipientRequest },
+          {
+            onSuccess: () => {
+              // After recipient is created, proceed with transaction
+              createTransaction(
+                {
+                  data: {
+                    ...common,
+                    recipient: {
+                      account: {
+                        countryCode: 'US',
+                        number: values.accountNumber,
+                        type: values.accountType,
+                        routingInformation: routingInfo,
+                      },
+                      partyDetails,
+                    },
+                  },
+                },
+                {
+                  onSuccess: () => setLocalSuccess(true),
+                  onSettled: () => onTransactionSettled?.(),
+                }
+              );
+            },
+            onError: (error) => {
+              console.error('Failed to create recipient:', error);
+              // Still proceed with transaction even if saving recipient fails
+              createTransaction(
+                {
+                  data: {
+                    ...common,
+                    recipient: {
+                      account: {
+                        countryCode: 'US',
+                        number: values.accountNumber,
+                        type: values.accountType,
+                        routingInformation: routingInfo,
+                      },
+                      partyDetails,
+                    },
+                  },
+                },
+                {
+                  onSuccess: () => setLocalSuccess(true),
+                  onSettled: () => onTransactionSettled?.(),
+                }
+              );
+            },
+          }
+        );
+        return;
+      }
+
+      // If not saving recipient, proceed directly with transaction
       createTransaction(
         {
           data: {
@@ -329,7 +415,12 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                           {/* Recipient section */}
                           <Card className="eb-p-4">
                             <CardContent className="eb-space-y-4 eb-p-0">
-                              <div className="eb-flex eb-items-center eb-justify-end">
+                              <div className="eb-space-y-4">
+                                <h3 className="eb-text-base eb-font-semibold">
+                                  {t('fields.to.label', {
+                                    defaultValue: 'Who are you paying?',
+                                  })}
+                                </h3>
                                 <RecipientModeToggle />
                               </div>
 
@@ -455,6 +546,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                             className="eb-w-full"
                             disabled={
                               isSubmitting ||
+                              isCreatingRecipient ||
                               !validation.isFormFilled ||
                               !validation.isAmountValid
                             }
