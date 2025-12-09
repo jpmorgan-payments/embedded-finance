@@ -185,7 +185,13 @@ const onboardingUI = new PartiallyHostedUIComponent({
   sessionToken: sessionData.sessionToken,
   baseUrl: sessionData.baseUrl,
   experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
-  theme: { colorScheme: 'light' },
+  theme: {
+    colorScheme: 'light',
+    variables: {
+      primaryColor: '#0066CC',  // Custom primary color
+      borderRadius: '9999px'     // Fully rounded borders
+    }
+  },
   contentTokens: { locale: 'en-US' }
 });
 
@@ -255,6 +261,69 @@ npm run dev:utility
 ```
 
 Both methods use the same backend API (`/sessions` endpoint) and provide identical functionality - the difference is in the frontend implementation approach.
+
+## 🎨 Theme Customization
+
+The demo includes sample theme overrides for customizing the embedded UI appearance. Both implementations support theme configuration:
+
+### Theme Configuration
+
+**Primary Color Override**: Customize the primary brand color used throughout the embedded UI
+**Border Radius Override**: Control the roundness of UI elements (buttons, inputs, cards)
+
+### Method 1: Manual Implementation
+
+In `index.html`, theme parameters are manually encoded and appended to the iframe URL:
+
+```javascript
+// Build theme configuration using semantic design tokens
+const themeConfig = {
+  colorScheme: 'light',
+  variables: {
+    // Primary action button color (semantic token) - Orange
+    actionableAccentedBoldBackground: '#FF6600',
+    // Border radius for buttons specifically (semantic token)
+    actionableBorderRadius: '9999px'
+  }
+};
+
+// Encode and append to URL
+const encodedTheme = encodeURIComponent(JSON.stringify(themeConfig));
+const iframeUrlWithTheme = `${sessionData.iframeUrl}&themeTokens=${encodedTheme}`;
+```
+
+### Method 2: Utility Library
+
+In `index-utility.html`, theme is configured declaratively:
+
+```javascript
+const onboardingUI = new PartiallyHostedUIComponent({
+  sessionToken: sessionData.sessionToken,
+  baseUrl: sessionData.baseUrl,
+  experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
+  theme: {
+    colorScheme: 'light',
+    variables: {
+      // Primary action button color (semantic token) - Orange
+      actionableAccentedBoldBackground: '#FF6600',
+      // Border radius for buttons specifically (semantic token)
+      actionableBorderRadius: '9999px',
+      // Typography font family (semantic token)
+      contentFontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+    }
+  }
+});
+```
+
+The utility library automatically encodes the theme object and includes it in the iframe URL parameters.
+
+### Available Theme Variables
+
+The theme system uses semantic design tokens following the [Salt Design System](https://www.saltdesignsystem.com/salt/themes/design-tokens/how-to-read-tokens) nomenclature.
+
+For a complete list of available design tokens, token descriptions, default values, and usage examples, refer to the [Embedded Components README](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming).
+
+**Note**: Theme variables are passed to JPMorgan's hosted UI via URL parameters. The hosted UI applies these overrides to match your brand identity.
 
 ## 📁 Project Structure
 
