@@ -295,6 +295,10 @@ The theme system uses semantic design tokens. This demo shows examples of custom
 
 For a complete list of available design tokens, refer to the [Embedded Components README](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming).
 
+**💡 Interactive Theme Customization:**
+
+Use the [Customize Theme utility](https://embedded-finance-dev.com/sellsense-demo?scenario=Seller+with+Payments+DDA&view=wallet) to interactively refine and update your theme configuration. You can visually inspect the results in real-time and copy the generated JSON configuration to use in your implementation.
+
 ### Method 1: Manual Implementation
 
 In `index.html`, theme parameters are manually encoded and appended to the iframe URL:
