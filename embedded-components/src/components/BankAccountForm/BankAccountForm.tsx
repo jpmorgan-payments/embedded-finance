@@ -922,20 +922,6 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     onSubmit(cleanedData);
   };
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="eb-flex eb-h-96 eb-items-center eb-justify-center">
-        <div className="eb-text-center">
-          <Loader2Icon className="eb-mx-auto eb-mb-4 eb-h-10 eb-w-10 eb-animate-spin eb-text-primary" />
-          <p className="eb-text-sm eb-text-muted-foreground">
-            {effectiveConfig.content.loadingMessage}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   // Handle step 1 continue - validate selection fields
   const handleStep1Continue = async () => {
     const isValid = await form.trigger(['accountType', 'paymentTypes']);
@@ -1375,6 +1361,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                 variant="outline"
                 type="button"
                 onClick={handleStep2Back}
+                disabled={isLoading}
                 className="eb-w-full sm:eb-w-auto"
               >
                 <ArrowLeftIcon /> Back
@@ -1384,7 +1371,12 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                 disabled={isLoading}
                 className="eb-w-full sm:eb-w-auto sm:eb-min-w-[120px]"
               >
-                {effectiveConfig.content.submitButtonText}
+                {isLoading && (
+                  <Loader2Icon className="eb-mr-2 eb-h-4 eb-w-4 eb-animate-spin" />
+                )}
+                {isLoading
+                  ? effectiveConfig.content.loadingMessage
+                  : effectiveConfig.content.submitButtonText}
               </Button>
             </>
           )}

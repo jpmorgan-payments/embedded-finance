@@ -309,7 +309,9 @@ export const MicrodepositsFormDialogTrigger: FC<
                     {isVerifyPending && (
                       <Loader2Icon className="eb-mr-2 eb-h-4 eb-w-4 eb-animate-spin" />
                     )}
-                    {t('forms.microdeposits.confirm')}
+                    {isVerifyPending
+                      ? t('forms.microdeposits.submitting')
+                      : t('forms.microdeposits.confirm')}
                   </Button>
                 </DialogFooter>
               </form>
