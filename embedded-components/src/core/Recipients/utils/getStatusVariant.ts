@@ -1,5 +1,7 @@
 import type { RecipientStatus } from '@/api/generated/ep-recipients.schemas';
 
+import { normalizeRecipientStatus } from './formatStatusText';
+
 /**
  * Get status badge variant based on recipient status
  *
@@ -21,7 +23,9 @@ import type { RecipientStatus } from '@/api/generated/ep-recipients.schemas';
 export const getStatusVariant = (
   status?: RecipientStatus
 ): 'success' | 'warning' | 'destructive' | 'informative' | 'outline' => {
-  switch (status) {
+  const normalized = normalizeRecipientStatus(status) as RecipientStatus;
+
+  switch (normalized) {
     case 'ACTIVE':
       return 'success'; // Uses statusSuccess tokens (statusSuccessAccentBackground + statusSuccessForeground)
     case 'PENDING':
