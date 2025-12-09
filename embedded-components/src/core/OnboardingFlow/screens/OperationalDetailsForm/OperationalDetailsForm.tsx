@@ -155,6 +155,7 @@ export const OperationalDetailsForm = () => {
                 <Input
                   {...field}
                   type="date"
+                  value={field.value?.[0] ?? ''}
                   onChange={(e) => field.onChange([e.target.value])}
                 />
               </FormControl>
@@ -179,14 +180,14 @@ export const OperationalDetailsForm = () => {
                 </span>
                 <FormControl>
                   <Input
+                    {...field}
                     type="number"
                     min={0}
                     max={10000000000}
                     step={0.01}
                     placeholder="0.00"
                     className="eb-pl-7"
-                    {...field}
-                    value={field.value?.[0]}
+                    value={field.value?.[0] ?? ''}
                     onChange={(e) => {
                       const value = parseFloat(e.target.value);
                       if (value >= 0 && value <= 10000000000) {
@@ -220,7 +221,7 @@ export const OperationalDetailsForm = () => {
                 <FormControl>
                   <RadioGroup
                     onValueChange={(value) => field.onChange([value])}
-                    defaultValue={field?.value?.[0]}
+                    value={field?.value?.[0] ?? ''}
                     className="eb-flex eb-flex-col eb-space-y-1"
                   >
                     <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
@@ -304,7 +305,7 @@ export const OperationalDetailsForm = () => {
                   {questionLabel}
                   <Select
                     onValueChange={(value) => field.onChange([value])}
-                    defaultValue={field?.value?.[0]}
+                    value={field?.value?.[0] ?? ''}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -335,6 +336,7 @@ export const OperationalDetailsForm = () => {
                 <FormControl>
                   <Input
                     {...field}
+                    value={field.value?.[0] ?? ''}
                     onChange={(e) => field.onChange([e.target.value])}
                   />
                 </FormControl>
@@ -356,6 +358,7 @@ export const OperationalDetailsForm = () => {
                   <Input
                     type="number"
                     {...field}
+                    value={field.value?.[0] ?? ''}
                     onChange={(e) => field.onChange([e.target.value])}
                   />
                 </FormControl>
@@ -376,6 +379,7 @@ export const OperationalDetailsForm = () => {
                 <FormControl>
                   <Input
                     {...field}
+                    value={field.value?.[0] ?? ''}
                     onChange={(e) => field.onChange([e.target.value])}
                   />
                 </FormControl>
