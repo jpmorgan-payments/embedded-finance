@@ -580,19 +580,21 @@ export const Recipients: React.FC<RecipientsProps> = ({
             }
           />
         )}
-        <RecipientsPagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          pageSize={pageSize}
-          totalItems={effectiveTotalItems}
-          startIndex={paginationInfo.startIndex}
-          endIndex={paginationInfo.endIndex}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={(size) => {
-            setPageSize(size);
-            setCurrentPage(1);
-          }}
-        />
+        <div className="eb-mt-4">
+          <RecipientsPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={effectiveTotalItems}
+            startIndex={paginationInfo.startIndex}
+            endIndex={paginationInfo.endIndex}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1);
+            }}
+          />
+        </div>
       </CardContent>
 
       {/* Details Dialog */}
