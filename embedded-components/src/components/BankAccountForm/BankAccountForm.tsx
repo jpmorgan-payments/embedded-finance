@@ -345,6 +345,7 @@ interface RoutingNumberFieldsProps {
   onUseSameForAllChange: (value: boolean) => void;
   configs: BankAccountFormProps['config']['paymentMethods']['configs'];
   control: any; // React Hook Form control
+  disabled?: boolean;
 }
 
 const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
@@ -353,6 +354,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
   onUseSameForAllChange,
   configs,
   control,
+  disabled = false,
 }) => {
   // Only show checkbox if there are multiple payment methods
   const showCheckbox = paymentMethods.length > 1;
@@ -375,6 +377,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
                 type="text"
                 placeholder="Enter 9-digit routing number"
                 maxLength={9}
+                disabled={disabled}
               />
             </FormControl>
             <FormMessage>{fieldState.error?.message}</FormMessage>
@@ -400,6 +403,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
           id="useSameRoutingNumber"
           checked={useSameForAll}
           onCheckedChange={onUseSameForAllChange}
+          disabled={disabled}
         />
         <span className="eb-text-sm eb-font-medium eb-leading-none">
           Use same routing number for all payment methods
@@ -426,6 +430,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
                   type="text"
                   placeholder="Enter 9-digit routing number"
                   maxLength={9}
+                  disabled={disabled}
                 />
               </FormControl>
               <FormMessage>{fieldState.error?.message}</FormMessage>
@@ -451,6 +456,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
                         type="text"
                         placeholder="Enter 9-digit routing number"
                         maxLength={9}
+                        disabled={disabled}
                       />
                     </FormControl>
                     <FormMessage>{fieldState.error?.message}</FormMessage>
@@ -474,6 +480,7 @@ interface ContactFieldsProps {
   requiredTypes: Set<RecipientContactContactType>;
   paymentTypes: RoutingInformationTransactionType[];
   configs: BankAccountFormProps['config']['paymentMethods']['configs'];
+  disabled?: boolean;
 }
 
 const ContactFields: FC<ContactFieldsProps> = ({
@@ -482,6 +489,7 @@ const ContactFields: FC<ContactFieldsProps> = ({
   requiredTypes,
   paymentTypes,
   configs,
+  disabled = false,
 }) => {
   const handleContactChange = (
     type: RecipientContactContactType,
@@ -556,6 +564,7 @@ const ContactFields: FC<ContactFieldsProps> = ({
                 value={getContactValue('EMAIL')}
                 onChange={(e) => handleContactChange('EMAIL', e.target.value)}
                 placeholder="Enter email address"
+                disabled={disabled}
               />
             </FormControl>
           </FormItem>
@@ -581,6 +590,7 @@ const ContactFields: FC<ContactFieldsProps> = ({
                 value={getContactValue('PHONE')}
                 onChange={(e) => handleContactChange('PHONE', e.target.value)}
                 placeholder="Enter phone number"
+                disabled={disabled}
               />
             </FormControl>
             {phoneReason && (
@@ -1083,6 +1093,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                           placeholder="Enter first name"
                           required
                           readonly={effectiveConfig.readonlyFields?.firstName}
+                          disabled={isLoading}
                           inputProps={{ autoFocus: true }}
                         />
                         <StandardFormField
@@ -1096,6 +1107,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                           placeholder="Enter last name"
                           required
                           readonly={effectiveConfig.readonlyFields?.lastName}
+                          disabled={isLoading}
                         />
                       </div>
                     )}
@@ -1124,6 +1136,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                       placeholder="Enter business or organization name"
                       required
                       readonly={effectiveConfig.readonlyFields?.businessName}
+                      disabled={isLoading}
                       inputProps={{ autoFocus: true }}
                     />
                   </>
@@ -1142,6 +1155,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                     placeholder="Enter account number"
                     required
                     readonly={effectiveConfig.readonlyFields?.accountNumber}
+                    disabled={isLoading}
                   />
                   <StandardFormField
                     control={form.control}
@@ -1154,6 +1168,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                     placeholder="Select type"
                     required
                     readonly={effectiveConfig.readonlyFields?.bankAccountType}
+                    disabled={isLoading}
                     options={[
                       { value: 'CHECKING', label: 'Checking' },
                       { value: 'SAVINGS', label: 'Savings' },
@@ -1189,6 +1204,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                     }
                   }}
                   configs={effectiveConfig.paymentMethods.configs}
+                  disabled={isLoading}
                 />
 
                 {/* Address Fields */}
@@ -1221,6 +1237,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                             }
                             placeholder="Enter street address"
                             required
+                            disabled={isLoading}
                           />
                           <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
                             <StandardFormField
@@ -1232,6 +1249,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                                   ?.secondaryAddressLine || 'Address Line 2'
                               }
                               placeholder="Apt, suite, unit, etc. (optional)"
+                              disabled={isLoading}
                             />
                             <StandardFormField
                               control={form.control}
@@ -1242,6 +1260,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                                   ?.tertiaryAddressLine || 'Address Line 3'
                               }
                               placeholder="Additional info (optional)"
+                              disabled={isLoading}
                             />
                           </div>
                           <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-3">
@@ -1253,6 +1272,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                               placeholder="Enter city"
                               required
                               className="md:eb-col-span-1"
+                              disabled={isLoading}
                             />
                             <StandardFormField
                               control={form.control}
@@ -1261,6 +1281,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                               label="State"
                               placeholder="Select state"
                               required
+                              disabled={isLoading}
                             />
                             <StandardFormField
                               control={form.control}
@@ -1270,6 +1291,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                               placeholder="Enter ZIP code"
                               required
                               inputProps={{ maxLength: 10 }}
+                              disabled={isLoading}
                             />
                           </div>
                         </div>
@@ -1290,6 +1312,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                           requiredTypes={requiredContactTypes}
                           paymentTypes={paymentTypes}
                           configs={effectiveConfig.paymentMethods.configs}
+                          disabled={isLoading}
                         />
                         <FormMessage />
                       </FormItem>
@@ -1312,6 +1335,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
                                 className="eb-mt-0.5"
+                                disabled={isLoading}
                               />
                             </FormControl>
                             <FormLabel className="eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
