@@ -60,9 +60,9 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
     undefined
   );
   const [showRemoveResultDialog, setShowRemoveResultDialog] = useState(false);
-  const [removedRecipient, setRemovedRecipient] = useState<Recipient | undefined>(
-    undefined
-  );
+  const [removedRecipient, setRemovedRecipient] = useState<
+    Recipient | undefined
+  >(undefined);
 
   // Use custom hook for data fetching and state management
   const {

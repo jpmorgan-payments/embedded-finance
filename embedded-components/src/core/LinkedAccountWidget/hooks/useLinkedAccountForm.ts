@@ -5,7 +5,11 @@ import {
   useAmendRecipient,
   useCreateRecipient,
 } from '@/api/generated/ep-recipients';
-import { ApiError, Recipient } from '@/api/generated/ep-recipients.schemas';
+import {
+  ApiError,
+  ListRecipientsResponse,
+  Recipient,
+} from '@/api/generated/ep-recipients.schemas';
 import {
   BankAccountFormData,
   transformBankAccountFormToRecipientPayload,
@@ -102,8 +106,27 @@ export function useLinkedAccountForm({
   const createMutation = useCreateRecipient({
     mutation: {
       onSuccess: (response) => {
+        // Optimistically add the new recipient to the list
+        const queryKey = getGetAllRecipientsQueryKey({
+          type: 'LINKED_ACCOUNT',
+        });
+        queryClient.setQueryData(
+          queryKey,
+          (oldData: ListRecipientsResponse | undefined) => {
+            if (!oldData?.recipients) {
+              return {
+                recipients: [response],
+              };
+            }
+
+            return {
+              ...oldData,
+              recipients: [...oldData.recipients, response],
+            };
+          }
+        );
         queryClient.invalidateQueries({
-          queryKey: getGetAllRecipientsQueryKey({}),
+          queryKey,
         });
         onSuccess?.(response);
         onSettled?.(response);
@@ -120,8 +143,25 @@ export function useLinkedAccountForm({
   const editMutation = useAmendRecipient({
     mutation: {
       onSuccess: (response) => {
+        // Optimistically update the recipient in the list
+        const queryKey = getGetAllRecipientsQueryKey({
+          type: 'LINKED_ACCOUNT',
+        });
+        queryClient.setQueryData(
+          queryKey,
+          (oldData: ListRecipientsResponse | undefined) => {
+            if (!oldData?.recipients) return oldData;
+
+            return {
+              ...oldData,
+              recipients: oldData.recipients.map((r) =>
+                r.id === response.id ? response : r
+              ),
+            };
+          }
+        );
         queryClient.invalidateQueries({
-          queryKey: getGetAllRecipientsQueryKey({}),
+          queryKey,
         });
         onSuccess?.(response);
         onSettled?.(response);

@@ -60,7 +60,7 @@ export const RemoveAccountDialogTrigger: FC<
         queryClient.setQueryData(
           queryKey,
           (oldData: ListRecipientsResponse | undefined) => {
-            if (!oldData?.recipients) return null;
+            if (!oldData?.recipients) return oldData;
 
             return {
               ...oldData,
