@@ -9,9 +9,11 @@ import {
 } from '@/api/generated/ep-recipients.schemas';
 
 export const linkedAccountListMock: ListRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 3,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 3,
+  },
   recipients: [
     {
       partyDetails: {
@@ -146,9 +148,11 @@ export const linkedAccountListMock: ListRecipientsResponse = {
 };
 
 export const linkedAccountMicrodepositListMock: ListRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 1,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 1,
+  },
   recipients: [
     {
       partyDetails: {
@@ -197,9 +201,11 @@ export const linkedAccountMicrodepositListMock: ListRecipientsResponse = {
 };
 
 export const linkedAccountReadyForValidationMock: ListRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 1,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 1,
+  },
   recipients: [
     {
       partyDetails: {
@@ -250,9 +256,11 @@ export const linkedAccountReadyForValidationMock: ListRecipientsResponse = {
 };
 
 export const linkedAccountRejectedMock: ListRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 1,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 1,
+  },
   recipients: [
     {
       partyDetails: {
@@ -303,9 +311,11 @@ export const linkedAccountRejectedMock: ListRecipientsResponse = {
 
 // New mock for business accounts
 export const linkedAccountBusinessMock: ListRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 2,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 2,
+  },
   recipients: [
     {
       partyDetails: {
@@ -400,9 +410,11 @@ export const linkedAccountBusinessMock: ListRecipientsResponse = {
 
 // Mock for single active account
 export const linkedAccountActiveMock: ListRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 1,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 1,
+  },
   recipients: [
     {
       partyDetails: {
@@ -452,9 +464,11 @@ export const linkedAccountActiveMock: ListRecipientsResponse = {
 
 // Mock for inactive accounts
 export const linkedAccountInactiveMock: ListRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 1,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 1,
+  },
   recipients: [
     {
       partyDetails: {
