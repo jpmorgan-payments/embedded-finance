@@ -29,27 +29,21 @@ import { Separator } from '@/components/ui/separator';
 import type { PaymentFormData, PaymentMethod } from '../../types';
 
 interface PaymentMethodSelectorProps {
-  dynamicPaymentMethods: PaymentMethod[];
   paymentMethods: PaymentMethod[];
   isFormFilled: boolean;
   amount: number;
   fee: number;
-  /** When true, show all available methods (manual recipient entry) */
-  forceAllMethods?: boolean;
 }
 
 export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
-  dynamicPaymentMethods,
   paymentMethods,
   isFormFilled,
   amount,
   fee,
-  forceAllMethods,
 }) => {
   const { t } = useTranslation(['make-payment']);
   const form = useFormContext<PaymentFormData>();
   const [isOpen, setIsOpen] = useState(true);
-  const list = forceAllMethods ? paymentMethods : dynamicPaymentMethods;
 
   // Get icon for payment method type (matching LinkedAccountWidget/BankAccountForm)
   const getPaymentIcon = (methodId: string) => {
@@ -80,27 +74,15 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   return (
     <div className="eb-space-y-4">
       <h3 className="eb-text-sm eb-font-semibold">
-        {forceAllMethods
-          ? t('fields.method.manualLabel', {
-              defaultValue: 'Payment method',
-            })
-          : t('fields.method.label', {
-              defaultValue: 'How do you want to pay?',
-            })}
+        {t('fields.method.label', {
+          defaultValue: 'How do you want to pay?',
+        })}
       </h3>
       <FormField
         control={form.control}
         name="method"
         render={({ field }) => (
           <FormItem className="eb-space-y-3">
-            {!forceAllMethods && (
-              <div className="eb-text-xs eb-text-muted-foreground">
-                {t('helpers.method', {
-                  defaultValue:
-                    "Available methods depend on the recipient's bank.",
-                })}
-              </div>
-            )}
             <FormControl>
               <RadioGroup
                 onValueChange={field.onChange}
@@ -108,12 +90,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                 value={field.value}
                 className="eb-flex eb-flex-row eb-gap-2"
               >
-                {!forceAllMethods && list.length === 0 && (
-                  <div className="eb-py-2 eb-text-xs eb-text-muted-foreground">
-                    No payment methods available for this recipient.
-                  </div>
-                )}
-                {list.map((paymentMethod) => (
+                {paymentMethods.map((paymentMethod) => (
                   <div key={paymentMethod.id} className="eb-flex-1">
                     <RadioGroupItem
                       value={paymentMethod.id}

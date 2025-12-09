@@ -31,6 +31,9 @@ interface AccountSelectorProps {
   selectedAccountId?: string;
   accountBalance?: any;
   isBalanceLoading?: boolean;
+  isBalanceError?: boolean;
+  balanceError?: any;
+  refetchBalance?: () => void;
 }
 
 export const AccountSelector: React.FC<AccountSelectorProps> = ({
@@ -40,6 +43,9 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
   selectedAccountId,
   accountBalance,
   isBalanceLoading,
+  isBalanceError,
+  balanceError,
+  refetchBalance,
 }) => {
   const { t } = useTranslation(['make-payment']);
   const form = useFormContext<PaymentFormData>();
@@ -131,6 +137,22 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
                 {isBalanceLoading ? (
                   <div className="eb-text-sm eb-text-muted-foreground">
                     Loading balance...
+                  </div>
+                ) : isBalanceError ? (
+                  <div className="eb-space-y-2">
+                    <div className="eb-text-sm eb-text-destructive">
+                      Failed to load account balance.
+                    </div>
+                    {refetchBalance && (
+                      <Button
+                        variant="link"
+                        size="sm"
+                        onClick={() => refetchBalance()}
+                        className="eb-h-auto eb-p-0 eb-text-xs"
+                      >
+                        Retry
+                      </Button>
+                    )}
                   </div>
                 ) : accountBalance?.balanceTypes?.length ? (
                   <div className="eb-space-y-1">

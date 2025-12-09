@@ -73,7 +73,6 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     paymentData.selectedAccount,
     paymentData.filteredRecipients,
     paymentMethods,
-    paymentData.dynamicPaymentMethods,
     form
   );
 
@@ -453,11 +452,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                 <>
                                   {/* Payment method becomes first control in section when manual */}
                                   <PaymentMethodSelector
-                                    dynamicPaymentMethods={
-                                      paymentData.dynamicPaymentMethods
-                                    }
                                     paymentMethods={paymentMethods}
-                                    forceAllMethods
                                     isFormFilled={validation.isFormFilled}
                                     amount={validation.amount}
                                     fee={validation.fee}
@@ -478,6 +473,9 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                 selectedAccountId={form.watch('from')}
                                 accountBalance={paymentData.accountBalance}
                                 isBalanceLoading={paymentData.isBalanceLoading}
+                                isBalanceError={paymentData.isBalanceError}
+                                balanceError={paymentData.balanceError}
+                                refetchBalance={paymentData.refetchBalance}
                               />
                             </CardContent>
                           </Card>
@@ -493,14 +491,11 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                             </CardContent>
                           </Card>
 
-                          {/* Section 4: How do you want to pay? (disappears in manual mode) */}
+                          {/* Section 4: How do you want to pay? */}
                           {form.watch('recipientMode') !== 'manual' && (
                             <Card className="eb-p-4">
                               <CardContent className="eb-p-0">
                                 <PaymentMethodSelector
-                                  dynamicPaymentMethods={
-                                    paymentData.dynamicPaymentMethods
-                                  }
                                   paymentMethods={paymentMethods}
                                   isFormFilled={validation.isFormFilled}
                                   amount={validation.amount}

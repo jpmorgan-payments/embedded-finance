@@ -67,7 +67,6 @@ describe('PaymentMethodSelector', () => {
     render(
       <TestWrapper>
         <PaymentMethodSelector
-          dynamicPaymentMethods={mockPaymentMethods}
           paymentMethods={mockPaymentMethods}
           isFormFilled={false}
           amount={0}
@@ -82,28 +81,10 @@ describe('PaymentMethodSelector', () => {
     expect(screen.getByText(/RTP/i)).toBeInTheDocument();
   });
 
-  test('renders with manual label when forceAllMethods is true', () => {
-    render(
-      <TestWrapper>
-        <PaymentMethodSelector
-          dynamicPaymentMethods={mockPaymentMethods}
-          paymentMethods={mockPaymentMethods}
-          isFormFilled={false}
-          amount={0}
-          fee={0}
-          forceAllMethods
-        />
-      </TestWrapper>
-    );
-
-    expect(screen.getByText('Payment method')).toBeInTheDocument();
-  });
-
   test('displays payment method fees', () => {
     render(
       <TestWrapper>
         <PaymentMethodSelector
-          dynamicPaymentMethods={mockPaymentMethods}
           paymentMethods={mockPaymentMethods}
           isFormFilled={false}
           amount={0}
@@ -116,12 +97,11 @@ describe('PaymentMethodSelector', () => {
     expect(screen.getByText('$1.00 fee')).toBeInTheDocument();
   });
 
-  test('shows no payment methods message when empty', () => {
+  test('renders with empty payment methods', () => {
     render(
       <TestWrapper>
         <PaymentMethodSelector
-          dynamicPaymentMethods={[]}
-          paymentMethods={mockPaymentMethods}
+          paymentMethods={[]}
           isFormFilled={false}
           amount={0}
           fee={0}
