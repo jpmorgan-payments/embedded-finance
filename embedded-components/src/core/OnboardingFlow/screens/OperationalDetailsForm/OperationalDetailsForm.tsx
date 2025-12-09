@@ -128,9 +128,8 @@ export const OperationalDetailsForm = () => {
     const questionLabel = (
       <div className="">
         {question.description?.split('\n')?.map((line, index) => (
-          <div>
+          <div key={`${question.id}-label-${index}`}>
             <FormLabel
-              key={index}
               asterisk={index === 0}
               className={cn({
                 'eb-ml-4': index > 0,
@@ -435,6 +434,7 @@ export const OperationalDetailsForm = () => {
   const onSubmit = (values: any) => {
     if (clientData?.id) {
       const questionResponses = Object.entries(values).map(([key, value]) => ({
+        key,
         questionId: key.replace('question_', ''),
         values: Array.isArray(value) ? value : [value],
       }));
@@ -463,14 +463,20 @@ export const OperationalDetailsForm = () => {
       ?.filter(isQuestionParent)
       .filter(isQuestionVisible)
       .map((question, index) => (
-        <Fragment key={question.id}>
+        <Fragment key={question.id ?? `question-${index}`}>
           {index !== 0 && <Separator />}
           <div className="eb-mb-6">{renderQuestionInput(question)}</div>
           {questionsData?.questions
             ?.filter((q) => q.parentQuestionId === question.id)
             .filter(isQuestionVisible)
             .map((subQuestion) => (
-              <div key={subQuestion.id} className="eb-mb-6">
+              <div
+                key={
+                  subQuestion.id ??
+                  `subquestion-${question.id}-${subQuestion.parentQuestionId}`
+                }
+                className="eb-mb-6"
+              >
                 {renderQuestionInput(subQuestion)}
               </div>
             ))}
