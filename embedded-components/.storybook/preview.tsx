@@ -1,6 +1,7 @@
 import { defaultResources } from '@/i18n/config';
 import type { Decorator } from '@storybook/react';
 import { Preview } from '@storybook/react-vite';
+import { DefaultOptions } from '@tanstack/react-query';
 import { initialize, mswLoader } from 'msw-storybook-addon';
 import { themes } from 'storybook/theming';
 
@@ -74,6 +75,8 @@ export interface BaseStoryArgs {
   contentTokens?: Record<string, any>;
   /** Client ID for API requests */
   clientId?: string;
+  /** React Query default options (e.g., to disable retries) */
+  reactQueryDefaultOptions?: DefaultOptions;
 }
 
 /**
@@ -99,6 +102,7 @@ const withEBComponentsProvider: Decorator<BaseStoryArgs> = (Story, context) => {
       theme={theme}
       contentTokens={contentTokens as any}
       clientId={args.clientId ?? ''}
+      reactQueryDefaultOptions={args.reactQueryDefaultOptions}
     >
       <Story />
     </EBComponentsProvider>

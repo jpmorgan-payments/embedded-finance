@@ -7,7 +7,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import {
@@ -32,6 +31,9 @@ interface AccountSelectorProps {
   selectedAccountId?: string;
   accountBalance?: any;
   isBalanceLoading?: boolean;
+  isBalanceError?: boolean;
+  balanceError?: any;
+  refetchBalance?: () => void;
 }
 
 export const AccountSelector: React.FC<AccountSelectorProps> = ({
@@ -41,6 +43,9 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
   selectedAccountId,
   accountBalance,
   isBalanceLoading,
+  isBalanceError,
+  balanceError: _balanceError,
+  refetchBalance,
 }) => {
   const { t } = useTranslation(['make-payment']);
   const form = useFormContext<PaymentFormData>();
@@ -50,115 +55,139 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
   const singleAccount = hasSingleAccount ? accounts.items[0] : null;
 
   return (
-    <FormField
-      control={form.control}
-      name="from"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>
-            {t('fields.from.label', {
-              defaultValue: 'Which account are you paying from?',
-            })}
-          </FormLabel>
-          {accountsStatus === 'pending' && (
-            <div className="eb-py-2 eb-text-xs eb-text-muted-foreground">
-              Loading accounts...
-            </div>
-          )}
-          {accountsStatus === 'error' && (
-            <div className="eb-py-2 eb-text-xs eb-text-destructive">
-              Failed to load accounts.{' '}
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() => refetchAccounts()}
-              >
-                Retry
-              </Button>
-            </div>
-          )}
+    <div className="eb-space-y-4">
+      <h3 className="eb-text-base eb-font-semibold">
+        {t('fields.from.label', {
+          defaultValue: 'Which account are you paying from?',
+        })}
+      </h3>
+      <FormField
+        control={form.control}
+        name="from"
+        render={({ field }) => (
+          <FormItem>
+            {accountsStatus === 'pending' && (
+              <div className="eb-py-2 eb-text-xs eb-text-muted-foreground">
+                Loading accounts...
+              </div>
+            )}
+            {accountsStatus === 'error' && (
+              <div className="eb-py-2 eb-text-xs eb-text-destructive">
+                Failed to load accounts.{' '}
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => refetchAccounts()}
+                >
+                  Retry
+                </Button>
+              </div>
+            )}
 
-          {/* Show simple text label if only one account */}
-          {hasSingleAccount && accountsStatus === 'success' && singleAccount ? (
-            <div className="eb-rounded-md eb-border eb-bg-muted/50 eb-p-3">
-              <div className="eb-text-sm eb-font-medium">
-                {singleAccount.label} ({singleAccount.category})
+            {/* Show simple text label if only one account */}
+            {hasSingleAccount &&
+            accountsStatus === 'success' &&
+            singleAccount ? (
+              <div className="eb-rounded-md eb-border eb-bg-muted/50 eb-p-3">
+                <div className="eb-text-sm eb-font-medium">
+                  {singleAccount.label} ({singleAccount.category})
+                </div>
               </div>
-            </div>
-          ) : (
-            <>
-              <div className="eb-mb-1 eb-text-[11px] eb-text-muted-foreground">
-                {t('helpers.from.balance', {
-                  defaultValue: 'Select or type name or last 4 numbers',
-                })}
-              </div>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                value={field.value}
-                disabled={accountsStatus !== 'success'}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={t('fields.from.placeholder', {
-                        defaultValue: 'Pay from',
+            ) : (
+              <>
+                <div className="eb-mb-1 eb-text-[11px] eb-text-muted-foreground">
+                  {t('helpers.from.balance', {
+                    defaultValue: 'Select or type name or last 4 numbers',
+                  })}
+                </div>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  value={field.value}
+                  disabled={accountsStatus !== 'success'}
+                >
+                  <FormControl>
+                    <SelectTrigger
+                      aria-label={t('fields.from.label', {
+                        defaultValue: 'Which account are you paying from?',
                       })}
-                    />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {accounts?.items?.map((account: AccountResponseType) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      {account.label} ({account.category})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </>
-          )}
+                    >
+                      <SelectValue
+                        placeholder={t('fields.from.placeholder', {
+                          defaultValue: 'Pay from',
+                        })}
+                      />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {accounts?.items?.map((account: AccountResponseType) => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.label} ({account.category})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </>
+            )}
 
-          {/* Account Balance Display */}
-          {selectedAccountId && (
-            <div className="eb-mt-2 eb-rounded-md eb-bg-muted eb-p-3">
-              {isBalanceLoading ? (
-                <div className="eb-text-sm eb-text-muted-foreground">
-                  Loading balance...
-                </div>
-              ) : accountBalance?.balanceTypes?.length ? (
-                <div className="eb-space-y-1">
-                  {(() => {
-                    const availableBalanceData =
-                      accountBalance?.balanceTypes?.find(
-                        (balance: any) => balance.typeCode === 'ITAV'
+            {/* Account Balance Display */}
+            {selectedAccountId && (
+              <div className="eb-mt-2 eb-rounded-md eb-bg-muted eb-p-3">
+                {isBalanceLoading ? (
+                  <div className="eb-text-sm eb-text-muted-foreground">
+                    Loading balance...
+                  </div>
+                ) : isBalanceError ? (
+                  <div className="eb-space-y-2">
+                    <div className="eb-text-sm eb-text-destructive">
+                      Failed to load account balance.
+                    </div>
+                    {refetchBalance && (
+                      <Button
+                        variant="link"
+                        size="sm"
+                        onClick={() => refetchBalance()}
+                        className="eb-h-auto eb-p-0 eb-text-xs"
+                      >
+                        Retry
+                      </Button>
+                    )}
+                  </div>
+                ) : accountBalance?.balanceTypes?.length ? (
+                  <div className="eb-space-y-1">
+                    {(() => {
+                      const availableBalanceData =
+                        accountBalance?.balanceTypes?.find(
+                          (balance: any) => balance.typeCode === 'ITAV'
+                        );
+                      return availableBalanceData ? (
+                        <div className="eb-flex eb-items-center eb-justify-between eb-text-sm">
+                          <span className="eb-text-muted-foreground">
+                            Available Balance
+                          </span>
+                          <span className="eb-font-mono eb-font-medium">
+                            ${formatCurrency(availableBalanceData.amount)}{' '}
+                            {accountBalance?.currency}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="eb-text-sm eb-text-muted-foreground">
+                          No available balance information
+                        </div>
                       );
-                    return availableBalanceData ? (
-                      <div className="eb-flex eb-items-center eb-justify-between eb-text-sm">
-                        <span className="eb-text-muted-foreground">
-                          Available Balance
-                        </span>
-                        <span className="eb-font-mono eb-font-medium">
-                          ${formatCurrency(availableBalanceData.amount)}{' '}
-                          {accountBalance?.currency}
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="eb-text-sm eb-text-muted-foreground">
-                        No available balance information
-                      </div>
-                    );
-                  })()}
-                </div>
-              ) : (
-                <div className="eb-text-sm eb-text-muted-foreground">
-                  No balance information available
-                </div>
-              )}
-            </div>
-          )}
-        </FormItem>
-      )}
-    />
+                    })()}
+                  </div>
+                ) : (
+                  <div className="eb-text-sm eb-text-muted-foreground">
+                    No balance information available
+                  </div>
+                )}
+              </div>
+            )}
+          </FormItem>
+        )}
+      />
+    </div>
   );
 };

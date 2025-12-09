@@ -67,7 +67,6 @@ describe('PaymentMethodSelector', () => {
     render(
       <TestWrapper>
         <PaymentMethodSelector
-          dynamicPaymentMethods={mockPaymentMethods}
           paymentMethods={mockPaymentMethods}
           isFormFilled={false}
           amount={0}
@@ -77,15 +76,15 @@ describe('PaymentMethodSelector', () => {
     );
 
     expect(screen.getByText('How do you want to pay?')).toBeInTheDocument();
-    expect(screen.getByText('ACH')).toBeInTheDocument();
-    expect(screen.getByText('RTP')).toBeInTheDocument();
+    // Payment methods should be rendered with icons and labels
+    expect(screen.getByText(/ACH/i)).toBeInTheDocument();
+    expect(screen.getByText(/RTP/i)).toBeInTheDocument();
   });
 
   test('displays payment method fees', () => {
     render(
       <TestWrapper>
         <PaymentMethodSelector
-          dynamicPaymentMethods={mockPaymentMethods}
           paymentMethods={mockPaymentMethods}
           isFormFilled={false}
           amount={0}
@@ -98,12 +97,11 @@ describe('PaymentMethodSelector', () => {
     expect(screen.getByText('$1.00 fee')).toBeInTheDocument();
   });
 
-  test('shows no payment methods message when empty', () => {
+  test('renders with empty payment methods', () => {
     render(
       <TestWrapper>
         <PaymentMethodSelector
-          dynamicPaymentMethods={[]}
-          paymentMethods={mockPaymentMethods}
+          paymentMethods={[]}
           isFormFilled={false}
           amount={0}
           fee={0}
@@ -111,8 +109,10 @@ describe('PaymentMethodSelector', () => {
       </TestWrapper>
     );
 
-    expect(
-      screen.getByText('No payment methods available for this recipient.')
-    ).toBeInTheDocument();
+    // When payment methods are empty, the title should still be shown
+    expect(screen.getByText('How do you want to pay?')).toBeInTheDocument();
+    // But no payment method options should be rendered
+    expect(screen.queryByText(/ACH/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/RTP/i)).not.toBeInTheDocument();
   });
 });

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { DefaultOptions } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 
 import type { BaseStoryArgs } from '../../../../.storybook/preview';
@@ -27,6 +28,7 @@ interface MakePaymentStoryArgs extends BaseStoryArgs {
   icon?: React.ReactNode;
   showPreviewPanel?: boolean;
   onTransactionSettled?: (response?: any, error?: any) => void;
+  reactQueryDefaultOptions?: DefaultOptions;
 }
 
 const mockRecipients = [
@@ -505,6 +507,9 @@ const defaultPaymentMethods = [
   { id: 'WIRE', name: 'WIRE', fee: 25 },
 ];
 
+// Track retry count for accounts error story (refetch succeeds on first retry)
+const accountsRetryCount = { count: 0 };
+
 export const Default: Story = {
   args: {
     apiBaseUrl: '/api',
@@ -875,6 +880,215 @@ export const FunctionalTestingNoMocks: Story = {
       description: {
         story:
           'Functional testing story without any MSW mocks. Connects to a real backend API for end-to-end testing.',
+      },
+    },
+  },
+};
+
+/**
+ * Account Balance API Error: Demonstrates error handling when the account balance API fails.
+ */
+export const AccountBalanceError: Story = {
+  name: 'Account Balance API Error',
+  args: {
+    apiBaseUrl: '/api',
+    paymentMethods: defaultPaymentMethods,
+    icon: 'CirclePlus',
+    showPreviewPanel: true,
+    reactQueryDefaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/recipients', () => {
+          return HttpResponse.json({ recipients: mockRecipients });
+        }),
+        http.get('*/accounts', () => {
+          return HttpResponse.json(mockAccounts);
+        }),
+        // Mock failed balance API call - always fails
+        http.get('*/accounts/:accountId/balances', () => {
+          return HttpResponse.json(
+            {
+              httpStatus: 500,
+              title: 'Internal Server Error',
+              context: [
+                {
+                  code: 'BALANCE_SERVICE_UNAVAILABLE',
+                  message: 'Unable to retrieve account balance at this time',
+                },
+              ],
+            },
+            { status: 500 }
+          );
+        }),
+        // Also support versioned paths - always fails
+        http.get('*/v*/accounts/:accountId/balances', () => {
+          return HttpResponse.json(
+            {
+              httpStatus: 500,
+              title: 'Internal Server Error',
+              context: [
+                {
+                  code: 'BALANCE_SERVICE_UNAVAILABLE',
+                  message: 'Unable to retrieve account balance at this time',
+                },
+              ],
+            },
+            { status: 500 }
+          );
+        }),
+        http.post('*/transactions', () => {
+          return HttpResponse.json({
+            id: 'txn-12345',
+            amount: 100.0,
+            currency: 'USD',
+            debtorAccountId: 'account1',
+            creditorAccountId: 'acc-1234',
+            recipientId: 'linkedAccount1',
+            transactionReferenceId: 'PAY-1234567890',
+            type: 'ACH',
+            memo: 'Test payment',
+            status: 'PENDING',
+            paymentDate: '2024-01-15',
+            createdAt: '2024-01-15T10:30:00Z',
+            debtorName: 'John Doe',
+            creditorName: 'Jane Smith',
+            debtorAccountNumber: '****1234',
+            creditorAccountNumber: '****5678',
+          });
+        }),
+      ],
+    },
+    docs: {
+      description: {
+        story:
+          'This story demonstrates error handling when the account balance API fails. Select an account to see the error state with a retry button. The balance API will always fail in this story. The form remains functional even when balance information cannot be loaded.',
+      },
+    },
+  },
+};
+
+/**
+ * Accounts API Error: Demonstrates error handling when the GET accounts API fails.
+ */
+export const AccountsError: Story = {
+  name: 'Accounts API Error',
+  args: {
+    apiBaseUrl: '/api',
+    paymentMethods: defaultPaymentMethods,
+    icon: 'CirclePlus',
+    showPreviewPanel: true,
+    reactQueryDefaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/recipients', () => {
+          return HttpResponse.json({ recipients: mockRecipients });
+        }),
+        // Mock failed accounts API call - succeeds on first retry
+        http.get('*/accounts', () => {
+          if (accountsRetryCount.count === 0) {
+            // First call fails
+            accountsRetryCount.count = 1;
+            return HttpResponse.json(
+              {
+                httpStatus: 500,
+                title: 'Internal Server Error',
+                context: [
+                  {
+                    code: 'ACCOUNTS_SERVICE_UNAVAILABLE',
+                    message: 'Unable to retrieve accounts at this time',
+                  },
+                ],
+              },
+              { status: 500 }
+            );
+          }
+
+          // Retry succeeds
+          return HttpResponse.json(mockAccounts);
+        }),
+        // Also support versioned paths - succeeds on first retry
+        http.get('*/v*/accounts', () => {
+          if (accountsRetryCount.count === 0) {
+            accountsRetryCount.count = 1;
+            return HttpResponse.json(
+              {
+                httpStatus: 500,
+                title: 'Internal Server Error',
+                context: [
+                  {
+                    code: 'ACCOUNTS_SERVICE_UNAVAILABLE',
+                    message: 'Unable to retrieve accounts at this time',
+                  },
+                ],
+              },
+              { status: 500 }
+            );
+          }
+
+          return HttpResponse.json(mockAccounts);
+        }),
+        http.get('*/accounts/:accountId/balances', ({ params }) => {
+          const accountId = params.accountId as string;
+          const balance =
+            mockAccountBalances[accountId as keyof typeof mockAccountBalances];
+          if (balance) {
+            return HttpResponse.json(balance);
+          }
+          return HttpResponse.json(
+            { error: 'Account not found' },
+            { status: 404 }
+          );
+        }),
+        http.get('*/v*/accounts/:accountId/balances', ({ params }) => {
+          const accountId = params.accountId as string;
+          const balance =
+            mockAccountBalances[accountId as keyof typeof mockAccountBalances];
+          if (balance) {
+            return HttpResponse.json(balance);
+          }
+          return HttpResponse.json(
+            { error: 'Account not found' },
+            { status: 404 }
+          );
+        }),
+        http.post('*/transactions', () => {
+          return HttpResponse.json({
+            id: 'txn-12345',
+            amount: 100.0,
+            currency: 'USD',
+            debtorAccountId: 'account1',
+            creditorAccountId: 'acc-1234',
+            recipientId: 'linkedAccount1',
+            transactionReferenceId: 'PAY-1234567890',
+            type: 'ACH',
+            memo: 'Test payment',
+            status: 'PENDING',
+            paymentDate: '2024-01-15',
+            createdAt: '2024-01-15T10:30:00Z',
+            debtorName: 'John Doe',
+            creditorName: 'Jane Smith',
+            debtorAccountNumber: '****1234',
+            creditorAccountNumber: '****5678',
+          });
+        }),
+      ],
+    },
+    docs: {
+      description: {
+        story:
+          'This story demonstrates error handling when the GET accounts API fails. The account selector will show an error message with a retry button. Clicking retry will succeed on the first attempt. When a recipient is selected and accounts API is failing, the payment method selector will show "No payment methods available for this recipient."',
       },
     },
   },

@@ -155,7 +155,23 @@ export const Recipients: React.FC<RecipientsProps> = ({
   const shouldUseMobileLayout = !isWidget && isMobile;
   const shouldUseTabletLayout = !isWidget && isTablet;
 
+  // Pagination state (UI is 1-based; API is 0-based). Defaults aligned to OAS (page 0, limit 25).
+  const [totalItems, setTotalItems] = useState(0);
+  const {
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    totalPages,
+    paginationInfo,
+  } = useRecipientsPagination(totalItems, {
+    initialPage: 1, // UI shows page 1, maps to API page 0
+    initialPageSize: 25, // OAS default
+  });
+
   // API queries
+  // Convert UI page (1-based) to API page (0-based) per OAS spec
+  const apiPage = currentPage - 1;
   const {
     data: recipientsData,
     isLoading,
@@ -165,8 +181,8 @@ export const Recipients: React.FC<RecipientsProps> = ({
     {
       clientId,
       type: filters.type,
-      page: 1,
-      limit: 1000, // Get all for client-side filtering
+      page: apiPage,
+      limit: pageSize,
     },
     {
       query: {
@@ -186,24 +202,29 @@ export const Recipients: React.FC<RecipientsProps> = ({
     recipients: recipientsData?.recipients,
     searchTerm,
     statusFilter: filters.status,
+    typeFilter: filters.type,
     sortRecipients,
   });
 
-  // Pagination hook
-  const {
-    currentPage,
-    pageSize,
-    setCurrentPage,
-    setPageSize,
-    totalPages,
-    paginatedItems,
-    paginationInfo,
-  } = useRecipientsPagination(filteredRecipients.length);
+  // Derive pagination metadata from API (OAS aligned) with safe fallbacks
+  const apiTotalItems =
+    recipientsData?.metadata?.total_items ?? recipientsData?.total_items ?? 0;
+
+  // When client-side filters/search are active, fall back to the filtered count
+  const effectiveTotalItems =
+    searchTerm || filters.status
+      ? filteredRecipients.length
+      : apiTotalItems || filteredRecipients.length;
+
+  // Keep pagination totals in sync with API/filters
+  useEffect(() => {
+    setTotalItems(effectiveTotalItems);
+  }, [effectiveTotalItems]);
 
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, filters.status, filters.type, setCurrentPage]);
+  }, [searchTerm, filters.status, filters.type, setCurrentPage, pageSize]);
 
   // Dialog management
   const {
@@ -286,8 +307,8 @@ export const Recipients: React.FC<RecipientsProps> = ({
     }
   }, [recipientToDeactivate, deactivateRecipient, userEventsHandler]);
 
-  // Paginated recipients
-  const paginatedRecipients = paginatedItems(filteredRecipients);
+  // Current page recipients (data already scoped by API pagination)
+  const paginatedRecipients = filteredRecipients;
 
   // Loading state
   if (isLoading) {
@@ -559,19 +580,21 @@ export const Recipients: React.FC<RecipientsProps> = ({
             }
           />
         )}
-        <RecipientsPagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          pageSize={pageSize}
-          totalItems={filteredRecipients.length}
-          startIndex={paginationInfo.startIndex}
-          endIndex={paginationInfo.endIndex}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={(size) => {
-            setPageSize(size);
-            setCurrentPage(1);
-          }}
-        />
+        <div className="eb-mt-4">
+          <RecipientsPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={effectiveTotalItems}
+            startIndex={paginationInfo.startIndex}
+            endIndex={paginationInfo.endIndex}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1);
+            }}
+          />
+        </div>
       </CardContent>
 
       {/* Details Dialog */}

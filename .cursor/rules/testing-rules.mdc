@@ -196,15 +196,17 @@ test("displays loading state", async () => {
 
 1. `getByRole` - Preferred for interactive elements
 2. `getByLabelText` - For form inputs
-3. `getByText` - For non-interactive elements
-4. `getByTestId` - Last resort, use sparingly
+3. `findBy*` for elements that appear asynchronously (prefer over `waitFor` + `getBy*`)
+4. `getByText` only when text is unique; if repeated, use `getAllBy*` and scope/filter to the right container/label
+5. `getByTestId` - Last resort, use sparingly
 
 ### 2. Async Testing
 
-- Use `findBy` queries for elements that appear asynchronously
-- Use `waitFor` for complex async operations
+- Use `findBy*` for elements that appear asynchronously; avoid wrapping `getBy*` in `waitFor` when a `findBy*` fits
+- Use `waitFor` only for multi-step async assertions (e.g., state changes after multiple events)
 - Always await user events
 - Handle loading states appropriately
+- When text appears in multiple places (e.g., payment methods vs review panel), scope queries: use `getAllBy*` then pick the element in the intended container (e.g., a label tied to an input)
 
 ### 3. Error Handling
 
@@ -422,8 +424,8 @@ When tests fail, check:
 
 4. **Async Operations:**
 
-   - [ ] Using `waitFor` for async assertions?
-   - [ ] Using `findBy` queries for elements that appear asynchronously?
+   - [ ] Using `findBy*` for elements that appear asynchronously (preferred)?
+   - [ ] Using `waitFor` only for complex/multi-step async assertions?
    - [ ] All user events are awaited?
 
 5. **Component Dependencies:**

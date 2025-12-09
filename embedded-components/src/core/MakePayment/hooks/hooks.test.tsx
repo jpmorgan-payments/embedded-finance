@@ -111,7 +111,6 @@ describe('usePaymentAutoSelection', () => {
             undefined,
             [],
             [],
-            [],
             form
           );
         },

@@ -535,15 +535,37 @@ export const handlers = [
   http.get('/recipients', ({ request }) => {
     const url = new URL(request.url);
     const clientId = url.searchParams.get('clientId');
+    const type = url.searchParams.get('type');
+
+    // Parse pagination params with OAS defaults: page=0, limit=25
+    const page = Math.max(0, parseInt(url.searchParams.get('page') || '0', 10));
+    const limit = Math.min(
+      25,
+      Math.max(1, parseInt(url.searchParams.get('limit') || '25', 10))
+    );
 
     // Get active recipients (filter out INACTIVE and REJECTED)
-    const recipients = getActiveRecipients(clientId || undefined);
+    let recipients = getActiveRecipients(clientId || undefined);
 
+    // Filter by type if provided
+    if (type) {
+      recipients = recipients.filter((r) => r.type === type);
+    }
+
+    // Apply server-side pagination
+    const totalItems = recipients.length;
+    const startIndex = page * limit;
+    const endIndex = startIndex + limit;
+    const paginatedRecipients = recipients.slice(startIndex, endIndex);
+
+    // Return OAS-aligned response structure
     return HttpResponse.json({
-      recipients,
-      page: 0,
-      limit: 100,
-      total_items: recipients.length,
+      recipients: paginatedRecipients,
+      metadata: {
+        page,
+        limit,
+        total_items: totalItems,
+      },
     });
   }),
 

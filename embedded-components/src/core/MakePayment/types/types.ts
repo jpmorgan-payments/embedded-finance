@@ -56,6 +56,7 @@ export interface PaymentFormData {
   currency: string;
   memo?: string;
   // manual recipient fields
+  saveRecipient?: boolean;
   partyType?: 'INDIVIDUAL' | 'ORGANIZATION';
   firstName?: string;
   lastName?: string;

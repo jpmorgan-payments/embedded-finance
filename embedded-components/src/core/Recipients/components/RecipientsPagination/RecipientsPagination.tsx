@@ -74,7 +74,7 @@ export const RecipientsPagination: React.FC<RecipientsPaginationProps> = ({
               <SelectValue placeholder={pageSize} />
             </SelectTrigger>
             <SelectContent side="top">
-              {[10, 20, 25, 30, 40, 50].map((size) => (
+              {[10, 20, 25].map((size) => (
                 <SelectItem key={size} value={`${size}`}>
                   {size}
                 </SelectItem>
