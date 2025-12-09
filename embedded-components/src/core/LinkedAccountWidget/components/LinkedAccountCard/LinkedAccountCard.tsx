@@ -59,6 +59,9 @@ export interface LinkedAccountCardProps {
     recipient?: any
   ) => void;
 
+  /** Callback when account is successfully removed */
+  onRemoveSuccess?: (recipient: Recipient) => void;
+
   /** Hide action buttons and status alerts (useful for confirmation views) */
   hideActions?: boolean;
 }
@@ -73,6 +76,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
   makePaymentComponent,
   onLinkedAccountSettled,
   onMicrodepositVerifySettled,
+  onRemoveSuccess,
   hideActions = false,
 }) => {
   const { t } = useTranslation('linked-accounts');
@@ -238,6 +242,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
             <RemoveAccountDialogTrigger
               recipient={recipient}
               onLinkedAccountSettled={onLinkedAccountSettled}
+              onRemoveSuccess={onRemoveSuccess}
             >
               <DropdownMenuItem
                 onSelect={(e) => e.preventDefault()}
