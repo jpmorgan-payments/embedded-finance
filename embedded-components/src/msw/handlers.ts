@@ -25,7 +25,7 @@ import {
 } from './db';
 
 export const handlers = [
-  http.get(`*/clients/:clientId`, (req) => {
+  http.get(`/do/v1/clients/:clientId`, (req) => {
     const { clientId } = req.params;
     const client = db.client.findFirst({
       where: { id: { equals: clientId } },
@@ -59,7 +59,7 @@ export const handlers = [
     });
   }),
 
-  http.post(`*/clients`, async ({ request }) => {
+  http.post(`/do/v1/clients`, async ({ request }) => {
     const rawData = await request.json();
     if (!rawData || typeof rawData !== 'object') {
       return new HttpResponse(null, {
@@ -131,7 +131,7 @@ export const handlers = [
     });
   }),
 
-  http.post(`*/clients/:clientId`, async ({ request, params }) => {
+  http.post(`/do/v1/clients/:clientId`, async ({ request, params }) => {
     const { clientId } = params;
     const data = await request.json();
 
@@ -504,7 +504,7 @@ export const handlers = [
     }
   ),
 
-  http.get('*/clients/:clientId', () => {
+  http.get('/do/v1/clients/:clientId', () => {
     return new HttpResponse(null, { status: 404 });
   }),
 
@@ -517,7 +517,7 @@ export const handlers = [
   }),
 
   http.post(
-    '*/clients/:clientId/verifications',
+    '/do/v1/clients/:clientId/verifications',
     async ({ request, params }) => {
       const { clientId } = params;
       const data = await request.json();
