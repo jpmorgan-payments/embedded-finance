@@ -603,7 +603,9 @@ describe('MakePayment (Refactored)', () => {
     // Payment methods should NOT appear until a recipient is selected
     // Since no recipient is selected, payment methods should not be visible
     await waitFor(() => {
-      expect(screen.queryByText('How do you want to pay?')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('How do you want to pay?')
+      ).not.toBeInTheDocument();
     });
 
     // Now select a recipient - since there's only one, it should be auto-selected
