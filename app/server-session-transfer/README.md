@@ -155,6 +155,27 @@ function adjustIframeHeight(iframe) {
 }
 ```
 
+**Theme Configuration:**
+
+To customize the theme, encode theme tokens as a URL parameter and append to the iframe URL:
+
+```javascript
+// Build theme configuration using semantic design tokens
+const themeConfig = {
+  colorScheme: 'light',
+  variables: {
+    actionableAccentedBoldBackground: '#FF6600',  // Primary button color
+    actionableBorderRadius: '9999px'                // Button border radius
+  }
+};
+
+// Encode and append theme to iframe URL
+const encodedTheme = encodeURIComponent(JSON.stringify(themeConfig));
+const iframeUrlWithTheme = `${sessionData.url}?token=${sessionData.token}&themeTokens=${encodedTheme}`;
+```
+
+For a complete list of available design tokens, refer to the [Embedded Components README](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming).
+
 **Characteristics:**
 - ✅ **Full Control**: Complete control over iframe creation and lifecycle
 - ✅ **No Dependencies**: Pure vanilla JavaScript, no external libraries
@@ -188,8 +209,8 @@ const onboardingUI = new PartiallyHostedUIComponent({
   theme: {
     colorScheme: 'light',
     variables: {
-      primaryColor: '#0066CC',  // Custom primary color
-      borderRadius: '9999px'     // Fully rounded borders
+      actionableAccentedBoldBackground: '#FF6600',  // Primary action button color (semantic token)
+      actionableBorderRadius: '9999px'                 // Button border radius (semantic token)
     }
   },
   contentTokens: { locale: 'en-US' }
@@ -268,8 +289,11 @@ The demo includes sample theme overrides for customizing the embedded UI appeara
 
 ### Theme Configuration
 
-**Primary Color Override**: Customize the primary brand color used throughout the embedded UI
-**Border Radius Override**: Control the roundness of UI elements (buttons, inputs, cards)
+The theme system uses semantic design tokens. This demo shows examples of customizing:
+- **Primary Action Button Color**: Using `actionableAccentedBoldBackground` token
+- **Button Border Radius**: Using `actionableBorderRadius` token
+
+For a complete list of available design tokens, refer to the [Embedded Components README](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming).
 
 ### Method 1: Manual Implementation
 
