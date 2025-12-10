@@ -1329,7 +1329,7 @@ export function ThemeCustomizationDrawer({
                       <button
                         type="button"
                         onClick={() => setIsA11yExpanded(!isA11yExpanded)}
-                        className={`flex items-center justify-between w-full p-3 rounded-lg transition-colors ${
+                        className={`flex items-center justify-between w-full p-2.5 rounded-lg transition-colors ${
                           hasIssues
                             ? 'bg-red-50 hover:bg-red-100 border border-red-200'
                             : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
@@ -1337,42 +1337,43 @@ export function ThemeCustomizationDrawer({
                         aria-expanded={isA11yExpanded}
                         aria-controls="a11y-check-details"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="flex flex-col items-start">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-gray-900">
-                                Accessibility Check
-                              </span>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setIsWarningDialogOpen(true);
-                                }}
-                                className="flex items-center gap-1.5 text-amber-600 hover:text-amber-700 transition-colors text-xs font-medium"
-                                title="View warning about using generated theme JSON"
-                                aria-label="View warning about using generated theme JSON"
-                              >
-                                <AlertTriangle className="h-4 w-4" />
-                                <span>Warning: Use at Your Own Risk</span>
-                              </button>
-                            </div>
-                            {!isA11yExpanded && (
-                              <span
-                                className={`text-xs mt-0.5 ${
-                                  hasIssues
-                                    ? 'text-red-700 font-medium'
-                                    : 'text-gray-600'
-                                }`}
-                              >
-                                {hasIssues
-                                  ? `⚠ ${totalIssues} issue${totalIssues !== 1 ? 's' : ''} found`
-                                  : '✓ All checks passing'}
-                              </span>
-                            )}
+                        <div className="flex flex-col items-start flex-1 min-w-0 gap-0.5">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsWarningDialogOpen(true);
+                            }}
+                            className="flex items-center gap-1.5 text-amber-600 hover:text-amber-700 transition-colors text-xs font-medium"
+                            title="View warning about using generated theme JSON"
+                            aria-label="View warning about using generated theme JSON"
+                          >
+                            <AlertTriangle className="h-3.5 w-3.5" />
+                            <span>Warning: Use at Your Own Risk</span>
+                          </button>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500 font-bold">
+                              Experimental:
+                            </span>
+                            <span className="text-xs font-normal text-gray-900">
+                              Accessibility Check
+                            </span>
                           </div>
+                          {!isA11yExpanded && (
+                            <span
+                              className={`text-xs ${
+                                hasIssues
+                                  ? 'text-red-700 font-medium'
+                                  : 'text-gray-600'
+                              }`}
+                            >
+                              {hasIssues
+                                ? `⚠ ${totalIssues} issue${totalIssues !== 1 ? 's' : ''} found`
+                                : '✓ All checks passing'}
+                            </span>
+                          )}
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                           {!isA11yExpanded && hasIssues && (
                             <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded">
                               {totalIssues}
