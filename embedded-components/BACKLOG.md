@@ -18,6 +18,7 @@
 - **BL-200 to BL-299:** Priority 4 (Technical Debt & Performance)
 - **BL-300 to BL-399:** Priority 5 (Design System Foundation)
 - **BL-400 to BL-599:** Priority 6 (Roadmap Theme Alignment)
+- **BL-500 to BL-599:** Theme 10 (Tech Debt & Dependency Hygiene)
 
 ### Quick Reference by Component
 
@@ -83,6 +84,18 @@
 - BL-330: Color palette standardization
 - BL-340: Typography system
 - BL-350: Spacing system
+
+**Tech Debt & Dependencies:**
+
+- BL-500: Dependency audit & security
+- BL-501: TypeScript & toolchain updates
+- BL-502: Build/test infrastructure (Vite, Vitest)
+- BL-503: Orval & API dependencies
+- BL-504: Storybook upgrade to v10+
+- BL-505: ESLint upgrade to v9
+- BL-506: Tailwind CSS upgrade to v4
+- BL-507: React & UI library updates
+- BL-508: Other dependency updates
 
 ### Completed Items
 
@@ -922,18 +935,157 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 - [ ] **BL-500-1:** Review and update all package dependencies (runtime and dev) with security-first allowlist
 - [ ] **BL-500-2:** Remove obsolete or unused devDependencies
 - [ ] **BL-500-3:** Consolidate eslint/prettier configs; drop overlapping/legacy rules
+- [ ] **BL-500-4:** Run security audit: `yarn audit --level moderate` and address vulnerabilities
+- [ ] **BL-500-5:** Verify package integrity after recent npm supply chain attacks (eslint-config-prettier, etc.)
+
+#### Storybook Upgrade to v10+ [BL-504]
+
+**Current Version:** 9.1.13  
+**Target Version:** 10.1+ (latest stable)  
+**Priority:** 🟠 High  
+**Breaking Changes:** ESM-only distribution, requires Node.js 20.19+ or 22.12+
+
+- [ ] **BL-504-1:** Upgrade Storybook core and all addons to v10+
+  - [ ] **BL-504-1a:** Update `storybook` to latest v10.x
+  - [ ] **BL-504-1b:** Update `@storybook/react-vite` to latest v10.x
+  - [ ] **BL-504-1c:** Update `@storybook/addon-*` packages to latest v10.x
+  - [ ] **BL-504-1d:** Update `@storybook/blocks` to latest v10.x (if used)
+- [ ] **BL-504-2:** Convert Storybook configuration to ESM format
+  - [ ] **BL-504-2a:** Update `.storybook/main.js|ts` to valid ESM
+  - [ ] **BL-504-2b:** Update `.storybook/preview.js|ts` to valid ESM
+  - [ ] **BL-504-2c:** Convert all presets and addon configs to ESM
+- [ ] **BL-504-3:** Verify Node.js version compatibility (20.19+ or 22.12+)
+  - [ ] **BL-504-3a:** Update CI/CD to use compatible Node.js version
+  - [ ] **BL-504-3b:** Update local development documentation
+- [ ] **BL-504-4:** Leverage new Storybook 10 features
+  - [ ] **BL-504-4a:** Implement module automocking for easier testing
+  - [ ] **BL-504-4b:** Use typesafe CSF factories for React
+  - [ ] **BL-504-4c:** Explore improved UI editing and sharing capabilities
+- [ ] **BL-504-5:** Test Storybook build and all stories after upgrade
+  - [ ] **BL-504-5a:** Verify `yarn storybook` runs successfully
+  - [ ] **BL-504-5b:** Verify `yarn storybook:build` completes without errors
+  - [ ] **BL-504-5c:** Test all component stories for compatibility
+- [ ] **BL-504-6:** Update Storybook migration documentation
+
+**Migration Resources:**
+
+- Official migration guide: https://storybook.js.org/docs/releases/migration-guide
+- Run automatic upgrade: `npx storybook@latest upgrade`
+
+#### ESLint Upgrade to v9 [BL-505]
+
+**Current Version:** 8.53.0  
+**Target Version:** 9.39.1 (latest stable, v10.0.0-alpha.1 available but not recommended for production)  
+**Priority:** 🟠 High  
+**Breaking Changes:** Flat config format (new default), removed legacy config support
+
+- [ ] **BL-505-1:** Upgrade ESLint core and plugins to v9
+  - [ ] **BL-505-1a:** Update `eslint` to v9.39.1 (latest stable)
+  - [ ] **BL-505-1b:** Update `@typescript-eslint/eslint-plugin` to latest v8.x (compatible with ESLint 9)
+  - [ ] **BL-505-1c:** Update `@typescript-eslint/parser` to latest v8.x
+  - [ ] **BL-505-1d:** Update all ESLint plugins to ESLint 9 compatible versions
+- [ ] **BL-505-2:** Migrate to ESLint flat config format
+  - [ ] **BL-505-2a:** Convert `eslintrc` config to `eslint.config.js|ts` (flat config)
+  - [ ] **BL-505-2b:** Update plugin imports and configurations
+  - [ ] **BL-505-2c:** Remove deprecated `extends` and `parserOptions` patterns
+- [ ] **BL-505-3:** Review and update ESLint rule configurations
+  - [ ] **BL-505-3a:** Test all linting rules with new config format
+  - [ ] **BL-505-3b:** Address any rule deprecations or changes
+  - [ ] **BL-505-3c:** Update custom rules if applicable
+- [ ] **BL-505-4:** Update CI/CD and development scripts
+  - [ ] **BL-505-4a:** Verify `yarn lint` works with new config
+  - [ ] **BL-505-4b:** Verify `yarn lint:fix` works correctly
+  - [ ] **BL-505-4c:** Update pre-commit hooks if applicable
+- [ ] **BL-505-5:** Consider ESLint v10 upgrade path (monitor for stable release)
+  - [ ] **BL-505-5a:** Track ESLint v10.0.0 stable release
+  - [ ] **BL-505-5b:** Plan v10 upgrade once stable (breaking changes expected)
+
+**Migration Resources:**
+
+- ESLint v9 migration guide: https://eslint.org/docs/latest/use/migrate-to-9.0.0
+- Flat config documentation: https://eslint.org/docs/latest/use/configure/configuration-files-new
+
+#### Tailwind CSS Upgrade to v4 [BL-506]
+
+**Current Version:** 3.4.18  
+**Target Version:** 4.x (latest stable)  
+**Priority:** 🟠 High  
+**Breaking Changes:** New CSS-first configuration, updated utility classes, improved performance
+
+- [ ] **BL-506-1:** Upgrade Tailwind CSS and related packages
+  - [ ] **BL-506-1a:** Update `tailwindcss` to latest v4.x
+  - [ ] **BL-506-1b:** Update `autoprefixer` to latest compatible version
+  - [ ] **BL-506-1c:** Update `postcss` to latest compatible version
+  - [ ] **BL-506-1d:** Review `tailwindcss-animate` compatibility with v4
+  - [ ] **BL-506-1e:** Review `@tailwindcss/container-queries` compatibility
+- [ ] **BL-506-2:** Migrate Tailwind configuration to v4 format
+  - [ ] **BL-506-2a:** Convert `tailwind.config.js` to v4 CSS-first configuration
+  - [ ] **BL-506-2b:** Update custom theme variables and design tokens
+  - [ ] **BL-506-2c:** Migrate `eb-` prefixed custom classes to v4 format
+  - [ ] **BL-506-2d:** Update PostCSS configuration if needed
+- [ ] **BL-506-3:** Review and update component styles
+  - [ ] **BL-506-3a:** Test all components for style compatibility
+  - [ ] **BL-506-3b:** Update any deprecated utility classes
+  - [ ] **BL-506-3c:** Verify responsive design breakpoints
+  - [ ] **BL-506-3d:** Test dark mode if applicable
+- [ ] **BL-506-4:** Leverage Tailwind v4 improvements
+  - [ ] **BL-506-4a:** Utilize improved build performance
+  - [ ] **BL-506-4b:** Explore new utility classes and features
+  - [ ] **BL-506-4c:** Optimize CSS output size
+- [ ] **BL-506-5:** Update Storybook and development environment
+  - [ ] **BL-506-5a:** Verify Tailwind works in Storybook after upgrade
+  - [ ] **BL-506-5b:** Verify development server (`yarn dev`) works correctly
+  - [ ] **BL-506-5c:** Test production build (`yarn build`)
+
+**Migration Resources:**
+
+- Tailwind CSS v4 migration guide: https://tailwindcss.com/docs/upgrade-guide
+- Tailwind CSS v4 release notes: https://tailwindcss.com/docs/release-notes
 
 #### TypeScript & Toolchain [BL-501]
 
 - [ ] **BL-501-1:** Consider bumping TypeScript and related type utilities to latest compatible versions
+  - [ ] **BL-501-1a:** Check latest TypeScript version (current: 5.9.3)
+  - [ ] **BL-501-1b:** Update `typescript` to latest 5.x stable
+  - [ ] **BL-501-1c:** Update `@types/react` and `@types/react-dom` to latest
+  - [ ] **BL-501-1d:** Update other `@types/*` packages to latest
 - [ ] **BL-501-2:** Validate build output and generated d.ts after bump
 - [ ] **BL-501-3:** Fix any strictness regressions
+- [ ] **BL-501-4:** Consider TypeScript 6.x upgrade path (when stable)
 
 #### Build/Test Infrastructure [BL-502]
 
-- [ ] **BL-502-1:** Verify Vite/Storybook compatibility after bumps
-- [ ] **BL-502-2:** Adjust configs if needed
-- [ ] **BL-502-3:** Rebaseline CI (typecheck/lint/test/storybook build) performance and caching
+- [ ] **BL-502-1:** Upgrade Vite to latest version
+  - [ ] **BL-502-1a:** Update `vite` to latest 6.x (current: 6.4.1)
+  - [ ] **BL-502-1b:** Update `@vitejs/plugin-react` to latest
+  - [ ] **BL-502-1c:** Update `vite-plugin-dts` and other Vite plugins
+- [ ] **BL-502-2:** Upgrade Vitest to latest version
+  - [ ] **BL-502-2a:** Update `vitest` to latest 2.x (current: 2.1.9)
+  - [ ] **BL-502-2b:** Update `@vitest/ui` to latest
+  - [ ] **BL-502-2c:** Verify test compatibility after upgrade
+- [ ] **BL-502-3:** Verify Vite/Storybook compatibility after bumps
+- [ ] **BL-502-4:** Adjust configs if needed
+- [ ] **BL-502-5:** Rebaseline CI (typecheck/lint/test/storybook build) performance and caching
+
+#### React & UI Library Updates [BL-507]
+
+- [ ] **BL-507-1:** Review React 19 upgrade readiness (Theme 4)
+  - [ ] **BL-507-1a:** Current: React 18.3.1 (peer allows 18.2.0 || 19)
+  - [ ] **BL-507-1b:** Test React 19 compatibility with all components
+  - [ ] **BL-507-1c:** Plan React 19 upgrade timeline (see Theme 4)
+- [ ] **BL-507-2:** Update Radix UI packages to latest versions
+  - [ ] **BL-507-2a:** Audit all `@radix-ui/react-*` packages for updates
+  - [ ] **BL-507-2b:** Update to latest compatible versions
+  - [ ] **BL-507-2c:** Test all Radix-based components after updates
+- [ ] **BL-507-3:** Update TanStack React Query to latest v5
+  - [ ] **BL-507-3a:** Update `@tanstack/react-query` to latest 5.x (current: 5.90.5)
+  - [ ] **BL-507-3b:** Update `@tanstack/react-query-devtools` to latest
+  - [ ] **BL-507-3c:** Update `@tanstack/react-table` to latest 8.x (current: 8.21.3)
+- [ ] **BL-507-4:** Update MSW to latest version
+  - [ ] **BL-507-4a:** Update `msw` to latest 2.x (current: 2.11.6)
+  - [ ] **BL-507-4b:** Update `@mswjs/data` to latest
+  - [ ] **BL-507-4c:** Update `msw-storybook-addon` to latest
+  - [ ] **BL-507-4d:** Test all MSW handlers after upgrade
 
 #### Orval & Dependencies [BL-503]
 
@@ -946,15 +1098,39 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 - [ ] **BL-503-7:** Package manager: migrate to pnpm (workspaces) for speed and content-addressable store
 - [ ] **BL-503-8:** Update docs/CI to use `pnpm -w` equivalents
 
+#### Other Dependency Updates [BL-508]
+
+- [ ] **BL-508-1:** Update form libraries
+  - [ ] **BL-508-1a:** Update `react-hook-form` to latest 7.x (current: 7.65.0)
+  - [ ] **BL-508-1b:** Update `@hookform/resolvers` to latest
+  - [ ] **BL-508-1c:** Update `zod` to latest 3.x (current: 3.25.76)
+  - [ ] **BL-508-1d:** Update `zod-i18n-map` to latest
+- [ ] **BL-508-2:** Update i18n libraries
+  - [ ] **BL-508-2a:** Update `i18next` to latest (current: 24.2.1)
+  - [ ] **BL-508-2b:** Update `react-i18next` to latest (current: 15.1.1)
+- [ ] **BL-508-3:** Update utility libraries
+  - [ ] **BL-508-3a:** Update `date-fns` to latest 3.x (current: 3.6.0)
+  - [ ] **BL-508-3b:** Update `axios` to latest 1.x (current: 1.12.2)
+  - [ ] **BL-508-3c:** Update `clsx` and `tailwind-merge` to latest
+- [ ] **BL-508-4:** Update development tools
+  - [ ] **BL-508-4a:** Update `prettier` to latest 3.x (current: 3.6.2)
+  - [ ] **BL-508-4b:** Update `prettier-plugin-tailwindcss` to latest
+  - [ ] **BL-508-4c:** Review and update other dev dependencies
+- [ ] **BL-508-5:** Remove or replace deprecated packages
+  - [ ] **BL-508-5a:** Audit for deprecated packages
+  - [ ] **BL-508-5b:** Find alternatives for deprecated packages
+  - [ ] **BL-508-5c:** Update or remove as needed
+
 ---
 
 ## 📊 Backlog Statistics
 
-**Total Items:** ~160+  
+**Total Items:** ~200+  
 **Critical Priority:** 6 major areas (including new collection patterns and header standardization)  
-**High Priority:** 5 major areas  
+**High Priority:** 5 major areas (including Storybook, ESLint, Tailwind upgrades)  
 **Medium Priority:** 4 major areas  
-**Low Priority:** 3 major areas
+**Low Priority:** 3 major areas  
+**Tech Debt:** 8 major upgrade areas (Storybook v10+, ESLint v9, Tailwind v4, TypeScript, Vite/Vitest, React/UI libraries, Orval, other dependencies)
 
 **Completed Recently:**
 

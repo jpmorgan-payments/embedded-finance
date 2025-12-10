@@ -29,3 +29,4 @@ URL: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=m
 - Form Discoverability: Still requires button click (known issue from previous testing)
 - Improvements: Recipient mode toggle, form structure, save recipient feature
 
+

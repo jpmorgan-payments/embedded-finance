@@ -246,3 +246,4 @@ export function clearContrastCache(): void {
   contrastCache.clear();
 }
 
+
