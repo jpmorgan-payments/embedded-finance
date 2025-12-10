@@ -407,8 +407,23 @@
                     `;
                     successMessage.classList.remove('hidden');
                     
+                    // Build iframe URL with theme overrides
+                    const themeConfig = {
+                        colorScheme: 'light',
+                        variables: {
+                            // Primary action button color (semantic token) - Orange
+                            actionableAccentedBoldBackground: '#FF6600',
+                            // Border radius for buttons specifically (semantic token)
+                            actionableBorderRadius: '9999px'
+                        }
+                    };
+                    
+                    // Encode theme as URL parameter
+                    const encodedTheme = encodeURIComponent(JSON.stringify(themeConfig));
+                    const iframeUrlWithTheme = `${sessionData.iframeUrl}&themeTokens=${encodedTheme}`;
+                    
                     // Get iframe HTML
-                    const embedResponse = await fetch(`/embed?url=${encodeURIComponent(sessionData.iframeUrl)}`);
+                    const embedResponse = await fetch(`/embed?url=${encodeURIComponent(iframeUrlWithTheme)}`);
                     const embedData = await embedResponse.json();
                     
                                          if (embedData.html) {

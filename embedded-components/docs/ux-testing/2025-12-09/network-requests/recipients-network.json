@@ -1,0 +1,30 @@
+{
+  "component": "Recipients",
+  "date": "2025-12-09",
+  "url": "https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=recipients&theme=Empty",
+  "requests": [
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/recipients",
+      "status": 200,
+      "type": "fetch",
+      "note": "Recipients API with server-side pagination (per PR #601 - OAS aligned)"
+    }
+  ],
+  "summary": {
+    "total_requests": "Multiple (includes asset loading)",
+    "successful_requests": "All",
+    "failed_requests": 0,
+    "server_side_pagination": true,
+    "oas_aligned": true,
+    "msw_intercepted": true
+  },
+  "observations": {
+    "pagination_implementation": "Server-side (changed from client-side in PR #601)",
+    "page_size_options": "[10, 20, 25] (reduced from [10, 20, 25, 30, 40, 50] per PR #601)",
+    "data_inconsistency": "Table shows 'No recipients found' but pagination shows '4 row(s) total'"
+  }
+}
+
+
+

@@ -210,6 +210,12 @@ export default {
       letterSpacing: {
         button: 'var(--eb-button-letter-spacing)',
       },
+      borderWidth: {
+        'button-primary': 'var(--eb-primary-border-width, 0)',
+        'button-secondary': 'var(--eb-secondary-border-width, 0)',
+        'button-destructive': 'var(--eb-destructive-border-width, 0)',
+        'button-warning': 'var(--eb-warning-border-width, 1px)',
+      },
     },
   },
   plugins: [
@@ -223,10 +229,18 @@ export default {
     ({ addUtilities }) => {
       addUtilities({
         '.button-padding': {
-          // padding: 'var(--eb-button-padding)',
+          paddingTop: 'var(--eb-button-padding-y, 0.5rem)',
+          paddingBottom: 'var(--eb-button-padding-y, 0.5rem)',
+          paddingLeft: 'var(--eb-button-padding-x, 1rem)',
+          paddingRight: 'var(--eb-button-padding-x, 1rem)',
         },
         '.button-text-transform': {
           textTransform: 'var(--eb-button-text-transform)',
+        },
+        '.button-shift-active': {
+          '&:active:not(:disabled)': {
+            transform: 'translateY(var(--eb-button-translate-y-active, 0))',
+          },
         },
       });
     },

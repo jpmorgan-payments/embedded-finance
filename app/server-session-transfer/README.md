@@ -155,6 +155,27 @@ function adjustIframeHeight(iframe) {
 }
 ```
 
+**Theme Configuration:**
+
+To customize the theme, encode theme tokens as a URL parameter and append to the iframe URL:
+
+```javascript
+// Build theme configuration using semantic design tokens
+const themeConfig = {
+  colorScheme: 'light',
+  variables: {
+    actionableAccentedBoldBackground: '#FF6600',  // Primary button color
+    actionableBorderRadius: '9999px'                // Button border radius
+  }
+};
+
+// Encode and append theme to iframe URL
+const encodedTheme = encodeURIComponent(JSON.stringify(themeConfig));
+const iframeUrlWithTheme = `${sessionData.url}?token=${sessionData.token}&themeTokens=${encodedTheme}`;
+```
+
+For a complete list of available design tokens, refer to the [Embedded Components README](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming).
+
 **Characteristics:**
 - ✅ **Full Control**: Complete control over iframe creation and lifecycle
 - ✅ **No Dependencies**: Pure vanilla JavaScript, no external libraries
@@ -185,7 +206,13 @@ const onboardingUI = new PartiallyHostedUIComponent({
   sessionToken: sessionData.sessionToken,
   baseUrl: sessionData.baseUrl,
   experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
-  theme: { colorScheme: 'light' },
+  theme: {
+    colorScheme: 'light',
+    variables: {
+      actionableAccentedBoldBackground: '#FF6600',  // Primary action button color (semantic token)
+      actionableBorderRadius: '9999px'                 // Button border radius (semantic token)
+    }
+  },
   contentTokens: { locale: 'en-US' }
 });
 
@@ -255,6 +282,76 @@ npm run dev:utility
 ```
 
 Both methods use the same backend API (`/sessions` endpoint) and provide identical functionality - the difference is in the frontend implementation approach.
+
+## 🎨 Theme Customization
+
+The demo includes sample theme overrides for customizing the embedded UI appearance. Both implementations support theme configuration:
+
+### Theme Configuration
+
+The theme system uses semantic design tokens. This demo shows examples of customizing:
+- **Primary Action Button Color**: Using `actionableAccentedBoldBackground` token
+- **Button Border Radius**: Using `actionableBorderRadius` token
+
+For a complete list of available design tokens, refer to the [Embedded Components README](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming).
+
+**💡 Interactive Theme Customization:**
+
+Use the [Customize Theme utility](https://embedded-finance-dev.com/sellsense-demo?scenario=Seller+with+Payments+DDA&view=wallet) to interactively refine and update your theme configuration. You can visually inspect the results in real-time and copy the generated JSON configuration to use in your implementation.
+
+### Method 1: Manual Implementation
+
+In `index.html`, theme parameters are manually encoded and appended to the iframe URL:
+
+```javascript
+// Build theme configuration using semantic design tokens
+const themeConfig = {
+  colorScheme: 'light',
+  variables: {
+    // Primary action button color (semantic token) - Orange
+    actionableAccentedBoldBackground: '#FF6600',
+    // Border radius for buttons specifically (semantic token)
+    actionableBorderRadius: '9999px'
+  }
+};
+
+// Encode and append to URL
+const encodedTheme = encodeURIComponent(JSON.stringify(themeConfig));
+const iframeUrlWithTheme = `${sessionData.iframeUrl}&themeTokens=${encodedTheme}`;
+```
+
+### Method 2: Utility Library
+
+In `index-utility.html`, theme is configured declaratively:
+
+```javascript
+const onboardingUI = new PartiallyHostedUIComponent({
+  sessionToken: sessionData.sessionToken,
+  baseUrl: sessionData.baseUrl,
+  experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
+  theme: {
+    colorScheme: 'light',
+    variables: {
+      // Primary action button color (semantic token) - Orange
+      actionableAccentedBoldBackground: '#FF6600',
+      // Border radius for buttons specifically (semantic token)
+      actionableBorderRadius: '9999px',
+      // Typography font family (semantic token)
+      contentFontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+    }
+  }
+});
+```
+
+The utility library automatically encodes the theme object and includes it in the iframe URL parameters.
+
+### Available Theme Variables
+
+The theme system uses semantic design tokens following the [Salt Design System](https://www.saltdesignsystem.com/salt/themes/design-tokens/how-to-read-tokens) nomenclature.
+
+For a complete list of available design tokens, token descriptions, default values, and usage examples, refer to the [Embedded Components README](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming).
+
+**Note**: Theme variables are passed to JPMorgan's hosted UI via URL parameters. The hosted UI applies these overrides to match your brand identity.
 
 ## 📁 Project Structure
 

@@ -1,0 +1,31 @@
+{
+  "component": "Linked Accounts",
+  "date": "2025-12-09",
+  "url": "https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=linked-accounts&theme=Empty",
+  "metrics": {
+    "load_time_ms": "~235",
+    "note": "Estimated based on network request timing (first API call to last API call completion)",
+    "memory_usage": "Not available in browser automation",
+    "api_calls": {
+      "total": 4,
+      "unique_endpoints": 4,
+      "duplicate_calls": true,
+      "all_successful": true
+    },
+    "rendering": {
+      "initial_render": "Fast",
+      "interactive_elements": "Responsive",
+      "menu_open_delay": "<100ms"
+    }
+  },
+  "observations": {
+    "performance_rating": "Excellent",
+    "issues": [
+      "Duplicate API calls (all endpoints called twice)",
+      "MSW initialization errors (non-critical)"
+    ]
+  }
+}
+
+
+

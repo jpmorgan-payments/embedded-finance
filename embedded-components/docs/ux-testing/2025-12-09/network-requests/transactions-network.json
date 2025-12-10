@@ -1,0 +1,43 @@
+{
+  "component": "Transactions",
+  "date": "2025-12-09",
+  "url": "https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=transactions&theme=Empty",
+  "requests": [
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/accounts",
+      "status": 200,
+      "type": "fetch",
+      "note": "Accounts API (called twice - duplicate)"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/transactions",
+      "status": 200,
+      "type": "fetch",
+      "note": "Transactions API (called twice - duplicate)"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/transactions/txn-003",
+      "status": 200,
+      "type": "fetch",
+      "note": "Transaction details API (when row clicked)"
+    }
+  ],
+  "summary": {
+    "total_requests": "Multiple (includes asset loading)",
+    "successful_requests": "All",
+    "failed_requests": 0,
+    "duplicate_calls": true,
+    "duplicate_endpoints": [
+      "/ef/do/v1/accounts",
+      "/ef/do/v1/transactions",
+      "/ping"
+    ],
+    "msw_intercepted": true
+  }
+}
+
+
+
