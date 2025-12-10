@@ -1,5 +1,5 @@
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
-import { Recipient } from '@/api/generated/ep-recipients.schemas';
+import { PageMetaData, Recipient } from '@/api/generated/ep-recipients.schemas';
 import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
 
 /**
@@ -20,6 +20,9 @@ export interface UseLinkedAccountsOptions {
 export interface UseLinkedAccountsReturn {
   /** Filtered linked accounts based on variant */
   linkedAccounts: Recipient[];
+
+  /** Metadata */
+  metadata?: PageMetaData;
 
   /** Whether user has at least one active (non-pending) linked account */
   hasActiveAccount: boolean;
@@ -77,24 +80,25 @@ export function useLinkedAccounts({
             // Apply variant-specific logic
             if (variant === 'singleAccount') {
               // Return only the first account for single account view
-              return accounts.slice(0, 1);
+              return { ...response, recipients: accounts.slice(0, 1) };
             }
 
             // Default: return all verified accounts
-            return accounts;
+            return { ...response, recipients: accounts };
           },
           enabled: interceptorReady,
         },
       }
     );
 
-  const linkedAccounts = data || [];
+  const linkedAccounts = data?.recipients || [];
 
   // Check if user has at least one active (non-pending) account
   const hasActiveAccount = linkedAccounts.length > 0;
 
   return {
     linkedAccounts,
+    metadata: data?.metadata,
     hasActiveAccount,
     isLoading,
     isError,

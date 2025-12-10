@@ -14,6 +14,7 @@ import { EmptyState } from './components/EmptyState/EmptyState';
 import { LinkedAccountCard } from './components/LinkedAccountCard/LinkedAccountCard';
 import { LinkedAccountCardSkeleton } from './components/LinkedAccountCardSkeleton/LinkedAccountCardSkeleton';
 import { LinkedAccountFormDialog } from './components/LinkedAccountFormDialog/LinkedAccountFormDialog';
+import { RemoveAccountResultDialog } from './components/RemoveAccountResultDialog/RemoveAccountResultDialog';
 import { VerificationResultDialog } from './components/VerificationResultDialog/VerificationResultDialog';
 import { useLinkedAccounts } from './hooks';
 import { LinkedAccountWidgetProps } from './LinkedAccountWidget.types';
@@ -58,10 +59,15 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   const [resultRecipient, setResultRecipient] = useState<Recipient | undefined>(
     undefined
   );
+  const [showRemoveResultDialog, setShowRemoveResultDialog] = useState(false);
+  const [removedRecipient, setRemovedRecipient] = useState<
+    Recipient | undefined
+  >(undefined);
 
   // Use custom hook for data fetching and state management
   const {
     linkedAccounts,
+    metadata,
     hasActiveAccount,
     isLoading,
     isError,
@@ -99,6 +105,12 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
     onMicrodepositVerifySettled?.(response, recipient);
   };
 
+  // Handle account removal success
+  const handleRemoveSuccess = (recipient: Recipient) => {
+    setRemovedRecipient(recipient);
+    setShowRemoveResultDialog(true);
+  };
+
   return (
     <div className="eb-w-full eb-@container">
       <VerificationResultDialog
@@ -106,6 +118,12 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
         onOpenChange={setShowResultDialog}
         recipient={resultRecipient}
         variant={resultVariant}
+      />
+
+      <RemoveAccountResultDialog
+        open={showRemoveResultDialog}
+        onOpenChange={setShowRemoveResultDialog}
+        recipient={removedRecipient}
       />
 
       <Card
@@ -118,7 +136,9 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                 {t('title')}{' '}
                 {!isLoading && !isError && (
                   <span className="eb-animate-fade-in">
-                    {t('count', { count: linkedAccounts.length })}
+                    {t('count', {
+                      count: metadata?.total_items || linkedAccounts.length,
+                    })}
                   </span>
                 )}
               </CardTitle>
@@ -195,6 +215,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                     onMicrodepositVerifySettled={
                       handleMicrodepositVerifySettled
                     }
+                    onRemoveSuccess={handleRemoveSuccess}
                   />
                 </div>
               ))}

@@ -11,7 +11,10 @@ import {
   useGetRecipient,
   useRecipientsVerification,
 } from '@/api/generated/ep-recipients';
-import { MicrodepositVerificationResponse } from '@/api/generated/ep-recipients.schemas';
+import {
+  ListRecipientsResponse,
+  MicrodepositVerificationResponse,
+} from '@/api/generated/ep-recipients.schemas';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -97,8 +100,30 @@ export const MicrodepositsFormDialogTrigger: FC<
           handleDialogChange(false);
         }
 
+        // Optimistically update the recipients list
+        const queryKey = getGetAllRecipientsQueryKey({
+          type: 'LINKED_ACCOUNT',
+        });
+        queryClient.setQueryData(
+          queryKey,
+          (oldData: ListRecipientsResponse | undefined) => {
+            if (!oldData?.recipients) return oldData;
+
+            return {
+              ...oldData,
+              recipients: oldData.recipients.map((r) =>
+                r.id === recipientId
+                  ? {
+                      ...r,
+                      status: data.status === 'VERIFIED' ? 'ACTIVE' : r.status,
+                    }
+                  : r
+              ),
+            };
+          }
+        );
         queryClient.invalidateQueries({
-          queryKey: getGetAllRecipientsQueryKey({}),
+          queryKey,
         });
         queryClient.invalidateQueries({
           queryKey: ['getRecipient', recipientId],
@@ -284,7 +309,9 @@ export const MicrodepositsFormDialogTrigger: FC<
                     {isVerifyPending && (
                       <Loader2Icon className="eb-mr-2 eb-h-4 eb-w-4 eb-animate-spin" />
                     )}
-                    {t('forms.microdeposits.confirm')}
+                    {isVerifyPending
+                      ? t('forms.microdeposits.submitting')
+                      : t('forms.microdeposits.confirm')}
                   </Button>
                 </DialogFooter>
               </form>

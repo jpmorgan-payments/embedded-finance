@@ -72,7 +72,10 @@ export const SingleAccountVariant: Story = {
   },
   loaders: [
     async () => {
-      await seedRecipientData(linkedAccountListMock);
+      await seedRecipientData({
+        ...linkedAccountListMock,
+        recipients: linkedAccountListMock.recipients?.slice(0, 1) ?? [],
+      });
     },
   ],
 };
