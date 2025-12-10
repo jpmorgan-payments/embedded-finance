@@ -22,7 +22,7 @@ export function ContrastChecker({
   textSize = 'normal',
   showRatio = true,
   compact = false,
-}: ContrastCheckerProps): JSX.Element {
+}: ContrastCheckerProps) {
   const result = useMemo(
     () => calculateContrast(foreground, background),
     [foreground, background],
