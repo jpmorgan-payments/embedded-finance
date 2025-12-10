@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Sparkles, Copy, Check, X, Info } from 'lucide-react';
+import { Sparkles, Copy, Check, X, Info, AlertTriangle } from 'lucide-react';
 
 interface AiPromptDialogProps {
   isOpen: boolean;
@@ -185,6 +185,7 @@ Please extract ONLY the design tokens you can directly observe from the provided
 export function AiPromptDialog({ isOpen, onClose }: AiPromptDialogProps) {
   const [websiteUrl, setWebsiteUrl] = useState('');
   const [isPromptCopied, setIsPromptCopied] = useState(false);
+  const [isWarningOpen, setIsWarningOpen] = useState(false);
 
   // Generate prompt with website URL if provided
   const aiPrompt = useMemo(() => AI_PROMPT_TEMPLATE(websiteUrl), [websiteUrl]);
@@ -323,6 +324,64 @@ export function AiPromptDialog({ isOpen, onClose }: AiPromptDialogProps) {
           </div>
         </ScrollArea>
       </DialogContent>
+
+      {/* Warning Dialog */}
+      <Dialog open={isWarningOpen} onOpenChange={setIsWarningOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
+              ⚠️ Warning: Use AI-Generated Theme JSON at Your Own Risk
+            </DialogTitle>
+            <DialogDescription>
+              Important information about using AI-generated theme data
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
+              <p className="mb-3">
+                The AI-generated theme JSON and instructions provided in this
+                tool are intended for reference and experimentation purposes
+                only. The maintainers of this tool do not assume any
+                responsibility for any issues, damages, or losses that may arise
+                from the use of AI-generated theme data.
+              </p>
+              <p className="mb-2 font-medium">
+                By using this tool, you acknowledge that:
+              </p>
+              <ul className="list-disc list-inside space-y-2 ml-2 mb-3">
+                <li>
+                  AI-generated theme JSON may contain errors, inaccuracies, or
+                  incomplete design tokens
+                </li>
+                <li>
+                  The extracted tokens may not accurately represent the source
+                  material's design system
+                </li>
+                <li>
+                  There are no guarantees regarding the accuracy, completeness,
+                  or suitability of the generated theme JSON for any particular
+                  purpose
+                </li>
+                <li>
+                  You should validate and test all imported theme data before
+                  using it in production
+                </li>
+                <li>
+                  You are solely responsible for reviewing, validating, and any
+                  consequences resulting from the use of AI-generated theme JSON
+                  in your projects
+                </li>
+              </ul>
+              <p className="font-medium">
+                Please proceed with caution and ensure you understand the
+                implications of using AI-generated theme data. Always validate
+                the results and test thoroughly before deploying to production.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

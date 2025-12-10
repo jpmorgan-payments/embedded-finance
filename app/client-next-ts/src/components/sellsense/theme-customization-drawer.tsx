@@ -37,6 +37,13 @@ import {
   AlertTriangle,
   Sparkles,
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { AiPromptDialog } from './ai-prompt-dialog';
 import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 import type { ThemeOption } from './use-sellsense-themes';
@@ -506,6 +513,7 @@ export function ThemeCustomizationDrawer({
     'all' | 'failing' | 'aa-only'
   >('all');
   const [isAiPromptDialogOpen, setIsAiPromptDialogOpen] = useState(false);
+  const [isWarningDialogOpen, setIsWarningDialogOpen] = useState(false);
 
   // Helper function to determine min/max values based on token context
   const getNumberConstraints = (token: string) => {
@@ -1331,9 +1339,24 @@ export function ThemeCustomizationDrawer({
                       >
                         <div className="flex items-center gap-3">
                           <div className="flex flex-col items-start">
-                            <span className="text-sm font-medium text-gray-900">
-                              Accessibility Check
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-gray-900">
+                                Accessibility Check
+                              </span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setIsWarningDialogOpen(true);
+                                }}
+                                className="flex items-center gap-1.5 text-amber-600 hover:text-amber-700 transition-colors text-xs font-medium"
+                                title="View warning about using generated theme JSON"
+                                aria-label="View warning about using generated theme JSON"
+                              >
+                                <AlertTriangle className="h-4 w-4" />
+                                <span>Warning: Use at Your Own Risk</span>
+                              </button>
+                            </div>
                             {!isA11yExpanded && (
                               <span
                                 className={`text-xs mt-0.5 ${
@@ -1640,6 +1663,68 @@ export function ThemeCustomizationDrawer({
         isOpen={isAiPromptDialogOpen}
         onClose={() => setIsAiPromptDialogOpen(false)}
       />
+
+      {/* Warning Dialog */}
+      <Dialog open={isWarningDialogOpen} onOpenChange={setIsWarningDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
+              ⚠️ Warning: Use Generated Theme JSON at Your Own Risk
+            </DialogTitle>
+            <DialogDescription>
+              Important information about using theme data generated from this
+              tool
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
+              <p className="mb-3">
+                The theme JSON and instructions provided in this tool (including
+                AI-generated, manually customized, or imported themes) are
+                intended for reference and experimentation purposes only. The
+                maintainers of this tool do not assume any responsibility for any
+                issues, damages, or losses that may arise from the use of
+                generated theme data.
+              </p>
+              <p className="mb-2 font-medium">
+                By using this tool, you acknowledge that:
+              </p>
+              <ul className="list-disc list-inside space-y-2 ml-2 mb-3">
+                <li>
+                  Generated theme JSON (whether AI-generated, manually created, or
+                  imported) may contain errors, inaccuracies, or incomplete design
+                  tokens
+                </li>
+                <li>
+                  The extracted or customized tokens may not accurately represent
+                  the intended design system or may not be suitable for your
+                  specific use case
+                </li>
+                <li>
+                  There are no guarantees regarding the accuracy, completeness, or
+                  suitability of any generated theme JSON for any particular
+                  purpose
+                </li>
+                <li>
+                  You should validate and test all imported or generated theme data
+                  before using it in production
+                </li>
+                <li>
+                  You are solely responsible for reviewing, validating, and any
+                  consequences resulting from the use of generated theme JSON in
+                  your projects
+                </li>
+              </ul>
+              <p className="font-medium">
+                Please proceed with caution and ensure you understand the
+                implications of using generated theme data. Always validate the
+                results and test thoroughly before deploying to production.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
