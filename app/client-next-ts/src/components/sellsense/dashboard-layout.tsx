@@ -331,13 +331,25 @@ export function DashboardLayout() {
       if (searchParams.theme === 'Custom' && searchParams.customTheme) {
         try {
           const customTheme = JSON.parse(searchParams.customTheme as string);
-          setCustomThemeVariables(customTheme);
+          
+          // Check if it's the new structure with baseTheme and variables
+          if (customTheme.baseTheme && customTheme.variables) {
+            // New structure - extract just the variables
+            setCustomThemeVariables(customTheme.variables);
+            setCustomThemeData(customTheme); // Store the full structure
+          } else {
+            // Legacy structure - use the entire object as variables
+            setCustomThemeVariables(customTheme);
+            setCustomThemeData({ variables: customTheme }); // Legacy structure
+          }
         } catch (error) {
           console.error('Failed to parse custom theme from URL:', error);
           setCustomThemeVariables({});
+          setCustomThemeData({});
         }
       } else if (searchParams.theme !== 'Custom') {
         setCustomThemeVariables({});
+        setCustomThemeData({});
       }
     }
     if (searchParams.contentTone && searchParams.contentTone !== contentTone) {

@@ -35,7 +35,9 @@ import {
   ChevronUp,
   Download,
   AlertTriangle,
+  Sparkles,
 } from 'lucide-react';
+import { AiPromptDialog } from './ai-prompt-dialog';
 import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 import type { ThemeOption } from './use-sellsense-themes';
 import { useSellSenseThemes } from './use-sellsense-themes';
@@ -503,6 +505,7 @@ export function ThemeCustomizationDrawer({
   const [contrastFilter, setContrastFilter] = useState<
     'all' | 'failing' | 'aa-only'
   >('all');
+  const [isAiPromptDialogOpen, setIsAiPromptDialogOpen] = useState(false);
 
   // Helper function to determine min/max values based on token context
   const getNumberConstraints = (token: string) => {
@@ -781,30 +784,23 @@ export function ThemeCustomizationDrawer({
         throw new Error('No valid theme properties found in clipboard data');
       }
 
-      // Merge with existing custom theme and normalize to semantic tokens
-      const mergedTheme = pickSemanticTokens({ ...customTheme, ...variables });
-      setCustomTheme(mergedTheme);
+      // Normalize imported variables to semantic tokens (don't merge with existing)
+      // The imported theme should replace the current theme, not merge with it
+      const importedTheme = pickSemanticTokens(variables);
+      setCustomTheme(importedTheme);
 
-      // Update the theme with merged values
+      // Determine base theme - use current base theme or default to SellSense
       const currentBaseTheme = getCurrentBaseTheme();
-      const baseVariables = getThemeVariables(currentBaseTheme);
-
-      // Check if this makes the theme different from base
-      const hasChanges = Object.keys(mergedTheme).some(
-        (key) =>
-          mergedTheme[key as keyof EBThemeVariables] !==
-          baseVariables[key as keyof EBThemeVariables],
-      );
-
-      if (hasChanges) {
-        const customThemeData: CustomThemeData = {
-          baseTheme: currentBaseTheme,
-          variables: mergedTheme,
-        };
-        onThemeChange('Custom', customThemeData as any);
-      } else {
-        onThemeChange(currentBaseTheme, {});
-      }
+      
+      // Always apply the imported theme as Custom theme
+      // The imported variables are what the user wants, so apply them directly
+      const customThemeData: CustomThemeData = {
+        baseTheme: currentBaseTheme,
+        variables: importedTheme,
+      };
+      
+      // Apply the theme immediately
+      onThemeChange('Custom', customThemeData as any);
 
       // Show success feedback
       console.log('Theme imported successfully from clipboard');
@@ -1127,19 +1123,29 @@ export function ThemeCustomizationDrawer({
           <div className="px-4 border-b border-gray-200 flex-shrink-0">
             <div className="flex items-start gap-2 p-2 bg-gray-50 border border-gray-200 rounded-lg">
               <Info className="h-3 w-3 text-gray-600 mt-0.5 flex-shrink-0" />
-              <div className="text-xs text-gray-700">
+              <div className="text-xs text-gray-700 flex-1">
                 <p className="text-xs">
                   Customize design tokens to create your own theme. Changes are
                   applied in real-time.
                 </p>
-                <a
-                  href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theme-design-tokens"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-600 hover:text-gray-800 underline text-xs whitespace-nowrap"
-                >
-                  View design tokens docs →
-                </a>
+                <div className="flex items-center gap-3 mt-1.5">
+                  <a
+                    href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theme-design-tokens"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-600 hover:text-gray-800 underline text-xs whitespace-nowrap"
+                  >
+                    View design tokens docs →
+                  </a>
+                  <button
+                    onClick={() => setIsAiPromptDialogOpen(true)}
+                    className="text-gray-500 hover:text-gray-700 underline text-xs flex items-center gap-1"
+                    type="button"
+                  >
+                    <Sparkles className="h-3 w-3" />
+                    Extract tokens with AI
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1628,6 +1634,12 @@ export function ThemeCustomizationDrawer({
           </div>
         </div>
       </div>
+
+      {/* AI Prompt Dialog */}
+      <AiPromptDialog
+        isOpen={isAiPromptDialogOpen}
+        onClose={() => setIsAiPromptDialogOpen(false)}
+      />
     </>
   );
 }
