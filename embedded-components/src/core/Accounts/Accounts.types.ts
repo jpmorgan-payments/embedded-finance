@@ -22,5 +22,3 @@ export interface AccountsRef {
   // exportAccounts: () => void;
   // getAccountsData: () => AccountResponse[];
 }
-
-
