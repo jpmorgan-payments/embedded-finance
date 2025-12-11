@@ -64,6 +64,9 @@ export interface LinkedAccountCardProps {
 
   /** Hide action buttons and status alerts (useful for confirmation views) */
   hideActions?: boolean;
+
+  /** Use compact display mode with reduced padding and smaller elements */
+  compact?: boolean;
 }
 
 /**
@@ -78,6 +81,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
   onMicrodepositVerifySettled,
   onRemoveSuccess,
   hideActions = false,
+  compact: _compact = false, // Reserved for future compact mode implementation
 }) => {
   const { t } = useTranslation('linked-accounts');
   const isActive = recipient.status === 'ACTIVE';
