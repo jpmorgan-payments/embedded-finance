@@ -45,7 +45,7 @@ MockReviewInProgress.args = {
 MockReviewInProgress.parameters = {
   msw: {
     handlers: [
-      http.get(`/clients/${CLIENT_ID}`, () => {
+      http.get(`*/clients/${CLIENT_ID}`, () => {
         return HttpResponse.json({
           ...efClientCorpEBMock,
           status: 'REVIEW_IN_PROGRESS',
@@ -63,7 +63,7 @@ MockInformationRequested.args = {
 MockInformationRequested.parameters = {
   msw: {
     handlers: [
-      http.get(`/clients/${CLIENT_ID}`, () => {
+      http.get(`*/clients/${CLIENT_ID}`, () => {
         return HttpResponse.json({
           ...efClientCorpEBMock,
           status: 'INFORMATION_REQUESTED',
@@ -81,7 +81,7 @@ MockDeclined.args = {
 MockDeclined.parameters = {
   msw: {
     handlers: [
-      http.get(`/clients/${CLIENT_ID}`, () => {
+      http.get(`*/clients/${CLIENT_ID}`, () => {
         return HttpResponse.json({
           ...efClientCorpEBMock,
           status: 'DECLINED',
@@ -99,7 +99,7 @@ MockApproved.args = {
 MockApproved.parameters = {
   msw: {
     handlers: [
-      http.get(`/clients/${CLIENT_ID}`, () => {
+      http.get(`*/clients/${CLIENT_ID}`, () => {
         return HttpResponse.json({
           ...efClientCorpEBMock,
           status: 'APPROVED',

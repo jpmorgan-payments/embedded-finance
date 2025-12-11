@@ -107,6 +107,7 @@
       "description": "Enter the two small deposit amounts we sent to <strong>{{name}}</strong> in any order. You have <strong>3 total attempts</strong> to enter these amounts.",
       "cancel": "Cancel",
       "confirm": "Submit",
+      "submitting": "Verifying...",
       "amount1": {
         "label": "First Deposit Amount",
         "placeholder": "0.00",

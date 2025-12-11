@@ -223,6 +223,7 @@
       "description": "Entrez les deux petits montants de dépôt que nous avons envoyés à <strong>{{name}}</strong> dans n'importe quel ordre. Vous avez <strong>3 tentatives au total</strong> pour entrer ces montants.",
       "cancel": "Annuler",
       "confirm": "Soumettre",
+      "submitting": "Vérification en cours...",
       "amount1": {
         "label": "Premier montant de dépôt",
         "placeholder": "0,00",

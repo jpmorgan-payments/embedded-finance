@@ -59,6 +59,7 @@ This matrix tracks the implementation status of UI/UX patterns across all embedd
 - **OAS-Driven API Integration**: Type-safe React Query hooks generated from OpenAPI Specifications
 - **API Error Mapping**: Mapping API error responses to form field errors and user-friendly messages
 - **Custom Hooks Pattern**: Extracting complex business logic into reusable custom hooks
+- **Optimistic Update Pattern**: Immediately updating UI cache before server response with setQueryData + invalidateQueries for instant feedback
 - **Context Provider Pattern**: Managing shared application state through React Context providers
 - **Interceptor Status Pattern**: Waiting until API interceptors are ready before making requests
 
@@ -2195,6 +2196,260 @@ const paymentData = usePaymentData(paymentMethods, form);
 - ✅ **Reusability**: Hooks can be shared across components
 - ✅ **Testability**: Business logic tested independently
 - ✅ **Maintainability**: Easier to update and debug
+
+---
+
+### Optimistic Update Pattern (React Query Cache Management)
+
+**Description**: Pattern for immediately updating the UI cache before the server responds, then invalidating queries for eventual consistency. This provides instant feedback to users while ensuring data accuracy.
+
+**Implementation**:
+
+- **Primary**: `LinkedAccountWidget/hooks/useLinkedAccountForm.ts`
+- **Secondary**: `LinkedAccountWidget/components/RemoveAccountDialog/RemoveAccountDialog.tsx`
+- **Tertiary**: `LinkedAccountWidget/forms/MicrodepositsForm/MicrodepositsForm.tsx`
+- **Status**: ✅ Well-implemented with setQueryData + invalidateQueries pattern
+
+**Pattern Details**:
+
+```typescript
+import { useQueryClient } from '@tanstack/react-query';
+
+import { getGetAllRecipientsQueryKey } from '@/api/generated/ep-recipients';
+import { ListRecipientsResponse } from '@/api/generated/ep-recipients.schemas';
+
+// Create mutation with optimistic update
+const createMutation = useCreateRecipient({
+  mutation: {
+    onSuccess: (response) => {
+      const queryKey = getGetAllRecipientsQueryKey({
+        type: 'LINKED_ACCOUNT',
+      });
+
+      // 1. Optimistically update the cache
+      queryClient.setQueryData(
+        queryKey,
+        (oldData: ListRecipientsResponse | undefined) => {
+          if (!oldData?.recipients) {
+            return {
+              recipients: [response],
+            };
+          }
+
+          return {
+            ...oldData,
+            recipients: [...oldData.recipients, response],
+          };
+        }
+      );
+
+      // 2. Invalidate queries for eventual consistency
+      queryClient.invalidateQueries({
+        queryKey,
+      });
+
+      onSuccess?.(response);
+    },
+  },
+});
+
+// Update mutation with optimistic update
+const editMutation = useAmendRecipient({
+  mutation: {
+    onSuccess: (response) => {
+      const queryKey = getGetAllRecipientsQueryKey({
+        type: 'LINKED_ACCOUNT',
+      });
+
+      // 1. Optimistically update the cache
+      queryClient.setQueryData(
+        queryKey,
+        (oldData: ListRecipientsResponse | undefined) => {
+          if (!oldData?.recipients) return oldData;
+
+          return {
+            ...oldData,
+            recipients: oldData.recipients.map((r) =>
+              r.id === response.id ? response : r
+            ),
+          };
+        }
+      );
+
+      // 2. Invalidate queries for eventual consistency
+      queryClient.invalidateQueries({
+        queryKey,
+      });
+
+      onSuccess?.(response);
+    },
+  },
+});
+
+// Delete mutation with optimistic update
+const removeMutation = useAmendRecipient({
+  mutation: {
+    onSuccess: (response) => {
+      const queryKey = getGetAllRecipientsQueryKey({
+        type: 'LINKED_ACCOUNT',
+      });
+
+      // 1. Optimistically update the cache (remove item)
+      queryClient.setQueryData(
+        queryKey,
+        (oldData: ListRecipientsResponse | undefined) => {
+          if (!oldData?.recipients) return null;
+
+          return {
+            ...oldData,
+            recipients: oldData.recipients.filter((r) => r.id !== response.id),
+          };
+        }
+      );
+
+      // 2. Invalidate queries for eventual consistency
+      queryClient.invalidateQueries({
+        queryKey,
+      });
+
+      onSuccess?.(response);
+    },
+  },
+});
+
+// Status update mutation (e.g., microdeposit verification)
+const verifyMutation = useRecipientsVerification({
+  mutation: {
+    onSuccess: (data) => {
+      const queryKey = getGetAllRecipientsQueryKey({
+        type: 'LINKED_ACCOUNT',
+      });
+
+      // 1. Optimistically update the cache (change status)
+      queryClient.setQueryData(
+        queryKey,
+        (oldData: ListRecipientsResponse | undefined) => {
+          if (!oldData?.recipients) return oldData;
+
+          return {
+            ...oldData,
+            recipients: oldData.recipients.map((r) =>
+              r.id === recipientId
+                ? {
+                    ...r,
+                    status: data.status === 'VERIFIED' ? 'ACTIVE' : r.status,
+                  }
+                : r
+            ),
+          };
+        }
+      );
+
+      // 2. Invalidate queries for eventual consistency
+      queryClient.invalidateQueries({
+        queryKey,
+      });
+
+      onSuccess?.(data);
+    },
+  },
+});
+```
+
+**Features**:
+
+- **Instant UI updates**: Cache updated immediately with optimistic data
+- **Eventual consistency**: `invalidateQueries` ensures fresh data from server
+- **Type-safe cache updates**: TypeScript ensures correct data structure
+- **Consistent query keys**: Use generated query key functions from Orval
+- **Filter-aware caching**: Include relevant filters in query keys (e.g., `type: 'LINKED_ACCOUNT'`)
+- **Null-safe operations**: Handle undefined/null cache gracefully
+
+**Pattern Flow**:
+
+1. **User Action**: User clicks button (create, edit, delete)
+2. **Mutation Triggered**: React Query mutation called
+3. **Server Request**: API call sent to server
+4. **Optimistic Update**: `setQueryData` immediately updates cache with expected result
+5. **UI Updates**: Component re-renders with optimistic data (instant feedback)
+6. **Server Response**: Server returns actual data
+7. **Cache Invalidation**: `invalidateQueries` marks cache as stale
+8. **Background Refetch**: React Query refetches data in background
+9. **UI Syncs**: Component re-renders with server data (eventual consistency)
+
+**When to Use**:
+
+✅ **Use optimistic updates for**:
+
+- Create operations (add new item to list)
+- Update operations (modify existing item)
+- Delete operations (remove item from list)
+- Status changes (mark as active/inactive/verified)
+- All mutations that affect list/grid data
+
+❌ **Don't use optimistic updates for**:
+
+- Read operations (queries already cached)
+- Operations with complex side effects
+- Operations that might fail validation
+- Bulk operations with many potential failures
+
+**Best Practices**:
+
+1. **Always invalidate after optimistic update**: This ensures data consistency
+2. **Use specific query keys**: Include filters/params to target correct cache
+3. **Handle null/undefined**: Check if cache data exists before updating
+4. **Preserve data structure**: Maintain the same response shape in cache
+5. **Use generated query keys**: Import from `@/api/generated/*` for consistency
+6. **Order matters**: `setQueryData` → `invalidateQueries` → callbacks
+
+**Common Patterns**:
+
+```typescript
+// CREATE: Add to list
+recipients: [...oldData.recipients, response];
+
+// UPDATE: Replace in list
+recipients: oldData.recipients.map((r) =>
+  r.id === response.id ? response : r
+);
+
+// DELETE: Remove from list
+recipients: oldData.recipients.filter((r) => r.id !== response.id);
+
+// STATUS UPDATE: Update specific field
+recipients: oldData.recipients.map((r) =>
+  r.id === recipientId ? { ...r, status: newStatus } : r
+);
+```
+
+**Refinement Needed**:
+
+- ⚠️ **OnboardingFlow**: Could use optimistic updates for form submissions
+- ⚠️ **MakePayment**: Could use optimistic updates for payment submission
+- ⚠️ **Accounts**: Could use optimistic updates for account operations
+- ⚠️ **Recipients**: Already uses invalidateQueries, could add setQueryData for instant feedback
+- ⚠️ **TransactionsDisplay**: Read-only component, optimistic updates not applicable
+
+**Current Implementation Status**:
+
+- ✅ **LinkedAccountWidget**: Fully implemented for create, edit, delete, and verify operations
+- ⚠️ **Other components**: Most only use `invalidateQueries` without optimistic `setQueryData`
+
+**Technical Benefits**:
+
+- ✅ **Perceived Performance**: Instant UI feedback improves user experience
+- ✅ **Reduced Loading States**: Users see immediate results without waiting
+- ✅ **Data Consistency**: Eventual consistency ensures correctness
+- ✅ **Type Safety**: TypeScript prevents cache data mismatches
+- ✅ **Rollback Support**: React Query can rollback on error (with additional config)
+
+**Usability Alignment**:
+
+- ✅ **Visibility of System Status**: Immediate feedback on actions
+- ✅ **User Control**: Users see their actions take effect instantly
+- ✅ **Error Recovery**: Can rollback on error with proper error handling
+- ✅ **Flexibility & Efficiency**: Reduces perceived latency
 
 ---
 
