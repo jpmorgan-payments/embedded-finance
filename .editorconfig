@@ -4,12 +4,15 @@ root = true
 [*]
 charset = utf-8
 end_of_line = lf
+indent_size = 2
 indent_style = space
 insert_final_newline = true
+max_line_length = 80
 trim_trailing_whitespace = true
 
 # Markdown often intentionally uses trailing spaces for hard line breaks.
 [*.{md,mdx}]
+max_line_length = 0
 trim_trailing_whitespace = false
 
 # Git commit messages can be any length.
