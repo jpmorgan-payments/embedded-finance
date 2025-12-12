@@ -16,6 +16,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+import { RECIPIENT_USER_JOURNEYS } from '../../Recipients.constants';
+
 export interface RecipientsPaginationProps {
   currentPage: number;
   totalPages: number;
@@ -90,6 +92,7 @@ export const RecipientsPagination: React.FC<RecipientsPaginationProps> = ({
               variant="outline"
               size="icon"
               className="eb-hidden eb-h-8 lg:eb-flex"
+              data-user-event={RECIPIENT_USER_JOURNEYS.PAGE_CHANGED}
               onClick={() => onPageChange(1)}
               disabled={currentPage === 1}
             >
@@ -104,6 +107,7 @@ export const RecipientsPagination: React.FC<RecipientsPaginationProps> = ({
               variant="outline"
               size="icon"
               className="eb-h-10 eb-w-10 sm:eb-h-8 sm:eb-w-8"
+              data-user-event={RECIPIENT_USER_JOURNEYS.PAGE_CHANGED}
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
             >
@@ -118,6 +122,7 @@ export const RecipientsPagination: React.FC<RecipientsPaginationProps> = ({
               variant="outline"
               size="icon"
               className="eb-h-10 eb-w-10 sm:eb-h-8 sm:eb-w-8"
+              data-user-event={RECIPIENT_USER_JOURNEYS.PAGE_CHANGED}
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage >= totalPages}
             >
@@ -132,6 +137,7 @@ export const RecipientsPagination: React.FC<RecipientsPaginationProps> = ({
               variant="outline"
               size="icon"
               className="eb-hidden eb-h-8 lg:eb-flex"
+              data-user-event={RECIPIENT_USER_JOURNEYS.PAGE_CHANGED}
               onClick={() => onPageChange(totalPages)}
               disabled={currentPage >= totalPages}
             >

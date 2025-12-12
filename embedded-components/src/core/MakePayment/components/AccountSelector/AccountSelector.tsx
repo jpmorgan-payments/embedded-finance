@@ -108,6 +108,7 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
                 >
                   <FormControl>
                     <SelectTrigger
+                      data-user-event="payment_account_selected"
                       aria-label={t('fields.from.label', {
                         defaultValue: 'Which account are you paying from?',
                       })}

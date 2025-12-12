@@ -112,7 +112,7 @@ export const RecipientSelector: React.FC<RecipientSelectorProps> = ({
                 }
               >
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger data-user-event="payment_recipient_selected">
                     <SelectValue
                       placeholder={
                         recipientsStatus === 'pending'

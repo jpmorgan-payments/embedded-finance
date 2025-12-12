@@ -213,6 +213,98 @@ const router = useRouter();
 <LinkedAccountWidget className="rounded-xl bg-gray-50 p-6 shadow-lg" />
 ```
 
+## User Journey Tracking
+
+When `userEventsHandler` is provided, the LinkedAccountWidget component automatically tracks the following user journeys:
+
+- **linked_account_viewed**: User views the linked accounts list
+- **linked_account_link_started**: User opens the dialog to link a new account
+- **linked_account_link_completed**: Account successfully linked
+- **linked_account_verify_started**: User opens the dialog to verify microdeposits
+- **linked_account_verify_completed**: Microdeposit verification completed
+- **linked_account_remove_started**: User initiates account removal
+- **linked_account_remove_completed**: Account successfully removed
+
+### Basic Usage
+
+```tsx
+<LinkedAccountWidget
+  userEventsHandler={(context) => {
+    console.log('User journey:', context.actionName);
+    console.log('Event type:', context.eventType);
+    console.log('Timestamp:', context.timestamp);
+    console.log('Metadata:', context.metadata);
+  }}
+/>
+```
+
+### Integration with Dynatrace
+
+```tsx
+<LinkedAccountWidget
+  userEventsHandler={(context) => {
+    if (window.dtrum) {
+      const actionId = window.dtrum.enterAction(context.actionName);
+      // Store actionId if you need to close it later
+      setTimeout(() => {
+        window.dtrum.leaveAction(actionId);
+      }, 100);
+    }
+  }}
+  userEventsLifecycle={{
+    onEnter: (context) => {
+      if (window.dtrum) {
+        return window.dtrum.enterAction(context.actionName);
+      }
+    },
+    onLeave: (context) => {
+      if (window.dtrum && context.actionId) {
+        window.dtrum.leaveAction(context.actionId);
+      }
+    },
+  }}
+/>
+```
+
+### Integration with Datadog RUM
+
+```tsx
+import { datadogRum } from '@datadog/browser-rum';
+
+<LinkedAccountWidget
+  userEventsHandler={(context) => {
+    datadogRum.addAction(context.actionName, {
+      eventType: context.eventType,
+      timestamp: context.timestamp,
+      ...context.metadata,
+    });
+  }}
+/>;
+```
+
+### Integration with Generic Analytics
+
+```tsx
+<LinkedAccountWidget
+  userEventsHandler={(context) => {
+    // Send to your analytics service
+    analytics.track(context.actionName, {
+      eventType: context.eventType,
+      timestamp: context.timestamp,
+      ...context.metadata,
+    });
+  }}
+/>
+```
+
+Each journey is tracked with:
+
+- `actionName`: The journey identifier
+- `eventType`: DOM event type (click, blur, etc.) or 'programmatic'
+- `timestamp`: Event timestamp (milliseconds since epoch)
+- `element`: The DOM element that triggered the event (if available)
+- `metadata`: Additional context (recipientId, status, etc.)
+
 ## Troubleshooting
 
 ### Account Not Appearing After Linking

@@ -114,8 +114,8 @@ export const RecipientsTable: React.FC<RecipientsTableProps> = ({
           ) : (
             recipients.map((recipient) => (
               <TableRow key={recipient.id}>
-                {visibleColumns.map((columnKey) =>
-                  renderTableCell(columnKey, recipient, {
+                {visibleColumns.map((columnKey) => {
+                  const cell = renderTableCell(columnKey, recipient, {
                     onViewDetails,
                     onEdit,
                     onDeactivate,
@@ -123,8 +123,12 @@ export const RecipientsTable: React.FC<RecipientsTableProps> = ({
                     isDeactivating,
                     locale,
                     t,
-                  })
-                )}
+                  });
+                  // Add key prop to the TableCell element
+                  return React.isValidElement(cell)
+                    ? React.cloneElement(cell, { key: columnKey })
+                    : cell;
+                })}
               </TableRow>
             ))
           )}

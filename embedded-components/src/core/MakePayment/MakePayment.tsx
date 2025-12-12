@@ -5,6 +5,7 @@ import * as LucideIcons from 'lucide-react';
 import { FormProvider } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
+import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import { useCreateRecipient } from '@/api/generated/ep-recipients';
 import type { RecipientRequest } from '@/api/generated/ep-recipients.schemas';
 import { useCreateTransactionV2 } from '@/api/generated/ep-transactions';
@@ -37,6 +38,7 @@ import {
   usePaymentForm,
   usePaymentValidation,
 } from './hooks';
+import { MAKE_PAYMENT_USER_JOURNEYS } from './MakePayment.constants';
 import type { PaymentComponentProps } from './types';
 
 export const MakePayment: React.FC<PaymentComponentProps> = ({
@@ -51,11 +53,20 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   recipientId,
   showPreviewPanel = true, // Default to true for backward compatibility
   onTransactionSettled,
+  userEventsHandler,
+  userEventsLifecycle,
 }) => {
   const { t } = useTranslation(['make-payment']);
   const { form, resetForm } = usePaymentForm();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [localSuccess, setLocalSuccess] = useState(false);
+
+  // Set up automatic event tracking for data-user-event attributes
+  useUserEventTracking({
+    containerId: 'make-payment-container',
+    userEventsHandler,
+    userEventsLifecycle,
+  });
 
   // Get payment data using custom hook
   const paymentData = usePaymentData(paymentMethods, form);
@@ -83,7 +94,27 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     isError: isPaymentError,
     error: paymentError,
     reset: resetPayment,
-  } = useCreateTransactionV2();
+  } = useCreateTransactionV2({
+    mutation: {
+      onSuccess: (data) => {
+        trackUserEvent({
+          actionName: MAKE_PAYMENT_USER_JOURNEYS.PAYMENT_COMPLETED,
+          metadata: { transactionId: data.id, status: data.status },
+          userEventsHandler,
+        });
+      },
+      onError: (error) => {
+        trackUserEvent({
+          actionName: MAKE_PAYMENT_USER_JOURNEYS.PAYMENT_FAILED,
+          metadata: {
+            errorType: error?.name || 'UnknownError',
+            // Don't include error.message as it may contain PII
+          },
+          userEventsHandler,
+        });
+      },
+    },
+  });
 
   // Recipient creation mutation
   const { mutate: createRecipient, isPending: isCreatingRecipient } =
@@ -215,7 +246,10 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                   },
                 },
                 {
-                  onSuccess: () => setLocalSuccess(true),
+                  onSuccess: () => {
+                    setLocalSuccess(true);
+                    // Tracking is handled at hook level to avoid duplicates
+                  },
                   onSettled: () => onTransactionSettled?.(),
                 }
               );
@@ -239,7 +273,10 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                   },
                 },
                 {
-                  onSuccess: () => setLocalSuccess(true),
+                  onSuccess: () => {
+                    setLocalSuccess(true);
+                    // Tracking is handled at hook level to avoid duplicates
+                  },
                   onSettled: () => onTransactionSettled?.(),
                 }
               );
@@ -266,7 +303,10 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
           },
         },
         {
-          onSuccess: () => setLocalSuccess(true),
+          onSuccess: () => {
+            setLocalSuccess(true);
+            // Tracking is handled at hook level to avoid duplicates
+          },
           onSettled: () => onTransactionSettled?.(),
         }
       );
@@ -286,7 +326,10 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
         },
       },
       {
-        onSuccess: () => setLocalSuccess(true),
+        onSuccess: () => {
+          setLocalSuccess(true);
+          // Tracking is handled at hook level to avoid duplicates
+        },
         onSettled: () => onTransactionSettled?.(),
       }
     );
@@ -304,6 +347,12 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   // Restore pre-selected values when dialog opens
   useEffect(() => {
     if (dialogOpen) {
+      // Track form started
+      trackUserEvent({
+        actionName: MAKE_PAYMENT_USER_JOURNEYS.FORM_STARTED,
+        userEventsHandler,
+      });
+
       // Auto-select single account
       if (paymentData.accounts?.items?.length === 1) {
         form.setValue('from', paymentData.accounts.items[0].id);
@@ -319,6 +368,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     paymentData.accounts?.items,
     paymentData.filteredRecipients,
     form,
+    userEventsHandler,
   ]);
 
   // Restore recipient selection when recipients are loaded and dialog is open
@@ -357,6 +407,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
       <DialogTrigger asChild>
         {triggerButton || (
           <Button
+            data-user-event={MAKE_PAYMENT_USER_JOURNEYS.FORM_STARTED}
             onClick={() => setDialogOpen(true)}
             variant={triggerButtonVariant}
             className="eb-component eb-flex eb-items-center eb-gap-2"
@@ -366,7 +417,10 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="eb-p-0 sm:eb-max-w-[1200px]">
+      <DialogContent
+        id="make-payment-container"
+        className="eb-p-0 sm:eb-max-w-[1200px]"
+      >
         <DialogTitle className="eb-sr-only">{t('title')}</DialogTitle>
         <Card className="eb-rounded-none eb-border-none eb-shadow-none sm:eb-rounded-lg">
           <CardHeader>
@@ -542,6 +596,9 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                         >
                           <Button
                             type="submit"
+                            data-user-event={
+                              MAKE_PAYMENT_USER_JOURNEYS.FORM_SUBMITTED
+                            }
                             className="eb-w-full"
                             disabled={
                               isSubmitting ||

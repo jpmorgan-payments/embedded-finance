@@ -113,6 +113,8 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                       />
                       <Label
                         htmlFor={paymentMethod.id.toLowerCase()}
+                        data-user-event="payment_method_selected"
+                        data-method-id={paymentMethod.id}
                         className={cn(
                           'eb-flex eb-cursor-pointer eb-items-center eb-gap-2 eb-rounded-lg eb-border eb-p-3 eb-transition-all',
                           'eb-border-border eb-bg-card',

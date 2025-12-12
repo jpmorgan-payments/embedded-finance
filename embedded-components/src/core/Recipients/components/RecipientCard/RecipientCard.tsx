@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
+import { RECIPIENT_USER_JOURNEYS } from '../../Recipients.constants';
 import { getSupportedPaymentMethods } from '../../utils/getSupportedPaymentMethods';
 import { formatRecipientName } from '../../utils/recipientHelpers';
 import { StatusBadge } from '../StatusBadge/StatusBadge';
@@ -46,6 +47,7 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
             <Button
               variant="link"
               className="eb-h-auto eb-p-0 eb-text-left eb-font-semibold hover:eb-underline"
+              data-user-event={RECIPIENT_USER_JOURNEYS.VIEW_DETAILS}
               onClick={onView}
               title={t('recipients:actions.viewRecipientDetails', {
                 defaultValue: 'View recipient details',
@@ -117,6 +119,7 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
               variant="link"
               size="sm"
               className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs"
+              data-user-event={RECIPIENT_USER_JOURNEYS.VIEW_DETAILS}
               onClick={onView}
               title={t('recipients:actions.viewDetails', {
                 defaultValue: 'View details',
@@ -130,6 +133,7 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
               variant="link"
               size="sm"
               className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs"
+              data-user-event={RECIPIENT_USER_JOURNEYS.EDIT_STARTED}
               onClick={onEdit}
               title={t('recipients:actions.editRecipientTitle', {
                 defaultValue: 'Edit recipient',
@@ -146,6 +150,7 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
                     ? 'eb-cursor-not-allowed eb-text-gray-400'
                     : 'eb-text-red-600 hover:eb-text-red-700'
                 }`}
+                data-user-event={RECIPIENT_USER_JOURNEYS.DEACTIVATE_STARTED}
                 onClick={onDeactivate}
                 disabled={isDeactivating}
                 title={t('recipients:actions.deactivateRecipientTitle', {

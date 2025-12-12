@@ -1,8 +1,15 @@
-import { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from 'react';
 import { useElementWidth } from '@/utils/useElementWidth';
 import { AlertCircle, Landmark } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import { useGetAccounts } from '@/api/generated/ep-accounts';
 import type { AccountResponse } from '@/api/generated/ep-accounts.schemas';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -11,12 +18,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
 import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
+import { ACCOUNTS_USER_JOURNEYS } from './Accounts.constants';
 import type { AccountsProps, AccountsRef } from './Accounts.types';
 import { AccountCard } from './components/AccountCard/AccountCard';
 import type { AccountCardRef } from './components/AccountCard/AccountCard';
 
 export const Accounts = forwardRef<AccountsRef, AccountsProps>(
-  ({ allowedCategories, clientId, title }, ref) => {
+  (
+    {
+      allowedCategories,
+      clientId,
+      title,
+      userEventsHandler,
+      userEventsLifecycle,
+    },
+    ref
+  ) => {
     const { t } = useTranslation(['accounts', 'common']);
     // Use translated title if not provided, otherwise use the provided title
     const displayTitle =
@@ -47,6 +64,24 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
     // Create refs for each AccountCard
     const accountCardRefs = useRef<Record<string, AccountCardRef | null>>({});
 
+    // Set up automatic event tracking for data-user-event attributes
+    useUserEventTracking({
+      containerId: 'accounts-container',
+      userEventsHandler,
+      userEventsLifecycle,
+    });
+
+    // Track view when accounts load
+    useEffect(() => {
+      if (filteredAccounts.length > 0) {
+        trackUserEvent({
+          actionName: ACCOUNTS_USER_JOURNEYS.VIEW_ACCOUNTS,
+          metadata: { count: filteredAccounts.length },
+          userEventsHandler,
+        });
+      }
+    }, [filteredAccounts.length, userEventsHandler]);
+
     // Expose internal methods to parent component
     useImperativeHandle(
       ref,
@@ -57,6 +92,10 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
           // Also trigger individual balance refetches for each account card
           Object.values(accountCardRefs.current).forEach((cardRef) => {
             cardRef?.refreshBalance();
+          });
+          trackUserEvent({
+            actionName: ACCOUNTS_USER_JOURNEYS.REFRESH,
+            userEventsHandler,
           });
         },
         // Add other actions as needed:
@@ -158,6 +197,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
                 <Button
                   variant="link"
                   className="eb-ml-2 eb-h-auto eb-p-0"
+                  data-user-event={ACCOUNTS_USER_JOURNEYS.REFRESH}
                   onClick={() => refetch()}
                 >
                   {t('accounts:error.retry', { defaultValue: 'Retry' })}
@@ -213,7 +253,11 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
           : 'eb-gap-6';
 
       return (
-        <Card className="eb-component eb-w-full" ref={containerRef}>
+        <Card
+          id="accounts-container"
+          className="eb-component eb-w-full"
+          ref={containerRef}
+        >
           <CardHeader>
             <CardTitle className="eb-text-xl eb-font-semibold">
               {displayTitle}
@@ -246,7 +290,11 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
 
     // Single account, no extra wrapper
     return (
-      <Card className="eb-component eb-w-full" ref={containerRef}>
+      <Card
+        id="accounts-container"
+        className="eb-component eb-w-full"
+        ref={containerRef}
+      >
         <CardHeader>
           <CardTitle className="eb-text-xl eb-font-semibold">
             {displayTitle}

@@ -1,3 +1,4 @@
+import type { UserTrackingProps } from '@/lib/types/userTracking.types';
 import {
   ApiError,
   MicrodepositVerificationResponse,
@@ -7,7 +8,7 @@ import {
 /**
  * Props for the LinkedAccountWidget component
  */
-export interface LinkedAccountWidgetProps {
+export interface LinkedAccountWidgetProps extends UserTrackingProps {
   /**
    * Display variant for different use cases
    * - 'default': Show all linked accounts with pagination

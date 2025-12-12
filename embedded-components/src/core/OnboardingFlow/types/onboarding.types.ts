@@ -1,3 +1,4 @@
+import type { UserTrackingProps } from '@/lib/types/userTracking.types';
 import { ErrorType } from '@/api/axios-instance';
 import {
   ApiError,
@@ -11,11 +12,9 @@ import {
 
 export type Jurisdiction = 'US' | 'CA';
 
-export type OnboardingConfigDefault = {
+export type OnboardingConfigDefault = UserTrackingProps & {
   initialClientId?: string;
   alertOnExit?: boolean;
-  userEventsToTrack?: string[];
-  userEventsHandler?: ({ actionName }: { actionName: string }) => void;
   height?: string;
 };
 
