@@ -5,6 +5,7 @@ import { AlertCircle, Plus, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { useLocale } from '@/lib/hooks';
+import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import type {
   Recipient,
@@ -69,6 +70,8 @@ import {
   type RecipientColumnKey,
   type RecipientsColumnConfiguration,
 } from './Recipients.columns';
+// Constants
+import { RECIPIENT_USER_JOURNEYS } from './Recipients.constants';
 // Types
 import type { RecipientsProps } from './Recipients.types';
 // Utils
@@ -84,6 +87,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
   onRecipientUpdated,
   onRecipientDeactivated,
   userEventsHandler,
+  userEventsLifecycle,
   isWidget = false,
   columnConfig,
 }) => {
@@ -226,6 +230,46 @@ export const Recipients: React.FC<RecipientsProps> = ({
     setCurrentPage(1);
   }, [searchTerm, filters.status, filters.type, setCurrentPage, pageSize]);
 
+  // Track filter changes
+  useEffect(() => {
+    if (filters.type || filters.status) {
+      trackUserEvent({
+        actionName: RECIPIENT_USER_JOURNEYS.FILTER_CHANGED,
+        metadata: { type: filters.type, status: filters.status },
+        userEventsHandler,
+      });
+    }
+  }, [filters.type, filters.status, userEventsHandler]);
+
+  // Track search (only track that search occurred, not the search term to avoid PII)
+  useEffect(() => {
+    if (searchTerm) {
+      trackUserEvent({
+        actionName: RECIPIENT_USER_JOURNEYS.SEARCH,
+        metadata: { hasSearchTerm: true, searchTermLength: searchTerm.length },
+        userEventsHandler,
+      });
+    }
+  }, [searchTerm, userEventsHandler]);
+
+  // Track pagination
+  useEffect(() => {
+    if (currentPage > 1) {
+      trackUserEvent({
+        actionName: RECIPIENT_USER_JOURNEYS.PAGE_CHANGED,
+        metadata: { page: currentPage, pageSize },
+        userEventsHandler,
+      });
+    }
+  }, [currentPage, pageSize, userEventsHandler]);
+
+  // Set up automatic event tracking for data-user-event attributes
+  useUserEventTracking({
+    containerId: 'recipients-container',
+    userEventsHandler,
+    userEventsLifecycle,
+  });
+
   // Dialog management
   const {
     isCreateDialogOpen,
@@ -280,7 +324,11 @@ export const Recipients: React.FC<RecipientsProps> = ({
   const handleViewDetails = useCallback(
     (recipient: Recipient) => {
       openDetailsDialog(recipient);
-      userEventsHandler?.({ actionName: 'recipient_details_viewed' });
+      trackUserEvent({
+        actionName: RECIPIENT_USER_JOURNEYS.VIEW_DETAILS,
+        metadata: { recipientId: recipient.id },
+        userEventsHandler,
+      });
     },
     [openDetailsDialog, userEventsHandler]
   );
@@ -288,7 +336,11 @@ export const Recipients: React.FC<RecipientsProps> = ({
   const handleEditRecipient = useCallback(
     (recipient: Recipient) => {
       openEditDialog(recipient);
-      userEventsHandler?.({ actionName: 'recipient_edit_started' });
+      trackUserEvent({
+        actionName: RECIPIENT_USER_JOURNEYS.EDIT_STARTED,
+        metadata: { recipientId: recipient.id },
+        userEventsHandler,
+      });
     },
     [openEditDialog, userEventsHandler]
   );
@@ -301,7 +353,11 @@ export const Recipients: React.FC<RecipientsProps> = ({
   const confirmDeactivate = useCallback(() => {
     if (recipientToDeactivate) {
       deactivateRecipient(recipientToDeactivate.id);
-      userEventsHandler?.({ actionName: 'recipient_deactivate_started' });
+      trackUserEvent({
+        actionName: RECIPIENT_USER_JOURNEYS.DEACTIVATE_STARTED,
+        metadata: { recipientId: recipientToDeactivate.id },
+        userEventsHandler,
+      });
       setDeactivateDialogOpen(false);
       setRecipientToDeactivate(null);
     }
@@ -357,7 +413,11 @@ export const Recipients: React.FC<RecipientsProps> = ({
   }
 
   return (
-    <Card className="eb-component eb-w-full" ref={containerRef}>
+    <Card
+      id="recipients-container"
+      className="eb-component eb-w-full"
+      ref={containerRef}
+    >
       <CardHeader>
         <div className="eb-flex eb-items-center eb-justify-between">
           <CardTitle className="eb-text-xl eb-font-semibold">
@@ -369,7 +429,9 @@ export const Recipients: React.FC<RecipientsProps> = ({
               onOpenChange={setIsCreateDialogOpen}
             >
               <DialogTrigger asChild>
-                <Button>
+                <Button
+                  data-user-event={RECIPIENT_USER_JOURNEYS.CREATE_STARTED}
+                >
                   <Plus className="eb-mr-2 eb-h-4 eb-w-4" />
                   {t('recipients:actions.addRecipient', {
                     defaultValue: 'Add Recipient',
@@ -407,6 +469,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
               <div className="eb-relative eb-w-full">
                 <Search className="eb-absolute eb-left-2 eb-top-1/2 eb-h-4 eb-w-4 eb--translate-y-1/2 eb-transform eb-text-gray-400" />
                 <Input
+                  data-user-event={RECIPIENT_USER_JOURNEYS.SEARCH}
                   placeholder={t('recipients:filters.searchPlaceholder', {
                     defaultValue: 'Search recipients...',
                   })}
@@ -438,7 +501,10 @@ export const Recipients: React.FC<RecipientsProps> = ({
                   )
                 }
               >
-                <SelectTrigger className="eb-h-9 eb-w-36">
+                <SelectTrigger
+                  data-user-event={RECIPIENT_USER_JOURNEYS.FILTER_CHANGED}
+                  className="eb-h-9 eb-w-36"
+                >
                   <SelectValue
                     placeholder={t('recipients:filters.type.label', {
                       defaultValue: 'Type',
@@ -478,7 +544,10 @@ export const Recipients: React.FC<RecipientsProps> = ({
                   )
                 }
               >
-                <SelectTrigger className="eb-h-9 eb-w-36">
+                <SelectTrigger
+                  data-user-event={RECIPIENT_USER_JOURNEYS.FILTER_CHANGED}
+                  className="eb-h-9 eb-w-36"
+                >
                   <SelectValue
                     placeholder={t('recipients:filters.status.label', {
                       defaultValue: 'Status',

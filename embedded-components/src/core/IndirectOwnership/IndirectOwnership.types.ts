@@ -3,6 +3,7 @@
  * Public API types for the IndirectOwnership component
  */
 
+import type { UserTrackingProps } from '@/lib/types/userTracking.types';
 import { ClientResponse, PartyResponse } from '@/api/generated/smbdo.schemas';
 
 import type { OwnershipConfig } from './IndirectOwnership.internal.types';
@@ -145,7 +146,7 @@ export interface ValidationSummary {
 /**
  * Props for the IndirectOwnership component - Public API
  */
-export interface IndirectOwnershipProps {
+export interface IndirectOwnershipProps extends UserTrackingProps {
   /** Client data from OpenAPI response */
   client?: ClientResponse;
 

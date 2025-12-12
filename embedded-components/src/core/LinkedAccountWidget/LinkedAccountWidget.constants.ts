@@ -1,4 +1,4 @@
-import { RecipientStatus } from '@/api/generated/ep-recipients.schemas';
+import type { RecipientStatus } from '@/api/generated/ep-recipients.schemas';
 
 /**
  * Container query breakpoints for responsive layout
@@ -17,36 +17,30 @@ export const CONTAINER_BREAKPOINTS = {
 } as const;
 
 /**
- * Status badge variant mapping for different recipient statuses
+ * User journey identifiers for LinkedAccountWidget component
+ * These are automatically tracked when userEventsHandler is provided
+ */
+export const LINKED_ACCOUNT_USER_JOURNEYS = {
+  VIEW_ACCOUNTS: 'linked_account_viewed',
+  LINK_STARTED: 'linked_account_link_started',
+  LINK_COMPLETED: 'linked_account_link_completed',
+  VERIFY_STARTED: 'linked_account_verify_started',
+  VERIFY_COMPLETED: 'linked_account_verify_completed',
+  REMOVE_STARTED: 'linked_account_remove_started',
+  REMOVE_COMPLETED: 'linked_account_remove_completed',
+} as const;
+
+/**
+ * Status badge variants mapping for LinkedAccountWidget StatusBadge component
  */
 export const STATUS_BADGE_VARIANTS: Record<
   RecipientStatus,
-  Record<string, string>
+  { variant: 'success' | 'warning' | 'destructive' | 'informative' | 'outline' }
 > = {
-  ACTIVE: {
-    variant: 'success',
-  },
-  INACTIVE: {
-    variant: 'secondary',
-  },
-  MICRODEPOSITS_INITIATED: {
-    variant: 'secondary',
-  },
-  PENDING: {
-    variant: 'secondary',
-  },
-  READY_FOR_VALIDATION: {
-    variant: 'warning',
-  },
-  REJECTED: {
-    variant: 'destructive',
-  },
-};
-
-/**
- * Constants for validation
- */
-export const ROUTING_NUMBER_LENGTH = 9;
-export const MIN_MICRODEPOSIT_AMOUNT = 0.01;
-export const MAX_MICRODEPOSIT_AMOUNT = 0.99;
-export const MAX_VERIFICATION_ATTEMPTS = 3;
+  ACTIVE: { variant: 'success' },
+  PENDING: { variant: 'warning' },
+  MICRODEPOSITS_INITIATED: { variant: 'informative' },
+  READY_FOR_VALIDATION: { variant: 'warning' },
+  REJECTED: { variant: 'destructive' },
+  INACTIVE: { variant: 'outline' },
+} as const;

@@ -4,6 +4,8 @@ import { AlertTriangle, Check, CircleDashed, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScreenId, SectionStatus } from '@/core/OnboardingFlow/types';
 
+import { ONBOARDING_FLOW_USER_JOURNEYS } from '../../OnboardingFlow.constants';
+
 export type TimelineItemStatus = SectionStatus | 'current';
 
 export interface TimelineStep {
@@ -192,6 +194,8 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                 sectionStatus === 'on_hold' ||
                 sectionStatus === 'completed_disabled'
               }
+              data-user-event={ONBOARDING_FLOW_USER_JOURNEYS.SCREEN_NAVIGATION}
+              data-section-id={section.id}
               className={cn(
                 'eb-peer/menu-button eb-relative eb-flex eb-min-h-[2.5rem] eb-w-full eb-items-start eb-gap-2 eb-overflow-hidden eb-border-0 eb-bg-transparent eb-p-2 eb-pl-4 eb-text-left eb-text-sm eb-outline-none eb-ring-inset eb-ring-ring eb-transition-[width,height,padding,color,background-color] eb-duration-200 eb-ease-linear disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
                 !disableInteraction &&
@@ -355,6 +359,11 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                           stepStatus === 'on_hold' ||
                           stepStatus === 'completed_disabled'
                         }
+                        data-user-event={
+                          ONBOARDING_FLOW_USER_JOURNEYS.SCREEN_NAVIGATION
+                        }
+                        data-section-id={section.id}
+                        data-step-id={step.id}
                         className={cn(
                           'eb-relative eb-flex eb-min-h-[1.75rem] eb-w-full eb-min-w-0 eb-items-start eb-gap-2 eb-overflow-hidden eb-border-0 eb-bg-transparent eb-px-2 eb-pl-4 eb-text-left eb-text-sm eb-text-sidebar-foreground eb-outline-none eb-ring-ring eb-transition-colors eb-duration-200 eb-ease-linear disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
                           !disableInteraction &&

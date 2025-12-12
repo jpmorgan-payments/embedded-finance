@@ -36,6 +36,7 @@ import { RecipientAccountDisplayCard } from '@/components/RecipientAccountDispla
 import { MakePayment } from '@/core/MakePayment';
 
 import { MicrodepositsFormDialogTrigger } from '../../forms/MicrodepositsForm/MicrodepositsForm';
+import { LINKED_ACCOUNT_USER_JOURNEYS } from '../../LinkedAccountWidget.constants';
 import { LinkedAccountFormDialog } from '../LinkedAccountFormDialog/LinkedAccountFormDialog';
 import { RemoveAccountDialogTrigger } from '../RemoveAccountDialog/RemoveAccountDialog';
 import { StatusAlert } from '../StatusAlert/StatusAlert';
@@ -142,6 +143,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
               <Button
                 variant="default"
                 size="sm"
+                data-user-event={LINKED_ACCOUNT_USER_JOURNEYS.VERIFY_STARTED}
                 aria-label={`${t('actions.verifyAccount')} for ${displayName}`}
               >
                 <span>{t('actions.verifyAccount')}</span>
@@ -246,6 +248,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
             >
               <DropdownMenuItem
                 onSelect={(e) => e.preventDefault()}
+                data-user-event={LINKED_ACCOUNT_USER_JOURNEYS.REMOVE_STARTED}
                 className="eb-cursor-pointer eb-text-destructive focus:eb-text-destructive"
               >
                 <TrashIcon className="eb-mr-2 eb-h-4 eb-w-4" />

@@ -1,3 +1,5 @@
+import type { UserTrackingProps } from '@/lib/types/userTracking.types';
+
 /**
  * TransactionsDisplay - Public API Types
  *
@@ -8,7 +10,7 @@
 /**
  * Props for the TransactionsDisplay component
  */
-export interface TransactionsDisplayProps {
+export interface TransactionsDisplayProps extends UserTrackingProps {
   /**
    * Optional array of account IDs to filter transactions.
    * If not provided, transactions from all LIMITED_DDA_PAYMENTS and LIMITED_DDA accounts will be shown.

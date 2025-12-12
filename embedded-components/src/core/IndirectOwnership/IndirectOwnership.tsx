@@ -14,6 +14,7 @@ import {
   Users,
 } from 'lucide-react';
 
+import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import type { PartyResponse } from '@/api/generated/smbdo.schemas';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +31,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
+import { INDIRECT_OWNERSHIP_USER_JOURNEYS } from './IndirectOwnership.constants';
 import type {
   BeneficialOwner,
   IndirectOwnershipProps,
@@ -53,12 +55,21 @@ import {
  * - Retry mechanisms for failed operations
  */
 const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
+  userEventsHandler,
+  userEventsLifecycle,
   client,
   onOwnershipComplete,
   readOnly = false,
   className = '',
   testId = 'indirect-ownership',
 }) => {
+  // Set up automatic event tracking for data-user-event attributes
+  useUserEventTracking({
+    containerId: 'indirect-ownership-container',
+    userEventsHandler,
+    userEventsLifecycle,
+  });
+
   // Extract data from OpenAPI client (established pattern)
   const rootCompanyName = client
     ? getRootCompanyName(client)
@@ -75,6 +86,8 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
   const [customOwnershipHierarchies, setCustomOwnershipHierarchies] = useState<
     Map<string, any>
   >(new Map());
+  // Track pending owner removals for completion tracking
+  const pendingRemovalsRef = React.useRef<Set<string>>(new Set());
 
   // Computed view - Transform PartyResponse[] to BeneficialOwner[] on demand
   // For existing OpenAPI data, hierarchies are auto-derived from parentPartyId
@@ -91,6 +104,48 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
       }),
     [beneficialOwnerParties, client?.parties, customOwnershipHierarchies]
   );
+
+  // Track view when component loads with ownership data
+  React.useEffect(() => {
+    if (beneficialOwners.length > 0) {
+      trackUserEvent({
+        actionName: INDIRECT_OWNERSHIP_USER_JOURNEYS.VIEW_STRUCTURE,
+        metadata: { ownerCount: beneficialOwners.length },
+        userEventsHandler,
+      });
+    }
+  }, [beneficialOwners.length, userEventsHandler]);
+
+  // Track completion of owner removals
+  React.useEffect(() => {
+    if (pendingRemovalsRef.current.size === 0 || !userEventsHandler) {
+      return;
+    }
+
+    // Check which pending removals have been completed
+    const currentOwnerIds = new Set(
+      beneficialOwnerParties
+        .map((party) => party.id)
+        .filter(Boolean) as string[]
+    );
+
+    const completedRemovals: string[] = [];
+    pendingRemovalsRef.current.forEach((ownerId) => {
+      if (!currentOwnerIds.has(ownerId)) {
+        completedRemovals.push(ownerId);
+      }
+    });
+
+    // Track completion for each removed owner
+    completedRemovals.forEach((ownerId) => {
+      trackUserEvent({
+        actionName: INDIRECT_OWNERSHIP_USER_JOURNEYS.REMOVE_OWNER_COMPLETED,
+        metadata: { ownerId },
+        userEventsHandler,
+      });
+      pendingRemovalsRef.current.delete(ownerId);
+    });
+  }, [beneficialOwnerParties, userEventsHandler]);
   const [currentDialog, setCurrentDialog] = useState<
     'NONE' | 'ADD_OWNER' | 'BUILD_CHAIN' | 'EDIT_CHAIN' | 'CONFIRM_CHAIN'
   >('NONE');
@@ -130,7 +185,11 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
   // Handlers
   const handleAddOwner = useCallback(() => {
     setCurrentDialog('ADD_OWNER');
-  }, []);
+    trackUserEvent({
+      actionName: INDIRECT_OWNERSHIP_USER_JOURNEYS.ADD_OWNER_STARTED,
+      userEventsHandler,
+    });
+  }, [userEventsHandler]);
 
   const handleCloseDialog = useCallback(() => {
     setCurrentDialog('NONE');
@@ -159,26 +218,61 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
       };
 
       setBeneficialOwnerParties((prev) => [...prev, newParty]);
+      trackUserEvent({
+        actionName: INDIRECT_OWNERSHIP_USER_JOURNEYS.ADD_OWNER_COMPLETED,
+        metadata: {
+          ownerId: newParty.id,
+          ownershipType: ownerData.ownershipType,
+        },
+        userEventsHandler,
+      });
       handleCloseDialog();
     },
-    [handleCloseDialog]
+    [handleCloseDialog, userEventsHandler]
   );
 
-  const handleRemoveOwner = useCallback((ownerId: string) => {
-    setBeneficialOwnerParties((prev) =>
-      prev.filter((party) => party.id !== ownerId)
-    );
-  }, []);
+  const handleRemoveOwner = useCallback(
+    (ownerId: string) => {
+      trackUserEvent({
+        actionName: INDIRECT_OWNERSHIP_USER_JOURNEYS.REMOVE_OWNER_STARTED,
+        metadata: { ownerId },
+        userEventsHandler,
+      });
+      // Mark as pending removal
+      pendingRemovalsRef.current.add(ownerId);
+      // Update state (pure function, no side effects)
+      setBeneficialOwnerParties((prev) =>
+        prev.filter((party) => party.id !== ownerId)
+      );
+    },
+    [userEventsHandler]
+  );
 
-  const handleBuildHierarchy = useCallback((ownerId: string) => {
-    setCurrentOwnerBeingEdited(ownerId);
-    setCurrentDialog('BUILD_CHAIN');
-  }, []);
+  const handleBuildHierarchy = useCallback(
+    (ownerId: string) => {
+      setCurrentOwnerBeingEdited(ownerId);
+      setCurrentDialog('BUILD_CHAIN');
+      trackUserEvent({
+        actionName: INDIRECT_OWNERSHIP_USER_JOURNEYS.EDIT_OWNER_STARTED,
+        metadata: { ownerId },
+        userEventsHandler,
+      });
+    },
+    [userEventsHandler]
+  );
 
-  const handleEditHierarchy = useCallback((ownerId: string) => {
-    setCurrentOwnerBeingEdited(ownerId);
-    setCurrentDialog('EDIT_CHAIN');
-  }, []);
+  const handleEditHierarchy = useCallback(
+    (ownerId: string) => {
+      setCurrentOwnerBeingEdited(ownerId);
+      setCurrentDialog('EDIT_CHAIN');
+      trackUserEvent({
+        actionName: INDIRECT_OWNERSHIP_USER_JOURNEYS.EDIT_OWNER_STARTED,
+        metadata: { ownerId },
+        userEventsHandler,
+      });
+    },
+    [userEventsHandler]
+  );
 
   const handleComplete = useCallback(() => {
     if (validationSummary.canComplete) {
@@ -193,14 +287,22 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
         new Map(prev).set(ownerId, hierarchy)
       );
 
+      // Track edit completion
+      trackUserEvent({
+        actionName: INDIRECT_OWNERSHIP_USER_JOURNEYS.EDIT_OWNER_COMPLETED,
+        metadata: { ownerId },
+        userEventsHandler,
+      });
+
       // Don't modify profileStatus - that's for KYC approval status
       // The transform function will determine completion status based on hierarchy existence
       handleCloseDialog();
     },
-    [handleCloseDialog]
+    [handleCloseDialog, userEventsHandler]
   );
   return (
     <div
+      id="indirect-ownership-container"
       className={`eb-component eb-mx-auto eb-w-full eb-max-w-5xl eb-space-y-6 ${className}`}
       data-testid={testId}
     >
@@ -243,6 +345,9 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
             >
               {!readOnly && (
                 <Button
+                  data-user-event={
+                    INDIRECT_OWNERSHIP_USER_JOURNEYS.ADD_OWNER_STARTED
+                  }
                   onClick={handleAddOwner}
                   variant="outline"
                   size="sm"
@@ -413,6 +518,9 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
                                     variant="outline"
                                     size="sm"
                                     className="eb-h-8 eb-px-3 eb-text-xs"
+                                    data-user-event={
+                                      INDIRECT_OWNERSHIP_USER_JOURNEYS.EDIT_OWNER_STARTED
+                                    }
                                     onClick={() =>
                                       owner.id && handleBuildHierarchy(owner.id)
                                     }
@@ -429,6 +537,9 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
                                     variant="outline"
                                     size="sm"
                                     className="eb-h-8 eb-px-3 eb-text-xs"
+                                    data-user-event={
+                                      INDIRECT_OWNERSHIP_USER_JOURNEYS.EDIT_OWNER_STARTED
+                                    }
                                     onClick={() =>
                                       owner.id && handleEditHierarchy(owner.id)
                                     }
@@ -447,6 +558,9 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
                               variant="ghost"
                               size="sm"
                               className="eb-h-8 eb-w-8 eb-p-0 eb-text-muted-foreground hover:eb-text-destructive"
+                              data-user-event={
+                                INDIRECT_OWNERSHIP_USER_JOURNEYS.REMOVE_OWNER_STARTED
+                              }
                               onClick={() =>
                                 owner.id && handleRemoveOwner(owner.id)
                               }

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { PlusIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import {
   MicrodepositVerificationResponse,
   Recipient,
@@ -17,6 +18,7 @@ import { LinkedAccountFormDialog } from './components/LinkedAccountFormDialog/Li
 import { RemoveAccountResultDialog } from './components/RemoveAccountResultDialog/RemoveAccountResultDialog';
 import { VerificationResultDialog } from './components/VerificationResultDialog/VerificationResultDialog';
 import { useLinkedAccounts } from './hooks';
+import { LINKED_ACCOUNT_USER_JOURNEYS } from './LinkedAccountWidget.constants';
 import { LinkedAccountWidgetProps } from './LinkedAccountWidget.types';
 import { shouldShowCreateButton } from './utils';
 
@@ -49,6 +51,8 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   makePaymentComponent,
   onLinkedAccountSettled,
   onMicrodepositVerifySettled,
+  userEventsHandler,
+  userEventsLifecycle,
   className,
 }) => {
   const { t } = useTranslation('linked-accounts');
@@ -71,7 +75,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
     hasActiveAccount,
     isLoading,
     isError,
-    error,
+    error: linkedAccountsError,
     isSuccess,
     refetch,
   } = useLinkedAccounts({ variant });
@@ -82,6 +86,24 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
     hasActiveAccount,
     showCreateButton
   );
+
+  // Set up automatic event tracking for data-user-event attributes
+  useUserEventTracking({
+    containerId: 'linked-account-widget',
+    userEventsHandler,
+    userEventsLifecycle,
+  });
+
+  // Track view when component loads with accounts
+  React.useEffect(() => {
+    if (isSuccess && linkedAccounts.length > 0) {
+      trackUserEvent({
+        actionName: LINKED_ACCOUNT_USER_JOURNEYS.VIEW_ACCOUNTS,
+        metadata: { count: linkedAccounts.length },
+        userEventsHandler,
+      });
+    }
+  }, [isSuccess, linkedAccounts.length, userEventsHandler]);
 
   // Handle microdeposit verification completed
   const handleMicrodepositVerifySettled = (
@@ -100,6 +122,11 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
       setResultRecipient(recipient);
       setResultVariant('success');
       setShowResultDialog(true);
+      trackUserEvent({
+        actionName: LINKED_ACCOUNT_USER_JOURNEYS.VERIFY_COMPLETED,
+        metadata: { recipientId: recipient?.id, status: response.status },
+        userEventsHandler,
+      });
     }
 
     onMicrodepositVerifySettled?.(response, recipient);
@@ -109,10 +136,27 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   const handleRemoveSuccess = (recipient: Recipient) => {
     setRemovedRecipient(recipient);
     setShowRemoveResultDialog(true);
+    trackUserEvent({
+      actionName: LINKED_ACCOUNT_USER_JOURNEYS.REMOVE_COMPLETED,
+      metadata: { recipientId: recipient.id },
+      userEventsHandler,
+    });
+  };
+
+  // Handle account link success
+  const handleLinkedAccountSettled = (recipient?: Recipient, error?: any) => {
+    if (recipient && !error) {
+      trackUserEvent({
+        actionName: LINKED_ACCOUNT_USER_JOURNEYS.LINK_COMPLETED,
+        metadata: { recipientId: recipient.id },
+        userEventsHandler,
+      });
+    }
+    onLinkedAccountSettled?.(recipient, error);
   };
 
   return (
-    <div className="eb-w-full eb-@container">
+    <div id="linked-account-widget" className="eb-w-full eb-@container">
       <VerificationResultDialog
         open={showResultDialog}
         onOpenChange={setShowResultDialog}
@@ -150,12 +194,13 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
               <div className="eb-animate-fade-in">
                 <LinkedAccountFormDialog
                   mode="create"
-                  onLinkedAccountSettled={onLinkedAccountSettled}
+                  onLinkedAccountSettled={handleLinkedAccountSettled}
                 >
                   <Button
                     variant="outline"
                     size="sm"
                     className="eb-shrink-0 eb-bg-background"
+                    data-user-event={LINKED_ACCOUNT_USER_JOURNEYS.LINK_STARTED}
                   >
                     <PlusIcon className="eb-mr-1.5 eb-h-4 eb-w-4" />
                     {t('linkNewAccount')}
@@ -183,7 +228,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                 default: t('errors.loading.default'),
                 400: t('errors.loading.400'),
               }}
-              error={error as any}
+              error={linkedAccountsError as any}
               tryAgainAction={refetch}
               showDetails
             />
@@ -211,7 +256,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                   <LinkedAccountCard
                     recipient={recipient}
                     makePaymentComponent={makePaymentComponent}
-                    onLinkedAccountSettled={onLinkedAccountSettled}
+                    onLinkedAccountSettled={handleLinkedAccountSettled}
                     onMicrodepositVerifySettled={
                       handleMicrodepositVerifySettled
                     }

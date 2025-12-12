@@ -71,7 +71,10 @@ export function TransactionsTableToolbar<TData>({
             }
           }}
         >
-          <SelectTrigger className="eb-h-8 eb-w-[140px]">
+          <SelectTrigger
+            data-user-event="transactions_filter_changed"
+            className="eb-h-8 eb-w-[140px]"
+          >
             <SelectValue
               placeholder={t('filters.status.placeholder', {
                 defaultValue: 'All statuses',
@@ -101,7 +104,10 @@ export function TransactionsTableToolbar<TData>({
             }
           }}
         >
-          <SelectTrigger className="eb-h-8 eb-w-[140px]">
+          <SelectTrigger
+            data-user-event="transactions_filter_changed"
+            className="eb-h-8 eb-w-[140px]"
+          >
             <SelectValue
               placeholder={t('filters.type.placeholder', {
                 defaultValue: 'All types',
