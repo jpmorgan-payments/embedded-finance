@@ -360,7 +360,8 @@ export function initializeDb(force = false) {
                       where: { id: { equals: party.id } },
                       data: newParty,
                     });
-                  } catch (updateError) {
+                    } catch (updateError) {
+                    dbLogger('Error updating party:', updateError);
                     // Ignore update errors for shared parties
                   }
                 } else {
