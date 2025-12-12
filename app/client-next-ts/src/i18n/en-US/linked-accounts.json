@@ -1,0 +1,161 @@
+{
+  "title": "Linked Accounts",
+  "description": "Manage your external bank accounts for payments",
+  "linkNewAccount": "Link A New Account",
+  "count": "({{count}})",
+  "emptyState": {
+    "title": "No linked accounts",
+    "description": "Link a bank account to start making payments. You can use ACH, wire transfers, or real-time payments."
+  },
+  "errors": {
+    "loading": {
+      "title": "Error loading linked accounts",
+      "default": "An unexpected error occurred while loading your linked accounts. Please try again.",
+      "400": "Your platform does not have permission to access linked accounts. Please contact support."
+    }
+  },
+  "status": {
+    "labels": {
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive",
+      "MICRODEPOSITS_INITIATED": "Pending Verification",
+      "PENDING": "Processing",
+      "READY_FOR_VALIDATION": "Action Required",
+      "REJECTED": "Rejected"
+    },
+    "messages": {
+      "ACTIVE": "This account is verified and ready for transactions.",
+      "INACTIVE": "This account has been deactivated and cannot be used for transactions.",
+      "MICRODEPOSITS_INITIATED": "We're sending two small deposits to your account to verify ownership. This typically takes 3-5 business days. Once they arrive, you'll need to verify the amounts.",
+      "PENDING": "Your account information is being processed. You'll be notified once complete.",
+      "READY_FOR_VALIDATION": "The verification deposits have arrived in your account. Please verify the amounts within 20 business days to activate your account.",
+      "REJECTED": "There was an issue linking this account. Please check the account details or contact support."
+    },
+    "paymentDisabledTooltip": {
+      "unavailable": "Payment unavailable",
+      "ACTIVE": "Payment unavailable",
+      "READY_FOR_VALIDATION": "Complete account verification to enable payments",
+      "MICRODEPOSITS_INITIATED": "Waiting for microdeposit verification to enable payments",
+      "INACTIVE": "Account is inactive. Please activate to make payments",
+      "REJECTED": "Account verification was rejected. Please contact support",
+      "PENDING": "Account is being processed. Please wait to make payments"
+    }
+  },
+  "actions": {
+    "verifyAccount": "Verify Account",
+    "makePayment": "Pay",
+    "addWireRtp": "Add Wire/RTP",
+    "addWire": "Add WIRE",
+    "addRtp": "Add RTP",
+    "manage": "Manage",
+    "edit": "Edit Payment Methods",
+    "remove": "Remove Account",
+    "moreActions": "More actions for {{name}}"
+  },
+  "forms": {
+    "linkAccount": {
+      "title": "Link A New Account",
+      "titleSuccessByStatus": {
+        "MICRODEPOSITS_INITIATED": "Verification Process Started",
+        "ACTIVE": "Account Successfully Linked",
+        "PENDING": "Account Linking In Progress",
+        "REJECTED": "Account Linking Failed",
+        "INACTIVE": "Account Link Deactivated"
+      },
+      "description": "Connect your external bank account to make payments.",
+      "descriptionSuccess": "Your account has been linked and is ready to use.",
+      "error": {
+        "title": "Unable to link account"
+      },
+      "certify": {
+        "label": "I authorize verification of my bank account information",
+        "validation": {
+          "required": "You must authorize verification to continue"
+        }
+      }
+    },
+    "editAccount": {
+      "title": "Edit Linked Account",
+      "titleSuccessByStatus": {
+        "MICRODEPOSITS_INITIATED": "Account Updated - Verification Pending",
+        "ACTIVE": "Account Updated Successfully",
+        "PENDING": "Account Update Processing",
+        "REJECTED": "Account Update Failed",
+        "INACTIVE": "Account Link Deactivated"
+      },
+      "description": "Update the bank account information and payment methods.",
+      "descriptionSuccess": "Your linked account has been updated successfully.",
+      "error": {
+        "title": "Unable to update account"
+      }
+    },
+    "removeAccount": {
+      "title": "Remove Account",
+      "titleSuccess": "Account Removed",
+      "description": "Are you sure you want to remove <strong>{{name}}</strong> from your linked accounts?",
+      "descriptionSuccess": "<strong>{{name}}</strong> has been successfully removed from your linked accounts.",
+      "cancel": "Cancel",
+      "confirm": "Remove Account",
+      "removing": "Removing...",
+      "close": "Close",
+      "error": {
+        "title": "Unable to remove account"
+      }
+    },
+    "microdeposits": {
+      "title": "Verify Account",
+      "description": "Enter the two small deposit amounts we sent to <strong>{{name}}</strong> in any order. You have <strong>3 total attempts</strong> to enter these amounts.",
+      "cancel": "Cancel",
+      "confirm": "Submit",
+      "submitting": "Verifying...",
+      "amount1": {
+        "label": "First Deposit Amount",
+        "placeholder": "0.00",
+        "validation": {
+          "required": "First deposit amount is required",
+          "invalid": "Please enter a valid amount",
+          "min": "$t(validation:money.min, {'amount': '$0.01'})",
+          "max": "$t(validation:money.max, {'amount': '$1.00'})",
+          "decimals": "$t(validation:numeric.decimal, {'places': 2})"
+        }
+      },
+      "amount2": {
+        "label": "Second Deposit Amount",
+        "placeholder": "0.00",
+        "validation": {
+          "required": "Second deposit amount is required",
+          "invalid": "Please enter a valid amount",
+          "min": "$t(validation:money.min, {'amount': '$0.01'})",
+          "max": "$t(validation:money.max, {'amount': '$1.00'})",
+          "decimals": "$t(validation:numeric.decimal, {'places': 2})"
+        }
+      },
+      "errors": {
+        "loading": {
+          "title": "Error loading account information",
+          "message": "Unable to load the account details. Please try again or contact support."
+        },
+        "verificationFailed": {
+          "title": "Verification failed",
+          "default": "An error occurred during verification. Please try again.",
+          "400": "The microdeposits you have entered were incorrect. Please try again."
+        },
+        "maxAttemptsExceeded": {
+          "title": "Max number of attempts exceeded",
+          "description": "The verification process could not be completed due to multiple incorrect attempts.",
+          "message": "You have exceeded the maximum number of attempts to verify microdeposits. Please contact support."
+        }
+      }
+    }
+  },
+  "maxAttemptsExceeded": {
+    "title": "Account Verification Failed",
+    "description": "Linking <strong>{{name}}</strong> has failed as verification could not be completed due to multiple incorrect attempts. To use this account, you'll need to link it again to restart the verification process.",
+    "close": "Close"
+  },
+  "verificationSuccess": {
+    "title": "Account Verified Successfully",
+    "description": "Linking <strong>{{name}}</strong> has been successfully completed and the account is now ready for transactions.",
+    "close": "Close"
+  }
+}

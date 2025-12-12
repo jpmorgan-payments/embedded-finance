@@ -24,7 +24,8 @@
     "component-library"
   ],
   "files": [
-    "dist"
+    "dist",
+    "src/i18n"
   ],
   "main": "./dist/umd/ef-components.js",
   "module": "./dist/esm/ef-components.js",
@@ -39,7 +40,15 @@
         "types": "./dist/index.d.ts",
         "default": "./dist/umd/ef-components.js"
       }
-    }
+    },
+    "./i18n/config": {
+      "types": "./src/i18n/config.ts",
+      "import": "./src/i18n/config.ts",
+      "require": "./src/i18n/config.ts"
+    },
+    "./i18n/en-US/*.json": "./src/i18n/en-US/*.json",
+    "./i18n/es-US/*.json": "./src/i18n/es-US/*.json",
+    "./i18n/fr-CA/*.json": "./src/i18n/fr-CA/*.json"
   },
   "scripts": {
     "__comment_build": "=== BUILD ===",

@@ -1,0 +1,118 @@
+{
+  "required": "{{fieldName}} is required",
+  "format": "Invalid format",
+  "pattern": "Invalid format",
+  "common": {
+    "noSpaces": "No spaces are allowed",
+    "invalidChars": "Invalid characters detected",
+    "selectOption": "Please select an option"
+  },
+  "text": {
+    "minLength_one": "{{fieldName}} must be at least {{count}} character",
+    "minLength_other": "{{fieldName}} must be at least {{count}} characters",
+    "maxLength_one": "{{fieldName}} cannot exceed {{count}} character",
+    "maxLength_other": "{{fieldName}} cannot exceed {{count}} characters",
+    "noNumbers": "{{fieldName}} cannot contain numbers",
+    "noSpecialChars": "{{fieldName}} cannot contain special characters except {{allowedChars}}",
+    "specialCharsAllowed": "{{fieldName}} can only contain letters, numbers, and {{allowedChars}}",
+    "noConsecutiveSpaces": "{{fieldName}} cannot contain consecutive spaces",
+    "noLeadingSpace": "{{fieldName}} cannot begin with a space",
+    "noTrailingSpace": "{{fieldName}} cannot end with a space",
+    "noSpecialCharsAtStart": "{{fieldName}} cannot begin with a special character",
+    "noSpecialCharsAtEnd": "{{fieldName}} cannot end with a special character",
+    "exactLength_one": "{{fieldName}} must be exactly {{count}} character",
+    "exactLength_other": "{{fieldName}} must be exactly {{count}} characters",
+    "namePattern": "{{fieldName}} can only contain letters, spaces, hyphens, and apostrophes",
+    "noConsecutiveHyphens": "{{fieldName}} cannot contain consecutive hyphens",
+    "noLeadingHyphen": "{{fieldName}} cannot begin with a hyphen",
+    "noTrailingHyphen": "{{fieldName}} cannot end with a hyphen",
+    "noHtml": "{{fieldName}} cannot contain HTML tags",
+    "noUrls": "{{fieldName}} cannot contain URLs"
+  },
+  "suffix": {
+    "pattern": "{{fieldName}} can only contain letters, periods, and roman numerals"
+  },
+  "email": {
+    "invalid": "Please enter a valid email address",
+    "format": "Please use a valid email format (e.g. name@example.com)",
+    "noPersonal": "Please use a company email address, not a personal email service"
+  },
+  "phone": {
+    "format": "Please enter a valid phone number",
+    "pattern": "Please use {{format}} format (e.g. {{example}})"
+  },
+  "date": {
+    "format": "Please use {{format}} format",
+    "invalid": "Please enter a valid date",
+    "future": "Date cannot be in the future",
+    "past": "Date must be in the past",
+    "range": {
+      "day": "Day must be between {{min}} and {{max}}",
+      "month": "Month must be between {{min}} and {{max}}",
+      "year": "Year must be between {{min}} and {{max}}"
+    },
+    "age": {
+      "tooYoung": "Must be at least {{years}} years old",
+      "tooOld": "Cannot exceed {{years}} years old"
+    }
+  },
+  "year": {
+    "format": "Please enter a valid 4-digit year",
+    "min": "Year cannot be earlier than {{min}}",
+    "future": "Year cannot be in the future",
+    "range": "Year must be between {{min}} and {{max}}"
+  },
+  "url": {
+    "invalid": "Please enter a valid website URL",
+    "format": "Please use a valid URL format (e.g. {{example}})",
+    "httpsRequired": "URL must begin with https://",
+    "noIp": "Direct IP addresses are not allowed"
+  },
+  "id": {
+    "ssn": "Please enter a valid Social Security Number (SSN)",
+    "itin": {
+      "format": "Please enter a valid 9-digit ITIN starting with 9",
+      "invalidRange": "Invalid ITIN format in position 2-3"
+    }
+  },
+  "address": {
+    "postalCode": {
+      "format": "Please enter a valid postal code format for {{country}}",
+      "us": "Please enter a valid 5-digit ZIP code or ZIP+4 format"
+    },
+    "invalidAddress": "Please enter a valid address"
+  },
+  "money": {
+    "min": "Value must be at least {{amount}}",
+    "max": "Value cannot exceed {{amount}}",
+    "format": "Please enter a valid monetary amount"
+  },
+  "numeric": {
+    "min": "Value must be at least {{min}}",
+    "max": "Value cannot exceed {{max}}",
+    "integer": "Value must be a whole number",
+    "decimal": "Value can have up to {{places}} decimal places",
+    "positive": "Value must be positive",
+    "negative": "Value must be negative",
+    "nonZero": "Value cannot be zero",
+    "digitsOnly": "Value must contain only digits"
+  },
+  "file": {
+    "size": "File size cannot exceed {{size}}",
+    "type": "File must be one of the following types: {{types}}",
+    "dimensions": "Image dimensions must be {{width}}x{{height}} pixels",
+    "minDimensions": "Image dimensions must be at least {{width}}x{{height}} pixels",
+    "maxDimensions": "Image dimensions cannot exceed {{width}}x{{height}} pixels"
+  },
+  "comparison": {
+    "equal": "{{field1}} must match {{field2}}",
+    "notEqual": "{{field1}} must be different from {{field2}}",
+    "greaterThan": "{{field1}} must be greater than {{field2}}",
+    "lessThan": "{{field1}} must be less than {{field2}}",
+    "greaterOrEqual": "{{field1}} must be greater than or equal to {{field2}}",
+    "lessOrEqual": "{{field1}} must be less than or equal to {{field2}}"
+  },
+  "selection": {
+    "required": "Please select at least one option"
+  }
+}
