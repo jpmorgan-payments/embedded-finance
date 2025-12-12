@@ -4,7 +4,6 @@ export { Badge } from './badge';
 export { Button } from './button';
 export { Calendar } from './calendar';
 export * from './card';
-export { Carousel } from './carousel';
 export { Checkbox } from './checkbox';
 export * from './dialog';
 export * from './form';

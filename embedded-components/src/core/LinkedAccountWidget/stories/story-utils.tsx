@@ -625,4 +625,38 @@ export const commonArgTypes = {
       defaultValue: { summary: 'mock-client-id' },
     },
   },
+  compact: {
+    control: { type: 'boolean' as const },
+    description: 'Enable compact mode ',
+    table: {
+      category: 'Component',
+      defaultValue: { summary: 'false' },
+    },
+  },
+  scrollHeight: {
+    control: { type: 'text' as const },
+    description:
+      'Sets a fixed height with scroll for the account list (e.g., "300px", "50%")',
+    table: {
+      category: 'Component',
+    },
+  },
+  initialItemsToShow: {
+    control: { type: 'number' as const },
+    description:
+      'Number of accounts to show initially when scrollHeight is not set',
+    table: {
+      category: 'Component',
+      defaultValue: { summary: '2' },
+    },
+  },
+  pageSize: {
+    control: { type: 'number' as const },
+    description:
+      'Number of accounts to fetch per page from the API when scrollHeight is not set',
+    table: {
+      category: 'Component',
+      defaultValue: { summary: '25' },
+    },
+  },
 };

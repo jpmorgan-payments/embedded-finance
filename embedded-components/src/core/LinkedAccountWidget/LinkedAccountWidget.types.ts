@@ -70,7 +70,19 @@ export interface LinkedAccountWidgetProps {
    *
    * @default undefined (not scrollable)
    */
-  scrollHeight?: number;
+  scrollHeight?: number | string;
+
+  /**
+   * Enable compact mode with row-based cards and minimal spacing
+   * When true:
+   * - Cards display as compact rows instead of full cards
+   * - No gap between cards
+   * - Reduced padding
+   * - Single column layout only
+   *
+   * @default false
+   */
+  compact?: boolean;
 
   /**
    * Optional custom CSS class for the root element

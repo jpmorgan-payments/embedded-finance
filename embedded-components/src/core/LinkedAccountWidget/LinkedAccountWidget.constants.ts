@@ -18,28 +18,35 @@ export const CONTAINER_BREAKPOINTS = {
 
 /**
  * Status badge variant mapping for different recipient statuses
+ * Each status is styled to convey its semantic meaning:
+ * - ACTIVE: Success (green) - Account is ready and working
+ * - PENDING: Default (blue) - Waiting for system processing
+ * - MICRODEPOSITS_INITIATED: Default (blue) - Verification in progress
+ * - READY_FOR_VALIDATION: Warning (amber) - User action required
+ * - REJECTED: Destructive (red) - Account was declined/failed
+ * - INACTIVE: Secondary (gray) - Account is disabled/suspended
  */
 export const STATUS_BADGE_VARIANTS: Record<
   RecipientStatus,
   Record<string, string>
 > = {
   ACTIVE: {
-    variant: 'success',
-  },
-  INACTIVE: {
-    variant: 'secondary',
-  },
-  MICRODEPOSITS_INITIATED: {
-    variant: 'secondary',
+    variant: 'success', // Green - positive state
   },
   PENDING: {
-    variant: 'secondary',
+    variant: 'default', // Blue - informational, system processing
+  },
+  MICRODEPOSITS_INITIATED: {
+    variant: 'default', // Blue - informational, verification in progress
   },
   READY_FOR_VALIDATION: {
-    variant: 'warning',
+    variant: 'warning', // Amber - action required from user
   },
   REJECTED: {
-    variant: 'destructive',
+    variant: 'destructive', // Red - negative state, account declined
+  },
+  INACTIVE: {
+    variant: 'secondary', // Gray - neutral, account suspended/disabled
   },
 };
 
