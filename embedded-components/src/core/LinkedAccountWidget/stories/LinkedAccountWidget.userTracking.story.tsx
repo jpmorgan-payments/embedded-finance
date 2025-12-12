@@ -6,6 +6,8 @@
  * the logged events.
  */
 
+/* eslint-disable no-console */
+
 import { linkedAccountListMock } from '@/mocks/efLinkedAccounts.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -103,6 +105,7 @@ export const DynatraceIntegration: Story = {
         if (typeof window !== 'undefined' && (window as any).dtrum) {
           return (window as any).dtrum.enterAction(context.actionName);
         }
+        return undefined;
       },
       onLeave: (context) => {
         console.log('✅ Linked Account Action Completed:', context.actionName);

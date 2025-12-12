@@ -118,6 +118,7 @@ DynatraceIntegration.args = {
       if (typeof window !== 'undefined' && (window as any).dtrum) {
         return (window as any).dtrum.enterAction(context.actionName);
       }
+      return undefined;
     },
     onLeave: (context) => {
       console.log('✅ Onboarding Action Completed:', context.actionName);

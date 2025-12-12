@@ -6,6 +6,8 @@
  * the logged events.
  */
 
+/* eslint-disable no-console */
+
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import type { BaseStoryArgs } from '../../../../.storybook/preview';
@@ -104,6 +106,7 @@ export const DynatraceIntegration: Story = {
         if (typeof window !== 'undefined' && (window as any).dtrum) {
           return (window as any).dtrum.enterAction(context.actionName);
         }
+        return undefined;
       },
       onLeave: (context) => {
         console.log('✅ Ownership Action Completed:', context.actionName);

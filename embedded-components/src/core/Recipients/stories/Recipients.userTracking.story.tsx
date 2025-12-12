@@ -6,11 +6,9 @@
  * the logged events.
  */
 
-import {
-  createMockRecipient,
-  createMockRecipientsResponse,
-  mockRecipientsResponse,
-} from '@/mocks/recipients.mock';
+/* eslint-disable no-console */
+
+import { mockRecipientsResponse } from '@/mocks/recipients.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
@@ -107,6 +105,7 @@ export const DynatraceIntegration: Story = {
         if (typeof window !== 'undefined' && (window as any).dtrum) {
           return (window as any).dtrum.enterAction(context.actionName);
         }
+        return undefined;
       },
       onLeave: (context) => {
         console.log('✅ Action Completed:', context.actionName);

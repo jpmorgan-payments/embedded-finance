@@ -6,6 +6,8 @@
  * the logged events.
  */
 
+/* eslint-disable no-console */
+
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
