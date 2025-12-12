@@ -35,7 +35,16 @@ import {
   ChevronUp,
   Download,
   AlertTriangle,
+  Sparkles,
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { AiPromptDialog } from './ai-prompt-dialog';
 import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 import type { ThemeOption } from './use-sellsense-themes';
 import { useSellSenseThemes } from './use-sellsense-themes';
@@ -503,6 +512,8 @@ export function ThemeCustomizationDrawer({
   const [contrastFilter, setContrastFilter] = useState<
     'all' | 'failing' | 'aa-only'
   >('all');
+  const [isAiPromptDialogOpen, setIsAiPromptDialogOpen] = useState(false);
+  const [isWarningDialogOpen, setIsWarningDialogOpen] = useState(false);
 
   // Helper function to determine min/max values based on token context
   const getNumberConstraints = (token: string) => {
@@ -781,30 +792,23 @@ export function ThemeCustomizationDrawer({
         throw new Error('No valid theme properties found in clipboard data');
       }
 
-      // Merge with existing custom theme and normalize to semantic tokens
-      const mergedTheme = pickSemanticTokens({ ...customTheme, ...variables });
-      setCustomTheme(mergedTheme);
+      // Normalize imported variables to semantic tokens (don't merge with existing)
+      // The imported theme should replace the current theme, not merge with it
+      const importedTheme = pickSemanticTokens(variables);
+      setCustomTheme(importedTheme);
 
-      // Update the theme with merged values
+      // Determine base theme - use current base theme or default to SellSense
       const currentBaseTheme = getCurrentBaseTheme();
-      const baseVariables = getThemeVariables(currentBaseTheme);
-
-      // Check if this makes the theme different from base
-      const hasChanges = Object.keys(mergedTheme).some(
-        (key) =>
-          mergedTheme[key as keyof EBThemeVariables] !==
-          baseVariables[key as keyof EBThemeVariables],
-      );
-
-      if (hasChanges) {
-        const customThemeData: CustomThemeData = {
-          baseTheme: currentBaseTheme,
-          variables: mergedTheme,
-        };
-        onThemeChange('Custom', customThemeData as any);
-      } else {
-        onThemeChange(currentBaseTheme, {});
-      }
+      
+      // Always apply the imported theme as Custom theme
+      // The imported variables are what the user wants, so apply them directly
+      const customThemeData: CustomThemeData = {
+        baseTheme: currentBaseTheme,
+        variables: importedTheme,
+      };
+      
+      // Apply the theme immediately
+      onThemeChange('Custom', customThemeData as any);
 
       // Show success feedback
       console.log('Theme imported successfully from clipboard');
@@ -1127,19 +1131,29 @@ export function ThemeCustomizationDrawer({
           <div className="px-4 border-b border-gray-200 flex-shrink-0">
             <div className="flex items-start gap-2 p-2 bg-gray-50 border border-gray-200 rounded-lg">
               <Info className="h-3 w-3 text-gray-600 mt-0.5 flex-shrink-0" />
-              <div className="text-xs text-gray-700">
+              <div className="text-xs text-gray-700 flex-1">
                 <p className="text-xs">
                   Customize design tokens to create your own theme. Changes are
                   applied in real-time.
                 </p>
-                <a
-                  href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theme-design-tokens"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-600 hover:text-gray-800 underline text-xs whitespace-nowrap"
-                >
-                  View design tokens docs →
-                </a>
+                <div className="flex items-center gap-3 mt-1.5">
+                  <a
+                    href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theme-design-tokens"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-600 hover:text-gray-800 underline text-xs whitespace-nowrap"
+                  >
+                    View design tokens docs →
+                  </a>
+                  <button
+                    onClick={() => setIsAiPromptDialogOpen(true)}
+                    className="text-gray-500 hover:text-gray-700 underline text-xs flex items-center gap-1"
+                    type="button"
+                  >
+                    <Sparkles className="h-3 w-3" />
+                    Extract tokens with AI
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1315,7 +1329,7 @@ export function ThemeCustomizationDrawer({
                       <button
                         type="button"
                         onClick={() => setIsA11yExpanded(!isA11yExpanded)}
-                        className={`flex items-center justify-between w-full p-3 rounded-lg transition-colors ${
+                        className={`flex items-center justify-between w-full p-2.5 rounded-lg transition-colors ${
                           hasIssues
                             ? 'bg-red-50 hover:bg-red-100 border border-red-200'
                             : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
@@ -1323,27 +1337,43 @@ export function ThemeCustomizationDrawer({
                         aria-expanded={isA11yExpanded}
                         aria-controls="a11y-check-details"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="flex flex-col items-start">
-                            <span className="text-sm font-medium text-gray-900">
+                        <div className="flex flex-col items-start flex-1 min-w-0 gap-0.5">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsWarningDialogOpen(true);
+                            }}
+                            className="flex items-center gap-1.5 text-amber-600 hover:text-amber-700 transition-colors text-xs font-medium"
+                            title="View warning about using generated theme JSON"
+                            aria-label="View warning about using generated theme JSON"
+                          >
+                            <AlertTriangle className="h-3.5 w-3.5" />
+                            <span>Warning: Use at Your Own Risk</span>
+                          </button>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500 font-bold">
+                              Experimental:
+                            </span>
+                            <span className="text-xs font-normal text-gray-900">
                               Accessibility Check
                             </span>
-                            {!isA11yExpanded && (
-                              <span
-                                className={`text-xs mt-0.5 ${
-                                  hasIssues
-                                    ? 'text-red-700 font-medium'
-                                    : 'text-gray-600'
-                                }`}
-                              >
-                                {hasIssues
-                                  ? `⚠ ${totalIssues} issue${totalIssues !== 1 ? 's' : ''} found`
-                                  : '✓ All checks passing'}
-                              </span>
-                            )}
                           </div>
+                          {!isA11yExpanded && (
+                            <span
+                              className={`text-xs ${
+                                hasIssues
+                                  ? 'text-red-700 font-medium'
+                                  : 'text-gray-600'
+                              }`}
+                            >
+                              {hasIssues
+                                ? `⚠ ${totalIssues} issue${totalIssues !== 1 ? 's' : ''} found`
+                                : '✓ All checks passing'}
+                            </span>
+                          )}
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                           {!isA11yExpanded && hasIssues && (
                             <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded">
                               {totalIssues}
@@ -1628,6 +1658,74 @@ export function ThemeCustomizationDrawer({
           </div>
         </div>
       </div>
+
+      {/* AI Prompt Dialog */}
+      <AiPromptDialog
+        isOpen={isAiPromptDialogOpen}
+        onClose={() => setIsAiPromptDialogOpen(false)}
+      />
+
+      {/* Warning Dialog */}
+      <Dialog open={isWarningDialogOpen} onOpenChange={setIsWarningDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
+              ⚠️ Warning: Use Generated Theme JSON at Your Own Risk
+            </DialogTitle>
+            <DialogDescription>
+              Important information about using theme data generated from this
+              tool
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
+              <p className="mb-3">
+                The theme JSON and instructions provided in this tool (including
+                AI-generated, manually customized, or imported themes) are
+                intended for reference and experimentation purposes only. The
+                maintainers of this tool do not assume any responsibility for any
+                issues, damages, or losses that may arise from the use of
+                generated theme data.
+              </p>
+              <p className="mb-2 font-medium">
+                By using this tool, you acknowledge that:
+              </p>
+              <ul className="list-disc list-inside space-y-2 ml-2 mb-3">
+                <li>
+                  Generated theme JSON (whether AI-generated, manually created, or
+                  imported) may contain errors, inaccuracies, or incomplete design
+                  tokens
+                </li>
+                <li>
+                  The extracted or customized tokens may not accurately represent
+                  the intended design system or may not be suitable for your
+                  specific use case
+                </li>
+                <li>
+                  There are no guarantees regarding the accuracy, completeness, or
+                  suitability of any generated theme JSON for any particular
+                  purpose
+                </li>
+                <li>
+                  You should validate and test all imported or generated theme data
+                  before using it in production
+                </li>
+                <li>
+                  You are solely responsible for reviewing, validating, and any
+                  consequences resulting from the use of generated theme JSON in
+                  your projects
+                </li>
+              </ul>
+              <p className="font-medium">
+                Please proceed with caution and ensure you understand the
+                implications of using generated theme data. Always validate the
+                results and test thoroughly before deploying to production.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
