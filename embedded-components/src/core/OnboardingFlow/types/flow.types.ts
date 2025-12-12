@@ -5,6 +5,7 @@ import {
   ClientResponse,
   OrganizationType,
   PartyResponse,
+  UpdateClientRequestSmbdoAddPartiesItem,
 } from '@/api/generated/smbdo.schemas';
 import { OnboardingFormValuesSubmit } from '@/core/OnboardingFlow/types/form.types';
 
@@ -113,7 +114,7 @@ export interface StepperConfig {
   associatedPartyFilters?: AssociatedPartyFilters;
   getDefaultPartyRequestBody?: (
     orgType?: OrganizationType
-  ) => Partial<PartyResponse>;
+  ) => Partial<UpdateClientRequestSmbdoAddPartiesItem>;
 }
 
 export interface AssociatedPartyFilters {
