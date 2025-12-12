@@ -1,0 +1,140 @@
+{
+  "title": "Transactions",
+  "loading": {
+    "transactions": "Loading transactions...",
+    "details": "Loading transaction details..."
+  },
+  "errors": {
+    "loadTransactions": {
+      "title": "Failed to load transactions",
+      "400": "Invalid request. Please check your account filters and try again.",
+      "401": "Please log in and try again.",
+      "403": "You do not have permission to view these transactions.",
+      "404": "Transactions not found.",
+      "500": "An unexpected error occurred while loading transactions. Please try again later.",
+      "503": "The service is currently unavailable. Please try again later.",
+      "default": "Failed to load transactions. Please try again."
+    },
+    "loadDetails": {
+      "title": "Failed to load transaction details",
+      "400": "Invalid transaction ID. Please check and try again.",
+      "401": "Please log in and try again.",
+      "403": "You do not have permission to view this transaction.",
+      "404": "Transaction not found.",
+      "500": "An unexpected error occurred while loading transaction details. Please try again later.",
+      "503": "The service is currently unavailable. Please try again later.",
+      "default": "Failed to load transaction details. Please try again."
+    }
+  },
+  "empty": {
+    "noResults": "No results.",
+    "noTransactions": "No transactions found"
+  },
+  "actions": {
+    "refresh": {
+      "label": "Refresh transactions",
+      "srOnly": "Refresh transactions"
+    },
+    "reset": "Reset",
+    "copyTransactionId": {
+      "srOnly": "Copy transaction ID"
+    }
+  },
+  "columns": {
+    "date": "Date",
+    "status": "Status",
+    "type": "Type",
+    "amount": "Amount",
+    "currency": "Currency",
+    "counterpart": "Counterpart",
+    "referenceId": "Reference ID",
+    "createdAt": "Created At",
+    "effectiveDate": "Effective Date",
+    "memo": "Memo",
+    "debtor": "Debtor",
+    "creditor": "Creditor",
+    "ledgerBalance": "Ledger Balance",
+    "postingVersion": "Posting Version",
+    "direction": "Direction"
+  },
+  "filters": {
+    "status": {
+      "all": "All statuses",
+      "placeholder": "All statuses"
+    },
+    "type": {
+      "all": "All types",
+      "placeholder": "All types"
+    },
+    "counterpart": {
+      "placeholder": "Filter counterpart..."
+    },
+    "referenceId": {
+      "placeholder": "Filter reference ID..."
+    }
+  },
+  "pagination": {
+    "rowsTotal": "{{count}} row(s) total",
+    "rowsPerPage": "Rows per page",
+    "pageInfo": "Page {{current}} of {{total}}",
+    "pageInfoMobile": "{{current}} / {{total}}",
+    "goToFirst": {
+      "srOnly": "Go to first page"
+    },
+    "goToPrevious": {
+      "srOnly": "Go to previous page"
+    },
+    "goToNext": {
+      "srOnly": "Go to next page"
+    },
+    "goToLast": {
+      "srOnly": "Go to last page"
+    }
+  },
+  "viewOptions": {
+    "button": "Columns",
+    "label": "Toggle columns"
+  },
+  "details": {
+    "title": "Transaction: {{transactionId}}",
+    "showAllFields": "Show all fields",
+    "sections": {
+      "general": "General",
+      "identifiers": "Identifiers",
+      "datesVersioning": "Dates & Versioning",
+      "debtor": "Debtor",
+      "creditor": "Creditor",
+      "financial": "Financial",
+      "errorDetails": "Error Details"
+    },
+    "fields": {
+      "currency": "Currency",
+      "type": "Type",
+      "status": "Status",
+      "feeType": "Fee Type",
+      "transactionId": "Transaction ID",
+      "transactionReferenceId": "Transaction Reference ID",
+      "originatingId": "Originating ID",
+      "originatingType": "Originating Type",
+      "createdAt": "Created At",
+      "paymentDate": "Payment Date",
+      "effectiveDate": "Effective Date",
+      "postingVersion": "Posting Version",
+      "name": "Name",
+      "accountId": "Account ID",
+      "accountNumber": "Account Number",
+      "clientId": "Client ID",
+      "ledgerBalance": "Ledger Balance",
+      "memo": "Memo",
+      "recipientId": "Recipient ID",
+      "title": "Title",
+      "httpStatus": "HTTP Status",
+      "traceId": "Trace ID",
+      "requestId": "Request ID"
+    }
+  },
+  "card": {
+    "transactionFallback": "Transaction"
+  }
+}
+

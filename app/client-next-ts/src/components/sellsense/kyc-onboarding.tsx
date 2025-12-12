@@ -21,18 +21,23 @@ import {
   getScenarioNumber,
 } from './scenarios-config';
 import { EmbeddedComponentCard, createFullscreenUrl } from './shared';
-import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
+import type {
+  EBThemeVariables,
+  EBConfig,
+} from '@jpmorgan-payments/embedded-finance-components';
 
 interface KycOnboardingProps {
   clientScenario: ClientScenario;
   theme?: ThemeOption;
   customThemeVariables?: EBThemeVariables;
+  contentTokens?: EBConfig['contentTokens'];
 }
 
 export function KycOnboarding({
   clientScenario,
   theme,
   customThemeVariables = {},
+  contentTokens,
 }: KycOnboardingProps) {
   const { mapThemeOption } = useSellSenseThemes();
   const searchParams = useSearch({ from: '/sellsense-demo' });
@@ -107,9 +112,7 @@ export function KycOnboarding({
       headers={{
         'Content-Type': 'application/json',
       }}
-      contentTokens={{
-        name: 'enUS',
-      }}
+      contentTokens={contentTokens || { name: 'enUS' }}
     >
       <OnboardingFlow
         initialClientId={clientId}

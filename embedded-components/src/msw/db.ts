@@ -322,14 +322,6 @@ export function initializeDb(force = false) {
                 where: { id: { equals: party.id } },
               });
 
-              // If it exists, delete it first to avoid duplicate key error
-              if (existingParty) {
-                dbLogger(`Party ${party.id} already exists, deleting it first`);
-                db.party.delete({
-                  where: { id: { equals: party.id } },
-                });
-              }
-
               const newParty = {
                 ...party,
                 status: party?.status || 'ACTIVE',
@@ -344,10 +336,37 @@ export function initializeDb(force = false) {
                 `\nParty ${party.id}:`,
                 JSON.stringify(newParty, null, 2)
               );
+
               try {
-                db.party.create(newParty);
+                if (existingParty) {
+                  // Party already exists - update it instead of creating
+                  db.party.update({
+                    where: { id: { equals: party.id } },
+                    data: newParty,
+                  });
+                } else {
+                  // Party doesn't exist - create it
+                  db.party.create(newParty);
+                }
               } catch (error) {
-                dbLogger('Error creating party:', error);
+                // Silently handle duplicate key errors (parties can be shared between clients)
+                if (
+                  error instanceof Error &&
+                  error.message.includes('already exists')
+                ) {
+                  // Try to update instead
+                  try {
+                    db.party.update({
+                      where: { id: { equals: party.id } },
+                      data: newParty,
+                    });
+                  } catch (updateError) {
+                    dbLogger('Error updating party:', updateError);
+                    // Ignore update errors for shared parties
+                  }
+                } else {
+                  dbLogger('Error creating party:', error);
+                }
               }
             }
           });

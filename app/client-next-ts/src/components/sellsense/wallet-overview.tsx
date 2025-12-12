@@ -27,7 +27,10 @@ import {
 import { EmbeddedComponentCard, createFullscreenUrl } from './shared';
 import { AutomationTrigger } from './automation';
 import { DatabaseResetUtils } from '@/lib/database-reset-utils';
-import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
+import type {
+  EBThemeVariables,
+  EBConfig,
+} from '@jpmorgan-payments/embedded-finance-components';
 import type { ThemeOption } from './use-sellsense-themes';
 
 interface ComponentInfo {
@@ -46,11 +49,13 @@ interface ComponentInfo {
 interface WalletOverviewProps {
   theme?: ThemeOption;
   customThemeVariables?: EBThemeVariables;
+  contentTokens?: EBConfig['contentTokens'];
 }
 
 export function WalletOverview({
   theme,
   customThemeVariables = {},
+  contentTokens,
 }: WalletOverviewProps) {
   const [layout, setLayout] = useState<'grid' | 'full-width' | 'columns'>(
     'columns',
@@ -88,7 +93,8 @@ export function WalletOverview({
   );
 
   // Create base content tokens that respond to tone changes
-  const baseContentTokens = {
+  // Merge with contentTokens from props if provided
+  const baseContentTokens = contentTokens || {
     name: 'enUS' as const,
     tokens: {} as Record<string, any>,
   };

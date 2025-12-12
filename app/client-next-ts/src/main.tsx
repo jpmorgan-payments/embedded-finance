@@ -30,6 +30,21 @@ async function enableMocking() {
   try {
     const { worker } = await import('./msw/browser');
 
+    // Suppress unhandled promise rejections from MSW service worker
+    if (typeof window !== 'undefined') {
+      window.addEventListener('unhandledrejection', (event) => {
+        const error = event.reason;
+        // Suppress MSW deserialization errors
+        if (
+          error?.message?.includes('Cannot read properties of undefined') &&
+          error?.stack?.includes('deserializeRequest')
+        ) {
+          event.preventDefault();
+          return;
+        }
+      });
+    }
+
     // `worker.start()` returns a Promise that resolves
     // once the Service Worker is up and ready to intercept requests.
     await worker.start({

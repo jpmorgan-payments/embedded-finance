@@ -63,7 +63,8 @@
   },
   "msw": {
     "workerDirectory": [
-      "..\\..\\..\\..\\public"
+      "..\\..\\..\\..\\public",
+      "public"
     ]
   },
   "overrides": {
