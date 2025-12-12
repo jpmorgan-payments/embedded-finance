@@ -34,6 +34,11 @@ module.exports = {
       target: './src/api/generated/ep-recipients.ts',
       client: 'react-query',
       override: {
+        query: {
+          useQuery: true,
+          useInfinite: true,
+          useInfiniteQueryParam: 'page',
+        },
         mutator: {
           path: './src/api/axios-instance.ts',
           name: 'ebInstance',

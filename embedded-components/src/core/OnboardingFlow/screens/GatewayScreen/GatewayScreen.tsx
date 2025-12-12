@@ -11,6 +11,7 @@ import {
 } from '@/api/generated/smbdo';
 import {
   ClientResponse,
+  CreatePartyRequestInlineRequired,
   OrganizationType,
   PartyType,
   Role,
@@ -139,7 +140,7 @@ export const GatewayScreen = () => {
         countryOfFormation: 'US',
         jurisdiction: 'US',
       },
-    };
+    } as CreatePartyRequestInlineRequired;
 
     // Create client if it doesn't exist
     if (!clientData) {

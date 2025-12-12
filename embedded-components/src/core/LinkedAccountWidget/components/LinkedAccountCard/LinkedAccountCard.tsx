@@ -65,6 +65,12 @@ export interface LinkedAccountCardProps {
 
   /** Hide action buttons and status alerts (useful for confirmation views) */
   hideActions?: boolean;
+
+  /** Use compact display mode with reduced padding and smaller elements */
+  compact?: boolean;
+
+  /** Additional CSS classes to apply to the card */
+  className?: string;
 }
 
 /**
@@ -79,6 +85,8 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
   onMicrodepositVerifySettled,
   onRemoveSuccess,
   hideActions = false,
+  compact = false,
+  className,
 }) => {
   const { t } = useTranslation('linked-accounts');
   const isActive = recipient.status === 'ACTIVE';
@@ -86,6 +94,12 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
   const showVerifyButton = canVerifyMicrodeposits(recipient);
   const showPaymentButton = canMakePayment(recipient);
   const missingPaymentMethods = getMissingPaymentMethods(recipient);
+
+  // Get status message for inline display (used in RecipientAccountDisplayCard)
+  const statusMessage =
+    recipient.status && recipient.status !== 'ACTIVE'
+      ? t(`status.messages.${recipient.status}`)
+      : undefined;
 
   // Generate button label based on missing methods
   const getAddRoutingButtonLabel = () => {
@@ -129,13 +143,15 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
     </LinkedAccountFormDialog>
   );
 
-  // Status alert component
+  // Status alert component (shows in non-compact mode)
+  // In compact mode, statuses with inline messages don't need the alert
   const statusAlert =
     !hideActions && recipient.status && recipient.status !== 'ACTIVE' ? (
       <StatusAlert
         status={recipient.status}
         action={
-          showVerifyButton ? (
+          showVerifyButton && !compact ? (
+            // In non-compact mode, show verify button in the alert
             <MicrodepositsFormDialogTrigger
               recipientId={recipient.id}
               onVerificationSettled={onMicrodepositVerifySettled}
@@ -160,13 +176,31 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
 
   // Actions footer component
   const actionsContent =
-    !hideActions && (showPaymentButton || !isActive) ? (
+    !hideActions && (showPaymentButton || !isActive || showVerifyButton) ? (
       <div
-        className="eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-2"
+        className={`eb-flex eb-flex-wrap eb-items-center eb-gap-2 ${
+          compact ? 'eb-justify-end' : 'eb-justify-between'
+        }`}
         role="group"
         aria-label="Account actions"
       >
-        {makePaymentComponent ? (
+        {/* Payment or Verify button - always show, even in compact mode */}
+        {showVerifyButton && compact ? (
+          // In compact mode, show verify button to replace pay button
+          <MicrodepositsFormDialogTrigger
+            recipientId={recipient.id}
+            onVerificationSettled={onMicrodepositVerifySettled}
+          >
+            <Button
+              variant="default"
+              size="sm"
+              className="eb-h-8 eb-text-xs"
+              aria-label={`${t('actions.verifyAccount')} for ${displayName}`}
+            >
+              <span>{t('actions.verifyAccount')}</span>
+            </Button>
+          </MicrodepositsFormDialogTrigger>
+        ) : makePaymentComponent ? (
           React.cloneElement(makePaymentComponent as React.ReactElement, {
             recipientId: recipient.id,
           })
@@ -175,17 +209,19 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
             <TooltipTrigger asChild>
               <span>
                 <Button
-                  variant="outline"
+                  variant={compact ? 'outline' : 'outline'}
                   size="sm"
-                  className="eb-bg-background"
+                  className={compact ? 'eb-h-8 eb-text-xs' : 'eb-bg-background'}
                   disabled
                   aria-label={`${t('actions.makePayment')} from ${displayName} - ${getDisabledPayTooltip()}`}
                 >
                   <span>{t('actions.makePayment')}</span>
-                  <ArrowRightIcon
-                    className="eb-ml-2 eb-h-4 eb-w-4"
-                    aria-hidden="true"
-                  />
+                  {!compact && (
+                    <ArrowRightIcon
+                      className="eb-ml-2 eb-h-4 eb-w-4"
+                      aria-hidden="true"
+                    />
+                  )}
                 </Button>
               </span>
             </TooltipTrigger>
@@ -199,14 +235,16 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
               <Button
                 variant="outline"
                 size="sm"
-                className="eb-bg-background"
+                className={compact ? 'eb-h-8 eb-text-xs' : 'eb-bg-background'}
                 aria-label={`${t('actions.makePayment')} from ${displayName}`}
               >
                 <span>{t('actions.makePayment')}</span>
-                <ArrowRightIcon
-                  className="eb-ml-2 eb-h-4 eb-w-4"
-                  aria-hidden="true"
-                />
+                {!compact && (
+                  <ArrowRightIcon
+                    className="eb-ml-2 eb-h-4 eb-w-4"
+                    aria-hidden="true"
+                  />
+                )}
               </Button>
             }
             recipientId={recipient.id}
@@ -216,12 +254,13 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              size="sm"
+              size={compact ? 'icon' : 'sm'}
+              className={compact ? 'eb-h-8 eb-w-8' : ''}
               aria-label={t('actions.moreActions', { name: displayName })}
             >
-              <span>{t('actions.manage')}</span>
+              {!compact && <span>{t('actions.manage')}</span>}
               <MoreVerticalIcon
-                className="eb-ml-2 eb-h-4 eb-w-4"
+                className={compact ? 'eb-h-4 eb-w-4' : 'eb-ml-2 eb-h-4 eb-w-4'}
                 aria-hidden="true"
               />
             </Button>
@@ -264,8 +303,11 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
     <RecipientAccountDisplayCard
       recipient={recipient}
       statusAlert={statusAlert}
+      statusMessage={statusMessage}
       actionsContent={actionsContent}
       renderAddRoutingButton={renderAddRoutingButton}
+      compact={compact}
+      className={className}
     />
   );
 };
