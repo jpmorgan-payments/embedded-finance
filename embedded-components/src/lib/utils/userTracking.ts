@@ -58,21 +58,13 @@ export function trackUserEvent({
       metadata
     );
 
-    // Handle lifecycle if provided
+    // Call lifecycle onEnter if provided (optional supplement)
     if (userEventsLifecycle?.onEnter) {
-      const actionId = userEventsLifecycle.onEnter(context);
-      // If lifecycle returns an actionId, store it for onLeave
-      if (typeof actionId === 'number' && userEventsLifecycle?.onLeave) {
-        // Store actionId in metadata for later use
-        const contextWithId = { ...context, actionId };
-        // Note: In practice, you'd need to manage actionId storage per action
-        // This is a simplified version - components can handle lifecycle more explicitly
-        userEventsLifecycle.onLeave(contextWithId);
-      }
-    } else {
-      // Standard handler call
-      userEventsHandler(context);
+      userEventsLifecycle.onEnter(context);
     }
+
+    // Always call the main handler (lifecycle handlers are supplements, not replacements)
+    userEventsHandler(context);
   } catch (error) {
     // Silently handle errors to prevent breaking component functionality
     // eslint-disable-next-line no-console
@@ -124,17 +116,17 @@ export function useUserEventTracking({
             Object.fromEntries(Object.entries(element.dataset))),
         });
 
-        // Handle lifecycle if provided
+        // Call lifecycle onEnter if provided (optional supplement)
         if (userEventsLifecycle?.onEnter) {
           const actionId = userEventsLifecycle.onEnter(context);
           if (typeof actionId === 'number') {
-            // Store actionId for this journey
+            // Store actionId for this journey (for potential onLeave tracking)
             actionIdsRef.current.set(journeyName, actionId);
           }
-        } else {
-          // Standard handler call
-          userEventsHandler(context);
         }
+
+        // Always call the main handler (lifecycle handlers are supplements, not replacements)
+        userEventsHandler(context);
       } catch (error) {
         // Silently handle errors to prevent breaking component functionality
         // eslint-disable-next-line no-console

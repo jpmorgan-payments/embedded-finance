@@ -124,7 +124,9 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
 
     // Check which pending removals have been completed
     const currentOwnerIds = new Set(
-      beneficialOwnerParties.map((party) => party.id).filter(Boolean) as string[]
+      beneficialOwnerParties
+        .map((party) => party.id)
+        .filter(Boolean) as string[]
     );
 
     const completedRemovals: string[] = [];
