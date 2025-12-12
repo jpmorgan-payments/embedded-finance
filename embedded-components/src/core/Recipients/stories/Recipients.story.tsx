@@ -290,7 +290,6 @@ const meta: Meta<RecipientsStoryArgs> = {
       onRecipientCreated={args.onRecipientCreated}
       onRecipientUpdated={args.onRecipientUpdated}
       userEventsHandler={args.userEventsHandler}
-      userEventsToTrack={args.userEventsToTrack}
       makePaymentComponent={args.makePaymentComponent}
       config={args.config}
     />
@@ -306,7 +305,6 @@ export const Default: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
@@ -332,7 +330,6 @@ export const ActiveRecipients: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
@@ -360,7 +357,6 @@ export const InactiveRecipients: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
@@ -386,7 +382,6 @@ export const EmptyState: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
@@ -408,7 +403,6 @@ export const Loading: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
@@ -427,7 +421,6 @@ export const ErrorState: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
@@ -449,7 +442,6 @@ export const ReadOnly: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: false,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
@@ -468,7 +460,6 @@ export const NoVerification: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
@@ -488,7 +479,6 @@ export const LargeDataset: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     docs: {
@@ -520,7 +510,6 @@ export const OneHundredRecipients: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     docs: {
@@ -552,7 +541,6 @@ export const RecipientTypes: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
@@ -574,7 +562,6 @@ export const RejectedRecipients: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
@@ -600,7 +587,6 @@ export const InteractiveDemo: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
@@ -643,7 +629,6 @@ export const MobileView: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     viewport: {
@@ -668,7 +653,6 @@ export const SellSenseTheme: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
     themePreset: 'SellSense',
   },
   tags: ['@sellsense', '@theme'],
@@ -691,7 +675,6 @@ export const DarkSellSenseTheme: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
     themePreset: 'SellSense',
   },
   tags: ['@sellsense', '@theme'],
@@ -712,7 +695,6 @@ export const WithEventTracking: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
     userEventsHandler: (event) => {
       // eslint-disable-next-line no-console
       console.log('User event:', event);
@@ -735,7 +717,6 @@ export const CustomContentTokens: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
     contentTokensPreset: 'frCA',
   },
   parameters: {
@@ -758,7 +739,6 @@ export const WithMakePaymentComponent: Story = {
     makePaymentComponent: (
       <MakePayment triggerButtonVariant="link" icon={undefined} />
     ),
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     docs: {
@@ -846,7 +826,6 @@ export const WidgetLayout: Story = {
     makePaymentComponent: (
       <MakePayment triggerButtonVariant="link" icon={undefined} />
     ),
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     docs: {
@@ -934,7 +913,6 @@ export const WidgetLayoutMobile: Story = {
     makePaymentComponent: (
       <MakePayment triggerButtonVariant="link" icon={undefined} />
     ),
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     viewport: {

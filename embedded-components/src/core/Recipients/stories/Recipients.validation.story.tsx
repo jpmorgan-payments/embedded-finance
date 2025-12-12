@@ -55,7 +55,6 @@ const meta: Meta<RecipientsValidationStoryArgs> = {
     <RecipientsStory
       clientId={args.clientId}
       showCreateButton={args.showCreateButton}
-      userEventsToTrack={args.userEventsToTrack}
     />
   ),
 };

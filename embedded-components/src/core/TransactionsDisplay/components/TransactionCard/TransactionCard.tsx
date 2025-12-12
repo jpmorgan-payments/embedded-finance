@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 
 import { TransactionDetailsDialogTrigger } from '../../TransactionDetailsSheet/TransactionDetailsSheet';
+import { TRANSACTIONS_DISPLAY_USER_JOURNEYS } from '../../TransactionsDisplay.constants';
 import {
   formatNumberToCurrency,
   formatStatusText,
@@ -46,7 +47,11 @@ export const TransactionCard: FC<TransactionCardProps> = ({ transaction }) => {
 
   return (
     <TransactionDetailsDialogTrigger transactionId={transactionId}>
-      <Card className="eb-mb-3 eb-cursor-pointer eb-p-3 eb-shadow-sm eb-transition-colors hover:eb-bg-muted/50">
+      <Card
+        data-user-event={TRANSACTIONS_DISPLAY_USER_JOURNEYS.VIEW_DETAILS}
+        data-transaction-id={transactionId}
+        className="eb-mb-3 eb-cursor-pointer eb-p-3 eb-shadow-sm eb-transition-colors hover:eb-bg-muted/50"
+      >
         <div className="eb-flex eb-items-start eb-justify-between eb-gap-2">
           <div className="eb-min-w-0 eb-flex-1">
             <div className="eb-mb-1 eb-flex eb-items-center eb-gap-2">

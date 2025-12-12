@@ -1,5 +1,6 @@
 import type React from 'react';
 
+import type { UserTrackingProps } from '@/lib/types/userTracking.types';
 import {
   AccountResponse,
   ListAccountsResponse,
@@ -23,7 +24,7 @@ export interface PaymentMethod {
   description?: string;
 }
 
-export interface PaymentComponentProps {
+export interface PaymentComponentProps extends UserTrackingProps {
   triggerButton?: React.ReactNode;
   triggerButtonVariant?:
     | 'default'

@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/table';
 
 import { TransactionDetailsDialogTrigger } from '../../TransactionDetailsSheet/TransactionDetailsSheet';
+import { TRANSACTIONS_DISPLAY_USER_JOURNEYS } from '../../TransactionsDisplay.constants';
 import type { ModifiedTransaction } from '../../utils';
 import { DataTablePagination } from './DataTablePagination';
 import { TransactionsTableToolbar } from './TransactionsTableToolbar';
@@ -133,6 +134,10 @@ export function TransactionsTable({
                     transactionId={transactionId}
                   >
                     <TableRow
+                      data-user-event={
+                        TRANSACTIONS_DISPLAY_USER_JOURNEYS.VIEW_DETAILS
+                      }
+                      data-transaction-id={transactionId}
                       data-state={row.getIsSelected() && 'selected'}
                       className="eb-cursor-pointer eb-transition-colors hover:eb-bg-muted/50"
                       role="button"

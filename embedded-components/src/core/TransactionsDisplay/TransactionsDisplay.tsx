@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useState } from 'react';
+import React, { forwardRef, useImperativeHandle, useState } from 'react';
 import {
   ColumnFiltersState,
   getCoreRowModel,
@@ -13,6 +13,7 @@ import { RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { useLocale } from '@/lib/hooks';
+import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +25,7 @@ import { TransactionsTable } from './components/TransactionsTable/TransactionsTa
 import { getTransactionsColumns } from './components/TransactionsTable/TransactionsTable.columns';
 import { TransactionsTableToolbar } from './components/TransactionsTable/TransactionsTableToolbar';
 import { useAccountsData, useTransactionsData } from './hooks';
+import { TRANSACTIONS_DISPLAY_USER_JOURNEYS } from './TransactionsDisplay.constants';
 import type {
   TransactionsDisplayProps,
   TransactionsDisplayRef,
@@ -32,14 +34,32 @@ import type {
 export const TransactionsDisplay = forwardRef<
   TransactionsDisplayRef,
   TransactionsDisplayProps
->(({ accountIds }, ref) => {
+>(({ accountIds, userEventsHandler, userEventsLifecycle }, ref) => {
   const { t } = useTranslation(['transactions']);
   const locale = useLocale();
   const { filteredAccountIds } = useAccountsData();
+
+  // Set up automatic event tracking for data-user-event attributes
+  useUserEventTracking({
+    containerId: 'transactions-display-container',
+    userEventsHandler,
+    userEventsLifecycle,
+  });
   const { transactions, status, failureReason, refetch, isFetching } =
     useTransactionsData({
       accountIds: accountIds ?? filteredAccountIds,
     });
+
+  // Track view when transactions load
+  React.useEffect(() => {
+    if (status === 'success' && transactions.length > 0) {
+      trackUserEvent({
+        actionName: TRANSACTIONS_DISPLAY_USER_JOURNEYS.VIEW_LIST,
+        metadata: { count: transactions.length },
+        userEventsHandler,
+      });
+    }
+  }, [status, transactions.length, userEventsHandler]);
 
   const isMobile = useMediaQuery('(max-width: 640px)');
 
@@ -106,7 +126,10 @@ export const TransactionsDisplay = forwardRef<
   );
 
   return (
-    <Card className="eb-component eb-w-full">
+    <Card
+      id="transactions-display-container"
+      className="eb-component eb-w-full"
+    >
       <CardHeader className="eb-flex eb-flex-row eb-items-center eb-justify-between eb-gap-2">
         <CardTitle className="eb-flex-1 eb-text-xl eb-font-semibold">
           {t('title', { defaultValue: 'Transactions' })}
@@ -114,6 +137,7 @@ export const TransactionsDisplay = forwardRef<
         <Button
           variant="ghost"
           size="icon"
+          data-user-event={TRANSACTIONS_DISPLAY_USER_JOURNEYS.REFRESH}
           aria-label={t('actions.refresh.label', {
             defaultValue: 'Refresh transactions',
           })}
