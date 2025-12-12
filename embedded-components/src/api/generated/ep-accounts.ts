@@ -105,7 +105,7 @@ export const getGetAccountsInfiniteQueryOptions = <
     GetAccountsParams['page']
   > = ({ signal, pageParam }) =>
     getAccounts(
-      { ...params, page: pageParam || params?.['page'] },
+      { ...params, page: pageParam || params?.page },
       requestOptions,
       signal
     );
