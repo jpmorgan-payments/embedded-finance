@@ -53,11 +53,6 @@ module.exports = {
       target: './src/api/generated/ep-transactions.ts',
       client: 'react-query',
       override: {
-        query: {
-          useQuery: true,
-          useInfinite: true,
-          useInfiniteQueryParam: 'page',
-        },
         mutator: {
           path: './src/api/axios-instance.ts',
           name: 'ebInstance',
@@ -72,11 +67,6 @@ module.exports = {
       target: './src/api/generated/ep-accounts.ts',
       client: 'react-query',
       override: {
-        query: {
-          useQuery: true,
-          useInfinite: true,
-          useInfiniteQueryParam: 'page',
-        },
         mutator: {
           path: './src/api/axios-instance.ts',
           name: 'ebInstance',

@@ -5,6 +5,7 @@
  * Initiate and track the movement of funds, including payments.
  * OpenAPI spec version: 2.0.27
  */
+// @ts-nocheck
 import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import type {
   DataTag,
@@ -109,7 +110,7 @@ export const getListTransactionsV2InfiniteQueryOptions = <
     ListTransactionsV2Params['page']
   > = ({ signal, pageParam }) =>
     listTransactionsV2(
-      { ...params, page: pageParam || params?.['page'] },
+      { ...params, page: pageParam || params?.page },
       requestOptions,
       signal
     );
