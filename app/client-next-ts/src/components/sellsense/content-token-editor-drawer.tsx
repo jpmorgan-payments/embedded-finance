@@ -143,37 +143,76 @@ function isElementVisible(element: Element): boolean {
 
 /**
  * Extract visible text nodes from the DOM
+ * Optimized with TreeWalker API, Set for skip tags, and visibility caching
  */
 function extractVisibleText(): Array<{ text: string; element: Element }> {
   const textNodes: Array<{ text: string; element: Element }> = [];
-  const skipTags = ['script', 'style', 'noscript', 'meta', 'link', 'title'];
+  const skipTags = new Set([
+    'script',
+    'style',
+    'noscript',
+    'meta',
+    'link',
+    'title',
+  ]);
 
-  function walkNode(node: Node) {
+  // Cache visibility checks to avoid repeated getComputedStyle calls
+  const visibilityCache = new WeakMap<Element, boolean>();
+
+  function isElementVisibleCached(element: Element): boolean {
+    if (visibilityCache.has(element)) {
+      return visibilityCache.get(element)!;
+    }
+    const visible = isElementVisible(element);
+    visibilityCache.set(element, visible);
+    return visible;
+  }
+
+  const mainContent = document.querySelector('main') || document.body;
+
+  // Use TreeWalker API for optimized DOM traversal
+  const walker = document.createTreeWalker(
+    mainContent,
+    NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+    {
+      acceptNode: (node) => {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          const tagName = (node as Element).tagName.toLowerCase();
+          // Reject elements that should be skipped (and their children)
+          return skipTags.has(tagName)
+            ? NodeFilter.FILTER_REJECT
+            : NodeFilter.FILTER_ACCEPT;
+        }
+        // Accept text nodes for processing
+        return NodeFilter.FILTER_ACCEPT;
+      },
+    },
+  );
+
+  let node: Node | null;
+  while ((node = walker.nextNode())) {
     if (node.nodeType === Node.TEXT_NODE) {
-      const text = normalizeText(node.textContent || '');
+      // Early check: skip empty text nodes before normalization
+      const rawText = node.textContent;
+      if (!rawText || rawText.trim().length === 0) {
+        continue;
+      }
+
+      const text = normalizeText(rawText);
       if (text.length > 0) {
+        // Walk up parent chain to find first visible element
         let parent = node.parentElement;
         while (parent) {
-          if (isElementVisible(parent)) {
+          if (isElementVisibleCached(parent)) {
             textNodes.push({ text, element: parent });
             break;
           }
           parent = parent.parentElement;
         }
       }
-    } else if (node.nodeType === Node.ELEMENT_NODE) {
-      const element = node as Element;
-      const tagName = element.tagName.toLowerCase();
-      if (!skipTags.includes(tagName)) {
-        for (let i = 0; i < node.childNodes.length; i++) {
-          walkNode(node.childNodes[i]);
-        }
-      }
     }
   }
 
-  const mainContent = document.querySelector('main') || document.body;
-  walkNode(mainContent);
   return textNodes;
 }
 
