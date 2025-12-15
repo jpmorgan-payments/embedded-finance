@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StoriesRouteImport } from './routes/stories'
 import { Route as SolutionsRouteImport } from './routes/solutions'
 import { Route as SellsenseDemoRouteImport } from './routes/sellsense-demo'
+import { Route as PartiallyHostedDemoRouteImport } from './routes/partially-hosted-demo'
 import { Route as MswTestRouteImport } from './routes/msw-test'
 import { Route as GithubRouteImport } from './routes/github'
 import { Route as DocumentationRouteImport } from './routes/documentation'
@@ -33,6 +34,11 @@ const SolutionsRoute = SolutionsRouteImport.update({
 const SellsenseDemoRoute = SellsenseDemoRouteImport.update({
   id: '/sellsense-demo',
   path: '/sellsense-demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartiallyHostedDemoRoute = PartiallyHostedDemoRouteImport.update({
+  id: '/partially-hosted-demo',
+  path: '/partially-hosted-demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MswTestRoute = MswTestRouteImport.update({
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/documentation': typeof DocumentationRoute
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
+  '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/stories': typeof StoriesRouteWithChildren
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/documentation': typeof DocumentationRoute
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
+  '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/documentation': typeof DocumentationRoute
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
+  '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/stories': typeof StoriesRouteWithChildren
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/documentation'
     | '/github'
     | '/msw-test'
+    | '/partially-hosted-demo'
     | '/sellsense-demo'
     | '/solutions'
     | '/stories'
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/documentation'
     | '/github'
     | '/msw-test'
+    | '/partially-hosted-demo'
     | '/sellsense-demo'
     | '/solutions'
     | '/stories/$storyId'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/documentation'
     | '/github'
     | '/msw-test'
+    | '/partially-hosted-demo'
     | '/sellsense-demo'
     | '/solutions'
     | '/stories'
@@ -151,6 +163,7 @@ export interface RootRouteChildren {
   DocumentationRoute: typeof DocumentationRoute
   GithubRoute: typeof GithubRoute
   MswTestRoute: typeof MswTestRoute
+  PartiallyHostedDemoRoute: typeof PartiallyHostedDemoRoute
   SellsenseDemoRoute: typeof SellsenseDemoRoute
   SolutionsRoute: typeof SolutionsRoute
   StoriesRoute: typeof StoriesRouteWithChildren
@@ -177,6 +190,13 @@ declare module '@tanstack/react-router' {
       path: '/sellsense-demo'
       fullPath: '/sellsense-demo'
       preLoaderRoute: typeof SellsenseDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partially-hosted-demo': {
+      id: '/partially-hosted-demo'
+      path: '/partially-hosted-demo'
+      fullPath: '/partially-hosted-demo'
+      preLoaderRoute: typeof PartiallyHostedDemoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/msw-test': {
@@ -250,6 +270,7 @@ const rootRouteChildren: RootRouteChildren = {
   DocumentationRoute: DocumentationRoute,
   GithubRoute: GithubRoute,
   MswTestRoute: MswTestRoute,
+  PartiallyHostedDemoRoute: PartiallyHostedDemoRoute,
   SellsenseDemoRoute: SellsenseDemoRoute,
   SolutionsRoute: SolutionsRoute,
   StoriesRoute: StoriesRouteWithChildren,

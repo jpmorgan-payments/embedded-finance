@@ -34,6 +34,7 @@
     "lodash": "^4.17.21",
     "lucide-react": "^0.476.0",
     "msw": "^2.7.5",
+    "mermaid": "^11.12.2",
     "prism-react-renderer": "^2.4.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
