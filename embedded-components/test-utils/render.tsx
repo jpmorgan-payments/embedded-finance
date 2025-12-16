@@ -6,9 +6,7 @@ export function render(ui: React.ReactNode) {
     wrapper: ({ children }: { children: React.ReactNode }) => (
       <EBComponentsProvider
         apiBaseUrl=""
-        apiBaseUrls={{
-          clients: `/do/v1`,
-        }}
+        apiPathPrefixes={{ clients: '/do/v1' }}
       >
         {children}
       </EBComponentsProvider>

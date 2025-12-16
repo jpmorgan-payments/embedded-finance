@@ -683,7 +683,8 @@ export const commonArgTypes = {
   },
   showCreateButton: {
     control: { type: 'boolean' as const },
-    description: '⚠️ DEPRECATED: Use "hideCreateButton" instead (inverted logic)',
+    description:
+      '⚠️ DEPRECATED: Use "hideCreateButton" instead (inverted logic)',
     table: {
       category: 'Deprecated',
       defaultValue: { summary: 'true' },
@@ -691,8 +692,7 @@ export const commonArgTypes = {
   },
   scrollHeight: {
     control: { type: 'text' as const },
-    description:
-      '⚠️ DEPRECATED: Use "scrollable" and "maxHeight" instead',
+    description: '⚠️ DEPRECATED: Use "scrollable" and "maxHeight" instead',
     table: {
       category: 'Deprecated',
     },

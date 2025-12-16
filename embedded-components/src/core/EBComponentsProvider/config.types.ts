@@ -698,8 +698,42 @@ export type EBTheme = {
 
 export type EBConfig = {
   apiBaseUrl: string;
-  // Optional map of base URLs for different resources
+
+  /**
+   * Path prefixes to prepend for specific API path segments.
+   *
+   * Use this to route different API endpoints through different paths
+   * while keeping the same base URL. The key is the first path segment
+   * of the API endpoint (e.g., 'clients', 'recipients'), and the value
+   * is the prefix to prepend.
+   *
+   * @example
+   * ```tsx
+   * // API call to '/clients/123' becomes '/api/v1/clients/123'
+   * // API call to '/recipients' becomes '/payments/recipients'
+   * <EBComponentsProvider
+   *   apiBaseUrl="https://api.example.com"
+   *   apiPathPrefixes={{
+   *     clients: '/api/v1',
+   *     recipients: '/payments',
+   *   }}
+   * />
+   * ```
+   */
+  apiPathPrefixes?: Record<string, string>;
+
+  /**
+   * @deprecated Use `apiPathPrefixes` instead. Will be removed in next major version.
+   *
+   * This prop provided separate base URLs per path segment, but the more common
+   * use case is adding path prefixes while keeping the same base URL.
+   *
+   * Migration:
+   * - If you were using different domains, you'll need to configure a reverse proxy
+   * - If you were using different paths on the same domain, use `apiPathPrefixes`
+   */
   apiBaseUrls?: Record<string, string>;
+
   theme?: EBTheme;
   headers?: Record<string, string>;
   reactQueryDefaultOptions?: DefaultOptions;

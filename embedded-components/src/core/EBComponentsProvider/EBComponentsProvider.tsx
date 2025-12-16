@@ -78,7 +78,8 @@ const logError = (error: Error, info: ErrorInfo) => {
 export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
   children,
   apiBaseUrl,
-  apiBaseUrls,
+  apiPathPrefixes,
+  apiBaseUrls, // deprecated
   headers = {},
   queryParams = {},
   theme = {},
@@ -117,8 +118,23 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
           // Check if this is a GET request
           const isGetRequest = config.method?.toUpperCase() === 'GET';
 
+          // Determine the final URL based on path prefixes or deprecated base URLs
+          let finalBaseURL = apiBaseUrl;
+          let finalUrl = config.url;
+
+          // New behavior: apiPathPrefixes adds a prefix to the path
+          if (apiPathPrefixes?.[urlPath]) {
+            const pathPrefix = apiPathPrefixes[urlPath].replace(/\/+$/, ''); // Remove trailing slashes
+            finalUrl = `${pathPrefix}/${config.url?.replace(/^\/+/, '') || ''}`;
+          }
+          // Deprecated behavior: apiBaseUrls overrides the entire base URL
+          else if (apiBaseUrls?.[urlPath]) {
+            finalBaseURL = apiBaseUrls[urlPath];
+          }
+
           return {
             ...config,
+            url: finalUrl,
             headers: {
               ...config.headers,
               ...headers,
@@ -136,7 +152,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
                     clientId,
                   }
                 : config.data,
-            baseURL: apiBaseUrls?.[urlPath] ?? apiBaseUrl,
+            baseURL: finalBaseURL,
           };
         } catch (error) {
           // eslint-disable-next-line no-console
@@ -158,6 +174,8 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
     };
   }, [
     apiBaseUrl,
+    JSON.stringify(apiPathPrefixes),
+    JSON.stringify(apiBaseUrls),
     JSON.stringify(headers),
     JSON.stringify(queryParams),
     clientId,

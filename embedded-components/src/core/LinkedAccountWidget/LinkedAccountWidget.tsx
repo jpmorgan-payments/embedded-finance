@@ -95,27 +95,32 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   // ============================================================================
 
   // mode: 'list' | 'single' (new) vs variant: 'default' | 'singleAccount' (deprecated)
-  const resolvedMode = mode ?? (variant === 'singleAccount' ? 'single' : 'list');
+  const resolvedMode =
+    mode ?? (variant === 'singleAccount' ? 'single' : 'list');
 
   // scrollable + maxHeight (new) vs scrollHeight (deprecated)
-  const resolvedScrollable = scrollable ?? (scrollHeight !== undefined);
+  const resolvedScrollable = scrollable ?? scrollHeight !== undefined;
   const resolvedMaxHeight = maxHeight ?? scrollHeight ?? '400px';
 
   // defaultVisibleCount (new) vs initialItemsToShow (deprecated)
-  const resolvedDefaultVisibleCount = defaultVisibleCount ?? initialItemsToShow ?? 2;
+  const resolvedDefaultVisibleCount =
+    defaultVisibleCount ?? initialItemsToShow ?? 2;
 
   // hideCreateButton (new) vs showCreateButton (deprecated, inverted logic)
   const resolvedHideCreateButton =
-    hideCreateButton ?? (showCreateButton !== undefined ? !showCreateButton : false);
+    hideCreateButton ??
+    (showCreateButton !== undefined ? !showCreateButton : false);
 
   // renderPaymentAction (new) vs makePaymentComponent (deprecated)
   // For backward compatibility, wrap makePaymentComponent in a function
   const resolvedRenderPaymentAction =
-    renderPaymentAction ?? (makePaymentComponent ? () => makePaymentComponent : undefined);
+    renderPaymentAction ??
+    (makePaymentComponent ? () => makePaymentComponent : undefined);
 
   // Callback normalization
   const resolvedOnAccountLinked = onAccountLinked ?? onLinkedAccountSettled;
-  const resolvedOnVerificationComplete = onVerificationComplete ?? onMicrodepositVerifySettled;
+  const resolvedOnVerificationComplete =
+    onVerificationComplete ?? onMicrodepositVerifySettled;
 
   // ============================================================================
   // Component State
@@ -350,7 +355,9 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           {isError && (
             <div
               className={
-                resolvedScrollable || compact ? 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4' : ''
+                resolvedScrollable || compact
+                  ? 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4'
+                  : ''
               }
             >
               <ServerErrorAlert
@@ -370,7 +377,9 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           {isSuccess && linkedAccounts.length === 0 && (
             <div
               className={
-                resolvedScrollable || compact ? 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4' : ''
+                resolvedScrollable || compact
+                  ? 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4'
+                  : ''
               }
             >
               <EmptyState className="eb-animate-fade-in" />
@@ -415,7 +424,9 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                           <div className={compact ? '' : 'eb-px-1 eb-pb-3'}>
                             <LinkedAccountCard
                               recipient={recipient}
-                              makePaymentComponent={resolvedRenderPaymentAction?.(recipient)}
+                              makePaymentComponent={resolvedRenderPaymentAction?.(
+                                recipient
+                              )}
                               onLinkedAccountSettled={resolvedOnAccountLinked}
                               onMicrodepositVerifySettled={
                                 handleMicrodepositVerifySettled
@@ -467,7 +478,9 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                       >
                         <LinkedAccountCard
                           recipient={recipient}
-                          makePaymentComponent={resolvedRenderPaymentAction?.(recipient)}
+                          makePaymentComponent={resolvedRenderPaymentAction?.(
+                            recipient
+                          )}
                           onLinkedAccountSettled={resolvedOnAccountLinked}
                           onMicrodepositVerifySettled={
                             handleMicrodepositVerifySettled
@@ -490,11 +503,13 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                       ((!isExpanded && hasMore) ||
                         (isExpanded &&
                           (hasMore ||
-                            linkedAccounts.length > resolvedDefaultVisibleCount))) && (
+                            linkedAccounts.length >
+                              resolvedDefaultVisibleCount))) && (
                         <div className="eb-space-y-0 eb-border-t">
                           {/* Collapse Button - Only when expanded and showing more than initial */}
                           {isExpanded &&
-                            linkedAccounts.length > resolvedDefaultVisibleCount && (
+                            linkedAccounts.length >
+                              resolvedDefaultVisibleCount && (
                               <button
                                 type="button"
                                 onClick={toggleExpanded}
@@ -523,7 +538,8 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                               disabled={isLoadingMore}
                               className={`eb-group eb-w-full eb-bg-muted eb-py-2 eb-text-center eb-transition-colors hover:eb-bg-muted/60 disabled:eb-opacity-50 ${
                                 isExpanded &&
-                                linkedAccounts.length > resolvedDefaultVisibleCount
+                                linkedAccounts.length >
+                                  resolvedDefaultVisibleCount
                                   ? 'eb-border-t'
                                   : ''
                               }`}
@@ -569,7 +585,8 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                     : // NON-COMPACT MODE - Small buttons side by side
                       ((!isExpanded && hasMore) ||
                         (isExpanded &&
-                          linkedAccounts.length > resolvedDefaultVisibleCount) ||
+                          linkedAccounts.length >
+                            resolvedDefaultVisibleCount) ||
                         (isExpanded && hasMore)) && (
                         <div className="eb-flex eb-justify-center eb-gap-2 eb-pt-2">
                           {/* Show expand button when collapsed and there are more items available */}
@@ -591,7 +608,8 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
 
                           {/* Show "Show less" when expanded and showing more than initial */}
                           {isExpanded &&
-                            linkedAccounts.length > resolvedDefaultVisibleCount && (
+                            linkedAccounts.length >
+                              resolvedDefaultVisibleCount && (
                               <Button
                                 variant="ghost"
                                 size="sm"
