@@ -141,6 +141,29 @@ documentation.
 
 ---
 
+## Current Features
+
+**Landing Page**: Hero section, component gallery (6 components), demo carousel,
+engineering recipes (3 published), experiences showcase
+
+**SellSense Demo Application**: 6 scenarios (onboarding → active seller), 6
+themes + custom theming, content tone selection, multiple views
+(onboarding/overview/wallet/transactions/linked-accounts/payout), fullscreen
+component mode, URL-driven state
+
+**Component Showcase**: OnboardingFlow, LinkedAccountWidget, Accounts,
+TransactionsDisplay, Recipients, MakePayment with live demos, code examples, and
+documentation links
+
+**Developer Tools**: MSW integration for API mocking, theme customization
+drawer, form automation for testing, API flow explorer (Arazzo), code examples
+modal, health check scripts
+
+**Content & Documentation**: Partially hosted demo page, engineering
+recipes/stories, component documentation with GitHub/NPM links
+
+---
+
 ## 2) Problem & Opportunity
 
 ### Current Friction Points
