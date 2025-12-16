@@ -7,7 +7,7 @@ export function render(ui: React.ReactNode) {
       <EBComponentsProvider
         apiBaseUrl=""
         apiBaseUrlTransforms={{
-          clients: (baseUrl) => baseUrl.replace(/\/v1$/, '/do/v1'),
+          clients: (baseUrl) => baseUrl.replace('v1', '/do/v1'),
         }}
       >
         {children}
