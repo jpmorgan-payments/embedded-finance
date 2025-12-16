@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   ArrowRightIcon,
-  EyeIcon,
+  ClipboardListIcon,
   MoreVerticalIcon,
   PencilIcon,
   PlusIcon,
@@ -278,7 +278,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
                 onSelect={(e) => e.preventDefault()}
                 className="eb-cursor-pointer"
               >
-                <EyeIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+                <ClipboardListIcon className="eb-mr-2 eb-h-4 eb-w-4" />
                 <span>{t('actions.viewDetails')}</span>
               </DropdownMenuItem>
             </RecipientDetailsDialog>

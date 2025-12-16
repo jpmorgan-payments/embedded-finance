@@ -294,10 +294,10 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
         )}
       >
         <CardHeader className="eb-border-b eb-bg-muted/30 eb-p-2.5 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-p-3 @lg:eb-p-4">
-          <div className="eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-4">
-            <div className="eb-flex-1">
+          <div className="eb-flex eb-flex-col eb-gap-2 @xs:eb-flex-row @xs:eb-items-center @xs:eb-justify-between @xs:eb-gap-4">
+            <div className="eb-min-w-0 eb-flex-1">
               <div className="eb-flex eb-items-center eb-gap-2">
-                <CardTitle className="eb-h-8 eb-font-header eb-text-lg eb-font-semibold eb-leading-8 @md:eb-text-xl">
+                <CardTitle className="eb-h-8 eb-truncate eb-font-header eb-text-lg eb-font-semibold eb-leading-8 @md:eb-text-xl">
                   {t('title')}{' '}
                   {!isLoading && !isError && (
                     <span className="eb-animate-fade-in">
@@ -327,7 +327,10 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                     data-user-event={LINKED_ACCOUNT_USER_JOURNEYS.LINK_STARTED}
                   >
                     <PlusIcon className="eb-mr-1.5 eb-h-4 eb-w-4" />
-                    {t('linkNewAccount')}
+                    <span className="@sm:eb-hidden">{t('link')}</span>
+                    <span className="eb-hidden @sm:eb-inline">
+                      {t('linkNewAccount')}
+                    </span>
                   </Button>
                 </LinkedAccountFormDialog>
               </div>

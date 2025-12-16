@@ -1,6 +1,7 @@
 {
   "title": "Comptes liés",
   "description": "Gérez vos comptes bancaires externes pour les paiements",
+  "link": "Lier",
   "linkNewAccount": "Lier un nouveau compte",
   "count": "({{count}})",
   "showMoreWithCount": "Afficher {{count}} compte de plus",

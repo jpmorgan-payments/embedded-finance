@@ -1,6 +1,7 @@
 {
   "title": "Linked Accounts",
   "description": "Manage your external bank accounts for payments",
+  "link": "Link",
   "linkNewAccount": "Link A New Account",
   "count": "({{count}})",
   "showMoreWithCount": "Show {{count}} more account",
