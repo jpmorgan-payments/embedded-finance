@@ -49,7 +49,7 @@ type Story = StoryObj<typeof meta>;
  */
 export const Default: Story = {
   args: {
-    variant: 'default',
+    mode: 'list',
   },
   loaders: [
     async () => {
@@ -66,9 +66,9 @@ export const Default: Story = {
  * - Your app only needs one linked account (e.g., single beneficiary payment flow)
  * - You want to prevent users from linking multiple accounts
  */
-export const SingleAccountVariant: Story = {
+export const SingleAccountMode: Story = {
   args: {
-    variant: 'singleAccount',
+    mode: 'single',
   },
   loaders: [
     async () => {
@@ -91,7 +91,7 @@ export const SingleAccountVariant: Story = {
  */
 export const EmptyState: Story = {
   args: {
-    variant: 'default',
+    mode: 'list',
   },
   loaders: [
     async () => {
@@ -120,7 +120,7 @@ export const EmptyState: Story = {
  */
 export const CompactLayout: Story = {
   args: {
-    variant: 'default',
+    mode: 'list',
     compact: true,
   },
   loaders: [
@@ -145,10 +145,11 @@ export const CompactLayout: Story = {
  * - Smooth scrolling experience
  * - Automatic height calculation for dynamic content
  */
-export const VirtualizedScrolling: Story = {
+export const ScrollableList: Story = {
   args: {
-    variant: 'default',
-    scrollHeight: '400px',
+    mode: 'list',
+    scrollable: true,
+    maxHeight: '400px',
   },
   loaders: [
     async () => {

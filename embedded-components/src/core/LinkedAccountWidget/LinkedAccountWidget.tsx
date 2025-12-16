@@ -32,12 +32,10 @@ import { shouldShowCreateButton } from './utils';
  *
  * Enhanced with improved loading states, error handling, and visual design.
  *
- * @example
+ * @example Basic usage
  * ```tsx
  * <LinkedAccountWidget
- *   variant="default"
- *   showCreateButton={true}
- *   onLinkedAccountSettled={(recipient, error) => {
+ *   onAccountLinked={(recipient, error) => {
  *     if (error) {
  *       console.error('Failed to link account:', error);
  *     } else {
@@ -46,21 +44,83 @@ import { shouldShowCreateButton } from './utils';
  *   }}
  * />
  * ```
+ *
+ * @example Single account mode (for payment flows)
+ * ```tsx
+ * <LinkedAccountWidget mode="single" />
+ * ```
+ *
+ * @example Scrollable with custom height
+ * ```tsx
+ * <LinkedAccountWidget scrollable maxHeight={500} />
+ * ```
+ *
+ * @example Compact mode with custom payment action
+ * ```tsx
+ * <LinkedAccountWidget
+ *   compact
+ *   renderPaymentAction={(recipient) => (
+ *     <Button onClick={() => pay(recipient)}>Pay</Button>
+ *   )}
+ * />
+ * ```
  */
 export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
-  variant = 'default',
-  showCreateButton = true,
+  // New props (preferred)
+  mode,
+  compact = false,
+  scrollable,
+  maxHeight,
+  defaultVisibleCount,
+  pageSize = 25,
+  hideCreateButton,
+  renderPaymentAction,
+  onAccountLinked,
+  onVerificationComplete,
+  className,
+  userEventsHandler,
+  userEventsLifecycle,
+
+  // Deprecated props (for backward compatibility)
+  variant,
+  showCreateButton,
+  scrollHeight,
+  initialItemsToShow,
   makePaymentComponent,
   onLinkedAccountSettled,
   onMicrodepositVerifySettled,
-  initialItemsToShow = 2,
-  pageSize = 25,
-  scrollHeight,
-  compact = false,
-  userEventsHandler,
-  userEventsLifecycle,
-  className,
 }) => {
+  // ============================================================================
+  // Normalize deprecated props to new props
+  // ============================================================================
+
+  // mode: 'list' | 'single' (new) vs variant: 'default' | 'singleAccount' (deprecated)
+  const resolvedMode = mode ?? (variant === 'singleAccount' ? 'single' : 'list');
+
+  // scrollable + maxHeight (new) vs scrollHeight (deprecated)
+  const resolvedScrollable = scrollable ?? (scrollHeight !== undefined);
+  const resolvedMaxHeight = maxHeight ?? scrollHeight ?? '400px';
+
+  // defaultVisibleCount (new) vs initialItemsToShow (deprecated)
+  const resolvedDefaultVisibleCount = defaultVisibleCount ?? initialItemsToShow ?? 2;
+
+  // hideCreateButton (new) vs showCreateButton (deprecated, inverted logic)
+  const resolvedHideCreateButton =
+    hideCreateButton ?? (showCreateButton !== undefined ? !showCreateButton : false);
+
+  // renderPaymentAction (new) vs makePaymentComponent (deprecated)
+  // For backward compatibility, wrap makePaymentComponent in a function
+  const resolvedRenderPaymentAction =
+    renderPaymentAction ?? (makePaymentComponent ? () => makePaymentComponent : undefined);
+
+  // Callback normalization
+  const resolvedOnAccountLinked = onAccountLinked ?? onLinkedAccountSettled;
+  const resolvedOnVerificationComplete = onVerificationComplete ?? onMicrodepositVerifySettled;
+
+  // ============================================================================
+  // Component State
+  // ============================================================================
+
   const { t } = useTranslation('linked-accounts');
   const [showResultDialog, setShowResultDialog] = useState(false);
   const [resultVariant, setResultVariant] = useState<
@@ -93,7 +153,11 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
     nextLoadCount,
     isExpanded,
     toggleExpanded,
-  } = useLinkedAccounts({ variant, initialItemsToShow, pageSize });
+  } = useLinkedAccounts({
+    variant: resolvedMode === 'single' ? 'singleAccount' : 'default',
+    initialItemsToShow: resolvedDefaultVisibleCount,
+    pageSize,
+  });
 
   // Setup virtualizer for scrollable mode
   const rowVirtualizer = useVirtualizer({
@@ -101,7 +165,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
     getScrollElement: () => scrollContainerRef.current,
     estimateSize: () => 240, // Estimated height - will be measured dynamically
     overscan: 2, // Render 2 items above/below viewport for smooth scrolling
-    enabled: !!scrollHeight, // Only enable when scrollHeight is set
+    enabled: resolvedScrollable, // Only enable when scrollable is true
     measureElement:
       typeof window !== 'undefined'
         ? (element) => (element as HTMLElement).offsetHeight
@@ -110,7 +174,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
 
   // Auto-load more when scrolling near bottom (infinite scroll)
   useEffect(() => {
-    if (!scrollHeight || !hasMore || isLoadingMore) return;
+    if (!resolvedScrollable || !hasMore || isLoadingMore) return;
 
     const lastItem = rowVirtualizer.getVirtualItems().slice(-1)[0];
     if (!lastItem) return;
@@ -120,7 +184,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
       loadMore();
     }
   }, [
-    scrollHeight,
+    resolvedScrollable,
     hasMore,
     isLoadingMore,
     rowVirtualizer.getVirtualItems(),
@@ -130,9 +194,9 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
 
   // Determine if create button should be shown
   const showCreate = shouldShowCreateButton(
-    variant,
+    resolvedMode === 'single' ? 'singleAccount' : 'default',
     hasActiveAccount,
-    showCreateButton
+    !resolvedHideCreateButton
   );
 
   // Set up automatic event tracking for data-user-event attributes
@@ -177,7 +241,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
       });
     }
 
-    onMicrodepositVerifySettled?.(response, recipient);
+    resolvedOnVerificationComplete?.(response, recipient);
   };
 
   // Handle account removal success
@@ -200,7 +264,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
         userEventsHandler,
       });
     }
-    onLinkedAccountSettled?.(recipient, error);
+    resolvedOnAccountLinked?.(recipient, error);
   };
 
   return (
@@ -266,16 +330,16 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
         <CardContent
           className={cn('eb-transition-all eb-duration-300 eb-ease-in-out', {
             'eb-space-y-0 eb-p-0': compact,
-            'eb-p-0': !!scrollHeight,
+            'eb-p-0': resolvedScrollable,
             'eb-space-y-4 eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': !(
-              scrollHeight || compact
+              resolvedScrollable || compact
             ),
           })}
         >
           {/* Loading state with skeleton cards */}
           {isLoading && (
             <div
-              className={`eb-grid eb-grid-cols-1 eb-gap-3 ${scrollHeight ? 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4' : ''}`}
+              className={`eb-grid eb-grid-cols-1 eb-gap-3 ${resolvedScrollable ? 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4' : ''}`}
             >
               {/* Show 1 skeleton card during loading */}
               <LinkedAccountCardSkeleton compact={compact} />
@@ -286,7 +350,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           {isError && (
             <div
               className={
-                scrollHeight || compact ? 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4' : ''
+                resolvedScrollable || compact ? 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4' : ''
               }
             >
               <ServerErrorAlert
@@ -306,7 +370,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           {isSuccess && linkedAccounts.length === 0 && (
             <div
               className={
-                scrollHeight || compact ? 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4' : ''
+                resolvedScrollable || compact ? 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4' : ''
               }
             >
               <EmptyState className="eb-animate-fade-in" />
@@ -316,12 +380,12 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           {/* Linked accounts list */}
           {isSuccess && linkedAccounts.length > 0 && (
             <>
-              {scrollHeight ? (
+              {resolvedScrollable ? (
                 // Virtualized scrollable list
                 <div
                   ref={scrollContainerRef}
                   style={{
-                    maxHeight: scrollHeight,
+                    maxHeight: resolvedMaxHeight,
                     overflow: 'auto',
                   }}
                   className={`eb-relative ${compact ? '' : 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4'}`}
@@ -351,8 +415,8 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                           <div className={compact ? '' : 'eb-px-1 eb-pb-3'}>
                             <LinkedAccountCard
                               recipient={recipient}
-                              makePaymentComponent={makePaymentComponent}
-                              onLinkedAccountSettled={onLinkedAccountSettled}
+                              makePaymentComponent={resolvedRenderPaymentAction?.(recipient)}
+                              onLinkedAccountSettled={resolvedOnAccountLinked}
                               onMicrodepositVerifySettled={
                                 handleMicrodepositVerifySettled
                               }
@@ -403,8 +467,8 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                       >
                         <LinkedAccountCard
                           recipient={recipient}
-                          makePaymentComponent={makePaymentComponent}
-                          onLinkedAccountSettled={onLinkedAccountSettled}
+                          makePaymentComponent={resolvedRenderPaymentAction?.(recipient)}
+                          onLinkedAccountSettled={resolvedOnAccountLinked}
                           onMicrodepositVerifySettled={
                             handleMicrodepositVerifySettled
                           }
@@ -426,11 +490,11 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                       ((!isExpanded && hasMore) ||
                         (isExpanded &&
                           (hasMore ||
-                            linkedAccounts.length > initialItemsToShow))) && (
+                            linkedAccounts.length > resolvedDefaultVisibleCount))) && (
                         <div className="eb-space-y-0 eb-border-t">
                           {/* Collapse Button - Only when expanded and showing more than initial */}
                           {isExpanded &&
-                            linkedAccounts.length > initialItemsToShow && (
+                            linkedAccounts.length > resolvedDefaultVisibleCount && (
                               <button
                                 type="button"
                                 onClick={toggleExpanded}
@@ -459,7 +523,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                               disabled={isLoadingMore}
                               className={`eb-group eb-w-full eb-bg-muted eb-py-2 eb-text-center eb-transition-colors hover:eb-bg-muted/60 disabled:eb-opacity-50 ${
                                 isExpanded &&
-                                linkedAccounts.length > initialItemsToShow
+                                linkedAccounts.length > resolvedDefaultVisibleCount
                                   ? 'eb-border-t'
                                   : ''
                               }`}
@@ -505,7 +569,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                     : // NON-COMPACT MODE - Small buttons side by side
                       ((!isExpanded && hasMore) ||
                         (isExpanded &&
-                          linkedAccounts.length > initialItemsToShow) ||
+                          linkedAccounts.length > resolvedDefaultVisibleCount) ||
                         (isExpanded && hasMore)) && (
                         <div className="eb-flex eb-justify-center eb-gap-2 eb-pt-2">
                           {/* Show expand button when collapsed and there are more items available */}
@@ -527,7 +591,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
 
                           {/* Show "Show less" when expanded and showing more than initial */}
                           {isExpanded &&
-                            linkedAccounts.length > initialItemsToShow && (
+                            linkedAccounts.length > resolvedDefaultVisibleCount && (
                               <Button
                                 variant="ghost"
                                 size="sm"
