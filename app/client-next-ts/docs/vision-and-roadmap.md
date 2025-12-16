@@ -36,12 +36,12 @@ and planning.
 
 ### Demo Applications
 
-| Feature                                  | Goal                                                      | Status                                    |
-| ---------------------------------------- | --------------------------------------------------------- | ----------------------------------------- |
-| **Industry-Specific Solution Bundles**   | Expand demo applications with industry-specific bundles   | ⚠️ Partially Implemented (SellSense only) |
-| **Demo Application Builder/Constructor** | Create interactive builder for custom demo configurations | ❌ Not Started                            |
-| **Role-Based Presets**                   | Demonstrate different user personas and access levels     | ❌ Not Started                            |
-| **API Resource Lifecycle Visualization** | Visually show API resource evolution across scenarios     | ❌ Not Started                            |
+| Feature                                     | Goal                                                    | Status                                    |
+| ------------------------------------------- | ------------------------------------------------------- | ----------------------------------------- |
+| **Industry-Specific Solution Bundles**      | Expand demo applications with industry-specific bundles | ⚠️ Partially Implemented (SellSense only) |
+| **Interactive Integration Guide & Builder** | Create personalized integration guide and demo builder  | ❌ Not Started                            |
+| **Role-Based Presets**                      | Demonstrate different user personas and access levels   | ❌ Not Started                            |
+| **API Resource Lifecycle Visualization**    | Visually show API resource evolution across scenarios   | ❌ Not Started                            |
 
 ### Documentation
 
@@ -90,11 +90,12 @@ and planning.
 **Developer Experience (DX)**: Copy-code, starter kits, custom Copilot agents,
 documentation, playground, health checks **Theming**: Theme editor validation,
 presets, custom JSON import/export **Demo Applications**: Solution bundles,
-scenario builder, role-based presets, API resource lifecycle visualization
-**Documentation**: Patterns, changelog, version management, onboarding
-**UX/Polish**: Hero refinement, onboarding, component status, tooltips
-**Developer Tools**: MSW status, health checks, playground, Postman collections
-**Analytics**: Privacy-preserving analytics, insights reports
+interactive integration guide & builder, role-based presets, API resource
+lifecycle visualization **Documentation**: Patterns, changelog, version
+management, onboarding **UX/Polish**: Hero refinement, onboarding, component
+status, tooltips **Developer Tools**: MSW status, health checks, playground,
+Postman collections **Analytics**: Privacy-preserving analytics, insights
+reports
 
 ### Current Implementation Status
 
@@ -552,13 +553,59 @@ overhead, configuration complexity
 
 ---
 
-#### Demo Application Builder/Constructor
+#### Interactive Integration Guide & Builder
 
-**Goal**: Create an interactive builder/constructor for demo applications
-similar to SellSense scenarios, allowing users to configure and preview custom
-demo setups using an interactive React grid.
+**Goal**: Create a personalized, interactive integration guide and demo builder
+that generates customized setup instructions, code examples, and AI prompts
+based on user selections (business model, integration type, use case), enabling
+developers to build EF&SS integrations with guided, step-by-step assistance.
 
 **Backlog Items**:
+
+**Interactive Guide Component**:
+
+- Create interactive questionnaire/selector interface:
+  - Business model selection (Platform, Marketplace, SaaS, E-commerce, etc.)
+  - Integration type selection (Full embedded, Partially hosted, API-only)
+  - Use case selection (Onboarding, Payments, Payouts, Account Management)
+  - Component selection (which EF&SS components to integrate)
+  - Framework selection (React, Next.js, Vite, Vanilla JS)
+- Implement dynamic content generation:
+  - Generate personalized setup steps based on selections
+  - Create customized code examples for selected framework and components
+  - Generate integration flow diagrams specific to selections
+  - Produce API endpoint lists relevant to selected use cases
+- Build step-by-step integration guide:
+  - Progressive disclosure of setup steps
+  - Code snippets with copy-to-clipboard for each step
+  - Visual flow diagrams showing integration architecture
+  - API endpoint documentation with examples
+  - Component configuration examples
+- Add preview of user experience:
+  - Show how the final integration will look/behave
+  - Preview component states and flows
+  - Demonstrate user journey through selected components
+  - Show API resource lifecycle for selected use case
+
+**AI-Assisted Integration Builder**:
+
+- Generate dynamic LLM prompts for AI assistance:
+  - Create context-aware prompts based on user selections
+  - Include relevant component documentation in prompts
+  - Generate prompts for specific integration tasks (onboarding setup, payment
+    flow, etc.)
+  - Create prompts for code generation, debugging, and optimization
+- Export prompts for use with:
+  - GitHub Copilot (custom agents)
+  - ChatGPT/Claude/other LLMs
+  - IDE-based AI assistants
+- Create prompt templates library:
+  - Onboarding integration prompts
+  - Payment processing prompts
+  - Component customization prompts
+  - Testing and validation prompts
+
+**Visual Demo Builder**:
 
 - Design builder interface with drag-and-drop component placement
 - Implement interactive React grid for component layout (similar to dashboard
@@ -568,27 +615,85 @@ demo setups using an interactive React grid.
   - Theme selection and preview
   - Content token customization
   - Scenario metadata (name, description, clientId, etc.)
+  - API resource state configuration
 - Add preview mode to test builder configurations
 - Implement save/load functionality for custom scenarios
 - Add shareable URLs for custom scenarios
 - Create scenario templates library (starter configurations)
 - Add validation for scenario configurations
 - Export scenario configurations as JSON
+
+**Code Generation & Quickstarts**:
+
+- Generate code quickstarts based on selections:
+  - Starter project structure for selected framework
+  - Pre-configured component examples
+  - MSW setup with relevant handlers
+  - Theme configuration examples
+  - API client setup with authentication
+- Create downloadable starter kits:
+  - One-click download of generated starter project
+  - Include all dependencies and configuration
+  - Pre-populated with example code from guide
+  - README with setup instructions
+- Generate implementation checklists:
+  - Step-by-step checklist for selected integration
+  - Mark progress as steps are completed
+  - Link to relevant documentation for each step
+  - Include testing and validation steps
+
+**Integration Flow Visualization**:
+
+- Create interactive flow diagrams:
+  - Show API call sequences for selected use case
+  - Visualize component interactions
+  - Display data flow between components and APIs
+  - Show error handling and edge cases
+- Add flow customization:
+  - Allow users to modify flows based on their needs
+  - Show alternative integration patterns
+  - Highlight best practices and recommendations
+
+**Documentation & Resources**:
+
+- Generate personalized documentation:
+  - Customized API reference for selected endpoints
+  - Component props documentation for selected components
+  - Integration patterns guide for selected use case
+  - Troubleshooting guide for common issues
+- Link to relevant resources:
+  - Official API documentation sections
+  - Component Storybook stories
+  - Engineering recipes
+  - Example implementations
+
+**Integration with Existing Infrastructure**:
+
 - Integrate builder with existing SellSense demo infrastructure
+- Connect to MSW for live API simulation
+- Link to component library for live examples
+- Integrate with theme customization system
+- Connect to API resource lifecycle visualization
 
 **Acceptance Criteria**:
 
-- ✅ Builder allows drag-and-drop component placement
-- ✅ Grid layout is responsive and intuitive
-- ✅ Custom scenarios can be saved and loaded
-- ✅ Scenarios are shareable via URL parameters
+- ✅ Interactive guide personalizes content based on user selections
+- ✅ Dynamic setup steps are generated for selected integration type
+- ✅ LLM prompts are generated and exportable for AI assistance
+- ✅ Code quickstarts are downloadable and runnable
+- ✅ Visual builder allows drag-and-drop component placement
+- ✅ Preview mode accurately reflects final integration state
+- ✅ Generated prompts work with GitHub Copilot and other LLMs
+- ✅ Integration flows are visualized and interactive
+- ✅ Custom scenarios can be saved, loaded, and shared via URL
+- ✅ At least 5 integration templates available
 - ✅ Builder validates configurations before saving
-- ✅ Preview mode accurately reflects final demo state
-- ✅ At least 3 starter templates available
+- ✅ Generated starter kits can be cloned and run in <5 minutes
 
-**DRI**: Full-Stack Lead + Frontend Lead **Dependencies**: Component library
-supports dynamic configuration **Risks**: Builder complexity may exceed value;
-maintenance overhead
+**DRI**: Full-Stack Lead + Frontend Lead + DX Lead **Dependencies**: Component
+library supports dynamic configuration, API documentation finalized **Risks**:
+Builder complexity may exceed value; maintenance overhead; prompt generation
+quality; keeping generated code up-to-date
 
 ---
 
