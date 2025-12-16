@@ -55,7 +55,9 @@
     "addWire": "Ajouter WIRE",
     "addRtp": "Ajouter RTP",
     "manage": "Gérer",
+    "viewDetails": "Voir les détails",
     "edit": "Modifier les méthodes de paiement",
+    "editDisabledTooltip": "Les méthodes de paiement ne peuvent être modifiées que pour les comptes actifs",
     "remove": "Supprimer le compte",
     "moreActions": "Plus d'actions pour {{name}}"
   },
@@ -281,5 +283,23 @@
     "title": "Compte vérifié avec succès",
     "description": "La liaison de <strong>{{name}}</strong> a été complétée avec succès et le compte est maintenant prêt pour les transactions.",
     "close": "Fermer"
+  },
+  "accountDetails": {
+    "title": "Détails du compte",
+    "accountName": "Nom du compte",
+    "accountType": "Type de compte",
+    "status": "Statut",
+    "accountNumber": "Numéro de compte",
+    "paymentMethods": "Méthodes de paiement",
+    "bankName": "Nom de la banque",
+    "showAccountNumber": "Afficher le numéro de compte complet",
+    "hideAccountNumber": "Masquer le numéro de compte",
+    "noRoutingNumber": "Non configuré",
+    "recipientType": {
+      "individualLinkedAccount": "Compte lié individuel",
+      "businessLinkedAccount": "Compte lié d'entreprise",
+      "individualRecipient": "Bénéficiaire individuel",
+      "businessRecipient": "Bénéficiaire d'entreprise"
+    }
   }
 }

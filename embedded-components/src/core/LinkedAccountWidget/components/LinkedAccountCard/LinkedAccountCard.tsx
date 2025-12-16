@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   ArrowRightIcon,
+  EyeIcon,
   MoreVerticalIcon,
   PencilIcon,
   PlusIcon,
@@ -34,6 +35,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { RecipientAccountDisplayCard } from '@/components/RecipientAccountDisplayCard/RecipientAccountDisplayCard';
+import { RecipientDetailsDialog } from '@/components/RecipientDetailsDialog/RecipientDetailsDialog';
 import { MakePayment } from '@/core/MakePayment';
 
 import { MicrodepositsFormDialogTrigger } from '../../forms/MicrodepositsForm/MicrodepositsForm';
@@ -176,6 +178,8 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
     ) : undefined;
 
   // Actions footer component
+  // Determine if pay button should be hidden (not just disabled) for MICRODEPOSITS_INITIATED
+  const hidePayButton = recipient.status === 'MICRODEPOSITS_INITIATED';
   const actionsContent =
     !hideActions && (showPaymentButton || !isActive || showVerifyButton) ? (
       <div
@@ -202,11 +206,11 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
               <span>{t('actions.verifyAccount')}</span>
             </Button>
           </MicrodepositsFormDialogTrigger>
-        ) : makePaymentComponent ? (
+        ) : makePaymentComponent && !hidePayButton ? (
           React.cloneElement(makePaymentComponent as React.ReactElement, {
             recipientId: recipient.id,
           })
-        ) : !showPaymentButton ? (
+        ) : !showPaymentButton && !hidePayButton ? (
           <Tooltip>
             <TooltipTrigger asChild>
               <span>
@@ -231,7 +235,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
               <p>{getDisabledPayTooltip()}</p>
             </TooltipContent>
           </Tooltip>
-        ) : (
+        ) : showPaymentButton && !hidePayButton ? (
           <MakePayment
             triggerButton={
               <Button
@@ -251,7 +255,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
             }
             recipientId={recipient.id}
           />
-        )}
+        ) : null}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -268,19 +272,50 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <LinkedAccountFormDialog
-              mode="edit"
-              recipient={recipient}
-              onLinkedAccountSettled={onLinkedAccountSettled}
-            >
+            {/* View Details - always available */}
+            <RecipientDetailsDialog recipient={recipient}>
               <DropdownMenuItem
                 onSelect={(e) => e.preventDefault()}
                 className="eb-cursor-pointer"
               >
-                <PencilIcon className="eb-mr-2 eb-h-4 eb-w-4" />
-                <span>{t('actions.edit')}</span>
+                <EyeIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+                <span>{t('actions.viewDetails')}</span>
               </DropdownMenuItem>
-            </LinkedAccountFormDialog>
+            </RecipientDetailsDialog>
+            <DropdownMenuSeparator />
+            {/* Edit - disabled for non-ACTIVE accounts */}
+            {isActive ? (
+              <LinkedAccountFormDialog
+                mode="edit"
+                recipient={recipient}
+                onLinkedAccountSettled={onLinkedAccountSettled}
+              >
+                <DropdownMenuItem
+                  onSelect={(e) => e.preventDefault()}
+                  className="eb-cursor-pointer"
+                >
+                  <PencilIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+                  <span>{t('actions.edit')}</span>
+                </DropdownMenuItem>
+              </LinkedAccountFormDialog>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <DropdownMenuItem
+                      disabled
+                      className="eb-cursor-not-allowed eb-opacity-50"
+                    >
+                      <PencilIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+                      <span>{t('actions.edit')}</span>
+                    </DropdownMenuItem>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="left">
+                  <p>{t('actions.editDisabledTooltip')}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
             <DropdownMenuSeparator />
             <RemoveAccountDialogTrigger
               recipient={recipient}

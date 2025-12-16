@@ -509,7 +509,6 @@ export const RecipientAccountDisplayCard: React.FC<
                 {showAccountToggle && (
                   <Button
                     variant="link"
-                    size="sm"
                     onClick={() => setShowFullAccount(!showFullAccount)}
                     className="eb-h-auto eb-p-0 eb-text-xs"
                     aria-label={
@@ -610,10 +609,10 @@ export const RecipientAccountDisplayCard: React.FC<
                       return (
                         <div
                           key={method}
-                          className="eb-flex eb-max-w-xs eb-items-center eb-justify-between eb-gap-3 eb-rounded eb-border eb-border-border/40 eb-bg-background/50 eb-px-2.5 eb-py-2"
+                          className="eb-flex eb-max-w-xs eb-items-center eb-justify-between eb-gap-3 eb-rounded eb-bg-muted/40 eb-px-2.5 eb-py-1.5"
                         >
                           <Badge
-                            variant="secondary"
+                            variant="outline"
                             className="eb-text-xs eb-font-semibold"
                           >
                             {method}
@@ -646,7 +645,7 @@ export const RecipientAccountDisplayCard: React.FC<
                     {paymentMethods.map((method) => (
                       <Badge
                         key={method}
-                        variant="secondary"
+                        variant="outline"
                         className="eb-text-xs eb-font-semibold"
                       >
                         {method}
