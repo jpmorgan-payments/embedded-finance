@@ -2,6 +2,8 @@ import React from 'react';
 import { LandmarkIcon, PlusCircleIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { cn } from '@/lib/utils';
+
 export interface EmptyStateProps {
   /** Optional custom message */
   message?: string;
@@ -24,7 +26,10 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 
   return (
     <div
-      className={`eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-3 eb-py-12 eb-text-center ${className || ''}`}
+      className={cn(
+        'eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-3 eb-py-12 eb-text-center',
+        className
+      )}
     >
       <div className="eb-relative">
         <div className="eb-rounded-full eb-bg-muted eb-p-4">

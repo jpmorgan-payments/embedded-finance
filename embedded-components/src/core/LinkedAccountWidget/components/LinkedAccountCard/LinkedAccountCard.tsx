@@ -14,6 +14,7 @@ import {
   getMissingPaymentMethods,
   getRecipientDisplayName,
 } from '@/lib/recipientHelpers';
+import { cn } from '@/lib/utils';
 import {
   ApiError,
   MicrodepositVerificationResponse,
@@ -178,9 +179,10 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
   const actionsContent =
     !hideActions && (showPaymentButton || !isActive || showVerifyButton) ? (
       <div
-        className={`eb-flex eb-flex-wrap eb-items-center eb-gap-2 ${
-          compact ? 'eb-justify-end' : 'eb-justify-between'
-        }`}
+        className={cn('eb-flex eb-flex-wrap eb-items-center eb-gap-2', {
+          'eb-justify-end': compact,
+          'eb-justify-between': !compact,
+        })}
         role="group"
         aria-label="Account actions"
       >

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { cn } from '@/lib/utils';
 import { RecipientStatus } from '@/api/generated/ep-recipients.schemas';
 import { Badge } from '@/components/ui/badge';
 
@@ -58,7 +59,10 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   return (
     <Badge
       {...STATUS_BADGE_VARIANTS[status]}
-      className={`eb-inline-flex eb-items-center eb-gap-1 eb-text-xs ${className || ''}`}
+      className={cn(
+        'eb-inline-flex eb-items-center eb-gap-1 eb-text-xs',
+        className
+      )}
     >
       {showIcon && getStatusIcon(status)}
       {t(`status.labels.${status}`)}

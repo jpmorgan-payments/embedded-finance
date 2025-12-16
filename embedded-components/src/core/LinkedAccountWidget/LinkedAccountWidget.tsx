@@ -288,7 +288,10 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
       />
 
       <Card
-        className={`eb-component eb-mx-auto eb-w-full eb-max-w-5xl eb-overflow-hidden ${className || ''}`}
+        className={cn(
+          'eb-component eb-mx-auto eb-w-full eb-max-w-5xl eb-overflow-hidden',
+          className
+        )}
       >
         <CardHeader className="eb-border-b eb-bg-muted/30 eb-p-2.5 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-p-3 @lg:eb-p-4">
           <div className="eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-4">
@@ -344,7 +347,9 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           {/* Loading state with skeleton cards */}
           {isLoading && (
             <div
-              className={`eb-grid eb-grid-cols-1 eb-gap-3 ${resolvedScrollable ? 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4' : ''}`}
+              className={cn('eb-grid eb-grid-cols-1 eb-gap-3', {
+                'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': resolvedScrollable,
+              })}
             >
               {/* Show 1 skeleton card during loading */}
               <LinkedAccountCardSkeleton compact={compact} />
@@ -354,11 +359,9 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           {/* Error state */}
           {isError && (
             <div
-              className={
-                resolvedScrollable || compact
-                  ? 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4'
-                  : ''
-              }
+              className={cn({
+                'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': resolvedScrollable || compact,
+              })}
             >
               <ServerErrorAlert
                 customTitle={t('errors.loading.title')}
@@ -376,11 +379,9 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           {/* Empty state */}
           {isSuccess && linkedAccounts.length === 0 && (
             <div
-              className={
-                resolvedScrollable || compact
-                  ? 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4'
-                  : ''
-              }
+              className={cn({
+                'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': resolvedScrollable || compact,
+              })}
             >
               <EmptyState className="eb-animate-fade-in" />
             </div>
@@ -397,7 +398,9 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                     maxHeight: resolvedMaxHeight,
                     overflow: 'auto',
                   }}
-                  className={`eb-relative ${compact ? '' : 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4'}`}
+                  className={cn('eb-relative', {
+                    'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': !compact,
+                  })}
                 >
                   <div
                     style={{
@@ -421,7 +424,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                             transform: `translateY(${virtualRow.start}px)`,
                           }}
                         >
-                          <div className={compact ? '' : 'eb-px-1 eb-pb-3'}>
+                          <div className={cn({ 'eb-px-1 eb-pb-3': !compact })}>
                             <LinkedAccountCard
                               recipient={recipient}
                               makePaymentComponent={resolvedRenderPaymentAction?.(
@@ -433,12 +436,12 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                               }
                               onRemoveSuccess={handleRemoveSuccess}
                               compact={compact}
-                              className={
-                                compact &&
-                                virtualRow.index === linkedAccounts.length - 1
-                                  ? 'eb-border-b-0'
-                                  : ''
-                              }
+                              className={cn({
+                                'eb-border-b-0':
+                                  compact &&
+                                  virtualRow.index ===
+                                    linkedAccounts.length - 1,
+                              })}
                             />
                           </div>
                         </div>
@@ -457,15 +460,12 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                 // Non-virtualized grid layout (default)
                 <>
                   <div
-                    className={`eb-grid eb-grid-cols-1 eb-items-start ${
-                      compact
-                        ? 'eb-gap-0'
-                        : `eb-gap-3 ${
-                            linkedAccounts.length > 1
-                              ? '@4xl:eb-grid-cols-2'
-                              : ''
-                          }`
-                    }`}
+                    className={cn('eb-grid eb-grid-cols-1 eb-items-start', {
+                      'eb-gap-0': compact,
+                      'eb-gap-3': !compact,
+                      '@4xl:eb-grid-cols-2':
+                        !compact && linkedAccounts.length > 1,
+                    })}
                   >
                     {linkedAccounts.map((recipient, index) => (
                       <div
@@ -487,11 +487,10 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                           }
                           onRemoveSuccess={handleRemoveSuccess}
                           compact={compact}
-                          className={
-                            compact && index === linkedAccounts.length - 1
-                              ? 'eb-border-b-0'
-                              : ''
-                          }
+                          className={cn({
+                            'eb-border-b-0':
+                              compact && index === linkedAccounts.length - 1,
+                          })}
                         />
                       </div>
                     ))}
@@ -536,13 +535,15 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                               type="button"
                               onClick={!isExpanded ? toggleExpanded : loadMore}
                               disabled={isLoadingMore}
-                              className={`eb-group eb-w-full eb-bg-muted eb-py-2 eb-text-center eb-transition-colors hover:eb-bg-muted/60 disabled:eb-opacity-50 ${
-                                isExpanded &&
-                                linkedAccounts.length >
-                                  resolvedDefaultVisibleCount
-                                  ? 'eb-border-t'
-                                  : ''
-                              }`}
+                              className={cn(
+                                'eb-group eb-w-full eb-bg-muted eb-py-2 eb-text-center eb-transition-colors hover:eb-bg-muted/60 disabled:eb-opacity-50',
+                                {
+                                  'eb-border-t':
+                                    isExpanded &&
+                                    linkedAccounts.length >
+                                      resolvedDefaultVisibleCount,
+                                }
+                              )}
                               aria-label={
                                 !isExpanded
                                   ? t('showMoreWithCount', {
