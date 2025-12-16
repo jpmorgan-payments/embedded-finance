@@ -95,8 +95,8 @@ const withEBComponentsProvider: Decorator<BaseStoryArgs> = (Story, context) => {
   return (
     <EBComponentsProvider
       apiBaseUrl={args.apiBaseUrl ?? '/'}
-      apiPathPrefixes={{
-        clients: `/do/v1`,
+      apiBaseUrlTransforms={{
+        clients: (baseUrl) => baseUrl.replace('/v1', '/do/v1'),
       }}
       headers={args.headers}
       theme={theme}

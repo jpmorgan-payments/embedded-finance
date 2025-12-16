@@ -700,27 +700,26 @@ export type EBConfig = {
   apiBaseUrl: string;
 
   /**
-   * Path prefixes to prepend for specific API path segments.
+   * Base URL transformations for specific API path segments.
    *
-   * Use this to route different API endpoints through different paths
-   * while keeping the same base URL. The key is the first path segment
-   * of the API endpoint (e.g., 'clients', 'recipients'), and the value
-   * is the prefix to prepend.
+   * Use this to transform the base URL for different API endpoints.
+   * The key is the first path segment of the API endpoint (e.g., 'clients', 'recipients'),
+   * and the value is a function that receives the current base URL and returns the transformed URL.
    *
    * @example
    * ```tsx
-   * // API call to '/clients/123' becomes '/api/v1/clients/123'
-   * // API call to '/recipients' becomes '/payments/recipients'
+   * // For apiBaseUrl="https://api.example.com/v1"
+   * // API call to '/clients/123' uses base URL 'https://api.example.com/do/v1'
+   * // API call to '/recipients' uses the original base URL
    * <EBComponentsProvider
-   *   apiBaseUrl="https://api.example.com"
-   *   apiPathPrefixes={{
-   *     clients: '/api/v1',
-   *     recipients: '/payments',
+   *   apiBaseUrl="https://api.example.com/v1"
+   *   apiBaseUrlTransforms={{
+   *     clients: (baseUrl) => baseUrl.replace(/\/v1$/, '/do/v1'),
    *   }}
    * />
    * ```
    */
-  apiPathPrefixes?: Record<string, string>;
+  apiBaseUrlTransforms?: Record<string, (baseUrl: string) => string>;
 
   /**
    * @deprecated Use `apiPathPrefixes` instead. Will be removed in next major version.
