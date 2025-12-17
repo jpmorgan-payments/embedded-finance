@@ -22,9 +22,9 @@ const navigationCards = [
   },
   {
     id: 'components',
-    title: 'React Components',
+    title: 'Business Components',
     description:
-      'TypeScript components for client onboarding, linked bank accounts, payment initiation, and transaction display. Includes API integration and error handling.',
+      'Components for client onboarding, linked bank accounts, payment initiation, and transaction display. Includes API integration and error handling.',
     icon: <Box className="h-6 w-6" />,
     link: '/components',
     count: 6,
@@ -40,9 +40,9 @@ const navigationCards = [
   },
   {
     id: 'utils',
-    title: 'Form Components',
+    title: 'Utility Components',
     description:
-      'Input components for dates, industry codes, tax IDs, and addresses. Includes validation logic and formatting for financial forms.',
+      'Components for dates, industry codes, tax IDs, and addresses. Includes validation logic and formatting for financial forms.',
     icon: <Wrench className="h-6 w-6" />,
     link: '/utils',
     count: 4,
