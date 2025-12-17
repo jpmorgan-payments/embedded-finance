@@ -81,12 +81,12 @@ export function extractOwnershipRelationships(
 
   beneficialOwners.forEach((owner) => {
     if (owner.ownershipHierarchy?.steps) {
-      const steps = owner.ownershipHierarchy.steps;
+      const { steps } = owner.ownershipHierarchy;
       const ownerName =
         `${owner.firstName || ''} ${owner.lastName || ''}`.trim();
 
       // Create relationships between consecutive steps in the hierarchy
-      for (let i = 0; i < steps.length - 1; i++) {
+      for (let i = 0; i < steps.length - 1; i += 1) {
         const currentStep = steps[i];
         const nextStep = steps[i + 1];
 
@@ -157,7 +157,7 @@ export function getEntityOwnershipInfo(
   // Look through all beneficial owners to see if this entity directly owns the root business
   for (const owner of beneficialOwners) {
     if (owner.ownershipHierarchy?.steps) {
-      const steps = owner.ownershipHierarchy.steps;
+      const { steps } = owner.ownershipHierarchy;
 
       // Find the step that matches our entity
       const entityStep = steps.find(
@@ -193,7 +193,7 @@ function getKnownPathToRoot(
 } | null {
   for (const owner of beneficialOwners) {
     if (owner.ownershipHierarchy?.steps) {
-      const steps = owner.ownershipHierarchy.steps;
+      const { steps } = owner.ownershipHierarchy;
 
       // Find where this entity appears in the hierarchy
       const entityIndex = steps.findIndex(
@@ -236,7 +236,7 @@ export function isIntermediaryInExistingHierarchy(
 } {
   for (const owner of beneficialOwners) {
     if (owner.ownershipHierarchy?.steps) {
-      const steps = owner.ownershipHierarchy.steps;
+      const { steps } = owner.ownershipHierarchy;
 
       // Check if this entity appears in a hierarchy with multiple steps and is NOT the final step
       if (steps.length > 1) {
@@ -274,7 +274,7 @@ export function isSingleCompanyHierarchyEnd(
 } {
   for (const owner of beneficialOwners) {
     if (owner.ownershipHierarchy?.steps) {
-      const steps = owner.ownershipHierarchy.steps;
+      const { steps } = owner.ownershipHierarchy;
 
       // Check if this is a single-company hierarchy (only one step)
       if (steps.length === 1) {

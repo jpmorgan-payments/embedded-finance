@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 
@@ -138,7 +138,7 @@ describe('EntityCombobox', () => {
         value=""
         onChange={vi.fn()}
         existingEntities={mockExistingEntities}
-        disabled={true}
+        disabled
       />
     );
 

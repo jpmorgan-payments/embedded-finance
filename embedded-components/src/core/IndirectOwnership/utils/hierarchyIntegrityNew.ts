@@ -62,12 +62,12 @@ export function extractOwnershipRelationships(
 
   beneficialOwners.forEach((owner) => {
     if (owner.ownershipHierarchy?.steps) {
-      const steps = owner.ownershipHierarchy.steps;
+      const { steps } = owner.ownershipHierarchy;
       const ownerName =
         `${owner.firstName || ''} ${owner.lastName || ''}`.trim();
 
       // Create relationships between consecutive steps in the hierarchy
-      for (let i = 0; i < steps.length - 1; i++) {
+      for (let i = 0; i < steps.length - 1; i += 1) {
         const currentStep = steps[i];
         const nextStep = steps[i + 1];
 

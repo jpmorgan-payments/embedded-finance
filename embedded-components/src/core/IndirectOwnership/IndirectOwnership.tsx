@@ -1372,7 +1372,7 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
                         <span className="eb-font-bold">{rootCompanyName}</span>
                       </div>
                       <div className="eb-mt-1 eb-text-success/80">
-                        Based on {currentEntityInfo.source?.ownerName}'s
+                        Based on {currentEntityInfo.source?.ownerName}&apos;s
                         ownership hierarchy
                       </div>
                     </div>
@@ -1403,7 +1403,7 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
                         <span className="eb-font-bold">{rootCompanyName}</span>
                       </div>
                       <div className="eb-text-success/80">
-                        Based on {currentEntityInfo.source?.ownerName}'s
+                        Based on {currentEntityInfo.source?.ownerName}&apos;s
                         ownership hierarchy
                       </div>
                       <div className="eb-flex eb-flex-wrap eb-items-center eb-gap-1 eb-text-xs eb-text-success/70">

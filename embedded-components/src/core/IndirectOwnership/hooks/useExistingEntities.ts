@@ -1,9 +1,6 @@
 import { useMemo } from 'react';
 
-import type {
-  BeneficialOwner,
-  HierarchyStep,
-} from '../IndirectOwnership.types';
+import type { BeneficialOwner } from '../IndirectOwnership.types';
 import {
   categorizeEntitiesForHierarchy,
   extractOwnershipRelationships,
