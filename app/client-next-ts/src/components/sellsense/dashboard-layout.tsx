@@ -13,6 +13,7 @@ import {
 import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 import { usePingService } from '@/hooks/use-ping-service';
 import { Header } from './header';
+import { Footer } from './footer';
 import { Sidebar } from './sidebar';
 import { SettingsDrawer } from './settings-drawer';
 import { InfoModal } from './info-modal';
@@ -697,7 +698,10 @@ export function DashboardLayout() {
         {/* Main content area - responsive */}
         <main className="flex-1 overflow-auto w-full min-w-0">
           {/* Add padding for mobile to account for fixed bottom navigation */}
-          <div className="pb-16 md:pb-0">{renderMainContent()}</div>
+          <div className="pb-16 md:pb-0">
+            {renderMainContent()}
+            <Footer theme={theme} />
+          </div>
         </main>
         {/* Mobile menu overlay */}
         {isMobileMenuOpen && (
