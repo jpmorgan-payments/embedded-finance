@@ -399,7 +399,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                       <FormControl>
                         <RadioGroup
                           {...field}
-                          value={field.value}
+                          value={field.value ?? ''}
                           onValueChange={(value) => {
                             onChangeProp?.(value);
                             field.onChange(value);
@@ -432,7 +432,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                       <FormControl>
                         <RadioGroup
                           {...field}
-                          value={field.value}
+                          value={field.value ?? ''}
                           onValueChange={(value) => {
                             onChangeProp?.(value);
                             field.onChange(value);

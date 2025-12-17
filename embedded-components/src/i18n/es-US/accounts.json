@@ -1,0 +1,37 @@
+{
+  "title": "Cuentas",
+  "loading": {
+    "accounts": "Cargando cuentas..."
+  },
+  "error": {
+    "loadFailed": "Error al cargar las cuentas. Por favor, intente nuevamente.",
+    "retry": "Reintentar"
+  },
+  "emptyState": {
+    "title": "No se encontraron cuentas",
+    "description": "Ninguna cuenta coincide con las categorías seleccionadas. Contacte al soporte si necesita crear una cuenta."
+  },
+  "card": {
+    "overview": "Resumen",
+    "accountDetails": "Detalles de la cuenta",
+    "accountDetailsTooltip": "La cuenta puede ser financiada desde fuentes externas y es accesible externamente mediante números de enrutamiento/cuenta aquí",
+    "accountNumber": "Número de cuenta:",
+    "achRouting": "Enrutamiento ACH:",
+    "wireRtpRouting": "Enrutamiento Wire/RTP:",
+    "showDetails": "Mostrar detalles de la cuenta",
+    "hideDetails": "Ocultar detalles de la cuenta",
+    "copyAccountNumber": "Copiar número de cuenta",
+    "copyAchRouting": "Copiar enrutamiento ACH",
+    "copyWireRtpRouting": "Copiar enrutamiento Wire/RTP",
+    "noBalanceData": "Sin datos de saldo."
+  },
+  "categories": {
+    "LIMITED_DDA_PAYMENTS": "DDA de Pagos",
+    "LIMITED_DDA": "DDA Limitado"
+  },
+  "balanceTypes": {
+    "ITAV": "Saldo disponible",
+    "ITBD": "Saldo actual"
+  }
+}
+

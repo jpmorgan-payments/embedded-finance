@@ -1,5 +1,6 @@
 import { Table } from '@tanstack/react-table';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import {
   PaymentTypeResponse,
@@ -37,6 +38,7 @@ interface TransactionsTableToolbarProps<TData> {
 export function TransactionsTableToolbar<TData>({
   table,
 }: TransactionsTableToolbarProps<TData>) {
+  const { t } = useTranslation(['transactions']);
   const isFiltered = table.getState().columnFilters.length > 0;
 
   // Get unique status values from data
@@ -54,8 +56,8 @@ export function TransactionsTableToolbar<TData>({
     ?.getFilterValue() as string | undefined;
 
   return (
-    <div className="eb-flex eb-items-center eb-justify-between">
-      <div className="eb-flex eb-flex-1 eb-items-center eb-space-x-2">
+    <div className="eb-flex eb-flex-col eb-gap-2 sm:eb-flex-row sm:eb-items-center sm:eb-justify-between">
+      <div className="eb-flex eb-flex-1 eb-flex-wrap eb-items-center eb-gap-2">
         {/* Status Filter */}
         <Select
           value={
@@ -69,11 +71,20 @@ export function TransactionsTableToolbar<TData>({
             }
           }}
         >
-          <SelectTrigger className="eb-h-8 eb-w-[140px]">
-            <SelectValue placeholder="All statuses" />
+          <SelectTrigger
+            data-user-event="transactions_filter_changed"
+            className="eb-h-8 eb-w-[140px]"
+          >
+            <SelectValue
+              placeholder={t('filters.status.placeholder', {
+                defaultValue: 'All statuses',
+              })}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="all">
+              {t('filters.status.all', { defaultValue: 'All statuses' })}
+            </SelectItem>
             {Object.values(TransactionStatus).map((status) => (
               <SelectItem key={status} value={status}>
                 {status}
@@ -93,11 +104,20 @@ export function TransactionsTableToolbar<TData>({
             }
           }}
         >
-          <SelectTrigger className="eb-h-8 eb-w-[140px]">
-            <SelectValue placeholder="All types" />
+          <SelectTrigger
+            data-user-event="transactions_filter_changed"
+            className="eb-h-8 eb-w-[140px]"
+          >
+            <SelectValue
+              placeholder={t('filters.type.placeholder', {
+                defaultValue: 'All types',
+              })}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All types</SelectItem>
+            <SelectItem value="all">
+              {t('filters.type.all', { defaultValue: 'All types' })}
+            </SelectItem>
             {Object.values(PaymentTypeResponse).map((type) => (
               <SelectItem key={type} value={type}>
                 {type}
@@ -108,7 +128,9 @@ export function TransactionsTableToolbar<TData>({
 
         {/* Counterpart Name Filter */}
         <Input
-          placeholder="Filter counterpart..."
+          placeholder={t('filters.counterpart.placeholder', {
+            defaultValue: 'Filter counterpart...',
+          })}
           value={counterpartFilter ?? ''}
           onChange={(event) =>
             table
@@ -120,7 +142,9 @@ export function TransactionsTableToolbar<TData>({
 
         {/* Transaction Reference ID Filter */}
         <Input
-          placeholder="Filter reference ID..."
+          placeholder={t('filters.referenceId.placeholder', {
+            defaultValue: 'Filter reference ID...',
+          })}
           value={referenceFilter ?? ''}
           onChange={(event) =>
             table
@@ -136,7 +160,7 @@ export function TransactionsTableToolbar<TData>({
             onClick={() => table.resetColumnFilters()}
             className="eb-h-8 eb-px-2 lg:eb-px-3"
           >
-            Reset
+            {t('actions.reset', { defaultValue: 'Reset' })}
             <X className="eb-ml-2 eb-h-4 eb-w-4" />
           </Button>
         )}

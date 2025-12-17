@@ -52,6 +52,7 @@ const defaultHandlers = [
     return HttpResponse.json(docRequestThree);
   }),
   http.post('/document-requests/:requestId/submit', ({ params }) => {
+    // eslint-disable-next-line no-console
     console.log(`Document request ${params.requestId} submitted successfully`);
     return new HttpResponse(
       JSON.stringify({

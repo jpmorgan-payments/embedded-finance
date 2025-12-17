@@ -90,8 +90,8 @@ interface RecipientsProps {
   onRecipientCreated?: (recipient: Recipient) => void;
   onRecipientUpdated?: (recipient: Recipient) => void;
   onVerificationComplete?: (recipient: Recipient) => void;
-  userEventsToTrack?: string[];
-  userEventsHandler?: ({ actionName }: { actionName: string }) => void;
+  userEventsHandler?: (context: UserEventContext) => void | number;
+  userEventsLifecycle?: UserEventLifecycle;
 }
 ```
 
@@ -216,6 +216,101 @@ describe('Recipients Component', () => {
 - **Loading Performance**: Efficient data fetching patterns
 - **Memory Usage**: Proper cleanup and optimization
 - **Network Optimization**: Intelligent caching and batching
+
+## User Journey Tracking
+
+When `userEventsHandler` is provided, the Recipients component automatically tracks the following user journeys:
+
+- **recipient_details_viewed**: User views recipient details dialog
+- **recipient_create_started**: User opens create recipient dialog
+- **recipient_created**: Recipient successfully created
+- **recipient_edit_started**: User opens edit recipient dialog
+- **recipient_updated**: Recipient successfully updated
+- **recipient_deactivate_started**: User initiates deactivation
+- **recipient_deactivated**: Recipient successfully deactivated
+- **recipient_search**: User performs search
+- **recipient_filter_changed**: User changes filter (type or status)
+- **recipient_page_changed**: User changes page in pagination
+
+### Basic Usage
+
+```tsx
+<Recipients
+  userEventsHandler={(context) => {
+    console.log('User journey:', context.actionName);
+    console.log('Event type:', context.eventType);
+    console.log('Timestamp:', context.timestamp);
+    console.log('Metadata:', context.metadata);
+  }}
+/>
+```
+
+### Integration with Dynatrace
+
+```tsx
+<Recipients
+  userEventsHandler={(context) => {
+    if (window.dtrum) {
+      const actionId = window.dtrum.enterAction(context.actionName);
+      // Store actionId if you need to close it later
+      setTimeout(() => {
+        window.dtrum.leaveAction(actionId);
+      }, 100);
+    }
+  }}
+  userEventsLifecycle={{
+    onEnter: (context) => {
+      if (window.dtrum) {
+        return window.dtrum.enterAction(context.actionName);
+      }
+    },
+    onLeave: (context) => {
+      if (window.dtrum && context.actionId) {
+        window.dtrum.leaveAction(context.actionId);
+      }
+    },
+  }}
+/>
+```
+
+### Integration with Datadog RUM
+
+```tsx
+import { datadogRum } from '@datadog/browser-rum';
+
+<Recipients
+  userEventsHandler={(context) => {
+    datadogRum.addAction(context.actionName, {
+      eventType: context.eventType,
+      timestamp: context.timestamp,
+      ...context.metadata,
+    });
+  }}
+/>;
+```
+
+### Integration with Generic Analytics
+
+```tsx
+<Recipients
+  userEventsHandler={(context) => {
+    // Send to your analytics service
+    analytics.track(context.actionName, {
+      eventType: context.eventType,
+      timestamp: context.timestamp,
+      ...context.metadata,
+    });
+  }}
+/>
+```
+
+Each journey is tracked with:
+
+- `actionName`: The journey identifier
+- `eventType`: DOM event type (click, blur, etc.) or 'programmatic'
+- `timestamp`: Event timestamp (milliseconds since epoch)
+- `element`: The DOM element that triggered the event (if available)
+- `metadata`: Additional context (recipient ID, status, etc.)
 
 ## Implementation Priorities
 

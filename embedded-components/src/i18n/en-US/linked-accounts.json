@@ -3,6 +3,9 @@
   "description": "Manage your external bank accounts for payments",
   "linkNewAccount": "Link A New Account",
   "count": "({{count}})",
+  "showMoreWithCount": "Show {{count}} more account",
+  "showMoreWithCount_other": "Show {{count}} more accounts",
+  "loadingMore": "Loading...",
   "emptyState": {
     "title": "No linked accounts",
     "description": "Link a bank account to start making payments. You can use ACH, wire transfers, or real-time payments."
@@ -50,7 +53,11 @@
     "manage": "Manage",
     "edit": "Edit Payment Methods",
     "remove": "Remove Account",
-    "moreActions": "More actions for {{name}}"
+    "moreActions": "More actions for {{name}}",
+    "expand": "Expand to show all accounts",
+    "collapse": "Collapse to show fewer accounts",
+    "showAll": "Show all ({{count}})",
+    "showLess": "Show less"
   },
   "forms": {
     "linkAccount": {
@@ -107,6 +114,7 @@
       "description": "Enter the two small deposit amounts we sent to <strong>{{name}}</strong> in any order. You have <strong>3 total attempts</strong> to enter these amounts.",
       "cancel": "Cancel",
       "confirm": "Submit",
+      "submitting": "Verifying...",
       "amount1": {
         "label": "First Deposit Amount",
         "placeholder": "0.00",

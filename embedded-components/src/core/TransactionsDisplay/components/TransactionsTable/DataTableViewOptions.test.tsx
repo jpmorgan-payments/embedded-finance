@@ -47,19 +47,19 @@ const ViewOptionsWrapper = () => {
 
 describe('DataTableViewOptions', () => {
   describe('Rendering', () => {
-    test('renders view button', () => {
+    test('renders columns button', () => {
       render(<ViewOptionsWrapper />);
 
-      const viewButton = screen.getByRole('button', { name: /view/i });
-      expect(viewButton).toBeInTheDocument();
+      const columnsButton = screen.getByRole('button', { name: /columns/i });
+      expect(columnsButton).toBeInTheDocument();
     });
 
     test('opens column toggle menu on click', async () => {
       const user = userEvent.setup();
       render(<ViewOptionsWrapper />);
 
-      const viewButton = screen.getByRole('button', { name: /view/i });
-      await user.click(viewButton);
+      const columnsButton = screen.getByRole('button', { name: /columns/i });
+      await user.click(columnsButton);
 
       expect(screen.getByText('Toggle columns')).toBeInTheDocument();
     });
@@ -68,8 +68,8 @@ describe('DataTableViewOptions', () => {
       const user = userEvent.setup();
       render(<ViewOptionsWrapper />);
 
-      const viewButton = screen.getByRole('button', { name: /view/i });
-      await user.click(viewButton);
+      const columnsButton = screen.getByRole('button', { name: /columns/i });
+      await user.click(columnsButton);
 
       // Should show columns that can be hidden
       expect(screen.getByText('Toggle columns')).toBeInTheDocument();
@@ -79,8 +79,8 @@ describe('DataTableViewOptions', () => {
       const user = userEvent.setup();
       render(<ViewOptionsWrapper />);
 
-      const viewButton = screen.getByRole('button', { name: /view/i });
-      await user.click(viewButton);
+      const columnsButton = screen.getByRole('button', { name: /columns/i });
+      await user.click(columnsButton);
 
       // Actions column should not appear (enableHiding: false)
       const menu = screen.getByText('Toggle columns').closest('[role="menu"]');

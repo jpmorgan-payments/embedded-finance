@@ -2,11 +2,13 @@
 
 Target: Align all core components with API docs, i18n, private labeling (design/content tokens), security (OWASP), performance (Core Web Vitals), a11y (WCAG 2.1 AA), UX-tested flows, and OAS-superset client validation.
 
-**Last Updated:** December 3, 2025  
+**Last Updated:** December 9, 2025  
 **Related Documents:**
 
-- `BACKLOG.md` - Detailed task backlog with priorities and UX testing findings
-- `docs/ux-testing/2025-12-02/UX_TESTING_REPORT.md` - Comprehensive UX testing results
+- `BACKLOG.md` - Detailed task backlog with priorities and UX testing findings (updated with tracking IDs)
+- `docs/ux-testing/2025-12-02/UX_TESTING_REPORT.md` - Comprehensive UX testing results (Dec 2, 2025)
+- `docs/ux-testing/2025-12-09/UX_TESTING_REPORT.md` - UX testing results (Dec 9, 2025)
+- `docs/ux-testing/2025-12-09/PHASE1_CODE_INSPECTION.md` - Code inspection findings (Dec 9, 2025)
 
 ## Components (scope)
 
@@ -23,8 +25,8 @@ Each theme applies to all components. Within every theme, we will review and enh
 
 Baseline readiness: Basic functionality across all themes for all components is ready and verified. This roadmap captures the next iteration of enhancements and evolution.
 
-**Last Updated:** December 3, 2025  
-**Related Documents:** See `BACKLOG.md` for detailed task breakdown and UX testing findings.
+**Last Updated:** December 9, 2025  
+**Related Documents:** See `BACKLOG.md` for detailed task breakdown and UX testing findings. All backlog items now have unique tracking IDs (BL-XXX format).
 
 ```mermaid
 gantt
@@ -56,27 +58,42 @@ gantt
   - Add support for new entity types (with focus on publicly traded companies, government entities, and other non-profit entities)
   - Refine owner/controller flows
 - LinkedAccountWidget
-  - ✅ Handle verification responses (PR #583 - Dec 2, 2025)
-  - ✅ Add interaction stories (PR #583 - Dec 2, 2025)
-  - Parity with Recipients payment methods; better status messaging
-  - Robust microdeposit flows (retry/lockout messaging)
+  - ✅ Handle verification responses (PR #583 - Dec 2, 2025) [BL-401-1]
+  - ✅ Add interaction stories (PR #583 - Dec 2, 2025) [BL-401-1]
+  - [ ] Parity with Recipients payment methods [BL-401-2]
+  - [ ] Better status messaging [BL-401-3]
+  - [ ] Robust microdeposit flows (retry/lockout messaging) [BL-401-4]
 - Recipients
-  - Conditional attributes per payment method (ACH/RTP/WIRE)
-  - Edit flows parity + masking
-  - Recipient duplicate detection UX
+  - ✅ Server-side pagination implemented (PR #601 - Dec 9, 2025)
+  - ✅ Type filtering implemented (PR #601 - Dec 9, 2025)
+  - ✅ Status formatting refined with normalizeRecipientStatus (PR #601 - Dec 9, 2025)
+  - [ ] Conditional attributes per payment method (ACH/RTP/WIRE) [BL-402-1]
+  - [ ] Edit flows parity + masking [BL-402-2]
+  - [ ] Recipient duplicate detection UX [BL-402-3]
 - MakePayment
-  - Recipient/method filtering logic
-  - Review fee/time ETA display
-  - Review/confirmation UX
-  - Cross-currency payment support
+  - ✅ Recipient mode toggle refactored to RadioGroup (PR #601 - Dec 9, 2025) [BL-010]
+  - ✅ Manual recipient creation with save option (PR #601 - Dec 9, 2025) [BL-010]
+  - ✅ Payment method selector UI overhaul with icons (PR #601 - Dec 9, 2025) [BL-010]
+  - ✅ Section headings standardized to h3 (PR #601 - Dec 9, 2025) [BL-310]
+  - ✅ Account selector error handling and retry (PR #601 - Dec 9, 2025)
+  - [ ] Recipient/method filtering logic [BL-403-1]
+  - [ ] Review fee/time ETA display [BL-403-2, BL-031]
+  - [ ] Review/confirmation UX [BL-403-3]
+  - [ ] Cross-currency payment support [BL-403-4]
 - TransactionsDisplay
-  - Pagination;
-  - Review details attribute mapping
-  - Review PAYIN/PAYOUT derivation and counterpart display
+  - [ ] Pagination [BL-404-1]
+  - [ ] Review details attribute mapping [BL-404-2]
+  - [ ] Review PAYIN/PAYOUT derivation and counterpart display [BL-404-3]
+  - [ ] Fix "$NaN" display for Ledger Balance [BL-050-1]
+  - [ ] Replace "N/A" values with meaningful data or hide fields [BL-050-2]
 - Accounts
-  - Responsive cards;
-  - Review balance types mapping and tooltips
-  - Masking/toggle for sensitive routing/account info
+  - ✅ Account number masking code updated to `****${number.slice(-4)}` (Dec 3, 2025) [BL-003-1]
+  - ✅ Browser verification completed - all components use `****1098` pattern (Dec 9, 2025) [BL-003-2]
+  - [ ] Responsive cards [BL-405-1]
+  - [ ] Review balance types mapping and tooltips [BL-405-2]
+  - [ ] Masking/toggle for sensitive routing/account info [BL-405-3]
+  - [ ] Add "View Transactions" / "Transfer Funds" buttons [BL-090-1, BL-090-2]
+  - [ ] Remove redundant "Accounts" heading [BL-091-1]
 
 ## Theme 1: Security & Validation (In Progress)
 
@@ -86,8 +103,12 @@ gantt
 
 ## Theme 2: i18n & Tokens (In Progress)
 
-- Extract content tokens and wire `react-i18next` + `zod-i18n-map`.
-- Expand design tokens for full theming/private labeling; ensure runtime overrides via `EBComponentsProvider`.
+- ✅ Enhanced i18n support in Recipients components (PR #599 - Dec 8, 2025) [BL-420]
+- ✅ Updated SellSense themes with new editable properties (PR #600 - Dec 8, 2025) [BL-330]
+- ✅ Theme configuration aligned with Salt Design System (PR #586 - Dec 3, 2025) [BL-330]
+- [ ] Extract content tokens and wire `react-i18next` + `zod-i18n-map` [BL-420-1, BL-420-2]
+- [ ] Expand design tokens for full theming/private labeling [BL-420-3]
+- [ ] Ensure runtime overrides via `EBComponentsProvider` [BL-420-4]
 
 ## Theme 3: Functional Testing (CAT) (In Progress)
 
@@ -110,22 +131,37 @@ gantt
 
 ## Theme 7: A11y & UX Testing (In Progress)
 
-- ✅ UX scenarios per component (completed Dec 2, 2025 - see UX_TESTING_REPORT.md)
-- 🚧 Mitigate found issues (see BACKLOG.md Priority 1-3 for detailed items)
-- WCAG 2.1 AA; axe automated tests; keyboard/focus management, ARIA correctness.
-- **Key Findings from UX Testing:**
-  - Design system inconsistencies (button styles, colors, labels)
-  - Make Payment form discoverability issues
-  - Missing tooltips and accessibility features
-  - Responsive design issues
-  - Data quality and display issues
+- ✅ UX scenarios per component (completed Dec 2, 2025 - see UX_TESTING_REPORT.md) [BL-470-1]
+- ✅ Code inspection completed (Dec 9, 2025 - see PHASE1_CODE_INSPECTION.md)
+- 🚧 Mitigate found issues (see BACKLOG.md Priority 1-3 for detailed items) [BL-470-2]
+- [ ] WCAG 2.1 AA compliance [BL-470-3]
+- [ ] Axe automated tests [BL-470-4]
+- [ ] Keyboard/focus management [BL-470-5]
+- [ ] ARIA correctness [BL-470-6]
+- **Key Findings from UX Testing (Dec 2, 2025):**
+  - Design system inconsistencies (button styles, colors, labels) [BL-001, BL-002, BL-009]
+  - Make Payment form discoverability issues [BL-010]
+  - Missing tooltips and accessibility features [BL-070]
+  - Responsive design issues [BL-080]
+  - Data quality and display issues [BL-050]
+- **Progress Since Dec 2 Testing:**
+  - ✅ Account number masking code standardized and browser verified (Dec 9, 2025) [BL-003]
+  - ✅ Make Payment form structure improved (PR #601) [BL-010]
+  - ✅ Recipients server-side pagination implemented (PR #601)
+  - ✅ Browser testing completed (Dec 9, 2025) - See `docs/ux-testing/2025-12-09/UX_TESTING_REPORT.md`
+- **New Findings from Dec 9 Testing:**
+  - ✅ Recipients data inconsistency (table vs pagination) [BL-600] - **RESOLVED** (Dec 9, 2025 - Re-test confirmed)
+  - 🟠 Duplicate API calls across all components [BL-602]
+  - 🟡 Dialog accessibility warnings [BL-601]
+  - 🟡 MSW initialization errors [BL-603]
 
 ## Theme 8: Comprehensive Testing
 
-- 90%+ coverage: unit (validators/hooks), component, integration (MSW), E2E for critical paths.
-- Storybook scenarios: loading/error/empty/edge/i18n/theme/a11y.
-- ✅ Enhanced test setup with ResizeObserver mock (PR #582 - Dec 3, 2025)
-- ✅ Improved test reliability and structure (PR #582 - Dec 3, 2025)
+- [ ] 90%+ coverage: unit (validators/hooks), component, integration (MSW), E2E for critical paths [BL-480-1]
+- [ ] Storybook scenarios: loading/error/empty/edge/i18n/theme/a11y [BL-480-2]
+- ✅ Enhanced test setup with ResizeObserver mock (PR #582 - Dec 3, 2025) [BL-480-3]
+- ✅ Improved test reliability and structure (PR #582 - Dec 3, 2025) [BL-480-4]
+- ✅ Test warnings fixed and MSW handlers updated for onboarding (PR #602 - Dec 9, 2025)
 
 ## Theme 9: Documentation & AI Guides
 

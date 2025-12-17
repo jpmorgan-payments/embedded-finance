@@ -3,6 +3,14 @@
   "description": "Gérez vos comptes bancaires externes pour les paiements",
   "linkNewAccount": "Lier un nouveau compte",
   "count": "({{count}})",
+  "showMoreWithCount": "Afficher {{count}} compte de plus",
+  "showMoreWithCount_other": "Afficher {{count}} comptes de plus",
+  "loadMoreWithCount": "Charger {{count}} compte de plus",
+  "loadMoreWithCount_other": "Charger {{count}} comptes de plus",
+  "loadingMore": "Chargement...",
+  "showMoreButton": {
+    "viewingProgress": "Affichage de {{current}} sur {{total}}"
+  },
   "emptyState": {
     "title": "Aucun compte lié",
     "description": "Liez un compte bancaire pour commencer à effectuer des paiements. Vous pouvez utiliser ACH, virements bancaires ou paiements en temps réel."
@@ -223,6 +231,7 @@
       "description": "Entrez les deux petits montants de dépôt que nous avons envoyés à <strong>{{name}}</strong> dans n'importe quel ordre. Vous avez <strong>3 tentatives au total</strong> pour entrer ces montants.",
       "cancel": "Annuler",
       "confirm": "Soumettre",
+      "submitting": "Vérification en cours...",
       "amount1": {
         "label": "Premier montant de dépôt",
         "placeholder": "0,00",

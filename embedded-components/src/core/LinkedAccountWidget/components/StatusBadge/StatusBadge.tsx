@@ -23,7 +23,7 @@ export interface StatusBadgeProps {
 }
 
 /**
- * Get icon for status
+ * Get icon for status with appropriate semantic meaning
  */
 const getStatusIcon = (status: RecipientStatus) => {
   const iconClass = 'eb-h-3.5 eb-w-3.5';
@@ -31,14 +31,15 @@ const getStatusIcon = (status: RecipientStatus) => {
     case 'ACTIVE':
       return <CheckCircle2Icon className={iconClass} />;
     case 'PENDING':
+      return <ClockIcon className={iconClass} />; // Waiting for processing
     case 'MICRODEPOSITS_INITIATED':
-      return <ClockIcon className={iconClass} />;
+      return <ClockIcon className={iconClass} />; // In progress
     case 'READY_FOR_VALIDATION':
-      return <AlertCircleIcon className={iconClass} />;
+      return <AlertCircleIcon className={iconClass} />; // Action required
     case 'REJECTED':
-      return <XCircleIcon className={iconClass} />;
+      return <XCircleIcon className={iconClass} />; // Failed/denied
     case 'INACTIVE':
-      return <AlertTriangleIcon className={iconClass} />;
+      return <AlertTriangleIcon className={iconClass} />; // Disabled/suspended
     default:
       return null;
   }

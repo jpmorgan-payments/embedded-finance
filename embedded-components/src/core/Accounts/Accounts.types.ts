@@ -1,3 +1,5 @@
+import type { UserTrackingProps } from '@/lib/types/userTracking.types';
+
 /**
  * Accounts - Public API Types
  * Only public types that consumers need should be exported here.
@@ -6,7 +8,7 @@
 /**
  * Props for the Accounts component
  */
-export interface AccountsProps {
+export interface AccountsProps extends UserTrackingProps {
   allowedCategories: string[];
   clientId?: string;
   /** Optional title for the accounts section */

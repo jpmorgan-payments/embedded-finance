@@ -1,0 +1,132 @@
+{
+  "title": "Recipients",
+  "loading": {
+    "recipients": "Loading recipients..."
+  },
+  "error": {
+    "loadFailed": "Failed to load recipients. Please try again.",
+    "retry": "Retry"
+  },
+  "emptyState": {
+    "noRecipients": "No recipients found"
+  },
+  "actions": {
+    "addRecipient": "Add Recipient",
+    "createNewRecipient": "Create New Recipient",
+    "editRecipient": "Edit Recipient",
+    "deactivateRecipient": "Deactivate Recipient",
+    "deactivating": "Deactivating...",
+    "viewDetails": "View details",
+    "edit": "Edit",
+    "deactivate": "Deactivate",
+    "viewRecipientDetails": "View recipient details",
+    "editRecipientTitle": "Edit recipient",
+    "deactivateRecipientTitle": "Deactivate recipient"
+  },
+  "filters": {
+    "searchPlaceholder": "Search recipients...",
+    "type": {
+      "label": "Type",
+      "all": "All Types",
+      "recipient": "Recipient",
+      "linkedAccount": "Linked Account",
+      "settlementAccount": "Settlement Account"
+    },
+    "status": {
+      "label": "Status",
+      "all": "All Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "microdepositsInitiated": "Microdeposits Initiated",
+      "readyForValidation": "Ready for Validation",
+      "rejected": "Rejected"
+    },
+    "clearFilters": "Clear Filters"
+  },
+  "columns": {
+    "name": "Name",
+    "type": "Type",
+    "status": "Status",
+    "accountNumber": "Account Number",
+    "accountType": "Account Type",
+    "routingNumber": "Routing Number",
+    "createdAt": "Created",
+    "updatedAt": "Updated",
+    "partyId": "Party ID",
+    "clientId": "Client ID",
+    "actions": "Actions"
+  },
+  "columnToggle": {
+    "button": "Columns",
+    "label": "Toggle columns"
+  },
+  "pagination": {
+    "rowsTotal": "{{count}} row(s) total",
+    "rowsPerPage": "Rows per page",
+    "pageInfo": "Page {{current}} of {{total}}",
+    "pageInfoMobile": "{{current}} / {{total}}",
+    "goToFirstPage": {
+      "srOnly": "Go to first page"
+    },
+    "goToPreviousPage": {
+      "srOnly": "Go to previous page"
+    },
+    "goToNextPage": {
+      "srOnly": "Go to next page"
+    },
+    "goToLastPage": {
+      "srOnly": "Go to last page"
+    }
+  },
+  "details": {
+    "title": "Recipient: {{name}}",
+    "unknown": "Unknown",
+    "partyType": {
+      "individual": "Individual",
+      "business": "Business"
+    },
+    "sections": {
+      "partyInformation": "Party Information",
+      "address": "Address",
+      "contactInformation": "Contact Information",
+      "accountInformation": "Account Information",
+      "routingInformation": "Routing Information",
+      "accountSummary": "Account Summary"
+    },
+    "fields": {
+      "type": "Type",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "businessName": "Business Name",
+      "accountNumber": "Account Number",
+      "accountType": "Account Type",
+      "country": "Country",
+      "routingNumber": "Routing Number",
+      "codeType": "Code Type",
+      "transactionType": "Transaction Type"
+    },
+    "validationIssues": {
+      "title": "This recipient has validation issues:"
+    }
+  },
+  "card": {
+    "noPaymentMethods": "No payment methods",
+    "account": "Account:"
+  },
+  "deactivateDialog": {
+    "title": "Deactivate Recipient",
+    "description": "Are you sure you want to deactivate {{name}}? This action cannot be undone.",
+    "unknownRecipient": "this recipient",
+    "cancel": "Cancel",
+    "confirm": "Deactivate"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "rejected": "Rejected",
+    "microdepositsInitiated": "Microdeposits Initiated",
+    "readyForValidation": "Ready For Validation"
+  }
+}
+

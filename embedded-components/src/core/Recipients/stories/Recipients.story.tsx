@@ -14,6 +14,212 @@ import { MakePayment } from '../../MakePayment';
 import { Recipients } from '../Recipients';
 import type { RecipientsProps } from '../Recipients.types';
 
+const DEFAULT_PAGE = 0;
+const DEFAULT_LIMIT = 25;
+const MAX_LIMIT = 25;
+
+const generateRecipients = (count: number) => {
+  const firstNames = [
+    'Alice',
+    'Bob',
+    'Charlie',
+    'Diana',
+    'Edward',
+    'Fiona',
+    'George',
+    'Hannah',
+    'Isaac',
+    'Julia',
+    'Kevin',
+    'Laura',
+    'Michael',
+    'Nancy',
+    'Oliver',
+    'Patricia',
+    'Quinn',
+    'Rachel',
+    'Samuel',
+    'Tina',
+  ];
+  const lastNames = [
+    'Anderson',
+    'Brown',
+    'Chen',
+    'Davis',
+    'Evans',
+    'Foster',
+    'Garcia',
+    'Harris',
+    'Ivanov',
+    'Johnson',
+    'Kim',
+    'Lee',
+    'Martinez',
+    'Nguyen',
+    "O'Connor",
+    'Patel',
+    'Quinn',
+    'Rodriguez',
+    'Smith',
+    'Taylor',
+  ];
+  const businessNames = [
+    'Acme Corp',
+    'Beta Industries',
+    'Gamma Solutions',
+    'Delta Services',
+    'Epsilon Group',
+    'Zeta Enterprises',
+    'Eta Technologies',
+    'Theta Systems',
+    'Iota Consulting',
+    'Kappa Partners',
+  ];
+  const statuses: Array<
+    | 'ACTIVE'
+    | 'INACTIVE'
+    | 'PENDING'
+    | 'REJECTED'
+    | 'READY_FOR_VALIDATION'
+    | 'MICRODEPOSITS_INITIATED'
+  > = [
+    'ACTIVE',
+    'ACTIVE',
+    'ACTIVE',
+    'INACTIVE',
+    'PENDING',
+    'REJECTED',
+    'READY_FOR_VALIDATION',
+    'MICRODEPOSITS_INITIATED',
+  ];
+  const states = ['NY', 'CA', 'TX', 'FL', 'IL', 'PA', 'OH', 'GA', 'NC', 'MI'];
+  const types: Array<'RECIPIENT' | 'LINKED_ACCOUNT' | 'SETTLEMENT_ACCOUNT'> = [
+    'RECIPIENT',
+    'LINKED_ACCOUNT',
+    'SETTLEMENT_ACCOUNT',
+  ];
+
+  return Array.from({ length: count }, (_, i) => {
+    const isIndividual = i % 3 !== 0;
+    const firstNameIndex = i % firstNames.length;
+    const lastNameIndex = Math.floor(i / firstNames.length) % lastNames.length;
+    const businessIndex = Math.floor(i / 3) % businessNames.length;
+    const statusIndex = i % statuses.length;
+    const stateIndex = i % states.length;
+    const typeIndex = i % types.length;
+
+    const daysAgo = 180 - (i % 180);
+    const createdAt = new Date();
+    createdAt.setDate(createdAt.getDate() - daysAgo);
+
+    const updatedAt = new Date(createdAt);
+    updatedAt.setDate(updatedAt.getDate() + Math.floor(Math.random() * 30));
+
+    return createMockRecipient({
+      id: `recipient-${String(i + 1).padStart(3, '0')}`,
+      type: types[typeIndex],
+      status: statuses[statusIndex],
+      clientId: 'client-001',
+      partyDetails: {
+        type: isIndividual ? 'INDIVIDUAL' : 'ORGANIZATION',
+        firstName: isIndividual
+          ? `${firstNames[firstNameIndex]}${i > 19 ? i : ''}`
+          : undefined,
+        lastName: isIndividual
+          ? `${lastNames[lastNameIndex]}${i > 19 ? i : ''}`
+          : undefined,
+        businessName: !isIndividual
+          ? `${businessNames[businessIndex]} ${
+              i > 9 ? `#${Math.floor(i / 10)}` : ''
+            }`
+          : undefined,
+        address: {
+          addressLine1: `${(i % 9999) + 1} ${
+            isIndividual ? 'Main' : 'Business'
+          } Street`,
+          city: `City ${String.fromCharCode(65 + (i % 26))}`,
+          state: states[stateIndex],
+          postalCode: String(10000 + (i % 90000)),
+          countryCode: 'US',
+        },
+        contacts: [
+          {
+            contactType: 'EMAIL',
+            value: isIndividual
+              ? `${firstNames[firstNameIndex].toLowerCase()}${i}.${lastNames[
+                  lastNameIndex
+                ].toLowerCase()}@example.com`
+              : `contact${i}@${businessNames[businessIndex]
+                  .toLowerCase()
+                  .replace(/\s+/g, '')}.com`,
+          },
+        ],
+      },
+      account: {
+        number: String(1000000000 + i).padStart(10, '0'),
+        type: 'CHECKING',
+        countryCode: 'US',
+        routingInformation: [
+          {
+            routingCodeType: 'USABA',
+            routingNumber: String(100000000 + (i % 1000000)).padStart(9, '0'),
+            transactionType: i % 2 === 0 ? 'ACH' : 'WIRE',
+          },
+        ],
+      },
+      createdAt: createdAt.toISOString(),
+      updatedAt: updatedAt.toISOString(),
+    });
+  });
+};
+
+const buildPaginatedRecipientsResponse = (
+  baseResponse: typeof mockRecipientsResponse,
+  request: Request
+) => {
+  const url = new URL(request.url);
+  const page = Math.max(
+    DEFAULT_PAGE,
+    parseInt(url.searchParams.get('page') ?? `${DEFAULT_PAGE}`, 10)
+  );
+  const limit = Math.min(
+    MAX_LIMIT,
+    Math.max(
+      1,
+      parseInt(url.searchParams.get('limit') ?? `${DEFAULT_LIMIT}`, 10)
+    )
+  );
+  const type = url.searchParams.get('type');
+
+  let recipients = baseResponse.recipients ?? [];
+  if (type) {
+    recipients = recipients.filter((recipient) => recipient.type === type);
+  }
+
+  const startIndex = page * limit;
+  const endIndex = startIndex + limit;
+  const paginatedRecipients = recipients.slice(startIndex, endIndex);
+
+  // OAS-aligned response: metadata contains page, limit, total_items
+  // Remove any root-level pagination fields that might exist
+  const {
+    page: _,
+    limit: __,
+    total_items: ___,
+    ...cleanBaseResponse
+  } = baseResponse as any;
+
+  return HttpResponse.json({
+    ...cleanBaseResponse,
+    recipients: paginatedRecipients,
+    metadata: {
+      page,
+      limit,
+      total_items: recipients.length,
+    },
+  });
+};
+
 /**
  * Story args interface extending base provider args
  */
@@ -84,7 +290,6 @@ const meta: Meta<RecipientsStoryArgs> = {
       onRecipientCreated={args.onRecipientCreated}
       onRecipientUpdated={args.onRecipientUpdated}
       userEventsHandler={args.userEventsHandler}
-      userEventsToTrack={args.userEventsToTrack}
       makePaymentComponent={args.makePaymentComponent}
       config={args.config}
     />
@@ -100,13 +305,13 @@ export const Default: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
       handlers: [
-        http.get('*/recipients', () => {
-          return HttpResponse.json(mockRecipientsResponse);
+        http.get('*/recipients', ({ request }) => {
+          const recipients = generateRecipients(60);
+          return buildPaginatedRecipientsResponse({ recipients }, request);
         }),
         http.post('*/recipients', () => {
           return HttpResponse.json(createMockRecipient());
@@ -125,14 +330,14 @@ export const ActiveRecipients: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
       handlers: [
-        http.get('*/recipients', () => {
-          return HttpResponse.json(
-            createMockRecipientsResponse(mockActiveRecipients)
+        http.get('*/recipients', ({ request }) => {
+          return buildPaginatedRecipientsResponse(
+            createMockRecipientsResponse(mockActiveRecipients),
+            request
           );
         }),
         http.post('*/recipients', () => {
@@ -152,18 +357,18 @@ export const InactiveRecipients: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
       handlers: [
-        http.get('*/recipients', () => {
+        http.get('*/recipients', ({ request }) => {
           const inactiveRecipients =
             mockRecipientsResponse.recipients?.filter(
               (r) => r.status === 'INACTIVE'
             ) || [];
-          return HttpResponse.json(
-            createMockRecipientsResponse(inactiveRecipients)
+          return buildPaginatedRecipientsResponse(
+            createMockRecipientsResponse(inactiveRecipients),
+            request
           );
         }),
       ],
@@ -177,13 +382,15 @@ export const EmptyState: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
       handlers: [
-        http.get('*/recipients', () => {
-          return HttpResponse.json(mockEmptyRecipientsResponse);
+        http.get('*/recipients', ({ request }) => {
+          return buildPaginatedRecipientsResponse(
+            mockEmptyRecipientsResponse,
+            request
+          );
         }),
       ],
     },
@@ -196,7 +403,6 @@ export const Loading: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
@@ -215,7 +421,6 @@ export const ErrorState: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
@@ -237,7 +442,6 @@ export const ReadOnly: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: false,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
@@ -256,7 +460,6 @@ export const NoVerification: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
@@ -269,241 +472,57 @@ export const NoVerification: Story = {
   },
 };
 
-// Story with large dataset for pagination
+// Story with large dataset for pagination (merged with OneHundredRecipients)
+// This story is kept for backward compatibility but now uses the same implementation
 export const LargeDataset: Story = {
   args: {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
+    docs: {
+      description: {
+        story:
+          'This story demonstrates server-side pagination with 120 recipients. Navigate through pages to see the pagination controls in action. The API follows OAS specification with proper metadata structure.',
+      },
+    },
     msw: {
       handlers: [
         http.get('*/recipients', ({ request }) => {
-          const url = new URL(request.url);
-          const page = parseInt(url.searchParams.get('page') || '1', 10);
-          const limit = parseInt(url.searchParams.get('limit') || '10', 10);
-
-          // Generate 50 mock recipients
-          const largeDataset = Array.from({ length: 50 }, (_, i) =>
-            createMockRecipient({
-              id: `recipient-${i + 1}`,
-              partyDetails: {
-                type: i % 2 === 0 ? 'INDIVIDUAL' : 'ORGANIZATION',
-                firstName: i % 2 === 0 ? `John${i}` : undefined,
-                lastName: i % 2 === 0 ? `Doe${i}` : undefined,
-                businessName: i % 2 === 1 ? `Business ${i}` : undefined,
-                address: {
-                  addressLine1: `${i + 1} Main Street`,
-                  city: 'Sample City',
-                  state: 'SC',
-                  postalCode: '12345',
-                  countryCode: 'US',
-                },
-                contacts: [
-                  {
-                    contactType: 'EMAIL',
-                    value: `contact${i}@example.com`,
-                  },
-                ],
-              },
-              status: ['ACTIVE', 'INACTIVE', 'REJECTED'][i % 3] as any,
-            })
-          );
-
-          return HttpResponse.json(
-            createMockRecipientsResponse(largeDataset, page, limit)
-          );
+          const recipients = generateRecipients(120);
+          return buildPaginatedRecipientsResponse({ recipients }, request);
+        }),
+        http.post('*/recipients', () => {
+          return HttpResponse.json(createMockRecipient());
+        }),
+        http.post('*/recipients/:id', () => {
+          return HttpResponse.json(createMockRecipient());
         }),
       ],
     },
   },
 };
 
-// Story with 100 recipients to showcase sorting and pagination
+// Story with 100+ recipients to showcase server-side pagination
 export const OneHundredRecipients: Story = {
   args: {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     docs: {
       description: {
         story:
-          'This story demonstrates the Recipients table with 100 recipients to showcase sorting and pagination capabilities. Features include:\n\n- **Sorting**: Click column headers to sort by Name, Status, Account Number, or Created Date\n- **Pagination**: Navigate through pages with enhanced controls including page size selector (10, 20, 25, 30, 40, 50)\n- **Filtering**: Use search and status filters to narrow down results\n- **Client-side operations**: All sorting and pagination happens client-side for instant feedback\n\nTry sorting by different columns and changing the page size to see the enhanced data grid in action.',
+          'This story demonstrates the Recipients table with 150 recipients to showcase server-side pagination capabilities. Features include:\n\n- **Server-side pagination**: Navigate through multiple pages (default: 25 per page, max: 25)\n- **OAS-aligned API**: Follows OpenAPI spec with page (0-based), limit (max 25), and metadata structure\n- **Sorting**: Click column headers to sort by Name, Status, Account Number, or Created Date\n- **Filtering**: Use search and status filters to narrow down results\n\nTry changing pages and page sizes to see server-side pagination in action. The API returns paginated results with proper metadata.',
       },
     },
     msw: {
       handlers: [
-        http.get('*/recipients', () => {
-          // Generate 100 mock recipients with varied data
-          const firstNames = [
-            'Alice',
-            'Bob',
-            'Charlie',
-            'Diana',
-            'Edward',
-            'Fiona',
-            'George',
-            'Hannah',
-            'Isaac',
-            'Julia',
-            'Kevin',
-            'Laura',
-            'Michael',
-            'Nancy',
-            'Oliver',
-            'Patricia',
-            'Quinn',
-            'Rachel',
-            'Samuel',
-            'Tina',
-          ];
-          const lastNames = [
-            'Anderson',
-            'Brown',
-            'Chen',
-            'Davis',
-            'Evans',
-            'Foster',
-            'Garcia',
-            'Harris',
-            'Ivanov',
-            'Johnson',
-            'Kim',
-            'Lee',
-            'Martinez',
-            'Nguyen',
-            "O'Connor",
-            'Patel',
-            'Quinn',
-            'Rodriguez',
-            'Smith',
-            'Taylor',
-          ];
-          const businessNames = [
-            'Acme Corp',
-            'Beta Industries',
-            'Gamma Solutions',
-            'Delta Services',
-            'Epsilon Group',
-            'Zeta Enterprises',
-            'Eta Technologies',
-            'Theta Systems',
-            'Iota Consulting',
-            'Kappa Partners',
-          ];
-          const statuses: Array<
-            | 'ACTIVE'
-            | 'INACTIVE'
-            | 'PENDING'
-            | 'REJECTED'
-            | 'READY_FOR_VALIDATION'
-            | 'MICRODEPOSITS_INITIATED'
-          > = [
-            'ACTIVE',
-            'ACTIVE',
-            'ACTIVE',
-            'INACTIVE',
-            'PENDING',
-            'REJECTED',
-            'READY_FOR_VALIDATION',
-            'MICRODEPOSITS_INITIATED',
-          ];
-          const states = [
-            'NY',
-            'CA',
-            'TX',
-            'FL',
-            'IL',
-            'PA',
-            'OH',
-            'GA',
-            'NC',
-            'MI',
-          ];
-
-          const recipients = Array.from({ length: 100 }, (_, i) => {
-            const isIndividual = i % 3 !== 0; // 2/3 individuals, 1/3 organizations
-            const firstNameIndex = i % firstNames.length;
-            const lastNameIndex =
-              Math.floor(i / firstNames.length) % lastNames.length;
-            const businessIndex = Math.floor(i / 3) % businessNames.length;
-            const statusIndex = i % statuses.length;
-            const stateIndex = i % states.length;
-
-            // Create varied dates (spread over last 6 months)
-            const daysAgo = 180 - (i % 180);
-            const createdAt = new Date();
-            createdAt.setDate(createdAt.getDate() - daysAgo);
-
-            const updatedAt = new Date(createdAt);
-            updatedAt.setDate(
-              updatedAt.getDate() + Math.floor(Math.random() * 30)
-            );
-
-            return createMockRecipient({
-              id: `recipient-${String(i + 1).padStart(3, '0')}`,
-              type: 'RECIPIENT',
-              status: statuses[statusIndex],
-              clientId: 'client-001',
-              partyDetails: {
-                type: isIndividual ? 'INDIVIDUAL' : 'ORGANIZATION',
-                firstName: isIndividual
-                  ? `${firstNames[firstNameIndex]}${i > 19 ? i : ''}`
-                  : undefined,
-                lastName: isIndividual
-                  ? `${lastNames[lastNameIndex]}${i > 19 ? i : ''}`
-                  : undefined,
-                businessName: !isIndividual
-                  ? `${businessNames[businessIndex]} ${i > 9 ? `#${Math.floor(i / 10)}` : ''}`
-                  : undefined,
-                address: {
-                  addressLine1: `${(i % 9999) + 1} ${isIndividual ? 'Main' : 'Business'} Street`,
-                  city: `City ${String.fromCharCode(65 + (i % 26))}`,
-                  state: states[stateIndex],
-                  postalCode: String(10000 + (i % 90000)),
-                  countryCode: 'US',
-                },
-                contacts: [
-                  {
-                    contactType: 'EMAIL',
-                    value: isIndividual
-                      ? `${firstNames[firstNameIndex].toLowerCase()}${i}.${lastNames[lastNameIndex].toLowerCase()}@example.com`
-                      : `contact${i}@${businessNames[businessIndex].toLowerCase().replace(/\s+/g, '')}.com`,
-                  },
-                ],
-              },
-              account: {
-                number: String(1000000000 + i).padStart(10, '0'),
-                type: 'CHECKING',
-                countryCode: 'US',
-                routingInformation: [
-                  {
-                    routingCodeType: 'USABA',
-                    routingNumber: String(100000000 + (i % 1000000)).padStart(
-                      9,
-                      '0'
-                    ),
-                    transactionType: i % 2 === 0 ? 'ACH' : 'WIRE',
-                  },
-                ],
-              },
-              createdAt: createdAt.toISOString(),
-              updatedAt: updatedAt.toISOString(),
-            });
-          });
-
-          // Return all 100 recipients (client-side pagination will handle it)
-          return HttpResponse.json({
-            recipients,
-            limit: 100,
-            page: 1,
-            total_items: 100,
-          });
+        http.get('*/recipients', ({ request }) => {
+          const recipients = generateRecipients(150);
+          return buildPaginatedRecipientsResponse({ recipients }, request);
         }),
         http.post('*/recipients', () => {
           return HttpResponse.json(createMockRecipient());
@@ -522,27 +541,15 @@ export const RecipientTypes: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
       handlers: [
         http.get('*/recipients', ({ request }) => {
-          const url = new URL(request.url);
-          const type = url.searchParams.get('type');
-
-          let filteredRecipients =
-            mockRecipientsResponse.recipients?.filter((r) => r.type === type) ||
-            [];
-          if (!type) {
-            filteredRecipients = mockRecipientsResponse.recipients || [];
-          }
-
-          return HttpResponse.json({
-            ...mockRecipientsResponse,
-            recipients: filteredRecipients,
-            total_items: filteredRecipients.length,
-          });
+          return buildPaginatedRecipientsResponse(
+            mockRecipientsResponse,
+            request
+          );
         }),
       ],
     },
@@ -555,18 +562,18 @@ export const RejectedRecipients: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
       handlers: [
-        http.get('*/recipients', () => {
+        http.get('*/recipients', ({ request }) => {
           const rejectedRecipients =
             mockRecipientsResponse.recipients?.filter(
               (r) => r.status === 'REJECTED'
             ) || [];
-          return HttpResponse.json(
-            createMockRecipientsResponse(rejectedRecipients)
+          return buildPaginatedRecipientsResponse(
+            createMockRecipientsResponse(rejectedRecipients),
+            request
           );
         }),
       ],
@@ -580,13 +587,15 @@ export const InteractiveDemo: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     msw: {
       handlers: [
-        http.get('*/recipients', () => {
-          return HttpResponse.json(mockRecipientsResponse);
+        http.get('*/recipients', ({ request }) => {
+          return buildPaginatedRecipientsResponse(
+            mockRecipientsResponse,
+            request
+          );
         }),
         http.post('*/recipients', () => {
           return HttpResponse.json(createMockRecipient());
@@ -620,7 +629,6 @@ export const MobileView: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     viewport: {
@@ -645,7 +653,6 @@ export const SellSenseTheme: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
     themePreset: 'SellSense',
   },
   tags: ['@sellsense', '@theme'],
@@ -668,7 +675,6 @@ export const DarkSellSenseTheme: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
     themePreset: 'SellSense',
   },
   tags: ['@sellsense', '@theme'],
@@ -689,8 +695,8 @@ export const WithEventTracking: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
     userEventsHandler: (event) => {
+      // eslint-disable-next-line no-console
       console.log('User event:', event);
     },
   },
@@ -711,7 +717,6 @@ export const CustomContentTokens: Story = {
     apiBaseUrl: 'https://api.example.com',
     clientId: 'client-001',
     showCreateButton: true,
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
     contentTokensPreset: 'frCA',
   },
   parameters: {
@@ -734,7 +739,6 @@ export const WithMakePaymentComponent: Story = {
     makePaymentComponent: (
       <MakePayment triggerButtonVariant="link" icon={undefined} />
     ),
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     docs: {
@@ -822,7 +826,6 @@ export const WidgetLayout: Story = {
     makePaymentComponent: (
       <MakePayment triggerButtonVariant="link" icon={undefined} />
     ),
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     docs: {
@@ -910,7 +913,6 @@ export const WidgetLayoutMobile: Story = {
     makePaymentComponent: (
       <MakePayment triggerButtonVariant="link" icon={undefined} />
     ),
-    userEventsToTrack: ['click', 'view', 'edit', 'create'],
   },
   parameters: {
     viewport: {

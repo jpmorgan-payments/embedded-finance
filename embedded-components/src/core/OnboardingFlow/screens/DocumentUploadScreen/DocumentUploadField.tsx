@@ -146,7 +146,8 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
             (device) => device.kind === 'videoinput'
           );
           setEnableCameraCapture(hasVideoInput);
-        } catch (error) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch {
           // If we can't enumerate devices, assume camera is available on mobile
           setEnableCameraCapture(true);
         }
@@ -207,7 +208,7 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
       <FormField
         control={control}
         name={filesFieldName}
-        render={({ field: { onChange, value, ...fieldProps } }) => (
+        render={({ field: { onChange, value: _value, ...fieldProps } }) => (
           <FormItem className="eb-space-y-2">
             <FormLabel
               asterisk={!isOptional}

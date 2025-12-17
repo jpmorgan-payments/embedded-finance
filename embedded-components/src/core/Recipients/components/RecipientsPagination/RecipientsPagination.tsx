@@ -5,6 +5,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -14,6 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
+import { RECIPIENT_USER_JOURNEYS } from '../../Recipients.constants';
 
 export interface RecipientsPaginationProps {
   currentPage: number;
@@ -34,24 +37,34 @@ export const RecipientsPagination: React.FC<RecipientsPaginationProps> = ({
   totalPages,
   pageSize,
   totalItems,
-  startIndex,
-  endIndex,
   onPageChange,
   onPageSizeChange,
 }) => {
+  const { t: tRaw } = useTranslation(['recipients', 'common']);
+  // Type assertion to avoid TypeScript overload issues
+  const t = tRaw as (key: string, options?: any) => string;
+
   if (totalItems === 0) {
     return null;
   }
 
   return (
-    <div className="eb-mt-4 eb-flex eb-flex-col eb-gap-4 sm:eb-flex-row sm:eb-items-center sm:eb-justify-between">
-      <div className="eb-flex eb-items-center eb-gap-4">
-        <div className="eb-text-sm eb-text-gray-600">
-          Showing {startIndex} to {endIndex} of {totalItems} recipient
-          {totalItems !== 1 ? 's' : ''}
-        </div>
-        <div className="eb-flex eb-items-center eb-gap-2">
-          <span className="eb-text-sm eb-font-medium">Rows per page</span>
+    <div className="eb-flex eb-flex-col eb-gap-2 eb-px-2 sm:eb-flex-row sm:eb-items-center sm:eb-justify-between sm:eb-gap-0">
+      {/* Row count - hidden on mobile to save space */}
+      <div className="eb-hidden eb-text-sm eb-text-muted-foreground sm:eb-block">
+        {t('recipients:pagination.rowsTotal', {
+          defaultValue: '{{count}} row(s) total',
+          count: totalItems,
+        })}
+      </div>
+      <div className="eb-flex eb-flex-col eb-gap-2 sm:eb-flex-row sm:eb-items-center sm:eb-gap-4">
+        {/* Page size selector - hidden on mobile to save space */}
+        <div className="eb-hidden eb-items-center eb-gap-2 sm:eb-flex">
+          <p className="eb-text-sm eb-font-medium">
+            {t('recipients:pagination.rowsPerPage', {
+              defaultValue: 'Rows per page',
+            })}
+          </p>
           <Select
             value={`${pageSize}`}
             onValueChange={(value) => {
@@ -60,10 +73,10 @@ export const RecipientsPagination: React.FC<RecipientsPaginationProps> = ({
             }}
           >
             <SelectTrigger className="eb-h-8 eb-w-[70px]">
-              <SelectValue />
+              <SelectValue placeholder={pageSize} />
             </SelectTrigger>
-            <SelectContent>
-              {[10, 20, 25, 30, 40, 50].map((size) => (
+            <SelectContent side="top">
+              {[10, 20, 25].map((size) => (
                 <SelectItem key={size} value={`${size}`}>
                   {size}
                 </SelectItem>
@@ -71,56 +84,90 @@ export const RecipientsPagination: React.FC<RecipientsPaginationProps> = ({
             </SelectContent>
           </Select>
         </div>
-      </div>
-      {totalPages > 1 && (
-        <div className="eb-flex eb-items-center eb-gap-2">
-          <div className="eb-text-sm eb-font-medium">
-            Page {currentPage} of {totalPages}
-          </div>
-          <div className="eb-flex eb-gap-1">
+        {/* Mobile layout: Navigation buttons first, then page info */}
+        <div className="eb-flex eb-flex-col eb-gap-2 sm:eb-flex-row sm:eb-items-center sm:eb-gap-4">
+          {/* Navigation buttons - larger on mobile */}
+          <div className="eb-flex eb-items-center eb-justify-center eb-gap-2">
             <Button
               variant="outline"
               size="icon"
-              className="eb-h-8 eb-w-8"
-              disabled={currentPage === 1}
+              className="eb-hidden eb-h-8 lg:eb-flex"
+              data-user-event={RECIPIENT_USER_JOURNEYS.PAGE_CHANGED}
               onClick={() => onPageChange(1)}
-              title="First page"
+              disabled={currentPage === 1}
             >
+              <span className="eb-sr-only">
+                {t('recipients:pagination.goToFirstPage.srOnly', {
+                  defaultValue: 'Go to first page',
+                })}
+              </span>
               <ChevronsLeft className="eb-h-4 eb-w-4" />
             </Button>
             <Button
               variant="outline"
               size="icon"
-              className="eb-h-8 eb-w-8"
-              disabled={currentPage === 1}
+              className="eb-h-10 eb-w-10 sm:eb-h-8 sm:eb-w-8"
+              data-user-event={RECIPIENT_USER_JOURNEYS.PAGE_CHANGED}
               onClick={() => onPageChange(currentPage - 1)}
-              title="Previous page"
+              disabled={currentPage === 1}
             >
-              <ChevronLeft className="eb-h-4 eb-w-4" />
+              <span className="eb-sr-only">
+                {t('recipients:pagination.goToPreviousPage.srOnly', {
+                  defaultValue: 'Go to previous page',
+                })}
+              </span>
+              <ChevronLeft className="eb-h-5 eb-w-5 sm:eb-h-4 sm:eb-w-4" />
             </Button>
             <Button
               variant="outline"
               size="icon"
-              className="eb-h-8 eb-w-8"
-              disabled={currentPage >= totalPages}
+              className="eb-h-10 eb-w-10 sm:eb-h-8 sm:eb-w-8"
+              data-user-event={RECIPIENT_USER_JOURNEYS.PAGE_CHANGED}
               onClick={() => onPageChange(currentPage + 1)}
-              title="Next page"
+              disabled={currentPage >= totalPages}
             >
-              <ChevronRight className="eb-h-4 eb-w-4" />
+              <span className="eb-sr-only">
+                {t('recipients:pagination.goToNextPage.srOnly', {
+                  defaultValue: 'Go to next page',
+                })}
+              </span>
+              <ChevronRight className="eb-h-5 eb-w-5 sm:eb-h-4 sm:eb-w-4" />
             </Button>
             <Button
               variant="outline"
               size="icon"
-              className="eb-h-8 eb-w-8"
-              disabled={currentPage >= totalPages}
+              className="eb-hidden eb-h-8 lg:eb-flex"
+              data-user-event={RECIPIENT_USER_JOURNEYS.PAGE_CHANGED}
               onClick={() => onPageChange(totalPages)}
-              title="Last page"
+              disabled={currentPage >= totalPages}
             >
+              <span className="eb-sr-only">
+                {t('recipients:pagination.goToLastPage.srOnly', {
+                  defaultValue: 'Go to last page',
+                })}
+              </span>
               <ChevronsRight className="eb-h-4 eb-w-4" />
             </Button>
           </div>
+          {/* Page info - compact on mobile */}
+          <div className="eb-flex eb-items-center eb-justify-center eb-text-sm eb-font-medium">
+            <span className="eb-hidden sm:eb-inline">
+              {t('recipients:pagination.pageInfo', {
+                defaultValue: 'Page {{current}} of {{total}}',
+                current: currentPage,
+                total: totalPages,
+              })}
+            </span>
+            <span className="eb-inline sm:eb-hidden">
+              {t('recipients:pagination.pageInfoMobile', {
+                defaultValue: '{{current}} / {{total}}',
+                current: currentPage,
+                total: totalPages,
+              })}
+            </span>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

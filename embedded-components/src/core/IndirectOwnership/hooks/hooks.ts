@@ -146,10 +146,9 @@ export function useOwnershipEntityForm() {
     },
   });
 
-  const handleSubmit = useCallback(async (data: OwnershipEntityFormData) => {
+  const handleSubmit = useCallback(async (_data: OwnershipEntityFormData) => {
     try {
       // TODO: Transform form data to API format and submit
-      console.log('Submitting ownership entity:', data);
 
       // Placeholder for API call - will use useSmbdoUpdateClient to add parties
       // const result = await updateClientMutation.mutateAsync({

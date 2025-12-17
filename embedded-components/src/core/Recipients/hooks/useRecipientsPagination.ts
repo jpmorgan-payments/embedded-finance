@@ -47,8 +47,11 @@ export function useRecipientsPagination(
 
   const paginationInfo = useMemo(
     () => ({
-      startIndex: (currentPage - 1) * pageSize + 1,
-      endIndex: Math.min(currentPage * pageSize, totalItems),
+      startIndex: totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1,
+      endIndex:
+        totalItems === 0
+          ? 0
+          : Math.min(currentPage * pageSize, Math.max(totalItems, 0)),
       total: totalItems,
     }),
     [currentPage, pageSize, totalItems]

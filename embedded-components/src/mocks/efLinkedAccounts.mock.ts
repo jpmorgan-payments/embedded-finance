@@ -9,9 +9,11 @@ import {
 } from '@/api/generated/ep-recipients.schemas';
 
 export const linkedAccountListMock: ListRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 3,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 4,
+  },
   recipients: [
     {
       partyDetails: {
@@ -142,13 +144,54 @@ export const linkedAccountListMock: ListRecipientsResponse = {
       createdAt: '2024-03-10T09:15:00Z',
       updatedAt: '2024-03-12T14:30:00Z',
     },
+    {
+      partyDetails: {
+        address: {
+          addressLine1: '456 Elm Street',
+          addressLine2: '',
+          addressLine3: '',
+          city: 'Boston',
+          countryCode: CountryCode.US,
+          state: 'MA',
+          postalCode: '02101',
+        },
+        type: PartyType.INDIVIDUAL,
+        firstName: 'Michael',
+        lastName: 'Chen',
+        contacts: [
+          {
+            contactType: RecipientContactContactType.EMAIL,
+            value: 'michael.chen@email.com',
+          },
+        ],
+      },
+      account: {
+        number: '1111222233334444',
+        type: AccountType.CHECKING,
+        countryCode: CountryCode.US,
+        routingInformation: [
+          {
+            routingCodeType: 'USABA',
+            routingNumber: '011401533',
+            transactionType: 'ACH',
+          },
+        ],
+      },
+      id: 'd4e5f6g7-h8i9-j0k1-l2m3-n4o5p6q7r8s9',
+      type: RecipientType.LINKED_ACCOUNT,
+      status: RecipientStatus.MICRODEPOSITS_INITIATED,
+      createdAt: '2024-03-15T11:20:00Z',
+      updatedAt: '2024-03-15T11:25:00Z',
+    },
   ],
 };
 
 export const linkedAccountMicrodepositListMock: ListRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 1,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 1,
+  },
   recipients: [
     {
       partyDetails: {
@@ -197,9 +240,11 @@ export const linkedAccountMicrodepositListMock: ListRecipientsResponse = {
 };
 
 export const linkedAccountReadyForValidationMock: ListRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 1,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 1,
+  },
   recipients: [
     {
       partyDetails: {
@@ -250,9 +295,11 @@ export const linkedAccountReadyForValidationMock: ListRecipientsResponse = {
 };
 
 export const linkedAccountRejectedMock: ListRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 1,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 1,
+  },
   recipients: [
     {
       partyDetails: {
@@ -303,9 +350,11 @@ export const linkedAccountRejectedMock: ListRecipientsResponse = {
 
 // New mock for business accounts
 export const linkedAccountBusinessMock: ListRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 2,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 2,
+  },
   recipients: [
     {
       partyDetails: {
@@ -400,9 +449,11 @@ export const linkedAccountBusinessMock: ListRecipientsResponse = {
 
 // Mock for single active account
 export const linkedAccountActiveMock: ListRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 1,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 1,
+  },
   recipients: [
     {
       partyDetails: {
@@ -452,9 +503,11 @@ export const linkedAccountActiveMock: ListRecipientsResponse = {
 
 // Mock for inactive accounts
 export const linkedAccountInactiveMock: ListRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 1,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 1,
+  },
   recipients: [
     {
       partyDetails: {

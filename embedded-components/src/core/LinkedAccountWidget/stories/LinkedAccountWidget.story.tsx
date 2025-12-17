@@ -72,7 +72,10 @@ export const SingleAccountVariant: Story = {
   },
   loaders: [
     async () => {
-      await seedRecipientData(linkedAccountListMock);
+      await seedRecipientData({
+        ...linkedAccountListMock,
+        recipients: linkedAccountListMock.recipients?.slice(0, 1) ?? [],
+      });
     },
   ],
 };
@@ -96,6 +99,60 @@ export const EmptyState: Story = {
         ...linkedAccountListMock,
         recipients: [],
       });
+    },
+  ],
+};
+
+/**
+ * Compact layout optimized for space-constrained UIs.
+ * Shows accounts as edge-to-edge rows with reduced padding.
+ *
+ * **Use this when:**
+ * - Space is limited (e.g., sidebars, modals, mobile views)
+ * - You need to display more accounts in less vertical space
+ * - You want a denser, list-style layout
+ *
+ * **Features:**
+ * - No padding between cards (edge-to-edge)
+ * - Compact header with hidden description
+ * - Inline status messages instead of alerts
+ * - Horizontal layout with icon, name, and actions
+ */
+export const CompactLayout: Story = {
+  args: {
+    variant: 'default',
+    compact: true,
+  },
+  loaders: [
+    async () => {
+      await seedRecipientData(linkedAccountListMock);
+    },
+  ],
+};
+
+/**
+ * Virtualized scrolling for handling large lists efficiently.
+ * Uses virtual scrolling to render only visible items for performance.
+ *
+ * **Use this when:**
+ * - You have many linked accounts (10+)
+ * - You want to limit the widget's height
+ * - Performance with large lists is a concern
+ *
+ * **Features:**
+ * - Fixed height container with scrolling
+ * - Only renders visible items (virtualized)
+ * - Smooth scrolling experience
+ * - Automatic height calculation for dynamic content
+ */
+export const VirtualizedScrolling: Story = {
+  args: {
+    variant: 'default',
+    scrollHeight: '400px',
+  },
+  loaders: [
+    async () => {
+      await seedRecipientData(linkedAccountListMock);
     },
   ],
 };

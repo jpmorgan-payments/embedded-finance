@@ -1,0 +1,16 @@
+{
+  "component": "Make Payment",
+  "date": "2025-12-09",
+  "url": "https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=make-payment&theme=Empty",
+  "metrics": {
+    "load_time": "~2-3 seconds",
+    "interactive_time": "~3-4 seconds",
+    "note": "Performance metrics collected via browser automation. Form opens quickly after button click."
+  }
+}
+
+
+
+
+
+

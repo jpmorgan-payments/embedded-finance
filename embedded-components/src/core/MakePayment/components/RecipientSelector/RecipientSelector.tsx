@@ -8,7 +8,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import {
@@ -59,9 +58,6 @@ export const RecipientSelector: React.FC<RecipientSelectorProps> = ({
       name="to"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>
-            {t('fields.to.label', { defaultValue: 'Who are you paying?' })}
-          </FormLabel>
           {recipientsStatus === 'pending' && (
             <div className="eb-py-2 eb-text-xs eb-text-muted-foreground">
               Loading recipients...
@@ -116,7 +112,7 @@ export const RecipientSelector: React.FC<RecipientSelectorProps> = ({
                 }
               >
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger data-user-event="payment_recipient_selected">
                     <SelectValue
                       placeholder={
                         recipientsStatus === 'pending'

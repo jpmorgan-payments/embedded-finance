@@ -1,5 +1,3 @@
-import type React from 'react';
-
 /**
  * Props for the HierarchyBuilder component
  */
@@ -20,12 +18,14 @@ export interface HierarchyBuilderProps {
   }>;
 
   /** Callback when hierarchy chain is updated */
-  onHierarchyChange: (chain: Array<{
-    id: string;
-    companyName: string;
-    isKycCompany: boolean;
-    level: number;
-  }>) => void;
+  onHierarchyChange: (
+    chain: Array<{
+      id: string;
+      companyName: string;
+      isKycCompany: boolean;
+      level: number;
+    }>
+  ) => void;
 
   /** Callback to go back */
   onBack: () => void;

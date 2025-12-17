@@ -38,4 +38,24 @@ describe('formatNumberWithCommas', () => {
     expect(result.whole).toBe('-1,234');
     expect(result.decimal).toBe('56');
   });
+
+  test('uses default en-US locale when not provided', () => {
+    const result = formatNumberWithCommas(1234.56);
+    expect(result.whole).toBe('1,234');
+    expect(result.decimal).toBe('56');
+  });
+
+  test('formats with fr-CA locale correctly', () => {
+    const result = formatNumberWithCommas(1234.56, 'fr-CA');
+    // French-Canadian uses space as thousands separator
+    expect(result.whole).toBe('1\u00a0234'); // \u00a0 is non-breaking space
+    expect(result.decimal).toBe('56');
+  });
+
+  test('formats with es-US locale correctly', () => {
+    const result = formatNumberWithCommas(1234.56, 'es-US');
+    // Spanish-US uses comma as thousands separator (same as en-US)
+    expect(result.whole).toBe('1,234');
+    expect(result.decimal).toBe('56');
+  });
 });

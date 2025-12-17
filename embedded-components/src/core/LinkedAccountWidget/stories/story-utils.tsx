@@ -377,45 +377,48 @@ export const createRecipientHandlers = (
   return [
     // GET /clients/:clientId - Get client with expanded parties
     // Note: Uses wildcard to match different base URLs and any client ID
-    http.get('*/clients/:clientId', async ({ params }): Promise<Response> => {
-      const { clientId } = params;
+    http.get(
+      '/do/v1/clients/:clientId',
+      async ({ params }): Promise<Response> => {
+        const { clientId } = params;
 
-      // Try to find the specific client, or return the first available client
-      let client = db.client.findFirst({
-        where: { id: { equals: clientId as string } },
-      });
+        // Try to find the specific client, or return the first available client
+        let client = db.client.findFirst({
+          where: { id: { equals: clientId as string } },
+        });
 
-      if (!client) {
-        // If specific client not found, return any available client (for flexibility)
-        const allClients = db.client.getAll();
-        [client] = allClients;
+        if (!client) {
+          // If specific client not found, return any available client (for flexibility)
+          const allClients = db.client.getAll();
+          [client] = allClients;
+        }
+
+        if (!client) {
+          return HttpResponse.json(
+            { httpStatus: 404, title: 'Client not found' },
+            { status: 404 }
+          );
+        }
+
+        // Expand party IDs to full party objects
+        const expandedClient = {
+          ...client,
+          parties: (client.parties as string[])
+            .map((partyId) =>
+              db.party.findFirst({ where: { id: { equals: partyId } } })
+            )
+            .filter(Boolean),
+        };
+
+        debugLog('GET /do/v1/clients/:clientId', {
+          requestedId: clientId,
+          returnedId: client.id,
+          partyCount: expandedClient.parties.length,
+        });
+
+        return HttpResponse.json(expandedClient);
       }
-
-      if (!client) {
-        return HttpResponse.json(
-          { httpStatus: 404, title: 'Client not found' },
-          { status: 404 }
-        );
-      }
-
-      // Expand party IDs to full party objects
-      const expandedClient = {
-        ...client,
-        parties: (client.parties as string[])
-          .map((partyId) =>
-            db.party.findFirst({ where: { id: { equals: partyId } } })
-          )
-          .filter(Boolean),
-      };
-
-      debugLog('GET /clients/:clientId', {
-        requestedId: clientId,
-        returnedId: client.id,
-        partyCount: expandedClient.parties.length,
-      });
-
-      return HttpResponse.json(expandedClient);
-    }),
+    ),
 
     // GET /recipients - List all active recipients
     http.get('/recipients', async (): Promise<Response> => {
@@ -620,6 +623,40 @@ export const commonArgTypes = {
     table: {
       category: 'Provider',
       defaultValue: { summary: 'mock-client-id' },
+    },
+  },
+  compact: {
+    control: { type: 'boolean' as const },
+    description: 'Enable compact mode ',
+    table: {
+      category: 'Component',
+      defaultValue: { summary: 'false' },
+    },
+  },
+  scrollHeight: {
+    control: { type: 'text' as const },
+    description:
+      'Sets a fixed height with scroll for the account list (e.g., "300px", "50%")',
+    table: {
+      category: 'Component',
+    },
+  },
+  initialItemsToShow: {
+    control: { type: 'number' as const },
+    description:
+      'Number of accounts to show initially when scrollHeight is not set',
+    table: {
+      category: 'Component',
+      defaultValue: { summary: '2' },
+    },
+  },
+  pageSize: {
+    control: { type: 'number' as const },
+    description:
+      'Number of accounts to fetch per page from the API when scrollHeight is not set',
+    table: {
+      category: 'Component',
+      defaultValue: { summary: '25' },
     },
   },
 };

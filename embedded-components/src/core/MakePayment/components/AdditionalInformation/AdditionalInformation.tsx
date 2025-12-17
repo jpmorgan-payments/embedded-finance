@@ -6,7 +6,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 
@@ -17,12 +16,12 @@ export const AdditionalInformation: React.FC = () => {
   const form = useFormContext<PaymentFormData>();
 
   return (
-    <div className="eb-space-y-1">
-      <FormLabel className="eb-block">
+    <div className="eb-space-y-4">
+      <h3 className="eb-text-base eb-font-semibold">
         {t('sections.additionalInfo', {
           defaultValue: 'Additional Information (optional)',
         })}
-      </FormLabel>
+      </h3>
       <div className="eb-mb-1 eb-text-xs eb-text-muted-foreground">
         {t('helpers.memo', {
           defaultValue: 'Internal note for your records (optional)',

@@ -41,9 +41,8 @@ describe('TransactionCard', () => {
     renderWithProviders(<TransactionCard transaction={mockTransaction} />);
 
     expect(screen.getByText('ACH')).toBeInTheDocument();
-    expect(screen.getByText('COMPLETED')).toBeInTheDocument();
+    expect(screen.getByText('Completed')).toBeInTheDocument();
     expect(screen.getByText('Test Counterpart')).toBeInTheDocument();
-    expect(screen.getByText('Test memo')).toBeInTheDocument();
   });
 
   test('renders formatted amount', () => {
@@ -64,6 +63,7 @@ describe('TransactionCard', () => {
     renderWithProviders(<TransactionCard transaction={minimalTransaction} />);
 
     expect(screen.getByText('TRANSFER')).toBeInTheDocument();
+    expect(screen.getByText('Pending')).toBeInTheDocument();
     // Check that N/A appears (there may be multiple instances)
     expect(screen.getAllByText('N/A').length).toBeGreaterThan(0);
   });

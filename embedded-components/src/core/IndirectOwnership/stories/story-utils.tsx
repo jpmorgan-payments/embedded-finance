@@ -3,8 +3,10 @@
  */
 
 import { SELLSENSE_THEME } from '@storybook-themes';
+
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import type { EBTheme } from '@/core/EBComponentsProvider/config.types';
+
 import { IndirectOwnership } from '../IndirectOwnership';
 import type { IndirectOwnershipProps } from '../IndirectOwnership.types';
 
@@ -67,8 +69,14 @@ export const commonArgs = {
   headers: {},
   theme: SELLSENSE_THEME,
   contentTokens: { name: 'enUS' as const },
-  onOwnershipComplete: (owners: any) => console.log('Ownership completed:', owners),
-  onValidationChange: (summary: any) => console.log('Validation changed:', summary),
+  onOwnershipComplete: (owners: any) => {
+    // eslint-disable-next-line no-console
+    console.log('Ownership completed:', owners);
+  },
+  onValidationChange: (summary: any) => {
+    // eslint-disable-next-line no-console
+    console.log('Validation changed:', summary);
+  },
 };
 
 /**

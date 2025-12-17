@@ -962,32 +962,44 @@ export const createHandlers = (apiUrl) => [
     );
 
     // Handle optional pagination
+    // OAS spec: page is 0-based, default to 0 if not provided
     if (!pageParam && !limitParam) {
       console.log('No pagination params, returning all recipients');
       const response = {
-        page: 1,
+        recipients: filteredRecipients,
+        page: 0,
         limit: filteredRecipients.length,
         total_items: filteredRecipients.length,
-        recipients: filteredRecipients,
+        metadata: {
+          page: 0,
+          limit: filteredRecipients.length,
+          total_items: filteredRecipients.length,
+        },
       };
       return HttpResponse.json(response, {
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    const page = parseInt(pageParam || '1', 10);
-    const limit = parseInt(limitParam || '10', 10);
+    // OAS spec: page is 0-based (default to 0), limit defaults to 25
+    const page = Math.max(0, parseInt(pageParam || '0', 10));
+    const limit = Math.min(25, Math.max(1, parseInt(limitParam || '25', 10)));
 
-    // Manual pagination since we're using database
-    const startIndex = (page - 1) * limit;
+    // Manual pagination since we're using database (0-based page indexing)
+    const startIndex = page * limit;
     const endIndex = startIndex + limit;
     const paginatedRecipients = filteredRecipients.slice(startIndex, endIndex);
 
     const response = {
+      recipients: paginatedRecipients,
       page,
       limit,
       total_items: filteredRecipients.length,
-      recipients: paginatedRecipients,
+      metadata: {
+        page,
+        limit,
+        total_items: filteredRecipients.length,
+      },
     };
 
     console.log('Final response:', response);

@@ -1,6 +1,6 @@
 {
   "name": "@jpmorgan-payments/embedded-finance-components",
-  "version": "0.10.7",
+  "version": "0.10.9",
   "license": "Apache-2.0",
   "type": "module",
   "description": "Embedded Finance Components",
@@ -24,7 +24,8 @@
     "component-library"
   ],
   "files": [
-    "dist"
+    "dist",
+    "src/i18n"
   ],
   "main": "./dist/umd/ef-components.js",
   "module": "./dist/esm/ef-components.js",
@@ -39,7 +40,15 @@
         "types": "./dist/index.d.ts",
         "default": "./dist/umd/ef-components.js"
       }
-    }
+    },
+    "./i18n/config": {
+      "types": "./src/i18n/config.ts",
+      "import": "./src/i18n/config.ts",
+      "require": "./src/i18n/config.ts"
+    },
+    "./i18n/en-US/*.json": "./src/i18n/en-US/*.json",
+    "./i18n/es-US/*.json": "./src/i18n/es-US/*.json",
+    "./i18n/fr-CA/*.json": "./src/i18n/fr-CA/*.json"
   },
   "scripts": {
     "__comment_build": "=== BUILD ===",
@@ -99,6 +108,7 @@
     "@stepperize/react": "^5.1.9",
     "@tanstack/react-query": "^5.90.5",
     "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-virtual": "^3.13.12",
     "axios": "^1.12.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -156,8 +166,8 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@types/react-window": "^1",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
+    "@typescript-eslint/eslint-plugin": "^8.49.0",
+    "@typescript-eslint/parser": "^8.49.0",
     "@vitejs/plugin-react": "^4.3.1",
     "@vitest/ui": "2.1.9",
     "autoprefixer": "^10.4.21",

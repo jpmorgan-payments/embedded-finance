@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 
+import type { UserEventContext } from '@/lib/types/userTracking.types';
+import { trackUserEvent } from '@/lib/utils/userTracking';
 import {
   useAmendRecipient,
   useCreateRecipient,
@@ -10,11 +12,13 @@ import type {
   UpdateRecipientRequest,
 } from '@/api/generated/ep-recipients.schemas';
 
+import { RECIPIENT_USER_JOURNEYS } from '../Recipients.constants';
+
 export interface UseRecipientsMutationsOptions {
   onRecipientCreated?: (recipient: Recipient) => void;
   onRecipientUpdated?: (recipient: Recipient) => void;
   onRecipientDeactivated?: (recipient: Recipient) => void;
-  userEventsHandler?: ({ actionName }: { actionName: string }) => void;
+  userEventsHandler?: (context: UserEventContext) => void | number;
   onSuccess?: () => void;
   refetch?: () => void;
 }
@@ -49,7 +53,11 @@ export function useRecipientsMutations(
         refetch?.();
         onSuccess?.();
         onRecipientCreated?.(data);
-        userEventsHandler?.({ actionName: 'recipient_created' });
+        trackUserEvent({
+          actionName: RECIPIENT_USER_JOURNEYS.CREATE_COMPLETED,
+          metadata: { recipientId: data.id },
+          userEventsHandler,
+        });
       },
       onError: (error) => {
         console.error('Failed to create recipient:', error);
@@ -63,7 +71,11 @@ export function useRecipientsMutations(
         refetch?.();
         onSuccess?.();
         onRecipientUpdated?.(data);
-        userEventsHandler?.({ actionName: 'recipient_updated' });
+        trackUserEvent({
+          actionName: RECIPIENT_USER_JOURNEYS.EDIT_COMPLETED,
+          metadata: { recipientId: data.id },
+          userEventsHandler,
+        });
       },
       onError: (error) => {
         console.error('Failed to update recipient:', error);
@@ -77,7 +89,11 @@ export function useRecipientsMutations(
         refetch?.();
         onSuccess?.();
         onRecipientDeactivated?.(data);
-        userEventsHandler?.({ actionName: 'recipient_deactivated' });
+        trackUserEvent({
+          actionName: RECIPIENT_USER_JOURNEYS.DEACTIVATE_COMPLETED,
+          metadata: { recipientId: data.id },
+          userEventsHandler,
+        });
       },
       onError: (error) => {
         console.error('Failed to deactivate recipient:', error);

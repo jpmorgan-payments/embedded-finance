@@ -25,7 +25,7 @@ import {
 } from './db';
 
 export const handlers = [
-  http.get(`/clients/:clientId`, (req) => {
+  http.get(`/do/v1/clients/:clientId`, (req) => {
     const { clientId } = req.params;
     const client = db.client.findFirst({
       where: { id: { equals: clientId } },
@@ -59,7 +59,7 @@ export const handlers = [
     });
   }),
 
-  http.post(`/clients`, async ({ request }) => {
+  http.post(`/do/v1/clients`, async ({ request }) => {
     const rawData = await request.json();
     if (!rawData || typeof rawData !== 'object') {
       return new HttpResponse(null, {
@@ -131,7 +131,7 @@ export const handlers = [
     });
   }),
 
-  http.post(`/clients/:clientId`, async ({ request, params }) => {
+  http.post(`/do/v1/clients/:clientId`, async ({ request, params }) => {
     const { clientId } = params;
     const data = await request.json();
 
@@ -300,7 +300,7 @@ export const handlers = [
     });
   }),
 
-  http.post('/parties/:partyId', async ({ request, params }) => {
+  http.post('*/parties/:partyId', async ({ request, params }) => {
     const { partyId } = params;
     const data = await request.json();
 
@@ -504,7 +504,7 @@ export const handlers = [
     }
   ),
 
-  http.get('/clients/:clientId', () => {
+  http.get('/do/v1/clients/:clientId', () => {
     return new HttpResponse(null, { status: 404 });
   }),
 
@@ -516,31 +516,56 @@ export const handlers = [
     return HttpResponse.json(getDbStatus());
   }),
 
-  http.post('/clients/:clientId/verifications', async ({ request, params }) => {
-    const { clientId } = params;
-    const data = await request.json();
+  http.post(
+    '/do/v1/clients/:clientId/verifications',
+    async ({ request, params }) => {
+      const { clientId } = params;
+      const data = await request.json();
 
-    const verificationResponse = handleMagicValues(clientId, data);
-    if (!verificationResponse) {
-      return new HttpResponse(null, { status: 404 });
+      const verificationResponse = handleMagicValues(clientId, data);
+      if (!verificationResponse) {
+        return new HttpResponse(null, { status: 404 });
+      }
+
+      return HttpResponse.json(verificationResponse);
     }
-
-    return HttpResponse.json(verificationResponse);
-  }),
+  ),
 
   // Recipient endpoints
   http.get('/recipients', ({ request }) => {
     const url = new URL(request.url);
     const clientId = url.searchParams.get('clientId');
+    const type = url.searchParams.get('type');
+
+    // Parse pagination params with OAS defaults: page=0, limit=25
+    const page = Math.max(0, parseInt(url.searchParams.get('page') || '0', 10));
+    const limit = Math.min(
+      25,
+      Math.max(1, parseInt(url.searchParams.get('limit') || '25', 10))
+    );
 
     // Get active recipients (filter out INACTIVE and REJECTED)
-    const recipients = getActiveRecipients(clientId || undefined);
+    let recipients = getActiveRecipients(clientId || undefined);
 
+    // Filter by type if provided
+    if (type) {
+      recipients = recipients.filter((r) => r.type === type);
+    }
+
+    // Apply server-side pagination
+    const totalItems = recipients.length;
+    const startIndex = page * limit;
+    const endIndex = startIndex + limit;
+    const paginatedRecipients = recipients.slice(startIndex, endIndex);
+
+    // Return OAS-aligned response structure
     return HttpResponse.json({
-      recipients,
-      page: 0,
-      limit: 100,
-      total_items: recipients.length,
+      recipients: paginatedRecipients,
+      metadata: {
+        page,
+        limit,
+        total_items: totalItems,
+      },
     });
   }),
 

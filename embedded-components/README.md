@@ -51,7 +51,7 @@ graph LR
 1. **Runtime Customization**
    - Inject design tokens to match parent app's theme or use the default ones
    - Override content tokens from parent app's CMS systems or any other source
-   - Connect to parent app's monitoring via `userEventsHandler`
+   - Connect to parent app's monitoring via `userEventsHandler` (see User Journey Tracking section)
 
 2. **Component Configuration**
    - Configure API endpoints via provider
@@ -218,8 +218,8 @@ The `OnboardingWizardBasic` component implements the client onboarding process a
 | `variant`                          | `'circle' \| 'circle-alt' \| 'line'`                                                                                                      | No       | Visual variant of the stepper component                 |
 | `onboardingContentTokens`          | `DeepPartial<typeof defaultResources['enUS']['onboarding']>`                                                                              | No       | Custom content tokens for onboarding                    |
 | `alertOnExit`                      | `boolean`                                                                                                                                 | No       | Whether to show alert when exiting onboarding           |
-| `userEventsToTrack`                | `string[]`                                                                                                                                | No       | List of user events to track                            |
-| `userEventsHandler`                | `({ actionName }: { actionName: string }) => void`                                                                                        | No       | Handler for user events                                 |
+| `userEventsHandler`                | `(context: UserEventContext) => void \| number`                                                                                           | No       | Handler for user events with rich context               |
+| `userEventsLifecycle`              | `UserEventLifecycle`                                                                                                                      | No       | Optional lifecycle handlers for RUM libraries           |
 
 #### Usage:
 
@@ -253,10 +253,14 @@ const OnboardingSection = () => {
         variant="circle-alt"
         initialStep={0}
         showLinkedAccountPanel={true}
-        userEventsToTrack={['click']}
-        userEventsHandler={({ actionName }) => {
-          // Track user events
-          console.log(`User action: ${actionName}`);
+        userEventsHandler={(context) => {
+          const { actionName, eventType, timestamp, metadata } = context;
+          // Track user events with rich context
+          console.log(`User journey: ${actionName}`, {
+            eventType,
+            timestamp,
+            metadata,
+          });
         }}
       />
     </EBComponentsProvider>
@@ -295,8 +299,8 @@ The `OnboardingFlow` component provides a modern, enhanced onboarding experience
 | `height`                           | `string`                                                                                                                                  | No       | Minimum height for the component container              |
 | `onboardingContentTokens`          | `DeepPartial<typeof defaultResources['enUS']['onboarding']>`                                                                              | No       | Custom content tokens for onboarding                    |
 | `alertOnExit`                      | `boolean`                                                                                                                                 | No       | Whether to show alert when exiting onboarding           |
-| `userEventsToTrack`                | `string[]`                                                                                                                                | No       | List of user events to track                            |
-| `userEventsHandler`                | `({ actionName }: { actionName: string }) => void`                                                                                        | No       | Handler for user events                                 |
+| `userEventsHandler`                | `(context: UserEventContext) => void \| number`                                                                                           | No       | Handler for user events with rich context               |
+| `userEventsLifecycle`              | `UserEventLifecycle`                                                                                                                      | No       | Optional lifecycle handlers for RUM libraries           |
 
 #### Usage:
 
@@ -901,6 +905,94 @@ function App() {
   );
 }
 ```
+
+## User Journey Tracking
+
+All components support automatic user journey tracking when `userEventsHandler` is provided. Each component defines its own opinionated list of user journeys that are automatically tracked.
+
+### How It Works
+
+Components automatically track user journeys through:
+
+1. **Data Attributes**: DOM elements with `data-user-event="journey-name"` attributes are automatically tracked
+2. **Programmatic Events**: Components call `trackUserEvent()` for important state changes
+3. **Event Delegation**: Uses efficient event delegation for better performance
+
+### Basic Usage
+
+```tsx
+<Recipients
+  userEventsHandler={(context) => {
+    const { actionName, eventType, timestamp, metadata } = context;
+    console.log('User journey:', actionName);
+    // Send to your analytics service
+    analytics.track(actionName, { eventType, timestamp, ...metadata });
+  }}
+/>
+```
+
+### Integration with Dynatrace
+
+```tsx
+<Recipients
+  userEventsHandler={(context) => {
+    if (window.dtrum) {
+      const actionId = window.dtrum.enterAction(context.actionName);
+      setTimeout(() => {
+        window.dtrum.leaveAction(actionId);
+      }, 100);
+    }
+  }}
+  userEventsLifecycle={{
+    onEnter: (context) => {
+      if (window.dtrum) {
+        return window.dtrum.enterAction(context.actionName);
+      }
+    },
+    onLeave: (context) => {
+      if (window.dtrum && context.actionId) {
+        window.dtrum.leaveAction(context.actionId);
+      }
+    },
+  }}
+/>
+```
+
+### Integration with Datadog RUM
+
+```tsx
+import { datadogRum } from '@datadog/browser-rum';
+
+<Recipients
+  userEventsHandler={(context) => {
+    datadogRum.addAction(context.actionName, {
+      eventType: context.eventType,
+      timestamp: context.timestamp,
+      ...context.metadata,
+    });
+  }}
+/>;
+```
+
+### Tracked Journeys by Component
+
+Each component documents its tracked journeys in its README file. For example:
+
+- **Recipients**: `recipient_details_viewed`, `recipient_created`, `recipient_updated`, etc.
+- **OnboardingFlow**: `onboarding_screen_navigation`, `onboarding_form_submit`, etc.
+- **LinkedAccountWidget**: `linked_account_viewed`, `linked_account_link_completed`, etc.
+
+See each component's README for the complete list of tracked journeys.
+
+### Event Context
+
+Each tracked event includes:
+
+- `actionName`: The journey identifier (e.g., `recipient_created`)
+- `eventType`: DOM event type (`click`, `blur`, etc.) or `programmatic`
+- `timestamp`: Event timestamp (milliseconds since epoch)
+- `element`: The DOM element that triggered the event (if available)
+- `metadata`: Additional context (recipient ID, status, etc.)
 
 ## Internationalization
 

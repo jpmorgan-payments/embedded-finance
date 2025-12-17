@@ -49,12 +49,17 @@ export const usePaymentData = (
   const selectedAccountId = form.watch('from');
 
   // Fetch account balance when account is selected
-  const { data: accountBalance, isLoading: isBalanceLoading } =
-    useGetAccountBalance(selectedAccountId || '', {
-      query: {
-        enabled: interceptorReady && Boolean(selectedAccountId),
-      },
-    });
+  const {
+    data: accountBalance,
+    isLoading: isBalanceLoading,
+    isError: isBalanceError,
+    error: balanceError,
+    refetch: refetchBalance,
+  } = useGetAccountBalance(selectedAccountId || '', {
+    query: {
+      enabled: interceptorReady && Boolean(selectedAccountId),
+    },
+  });
 
   // Get selected account details
   const selectedAccount = useMemo(() => {
@@ -94,6 +99,9 @@ export const usePaymentData = (
     availableBalance,
     accountBalance,
     isBalanceLoading,
+    isBalanceError,
+    balanceError,
+    refetchBalance,
     accountsStatus,
     recipientsStatus,
     refetchAccounts,
@@ -185,7 +193,6 @@ export const usePaymentAutoSelection = (
   selectedAccount: any,
   filteredRecipients: any[],
   paymentMethods: PaymentMethod[],
-  dynamicPaymentMethods: PaymentMethod[],
   form: UseFormReturn<PaymentFormData>
 ) => {
   useEffect(() => {
@@ -213,20 +220,12 @@ export const usePaymentAutoSelection = (
       }
     }
 
-    // Auto-select payment method if only one is available for the selected recipient
-    if (dynamicPaymentMethods?.length === 1) {
+    // Auto-select payment method if only one is available
+    if (paymentMethods?.length === 1) {
       const currentMethod = form.getValues('method');
-      if (currentMethod !== dynamicPaymentMethods[0].id) {
-        form.setValue('method', dynamicPaymentMethods[0].id);
+      if (currentMethod !== paymentMethods[0].id) {
+        form.setValue('method', paymentMethods[0].id);
       }
-    }
-
-    // Reset payment method if not available for the new recipient
-    if (
-      form.getValues('method') &&
-      !dynamicPaymentMethods?.some((pm) => pm.id === form.getValues('method'))
-    ) {
-      form.setValue('method', '');
     }
 
     // Reset account when recipient changes (if needed for specific business logic)
@@ -243,7 +242,6 @@ export const usePaymentAutoSelection = (
     selectedAccount,
     filteredRecipients,
     paymentMethods,
-    dynamicPaymentMethods,
     form,
   ]);
 };

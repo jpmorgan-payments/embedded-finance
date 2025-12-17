@@ -17,8 +17,8 @@ import {
 
 export const PersonalDetailsForm: FormStepComponent = () => {
   const { t } = useTranslation('onboarding-overview');
-  const schema = usePersonalDetailsFormSchema();
-  const form = useFormContext<z.input<typeof schema>>();
+  const _schema = usePersonalDetailsFormSchema();
+  const form = useFormContext<z.input<typeof _schema>>();
 
   const jobTitle = form.watch('controllerJobTitle');
 

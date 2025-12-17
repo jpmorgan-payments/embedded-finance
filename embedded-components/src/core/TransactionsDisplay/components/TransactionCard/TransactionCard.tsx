@@ -1,10 +1,30 @@
 import { FC } from 'react';
+import { useTranslation } from 'react-i18next';
 
+import { useLocale } from '@/lib/hooks';
+import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 
 import { TransactionDetailsDialogTrigger } from '../../TransactionDetailsSheet/TransactionDetailsSheet';
-import { formatNumberToCurrency } from '../../utils';
+import { TRANSACTIONS_DISPLAY_USER_JOURNEYS } from '../../TransactionsDisplay.constants';
+import {
+  formatNumberToCurrency,
+  formatStatusText,
+  getStatusVariant,
+} from '../../utils';
 import type { ModifiedTransaction } from '../../utils';
+
+/**
+ * Format date for display
+ */
+const formatDate = (date?: string, locale = 'en-US'): string => {
+  if (!date) return 'N/A';
+  return new Date(date).toLocaleDateString(locale, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+};
 
 /**
  * Props for TransactionCard component
@@ -17,69 +37,64 @@ interface TransactionCardProps {
 /**
  * TransactionCard component for mobile view
  *
- * Displays transaction information in a card format optimized for mobile screens.
+ * Displays essential transaction information in a compact card format.
+ * Clicking the card opens the transaction details modal.
  */
 export const TransactionCard: FC<TransactionCardProps> = ({ transaction }) => {
+  const { t } = useTranslation(['transactions', 'common']);
+  const locale = useLocale();
+  const transactionId = transaction.id ?? '';
+
   return (
-    <Card className="eb-mb-4 eb-space-y-2 eb-p-4 eb-shadow-sm">
-      <div className="eb-flex eb-items-center eb-justify-between">
-        <div className="eb-truncate eb-text-base eb-font-semibold">
-          {transaction.type || 'Transaction'}
-        </div>
-        <span className="eb-text-xs eb-font-medium eb-text-muted-foreground">
-          {transaction.status}
-        </span>
-      </div>
-      <div className="eb-flex eb-items-center eb-gap-2">
-        <span className="eb-text-xs eb-text-muted-foreground">
-          {transaction.paymentDate
-            ? new Date(transaction.paymentDate).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-              })
-            : 'N/A'}
-        </span>
-        <span className="eb-text-xs eb-text-muted-foreground">•</span>
-        <span className="eb-font-mono eb-text-xs eb-text-foreground">
-          {transaction.transactionReferenceId || 'N/A'}
-        </span>
-      </div>
-      <div className="eb-mt-2 eb-flex eb-items-center eb-justify-between">
-        <div>
-          <span className="eb-text-xs eb-text-muted-foreground">Amount</span>
-          <div className="eb-font-medium">
-            {transaction.amount
-              ? formatNumberToCurrency(
-                  transaction.amount,
-                  transaction.currency ?? 'USD'
-                )
-              : 'N/A'}
+    <TransactionDetailsDialogTrigger transactionId={transactionId}>
+      <Card
+        data-user-event={TRANSACTIONS_DISPLAY_USER_JOURNEYS.VIEW_DETAILS}
+        data-transaction-id={transactionId}
+        className="eb-mb-3 eb-cursor-pointer eb-p-3 eb-shadow-sm eb-transition-colors hover:eb-bg-muted/50"
+      >
+        <div className="eb-flex eb-items-start eb-justify-between eb-gap-2">
+          <div className="eb-min-w-0 eb-flex-1">
+            <div className="eb-mb-1 eb-flex eb-items-center eb-gap-2">
+              <div className="eb-truncate eb-text-sm eb-font-medium">
+                {transaction.type ||
+                  t('card.transactionFallback', {
+                    defaultValue: 'Transaction',
+                  })}
+              </div>
+              <Badge
+                variant={getStatusVariant(transaction.status)}
+                className="eb-shrink-0"
+              >
+                {formatStatusText(transaction.status)}
+              </Badge>
+            </div>
+            <div className="eb-text-xs eb-text-muted-foreground">
+              {formatDate(transaction.paymentDate, locale)}
+            </div>
+          </div>
+          <div className="eb-shrink-0 eb-text-right">
+            <div className="eb-text-sm eb-font-semibold">
+              {transaction.amount
+                ? formatNumberToCurrency(
+                    transaction.amount,
+                    transaction.currency ?? 'USD',
+                    locale
+                  )
+                : 'N/A'}
+            </div>
+            {transaction.currency && (
+              <div className="eb-text-xs eb-text-muted-foreground">
+                {transaction.currency}
+              </div>
+            )}
           </div>
         </div>
-        <TransactionDetailsDialogTrigger transactionId={transaction.id ?? ''}>
-          Details
-        </TransactionDetailsDialogTrigger>
-      </div>
-      <div className="eb-mt-2 eb-text-xs eb-text-foreground">
-        <span className="eb-font-medium">Counterpart:</span>{' '}
-        {transaction.counterpartName || 'N/A'}
-      </div>
-      {transaction.memo && (
-        <div className="eb-mt-1 eb-text-xs eb-text-muted-foreground">
-          <span className="eb-font-medium">Memo:</span> {transaction.memo}
-        </div>
-      )}
-      <div className="eb-mt-1 eb-grid eb-grid-cols-2 eb-gap-2">
-        <div>
-          <span className="eb-text-xs eb-text-muted-foreground">Debtor</span>
-          <div className="eb-text-xs">{transaction.debtorName || 'N/A'}</div>
-        </div>
-        <div>
-          <span className="eb-text-xs eb-text-muted-foreground">Creditor</span>
-          <div className="eb-text-xs">{transaction.creditorName || 'N/A'}</div>
-        </div>
-      </div>
-    </Card>
+        {transaction.counterpartName && (
+          <div className="eb-mt-2 eb-truncate eb-text-xs eb-text-muted-foreground">
+            {transaction.counterpartName}
+          </div>
+        )}
+      </Card>
+    </TransactionDetailsDialogTrigger>
   );
 };

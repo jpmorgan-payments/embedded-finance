@@ -6,22 +6,24 @@ import type { BeneficialOwner } from '../../IndirectOwnership.types';
 export interface AddOwnerDialogProps {
   /** Whether the dialog is open */
   isOpen: boolean;
-  
+
   /** Callback to close the dialog */
   onClose: () => void;
-  
+
   /** Callback when form is submitted */
-  onSubmit: (ownerData: Omit<BeneficialOwner, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  
+  onSubmit: (
+    ownerData: Omit<BeneficialOwner, 'id' | 'createdAt' | 'updatedAt'>
+  ) => void;
+
   /** Existing owners for duplicate validation */
   existingOwners: BeneficialOwner[];
-  
+
   /** Initial data for editing */
   initialData?: Partial<BeneficialOwner>;
-  
+
   /** ID of owner being edited */
   editingOwnerId?: string;
-  
+
   /** Test ID for testing */
   testId?: string;
 }

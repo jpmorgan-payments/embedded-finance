@@ -2,7 +2,10 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useElementWidth } from '@/utils/useElementWidth';
 // Icons
 import { AlertCircle, Plus, Search } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
+import { useLocale } from '@/lib/hooks';
+import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import type {
   Recipient,
@@ -13,6 +16,16 @@ import type {
 } from '@/api/generated/ep-recipients.schemas';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 // UI Components
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -50,13 +63,15 @@ import {
 } from './hooks';
 // Column Configuration
 import {
-  defaultRecipientsColumnConfig,
+  getDefaultRecipientsColumnConfig,
   getVisibleColumns,
+  getWidgetRecipientsColumnConfig,
   mergeColumnConfig,
-  widgetRecipientsColumnConfig,
   type RecipientColumnKey,
   type RecipientsColumnConfiguration,
 } from './Recipients.columns';
+// Constants
+import { RECIPIENT_USER_JOURNEYS } from './Recipients.constants';
 // Types
 import type { RecipientsProps } from './Recipients.types';
 // Utils
@@ -72,9 +87,14 @@ export const Recipients: React.FC<RecipientsProps> = ({
   onRecipientUpdated,
   onRecipientDeactivated,
   userEventsHandler,
+  userEventsLifecycle,
   isWidget = false,
   columnConfig,
 }) => {
+  const { t: tRaw } = useTranslation(['recipients', 'common']);
+  // Type assertion to avoid TypeScript overload issues
+  const t = tRaw as (key: string, options?: any) => string;
+  const locale = useLocale();
   const { interceptorReady } = useInterceptorStatus();
 
   // Determine column configuration based on widget mode and user config
@@ -83,8 +103,8 @@ export const Recipients: React.FC<RecipientsProps> = ({
 
   const finalColumnConfig = useMemo(() => {
     const baseConfig = isWidget
-      ? widgetRecipientsColumnConfig
-      : defaultRecipientsColumnConfig;
+      ? getWidgetRecipientsColumnConfig(t)
+      : getDefaultRecipientsColumnConfig(t);
     // Merge user config over base config (deep merge for nested properties)
     const merged = mergeColumnConfig(columnConfig, baseConfig);
     // Apply local visibility changes if any
@@ -92,7 +112,7 @@ export const Recipients: React.FC<RecipientsProps> = ({
       return localColumnConfig;
     }
     return merged;
-  }, [columnConfig, isWidget, localColumnConfig]);
+  }, [columnConfig, isWidget, localColumnConfig, t]);
 
   // Get visible columns in order
   const visibleColumns = useMemo(
@@ -105,8 +125,8 @@ export const Recipients: React.FC<RecipientsProps> = ({
     (columnKey: RecipientColumnKey, visible: boolean) => {
       setLocalColumnConfig((prev) => {
         const baseConfig = isWidget
-          ? widgetRecipientsColumnConfig
-          : defaultRecipientsColumnConfig;
+          ? getWidgetRecipientsColumnConfig(t)
+          : getDefaultRecipientsColumnConfig(t);
         const current = prev || mergeColumnConfig(columnConfig, baseConfig);
         return {
           ...current,
@@ -117,11 +137,14 @@ export const Recipients: React.FC<RecipientsProps> = ({
         };
       });
     },
-    [columnConfig, isWidget]
+    [columnConfig, isWidget, t]
   );
 
   // State
   const [searchTerm, setSearchTerm] = useState('');
+  const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
+  const [recipientToDeactivate, setRecipientToDeactivate] =
+    useState<Recipient | null>(null);
 
   // Custom hooks
   const { filters, updateFilter, clearFilters } = useRecipientsFilters();
@@ -136,7 +159,23 @@ export const Recipients: React.FC<RecipientsProps> = ({
   const shouldUseMobileLayout = !isWidget && isMobile;
   const shouldUseTabletLayout = !isWidget && isTablet;
 
+  // Pagination state (UI is 1-based; API is 0-based). Defaults aligned to OAS (page 0, limit 25).
+  const [totalItems, setTotalItems] = useState(0);
+  const {
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    totalPages,
+    paginationInfo,
+  } = useRecipientsPagination(totalItems, {
+    initialPage: 1, // UI shows page 1, maps to API page 0
+    initialPageSize: 25, // OAS default
+  });
+
   // API queries
+  // Convert UI page (1-based) to API page (0-based) per OAS spec
+  const apiPage = currentPage - 1;
   const {
     data: recipientsData,
     isLoading,
@@ -146,8 +185,8 @@ export const Recipients: React.FC<RecipientsProps> = ({
     {
       clientId,
       type: filters.type,
-      page: 1,
-      limit: 1000, // Get all for client-side filtering
+      page: apiPage,
+      limit: pageSize,
     },
     {
       query: {
@@ -167,24 +206,69 @@ export const Recipients: React.FC<RecipientsProps> = ({
     recipients: recipientsData?.recipients,
     searchTerm,
     statusFilter: filters.status,
+    typeFilter: filters.type,
     sortRecipients,
   });
 
-  // Pagination hook
-  const {
-    currentPage,
-    pageSize,
-    setCurrentPage,
-    setPageSize,
-    totalPages,
-    paginatedItems,
-    paginationInfo,
-  } = useRecipientsPagination(filteredRecipients.length);
+  // Derive pagination metadata from API (OAS aligned) with safe fallbacks
+  const apiTotalItems =
+    recipientsData?.metadata?.total_items ?? recipientsData?.total_items ?? 0;
+
+  // When client-side filters/search are active, fall back to the filtered count
+  const effectiveTotalItems =
+    searchTerm || filters.status
+      ? filteredRecipients.length
+      : apiTotalItems || filteredRecipients.length;
+
+  // Keep pagination totals in sync with API/filters
+  useEffect(() => {
+    setTotalItems(effectiveTotalItems);
+  }, [effectiveTotalItems]);
 
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, filters.status, filters.type, setCurrentPage]);
+  }, [searchTerm, filters.status, filters.type, setCurrentPage, pageSize]);
+
+  // Track filter changes
+  useEffect(() => {
+    if (filters.type || filters.status) {
+      trackUserEvent({
+        actionName: RECIPIENT_USER_JOURNEYS.FILTER_CHANGED,
+        metadata: { type: filters.type, status: filters.status },
+        userEventsHandler,
+      });
+    }
+  }, [filters.type, filters.status, userEventsHandler]);
+
+  // Track search (only track that search occurred, not the search term to avoid PII)
+  useEffect(() => {
+    if (searchTerm) {
+      trackUserEvent({
+        actionName: RECIPIENT_USER_JOURNEYS.SEARCH,
+        metadata: { hasSearchTerm: true, searchTermLength: searchTerm.length },
+        userEventsHandler,
+      });
+    }
+  }, [searchTerm, userEventsHandler]);
+
+  // Track pagination
+  useEffect(() => {
+    if (currentPage > 1) {
+      trackUserEvent({
+        actionName: RECIPIENT_USER_JOURNEYS.PAGE_CHANGED,
+        metadata: { page: currentPage, pageSize },
+        userEventsHandler,
+      });
+    }
+  }, [currentPage, pageSize, userEventsHandler]);
+
+  // Set up automatic event tracking for data-user-event attributes
+  useUserEventTracking({
+    containerId: 'recipients-container',
+    userEventsHandler,
+    userEventsLifecycle,
+  });
 
   // Dialog management
   const {
@@ -240,7 +324,11 @@ export const Recipients: React.FC<RecipientsProps> = ({
   const handleViewDetails = useCallback(
     (recipient: Recipient) => {
       openDetailsDialog(recipient);
-      userEventsHandler?.({ actionName: 'recipient_details_viewed' });
+      trackUserEvent({
+        actionName: RECIPIENT_USER_JOURNEYS.VIEW_DETAILS,
+        metadata: { recipientId: recipient.id },
+        userEventsHandler,
+      });
     },
     [openDetailsDialog, userEventsHandler]
   );
@@ -248,27 +336,35 @@ export const Recipients: React.FC<RecipientsProps> = ({
   const handleEditRecipient = useCallback(
     (recipient: Recipient) => {
       openEditDialog(recipient);
-      userEventsHandler?.({ actionName: 'recipient_edit_started' });
+      trackUserEvent({
+        actionName: RECIPIENT_USER_JOURNEYS.EDIT_STARTED,
+        metadata: { recipientId: recipient.id },
+        userEventsHandler,
+      });
     },
     [openEditDialog, userEventsHandler]
   );
 
-  const handleDeactivateRecipient = useCallback(
-    (recipient: Recipient) => {
-      if (
-        window.confirm(
-          `Are you sure you want to deactivate ${formatRecipientName(recipient)}?`
-        )
-      ) {
-        deactivateRecipient(recipient.id);
-        userEventsHandler?.({ actionName: 'recipient_deactivate_started' });
-      }
-    },
-    [deactivateRecipient, userEventsHandler]
-  );
+  const handleDeactivateRecipient = useCallback((recipient: Recipient) => {
+    setRecipientToDeactivate(recipient);
+    setDeactivateDialogOpen(true);
+  }, []);
 
-  // Paginated recipients
-  const paginatedRecipients = paginatedItems(filteredRecipients);
+  const confirmDeactivate = useCallback(() => {
+    if (recipientToDeactivate) {
+      deactivateRecipient(recipientToDeactivate.id);
+      trackUserEvent({
+        actionName: RECIPIENT_USER_JOURNEYS.DEACTIVATE_STARTED,
+        metadata: { recipientId: recipientToDeactivate.id },
+        userEventsHandler,
+      });
+      setDeactivateDialogOpen(false);
+      setRecipientToDeactivate(null);
+    }
+  }, [recipientToDeactivate, deactivateRecipient, userEventsHandler]);
+
+  // Current page recipients (data already scoped by API pagination)
+  const paginatedRecipients = filteredRecipients;
 
   // Loading state
   if (isLoading) {
@@ -299,13 +395,15 @@ export const Recipients: React.FC<RecipientsProps> = ({
           <Alert variant="destructive">
             <AlertCircle className="eb-h-4 eb-w-4" />
             <AlertDescription>
-              Failed to load recipients. Please try again.
+              {t('recipients:error.loadFailed', {
+                defaultValue: 'Failed to load recipients. Please try again.',
+              })}
               <Button
                 variant="link"
                 className="eb-ml-2 eb-h-auto eb-p-0"
                 onClick={() => refetch()}
               >
-                Retry
+                {t('recipients:error.retry', { defaultValue: 'Retry' })}
               </Button>
             </AlertDescription>
           </Alert>
@@ -315,11 +413,15 @@ export const Recipients: React.FC<RecipientsProps> = ({
   }
 
   return (
-    <Card className="eb-component eb-w-full" ref={containerRef}>
+    <Card
+      id="recipients-container"
+      className="eb-component eb-w-full"
+      ref={containerRef}
+    >
       <CardHeader>
         <div className="eb-flex eb-items-center eb-justify-between">
           <CardTitle className="eb-text-xl eb-font-semibold">
-            Recipients
+            {t('recipients:title', { defaultValue: 'Recipients' })}
           </CardTitle>
           {showCreateButton && (
             <Dialog
@@ -327,15 +429,21 @@ export const Recipients: React.FC<RecipientsProps> = ({
               onOpenChange={setIsCreateDialogOpen}
             >
               <DialogTrigger asChild>
-                <Button>
+                <Button
+                  data-user-event={RECIPIENT_USER_JOURNEYS.CREATE_STARTED}
+                >
                   <Plus className="eb-mr-2 eb-h-4 eb-w-4" />
-                  Add Recipient
+                  {t('recipients:actions.addRecipient', {
+                    defaultValue: 'Add Recipient',
+                  })}
                 </Button>
               </DialogTrigger>
               <DialogContent className="eb-max-h-full eb-max-w-2xl eb-overflow-hidden eb-p-0 sm:eb-max-h-[95vh]">
                 <DialogHeader className="eb-shrink-0 eb-space-y-2 eb-border-b eb-p-6 eb-py-4">
                   <DialogTitle className="eb-font-header eb-text-xl">
-                    Create New Recipient
+                    {t('recipients:actions.createNewRecipient', {
+                      defaultValue: 'Create New Recipient',
+                    })}
                   </DialogTitle>
                 </DialogHeader>
                 <RecipientForm
@@ -361,7 +469,10 @@ export const Recipients: React.FC<RecipientsProps> = ({
               <div className="eb-relative eb-w-full">
                 <Search className="eb-absolute eb-left-2 eb-top-1/2 eb-h-4 eb-w-4 eb--translate-y-1/2 eb-transform eb-text-gray-400" />
                 <Input
-                  placeholder="Search recipients..."
+                  data-user-event={RECIPIENT_USER_JOURNEYS.SEARCH}
+                  placeholder={t('recipients:filters.searchPlaceholder', {
+                    defaultValue: 'Search recipients...',
+                  })}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="eb-h-8 eb-rounded eb-border eb-border-gray-300 eb-pl-8 eb-text-sm focus:eb-border-primary"
@@ -390,15 +501,36 @@ export const Recipients: React.FC<RecipientsProps> = ({
                   )
                 }
               >
-                <SelectTrigger className="eb-h-9 eb-w-36">
-                  <SelectValue placeholder="Type" />
+                <SelectTrigger
+                  data-user-event={RECIPIENT_USER_JOURNEYS.FILTER_CHANGED}
+                  className="eb-h-9 eb-w-36"
+                >
+                  <SelectValue
+                    placeholder={t('recipients:filters.type.label', {
+                      defaultValue: 'Type',
+                    })}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="RECIPIENT">Recipient</SelectItem>
-                  <SelectItem value="LINKED_ACCOUNT">Linked Account</SelectItem>
+                  <SelectItem value="all">
+                    {t('recipients:filters.type.all', {
+                      defaultValue: 'All Types',
+                    })}
+                  </SelectItem>
+                  <SelectItem value="RECIPIENT">
+                    {t('recipients:filters.type.recipient', {
+                      defaultValue: 'Recipient',
+                    })}
+                  </SelectItem>
+                  <SelectItem value="LINKED_ACCOUNT">
+                    {t('recipients:filters.type.linkedAccount', {
+                      defaultValue: 'Linked Account',
+                    })}
+                  </SelectItem>
                   <SelectItem value="SETTLEMENT_ACCOUNT">
-                    Settlement Account
+                    {t('recipients:filters.type.settlementAccount', {
+                      defaultValue: 'Settlement Account',
+                    })}
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -412,20 +544,47 @@ export const Recipients: React.FC<RecipientsProps> = ({
                   )
                 }
               >
-                <SelectTrigger className="eb-h-9 eb-w-36">
-                  <SelectValue placeholder="Status" />
+                <SelectTrigger
+                  data-user-event={RECIPIENT_USER_JOURNEYS.FILTER_CHANGED}
+                  className="eb-h-9 eb-w-36"
+                >
+                  <SelectValue
+                    placeholder={t('recipients:filters.status.label', {
+                      defaultValue: 'Status',
+                    })}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="INACTIVE">Inactive</SelectItem>
+                  <SelectItem value="all">
+                    {t('recipients:filters.status.all', {
+                      defaultValue: 'All Status',
+                    })}
+                  </SelectItem>
+                  <SelectItem value="ACTIVE">
+                    {t('recipients:filters.status.active', {
+                      defaultValue: 'Active',
+                    })}
+                  </SelectItem>
+                  <SelectItem value="INACTIVE">
+                    {t('recipients:filters.status.inactive', {
+                      defaultValue: 'Inactive',
+                    })}
+                  </SelectItem>
                   <SelectItem value="MICRODEPOSITS_INITIATED">
-                    Microdeposits Initiated
+                    {t('recipients:filters.status.microdepositsInitiated', {
+                      defaultValue: 'Microdeposits Initiated',
+                    })}
                   </SelectItem>
                   <SelectItem value="READY_FOR_VALIDATION">
-                    Ready for Validation
+                    {t('recipients:filters.status.readyForValidation', {
+                      defaultValue: 'Ready for Validation',
+                    })}
                   </SelectItem>
-                  <SelectItem value="REJECTED">Rejected</SelectItem>
+                  <SelectItem value="REJECTED">
+                    {t('recipients:filters.status.rejected', {
+                      defaultValue: 'Rejected',
+                    })}
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
@@ -434,7 +593,9 @@ export const Recipients: React.FC<RecipientsProps> = ({
                 onClick={clearFilters}
                 className="eb-h-9 eb-px-3"
               >
-                Clear Filters
+                {t('recipients:filters.clearFilters', {
+                  defaultValue: 'Clear Filters',
+                })}
               </Button>
             </div>
           )}
@@ -445,7 +606,9 @@ export const Recipients: React.FC<RecipientsProps> = ({
           <div>
             {paginatedRecipients.length === 0 ? (
               <div className="eb-py-8 eb-text-center eb-text-gray-500">
-                No recipients found
+                {t('recipients:emptyState.noRecipients', {
+                  defaultValue: 'No recipients found',
+                })}
               </div>
             ) : (
               paginatedRecipients.map((recipient) => (
@@ -464,42 +627,43 @@ export const Recipients: React.FC<RecipientsProps> = ({
             )}
           </div>
         ) : (
-          <>
-            <RecipientsTable
-              recipients={paginatedRecipients}
-              visibleColumns={visibleColumns}
-              columnConfig={finalColumnConfig}
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onSort={handleSort}
-              onViewDetails={handleViewDetails}
-              onEdit={handleEditRecipient}
-              onDeactivate={handleDeactivateRecipient}
-              makePaymentComponent={makePaymentComponent}
-              isDeactivating={isDeactivating}
-              layout={
-                shouldUseWidgetLayout
-                  ? 'widget'
-                  : shouldUseTabletLayout
-                    ? 'tablet'
-                    : 'desktop'
-              }
-            />
-            <RecipientsPagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              pageSize={pageSize}
-              totalItems={filteredRecipients.length}
-              startIndex={paginationInfo.startIndex}
-              endIndex={paginationInfo.endIndex}
-              onPageChange={setCurrentPage}
-              onPageSizeChange={(size) => {
-                setPageSize(size);
-                setCurrentPage(1);
-              }}
-            />
-          </>
+          <RecipientsTable
+            recipients={paginatedRecipients}
+            visibleColumns={visibleColumns}
+            columnConfig={finalColumnConfig}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSort={handleSort}
+            onViewDetails={handleViewDetails}
+            onEdit={handleEditRecipient}
+            onDeactivate={handleDeactivateRecipient}
+            makePaymentComponent={makePaymentComponent}
+            isDeactivating={isDeactivating}
+            locale={locale}
+            layout={
+              shouldUseWidgetLayout
+                ? 'widget'
+                : shouldUseTabletLayout
+                  ? 'tablet'
+                  : 'desktop'
+            }
+          />
         )}
+        <div className="eb-mt-4">
+          <RecipientsPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={effectiveTotalItems}
+            startIndex={paginationInfo.startIndex}
+            endIndex={paginationInfo.endIndex}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1);
+            }}
+          />
+        </div>
       </CardContent>
 
       {/* Details Dialog */}
@@ -511,16 +675,20 @@ export const Recipients: React.FC<RecipientsProps> = ({
           }
         }}
       >
-        <DialogContent className="eb-scrollable-dialog eb-max-w-3xl">
-          <DialogHeader className="eb-pb-4">
+        <DialogContent className="eb-scrollable-dialog eb-max-w-xl">
+          <DialogHeader>
             <DialogTitle>
-              Recipient:{' '}
-              {selectedRecipient
-                ? formatRecipientName(selectedRecipient)
-                : 'Unknown'}
+              {t('recipients:details.title', {
+                defaultValue: 'Recipient: {{name}}',
+                name: selectedRecipient
+                  ? formatRecipientName(selectedRecipient)
+                  : t('recipients:details.unknown', {
+                      defaultValue: 'Unknown',
+                    }),
+              })}
             </DialogTitle>
           </DialogHeader>
-          <div className="eb-scrollable-content">
+          <div className="eb-scrollable-content eb-space-y-2">
             {selectedRecipient && (
               <RecipientDetails
                 recipient={selectedRecipient}
@@ -541,7 +709,9 @@ export const Recipients: React.FC<RecipientsProps> = ({
         <DialogContent className="eb-max-h-full eb-max-w-2xl eb-overflow-hidden eb-p-0 sm:eb-max-h-[95vh]">
           <DialogHeader className="eb-shrink-0 eb-space-y-2 eb-border-b eb-p-6 eb-py-4">
             <DialogTitle className="eb-font-header eb-text-xl">
-              Edit Recipient
+              {t('recipients:actions.editRecipient', {
+                defaultValue: 'Edit Recipient',
+              })}
             </DialogTitle>
           </DialogHeader>
           {selectedRecipient && (
@@ -556,6 +726,45 @@ export const Recipients: React.FC<RecipientsProps> = ({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Deactivate Confirmation Dialog */}
+      <AlertDialog
+        open={deactivateDialogOpen}
+        onOpenChange={setDeactivateDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('recipients:deactivateDialog.title', {
+                defaultValue: 'Deactivate Recipient',
+              })}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('recipients:deactivateDialog.description', {
+                defaultValue:
+                  'Are you sure you want to deactivate {{name}}? This action cannot be undone.',
+                name: recipientToDeactivate
+                  ? formatRecipientName(recipientToDeactivate)
+                  : t('recipients:deactivateDialog.unknownRecipient', {
+                      defaultValue: 'this recipient',
+                    }),
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              {t('recipients:deactivateDialog.cancel', {
+                defaultValue: 'Cancel',
+              })}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeactivate}>
+              {t('recipients:deactivateDialog.confirm', {
+                defaultValue: 'Deactivate',
+              })}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };

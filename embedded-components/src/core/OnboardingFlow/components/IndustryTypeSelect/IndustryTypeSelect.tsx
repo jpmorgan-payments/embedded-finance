@@ -40,7 +40,7 @@ export const IndustryTypeSelect = ({
 }: IndustryTypeSelectProps) => {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { onBlur, ...fieldWithoutBlur } = field;
+  const { onBlur: _onBlur, ...fieldWithoutBlur } = field;
 
   // Track internal open state to prevent re-renders during closing animation
   const [internalOpen, setInternalOpen] = useState(false);

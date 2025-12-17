@@ -1,3 +1,4 @@
+import type { UserTrackingProps } from '@/lib/types/userTracking.types';
 import type {
   Recipient,
   RecipientType,
@@ -15,7 +16,7 @@ import type { RecipientsConfig } from './types/paymentConfig';
 /**
  * Props for the Recipients component
  */
-export interface RecipientsProps {
+export interface RecipientsProps extends UserTrackingProps {
   /** Optional client ID filter */
   clientId?: string;
   /**
@@ -38,10 +39,6 @@ export interface RecipientsProps {
   onRecipientUpdated?: (recipient: Recipient) => void;
   /** Callback when recipient is deactivated */
   onRecipientDeactivated?: (recipient: Recipient) => void;
-  /** List of user events to track */
-  userEventsToTrack?: string[];
-  /** Handler for user events */
-  userEventsHandler?: ({ actionName }: { actionName: string }) => void;
   /** Force widget layout with minimal columns and no filters */
   isWidget?: boolean;
   /**

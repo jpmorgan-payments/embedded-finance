@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { TableCell } from '@/components/ui/table';
 
 import type { RecipientColumnKey } from '../Recipients.columns';
+import { formatStatusText } from './formatStatusText';
+import { getStatusVariant } from './getStatusVariant';
 import { formatRecipientName } from './recipientHelpers';
 
 /**
@@ -20,8 +22,14 @@ export function renderTableCell(
     onDeactivate?: (recipient: Recipient) => void;
     makePaymentComponent?: React.ReactNode;
     isDeactivating?: boolean;
+    locale?: string;
+    t?: (key: string, options?: any) => string;
   }
 ): React.ReactNode {
+  const currentLocale = options?.locale || 'en-US';
+  const t =
+    options?.t || ((key: string, opts?: any) => opts?.defaultValue || key);
+  const naText = t('common:na', { defaultValue: 'N/A' });
   switch (column) {
     case 'name':
       return (
@@ -31,7 +39,9 @@ export function renderTableCell(
               variant="link"
               className="eb-h-auto eb-p-0 eb-text-left eb-font-medium hover:eb-underline"
               onClick={() => options.onViewDetails?.(recipient)}
-              title="View recipient details"
+              title={t('recipients:actions.viewRecipientDetails', {
+                defaultValue: 'View recipient details',
+              })}
             >
               {formatRecipientName(recipient)}
             </Button>
@@ -44,13 +54,19 @@ export function renderTableCell(
     case 'type':
       return (
         <TableCell>
-          <Badge variant="outline" className="eb-text-sm">
+          <span className="eb-text-sm eb-text-gray-600">
             {recipient.type === 'LINKED_ACCOUNT'
-              ? 'Linked Account'
+              ? t('recipients:filters.type.linkedAccount', {
+                  defaultValue: 'Linked Account',
+                })
               : recipient.type === 'SETTLEMENT_ACCOUNT'
-                ? 'Settlement Account'
-                : 'Recipient'}
-          </Badge>
+                ? t('recipients:filters.type.settlementAccount', {
+                    defaultValue: 'Settlement Account',
+                  })
+                : t('recipients:filters.type.recipient', {
+                    defaultValue: 'Recipient',
+                  })}
+          </span>
         </TableCell>
       );
 
@@ -58,16 +74,10 @@ export function renderTableCell(
       return (
         <TableCell>
           <Badge
-            variant={
-              recipient.status === 'ACTIVE'
-                ? 'default'
-                : recipient.status === 'INACTIVE'
-                  ? 'secondary'
-                  : 'outline'
-            }
+            variant={getStatusVariant(recipient.status)}
             className="eb-text-sm"
           >
-            {recipient.status?.replace(/_/g, ' ') || 'N/A'}
+            {formatStatusText(recipient.status, t)}
           </Badge>
         </TableCell>
       );
@@ -78,7 +88,7 @@ export function renderTableCell(
           <span className="eb-text-sm eb-text-gray-600">
             {recipient.account?.number
               ? `****${recipient.account.number.slice(-4)}`
-              : 'N/A'}
+              : naText}
           </span>
         </TableCell>
       );
@@ -87,7 +97,7 @@ export function renderTableCell(
       return (
         <TableCell>
           <span className="eb-text-sm eb-text-gray-600">
-            {recipient.account?.type || 'N/A'}
+            {recipient.account?.type || naText}
           </span>
         </TableCell>
       );
@@ -96,7 +106,8 @@ export function renderTableCell(
       return (
         <TableCell>
           <span className="eb-text-sm eb-text-gray-600">
-            {recipient.account?.routingInformation?.[0]?.routingNumber || 'N/A'}
+            {recipient.account?.routingInformation?.[0]?.routingNumber ||
+              naText}
           </span>
         </TableCell>
       );
@@ -106,12 +117,15 @@ export function renderTableCell(
         <TableCell>
           <span className="eb-text-sm eb-text-gray-600">
             {recipient.createdAt
-              ? new Date(recipient.createdAt).toLocaleDateString(undefined, {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                })
-              : 'N/A'}
+              ? new Date(recipient.createdAt).toLocaleDateString(
+                  currentLocale,
+                  {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  }
+                )
+              : naText}
           </span>
         </TableCell>
       );
@@ -121,12 +135,15 @@ export function renderTableCell(
         <TableCell>
           <span className="eb-text-sm eb-text-gray-600">
             {recipient.updatedAt
-              ? new Date(recipient.updatedAt).toLocaleDateString(undefined, {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                })
-              : 'N/A'}
+              ? new Date(recipient.updatedAt).toLocaleDateString(
+                  currentLocale,
+                  {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  }
+                )
+              : naText}
           </span>
         </TableCell>
       );
@@ -135,7 +152,7 @@ export function renderTableCell(
       return (
         <TableCell>
           <span className="eb-text-sm eb-text-gray-600">
-            {recipient.partyId || 'N/A'}
+            {recipient.partyId || naText}
           </span>
         </TableCell>
       );
@@ -144,7 +161,7 @@ export function renderTableCell(
       return (
         <TableCell>
           <span className="eb-text-sm eb-text-gray-600">
-            {recipient.clientId || 'N/A'}
+            {recipient.clientId || naText}
           </span>
         </TableCell>
       );
@@ -169,9 +186,13 @@ export function renderTableCell(
                 size="sm"
                 className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs"
                 onClick={() => options.onViewDetails?.(recipient)}
-                title="View details"
+                title={t('recipients:actions.viewDetails', {
+                  defaultValue: 'View details',
+                })}
               >
-                Details
+                {t('recipients:actions.viewDetails', {
+                  defaultValue: 'Details',
+                })}
               </Button>
             )}
             {options?.onEdit && (
@@ -180,9 +201,11 @@ export function renderTableCell(
                 size="sm"
                 className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs"
                 onClick={() => options.onEdit?.(recipient)}
-                title="Edit recipient"
+                title={t('recipients:actions.editRecipientTitle', {
+                  defaultValue: 'Edit recipient',
+                })}
               >
-                Edit
+                {t('recipients:actions.edit', { defaultValue: 'Edit' })}
               </Button>
             )}
             {options?.onDeactivate && recipient.status === 'ACTIVE' && (
@@ -192,9 +215,17 @@ export function renderTableCell(
                 className="eb-h-auto eb-px-2 eb-py-0 eb-text-xs eb-text-red-600 hover:eb-text-red-700"
                 onClick={() => options.onDeactivate?.(recipient)}
                 disabled={options.isDeactivating}
-                title="Deactivate recipient"
+                title={t('recipients:actions.deactivateRecipientTitle', {
+                  defaultValue: 'Deactivate recipient',
+                })}
               >
-                {options.isDeactivating ? 'Deactivating...' : 'Deactivate'}
+                {options.isDeactivating
+                  ? t('recipients:actions.deactivating', {
+                      defaultValue: 'Deactivating...',
+                    })
+                  : t('recipients:actions.deactivate', {
+                      defaultValue: 'Deactivate',
+                    })}
               </Button>
             )}
           </div>
@@ -202,6 +233,6 @@ export function renderTableCell(
       );
 
     default:
-      return <TableCell>N/A</TableCell>;
+      return <TableCell>{naText}</TableCell>;
   }
 }

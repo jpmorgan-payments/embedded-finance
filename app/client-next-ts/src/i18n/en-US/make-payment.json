@@ -1,0 +1,86 @@
+{
+  "title": "Make a payment",
+  "description": "All fields are required unless specified optional.",
+  "fields": {
+    "from": {
+      "label": "Which account are you paying from?",
+      "placeholder": "Pay from",
+      "description": "",
+      "tooltip": ""
+    },
+    "to": {
+      "label": "Who are you paying?",
+      "placeholder": "Select or type recipient",
+      "description": "",
+      "tooltip": ""
+    },
+    "amount": {
+      "label": "Amount",
+      "placeholder": "0.00",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "Amount is required",
+        "min": "Amount must be greater than 0",
+        "greaterThanFee": "The amount must be greater than the transfer fee"
+      }
+    },
+    "method": {
+      "label": "How do you want to pay?",
+      "placeholder": "",
+      "description": "",
+      "tooltip": ""
+    },
+    "currency": {
+      "label": "Currency",
+      "placeholder": "",
+      "description": "",
+      "tooltip": ""
+    }
+  },
+  "sections": {
+    "amount": "How much are you paying?",
+    "arrivalDate": "When do you want the payment to arrive?",
+    "additionalInfo": "Additional Information (optional)"
+  },
+  "helpers": {
+    "to": "Select or type recipient",
+    "from": {
+      "balance": "Select or type name or last 4 numbers"
+    },
+    "amount": "Enter the payment amount in {{currency}}",
+    "method": "Available methods depend on the recipient's bank.",
+    "memo": "Internal note for your records (optional)"
+  },
+  "paymentMethods": {
+    "ACH": "ACH",
+    "RTP": "RTP",
+    "WIRE": "WIRE"
+  },
+  "feeDescriptions": {
+    "WIRE": "Domestic wire transfer (outgoing): $25.00",
+    "ACH": "ACH transfer fee: $2.50",
+    "RTP": "Real-time payment (RTP) fee: $1.00"
+  },
+  "buttons": {
+    "makePayment": "Make a payment",
+    "confirmPayment": "Confirm Payment",
+    "makeAnotherPayment": "Make Another Payment",
+    "processing": "Processing..."
+  },
+  "alerts": {
+    "newPayoutCapability": "Try our new payout capability for faster transactions!"
+  },
+  "success": {
+    "title": "Payment Successful!",
+    "message": "Your payment has been processed successfully."
+  },
+  "transferFee": {
+    "label": "Transfer fee: ${{amount}}",
+    "toggle": "Toggle"
+  },
+  "recipientGets": "Recipient gets: ${{amount}}",
+  "warnings": {
+    "recipientNotFound": "Warning: The specified recipient (ID: {{recipientId}}) was not found in the available recipients list."
+  }
+}

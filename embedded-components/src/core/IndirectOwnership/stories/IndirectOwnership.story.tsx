@@ -1,12 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { IndirectOwnership } from '../IndirectOwnership';
-
 // Import OpenAPI-aligned mocks for proper integration
 import {
-  efClientWithOwnershipStructure,
   efClientEmptyOwnership,
   efClientPendingHierarchy,
+  efClientWithOwnershipStructure,
 } from '../mocks';
 
 // Create mock clients with different states
@@ -21,9 +20,10 @@ const meta = {
     layout: 'padded',
     docs: {
       description: {
-        component: 'Streamlined beneficial ownership structure building with real-time validation and interactive ownership management.'
-      }
-    }
+        component:
+          'Streamlined beneficial ownership structure building with real-time validation and interactive ownership management.',
+      },
+    },
   },
   argTypes: {
     client: {
@@ -55,7 +55,7 @@ export const Default: Story = {
   args: {
     client: mockClientWithOwners,
     readOnly: false,
-    testId: 'indirect-ownership-default'
+    testId: 'indirect-ownership-default',
   },
 };
 
@@ -67,7 +67,7 @@ export const EmptyState: Story = {
   args: {
     client: mockEmptyClient,
     readOnly: false,
-    testId: 'indirect-ownership-empty'
+    testId: 'indirect-ownership-empty',
   },
 };
 
@@ -79,7 +79,7 @@ export const PendingHierarchy: Story = {
   args: {
     client: efClientPendingHierarchy,
     readOnly: false,
-    testId: 'indirect-ownership-pending'
+    testId: 'indirect-ownership-pending',
   },
 };
 
@@ -91,6 +91,6 @@ export const ReadOnly: Story = {
   args: {
     client: mockClientWithOwners,
     readOnly: true,
-    testId: 'indirect-ownership-readonly'
+    testId: 'indirect-ownership-readonly',
   },
 };

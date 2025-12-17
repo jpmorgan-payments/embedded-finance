@@ -20,6 +20,7 @@ export const paymentSchema = z
     method: z.string().min(1, 'Payment method is required'),
     currency: z.string().min(1, 'Currency is required'),
     memo: z.string().optional(),
+    saveRecipient: z.boolean().optional(),
 
     // Manual recipient fields (validated when recipientMode === 'manual')
     partyType: z.enum(['INDIVIDUAL', 'ORGANIZATION']).optional(),
@@ -167,11 +168,10 @@ export const paymentSchema = z
 
 // Mock API call
 const mockPostTransaction = async (
-  data: PaymentFormData
+  _data: PaymentFormData
 ): Promise<{ success: boolean }> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      console.log('Transaction data:', data);
       resolve({ success: true });
     }, 1000);
   });
@@ -191,6 +191,7 @@ export const usePaymentForm = () => {
       method: 'ACH',
       currency: 'USD',
       memo: '',
+      saveRecipient: false,
       partyType: 'INDIVIDUAL',
       accountType: 'CHECKING',
       countryCode: 'US',

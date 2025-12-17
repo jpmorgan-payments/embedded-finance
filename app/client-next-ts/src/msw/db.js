@@ -446,6 +446,11 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
           console.log('\nCreating Parties:');
           parties.forEach((party) => {
             if (party.id) {
+              // Check if the party already exists
+              const existingParty = db.party.findFirst({
+                where: { id: { equals: party.id } },
+              });
+
               const newParty = {
                 ...party,
                 status: party.status || 'ACTIVE',
@@ -457,10 +462,37 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
                 validationResponse: party.validationResponse || [],
               };
               console.log(`\nParty ${party.id}:`, newParty);
+
               try {
-                db.party.create(newParty);
+                if (existingParty) {
+                  // Party already exists - update it instead of creating
+                  db.party.update({
+                    where: { id: { equals: party.id } },
+                    data: newParty,
+                  });
+                } else {
+                  // Party doesn't exist - create it
+                  db.party.create(newParty);
+                }
               } catch (error) {
-                console.error('Error creating party:', error);
+                // Silently handle duplicate key errors (parties can be shared between clients)
+                if (
+                  error instanceof Error &&
+                  error.message.includes('already exists')
+                ) {
+                  // Try to update instead
+                  try {
+                    db.party.update({
+                      where: { id: { equals: party.id } },
+                      data: newParty,
+                    });
+                  } catch (updateError) {
+                    console.error('Error updating party:', updateError);
+                    // Ignore update errors for shared parties
+                  }
+                } else {
+                  console.error('Error creating party:', error);
+                }
               }
             }
           });

@@ -22,6 +22,8 @@ import { WalletOverview } from './wallet-overview';
 import { TransactionHistory } from './transaction-history';
 import { PayoutSettings } from './payout-settings';
 import { LoadingSkeleton } from './loading-skeleton';
+import { ContentTokenEditorDrawer } from './content-token-editor-drawer';
+import type { EBConfig } from '@jpmorgan-payments/embedded-finance-components';
 import { useSellSenseThemes, type ThemeOption } from './use-sellsense-themes';
 import {
   getScenarioKeyByDisplayName,
@@ -99,6 +101,13 @@ export function DashboardLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const [isContentTokenEditorOpen, setIsContentTokenEditorOpen] =
+    useState(false);
+  const [contentTokens, setContentTokens] = useState<EBConfig['contentTokens']>(
+    {
+      name: 'enUS',
+    },
+  );
   const [hasProcessedInitialLoad, setHasProcessedInitialLoad] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -331,13 +340,25 @@ export function DashboardLayout() {
       if (searchParams.theme === 'Custom' && searchParams.customTheme) {
         try {
           const customTheme = JSON.parse(searchParams.customTheme as string);
-          setCustomThemeVariables(customTheme);
+
+          // Check if it's the new structure with baseTheme and variables
+          if (customTheme.baseTheme && customTheme.variables) {
+            // New structure - extract just the variables
+            setCustomThemeVariables(customTheme.variables);
+            setCustomThemeData(customTheme); // Store the full structure
+          } else {
+            // Legacy structure - use the entire object as variables
+            setCustomThemeVariables(customTheme);
+            setCustomThemeData({ variables: customTheme }); // Legacy structure
+          }
         } catch (error) {
           console.error('Failed to parse custom theme from URL:', error);
           setCustomThemeVariables({});
+          setCustomThemeData({});
         }
       } else if (searchParams.theme !== 'Custom') {
         setCustomThemeVariables({});
+        setCustomThemeData({});
       }
     }
     if (searchParams.contentTone && searchParams.contentTone !== contentTone) {
@@ -364,6 +385,7 @@ export function DashboardLayout() {
           clientScenario={clientScenario}
           theme={theme}
           customThemeVariables={customThemeVariables}
+          contentTokens={contentTokens}
         />
       );
     }
@@ -384,6 +406,7 @@ export function DashboardLayout() {
           <WalletOverview
             theme={theme}
             customThemeVariables={customThemeVariables}
+            contentTokens={contentTokens}
           />
         );
       case 'transactions':
@@ -652,11 +675,15 @@ export function DashboardLayout() {
         isInfoModalOpen={isInfoModalOpen}
         setIsInfoModalOpen={setIsInfoModalOpen}
         customThemeData={customThemeData}
+        isContentTokenEditorOpen={isContentTokenEditorOpen}
+        setIsContentTokenEditorOpen={setIsContentTokenEditorOpen}
       />
 
       {/* Mobile-first responsive layout */}
       <div
-        className={`flex ${showMswAlert ? 'h-[calc(100vh-4rem-9rem)]' : 'h-[calc(100vh-4rem)]'} relative ${themeStyles.getContentAreaStyles()}`}
+        className={`flex ${showMswAlert ? 'h-[calc(100vh-4rem-9rem)]' : 'h-[calc(100vh-4rem)]'} relative ${themeStyles.getContentAreaStyles()} ${
+          isContentTokenEditorOpen ? 'pr-[600px]' : ''
+        } transition-all duration-300`}
       >
         {/* Sidebar - responsive implementation */}
         <Sidebar
@@ -698,6 +725,13 @@ export function DashboardLayout() {
         isOpen={isInfoModalOpen}
         onClose={() => setIsInfoModalOpen(false)}
         theme={theme}
+      />
+
+      {/* Content Token Editor Drawer */}
+      <ContentTokenEditorDrawer
+        isOpen={isContentTokenEditorOpen}
+        onClose={() => setIsContentTokenEditorOpen(false)}
+        onContentTokensChange={setContentTokens}
       />
     </div>
   );

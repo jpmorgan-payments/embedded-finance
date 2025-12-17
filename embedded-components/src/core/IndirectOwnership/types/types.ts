@@ -1,5 +1,6 @@
 import type React from 'react';
 
+import type { UserTrackingProps } from '@/lib/types/userTracking.types';
 import {
   ClientResponse,
   PartyResponse,
@@ -10,7 +11,7 @@ import {
 /**
  * Props for the IndirectOwnership component
  */
-export interface IndirectOwnershipComponentProps {
+export interface IndirectOwnershipComponentProps extends UserTrackingProps {
   /** The client ID for which to manage ownership structure */
   clientId?: string;
 

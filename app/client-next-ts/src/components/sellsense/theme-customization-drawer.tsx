@@ -31,10 +31,28 @@ import {
   Check,
   Info,
   Clipboard,
+  ChevronDown,
+  ChevronUp,
+  Download,
+  AlertTriangle,
+  Sparkles,
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { AiPromptDialog } from './ai-prompt-dialog';
 import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 import type { ThemeOption } from './use-sellsense-themes';
 import { useSellSenseThemes } from './use-sellsense-themes';
+import { ContrastChecker } from './contrast-checker';
+import { getValidColorPairs } from './theme-color-pairs';
+import { runA11yChecks } from '@/lib/a11y-checks';
+import { calculateContrast } from '@/lib/color-contrast';
+import { Badge } from '@/components/ui/badge';
 import React from 'react';
 
 interface ThemeCustomizationDrawerProps {
@@ -489,6 +507,13 @@ export function ThemeCustomizationDrawer({
   const [isCopied, setIsCopied] = useState(false);
   const [isUrlCopied, setIsUrlCopied] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [exportChangedOnly, setExportChangedOnly] = useState(false);
+  const [isA11yExpanded, setIsA11yExpanded] = useState(false);
+  const [contrastFilter, setContrastFilter] = useState<
+    'all' | 'failing' | 'aa-only'
+  >('all');
+  const [isAiPromptDialogOpen, setIsAiPromptDialogOpen] = useState(false);
+  const [isWarningDialogOpen, setIsWarningDialogOpen] = useState(false);
 
   // Helper function to determine min/max values based on token context
   const getNumberConstraints = (token: string) => {
@@ -537,6 +562,50 @@ export function ThemeCustomizationDrawer({
     return result;
   };
 
+  // Get changed variables only
+  const getChangedVariables = useCallback((): EBThemeVariables => {
+    const currentBaseTheme = getCurrentBaseTheme();
+    const baseVariables = pickSemanticTokens(
+      getThemeVariables(currentBaseTheme),
+    );
+
+    const changed: Record<string, string | number | boolean> = {};
+    Object.keys(customTheme).forEach((key) => {
+      const typedKey = key as keyof EBThemeVariables;
+      const customValue = customTheme[typedKey];
+      const baseValue = baseVariables[typedKey];
+      if (customValue !== baseValue && customValue !== undefined) {
+        changed[key] = customValue as string | number | boolean;
+      }
+    });
+
+    return changed as EBThemeVariables;
+  }, [customTheme, getCurrentBaseTheme, getThemeVariables]);
+
+  // Download theme as JSON file
+  const downloadThemeAsJson = useCallback(() => {
+    try {
+      const themeToExport = exportChangedOnly
+        ? getChangedVariables()
+        : pickSemanticTokens(customTheme);
+
+      const themeJson = JSON.stringify(themeToExport, null, 2);
+      const blob = new Blob([themeJson], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = exportChangedOnly
+        ? 'theme-changes.json'
+        : 'theme-complete.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download theme:', error);
+    }
+  }, [customTheme, exportChangedOnly, getChangedVariables]);
+
   // Initialize custom theme from current theme
   useEffect(() => {
     if (isOpen) {
@@ -553,26 +622,40 @@ export function ThemeCustomizationDrawer({
   const handleBaseThemeChange = (theme: ThemeOption) => {
     console.log('handleBaseThemeChange called with theme:', theme);
 
-    const baseVariables = pickSemanticTokens(getThemeVariables(theme));
+    const currentBaseTheme = getCurrentBaseTheme();
+    const currentBaseVariables = pickSemanticTokens(
+      getThemeVariables(currentBaseTheme),
+    );
+    const newBaseVariables = pickSemanticTokens(getThemeVariables(theme));
 
-    // Reset to the new base theme (don't merge with existing custom changes)
-    setCustomTheme(baseVariables);
-
-    // Check if we have any custom changes
+    // Check if we have any custom changes BEFORE resetting
+    // Compare current customTheme against current base to see if there are overrides
     const hasChanges = Object.keys(customTheme).some((key) => {
       const typedKey = key as keyof EBThemeVariables;
-      return customTheme[typedKey] !== baseVariables[typedKey];
+      const customValue = customTheme[typedKey];
+      const baseValue = currentBaseVariables[typedKey];
+      // Check if custom value differs from current base
+      return customValue !== undefined && customValue !== baseValue;
     });
 
+    // Reset to the new base theme
+    setCustomTheme(newBaseVariables);
+
     if (hasChanges) {
-      // We have custom changes, keep them in custom mode
+      // We have custom changes, but we're switching base theme
+      // Keep the custom overrides but with new base
+      const mergedTheme = pickSemanticTokens({
+        ...newBaseVariables,
+        ...customTheme,
+      });
       const customThemeData: CustomThemeData = {
         baseTheme: theme,
-        variables: customTheme,
+        variables: mergedTheme,
       };
       onThemeChange('Custom', customThemeData as any);
     } else {
       // No custom changes, just change the theme parameter
+      // Pass empty object to clear custom variables
       onThemeChange(theme, {});
     }
   };
@@ -628,11 +711,11 @@ export function ThemeCustomizationDrawer({
   // Copy theme to clipboard
   const copyThemeToClipboard = useCallback(async () => {
     try {
-      const themeJson = JSON.stringify(
-        pickSemanticTokens(customTheme),
-        null,
-        2,
-      );
+      const themeToExport = exportChangedOnly
+        ? getChangedVariables()
+        : pickSemanticTokens(customTheme);
+
+      const themeJson = JSON.stringify(themeToExport, null, 2);
       await navigator.clipboard.writeText(themeJson);
 
       // Show success feedback
@@ -645,7 +728,7 @@ export function ThemeCustomizationDrawer({
     } catch (error) {
       console.error('Failed to copy theme:', error);
     }
-  }, [customTheme]);
+  }, [customTheme, exportChangedOnly, getChangedVariables]);
 
   // Share theme as URL
   const shareThemeAsUrl = useCallback(() => {
@@ -709,30 +792,23 @@ export function ThemeCustomizationDrawer({
         throw new Error('No valid theme properties found in clipboard data');
       }
 
-      // Merge with existing custom theme and normalize to semantic tokens
-      const mergedTheme = pickSemanticTokens({ ...customTheme, ...variables });
-      setCustomTheme(mergedTheme);
+      // Normalize imported variables to semantic tokens (don't merge with existing)
+      // The imported theme should replace the current theme, not merge with it
+      const importedTheme = pickSemanticTokens(variables);
+      setCustomTheme(importedTheme);
 
-      // Update the theme with merged values
+      // Determine base theme - use current base theme or default to SellSense
       const currentBaseTheme = getCurrentBaseTheme();
-      const baseVariables = getThemeVariables(currentBaseTheme);
-
-      // Check if this makes the theme different from base
-      const hasChanges = Object.keys(mergedTheme).some(
-        (key) =>
-          mergedTheme[key as keyof EBThemeVariables] !==
-          baseVariables[key as keyof EBThemeVariables],
-      );
-
-      if (hasChanges) {
-        const customThemeData: CustomThemeData = {
-          baseTheme: currentBaseTheme,
-          variables: mergedTheme,
-        };
-        onThemeChange('Custom', customThemeData as any);
-      } else {
-        onThemeChange(currentBaseTheme, {});
-      }
+      
+      // Always apply the imported theme as Custom theme
+      // The imported variables are what the user wants, so apply them directly
+      const customThemeData: CustomThemeData = {
+        baseTheme: currentBaseTheme,
+        variables: importedTheme,
+      };
+      
+      // Apply the theme immediately
+      onThemeChange('Custom', customThemeData as any);
 
       // Show success feedback
       console.log('Theme imported successfully from clipboard');
@@ -824,21 +900,76 @@ export function ThemeCustomizationDrawer({
     }
 
     if (isColor) {
+      // Check if this color is part of a contrast pair
+      const colorPairs = getValidColorPairs(customTheme);
+      const relevantPairs = colorPairs.filter(
+        (p) => p.foreground === token || p.background === token,
+      );
+
+      // Find the best contrast result for this color
+      let contrastBadge: React.ReactNode = null;
+      if (relevantPairs.length > 0) {
+        const pair = relevantPairs[0];
+        const fgValue =
+          pair.foreground === token
+            ? String(value || '')
+            : String(customTheme[pair.foreground] || '');
+        const bgValue =
+          pair.background === token
+            ? String(value || '')
+            : String(customTheme[pair.background] || '');
+
+        if (fgValue && bgValue) {
+          const contrastResult = calculateContrast(fgValue, bgValue);
+          if (contrastResult) {
+            const standard = pair.textSize === 'large' ? 'large' : 'normal';
+            const passesAA = contrastResult.passes.AA[standard];
+            const passesAAA = contrastResult.passes.AAA[standard];
+
+            contrastBadge = (
+              <div className="flex items-center gap-1">
+                {passesAAA ? (
+                  <Badge className="bg-green-100 text-green-800 border-0 text-xs px-1.5 py-0">
+                    ✓ {contrastResult.ratio.toFixed(1)}:1
+                  </Badge>
+                ) : passesAA ? (
+                  <Badge className="bg-amber-100 text-amber-800 border-0 text-xs px-1.5 py-0">
+                    ⚠ {contrastResult.ratio.toFixed(1)}:1
+                  </Badge>
+                ) : (
+                  <Badge className="bg-red-100 text-red-800 border-0 text-xs px-1.5 py-0">
+                    ✗ {contrastResult.ratio.toFixed(1)}:1
+                  </Badge>
+                )}
+              </div>
+            );
+          }
+        }
+      }
+
       return (
-        <div className="flex items-center gap-2">
-          <Input
-            type="color"
-            value={value || '#000000'}
-            onChange={(e) => handleTokenChange(token, e.target.value)}
-            className="w-12 h-8 p-1 border border-gray-300 rounded bg-white"
-          />
-          <Input
-            type="text"
-            value={value || ''}
-            onChange={(e) => handleTokenChange(token, e.target.value)}
-            placeholder="Color value"
-            className="flex-1 border-gray-300 bg-white text-gray-900 placeholder-gray-500"
-          />
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Input
+              type="color"
+              value={value || '#000000'}
+              onChange={(e) => handleTokenChange(token, e.target.value)}
+              className="w-12 h-8 p-1 border border-gray-300 rounded bg-white"
+            />
+            <Input
+              type="text"
+              value={value || ''}
+              onChange={(e) => handleTokenChange(token, e.target.value)}
+              placeholder="Color value"
+              className="flex-1 border-gray-300 bg-white text-gray-900 placeholder-gray-500"
+            />
+            {contrastBadge}
+          </div>
+          {contrastBadge && relevantPairs.length > 0 && (
+            <div className="text-xs text-gray-500 ml-14">
+              {relevantPairs[0].label}
+            </div>
+          )}
         </div>
       );
     }
@@ -972,7 +1103,7 @@ export function ThemeCustomizationDrawer({
 
       {/* Drawer */}
       <div
-        className={`fixed inset-y-0 right-0 w-96 bg-white border-l border-gray-200 shadow-xl transform transition-transform duration-300 ease-in-out z-50 flex flex-col ${
+        className={`fixed inset-y-0 right-0 w-[32rem] bg-white border-l border-gray-200 shadow-xl transform transition-transform duration-300 ease-in-out z-50 flex flex-col ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -1000,19 +1131,29 @@ export function ThemeCustomizationDrawer({
           <div className="px-4 border-b border-gray-200 flex-shrink-0">
             <div className="flex items-start gap-2 p-2 bg-gray-50 border border-gray-200 rounded-lg">
               <Info className="h-3 w-3 text-gray-600 mt-0.5 flex-shrink-0" />
-              <div className="text-xs text-gray-700">
+              <div className="text-xs text-gray-700 flex-1">
                 <p className="text-xs">
                   Customize design tokens to create your own theme. Changes are
                   applied in real-time.
                 </p>
-                <a
-                  href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theme-design-tokens"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-600 hover:text-gray-800 underline text-xs whitespace-nowrap"
-                >
-                  View design tokens docs →
-                </a>
+                <div className="flex items-center gap-3 mt-1.5">
+                  <a
+                    href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theme-design-tokens"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-600 hover:text-gray-800 underline text-xs whitespace-nowrap"
+                  >
+                    View design tokens docs →
+                  </a>
+                  <button
+                    onClick={() => setIsAiPromptDialogOpen(true)}
+                    className="text-gray-500 hover:text-gray-700 underline text-xs flex items-center gap-1"
+                    type="button"
+                  >
+                    <Sparkles className="h-3 w-3" />
+                    Extract tokens with AI
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1064,6 +1205,21 @@ export function ThemeCustomizationDrawer({
               </div>
             </div>
 
+            {/* Export Options */}
+            <div className="flex items-center gap-2 p-2 bg-gray-50 rounded border border-gray-200">
+              <Switch
+                checked={exportChangedOnly}
+                onCheckedChange={setExportChangedOnly}
+                id="export-changed-only"
+              />
+              <Label
+                htmlFor="export-changed-only"
+                className="text-xs text-gray-700 cursor-pointer"
+              >
+                Export only changed variables
+              </Label>
+            </div>
+
             {/* Action Buttons */}
             <div className="flex gap-2">
               <Button
@@ -1082,7 +1238,20 @@ export function ThemeCustomizationDrawer({
                 ) : (
                   <Copy className="h-4 w-4" />
                 )}
-                {isCopied ? 'Copied!' : 'Copy Theme JSON'}
+                {isCopied
+                  ? 'Copied!'
+                  : exportChangedOnly
+                    ? 'Copy Changed JSON'
+                    : 'Copy Theme JSON'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={downloadThemeAsJson}
+                className="flex items-center gap-2 border-gray-300 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                title="Download theme as JSON file"
+              >
+                <Download className="h-4 w-4" />
               </Button>
               <Button
                 variant={isUrlCopied ? 'default' : 'outline'}
@@ -1125,59 +1294,438 @@ export function ThemeCustomizationDrawer({
 
           {/* Theme Groups */}
           <div className="flex-1 overflow-hidden">
-            <ScrollArea className="h-full px-6">
-              <Accordion type="single" collapsible className="w-full">
-                {Object.entries(TOKEN_GROUPS).map(([groupKey, group]) => {
-                  const Icon = group.icon;
-                  return (
-                    <AccordionItem key={groupKey} value={groupKey}>
-                      <AccordionTrigger className="flex items-center gap-2 text-sm font-medium text-gray-900">
-                        <Icon className="h-4 w-4 text-gray-700" />
-                        {group.title}
-                        <span className="text-xs text-gray-500 ml-auto">
-                          ({group.tokens.length})
-                        </span>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="space-y-4 pt-2">
-                          {group.tokens.map((token) => {
-                            // Get the current value from the merged theme (base + custom)
-                            const baseVariables = pickSemanticTokens(
-                              getThemeVariables(getCurrentBaseTheme()),
-                            );
-                            const value =
-                              customTheme[token as keyof EBThemeVariables] !==
-                              undefined
-                                ? customTheme[token as keyof EBThemeVariables]
-                                : baseVariables[
-                                    token as keyof EBThemeVariables
-                                  ];
+            <ScrollArea className="h-full">
+              <div className="px-6 pb-12">
+                {/* Accessibility Check Section - Moved to Top */}
+                <div className="mb-6 border-b border-gray-200 pb-6">
+                  {(() => {
+                    // Get merged theme (base + custom) for accurate checks
+                    const currentBaseTheme = getCurrentBaseTheme();
+                    const baseVariables = pickSemanticTokens(
+                      getThemeVariables(currentBaseTheme),
+                    );
+                    const mergedTheme = pickSemanticTokens({
+                      ...baseVariables,
+                      ...customTheme,
+                    });
 
-                            return (
-                              <div key={token} className="space-y-2">
-                                <Label
-                                  htmlFor={token}
-                                  className="text-xs text-gray-900 font-medium"
-                                >
-                                  {TOKEN_LABELS[token] || token}
-                                </Label>
-                                {renderTokenControl(
-                                  token as keyof EBThemeVariables,
-                                  value,
-                                )}
-                              </div>
-                            );
-                          })}
+                    // Calculate summary stats for collapsed view
+                    const colorPairs = getValidColorPairs(mergedTheme);
+                    const contrastResults = colorPairs.map((pair) => ({
+                      ...pair,
+                      result: calculateContrast(
+                        pair.foregroundValue,
+                        pair.backgroundValue,
+                      ),
+                    }));
+                    const failingContrast = contrastResults.filter(
+                      (p) => !p.result || p.result.level === 'Fail',
+                    ).length;
+                    const a11ySummary = runA11yChecks(mergedTheme);
+                    const totalIssues = failingContrast + a11ySummary.failing;
+                    const hasIssues = totalIssues > 0;
+
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => setIsA11yExpanded(!isA11yExpanded)}
+                        className={`flex items-center justify-between w-full p-2.5 rounded-lg transition-colors ${
+                          hasIssues
+                            ? 'bg-red-50 hover:bg-red-100 border border-red-200'
+                            : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
+                        }`}
+                        aria-expanded={isA11yExpanded}
+                        aria-controls="a11y-check-details"
+                      >
+                        <div className="flex flex-col items-start flex-1 min-w-0 gap-0.5">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsWarningDialogOpen(true);
+                            }}
+                            className="flex items-center gap-1.5 text-amber-600 hover:text-amber-700 transition-colors text-xs font-medium"
+                            title="View warning about using generated theme JSON"
+                            aria-label="View warning about using generated theme JSON"
+                          >
+                            <AlertTriangle className="h-3.5 w-3.5" />
+                            <span>Warning: Use at Your Own Risk</span>
+                          </button>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500 font-bold">
+                              Experimental:
+                            </span>
+                            <span className="text-xs font-normal text-gray-900">
+                              Accessibility Check
+                            </span>
+                          </div>
+                          {!isA11yExpanded && (
+                            <span
+                              className={`text-xs ${
+                                hasIssues
+                                  ? 'text-red-700 font-medium'
+                                  : 'text-gray-600'
+                              }`}
+                            >
+                              {hasIssues
+                                ? `⚠ ${totalIssues} issue${totalIssues !== 1 ? 's' : ''} found`
+                                : '✓ All checks passing'}
+                            </span>
+                          )}
                         </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  );
-                })}
-              </Accordion>
+                        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                          {!isA11yExpanded && hasIssues && (
+                            <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded">
+                              {totalIssues}
+                            </span>
+                          )}
+                          {isA11yExpanded ? (
+                            <ChevronUp className="h-4 w-4 text-gray-600" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-gray-600" />
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })()}
+
+                  {isA11yExpanded && (
+                    <div id="a11y-check-details" className="mt-4 space-y-4">
+                      {/* A11y Checks Summary */}
+                      {(() => {
+                        // Get merged theme (base + custom) for accurate checks
+                        const currentBaseTheme = getCurrentBaseTheme();
+                        const baseVariables = pickSemanticTokens(
+                          getThemeVariables(currentBaseTheme),
+                        );
+                        const mergedTheme = pickSemanticTokens({
+                          ...baseVariables,
+                          ...customTheme,
+                        });
+                        const a11ySummary = runA11yChecks(mergedTheme);
+                        return (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                              <div className="flex items-center gap-4">
+                                <div className="text-sm">
+                                  <span className="font-medium text-gray-900">
+                                    Overall Status:
+                                  </span>{' '}
+                                  {a11ySummary.failing > 0 ? (
+                                    <span className="text-red-600">
+                                      ⚠ {a11ySummary.failing} issues
+                                    </span>
+                                  ) : a11ySummary.warnings > 0 ? (
+                                    <span className="text-amber-600">
+                                      ⚠ {a11ySummary.warnings} warnings
+                                    </span>
+                                  ) : (
+                                    <span className="text-green-600">
+                                      ✓ All checks passing
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-xs text-gray-600">
+                                {a11ySummary.passing} pass,{' '}
+                                {a11ySummary.warnings} warnings,{' '}
+                                {a11ySummary.failing} fail
+                              </div>
+                            </div>
+
+                            {/* A11y Check Results */}
+                            <div className="space-y-2">
+                              {a11ySummary.checks.map((check) => (
+                                <div
+                                  key={check.id}
+                                  className={`p-3 rounded-lg border ${
+                                    check.status === 'pass'
+                                      ? 'bg-green-50 border-green-200'
+                                      : check.status === 'warning'
+                                        ? 'bg-amber-50 border-amber-200'
+                                        : 'bg-red-50 border-red-200'
+                                  }`}
+                                >
+                                  <div className="flex items-start gap-2">
+                                    {check.status === 'pass' ? (
+                                      <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                    ) : check.status === 'warning' ? (
+                                      <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                                    ) : (
+                                      <X className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                      <div className="text-sm font-medium text-gray-900">
+                                        {check.label}
+                                      </div>
+                                      <div className="text-xs text-gray-700 mt-1">
+                                        {check.message}
+                                      </div>
+                                      {check.recommendation && (
+                                        <div className="text-xs text-gray-600 mt-2 italic">
+                                          💡 {check.recommendation}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* Contrast Checker */}
+                      {(() => {
+                        // Get merged theme (base + custom) for accurate checks
+                        const currentBaseTheme = getCurrentBaseTheme();
+                        const baseVariables = pickSemanticTokens(
+                          getThemeVariables(currentBaseTheme),
+                        );
+                        const mergedTheme = pickSemanticTokens({
+                          ...baseVariables,
+                          ...customTheme,
+                        });
+                        const colorPairs = getValidColorPairs(mergedTheme);
+                        const contrastResults = colorPairs.map((pair) => {
+                          return {
+                            ...pair,
+                            result: calculateContrast(
+                              pair.foregroundValue,
+                              pair.backgroundValue,
+                            ),
+                          };
+                        });
+
+                        const failingPairs = contrastResults.filter(
+                          (p) => !p.result || p.result.level === 'Fail',
+                        );
+                        const aaOnlyPairs = contrastResults.filter(
+                          (p) =>
+                            p.result &&
+                            p.result.level === 'AA' &&
+                            p.result.passes.AAA.normal === false,
+                        );
+
+                        const filteredPairs =
+                          contrastFilter === 'failing'
+                            ? failingPairs
+                            : contrastFilter === 'aa-only'
+                              ? aaOnlyPairs
+                              : contrastResults;
+
+                        const aaPassing = contrastResults.filter(
+                          (p) => p.result && p.result.passes.AA.normal,
+                        ).length;
+                        const aaaPassing = contrastResults.filter(
+                          (p) => p.result && p.result.passes.AAA.normal,
+                        ).length;
+
+                        return (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className="text-sm font-medium text-gray-900">
+                                  Color Contrast
+                                </h4>
+                                <p className="text-xs text-gray-600 mt-1">
+                                  WCAG 2.1 Level AA (4.5:1) and AAA (7:1)
+                                  compliance
+                                </p>
+                              </div>
+                              <div className="text-xs text-gray-600">
+                                {aaPassing}/{colorPairs.length} pass AA,{' '}
+                                {aaaPassing}/{colorPairs.length} pass AAA
+                              </div>
+                            </div>
+
+                            {/* Filter Buttons */}
+                            <div className="flex gap-2">
+                              <Button
+                                variant={
+                                  contrastFilter === 'all'
+                                    ? 'default'
+                                    : 'outline'
+                                }
+                                size="sm"
+                                onClick={() => setContrastFilter('all')}
+                                className="text-xs"
+                              >
+                                All ({colorPairs.length})
+                              </Button>
+                              <Button
+                                variant={
+                                  contrastFilter === 'failing'
+                                    ? 'default'
+                                    : 'outline'
+                                }
+                                size="sm"
+                                onClick={() => setContrastFilter('failing')}
+                                className="text-xs"
+                              >
+                                Failing ({failingPairs.length})
+                              </Button>
+                              <Button
+                                variant={
+                                  contrastFilter === 'aa-only'
+                                    ? 'default'
+                                    : 'outline'
+                                }
+                                size="sm"
+                                onClick={() => setContrastFilter('aa-only')}
+                                className="text-xs"
+                              >
+                                AA Only ({aaOnlyPairs.length})
+                              </Button>
+                            </div>
+
+                            {/* Contrast Results */}
+                            <div className="space-y-3 max-h-96 overflow-y-auto">
+                              {filteredPairs.length === 0 ? (
+                                <div className="p-4 text-center text-sm text-gray-500 bg-gray-50 rounded-lg">
+                                  No color pairs found matching the filter
+                                </div>
+                              ) : (
+                                filteredPairs.map((pair) => (
+                                  <ContrastChecker
+                                    key={`${pair.background}-${pair.foreground}`}
+                                    foreground={pair.foregroundValue}
+                                    background={pair.backgroundValue}
+                                    label={pair.label}
+                                    textSize={pair.textSize}
+                                    showRatio={true}
+                                  />
+                                ))
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+
+                <Accordion type="single" collapsible className="w-full">
+                  {Object.entries(TOKEN_GROUPS).map(([groupKey, group]) => {
+                    const Icon = group.icon;
+                    return (
+                      <AccordionItem key={groupKey} value={groupKey}>
+                        <AccordionTrigger className="flex items-center gap-2 text-sm font-medium text-gray-900">
+                          <Icon className="h-4 w-4 text-gray-700" />
+                          {group.title}
+                          <span className="text-xs text-gray-500 ml-auto">
+                            ({group.tokens.length})
+                          </span>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className="space-y-4 pt-2">
+                            {group.tokens.map((token) => {
+                              // Get the current value from the merged theme (base + custom)
+                              const baseVariables = pickSemanticTokens(
+                                getThemeVariables(getCurrentBaseTheme()),
+                              );
+                              const value =
+                                customTheme[token as keyof EBThemeVariables] !==
+                                undefined
+                                  ? customTheme[token as keyof EBThemeVariables]
+                                  : baseVariables[
+                                      token as keyof EBThemeVariables
+                                    ];
+
+                              return (
+                                <div key={token} className="space-y-2">
+                                  <Label
+                                    htmlFor={token}
+                                    className="text-xs text-gray-900 font-medium"
+                                  >
+                                    {TOKEN_LABELS[token] || token}
+                                  </Label>
+                                  {renderTokenControl(
+                                    token as keyof EBThemeVariables,
+                                    value,
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    );
+                  })}
+                </Accordion>
+              </div>
             </ScrollArea>
           </div>
         </div>
       </div>
+
+      {/* AI Prompt Dialog */}
+      <AiPromptDialog
+        isOpen={isAiPromptDialogOpen}
+        onClose={() => setIsAiPromptDialogOpen(false)}
+      />
+
+      {/* Warning Dialog */}
+      <Dialog open={isWarningDialogOpen} onOpenChange={setIsWarningDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
+              ⚠️ Warning: Use Generated Theme JSON at Your Own Risk
+            </DialogTitle>
+            <DialogDescription>
+              Important information about using theme data generated from this
+              tool
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
+              <p className="mb-3">
+                The theme JSON and instructions provided in this tool (including
+                AI-generated, manually customized, or imported themes) are
+                intended for reference and experimentation purposes only. The
+                maintainers of this tool do not assume any responsibility for any
+                issues, damages, or losses that may arise from the use of
+                generated theme data.
+              </p>
+              <p className="mb-2 font-medium">
+                By using this tool, you acknowledge that:
+              </p>
+              <ul className="list-disc list-inside space-y-2 ml-2 mb-3">
+                <li>
+                  Generated theme JSON (whether AI-generated, manually created, or
+                  imported) may contain errors, inaccuracies, or incomplete design
+                  tokens
+                </li>
+                <li>
+                  The extracted or customized tokens may not accurately represent
+                  the intended design system or may not be suitable for your
+                  specific use case
+                </li>
+                <li>
+                  There are no guarantees regarding the accuracy, completeness, or
+                  suitability of any generated theme JSON for any particular
+                  purpose
+                </li>
+                <li>
+                  You should validate and test all imported or generated theme data
+                  before using it in production
+                </li>
+                <li>
+                  You are solely responsible for reviewing, validating, and any
+                  consequences resulting from the use of generated theme JSON in
+                  your projects
+                </li>
+              </ul>
+              <p className="font-medium">
+                Please proceed with caution and ensure you understand the
+                implications of using generated theme data. Always validate the
+                results and test thoroughly before deploying to production.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import {
@@ -29,6 +30,7 @@ export interface RecipientsTableProps {
   onDeactivate: (recipient: Recipient) => void;
   makePaymentComponent?: React.ReactNode;
   isDeactivating: boolean;
+  locale?: string;
   layout?: 'widget' | 'tablet' | 'desktop';
 }
 
@@ -55,73 +57,83 @@ export const RecipientsTable: React.FC<RecipientsTableProps> = ({
   onDeactivate,
   makePaymentComponent,
   isDeactivating,
+  locale = 'en-US',
   layout = 'desktop',
 }) => {
+  const { t: tRaw } = useTranslation(['recipients', 'common']);
+  // Type assertion to avoid TypeScript overload issues
+  const t = tRaw as (key: string, options?: any) => string;
   // All layouts (desktop, tablet, widget) use dynamic column configuration
   return (
-    <div className="eb-overflow-hidden eb-rounded-md eb-border">
-      <div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {visibleColumns.map((columnKey) => {
-                const colConfig = columnConfig[columnKey];
-                if (!colConfig || !colConfig.visible) return null;
+    <div className="eb-w-full eb-overflow-hidden eb-rounded-md eb-border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            {visibleColumns.map((columnKey) => {
+              const colConfig = columnConfig[columnKey];
+              if (!colConfig || !colConfig.visible) return null;
 
-                return (
-                  <TableHead
-                    key={columnKey}
-                    className={
-                      columnKey === 'actions' && layout === 'widget'
-                        ? 'eb-text-right'
-                        : undefined
-                    }
-                  >
-                    {colConfig.sortable ? (
-                      <SortableColumnHeader
-                        title={colConfig.label}
-                        sortKey={columnKey}
-                        currentSortBy={sortBy}
-                        sortOrder={sortOrder}
-                        onSort={onSort}
-                        sortable={colConfig.sortable}
-                      />
-                    ) : (
-                      <div className="eb-font-semibold">{colConfig.label}</div>
-                    )}
-                  </TableHead>
-                );
-              })}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {recipients.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={visibleColumns.length}
-                  className="eb-py-8 eb-text-center eb-text-gray-500"
+              return (
+                <TableHead
+                  key={columnKey}
+                  className={
+                    columnKey === 'actions' && layout === 'widget'
+                      ? 'eb-text-right'
+                      : undefined
+                  }
                 >
-                  No recipients found
-                </TableCell>
-              </TableRow>
-            ) : (
-              recipients.map((recipient) => (
-                <TableRow key={recipient.id}>
-                  {visibleColumns.map((columnKey) =>
-                    renderTableCell(columnKey, recipient, {
-                      onViewDetails,
-                      onEdit,
-                      onDeactivate,
-                      makePaymentComponent,
-                      isDeactivating,
-                    })
+                  {colConfig.sortable ? (
+                    <SortableColumnHeader
+                      title={colConfig.label}
+                      sortKey={columnKey}
+                      currentSortBy={sortBy}
+                      sortOrder={sortOrder}
+                      onSort={onSort}
+                      sortable={colConfig.sortable}
+                    />
+                  ) : (
+                    <div className="eb-font-semibold">{colConfig.label}</div>
                   )}
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                </TableHead>
+              );
+            })}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {recipients.length === 0 ? (
+            <TableRow>
+              <TableCell
+                colSpan={visibleColumns.length}
+                className="eb-py-8 eb-text-center eb-text-gray-500"
+              >
+                {t('recipients:emptyState.noRecipients', {
+                  defaultValue: 'No recipients found',
+                })}
+              </TableCell>
+            </TableRow>
+          ) : (
+            recipients.map((recipient) => (
+              <TableRow key={recipient.id}>
+                {visibleColumns.map((columnKey) => {
+                  const cell = renderTableCell(columnKey, recipient, {
+                    onViewDetails,
+                    onEdit,
+                    onDeactivate,
+                    makePaymentComponent,
+                    isDeactivating,
+                    locale,
+                    t,
+                  });
+                  // Add key prop to the TableCell element
+                  return React.isValidElement(cell)
+                    ? React.cloneElement(cell, { key: columnKey })
+                    : cell;
+                })}
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
     </div>
   );
 };

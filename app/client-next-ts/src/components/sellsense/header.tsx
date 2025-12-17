@@ -11,6 +11,7 @@ import {
   SkipForward,
   Info,
   Brush,
+  Languages,
 } from 'lucide-react';
 import type { ClientScenario, ContentTone } from './dashboard-layout';
 import type { ThemeOption } from './use-sellsense-themes';
@@ -47,6 +48,8 @@ interface HeaderProps {
   isInfoModalOpen: boolean;
   setIsInfoModalOpen: (open: boolean) => void;
   customThemeData?: any; // Full custom theme data with baseTheme
+  isContentTokenEditorOpen: boolean;
+  setIsContentTokenEditorOpen: (open: boolean) => void;
 }
 
 export function Header({
@@ -62,6 +65,8 @@ export function Header({
   isInfoModalOpen,
   setIsInfoModalOpen,
   customThemeData = {},
+  isContentTokenEditorOpen,
+  setIsContentTokenEditorOpen,
 }: HeaderProps) {
   const themeStyles = useThemeStyles(theme);
   const [isThemeDrawerOpen, setIsThemeDrawerOpen] = useState(false);
@@ -251,6 +256,21 @@ export function Header({
             title="Customize theme"
           >
             <Brush className="h-4 w-4 lg:h-5 lg:w-5" />
+          </Button>
+
+          {/* Content Token Editor button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`h-8 w-8 rounded-full p-1 ${
+              isContentTokenEditorOpen ? 'bg-gray-100 bg-opacity-20' : ''
+            } ${themeStyles.getHeaderButtonStyles()}`}
+            onClick={() =>
+              setIsContentTokenEditorOpen(!isContentTokenEditorOpen)
+            }
+            title="Edit content tokens"
+          >
+            <Languages className="h-4 w-4 lg:h-5 lg:w-5" />
           </Button>
 
           {/* Settings button */}

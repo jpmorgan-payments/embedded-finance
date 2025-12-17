@@ -5,6 +5,9 @@ import * as LucideIcons from 'lucide-react';
 import { FormProvider } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
+import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
+import { useCreateRecipient } from '@/api/generated/ep-recipients';
+import type { RecipientRequest } from '@/api/generated/ep-recipients.schemas';
 import { useCreateTransactionV2 } from '@/api/generated/ep-transactions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +38,7 @@ import {
   usePaymentForm,
   usePaymentValidation,
 } from './hooks';
+import { MAKE_PAYMENT_USER_JOURNEYS } from './MakePayment.constants';
 import type { PaymentComponentProps } from './types';
 
 export const MakePayment: React.FC<PaymentComponentProps> = ({
@@ -49,11 +53,20 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   recipientId,
   showPreviewPanel = true, // Default to true for backward compatibility
   onTransactionSettled,
+  userEventsHandler,
+  userEventsLifecycle,
 }) => {
   const { t } = useTranslation(['make-payment']);
   const { form, resetForm } = usePaymentForm();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [localSuccess, setLocalSuccess] = useState(false);
+
+  // Set up automatic event tracking for data-user-event attributes
+  useUserEventTracking({
+    containerId: 'make-payment-container',
+    userEventsHandler,
+    userEventsLifecycle,
+  });
 
   // Get payment data using custom hook
   const paymentData = usePaymentData(paymentMethods, form);
@@ -71,7 +84,6 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     paymentData.selectedAccount,
     paymentData.filteredRecipients,
     paymentMethods,
-    paymentData.dynamicPaymentMethods,
     form
   );
 
@@ -82,7 +94,38 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     isError: isPaymentError,
     error: paymentError,
     reset: resetPayment,
-  } = useCreateTransactionV2();
+  } = useCreateTransactionV2({
+    mutation: {
+      onSuccess: (data) => {
+        trackUserEvent({
+          actionName: MAKE_PAYMENT_USER_JOURNEYS.PAYMENT_COMPLETED,
+          metadata: { transactionId: data.id, status: data.status },
+          userEventsHandler,
+        });
+      },
+      onError: (error) => {
+        trackUserEvent({
+          actionName: MAKE_PAYMENT_USER_JOURNEYS.PAYMENT_FAILED,
+          metadata: {
+            errorType: error?.name || 'UnknownError',
+            // Don't include error.message as it may contain PII
+          },
+          userEventsHandler,
+        });
+      },
+    },
+  });
+
+  // Recipient creation mutation
+  const { mutate: createRecipient, isPending: isCreatingRecipient } =
+    useCreateRecipient({
+      mutation: {
+        onSuccess: () => {
+          // Refetch recipients after creating
+          paymentData.refetchRecipients();
+        },
+      },
+    });
 
   // Derived state for recipient selection and warning
   const recipientSelectionState = React.useMemo(() => {
@@ -128,7 +171,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     if (values.recipientMode === 'manual') {
       const routingInfo = [
         {
-          routingCodeType: 'USABA',
+          routingCodeType: 'USABA' as const,
           routingNumber: values.routingNumber,
           transactionType: values.method,
         },
@@ -136,35 +179,114 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
       const partyDetails =
         values.partyType === 'INDIVIDUAL'
           ? {
-              type: 'INDIVIDUAL',
+              type: 'INDIVIDUAL' as const,
               firstName: values.firstName,
               lastName: values.lastName,
               address:
-                values.method === 'RTP'
+                values.method === 'RTP' || values.method === 'WIRE'
                   ? {
                       addressLine1: values.addressLine1,
                       city: values.city,
                       state: values.state,
-                      countryCode: 'US',
+                      countryCode: 'US' as const,
                       postalCode: values.postalCode,
                     }
                   : undefined,
             }
           : {
-              type: 'ORGANIZATION',
+              type: 'ORGANIZATION' as const,
               businessName: values.businessName,
               address:
-                values.method === 'RTP'
+                values.method === 'RTP' || values.method === 'WIRE'
                   ? {
                       addressLine1: values.addressLine1,
                       city: values.city,
                       state: values.state,
-                      countryCode: 'US',
+                      countryCode: 'US' as const,
                       postalCode: values.postalCode,
                     }
                   : undefined,
             };
 
+      // If saveRecipient is checked, create the recipient first
+      if (values.saveRecipient) {
+        const recipientRequest: RecipientRequest = {
+          type: 'RECIPIENT',
+          account: {
+            countryCode: 'US' as const,
+            number: values.accountNumber,
+            type: values.accountType,
+            routingInformation: routingInfo.map((info) => ({
+              routingCodeType: 'USABA' as const,
+              routingNumber: info.routingNumber,
+              transactionType: info.transactionType,
+            })),
+          },
+          partyDetails,
+        };
+
+        createRecipient(
+          { data: recipientRequest },
+          {
+            onSuccess: () => {
+              // After recipient is created, proceed with transaction
+              createTransaction(
+                {
+                  data: {
+                    ...common,
+                    recipient: {
+                      account: {
+                        countryCode: 'US',
+                        number: values.accountNumber,
+                        type: values.accountType,
+                        routingInformation: routingInfo,
+                      },
+                      partyDetails,
+                    },
+                  },
+                },
+                {
+                  onSuccess: () => {
+                    setLocalSuccess(true);
+                    // Tracking is handled at hook level to avoid duplicates
+                  },
+                  onSettled: () => onTransactionSettled?.(),
+                }
+              );
+            },
+            onError: (error) => {
+              console.error('Failed to create recipient:', error);
+              // Still proceed with transaction even if saving recipient fails
+              createTransaction(
+                {
+                  data: {
+                    ...common,
+                    recipient: {
+                      account: {
+                        countryCode: 'US',
+                        number: values.accountNumber,
+                        type: values.accountType,
+                        routingInformation: routingInfo,
+                      },
+                      partyDetails,
+                    },
+                  },
+                },
+                {
+                  onSuccess: () => {
+                    setLocalSuccess(true);
+                    // Tracking is handled at hook level to avoid duplicates
+                  },
+                  onSettled: () => onTransactionSettled?.(),
+                }
+              );
+            },
+          }
+        );
+        return;
+      }
+
+      // If not saving recipient, proceed directly with transaction
       createTransaction(
         {
           data: {
@@ -181,7 +303,10 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
           },
         },
         {
-          onSuccess: () => setLocalSuccess(true),
+          onSuccess: () => {
+            setLocalSuccess(true);
+            // Tracking is handled at hook level to avoid duplicates
+          },
           onSettled: () => onTransactionSettled?.(),
         }
       );
@@ -201,7 +326,10 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
         },
       },
       {
-        onSuccess: () => setLocalSuccess(true),
+        onSuccess: () => {
+          setLocalSuccess(true);
+          // Tracking is handled at hook level to avoid duplicates
+        },
         onSettled: () => onTransactionSettled?.(),
       }
     );
@@ -219,6 +347,12 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   // Restore pre-selected values when dialog opens
   useEffect(() => {
     if (dialogOpen) {
+      // Track form started
+      trackUserEvent({
+        actionName: MAKE_PAYMENT_USER_JOURNEYS.FORM_STARTED,
+        userEventsHandler,
+      });
+
       // Auto-select single account
       if (paymentData.accounts?.items?.length === 1) {
         form.setValue('from', paymentData.accounts.items[0].id);
@@ -234,6 +368,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     paymentData.accounts?.items,
     paymentData.filteredRecipients,
     form,
+    userEventsHandler,
   ]);
 
   // Restore recipient selection when recipients are loaded and dialog is open
@@ -272,6 +407,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
       <DialogTrigger asChild>
         {triggerButton || (
           <Button
+            data-user-event={MAKE_PAYMENT_USER_JOURNEYS.FORM_STARTED}
             onClick={() => setDialogOpen(true)}
             variant={triggerButtonVariant}
             className="eb-component eb-flex eb-items-center eb-gap-2"
@@ -281,7 +417,10 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="eb-p-0 sm:eb-max-w-[1200px]">
+      <DialogContent
+        id="make-payment-container"
+        className="eb-p-0 sm:eb-max-w-[1200px]"
+      >
         <DialogTitle className="eb-sr-only">{t('title')}</DialogTitle>
         <Card className="eb-rounded-none eb-border-none eb-shadow-none sm:eb-rounded-lg">
           <CardHeader>
@@ -329,7 +468,12 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                           {/* Recipient section */}
                           <Card className="eb-p-4">
                             <CardContent className="eb-space-y-4 eb-p-0">
-                              <div className="eb-flex eb-items-center eb-justify-end">
+                              <div className="eb-space-y-4">
+                                <h3 className="eb-text-base eb-font-semibold">
+                                  {t('fields.to.label', {
+                                    defaultValue: 'Who are you paying?',
+                                  })}
+                                </h3>
                                 <RecipientModeToggle />
                               </div>
 
@@ -362,11 +506,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                 <>
                                   {/* Payment method becomes first control in section when manual */}
                                   <PaymentMethodSelector
-                                    dynamicPaymentMethods={
-                                      paymentData.dynamicPaymentMethods
-                                    }
                                     paymentMethods={paymentMethods}
-                                    forceAllMethods
                                     isFormFilled={validation.isFormFilled}
                                     amount={validation.amount}
                                     fee={validation.fee}
@@ -387,6 +527,9 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                 selectedAccountId={form.watch('from')}
                                 accountBalance={paymentData.accountBalance}
                                 isBalanceLoading={paymentData.isBalanceLoading}
+                                isBalanceError={paymentData.isBalanceError}
+                                balanceError={paymentData.balanceError}
+                                refetchBalance={paymentData.refetchBalance}
                               />
                             </CardContent>
                           </Card>
@@ -402,22 +545,23 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                             </CardContent>
                           </Card>
 
-                          {/* Section 4: How do you want to pay? (disappears in manual mode) */}
-                          {form.watch('recipientMode') !== 'manual' && (
-                            <Card className="eb-p-4">
-                              <CardContent className="eb-p-0">
-                                <PaymentMethodSelector
-                                  dynamicPaymentMethods={
-                                    paymentData.dynamicPaymentMethods
-                                  }
-                                  paymentMethods={paymentMethods}
-                                  isFormFilled={validation.isFormFilled}
-                                  amount={validation.amount}
-                                  fee={validation.fee}
-                                />
-                              </CardContent>
-                            </Card>
-                          )}
+                          {/* Section 4: How do you want to pay? */}
+                          {form.watch('recipientMode') !== 'manual' &&
+                            form.watch('to') && (
+                              <Card className="eb-p-4">
+                                <CardContent className="eb-p-0">
+                                  <PaymentMethodSelector
+                                    paymentMethods={
+                                      paymentData.dynamicPaymentMethods
+                                    }
+                                    isFormFilled={validation.isFormFilled}
+                                    amount={validation.amount}
+                                    fee={validation.fee}
+                                    accountsStatus={paymentData.accountsStatus}
+                                  />
+                                </CardContent>
+                              </Card>
+                            )}
 
                           {/* Section 5: Additional Information (optional) */}
                           <Card className="eb-p-4">
@@ -452,9 +596,13 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                         >
                           <Button
                             type="submit"
+                            data-user-event={
+                              MAKE_PAYMENT_USER_JOURNEYS.FORM_SUBMITTED
+                            }
                             className="eb-w-full"
                             disabled={
                               isSubmitting ||
+                              isCreatingRecipient ||
                               !validation.isFormFilled ||
                               !validation.isAmountValid
                             }

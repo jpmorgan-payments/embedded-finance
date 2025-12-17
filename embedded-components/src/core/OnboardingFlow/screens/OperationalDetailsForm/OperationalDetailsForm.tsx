@@ -100,8 +100,8 @@ export const OperationalDetailsForm = () => {
     status: updateClientStatus,
   } = useSmbdoUpdateClientLegacy({
     mutation: {
-      onError: (err) => {
-        console.log('mutation error', err);
+      onError: () => {
+        // Mutation error occurred
       },
       onSuccess: (response) => {
         queryClient.setQueryData(queryKey, response);
@@ -128,9 +128,8 @@ export const OperationalDetailsForm = () => {
     const questionLabel = (
       <div className="">
         {question.description?.split('\n')?.map((line, index) => (
-          <div>
+          <div key={`${question.id}-label-${index}`}>
             <FormLabel
-              key={index}
               asterisk={index === 0}
               className={cn({
                 'eb-ml-4': index > 0,
@@ -156,6 +155,7 @@ export const OperationalDetailsForm = () => {
                 <Input
                   {...field}
                   type="date"
+                  value={field.value?.[0] ?? ''}
                   onChange={(e) => field.onChange([e.target.value])}
                 />
               </FormControl>
@@ -180,14 +180,14 @@ export const OperationalDetailsForm = () => {
                 </span>
                 <FormControl>
                   <Input
+                    {...field}
                     type="number"
                     min={0}
                     max={10000000000}
                     step={0.01}
                     placeholder="0.00"
                     className="eb-pl-7"
-                    {...field}
-                    value={field.value?.[0]}
+                    value={field.value?.[0] ?? ''}
                     onChange={(e) => {
                       const value = parseFloat(e.target.value);
                       if (value >= 0 && value <= 10000000000) {
@@ -221,7 +221,7 @@ export const OperationalDetailsForm = () => {
                 <FormControl>
                   <RadioGroup
                     onValueChange={(value) => field.onChange([value])}
-                    defaultValue={field?.value?.[0]}
+                    value={field?.value?.[0] ?? ''}
                     className="eb-flex eb-flex-col eb-space-y-1"
                   >
                     <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
@@ -305,7 +305,7 @@ export const OperationalDetailsForm = () => {
                   {questionLabel}
                   <Select
                     onValueChange={(value) => field.onChange([value])}
-                    defaultValue={field?.value?.[0]}
+                    value={field?.value?.[0] ?? ''}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -336,6 +336,7 @@ export const OperationalDetailsForm = () => {
                 <FormControl>
                   <Input
                     {...field}
+                    value={field.value?.[0] ?? ''}
                     onChange={(e) => field.onChange([e.target.value])}
                   />
                 </FormControl>
@@ -357,6 +358,7 @@ export const OperationalDetailsForm = () => {
                   <Input
                     type="number"
                     {...field}
+                    value={field.value?.[0] ?? ''}
                     onChange={(e) => field.onChange([e.target.value])}
                   />
                 </FormControl>
@@ -377,6 +379,7 @@ export const OperationalDetailsForm = () => {
                 <FormControl>
                   <Input
                     {...field}
+                    value={field.value?.[0] ?? ''}
                     onChange={(e) => field.onChange([e.target.value])}
                   />
                 </FormControl>
@@ -435,6 +438,7 @@ export const OperationalDetailsForm = () => {
   const onSubmit = (values: any) => {
     if (clientData?.id) {
       const questionResponses = Object.entries(values).map(([key, value]) => ({
+        key,
         questionId: key.replace('question_', ''),
         values: Array.isArray(value) ? value : [value],
       }));
@@ -463,14 +467,20 @@ export const OperationalDetailsForm = () => {
       ?.filter(isQuestionParent)
       .filter(isQuestionVisible)
       .map((question, index) => (
-        <Fragment key={question.id}>
+        <Fragment key={question.id ?? `question-${index}`}>
           {index !== 0 && <Separator />}
           <div className="eb-mb-6">{renderQuestionInput(question)}</div>
           {questionsData?.questions
             ?.filter((q) => q.parentQuestionId === question.id)
             .filter(isQuestionVisible)
             .map((subQuestion) => (
-              <div key={subQuestion.id} className="eb-mb-6">
+              <div
+                key={
+                  subQuestion.id ??
+                  `subquestion-${question.id}-${subQuestion.parentQuestionId}`
+                }
+                className="eb-mb-6"
+              >
                 {renderQuestionInput(subQuestion)}
               </div>
             ))}

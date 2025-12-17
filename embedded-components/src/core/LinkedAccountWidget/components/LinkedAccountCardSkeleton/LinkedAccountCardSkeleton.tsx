@@ -5,12 +5,58 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui';
 
 /**
+ * Props for LinkedAccountCardSkeleton component
+ */
+export interface LinkedAccountCardSkeletonProps {
+  /** Use compact display mode with reduced padding and smaller elements */
+  compact?: boolean;
+}
+
+/**
  * LinkedAccountCardSkeleton - Loading skeleton for LinkedAccountCard
  * Provides a placeholder while account data is being fetched
  * Matches the structure of LinkedAccountCard with header, account details,
  * payment methods, and action buttons
  */
-export const LinkedAccountCardSkeleton: React.FC = () => {
+export const LinkedAccountCardSkeleton: React.FC<
+  LinkedAccountCardSkeletonProps
+> = ({ compact = false }) => {
+  if (compact) {
+    return (
+      <Card
+        className="eb-rounded-none eb-border-0 eb-shadow-none"
+        role="article"
+        aria-busy="true"
+        aria-label="Loading linked account"
+      >
+        <CardContent className="eb-flex eb-items-center eb-gap-3 eb-p-4">
+          {/* Icon placeholder */}
+          <div className="eb-relative eb-shrink-0">
+            <Skeleton className="eb-h-10 eb-w-10 eb-rounded-full" />
+          </div>
+
+          {/* Account details */}
+          <div className="eb-min-w-0 eb-flex-1 eb-space-y-1.5">
+            {/* Name and status badge */}
+            <div className="eb-flex eb-items-center eb-gap-2">
+              <Skeleton className="eb-h-4 eb-w-32" />
+              <Skeleton className="eb-h-5 eb-w-16 eb-rounded-full" />
+            </div>
+            {/* Account number */}
+            <Skeleton className="eb-h-3 eb-w-40" />
+            <Skeleton className="eb-h-3 eb-w-40" />
+          </div>
+
+          {/* Right side - Actions */}
+          <div className="eb-flex eb-shrink-0 eb-items-center eb-gap-2">
+            <Skeleton className="eb-h-8 eb-w-20 eb-rounded-md" />
+            <Skeleton className="eb-h-8 eb-w-8 eb-rounded-md" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card
       className="eb-overflow-hidden eb-transition-shadow"

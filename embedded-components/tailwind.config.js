@@ -1,3 +1,5 @@
+import containerQueries from '@tailwindcss/container-queries';
+import tailwindcssAnimate from 'tailwindcss-animate';
 import {
   isolateInsideOfContainer,
   scopedPreflightStyles,
@@ -5,7 +7,7 @@ import {
 import defaultTheme from 'tailwindcss/defaultTheme';
 
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   darkMode: ['class'],
   content: [
     './pages/**/*.{ts,tsx}',
@@ -83,6 +85,16 @@ module.exports = {
         warning: {
           DEFAULT: 'hsl(var(--eb-warning))',
           accent: 'hsl(var(--eb-warning-accent))',
+          hover: 'hsl(var(--eb-warning-hover, var(--eb-warning)))',
+          active:
+            'hsl(var(--eb-warning-active, var(--eb-warning-hover, var(--eb-warning))))',
+          foreground: {
+            DEFAULT: 'hsl(var(--eb-warning-foreground, var(--eb-warning)))',
+            hover:
+              'hsl(var(--eb-warning-foreground-hover, var(--eb-warning-foreground, var(--eb-warning))))',
+            active:
+              'hsl(var(--eb-warning-foreground-active, var(--eb-warning-foreground, var(--eb-warning))))',
+          },
         },
         success: {
           DEFAULT: 'hsl(var(--eb-success))',
@@ -192,15 +204,23 @@ module.exports = {
           'inset 0 0 0 var(--eb-secondary-border-width) var(--tw-shadow-color)',
         'border-destructive':
           'inset 0 0 0 var(--eb-destructive-border-width) var(--tw-shadow-color)',
+        'border-warning':
+          'inset 0 0 0 var(--eb-warning-border-width, 1px) var(--tw-shadow-color)',
       },
       letterSpacing: {
         button: 'var(--eb-button-letter-spacing)',
       },
+      borderWidth: {
+        'button-primary': 'var(--eb-primary-border-width, 0)',
+        'button-secondary': 'var(--eb-secondary-border-width, 0)',
+        'button-destructive': 'var(--eb-destructive-border-width, 0)',
+        'button-warning': 'var(--eb-warning-border-width, 1px)',
+      },
     },
   },
   plugins: [
-    require('tailwindcss-animate'),
-    require('@tailwindcss/container-queries'),
+    tailwindcssAnimate,
+    containerQueries,
     scopedPreflightStyles({
       isolationStrategy: isolateInsideOfContainer('.eb-component', {
         rootStyles: 'add :where',
@@ -209,10 +229,18 @@ module.exports = {
     ({ addUtilities }) => {
       addUtilities({
         '.button-padding': {
-          // padding: 'var(--eb-button-padding)',
+          paddingTop: 'var(--eb-button-padding-y, 0.5rem)',
+          paddingBottom: 'var(--eb-button-padding-y, 0.5rem)',
+          paddingLeft: 'var(--eb-button-padding-x, 1rem)',
+          paddingRight: 'var(--eb-button-padding-x, 1rem)',
         },
         '.button-text-transform': {
           textTransform: 'var(--eb-button-text-transform)',
+        },
+        '.button-shift-active': {
+          '&:active:not(:disabled)': {
+            transform: 'translateY(var(--eb-button-translate-y-active, 0))',
+          },
         },
       });
     },

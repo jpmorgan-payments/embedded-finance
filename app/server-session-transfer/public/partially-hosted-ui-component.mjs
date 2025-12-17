@@ -94,7 +94,7 @@ function encodeJsonParam(obj) {
  * Build the complete iframe URL with all parameters
  * 
  * URL structure:
- * {baseUrl}/onboarding?token={jwt}&experienceType={type}&theme={encoded}&contentTokens={encoded}
+ * {baseUrl}/onboarding?token={jwt}&experienceType={type}&themeTokens={encoded}&contentTokens={encoded}
  * 
  * @param {object} config - Configuration object
  * @param {string} config.baseUrl - Base URL for the hosted UI
@@ -120,11 +120,11 @@ function buildIframeUrl(config) {
     experienceType: experienceType,
   });
 
-  // Add optional theme parameter (JSON encoded)
+  // Add optional themeTokens parameter (JSON encoded)
   if (theme) {
     const encodedTheme = encodeJsonParam(theme);
     if (encodedTheme) {
-      params.append('theme', encodedTheme);
+      params.append('themeTokens', encodedTheme);
     }
   }
 

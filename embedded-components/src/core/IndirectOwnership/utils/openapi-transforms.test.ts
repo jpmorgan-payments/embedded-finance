@@ -3,15 +3,17 @@
  * Comprehensive coverage of all transformation logic and edge cases
  */
 
-import { describe, test, expect } from 'vitest';
-import { PartyResponse, ClientResponse } from '@/api/generated/smbdo.schemas';
+import { describe, expect, test } from 'vitest';
+
+import { ClientResponse, PartyResponse } from '@/api/generated/smbdo.schemas';
+
 import {
-  transformPartyToBeneficialOwner,
   extractBeneficialOwners,
+  getBeneficialOwnerDisplayName,
+  getBeneficialOwnerFullName,
   getRootCompanyName,
   hasOutstandingOwnershipRequirements,
-  getBeneficialOwnerDisplayName,
-  getBeneficialOwnerFullName
+  transformPartyToBeneficialOwner,
 } from './openapi-transforms';
 
 describe('openapi-transforms', () => {
@@ -22,7 +24,7 @@ describe('openapi-transforms', () => {
     status: 'APPROVED',
     products: [],
     outstanding: {},
-    parties
+    parties,
   });
 
   // Mock data for testing
@@ -35,8 +37,8 @@ describe('openapi-transforms', () => {
     createdAt: '2024-01-01T00:00:00Z',
     individualDetails: {
       firstName: 'Monica',
-      lastName: 'Geller'
-    }
+      lastName: 'Geller',
+    },
     // No parentPartyId = Direct owner
   };
 
@@ -50,8 +52,8 @@ describe('openapi-transforms', () => {
     parentPartyId: 'party-company-coffee',
     individualDetails: {
       firstName: 'Ross',
-      lastName: 'Geller'
-    }
+      lastName: 'Geller',
+    },
   };
 
   const mockCompanyParty: PartyResponse = {
@@ -63,8 +65,8 @@ describe('openapi-transforms', () => {
     createdAt: '2024-01-01T00:00:00Z',
     organizationDetails: {
       organizationType: 'LIMITED_LIABILITY_COMPANY',
-      organizationName: 'Central Perk Coffee'
-    }
+      organizationName: 'Central Perk Coffee',
+    },
   };
 
   const mockClientParty: PartyResponse = {
@@ -76,8 +78,8 @@ describe('openapi-transforms', () => {
     createdAt: '2024-01-01T00:00:00Z',
     organizationDetails: {
       organizationType: 'LIMITED_LIABILITY_COMPANY',
-      organizationName: 'Central Perk Coffee & Cookies'
-    }
+      organizationName: 'Central Perk Coffee & Cookies',
+    },
   };
 
   const mockClient: ClientResponse = {
@@ -91,8 +93,8 @@ describe('openapi-transforms', () => {
       mockClientParty,
       mockDirectOwnerParty,
       mockIndirectOwnerParty,
-      mockCompanyParty
-    ]
+      mockCompanyParty,
+    ],
   };
 
   describe('transformPartyToBeneficialOwner', () => {
@@ -107,8 +109,8 @@ describe('openapi-transforms', () => {
         meets25PercentThreshold: true,
         individualDetails: {
           firstName: 'Monica',
-          lastName: 'Geller'
-        }
+          lastName: 'Geller',
+        },
       });
 
       expect(result.ownershipHierarchy).toBeUndefined();
@@ -117,10 +119,10 @@ describe('openapi-transforms', () => {
     });
 
     test('transforms indirect owner correctly', () => {
-      const result = transformPartyToBeneficialOwner(
-        mockIndirectOwnerParty, 
-        [mockCompanyParty, mockClientParty]
-      );
+      const result = transformPartyToBeneficialOwner(mockIndirectOwnerParty, [
+        mockCompanyParty,
+        mockClientParty,
+      ]);
 
       expect(result).toMatchObject({
         id: 'party-ross',
@@ -130,8 +132,8 @@ describe('openapi-transforms', () => {
         meets25PercentThreshold: true, // Ross meets 25% threshold in mock logic
         individualDetails: {
           firstName: 'Ross',
-          lastName: 'Geller'
-        }
+          lastName: 'Geller',
+        },
       });
 
       expect(result.ownershipHierarchy).toBeDefined();
@@ -140,12 +142,18 @@ describe('openapi-transforms', () => {
 
     test('handles different ownership types correctly', () => {
       // Direct owners are always COMPLETE (no hierarchy needed regardless of profileStatus)
-      const directPendingParty = { ...mockDirectOwnerParty, profileStatus: 'INFORMATION_REQUESTED' as const };
+      const directPendingParty = {
+        ...mockDirectOwnerParty,
+        profileStatus: 'INFORMATION_REQUESTED' as const,
+      };
       const directResult = transformPartyToBeneficialOwner(directPendingParty);
       expect(directResult.status).toBe('COMPLETE');
 
       // Indirect owners with incomplete hierarchy are PENDING_HIERARCHY
-      const indirectParty = { ...mockIndirectOwnerParty, parentPartyId: 'nonexistent-parent' };
+      const indirectParty = {
+        ...mockIndirectOwnerParty,
+        parentPartyId: 'nonexistent-parent',
+      };
       const indirectResult = transformPartyToBeneficialOwner(indirectParty, []);
       expect(indirectResult.status).toBe('PENDING_HIERARCHY');
     });
@@ -160,8 +168,8 @@ describe('openapi-transforms', () => {
         createdAt: '2024-01-01T00:00:00Z',
         organizationDetails: {
           organizationType: 'C_CORPORATION',
-          organizationName: 'Test Corp'
-        }
+          organizationName: 'Test Corp',
+        },
       };
 
       const result = transformPartyToBeneficialOwner(orgParty);
@@ -186,17 +194,23 @@ describe('openapi-transforms', () => {
       const result = extractBeneficialOwners(mockClient);
 
       expect(result).toHaveLength(2);
-      expect(result.map(owner => owner.id)).toEqual(['party-monica', 'party-ross']);
-      
-      const monicaOwner = result.find(owner => owner.id === 'party-monica');
-      const rossOwner = result.find(owner => owner.id === 'party-ross');
+      expect(result.map((owner) => owner.id)).toEqual([
+        'party-monica',
+        'party-ross',
+      ]);
+
+      const monicaOwner = result.find((owner) => owner.id === 'party-monica');
+      const rossOwner = result.find((owner) => owner.id === 'party-ross');
 
       expect(monicaOwner?.ownershipType).toBe('DIRECT');
       expect(rossOwner?.ownershipType).toBe('INDIRECT');
     });
 
     test('returns empty array when no beneficial owners', () => {
-      const clientWithoutOwners = createMockClient([mockClientParty, mockCompanyParty]);
+      const clientWithoutOwners = createMockClient([
+        mockClientParty,
+        mockCompanyParty,
+      ]);
       const result = extractBeneficialOwners(clientWithoutOwners);
       expect(result).toHaveLength(0);
     });
@@ -208,19 +222,23 @@ describe('openapi-transforms', () => {
     });
 
     test('includes inactive beneficial owners (filtered by role only)', () => {
-      const inactiveOwner = { ...mockDirectOwnerParty, id: 'inactive', active: false };
+      const inactiveOwner = {
+        ...mockDirectOwnerParty,
+        id: 'inactive',
+        active: false,
+      };
       const clientWithInactive = createMockClient([
         mockClientParty,
         mockDirectOwnerParty,
         mockIndirectOwnerParty,
         mockCompanyParty,
-        inactiveOwner
+        inactiveOwner,
       ]);
 
       const result = extractBeneficialOwners(clientWithInactive);
-      
+
       // Function only filters by role, not active status
-      expect(result.map(owner => owner.id)).toContain('inactive');
+      expect(result.map((owner) => owner.id)).toContain('inactive');
       expect(result).toHaveLength(3); // Monica, Ross, and inactive owner
     });
   });
@@ -241,7 +259,9 @@ describe('openapi-transforms', () => {
       const clientPartyWithoutOrgDetails = { ...mockClientParty };
       delete clientPartyWithoutOrgDetails.organizationDetails;
 
-      const clientWithBadParty = createMockClient([clientPartyWithoutOrgDetails]);
+      const clientWithBadParty = createMockClient([
+        clientPartyWithoutOrgDetails,
+      ]);
       const result = getRootCompanyName(clientWithBadParty);
       expect(result).toBe('Organization'); // Default for ORGANIZATION party type
     });
@@ -258,8 +278,8 @@ describe('openapi-transforms', () => {
       const clientWithOutstanding: ClientResponse = {
         ...mockClient,
         outstanding: {
-          partyRoles: ['BENEFICIAL_OWNER', 'CONTROLLER']
-        }
+          partyRoles: ['BENEFICIAL_OWNER', 'CONTROLLER'],
+        },
       };
 
       const result = hasOutstandingOwnershipRequirements(clientWithOutstanding);
@@ -270,11 +290,13 @@ describe('openapi-transforms', () => {
       const clientWithOtherOutstanding: ClientResponse = {
         ...mockClient,
         outstanding: {
-          partyRoles: ['CONTROLLER', 'DIRECTOR']
-        }
+          partyRoles: ['CONTROLLER', 'DIRECTOR'],
+        },
       };
 
-      const result = hasOutstandingOwnershipRequirements(clientWithOtherOutstanding);
+      const result = hasOutstandingOwnershipRequirements(
+        clientWithOtherOutstanding
+      );
       expect(result).toBe(false);
     });
 
@@ -286,10 +308,12 @@ describe('openapi-transforms', () => {
     test('returns false when outstanding.partyRoles is undefined', () => {
       const clientWithEmptyOutstanding: ClientResponse = {
         ...mockClient,
-        outstanding: {}
+        outstanding: {},
       };
 
-      const result = hasOutstandingOwnershipRequirements(clientWithEmptyOutstanding);
+      const result = hasOutstandingOwnershipRequirements(
+        clientWithEmptyOutstanding
+      );
       expect(result).toBe(false);
     });
   });
@@ -301,7 +325,7 @@ describe('openapi-transforms', () => {
 
       expect(result).toEqual({
         firstName: 'Monica',
-        lastName: 'Geller'
+        lastName: 'Geller',
       });
     });
 
@@ -311,31 +335,35 @@ describe('openapi-transforms', () => {
 
       expect(result).toEqual({
         firstName: 'Central Perk Coffee',
-        lastName: ''
+        lastName: '',
       });
     });
 
     test('handles missing individual details', () => {
-      const ownerWithoutDetails = { ...transformPartyToBeneficialOwner(mockDirectOwnerParty) };
+      const ownerWithoutDetails = {
+        ...transformPartyToBeneficialOwner(mockDirectOwnerParty),
+      };
       delete ownerWithoutDetails.individualDetails;
 
       const result = getBeneficialOwnerDisplayName(ownerWithoutDetails);
 
       expect(result).toEqual({
         firstName: 'Unknown',
-        lastName: ''
+        lastName: '',
       });
     });
 
     test('handles missing organization details', () => {
-      const ownerWithoutOrgDetails = { ...transformPartyToBeneficialOwner(mockCompanyParty) };
+      const ownerWithoutOrgDetails = {
+        ...transformPartyToBeneficialOwner(mockCompanyParty),
+      };
       delete ownerWithoutOrgDetails.organizationDetails;
 
       const result = getBeneficialOwnerDisplayName(ownerWithoutOrgDetails);
 
       expect(result).toEqual({
         firstName: 'Unknown',
-        lastName: ''
+        lastName: '',
       });
     });
 
@@ -344,8 +372,8 @@ describe('openapi-transforms', () => {
         ...mockDirectOwnerParty,
         individualDetails: {
           firstName: '',
-          lastName: ''
-        }
+          lastName: '',
+        },
       };
 
       const owner = transformPartyToBeneficialOwner(partyWithEmptyNames);
@@ -353,7 +381,7 @@ describe('openapi-transforms', () => {
 
       expect(result).toEqual({
         firstName: '',
-        lastName: ''
+        lastName: '',
       });
     });
   });
@@ -378,8 +406,8 @@ describe('openapi-transforms', () => {
         ...mockDirectOwnerParty,
         individualDetails: {
           firstName: 'Madonna',
-          lastName: ''
-        }
+          lastName: '',
+        },
       };
 
       const owner = transformPartyToBeneficialOwner(singleNameParty);
@@ -389,7 +417,9 @@ describe('openapi-transforms', () => {
     });
 
     test('returns Unknown when no valid name found', () => {
-      const ownerWithoutDetails = { ...transformPartyToBeneficialOwner(mockDirectOwnerParty) };
+      const ownerWithoutDetails = {
+        ...transformPartyToBeneficialOwner(mockDirectOwnerParty),
+      };
       delete ownerWithoutDetails.individualDetails;
       delete ownerWithoutDetails.organizationDetails;
 
@@ -403,8 +433,8 @@ describe('openapi-transforms', () => {
         ...mockDirectOwnerParty,
         individualDetails: {
           firstName: '',
-          lastName: ''
-        }
+          lastName: '',
+        },
       };
 
       const owner = transformPartyToBeneficialOwner(partyWithEmptyNames);
@@ -426,7 +456,9 @@ describe('openapi-transforms', () => {
         // Missing required fields
       } as PartyResponse;
 
-      expect(() => transformPartyToBeneficialOwner(malformedParty)).not.toThrow();
+      expect(() =>
+        transformPartyToBeneficialOwner(malformedParty)
+      ).not.toThrow();
     });
 
     test('handles circular ownership references', () => {
@@ -437,7 +469,7 @@ describe('openapi-transforms', () => {
         roles: ['BENEFICIAL_OWNER'],
         profileStatus: 'APPROVED',
         active: true,
-        createdAt: '2024-01-01T00:00:00Z'
+        createdAt: '2024-01-01T00:00:00Z',
       };
 
       const circularParty2: PartyResponse = {
@@ -447,11 +479,11 @@ describe('openapi-transforms', () => {
         roles: ['CLIENT'],
         profileStatus: 'APPROVED',
         active: true,
-        createdAt: '2024-01-01T00:00:00Z'
+        createdAt: '2024-01-01T00:00:00Z',
       };
 
       // Should not cause infinite loop
-      expect(() => 
+      expect(() =>
         transformPartyToBeneficialOwner(circularParty1, [circularParty2])
       ).not.toThrow();
     });

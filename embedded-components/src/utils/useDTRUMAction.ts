@@ -53,6 +53,7 @@ export const triggerCustomDTRUMAction = ({
     const actionId = window?.dtrum?.enterAction(actionName);
     window?.dtrum?.leaveAction(actionId, stopTime, startTime);
   } else {
+    // eslint-disable-next-line no-console
     console.log(
       `DTRUM is not enabled. Event: ${actionName}. StartTime: ${startTime}, StopTime: ${stopTime}`
     );

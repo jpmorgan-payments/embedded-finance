@@ -29,7 +29,7 @@ const Text = React.forwardRef<
   React.HTMLAttributes<HTMLHeadingElement> &
     VariantProps<typeof textVariants> &
     tText
->(({ className, asChild, size, children, ...props }: any, ref) => (
+>(({ className, asChild: _asChild, size, children, ...props }: any, ref) => (
   <p ref={ref} className={cn(textVariants({ size }), className)} {...props}>
     {children}
   </p>

@@ -3,6 +3,7 @@ import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
+import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
@@ -24,14 +25,15 @@ import {
   OnboardingContext,
   useOnboardingContext,
 } from './contexts/OnboardingContext';
+import { ONBOARDING_FLOW_USER_JOURNEYS } from './OnboardingFlow.constants';
 import { OnboardingFlowProps } from './types/onboarding.types';
 import { getFlowProgress } from './utils/flowUtils';
 
 export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   initialClientId,
   alertOnExit = false,
-  userEventsToTrack = [],
   userEventsHandler,
+  userEventsLifecycle,
   height,
   onGetClientSettled,
   enableSidebar = false,
@@ -93,32 +95,12 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   }, [alertOnExit]);
 
   // #region User Events
-  const eventAnnotationHandler = useCallback((e: Event) => {
-    const target = e.target as HTMLTextAreaElement;
-    if (Object.keys(target.dataset).includes('userEventTracking')) {
-      userEventsHandler?.({
-        actionName: `${e.type} on ${target.dataset?.userEventTracking}`,
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    if (userEventsToTrack?.length > 0 && userEventsHandler) {
-      const wrapper = document.getElementById('eb-component');
-      userEventsToTrack.forEach((evt) =>
-        wrapper?.addEventListener(evt, eventAnnotationHandler)
-      );
-
-      return () => {
-        userEventsToTrack.forEach((evt) =>
-          wrapper?.removeEventListener(evt, eventAnnotationHandler)
-        );
-      };
-    }
-    return () => {
-      // Cleanup logic here (if needed)
-    };
-  }, []);
+  // Set up automatic event tracking for data-user-event attributes
+  useUserEventTracking({
+    containerId: 'embedded-component-layout',
+    userEventsHandler,
+    userEventsLifecycle,
+  });
 
   useEnableDTRUMTracking({
     userEmail: 'test@test.com',
@@ -136,6 +118,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         setClientId,
         organizationType,
         enableSidebar,
+        userEventsHandler,
+        userEventsLifecycle,
       }}
     >
       <div
@@ -180,8 +164,13 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 // Memoize the FlowRenderer component to ensure consistent hook order
 const FlowRenderer: React.FC = React.memo(() => {
   const { t } = useTranslation(['onboarding-overview']);
-  const { clientData, organizationType, docUploadOnlyMode, enableSidebar } =
-    useOnboardingContext();
+  const {
+    clientData,
+    organizationType,
+    docUploadOnlyMode,
+    enableSidebar,
+    userEventsHandler,
+  } = useOnboardingContext();
   const {
     currentScreenId,
     goTo,
@@ -205,7 +194,7 @@ const FlowRenderer: React.FC = React.memo(() => {
 
   const isMobile = useIsMobile();
 
-  // Scroll to top on step change
+  // Scroll to top on step change and track navigation
   const mainRef = useRef<HTMLDivElement>(null);
   const initialRender = useRef(true);
   useEffect(() => {
@@ -214,7 +203,16 @@ const FlowRenderer: React.FC = React.memo(() => {
       return;
     }
     mainRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [currentScreenId]);
+
+    // Track screen navigation
+    if (userEventsHandler) {
+      trackUserEvent({
+        actionName: ONBOARDING_FLOW_USER_JOURNEYS.SCREEN_NAVIGATION,
+        metadata: { screenId: currentScreenId },
+        userEventsHandler,
+      });
+    }
+  }, [currentScreenId, userEventsHandler]);
 
   // Redirect to gateway if organization type is not set
   useEffect(() => {
@@ -316,8 +314,6 @@ const FlowRenderer: React.FC = React.memo(() => {
                 currentStepperGoTo(targetStepId);
                 return;
               }
-
-              console.log(targetStepId);
 
               goTo(screenId, {
                 resetHistory: true,

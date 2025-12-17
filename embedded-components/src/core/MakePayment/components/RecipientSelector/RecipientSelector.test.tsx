@@ -84,8 +84,10 @@ describe('RecipientSelector', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText('Who are you paying?')).toBeInTheDocument();
-    // Note: Recipients are not visible in the dropdown until it's opened
+    // When there's only one recipient, it displays as text, not a combobox
+    // Just verify the component renders and shows recipient info
+    // Text is split across elements, so use a flexible matcher
+    expect(screen.getByText(/John Doe/)).toBeInTheDocument();
   });
 
   test('renders loading state', () => {

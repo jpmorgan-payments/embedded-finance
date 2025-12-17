@@ -8,3 +8,5 @@ export { useDialogState } from './useDialogState';
 export type { UseDialogStateReturn } from './useDialogState';
 
 export { useIPAddress } from './useIPAddress';
+
+export { useLocale } from './useLocale';

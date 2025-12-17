@@ -107,6 +107,12 @@ describe('useLinkedAccounts', () => {
       http.get('/recipients', () => {
         return HttpResponse.json({
           recipients: [mockActiveRecipient, mockPendingRecipient],
+          metadata: {
+            total_items: 2,
+            total_pages: 1,
+          },
+          page: 0,
+          limit: 25,
         });
       })
     );
@@ -130,6 +136,12 @@ describe('useLinkedAccounts', () => {
       http.get('/recipients', () => {
         return HttpResponse.json({
           recipients: [mockActiveRecipient, mockReadyForValidationRecipient],
+          metadata: {
+            total_items: 2,
+            total_pages: 1,
+          },
+          page: 0,
+          limit: 25,
         });
       })
     );
@@ -148,7 +160,7 @@ describe('useLinkedAccounts', () => {
 
     expect(result.current.linkedAccounts).toHaveLength(1);
     expect(result.current.linkedAccounts[0].id).toBe('recipient-1');
-    expect(result.current.totalCount).toBe(1);
+    expect(result.current.totalCount).toBe(2);
   });
 
   it('should handle empty accounts', async () => {
@@ -156,6 +168,12 @@ describe('useLinkedAccounts', () => {
       http.get('/recipients', () => {
         return HttpResponse.json({
           recipients: [],
+          metadata: {
+            total_items: 0,
+            total_pages: 0,
+          },
+          page: 0,
+          limit: 25,
         });
       })
     );
@@ -180,7 +198,15 @@ describe('useLinkedAccounts', () => {
             resolve();
           }, 100);
         });
-        return HttpResponse.json({ recipients: [] });
+        return HttpResponse.json({
+          recipients: [],
+          metadata: {
+            total_items: 0,
+            total_pages: 0,
+          },
+          page: 0,
+          limit: 25,
+        });
       })
     );
 
@@ -220,8 +246,15 @@ describe('useLinkedAccounts', () => {
     server.use(
       http.get('/recipients', () => {
         callCount += 1;
+        const recipients = callCount === 1 ? [] : [mockActiveRecipient];
         return HttpResponse.json({
-          recipients: callCount === 1 ? [] : [mockActiveRecipient],
+          recipients,
+          metadata: {
+            total_items: recipients.length,
+            total_pages: recipients.length > 0 ? 1 : 0,
+          },
+          page: 0,
+          limit: 25,
         });
       })
     );
