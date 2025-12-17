@@ -7,7 +7,6 @@ import { DemoCarousel } from '../components/landing/demo-carousel';
 import { RecipesSection } from '../components/landing/recipes-section';
 import { LandingPageExperiment } from '../experiments/landing-page/constants';
 import { CompactHomepage } from '../experiments/landing-page/compact-homepage/CompactHomepage';
-import { useExperiment } from '../hooks/use-experiment';
 
 // Define search param schema with validation
 const indexSearchSchema = z.object({
@@ -21,10 +20,12 @@ export const Route = createFileRoute('/')({
 
 function LandingPage() {
   const search = Route.useSearch();
-  // Use hook to sync experiment to localStorage
-  const activeExperiment = useExperiment(search);
 
-  // Render compact homepage if experiment is active
+  // Only use experiment from URL parameter, not localStorage
+  // This ensures the default page is always the legacy layout
+  const activeExperiment = search.experiment;
+
+  // Render compact homepage if experiment is explicitly in URL
   if (activeExperiment === LandingPageExperiment.COMPACT_HOMEPAGE) {
     return <CompactHomepage />;
   }
