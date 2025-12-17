@@ -160,10 +160,10 @@ export const RecipientAccountDisplayCard: React.FC<
         )}
 
         {compact ? (
-          // COMPACT MODE - Modern, accessible, information-dense design
-          <div className="eb-group eb-flex eb-flex-col eb-gap-3 eb-p-3 @sm:eb-flex-row @sm:eb-items-center @sm:eb-gap-4 @sm:eb-px-4 @md:eb-px-5">
+          // COMPACT MODE - Modern, accessible, information-dense design with responsive grid
+          <div className="eb-group eb-grid eb-gap-3 eb-p-3 @sm:eb-grid-cols-[auto_1fr_auto] @sm:eb-items-center @sm:eb-gap-4 @sm:eb-px-4 @md:eb-px-5">
             {/* Left: Icon + Account Info */}
-            <div className="eb-flex eb-min-w-0 eb-flex-1 eb-items-center eb-gap-3">
+            <div className="eb-flex eb-min-w-0 eb-items-center eb-gap-3 @sm:eb-col-span-2">
               {/* Icon with status indicator */}
               <div
                 className={`eb-relative eb-flex eb-h-10 eb-w-10 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-transition-colors ${
@@ -198,14 +198,18 @@ export const RecipientAccountDisplayCard: React.FC<
                 )}
               </div>
 
-              {/* Account details */}
-              <div className="eb-min-w-0 eb-flex-1">
+              {/* Account details - flexible wrapping */}
+              <div className="eb-min-w-0 eb-flex-1 eb-overflow-hidden">
                 <div className="eb-flex eb-flex-wrap eb-items-center eb-gap-2">
                   {/* Name */}
                   <h3
-                    className="eb-truncate eb-text-sm eb-font-semibold eb-leading-tight @sm:eb-max-w-none"
+                    className="eb-max-w-full eb-break-words eb-text-sm eb-font-semibold eb-leading-tight"
                     id={`account-name-${recipient.id}`}
                     title={displayName}
+                    style={{
+                      overflowWrap: 'anywhere',
+                      wordBreak: 'break-word',
+                    }}
                   >
                     {displayName}
                   </h3>
@@ -231,8 +235,8 @@ export const RecipientAccountDisplayCard: React.FC<
                     ))}
                 </div>
 
-                {/* Account number and routing information */}
-                <div className="eb-mt-0.5 eb-flex eb-flex-col eb-gap-1 eb-text-xs">
+                {/* Account number and routing information - allow wrapping */}
+                <div className="eb-flex eb-max-w-full eb-flex-col eb-gap-1 eb-text-xs">
                   {compact && needsAttention && statusMessage ? (
                     // Show "Action Required: message" for verification needed (compact mode only)
                     <span className="eb-mt-1 eb-flex eb-items-start eb-gap-1.5 eb-text-amber-700">
@@ -265,41 +269,54 @@ export const RecipientAccountDisplayCard: React.FC<
                       </span>
                     </span>
                   ) : (
-                    <>
-                      {/* Account number with show/hide toggle */}
-                      <div className="eb-flex eb-items-center eb-gap-2">
-                        <span className="eb-text-[10px] eb-uppercase eb-tracking-wider eb-text-muted-foreground">
+                    /* Account and Routing info - stacked by default, side by side at @3xl */
+                    <div className="eb-flex eb-flex-col eb-gap-1 @3xl:eb-flex-row @3xl:eb-items-center @3xl:eb-gap-6">
+                      {/* Account number with show/hide toggle - label and number wrap together, eye stays with number */}
+                      <div className="eb-flex eb-max-w-full eb-flex-wrap eb-items-center eb-gap-x-2 eb-gap-y-0.5 eb-pt-1 @3xl:eb-pt-0">
+                        <span className="eb-shrink-0 eb-text-[10px] eb-uppercase eb-tracking-wider eb-text-muted-foreground">
                           Account
                         </span>
-                        <span className="eb-font-mono eb-text-sm eb-font-medium eb-tracking-wide eb-text-foreground">
-                          {showFullAccount ? fullAccountNumber : maskedAccount}
-                        </span>
-                        {showAccountToggle && (
-                          <Button
-                            variant="link"
-                            size="sm"
-                            onClick={() => setShowFullAccount(!showFullAccount)}
-                            className="eb-h-auto eb-p-0"
-                            aria-label={
-                              showFullAccount
-                                ? 'Hide full account number'
-                                : 'Show full account number'
-                            }
-                            aria-pressed={showFullAccount}
+                        <span className="eb-flex eb-items-center eb-gap-2">
+                          <span
+                            className="eb-font-mono eb-break-all eb-text-sm eb-font-medium eb-tracking-wide eb-text-foreground"
+                            style={{
+                              overflowWrap: 'anywhere',
+                              wordBreak: 'break-word',
+                            }}
                           >
-                            {showFullAccount ? (
-                              <EyeOffIcon
-                                className="eb-h-3 eb-w-3"
-                                aria-hidden="true"
-                              />
-                            ) : (
-                              <EyeIcon
-                                className="eb-h-3 eb-w-3"
-                                aria-hidden="true"
-                              />
-                            )}
-                          </Button>
-                        )}
+                            {showFullAccount
+                              ? fullAccountNumber
+                              : maskedAccount}
+                          </span>
+                          {showAccountToggle && (
+                            <Button
+                              variant="link"
+                              size="sm"
+                              onClick={() =>
+                                setShowFullAccount(!showFullAccount)
+                              }
+                              className="eb-h-auto eb-shrink-0 eb-p-0"
+                              aria-label={
+                                showFullAccount
+                                  ? 'Hide full account number'
+                                  : 'Show full account number'
+                              }
+                              aria-pressed={showFullAccount}
+                            >
+                              {showFullAccount ? (
+                                <EyeOffIcon
+                                  className="eb-h-3 eb-w-3"
+                                  aria-hidden="true"
+                                />
+                              ) : (
+                                <EyeIcon
+                                  className="eb-h-3 eb-w-3"
+                                  aria-hidden="true"
+                                />
+                              )}
+                            </Button>
+                          )}
+                        </span>
                       </div>
 
                       {/* Routing information - show inline for single method, compact popover for multiple */}
@@ -393,14 +410,14 @@ export const RecipientAccountDisplayCard: React.FC<
                           )}
                         </>
                       )}
-                    </>
+                    </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Right: Status indicators + Actions */}
-            <div className="eb-flex eb-w-full eb-flex-wrap eb-items-center eb-gap-2 @sm:eb-w-auto @sm:eb-shrink-0 @sm:eb-justify-end">
+            {/* Right: Actions - Responsive grid layout with progressive disclosure */}
+            <div className="eb-col-span-full eb-flex eb-w-full eb-flex-wrap eb-items-center eb-justify-start eb-gap-2 @sm:eb-col-span-1 @sm:eb-w-auto @sm:eb-justify-end">
               {/* Status info popovers for REJECTED and INACTIVE */}
               {recipient.status &&
                 recipient.status !== 'ACTIVE' &&
@@ -462,12 +479,8 @@ export const RecipientAccountDisplayCard: React.FC<
                   </>
                 )}
 
-              {/* Actions - Pay/Verify button + manage dropdown */}
-              {actionsContent && (
-                <div className="eb-flex eb-flex-1 eb-items-center eb-justify-end eb-gap-2 @sm:eb-flex-initial">
-                  {actionsContent}
-                </div>
-              )}
+              {/* Actions - render directly, parent component will handle layout */}
+              {actionsContent}
             </div>
           </div>
         ) : (
@@ -536,7 +549,8 @@ export const RecipientAccountDisplayCard: React.FC<
                 )}
               </div>
               <div
-                className="eb-font-mono eb-text-sm eb-font-medium eb-tracking-wide"
+                className="eb-font-mono eb-break-all eb-text-sm eb-font-medium eb-tracking-wide"
+                style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
                 aria-live="polite"
                 aria-atomic="true"
               >
