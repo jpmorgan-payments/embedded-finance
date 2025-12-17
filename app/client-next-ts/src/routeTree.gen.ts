@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UtilsRouteImport } from './routes/utils'
 import { Route as StoriesRouteImport } from './routes/stories'
 import { Route as SolutionsRouteImport } from './routes/solutions'
 import { Route as SellsenseDemoRouteImport } from './routes/sellsense-demo'
@@ -17,10 +18,16 @@ import { Route as MswTestRouteImport } from './routes/msw-test'
 import { Route as GithubRouteImport } from './routes/github'
 import { Route as DocumentationRouteImport } from './routes/documentation'
 import { Route as DemosRouteImport } from './routes/demos'
+import { Route as ComponentsRouteImport } from './routes/components'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StoriesIndexRouteImport } from './routes/stories.index'
 import { Route as StoriesStoryIdRouteImport } from './routes/stories.$storyId'
 
+const UtilsRoute = UtilsRouteImport.update({
+  id: '/utils',
+  path: '/utils',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StoriesRoute = StoriesRouteImport.update({
   id: '/stories',
   path: '/stories',
@@ -61,6 +68,11 @@ const DemosRoute = DemosRouteImport.update({
   path: '/demos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ComponentsRoute = ComponentsRouteImport.update({
+  id: '/components',
+  path: '/components',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -79,6 +91,7 @@ const StoriesStoryIdRoute = StoriesStoryIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
   '/github': typeof GithubRoute
@@ -87,11 +100,13 @@ export interface FileRoutesByFullPath {
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/stories': typeof StoriesRouteWithChildren
+  '/utils': typeof UtilsRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
   '/stories/': typeof StoriesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
   '/github': typeof GithubRoute
@@ -99,12 +114,14 @@ export interface FileRoutesByTo {
   '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
+  '/utils': typeof UtilsRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
   '/stories': typeof StoriesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
   '/github': typeof GithubRoute
@@ -113,6 +130,7 @@ export interface FileRoutesById {
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/stories': typeof StoriesRouteWithChildren
+  '/utils': typeof UtilsRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
   '/stories/': typeof StoriesIndexRoute
 }
@@ -120,6 +138,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/components'
     | '/demos'
     | '/documentation'
     | '/github'
@@ -128,11 +147,13 @@ export interface FileRouteTypes {
     | '/sellsense-demo'
     | '/solutions'
     | '/stories'
+    | '/utils'
     | '/stories/$storyId'
     | '/stories/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/components'
     | '/demos'
     | '/documentation'
     | '/github'
@@ -140,11 +161,13 @@ export interface FileRouteTypes {
     | '/partially-hosted-demo'
     | '/sellsense-demo'
     | '/solutions'
+    | '/utils'
     | '/stories/$storyId'
     | '/stories'
   id:
     | '__root__'
     | '/'
+    | '/components'
     | '/demos'
     | '/documentation'
     | '/github'
@@ -153,12 +176,14 @@ export interface FileRouteTypes {
     | '/sellsense-demo'
     | '/solutions'
     | '/stories'
+    | '/utils'
     | '/stories/$storyId'
     | '/stories/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ComponentsRoute: typeof ComponentsRoute
   DemosRoute: typeof DemosRoute
   DocumentationRoute: typeof DocumentationRoute
   GithubRoute: typeof GithubRoute
@@ -167,10 +192,18 @@ export interface RootRouteChildren {
   SellsenseDemoRoute: typeof SellsenseDemoRoute
   SolutionsRoute: typeof SolutionsRoute
   StoriesRoute: typeof StoriesRouteWithChildren
+  UtilsRoute: typeof UtilsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/utils': {
+      id: '/utils'
+      path: '/utils'
+      fullPath: '/utils'
+      preLoaderRoute: typeof UtilsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/stories': {
       id: '/stories'
       path: '/stories'
@@ -227,6 +260,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/components': {
+      id: '/components'
+      path: '/components'
+      fullPath: '/components'
+      preLoaderRoute: typeof ComponentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -266,6 +306,7 @@ const StoriesRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ComponentsRoute: ComponentsRoute,
   DemosRoute: DemosRoute,
   DocumentationRoute: DocumentationRoute,
   GithubRoute: GithubRoute,
@@ -274,6 +315,7 @@ const rootRouteChildren: RootRouteChildren = {
   SellsenseDemoRoute: SellsenseDemoRoute,
   SolutionsRoute: SolutionsRoute,
   StoriesRoute: StoriesRouteWithChildren,
+  UtilsRoute: UtilsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
