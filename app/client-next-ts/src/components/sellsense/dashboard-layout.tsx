@@ -697,8 +697,8 @@ export function DashboardLayout() {
         />
         {/* Main content area - responsive */}
         <main className="flex-1 overflow-auto w-full min-w-0">
-          {/* Add padding for mobile to account for fixed bottom navigation */}
-          <div className="pb-16 md:pb-0">
+          {/* Add padding for mobile to account for fixed bottom navigation and footer */}
+          <div className="pb-32 md:pb-8">
             {renderMainContent()}
             <Footer theme={theme} />
           </div>

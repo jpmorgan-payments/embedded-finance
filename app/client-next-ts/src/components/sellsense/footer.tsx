@@ -1,30 +1,34 @@
-import { useThemeStyles } from './theme-utils'
-import type { ThemeOption } from './use-sellsense-themes'
+import { useThemeStyles } from './theme-utils';
+import type { ThemeOption } from './use-sellsense-themes';
 
 interface FooterProps {
-  theme: ThemeOption
+  theme: ThemeOption;
 }
 
 export function Footer({ theme }: FooterProps) {
-  const themeStyles = useThemeStyles(theme)
+  const themeStyles = useThemeStyles(theme);
 
   return (
     <footer
-      className={`border-t mt-8 py-6 ${themeStyles.getContentAreaStyles()}`}
+      className={`border-t mt-6 py-4 ${themeStyles.getContentAreaStyles()}`}
     >
       <div className="max-w-4xl mx-auto px-4 text-center">
         {/* Disclaimer text */}
-        <div className={`text-xs leading-relaxed space-y-2 ${themeStyles.getHeaderLabelStyles()}`}>
+        <div
+          className={`text-xs leading-tight space-y-0.5 ${themeStyles.getHeaderLabelStyles()}`}
+        >
           <p>
-            Deposit holding and other banking services are provided to you by J.P. Morgan Chase Bank, N.A., Member FDIC.
+            Deposit holding and other banking services are provided to you by
+            J.P. Morgan Chase Bank, N.A., Member FDIC.
           </p>
           <p>
-            SellSense administers and services the Account on behalf of the Bank. SellSense is not a bank.
+            SellSense administers and services the Account on behalf of the
+            Bank. SellSense is not a bank.
           </p>
         </div>
 
         {/* Logo and powered by text */}
-        <div className="mt-4 flex flex-col items-center gap-2">
+        <div className="mt-3 flex flex-col items-center gap-1.5">
           {themeStyles.getLogoPath() && (
             <img
               src={themeStyles.getLogoPath()}
@@ -38,5 +42,5 @@ export function Footer({ theme }: FooterProps) {
         </div>
       </div>
     </footer>
-  )
+  );
 }
