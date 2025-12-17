@@ -140,7 +140,7 @@ export function getEntityOwnershipInfo(
   );
   if (intermediaryCheck.isIntermediary) {
     // Cannot be a direct owner if already serving as intermediary
-    // But check if it has a known path to root
+    // But check if it has a known path to root (for auto-completion feature)
     const pathInfo = getKnownPathToRoot(
       entityName,
       rootCompanyName,
@@ -149,7 +149,7 @@ export function getEntityOwnershipInfo(
     if (pathInfo) {
       result.hasKnownPathToRoot = true;
       result.pathToRoot = pathInfo.path;
-      result.source = pathInfo.source;
+      result.source = pathInfo.source; // For attribution in UI
     }
     return result;
   }
@@ -403,32 +403,24 @@ export function categorizeEntitiesForHierarchy(
       }
     }
 
-    // Check if this entity is serving as an intermediary in an existing hierarchy
-    // If so, it cannot be used as a direct owner in another chain
-    const intermediaryCheck = isIntermediaryInExistingHierarchy(
-      entityName,
-      beneficialOwners
-    );
-    if (intermediaryCheck.isIntermediary) {
-      result.problematic.push({
-        name: entityName,
-        reason: `Cannot be used as direct owner - already serving as intermediary in ${intermediaryCheck.source?.ownerName}'s hierarchy`,
-      });
-      return;
-    }
-
     // Check if this entity is the end of a single-company hierarchy
-    // If so, it cannot be used as an intermediary in another chain
-    const singleCompanyCheck = isSingleCompanyHierarchyEnd(
-      entityName,
-      beneficialOwners
-    );
-    if (singleCompanyCheck.isSingleCompanyEnd) {
-      result.problematic.push({
-        name: entityName,
-        reason: `Cannot be used as intermediary - already established as direct owner in ${singleCompanyCheck.source?.ownerName}'s hierarchy`,
-      });
-      return;
+    // Such entities cannot be used as intermediaries
+    // Only enforce this when we're building a chain and need more intermediaries
+    const needsIntermediary = context.currentHierarchySteps.length > 0 &&
+      !context.currentHierarchySteps[context.currentHierarchySteps.length - 1].ownsRootBusinessDirectly;
+    
+    if (needsIntermediary) {
+      const singleCompanyCheck = isSingleCompanyHierarchyEnd(
+        entityName,
+        beneficialOwners
+      );
+      if (singleCompanyCheck.isSingleCompanyEnd) {
+        result.problematic.push({
+          name: entityName,
+          reason: `Cannot be used as intermediary - already established as direct owner in ${singleCompanyCheck.source?.ownerName}'s hierarchy`,
+        });
+        return;
+      }
     }
 
     // If we made it here, it's available

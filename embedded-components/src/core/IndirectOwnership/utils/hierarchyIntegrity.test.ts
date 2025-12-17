@@ -77,7 +77,9 @@ describe('getEntityOwnershipInfo', () => {
 
     expect(result.entityName).toBe('Intermediate Corp');
     expect(result.isKnownDirectOwner).toBe(false);
-    expect(result.source).toBeUndefined();
+    // Intermediaries with known paths should have source for attribution
+    expect(result.hasKnownPathToRoot).toBe(true);
+    expect(result.source?.ownerName).toBe('Jane Doe');
   });
 
   test('returns false for unknown entity', () => {

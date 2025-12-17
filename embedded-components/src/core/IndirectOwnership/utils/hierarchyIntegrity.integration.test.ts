@@ -211,7 +211,11 @@ describe('categorizeEntitiesForHierarchy - Single Company Hierarchy Prevention',
       reason: 'Already exists in this ownership chain',
     });
 
-    // Other entity should be available
-    expect(result.available).toContain('Existing Company');
+    // "Existing Company" is a single-company hierarchy end, so it should be problematic
+    // when we're building a chain that needs intermediaries
+    expect(result.problematic).toContainEqual({
+      name: 'Existing Company',
+      reason: "Cannot be used as intermediary - already established as direct owner in Test Owner's hierarchy",
+    });
   });
 });

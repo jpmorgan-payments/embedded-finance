@@ -100,7 +100,7 @@ describe('Intermediary Prevention Integration Tests', () => {
   ];
 
   describe('Scenario: Trying to add intermediary as direct owner', () => {
-    test('prevents intermediary entity from being categorized as available for direct ownership', () => {
+    test('allows intermediary entity to be selected with known path completion', () => {
       const context: HierarchyBuildingContext = {
         currentOwnerId: 'new-owner-id',
         ownerName: 'Test Owner',
@@ -122,14 +122,9 @@ describe('Intermediary Prevention Integration Tests', () => {
         mockBeneficialOwners
       );
 
-      // 'Holding Corp' is an intermediary in Alice's hierarchy, so it should be problematic
-      const holdingCorpProblematic = result.problematic.find(
-        (p) => p.name === 'Holding Corp'
-      );
-      expect(holdingCorpProblematic).toBeDefined();
-      expect(holdingCorpProblematic?.reason).toContain(
-        'Cannot be used as direct owner - already serving as intermediary'
-      );
+      // All entities should be available - the system will auto-complete known paths
+      // 'Holding Corp' is an intermediary with a known path, so it will auto-complete
+      expect(result.available).toContain('Holding Corp');
 
       // 'Subsidiary LLC' and 'Direct Owner Inc' are final steps, so they should be recommended
       expect(result.recommended.some((r) => r.name === 'Subsidiary LLC')).toBe(
@@ -153,7 +148,9 @@ describe('Intermediary Prevention Integration Tests', () => {
 
       // Should NOT be recognized as a known direct owner
       expect(result.isKnownDirectOwner).toBe(false);
-      expect(result.source).toBeUndefined();
+      // But should have source for attribution since it has a known path
+      expect(result.hasKnownPathToRoot).toBe(true);
+      expect(result.source?.ownerName).toBe('Alice Smith');
     });
 
     test('allows actual direct owners to be recognized', () => {
@@ -251,8 +248,8 @@ describe('Intermediary Prevention Integration Tests', () => {
     });
   });
 
-  describe('Error messages', () => {
-    test('provides clear error messages for intermediary conflicts', () => {
+  describe('Auto-completion behavior', () => {
+    test('intermediaries with known paths get auto-completed', () => {
       const context: HierarchyBuildingContext = {
         currentOwnerId: 'new-owner-id',
         ownerName: 'Test Owner',
@@ -267,11 +264,9 @@ describe('Intermediary Prevention Integration Tests', () => {
         mockBeneficialOwners
       );
 
-      const problematic = result.problematic[0];
-      expect(problematic.name).toBe('Holding Corp');
-      expect(problematic.reason).toBe(
-        "Cannot be used as direct owner - already serving as intermediary in Alice Smith's hierarchy"
-      );
+      // 'Holding Corp' should be available (will auto-complete with known path)
+      expect(result.available).toContain('Holding Corp');
+      expect(result.problematic).toHaveLength(0);
     });
   });
 });

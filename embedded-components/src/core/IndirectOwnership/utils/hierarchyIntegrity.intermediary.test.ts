@@ -206,7 +206,9 @@ describe('Intermediary Validation', () => {
       );
 
       expect(result.isKnownDirectOwner).toBe(false);
-      expect(result.source).toBeUndefined();
+      // Intermediaries with known paths should have source for attribution
+      expect(result.hasKnownPathToRoot).toBe(true);
+      expect(result.source?.ownerName).toBe('John Doe');
     });
 
     test('allows actual direct owner to be recognized', () => {
@@ -228,7 +230,9 @@ describe('Intermediary Validation', () => {
       );
 
       expect(result.isKnownDirectOwner).toBe(false);
-      expect(result.source).toBeUndefined();
+      // Intermediaries with known paths should have source for attribution
+      expect(result.hasKnownPathToRoot).toBe(true);
+      expect(result.source?.ownerName).toBe('Bob Johnson');
     });
 
     test('allows final step in multi-level hierarchy to be direct owner', () => {

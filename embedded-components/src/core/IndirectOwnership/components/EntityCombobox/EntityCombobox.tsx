@@ -53,10 +53,14 @@ export function EntityCombobox({
   className,
 }: EntityComboboxProps) {
   const [open, setOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
 
-  // Filter entities based on current input
+  // Use searchValue when popover is open, otherwise use the actual value
+  const activeSearchValue = open ? searchValue : value;
+
+  // Filter entities based on current search input
   const filteredEntities = existingEntities.filter((entity) =>
-    entity.toLowerCase().includes(value.toLowerCase())
+    entity.toLowerCase().includes(activeSearchValue.toLowerCase())
   );
 
   // Check if current value matches an existing entity (case-insensitive)
@@ -66,15 +70,24 @@ export function EntityCombobox({
 
   const handleSelect = (selectedValue: string) => {
     onChange(selectedValue);
+    setSearchValue('');
     setOpen(false);
   };
 
   const handleInputChange = (inputValue: string) => {
-    onChange(inputValue);
+    setSearchValue(inputValue);
+  };
+
+  // Reset search when popover opens
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (isOpen) {
+      setSearchValue(value);
+    }
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -118,7 +131,7 @@ export function EntityCombobox({
         <Command shouldFilter={false}>
           <CommandInput
             placeholder="Search companies..."
-            value={value}
+            value={searchValue}
             onValueChange={handleInputChange}
           />
           <CommandList>
@@ -144,20 +157,26 @@ export function EntityCombobox({
                   </CommandItem>
                 ))}
               </CommandGroup>
-            ) : value ? (
-              <CommandEmpty>
-                <div className="eb-flex eb-flex-col eb-items-center eb-gap-2 eb-py-4">
-                  <Building className="eb-h-8 eb-w-8 eb-text-muted-foreground" />
-                  <div className="eb-text-center">
-                    <div className="eb-font-medium">
-                      No existing companies found
-                    </div>
-                    <div className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
-                      &quot;{value}&quot; will be added as a new company
+            ) : searchValue ? (
+              <CommandGroup>
+                <CommandItem
+                  value={searchValue}
+                  onSelect={() => handleSelect(searchValue)}
+                  className="eb-cursor-pointer"
+                >
+                  <div className="eb-flex eb-w-full eb-flex-col eb-items-center eb-gap-2 eb-py-2">
+                    <Building className="eb-h-8 eb-w-8 eb-text-muted-foreground" />
+                    <div className="eb-text-center">
+                      <div className="eb-font-medium">
+                        No existing companies found
+                      </div>
+                      <div className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
+                        &quot;{searchValue}&quot; will be added as a new company
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CommandEmpty>
+                </CommandItem>
+              </CommandGroup>
             ) : (
               <CommandEmpty>
                 <div className="eb-py-4 eb-text-center">
