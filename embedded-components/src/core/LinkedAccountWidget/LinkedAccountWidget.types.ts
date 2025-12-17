@@ -116,7 +116,7 @@ export interface LinkedAccountWidgetProps extends UserTrackingProps {
    * The first click on "Show more" reveals remaining loaded accounts,
    * subsequent clicks fetch additional pages from the API.
    *
-   * @default 2
+   * @default 10
    */
   defaultVisibleCount?: number;
 
@@ -126,7 +126,7 @@ export interface LinkedAccountWidgetProps extends UserTrackingProps {
    * Higher values reduce API calls but increase initial load time.
    * Consider your typical user's account count when tuning this.
    *
-   * @default 25
+   * @default 10
    */
   pageSize?: number;
 

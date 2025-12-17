@@ -71,8 +71,8 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   compact = false,
   scrollable,
   maxHeight,
-  defaultVisibleCount,
-  pageSize = 25,
+  defaultVisibleCount = 10,
+  pageSize = 10,
   hideCreateButton,
   renderPaymentAction,
   onAccountLinked,
@@ -85,7 +85,6 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   variant,
   showCreateButton,
   scrollHeight,
-  initialItemsToShow,
   makePaymentComponent,
   onLinkedAccountSettled,
   onMicrodepositVerifySettled,
@@ -101,10 +100,6 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   // scrollable + maxHeight (new) vs scrollHeight (deprecated)
   const resolvedScrollable = scrollable ?? scrollHeight !== undefined;
   const resolvedMaxHeight = maxHeight ?? scrollHeight ?? '400px';
-
-  // defaultVisibleCount (new) vs initialItemsToShow (deprecated)
-  const resolvedDefaultVisibleCount =
-    defaultVisibleCount ?? initialItemsToShow ?? 2;
 
   // hideCreateButton (new) vs showCreateButton (deprecated, inverted logic)
   const resolvedHideCreateButton =
@@ -160,7 +155,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
     toggleExpanded,
   } = useLinkedAccounts({
     variant: resolvedMode === 'single' ? 'singleAccount' : 'default',
-    initialItemsToShow: resolvedDefaultVisibleCount,
+    defaultVisibleCount,
     pageSize,
   });
 
@@ -505,13 +500,11 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                       ((!isExpanded && hasMore) ||
                         (isExpanded &&
                           (hasMore ||
-                            linkedAccounts.length >
-                              resolvedDefaultVisibleCount))) && (
+                            linkedAccounts.length > defaultVisibleCount))) && (
                         <div className="eb-space-y-0 eb-border-t">
                           {/* Collapse Button - Only when expanded and showing more than initial */}
                           {isExpanded &&
-                            linkedAccounts.length >
-                              resolvedDefaultVisibleCount && (
+                            linkedAccounts.length > defaultVisibleCount && (
                               <button
                                 type="button"
                                 onClick={toggleExpanded}
@@ -543,8 +536,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                                 {
                                   'eb-border-t':
                                     isExpanded &&
-                                    linkedAccounts.length >
-                                      resolvedDefaultVisibleCount,
+                                    linkedAccounts.length > defaultVisibleCount,
                                 }
                               )}
                               aria-label={
@@ -589,8 +581,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                     : // NON-COMPACT MODE - Small buttons side by side
                       ((!isExpanded && hasMore) ||
                         (isExpanded &&
-                          linkedAccounts.length >
-                            resolvedDefaultVisibleCount) ||
+                          linkedAccounts.length > defaultVisibleCount) ||
                         (isExpanded && hasMore)) && (
                         <div className="eb-flex eb-justify-center eb-gap-2 eb-pt-2">
                           {/* Show expand button when collapsed and there are more items available */}
@@ -612,8 +603,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
 
                           {/* Show "Show less" when expanded and showing more than initial */}
                           {isExpanded &&
-                            linkedAccounts.length >
-                              resolvedDefaultVisibleCount && (
+                            linkedAccounts.length > defaultVisibleCount && (
                               <Button
                                 variant="ghost"
                                 size="sm"

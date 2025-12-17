@@ -17,13 +17,13 @@ export interface UseLinkedAccountsOptions {
 
   /**
    * Number of items to display initially before "Load More" is clicked
-   * @default 2
+   * @default 10
    */
-  initialItemsToShow?: number;
+  defaultVisibleCount?: number;
 
   /**
    * Number of items to fetch per API page
-   * @default 25
+   * @default 10
    */
   pageSize?: number;
 }
@@ -77,7 +77,7 @@ export interface UseLinkedAccountsReturn {
   /** Number of items that will be shown on next "Load More" click */
   nextLoadCount: number;
 
-  /** Whether all items are expanded (vs collapsed to initialItemsToShow) */
+  /** Whether all items are expanded (vs collapsed to defaultVisibleCount) */
   isExpanded: boolean;
 
   /** Toggle between showing all items and initial items */
@@ -103,8 +103,8 @@ export interface UseLinkedAccountsReturn {
  * // Show 2 accounts initially, expand to show more
  * const { linkedAccounts, hasMore, loadMore } = useLinkedAccounts({
  *   variant: 'default',
- *   initialItemsToShow: 2,
- *   pageSize: 25
+ *   defaultVisibleCount: 10,
+ *   pageSize: 10
  * });
  *
  * // Get only the first linked account
@@ -113,8 +113,8 @@ export interface UseLinkedAccountsReturn {
  */
 export function useLinkedAccounts({
   variant = 'default',
-  initialItemsToShow = 2,
-  pageSize = 25,
+  defaultVisibleCount = 10,
+  pageSize = 10,
 }: UseLinkedAccountsOptions): UseLinkedAccountsReturn {
   const { interceptorReady } = useInterceptorStatus();
   const [showAll, setShowAll] = useState(false);
@@ -167,12 +167,12 @@ export function useLinkedAccounts({
     }
 
     // Show initial items or all loaded items
-    if (showAll || allLoadedAccounts.length <= initialItemsToShow) {
+    if (showAll || allLoadedAccounts.length <= defaultVisibleCount) {
       return allLoadedAccounts;
     }
 
-    return allLoadedAccounts.slice(0, initialItemsToShow);
-  }, [allLoadedAccounts, variant, showAll, initialItemsToShow]);
+    return allLoadedAccounts.slice(0, defaultVisibleCount);
+  }, [allLoadedAccounts, variant, showAll, defaultVisibleCount]);
 
   // Check if user has at least one active (non-pending) account
   const hasActiveAccount = allLoadedAccounts.length > 0;
@@ -182,12 +182,12 @@ export function useLinkedAccounts({
   const totalPages = Math.ceil(totalItems / pageSize);
   const currentPage = data?.pages?.length || 0;
   const hasMoreInCurrentLoad =
-    allLoadedAccounts.length > initialItemsToShow && !showAll;
+    allLoadedAccounts.length > defaultVisibleCount && !showAll;
   const hasMore = hasMoreInCurrentLoad || (hasNextPage ?? false);
 
   // Calculate what will be loaded next
   const nextLoadCount = hasMoreInCurrentLoad
-    ? allLoadedAccounts.length - initialItemsToShow // Will show remaining loaded items
+    ? allLoadedAccounts.length - defaultVisibleCount // Will show remaining loaded items
     : Math.min(pageSize, totalItems - allLoadedAccounts.length); // Will fetch next page
 
   const loadMore = () => {
