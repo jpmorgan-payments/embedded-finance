@@ -32,8 +32,11 @@ export interface UseLinkedAccountsOptions {
  * Return type for useLinkedAccounts hook
  */
 export interface UseLinkedAccountsReturn {
-  /** Filtered linked accounts based on variant */
+  /** Filtered linked accounts based on variant (may be limited by defaultVisibleCount) */
   linkedAccounts: Recipient[];
+
+  /** All loaded accounts without pagination limits (for table view) */
+  allLoadedAccounts: Recipient[];
 
   /** Metadata */
   metadata?: PageMetaData;
@@ -202,6 +205,7 @@ export function useLinkedAccounts({
 
   return {
     linkedAccounts,
+    allLoadedAccounts,
     metadata,
     hasActiveAccount,
     isLoading,

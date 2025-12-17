@@ -74,7 +74,6 @@ export const MicrodepositsFormDialogTrigger: FC<
   } = useGetRecipient(recipientId);
 
   const form = useForm<MicrodepositsFormDataType>({
-    mode: 'onBlur',
     resolver: zodResolver(MicrodepositsFormSchema),
     defaultValues: {
       amount1: 0,

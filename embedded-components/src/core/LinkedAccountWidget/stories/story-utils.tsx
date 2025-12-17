@@ -616,6 +616,14 @@ export const commonArgTypes = {
       defaultValue: { summary: 'false' },
     },
   },
+  viewMode: {
+    control: { type: 'select' as const },
+    options: ['cards', 'table'],
+    table: {
+      category: 'Display Mode',
+      defaultValue: { summary: 'cards' },
+    },
+  },
   scrollable: {
     control: { type: 'boolean' as const },
     description:

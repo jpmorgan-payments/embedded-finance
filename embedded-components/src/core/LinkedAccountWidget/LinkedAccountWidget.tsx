@@ -17,6 +17,7 @@ import { EmptyState } from './components/EmptyState/EmptyState';
 import { LinkedAccountCard } from './components/LinkedAccountCard/LinkedAccountCard';
 import { LinkedAccountCardSkeleton } from './components/LinkedAccountCardSkeleton/LinkedAccountCardSkeleton';
 import { LinkedAccountFormDialog } from './components/LinkedAccountFormDialog/LinkedAccountFormDialog';
+import { LinkedAccountsTableView } from './components/LinkedAccountsTableView';
 import { RemoveAccountResultDialog } from './components/RemoveAccountResultDialog/RemoveAccountResultDialog';
 import { VerificationResultDialog } from './components/VerificationResultDialog/VerificationResultDialog';
 import { useLinkedAccounts } from './hooks';
@@ -68,6 +69,7 @@ import { shouldShowCreateButton } from './utils';
 export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   // New props (preferred)
   mode,
+  viewMode = 'cards',
   compact = false,
   scrollable,
   maxHeight,
@@ -388,7 +390,24 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           {/* Linked accounts list */}
           {isSuccess && linkedAccounts.length > 0 && (
             <>
-              {resolvedScrollable ? (
+              {viewMode === 'table' ? (
+                // Table view with server-side pagination
+                <div
+                  className={cn({
+                    'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': true,
+                  })}
+                >
+                  <LinkedAccountsTableView
+                    useServerPagination
+                    renderPaymentAction={resolvedRenderPaymentAction}
+                    onLinkedAccountSettled={resolvedOnAccountLinked}
+                    onMicrodepositVerifySettled={handleMicrodepositVerifySettled}
+                    onRemoveSuccess={handleRemoveSuccess}
+                    defaultPageSize={defaultVisibleCount}
+                    showPagination
+                  />
+                </div>
+              ) : resolvedScrollable ? (
                 // Virtualized scrollable list
                 <div
                   ref={scrollContainerRef}

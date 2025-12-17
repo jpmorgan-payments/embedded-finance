@@ -54,6 +54,15 @@ export interface LinkedAccountWidgetProps extends UserTrackingProps {
   mode?: 'list' | 'single';
 
   /**
+   * View mode for displaying linked accounts
+   * - `'cards'`: Display accounts as cards (default)
+   * - `'table'`: Display accounts in a sortable/paginated table
+   *
+   * @default 'cards'
+   */
+  viewMode?: 'cards' | 'table';
+
+  /**
    * Enable compact mode with row-based cards and minimal spacing.
    *
    * When enabled:
