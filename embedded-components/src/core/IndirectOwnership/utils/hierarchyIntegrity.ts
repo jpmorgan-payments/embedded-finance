@@ -406,9 +406,11 @@ export function categorizeEntitiesForHierarchy(
     // Check if this entity is the end of a single-company hierarchy
     // Such entities cannot be used as intermediaries
     // Only enforce this when we're building a chain and need more intermediaries
-    const needsIntermediary = context.currentHierarchySteps.length > 0 &&
-      !context.currentHierarchySteps[context.currentHierarchySteps.length - 1].ownsRootBusinessDirectly;
-    
+    const needsIntermediary =
+      context.currentHierarchySteps.length > 0 &&
+      !context.currentHierarchySteps[context.currentHierarchySteps.length - 1]
+        .ownsRootBusinessDirectly;
+
     if (needsIntermediary) {
       const singleCompanyCheck = isSingleCompanyHierarchyEnd(
         entityName,
