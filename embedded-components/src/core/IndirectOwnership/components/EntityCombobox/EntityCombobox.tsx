@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, ChevronsUpDown, Building } from 'lucide-react';
+import { Building, Check, ChevronsUpDown } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -36,7 +36,7 @@ interface EntityComboboxProps {
 
 /**
  * EntityCombobox - A combobox for selecting existing entities or entering new ones
- * 
+ *
  * This component allows users to:
  * 1. See a dropdown of previously entered entities
  * 2. Filter entities by typing
@@ -47,7 +47,7 @@ export function EntityCombobox({
   value,
   onChange,
   existingEntities,
-  placeholder = "Enter company name",
+  placeholder = 'Enter company name',
   id,
   disabled = false,
   className,
@@ -55,13 +55,13 @@ export function EntityCombobox({
   const [open, setOpen] = useState(false);
 
   // Filter entities based on current input
-  const filteredEntities = existingEntities.filter(entity =>
+  const filteredEntities = existingEntities.filter((entity) =>
     entity.toLowerCase().includes(value.toLowerCase())
   );
 
   // Check if current value matches an existing entity (case-insensitive)
-  const isExistingEntity = existingEntities.some(entity => 
-    entity.toLowerCase() === value.toLowerCase()
+  const isExistingEntity = existingEntities.some(
+    (entity) => entity.toLowerCase() === value.toLowerCase()
   );
 
   const handleSelect = (selectedValue: string) => {
@@ -82,14 +82,14 @@ export function EntityCombobox({
           aria-expanded={open}
           aria-haspopup="listbox"
           className={cn(
-            "eb-w-full eb-justify-between eb-h-10 eb-bg-card",
-            !value && "eb-text-muted-foreground",
+            'eb-h-10 eb-w-full eb-justify-between eb-bg-card',
+            !value && 'eb-text-muted-foreground',
             className
           )}
           id={id}
           disabled={disabled}
         >
-          <div className="eb-flex eb-items-center eb-gap-2 eb-flex-1 eb-text-left">
+          <div className="eb-flex eb-flex-1 eb-items-center eb-gap-2 eb-text-left">
             {value ? (
               <>
                 {isExistingEntity ? (
@@ -99,7 +99,7 @@ export function EntityCombobox({
                 )}
                 <span className="eb-truncate">{value}</span>
                 {isExistingEntity && (
-                  <span className="eb-text-xs eb-text-green-600 eb-bg-green-50 eb-px-1 eb-py-0.5 eb-rounded">
+                  <span className="eb-rounded eb-bg-green-50 eb-px-1 eb-py-0.5 eb-text-xs eb-text-green-600">
                     existing
                   </span>
                 )}
@@ -111,7 +111,10 @@ export function EntityCombobox({
           <ChevronsUpDown className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="eb-w-[--radix-popover-trigger-width] eb-p-0" align="start">
+      <PopoverContent
+        className="eb-w-[--radix-popover-trigger-width] eb-p-0"
+        align="start"
+      >
         <Command shouldFilter={false}>
           <CommandInput
             placeholder="Search companies..."
@@ -132,10 +135,10 @@ export function EntityCombobox({
                     <span className="eb-flex-1">{entity}</span>
                     <Check
                       className={cn(
-                        "eb-ml-2 eb-h-4 eb-w-4",
+                        'eb-ml-2 eb-h-4 eb-w-4',
                         value.toLowerCase() === entity.toLowerCase()
-                          ? "eb-opacity-100"
-                          : "eb-opacity-0"
+                          ? 'eb-opacity-100'
+                          : 'eb-opacity-0'
                       )}
                     />
                   </CommandItem>
@@ -146,8 +149,10 @@ export function EntityCombobox({
                 <div className="eb-flex eb-flex-col eb-items-center eb-gap-2 eb-py-4">
                   <Building className="eb-h-8 eb-w-8 eb-text-muted-foreground" />
                   <div className="eb-text-center">
-                    <div className="eb-font-medium">No existing companies found</div>
-                    <div className="eb-text-sm eb-text-muted-foreground eb-mt-1">
+                    <div className="eb-font-medium">
+                      No existing companies found
+                    </div>
+                    <div className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
                       &quot;{value}&quot; will be added as a new company
                     </div>
                   </div>
@@ -155,7 +160,7 @@ export function EntityCombobox({
               </CommandEmpty>
             ) : (
               <CommandEmpty>
-                <div className="eb-text-center eb-py-4">
+                <div className="eb-py-4 eb-text-center">
                   <div className="eb-text-sm eb-text-muted-foreground">
                     Type to search existing companies or add a new one
                   </div>

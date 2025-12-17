@@ -1,9 +1,13 @@
 import { renderHook } from '@testing-library/react';
-import { useExistingEntities } from './useExistingEntities';
+
 import type { BeneficialOwner } from '../IndirectOwnership.types';
+import { useExistingEntities } from './useExistingEntities';
 
 // Mock beneficial owners with ownership hierarchies
-const createMockOwner = (id: string, steps: Array<{ entityName: string }>): BeneficialOwner => ({
+const createMockOwner = (
+  id: string,
+  steps: Array<{ entityName: string }>
+): BeneficialOwner => ({
   id,
   partyType: 'INDIVIDUAL',
   ownershipType: 'INDIRECT' as const,
@@ -32,7 +36,7 @@ const createMockOwner = (id: string, steps: Array<{ entityName: string }>): Bene
 describe('useExistingEntities', () => {
   test('returns empty array when no beneficial owners provided', () => {
     const { result } = renderHook(() => useExistingEntities([]));
-    
+
     expect(result.current).toEqual([]);
   });
 
@@ -40,17 +44,21 @@ describe('useExistingEntities', () => {
     const mockOwners: BeneficialOwner[] = [
       createMockOwner('owner1', [
         { entityName: 'Apple Inc' },
-        { entityName: 'Tech Holdings LLC' }
+        { entityName: 'Tech Holdings LLC' },
       ]),
       createMockOwner('owner2', [
         { entityName: 'Google LLC' },
-        { entityName: 'Tech Holdings LLC' } // Duplicate
+        { entityName: 'Tech Holdings LLC' }, // Duplicate
       ]),
     ];
 
     const { result } = renderHook(() => useExistingEntities(mockOwners));
-    
-    expect(result.current).toEqual(['Apple Inc', 'Google LLC', 'Tech Holdings LLC']);
+
+    expect(result.current).toEqual([
+      'Apple Inc',
+      'Google LLC',
+      'Tech Holdings LLC',
+    ]);
   });
 
   test('handles owners without ownership hierarchies', () => {
@@ -67,12 +75,12 @@ describe('useExistingEntities', () => {
         // No ownershipHierarchy for direct owners
       },
       createMockOwner('indirect-owner', [
-        { entityName: 'Microsoft Corporation' }
+        { entityName: 'Microsoft Corporation' },
       ]),
     ];
 
     const { result } = renderHook(() => useExistingEntities(mockOwners));
-    
+
     expect(result.current).toEqual(['Microsoft Corporation']);
   });
 
@@ -80,12 +88,12 @@ describe('useExistingEntities', () => {
     const mockOwners: BeneficialOwner[] = [
       createMockOwner('owner1', [
         { entityName: '  Apple Inc  ' },
-        { entityName: '\tTech Holdings LLC\n' }
+        { entityName: '\tTech Holdings LLC\n' },
       ]),
     ];
 
     const { result } = renderHook(() => useExistingEntities(mockOwners));
-    
+
     expect(result.current).toEqual(['Apple Inc', 'Tech Holdings LLC']);
   });
 
@@ -95,12 +103,12 @@ describe('useExistingEntities', () => {
         { entityName: 'Apple Inc' },
         { entityName: '' },
         { entityName: '   ' },
-        { entityName: 'Google LLC' }
+        { entityName: 'Google LLC' },
       ]),
     ];
 
     const { result } = renderHook(() => useExistingEntities(mockOwners));
-    
+
     expect(result.current).toEqual(['Apple Inc', 'Google LLC']);
   });
 
@@ -110,17 +118,17 @@ describe('useExistingEntities', () => {
         { entityName: 'Zebra Corp' },
         { entityName: 'apple Inc' },
         { entityName: 'Microsoft Corporation' },
-        { entityName: 'Amazon LLC' }
+        { entityName: 'Amazon LLC' },
       ]),
     ];
 
     const { result } = renderHook(() => useExistingEntities(mockOwners));
-    
+
     expect(result.current).toEqual([
       'Amazon LLC',
-      'apple Inc', 
+      'apple Inc',
       'Microsoft Corporation',
-      'Zebra Corp'
+      'Zebra Corp',
     ]);
   });
 
@@ -129,23 +137,23 @@ describe('useExistingEntities', () => {
       createMockOwner('owner1', [
         { entityName: 'aPpLe InC' },
         { entityName: 'GOOGLE LLC' },
-        { entityName: 'microsoft corp' }
+        { entityName: 'microsoft corp' },
       ]),
     ];
 
     const { result } = renderHook(() => useExistingEntities(mockOwners));
-    
+
     // Should preserve original casing while sorting case-insensitively
     expect(result.current).toEqual([
       'aPpLe InC',
       'GOOGLE LLC',
-      'microsoft corp'
+      'microsoft corp',
     ]);
   });
 
   test('updates when beneficial owners change', () => {
     const initialOwners: BeneficialOwner[] = [
-      createMockOwner('owner1', [{ entityName: 'Apple Inc' }])
+      createMockOwner('owner1', [{ entityName: 'Apple Inc' }]),
     ];
 
     const { result, rerender } = renderHook(
@@ -158,7 +166,7 @@ describe('useExistingEntities', () => {
     // Add new owner
     const updatedOwners = [
       ...initialOwners,
-      createMockOwner('owner2', [{ entityName: 'Google LLC' }])
+      createMockOwner('owner2', [{ entityName: 'Google LLC' }]),
     ];
 
     rerender({ owners: updatedOwners });

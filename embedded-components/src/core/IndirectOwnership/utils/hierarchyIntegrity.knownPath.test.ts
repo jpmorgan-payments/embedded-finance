@@ -1,6 +1,7 @@
-import { describe, test, expect } from 'vitest';
-import { getEntityOwnershipInfo } from './hierarchyIntegrity';
+import { describe, expect, test } from 'vitest';
+
 import type { BeneficialOwner } from '../IndirectOwnership.types';
+import { getEntityOwnershipInfo } from './hierarchyIntegrity';
 
 describe('Known Path to Root Detection', () => {
   const rootCompanyName = 'Root Business Inc';
@@ -43,11 +44,15 @@ describe('Known Path to Root Detection', () => {
       createMockOwner('owner1', 'Alice', 'Smith', [
         { entityName: 'Holding Corp', ownsRootBusinessDirectly: false },
         { entityName: 'Subsidiary LLC', ownsRootBusinessDirectly: false },
-        { entityName: 'Direct Owner Inc', ownsRootBusinessDirectly: true }
-      ])
+        { entityName: 'Direct Owner Inc', ownsRootBusinessDirectly: true },
+      ]),
     ];
 
-    const result = getEntityOwnershipInfo('Holding Corp', rootCompanyName, mockOwners);
+    const result = getEntityOwnershipInfo(
+      'Holding Corp',
+      rootCompanyName,
+      mockOwners
+    );
 
     expect(result.entityName).toBe('Holding Corp');
     expect(result.isKnownDirectOwner).toBe(false); // Not a direct owner
@@ -68,11 +73,15 @@ describe('Known Path to Root Detection', () => {
       createMockOwner('owner1', 'Bob', 'Jones', [
         { entityName: 'Top Corp', ownsRootBusinessDirectly: false },
         { entityName: 'Middle Corp', ownsRootBusinessDirectly: false },
-        { entityName: 'Bottom Corp', ownsRootBusinessDirectly: true }
-      ])
+        { entityName: 'Bottom Corp', ownsRootBusinessDirectly: true },
+      ]),
     ];
 
-    const result = getEntityOwnershipInfo('Middle Corp', rootCompanyName, mockOwners);
+    const result = getEntityOwnershipInfo(
+      'Middle Corp',
+      rootCompanyName,
+      mockOwners
+    );
 
     expect(result.hasKnownPathToRoot).toBe(true);
     expect(result.pathToRoot).toHaveLength(2); // Middle Corp → Bottom Corp
@@ -85,11 +94,15 @@ describe('Known Path to Root Detection', () => {
     // If entity is a direct owner, it still has a "path" (itself)
     const mockOwners: BeneficialOwner[] = [
       createMockOwner('owner1', 'Charlie', 'Brown', [
-        { entityName: 'Direct Owner Corp', ownsRootBusinessDirectly: true }
-      ])
+        { entityName: 'Direct Owner Corp', ownsRootBusinessDirectly: true },
+      ]),
     ];
 
-    const result = getEntityOwnershipInfo('Direct Owner Corp', rootCompanyName, mockOwners);
+    const result = getEntityOwnershipInfo(
+      'Direct Owner Corp',
+      rootCompanyName,
+      mockOwners
+    );
 
     expect(result.isKnownDirectOwner).toBe(true);
     expect(result.hasKnownPathToRoot).toBe(true);
@@ -101,11 +114,15 @@ describe('Known Path to Root Detection', () => {
     const mockOwners: BeneficialOwner[] = [
       createMockOwner('owner1', 'Diana', 'Prince', [
         { entityName: 'Top Corp', ownsRootBusinessDirectly: false },
-        { entityName: 'Bottom Corp', ownsRootBusinessDirectly: false } // Does not own root
-      ])
+        { entityName: 'Bottom Corp', ownsRootBusinessDirectly: false }, // Does not own root
+      ]),
     ];
 
-    const result = getEntityOwnershipInfo('Top Corp', rootCompanyName, mockOwners);
+    const result = getEntityOwnershipInfo(
+      'Top Corp',
+      rootCompanyName,
+      mockOwners
+    );
 
     expect(result.hasKnownPathToRoot).toBe(false);
     expect(result.pathToRoot).toBeUndefined();
@@ -115,11 +132,15 @@ describe('Known Path to Root Detection', () => {
     const mockOwners: BeneficialOwner[] = [
       createMockOwner('owner1', 'Eve', 'Adams', [
         { entityName: 'HOLDING CORP', ownsRootBusinessDirectly: false },
-        { entityName: 'Direct Corp', ownsRootBusinessDirectly: true }
-      ])
+        { entityName: 'Direct Corp', ownsRootBusinessDirectly: true },
+      ]),
     ];
 
-    const result = getEntityOwnershipInfo('holding corp', rootCompanyName, mockOwners);
+    const result = getEntityOwnershipInfo(
+      'holding corp',
+      rootCompanyName,
+      mockOwners
+    );
 
     expect(result.hasKnownPathToRoot).toBe(true);
     expect(result.pathToRoot).toHaveLength(2);
@@ -131,15 +152,19 @@ describe('Known Path to Root Detection', () => {
     const mockOwners: BeneficialOwner[] = [
       createMockOwner('owner1', 'First', 'Owner', [
         { entityName: 'Shared Corp', ownsRootBusinessDirectly: false },
-        { entityName: 'Direct A', ownsRootBusinessDirectly: true }
+        { entityName: 'Direct A', ownsRootBusinessDirectly: true },
       ]),
       createMockOwner('owner2', 'Second', 'Owner', [
         { entityName: 'Shared Corp', ownsRootBusinessDirectly: false },
-        { entityName: 'Direct B', ownsRootBusinessDirectly: true }
-      ])
+        { entityName: 'Direct B', ownsRootBusinessDirectly: true },
+      ]),
     ];
 
-    const result = getEntityOwnershipInfo('Shared Corp', rootCompanyName, mockOwners);
+    const result = getEntityOwnershipInfo(
+      'Shared Corp',
+      rootCompanyName,
+      mockOwners
+    );
 
     expect(result.hasKnownPathToRoot).toBe(true);
     expect(result.source?.ownerName).toBe('First Owner');
@@ -149,11 +174,15 @@ describe('Known Path to Root Detection', () => {
   test('handles entity not in any hierarchy', () => {
     const mockOwners: BeneficialOwner[] = [
       createMockOwner('owner1', 'Test', 'User', [
-        { entityName: 'Some Corp', ownsRootBusinessDirectly: true }
-      ])
+        { entityName: 'Some Corp', ownsRootBusinessDirectly: true },
+      ]),
     ];
 
-    const result = getEntityOwnershipInfo('Unknown Corp', rootCompanyName, mockOwners);
+    const result = getEntityOwnershipInfo(
+      'Unknown Corp',
+      rootCompanyName,
+      mockOwners
+    );
 
     expect(result.isKnownDirectOwner).toBe(false);
     expect(result.hasKnownPathToRoot).toBe(false);

@@ -1,4 +1,7 @@
-import type { BeneficialOwner, HierarchyStep } from '../IndirectOwnership.types';
+import type {
+  BeneficialOwner,
+  HierarchyStep,
+} from '../IndirectOwnership.types';
 
 /**
  * Represents a known ownership relationship between two entities
@@ -52,42 +55,48 @@ export interface CategorizedEntities {
 /**
  * Extract all known ownership relationships from existing beneficial owners
  */
-export function extractOwnershipRelationships(beneficialOwners: BeneficialOwner[]): OwnershipRelationship[] {
+export function extractOwnershipRelationships(
+  beneficialOwners: BeneficialOwner[]
+): OwnershipRelationship[] {
   const relationships: OwnershipRelationship[] = [];
-  
-  beneficialOwners.forEach(owner => {
+
+  beneficialOwners.forEach((owner) => {
     if (owner.ownershipHierarchy?.steps) {
       const steps = owner.ownershipHierarchy.steps;
-      const ownerName = `${owner.firstName || ''} ${owner.lastName || ''}`.trim();
-      
+      const ownerName =
+        `${owner.firstName || ''} ${owner.lastName || ''}`.trim();
+
       // Create relationships between consecutive steps in the hierarchy
       for (let i = 0; i < steps.length - 1; i++) {
         const currentStep = steps[i];
         const nextStep = steps[i + 1];
-        
+
         if (currentStep.entityName && nextStep.entityName) {
           relationships.push({
             owner: currentStep.entityName.trim(),
             owned: nextStep.entityName.trim(),
             source: {
               ownerName,
-              hierarchyId: owner.ownershipHierarchy.id
-            }
+              hierarchyId: owner.ownershipHierarchy.id,
+            },
           });
         }
       }
     }
   });
-  
+
   return relationships;
 }
 
 /**
  * Find what entity should own the given target entity based on known relationships
  */
-function findKnownOwnerOf(target: string, relationships: OwnershipRelationship[]): OwnershipRelationship | undefined {
-  return relationships.find(rel => 
-    rel.owned.toLowerCase() === target.toLowerCase()
+function findKnownOwnerOf(
+  target: string,
+  relationships: OwnershipRelationship[]
+): OwnershipRelationship | undefined {
+  return relationships.find(
+    (rel) => rel.owned.toLowerCase() === target.toLowerCase()
   );
 }
 
@@ -102,80 +111,83 @@ export function categorizeEntitiesForHierarchy(
   const result: CategorizedEntities = {
     recommended: [],
     available: [],
-    problematic: []
+    problematic: [],
   };
-  
+
   // Determine what entity we need to find an owner for
   let targetEntity: string | undefined;
-  
+
   if (context.currentHierarchySteps.length === 0) {
     // First step: we need something that will eventually own the root company
     // Look for entities that are known to own the root company
-    const rootOwners = relationships.filter(rel => 
-      rel.owned.toLowerCase() === context.rootCompanyName.toLowerCase()
+    const rootOwners = relationships.filter(
+      (rel) => rel.owned.toLowerCase() === context.rootCompanyName.toLowerCase()
     );
-    
+
     if (rootOwners.length > 0) {
-      rootOwners.forEach(rel => {
+      rootOwners.forEach((rel) => {
         result.recommended.push({
           name: rel.owner,
           reason: `Already known to own ${context.rootCompanyName}`,
-          relationship: rel
+          relationship: rel,
         });
       });
     }
   } else {
     // Subsequent steps: we need something that owns the last entity we added
-    const lastStep = context.currentHierarchySteps[context.currentHierarchySteps.length - 1];
+    const lastStep =
+      context.currentHierarchySteps[context.currentHierarchySteps.length - 1];
     targetEntity = lastStep.entityName;
   }
-  
+
   // If we have a target entity, find its known owner
   if (targetEntity) {
     const knownOwner = findKnownOwnerOf(targetEntity, relationships);
-    
+
     if (knownOwner) {
       result.recommended.push({
         name: knownOwner.owner,
         reason: `Already known to own ${targetEntity} (from ${knownOwner.source.ownerName}'s hierarchy)`,
-        relationship: knownOwner
+        relationship: knownOwner,
       });
     }
   }
-  
+
   // Categorize remaining entities
-  const recommendedNames = new Set(result.recommended.map(r => r.name.toLowerCase()));
-  
-  allExistingEntities.forEach(entityName => {
+  const recommendedNames = new Set(
+    result.recommended.map((r) => r.name.toLowerCase())
+  );
+
+  allExistingEntities.forEach((entityName) => {
     const lowerName = entityName.toLowerCase();
-    
+
     // Skip if already recommended
     if (recommendedNames.has(lowerName)) {
       return;
     }
-    
+
     // Skip if it's the root company (can't own itself)
     if (lowerName === context.rootCompanyName.toLowerCase()) {
       result.problematic.push({
         name: entityName,
-        reason: `Cannot add the root company (${context.rootCompanyName}) to its own ownership chain`
+        reason: `Cannot add the root company (${context.rootCompanyName}) to its own ownership chain`,
       });
       return;
     }
-    
+
     // Check if this entity is already in the current hierarchy chain
-    const alreadyInChain = context.currentHierarchySteps.some(step => 
-      step.entityName.toLowerCase() === lowerName
+    const alreadyInChain = context.currentHierarchySteps.some(
+      (step) => step.entityName.toLowerCase() === lowerName
     );
-    
+
     if (alreadyInChain) {
       result.problematic.push({
         name: entityName,
-        reason: 'Already exists in this ownership chain'
+        reason: 'Already exists in this ownership chain',
       });
       return;
     }
-    
+
     // Check if using this entity would contradict known relationships
     if (targetEntity) {
       const existingOwner = findKnownOwnerOf(targetEntity, relationships);
@@ -183,15 +195,15 @@ export function categorizeEntitiesForHierarchy(
         result.problematic.push({
           name: entityName,
           reason: `Would conflict with known relationship: ${existingOwner.owner} owns ${targetEntity}`,
-          relationship: existingOwner
+          relationship: existingOwner,
         });
         return;
       }
     }
-    
+
     // If we made it here, it's available
     result.available.push(entityName);
   });
-  
+
   return result;
 }

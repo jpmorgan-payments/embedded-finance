@@ -1,5 +1,9 @@
-import { categorizeEntitiesForHierarchy, extractOwnershipRelationships, type HierarchyBuildingContext } from './hierarchyIntegrity';
 import type { BeneficialOwner } from '../IndirectOwnership.types';
+import {
+  categorizeEntitiesForHierarchy,
+  extractOwnershipRelationships,
+  type HierarchyBuildingContext,
+} from './hierarchyIntegrity';
 
 // Helper function to create a mock beneficial owner
 const createMockOwner = (
@@ -35,25 +39,30 @@ const createMockOwner = (
 
 describe('categorizeEntitiesForHierarchy - Single Company Hierarchy Prevention', () => {
   const rootCompanyName = 'Root Business Inc';
-  
+
   test('prevents using single-company hierarchy end as intermediary', () => {
     // Setup: Create existing ownership structures
     const mockOwners: BeneficialOwner[] = [
       // Owner 1: Single-company hierarchy (John → Direct Corp → Root Business)
       createMockOwner('owner1', 'John', 'Smith', [
-        { entityName: 'Direct Corp', ownsRootBusinessDirectly: true }
+        { entityName: 'Direct Corp', ownsRootBusinessDirectly: true },
       ]),
-      
+
       // Owner 2: Multi-company hierarchy (Jane → Intermediate → Final Corp → Root Business)
       createMockOwner('owner2', 'Jane', 'Doe', [
         { entityName: 'Intermediate LLC', ownsRootBusinessDirectly: false },
-        { entityName: 'Final Corp', ownsRootBusinessDirectly: true }
-      ])
+        { entityName: 'Final Corp', ownsRootBusinessDirectly: true },
+      ]),
     ];
 
-    const allEntities = ['Direct Corp', 'Intermediate LLC', 'Final Corp', 'New Company'];
+    const allEntities = [
+      'Direct Corp',
+      'Intermediate LLC',
+      'Final Corp',
+      'New Company',
+    ];
     const relationships = extractOwnershipRelationships(mockOwners);
-    
+
     // Test scenario: Building a new hierarchy and trying to add "Direct Corp" as an intermediary
     const context: HierarchyBuildingContext = {
       currentOwnerId: 'new-owner',
@@ -65,18 +74,24 @@ describe('categorizeEntitiesForHierarchy - Single Company Hierarchy Prevention',
           hasOwnership: true,
           ownsRootBusinessDirectly: false,
           level: 1,
-        }
+        },
       ],
       rootCompanyName,
-      ownerName: 'Bob Wilson'
+      ownerName: 'Bob Wilson',
     };
 
-    const result = categorizeEntitiesForHierarchy(allEntities, relationships, context, mockOwners);
+    const result = categorizeEntitiesForHierarchy(
+      allEntities,
+      relationships,
+      context,
+      mockOwners
+    );
 
     // "Direct Corp" should be problematic because it's the end of a single-company hierarchy
     expect(result.problematic).toContainEqual({
       name: 'Direct Corp',
-      reason: "Cannot be used as intermediary - already established as direct owner in John Smith's hierarchy"
+      reason:
+        "Cannot be used as intermediary - already established as direct owner in John Smith's hierarchy",
     });
 
     // "Intermediate LLC" should be available (it's not the end of a single-company hierarchy)
@@ -95,25 +110,30 @@ describe('categorizeEntitiesForHierarchy - Single Company Hierarchy Prevention',
       createMockOwner('owner1', 'Alice', 'Johnson', [
         { entityName: 'Intermediate A', ownsRootBusinessDirectly: false },
         { entityName: 'Intermediate B', ownsRootBusinessDirectly: false },
-        { entityName: 'Final Company', ownsRootBusinessDirectly: true }
-      ])
+        { entityName: 'Final Company', ownsRootBusinessDirectly: true },
+      ]),
     ];
 
     const allEntities = ['Intermediate A', 'Intermediate B', 'Final Company'];
     const relationships = extractOwnershipRelationships(mockOwners);
-    
+
     const context: HierarchyBuildingContext = {
       currentOwnerId: 'new-owner',
       currentHierarchySteps: [],
       rootCompanyName,
-      ownerName: 'New Owner'
+      ownerName: 'New Owner',
     };
 
-    const result = categorizeEntitiesForHierarchy(allEntities, relationships, context, mockOwners);
+    const result = categorizeEntitiesForHierarchy(
+      allEntities,
+      relationships,
+      context,
+      mockOwners
+    );
 
     // All entities should be available since none are single-company hierarchy ends
     expect(result.available).toContain('Intermediate A');
-    expect(result.available).toContain('Intermediate B'); 
+    expect(result.available).toContain('Intermediate B');
     expect(result.available).toContain('Final Company');
     expect(result.problematic).toHaveLength(0);
   });
@@ -121,26 +141,31 @@ describe('categorizeEntitiesForHierarchy - Single Company Hierarchy Prevention',
   test('prevents using root company in its own hierarchy', () => {
     const mockOwners: BeneficialOwner[] = [
       createMockOwner('owner1', 'Test', 'Owner', [
-        { entityName: 'Some Company', ownsRootBusinessDirectly: true }
-      ])
+        { entityName: 'Some Company', ownsRootBusinessDirectly: true },
+      ]),
     ];
 
     const allEntities = ['Some Company', rootCompanyName];
     const relationships = extractOwnershipRelationships(mockOwners);
-    
+
     const context: HierarchyBuildingContext = {
       currentOwnerId: 'new-owner',
       currentHierarchySteps: [],
       rootCompanyName,
-      ownerName: 'New Owner'
+      ownerName: 'New Owner',
     };
 
-    const result = categorizeEntitiesForHierarchy(allEntities, relationships, context, mockOwners);
+    const result = categorizeEntitiesForHierarchy(
+      allEntities,
+      relationships,
+      context,
+      mockOwners
+    );
 
     // Root company should be problematic
     expect(result.problematic).toContainEqual({
       name: rootCompanyName,
-      reason: `Cannot add the root company (${rootCompanyName}) to its own ownership chain`
+      reason: `Cannot add the root company (${rootCompanyName}) to its own ownership chain`,
     });
 
     // "Some Company" should be available
@@ -150,13 +175,13 @@ describe('categorizeEntitiesForHierarchy - Single Company Hierarchy Prevention',
   test('prevents using entities already in current chain', () => {
     const mockOwners: BeneficialOwner[] = [
       createMockOwner('owner1', 'Test', 'Owner', [
-        { entityName: 'Existing Company', ownsRootBusinessDirectly: true }
-      ])
+        { entityName: 'Existing Company', ownsRootBusinessDirectly: true },
+      ]),
     ];
 
     const allEntities = ['Existing Company', 'Already Added Co'];
     const relationships = extractOwnershipRelationships(mockOwners);
-    
+
     const context: HierarchyBuildingContext = {
       currentOwnerId: 'new-owner',
       currentHierarchySteps: [
@@ -167,18 +192,23 @@ describe('categorizeEntitiesForHierarchy - Single Company Hierarchy Prevention',
           hasOwnership: true,
           ownsRootBusinessDirectly: false,
           level: 1,
-        }
+        },
       ],
       rootCompanyName,
-      ownerName: 'New Owner'
+      ownerName: 'New Owner',
     };
 
-    const result = categorizeEntitiesForHierarchy(allEntities, relationships, context, mockOwners);
+    const result = categorizeEntitiesForHierarchy(
+      allEntities,
+      relationships,
+      context,
+      mockOwners
+    );
 
     // Entity already in chain should be problematic
     expect(result.problematic).toContainEqual({
       name: 'Already Added Co',
-      reason: 'Already exists in this ownership chain'
+      reason: 'Already exists in this ownership chain',
     });
 
     // Other entity should be available

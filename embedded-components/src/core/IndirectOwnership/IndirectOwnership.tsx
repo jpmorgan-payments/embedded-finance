@@ -32,14 +32,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
+import { EntityCombobox } from './components/EntityCombobox';
+import { useExistingEntities } from './hooks/useExistingEntities';
 import { INDIRECT_OWNERSHIP_USER_JOURNEYS } from './IndirectOwnership.constants';
 import type {
   BeneficialOwner,
   IndirectOwnershipProps,
   ValidationSummary,
 } from './IndirectOwnership.types';
-import { useExistingEntities } from './hooks/useExistingEntities';
-import { EntityCombobox } from './components/EntityCombobox';
 import { getEntityOwnershipInfo } from './utils/hierarchyIntegrity';
 import {
   getBeneficialOwnerFullName,
@@ -1055,11 +1055,15 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
   }, [allExistingEntities, hierarchySteps, rootCompanyName]);
   const [currentCompanyName, setCurrentCompanyName] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
-  
+
   // Check if current company is known to directly own the root business
   const currentEntityInfo = React.useMemo(() => {
     if (!currentCompanyName.trim()) return null;
-    return getEntityOwnershipInfo(currentCompanyName.trim(), rootCompanyName, beneficialOwners);
+    return getEntityOwnershipInfo(
+      currentCompanyName.trim(),
+      rootCompanyName,
+      beneficialOwners
+    );
   }, [currentCompanyName, rootCompanyName, beneficialOwners]);
 
   // Pre-populate existing hierarchy data in edit mode
@@ -1078,27 +1082,32 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
     }
 
     // Check if entity is known to be a direct owner OR has a known complete path
-    const shouldComplete = ownsRootBusinessDirectly ?? 
-                          currentEntityInfo?.isKnownDirectOwner ?? 
-                          currentEntityInfo?.hasKnownPathToRoot ?? 
-                          false;
+    const shouldComplete =
+      ownsRootBusinessDirectly ??
+      currentEntityInfo?.isKnownDirectOwner ??
+      currentEntityInfo?.hasKnownPathToRoot ??
+      false;
 
     // If entity has a known path to root, add all steps in that path
-    if (currentEntityInfo?.hasKnownPathToRoot && currentEntityInfo.pathToRoot && currentEntityInfo.pathToRoot.length > 0) {
+    if (
+      currentEntityInfo?.hasKnownPathToRoot &&
+      currentEntityInfo.pathToRoot &&
+      currentEntityInfo.pathToRoot.length > 0
+    ) {
       // Mark all previous steps as intermediaries
-      const updatedPreviousSteps = hierarchySteps.map(step => ({
+      const updatedPreviousSteps = hierarchySteps.map((step) => ({
         ...step,
-        ownsRootBusinessDirectly: false
+        ownsRootBusinessDirectly: false,
       }));
 
       // Add all steps from the known path
       const pathSteps = currentEntityInfo.pathToRoot.map((pathStep, index) => ({
         id: `step-${Date.now()}-${index}`,
         entityName: pathStep.entityName,
-        entityType: pathStep.entityType || 'COMPANY' as const,
+        entityType: pathStep.entityType || ('COMPANY' as const),
         hasOwnership: true,
         ownsRootBusinessDirectly: pathStep.ownsRootBusinessDirectly,
-        level: hierarchySteps.length + index + 1
+        level: hierarchySteps.length + index + 1,
       }));
 
       const completeSteps = [...updatedPreviousSteps, ...pathSteps];
@@ -1109,7 +1118,7 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
         steps: completeSteps,
         isValid: true,
         meets25PercentThreshold: true,
-        validationErrors: []
+        validationErrors: [],
       };
 
       onSave(ownerId, hierarchy);
@@ -1351,16 +1360,20 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
             {currentEntityInfo?.isKnownDirectOwner ? (
               // Show completion message for known direct owners
               <div className="eb-space-y-3">
-                <div className="eb-p-3 eb-bg-success-accent eb-border eb-border-success eb-rounded-lg">
+                <div className="eb-rounded-lg eb-border eb-border-success eb-bg-success-accent eb-p-3">
                   <div className="eb-flex eb-items-start eb-gap-2">
-                    <Check className="eb-h-5 eb-w-5 eb-text-success eb-shrink-0 eb-mt-0.5" />
+                    <Check className="eb-mt-0.5 eb-h-5 eb-w-5 eb-shrink-0 eb-text-success" />
                     <div className="eb-text-sm">
                       <div className="eb-font-medium eb-text-success">
-                        <span className="eb-font-bold">{currentCompanyName}</span> is known to directly own{' '}
+                        <span className="eb-font-bold">
+                          {currentCompanyName}
+                        </span>{' '}
+                        is known to directly own{' '}
                         <span className="eb-font-bold">{rootCompanyName}</span>
                       </div>
-                      <div className="eb-text-success/80 eb-mt-1">
-                        Based on {currentEntityInfo.source?.ownerName}'s ownership hierarchy
+                      <div className="eb-mt-1 eb-text-success/80">
+                        Based on {currentEntityInfo.source?.ownerName}'s
+                        ownership hierarchy
                       </div>
                     </div>
                   </div>
@@ -1374,36 +1387,46 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
                   Complete Chain
                 </Button>
               </div>
-            ) : currentEntityInfo?.hasKnownPathToRoot && currentEntityInfo.pathToRoot ? (
+            ) : currentEntityInfo?.hasKnownPathToRoot &&
+              currentEntityInfo.pathToRoot ? (
               // Show completion message for entities with known path to root
               <div className="eb-space-y-3">
-                <div className="eb-p-3 eb-bg-success-accent eb-border eb-border-success eb-rounded-lg">
+                <div className="eb-rounded-lg eb-border eb-border-success eb-bg-success-accent eb-p-3">
                   <div className="eb-flex eb-items-start eb-gap-2">
-                    <Check className="eb-h-5 eb-w-5 eb-text-success eb-shrink-0 eb-mt-0.5" />
-                    <div className="eb-text-sm eb-space-y-2">
+                    <Check className="eb-mt-0.5 eb-h-5 eb-w-5 eb-shrink-0 eb-text-success" />
+                    <div className="eb-space-y-2 eb-text-sm">
                       <div className="eb-font-medium eb-text-success">
-                        <span className="eb-font-bold">{currentCompanyName}</span> has a known path to <span className="eb-font-bold">{rootCompanyName}</span>
+                        <span className="eb-font-bold">
+                          {currentCompanyName}
+                        </span>{' '}
+                        has a known path to{' '}
+                        <span className="eb-font-bold">{rootCompanyName}</span>
                       </div>
                       <div className="eb-text-success/80">
-                        Based on {currentEntityInfo.source?.ownerName}'s ownership hierarchy
+                        Based on {currentEntityInfo.source?.ownerName}'s
+                        ownership hierarchy
                       </div>
-                      <div className="eb-flex eb-items-center eb-gap-1 eb-flex-wrap eb-text-xs eb-text-success/70">
+                      <div className="eb-flex eb-flex-wrap eb-items-center eb-gap-1 eb-text-xs eb-text-success/70">
                         <span>Chain:</span>
                         {currentEntityInfo.pathToRoot.map((step, idx) => (
                           <React.Fragment key={idx}>
-                            <span className="eb-font-medium">{step.entityName}</span>
-                            {idx < currentEntityInfo.pathToRoot!.length - 1 && <span>→</span>}
+                            <span className="eb-font-medium">
+                              {step.entityName}
+                            </span>
+                            {idx < currentEntityInfo.pathToRoot!.length - 1 && (
+                              <span>→</span>
+                            )}
                           </React.Fragment>
                         ))}
                       </div>
                     </div>
                   </div>
                 </div>
-                
-                <Button 
+
+                <Button
                   onClick={() => handleAddCompany()}
                   disabled={!currentCompanyName.trim()}
-                  className="eb-w-full eb-bg-success hover:eb-bg-success/90 eb-font-medium eb-h-10 eb-text-white"
+                  className="eb-h-10 eb-w-full eb-bg-success eb-font-medium eb-text-white hover:eb-bg-success/90"
                 >
                   Complete Chain with Full Path
                 </Button>
@@ -1412,8 +1435,15 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
               // Show standard choice for unknown entities
               <div className="eb-space-y-3">
                 <div className="eb-text-sm eb-font-medium eb-text-foreground">
-                  Does <span className="eb-font-bold eb-text-primary">{currentCompanyName || '[Company Name]'}</span> directly own{' '}
-                  <span className="eb-font-bold eb-text-primary">{rootCompanyName}</span>?
+                  Does{' '}
+                  <span className="eb-font-bold eb-text-primary">
+                    {currentCompanyName || '[Company Name]'}
+                  </span>{' '}
+                  directly own{' '}
+                  <span className="eb-font-bold eb-text-primary">
+                    {rootCompanyName}
+                  </span>
+                  ?
                 </div>
 
                 <div className="eb-flex eb-gap-3">

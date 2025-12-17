@@ -1,6 +1,10 @@
-import { describe, test, expect } from 'vitest';
-import { isIntermediaryInExistingHierarchy, getEntityOwnershipInfo } from './hierarchyIntegrity';
+import { describe, expect, test } from 'vitest';
+
 import type { BeneficialOwner } from '../IndirectOwnership.types';
+import {
+  getEntityOwnershipInfo,
+  isIntermediaryInExistingHierarchy,
+} from './hierarchyIntegrity';
 
 describe('Intermediary Validation', () => {
   const mockBeneficialOwners: BeneficialOwner[] = [
@@ -25,18 +29,18 @@ describe('Intermediary Validation', () => {
             entityType: 'COMPANY',
             hasOwnership: true,
             ownsRootBusinessDirectly: false,
-            level: 1
+            level: 1,
           },
           {
-            id: 'step-2',  
+            id: 'step-2',
             entityName: 'Subsidiary LLC',
             entityType: 'COMPANY',
             hasOwnership: true,
             ownsRootBusinessDirectly: true,
-            level: 2
-          }
-        ]
-      }
+            level: 2,
+          },
+        ],
+      },
     },
     {
       id: '2',
@@ -59,10 +63,10 @@ describe('Intermediary Validation', () => {
             entityType: 'COMPANY',
             hasOwnership: true,
             ownsRootBusinessDirectly: true,
-            level: 1
-          }
-        ]
-      }
+            level: 1,
+          },
+        ],
+      },
     },
     {
       id: '3',
@@ -85,7 +89,7 @@ describe('Intermediary Validation', () => {
             entityType: 'COMPANY',
             hasOwnership: true,
             ownsRootBusinessDirectly: false,
-            level: 1
+            level: 1,
           },
           {
             id: 'step-5',
@@ -93,7 +97,7 @@ describe('Intermediary Validation', () => {
             entityType: 'COMPANY',
             hasOwnership: true,
             ownsRootBusinessDirectly: false,
-            level: 2
+            level: 2,
           },
           {
             id: 'step-6',
@@ -101,54 +105,72 @@ describe('Intermediary Validation', () => {
             entityType: 'COMPANY',
             hasOwnership: true,
             ownsRootBusinessDirectly: true,
-            level: 3
-          }
-        ]
-      }
-    }
+            level: 3,
+          },
+        ],
+      },
+    },
   ];
 
   describe('isIntermediaryInExistingHierarchy', () => {
     test('identifies entity as intermediary when in middle of chain', () => {
-      const result = isIntermediaryInExistingHierarchy('Parent Corp', mockBeneficialOwners);
-      
+      const result = isIntermediaryInExistingHierarchy(
+        'Parent Corp',
+        mockBeneficialOwners
+      );
+
       expect(result.isIntermediary).toBe(true);
       expect(result.source?.ownerName).toBe('John Doe');
       expect(result.source?.hierarchyId).toBe('hierarchy-1');
     });
 
     test('identifies entity as intermediary in multi-level hierarchy', () => {
-      const result = isIntermediaryInExistingHierarchy('Middle Company', mockBeneficialOwners);
-      
+      const result = isIntermediaryInExistingHierarchy(
+        'Middle Company',
+        mockBeneficialOwners
+      );
+
       expect(result.isIntermediary).toBe(true);
       expect(result.source?.ownerName).toBe('Bob Johnson');
       expect(result.source?.hierarchyId).toBe('hierarchy-3');
     });
 
     test('does not identify direct owner as intermediary', () => {
-      const result = isIntermediaryInExistingHierarchy('Direct Owner Corp', mockBeneficialOwners);
-      
+      const result = isIntermediaryInExistingHierarchy(
+        'Direct Owner Corp',
+        mockBeneficialOwners
+      );
+
       expect(result.isIntermediary).toBe(false);
       expect(result.source).toBeUndefined();
     });
 
     test('does not identify final step as intermediary', () => {
-      const result = isIntermediaryInExistingHierarchy('Subsidiary LLC', mockBeneficialOwners);
-      
+      const result = isIntermediaryInExistingHierarchy(
+        'Subsidiary LLC',
+        mockBeneficialOwners
+      );
+
       expect(result.isIntermediary).toBe(false);
       expect(result.source).toBeUndefined();
     });
 
     test('handles non-existent entity', () => {
-      const result = isIntermediaryInExistingHierarchy('Non Existent Corp', mockBeneficialOwners);
-      
+      const result = isIntermediaryInExistingHierarchy(
+        'Non Existent Corp',
+        mockBeneficialOwners
+      );
+
       expect(result.isIntermediary).toBe(false);
       expect(result.source).toBeUndefined();
     });
 
     test('case insensitive matching', () => {
-      const result = isIntermediaryInExistingHierarchy('PARENT CORP', mockBeneficialOwners);
-      
+      const result = isIntermediaryInExistingHierarchy(
+        'PARENT CORP',
+        mockBeneficialOwners
+      );
+
       expect(result.isIntermediary).toBe(true);
       expect(result.source?.ownerName).toBe('John Doe');
     });
@@ -162,48 +184,71 @@ describe('Intermediary Validation', () => {
           firstName: 'Empty',
           lastName: 'Owner',
           createdAt: new Date(),
-          updatedAt: new Date()
-        }
+          updatedAt: new Date(),
+        },
       ];
 
-      const result = isIntermediaryInExistingHierarchy('Any Corp', emptyBeneficialOwners);
-      
+      const result = isIntermediaryInExistingHierarchy(
+        'Any Corp',
+        emptyBeneficialOwners
+      );
+
       expect(result.isIntermediary).toBe(false);
     });
   });
 
   describe('getEntityOwnershipInfo with intermediary validation', () => {
     test('prevents intermediary from being recognized as direct owner', () => {
-      const result = getEntityOwnershipInfo('Parent Corp', 'Root Business', mockBeneficialOwners);
-      
+      const result = getEntityOwnershipInfo(
+        'Parent Corp',
+        'Root Business',
+        mockBeneficialOwners
+      );
+
       expect(result.isKnownDirectOwner).toBe(false);
       expect(result.source).toBeUndefined();
     });
 
     test('allows actual direct owner to be recognized', () => {
-      const result = getEntityOwnershipInfo('Direct Owner Corp', 'Root Business', mockBeneficialOwners);
-      
+      const result = getEntityOwnershipInfo(
+        'Direct Owner Corp',
+        'Root Business',
+        mockBeneficialOwners
+      );
+
       expect(result.isKnownDirectOwner).toBe(true);
       expect(result.source?.ownerName).toBe('Jane Smith');
     });
 
     test('prevents multi-level intermediary from being direct owner', () => {
-      const result = getEntityOwnershipInfo('Middle Company', 'Root Business', mockBeneficialOwners);
-      
+      const result = getEntityOwnershipInfo(
+        'Middle Company',
+        'Root Business',
+        mockBeneficialOwners
+      );
+
       expect(result.isKnownDirectOwner).toBe(false);
       expect(result.source).toBeUndefined();
     });
 
     test('allows final step in multi-level hierarchy to be direct owner', () => {
-      const result = getEntityOwnershipInfo('Final Owner LLC', 'Root Business', mockBeneficialOwners);
-      
+      const result = getEntityOwnershipInfo(
+        'Final Owner LLC',
+        'Root Business',
+        mockBeneficialOwners
+      );
+
       expect(result.isKnownDirectOwner).toBe(true);
       expect(result.source?.ownerName).toBe('Bob Johnson');
     });
 
     test('allows unknown entity to potentially be direct owner', () => {
-      const result = getEntityOwnershipInfo('Unknown Corp', 'Root Business', mockBeneficialOwners);
-      
+      const result = getEntityOwnershipInfo(
+        'Unknown Corp',
+        'Root Business',
+        mockBeneficialOwners
+      );
+
       expect(result.isKnownDirectOwner).toBe(false);
       expect(result.source).toBeUndefined();
     });
@@ -233,17 +278,24 @@ describe('Intermediary Validation', () => {
                 entityType: 'COMPANY',
                 hasOwnership: true,
                 ownsRootBusinessDirectly: true,
-                level: 1
-              }
-            ]
-          }
-        }
+                level: 1,
+              },
+            ],
+          },
+        },
       ];
 
-      const intermediaryResult = isIntermediaryInExistingHierarchy('Only Company', singleStepOwners);
+      const intermediaryResult = isIntermediaryInExistingHierarchy(
+        'Only Company',
+        singleStepOwners
+      );
       expect(intermediaryResult.isIntermediary).toBe(false);
 
-      const ownershipResult = getEntityOwnershipInfo('Only Company', 'Root Business', singleStepOwners);
+      const ownershipResult = getEntityOwnershipInfo(
+        'Only Company',
+        'Root Business',
+        singleStepOwners
+      );
       expect(ownershipResult.isKnownDirectOwner).toBe(true);
     });
 
@@ -263,12 +315,15 @@ describe('Intermediary Validation', () => {
             meets25PercentThreshold: false,
             createdAt: new Date(),
             updatedAt: new Date(),
-            steps: []
-          }
-        }
+            steps: [],
+          },
+        },
       ];
 
-      const result = isIntermediaryInExistingHierarchy('Any Company', emptyStepsOwners);
+      const result = isIntermediaryInExistingHierarchy(
+        'Any Company',
+        emptyStepsOwners
+      );
       expect(result.isIntermediary).toBe(false);
     });
   });
