@@ -367,43 +367,55 @@ export const RecipientAccountDisplayCard: React.FC<
                                   </Button>
                                 </PopoverTrigger>
                                 <PopoverContent
-                                  className="eb-w-72 eb-p-2"
+                                  className="eb-w-auto eb-min-w-[180px] eb-p-0"
                                   align="start"
                                   side="bottom"
                                 >
-                                  <div className="eb-space-y-1.5">
-                                    {paymentMethods.map((method) => {
-                                      const routing =
-                                        getRoutingForMethod(method);
-                                      return (
-                                        <div
-                                          key={method}
-                                          className="eb-flex eb-items-center eb-justify-between eb-gap-3 eb-rounded eb-bg-muted/40 eb-px-2.5 eb-py-1.5"
-                                        >
-                                          <Badge
-                                            variant="outline"
-                                            className="eb-shrink-0 eb-border-muted-foreground/30 eb-text-[10px] eb-font-bold eb-uppercase eb-tracking-wide"
+                                  <table className="eb-w-full">
+                                    <thead>
+                                      <tr className="eb-border-b eb-bg-muted/40">
+                                        <th className="eb-px-2.5 eb-py-1 eb-text-left eb-text-[10px] eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                                          Method
+                                        </th>
+                                        <th className="eb-px-2.5 eb-py-1 eb-text-right eb-text-[10px] eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                                          Routing
+                                        </th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {paymentMethods.map((method, index) => {
+                                        const routing =
+                                          getRoutingForMethod(method);
+                                        return (
+                                          <tr
+                                            key={method}
+                                            className={
+                                              index < paymentMethods.length - 1
+                                                ? 'eb-border-b eb-border-muted/30'
+                                                : ''
+                                            }
                                           >
-                                            {method}
-                                          </Badge>
-                                          {routing ? (
-                                            <span className="eb-font-mono eb-text-sm eb-font-medium eb-tracking-wide eb-text-foreground">
-                                              {routing}
-                                            </span>
-                                          ) : (
-                                            <span className="eb-text-xs eb-italic eb-text-muted-foreground">
-                                              Not configured
-                                            </span>
-                                          )}
-                                        </div>
-                                      );
-                                    })}
-                                    {addRoutingButton && (
-                                      <div className="eb-border-t eb-pt-1.5">
-                                        {addRoutingButton}
-                                      </div>
-                                    )}
-                                  </div>
+                                            <td className="eb-px-2.5 eb-py-1">
+                                              <span className="eb-text-[10px] eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                                                {method}
+                                              </span>
+                                            </td>
+                                            <td className="eb-px-2.5 eb-py-1 eb-text-right">
+                                              {routing ? (
+                                                <span className="eb-font-mono eb-text-sm eb-font-medium eb-tracking-wide eb-text-foreground">
+                                                  {routing}
+                                                </span>
+                                              ) : (
+                                                <span className="eb-text-xs eb-italic eb-text-muted-foreground">
+                                                  —
+                                                </span>
+                                              )}
+                                            </td>
+                                          </tr>
+                                        );
+                                      })}
+                                    </tbody>
+                                  </table>
                                 </PopoverContent>
                               </Popover>
                             </div>
