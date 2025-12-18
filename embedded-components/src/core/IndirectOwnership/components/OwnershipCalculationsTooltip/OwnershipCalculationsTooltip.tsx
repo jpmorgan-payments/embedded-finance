@@ -25,7 +25,7 @@ export const OwnershipCalculationsTooltip: React.FC = () => {
       <PopoverContent
         side="bottom"
         align="start"
-        className="eb-max-h-[80vh] eb-max-w-2xl eb-overflow-y-auto eb-text-left"
+        className="eb-w-[calc(100vw-2rem)] eb-max-w-[672px] eb-max-h-[80vh] eb-overflow-y-auto eb-text-left"
         sideOffset={8}
       >
         <div className="eb-space-y-4">
