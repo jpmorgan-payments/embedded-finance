@@ -33,6 +33,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 import { EntityCombobox } from './components/EntityCombobox';
+import { OwnershipCalculationsTooltip } from './components/OwnershipCalculationsTooltip';
 import { useExistingEntities } from './hooks/useExistingEntities';
 import { INDIRECT_OWNERSHIP_USER_JOURNEYS } from './IndirectOwnership.constants';
 import type {
@@ -334,13 +335,16 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
                   </span>
                 )}
               </CardTitle>
-              <p
-                id="ownership-description"
-                className="eb-mt-1 eb-text-sm eb-text-muted-foreground"
-              >
-                A beneficial owner is an individual who owns 25% or more of your
-                business, either directly or through other companies.
-              </p>
+              <div className="eb-mt-1 eb-flex eb-items-start eb-gap-2">
+                <p
+                  id="ownership-description"
+                  className="eb-text-sm eb-text-muted-foreground"
+                >
+                  A beneficial owner is an individual who owns 25% or more of
+                  your business, either directly or through other companies.
+                </p>
+                <OwnershipCalculationsTooltip />
+              </div>
             </div>
             <div
               className="eb-flex eb-items-center eb-gap-2"
