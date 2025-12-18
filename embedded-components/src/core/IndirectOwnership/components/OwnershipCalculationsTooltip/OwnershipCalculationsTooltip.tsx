@@ -101,7 +101,7 @@ export const OwnershipCalculationsTooltip: React.FC = () => {
 
             <div>
               <div className="eb-mb-1 eb-text-xs eb-font-medium eb-text-red-700">
-                ❌ Example: Doesn't Meet Threshold
+                ❌ Example: Doesn&apos;t Meet Threshold
               </div>
               <div className="eb-space-y-1 eb-rounded eb-border eb-border-border eb-bg-muted/30 eb-p-2 eb-text-xs">
                 <div className="eb-font-medium eb-text-foreground">
@@ -141,7 +141,7 @@ export const OwnershipCalculationsTooltip: React.FC = () => {
               Key Tips:
             </div>
             <ul className="eb-list-disc eb-space-y-1 eb-pl-4 eb-text-xs eb-text-muted-foreground">
-              <li>Multiply percentages through each level (don't add)</li>
+              <li>Multiply percentages through each level (don&apos;t add)</li>
               <li>Each additional layer can reduce the final percentage</li>
               <li>
                 If someone owns through multiple paths, add those totals
@@ -156,7 +156,7 @@ export const OwnershipCalculationsTooltip: React.FC = () => {
               Common Mistake:
             </div>
             <div className="eb-text-xs eb-text-muted-foreground">
-              ❌ Don't add: 50% + 60% = 110%
+              ❌ Don&apos;t add: 50% + 60% = 110%
               <br />✅ Multiply: 50% × 60% = 30%
             </div>
           </div>
