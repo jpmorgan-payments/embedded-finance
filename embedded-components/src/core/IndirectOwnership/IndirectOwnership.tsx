@@ -4,6 +4,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import {
   AlertTriangle,
   Building,
+  Check,
   CheckCircle2,
   Clock,
   Edit,
@@ -31,12 +32,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
+import { EntityCombobox } from './components/EntityCombobox';
+import { useExistingEntities } from './hooks/useExistingEntities';
 import { INDIRECT_OWNERSHIP_USER_JOURNEYS } from './IndirectOwnership.constants';
 import type {
   BeneficialOwner,
   IndirectOwnershipProps,
   ValidationSummary,
 } from './IndirectOwnership.types';
+import { getEntityOwnershipInfo } from './utils/hierarchyIntegrity';
 import {
   getBeneficialOwnerFullName,
   getRootCompanyName,
@@ -780,6 +784,7 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
         }
         rootCompanyName={rootCompanyName}
         onSave={handleHierarchySaved}
+        beneficialOwners={beneficialOwners}
       />
 
       {/* Edit Hierarchy Dialog */}
@@ -803,6 +808,7 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
             : undefined
         }
         isEditMode
+        beneficialOwners={beneficialOwners}
       />
     </div>
   );
@@ -1010,6 +1016,7 @@ interface HierarchyBuildingDialogProps {
   onSave: (ownerId: string, hierarchy: any) => void;
   existingHierarchy?: any;
   isEditMode?: boolean;
+  beneficialOwners: BeneficialOwner[];
 }
 
 const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
@@ -1021,7 +1028,10 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
   onSave,
   existingHierarchy,
   isEditMode = false,
+  beneficialOwners,
 }) => {
+  // Get existing entities from all ownership hierarchies
+  const allExistingEntities = useExistingEntities(beneficialOwners) as string[];
   const [hierarchySteps, setHierarchySteps] = useState<
     Array<{
       id: string;
@@ -1031,8 +1041,30 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
       level: number;
     }>
   >([]);
+
+  // Filter existing entities to exclude those already in current hierarchy chain
+  const existingEntities = React.useMemo(() => {
+    const currentChainEntities = hierarchySteps.map((step) =>
+      step.entityName.toLowerCase()
+    );
+    return allExistingEntities.filter(
+      (entity) =>
+        !currentChainEntities.includes(entity.toLowerCase()) &&
+        entity.toLowerCase() !== rootCompanyName.toLowerCase()
+    );
+  }, [allExistingEntities, hierarchySteps, rootCompanyName]);
   const [currentCompanyName, setCurrentCompanyName] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
+
+  // Check if current company is known to directly own the root business
+  const currentEntityInfo = React.useMemo(() => {
+    if (!currentCompanyName.trim()) return null;
+    return getEntityOwnershipInfo(
+      currentCompanyName.trim(),
+      rootCompanyName,
+      beneficialOwners
+    );
+  }, [currentCompanyName, rootCompanyName, beneficialOwners]);
 
   // Pre-populate existing hierarchy data in edit mode
   React.useEffect(() => {
@@ -1043,17 +1075,63 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
     }
   }, [isOpen, isEditMode, existingHierarchy]);
 
-  const handleAddCompany = (ownsRootBusinessDirectly: boolean) => {
+  const handleAddCompany = (ownsRootBusinessDirectly?: boolean) => {
     if (!currentCompanyName.trim()) {
       setErrors(['Company name is required']);
       return;
     }
 
+    // Check if entity is known to be a direct owner OR has a known complete path
+    const shouldComplete =
+      ownsRootBusinessDirectly ??
+      currentEntityInfo?.isKnownDirectOwner ??
+      currentEntityInfo?.hasKnownPathToRoot ??
+      false;
+
+    // If entity has a known path to root, add all steps in that path
+    if (
+      currentEntityInfo?.hasKnownPathToRoot &&
+      currentEntityInfo.pathToRoot &&
+      currentEntityInfo.pathToRoot.length > 0
+    ) {
+      // Mark all previous steps as intermediaries
+      const updatedPreviousSteps = hierarchySteps.map((step) => ({
+        ...step,
+        ownsRootBusinessDirectly: false,
+      }));
+
+      // Add all steps from the known path
+      const pathSteps = currentEntityInfo.pathToRoot.map((pathStep, index) => ({
+        id: `step-${Date.now()}-${index}`,
+        entityName: pathStep.entityName,
+        entityType: pathStep.entityType || ('COMPANY' as const),
+        hasOwnership: true,
+        ownsRootBusinessDirectly: pathStep.ownsRootBusinessDirectly,
+        level: hierarchySteps.length + index + 1,
+      }));
+
+      const completeSteps = [...updatedPreviousSteps, ...pathSteps];
+
+      // Complete the hierarchy
+      const hierarchy = {
+        id: `hierarchy-${ownerId}`,
+        steps: completeSteps,
+        isValid: true,
+        meets25PercentThreshold: true,
+        validationErrors: [],
+      };
+
+      onSave(ownerId, hierarchy);
+      handleClose();
+      return;
+    }
+
+    // Regular flow for direct owners or when continuing the chain
     const newStep = {
       id: `step-${Date.now()}`,
       entityName: currentCompanyName.trim(),
       hasOwnership: true,
-      ownsRootBusinessDirectly,
+      ownsRootBusinessDirectly: shouldComplete,
       level: hierarchySteps.length + 1,
     };
 
@@ -1066,7 +1144,7 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
 
     const updatedSteps = [...updatedPreviousSteps, newStep];
 
-    if (ownsRootBusinessDirectly) {
+    if (shouldComplete) {
       // Complete the hierarchy
       const hierarchy = {
         id: `hierarchy-${ownerId}`,
@@ -1269,52 +1347,124 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
 
             <div className="eb-space-y-2">
               <Label htmlFor="companyName">Company Name</Label>
-              <Input
+              <EntityCombobox
                 id="companyName"
                 value={currentCompanyName}
-                onChange={(e) => setCurrentCompanyName(e.target.value)}
+                onChange={setCurrentCompanyName}
+                existingEntities={existingEntities}
                 placeholder="Enter company name"
-                className="eb-h-10 eb-bg-card"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && currentCompanyName.trim()) {
-                    e.preventDefault();
-                    // Don't auto-submit, let user choose
-                  }
-                }}
+                className="eb-h-10"
               />
             </div>
 
-            <div className="eb-space-y-3">
-              <div className="eb-text-sm eb-font-medium eb-text-foreground">
-                Does{' '}
-                <span className="eb-font-bold eb-text-primary">
-                  {currentCompanyName || '[Company Name]'}
-                </span>{' '}
-                directly own{' '}
-                <span className="eb-font-bold eb-text-primary">
-                  {rootCompanyName}
-                </span>
-                ?
-              </div>
+            {currentEntityInfo?.isKnownDirectOwner ? (
+              // Show completion message for known direct owners
+              <div className="eb-space-y-3">
+                <div className="eb-rounded-lg eb-border eb-border-success eb-bg-success-accent eb-p-3">
+                  <div className="eb-flex eb-items-start eb-gap-2">
+                    <Check className="eb-mt-0.5 eb-h-5 eb-w-5 eb-shrink-0 eb-text-success" />
+                    <div className="eb-text-sm">
+                      <div className="eb-font-medium eb-text-success">
+                        <span className="eb-font-bold">
+                          {currentCompanyName}
+                        </span>{' '}
+                        is known to directly own{' '}
+                        <span className="eb-font-bold">{rootCompanyName}</span>
+                      </div>
+                      <div className="eb-mt-1 eb-text-success/80">
+                        Based on {currentEntityInfo.source?.ownerName}&apos;s
+                        ownership hierarchy
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-              <div className="eb-flex eb-gap-3">
                 <Button
-                  onClick={() => handleAddCompany(true)}
+                  onClick={() => handleAddCompany()}
                   disabled={!currentCompanyName.trim()}
-                  className="eb-h-10 eb-flex-1 eb-bg-success eb-font-medium eb-text-white hover:eb-bg-success/90"
+                  className="eb-h-10 eb-w-full eb-bg-success eb-font-medium eb-text-white hover:eb-bg-success/90"
                 >
-                  Yes - Complete Chain
-                </Button>
-                <Button
-                  onClick={() => handleAddCompany(false)}
-                  disabled={!currentCompanyName.trim()}
-                  variant="outline"
-                  className="eb-h-10 eb-flex-1 eb-border-primary eb-font-medium eb-text-primary hover:eb-bg-primary/5"
-                >
-                  No - Continue Chain
+                  Complete Chain
                 </Button>
               </div>
-            </div>
+            ) : currentEntityInfo?.hasKnownPathToRoot &&
+              currentEntityInfo.pathToRoot ? (
+              // Show completion message for entities with known path to root
+              <div className="eb-space-y-3">
+                <div className="eb-rounded-lg eb-border eb-border-success eb-bg-success-accent eb-p-3">
+                  <div className="eb-flex eb-items-start eb-gap-2">
+                    <Check className="eb-mt-0.5 eb-h-5 eb-w-5 eb-shrink-0 eb-text-success" />
+                    <div className="eb-space-y-2 eb-text-sm">
+                      <div className="eb-font-medium eb-text-success">
+                        <span className="eb-font-bold">
+                          {currentCompanyName}
+                        </span>{' '}
+                        has a known path to{' '}
+                        <span className="eb-font-bold">{rootCompanyName}</span>
+                      </div>
+                      <div className="eb-text-success/80">
+                        Based on {currentEntityInfo.source?.ownerName}&apos;s
+                        ownership hierarchy
+                      </div>
+                      <div className="eb-flex eb-flex-wrap eb-items-center eb-gap-1 eb-text-xs eb-text-success/70">
+                        <span>Chain:</span>
+                        {currentEntityInfo.pathToRoot.map((step, idx) => (
+                          <React.Fragment key={idx}>
+                            <span className="eb-font-medium">
+                              {step.entityName}
+                            </span>
+                            {idx < currentEntityInfo.pathToRoot!.length - 1 && (
+                              <span>→</span>
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={() => handleAddCompany()}
+                  disabled={!currentCompanyName.trim()}
+                  className="eb-h-10 eb-w-full eb-bg-success eb-font-medium eb-text-white hover:eb-bg-success/90"
+                >
+                  Complete Chain with Full Path
+                </Button>
+              </div>
+            ) : (
+              // Show standard choice for unknown entities
+              <div className="eb-space-y-3">
+                <div className="eb-text-sm eb-font-medium eb-text-foreground">
+                  Does{' '}
+                  <span className="eb-font-bold eb-text-primary">
+                    {currentCompanyName || '[Company Name]'}
+                  </span>{' '}
+                  directly own{' '}
+                  <span className="eb-font-bold eb-text-primary">
+                    {rootCompanyName}
+                  </span>
+                  ?
+                </div>
+
+                <div className="eb-flex eb-gap-3">
+                  <Button
+                    onClick={() => handleAddCompany(true)}
+                    disabled={!currentCompanyName.trim()}
+                    className="eb-h-10 eb-flex-1 eb-bg-success eb-font-medium eb-text-white hover:eb-bg-success/90"
+                  >
+                    Yes - Complete Chain
+                  </Button>
+                  <Button
+                    onClick={() => handleAddCompany(false)}
+                    disabled={!currentCompanyName.trim()}
+                    variant="outline"
+                    className="eb-h-10 eb-flex-1 eb-border-primary eb-font-medium eb-text-primary hover:eb-bg-primary/5"
+                  >
+                    No - Continue Chain
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Error Messages */}
