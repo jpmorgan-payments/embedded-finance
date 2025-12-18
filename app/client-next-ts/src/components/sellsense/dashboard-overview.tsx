@@ -1,8 +1,9 @@
 'use client';
 
+import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
+
 import type { ClientScenario, ContentTone, View } from './dashboard-layout';
 import type { ThemeOption } from './use-sellsense-themes';
-import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 
 interface DashboardOverviewProps {
   onViewChange: (view: View) => void;
@@ -20,22 +21,22 @@ export function DashboardOverview({
   customThemeVariables: _customThemeVariables,
 }: DashboardOverviewProps) {
   return (
-    <div className="p-4 md:p-6 lg:p-8 bg-sellsense-background-light min-h-screen">
+    <div className="min-h-screen bg-sellsense-background-light p-4 md:p-6 lg:p-8">
       <div className="mb-6 md:mb-8">
-        <h1 className="text-xl md:text-2xl font-black tracking-wide mb-2">
+        <h1 className="mb-2 text-xl font-black tracking-wide md:text-2xl">
           Welcome, John!
         </h1>
-        <p className="text-xs md:text-sm text-gray-600">
+        <p className="text-xs text-gray-600 md:text-sm">
           Client: {clientScenario}
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
-        <div className="bg-white shadow-md rounded-xl p-4 md:p-6 flex items-center gap-3 md:gap-5">
-          <div className="bg-sellsense-secondary-bg rounded-lg p-2 md:p-3 flex items-center justify-center">
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 md:mb-8 md:gap-6 lg:grid-cols-3">
+        <div className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-md md:gap-5 md:p-6">
+          <div className="flex items-center justify-center rounded-lg bg-sellsense-secondary-bg p-2 md:p-3">
             <svg
-              className="w-6 h-6 md:w-9 md:h-9 text-sellsense-secondary"
+              className="h-6 w-6 text-sellsense-secondary md:h-9 md:w-9"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -47,19 +48,19 @@ export function DashboardOverview({
             </svg>
           </div>
           <div>
-            <p className="text-xs md:text-sm text-gray-500 font-medium tracking-wide mb-1">
+            <p className="mb-1 text-xs font-medium tracking-wide text-gray-500 md:text-sm">
               Today's Orders
             </p>
-            <h3 className="text-2xl md:text-3xl font-semibold text-sellsense-secondary">
+            <h3 className="text-2xl font-semibold text-sellsense-secondary md:text-3xl">
               12
             </h3>
           </div>
         </div>
 
-        <div className="bg-white shadow-md rounded-xl p-4 md:p-6 flex items-center gap-3 md:gap-5">
-          <div className="bg-sellsense-secondary-bg rounded-lg p-2 md:p-3 flex items-center justify-center">
+        <div className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-md md:gap-5 md:p-6">
+          <div className="flex items-center justify-center rounded-lg bg-sellsense-secondary-bg p-2 md:p-3">
             <svg
-              className="w-6 h-6 md:w-9 md:h-9 text-sellsense-secondary"
+              className="h-6 w-6 text-sellsense-secondary md:h-9 md:w-9"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -71,19 +72,19 @@ export function DashboardOverview({
             </svg>
           </div>
           <div>
-            <p className="text-xs md:text-sm text-gray-500 font-medium tracking-wide mb-1">
+            <p className="mb-1 text-xs font-medium tracking-wide text-gray-500 md:text-sm">
               Unshipped Orders
             </p>
-            <h3 className="text-2xl md:text-3xl font-semibold text-sellsense-secondary">
+            <h3 className="text-2xl font-semibold text-sellsense-secondary md:text-3xl">
               3
             </h3>
           </div>
         </div>
 
-        <div className="bg-white shadow-md rounded-xl p-4 md:p-6 flex items-center gap-3 md:gap-5">
-          <div className="bg-sellsense-secondary-bg rounded-lg p-2 md:p-3 flex items-center justify-center">
+        <div className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-md md:gap-5 md:p-6">
+          <div className="flex items-center justify-center rounded-lg bg-sellsense-secondary-bg p-2 md:p-3">
             <svg
-              className="w-6 h-6 md:w-9 md:h-9 text-sellsense-secondary"
+              className="h-6 w-6 text-sellsense-secondary md:h-9 md:w-9"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -91,10 +92,10 @@ export function DashboardOverview({
             </svg>
           </div>
           <div>
-            <p className="text-xs md:text-sm text-gray-500 font-medium tracking-wide mb-1">
+            <p className="mb-1 text-xs font-medium tracking-wide text-gray-500 md:text-sm">
               Avg. Rating
             </p>
-            <h3 className="text-2xl md:text-3xl font-semibold text-sellsense-secondary">
+            <h3 className="text-2xl font-semibold text-sellsense-secondary md:text-3xl">
               4.8
             </h3>
           </div>
@@ -102,13 +103,13 @@ export function DashboardOverview({
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
         {/* Orders Chart */}
-        <div className="bg-white shadow-sm rounded-xl p-4 md:p-6 lg:col-span-1 min-h-[320px] flex flex-col">
-          <h4 className="text-base md:text-lg font-semibold mb-4">
+        <div className="flex min-h-[320px] flex-col rounded-xl bg-white p-4 shadow-sm md:p-6 lg:col-span-1">
+          <h4 className="mb-4 text-base font-semibold md:text-lg">
             Orders per Day
           </h4>
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex flex-1 items-center justify-center">
             <svg
               width="100%"
               height="200"
@@ -160,13 +161,13 @@ export function DashboardOverview({
         </div>
 
         {/* Recent Orders Table */}
-        <div className="bg-white shadow-sm rounded-xl p-4 md:p-6 lg:col-span-2 min-h-[320px] flex flex-col">
-          <h4 className="text-base md:text-lg font-semibold mb-4">
+        <div className="flex min-h-[320px] flex-col rounded-xl bg-white p-4 shadow-sm md:p-6 lg:col-span-2">
+          <h4 className="mb-4 text-base font-semibold md:text-lg">
             Recent Orders
           </h4>
           <div className="flex-1 overflow-auto">
             {/* Mobile view - Card layout */}
-            <div className="block md:hidden space-y-3">
+            <div className="block space-y-3 md:hidden">
               {[
                 {
                   id: '20567',
@@ -216,9 +217,9 @@ export function DashboardOverview({
               ].map((order) => (
                 <div
                   key={order.id}
-                  className="bg-gray-50 rounded-lg p-3 space-y-2"
+                  className="space-y-2 rounded-lg bg-gray-50 p-3"
                 >
-                  <div className="flex justify-between items-start">
+                  <div className="flex items-start justify-between">
                     <div>
                       <p className="font-medium">#{order.id}</p>
                       <p className="text-sm text-gray-600">{order.buyer}</p>
@@ -231,7 +232,7 @@ export function DashboardOverview({
                   </div>
                   <div>
                     <p className="text-sm">{order.product}</p>
-                    <div className="flex justify-between items-center mt-1">
+                    <div className="mt-1 flex items-center justify-between">
                       <p className="text-xs text-gray-500">{order.date}</p>
                       <p className="font-medium">{order.amount}</p>
                     </div>
@@ -245,12 +246,12 @@ export function DashboardOverview({
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-sellsense-background-light">
-                    <th className="text-left p-2 font-semibold">Order #</th>
-                    <th className="text-left p-2 font-semibold">Buyer</th>
-                    <th className="text-left p-2 font-semibold">Product</th>
-                    <th className="text-left p-2 font-semibold">Date</th>
-                    <th className="text-left p-2 font-semibold">Amount</th>
-                    <th className="text-left p-2 font-semibold">Status</th>
+                    <th className="p-2 text-left font-semibold">Order #</th>
+                    <th className="p-2 text-left font-semibold">Buyer</th>
+                    <th className="p-2 text-left font-semibold">Product</th>
+                    <th className="p-2 text-left font-semibold">Date</th>
+                    <th className="p-2 text-left font-semibold">Amount</th>
+                    <th className="p-2 text-left font-semibold">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -260,7 +261,7 @@ export function DashboardOverview({
                     <td className="p-2">Canvas Tote Bag</td>
                     <td className="p-2">2024-08-07</td>
                     <td className="p-2">$59.99</td>
-                    <td className="p-2 text-sellsense-success font-medium">
+                    <td className="p-2 font-medium text-sellsense-success">
                       Paid
                     </td>
                   </tr>
@@ -270,7 +271,7 @@ export function DashboardOverview({
                     <td className="p-2">Bluetooth Headphones</td>
                     <td className="p-2">2024-08-07</td>
                     <td className="p-2">$120.00</td>
-                    <td className="p-2 text-sellsense-warning font-medium">
+                    <td className="p-2 font-medium text-sellsense-warning">
                       Shipped
                     </td>
                   </tr>
@@ -280,7 +281,7 @@ export function DashboardOverview({
                     <td className="p-2">Stainless Steel Pan</td>
                     <td className="p-2">2024-08-07</td>
                     <td className="p-2">$45.50</td>
-                    <td className="p-2 text-sellsense-success font-medium">
+                    <td className="p-2 font-medium text-sellsense-success">
                       Delivered
                     </td>
                   </tr>
@@ -290,7 +291,7 @@ export function DashboardOverview({
                     <td className="p-2">Ceramic Vase</td>
                     <td className="p-2">2024-08-06</td>
                     <td className="p-2">$32.00</td>
-                    <td className="p-2 text-sellsense-error font-medium">
+                    <td className="p-2 font-medium text-sellsense-error">
                       Returned
                     </td>
                   </tr>
@@ -300,7 +301,7 @@ export function DashboardOverview({
                     <td className="p-2">Wireless Mouse</td>
                     <td className="p-2">2024-08-06</td>
                     <td className="p-2">$24.99</td>
-                    <td className="p-2 text-sellsense-success font-medium">
+                    <td className="p-2 font-medium text-sellsense-success">
                       Paid
                     </td>
                   </tr>

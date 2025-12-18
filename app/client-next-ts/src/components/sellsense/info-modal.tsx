@@ -1,29 +1,31 @@
 'use client';
 
 import {
-  X,
-  Info,
   ArrowRight,
+  Building2,
   CheckCircle,
   Circle,
-  UserCheck,
-  Receipt,
-  Building2,
-  Zap,
-  Users,
+  Info,
   Link,
+  Receipt,
+  UserCheck,
+  Users,
+  X,
+  Zap,
 } from 'lucide-react';
+
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+
+import {
+  AVAILABLE_COMPONENTS,
+  getScenarioByKey,
+  getVisibleComponentsForScenario,
+  SCENARIO_ORDER,
+} from './scenarios-config';
 import { useThemeStyles } from './theme-utils';
 import type { ThemeOption } from './use-sellsense-themes';
-import {
-  SCENARIO_ORDER,
-  AVAILABLE_COMPONENTS,
-  getVisibleComponentsForScenario,
-  getScenarioByKey,
-} from './scenarios-config';
 
 interface InfoModalProps {
   isOpen: boolean;
@@ -67,12 +69,12 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
       <div
-        className={`w-full max-w-6xl h-[80vh] overflow-hidden rounded-lg shadow-2xl ${themeStyles.getModalStyles()}`}
+        className={`h-[80vh] w-full max-w-6xl overflow-hidden rounded-lg shadow-2xl ${themeStyles.getModalStyles()}`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center justify-between border-b p-4">
           <div className="flex items-center gap-3">
             <Info className="h-5 w-5 text-blue-600" />
             <h2 className="text-xl font-bold">SellSense Demo Showcase</h2>
@@ -89,15 +91,15 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
 
         {/* Content */}
         <div
-          className="overflow-y-auto p-4 pb-8 space-y-4"
+          className="space-y-4 overflow-y-auto p-4 pb-8"
           style={{ height: 'calc(100% - 45px)' }}
         >
           {/* Overview Section */}
           <section>
-            <h3 className="text-lg font-semibold mb-2 text-gray-800">
+            <h3 className="mb-2 text-lg font-semibold text-gray-800">
               Demo Overview
             </h3>
-            <div className="grid md:grid-cols-2 gap-3">
+            <div className="grid gap-3 md:grid-cols-2">
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base">
@@ -151,7 +153,7 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
                     <span className="text-sm">API-driven functionality</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+                    <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />
                     <span className="text-sm">
                       All API operations fully mocked using MSW client-side
                       library - no actual backend calls
@@ -164,7 +166,7 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
 
           {/* Scenario Visualization */}
           <section>
-            <h3 className="text-lg font-semibold mb-2 text-gray-800">
+            <h3 className="mb-2 text-lg font-semibold text-gray-800">
               Client Journey Visualization
             </h3>
             <Card>
@@ -173,7 +175,7 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
                   <img
                     src="/diagram.png"
                     alt="SellSense Client Journey Diagram"
-                    className="w-full h-auto"
+                    className="h-auto w-full"
                   />
                 </div>
               </CardContent>
@@ -182,20 +184,20 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
 
           {/* Architecture Diagram */}
           <section>
-            <h3 className="text-lg font-semibold mb-2 text-gray-800">
+            <h3 className="mb-2 text-lg font-semibold text-gray-800">
               Component Architecture
             </h3>
             <Card>
               <CardContent className="p-3">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                <div className="grid grid-cols-1 gap-3 text-sm md:grid-cols-3">
                   {/* Development Time */}
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-blue-600 text-sm">
+                    <h4 className="text-sm font-semibold text-blue-600">
                       Development Time
                     </h4>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <div className="h-3 w-3 rounded-full bg-blue-500"></div>
                         <span>OpenAPI Specification</span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -211,24 +213,24 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
 
                   {/* Embedded Components */}
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-green-600 text-sm">
+                    <h4 className="text-sm font-semibold text-green-600">
                       Embedded UI Components
                     </h4>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <div className="h-3 w-3 rounded-full bg-green-500"></div>
                         <span>Enhanced Validations</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <div className="h-3 w-3 rounded-full bg-green-500"></div>
                         <span>Smart Payload Formation</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <div className="h-3 w-3 rounded-full bg-green-500"></div>
                         <span>Error Mapping & Recovery</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <div className="h-3 w-3 rounded-full bg-green-500"></div>
                         <span>UX Optimizations</span>
                       </div>
                     </div>
@@ -236,12 +238,12 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
 
                   {/* Runtime */}
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-purple-600 text-sm">
+                    <h4 className="text-sm font-semibold text-purple-600">
                       Runtime
                     </h4>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                        <div className="h-3 w-3 rounded-full bg-purple-500"></div>
                         <span>API Calls</span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -261,14 +263,14 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
 
           {/* Scenario Progression */}
           <section>
-            <h3 className="text-lg font-semibold mb-2 text-gray-800">
+            <h3 className="mb-2 text-lg font-semibold text-gray-800">
               Client Journey Scenarios
             </h3>
             <div className="space-y-2">
               {SCENARIO_ORDER.map((scenarioKey, index) => {
                 const scenario = getScenarioByKey(scenarioKey);
                 const visibleComponents = getVisibleComponentsForScenario(
-                  scenario.displayName,
+                  scenario.displayName
                 );
 
                 return (
@@ -279,21 +281,21 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 rounded-full font-semibold text-sm">
+                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-600">
                             {index + 1}
                           </div>
                           <div>
                             <CardTitle className="text-base">
                               {scenario.displayName}
                             </CardTitle>
-                            <p className="text-xs text-gray-600 mt-1">
+                            <p className="mt-1 text-xs text-gray-600">
                               {scenario.description}
                             </p>
                           </div>
                         </div>
                         <Badge
                           className={getScenarioCategoryColor(
-                            scenario.category,
+                            scenario.category
                           )}
                         >
                           {scenario.category}
@@ -301,9 +303,9 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                         <div>
-                          <h5 className="font-medium text-gray-700 mb-1 text-sm">
+                          <h5 className="mb-1 text-sm font-medium text-gray-700">
                             Header Information:
                           </h5>
                           <div className="space-y-1 text-sm text-gray-600">
@@ -318,7 +320,7 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
                         </div>
 
                         <div>
-                          <h5 className="font-medium text-gray-700 mb-1 text-sm">
+                          <h5 className="mb-1 text-sm font-medium text-gray-700">
                             Components:
                           </h5>
                           <div className="flex flex-wrap gap-1">
@@ -357,13 +359,13 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
 
           {/* Available Components */}
           <section>
-            <h3 className="text-lg font-semibold mb-2 text-gray-800">
+            <h3 className="mb-2 text-lg font-semibold text-gray-800">
               Available Embedded Components
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
               {Object.entries(AVAILABLE_COMPONENTS).map(
                 ([key, componentName]) => (
-                  <Card key={key} className="hover:shadow-md transition-shadow">
+                  <Card key={key} className="transition-shadow hover:shadow-md">
                     <CardHeader className="pb-3">
                       <div className="flex items-center gap-2">
                         <span className="text-lg">
@@ -391,21 +393,21 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
                       </p>
                     </CardContent>
                   </Card>
-                ),
+                )
               )}
             </div>
           </section>
 
           {/* Integration Notes */}
           <section>
-            <h3 className="text-lg font-semibold mb-2 text-gray-800">
+            <h3 className="mb-2 text-lg font-semibold text-gray-800">
               Integration Notes
             </h3>
             <Card>
               <CardContent className="p-4">
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <h4 className="font-semibold mb-2 text-gray-700 text-sm">
+                    <h4 className="mb-2 text-sm font-semibold text-gray-700">
                       Theme Integration
                     </h4>
                     <ul className="space-y-1 text-sm text-gray-600">
@@ -416,7 +418,7 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
                     </ul>
                   </div>
                   <div>
-                    <h4 className="font-semibold mb-2 text-gray-700 text-sm">
+                    <h4 className="mb-2 text-sm font-semibold text-gray-700">
                       API Integration
                     </h4>
                     <ul className="space-y-1 text-sm text-gray-600">

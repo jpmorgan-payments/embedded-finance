@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import { cn } from './utils';
 
 describe('cn utility function', () => {
@@ -48,4 +49,3 @@ describe('cn utility function', () => {
     expect(result).toBe('active-class conditional-class');
   });
 });
-

@@ -1,5 +1,6 @@
 // Utility functions for Arazzo Flow Dialog
 import YAML from 'yaml';
+
 import type { ArazzoSpec, HttpVerb, OasOperationInfo, OasSpec } from '../types';
 
 /**
@@ -10,7 +11,7 @@ export function truncateWords(input?: string, maxWords: number = 12): string {
   const words = input.trim().split(/\s+/);
   if (words.length <= maxWords) return input;
   return words.slice(0, maxWords).join(' ') + '…';
-} 
+}
 
 /**
  * Parse Arazzo specification from YAML string
@@ -72,7 +73,7 @@ export function getStepPayload(step?: any): unknown | undefined {
  */
 export function findOasOperation(
   operationId: string | undefined,
-  oasSpec: OasSpec | null,
+  oasSpec: OasSpec | null
 ): OasOperationInfo | undefined {
   if (!operationId || !oasSpec || !oasSpec.paths) return undefined;
 
@@ -148,7 +149,7 @@ export function findOasOperation(
  */
 export function resolveSchemaRef(
   ref: string,
-  oasSpec: OasSpec | null,
+  oasSpec: OasSpec | null
 ): Record<string, any> | null {
   if (!ref || !oasSpec) return null;
 
@@ -176,7 +177,7 @@ export function resolveSchemaRef(
 export function getSchemaForPath(
   path: string,
   oasSpec: OasSpec | null,
-  operationId?: string,
+  operationId?: string
 ): Record<string, any> | null {
   if (!oasSpec || !operationId) return null;
 
@@ -256,7 +257,7 @@ export function getSchemaForPath(
           const isRequired =
             Array.isArray(currentSchema.required) &&
             currentSchema.required.some(
-              (k: string) => k.toLowerCase() === propKey!.toLowerCase(),
+              (k: string) => k.toLowerCase() === propKey!.toLowerCase()
             );
 
           // Get the property schema
@@ -298,7 +299,7 @@ export function getSchemaForPath(
             } else {
               const lower = segment.toLowerCase();
               propKey = Object.keys(props).find(
-                (k) => k.toLowerCase() === lower,
+                (k) => k.toLowerCase() === lower
               );
             }
 
@@ -310,7 +311,7 @@ export function getSchemaForPath(
                   rs &&
                   Array.isArray(rs.required) &&
                   rs.required.some(
-                    (k: string) => k.toLowerCase() === propKey!.toLowerCase(),
+                    (k: string) => k.toLowerCase() === propKey!.toLowerCase()
                   )
                 );
               });
@@ -318,7 +319,7 @@ export function getSchemaForPath(
               const isRequiredOuter =
                 Array.isArray((currentSchema as any).required) &&
                 (currentSchema as any).required.some(
-                  (k: string) => k.toLowerCase() === propKey!.toLowerCase(),
+                  (k: string) => k.toLowerCase() === propKey!.toLowerCase()
                 );
 
               currentSchema = props[propKey];
@@ -358,7 +359,7 @@ export function getSchemaForPath(
  * Extract validation constraints from a schema
  */
 export function extractValidationConstraints(
-  schema: Record<string, any> | null,
+  schema: Record<string, any> | null
 ): string {
   if (!schema) return '';
 
@@ -398,7 +399,7 @@ export function extractValidationConstraints(
  */
 export function flattenJsonPaths(
   value: unknown,
-  basePath = '$',
+  basePath = '$'
 ): { path: string; value: unknown; schemaInfo?: Record<string, any> }[] {
   const rows: {
     path: string;

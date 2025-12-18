@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { X, Search, Copy, Check, FileText } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { EBConfig } from '@jpmorgan-payments/embedded-finance-components';
+import { Check, Copy, FileText, Search, X } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
 
 // Import JSON files from local i18n directory
 const i18nModules = import.meta.glob('../../i18n/en-US/*.json', {
@@ -52,7 +53,7 @@ const NAMESPACE_COLORS: Record<string, string> = {
 function flattenObject(
   obj: any,
   prefix = '',
-  namespace = '',
+  namespace = ''
 ): Record<string, string> {
   const flattened: Record<string, string> = {};
 
@@ -105,7 +106,7 @@ function loadAllContentTokens(): Record<string, string> {
     const fileName =
       namespace === 'onboarding' ? 'onboarding.json' : `${namespace}.json`;
     const moduleKey = Object.keys(i18nModules).find((key) =>
-      key.includes(`/${fileName}`),
+      key.includes(`/${fileName}`)
     );
 
     if (moduleKey && i18nModules[moduleKey]) {
@@ -143,37 +144,76 @@ function isElementVisible(element: Element): boolean {
 
 /**
  * Extract visible text nodes from the DOM
+ * Optimized with TreeWalker API, Set for skip tags, and visibility caching
  */
 function extractVisibleText(): Array<{ text: string; element: Element }> {
   const textNodes: Array<{ text: string; element: Element }> = [];
-  const skipTags = ['script', 'style', 'noscript', 'meta', 'link', 'title'];
+  const skipTags = new Set([
+    'script',
+    'style',
+    'noscript',
+    'meta',
+    'link',
+    'title',
+  ]);
 
-  function walkNode(node: Node) {
+  // Cache visibility checks to avoid repeated getComputedStyle calls
+  const visibilityCache = new WeakMap<Element, boolean>();
+
+  function isElementVisibleCached(element: Element): boolean {
+    if (visibilityCache.has(element)) {
+      return visibilityCache.get(element)!;
+    }
+    const visible = isElementVisible(element);
+    visibilityCache.set(element, visible);
+    return visible;
+  }
+
+  const mainContent = document.querySelector('main') || document.body;
+
+  // Use TreeWalker API for optimized DOM traversal
+  const walker = document.createTreeWalker(
+    mainContent,
+    NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+    {
+      acceptNode: (node) => {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          const tagName = (node as Element).tagName.toLowerCase();
+          // Reject elements that should be skipped (and their children)
+          return skipTags.has(tagName)
+            ? NodeFilter.FILTER_REJECT
+            : NodeFilter.FILTER_ACCEPT;
+        }
+        // Accept text nodes for processing
+        return NodeFilter.FILTER_ACCEPT;
+      },
+    }
+  );
+
+  let node: Node | null;
+  while ((node = walker.nextNode())) {
     if (node.nodeType === Node.TEXT_NODE) {
-      const text = normalizeText(node.textContent || '');
+      // Early check: skip empty text nodes before normalization
+      const rawText = node.textContent;
+      if (!rawText || rawText.trim().length === 0) {
+        continue;
+      }
+
+      const text = normalizeText(rawText);
       if (text.length > 0) {
+        // Walk up parent chain to find first visible element
         let parent = node.parentElement;
         while (parent) {
-          if (isElementVisible(parent)) {
+          if (isElementVisibleCached(parent)) {
             textNodes.push({ text, element: parent });
             break;
           }
           parent = parent.parentElement;
         }
       }
-    } else if (node.nodeType === Node.ELEMENT_NODE) {
-      const element = node as Element;
-      const tagName = element.tagName.toLowerCase();
-      if (!skipTags.includes(tagName)) {
-        for (let i = 0; i < node.childNodes.length; i++) {
-          walkNode(node.childNodes[i]);
-        }
-      }
     }
   }
 
-  const mainContent = document.querySelector('main') || document.body;
-  walkNode(mainContent);
   return textNodes;
 }
 
@@ -181,7 +221,7 @@ function extractVisibleText(): Array<{ text: string; element: Element }> {
  * Match content tokens to DOM elements by text content
  */
 function matchTokensToDOM(
-  tokens: Record<string, string>,
+  tokens: Record<string, string>
 ): Map<string, FlattenedToken> {
   const matched = new Map<string, FlattenedToken>();
   const visibleTexts = extractVisibleText();
@@ -220,7 +260,7 @@ function matchTokensToDOM(
  * Build nested token structure from flattened tokens
  */
 function buildNestedTokens(
-  flatTokens: Record<string, string>,
+  flatTokens: Record<string, string>
 ): EBConfig['contentTokens'] {
   const nested: EBConfig['contentTokens'] = {
     name: 'enUS',
@@ -254,7 +294,7 @@ function buildNestedTokens(
  */
 async function disambiguateTokens(
   tokens: Record<string, string>,
-  onUpdate: (tokens: EBConfig['contentTokens']) => void,
+  onUpdate: (tokens: EBConfig['contentTokens']) => void
 ): Promise<Map<string, FlattenedToken>> {
   // Find duplicate values
   const valueToKeys = new Map<string, string[]>();
@@ -267,7 +307,7 @@ async function disambiguateTokens(
   });
 
   const duplicates = Array.from(valueToKeys.entries()).filter(
-    ([, keys]) => keys.length > 1,
+    ([, keys]) => keys.length > 1
   );
 
   if (duplicates.length === 0) {
@@ -296,7 +336,7 @@ async function disambiguateTokens(
   Object.entries(testTokens).forEach(([key, testValue]) => {
     const normalizedTestValue = normalizeText(testValue);
     const matchingElements = visibleTexts.filter(
-      ({ text }) => text === normalizedTestValue,
+      ({ text }) => text === normalizedTestValue
     );
 
     if (matchingElements.length > 0) {
@@ -369,7 +409,7 @@ export function ContentTokenEditorDrawer({
 
       if (Object.keys(tokens).length === 0) {
         alert(
-          'No content tokens loaded. Please check the browser console for errors.',
+          'No content tokens loaded. Please check the browser console for errors.'
         );
         return;
       }
@@ -381,8 +421,8 @@ export function ContentTokenEditorDrawer({
       const hasDuplicates = Array.from(matched.values()).some(
         (token) =>
           Array.from(matched.values()).filter(
-            (t) => normalizeText(t.value) === normalizeText(token.value),
-          ).length > 1,
+            (t) => normalizeText(t.value) === normalizeText(token.value)
+          ).length > 1
       );
 
       if (hasDuplicates) {
@@ -456,7 +496,7 @@ export function ContentTokenEditorDrawer({
       const nestedTokens = buildNestedTokens(allCurrentTokens);
       onContentTokensChange(nestedTokens);
     },
-    [editedTokens, onContentTokensChange],
+    [editedTokens, onContentTokensChange]
   );
 
   // Export changed tokens
@@ -478,7 +518,7 @@ export function ContentTokenEditorDrawer({
     return Array.from(matchedTokens.entries()).filter(
       ([key, token]) =>
         key.toLowerCase().includes(query) ||
-        token.value.toLowerCase().includes(query),
+        token.value.toLowerCase().includes(query)
     );
   }, [matchedTokens, searchQuery]);
 
@@ -499,7 +539,7 @@ export function ContentTokenEditorDrawer({
     <>
       {/* Drawer - slides in from right alongside content */}
       <div
-        className={`fixed right-0 w-[600px] bg-white border-l border-gray-200 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
+        className={`fixed right-0 z-50 w-[600px] transform border-l border-gray-200 bg-white shadow-2xl transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         style={{
@@ -508,7 +548,7 @@ export function ContentTokenEditorDrawer({
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between border-b border-gray-200 p-6">
           <div className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-gray-700" />
             <h2 className="text-lg font-semibold text-gray-900">
@@ -526,16 +566,16 @@ export function ContentTokenEditorDrawer({
         </div>
 
         {/* Content */}
-        <div className="flex flex-col h-full">
+        <div className="flex h-full flex-col">
           {/* Toolbar */}
-          <div className="p-4 border-b border-gray-200 space-y-3">
+          <div className="space-y-3 border-b border-gray-200 p-4">
             <div className="flex gap-2">
               <Button
                 onClick={handleAnalyze}
                 disabled={isAnalyzing}
                 className="flex-1"
               >
-                <Search className="h-4 w-4 mr-2" />
+                <Search className="mr-2 h-4 w-4" />
                 {isAnalyzing ? 'Analyzing...' : 'Analyze Components'}
               </Button>
               <Button
@@ -555,13 +595,13 @@ export function ContentTokenEditorDrawer({
 
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
               <input
                 type="text"
                 placeholder="Search tokens..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border border-gray-300 py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -569,16 +609,16 @@ export function ContentTokenEditorDrawer({
           {/* Token List */}
           <div className="flex-1 overflow-y-auto p-4 pb-24">
             {isLoadingTokens ? (
-              <div className="text-center py-12 text-gray-500">
-                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50 animate-pulse" />
+              <div className="py-12 text-center text-gray-500">
+                <FileText className="mx-auto mb-4 h-12 w-12 animate-pulse opacity-50" />
                 <p>Loading content tokens...</p>
               </div>
             ) : matchedTokens.size === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <div className="py-12 text-center text-gray-500">
+                <FileText className="mx-auto mb-4 h-12 w-12 opacity-50" />
                 <p>Click "Analyze Components" to scan for content tokens</p>
                 {Object.keys(allTokensRef.current).length === 0 && (
-                  <p className="text-xs text-red-500 mt-2">
+                  <p className="mt-2 text-xs text-red-500">
                     Warning: No tokens loaded. Check console for errors.
                   </p>
                 )}
@@ -593,21 +633,21 @@ export function ContentTokenEditorDrawer({
                   return (
                     <div
                       key={key}
-                      className={`p-3 border rounded-lg ${
+                      className={`rounded-lg border p-3 ${
                         isChanged
                           ? 'border-blue-500 bg-blue-50'
                           : 'border-gray-200'
                       }`}
                     >
-                      <div className="flex items-start gap-2 mb-2">
+                      <div className="mb-2 flex items-start gap-2">
                         <div
-                          className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-semibold"
+                          className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white"
                           style={{ backgroundColor: color }}
                         >
                           {token.annotationNumber || '?'}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-xs text-gray-500 mb-1 font-mono truncate">
+                        <div className="min-w-0 flex-1">
+                          <div className="mb-1 truncate font-mono text-xs text-gray-500">
                             {key}
                           </div>
                           <input
@@ -616,7 +656,7 @@ export function ContentTokenEditorDrawer({
                             onChange={(e) =>
                               handleTokenEdit(key, e.target.value)
                             }
-                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder={token.value}
                           />
                         </div>
@@ -629,7 +669,7 @@ export function ContentTokenEditorDrawer({
           </div>
 
           {/* Footer */}
-          <div className="p-4 border-t border-gray-200 bg-gray-50">
+          <div className="border-t border-gray-200 bg-gray-50 p-4">
             <div className="text-sm text-gray-600">
               {Object.keys(editedTokens).length > 0 ? (
                 <span className="font-medium text-gray-900">
@@ -661,7 +701,7 @@ export function ContentTokenEditorDrawer({
           return (
             <div
               key={annotation.id}
-              className="fixed pointer-events-none z-[60]"
+              className="pointer-events-none fixed z-[60]"
               style={{
                 left: `${rect.right}px`,
                 top: `${rect.top}px`,
@@ -669,7 +709,7 @@ export function ContentTokenEditorDrawer({
               }}
             >
               <div
-                className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-lg border-2 border-white"
+                className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-white text-xs font-semibold text-white shadow-lg"
                 style={{ backgroundColor: color }}
                 title={`${annotation.key}: ${annotation.namespace}`}
               >

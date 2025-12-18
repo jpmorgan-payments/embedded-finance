@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface ResponsiveBreakpoints {
   mobile: number;
@@ -41,7 +41,7 @@ export function useResponsiveCarousel({
     (visible: number) => {
       return Math.max(0, totalItems - visible);
     },
-    [totalItems],
+    [totalItems]
   );
 
   // Update visible items count on mount and resize
@@ -99,7 +99,7 @@ export function useResponsiveCarousel({
       const clampedIndex = Math.min(Math.max(0, index), maxIndex);
       setCurrentIndex(clampedIndex);
     },
-    [maxIndex],
+    [maxIndex]
   );
 
   // Ensure currentIndex is always within bounds

@@ -1,12 +1,12 @@
 'use client';
 
 import type { ClientScenario, View } from './dashboard-layout';
-import type { ThemeOption } from './use-sellsense-themes';
-import { useThemeStyles } from './theme-utils';
 import {
   getOnboardingScenarios,
   getScenarioKeyByDisplayName,
 } from './scenarios-config';
+import { useThemeStyles } from './theme-utils';
+import type { ThemeOption } from './use-sellsense-themes';
 
 interface SidebarProps {
   clientScenario: ClientScenario;
@@ -45,7 +45,7 @@ function SidebarButton({
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left px-4 py-3 transition-colors duration-200 ${themeStyles.getSidebarButtonStyles(selected)}`}
+      className={`w-full px-4 py-3 text-left transition-colors duration-200 ${themeStyles.getSidebarButtonStyles(selected)}`}
     >
       <span className="text-sm font-medium">{label}</span>
     </button>
@@ -85,7 +85,7 @@ export function Sidebar({
     <>
       {/* Desktop Sidebar */}
       <div
-        className={`hidden lg:block w-60 border-r h-full flex-shrink-0 ${themeStyles.getSidebarStyles()}`}
+        className={`hidden h-full w-60 flex-shrink-0 border-r lg:block ${themeStyles.getSidebarStyles()}`}
       >
         <nav className="flex-1 pt-4">
           {/* Scenario-specific Menu */}
@@ -104,7 +104,7 @@ export function Sidebar({
           {/* Scenario indicator */}
           <div className="mt-8 px-4">
             <div
-              className={`text-xs uppercase tracking-wide font-medium mb-2 ${themeStyles.getSidebarLabelStyles()}`}
+              className={`mb-2 text-xs font-medium uppercase tracking-wide ${themeStyles.getSidebarLabelStyles()}`}
             >
               Current Mode
             </div>
@@ -119,12 +119,12 @@ export function Sidebar({
 
       {/* Mobile Sidebar */}
       <div
-        className={`lg:hidden fixed inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out lg:hidden ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         } w-64 ${themeStyles.getSidebarStyles()}`}
         style={{ top: '4rem' }} // Start below the header
       >
-        <nav className="h-full pt-4 pb-20 overflow-y-auto">
+        <nav className="h-full overflow-y-auto pb-20 pt-4">
           {/* Scenario-specific Menu */}
           <div className="space-y-0">
             {menuItems.map((item) => (
@@ -141,7 +141,7 @@ export function Sidebar({
           {/* Scenario indicator */}
           <div className="mt-8 px-4">
             <div
-              className={`text-xs uppercase tracking-wide font-medium mb-2 ${themeStyles.getSidebarLabelStyles()}`}
+              className={`mb-2 text-xs font-medium uppercase tracking-wide ${themeStyles.getSidebarLabelStyles()}`}
             >
               Current Mode
             </div>
