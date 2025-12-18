@@ -18,13 +18,13 @@ interface WorkflowSelectorProps {
 /**
  * WorkflowSelector component for selecting Arazzo workflows
  */
-export const WorkflowSelector: React.FC<WorkflowSelectorProps> = ({ 
-  workflows, 
-  activeWorkflow, 
-  onWorkflowChange 
+export const WorkflowSelector: React.FC<WorkflowSelectorProps> = ({
+  workflows,
+  activeWorkflow,
+  onWorkflowChange,
 }) => {
   if (!workflows.length) return null;
-  
+
   return (
     <div className="w-96 flex flex-col gap-1">
       <div className="flex justify-between">

@@ -799,14 +799,14 @@ export function ThemeCustomizationDrawer({
 
       // Determine base theme - use current base theme or default to SellSense
       const currentBaseTheme = getCurrentBaseTheme();
-      
+
       // Always apply the imported theme as Custom theme
       // The imported variables are what the user wants, so apply them directly
       const customThemeData: CustomThemeData = {
         baseTheme: currentBaseTheme,
         variables: importedTheme,
       };
-      
+
       // Apply the theme immediately
       onThemeChange('Custom', customThemeData as any);
 
@@ -1684,8 +1684,8 @@ export function ThemeCustomizationDrawer({
                 The theme JSON and instructions provided in this tool (including
                 AI-generated, manually customized, or imported themes) are
                 intended for reference and experimentation purposes only. The
-                maintainers of this tool do not assume any responsibility for any
-                issues, damages, or losses that may arise from the use of
+                maintainers of this tool do not assume any responsibility for
+                any issues, damages, or losses that may arise from the use of
                 generated theme data.
               </p>
               <p className="mb-2 font-medium">
@@ -1693,23 +1693,23 @@ export function ThemeCustomizationDrawer({
               </p>
               <ul className="list-disc list-inside space-y-2 ml-2 mb-3">
                 <li>
-                  Generated theme JSON (whether AI-generated, manually created, or
-                  imported) may contain errors, inaccuracies, or incomplete design
-                  tokens
+                  Generated theme JSON (whether AI-generated, manually created,
+                  or imported) may contain errors, inaccuracies, or incomplete
+                  design tokens
                 </li>
                 <li>
-                  The extracted or customized tokens may not accurately represent
-                  the intended design system or may not be suitable for your
-                  specific use case
+                  The extracted or customized tokens may not accurately
+                  represent the intended design system or may not be suitable
+                  for your specific use case
                 </li>
                 <li>
-                  There are no guarantees regarding the accuracy, completeness, or
-                  suitability of any generated theme JSON for any particular
+                  There are no guarantees regarding the accuracy, completeness,
+                  or suitability of any generated theme JSON for any particular
                   purpose
                 </li>
                 <li>
-                  You should validate and test all imported or generated theme data
-                  before using it in production
+                  You should validate and test all imported or generated theme
+                  data before using it in production
                 </li>
                 <li>
                   You are solely responsible for reviewing, validating, and any

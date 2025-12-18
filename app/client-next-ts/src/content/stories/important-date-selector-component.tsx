@@ -1,8 +1,6 @@
 export default function ImportantDateSelectorComponent() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
-      
-
       <p className="text-page-body text-jpm-gray-700 mb-6 leading-relaxed">
         Following our{' '}
         <a

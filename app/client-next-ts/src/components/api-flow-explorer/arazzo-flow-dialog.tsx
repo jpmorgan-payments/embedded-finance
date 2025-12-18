@@ -5,8 +5,19 @@ import { AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { JOURNEY_ID } from './types';
 import type { OasOperationInfo } from './types';
-import { WorkflowSelector, StepCard, JourneyView, StepDetailsView } from './components';
-import { parseArazzoSpec, parseOasSpec, findOasOperation, detectHttpVerb, truncateWords } from './utils/schema-utils';
+import {
+  WorkflowSelector,
+  StepCard,
+  JourneyView,
+  StepDetailsView,
+} from './components';
+import {
+  parseArazzoSpec,
+  parseOasSpec,
+  findOasOperation,
+  detectHttpVerb,
+  truncateWords,
+} from './utils/schema-utils';
 
 // Raw import of YAML specs (Vite supports ?raw)
 import arazzoSpecRaw from './specs/arazzo_specification.yaml?raw';
@@ -19,7 +30,7 @@ import oasSpecRaw from './specs/embedded-finance-pub-smbdo-1.0.16.yaml?raw';
 export function ArazzoFlowDialogContent(): React.ReactElement {
   const arazzoSpec = React.useMemo(() => parseArazzoSpec(arazzoSpecRaw), []);
   const oasSpec = React.useMemo(() => parseOasSpec(oasSpecRaw), []);
-  
+
   const workflows = arazzoSpec?.workflows ?? [];
   const [workflowId, setWorkflowId] = React.useState<string>(
     workflows[0]?.workflowId ?? '',
@@ -41,33 +52,37 @@ export function ArazzoFlowDialogContent(): React.ReactElement {
   }, [activeWorkflow?.workflowId]);
 
   const selectedStep = React.useMemo(() => {
-    if (!activeWorkflow || !selectedStepId || selectedStepId === JOURNEY_ID) return null;
+    if (!activeWorkflow || !selectedStepId || selectedStepId === JOURNEY_ID)
+      return null;
     return (
       (activeWorkflow.steps ?? []).find((s) => s.stepId === selectedStepId) ??
       null
     );
   }, [activeWorkflow, selectedStepId]);
-  
+
   // Get OAS operation info for the selected step
   const selectedOasOperation = React.useMemo(() => {
     if (!selectedStep?.operationId || !oasSpec) return undefined;
     return findOasOperation(selectedStep.operationId, oasSpec);
   }, [selectedStep, oasSpec]);
-  
+
   // Get OAS operation info for all steps in the workflow
   const stepOasOperations = React.useMemo(() => {
     if (!activeWorkflow?.steps || !oasSpec) return {};
-    
+
     const operations: Record<string, OasOperationInfo> = {};
-    activeWorkflow.steps.forEach(step => {
+    activeWorkflow.steps.forEach((step) => {
       if (step.operationId) {
-        operations[step.stepId] = findOasOperation(step.operationId, oasSpec) || {
+        operations[step.stepId] = findOasOperation(
+          step.operationId,
+          oasSpec,
+        ) || {
           verb: detectHttpVerb(step.operationId),
           path: '',
         };
       }
     });
-    
+
     return operations;
   }, [activeWorkflow, oasSpec]);
 
@@ -79,7 +94,7 @@ export function ArazzoFlowDialogContent(): React.ReactElement {
       </div>
     );
   }
-  
+
   if (!oasSpec) {
     return (
       <div className="flex items-center gap-2 text-red-600 text-sm">
@@ -87,7 +102,8 @@ export function ArazzoFlowDialogContent(): React.ReactElement {
         <span>Unable to load OpenAPI specification.</span>
       </div>
     );
-  }  return (
+  }
+  return (
     <div className="flex flex-col gap-4 max-h-[85vh] overflow-hidden">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -96,7 +112,7 @@ export function ArazzoFlowDialogContent(): React.ReactElement {
             Visualizing steps from Arazzo spec
           </div>
         </div>
-        <WorkflowSelector 
+        <WorkflowSelector
           workflows={workflows}
           activeWorkflow={activeWorkflow}
           onWorkflowChange={setWorkflowId}
@@ -139,16 +155,17 @@ export function ArazzoFlowDialogContent(): React.ReactElement {
               oasOperation={stepOasOperations[step.stepId]}
             />
           ))}
-        </div>{/* Right: Detail (journey or step) */}
+        </div>
+        {/* Right: Detail (journey or step) */}
         <div className="bg-jpm-brown-50 rounded-lg border border-jpm-brown-200 overflow-hidden col-span-3 h-full flex flex-col">
           {selectedStepId === JOURNEY_ID ? (
-            <JourneyView 
+            <JourneyView
               activeWorkflow={activeWorkflow}
               stepOasOperations={stepOasOperations}
               oasSpec={oasSpec}
             />
           ) : (
-            <StepDetailsView 
+            <StepDetailsView
               selectedStep={selectedStep}
               selectedOasOperation={selectedOasOperation}
               oasSpec={oasSpec}

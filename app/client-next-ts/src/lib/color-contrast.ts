@@ -141,9 +141,12 @@ function getRelativeLuminance(color: string): number {
   const bsRGB = rgb.b / 255;
 
   // Apply gamma correction
-  const r = rsRGB <= 0.03928 ? rsRGB / 12.92 : Math.pow((rsRGB + 0.055) / 1.055, 2.4);
-  const g = gsRGB <= 0.03928 ? gsRGB / 12.92 : Math.pow((gsRGB + 0.055) / 1.055, 2.4);
-  const b = bsRGB <= 0.03928 ? bsRGB / 12.92 : Math.pow((bsRGB + 0.055) / 1.055, 2.4);
+  const r =
+    rsRGB <= 0.03928 ? rsRGB / 12.92 : Math.pow((rsRGB + 0.055) / 1.055, 2.4);
+  const g =
+    gsRGB <= 0.03928 ? gsRGB / 12.92 : Math.pow((gsRGB + 0.055) / 1.055, 2.4);
+  const b =
+    bsRGB <= 0.03928 ? bsRGB / 12.92 : Math.pow((bsRGB + 0.055) / 1.055, 2.4);
 
   // Calculate relative luminance
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
@@ -196,9 +199,11 @@ export function calculateContrast(
     if (level === 'Fail') {
       const isFgLighter = fgLuminance > bgLuminance;
       if (isFgLighter) {
-        recommendation = 'Consider using a darker foreground color or lighter background';
+        recommendation =
+          'Consider using a darker foreground color or lighter background';
       } else {
-        recommendation = 'Consider using a lighter foreground color or darker background';
+        recommendation =
+          'Consider using a lighter foreground color or darker background';
       }
     }
 
@@ -245,5 +250,3 @@ export function getCachedContrast(
 export function clearContrastCache(): void {
   contrastCache.clear();
 }
-
-

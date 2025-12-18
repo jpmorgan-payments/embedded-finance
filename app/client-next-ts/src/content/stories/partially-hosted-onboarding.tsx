@@ -11,10 +11,10 @@ export default function PartiallyHostedOnboardingArticle() {
         diligence questions served by the API. This partially hosted integration
         pattern enables you to embed a hosted Onboarding UI within your platform
         using an iframe, allowing you to maintain control over the user
-        experience while the hosted UI handles regulated KYC verification
-        steps. The integration involves session transfer from your backend to
-        obtain a short-lived JWT token, which is then used to load the
-        Onboarding UI in a secure iframe on your frontend.
+        experience while the hosted UI handles regulated KYC verification steps.
+        The integration involves session transfer from your backend to obtain a
+        short-lived JWT token, which is then used to load the Onboarding UI in a
+        secure iframe on your frontend.
       </p>
 
       <h2 className="text-page-h3 text-jpm-gray-900 mt-8 mb-3">

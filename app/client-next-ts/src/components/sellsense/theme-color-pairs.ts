@@ -214,5 +214,3 @@ export function getValidColorPairs(
     backgroundValue: String(variables[pair.background] || ''),
   }));
 }
-
-

@@ -8,134 +8,134 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as UtilsRouteImport } from './routes/utils'
-import { Route as StoriesRouteImport } from './routes/stories'
-import { Route as SolutionsRouteImport } from './routes/solutions'
-import { Route as SellsenseDemoRouteImport } from './routes/sellsense-demo'
-import { Route as PartiallyHostedDemoRouteImport } from './routes/partially-hosted-demo'
-import { Route as MswTestRouteImport } from './routes/msw-test'
-import { Route as GithubRouteImport } from './routes/github'
-import { Route as DocumentationRouteImport } from './routes/documentation'
-import { Route as DemosRouteImport } from './routes/demos'
-import { Route as ComponentsRouteImport } from './routes/components'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as StoriesIndexRouteImport } from './routes/stories.index'
-import { Route as StoriesStoryIdRouteImport } from './routes/stories.$storyId'
+import { Route as rootRouteImport } from './routes/__root';
+import { Route as UtilsRouteImport } from './routes/utils';
+import { Route as StoriesRouteImport } from './routes/stories';
+import { Route as SolutionsRouteImport } from './routes/solutions';
+import { Route as SellsenseDemoRouteImport } from './routes/sellsense-demo';
+import { Route as PartiallyHostedDemoRouteImport } from './routes/partially-hosted-demo';
+import { Route as MswTestRouteImport } from './routes/msw-test';
+import { Route as GithubRouteImport } from './routes/github';
+import { Route as DocumentationRouteImport } from './routes/documentation';
+import { Route as DemosRouteImport } from './routes/demos';
+import { Route as ComponentsRouteImport } from './routes/components';
+import { Route as IndexRouteImport } from './routes/index';
+import { Route as StoriesIndexRouteImport } from './routes/stories.index';
+import { Route as StoriesStoryIdRouteImport } from './routes/stories.$storyId';
 
 const UtilsRoute = UtilsRouteImport.update({
   id: '/utils',
   path: '/utils',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const StoriesRoute = StoriesRouteImport.update({
   id: '/stories',
   path: '/stories',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const SolutionsRoute = SolutionsRouteImport.update({
   id: '/solutions',
   path: '/solutions',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const SellsenseDemoRoute = SellsenseDemoRouteImport.update({
   id: '/sellsense-demo',
   path: '/sellsense-demo',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const PartiallyHostedDemoRoute = PartiallyHostedDemoRouteImport.update({
   id: '/partially-hosted-demo',
   path: '/partially-hosted-demo',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const MswTestRoute = MswTestRouteImport.update({
   id: '/msw-test',
   path: '/msw-test',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const GithubRoute = GithubRouteImport.update({
   id: '/github',
   path: '/github',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const DocumentationRoute = DocumentationRouteImport.update({
   id: '/documentation',
   path: '/documentation',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const DemosRoute = DemosRouteImport.update({
   id: '/demos',
   path: '/demos',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ComponentsRoute = ComponentsRouteImport.update({
   id: '/components',
   path: '/components',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const StoriesIndexRoute = StoriesIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => StoriesRoute,
-} as any)
+} as any);
 const StoriesStoryIdRoute = StoriesStoryIdRouteImport.update({
   id: '/$storyId',
   path: '/$storyId',
   getParentRoute: () => StoriesRoute,
-} as any)
+} as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/components': typeof ComponentsRoute
-  '/demos': typeof DemosRoute
-  '/documentation': typeof DocumentationRoute
-  '/github': typeof GithubRoute
-  '/msw-test': typeof MswTestRoute
-  '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
-  '/sellsense-demo': typeof SellsenseDemoRoute
-  '/solutions': typeof SolutionsRoute
-  '/stories': typeof StoriesRouteWithChildren
-  '/utils': typeof UtilsRoute
-  '/stories/$storyId': typeof StoriesStoryIdRoute
-  '/stories/': typeof StoriesIndexRoute
+  '/': typeof IndexRoute;
+  '/components': typeof ComponentsRoute;
+  '/demos': typeof DemosRoute;
+  '/documentation': typeof DocumentationRoute;
+  '/github': typeof GithubRoute;
+  '/msw-test': typeof MswTestRoute;
+  '/partially-hosted-demo': typeof PartiallyHostedDemoRoute;
+  '/sellsense-demo': typeof SellsenseDemoRoute;
+  '/solutions': typeof SolutionsRoute;
+  '/stories': typeof StoriesRouteWithChildren;
+  '/utils': typeof UtilsRoute;
+  '/stories/$storyId': typeof StoriesStoryIdRoute;
+  '/stories/': typeof StoriesIndexRoute;
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/components': typeof ComponentsRoute
-  '/demos': typeof DemosRoute
-  '/documentation': typeof DocumentationRoute
-  '/github': typeof GithubRoute
-  '/msw-test': typeof MswTestRoute
-  '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
-  '/sellsense-demo': typeof SellsenseDemoRoute
-  '/solutions': typeof SolutionsRoute
-  '/utils': typeof UtilsRoute
-  '/stories/$storyId': typeof StoriesStoryIdRoute
-  '/stories': typeof StoriesIndexRoute
+  '/': typeof IndexRoute;
+  '/components': typeof ComponentsRoute;
+  '/demos': typeof DemosRoute;
+  '/documentation': typeof DocumentationRoute;
+  '/github': typeof GithubRoute;
+  '/msw-test': typeof MswTestRoute;
+  '/partially-hosted-demo': typeof PartiallyHostedDemoRoute;
+  '/sellsense-demo': typeof SellsenseDemoRoute;
+  '/solutions': typeof SolutionsRoute;
+  '/utils': typeof UtilsRoute;
+  '/stories/$storyId': typeof StoriesStoryIdRoute;
+  '/stories': typeof StoriesIndexRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/components': typeof ComponentsRoute
-  '/demos': typeof DemosRoute
-  '/documentation': typeof DocumentationRoute
-  '/github': typeof GithubRoute
-  '/msw-test': typeof MswTestRoute
-  '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
-  '/sellsense-demo': typeof SellsenseDemoRoute
-  '/solutions': typeof SolutionsRoute
-  '/stories': typeof StoriesRouteWithChildren
-  '/utils': typeof UtilsRoute
-  '/stories/$storyId': typeof StoriesStoryIdRoute
-  '/stories/': typeof StoriesIndexRoute
+  __root__: typeof rootRouteImport;
+  '/': typeof IndexRoute;
+  '/components': typeof ComponentsRoute;
+  '/demos': typeof DemosRoute;
+  '/documentation': typeof DocumentationRoute;
+  '/github': typeof GithubRoute;
+  '/msw-test': typeof MswTestRoute;
+  '/partially-hosted-demo': typeof PartiallyHostedDemoRoute;
+  '/sellsense-demo': typeof SellsenseDemoRoute;
+  '/solutions': typeof SolutionsRoute;
+  '/stories': typeof StoriesRouteWithChildren;
+  '/utils': typeof UtilsRoute;
+  '/stories/$storyId': typeof StoriesStoryIdRoute;
+  '/stories/': typeof StoriesIndexRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
+  fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
     | '/'
     | '/components'
@@ -149,8 +149,8 @@ export interface FileRouteTypes {
     | '/stories'
     | '/utils'
     | '/stories/$storyId'
-    | '/stories/'
-  fileRoutesByTo: FileRoutesByTo
+    | '/stories/';
+  fileRoutesByTo: FileRoutesByTo;
   to:
     | '/'
     | '/components'
@@ -163,7 +163,7 @@ export interface FileRouteTypes {
     | '/solutions'
     | '/utils'
     | '/stories/$storyId'
-    | '/stories'
+    | '/stories';
   id:
     | '__root__'
     | '/'
@@ -178,131 +178,131 @@ export interface FileRouteTypes {
     | '/stories'
     | '/utils'
     | '/stories/$storyId'
-    | '/stories/'
-  fileRoutesById: FileRoutesById
+    | '/stories/';
+  fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  ComponentsRoute: typeof ComponentsRoute
-  DemosRoute: typeof DemosRoute
-  DocumentationRoute: typeof DocumentationRoute
-  GithubRoute: typeof GithubRoute
-  MswTestRoute: typeof MswTestRoute
-  PartiallyHostedDemoRoute: typeof PartiallyHostedDemoRoute
-  SellsenseDemoRoute: typeof SellsenseDemoRoute
-  SolutionsRoute: typeof SolutionsRoute
-  StoriesRoute: typeof StoriesRouteWithChildren
-  UtilsRoute: typeof UtilsRoute
+  IndexRoute: typeof IndexRoute;
+  ComponentsRoute: typeof ComponentsRoute;
+  DemosRoute: typeof DemosRoute;
+  DocumentationRoute: typeof DocumentationRoute;
+  GithubRoute: typeof GithubRoute;
+  MswTestRoute: typeof MswTestRoute;
+  PartiallyHostedDemoRoute: typeof PartiallyHostedDemoRoute;
+  SellsenseDemoRoute: typeof SellsenseDemoRoute;
+  SolutionsRoute: typeof SolutionsRoute;
+  StoriesRoute: typeof StoriesRouteWithChildren;
+  UtilsRoute: typeof UtilsRoute;
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/utils': {
-      id: '/utils'
-      path: '/utils'
-      fullPath: '/utils'
-      preLoaderRoute: typeof UtilsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/utils';
+      path: '/utils';
+      fullPath: '/utils';
+      preLoaderRoute: typeof UtilsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/stories': {
-      id: '/stories'
-      path: '/stories'
-      fullPath: '/stories'
-      preLoaderRoute: typeof StoriesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/stories';
+      path: '/stories';
+      fullPath: '/stories';
+      preLoaderRoute: typeof StoriesRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/solutions': {
-      id: '/solutions'
-      path: '/solutions'
-      fullPath: '/solutions'
-      preLoaderRoute: typeof SolutionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/solutions';
+      path: '/solutions';
+      fullPath: '/solutions';
+      preLoaderRoute: typeof SolutionsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/sellsense-demo': {
-      id: '/sellsense-demo'
-      path: '/sellsense-demo'
-      fullPath: '/sellsense-demo'
-      preLoaderRoute: typeof SellsenseDemoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/sellsense-demo';
+      path: '/sellsense-demo';
+      fullPath: '/sellsense-demo';
+      preLoaderRoute: typeof SellsenseDemoRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/partially-hosted-demo': {
-      id: '/partially-hosted-demo'
-      path: '/partially-hosted-demo'
-      fullPath: '/partially-hosted-demo'
-      preLoaderRoute: typeof PartiallyHostedDemoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/partially-hosted-demo';
+      path: '/partially-hosted-demo';
+      fullPath: '/partially-hosted-demo';
+      preLoaderRoute: typeof PartiallyHostedDemoRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/msw-test': {
-      id: '/msw-test'
-      path: '/msw-test'
-      fullPath: '/msw-test'
-      preLoaderRoute: typeof MswTestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/msw-test';
+      path: '/msw-test';
+      fullPath: '/msw-test';
+      preLoaderRoute: typeof MswTestRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/github': {
-      id: '/github'
-      path: '/github'
-      fullPath: '/github'
-      preLoaderRoute: typeof GithubRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/github';
+      path: '/github';
+      fullPath: '/github';
+      preLoaderRoute: typeof GithubRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/documentation': {
-      id: '/documentation'
-      path: '/documentation'
-      fullPath: '/documentation'
-      preLoaderRoute: typeof DocumentationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/documentation';
+      path: '/documentation';
+      fullPath: '/documentation';
+      preLoaderRoute: typeof DocumentationRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/demos': {
-      id: '/demos'
-      path: '/demos'
-      fullPath: '/demos'
-      preLoaderRoute: typeof DemosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/demos';
+      path: '/demos';
+      fullPath: '/demos';
+      preLoaderRoute: typeof DemosRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/components': {
-      id: '/components'
-      path: '/components'
-      fullPath: '/components'
-      preLoaderRoute: typeof ComponentsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/components';
+      path: '/components';
+      fullPath: '/components';
+      preLoaderRoute: typeof ComponentsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/';
+      path: '/';
+      fullPath: '/';
+      preLoaderRoute: typeof IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/stories/': {
-      id: '/stories/'
-      path: '/'
-      fullPath: '/stories/'
-      preLoaderRoute: typeof StoriesIndexRouteImport
-      parentRoute: typeof StoriesRoute
-    }
+      id: '/stories/';
+      path: '/';
+      fullPath: '/stories/';
+      preLoaderRoute: typeof StoriesIndexRouteImport;
+      parentRoute: typeof StoriesRoute;
+    };
     '/stories/$storyId': {
-      id: '/stories/$storyId'
-      path: '/$storyId'
-      fullPath: '/stories/$storyId'
-      preLoaderRoute: typeof StoriesStoryIdRouteImport
-      parentRoute: typeof StoriesRoute
-    }
+      id: '/stories/$storyId';
+      path: '/$storyId';
+      fullPath: '/stories/$storyId';
+      preLoaderRoute: typeof StoriesStoryIdRouteImport;
+      parentRoute: typeof StoriesRoute;
+    };
   }
 }
 
 interface StoriesRouteChildren {
-  StoriesStoryIdRoute: typeof StoriesStoryIdRoute
-  StoriesIndexRoute: typeof StoriesIndexRoute
+  StoriesStoryIdRoute: typeof StoriesStoryIdRoute;
+  StoriesIndexRoute: typeof StoriesIndexRoute;
 }
 
 const StoriesRouteChildren: StoriesRouteChildren = {
   StoriesStoryIdRoute: StoriesStoryIdRoute,
   StoriesIndexRoute: StoriesIndexRoute,
-}
+};
 
 const StoriesRouteWithChildren =
-  StoriesRoute._addFileChildren(StoriesRouteChildren)
+  StoriesRoute._addFileChildren(StoriesRouteChildren);
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -316,7 +316,7 @@ const rootRouteChildren: RootRouteChildren = {
   SolutionsRoute: SolutionsRoute,
   StoriesRoute: StoriesRouteWithChildren,
   UtilsRoute: UtilsRoute,
-}
+};
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();

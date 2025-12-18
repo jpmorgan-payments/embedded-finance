@@ -30,9 +30,7 @@ export function ContrastChecker({
 
   if (!result) {
     return (
-      <div className="text-xs text-gray-500">
-        Invalid color combination
-      </div>
+      <div className="text-xs text-gray-500">Invalid color combination</div>
     );
   }
 
@@ -141,4 +139,3 @@ export function ContrastChecker({
     </div>
   );
 }
-

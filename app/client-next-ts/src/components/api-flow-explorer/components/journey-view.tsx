@@ -2,7 +2,13 @@
 import React from 'react';
 import { DataTable } from './ui-components';
 import type { ArazzoWorkflow, OasOperationInfo } from '../types';
-import { detectHttpVerb, extractValidationConstraints, flattenJsonPaths, getSchemaForPath, getStepPayload } from '../utils/schema-utils';
+import {
+  detectHttpVerb,
+  extractValidationConstraints,
+  flattenJsonPaths,
+  getSchemaForPath,
+  getStepPayload,
+} from '../utils/schema-utils';
 
 interface JourneyViewProps {
   activeWorkflow: ArazzoWorkflow;
@@ -13,10 +19,10 @@ interface JourneyViewProps {
 /**
  * JourneyView component for displaying an aggregated view of workflow steps
  */
-export const JourneyView: React.FC<JourneyViewProps> = ({ 
+export const JourneyView: React.FC<JourneyViewProps> = ({
   activeWorkflow,
   stepOasOperations,
-  oasSpec
+  oasSpec,
 }) => {
   return (
     <div className="w-full h-full flex flex-col max-h-full">
@@ -25,17 +31,15 @@ export const JourneyView: React.FC<JourneyViewProps> = ({
       </div>
       <div className="flex-1 overflow-auto p-3 sm:p-4 max-h-[calc(100%-40px)]">
         {(() => {
-          const postSteps = (activeWorkflow?.steps ?? []).filter(
-            (s) => {
-              // Check if we have OAS operation data first
-              const oasOp = stepOasOperations[s.stepId];
-              if (oasOp) {
-                return oasOp.verb === 'POST';
-              }
-              // Fallback to operation ID detection
-              return detectHttpVerb(s.operationId) === 'POST';
+          const postSteps = (activeWorkflow?.steps ?? []).filter((s) => {
+            // Check if we have OAS operation data first
+            const oasOp = stepOasOperations[s.stepId];
+            if (oasOp) {
+              return oasOp.verb === 'POST';
             }
-          );
+            // Fallback to operation ID detection
+            return detectHttpVerb(s.operationId) === 'POST';
+          });
           const rows = postSteps.flatMap((s) => {
             const payload = getStepPayload(s);
             return flattenJsonPaths(payload, '$').map((r) => ({
@@ -43,7 +47,7 @@ export const JourneyView: React.FC<JourneyViewProps> = ({
               path: r.path,
             }));
           });
-          
+
           if (rows.length === 0) {
             return (
               <div className="text-sm text-muted-foreground">
@@ -51,33 +55,36 @@ export const JourneyView: React.FC<JourneyViewProps> = ({
               </div>
             );
           }
-          
+
           // Add validation info to rows
           const rowsWithValidation = rows.map((r) => {
-            const step = postSteps.find(s => s.operationId === r.operation);
+            const step = postSteps.find((s) => s.operationId === r.operation);
             const stepId = step?.stepId || '';
             const operation = step?.operationId || '';
-            
+
             // Get schema for this path
-            const schema = getSchemaForPath(
-              r.path, 
-              oasSpec, 
-              operation
-            );
-            
+            const schema = getSchemaForPath(r.path, oasSpec, operation);
+
             // Extract validation constraints
             const validationText = extractValidationConstraints(schema);
-            
+
             return {
               ...r,
               validation: validationText,
               schemaInfo: schema,
-              stepId
+              stepId,
             };
           });
-          
+
           return (
-            <DataTable headers={['API Operation', 'JSON Path', 'Validation', 'Description']}>
+            <DataTable
+              headers={[
+                'API Operation',
+                'JSON Path',
+                'Validation',
+                'Description',
+              ]}
+            >
               {rowsWithValidation.map((r, idx) => (
                 <tr
                   key={`${r.operation}-${r.path}-${idx}`}
@@ -85,16 +92,23 @@ export const JourneyView: React.FC<JourneyViewProps> = ({
                 >
                   <td className="py-2 pr-4 text-xs text-muted-foreground">
                     {r.operation}
-                    {postSteps.find(s => s.operationId === r.operation) && 
-                      stepOasOperations[postSteps.find(s => s.operationId === r.operation)?.stepId || '']?.path && (
+                    {postSteps.find((s) => s.operationId === r.operation) &&
+                      stepOasOperations[
+                        postSteps.find((s) => s.operationId === r.operation)
+                          ?.stepId || ''
+                      ]?.path && (
                         <div className="text-[10px] mt-1">
-                          {stepOasOperations[postSteps.find(s => s.operationId === r.operation)?.stepId || '']?.path}
+                          {
+                            stepOasOperations[
+                              postSteps.find(
+                                (s) => s.operationId === r.operation,
+                              )?.stepId || ''
+                            ]?.path
+                          }
                         </div>
-                    )}
+                      )}
                   </td>
-                  <td className="py-2 pr-4 font-mono text-xs">
-                    {r.path}
-                  </td>
+                  <td className="py-2 pr-4 font-mono text-xs">{r.path}</td>
                   <td className="py-2 pr-4 text-xs">
                     {r.validation ? (
                       <div className="text-xs text-muted-foreground">

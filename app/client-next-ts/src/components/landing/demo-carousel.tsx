@@ -124,7 +124,11 @@ export function DemoCarousel() {
                         </p>
                         {demo.status === 'available' ||
                         demo.status === 'testing' ? (
-                          <Link to={demo.link} className="block w-full">
+                          <Link
+                            to={demo.link}
+                            resetScroll={false}
+                            className="block w-full"
+                          >
                             <Button
                               variant="default"
                               className="w-full rounded-page-md font-semibold text-sm sm:text-base bg-sp-brand hover:bg-sp-brand-700 text-white shadow-page-card"

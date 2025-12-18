@@ -1,4 +1,3 @@
-
 // Mock recipients data for Recipients component
 export const mockRecipientsResponse = {
   recipients: [
@@ -178,9 +177,7 @@ export const mockVerificationFailure = {
 };
 
 // Function to create mock recipient
-export const createMockRecipient = (
-  overrides: Partial<any> = {},
-): any => {
+export const createMockRecipient = (overrides: Partial<any> = {}): any => {
   return {
     id: `recipient-${Date.now()}`,
     type: 'RECIPIENT',

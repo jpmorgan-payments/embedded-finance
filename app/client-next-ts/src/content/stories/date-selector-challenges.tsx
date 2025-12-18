@@ -1,8 +1,6 @@
 export default function DateSelectorChallenges() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
-      
-
       <p className="text-page-body text-jpm-gray-700 mb-6 leading-relaxed">
         Date input components seem straightforward, but our team learned the
         hard way that they're deceptively complex. After implementing several
@@ -227,8 +225,6 @@ export default function DateSelectorChallenges() {
       </p>
 
       <hr className="border-jpm-gray-200 my-8" />
-
-      
     </div>
   );
 }

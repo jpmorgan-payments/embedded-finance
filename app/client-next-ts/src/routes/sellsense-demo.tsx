@@ -1,10 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import { DashboardLayout } from '../components/sellsense/dashboard-layout';
 import { getScenarioDisplayNames } from '../components/sellsense/scenarios-config';
 import { z } from 'zod';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useScrollLock } from '../hooks/use-scroll-lock';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -51,7 +52,34 @@ const sellsenseDemoSearchSchema = z.object({
 export const Route = createFileRoute('/sellsense-demo')({
   component: SellsenseDemo,
   validateSearch: sellsenseDemoSearchSchema,
+  // Minimal loader to trigger pendingComponent
+  loader: async () => {
+    // Small delay to ensure smooth transition
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    return {};
+  },
+  // Show loading overlay immediately when navigating to this route
+  pendingComponent: PendingDemo,
+  pendingMs: 0, // Show immediately, don't wait
+  pendingMinMs: 100, // Show for at least 100ms to prevent flashing
 });
+
+// Pending component with scroll prevention
+// Uses TanStack Router's pendingComponent feature with scroll lock to prevent layout shifts
+function PendingDemo() {
+  // Lock scroll while pending component is shown
+  // This prevents layout shifts during navigation
+  useScrollLock(true);
+
+  return (
+    <div className="fixed inset-0 z-[9999] bg-white/90 backdrop-blur-sm flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <Loader2 className="h-12 w-12 text-sp-brand animate-spin" />
+        <p className="text-lg font-medium text-jpm-gray-900">Loading demo...</p>
+      </div>
+    </div>
+  );
+}
 
 function SellsenseDemo() {
   const { fullscreen } = Route.useSearch();
