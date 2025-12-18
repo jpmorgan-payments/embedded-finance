@@ -1,12 +1,14 @@
-import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
-import { HeroSection } from '../components/landing/hero-section';
+
+import { createFileRoute } from '@tanstack/react-router';
+
 import { ComponentsSection } from '../components/landing/components-section';
-import { ExperiencesSection } from '../components/landing/experiences-section';
 import { DemoCarousel } from '../components/landing/demo-carousel';
+import { ExperiencesSection } from '../components/landing/experiences-section';
+import { HeroSection } from '../components/landing/hero-section';
 import { RecipesSection } from '../components/landing/recipes-section';
-import { LandingPageExperiment } from '../experiments/landing-page/constants';
 import { CompactHomepage } from '../experiments/landing-page/compact-homepage/CompactHomepage';
+import { LandingPageExperiment } from '../experiments/landing-page/constants';
 
 // Define search param schema with validation
 const indexSearchSchema = z.object({

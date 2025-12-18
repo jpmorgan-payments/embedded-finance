@@ -1,8 +1,8 @@
-import { Outlet, createRootRoute, useLocation } from '@tanstack/react-router';
+import { createRootRoute, Outlet, useLocation } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
-import { LandingHeader } from '../components/landing/landing-header';
 import { Footer } from '../components/landing/footer';
+import { LandingHeader } from '../components/landing/landing-header';
 import { DemoNotice } from '../components/ui/demo-notice';
 
 export const Route = createRootRoute({

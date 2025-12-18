@@ -1,4 +1,5 @@
 import { CheckCircle2 } from 'lucide-react';
+
 import type { IntegrationStep } from '@/components/partially-hosted/integration-steps';
 
 interface StepContentProps {

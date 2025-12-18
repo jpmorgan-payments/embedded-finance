@@ -26,7 +26,7 @@ function checkFontSizes(variables: EBThemeVariables): A11yCheckResult[] {
   const actionableFontSize = variables.actionableFontSize;
   if (actionableFontSize) {
     const sizeValue = parseFloat(
-      String(actionableFontSize).replace(/rem|px|em/, ''),
+      String(actionableFontSize).replace(/rem|px|em/, '')
     );
     const unit = String(actionableFontSize).replace(/[\d.]/g, '') || 'rem';
 
@@ -64,7 +64,7 @@ function checkFontSizes(variables: EBThemeVariables): A11yCheckResult[] {
   const labelFontSize = variables.editableLabelFontSize;
   if (labelFontSize) {
     const sizeValue = parseFloat(
-      String(labelFontSize).replace(/rem|px|em/, ''),
+      String(labelFontSize).replace(/rem|px|em/, '')
     );
     const unit = String(labelFontSize).replace(/[\d.]/g, '') || 'rem';
     const pxSize = unit === 'rem' ? sizeValue * 16 : sizeValue;
@@ -132,7 +132,7 @@ function checkTouchTargets(variables: EBThemeVariables): A11yCheckResult[] {
   const spacingUnit = variables.spacingUnit;
   if (spacingUnit) {
     const spacingValue = parseFloat(
-      String(spacingUnit).replace(/rem|px|em/, ''),
+      String(spacingUnit).replace(/rem|px|em/, '')
     );
     const unit = String(spacingUnit).replace(/[\d.]/g, '') || 'rem';
     const pxSpacing = unit === 'rem' ? spacingValue * 16 : spacingValue;
@@ -170,7 +170,7 @@ function checkBorderRadius(variables: EBThemeVariables): A11yCheckResult[] {
   const borderRadius = variables.actionableBorderRadius;
   if (borderRadius) {
     const radiusValue = parseFloat(
-      String(borderRadius).replace(/rem|px|em|%/, ''),
+      String(borderRadius).replace(/rem|px|em|%/, '')
     );
     const unit = String(borderRadius).replace(/[\d.]/g, '') || 'rem';
     const pxRadius =

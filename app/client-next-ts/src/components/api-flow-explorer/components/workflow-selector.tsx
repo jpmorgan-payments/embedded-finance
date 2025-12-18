@@ -1,5 +1,6 @@
 // WorkflowSelector component for Arazzo Flow Dialog
 import React from 'react';
+
 import {
   Select,
   SelectContent,
@@ -7,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
 import { type ArazzoWorkflow } from '../types';
 
 interface WorkflowSelectorProps {
@@ -26,7 +28,7 @@ export const WorkflowSelector: React.FC<WorkflowSelectorProps> = ({
   if (!workflows.length) return null;
 
   return (
-    <div className="w-96 flex flex-col gap-1">
+    <div className="flex w-96 flex-col gap-1">
       <div className="flex justify-between">
         <label htmlFor="workflow-selector" className="text-sm font-medium">
           Select Workflow

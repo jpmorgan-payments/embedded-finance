@@ -40,7 +40,7 @@ export function Mermaid({ children, className, highlightStep }: MermaidProps) {
 
         // Style participant boxes (rects) with primary brand color
         const participantRects = svgRoot.querySelectorAll<SVGRectElement>(
-          'rect.actor, rect.actor-top, rect.actor-bottom',
+          'rect.actor, rect.actor-top, rect.actor-bottom'
         );
         participantRects.forEach((rect) => {
           rect.style.fill = '#1A7B99';
@@ -55,7 +55,7 @@ export function Mermaid({ children, className, highlightStep }: MermaidProps) {
           const hasActorRect =
             parentGroup &&
             parentGroup.querySelector(
-              'rect.actor, rect.actor-top, rect.actor-bottom',
+              'rect.actor, rect.actor-top, rect.actor-bottom'
             );
           const isActorGroup =
             parentGroup && parentGroup.classList.contains('actor');
@@ -72,7 +72,7 @@ export function Mermaid({ children, className, highlightStep }: MermaidProps) {
 
         // Style all message lines to brand color
         const allLines = svgRoot.querySelectorAll<SVGPathElement>(
-          'path.messageLine0, path.messageLine1',
+          'path.messageLine0, path.messageLine1'
         );
         allLines.forEach((line) => {
           line.style.stroke = '#1A7B99';
@@ -84,13 +84,13 @@ export function Mermaid({ children, className, highlightStep }: MermaidProps) {
             : [highlightStep];
 
           const texts = Array.from(
-            svgRoot.querySelectorAll<SVGTextElement>('text'),
+            svgRoot.querySelectorAll<SVGTextElement>('text')
           );
 
           texts.forEach((textEl) => {
             const content = textEl.textContent ?? '';
             const matchesStep = stepsToHighlight.some((step) =>
-              content.trim().startsWith(`(${step})`),
+              content.trim().startsWith(`(${step})`)
             );
 
             if (!matchesStep) return;

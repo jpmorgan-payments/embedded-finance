@@ -1,17 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import {
   Calendar,
-  ListFilter,
-  FileText,
-  MapPin,
-  ChevronsUpDown,
   Check,
+  ChevronsUpDown,
+  FileText,
   Github,
+  ListFilter,
+  MapPin,
 } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -75,7 +76,7 @@ export function ComponentsSection() {
   ];
 
   const selectedIndustryData = industryOptions.find(
-    (opt) => opt.description === selectedIndustry,
+    (opt) => opt.description === selectedIndustry
   );
 
   const components = [
@@ -91,7 +92,7 @@ export function ComponentsSection() {
       recipeUrl:
         'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/components/ux/ImportantDateSelector/ANALYSIS.md',
       preview: (
-        <div className="border border-jpm-gray-200 rounded-page-md p-3 bg-jpm-gray-100">
+        <div className="rounded-page-md border border-jpm-gray-200 bg-jpm-gray-100 p-3">
           <div className="space-y-1">
             <div
               className="flex flex-nowrap items-end gap-1"
@@ -130,7 +131,7 @@ export function ComponentsSection() {
                   placeholder="DD"
                   value={day}
                   onChange={(e) => setDay(e.target.value.replace(/\D/g, ''))}
-                  className="w-full px-3 py-1.5 text-page-small border border-jpm-gray-300 rounded-page-sm focus:ring-2 focus:ring-jpm-brown focus:border-jpm-brown"
+                  className="w-full rounded-page-sm border border-jpm-gray-300 px-3 py-1.5 text-page-small focus:border-jpm-brown focus:ring-2 focus:ring-jpm-brown"
                 />
               </div>
 
@@ -147,7 +148,7 @@ export function ComponentsSection() {
                   placeholder="YYYY"
                   value={year}
                   onChange={(e) => setYear(e.target.value.replace(/\D/g, ''))}
-                  className="w-full px-3 py-1.5 text-page-small border border-jpm-gray-300 rounded-page-sm focus:ring-2 focus:ring-jpm-brown focus:border-jpm-brown"
+                  className="w-full rounded-page-sm border border-jpm-gray-300 px-3 py-1.5 text-page-small focus:border-jpm-brown focus:ring-2 focus:ring-jpm-brown"
                 />
               </div>
             </div>
@@ -165,9 +166,9 @@ export function ComponentsSection() {
       githubUrl:
         'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/OnboardingFlow/components/IndustryTypeSelect',
       preview: (
-        <div className="border border-jpm-gray-200 rounded-page-md p-3 bg-jpm-gray-100">
+        <div className="rounded-page-md border border-jpm-gray-200 bg-jpm-gray-100 p-3">
           <div className="w-full">
-            <label className="block text-page-small font-semibold mb-1 text-jpm-gray-900">
+            <label className="mb-1 block text-page-small font-semibold text-jpm-gray-900">
               Select Industry
             </label>
             <div className="relative">
@@ -176,7 +177,7 @@ export function ComponentsSection() {
                 role="combobox"
                 aria-expanded={industryOpen}
                 onClick={() => setIndustryOpen(!industryOpen)}
-                className="w-full justify-between font-normal px-3 py-1.5 text-page-small border border-jpm-gray-300 rounded-page-sm focus:ring-2 focus:ring-jpm-brown focus:border-jpm-brown bg-white hover:bg-jpm-gray-50 flex items-center"
+                className="flex w-full items-center justify-between rounded-page-sm border border-jpm-gray-300 bg-white px-3 py-1.5 text-page-small font-normal hover:bg-jpm-gray-50 focus:border-jpm-brown focus:ring-2 focus:ring-jpm-brown"
               >
                 {selectedIndustryData ? (
                   <div className="flex w-[calc(100%-2rem)] text-left">
@@ -197,12 +198,12 @@ export function ComponentsSection() {
               </button>
 
               {industryOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-jpm-gray-300 rounded-page-sm shadow-lg max-h-60 overflow-auto">
+                <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-page-sm border border-jpm-gray-300 bg-white shadow-lg">
                   <div className="p-2">
                     <input
                       type="text"
                       placeholder="Search industry type..."
-                      className="w-full px-2 py-1 text-page-small border border-jpm-gray-300 rounded"
+                      className="w-full rounded border border-jpm-gray-300 px-2 py-1 text-page-small"
                     />
                   </div>
                   {industryOptions.map((option) => (
@@ -213,7 +214,7 @@ export function ComponentsSection() {
                         setSelectedIndustry(option.description);
                         setIndustryOpen(false);
                       }}
-                      className="w-full text-left px-3 py-2 text-xs hover:bg-jpm-gray-100 flex items-center"
+                      className="flex w-full items-center px-3 py-2 text-left text-xs hover:bg-jpm-gray-100"
                     >
                       <Check
                         className={`mr-2 h-4 w-4 ${
@@ -245,16 +246,16 @@ export function ComponentsSection() {
       icon: <FileText className="h-5 w-5" />,
       status: 'coming-soon',
       preview: (
-        <div className="border border-jpm-gray-200 rounded-page-md p-3 bg-jpm-gray-100 opacity-50">
-          <label className="block text-page-small font-semibold mb-1 text-jpm-gray-900">
+        <div className="rounded-page-md border border-jpm-gray-200 bg-jpm-gray-100 p-3 opacity-50">
+          <label className="mb-1 block text-page-small font-semibold text-jpm-gray-900">
             Tax ID Format
           </label>
-          <div className="flex gap-2 mb-2">
+          <div className="mb-2 flex gap-2">
             <Button
               size="sm"
               variant="outline"
               disabled
-              className="text-page-small rounded-page-sm border-jpm-gray-300 text-jpm-gray bg-jpm-gray-200 cursor-not-allowed"
+              className="cursor-not-allowed rounded-page-sm border-jpm-gray-300 bg-jpm-gray-200 text-page-small text-jpm-gray"
             >
               EIN
             </Button>
@@ -262,7 +263,7 @@ export function ComponentsSection() {
               size="sm"
               variant="outline"
               disabled
-              className="text-page-small rounded-page-sm border-jpm-gray-300 text-jpm-gray bg-jpm-gray-200 cursor-not-allowed"
+              className="cursor-not-allowed rounded-page-sm border-jpm-gray-300 bg-jpm-gray-200 text-page-small text-jpm-gray"
             >
               SSN
             </Button>
@@ -270,7 +271,7 @@ export function ComponentsSection() {
               size="sm"
               variant="outline"
               disabled
-              className="text-page-small rounded-page-sm border-jpm-gray-300 text-jpm-gray bg-jpm-gray-200 cursor-not-allowed"
+              className="cursor-not-allowed rounded-page-sm border-jpm-gray-300 bg-jpm-gray-200 text-page-small text-jpm-gray"
             >
               ITIN
             </Button>
@@ -279,7 +280,7 @@ export function ComponentsSection() {
             type="text"
             placeholder="XX-XXXXXXX"
             disabled
-            className="border border-jpm-gray-300 rounded-page-sm px-3 py-1.5 text-page-small w-full bg-jpm-gray-200 cursor-not-allowed"
+            className="w-full cursor-not-allowed rounded-page-sm border border-jpm-gray-300 bg-jpm-gray-200 px-3 py-1.5 text-page-small"
           />
         </div>
       ),
@@ -292,8 +293,8 @@ export function ComponentsSection() {
       icon: <MapPin className="h-5 w-5" />,
       status: 'coming-soon',
       preview: (
-        <div className="border border-jpm-gray-200 rounded-page-md p-3 bg-jpm-gray-100 opacity-50">
-          <label className="block text-page-small font-semibold mb-1 text-jpm-gray-900">
+        <div className="rounded-page-md border border-jpm-gray-200 bg-jpm-gray-100 p-3 opacity-50">
+          <label className="mb-1 block text-page-small font-semibold text-jpm-gray-900">
             Enter Address
           </label>
           <div className="space-y-2">
@@ -301,20 +302,20 @@ export function ComponentsSection() {
               type="text"
               placeholder="Street Address"
               disabled
-              className="border border-jpm-gray-300 rounded-page-sm px-3 py-1.5 text-page-small w-full bg-jpm-gray-200 cursor-not-allowed"
+              className="w-full cursor-not-allowed rounded-page-sm border border-jpm-gray-300 bg-jpm-gray-200 px-3 py-1.5 text-page-small"
             />
             <div className="grid grid-cols-2 gap-2">
               <input
                 type="text"
                 placeholder="City"
                 disabled
-                className="border border-jpm-gray-300 rounded-page-sm px-3 py-1.5 text-page-small bg-jpm-gray-200 cursor-not-allowed"
+                className="cursor-not-allowed rounded-page-sm border border-jpm-gray-300 bg-jpm-gray-200 px-3 py-1.5 text-page-small"
               />
               <input
                 type="text"
                 placeholder="State"
                 disabled
-                className="border border-jpm-gray-300 rounded-page-sm px-3 py-1.5 text-page-small bg-jpm-gray-200 cursor-not-allowed"
+                className="cursor-not-allowed rounded-page-sm border border-jpm-gray-300 bg-jpm-gray-200 px-3 py-1.5 text-page-small"
               />
             </div>
           </div>
@@ -324,31 +325,31 @@ export function ComponentsSection() {
   ];
 
   return (
-    <section id="utility-components" className="py-8 bg-sp-bg">
+    <section id="utility-components" className="bg-sp-bg py-8">
       <div className="container mx-auto px-4">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-page-h2 mb-4 text-center text-jpm-gray-900">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="mb-4 text-center text-page-h2 text-jpm-gray-900">
             Explore Utility Components and Microinteractions
           </h2>
 
           {/* Grid Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {components.map((comp) => (
               <Card
                 key={comp.id}
-                className="border-0 shadow-page-card bg-jpm-white rounded-page-md h-auto flex flex-col"
+                className="flex h-auto flex-col rounded-page-md border-0 bg-jpm-white shadow-page-card"
               >
-                <div className="bg-sp-accent p-4 min-h-[4rem] flex-shrink-0 rounded-t-page-lg border-b border-sp-border">
+                <div className="min-h-[4rem] flex-shrink-0 rounded-t-page-lg border-b border-sp-border bg-sp-accent p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start text-base font-semibold leading-tight">
-                      <div className="bg-white p-1 rounded-page-sm mr-2 text-sp-brand flex-shrink-0 border border-sp-border">
+                      <div className="mr-2 flex-shrink-0 rounded-page-sm border border-sp-border bg-white p-1 text-sp-brand">
                         {comp.icon}
                       </div>
                       <span className="line-clamp-2">{comp.title}</span>
                     </div>
-                    <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                    <div className="ml-2 flex flex-shrink-0 items-center gap-1">
                       <span
-                        className={`px-1.5 py-0.5 text-xs font-medium rounded-page-sm ${
+                        className={`rounded-page-sm px-1.5 py-0.5 text-xs font-medium ${
                           comp.status === 'available'
                             ? 'bg-green-100 text-green-800'
                             : 'bg-orange-100 text-orange-800'
@@ -361,20 +362,20 @@ export function ComponentsSection() {
                     </div>
                   </div>
                 </div>
-                <CardContent className="p-4 flex-1 flex flex-col">
-                  <p className="text-sm text-jpm-gray leading-relaxed mb-4">
+                <CardContent className="flex flex-1 flex-col p-4">
+                  <p className="mb-4 text-sm leading-relaxed text-jpm-gray">
                     {comp.description}
                   </p>
 
-                  <div className="flex-1 mb-4">{comp.preview}</div>
+                  <div className="mb-4 flex-1">{comp.preview}</div>
 
                   {/* Action buttons for available components */}
                   {(comp.githubUrl || comp.recipeUrl) && (
-                    <div className="flex justify-center gap-3 mt-4 pt-3 border-t border-gray-100">
+                    <div className="mt-4 flex justify-center gap-3 border-t border-gray-100 pt-3">
                       {comp.githubUrl && (
-                        <div className="relative group">
+                        <div className="group relative">
                           <button
-                            className="p-2.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
+                            className="rounded-full bg-gray-100 p-2.5 text-gray-600 transition-colors hover:bg-gray-200"
                             onClick={() =>
                               window.open(comp.githubUrl, '_blank')
                             }
@@ -382,16 +383,16 @@ export function ComponentsSection() {
                           >
                             <Github className="h-5 w-5" />
                           </button>
-                          <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                          <div className="absolute -top-11 left-1/2 z-10 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
                             Source Code
                           </div>
                         </div>
                       )}
 
                       {comp.recipeUrl && (
-                        <div className="relative group">
+                        <div className="group relative">
                           <button
-                            className="p-2.5 rounded-full bg-sp-accent hover:bg-white text-sp-brand transition-colors border border-sp-border"
+                            className="rounded-full border border-sp-border bg-sp-accent p-2.5 text-sp-brand transition-colors hover:bg-white"
                             onClick={() =>
                               window.open(comp.recipeUrl, '_blank')
                             }
@@ -399,7 +400,7 @@ export function ComponentsSection() {
                           >
                             <FileText className="h-5 w-5" />
                           </button>
-                          <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                          <div className="absolute -top-11 left-1/2 z-10 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
                             Implementation Recipe
                           </div>
                         </div>

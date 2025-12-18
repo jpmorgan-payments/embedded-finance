@@ -1,7 +1,9 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Calendar, UserCog } from 'lucide-react';
+
 import { Link } from '@tanstack/react-router';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function RecipesSection() {
   const recipes = [
@@ -41,28 +43,28 @@ export function RecipesSection() {
   ];
 
   return (
-    <section id="recipes" className="py-8 bg-jpm-white">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-page-h2 text-jpm-gray-900 mb-4 text-center">
+    <section id="recipes" className="bg-jpm-white py-8">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="mb-4 text-center text-page-h2 text-jpm-gray-900">
             Engineering Recipes
           </h2>
-          <p className="text-page-body text-jpm-gray text-center mb-8 max-w-2xl mx-auto">
+          <p className="mx-auto mb-8 max-w-2xl text-center text-page-body text-jpm-gray">
             Practical guides and case studies for building embedded finance
             solutions and integrating our components.
           </p>
 
           {/* Grid Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
             {recipes.map((recipe) => (
               <Card
                 key={recipe.id}
-                className="overflow-hidden border-0 shadow-page-card bg-jpm-white rounded-page-md h-70 flex flex-col"
+                className="h-70 flex flex-col overflow-hidden rounded-page-md border-0 bg-jpm-white shadow-page-card"
               >
-                <CardHeader className="bg-sp-accent p-4 min-h-[4rem] flex-shrink-0 border-b border-sp-border">
+                <CardHeader className="min-h-[4rem] flex-shrink-0 border-b border-sp-border bg-sp-accent p-4">
                   <div className="flex items-start justify-between">
                     <CardTitle className="flex items-start text-base font-semibold leading-tight">
-                      <div className="bg-white p-1 rounded-page-sm mr-2 text-sp-brand flex-shrink-0 border border-sp-border">
+                      <div className="mr-2 flex-shrink-0 rounded-page-sm border border-sp-border bg-white p-1 text-sp-brand">
                         {recipe.icon ? (
                           recipe.icon
                         ) : (
@@ -73,29 +75,29 @@ export function RecipesSection() {
                     </CardTitle>
                   </div>
                 </CardHeader>
-                <CardContent className="p-4 flex-1 flex flex-col">
-                  <div className="flex-1 mb-4">
-                    <p className="text-sm text-jpm-gray leading-relaxed line-clamp-4">
+                <CardContent className="flex flex-1 flex-col p-4">
+                  <div className="mb-4 flex-1">
+                    <p className="line-clamp-4 text-sm leading-relaxed text-jpm-gray">
                       {recipe.excerpt}
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-2 mb-2">
+                  <div className="mb-2 flex flex-wrap gap-2">
                     {recipe.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="px-2 py-1 bg-sp-accent text-sp-brand text-page-small rounded-page-sm border border-sp-border"
+                        className="rounded-page-sm border border-sp-border bg-sp-accent px-2 py-1 text-page-small text-sp-brand"
                       >
                         {tag}
                       </span>
                     ))}
                   </div>
                   {/* Action button perfectly bottom-aligned and always visible */}
-                  <div className="w-full flex justify-center items-center mt-auto pt-3 pb-1 border-t border-gray-100">
+                  <div className="mt-auto flex w-full items-center justify-center border-t border-gray-100 pb-1 pt-3">
                     {recipe.external ? (
                       <Button
                         asChild
                         variant="outline"
-                        className="border-sp-brand text-sp-brand hover:bg-sp-accent rounded-page-md font-semibold flex items-center whitespace-nowrap"
+                        className="flex items-center whitespace-nowrap rounded-page-md border-sp-brand font-semibold text-sp-brand hover:bg-sp-accent"
                       >
                         <a
                           href={recipe.link}
@@ -109,7 +111,7 @@ export function RecipesSection() {
                       <Link to={recipe.link}>
                         <Button
                           variant="outline"
-                          className="border-sp-brand text-sp-brand hover:bg-sp-accent rounded-page-md font-semibold flex items-center whitespace-nowrap"
+                          className="flex items-center whitespace-nowrap rounded-page-md border-sp-brand font-semibold text-sp-brand hover:bg-sp-accent"
                         >
                           Read More
                         </Button>

@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import { ExternalLink, Play, RotateCcw } from 'lucide-react';
 
+import { Mermaid } from '@/components/mermaid';
+import { CodeBlock } from '@/components/partially-hosted/code-block';
+import type { IntegrationStep } from '@/components/partially-hosted/integration-steps';
+import { integrationSteps } from '@/components/partially-hosted/integration-steps';
+import { StepContent } from '@/components/partially-hosted/step-content';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -9,11 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { CodeBlock } from '@/components/partially-hosted/code-block';
-import type { IntegrationStep } from '@/components/partially-hosted/integration-steps';
-import { integrationSteps } from '@/components/partially-hosted/integration-steps';
-import { StepContent } from '@/components/partially-hosted/step-content';
-import { Mermaid } from '@/components/mermaid';
 
 export function PartiallyHostedDemoPage() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -62,7 +62,7 @@ sequenceDiagram
 
     const timer = setTimeout(() => {
       setActiveIndex((prev) =>
-        prev + 1 < integrationSteps.length ? prev + 1 : 0,
+        prev + 1 < integrationSteps.length ? prev + 1 : 0
       );
     }, 3200);
 
@@ -83,7 +83,7 @@ sequenceDiagram
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <header className="mb-10 text-left lg:mb-12">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between lg:gap-10">
-            <div className="min-w-0 lg:basis-1/3 lg:flex-none">
+            <div className="min-w-0 lg:flex-none lg:basis-1/3">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sp-brand">
                 Interactive Integration Guide
               </p>
@@ -146,13 +146,13 @@ sequenceDiagram
               </div>
             </div>
 
-            <div className="mt-2 w-full px-3 py-3 text-xs lg:mt-0 lg:basis-2/3 lg:flex-none">
+            <div className="mt-2 w-full px-3 py-3 text-xs lg:mt-0 lg:flex-none lg:basis-2/3">
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-sp-brand">
                 Sequence overview
               </p>
               <div className="min-h-[200px] w-full">
                 <Mermaid
-                  className="mermaid w-full overflow-hidden [&_svg]:w-full [&_svg]:h-auto"
+                  className="mermaid w-full overflow-hidden [&_svg]:h-auto [&_svg]:w-full"
                   highlightStep={activeSequenceStep}
                 >
                   {mermaidDiagram}
@@ -162,7 +162,7 @@ sequenceDiagram
           </div>
         </header>
 
-        <Card className="border-0 bg-jpm-white shadow-page-card rounded-page-md">
+        <Card className="rounded-page-md border-0 bg-jpm-white shadow-page-card">
           {/* Top step rail */}
           <CardHeader className="border-b border-sp-border/70 pb-3">
             <div className="flex flex-col gap-3 text-[15px]">
@@ -184,7 +184,7 @@ sequenceDiagram
                       type="button"
                       size="sm"
                       variant="outline"
-                      className="h-8 px-3 text-xs border-sp-border text-jpm-gray hover:bg-sp-accent"
+                      className="h-8 border-sp-border px-3 text-xs text-jpm-gray hover:bg-sp-accent"
                       disabled={activeIndex === 0}
                       onClick={() => {
                         setIsPlaying(false);
@@ -196,11 +196,11 @@ sequenceDiagram
                     <Button
                       type="button"
                       size="sm"
-                      className="h-8 px-4 text-xs bg-sp-brand text-white hover:bg-sp-brand-700"
+                      className="h-8 bg-sp-brand px-4 text-xs text-white hover:bg-sp-brand-700"
                       onClick={() => {
                         setIsPlaying(false);
                         setActiveIndex((prev) =>
-                          prev + 1 < integrationSteps.length ? prev + 1 : prev,
+                          prev + 1 < integrationSteps.length ? prev + 1 : prev
                         );
                       }}
                     >
@@ -247,7 +247,7 @@ sequenceDiagram
           {/* Main content: key points + code */}
           <CardContent className="bg-jpm-white">
             <div className="grid gap-8 lg:grid-cols-2">
-              <Card className="border-0 shadow-none bg-transparent">
+              <Card className="border-0 bg-transparent shadow-none">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-page-h3 font-bold text-jpm-gray-900">
                     {activeStep.title}

@@ -10,12 +10,12 @@ export function Footer({ theme }: FooterProps) {
 
   return (
     <footer
-      className={`border-t mt-6 py-4 ${themeStyles.getContentAreaStyles()}`}
+      className={`mt-6 border-t py-4 ${themeStyles.getContentAreaStyles()}`}
     >
-      <div className="max-w-4xl mx-auto px-4 text-center">
+      <div className="mx-auto max-w-4xl px-4 text-center">
         {/* Disclaimer text */}
         <div
-          className={`text-xs leading-tight space-y-0.5 ${themeStyles.getHeaderLabelStyles()}`}
+          className={`space-y-0.5 text-xs leading-tight ${themeStyles.getHeaderLabelStyles()}`}
         >
           <p>
             Deposit holding and other banking services are provided to you by

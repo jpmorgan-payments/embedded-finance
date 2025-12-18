@@ -5,8 +5,9 @@
  */
 
 import { useState } from 'react';
+import { ArrowRight, Code, Package, Server } from 'lucide-react';
+
 import { Link } from '@tanstack/react-router';
-import { Code, Package, Server, ArrowRight } from 'lucide-react';
 
 const integrationGroups = [
   {
@@ -34,7 +35,7 @@ export function IntegrationScenarios() {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="text-sm font-semibold text-sp-brand uppercase tracking-wide mb-1">
+      <div className="mb-1 text-sm font-semibold uppercase tracking-wide text-sp-brand">
         Integration Options
       </div>
 
@@ -48,28 +49,28 @@ export function IntegrationScenarios() {
             onMouseLeave={() => setHoveredId(null)}
           >
             <div
-              className={`relative bg-white border-2 border-sp-border rounded-page-md p-3.5 transition-all duration-200 ${
+              className={`relative rounded-page-md border-2 border-sp-border bg-white p-3.5 transition-all duration-200 ${
                 hoveredId === group.id
-                  ? 'shadow-lg transform -translate-y-1'
+                  ? '-translate-y-1 transform shadow-lg'
                   : 'shadow-sm hover:shadow-md'
               }`}
             >
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 mt-0.5">
-                  <div className="w-9 h-9 bg-sp-accent rounded-page-sm flex items-center justify-center text-sp-brand">
+                <div className="mt-0.5 flex-shrink-0">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-page-sm bg-sp-accent text-sp-brand">
                     {group.icon}
                   </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-sm text-jpm-gray-900 mb-1">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 text-sm font-semibold text-jpm-gray-900">
                     {group.title}
                   </div>
-                  <div className="text-sm text-jpm-gray leading-relaxed">
+                  <div className="text-sm leading-relaxed text-jpm-gray">
                     {group.description}
                   </div>
                 </div>
                 <ArrowRight
-                  className={`flex-shrink-0 h-4 w-4 text-sp-brand transition-transform duration-200 ${
+                  className={`h-4 w-4 flex-shrink-0 text-sp-brand transition-transform duration-200 ${
                     hoveredId === group.id ? 'translate-x-1' : ''
                   }`}
                 />
@@ -77,7 +78,7 @@ export function IntegrationScenarios() {
 
               {/* Connection line to next item */}
               {index < integrationGroups.length - 1 && (
-                <div className="absolute left-8 bottom-0 w-0.5 h-2.5 bg-sp-border translate-y-full" />
+                <div className="absolute bottom-0 left-8 h-2.5 w-0.5 translate-y-full bg-sp-border" />
               )}
             </div>
           </Link>
@@ -86,7 +87,7 @@ export function IntegrationScenarios() {
 
       <Link
         to="/solutions"
-        className="inline-flex items-center justify-center text-sp-brand hover:text-sp-brand-700 text-sm font-medium mt-2 group"
+        className="group mt-2 inline-flex items-center justify-center text-sm font-medium text-sp-brand hover:text-sp-brand-700"
       >
         <span className="underline">Compare integration methods</span>
         <ArrowRight className="ml-1 h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />

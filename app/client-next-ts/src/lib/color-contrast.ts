@@ -49,7 +49,7 @@ function parseColor(color: string): { r: number; g: number; b: number } | null {
 
   // Handle rgb/rgba
   const rgbMatch = trimmed.match(
-    /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/,
+    /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/
   );
   if (rgbMatch) {
     return {
@@ -61,7 +61,7 @@ function parseColor(color: string): { r: number; g: number; b: number } | null {
 
   // Handle hsl/hsla (convert to RGB)
   const hslMatch = trimmed.match(
-    /hsla?\((\d+),\s*(\d+)%,\s*(\d+)%(?:,\s*[\d.]+)?\)/,
+    /hsla?\((\d+),\s*(\d+)%,\s*(\d+)%(?:,\s*[\d.]+)?\)/
   );
   if (hslMatch) {
     const h = parseInt(hslMatch[1], 10) / 360;
@@ -157,7 +157,7 @@ function getRelativeLuminance(color: string): number {
  */
 export function calculateContrast(
   foreground: string,
-  background: string,
+  background: string
 ): ContrastResult | null {
   try {
     const fgLuminance = getRelativeLuminance(foreground);
@@ -232,7 +232,7 @@ const contrastCache = new Map<string, ContrastResult | null>();
  */
 export function getCachedContrast(
   foreground: string,
-  background: string,
+  background: string
 ): ContrastResult | null {
   const key = `${foreground}-${background}`;
   if (contrastCache.has(key)) {

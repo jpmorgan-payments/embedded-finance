@@ -1,6 +1,6 @@
 // JourneyView component for displaying workflow journey overview
 import React from 'react';
-import { DataTable } from './ui-components';
+
 import type { ArazzoWorkflow, OasOperationInfo } from '../types';
 import {
   detectHttpVerb,
@@ -9,6 +9,7 @@ import {
   getSchemaForPath,
   getStepPayload,
 } from '../utils/schema-utils';
+import { DataTable } from './ui-components';
 
 interface JourneyViewProps {
   activeWorkflow: ArazzoWorkflow;
@@ -25,11 +26,11 @@ export const JourneyView: React.FC<JourneyViewProps> = ({
   oasSpec,
 }) => {
   return (
-    <div className="w-full h-full flex flex-col max-h-full">
-      <div className="shrink-0 bg-jpm-brown-100 border-b border-jpm-brown-300 px-2 sm:px-4 py-2 text-sm font-medium text-jpm-brown-900">
+    <div className="flex h-full max-h-full w-full flex-col">
+      <div className="shrink-0 border-b border-jpm-brown-300 bg-jpm-brown-100 px-2 py-2 text-sm font-medium text-jpm-brown-900 sm:px-4">
         Journey Inputs (aggregated across POST payloads)
       </div>
-      <div className="flex-1 overflow-auto p-3 sm:p-4 max-h-[calc(100%-40px)]">
+      <div className="max-h-[calc(100%-40px)] flex-1 overflow-auto p-3 sm:p-4">
         {(() => {
           const postSteps = (activeWorkflow?.steps ?? []).filter((s) => {
             // Check if we have OAS operation data first
@@ -97,11 +98,11 @@ export const JourneyView: React.FC<JourneyViewProps> = ({
                         postSteps.find((s) => s.operationId === r.operation)
                           ?.stepId || ''
                       ]?.path && (
-                        <div className="text-[10px] mt-1">
+                        <div className="mt-1 text-[10px]">
                           {
                             stepOasOperations[
                               postSteps.find(
-                                (s) => s.operationId === r.operation,
+                                (s) => s.operationId === r.operation
                               )?.stepId || ''
                             ]?.path
                           }

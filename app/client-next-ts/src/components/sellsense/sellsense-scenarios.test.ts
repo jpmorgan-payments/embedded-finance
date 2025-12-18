@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import {
   getClientIdFromScenario,
   getScenarioData,
@@ -17,7 +18,7 @@ describe('SellSense Scenarios', () => {
 
   it('should return client ID for Onboarding - Seller with prefilled data scenario', () => {
     const clientId = getClientIdFromScenario(
-      'Onboarding - Seller with prefilled data',
+      'Onboarding - Seller with prefilled data'
     );
     expect(clientId).toBe('0030000132');
   });

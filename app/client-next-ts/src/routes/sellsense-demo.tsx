@@ -1,10 +1,11 @@
-import { createFileRoute } from '@tanstack/react-router';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { Link } from '@tanstack/react-router';
+import { z } from 'zod';
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createFileRoute, Link } from '@tanstack/react-router';
+
 import { DashboardLayout } from '../components/sellsense/dashboard-layout';
 import { getScenarioDisplayNames } from '../components/sellsense/scenarios-config';
-import { z } from 'zod';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useScrollLock } from '../hooks/use-scroll-lock';
 
 // Create a client
@@ -72,9 +73,9 @@ function PendingDemo() {
   useScrollLock(true);
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-white/90 backdrop-blur-sm flex items-center justify-center">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/90 backdrop-blur-sm">
       <div className="flex flex-col items-center gap-4">
-        <Loader2 className="h-12 w-12 text-sp-brand animate-spin" />
+        <Loader2 className="h-12 w-12 animate-spin text-sp-brand" />
         <p className="text-lg font-medium text-jpm-gray-900">Loading demo...</p>
       </div>
     </div>
@@ -90,18 +91,18 @@ function SellsenseDemo() {
         <DashboardLayout />
         {/* Only show bottom navigation if NOT in fullscreen mode */}
         {!fullscreen && (
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 shadow-md">
+          <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white shadow-md">
             {/* Mobile-first responsive bottom navigation */}
-            <div className="py-2 px-4 flex items-center justify-between md:py-3 md:px-6">
+            <div className="flex items-center justify-between px-4 py-2 md:px-6 md:py-3">
               <Link
                 to="/"
-                className="flex items-center gap-2 text-blue-800 hover:text-blue-600 font-medium text-sm md:text-base"
+                className="flex items-center gap-2 text-sm font-medium text-blue-800 hover:text-blue-600 md:text-base"
               >
                 <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
                 <span className="hidden sm:inline">Back to Showcase</span>
                 <span className="sm:hidden">Back</span>
               </Link>
-              <span className="text-xs md:text-sm text-slate-500">
+              <span className="text-xs text-slate-500 md:text-sm">
                 <span className="hidden sm:inline">
                   Sellsense Marketplace Demo
                 </span>

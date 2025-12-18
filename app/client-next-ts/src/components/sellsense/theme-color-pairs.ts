@@ -195,7 +195,7 @@ export const COLOR_PAIRS: ColorPair[] = [
  * Get color pairs that are valid for the given theme variables
  */
 export function getValidColorPairs(
-  variables: EBThemeVariables,
+  variables: EBThemeVariables
 ): Array<ColorPair & { foregroundValue: string; backgroundValue: string }> {
   return COLOR_PAIRS.filter((pair) => {
     const fg = variables[pair.foreground];

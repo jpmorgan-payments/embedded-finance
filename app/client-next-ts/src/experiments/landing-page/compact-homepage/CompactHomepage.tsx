@@ -4,10 +4,13 @@
  * Slick, compact landing page with interactive infographic
  */
 
+import { BookOpen, Box, Play, Wrench } from 'lucide-react';
+
 import { Link } from '@tanstack/react-router';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Play, Box, BookOpen, Wrench } from 'lucide-react';
+
 import { IntegrationScenarios } from './IntegrationScenarios';
 
 const navigationCards = [
@@ -54,27 +57,27 @@ export function CompactHomepage() {
     <div className="min-h-screen">
       {/* Hero Section with Infographic */}
       <section className="bg-sp-bg py-6 sm:py-8 lg:py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3 lg:gap-8">
             {/* Left side - Text content */}
             <div className="lg:col-span-2">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-page-hero text-sp-brand leading-tight mb-4">
+              <h1 className="mb-4 text-3xl leading-tight text-sp-brand sm:text-4xl md:text-5xl lg:text-page-hero">
                 Embedded Finance and Solutions
                 <span className="block font-bold text-sp-brand">
                   Showcases and Components
                 </span>
               </h1>
 
-              <p className="text-lg sm:text-xl lg:text-page-body text-jpm-blue leading-relaxed mb-5 max-w-2xl">
+              <p className="mb-5 max-w-2xl text-lg leading-relaxed text-jpm-blue sm:text-xl lg:text-page-body">
                 React components, working demos, and integration guides for J.P.
                 Morgan Embedded Finance APIs.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <Link to="/demos">
                   <Button
                     size="lg"
-                    className="w-full sm:w-auto bg-sp-brand hover:bg-sp-brand-700 !text-jpm-white font-semibold px-7 py-3 text-base rounded-page-md shadow-page-card border-0"
+                    className="w-full rounded-page-md border-0 bg-sp-brand px-7 py-3 text-base font-semibold !text-jpm-white shadow-page-card hover:bg-sp-brand-700 sm:w-auto"
                   >
                     EXPLORE DEMOS
                   </Button>
@@ -83,7 +86,7 @@ export function CompactHomepage() {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="w-full sm:w-auto border-2 border-sp-brand text-sp-brand hover:bg-sp-brand hover:text-jpm-white font-semibold px-7 py-3 text-base rounded-page-md transition-all duration-200"
+                    className="w-full rounded-page-md border-2 border-sp-brand px-7 py-3 text-base font-semibold text-sp-brand transition-all duration-200 hover:bg-sp-brand hover:text-jpm-white sm:w-auto"
                   >
                     VIEW DOCUMENTATION
                   </Button>
@@ -100,37 +103,37 @@ export function CompactHomepage() {
       </section>
 
       {/* Navigation Cards Grid */}
-      <section className="py-10 bg-jpm-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl sm:text-4xl font-bold text-jpm-gray-900 mb-2">
+      <section className="bg-jpm-white py-10">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 text-center">
+            <h2 className="mb-2 text-3xl font-bold text-jpm-gray-900 sm:text-4xl">
               Available Resources
             </h2>
-            <p className="text-base text-jpm-gray max-w-2xl mx-auto">
+            <p className="mx-auto max-w-2xl text-base text-jpm-gray">
               Components, demos, and documentation for building financial
               applications
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {navigationCards.map((card) => (
               <Link key={card.id} to={card.link}>
-                <Card className="h-full border-2 border-sp-border shadow-sm bg-jpm-white rounded-page-md hover:shadow-lg hover:border-sp-brand transition-all duration-200 cursor-pointer group">
-                  <CardHeader className="bg-sp-accent border-b-2 border-sp-border p-4">
+                <Card className="group h-full cursor-pointer rounded-page-md border-2 border-sp-border bg-jpm-white shadow-sm transition-all duration-200 hover:border-sp-brand hover:shadow-lg">
+                  <CardHeader className="border-b-2 border-sp-border bg-sp-accent p-4">
                     <div className="flex items-center justify-between">
-                      <div className="text-sp-brand flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
+                      <div className="flex-shrink-0 text-sp-brand transition-transform duration-200 group-hover:scale-110">
                         {card.icon}
                       </div>
-                      <span className="px-2.5 py-1 bg-white text-xs font-bold rounded-page-sm border border-sp-border text-sp-brand">
+                      <span className="rounded-page-sm border border-sp-border bg-white px-2.5 py-1 text-xs font-bold text-sp-brand">
                         {card.count}
                       </span>
                     </div>
                   </CardHeader>
                   <CardContent className="p-4">
-                    <CardTitle className="text-base font-bold text-jpm-gray-900 mb-2">
+                    <CardTitle className="mb-2 text-base font-bold text-jpm-gray-900">
                       {card.title}
                     </CardTitle>
-                    <p className="text-sm text-jpm-gray leading-relaxed">
+                    <p className="text-sm leading-relaxed text-jpm-gray">
                       {card.description}
                     </p>
                   </CardContent>

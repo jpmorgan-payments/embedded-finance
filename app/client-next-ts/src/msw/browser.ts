@@ -1,4 +1,5 @@
 import { setupWorker } from 'msw/browser';
+
 import { API_URL } from '../data/constants';
 // @ts-expect-error - handlers.js is a JavaScript file without type definitions
 import { createHandlers } from './handlers.js';
