@@ -153,7 +153,6 @@
     "@storybook/addon-docs": "^10.0.0",
     "@storybook/addon-links": "^10.0.0",
     "@storybook/react-vite": "^10.0.0",
-    "@storybook/test": "^10.0.0",
     "@tailwindcss/container-queries": "^0.1.1",
     "@tanstack/react-query-devtools": "^5.90.2",
     "@testing-library/dom": "^9.3.4",

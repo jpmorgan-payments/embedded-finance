@@ -8,7 +8,7 @@
 
 import { linkedAccountReadyForValidationMock } from '@/mocks/efLinkedAccounts.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { userEvent, waitFor, within } from '@storybook/test';
+import { userEvent, waitFor, within } from 'storybook/test';
 
 import { LinkedAccountWidget } from '../LinkedAccountWidget';
 import {

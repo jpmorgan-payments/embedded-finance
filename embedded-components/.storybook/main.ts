@@ -41,7 +41,7 @@ const config: StorybookConfig = {
       },
       optimizeDeps: {
         include: [
-          '@storybook/test',
+          'storybook/test',
           'msw',
           '@radix-ui/react-slot',
           'class-variance-authority',
