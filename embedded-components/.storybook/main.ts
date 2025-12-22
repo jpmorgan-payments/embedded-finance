@@ -1,7 +1,11 @@
 import { resolve } from 'path';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { withoutVitePlugins } from '@storybook/builder-vite';
 import type { StorybookConfig } from '@storybook/react-vite';
 import { mergeConfig } from 'vite';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const config: StorybookConfig = {
   stories: [
@@ -37,7 +41,7 @@ const config: StorybookConfig = {
       },
       optimizeDeps: {
         include: [
-          '@storybook/testing-library',
+          '@storybook/test',
           'msw',
           '@radix-ui/react-slot',
           'class-variance-authority',
