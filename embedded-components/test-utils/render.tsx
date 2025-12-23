@@ -1,7 +1,10 @@
 import { EBComponentsProvider } from '@/index';
-import { render as testingLibraryRender } from '@testing-library/react';
+import {
+  RenderResult,
+  render as testingLibraryRender,
+} from '@testing-library/react';
 
-export function render(ui: React.ReactNode) {
+export function render(ui: React.ReactNode): RenderResult {
   return testingLibraryRender(<>{ui}</>, {
     wrapper: ({ children }: { children: React.ReactNode }) => (
       <EBComponentsProvider
