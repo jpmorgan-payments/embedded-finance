@@ -5,3 +5,4 @@ export {
   useOwnershipEntityForm,
   useOwnershipTree,
 } from './hooks';
+export { useExistingEntities } from './useExistingEntities';

@@ -11,7 +11,11 @@ import {
   useSmbdoUpdateClientLegacy,
   useUpdatePartyLegacy,
 } from '@/api/generated/smbdo';
-import { ClientResponse, PartyResponse } from '@/api/generated/smbdo.schemas';
+import {
+  ClientResponse,
+  PartyResponse,
+  UpdateClientRequestSmbdoAddPartiesItem,
+} from '@/api/generated/smbdo.schemas';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Button, Form } from '@/components/ui';
 import { StepLayout, StepsReviewCards } from '@/core/OnboardingFlow/components';
@@ -363,7 +367,7 @@ interface StepperFormStepProps extends StepperStepProps {
   Component: FormStepComponent;
   existingPartyData: PartyResponse | undefined;
   setExistingPartyData: (partyData: PartyResponse | undefined) => void;
-  defaultPartyRequestBody?: Partial<PartyResponse>;
+  defaultPartyRequestBody?: Partial<UpdateClientRequestSmbdoAddPartiesItem>;
 }
 
 const StepperFormStep: React.FC<StepperFormStepProps> = ({
