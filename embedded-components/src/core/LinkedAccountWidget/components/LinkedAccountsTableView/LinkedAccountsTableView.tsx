@@ -66,8 +66,8 @@ import {
 import { RecipientDetailsDialog } from '@/components/RecipientDetailsDialog/RecipientDetailsDialog';
 import { MakePayment } from '@/core/MakePayment';
 
-import { useLinkedAccountsTable } from '../../hooks/useLinkedAccountsTable';
 import { MicrodepositsFormDialogTrigger } from '../../forms/MicrodepositsForm/MicrodepositsForm';
+import { useLinkedAccountsTable } from '../../hooks/useLinkedAccountsTable';
 import { LINKED_ACCOUNT_USER_JOURNEYS } from '../../LinkedAccountWidget.constants';
 import { LinkedAccountFormDialog } from '../LinkedAccountFormDialog/LinkedAccountFormDialog';
 import { RemoveAccountDialogTrigger } from '../RemoveAccountDialog/RemoveAccountDialog';
@@ -144,7 +144,9 @@ export interface LinkedAccountsTableViewProps {
  * />
  * ```
  */
-export const LinkedAccountsTableView: React.FC<LinkedAccountsTableViewProps> = ({
+export const LinkedAccountsTableView: React.FC<
+  LinkedAccountsTableViewProps
+> = ({
   data: propData,
   useServerPagination = false,
   renderPaymentAction,
@@ -158,9 +160,9 @@ export const LinkedAccountsTableView: React.FC<LinkedAccountsTableViewProps> = (
   const { t } = useTranslation('linked-accounts');
 
   // Track which account numbers are visible (show full number)
-  const [visibleAccountNumbers, setVisibleAccountNumbers] = React.useState<Set<string>>(
-    new Set()
-  );
+  const [visibleAccountNumbers, setVisibleAccountNumbers] = React.useState<
+    Set<string>
+  >(new Set());
 
   // Toggle account number visibility
   const handleToggleAccountNumber = React.useCallback((id: string) => {
@@ -197,8 +199,12 @@ export const LinkedAccountsTableView: React.FC<LinkedAccountsTableViewProps> = (
 
   // Determine which data and pagination values to use
   const isServerMode = useServerPagination;
-  const data = isServerMode ? serverPaginationData.linkedAccounts : (propData || []);
-  const totalCount = isServerMode ? serverPaginationData.totalCount : data.length;
+  const data = isServerMode
+    ? serverPaginationData.linkedAccounts
+    : propData || [];
+  const totalCount = isServerMode
+    ? serverPaginationData.totalCount
+    : data.length;
   const pageCount = isServerMode
     ? serverPaginationData.pageCount
     : Math.ceil(data.length / pagination.pageSize);
@@ -286,7 +292,9 @@ export const LinkedAccountsTableView: React.FC<LinkedAccountsTableViewProps> = (
                   <DropdownMenuItem
                     onSelect={(e) => e.preventDefault()}
                     className="eb-cursor-pointer"
-                    data-user-event={LINKED_ACCOUNT_USER_JOURNEYS.VERIFY_STARTED}
+                    data-user-event={
+                      LINKED_ACCOUNT_USER_JOURNEYS.VERIFY_STARTED
+                    }
                   >
                     <ArrowRightIcon className="eb-mr-2 eb-h-4 eb-w-4" />
                     {t('actions.verifyAccount', {
@@ -328,7 +336,11 @@ export const LinkedAccountsTableView: React.FC<LinkedAccountsTableViewProps> = (
                   </span>
                 </TooltipTrigger>
                 <TooltipContent side="left">
-                  <p>{t('actions.editDisabledTooltip', { defaultValue: 'Cannot edit inactive account' })}</p>
+                  <p>
+                    {t('actions.editDisabledTooltip', {
+                      defaultValue: 'Cannot edit inactive account',
+                    })}
+                  </p>
                 </TooltipContent>
               </Tooltip>
             )}
@@ -367,7 +379,13 @@ export const LinkedAccountsTableView: React.FC<LinkedAccountsTableViewProps> = (
         visibleAccountNumbers,
         onToggleAccountNumber: handleToggleAccountNumber,
       }),
-    [t, renderRowActions, renderPayButton, visibleAccountNumbers, handleToggleAccountNumber]
+    [
+      t,
+      renderRowActions,
+      renderPayButton,
+      visibleAccountNumbers,
+      handleToggleAccountNumber,
+    ]
   );
 
   // Initialize table instance
@@ -449,7 +467,9 @@ export const LinkedAccountsTableView: React.FC<LinkedAccountsTableViewProps> = (
                   colSpan={columns.length}
                   className="eb-h-24 eb-text-center"
                 >
-                  {t('table.noResults', { defaultValue: 'No linked accounts found.' })}
+                  {t('table.noResults', {
+                    defaultValue: 'No linked accounts found.',
+                  })}
                 </TableCell>
               </TableRow>
             )}
@@ -464,9 +484,13 @@ export const LinkedAccountsTableView: React.FC<LinkedAccountsTableViewProps> = (
             <span>
               {t('table.showing', {
                 defaultValue: 'Showing {{from}} to {{to}} of {{total}}',
-                from: table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1,
+                from:
+                  table.getState().pagination.pageIndex *
+                    table.getState().pagination.pageSize +
+                  1,
                 to: Math.min(
-                  (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
+                  (table.getState().pagination.pageIndex + 1) *
+                    table.getState().pagination.pageSize,
                   isServerMode ? totalCount : data.length
                 ),
                 total: isServerMode ? totalCount : data.length,
@@ -486,7 +510,9 @@ export const LinkedAccountsTableView: React.FC<LinkedAccountsTableViewProps> = (
                 }}
               >
                 <SelectTrigger className="eb-h-8 eb-w-[70px]">
-                  <SelectValue placeholder={table.getState().pagination.pageSize} />
+                  <SelectValue
+                    placeholder={table.getState().pagination.pageSize}
+                  />
                 </SelectTrigger>
                 <SelectContent side="top">
                   {[5, 10, 20, 30, 50].map((pageSize) => (
@@ -515,7 +541,9 @@ export const LinkedAccountsTableView: React.FC<LinkedAccountsTableViewProps> = (
                 className="eb-hidden eb-h-8 eb-w-8 lg:eb-flex"
                 onClick={() => table.setPageIndex(0)}
                 disabled={!table.getCanPreviousPage()}
-                aria-label={t('table.firstPage', { defaultValue: 'Go to first page' })}
+                aria-label={t('table.firstPage', {
+                  defaultValue: 'Go to first page',
+                })}
               >
                 <ChevronsLeftIcon className="eb-h-4 eb-w-4" />
               </Button>
@@ -525,7 +553,9 @@ export const LinkedAccountsTableView: React.FC<LinkedAccountsTableViewProps> = (
                 className="eb-h-8 eb-w-8"
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
-                aria-label={t('table.previousPage', { defaultValue: 'Go to previous page' })}
+                aria-label={t('table.previousPage', {
+                  defaultValue: 'Go to previous page',
+                })}
               >
                 <ChevronLeftIcon className="eb-h-4 eb-w-4" />
               </Button>
@@ -535,7 +565,9 @@ export const LinkedAccountsTableView: React.FC<LinkedAccountsTableViewProps> = (
                 className="eb-h-8 eb-w-8"
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
-                aria-label={t('table.nextPage', { defaultValue: 'Go to next page' })}
+                aria-label={t('table.nextPage', {
+                  defaultValue: 'Go to next page',
+                })}
               >
                 <ChevronRightIcon className="eb-h-4 eb-w-4" />
               </Button>
@@ -545,7 +577,9 @@ export const LinkedAccountsTableView: React.FC<LinkedAccountsTableViewProps> = (
                 className="eb-hidden eb-h-8 eb-w-8 lg:eb-flex"
                 onClick={() => table.setPageIndex(table.getPageCount() - 1)}
                 disabled={!table.getCanNextPage()}
-                aria-label={t('table.lastPage', { defaultValue: 'Go to last page' })}
+                aria-label={t('table.lastPage', {
+                  defaultValue: 'Go to last page',
+                })}
               >
                 <ChevronsRightIcon className="eb-h-4 eb-w-4" />
               </Button>

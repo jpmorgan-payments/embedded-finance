@@ -28,10 +28,7 @@ const formatDate = (date?: string, naText = 'N/A'): string => {
  */
 const getAccountHolderName = (recipient: Recipient): string => {
   if (recipient.partyDetails?.type === 'INDIVIDUAL') {
-    return [
-      recipient.partyDetails?.firstName,
-      recipient.partyDetails?.lastName,
-    ]
+    return [recipient.partyDetails?.firstName, recipient.partyDetails?.lastName]
       .filter(Boolean)
       .join(' ');
   }
@@ -73,8 +70,12 @@ export const AccountNumberCell: React.FC<AccountNumberCellProps> = ({
         }}
         aria-label={
           showFullNumber
-            ? t('table.hideAccountNumber', { defaultValue: 'Hide account number' })
-            : t('table.showAccountNumber', { defaultValue: 'Show account number' })
+            ? t('table.hideAccountNumber', {
+                defaultValue: 'Hide account number',
+              })
+            : t('table.showAccountNumber', {
+                defaultValue: 'Show account number',
+              })
         }
       >
         {showFullNumber ? (
@@ -180,7 +181,8 @@ export const getLinkedAccountsColumns = ({
       ),
       cell: ({ row }) => {
         const { status } = row.original;
-        if (!status) return <span className="eb-text-muted-foreground">{naText}</span>;
+        if (!status)
+          return <span className="eb-text-muted-foreground">{naText}</span>;
         return <StatusBadge status={status} showIcon />;
       },
       filterFn: (row, id, value) => {
@@ -194,7 +196,9 @@ export const getLinkedAccountsColumns = ({
       accessorFn: (row) => getSupportedPaymentMethods(row).join(', '),
       header: () => (
         <span className="eb-font-medium">
-          {t('table.columns.paymentMethods', { defaultValue: 'Payment Methods' })}
+          {t('table.columns.paymentMethods', {
+            defaultValue: 'Payment Methods',
+          })}
         </span>
       ),
       cell: ({ row }) => {
