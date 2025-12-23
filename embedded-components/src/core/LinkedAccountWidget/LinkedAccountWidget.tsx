@@ -324,8 +324,8 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                     data-user-event={LINKED_ACCOUNT_USER_JOURNEYS.LINK_STARTED}
                   >
                     <PlusIcon className="eb-mr-1.5 eb-h-4 eb-w-4" />
-                    <span className="@sm:eb-hidden">{t('link')}</span>
-                    <span className="eb-hidden @sm:eb-inline">
+                    <span className="@md:eb-hidden">{t('link')}</span>
+                    <span className="eb-hidden @md:eb-inline">
                       {t('linkNewAccount')}
                     </span>
                   </Button>
@@ -401,7 +401,9 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                     useServerPagination
                     renderPaymentAction={resolvedRenderPaymentAction}
                     onLinkedAccountSettled={resolvedOnAccountLinked}
-                    onMicrodepositVerifySettled={handleMicrodepositVerifySettled}
+                    onMicrodepositVerifySettled={
+                      handleMicrodepositVerifySettled
+                    }
                     onRemoveSuccess={handleRemoveSuccess}
                     defaultPageSize={defaultVisibleCount}
                     showPagination
