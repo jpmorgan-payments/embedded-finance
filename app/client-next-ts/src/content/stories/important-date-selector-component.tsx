@@ -1,13 +1,11 @@
 export default function ImportantDateSelectorComponent() {
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12">
-      
-
-      <p className="text-page-body text-jpm-gray-700 mb-6 leading-relaxed">
+    <div className="mx-auto max-w-4xl px-6 py-12">
+      <p className="mb-6 text-page-body leading-relaxed text-jpm-gray-700">
         Following our{' '}
         <a
           href="/blog/date-selector-challenges"
-          className="text-jpm-brown-600 hover:text-jpm-brown-700 underline"
+          className="text-jpm-brown-600 underline hover:text-jpm-brown-700"
         >
           previous post about date input challenges
         </a>
@@ -17,16 +15,16 @@ export default function ImportantDateSelectorComponent() {
         conversion rates.
       </p>
 
-      <h2 className="text-page-h2 font-semibold text-jpm-blue-800 mt-12 mb-6">
+      <h2 className="mb-6 mt-12 text-page-h2 font-semibold text-jpm-blue-800">
         The Design Philosophy Shift
       </h2>
 
-      <p className="text-page-body text-jpm-gray-700 mb-4 leading-relaxed">
+      <p className="mb-4 text-page-body leading-relaxed text-jpm-gray-700">
         After identifying the critical UX issues with traditional date pickers,
         we established core principles for our new component:
       </p>
 
-      <ol className="text-page-body text-jpm-gray-700 mb-6 leading-relaxed list-decimal pl-6 space-y-2">
+      <ol className="mb-6 list-decimal space-y-2 pl-6 text-page-body leading-relaxed text-jpm-gray-700">
         <li>
           <strong className="text-jpm-blue-800">
             Manual entry first, calendar picker optional
@@ -55,62 +53,62 @@ export default function ImportantDateSelectorComponent() {
         </li>
       </ol>
 
-      <p className="text-page-body text-jpm-gray-700 mb-6 leading-relaxed">
+      <p className="mb-6 text-page-body leading-relaxed text-jpm-gray-700">
         These principles directly address the issues outlined in our{' '}
         <a
           href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/components/ux/ImportantDateSelector/ANALYSIS.md#key-ux-strategies-for-date-input"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-jpm-brown-600 hover:text-jpm-brown-700 underline"
+          className="text-jpm-brown-600 underline hover:text-jpm-brown-700"
         >
           UX strategy analysis
         </a>
         .
       </p>
 
-      <h2 className="text-page-h2 font-semibold text-jpm-blue-800 mt-12 mb-6">
+      <h2 className="mb-6 mt-12 text-page-h2 font-semibold text-jpm-blue-800">
         Key Design Decisions
       </h2>
 
-      <h3 className="text-page-h3 font-semibold text-jpm-blue-700 mt-8 mb-4">
+      <h3 className="mb-4 mt-8 text-page-h3 font-semibold text-jpm-blue-700">
         1. Three Separate Fields Instead of One
       </h3>
 
-      <p className="text-page-body text-jpm-gray-700 mb-4 leading-relaxed">
+      <p className="mb-4 text-page-body leading-relaxed text-jpm-gray-700">
         <strong className="text-jpm-blue-800">The Decision:</strong> Split date
         entry into distinct Month, Day, and Year fields.
       </p>
 
-      <p className="text-page-body text-jpm-gray-700 mb-4 leading-relaxed">
+      <p className="mb-4 text-page-body leading-relaxed text-jpm-gray-700">
         <strong className="text-jpm-blue-800">Why It Works:</strong>
       </p>
-      <ul className="text-page-body text-jpm-gray-700 mb-4 leading-relaxed list-disc pl-6 space-y-1">
+      <ul className="mb-4 list-disc space-y-1 pl-6 text-page-body leading-relaxed text-jpm-gray-700">
         <li>Eliminates format confusion (MM/DD/YYYY vs DD/MM/YYYY)</li>
         <li>Allows targeted validation per field</li>
         <li>Clearer mental model for users</li>
         <li>Better screen reader experience</li>
       </ul>
 
-      <p className="text-page-body text-jpm-gray-700 mb-6 leading-relaxed">
+      <p className="mb-6 text-page-body leading-relaxed text-jpm-gray-700">
         <strong className="text-jpm-blue-800">Implementation Detail:</strong> We
         use a Select component for months (preventing typos) and text inputs
         with{' '}
-        <code className="bg-jpm-gray-100 text-jpm-blue-800 px-2 py-1 rounded text-page-small font-mono">
+        <code className="rounded bg-jpm-gray-100 px-2 py-1 font-mono text-page-small text-jpm-blue-800">
           inputmode="numeric"
         </code>{' '}
         for day and year fields.
       </p>
 
-      <h3 className="text-page-h3 font-semibold text-jpm-blue-700 mt-8 mb-4">
+      <h3 className="mb-4 mt-8 text-page-h3 font-semibold text-jpm-blue-700">
         2. No Auto-Advance Focus
       </h3>
 
-      <p className="text-page-body text-jpm-gray-700 mb-4 leading-relaxed">
+      <p className="mb-4 text-page-body leading-relaxed text-jpm-gray-700">
         <strong className="text-jpm-blue-800">The Decision:</strong> Don't
         automatically move focus between fields when users finish typing.
       </p>
 
-      <p className="text-page-body text-jpm-gray-700 mb-4 leading-relaxed">
+      <p className="mb-4 text-page-body leading-relaxed text-jpm-gray-700">
         <strong className="text-jpm-blue-800">
           Critical for Accessibility:
         </strong>{' '}
@@ -118,68 +116,68 @@ export default function ImportantDateSelectorComponent() {
         reader users. This was non-negotiable for WCAG compliance.
       </p>
 
-      <p className="text-page-body text-jpm-gray-700 mb-6 leading-relaxed">
+      <p className="mb-6 text-page-body leading-relaxed text-jpm-gray-700">
         <strong className="text-jpm-blue-800">User Benefit:</strong> Gives users
         control over their navigation path, reducing errors and frustration.
       </p>
 
-      <h3 className="text-page-h3 font-semibold text-jpm-blue-700 mt-8 mb-4">
+      <h3 className="mb-4 mt-8 text-page-h3 font-semibold text-jpm-blue-700">
         3. Input Type Strategy
       </h3>
 
-      <p className="text-page-body text-jpm-gray-700 mb-4 leading-relaxed">
+      <p className="mb-4 text-page-body leading-relaxed text-jpm-gray-700">
         <strong className="text-jpm-blue-800">The Challenge:</strong>{' '}
-        <code className="bg-jpm-gray-100 text-jpm-blue-800 px-2 py-1 rounded text-page-small font-mono">
+        <code className="rounded bg-jpm-gray-100 px-2 py-1 font-mono text-page-small text-jpm-blue-800">
           &lt;input type="number"&gt;
         </code>{' '}
         has inconsistent browser styling and behavior.
       </p>
 
-      <p className="text-page-body text-jpm-gray-700 mb-4 leading-relaxed">
+      <p className="mb-4 text-page-body leading-relaxed text-jpm-gray-700">
         <strong className="text-jpm-blue-800">Our Solution:</strong> Use{' '}
-        <code className="bg-jpm-gray-100 text-jpm-blue-800 px-2 py-1 rounded text-page-small font-mono">
+        <code className="rounded bg-jpm-gray-100 px-2 py-1 font-mono text-page-small text-jpm-blue-800">
           &lt;input type="text" inputmode="numeric" pattern="[0-9]*"&gt;
         </code>
       </p>
 
-      <p className="text-page-body text-jpm-gray-700 mb-4 leading-relaxed">
+      <p className="mb-4 text-page-body leading-relaxed text-jpm-gray-700">
         <strong className="text-jpm-blue-800">Why This Works:</strong>
       </p>
-      <ul className="text-page-body text-jpm-gray-700 mb-4 leading-relaxed list-disc pl-6 space-y-1">
+      <ul className="mb-4 list-disc space-y-1 pl-6 text-page-body leading-relaxed text-jpm-gray-700">
         <li>Triggers numeric keyboard on mobile devices</li>
         <li>Maintains consistent styling across browsers</li>
         <li>Avoids spinner controls that confuse users</li>
         <li>Better compatibility with validation patterns</li>
       </ul>
 
-      <p className="text-page-body text-jpm-gray-700 mb-6 leading-relaxed">
+      <p className="mb-6 text-page-body leading-relaxed text-jpm-gray-700">
         This approach follows{' '}
         <a
           href="https://technology.blog.gov.uk/2020/02/24/why-the-gov-uk-design-system-team-changed-the-input-type-for-numbers/"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-jpm-brown-600 hover:text-jpm-brown-700 underline"
+          className="text-jpm-brown-600 underline hover:text-jpm-brown-700"
         >
           GOV.UK Design System best practices
         </a>{' '}
         for numeric inputs.
       </p>
 
-      <h2 className="text-page-h2 font-semibold text-jpm-blue-800 mt-12 mb-6">
+      <h2 className="mb-6 mt-12 text-page-h2 font-semibold text-jpm-blue-800">
         Technical Implementation Highlights
       </h2>
 
-      <h3 className="text-page-h3 font-semibold text-jpm-blue-700 mt-8 mb-4">
+      <h3 className="mb-4 mt-8 text-page-h3 font-semibold text-jpm-blue-700">
         Smart Validation Logic
       </h3>
 
-      <p className="text-page-body text-jpm-gray-700 mb-4 leading-relaxed">
+      <p className="mb-4 text-page-body leading-relaxed text-jpm-gray-700">
         Our validation approach handles edge cases that break standard date
         pickers:
       </p>
 
-      <pre className="bg-jpm-gray-100 border border-jpm-gray-200 rounded-lg p-4 mb-6 overflow-x-auto">
-        <code className="text-page-small font-mono text-jpm-blue-800">
+      <pre className="mb-6 overflow-x-auto rounded-lg border border-jpm-gray-200 bg-jpm-gray-100 p-4">
+        <code className="font-mono text-page-small text-jpm-blue-800">
           {`// Leap year validation example
 const validateDate = (day: string, month: string, year: string) => {
   const date = new Date(yearNum, monthNum - 1, dayNum);
@@ -196,18 +194,18 @@ const validateDate = (day: string, month: string, year: string) => {
         </code>
       </pre>
 
-      <h3 className="text-page-h3 font-semibold text-jpm-blue-700 mt-8 mb-4">
+      <h3 className="mb-4 mt-8 text-page-h3 font-semibold text-jpm-blue-700">
         Accessibility Features
       </h3>
 
-      <p className="text-page-body text-jpm-gray-700 mb-4 leading-relaxed">
+      <p className="mb-4 text-page-body leading-relaxed text-jpm-gray-700">
         Our component includes comprehensive accessibility support:
       </p>
 
-      <ul className="text-page-body text-jpm-gray-700 mb-6 leading-relaxed list-disc pl-6 space-y-2">
+      <ul className="mb-6 list-disc space-y-2 pl-6 text-page-body leading-relaxed text-jpm-gray-700">
         <li>
           <strong className="text-jpm-blue-800">Semantic HTML:</strong> Proper{' '}
-          <code className="bg-jpm-gray-100 text-jpm-blue-800 px-2 py-1 rounded text-page-small font-mono">
+          <code className="rounded bg-jpm-gray-100 px-2 py-1 font-mono text-page-small text-jpm-blue-800">
             &lt;label&gt;
           </code>{' '}
           associations and ARIA attributes
@@ -226,18 +224,18 @@ const validateDate = (day: string, month: string, year: string) => {
         </li>
       </ul>
 
-      <h3 className="text-page-h3 font-semibold text-jpm-blue-700 mt-8 mb-4">
+      <h3 className="mb-4 mt-8 text-page-h3 font-semibold text-jpm-blue-700">
         Mobile Optimization
       </h3>
 
-      <p className="text-page-body text-jpm-gray-700 mb-4 leading-relaxed">
+      <p className="mb-4 text-page-body leading-relaxed text-jpm-gray-700">
         Key mobile improvements:
       </p>
 
-      <ul className="text-page-body text-jpm-gray-700 mb-6 leading-relaxed list-disc pl-6 space-y-2">
+      <ul className="mb-6 list-disc space-y-2 pl-6 text-page-body leading-relaxed text-jpm-gray-700">
         <li>
           <strong className="text-jpm-blue-800">Numeric Keyboard:</strong>{' '}
-          <code className="bg-jpm-gray-100 text-jpm-blue-800 px-2 py-1 rounded text-page-small font-mono">
+          <code className="rounded bg-jpm-gray-100 px-2 py-1 font-mono text-page-small text-jpm-blue-800">
             inputmode="numeric"
           </code>{' '}
           triggers the right keyboard
@@ -258,17 +256,17 @@ const validateDate = (day: string, month: string, year: string) => {
         </li>
       </ul>
 
-      <h2 className="text-page-h2 font-semibold text-jpm-blue-800 mt-12 mb-6">
+      <h2 className="mb-6 mt-12 text-page-h2 font-semibold text-jpm-blue-800">
         Measurable Results
       </h2>
 
-      <p className="text-page-body text-jpm-gray-700 mb-4 leading-relaxed">
+      <p className="mb-4 text-page-body leading-relaxed text-jpm-gray-700">
         After deploying our new ImportantDateSelector component, we tracked
         significant improvements:
       </p>
 
-      <div className="bg-sellsense-secondary-bg border border-sellsense-secondary/20 rounded-lg p-6 mb-6">
-        <ul className="text-page-body text-jpm-gray-700 leading-relaxed list-disc pl-6 space-y-2">
+      <div className="mb-6 rounded-lg border border-sellsense-secondary/20 bg-sellsense-secondary-bg p-6">
+        <ul className="list-disc space-y-2 pl-6 text-page-body leading-relaxed text-jpm-gray-700">
           <li>
             <strong className="text-jpm-blue-800">
               Significant reduction in form abandonment
@@ -296,16 +294,16 @@ const validateDate = (day: string, month: string, year: string) => {
         </ul>
       </div>
 
-      <h2 className="text-page-h2 font-semibold text-jpm-blue-800 mt-12 mb-6">
+      <h2 className="mb-6 mt-12 text-page-h2 font-semibold text-jpm-blue-800">
         Component API Design
       </h2>
 
-      <p className="text-page-body text-jpm-gray-700 mb-4 leading-relaxed">
+      <p className="mb-4 text-page-body leading-relaxed text-jpm-gray-700">
         We designed the component API to be both flexible and opinionated:
       </p>
 
-      <pre className="bg-jpm-gray-100 border border-jpm-gray-200 rounded-lg p-4 mb-6 overflow-x-auto">
-        <code className="text-page-small font-mono text-jpm-blue-800">
+      <pre className="mb-6 overflow-x-auto rounded-lg border border-jpm-gray-200 bg-jpm-gray-100 p-4">
+        <code className="font-mono text-page-small text-jpm-blue-800">
           {`<ImportantDateSelector
   label="Date of Birth"
   value={dateValue}
@@ -320,11 +318,11 @@ const validateDate = (day: string, month: string, year: string) => {
         </code>
       </pre>
 
-      <h2 className="text-page-h2 font-semibold text-jpm-blue-800 mt-12 mb-6">
+      <h2 className="mb-6 mt-12 text-page-h2 font-semibold text-jpm-blue-800">
         Lessons Learned
       </h2>
 
-      <ol className="text-page-body text-jpm-gray-700 mb-6 leading-relaxed list-decimal pl-6 space-y-3">
+      <ol className="mb-6 list-decimal space-y-3 pl-6 text-page-body leading-relaxed text-jpm-gray-700">
         <li>
           <strong className="text-jpm-blue-800">
             Context Matters More Than Convention:
@@ -355,22 +353,22 @@ const validateDate = (day: string, month: string, year: string) => {
         </li>
       </ol>
 
-      <h2 className="text-page-h2 font-semibold text-jpm-blue-800 mt-12 mb-6">
+      <h2 className="mb-6 mt-12 text-page-h2 font-semibold text-jpm-blue-800">
         Implementation Resources
       </h2>
 
-      <p className="text-page-body text-jpm-gray-700 mb-4 leading-relaxed">
+      <p className="mb-4 text-page-body leading-relaxed text-jpm-gray-700">
         For teams interested in implementing similar solutions, check out our
         complete implementation:
       </p>
 
-      <ul className="text-page-body text-jpm-gray-700 mb-6 leading-relaxed list-disc pl-6 space-y-2">
+      <ul className="mb-6 list-disc space-y-2 pl-6 text-page-body leading-relaxed text-jpm-gray-700">
         <li>
           <a
             href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/components/ux/ImportantDateSelector/ImportantDateSelector.tsx"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-jpm-brown-600 hover:text-jpm-brown-700 underline"
+            className="text-jpm-brown-600 underline hover:text-jpm-brown-700"
           >
             Complete component source code
           </a>
@@ -380,7 +378,7 @@ const validateDate = (day: string, month: string, year: string) => {
             href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/components/ux/ImportantDateSelector/PRD.md"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-jpm-brown-600 hover:text-jpm-brown-700 underline"
+            className="text-jpm-brown-600 underline hover:text-jpm-brown-700"
           >
             Product requirements documentation
           </a>
@@ -390,33 +388,33 @@ const validateDate = (day: string, month: string, year: string) => {
             href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/components/ux/ImportantDateSelector/ANALYSIS.md"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-jpm-brown-600 hover:text-jpm-brown-700 underline"
+            className="text-jpm-brown-600 underline hover:text-jpm-brown-700"
           >
             Detailed UX analysis and user research findings
           </a>
         </li>
       </ul>
 
-      <h2 className="text-page-h2 font-semibold text-jpm-blue-800 mt-12 mb-6">
+      <h2 className="mb-6 mt-12 text-page-h2 font-semibold text-jpm-blue-800">
         What's Next?
       </h2>
 
-      <p className="text-page-body text-jpm-gray-700 mb-4 leading-relaxed">
+      <p className="mb-4 text-page-body leading-relaxed text-jpm-gray-700">
         Building this component taught us that solving real user problems often
         requires questioning established patterns. Our ImportantDateSelector
         isn't just a better date picker – it's a specialized tool designed for
         specific contexts.
       </p>
 
-      <p className="text-page-body text-jpm-gray-700 mb-6 leading-relaxed">
+      <p className="mb-6 text-page-body leading-relaxed text-jpm-gray-700">
         We're now applying these learnings to other form components, always
         starting with user research and real-world testing rather than
         assumptions about what "should" work.
       </p>
 
-      <hr className="border-jpm-gray-200 my-8" />
+      <hr className="my-8 border-jpm-gray-200" />
 
-      <p className="text-page-body text-jpm-gray-600 italic leading-relaxed">
+      <p className="text-page-body italic leading-relaxed text-jpm-gray-600">
         Want to discuss component design patterns or share your own UX
         challenges? Connect with our team or contribute to our open-source
         embedded finance components.

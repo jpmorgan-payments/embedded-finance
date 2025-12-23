@@ -1,5 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+
 import { Button } from './button';
 
 describe('Button Component', () => {
@@ -36,7 +37,7 @@ describe('Button Component', () => {
     expect(button).toBeDisabled();
     expect(button).toHaveClass(
       'disabled:pointer-events-none',
-      'disabled:opacity-50',
+      'disabled:opacity-50'
     );
   });
 
@@ -59,7 +60,7 @@ describe('Button Component', () => {
     render(
       <Button size="icon" aria-label="Close">
         ×
-      </Button>,
+      </Button>
     );
     const button = screen.getByRole('button', { name: /close/i });
     expect(button).toHaveClass('h-9', 'w-9');
@@ -87,7 +88,7 @@ describe('Button Component', () => {
         const { unmount } = render(
           <Button variant={variant} size={size}>
             {variant} {size}
-          </Button>,
+          </Button>
         );
         const button = screen.getByRole('button');
         expect(button).toBeInTheDocument();

@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { AlertTriangle, Check, Copy, Info, Sparkles, X } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog,
   DialogContent,
@@ -12,7 +11,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Sparkles, Copy, Check, X, Info, AlertTriangle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface AiPromptDialogProps {
   isOpen: boolean;
@@ -205,8 +206,8 @@ export function AiPromptDialog({ isOpen, onClose }: AiPromptDialogProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
-        <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b border-gray-200">
+      <DialogContent className="flex max-h-[90vh] max-w-3xl flex-col overflow-hidden p-0">
+        <DialogHeader className="flex-shrink-0 border-b border-gray-200 px-6 pb-4 pt-6">
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-gray-700" />
             Extract Design Tokens with AI
@@ -218,7 +219,7 @@ export function AiPromptDialog({ isOpen, onClose }: AiPromptDialogProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 min-h-0">
+        <ScrollArea className="min-h-0 flex-1">
           <div className="flex flex-col gap-4 p-6">
             {/* Website URL Input */}
             <div className="flex flex-col gap-2">
@@ -282,9 +283,9 @@ export function AiPromptDialog({ isOpen, onClose }: AiPromptDialogProps) {
                   )}
                 </Button>
               </div>
-              <ScrollArea className="h-[250px] border border-gray-200 rounded-lg bg-gray-50">
+              <ScrollArea className="h-[250px] rounded-lg border border-gray-200 bg-gray-50">
                 <div className="p-4">
-                  <pre className="text-xs text-gray-800 whitespace-pre-wrap font-mono">
+                  <pre className="whitespace-pre-wrap font-mono text-xs text-gray-800">
                     {aiPrompt}
                   </pre>
                 </div>
@@ -292,12 +293,12 @@ export function AiPromptDialog({ isOpen, onClose }: AiPromptDialogProps) {
             </div>
 
             {/* Usage Instructions */}
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex-shrink-0">
+            <div className="flex-shrink-0 rounded-lg border border-blue-200 bg-blue-50 p-3">
               <div className="flex items-start gap-2">
-                <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-blue-900 min-w-0 flex-1">
-                  <p className="font-medium mb-1">How to use:</p>
-                  <ol className="list-decimal list-inside space-y-1 text-blue-800">
+                <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
+                <div className="min-w-0 flex-1 text-xs text-blue-900">
+                  <p className="mb-1 font-medium">How to use:</p>
+                  <ol className="list-inside list-decimal space-y-1 text-blue-800">
                     <li>
                       Enter a website URL above (optional) or leave empty to
                       provide the source manually
@@ -338,7 +339,7 @@ export function AiPromptDialog({ isOpen, onClose }: AiPromptDialogProps) {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
               <p className="mb-3">
                 The AI-generated theme JSON and instructions provided in this
                 tool are intended for reference and experimentation purposes
@@ -349,7 +350,7 @@ export function AiPromptDialog({ isOpen, onClose }: AiPromptDialogProps) {
               <p className="mb-2 font-medium">
                 By using this tool, you acknowledge that:
               </p>
-              <ul className="list-disc list-inside space-y-2 ml-2 mb-3">
+              <ul className="mb-3 ml-2 list-inside list-disc space-y-2">
                 <li>
                   AI-generated theme JSON may contain errors, inaccuracies, or
                   incomplete design tokens

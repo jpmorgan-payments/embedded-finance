@@ -1,6 +1,8 @@
 'use client';
 
+import React from 'react'; // Added missing import for React
 import { X } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -9,10 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
 import type { ClientScenario, ContentTone } from './dashboard-layout';
-import type { ThemeOption } from './use-sellsense-themes';
 import { getScenarioDisplayNames } from './scenarios-config';
-import React from 'react'; // Added missing import for React
+import type { ThemeOption } from './use-sellsense-themes';
 
 interface SettingsDrawerProps {
   isOpen: boolean;
@@ -73,19 +75,19 @@ export function SettingsDrawer({
     <>
       {/* Backdrop overlay */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        className="fixed inset-0 z-40 bg-black bg-opacity-50"
         onClick={handleBackdropClick}
         aria-hidden="true"
       />
 
       {/* Drawer */}
       <div
-        className={`fixed inset-y-0 right-0 w-96 bg-gray-50 border-l border-gray-200 shadow-xl transform transition-transform duration-300 ease-in-out z-50 ${
+        className={`fixed inset-y-0 right-0 z-50 w-96 transform border-l border-gray-200 bg-gray-50 shadow-xl transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between border-b border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900">Demo Settings</h2>
           <Button
             variant="ghost"
@@ -98,14 +100,14 @@ export function SettingsDrawer({
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6 overflow-y-auto h-full">
+        <div className="h-full space-y-6 overflow-y-auto p-6">
           {/* Client Scenario Section */}
           <div className="space-y-3">
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-1">
+              <h3 className="mb-1 text-sm font-medium text-gray-700">
                 Client Scenario
               </h3>
-              <p className="text-xs text-gray-500 mb-3">
+              <p className="mb-3 text-xs text-gray-500">
                 Choose the client onboarding scenario to demonstrate
               </p>
             </div>
@@ -131,8 +133,8 @@ export function SettingsDrawer({
           {/* Theme Section */}
           <div className="space-y-3">
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-1">Theme</h3>
-              <p className="text-xs text-gray-500 mb-3">
+              <h3 className="mb-1 text-sm font-medium text-gray-700">Theme</h3>
+              <p className="mb-3 text-xs text-gray-500">
                 Choose the visual theme for components
               </p>
             </div>
@@ -157,10 +159,10 @@ export function SettingsDrawer({
           {/* Content Tone Section */}
           <div className="space-y-3">
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-1">
+              <h3 className="mb-1 text-sm font-medium text-gray-700">
                 Content Tone
               </h3>
-              <p className="text-xs text-gray-500 mb-3">
+              <p className="mb-3 text-xs text-gray-500">
                 Adjust the language style of component text
               </p>
             </div>
@@ -179,12 +181,12 @@ export function SettingsDrawer({
           </div>
 
           {/* Info Section */}
-          <div className="pt-6 border-t border-gray-200">
+          <div className="border-t border-gray-200 pt-6">
             <div className="space-y-3">
               <h3 className="text-sm font-medium text-gray-700">
                 About This Demo
               </h3>
-              <div className="text-xs text-gray-500 space-y-2">
+              <div className="space-y-2 text-xs text-gray-500">
                 <p>
                   This showcase demonstrates the SellSense marketplace
                   integration with JP Morgan's embedded finance components.

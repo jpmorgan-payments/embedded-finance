@@ -1,33 +1,33 @@
+import merge from 'lodash/merge';
 import { http, HttpResponse } from 'msw';
-import {
-  efClientQuestionsMock,
-  efDocumentClientDetail,
-  mockTransactionsResponse,
-  mockEmptyTransactionsResponse,
-  createMockTransactionsResponse,
-  mockLinkedAccounts,
-  mockEmptyLinkedAccounts,
-  createMockLinkedAccountsResponse,
-  mockRecipientsResponse,
-} from '../mocks';
-import {
-  mockAccounts,
-  mockAccountBalance,
-  mockAccountBalance2,
-} from '../mocks/accounts.mock';
 
 import {
-  db,
-  handleMagicValues,
-  resetDb,
-  getDbStatus,
-  logDbState,
+  createMockLinkedAccountsResponse,
+  createMockTransactionsResponse,
+  efClientQuestionsMock,
+  efDocumentClientDetail,
+  mockEmptyLinkedAccounts,
+  mockEmptyTransactionsResponse,
+  mockLinkedAccounts,
+  mockRecipientsResponse,
+  mockTransactionsResponse,
+} from '../mocks';
+import {
+  mockAccountBalance,
+  mockAccountBalance2,
+  mockAccounts,
+} from '../mocks/accounts.mock';
+import {
   createTransactionWithBalanceUpdate,
-  updateTransactionStatus,
-  updateAccountBalance,
+  db,
   DEFAULT_SCENARIO,
+  getDbStatus,
+  handleMagicValues,
+  logDbState,
+  resetDb,
+  updateAccountBalance,
+  updateTransactionStatus,
 } from './db';
-import merge from 'lodash/merge';
 
 export const createHandlers = (apiUrl) => [
   http.get(`${apiUrl}/ef/do/v1/clients/:clientId`, (req) => {
@@ -203,8 +203,8 @@ export const createHandlers = (apiUrl) => [
         ).filter(
           (existing) =>
             !data.questionResponses.some(
-              (incoming) => incoming.questionId === existing.questionId,
-            ),
+              (incoming) => incoming.questionId === existing.questionId
+            )
         );
 
         // Combine existing responses (minus the updated ones) with new responses
@@ -224,7 +224,7 @@ export const createHandlers = (apiUrl) => [
 
         // Remove answered question IDs from outstanding
         const answeredQuestionIds = data.questionResponses.map(
-          (response) => response.questionId,
+          (response) => response.questionId
         );
         updatedClient.outstanding.questionIds = (
           updatedClient.outstanding.questionIds || []
@@ -250,7 +250,7 @@ export const createHandlers = (apiUrl) => [
 
         // Remove attested document IDs from outstanding
         const attestedDocumentIds = data.addAttestations.map(
-          (attestation) => attestation.documentId,
+          (attestation) => attestation.documentId
         );
         updatedClient.outstanding.attestationDocumentIds = (
           updatedClient.outstanding.attestationDocumentIds || []
@@ -260,10 +260,10 @@ export const createHandlers = (apiUrl) => [
       // Handle removing attestations if present
       if (data.removeAttestations) {
         const attestationIdsToRemove = data.removeAttestations.map(
-          (a) => a.documentId,
+          (a) => a.documentId
         );
         updatedClient.attestations = (updatedClient.attestations || []).filter(
-          (a) => !attestationIdsToRemove.includes(a.documentId),
+          (a) => !attestationIdsToRemove.includes(a.documentId)
         );
 
         // Ensure outstanding object exists
@@ -305,7 +305,7 @@ export const createHandlers = (apiUrl) => [
       return HttpResponse.json(expandedClient, {
         headers: { 'Content-Type': 'application/json' },
       });
-    },
+    }
   ),
 
   http.post(
@@ -349,7 +349,7 @@ export const createHandlers = (apiUrl) => [
 
       logDbState('Party Update');
       return HttpResponse.json(updatedParty);
-    },
+    }
   ),
 
   http.get(`${apiUrl}/ef/do/v1/questions`, (req) => {
@@ -358,7 +358,7 @@ export const createHandlers = (apiUrl) => [
     return HttpResponse.json({
       metadata: efClientQuestionsMock.metadata,
       questions: efClientQuestionsMock?.questions.filter((q) =>
-        questionIds?.includes(q.id),
+        questionIds?.includes(q.id)
       ),
     });
   }),
@@ -379,7 +379,7 @@ export const createHandlers = (apiUrl) => [
           'Content-Type': 'application/pdf',
           'Content-Disposition': 'attachment; filename="sample.pdf"',
         },
-      },
+      }
     );
   }),
 
@@ -480,14 +480,14 @@ export const createHandlers = (apiUrl) => [
         // Check if there are any parties with outstanding validation
         const parties = updatedClient.parties
           .map((partyId) =>
-            db.party.findFirst({ where: { id: { equals: partyId } } }),
+            db.party.findFirst({ where: { id: { equals: partyId } } })
           )
           .filter(Boolean);
 
         const hasPartyValidationPending = parties.some((party) =>
           (party.validationResponse || []).some(
-            (validation) => validation.validationStatus === 'NEEDS_INFO',
-          ),
+            (validation) => validation.validationStatus === 'NEEDS_INFO'
+          )
         );
 
         // If no outstanding requests and no pending validations, update client status
@@ -515,7 +515,7 @@ export const createHandlers = (apiUrl) => [
               .map((validation) => ({
                 ...validation,
                 documentRequestIds: validation.documentRequestIds.filter(
-                  (id) => id !== documentRequestId,
+                  (id) => id !== documentRequestId
                 ),
               }))
               .filter((validation) => validation.documentRequestIds.length > 0),
@@ -531,7 +531,7 @@ export const createHandlers = (apiUrl) => [
 
       logDbState('Document Request Submission');
       return HttpResponse.json(updatedRequest);
-    },
+    }
   ),
 
   http.get(`${apiUrl}/clients/:clientId`, () => {
@@ -554,7 +554,7 @@ export const createHandlers = (apiUrl) => [
     const status = getDbStatus();
     const recipients = db.recipient.getAll();
     const linkedAccounts = recipients.filter(
-      (r) => r.type === 'LINKED_ACCOUNT',
+      (r) => r.type === 'LINKED_ACCOUNT'
     );
     const regularRecipients = recipients.filter((r) => r.type === 'RECIPIENT');
 
@@ -614,7 +614,7 @@ export const createHandlers = (apiUrl) => [
       }
 
       return HttpResponse.json(verificationResponse);
-    },
+    }
   ),
 
   // --- Onboarding Session Transfer Mock Endpoint ---
@@ -635,9 +635,9 @@ export const createHandlers = (apiUrl) => [
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
           },
-        },
+        }
       );
-    },
+    }
   ),
 
   // Add OPTIONS handler for CORS preflight
@@ -696,7 +696,7 @@ export const createHandlers = (apiUrl) => [
       console.error('Error creating EF recipient:', error);
       return HttpResponse.json(
         { error: 'Failed to create recipient', message: error.message },
-        { status: 500, headers: { 'Content-Type': 'application/json' } },
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
   }),
@@ -718,7 +718,7 @@ export const createHandlers = (apiUrl) => [
       if (!recipient) {
         return HttpResponse.json(
           { error: 'Recipient not found' },
-          { status: 404, headers: { 'Content-Type': 'application/json' } },
+          { status: 404, headers: { 'Content-Type': 'application/json' } }
         );
       }
 
@@ -750,7 +750,7 @@ export const createHandlers = (apiUrl) => [
             headers: {
               'Content-Type': 'application/json',
             },
-          },
+          }
         );
       } else {
         // Return error response
@@ -764,10 +764,10 @@ export const createHandlers = (apiUrl) => [
             headers: {
               'Content-Type': 'application/json',
             },
-          },
+          }
         );
       }
-    },
+    }
   ),
 
   // EF Get specific recipient
@@ -784,7 +784,7 @@ export const createHandlers = (apiUrl) => [
     if (!recipient) {
       return HttpResponse.json(
         { error: 'Recipient not found' },
-        { status: 404, headers: { 'Content-Type': 'application/json' } },
+        { status: 404, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
@@ -815,25 +815,25 @@ export const createHandlers = (apiUrl) => [
     if (accountId) {
       filteredTransactions = filteredTransactions.filter(
         (t) =>
-          t.creditorAccountId === accountId || t.debtorAccountId === accountId,
+          t.creditorAccountId === accountId || t.debtorAccountId === accountId
       );
     }
 
     if (status) {
       filteredTransactions = filteredTransactions.filter(
-        (t) => t.status === status,
+        (t) => t.status === status
       );
     }
 
     if (type) {
       filteredTransactions = filteredTransactions.filter(
-        (t) => t.type === type,
+        (t) => t.type === type
       );
     }
 
     console.log(
       'Filtered transactions from database:',
-      filteredTransactions.length,
+      filteredTransactions.length
     );
 
     // Handle optional pagination - if no page/limit provided, return all transactions
@@ -868,7 +868,7 @@ export const createHandlers = (apiUrl) => [
     const endIndex = startIndex + limit;
     const paginatedTransactions = filteredTransactions.slice(
       startIndex,
-      endIndex,
+      endIndex
     );
 
     const response = {
@@ -896,7 +896,7 @@ export const createHandlers = (apiUrl) => [
     }
     return HttpResponse.json(
       { error: 'Transaction not found' },
-      { status: 404 },
+      { status: 404 }
     );
   }),
 
@@ -909,7 +909,7 @@ export const createHandlers = (apiUrl) => [
       const createdTransaction = createTransactionWithBalanceUpdate(data);
       console.log(
         'Created transaction with balance updates:',
-        createdTransaction,
+        createdTransaction
       );
 
       return HttpResponse.json(createdTransaction, {
@@ -920,7 +920,7 @@ export const createHandlers = (apiUrl) => [
       console.error('Error creating transaction:', error);
       return HttpResponse.json(
         { error: 'Failed to create transaction', message: error.message },
-        { status: 500, headers: { 'Content-Type': 'application/json' } },
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
   }),
@@ -952,13 +952,13 @@ export const createHandlers = (apiUrl) => [
     // Filter by status if specified
     if (status) {
       filteredRecipients = filteredRecipients.filter(
-        (r) => r.status === status,
+        (r) => r.status === status
       );
     }
 
     console.log(
       'Filtered recipients from database:',
-      filteredRecipients.length,
+      filteredRecipients.length
     );
 
     // Handle optional pagination
@@ -1019,7 +1019,7 @@ export const createHandlers = (apiUrl) => [
       },
       {
         headers: { 'Content-Type': 'application/json' },
-      },
+      }
     );
   }),
 
@@ -1077,7 +1077,7 @@ export const createHandlers = (apiUrl) => [
           Pragma: 'no-cache',
           Expires: '0',
         },
-      },
+      }
     );
   }),
 ];

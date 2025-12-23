@@ -1,0 +1,21 @@
+{
+  "printWidth": 80,
+  "singleQuote": true,
+  "trailingComma": "es5",
+  "plugins": [
+    "@ianvs/prettier-plugin-sort-imports",
+    "prettier-plugin-tailwindcss"
+  ],
+  "importOrder": [
+    "^(react$|react-dom)",
+    "<BUILTIN_MODULES>",
+    "<THIRD_PARTY_MODULES>",
+    "",
+    "^@tanstack/(.*)$",
+    "",
+    "^@/(components|hooks|lib|contexts|utils|types|content|data|i18n|msw|mocks|experiments)/(.*)$",
+    "",
+    "^[./]"
+  ],
+  "tailwindFunctions": ["clsx", "cva", "cn"]
+}

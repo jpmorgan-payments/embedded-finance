@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useSearch } from '@tanstack/react-router';
 import {
   Accounts,
   EBComponentsProvider,
@@ -10,27 +9,31 @@ import {
   Recipients,
   TransactionsDisplay,
 } from '@jpmorgan-payments/embedded-finance-components';
-import { Grid3X3, Square, Columns } from 'lucide-react';
+import type {
+  EBConfig,
+  EBThemeVariables,
+} from '@jpmorgan-payments/embedded-finance-components';
+import { Columns, Grid3X3, Square } from 'lucide-react';
+
+import { useSearch } from '@tanstack/react-router';
+
+import { DatabaseResetUtils } from '@/lib/database-reset-utils';
+
+import { AutomationTrigger } from './automation';
+import {
+  AVAILABLE_COMPONENTS,
+  getGridDimensions,
+  getHeaderDescriptionForScenario,
+  getHeaderTitleForScenario,
+  getScenarioDisplayNames,
+  getScenarioNumber,
+  getVisibleComponentsForScenario,
+  type ComponentConfig,
+  type ComponentName,
+} from './scenarios-config';
+import { createFullscreenUrl, EmbeddedComponentCard } from './shared';
 import { useThemeStyles } from './theme-utils';
 import { useSellSenseThemes } from './use-sellsense-themes';
-import {
-  getScenarioDisplayNames,
-  getVisibleComponentsForScenario,
-  getHeaderTitleForScenario,
-  getHeaderDescriptionForScenario,
-  getGridDimensions,
-  getScenarioNumber,
-  AVAILABLE_COMPONENTS,
-  type ComponentName,
-  type ComponentConfig,
-} from './scenarios-config';
-import { EmbeddedComponentCard, createFullscreenUrl } from './shared';
-import { AutomationTrigger } from './automation';
-import { DatabaseResetUtils } from '@/lib/database-reset-utils';
-import type {
-  EBThemeVariables,
-  EBConfig,
-} from '@jpmorgan-payments/embedded-finance-components';
 import type { ThemeOption } from './use-sellsense-themes';
 
 interface ComponentInfo {
@@ -58,7 +61,7 @@ export function WalletOverview({
   contentTokens,
 }: WalletOverviewProps) {
   const [layout, setLayout] = useState<'grid' | 'full-width' | 'columns'>(
-    'columns',
+    'columns'
   );
   const [openTooltip, setOpenTooltip] = useState<string | null>(null);
   const searchParams = useSearch({ from: '/sellsense-demo' });
@@ -89,7 +92,7 @@ export function WalletOverview({
   // Create theme object using the proper theme system with custom variables
   const themeObject = mapThemeOption(
     currentTheme as ThemeOption,
-    customThemeVariables,
+    customThemeVariables
   );
 
   // Create base content tokens that respond to tone changes
@@ -145,7 +148,7 @@ export function WalletOverview({
       component: (
         <div className={`rounded-lg border p-6 ${themeStyles.getCardStyles()}`}>
           <h2
-            className={`text-xl font-semibold mb-4 ${themeStyles.getHeaderTextStyles()}`}
+            className={`mb-4 text-xl font-semibold ${themeStyles.getHeaderTextStyles()}`}
           >
             Make Payment
           </h2>
@@ -273,15 +276,15 @@ export function WalletOverview({
       component: (
         <div className={`rounded-lg border p-6 ${themeStyles.getCardStyles()}`}>
           <h2
-            className={`text-xl font-semibold mb-4 ${themeStyles.getHeaderTextStyles()}`}
+            className={`mb-4 text-xl font-semibold ${themeStyles.getHeaderTextStyles()}`}
           >
             Onboarding Flow
           </h2>
           <div
-            className={`text-center py-8 ${themeStyles.getHeaderLabelStyles()}`}
+            className={`py-8 text-center ${themeStyles.getHeaderLabelStyles()}`}
           >
             <p>OnboardingFlow component would be rendered here</p>
-            <p className="text-sm mt-2">
+            <p className="mt-2 text-sm">
               This component is available but not yet implemented in this demo
             </p>
           </div>
@@ -295,7 +298,7 @@ export function WalletOverview({
     (config: ComponentConfig) => ({
       ...config,
       ...allComponents[config.component],
-    }),
+    })
   );
 
   // Get header content from scenario configuration
@@ -306,7 +309,7 @@ export function WalletOverview({
   const renderComponentWithProvider = (
     componentConfig: any,
     key: string,
-    isFullWidth = false,
+    isFullWidth = false
   ) => {
     const { component, contentTokens: componentContentTokens = {} } =
       componentConfig;
@@ -339,7 +342,7 @@ export function WalletOverview({
             onFullScreen={() => {
               const fullscreenUrl = createFullscreenUrl(
                 componentConfig.componentName,
-                currentTheme,
+                currentTheme
               );
               window.open(fullscreenUrl, '_blank');
             }}
@@ -356,7 +359,7 @@ export function WalletOverview({
   const renderGridLayout = () => {
     // Create a 2D grid array based on maxRows and maxColumns
     const grid: ((typeof componentConfigsWithInfo)[0] | null)[][] = Array(
-      maxRows,
+      maxRows
     )
       .fill(null)
       .map(() => Array(maxColumns).fill(null));
@@ -374,13 +377,13 @@ export function WalletOverview({
     >;
 
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {flattenedComponents.map((componentConfig, index) =>
           renderComponentWithProvider(
             componentConfig,
             `grid-${index}`,
-            isFullWidthComponent(componentConfig.componentName),
-          ),
+            isFullWidthComponent(componentConfig.componentName)
+          )
         )}
       </div>
     );
@@ -397,26 +400,26 @@ export function WalletOverview({
     });
 
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {sortedComponents.map((componentConfig, index) =>
           renderComponentWithProvider(
             componentConfig,
             `columns-${index}`,
-            isFullWidthComponent(componentConfig.componentName),
-          ),
+            isFullWidthComponent(componentConfig.componentName)
+          )
         )}
       </div>
     );
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6 p-6">
       <div>
         <h1
-          className={`text-2xl font-bold mb-2 ${themeStyles.getHeaderTextStyles()}`}
+          className={`mb-2 text-2xl font-bold ${themeStyles.getHeaderTextStyles()}`}
         >
           {headerTitle}
-          <span className="text-sm font-normal opacity-60 ml-2">
+          <span className="ml-2 text-sm font-normal opacity-60">
             (Scenario #{getScenarioNumber(currentScenario)})
           </span>
         </h1>
@@ -425,28 +428,28 @@ export function WalletOverview({
         </p>
 
         {/* Layout Controls */}
-        <div className="flex items-center gap-4 mt-4">
+        <div className="mt-4 flex items-center gap-4">
           <div className="flex items-center gap-2">
             <span className={`text-sm ${themeStyles.getHeaderLabelStyles()}`}>
               Layout:
             </span>
             <button
               onClick={() => setLayout('grid')}
-              className={`p-2 rounded transition-colors ${themeStyles.getLayoutButtonStyles(layout === 'grid')}`}
+              className={`rounded p-2 transition-colors ${themeStyles.getLayoutButtonStyles(layout === 'grid')}`}
               title="Grid Layout"
             >
               <Grid3X3 size={16} />
             </button>
             <button
               onClick={() => setLayout('columns')}
-              className={`p-2 rounded transition-colors ${themeStyles.getLayoutButtonStyles(layout === 'columns')}`}
+              className={`rounded p-2 transition-colors ${themeStyles.getLayoutButtonStyles(layout === 'columns')}`}
               title="Columns Layout"
             >
               <Columns size={16} />
             </button>
             <button
               onClick={() => setLayout('full-width')}
-              className={`p-2 rounded transition-colors ${themeStyles.getLayoutButtonStyles(layout === 'full-width')}`}
+              className={`rounded p-2 transition-colors ${themeStyles.getLayoutButtonStyles(layout === 'full-width')}`}
               title="Full Width Layout"
             >
               <Square size={16} />
@@ -464,20 +467,20 @@ export function WalletOverview({
         // Full-width layout
         <div className="space-y-6">
           {componentConfigsWithInfo.map((componentConfig, index) =>
-            renderComponentWithProvider(componentConfig, `full-width-${index}`),
+            renderComponentWithProvider(componentConfig, `full-width-${index}`)
           )}
         </div>
       )}
 
       {componentConfigsWithInfo.length === 0 && (
-        <div className="text-center py-8">
+        <div className="py-8 text-center">
           <p className={themeStyles.getHeaderLabelStyles()}>
             No components available for the current scenario. This may be due to
             a database reset.
           </p>
           <button
             onClick={() => window.location.reload()}
-            className={`mt-4 px-4 py-2 rounded transition-colors ${themeStyles.getLayoutButtonStyles(true)}`}
+            className={`mt-4 rounded px-4 py-2 transition-colors ${themeStyles.getLayoutButtonStyles(true)}`}
           >
             Reload Page
           </button>

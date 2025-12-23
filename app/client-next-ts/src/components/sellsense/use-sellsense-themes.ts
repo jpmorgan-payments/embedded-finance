@@ -15,7 +15,7 @@ export const useSellSenseThemes = () => {
   const getThemeVariables = useCallback(
     (
       themeOption: ThemeOption,
-      customVariables?: EBThemeVariables,
+      customVariables?: EBThemeVariables
     ): EBThemeVariables => {
       switch (themeOption) {
         case 'Custom':
@@ -461,7 +461,7 @@ export const useSellSenseThemes = () => {
           };
       }
     },
-    [],
+    []
   );
 
   const mapThemeOption = useCallback(
@@ -472,7 +472,7 @@ export const useSellSenseThemes = () => {
         variables,
       };
     },
-    [getThemeVariables],
+    [getThemeVariables]
   );
 
   const mapCustomTheme = useCallback((customVariables: EBThemeVariables) => {
@@ -491,7 +491,7 @@ export const useSellSenseThemes = () => {
 
 // Helper function to get theme variables directly
 export const getThemeVariables = (
-  themeOption: ThemeOption,
+  themeOption: ThemeOption
 ): EBThemeVariables => {
   const { getThemeVariables } = useSellSenseThemes();
   return getThemeVariables(themeOption);

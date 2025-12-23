@@ -5,26 +5,28 @@ import {
   EBComponentsProvider,
   OnboardingFlow,
 } from '@jpmorgan-payments/embedded-finance-components';
+import type {
+  EBConfig,
+  EBThemeVariables,
+} from '@jpmorgan-payments/embedded-finance-components';
+
 import { useSearch } from '@tanstack/react-router';
+
 import type { ClientScenario } from './dashboard-layout';
-import type { ThemeOption } from './use-sellsense-themes';
-import { useSellSenseThemes } from './use-sellsense-themes';
-import { useThemeStyles } from './theme-utils';
+import {
+  getHeaderDescriptionForScenario,
+  getHeaderTitleForScenario,
+  getScenarioNumber,
+  isOnboardingDocsNeededScenario,
+} from './scenarios-config';
 import {
   getClientIdFromScenario,
   getScenarioData,
 } from './sellsense-scenarios';
-import {
-  isOnboardingDocsNeededScenario,
-  getHeaderTitleForScenario,
-  getHeaderDescriptionForScenario,
-  getScenarioNumber,
-} from './scenarios-config';
-import { EmbeddedComponentCard, createFullscreenUrl } from './shared';
-import type {
-  EBThemeVariables,
-  EBConfig,
-} from '@jpmorgan-payments/embedded-finance-components';
+import { createFullscreenUrl, EmbeddedComponentCard } from './shared';
+import { useThemeStyles } from './theme-utils';
+import type { ThemeOption } from './use-sellsense-themes';
+import { useSellSenseThemes } from './use-sellsense-themes';
 
 interface KycOnboardingProps {
   clientScenario: ClientScenario;
@@ -51,7 +53,7 @@ export function KycOnboarding({
   const scenarioData = getScenarioData(clientScenario);
   const ebTheme = mapThemeOption(
     currentTheme as ThemeOption,
-    customThemeVariables,
+    customThemeVariables
   );
 
   const handleFullScreen = () => {
@@ -61,7 +63,7 @@ export function KycOnboarding({
       {
         scenario: searchParams.scenario || clientScenario,
         contentTone: searchParams.contentTone || 'Standard',
-      },
+      }
     );
     window.open(fullscreenUrl, '_blank');
   };
@@ -84,7 +86,7 @@ export function KycOnboarding({
 
   const handlePostClientVerificationsResponse = (
     response?: any,
-    error?: any,
+    error?: any
   ) => {
     if (error) {
       console.error('Client verification error:', error);
@@ -95,7 +97,7 @@ export function KycOnboarding({
 
   const handleUserEvents = ({ actionName }: { actionName: string }) => {
     console.log(
-      `SellSense User action: ${actionName} (Scenario: ${scenarioData.scenarioId})`,
+      `SellSense User action: ${actionName} (Scenario: ${scenarioData.scenarioId})`
     );
     // Here you could integrate with analytics services
   };
@@ -149,13 +151,13 @@ export function KycOnboarding({
 
   // Normal mode with card wrapper and controls
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6 p-6">
       <div>
         <h1
-          className={`text-2xl font-bold mb-2 ${themeStyles.getHeaderTextStyles()}`}
+          className={`mb-2 text-2xl font-bold ${themeStyles.getHeaderTextStyles()}`}
         >
           {getHeaderTitleForScenario(clientScenario)}
-          <span className="text-sm font-normal opacity-60 ml-2">
+          <span className="ml-2 text-sm font-normal opacity-60">
             (Scenario #{getScenarioNumber(clientScenario)})
           </span>
         </h1>

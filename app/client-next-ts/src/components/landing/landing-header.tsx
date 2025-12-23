@@ -1,24 +1,25 @@
-import { Link } from '@tanstack/react-router';
 import { Menu, X } from 'lucide-react';
+
+import { Link } from '@tanstack/react-router';
 
 export function LandingHeader() {
   return (
-    <header className="bg-jpm-white border-b border-sp-border sticky top-0 z-50 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 sm:h-16">
+    <header className="sticky top-0 z-50 border-b border-sp-border bg-jpm-white shadow-sm">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-14 items-center justify-between sm:h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
               <div className="flex items-center">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-sp-brand rounded-page-sm flex items-center justify-center mr-2 sm:mr-3">
-                  <span className="text-jpm-white font-semibold text-xs sm:text-page-small">
+                <div className="mr-2 flex h-6 w-6 items-center justify-center rounded-page-sm bg-sp-brand sm:mr-3 sm:h-8 sm:w-8">
+                  <span className="text-xs font-semibold text-jpm-white sm:text-page-small">
                     EF
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-semibold text-sp-brand text-sm sm:text-lg leading-none">
+                  <span className="text-sm font-semibold leading-none text-sp-brand sm:text-lg">
                     Embedded Finance
                   </span>
-                  <span className="text-jpm-gray text-xs sm:text-page-small leading-none">
+                  <span className="text-xs leading-none text-jpm-gray sm:text-page-small">
                     Solutions Showcase
                   </span>
                 </div>
@@ -26,28 +27,28 @@ export function LandingHeader() {
             </Link>
           </div>
 
-          <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
+          <nav className="hidden items-center space-x-6 md:flex lg:space-x-8">
             <Link
               to="/solutions"
-              className="text-jpm-gray hover:text-sp-brand font-medium text-sm lg:text-page-small transition-colors duration-200"
+              className="text-sm font-medium text-jpm-gray transition-colors duration-200 hover:text-sp-brand lg:text-page-small"
             >
               DEVELOPER SOLUTIONS
             </Link>
             <Link
               to="/documentation"
-              className="text-jpm-gray hover:text-sp-brand font-medium text-sm lg:text-page-small transition-colors duration-200"
+              className="text-sm font-medium text-jpm-gray transition-colors duration-200 hover:text-sp-brand lg:text-page-small"
             >
               DOCUMENTATION
             </Link>
             <Link
               to="/stories"
-              className="text-jpm-gray hover:text-sp-brand font-medium text-sm lg:text-page-small transition-colors duration-200"
+              className="text-sm font-medium text-jpm-gray transition-colors duration-200 hover:text-sp-brand lg:text-page-small"
             >
               RECIPES
             </Link>
             <Link
               to="/github"
-              className="text-jpm-gray hover:text-sp-brand font-medium text-sm lg:text-page-small transition-colors duration-200"
+              className="text-sm font-medium text-jpm-gray transition-colors duration-200 hover:text-sp-brand lg:text-page-small"
             >
               GITHUB
             </Link>
@@ -57,7 +58,7 @@ export function LandingHeader() {
           <div className="md:hidden">
             <label
               htmlFor="mobile-menu-toggle"
-              className="cursor-pointer p-2 -m-2 rounded-page-sm hover:bg-jpm-gray-100 transition-colors"
+              className="-m-2 cursor-pointer rounded-page-sm p-2 transition-colors hover:bg-jpm-gray-100"
             >
               <input
                 type="checkbox"
@@ -65,33 +66,33 @@ export function LandingHeader() {
                 className="peer sr-only"
               />
 
-              <Menu className="h-5 w-5 sm:h-6 sm:w-6 text-jpm-gray peer-checked:hidden" />
-              <X className="h-5 w-5 sm:h-6 sm:w-6 text-jpm-gray hidden peer-checked:block" />
+              <Menu className="h-5 w-5 text-jpm-gray peer-checked:hidden sm:h-6 sm:w-6" />
+              <X className="hidden h-5 w-5 text-jpm-gray peer-checked:block sm:h-6 sm:w-6" />
 
               {/* Mobile Menu Dropdown */}
-              <div className="peer-checked:block hidden absolute top-full left-0 right-0 bg-jpm-white border-b border-sp-border shadow-lg">
-                <nav className="px-4 sm:px-6 py-4 space-y-4">
+              <div className="absolute left-0 right-0 top-full hidden border-b border-sp-border bg-jpm-white shadow-lg peer-checked:block">
+                <nav className="space-y-4 px-4 py-4 sm:px-6">
                   <Link
                     to="/solutions"
-                    className="block text-jpm-gray hover:text-sp-brand font-medium text-base transition-colors duration-200 py-2"
+                    className="block py-2 text-base font-medium text-jpm-gray transition-colors duration-200 hover:text-sp-brand"
                   >
                     DEVELOPER SOLUTIONS
                   </Link>
                   <Link
                     to="/documentation"
-                    className="block text-jpm-gray hover:text-sp-brand font-medium text-base transition-colors duration-200 py-2"
+                    className="block py-2 text-base font-medium text-jpm-gray transition-colors duration-200 hover:text-sp-brand"
                   >
                     DOCUMENTATION
                   </Link>
                   <Link
                     to="/stories"
-                    className="block text-jpm-gray hover:text-sp-brand font-medium text-base transition-colors duration-200 py-2"
+                    className="block py-2 text-base font-medium text-jpm-gray transition-colors duration-200 hover:text-sp-brand"
                   >
                     RECIPES
                   </Link>
                   <Link
                     to="/github"
-                    className="block text-jpm-gray hover:text-sp-brand font-medium text-base transition-colors duration-200 py-2"
+                    className="block py-2 text-base font-medium text-jpm-gray transition-colors duration-200 hover:text-sp-brand"
                   >
                     GITHUB
                   </Link>

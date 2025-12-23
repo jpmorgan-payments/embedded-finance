@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Highlight, themes } from 'prism-react-renderer';
+
 import {
   Dialog,
   DialogContent,
@@ -28,7 +29,7 @@ export function CodeExamplesModal({
     if (codeContainerRef.current && selectedStep) {
       const example = getCodeExample(componentId);
       const selectedStepData = example.steps.find(
-        (step) => step.id === selectedStep,
+        (step) => step.id === selectedStep
       );
       const [startLine] = selectedStepData?.lineRange || [0, 0];
 
@@ -595,38 +596,38 @@ function ComponentSection() {
 
   const example = getCodeExample(componentId);
   const selectedStepData = example.steps.find(
-    (step) => step.id === selectedStep,
+    (step) => step.id === selectedStep
   );
   const [startLine, endLine] = selectedStepData?.lineRange || [0, 0];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-h-[90vh] max-w-6xl overflow-hidden">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
             {example.title}
           </DialogTitle>
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className="mt-2 text-sm text-muted-foreground">
             {example.description}
           </p>
         </DialogHeader>
 
         {/* Installation Section - Full width at top */}
-        <div className="mt-6 p-4 bg-sp-accent rounded-lg border border-sp-border">
-          <h4 className="font-semibold text-sp-brand mb-2 text-sm">
+        <div className="mt-6 rounded-lg border border-sp-border bg-sp-accent p-4">
+          <h4 className="mb-2 text-sm font-semibold text-sp-brand">
             Installation:
           </h4>
-          <div className="bg-white rounded p-2 border border-sp-border">
-            <code className="text-sp-brand text-xs">
+          <div className="rounded border border-sp-border bg-white p-2">
+            <code className="text-xs text-sp-brand">
               npm install @jpmorgan-payments/embedded-finance-components
             </code>
           </div>
         </div>
 
-        <div className="mt-6 flex gap-6 h-[60vh]">
+        <div className="mt-6 flex h-[60vh] gap-6">
           {/* Left Panel - Key Features and Configuration */}
           <div className="w-80 flex-shrink-0 border-r border-sp-border pr-4">
-            <h3 className="font-semibold text-sp-brand mb-4">
+            <h3 className="mb-4 font-semibold text-sp-brand">
               Key Features and Configuration
             </h3>
             <div className="space-y-2">
@@ -634,14 +635,14 @@ function ComponentSection() {
                 <button
                   key={step.id}
                   onClick={() => setSelectedStep(step.id)}
-                  className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                  className={`w-full rounded-lg border p-3 text-left transition-colors ${
                     selectedStep === step.id
                       ? 'border-sp-brand bg-sp-accent text-sp-brand'
                       : 'border-sp-border hover:border-sp-brand hover:bg-sp-accent'
                   }`}
                 >
-                  <div className="font-medium text-sm">{step.title}</div>
-                  <div className="text-xs text-sp-brand mt-1">
+                  <div className="text-sm font-medium">{step.title}</div>
+                  <div className="mt-1 text-xs text-sp-brand">
                     {step.description}
                   </div>
                 </button>
@@ -651,16 +652,16 @@ function ComponentSection() {
 
           {/* Right Panel - Code Highlighting */}
           <div className="flex-1 overflow-hidden">
-            <div className="bg-sp-accent rounded-lg overflow-hidden h-full border border-sp-border">
-              <div className="bg-white px-4 py-2 border-b border-sp-border flex items-center justify-between">
-                <span className="text-sp-brand text-sm font-medium">
+            <div className="h-full overflow-hidden rounded-lg border border-sp-border bg-sp-accent">
+              <div className="flex items-center justify-between border-b border-sp-border bg-white px-4 py-2">
+                <span className="text-sm font-medium text-sp-brand">
                   Usage Example
                 </span>
-                <span className="text-sp-brand text-xs">
+                <span className="text-xs text-sp-brand">
                   Lines {startLine}-{endLine} selected
                 </span>
               </div>
-              <div className="p-4 h-full overflow-auto" ref={codeContainerRef}>
+              <div className="h-full overflow-auto p-4" ref={codeContainerRef}>
                 <Highlight
                   theme={themes.vsLight}
                   code={example.code}
@@ -683,10 +684,10 @@ function ComponentSection() {
                           <div
                             key={i}
                             {...getLineProps({ line })}
-                            className={`${isHighlighted ? 'bg-sp-accent border-l-2 border-sp-brand' : ''}`}
+                            className={`${isHighlighted ? 'border-l-2 border-sp-brand bg-sp-accent' : ''}`}
                             data-line={lineNumber}
                           >
-                            <span className="text-sp-brand text-xs mr-4 select-none">
+                            <span className="mr-4 select-none text-xs text-sp-brand">
                               {lineNumber.toString().padStart(2, ' ')}
                             </span>
                             {line.map((token, key) => (

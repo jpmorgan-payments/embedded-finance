@@ -43,7 +43,7 @@ export const DatabaseResetUtils = {
       window.dispatchEvent(new Event('focus'));
 
       console.log(
-        'Tab switch emulation complete - all embedded components should refetch',
+        'Tab switch emulation complete - all embedded components should refetch'
       );
     }, 100);
   },
@@ -51,7 +51,7 @@ export const DatabaseResetUtils = {
   // Reset database for a specific scenario
   resetDatabaseForScenario: async (
     scenario: string,
-    setIsLoading: (loading: boolean) => void,
+    setIsLoading: (loading: boolean) => void
   ) => {
     setIsLoading(true);
 

@@ -1,7 +1,9 @@
+import { Code, ExternalLink, Github } from 'lucide-react';
+
 import { createFileRoute } from '@tanstack/react-router';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { Button } from '@/components/ui/button';
-import { Github, Code, ExternalLink } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const Route = createFileRoute('/github')({
   component: GitHubPage,
@@ -11,47 +13,47 @@ function GitHubPage() {
   const handleGitHubClick = () => {
     window.open(
       'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components',
-      '_blank',
+      '_blank'
     );
   };
 
   return (
-    <div className="min-h-screen py-16 bg-sp-bg">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <div className="bg-sp-accent border border-sp-border p-4 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+    <div className="min-h-screen bg-sp-bg py-16">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mb-16 text-center">
+          <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full border border-sp-border bg-sp-accent p-4">
             <Github className="h-12 w-12 text-sp-brand" />
           </div>
-          <h1 className="text-page-h2 font-bold text-jpm-gray-900 mb-6">
+          <h1 className="mb-6 text-page-h2 font-bold text-jpm-gray-900">
             GitHub Repository
           </h1>
-          <p className="text-page-body text-jpm-gray max-w-3xl mx-auto leading-relaxed">
+          <p className="mx-auto max-w-3xl text-page-body leading-relaxed text-jpm-gray">
             Explore the source code for the embedded components library. Access
             implementation examples, component documentation, and contribute to
             the project.
           </p>
         </div>
 
-        <div className="max-w-2xl mx-auto">
-          <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-md text-center">
+        <div className="mx-auto max-w-2xl">
+          <Card className="rounded-page-md border-0 bg-jpm-white text-center shadow-page-card">
             <CardHeader>
               <CardTitle className="flex items-center justify-center text-page-h3 text-jpm-gray-900">
-                <Code className="h-6 w-6 mr-3 text-sp-brand" />
+                <Code className="mr-3 h-6 w-6 text-sp-brand" />
                 Embedded Components
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8">
-              <p className="text-page-body text-jpm-gray leading-relaxed mb-8">
+              <p className="mb-8 text-page-body leading-relaxed text-jpm-gray">
                 The embedded components package is our primary UI component
                 library for embedded finance solutions. Built with React 18,
                 TypeScript, Radix UI primitives, and Tailwind CSS.
               </p>
 
-              <div className="bg-sp-accent p-6 rounded-page-md mb-8 border border-sp-border">
-                <h3 className="font-semibold text-jpm-gray-900 mb-4">
+              <div className="mb-8 rounded-page-md border border-sp-border bg-sp-accent p-6">
+                <h3 className="mb-4 font-semibold text-jpm-gray-900">
                   Key Features
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-page-small text-jpm-gray">
+                <div className="grid grid-cols-1 gap-4 text-page-small text-jpm-gray md:grid-cols-2">
                   <div className="text-left">
                     <p>• React 18.x with TypeScript</p>
                     <p>• Radix UI primitives</p>
@@ -67,7 +69,7 @@ function GitHubPage() {
 
               <Button
                 onClick={handleGitHubClick}
-                className="bg-sp-brand hover:bg-sp-brand-700 text-white font-semibold px-8 py-3 rounded-page-md shadow-page-card border-0"
+                className="rounded-page-md border-0 bg-sp-brand px-8 py-3 font-semibold text-white shadow-page-card hover:bg-sp-brand-700"
               >
                 <Github className="mr-2 h-5 w-5" />
                 VIEW REPOSITORY
@@ -77,11 +79,11 @@ function GitHubPage() {
           </Card>
         </div>
 
-        <div className="mt-16 bg-sp-accent border border-sp-border rounded-page-md p-8 text-center">
-          <h3 className="text-page-h3 font-bold text-jpm-gray-900 mb-4">
+        <div className="mt-16 rounded-page-md border border-sp-border bg-sp-accent p-8 text-center">
+          <h3 className="mb-4 text-page-h3 font-bold text-jpm-gray-900">
             Getting Started
           </h3>
-          <p className="text-page-body text-jpm-gray max-w-2xl mx-auto leading-relaxed">
+          <p className="mx-auto max-w-2xl text-page-body leading-relaxed text-jpm-gray">
             Clone the repository, install dependencies, and start exploring the
             embedded components. Follow the README for detailed setup
             instructions and development guidelines.
