@@ -6,8 +6,8 @@ import {
   mockRecipientsResponse,
 } from '@/mocks/recipients.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { userEvent, within } from 'storybook/test';
 import { http, HttpResponse } from 'msw';
+import { userEvent, within } from 'storybook/test';
 
 import type { BaseStoryArgs } from '../../../../.storybook/preview';
 import { MakePayment } from '../../MakePayment';

@@ -1,5 +1,8 @@
 import { EBComponentsProvider } from '@/index';
-import { render as testingLibraryRender, RenderResult } from '@testing-library/react';
+import {
+  RenderResult,
+  render as testingLibraryRender,
+} from '@testing-library/react';
 
 export function render(ui: React.ReactNode): RenderResult {
   return testingLibraryRender(<>{ui}</>, {

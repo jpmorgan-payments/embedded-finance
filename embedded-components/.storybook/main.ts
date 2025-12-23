@@ -1,5 +1,4 @@
-import { resolve } from 'path';
-import { dirname } from 'path';
+import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { withoutVitePlugins } from '@storybook/builder-vite';
 import type { StorybookConfig } from '@storybook/react-vite';
