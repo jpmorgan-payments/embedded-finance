@@ -4,6 +4,12 @@ export type {
   UseLinkedAccountsReturn,
 } from './useLinkedAccounts';
 
+export { useLinkedAccountsTable } from './useLinkedAccountsTable';
+export type {
+  UseLinkedAccountsTableOptions,
+  UseLinkedAccountsTableReturn,
+} from './useLinkedAccountsTable';
+
 export { useLinkedAccountForm } from './useLinkedAccountForm';
 export type {
   LinkedAccountFormMode,

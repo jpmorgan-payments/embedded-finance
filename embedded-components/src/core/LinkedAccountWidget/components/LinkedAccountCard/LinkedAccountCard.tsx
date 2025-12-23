@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   ArrowRightIcon,
+  ClipboardListIcon,
   MoreVerticalIcon,
   PencilIcon,
   PlusIcon,
@@ -14,6 +15,7 @@ import {
   getMissingPaymentMethods,
   getRecipientDisplayName,
 } from '@/lib/recipientHelpers';
+import { cn } from '@/lib/utils';
 import {
   ApiError,
   MicrodepositVerificationResponse,
@@ -33,6 +35,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { RecipientAccountDisplayCard } from '@/components/RecipientAccountDisplayCard/RecipientAccountDisplayCard';
+import { RecipientDetailsDialog } from '@/components/RecipientDetailsDialog/RecipientDetailsDialog';
 import { MakePayment } from '@/core/MakePayment';
 
 import { MicrodepositsFormDialogTrigger } from '../../forms/MicrodepositsForm/MicrodepositsForm';
@@ -89,6 +92,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
   className,
 }) => {
   const { t } = useTranslation('linked-accounts');
+
   const isActive = recipient.status === 'ACTIVE';
   const displayName = getRecipientDisplayName(recipient);
   const showVerifyButton = canVerifyMicrodeposits(recipient);
@@ -174,128 +178,290 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
       />
     ) : undefined;
 
-  // Actions footer component
-  const actionsContent =
-    !hideActions && (showPaymentButton || !isActive || showVerifyButton) ? (
-      <div
-        className={`eb-flex eb-flex-wrap eb-items-center eb-gap-2 ${
-          compact ? 'eb-justify-end' : 'eb-justify-between'
-        }`}
-        role="group"
-        aria-label="Account actions"
-      >
-        {/* Payment or Verify button - always show, even in compact mode */}
-        {showVerifyButton && compact ? (
-          // In compact mode, show verify button to replace pay button
-          <MicrodepositsFormDialogTrigger
-            recipientId={recipient.id}
-            onVerificationSettled={onMicrodepositVerifySettled}
+  // Actions footer component with progressive disclosure
+  const hidePayButton = recipient.status === 'MICRODEPOSITS_INITIATED';
+
+  // Configuration: Define which actions appear outside the menu
+  const actionsOutsideMenu = {
+    payOrVerify: showVerifyButton || showPaymentButton || !hidePayButton,
+    viewDetails: compact && isActive, // Show outside in compact+active mode (with responsive CSS)
+  };
+
+  // Shared menu items (Edit and Remove)
+  const sharedMenuItems = (
+    <>
+      {/* Edit - disabled for non-ACTIVE accounts */}
+      {isActive ? (
+        <LinkedAccountFormDialog
+          mode="edit"
+          recipient={recipient}
+          onLinkedAccountSettled={onLinkedAccountSettled}
+        >
+          <DropdownMenuItem
+            onSelect={(e) => e.preventDefault()}
+            className="eb-cursor-pointer"
           >
-            <Button
-              variant="default"
-              size="sm"
-              className="eb-h-8 eb-text-xs"
-              aria-label={`${t('actions.verifyAccount')} for ${displayName}`}
-            >
-              <span>{t('actions.verifyAccount')}</span>
-            </Button>
-          </MicrodepositsFormDialogTrigger>
-        ) : makePaymentComponent ? (
-          React.cloneElement(makePaymentComponent as React.ReactElement, {
-            recipientId: recipient.id,
-          })
-        ) : !showPaymentButton ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span>
-                <Button
-                  variant={compact ? 'outline' : 'outline'}
-                  size="sm"
-                  className={compact ? 'eb-h-8 eb-text-xs' : 'eb-bg-background'}
-                  disabled
-                  aria-label={`${t('actions.makePayment')} from ${displayName} - ${getDisabledPayTooltip()}`}
-                >
-                  <span>{t('actions.makePayment')}</span>
-                  {!compact && (
-                    <ArrowRightIcon
-                      className="eb-ml-2 eb-h-4 eb-w-4"
-                      aria-hidden="true"
-                    />
-                  )}
-                </Button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{getDisabledPayTooltip()}</p>
-            </TooltipContent>
-          </Tooltip>
-        ) : (
-          <MakePayment
-            triggerButton={
-              <Button
-                variant="outline"
-                size="sm"
-                className={compact ? 'eb-h-8 eb-text-xs' : 'eb-bg-background'}
-                aria-label={`${t('actions.makePayment')} from ${displayName}`}
-              >
-                <span>{t('actions.makePayment')}</span>
-                {!compact && (
-                  <ArrowRightIcon
-                    className="eb-ml-2 eb-h-4 eb-w-4"
-                    aria-hidden="true"
-                  />
-                )}
-              </Button>
-            }
-            recipientId={recipient.id}
-          />
-        )}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size={compact ? 'icon' : 'sm'}
-              className={compact ? 'eb-h-8 eb-w-8' : ''}
-              aria-label={t('actions.moreActions', { name: displayName })}
-            >
-              {!compact && <span>{t('actions.manage')}</span>}
-              <MoreVerticalIcon
-                className={compact ? 'eb-h-4 eb-w-4' : 'eb-ml-2 eb-h-4 eb-w-4'}
-                aria-hidden="true"
-              />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <LinkedAccountFormDialog
-              mode="edit"
-              recipient={recipient}
-              onLinkedAccountSettled={onLinkedAccountSettled}
-            >
+            <PencilIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+            <span>{t('actions.edit')}</span>
+          </DropdownMenuItem>
+        </LinkedAccountFormDialog>
+      ) : (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>
               <DropdownMenuItem
-                onSelect={(e) => e.preventDefault()}
-                className="eb-cursor-pointer"
+                disabled
+                className="eb-cursor-not-allowed eb-opacity-50"
               >
                 <PencilIcon className="eb-mr-2 eb-h-4 eb-w-4" />
                 <span>{t('actions.edit')}</span>
               </DropdownMenuItem>
-            </LinkedAccountFormDialog>
-            <DropdownMenuSeparator />
-            <RemoveAccountDialogTrigger
-              recipient={recipient}
-              onLinkedAccountSettled={onLinkedAccountSettled}
-              onRemoveSuccess={onRemoveSuccess}
-            >
-              <DropdownMenuItem
-                onSelect={(e) => e.preventDefault()}
-                data-user-event={LINKED_ACCOUNT_USER_JOURNEYS.REMOVE_STARTED}
-                className="eb-cursor-pointer eb-text-destructive focus:eb-text-destructive"
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="left">
+            <p>{t('actions.editDisabledTooltip')}</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
+      <DropdownMenuSeparator />
+      <RemoveAccountDialogTrigger
+        recipient={recipient}
+        onLinkedAccountSettled={onLinkedAccountSettled}
+        onRemoveSuccess={onRemoveSuccess}
+      >
+        <DropdownMenuItem
+          onSelect={(e) => e.preventDefault()}
+          data-user-event={LINKED_ACCOUNT_USER_JOURNEYS.REMOVE_STARTED}
+          className="eb-cursor-pointer eb-text-destructive focus:eb-text-destructive"
+        >
+          <TrashIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+          <span>{t('actions.remove')}</span>
+        </DropdownMenuItem>
+      </RemoveAccountDialogTrigger>
+    </>
+  );
+
+  // View Details menu item
+  const viewDetailsMenuItem = (
+    <>
+      <RecipientDetailsDialog recipient={recipient}>
+        <DropdownMenuItem
+          onSelect={(e) => e.preventDefault()}
+          className="eb-cursor-pointer"
+        >
+          <ClipboardListIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+          <span>{t('actions.viewDetails')}</span>
+        </DropdownMenuItem>
+      </RecipientDetailsDialog>
+      <DropdownMenuSeparator />
+    </>
+  );
+
+  // Menu trigger button
+  const menuTrigger = (
+    <DropdownMenuTrigger asChild>
+      <Button
+        variant="ghost"
+        size={compact ? 'icon' : 'sm'}
+        className={compact ? 'eb-h-8 eb-w-8' : ''}
+        aria-label={t('actions.moreActions', { name: displayName })}
+      >
+        <MoreVerticalIcon
+          className={compact ? 'eb-h-4 eb-w-4' : 'eb-ml-2 eb-h-4 eb-w-4'}
+          aria-hidden="true"
+        />
+      </Button>
+    </DropdownMenuTrigger>
+  );
+
+  const actionsContent =
+    !hideActions && (showPaymentButton || !isActive || showVerifyButton) ? (
+      <div
+        className={cn('eb-flex eb-flex-wrap eb-items-center eb-gap-2', {
+          'eb-w-full': compact,
+          'eb-justify-between': !compact,
+        })}
+        role="group"
+        aria-label="Account actions"
+      >
+        {/* Primary actions group - wraps naturally */}
+        <div className="eb-flex eb-flex-wrap eb-items-center eb-gap-2">
+          {/* Primary: Payment or Verify button */}
+          {actionsOutsideMenu.payOrVerify && (
+            <>
+              {showVerifyButton && compact ? (
+                <MicrodepositsFormDialogTrigger
+                  recipientId={recipient.id}
+                  onVerificationSettled={onMicrodepositVerifySettled}
+                >
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="eb-h-8 eb-shrink-0 eb-text-xs"
+                    aria-label={`${t('actions.verifyAccount')} for ${displayName}`}
+                  >
+                    <span>{t('actions.verifyAccount')}</span>
+                  </Button>
+                </MicrodepositsFormDialogTrigger>
+              ) : makePaymentComponent && !hidePayButton ? (
+                React.cloneElement(makePaymentComponent as React.ReactElement, {
+                  recipientId: recipient.id,
+                  className: compact
+                    ? 'eb-h-8 eb-shrink-0 eb-text-xs'
+                    : undefined,
+                })
+              ) : !showPaymentButton && !hidePayButton ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={cn(
+                          compact
+                            ? 'eb-h-8 eb-shrink-0 eb-text-xs'
+                            : 'eb-bg-background'
+                        )}
+                        disabled
+                        aria-label={`${t('actions.makePayment')} from ${displayName} - ${getDisabledPayTooltip()}`}
+                      >
+                        <span>{t('actions.makePayment')}</span>
+                        {!compact && (
+                          <ArrowRightIcon
+                            className="eb-ml-2 eb-h-4 eb-w-4"
+                            aria-hidden="true"
+                          />
+                        )}
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{getDisabledPayTooltip()}</p>
+                  </TooltipContent>
+                </Tooltip>
+              ) : showPaymentButton && !hidePayButton ? (
+                <MakePayment
+                  triggerButton={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={cn(
+                        compact
+                          ? 'eb-h-8 eb-shrink-0 eb-text-xs'
+                          : 'eb-bg-background'
+                      )}
+                      aria-label={`${t('actions.makePayment')} from ${displayName}`}
+                    >
+                      <span>{t('actions.makePayment')}</span>
+                      {!compact && (
+                        <ArrowRightIcon
+                          className="eb-ml-2 eb-h-4 eb-w-4"
+                          aria-hidden="true"
+                        />
+                      )}
+                    </Button>
+                  }
+                  recipientId={recipient.id}
+                />
+              ) : null}
+            </>
+          )}
+
+          {/* Secondary: View Details inline (progressive disclosure)
+              - Tiny (<@sm): Buttons wrap to new row, full width available → VISIBLE
+              - Small (@sm): Buttons on same row as content, limited space → HIDDEN (in menu)
+              - Medium+ (@md): Buttons on same row, more space → VISIBLE
+          */}
+          {actionsOutsideMenu.viewDetails && (
+            <RecipientDetailsDialog recipient={recipient}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="eb-h-8 eb-shrink-0 eb-gap-1.5 eb-text-xs @sm:eb-hidden @lg:eb-inline-flex"
+                aria-label={`${t('actions.viewDetails')} for ${displayName}`}
               >
-                <TrashIcon className="eb-mr-2 eb-h-4 eb-w-4" />
-                <span>{t('actions.remove')}</span>
-              </DropdownMenuItem>
-            </RemoveAccountDialogTrigger>
-          </DropdownMenuContent>
-        </DropdownMenu>
+                <ClipboardListIcon
+                  className="eb-h-3.5 eb-w-3.5"
+                  aria-hidden="true"
+                />
+                <span className="eb-inline @sm:eb-hidden @lg:eb-inline">
+                  Details
+                </span>
+              </Button>
+            </RecipientDetailsDialog>
+          )}
+        </div>
+
+        {/* Manage menu - always at the end, positioned right
+            Render two versions for responsive View Details visibility:
+            - Menu WITH View Details: shown at @sm (when inline button is hidden)
+            - Menu WITHOUT View Details: shown at <@sm and @md+ (when inline button is visible)
+        */}
+        <div className="eb-ml-auto">
+          {actionsOutsideMenu.viewDetails ? (
+            <>
+              {/* Menu WITH View Details - only at @sm breakpoint */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size={compact ? 'icon' : 'sm'}
+                    className={cn(
+                      'eb-hidden @sm:eb-inline-flex @lg:eb-hidden',
+                      compact ? 'eb-h-8 eb-w-8' : ''
+                    )}
+                    aria-label={t('actions.moreActions', { name: displayName })}
+                  >
+                    <MoreVerticalIcon
+                      className={
+                        compact ? 'eb-h-4 eb-w-4' : 'eb-ml-2 eb-h-4 eb-w-4'
+                      }
+                      aria-hidden="true"
+                    />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {viewDetailsMenuItem}
+                  {sharedMenuItems}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Menu WITHOUT View Details - at <@sm and @md+ */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size={compact ? 'icon' : 'sm'}
+                    className={cn(
+                      '@sm:eb-hidden @lg:eb-inline-flex',
+                      compact ? 'eb-h-8 eb-w-8' : ''
+                    )}
+                    aria-label={t('actions.moreActions', { name: displayName })}
+                  >
+                    <MoreVerticalIcon
+                      className={
+                        compact ? 'eb-h-4 eb-w-4' : 'eb-ml-2 eb-h-4 eb-w-4'
+                      }
+                      aria-hidden="true"
+                    />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {sharedMenuItems}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            /* Standard menu - always includes View Details */
+            <DropdownMenu>
+              {menuTrigger}
+              <DropdownMenuContent align="end">
+                {viewDetailsMenuItem}
+                {sharedMenuItems}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </div>
     ) : undefined;
 

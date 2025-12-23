@@ -1,19 +1,16 @@
 import { useQueryClient } from '@tanstack/react-query';
 
 import {
-  getGetAllRecipientsQueryKey,
   useAmendRecipient,
   useCreateRecipient,
 } from '@/api/generated/ep-recipients';
-import {
-  ApiError,
-  ListRecipientsResponse,
-  Recipient,
-} from '@/api/generated/ep-recipients.schemas';
+import { ApiError, Recipient } from '@/api/generated/ep-recipients.schemas';
 import {
   BankAccountFormData,
   transformBankAccountFormToRecipientPayload,
 } from '@/components/BankAccountForm';
+
+import { invalidateLinkedAccountQueries } from '../utils';
 
 /**
  * Mode for the linked account form - create new or edit existing
@@ -106,28 +103,8 @@ export function useLinkedAccountForm({
   const createMutation = useCreateRecipient({
     mutation: {
       onSuccess: (response) => {
-        // Optimistically add the new recipient to the list
-        const queryKey = getGetAllRecipientsQueryKey({
-          type: 'LINKED_ACCOUNT',
-        });
-        queryClient.setQueryData(
-          queryKey,
-          (oldData: ListRecipientsResponse | undefined) => {
-            if (!oldData?.recipients) {
-              return {
-                recipients: [response],
-              };
-            }
-
-            return {
-              ...oldData,
-              recipients: [...oldData.recipients, response],
-            };
-          }
-        );
-        queryClient.invalidateQueries({
-          queryKey,
-        });
+        // Invalidate all linked account queries (handles any page/limit params)
+        invalidateLinkedAccountQueries(queryClient);
         onSuccess?.(response);
         onSettled?.(response);
       },
@@ -143,26 +120,8 @@ export function useLinkedAccountForm({
   const editMutation = useAmendRecipient({
     mutation: {
       onSuccess: (response) => {
-        // Optimistically update the recipient in the list
-        const queryKey = getGetAllRecipientsQueryKey({
-          type: 'LINKED_ACCOUNT',
-        });
-        queryClient.setQueryData(
-          queryKey,
-          (oldData: ListRecipientsResponse | undefined) => {
-            if (!oldData?.recipients) return oldData;
-
-            return {
-              ...oldData,
-              recipients: oldData.recipients.map((r) =>
-                r.id === response.id ? response : r
-              ),
-            };
-          }
-        );
-        queryClient.invalidateQueries({
-          queryKey,
-        });
+        // Invalidate all linked account queries (handles any page/limit params)
+        invalidateLinkedAccountQueries(queryClient);
         onSuccess?.(response);
         onSettled?.(response);
       },

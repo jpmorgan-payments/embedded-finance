@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { ChevronDownIcon, ChevronUpIcon, PlusIcon } from 'lucide-react';
+import { ChevronDownIcon, PlusIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
@@ -17,6 +17,7 @@ import { EmptyState } from './components/EmptyState/EmptyState';
 import { LinkedAccountCard } from './components/LinkedAccountCard/LinkedAccountCard';
 import { LinkedAccountCardSkeleton } from './components/LinkedAccountCardSkeleton/LinkedAccountCardSkeleton';
 import { LinkedAccountFormDialog } from './components/LinkedAccountFormDialog/LinkedAccountFormDialog';
+import { LinkedAccountsTableView } from './components/LinkedAccountsTableView';
 import { RemoveAccountResultDialog } from './components/RemoveAccountResultDialog/RemoveAccountResultDialog';
 import { VerificationResultDialog } from './components/VerificationResultDialog/VerificationResultDialog';
 import { useLinkedAccounts } from './hooks';
@@ -32,12 +33,10 @@ import { shouldShowCreateButton } from './utils';
  *
  * Enhanced with improved loading states, error handling, and visual design.
  *
- * @example
+ * @example Basic usage
  * ```tsx
  * <LinkedAccountWidget
- *   variant="default"
- *   showCreateButton={true}
- *   onLinkedAccountSettled={(recipient, error) => {
+ *   onAccountLinked={(recipient, error) => {
  *     if (error) {
  *       console.error('Failed to link account:', error);
  *     } else {
@@ -46,21 +45,83 @@ import { shouldShowCreateButton } from './utils';
  *   }}
  * />
  * ```
+ *
+ * @example Single account mode (for payment flows)
+ * ```tsx
+ * <LinkedAccountWidget mode="single" />
+ * ```
+ *
+ * @example Scrollable with custom height
+ * ```tsx
+ * <LinkedAccountWidget scrollable maxHeight={500} />
+ * ```
+ *
+ * @example Compact mode with custom payment action
+ * ```tsx
+ * <LinkedAccountWidget
+ *   compact
+ *   renderPaymentAction={(recipient) => (
+ *     <Button onClick={() => pay(recipient)}>Pay</Button>
+ *   )}
+ * />
+ * ```
  */
 export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
-  variant = 'default',
-  showCreateButton = true,
+  // New props (preferred)
+  mode,
+  viewMode = 'cards',
+  compact = false,
+  scrollable,
+  maxHeight,
+  pageSize = 10,
+  hideCreateButton,
+  renderPaymentAction,
+  onAccountLinked,
+  onVerificationComplete,
+  className,
+  userEventsHandler,
+  userEventsLifecycle,
+
+  // Deprecated props (for backward compatibility)
+  variant,
+  showCreateButton,
+  scrollHeight,
   makePaymentComponent,
   onLinkedAccountSettled,
   onMicrodepositVerifySettled,
-  initialItemsToShow = 2,
-  pageSize = 25,
-  scrollHeight,
-  compact = false,
-  userEventsHandler,
-  userEventsLifecycle,
-  className,
 }) => {
+  // ============================================================================
+  // Normalize deprecated props to new props
+  // ============================================================================
+
+  // mode: 'list' | 'single' (new) vs variant: 'default' | 'singleAccount' (deprecated)
+  const resolvedMode =
+    mode ?? (variant === 'singleAccount' ? 'single' : 'list');
+
+  // scrollable + maxHeight (new) vs scrollHeight (deprecated)
+  const resolvedScrollable = scrollable ?? scrollHeight !== undefined;
+  const resolvedMaxHeight = maxHeight ?? scrollHeight ?? '400px';
+
+  // hideCreateButton (new) vs showCreateButton (deprecated, inverted logic)
+  const resolvedHideCreateButton =
+    hideCreateButton ??
+    (showCreateButton !== undefined ? !showCreateButton : false);
+
+  // renderPaymentAction (new) vs makePaymentComponent (deprecated)
+  // For backward compatibility, wrap makePaymentComponent in a function
+  const resolvedRenderPaymentAction =
+    renderPaymentAction ??
+    (makePaymentComponent ? () => makePaymentComponent : undefined);
+
+  // Callback normalization
+  const resolvedOnAccountLinked = onAccountLinked ?? onLinkedAccountSettled;
+  const resolvedOnVerificationComplete =
+    onVerificationComplete ?? onMicrodepositVerifySettled;
+
+  // ============================================================================
+  // Component State
+  // ============================================================================
+
   const { t } = useTranslation('linked-accounts');
   const [showResultDialog, setShowResultDialog] = useState(false);
   const [resultVariant, setResultVariant] = useState<
@@ -91,9 +152,10 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
     isLoadingMore,
     totalCount,
     nextLoadCount,
-    isExpanded,
-    toggleExpanded,
-  } = useLinkedAccounts({ variant, initialItemsToShow, pageSize });
+  } = useLinkedAccounts({
+    variant: resolvedMode === 'single' ? 'singleAccount' : 'default',
+    pageSize,
+  });
 
   // Setup virtualizer for scrollable mode
   const rowVirtualizer = useVirtualizer({
@@ -101,7 +163,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
     getScrollElement: () => scrollContainerRef.current,
     estimateSize: () => 240, // Estimated height - will be measured dynamically
     overscan: 2, // Render 2 items above/below viewport for smooth scrolling
-    enabled: !!scrollHeight, // Only enable when scrollHeight is set
+    enabled: resolvedScrollable, // Only enable when scrollable is true
     measureElement:
       typeof window !== 'undefined'
         ? (element) => (element as HTMLElement).offsetHeight
@@ -110,7 +172,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
 
   // Auto-load more when scrolling near bottom (infinite scroll)
   useEffect(() => {
-    if (!scrollHeight || !hasMore || isLoadingMore) return;
+    if (!resolvedScrollable || !hasMore || isLoadingMore) return;
 
     const lastItem = rowVirtualizer.getVirtualItems().slice(-1)[0];
     if (!lastItem) return;
@@ -120,7 +182,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
       loadMore();
     }
   }, [
-    scrollHeight,
+    resolvedScrollable,
     hasMore,
     isLoadingMore,
     rowVirtualizer.getVirtualItems(),
@@ -130,9 +192,9 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
 
   // Determine if create button should be shown
   const showCreate = shouldShowCreateButton(
-    variant,
+    resolvedMode === 'single' ? 'singleAccount' : 'default',
     hasActiveAccount,
-    showCreateButton
+    !resolvedHideCreateButton
   );
 
   // Set up automatic event tracking for data-user-event attributes
@@ -177,7 +239,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
       });
     }
 
-    onMicrodepositVerifySettled?.(response, recipient);
+    resolvedOnVerificationComplete?.(response, recipient);
   };
 
   // Handle account removal success
@@ -200,7 +262,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
         userEventsHandler,
       });
     }
-    onLinkedAccountSettled?.(recipient, error);
+    resolvedOnAccountLinked?.(recipient, error);
   };
 
   return (
@@ -219,13 +281,16 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
       />
 
       <Card
-        className={`eb-component eb-mx-auto eb-w-full eb-max-w-5xl eb-overflow-hidden ${className || ''}`}
+        className={cn(
+          'eb-component eb-mx-auto eb-w-full eb-max-w-5xl eb-overflow-hidden',
+          className
+        )}
       >
         <CardHeader className="eb-border-b eb-bg-muted/30 eb-p-2.5 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-p-3 @lg:eb-p-4">
-          <div className="eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-4">
-            <div className="eb-flex-1">
+          <div className="eb-flex eb-flex-col eb-gap-2 @xs:eb-flex-row @xs:eb-items-center @xs:eb-justify-between @xs:eb-gap-4">
+            <div className="eb-min-w-0 eb-flex-1">
               <div className="eb-flex eb-items-center eb-gap-2">
-                <CardTitle className="eb-h-8 eb-font-header eb-text-lg eb-font-semibold eb-leading-8 @md:eb-text-xl">
+                <CardTitle className="eb-h-8 eb-truncate eb-font-header eb-text-lg eb-font-semibold eb-leading-8 @md:eb-text-xl">
                   {t('title')}{' '}
                   {!isLoading && !isError && (
                     <span className="eb-animate-fade-in">
@@ -240,7 +305,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                 </p>
               )}
             </div>
-            {showCreate && !isLoading && (
+            {showCreate && !isLoading && linkedAccounts.length > 0 && (
               <div className="eb-animate-fade-in">
                 <LinkedAccountFormDialog
                   mode="create"
@@ -255,7 +320,10 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                     data-user-event={LINKED_ACCOUNT_USER_JOURNEYS.LINK_STARTED}
                   >
                     <PlusIcon className="eb-mr-1.5 eb-h-4 eb-w-4" />
-                    {t('linkNewAccount')}
+                    <span className="@md:eb-hidden">{t('link')}</span>
+                    <span className="eb-hidden @md:eb-inline">
+                      {t('linkNewAccount')}
+                    </span>
                   </Button>
                 </LinkedAccountFormDialog>
               </div>
@@ -266,16 +334,18 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
         <CardContent
           className={cn('eb-transition-all eb-duration-300 eb-ease-in-out', {
             'eb-space-y-0 eb-p-0': compact,
-            'eb-p-0': !!scrollHeight,
+            'eb-p-0': resolvedScrollable,
             'eb-space-y-4 eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': !(
-              scrollHeight || compact
+              resolvedScrollable || compact
             ),
           })}
         >
           {/* Loading state with skeleton cards */}
           {isLoading && (
             <div
-              className={`eb-grid eb-grid-cols-1 eb-gap-3 ${scrollHeight ? 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4' : ''}`}
+              className={cn('eb-grid eb-grid-cols-1 eb-gap-3', {
+                'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': resolvedScrollable,
+              })}
             >
               {/* Show 1 skeleton card during loading */}
               <LinkedAccountCardSkeleton compact={compact} />
@@ -285,9 +355,9 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           {/* Error state */}
           {isError && (
             <div
-              className={
-                scrollHeight || compact ? 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4' : ''
-              }
+              className={cn({
+                'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': resolvedScrollable || compact,
+              })}
             >
               <ServerErrorAlert
                 customTitle={t('errors.loading.title')}
@@ -305,26 +375,69 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           {/* Empty state */}
           {isSuccess && linkedAccounts.length === 0 && (
             <div
-              className={
-                scrollHeight || compact ? 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4' : ''
-              }
+              className={cn({
+                'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': resolvedScrollable || compact,
+              })}
             >
-              <EmptyState className="eb-animate-fade-in" />
+              <EmptyState
+                className="eb-animate-fade-in"
+                compact={compact}
+                action={
+                  showCreate && (
+                    <LinkedAccountFormDialog
+                      mode="create"
+                      onLinkedAccountSettled={handleLinkedAccountSettled}
+                    >
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className={cn({
+                          'eb-h-8 eb-px-3': compact,
+                        })}
+                      >
+                        <PlusIcon className="eb-mr-1.5 eb-h-4 eb-w-4" />
+                        {t('linkNewAccount')}
+                      </Button>
+                    </LinkedAccountFormDialog>
+                  )
+                }
+              />
             </div>
           )}
 
           {/* Linked accounts list */}
           {isSuccess && linkedAccounts.length > 0 && (
             <>
-              {scrollHeight ? (
+              {viewMode === 'table' ? (
+                // Table view with server-side pagination
+                <div
+                  className={cn({
+                    'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': true,
+                  })}
+                >
+                  <LinkedAccountsTableView
+                    useServerPagination
+                    renderPaymentAction={resolvedRenderPaymentAction}
+                    onLinkedAccountSettled={resolvedOnAccountLinked}
+                    onMicrodepositVerifySettled={
+                      handleMicrodepositVerifySettled
+                    }
+                    onRemoveSuccess={handleRemoveSuccess}
+                    defaultPageSize={pageSize}
+                    showPagination
+                  />
+                </div>
+              ) : resolvedScrollable ? (
                 // Virtualized scrollable list
                 <div
                   ref={scrollContainerRef}
                   style={{
-                    maxHeight: scrollHeight,
+                    maxHeight: resolvedMaxHeight,
                     overflow: 'auto',
                   }}
-                  className={`eb-relative ${compact ? '' : 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4'}`}
+                  className={cn('eb-relative', {
+                    'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': !compact,
+                  })}
                 >
                   <div
                     style={{
@@ -348,22 +461,24 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                             transform: `translateY(${virtualRow.start}px)`,
                           }}
                         >
-                          <div className={compact ? '' : 'eb-px-1 eb-pb-3'}>
+                          <div className={cn({ 'eb-px-1 eb-pb-3': !compact })}>
                             <LinkedAccountCard
                               recipient={recipient}
-                              makePaymentComponent={makePaymentComponent}
-                              onLinkedAccountSettled={onLinkedAccountSettled}
+                              makePaymentComponent={resolvedRenderPaymentAction?.(
+                                recipient
+                              )}
+                              onLinkedAccountSettled={resolvedOnAccountLinked}
                               onMicrodepositVerifySettled={
                                 handleMicrodepositVerifySettled
                               }
                               onRemoveSuccess={handleRemoveSuccess}
                               compact={compact}
-                              className={
-                                compact &&
-                                virtualRow.index === linkedAccounts.length - 1
-                                  ? 'eb-border-b-0'
-                                  : ''
-                              }
+                              className={cn({
+                                'eb-border-b-0':
+                                  compact &&
+                                  virtualRow.index ===
+                                    linkedAccounts.length - 1,
+                              })}
                             />
                           </div>
                         </div>
@@ -382,15 +497,12 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                 // Non-virtualized grid layout (default)
                 <>
                   <div
-                    className={`eb-grid eb-grid-cols-1 eb-items-start ${
-                      compact
-                        ? 'eb-gap-0'
-                        : `eb-gap-3 ${
-                            linkedAccounts.length > 1
-                              ? '@4xl:eb-grid-cols-2'
-                              : ''
-                          }`
-                    }`}
+                    className={cn('eb-grid eb-grid-cols-1 eb-items-start', {
+                      'eb-gap-0': compact,
+                      'eb-gap-3': !compact,
+                      '@4xl:eb-grid-cols-2':
+                        !compact && linkedAccounts.length > 1,
+                    })}
                   >
                     {linkedAccounts.map((recipient, index) => (
                       <div
@@ -403,168 +515,87 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                       >
                         <LinkedAccountCard
                           recipient={recipient}
-                          makePaymentComponent={makePaymentComponent}
-                          onLinkedAccountSettled={onLinkedAccountSettled}
+                          makePaymentComponent={resolvedRenderPaymentAction?.(
+                            recipient
+                          )}
+                          onLinkedAccountSettled={resolvedOnAccountLinked}
                           onMicrodepositVerifySettled={
                             handleMicrodepositVerifySettled
                           }
                           onRemoveSuccess={handleRemoveSuccess}
                           compact={compact}
-                          className={
-                            compact && index === linkedAccounts.length - 1
-                              ? 'eb-border-b-0'
-                              : ''
-                          }
+                          className={cn({
+                            'eb-border-b-0':
+                              compact && index === linkedAccounts.length - 1,
+                          })}
                         />
                       </div>
                     ))}
                   </div>
 
-                  {/* Expand/Load More/Collapse Actions */}
+                  {/* Load More Actions */}
                   {compact
-                    ? // COMPACT MODE - Full width clickable areas
-                      ((!isExpanded && hasMore) ||
-                        (isExpanded &&
-                          (hasMore ||
-                            linkedAccounts.length > initialItemsToShow))) && (
-                        <div className="eb-space-y-0 eb-border-t">
-                          {/* Collapse Button - Only when expanded and showing more than initial */}
-                          {isExpanded &&
-                            linkedAccounts.length > initialItemsToShow && (
-                              <button
-                                type="button"
-                                onClick={toggleExpanded}
-                                className="eb-group eb-w-full eb-bg-muted/40 eb-py-2 eb-text-center eb-transition-colors hover:eb-bg-muted/60"
-                                aria-label={t('actions.showLess', {
-                                  defaultValue: 'Show less',
-                                })}
-                              >
-                                <div className="eb-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-muted-foreground group-hover:eb-text-foreground">
-                                  <ChevronUpIcon className="eb-h-4 eb-w-4" />
-                                  <span>
-                                    {t('actions.showLess', {
-                                      defaultValue: 'Show less',
-                                    })}
-                                  </span>
-                                </div>
-                              </button>
-                            )}
-
-                          {/* Show More / Load More Button - Full width clickable area */}
-                          {((!isExpanded && hasMore) ||
-                            (isExpanded && hasMore)) && (
-                            <button
-                              type="button"
-                              onClick={!isExpanded ? toggleExpanded : loadMore}
-                              disabled={isLoadingMore}
-                              className={`eb-group eb-w-full eb-bg-muted eb-py-2 eb-text-center eb-transition-colors hover:eb-bg-muted/60 disabled:eb-opacity-50 ${
-                                isExpanded &&
-                                linkedAccounts.length > initialItemsToShow
-                                  ? 'eb-border-t'
-                                  : ''
-                              }`}
-                              aria-label={
-                                !isExpanded
-                                  ? t('showMoreWithCount', {
-                                      defaultValue:
-                                        'Show {{count}} more account_other',
-                                      count: nextLoadCount,
-                                    })
-                                  : t('showMoreWithCount', {
-                                      count: nextLoadCount,
-                                    })
-                              }
-                            >
-                              <div className="eb-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-muted-foreground group-hover:eb-text-foreground">
-                                {isLoadingMore ? (
-                                  <>
-                                    <div className="eb-h-4 eb-w-4 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
-                                    <span>{t('loadingMore')}</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <ChevronDownIcon className="eb-h-4 eb-w-4" />
-                                    <span>
-                                      {!isExpanded
-                                        ? t('showMoreWithCount', {
-                                            defaultValue:
-                                              'Show {{count}} more account_other',
-                                            count: nextLoadCount,
-                                          })
-                                        : t('showMoreWithCount', {
-                                            count: nextLoadCount,
-                                          })}
-                                    </span>
-                                  </>
-                                )}
-                              </div>
-                            </button>
-                          )}
-                        </div>
-                      )
-                    : // NON-COMPACT MODE - Small buttons side by side
-                      ((!isExpanded && hasMore) ||
-                        (isExpanded &&
-                          linkedAccounts.length > initialItemsToShow) ||
-                        (isExpanded && hasMore)) && (
-                        <div className="eb-flex eb-justify-center eb-gap-2 eb-pt-2">
-                          {/* Show expand button when collapsed and there are more items available */}
-                          {!isExpanded && hasMore && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={toggleExpanded}
-                              className="eb-h-8 eb-text-xs eb-text-muted-foreground hover:eb-text-foreground"
-                            >
-                              <ChevronDownIcon className="eb-mr-1.5 eb-h-3.5 eb-w-3.5" />
-                              {t('showMoreWithCount', {
-                                defaultValue:
-                                  'Show {{count}} more account_other',
-                                count: nextLoadCount,
-                              })}
-                            </Button>
-                          )}
-
-                          {/* Show "Show less" when expanded and showing more than initial */}
-                          {isExpanded &&
-                            linkedAccounts.length > initialItemsToShow && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={toggleExpanded}
-                                className="eb-h-8 eb-text-xs eb-text-muted-foreground hover:eb-text-foreground"
-                              >
-                                <ChevronUpIcon className="eb-mr-1.5 eb-h-3.5 eb-w-3.5" />
-                                {t('actions.showLess', {
-                                  defaultValue: 'Show less',
-                                })}
-                              </Button>
-                            )}
-
-                          {/* Show "Load more" when all current items are shown but there's more to fetch */}
-                          {isExpanded && hasMore && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={loadMore}
-                              disabled={isLoadingMore}
-                              className="eb-h-8 eb-text-xs eb-text-muted-foreground hover:eb-text-foreground"
-                            >
+                    ? // COMPACT MODE - Full width clickable area
+                      hasMore && (
+                        <div className="eb-border-t">
+                          <button
+                            type="button"
+                            onClick={loadMore}
+                            disabled={isLoadingMore}
+                            className="eb-group eb-w-full eb-bg-muted eb-py-2 eb-text-center eb-transition-colors hover:eb-bg-muted/60 disabled:eb-opacity-50"
+                            aria-label={t('showMoreWithCount', {
+                              defaultValue: 'Show {{count}} more account_other',
+                              count: nextLoadCount,
+                            })}
+                          >
+                            <div className="eb-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-muted-foreground group-hover:eb-text-foreground">
                               {isLoadingMore ? (
                                 <>
-                                  <div className="eb-mr-1.5 eb-h-3.5 eb-w-3.5 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
-                                  {t('loadingMore')}
+                                  <div className="eb-h-4 eb-w-4 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
+                                  <span>{t('loadingMore')}</span>
                                 </>
                               ) : (
                                 <>
-                                  <ChevronDownIcon className="eb-mr-1.5 eb-h-3.5 eb-w-3.5" />
-                                  {t('showMoreWithCount', {
-                                    count: nextLoadCount,
-                                  })}
+                                  <ChevronDownIcon className="eb-h-4 eb-w-4" />
+                                  <span>
+                                    {t('showMoreWithCount', {
+                                      defaultValue:
+                                        'Show {{count}} more account_other',
+                                      count: nextLoadCount,
+                                    })}
+                                  </span>
                                 </>
                               )}
-                            </Button>
-                          )}
+                            </div>
+                          </button>
+                        </div>
+                      )
+                    : // NON-COMPACT MODE - Small button
+                      hasMore && (
+                        <div className="eb-flex eb-justify-center eb-gap-2 eb-pt-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={loadMore}
+                            disabled={isLoadingMore}
+                            className="eb-h-8 eb-text-xs eb-text-muted-foreground hover:eb-text-foreground"
+                          >
+                            {isLoadingMore ? (
+                              <>
+                                <div className="eb-mr-1.5 eb-h-3.5 eb-w-3.5 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
+                                {t('loadingMore')}
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDownIcon className="eb-mr-1.5 eb-h-3.5 eb-w-3.5" />
+                                {t('showMoreWithCount', {
+                                  defaultValue:
+                                    'Show {{count}} more account_other',
+                                  count: nextLoadCount,
+                                })}
+                              </>
+                            )}
+                          </Button>
                         </div>
                       )}
                 </>

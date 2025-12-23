@@ -377,48 +377,45 @@ export const createRecipientHandlers = (
   return [
     // GET /clients/:clientId - Get client with expanded parties
     // Note: Uses wildcard to match different base URLs and any client ID
-    http.get(
-      '/do/v1/clients/:clientId',
-      async ({ params }): Promise<Response> => {
-        const { clientId } = params;
+    http.get('/clients/:clientId', async ({ params }): Promise<Response> => {
+      const { clientId } = params;
 
-        // Try to find the specific client, or return the first available client
-        let client = db.client.findFirst({
-          where: { id: { equals: clientId as string } },
-        });
+      // Try to find the specific client, or return the first available client
+      let client = db.client.findFirst({
+        where: { id: { equals: clientId as string } },
+      });
 
-        if (!client) {
-          // If specific client not found, return any available client (for flexibility)
-          const allClients = db.client.getAll();
-          [client] = allClients;
-        }
-
-        if (!client) {
-          return HttpResponse.json(
-            { httpStatus: 404, title: 'Client not found' },
-            { status: 404 }
-          );
-        }
-
-        // Expand party IDs to full party objects
-        const expandedClient = {
-          ...client,
-          parties: (client.parties as string[])
-            .map((partyId) =>
-              db.party.findFirst({ where: { id: { equals: partyId } } })
-            )
-            .filter(Boolean),
-        };
-
-        debugLog('GET /do/v1/clients/:clientId', {
-          requestedId: clientId,
-          returnedId: client.id,
-          partyCount: expandedClient.parties.length,
-        });
-
-        return HttpResponse.json(expandedClient);
+      if (!client) {
+        // If specific client not found, return any available client (for flexibility)
+        const allClients = db.client.getAll();
+        [client] = allClients;
       }
-    ),
+
+      if (!client) {
+        return HttpResponse.json(
+          { httpStatus: 404, title: 'Client not found' },
+          { status: 404 }
+        );
+      }
+
+      // Expand party IDs to full party objects
+      const expandedClient = {
+        ...client,
+        parties: (client.parties as string[])
+          .map((partyId) =>
+            db.party.findFirst({ where: { id: { equals: partyId } } })
+          )
+          .filter(Boolean),
+      };
+
+      debugLog('GET /clients/:clientId', {
+        requestedId: clientId,
+        returnedId: client.id,
+        partyCount: expandedClient.parties.length,
+      });
+
+      return HttpResponse.json(expandedClient);
+    }),
 
     // GET /recipients - List all active recipients
     http.get('/recipients', async (): Promise<Response> => {
@@ -590,8 +587,8 @@ export const createRecipientHandlers = (
  * Component-specific defaults (global defaults are in preview.tsx)
  */
 export const commonArgs = {
-  variant: 'default' as const,
-  showCreateButton: true,
+  mode: 'list' as const,
+  hideCreateButton: false,
   clientId: 'mock-client-id',
 };
 
@@ -600,21 +597,65 @@ export const commonArgs = {
  * Component-specific argTypes (global argTypes are in preview.tsx)
  */
 export const commonArgTypes = {
-  variant: {
+  // === New Props (Preferred) ===
+  mode: {
     control: { type: 'select' as const },
-    options: ['default', 'singleAccount'],
-    description: 'Display variant for the widget',
+    options: ['list', 'single'],
+    description:
+      'Layout mode: "list" shows all accounts with expand/collapse, "single" shows only one account',
     table: {
-      category: 'Component',
-      defaultValue: { summary: 'default' },
+      category: 'Display Mode',
+      defaultValue: { summary: 'list' },
     },
   },
-  showCreateButton: {
+  compact: {
     control: { type: 'boolean' as const },
-    description: 'Whether to show the "Link New Account" button',
+    description: 'Enable compact row-based cards with minimal spacing',
     table: {
-      category: 'Component',
-      defaultValue: { summary: 'true' },
+      category: 'Display Mode',
+      defaultValue: { summary: 'false' },
+    },
+  },
+  viewMode: {
+    control: { type: 'select' as const },
+    options: ['cards', 'table'],
+    table: {
+      category: 'Display Mode',
+      defaultValue: { summary: 'cards' },
+    },
+  },
+  scrollable: {
+    control: { type: 'boolean' as const },
+    description:
+      'Enable scrollable container with virtualization and infinite scroll',
+    table: {
+      category: 'Scrolling',
+      defaultValue: { summary: 'false' },
+    },
+  },
+  maxHeight: {
+    control: { type: 'text' as const },
+    description:
+      'Maximum height of the scrollable container (only when scrollable=true). Accepts CSS values like 400, "50vh", "100%"',
+    table: {
+      category: 'Scrolling',
+      defaultValue: { summary: '400px' },
+    },
+  },
+  pageSize: {
+    control: { type: 'number' as const },
+    description: 'Number of accounts to fetch per API request',
+    table: {
+      category: 'Pagination',
+      defaultValue: { summary: '10' },
+    },
+  },
+  hideCreateButton: {
+    control: { type: 'boolean' as const },
+    description: 'Hide the "Link New Account" button',
+    table: {
+      category: 'Actions',
+      defaultValue: { summary: 'false' },
     },
   },
   clientId: {
@@ -625,38 +666,106 @@ export const commonArgTypes = {
       defaultValue: { summary: 'mock-client-id' },
     },
   },
-  compact: {
-    control: { type: 'boolean' as const },
-    description: 'Enable compact mode ',
+
+  // === Deprecated Props (for backward compatibility) ===
+  variant: {
+    control: { type: 'select' as const },
+    options: ['default', 'singleAccount'],
+    description: '⚠️ DEPRECATED: Use "mode" instead',
     table: {
-      category: 'Component',
-      defaultValue: { summary: 'false' },
+      category: 'Deprecated',
+      defaultValue: { summary: 'default' },
+    },
+  },
+  showCreateButton: {
+    control: { type: 'boolean' as const },
+    description:
+      '⚠️ DEPRECATED: Use "hideCreateButton" instead (inverted logic)',
+    table: {
+      category: 'Deprecated',
+      defaultValue: { summary: 'true' },
     },
   },
   scrollHeight: {
     control: { type: 'text' as const },
-    description:
-      'Sets a fixed height with scroll for the account list (e.g., "300px", "50%")',
+    description: '⚠️ DEPRECATED: Use "scrollable" and "maxHeight" instead',
     table: {
-      category: 'Component',
+      category: 'Deprecated',
     },
   },
-  initialItemsToShow: {
-    control: { type: 'number' as const },
-    description:
-      'Number of accounts to show initially when scrollHeight is not set',
+  makePaymentComponent: {
+    control: { disable: true },
+    description: '⚠️ DEPRECATED: Use "renderPaymentAction" instead',
     table: {
-      category: 'Component',
-      defaultValue: { summary: '2' },
+      category: 'Deprecated',
     },
   },
-  pageSize: {
-    control: { type: 'number' as const },
-    description:
-      'Number of accounts to fetch per page from the API when scrollHeight is not set',
+  onLinkedAccountSettled: {
+    control: { disable: true },
+    description: '⚠️ DEPRECATED: Use "onAccountLinked" instead',
     table: {
-      category: 'Component',
-      defaultValue: { summary: '25' },
+      category: 'Deprecated',
+    },
+  },
+  onMicrodepositVerifySettled: {
+    control: { disable: true },
+    description: '⚠️ DEPRECATED: Use "onVerificationComplete" instead',
+    table: {
+      category: 'Deprecated',
+    },
+  },
+
+  // === Callbacks ===
+  onAccountLinked: {
+    control: { disable: true },
+    description:
+      'Called when a linked account operation completes (success or failure)',
+    table: {
+      category: 'Callbacks',
+    },
+  },
+  onVerificationComplete: {
+    control: { disable: true },
+    description: 'Called when microdeposit verification completes',
+    table: {
+      category: 'Callbacks',
+    },
+  },
+
+  // === Customization ===
+  renderPaymentAction: {
+    control: { disable: true },
+    description:
+      'Render a custom payment/action component for each account card. Receives recipient as argument.',
+    table: {
+      category: 'Customization',
+    },
+  },
+
+  // === Styling ===
+  className: {
+    control: { type: 'text' as const },
+    description: 'Additional CSS class name(s) for the root Card element',
+    table: {
+      category: 'Styling',
+    },
+  },
+
+  // === Analytics ===
+  userEventsHandler: {
+    control: { disable: true },
+    description:
+      'Handler for user events with rich context. Used for analytics/RUM integration.',
+    table: {
+      category: 'Analytics',
+    },
+  },
+  userEventsLifecycle: {
+    control: { disable: true },
+    description:
+      'Optional lifecycle handlers for RUM libraries that need enter/leave action pairs',
+    table: {
+      category: 'Analytics',
     },
   },
 };

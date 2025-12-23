@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { cn } from '@/lib/utils';
 import { RecipientStatus } from '@/api/generated/ep-recipients.schemas';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -84,7 +85,7 @@ export const StatusAlert: React.FC<StatusAlertProps> = ({
 
   return (
     <Alert variant={variant} className={className} noTitle>
-      <Icon className={`eb-h-4 eb-w-4 ${iconClass}`} />
+      <Icon className={cn('eb-h-4 eb-w-4', iconClass)} />
       {title && <AlertTitle>{title}</AlertTitle>}
       <AlertDescription>{description || defaultDescription}</AlertDescription>
       {action && <div className="eb-mt-3">{action}</div>}

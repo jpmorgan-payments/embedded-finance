@@ -19,7 +19,7 @@ export const SALT_THEME: EBTheme = {
   colorScheme: 'light',
   variables: {
     contentFontFamily: 'Open Sans',
-    contentHeaderFontFamily: 'Amplitude',
+    textHeadingFontFamily: 'Amplitude',
     actionableFontFamily: 'Amplitude',
     actionableFontWeight: '600',
     actionableFontSize: '0.875rem',
@@ -93,7 +93,7 @@ export const SELLSENSE_THEME: EBTheme = {
   colorScheme: 'light',
   variables: {
     contentFontFamily: 'Inter',
-    contentHeaderFontFamily: 'Inter',
+    textHeadingFontFamily: 'Inter',
     actionableFontFamily: 'Inter',
     actionableFontWeight: '600',
     actionableFontSize: '0.875rem',
@@ -170,7 +170,7 @@ export const DEFAULT_BLUE_THEME: EBTheme = {
   variables: {
     contentFontFamily:
       'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
-    contentHeaderFontFamily:
+    textHeadingFontFamily:
       'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
     actionableFontFamily:
       'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
@@ -249,7 +249,7 @@ export const CREATE_COMMERCE_THEME: EBTheme = {
   colorScheme: 'light', // Still light mode but with dark container colors
   variables: {
     contentFontFamily: 'Open Sans',
-    contentHeaderFontFamily: 'Open Sans',
+    textHeadingFontFamily: 'Open Sans',
     actionableFontFamily: 'Open Sans',
     actionableFontWeight: '600',
     actionableFontSize: '0.875rem',
@@ -327,7 +327,7 @@ export const PAYFICIENT_THEME: EBTheme = {
   colorScheme: 'light',
   variables: {
     contentFontFamily: 'Manrope',
-    contentHeaderFontFamily: 'Manrope',
+    textHeadingFontFamily: 'Manrope',
     actionableFontFamily: 'Manrope',
     actionableFontWeight: '600',
     actionableFontSize: '0.875rem',
@@ -404,7 +404,7 @@ export const RETRO_ARCADE_THEME: EBTheme = {
   colorScheme: 'light',
   variables: {
     contentFontFamily: '"Press Start 2P", "Courier New", monospace',
-    contentHeaderFontFamily: '"Press Start 2P", "Courier New", monospace',
+    textHeadingFontFamily: '"Press Start 2P", "Courier New", monospace',
     actionableFontFamily: '"Press Start 2P", "Courier New", monospace',
     actionableFontWeight: '400',
     actionableFontSize: '0.75rem',

@@ -25,7 +25,7 @@ import {
 } from './db';
 
 export const handlers = [
-  http.get(`/do/v1/clients/:clientId`, (req) => {
+  http.get(`/clients/:clientId`, (req) => {
     const { clientId } = req.params;
     const client = db.client.findFirst({
       where: { id: { equals: clientId } },
@@ -59,7 +59,7 @@ export const handlers = [
     });
   }),
 
-  http.post(`/do/v1/clients`, async ({ request }) => {
+  http.post(`/clients`, async ({ request }) => {
     const rawData = await request.json();
     if (!rawData || typeof rawData !== 'object') {
       return new HttpResponse(null, {
@@ -131,7 +131,7 @@ export const handlers = [
     });
   }),
 
-  http.post(`/do/v1/clients/:clientId`, async ({ request, params }) => {
+  http.post(`/clients/:clientId`, async ({ request, params }) => {
     const { clientId } = params;
     const data = await request.json();
 
@@ -504,7 +504,7 @@ export const handlers = [
     }
   ),
 
-  http.get('/do/v1/clients/:clientId', () => {
+  http.get('/clients/:clientId', () => {
     return new HttpResponse(null, { status: 404 });
   }),
 
@@ -516,20 +516,17 @@ export const handlers = [
     return HttpResponse.json(getDbStatus());
   }),
 
-  http.post(
-    '/do/v1/clients/:clientId/verifications',
-    async ({ request, params }) => {
-      const { clientId } = params;
-      const data = await request.json();
+  http.post('/clients/:clientId/verifications', async ({ request, params }) => {
+    const { clientId } = params;
+    const data = await request.json();
 
-      const verificationResponse = handleMagicValues(clientId, data);
-      if (!verificationResponse) {
-        return new HttpResponse(null, { status: 404 });
-      }
-
-      return HttpResponse.json(verificationResponse);
+    const verificationResponse = handleMagicValues(clientId, data);
+    if (!verificationResponse) {
+      return new HttpResponse(null, { status: 404 });
     }
-  ),
+
+    return HttpResponse.json(verificationResponse);
+  }),
 
   // Recipient endpoints
   http.get('/recipients', ({ request }) => {

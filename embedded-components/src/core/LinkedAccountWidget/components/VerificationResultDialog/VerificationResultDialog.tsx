@@ -3,6 +3,7 @@ import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { getRecipientDisplayName } from '@/lib/recipientHelpers';
+import { cn } from '@/lib/utils';
 import { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { Button } from '@/components/ui/button';
 import {
@@ -88,9 +89,12 @@ export const VerificationResultDialog: FC<VerificationResultDialogProps> = ({
         <DialogHeader className="eb-space-y-3">
           <div className="eb-flex eb-items-center eb-gap-3 eb-font-header">
             <div
-              className={`eb-flex eb-h-10 eb-w-10 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full ${config.iconBgClass}`}
+              className={cn(
+                'eb-flex eb-h-10 eb-w-10 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full',
+                config.iconBgClass
+              )}
             >
-              <Icon className={`eb-h-5 eb-w-5 ${config.iconColorClass}`} />
+              <Icon className={cn('eb-h-5 eb-w-5', config.iconColorClass)} />
             </div>
             <DialogTitle className="eb-text-xl">
               {t(config.titleKey)}

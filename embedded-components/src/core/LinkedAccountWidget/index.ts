@@ -11,5 +11,9 @@
 // Main component export
 export { LinkedAccountWidget } from './LinkedAccountWidget';
 
+// Table view component export (alternate view)
+export { LinkedAccountsTableView } from './components/LinkedAccountsTableView';
+export type { LinkedAccountsTableViewProps } from './components/LinkedAccountsTableView';
+
 // Public type exports
 export type { LinkedAccountWidgetProps } from './LinkedAccountWidget.types';
