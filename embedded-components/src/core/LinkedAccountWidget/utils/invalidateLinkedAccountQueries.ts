@@ -19,16 +19,12 @@ import { QueryClient } from '@tanstack/react-query';
  * invalidateLinkedAccountQueries(queryClient);
  * ```
  */
-export function invalidateLinkedAccountQueries(
-  queryClient: QueryClient
-): void {
+export function invalidateLinkedAccountQueries(queryClient: QueryClient): void {
   queryClient.invalidateQueries({
     predicate: (query) => {
       const { queryKey } = query;
       if (Array.isArray(queryKey)) {
-        const hasRecipientsPath = queryKey.some(
-          (key) => key === '/recipients'
-        );
+        const hasRecipientsPath = queryKey.some((key) => key === '/recipients');
         const hasLinkedAccountType = queryKey.some(
           (key) =>
             typeof key === 'object' &&

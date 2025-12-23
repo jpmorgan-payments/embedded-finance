@@ -28,7 +28,6 @@ import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { StandardFormField } from '@/components/StandardFormField';
 
 import { invalidateLinkedAccountQueries } from '../../utils';
-
 import {
   MicrodepositsFormDataType,
   useMicrodepositsFormSchema,

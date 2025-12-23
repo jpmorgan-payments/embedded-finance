@@ -163,7 +163,10 @@ export function useLinkedAccounts({
   const hasMore = hasNextPage ?? false;
 
   // Calculate what will be loaded next
-  const nextLoadCount = Math.min(pageSize, totalItems - allLoadedAccounts.length);
+  const nextLoadCount = Math.min(
+    pageSize,
+    totalItems - allLoadedAccounts.length
+  );
 
   const loadMore = () => {
     if (hasNextPage && !isFetchingNextPage) {
