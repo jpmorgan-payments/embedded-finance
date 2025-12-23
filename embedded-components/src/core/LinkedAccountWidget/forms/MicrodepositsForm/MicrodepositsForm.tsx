@@ -7,14 +7,10 @@ import { Trans, useTranslation } from 'react-i18next';
 
 import { getRecipientDisplayName } from '@/lib/recipientHelpers';
 import {
-  getGetAllRecipientsQueryKey,
   useGetRecipient,
   useRecipientsVerification,
 } from '@/api/generated/ep-recipients';
-import {
-  ListRecipientsResponse,
-  MicrodepositVerificationResponse,
-} from '@/api/generated/ep-recipients.schemas';
+import { MicrodepositVerificationResponse } from '@/api/generated/ep-recipients.schemas';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,6 +26,8 @@ import {
 import { Form } from '@/components/ui/form';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { StandardFormField } from '@/components/StandardFormField';
+
+import { invalidateLinkedAccountQueries } from '../../utils';
 
 import {
   MicrodepositsFormDataType,
@@ -99,31 +97,8 @@ export const MicrodepositsFormDialogTrigger: FC<
           handleDialogChange(false);
         }
 
-        // Optimistically update the recipients list
-        const queryKey = getGetAllRecipientsQueryKey({
-          type: 'LINKED_ACCOUNT',
-        });
-        queryClient.setQueryData(
-          queryKey,
-          (oldData: ListRecipientsResponse | undefined) => {
-            if (!oldData?.recipients) return oldData;
-
-            return {
-              ...oldData,
-              recipients: oldData.recipients.map((r) =>
-                r.id === recipientId
-                  ? {
-                      ...r,
-                      status: data.status === 'VERIFIED' ? 'ACTIVE' : r.status,
-                    }
-                  : r
-              ),
-            };
-          }
-        );
-        queryClient.invalidateQueries({
-          queryKey,
-        });
+        // Invalidate all linked account queries (handles any page/limit params)
+        invalidateLinkedAccountQueries(queryClient);
         queryClient.invalidateQueries({
           queryKey: ['getRecipient', recipientId],
         });

@@ -4,15 +4,8 @@ import { AlertTriangleIcon, Loader2Icon } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { getRecipientDisplayName } from '@/lib/recipientHelpers';
-import {
-  getGetAllRecipientsQueryKey,
-  useAmendRecipient,
-} from '@/api/generated/ep-recipients';
-import {
-  ApiError,
-  ListRecipientsResponse,
-  Recipient,
-} from '@/api/generated/ep-recipients.schemas';
+import { useAmendRecipient } from '@/api/generated/ep-recipients';
+import { ApiError, Recipient } from '@/api/generated/ep-recipients.schemas';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -24,6 +17,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
+
+import { invalidateLinkedAccountQueries } from '../../utils';
 
 type RemoveAccountDialogTriggerProps = {
   children: ReactNode;
@@ -54,25 +49,8 @@ export const RemoveAccountDialogTrigger: FC<
   } = useAmendRecipient({
     mutation: {
       onSuccess: (response) => {
-        const queryKey = getGetAllRecipientsQueryKey({
-          type: 'LINKED_ACCOUNT',
-        });
-        queryClient.setQueryData(
-          queryKey,
-          (oldData: ListRecipientsResponse | undefined) => {
-            if (!oldData?.recipients) return oldData;
-
-            return {
-              ...oldData,
-              recipients: oldData.recipients.filter(
-                (r) => r.id !== response.id
-              ),
-            };
-          }
-        );
-        queryClient.invalidateQueries({
-          queryKey,
-        });
+        // Invalidate all linked account queries (handles any page/limit params)
+        invalidateLinkedAccountQueries(queryClient);
         onLinkedAccountSettled?.(response);
         // Close the confirmation dialog and trigger parent success dialog
         setDialogOpen(false);
