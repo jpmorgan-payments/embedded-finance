@@ -86,11 +86,9 @@ export interface LinkedAccountWidgetProps extends UserTrackingProps {
    * - Creates a scrollable container with the height specified by `maxHeight`
    * - Uses virtual list for performance with large datasets
    * - Automatically loads more accounts as user scrolls near the bottom
-   * - `defaultVisibleCount` is ignored (all loaded items are visible)
    *
    * When `false` (default):
-   * - Shows `defaultVisibleCount` accounts initially
-   * - User clicks "Show more" to reveal additional accounts
+   * - Shows all loaded accounts
    * - User clicks "Load more" to fetch additional pages from API
    *
    * @default false
@@ -117,17 +115,6 @@ export interface LinkedAccountWidgetProps extends UserTrackingProps {
   // ============================================================================
   // Pagination
   // ============================================================================
-
-  /**
-   * Number of accounts to display initially before "Show more" is clicked.
-   *
-   * Only applies when `scrollable={false}`.
-   * The first click on "Show more" reveals remaining loaded accounts,
-   * subsequent clicks fetch additional pages from the API.
-   *
-   * @default 10
-   */
-  defaultVisibleCount?: number;
 
   /**
    * Number of accounts to fetch per API request.
@@ -241,11 +228,6 @@ export interface LinkedAccountWidgetProps extends UserTrackingProps {
    * Setting `scrollHeight` now automatically enables `scrollable={true}`.
    */
   scrollHeight?: number | string;
-
-  /**
-   * @deprecated Use `defaultVisibleCount` instead. Will be removed in next major version.
-   */
-  initialItemsToShow?: number;
 
   /**
    * @deprecated Use `renderPaymentAction` instead. Will be removed in next major version.

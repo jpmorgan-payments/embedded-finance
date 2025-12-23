@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { ChevronDownIcon, ChevronUpIcon, PlusIcon } from 'lucide-react';
+import { ChevronDownIcon, PlusIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
@@ -73,7 +73,6 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
   compact = false,
   scrollable,
   maxHeight,
-  defaultVisibleCount = 10,
   pageSize = 10,
   hideCreateButton,
   renderPaymentAction,
@@ -153,11 +152,8 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
     isLoadingMore,
     totalCount,
     nextLoadCount,
-    isExpanded,
-    toggleExpanded,
   } = useLinkedAccounts({
     variant: resolvedMode === 'single' ? 'singleAccount' : 'default',
-    defaultVisibleCount,
     pageSize,
   });
 
@@ -427,7 +423,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                       handleMicrodepositVerifySettled
                     }
                     onRemoveSuccess={handleRemoveSuccess}
-                    defaultPageSize={defaultVisibleCount}
+                    defaultPageSize={pageSize}
                     showPagination
                   />
                 </div>
@@ -537,153 +533,69 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                     ))}
                   </div>
 
-                  {/* Expand/Load More/Collapse Actions */}
+                  {/* Load More Actions */}
                   {compact
-                    ? // COMPACT MODE - Full width clickable areas
-                      ((!isExpanded && hasMore) ||
-                        (isExpanded &&
-                          (hasMore ||
-                            linkedAccounts.length > defaultVisibleCount))) && (
-                        <div className="eb-space-y-0 eb-border-t">
-                          {/* Collapse Button - Only when expanded and showing more than initial */}
-                          {isExpanded &&
-                            linkedAccounts.length > defaultVisibleCount && (
-                              <button
-                                type="button"
-                                onClick={toggleExpanded}
-                                className="eb-group eb-w-full eb-bg-muted/40 eb-py-2 eb-text-center eb-transition-colors hover:eb-bg-muted/60"
-                                aria-label={t('actions.showLess', {
-                                  defaultValue: 'Show less',
-                                })}
-                              >
-                                <div className="eb-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-muted-foreground group-hover:eb-text-foreground">
-                                  <ChevronUpIcon className="eb-h-4 eb-w-4" />
-                                  <span>
-                                    {t('actions.showLess', {
-                                      defaultValue: 'Show less',
-                                    })}
-                                  </span>
-                                </div>
-                              </button>
-                            )}
-
-                          {/* Show More / Load More Button - Full width clickable area */}
-                          {((!isExpanded && hasMore) ||
-                            (isExpanded && hasMore)) && (
-                            <button
-                              type="button"
-                              onClick={!isExpanded ? toggleExpanded : loadMore}
-                              disabled={isLoadingMore}
-                              className={cn(
-                                'eb-group eb-w-full eb-bg-muted eb-py-2 eb-text-center eb-transition-colors hover:eb-bg-muted/60 disabled:eb-opacity-50',
-                                {
-                                  'eb-border-t':
-                                    isExpanded &&
-                                    linkedAccounts.length > defaultVisibleCount,
-                                }
-                              )}
-                              aria-label={
-                                !isExpanded
-                                  ? t('showMoreWithCount', {
-                                      defaultValue:
-                                        'Show {{count}} more account_other',
-                                      count: nextLoadCount,
-                                    })
-                                  : t('showMoreWithCount', {
-                                      count: nextLoadCount,
-                                    })
-                              }
-                            >
-                              <div className="eb-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-muted-foreground group-hover:eb-text-foreground">
-                                {isLoadingMore ? (
-                                  <>
-                                    <div className="eb-h-4 eb-w-4 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
-                                    <span>{t('loadingMore')}</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <ChevronDownIcon className="eb-h-4 eb-w-4" />
-                                    <span>
-                                      {!isExpanded
-                                        ? t('showMoreWithCount', {
-                                            defaultValue:
-                                              'Show {{count}} more account_other',
-                                            count: nextLoadCount,
-                                          })
-                                        : t('showMoreWithCount', {
-                                            count: nextLoadCount,
-                                          })}
-                                    </span>
-                                  </>
-                                )}
-                              </div>
-                            </button>
-                          )}
-                        </div>
-                      )
-                    : // NON-COMPACT MODE - Small buttons side by side
-                      ((!isExpanded && hasMore) ||
-                        (isExpanded &&
-                          linkedAccounts.length > defaultVisibleCount) ||
-                        (isExpanded && hasMore)) && (
-                        <div className="eb-flex eb-justify-center eb-gap-2 eb-pt-2">
-                          {/* Show expand button when collapsed and there are more items available */}
-                          {!isExpanded && hasMore && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={toggleExpanded}
-                              className="eb-h-8 eb-text-xs eb-text-muted-foreground hover:eb-text-foreground"
-                            >
-                              <ChevronDownIcon className="eb-mr-1.5 eb-h-3.5 eb-w-3.5" />
-                              {t('showMoreWithCount', {
-                                defaultValue:
-                                  'Show {{count}} more account_other',
-                                count: nextLoadCount,
-                              })}
-                            </Button>
-                          )}
-
-                          {/* Show "Show less" when expanded and showing more than initial */}
-                          {isExpanded &&
-                            linkedAccounts.length > defaultVisibleCount && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={toggleExpanded}
-                                className="eb-h-8 eb-text-xs eb-text-muted-foreground hover:eb-text-foreground"
-                              >
-                                <ChevronUpIcon className="eb-mr-1.5 eb-h-3.5 eb-w-3.5" />
-                                {t('actions.showLess', {
-                                  defaultValue: 'Show less',
-                                })}
-                              </Button>
-                            )}
-
-                          {/* Show "Load more" when all current items are shown but there's more to fetch */}
-                          {isExpanded && hasMore && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={loadMore}
-                              disabled={isLoadingMore}
-                              className="eb-h-8 eb-text-xs eb-text-muted-foreground hover:eb-text-foreground"
-                            >
+                    ? // COMPACT MODE - Full width clickable area
+                      hasMore && (
+                        <div className="eb-border-t">
+                          <button
+                            type="button"
+                            onClick={loadMore}
+                            disabled={isLoadingMore}
+                            className="eb-group eb-w-full eb-bg-muted eb-py-2 eb-text-center eb-transition-colors hover:eb-bg-muted/60 disabled:eb-opacity-50"
+                            aria-label={t('showMoreWithCount', {
+                              defaultValue: 'Show {{count}} more account_other',
+                              count: nextLoadCount,
+                            })}
+                          >
+                            <div className="eb-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-muted-foreground group-hover:eb-text-foreground">
                               {isLoadingMore ? (
                                 <>
-                                  <div className="eb-mr-1.5 eb-h-3.5 eb-w-3.5 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
-                                  {t('loadingMore')}
+                                  <div className="eb-h-4 eb-w-4 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
+                                  <span>{t('loadingMore')}</span>
                                 </>
                               ) : (
                                 <>
-                                  <ChevronDownIcon className="eb-mr-1.5 eb-h-3.5 eb-w-3.5" />
-                                  {t('showMoreWithCount', {
-                                    count: nextLoadCount,
-                                  })}
+                                  <ChevronDownIcon className="eb-h-4 eb-w-4" />
+                                  <span>
+                                    {t('showMoreWithCount', {
+                                      defaultValue:
+                                        'Show {{count}} more account_other',
+                                      count: nextLoadCount,
+                                    })}
+                                  </span>
                                 </>
                               )}
-                            </Button>
-                          )}
+                            </div>
+                          </button>
+                        </div>
+                      )
+                    : // NON-COMPACT MODE - Small button
+                      hasMore && (
+                        <div className="eb-flex eb-justify-center eb-gap-2 eb-pt-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={loadMore}
+                            disabled={isLoadingMore}
+                            className="eb-h-8 eb-text-xs eb-text-muted-foreground hover:eb-text-foreground"
+                          >
+                            {isLoadingMore ? (
+                              <>
+                                <div className="eb-mr-1.5 eb-h-3.5 eb-w-3.5 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
+                                {t('loadingMore')}
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDownIcon className="eb-mr-1.5 eb-h-3.5 eb-w-3.5" />
+                                {t('showMoreWithCount', {
+                                  defaultValue:
+                                    'Show {{count}} more account_other',
+                                  count: nextLoadCount,
+                                })}
+                              </>
+                            )}
+                          </Button>
                         </div>
                       )}
                 </>

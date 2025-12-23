@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { useGetAllRecipientsInfinite } from '@/api/generated/ep-recipients';
 import { PageMetaData, Recipient } from '@/api/generated/ep-recipients.schemas';
@@ -16,12 +16,6 @@ export interface UseLinkedAccountsOptions {
   variant?: 'default' | 'singleAccount';
 
   /**
-   * Number of items to display initially before "Load More" is clicked
-   * @default 10
-   */
-  defaultVisibleCount?: number;
-
-  /**
    * Number of items to fetch per API page
    * @default 10
    */
@@ -32,7 +26,7 @@ export interface UseLinkedAccountsOptions {
  * Return type for useLinkedAccounts hook
  */
 export interface UseLinkedAccountsReturn {
-  /** Filtered linked accounts based on variant (may be limited by defaultVisibleCount) */
+  /** Filtered linked accounts based on variant */
   linkedAccounts: Recipient[];
 
   /** All loaded accounts without pagination limits (for table view) */
@@ -77,14 +71,8 @@ export interface UseLinkedAccountsReturn {
   /** Whether currently loading more items */
   isLoadingMore: boolean;
 
-  /** Number of items that will be shown on next "Load More" click */
+  /** Number of items that will be loaded on next "Load More" click */
   nextLoadCount: number;
-
-  /** Whether all items are expanded (vs collapsed to defaultVisibleCount) */
-  isExpanded: boolean;
-
-  /** Toggle between showing all items and initial items */
-  toggleExpanded: () => void;
 }
 
 /**
@@ -95,18 +83,13 @@ export interface UseLinkedAccountsReturn {
  * - 'default': Shows all verified accounts (excludes PENDING_VERIFICATION)
  * - 'singleAccount': Shows only the first verified account (for simplified views)
  *
- * Implements progressive disclosure with pagination support:
- * 1. Initially shows a limited number of accounts (default 2)
- * 2. First "Load More" click: shows all accounts from current page
- * 3. Second "Load More" click: fetches next page of accounts
- * 4. Continues paginating through all available accounts
+ * Implements pagination support for loading more accounts from the API.
  *
  * @example
  * ```tsx
- * // Show 2 accounts initially, expand to show more
+ * // Basic usage with pagination
  * const { linkedAccounts, hasMore, loadMore } = useLinkedAccounts({
  *   variant: 'default',
- *   defaultVisibleCount: 10,
  *   pageSize: 10
  * });
  *
@@ -116,11 +99,9 @@ export interface UseLinkedAccountsReturn {
  */
 export function useLinkedAccounts({
   variant = 'default',
-  defaultVisibleCount = 10,
   pageSize = 10,
-}: UseLinkedAccountsOptions): UseLinkedAccountsReturn {
+}: UseLinkedAccountsOptions = {}): UseLinkedAccountsReturn {
   const { interceptorReady } = useInterceptorStatus();
-  const [showAll, setShowAll] = useState(false);
 
   // Use infinite query for proper pagination with accumulation
   const {
@@ -163,19 +144,14 @@ export function useLinkedAccounts({
   // Get metadata from the first page
   const metadata = data?.pages?.[0]?.metadata;
 
-  // Apply variant and show/hide logic
+  // Apply variant logic
   const linkedAccounts = useMemo(() => {
     if (variant === 'singleAccount') {
       return allLoadedAccounts.slice(0, 1);
     }
 
-    // Show initial items or all loaded items
-    if (showAll || allLoadedAccounts.length <= defaultVisibleCount) {
-      return allLoadedAccounts;
-    }
-
-    return allLoadedAccounts.slice(0, defaultVisibleCount);
-  }, [allLoadedAccounts, variant, showAll, defaultVisibleCount]);
+    return allLoadedAccounts;
+  }, [allLoadedAccounts, variant]);
 
   // Check if user has at least one active (non-pending) account
   const hasActiveAccount = allLoadedAccounts.length > 0;
@@ -184,21 +160,13 @@ export function useLinkedAccounts({
   const totalItems = metadata?.total_items || 0;
   const totalPages = Math.ceil(totalItems / pageSize);
   const currentPage = data?.pages?.length || 0;
-  const hasMoreInCurrentLoad =
-    allLoadedAccounts.length > defaultVisibleCount && !showAll;
-  const hasMore = hasMoreInCurrentLoad || (hasNextPage ?? false);
+  const hasMore = hasNextPage ?? false;
 
   // Calculate what will be loaded next
-  const nextLoadCount = hasMoreInCurrentLoad
-    ? allLoadedAccounts.length - defaultVisibleCount // Will show remaining loaded items
-    : Math.min(pageSize, totalItems - allLoadedAccounts.length); // Will fetch next page
+  const nextLoadCount = Math.min(pageSize, totalItems - allLoadedAccounts.length);
 
   const loadMore = () => {
-    if (hasMoreInCurrentLoad) {
-      // First click: show all currently loaded items
-      setShowAll(true);
-    } else if (hasNextPage && !isFetchingNextPage) {
-      // Second click: load next page and accumulate
+    if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
   };
@@ -212,10 +180,7 @@ export function useLinkedAccounts({
     isError,
     error,
     isSuccess,
-    refetch: () => {
-      setShowAll(false);
-      refetch();
-    },
+    refetch,
     totalCount: totalItems,
     currentPage,
     totalPages,
@@ -223,7 +188,5 @@ export function useLinkedAccounts({
     loadMore,
     isLoadingMore: isFetchingNextPage,
     nextLoadCount,
-    isExpanded: showAll,
-    toggleExpanded: () => setShowAll(!showAll),
   };
 }

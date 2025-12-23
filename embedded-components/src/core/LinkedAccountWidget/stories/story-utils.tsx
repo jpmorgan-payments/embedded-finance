@@ -642,21 +642,12 @@ export const commonArgTypes = {
       defaultValue: { summary: '400px' },
     },
   },
-  defaultVisibleCount: {
-    control: { type: 'number' as const },
-    description:
-      'Number of accounts to show initially (only when scrollable=false)',
-    table: {
-      category: 'Pagination',
-      defaultValue: { summary: '2' },
-    },
-  },
   pageSize: {
     control: { type: 'number' as const },
     description: 'Number of accounts to fetch per API request',
     table: {
       category: 'Pagination',
-      defaultValue: { summary: '25' },
+      defaultValue: { summary: '10' },
     },
   },
   hideCreateButton: {
@@ -700,14 +691,6 @@ export const commonArgTypes = {
     description: '⚠️ DEPRECATED: Use "scrollable" and "maxHeight" instead',
     table: {
       category: 'Deprecated',
-    },
-  },
-  initialItemsToShow: {
-    control: { type: 'number' as const },
-    description: '⚠️ DEPRECATED: Use "defaultVisibleCount" instead',
-    table: {
-      category: 'Deprecated',
-      defaultValue: { summary: '2' },
     },
   },
   makePaymentComponent: {
