@@ -383,7 +383,23 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': resolvedScrollable || compact,
               })}
             >
-              <EmptyState className="eb-animate-fade-in" />
+              <EmptyState
+                className="eb-animate-fade-in"
+                compact={compact}
+                action={
+                  showCreate && (
+                    <LinkedAccountFormDialog
+                      mode="create"
+                      onLinkedAccountSettled={handleLinkedAccountSettled}
+                    >
+                      <Button variant="default" size="sm">
+                        <PlusIcon className="eb-mr-1.5 eb-h-4 eb-w-4" />
+                        {t('linkNewAccount')}
+                      </Button>
+                    </LinkedAccountFormDialog>
+                  )
+                }
+              />
             </div>
           )}
 
