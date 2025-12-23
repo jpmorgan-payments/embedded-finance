@@ -30,9 +30,6 @@ const config: StorybookConfig = {
           '@storybook-themes': resolve(__dirname, './themes'),
         },
       },
-      build: {
-        sourcemap: 'inline',
-      },
       server: {
         fs: {
           allow: ['../'],
