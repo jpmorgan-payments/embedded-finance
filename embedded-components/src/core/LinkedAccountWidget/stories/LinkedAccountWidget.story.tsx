@@ -121,7 +121,7 @@ export const EmptyState: Story = {
 export const CompactLayout: Story = {
   args: {
     mode: 'list',
-    compact: true,
+    viewMode: 'compact-cards',
   },
   loaders: [
     async () => {
