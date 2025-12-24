@@ -643,6 +643,16 @@ export const commonArgTypes = {
       defaultValue: { summary: '10' },
     },
   },
+  paginationStyle: {
+    control: { type: 'select' as const },
+    options: ['loadMore', 'pages'],
+    description:
+      'Pagination style for cards/compact-cards views: "loadMore" shows a button to load more, "pages" shows page navigation',
+    table: {
+      category: 'Pagination',
+      defaultValue: { summary: 'loadMore' },
+    },
+  },
   hideCreateButton: {
     control: { type: 'boolean' as const },
     description: 'Hide the "Link New Account" button',

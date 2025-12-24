@@ -81,6 +81,17 @@ export interface LinkedAccountWidgetProps extends UserTrackingProps {
   pageSize?: number;
 
   /**
+   * Pagination style for cards and compact-cards views.
+   * - `'loadMore'`: Show a "Load More" button to incrementally load accounts (default)
+   * - `'pages'`: Show page navigation controls similar to the table view
+   *
+   * Note: This prop has no effect when `viewMode` is `'table'` (table always uses pages).
+   *
+   * @default 'loadMore'
+   */
+  paginationStyle?: 'loadMore' | 'pages';
+
+  /**
    * Hide the "Link New Account" button.
    *
    * @default false

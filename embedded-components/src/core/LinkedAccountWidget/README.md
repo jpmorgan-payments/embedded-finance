@@ -119,6 +119,26 @@ For handling large lists efficiently:
 />
 ```
 
+### Page-Based Pagination
+
+Use page navigation controls instead of "Load More" button:
+
+```tsx
+// Cards with page navigation
+<LinkedAccountWidget
+  viewMode="cards"
+  paginationStyle="pages"
+  pageSize={5}
+/>
+
+// Compact cards with page navigation
+<LinkedAccountWidget
+  viewMode="compact-cards"
+  paginationStyle="pages"
+  pageSize={10}
+/>
+```
+
 ### Responsive Layouts
 
 The widget uses **container queries** to adapt to its container width:
@@ -144,18 +164,19 @@ The widget uses **container queries** to adapt to its container width:
 
 ## Props
 
-| Prop                   | Type                                       | Default    | Description                                                            |
-| ---------------------- | ------------------------------------------ | ---------- | ---------------------------------------------------------------------- |
-| `mode`                 | `'list' \| 'single'`                       | `'list'`   | `list`: Show all linked accounts<br>`single`: Only show first account  |
-| `viewMode`             | `'cards' \| 'compact-cards' \| 'table'`    | `'cards'`  | Display mode for accounts                                              |
-| `scrollable`           | `boolean`                                  | `false`    | Enable scrollable container with virtualization                        |
-| `maxHeight`            | `number \| string`                         | `'400px'`  | Max height when scrollable (e.g., `400`, `'50vh'`)                     |
-| `pageSize`             | `number`                                   | `10`       | Number of accounts to fetch per API request                            |
-| `hideCreateButton`     | `boolean`                                  | `false`    | Hide the "Link New Account" button                                     |
-| `renderPaymentAction`  | `(recipient: Recipient) => ReactNode`      | `undefined`| Render custom payment/action component for each card                   |
-| `onAccountLinked`      | `(recipient?, error?) => void`             | `undefined`| Callback fired when account is linked                                  |
-| `onVerificationComplete`| `(response, recipient?) => void`          | `undefined`| Callback fired when microdeposit verification completes                |
-| `className`            | `string`                                   | `undefined`| Additional CSS classes for the root container                          |
+| Prop                   | Type                                       | Default      | Description                                                            |
+| ---------------------- | ------------------------------------------ | ------------ | ---------------------------------------------------------------------- |
+| `mode`                 | `'list' \| 'single'`                       | `'list'`     | `list`: Show all linked accounts<br>`single`: Only show first account  |
+| `viewMode`             | `'cards' \| 'compact-cards' \| 'table'`    | `'cards'`    | Display mode for accounts                                              |
+| `scrollable`           | `boolean`                                  | `false`      | Enable scrollable container with virtualization                        |
+| `maxHeight`            | `number \| string`                         | `'400px'`    | Max height when scrollable (e.g., `400`, `'50vh'`)                     |
+| `pageSize`             | `number`                                   | `10`         | Number of accounts to fetch per API request                            |
+| `paginationStyle`      | `'loadMore' \| 'pages'`                    | `'loadMore'` | Pagination style for cards/compact-cards views                         |
+| `hideCreateButton`     | `boolean`                                  | `false`      | Hide the "Link New Account" button                                     |
+| `renderPaymentAction`  | `(recipient: Recipient) => ReactNode`      | `undefined`  | Render custom payment/action component for each card                   |
+| `onAccountLinked`      | `(recipient?, error?) => void`             | `undefined`  | Callback fired when account is linked                                  |
+| `onVerificationComplete`| `(response, recipient?) => void`          | `undefined`  | Callback fired when microdeposit verification completes                |
+| `className`            | `string`                                   | `undefined`  | Additional CSS classes for the root container                          |
 
 ## User Flows
 
