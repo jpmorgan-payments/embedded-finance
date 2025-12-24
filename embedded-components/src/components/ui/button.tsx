@@ -22,6 +22,8 @@ const buttonVariants = cva(
           'eb-bg-secondary eb-text-button eb-font-button-secondary eb-tracking-button eb-text-secondary-foreground eb-shadow-border-secondary eb-button-text-transform [--tw-shadow-color:theme(colors.secondary.foreground.DEFAULT)] hover:eb-bg-secondary-hover hover:eb-text-secondary-foreground-hover hover:[--tw-shadow-color:theme(colors.secondary.foreground.hover)] active:eb-bg-secondary-active active:eb-text-secondary-foreground-active active:[--tw-shadow-color:theme(colors.secondary.foreground.active)]',
         ghost:
           'eb-tracking-button eb-button-text-transform hover:eb-bg-accent hover:eb-text-accent-foreground',
+        unstyled:
+          'eb-font-sans eb-text-sm hover:eb-bg-accent hover:eb-text-accent-foreground',
         link: 'eb-tracking-button eb-text-primary eb-underline-offset-4 eb-button-text-transform hover:eb-underline',
         input:
           'eb-font-sm eb-w-full eb-rounded-input eb-border eb-border-inputBorder eb-bg-input eb-font-normal eb-text-foreground active:eb-translate-y-0 disabled:eb-pointer-events-auto disabled:eb-cursor-not-allowed disabled:eb-bg-gray-100',

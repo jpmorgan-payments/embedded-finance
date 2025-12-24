@@ -374,11 +374,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
             <>
               {viewMode === 'table' ? (
                 // Table view with server-side pagination
-                <div
-                  className={cn({
-                    'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': true,
-                  })}
-                >
+                <div className="eb-p-1">
                   <LinkedAccountsTableView
                     useServerPagination
                     renderPaymentAction={renderPaymentAction}
