@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import { PaginationState } from '@tanstack/react-table';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { ChevronDownIcon, PlusIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -468,7 +468,9 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                             transform: `translateY(${virtualRow.start}px)`,
                           }}
                         >
-                          <div className={cn({ 'eb-px-1 eb-pb-3': !isCompact })}>
+                          <div
+                            className={cn({ 'eb-px-1 eb-pb-3': !isCompact })}
+                          >
                             <LinkedAccountCard
                               recipient={recipient}
                               makePaymentComponent={renderPaymentAction?.(
@@ -541,100 +543,102 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                   </div>
 
                   {/* Pagination Controls */}
-                  {usePagesPagination ? (
-                    // PAGES PAGINATION - Navigation controls like table view
-                    totalCount > 0 && (
-                      <div
-                        className={cn({
-                          'eb-border-t eb-bg-muted/30': isCompact,
-                          'eb-pt-2': !isCompact,
-                        })}
-                      >
-                        <Pagination
-                          pageIndex={pagination.pageIndex}
-                          pageSize={pagination.pageSize}
-                          totalCount={totalCount}
-                          pageCount={pagesData.pageCount}
-                          canPreviousPage={pagination.pageIndex > 0}
-                          canNextPage={
-                            pagination.pageIndex < pagesData.pageCount - 1
-                          }
-                          onPageChange={(pageIndex) =>
-                            setPagination((prev) => ({ ...prev, pageIndex }))
-                          }
-                          onPageSizeChange={(newPageSize) =>
-                            setPagination({ pageIndex: 0, pageSize: newPageSize })
-                          }
-                          variant={isCompact ? 'compact' : 'default'}
-                        />
-                      </div>
-                    )
-                  ) : isCompact ? (
-                    // COMPACT MODE - Full width clickable area
-                    hasMore && (
-                      <div className="eb-border-t">
-                        <button
-                          type="button"
-                          onClick={loadMore}
-                          disabled={isLoadingMore}
-                          className="eb-group eb-w-full eb-bg-muted eb-py-2 eb-text-center eb-transition-colors hover:eb-bg-muted/60 disabled:eb-opacity-50"
-                          aria-label={t('showMoreWithCount', {
-                            defaultValue: 'Show {{count}} more account_other',
-                            count: nextLoadCount,
+                  {usePagesPagination
+                    ? // PAGES PAGINATION - Navigation controls like table view
+                      totalCount > 0 && (
+                        <div
+                          className={cn({
+                            'eb-border-t eb-bg-muted/30': isCompact,
+                            'eb-pt-2': !isCompact,
                           })}
                         >
-                          <div className="eb-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-muted-foreground group-hover:eb-text-foreground">
-                            {isLoadingMore ? (
-                              <>
-                                <div className="eb-h-4 eb-w-4 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
-                                <span>{t('loadingMore')}</span>
-                              </>
-                            ) : (
-                              <>
-                                <ChevronDownIcon className="eb-h-4 eb-w-4" />
-                                <span>
+                          <Pagination
+                            pageIndex={pagination.pageIndex}
+                            pageSize={pagination.pageSize}
+                            totalCount={totalCount}
+                            pageCount={pagesData.pageCount}
+                            canPreviousPage={pagination.pageIndex > 0}
+                            canNextPage={
+                              pagination.pageIndex < pagesData.pageCount - 1
+                            }
+                            onPageChange={(pageIndex) =>
+                              setPagination((prev) => ({ ...prev, pageIndex }))
+                            }
+                            onPageSizeChange={(newPageSize) =>
+                              setPagination({
+                                pageIndex: 0,
+                                pageSize: newPageSize,
+                              })
+                            }
+                            variant={isCompact ? 'compact' : 'default'}
+                          />
+                        </div>
+                      )
+                    : isCompact
+                      ? // COMPACT MODE - Full width clickable area
+                        hasMore && (
+                          <div className="eb-border-t">
+                            <button
+                              type="button"
+                              onClick={loadMore}
+                              disabled={isLoadingMore}
+                              className="eb-group eb-w-full eb-bg-muted eb-py-2 eb-text-center eb-transition-colors hover:eb-bg-muted/60 disabled:eb-opacity-50"
+                              aria-label={t('showMoreWithCount', {
+                                defaultValue:
+                                  'Show {{count}} more account_other',
+                                count: nextLoadCount,
+                              })}
+                            >
+                              <div className="eb-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-muted-foreground group-hover:eb-text-foreground">
+                                {isLoadingMore ? (
+                                  <>
+                                    <div className="eb-h-4 eb-w-4 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
+                                    <span>{t('loadingMore')}</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <ChevronDownIcon className="eb-h-4 eb-w-4" />
+                                    <span>
+                                      {t('showMoreWithCount', {
+                                        defaultValue:
+                                          'Show {{count}} more account_other',
+                                        count: nextLoadCount,
+                                      })}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </button>
+                          </div>
+                        )
+                      : // NON-COMPACT MODE - Small button
+                        hasMore && (
+                          <div className="eb-flex eb-justify-center eb-gap-2 eb-pt-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={loadMore}
+                              disabled={isLoadingMore}
+                              className="eb-h-8 eb-text-xs eb-text-muted-foreground hover:eb-text-foreground"
+                            >
+                              {isLoadingMore ? (
+                                <>
+                                  <div className="eb-mr-1.5 eb-h-3.5 eb-w-3.5 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
+                                  {t('loadingMore')}
+                                </>
+                              ) : (
+                                <>
+                                  <ChevronDownIcon className="eb-mr-1.5 eb-h-3.5 eb-w-3.5" />
                                   {t('showMoreWithCount', {
                                     defaultValue:
                                       'Show {{count}} more account_other',
                                     count: nextLoadCount,
                                   })}
-                                </span>
-                              </>
-                            )}
+                                </>
+                              )}
+                            </Button>
                           </div>
-                        </button>
-                      </div>
-                    )
-                  ) : (
-                    // NON-COMPACT MODE - Small button
-                    hasMore && (
-                      <div className="eb-flex eb-justify-center eb-gap-2 eb-pt-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={loadMore}
-                          disabled={isLoadingMore}
-                          className="eb-h-8 eb-text-xs eb-text-muted-foreground hover:eb-text-foreground"
-                        >
-                          {isLoadingMore ? (
-                            <>
-                              <div className="eb-mr-1.5 eb-h-3.5 eb-w-3.5 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
-                              {t('loadingMore')}
-                            </>
-                          ) : (
-                            <>
-                              <ChevronDownIcon className="eb-mr-1.5 eb-h-3.5 eb-w-3.5" />
-                              {t('showMoreWithCount', {
-                                defaultValue:
-                                  'Show {{count}} more account_other',
-                                count: nextLoadCount,
-                              })}
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    )
-                  )}
+                        )}
                 </>
               )}
             </>
