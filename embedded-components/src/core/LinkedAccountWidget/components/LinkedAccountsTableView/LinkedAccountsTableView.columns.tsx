@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowUpDown, EyeIcon, EyeOffIcon } from 'lucide-react';
+import { EyeIcon, EyeOffIcon } from 'lucide-react';
 
 import {
   getAccountHolderType,
@@ -117,15 +117,10 @@ export const getLinkedAccountsColumns = ({
     {
       id: 'accountHolder',
       accessorFn: (row) => getAccountHolderName(row),
-      header: ({ column }) => (
-        <Button
-          variant="unstyled"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          className="eb-h-8 eb-px-2 eb-font-medium hover:eb-bg-transparent"
-        >
+      header: () => (
+        <span className="eb-font-medium">
           {t('table.columns.accountHolder', { defaultValue: 'Account Holder' })}
-          <ArrowUpDown className="eb-ml-2 eb-h-4 eb-w-4" />
-        </Button>
+        </span>
       ),
       cell: ({ row }) => {
         const recipient = row.original;
@@ -169,15 +164,10 @@ export const getLinkedAccountsColumns = ({
     {
       id: 'status',
       accessorKey: 'status',
-      header: ({ column }) => (
-        <Button
-          variant="unstyled"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          className="eb-h-8 eb-px-2 eb-font-medium hover:eb-bg-transparent"
-        >
+      header: () => (
+        <span className="eb-font-medium">
           {t('table.columns.status', { defaultValue: 'Status' })}
-          <ArrowUpDown className="eb-ml-2 eb-h-4 eb-w-4" />
-        </Button>
+        </span>
       ),
       cell: ({ row }) => {
         const { status } = row.original;
@@ -222,15 +212,10 @@ export const getLinkedAccountsColumns = ({
     {
       id: 'createdAt',
       accessorKey: 'createdAt',
-      header: ({ column }) => (
-        <Button
-          variant="unstyled"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          className="eb-h-8 eb-px-2 eb-font-medium hover:eb-bg-transparent"
-        >
+      header: () => (
+        <span className="eb-font-medium">
           {t('table.columns.createdAt', { defaultValue: 'Created' })}
-          <ArrowUpDown className="eb-ml-2 eb-h-4 eb-w-4" />
-        </Button>
+        </span>
       ),
       cell: ({ getValue }) => {
         const date = getValue<string>();
@@ -255,7 +240,6 @@ export const getLinkedAccountsColumns = ({
             cell: ({ row }: { row: { original: Recipient } }) => {
               return renderPayButton(row.original);
             },
-            enableSorting: false,
             enableHiding: false,
           } as ColumnDef<Recipient, unknown>,
         ]
@@ -275,7 +259,6 @@ export const getLinkedAccountsColumns = ({
         }
         return null;
       },
-      enableSorting: false,
       enableHiding: false,
     },
   ];
