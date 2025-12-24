@@ -184,7 +184,7 @@ describe.skip('LinkedAccountWidget component', () => {
     });
     render(
       <LinkedAccountWidget
-        makePaymentComponent={<button type="button">Pay</button>}
+        renderPaymentAction={() => <button type="button">Pay</button>}
       />
     );
 
@@ -207,7 +207,7 @@ describe.skip('LinkedAccountWidget component', () => {
         },
       ],
     });
-    render(<LinkedAccountWidget variant="singleAccount" />);
+    render(<LinkedAccountWidget mode="single" />);
 
     // Ensure button is not shown
     const linkButtons = screen.queryAllByRole('button', {

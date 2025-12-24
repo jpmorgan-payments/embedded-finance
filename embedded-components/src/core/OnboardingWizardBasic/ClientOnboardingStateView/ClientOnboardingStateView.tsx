@@ -236,7 +236,7 @@ export const ClientOnboardingStateView: React.FC<
                     'While your onboarding is being processed, you can start adding linked accounts to your profile.'
                   )}
                 </p>
-                <LinkedAccountWidget variant="singleAccount" />
+                <LinkedAccountWidget mode="single" />
               </div>
             )}
           </CardContent>
