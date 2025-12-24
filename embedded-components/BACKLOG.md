@@ -920,7 +920,7 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 **Tracking ID:** BL-490
 
 - [ ] **BL-490-1:** Per-component docs (usage, configuration, validation, security, a11y, testing, performance)
-- [ ] **BL-490-2:** Enhanced Cursor rules and codegen/dev templates for AI agents
+- [ ] **BL-490-2:** Enhanced AI agent skills and codegen/dev templates
 
 ---
 

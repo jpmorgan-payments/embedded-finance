@@ -179,7 +179,7 @@ gantt
   - Rebaseline CI (typecheck/lint/test/storybook build) performance and caching.
 
 - Per-component docs (usage, configuration, validation, security, a11y, testing, performance).
-- Enhanced Cursor rules and codegen/dev templates for AI agents.
+- Enhanced AI agent skills and codegen/dev templates.
 
 ## Orval & Dependencies
 

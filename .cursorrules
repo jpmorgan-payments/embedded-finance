@@ -1,178 +1,75 @@
-# Embedded Finance Components - Cursor Rules
+# Embedded Finance Components - Root Configuration
 
-## Repository Structure
+> **Cross-IDE Compatible**: This configuration works with Cursor, VS Code Copilot, Claude Code, and other AI agents.
 
-This is a monorepo containing multiple packages:
+## 📚 Documentation Hierarchy
+
+**For detailed implementation patterns, always refer to:**
+
+1. **`embedded-components/ARCHITECTURE.md`** - ⭐ **Source of truth** for all architecture patterns
+2. **`.github/copilot-instructions.md`** - Complete implementation guide for GitHub Copilot
+3. **`.github/copilot/skills/`** - Task-specific agent skills (automatically activated)
+4. **`AGENTS.md`** - Repository-wide agent instructions
+
+## 🎯 Agent Skills (Automatic)
+
+Skills in `.github/copilot/skills/` are automatically discovered and activated:
+
+**Tier 1 - Critical:**
+- `embedded-banking-architecture` - Component structure & organization
+- `component-testing` - Testing with MSW and React Query
+- `code-quality-workflow` - Test-fix-verify workflow
+- `styling-guidelines` - Tailwind CSS with `eb-` prefix
+- `react-patterns` - React 18 hooks and patterns
+
+**Tier 2 - Important:**
+- `i18n-l10n` - Internationalization
+- `windows-powershell` - PowerShell (NEVER use `&&`)
+- `test-and-fix-workflow` - Automated testing
+
+## ⚠️ Critical Rules
+
+1. **Follow `embedded-components/ARCHITECTURE.md`** for all architecture decisions
+2. **Run `cd embedded-components; yarn test`** after ANY code change
+3. **Use `eb-` prefix** for all Tailwind classes
+4. **Individual files** for hooks/utils with colocated tests
+5. **Direct imports** for components (no aggregation barrels)
+6. **PowerShell**: Use `;` not `&&` to chain commands
+
+## 🏗️ Repository Structure
 
 ```
 /
-├── app/                    # Showcase web application (not active)
-│   ├── client/            # Frontend React application
-│   └── server/            # Backend server
-├── embedded-components/    # Main UI component library (active)
-│   ├── src/               # Source code
-│   ├── .storybook/        # Storybook configuration
-│   ├── dist/              # Built files (not in repo)
-│   └── public/            # Static assets and MSW worker
-└── embedded-finance-sdk/   # TypeScript SDK utilities (not active)
+├── embedded-components/     # ACTIVE - Main UI component library
+│   ├── ARCHITECTURE.md     # ⭐ Source of truth
+│   └── .cursorrules        # Package-specific config
+└── .github/copilot/
+    ├── copilot-instructions.md  # Complete guide
+    └── skills/                   # Agent skills
 ```
 
-> **Note**: Currently, active development is focused on the `embedded-components` package. Other packages are planned for future development.
+## ⚡ Quick Commands
 
-## ⚠️ CRITICAL: Follow ARCHITECTURE.md
+```powershell
+# After code changes (MANDATORY)
+cd embedded-components; yarn test
 
-**All code generation MUST follow the patterns defined in `embedded-components/ARCHITECTURE.md`.**
+# Fix formatting/linting
+cd embedded-components; yarn format; yarn lint:fix
 
-**Before generating any component code, review `embedded-components/ARCHITECTURE.md` for the complete pattern.**
-
-Key architecture principles:
-- ✅ Individual hook/util files with colocated tests
-- ✅ Direct imports for components (no aggregation barrels)
-- ✅ Type colocation - only public API in `.types.ts`
-- ✅ Minimal public API - export only what consumers need
-- ✅ Start specific - move to shared only when used by 2+ components
-- ✅ Forms = schemas - no schema? It's a component, not a form
-
-## Technology Stack
-
-- React 18.x with TypeScript (strict mode)
-- Radix UI primitives for base components
-- Tailwind CSS with `eb-` prefix for custom classes
-- Tanstack React Query v5 for data fetching
-- Zod for validation
-- MSW for API mocking
-- Storybook 8.x for component development
-
-## Component Structure (2025 Pattern)
-
-Follow the architecture pattern from `embedded-components/ARCHITECTURE.md`:
-
-```
-ComponentName/
-├── index.ts                          # Public API exports only
-├── ComponentName.tsx                 # Main component
-├── ComponentName.test.tsx            # Colocated test
-├── ComponentName.types.ts            # Public types ONLY
-├── ComponentName.constants.ts        # Constants
-│
-├── hooks/                            # Individual files (flat)
-│   ├── useData.ts
-│   ├── useData.test.tsx
-│   └── index.ts                      # Barrel export
-│
-├── utils/                            # Individual files (flat)
-│   ├── helper.ts
-│   ├── helper.test.ts
-│   └── index.ts                      # Barrel export
-│
-├── components/                       # NO index files
-│   ├── SubCard/
-│   │   ├── SubCard.tsx
-│   │   └── SubCard.test.tsx
-│
-├── forms/                            # Only if .schema.ts exists
-│   └── CreateForm/
-│       ├── CreateForm.tsx
-│       ├── CreateForm.test.tsx
-│       └── CreateForm.schema.ts      # Zod schema
-│
-└── stories/
-    └── ComponentName.story.tsx
+# Component location
+# → embedded-components/src/core/ComponentName/
 ```
 
-## Import Patterns
+## 📖 Need Details?
 
-```typescript
-// ✅ CORRECT - Direct imports (tree-shakeable)
-import { ComponentCard } from "./components/ComponentCard";
-import { ComponentSkeleton } from "./components/ComponentSkeleton";
-import { useComponentData } from "./hooks"; // Can use barrel for convenience
+- **Implementation patterns** → `.github/copilot-instructions.md`
+- **Architecture decisions** → `embedded-components/ARCHITECTURE.md`
+- **Task-specific help** → `.github/copilot/skills/`
+- **Package config** → `embedded-components/.cursorrules`
 
-// ❌ WRONG - Aggregation barrel (prevents tree-shaking)
-import { ComponentCard, ComponentSkeleton } from "./components"; // No index.ts!
-```
+---
 
-## ⚠️ CRITICAL: Code Quality Workflow
-
-**After making ANY code changes, you MUST:**
-
-1. **Run tests**: `cd embedded-components && yarn test`
-   - This runs: typecheck → format:check → lint → test:unit
-   - **DO NOT skip this step** - tests must pass before proceeding
-
-2. **Fix any errors that appear**:
-   - **TypeScript errors**: Fix type issues in the code
-   - **Prettier/formatting errors**: Run `yarn format` to auto-fix
-   - **Linting errors**: Run `yarn lint:fix` to auto-fix, or fix manually
-   - **Test failures**: Update tests or fix implementation
-
-3. **Re-run tests** until all pass:
-   ```powershell
-   cd embedded-components
-   yarn test
-   ```
-
-**Never commit code with:**
-- ❌ TypeScript errors
-- ❌ Formatting errors (Prettier)
-- ❌ Linting errors
-- ❌ Failing tests
-
-## Testing Requirements
-
-- Tests colocated with implementation (not in separate `__tests__/` directories)
-- One test file per implementation file
-- Minimum 80% line coverage
-- Use MSW for API mocking
-- **Always run `yarn test` after making changes**
-- See `.cursor/rules/component-testing-patterns.mdc` for detailed patterns
-
-## Code Organization Decision Tree
-
-```
-New Code?
-  ├─→ Hook?
-  │   ├─→ Used by 2+ components? → src/lib/hooks/useHookName.ts
-  │   └─→ Used by 1 component? → ComponentName/hooks/useHookName.ts
-  │
-  ├─→ Utility?
-  │   ├─→ Used by 2+ components? → src/lib/utils/utilName.ts
-  │   └─→ Used by 1 component? → ComponentName/utils/utilName.ts
-  │
-  ├─→ Component?
-  │   ├─→ Used by 2+ features? → src/components/ComponentName/
-  │   └─→ Used by 1 feature? → ComponentName/components/SubComponent/
-  │
-  ├─→ Form?
-  │   ├─→ Has .schema.ts? → ComponentName/forms/FormName/
-  │   └─→ No schema? → ComponentName/components/DialogName/
-```
-
-## Package-Specific Rules
-
-- **embedded-components**: See `embedded-components/.cursorrules` for package-specific rules
-- **app/client-next-ts**: See `app/client-next-ts/.cursorrules` for app-specific rules
-
-## Additional Resources
-
-- **Architecture patterns**: `embedded-components/ARCHITECTURE.md` - **Source of truth for architecture**
-- **Component creation**: `.cursor/rules/component-creation-workflow.mdc`
-- **Testing patterns**: `.cursor/rules/component-testing-patterns.mdc`
-- **Styling guidelines**: `.cursor/rules/styling-guidelines.mdc`
-- **React hooks**: `.cursor/rules/react-hooks-best-practices.mdc`
-- **Theme QA & tokens**: `embedded-components/docs/THEME_QA_GUIDE.md` for theme QA steps, token alignment, and how to add/refine design tokens
-
-> **Note**: For `embedded-components` package-specific architecture details, see `embedded-components/.cursorrules` and `embedded-components/ARCHITECTURE.md`
-
-## Git Commit Conventions
-
-- "fix:" for bug fixes
-- "feat:" for new features
-- "perf:" for performance improvements
-- "docs:" for documentation changes
-- "style:" for formatting changes
-- "refactor:" for code refactoring
-- "test:" for adding missing tests
-- "chore:" for maintenance tasks
-
-Use lowercase for commit messages. Keep the summary line concise.
+**Format**: Agent Skills 1.0 (agentskills.io)  
+**Updated**: December 24, 2025  
+**Cross-IDE**: ✅ Cursor, VS Code, Claude Code, and more
