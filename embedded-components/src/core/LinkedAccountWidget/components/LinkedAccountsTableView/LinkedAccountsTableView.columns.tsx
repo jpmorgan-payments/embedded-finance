@@ -119,7 +119,7 @@ export const getLinkedAccountsColumns = ({
       accessorFn: (row) => getAccountHolderName(row),
       header: ({ column }) => (
         <Button
-          variant="ghost"
+          variant="unstyled"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           className="eb-h-8 eb-px-2 eb-font-medium hover:eb-bg-transparent"
         >
@@ -171,7 +171,7 @@ export const getLinkedAccountsColumns = ({
       accessorKey: 'status',
       header: ({ column }) => (
         <Button
-          variant="ghost"
+          variant="unstyled"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           className="eb-h-8 eb-px-2 eb-font-medium hover:eb-bg-transparent"
         >
@@ -224,7 +224,7 @@ export const getLinkedAccountsColumns = ({
       accessorKey: 'createdAt',
       header: ({ column }) => (
         <Button
-          variant="ghost"
+          variant="unstyled"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           className="eb-h-8 eb-px-2 eb-font-medium hover:eb-bg-transparent"
         >
