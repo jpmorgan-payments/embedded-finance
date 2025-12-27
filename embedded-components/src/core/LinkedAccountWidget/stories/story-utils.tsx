@@ -597,7 +597,6 @@ export const commonArgs = {
  * Component-specific argTypes (global argTypes are in preview.tsx)
  */
 export const commonArgTypes = {
-  // === New Props (Preferred) ===
   mode: {
     control: { type: 'select' as const },
     options: ['list', 'single'],
@@ -608,17 +607,11 @@ export const commonArgTypes = {
       defaultValue: { summary: 'list' },
     },
   },
-  compact: {
-    control: { type: 'boolean' as const },
-    description: 'Enable compact row-based cards with minimal spacing',
-    table: {
-      category: 'Display Mode',
-      defaultValue: { summary: 'false' },
-    },
-  },
   viewMode: {
     control: { type: 'select' as const },
-    options: ['cards', 'table'],
+    options: ['cards', 'compact-cards', 'table'],
+    description:
+      'View mode: "cards" for full cards, "compact-cards" for row-based compact cards, "table" for sortable table',
     table: {
       category: 'Display Mode',
       defaultValue: { summary: 'cards' },
@@ -650,6 +643,16 @@ export const commonArgTypes = {
       defaultValue: { summary: '10' },
     },
   },
+  paginationStyle: {
+    control: { type: 'select' as const },
+    options: ['loadMore', 'pages'],
+    description:
+      'Pagination style for cards/compact-cards views: "loadMore" shows a button to load more, "pages" shows page navigation',
+    table: {
+      category: 'Pagination',
+      defaultValue: { summary: 'loadMore' },
+    },
+  },
   hideCreateButton: {
     control: { type: 'boolean' as const },
     description: 'Hide the "Link New Account" button',
@@ -664,54 +667,6 @@ export const commonArgTypes = {
     table: {
       category: 'Provider',
       defaultValue: { summary: 'mock-client-id' },
-    },
-  },
-
-  // === Deprecated Props (for backward compatibility) ===
-  variant: {
-    control: { type: 'select' as const },
-    options: ['default', 'singleAccount'],
-    description: '⚠️ DEPRECATED: Use "mode" instead',
-    table: {
-      category: 'Deprecated',
-      defaultValue: { summary: 'default' },
-    },
-  },
-  showCreateButton: {
-    control: { type: 'boolean' as const },
-    description:
-      '⚠️ DEPRECATED: Use "hideCreateButton" instead (inverted logic)',
-    table: {
-      category: 'Deprecated',
-      defaultValue: { summary: 'true' },
-    },
-  },
-  scrollHeight: {
-    control: { type: 'text' as const },
-    description: '⚠️ DEPRECATED: Use "scrollable" and "maxHeight" instead',
-    table: {
-      category: 'Deprecated',
-    },
-  },
-  makePaymentComponent: {
-    control: { disable: true },
-    description: '⚠️ DEPRECATED: Use "renderPaymentAction" instead',
-    table: {
-      category: 'Deprecated',
-    },
-  },
-  onLinkedAccountSettled: {
-    control: { disable: true },
-    description: '⚠️ DEPRECATED: Use "onAccountLinked" instead',
-    table: {
-      category: 'Deprecated',
-    },
-  },
-  onMicrodepositVerifySettled: {
-    control: { disable: true },
-    description: '⚠️ DEPRECATED: Use "onVerificationComplete" instead',
-    table: {
-      category: 'Deprecated',
     },
   },
 

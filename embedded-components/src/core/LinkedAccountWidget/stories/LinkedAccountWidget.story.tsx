@@ -121,7 +121,58 @@ export const EmptyState: Story = {
 export const CompactLayout: Story = {
   args: {
     mode: 'list',
-    compact: true,
+    viewMode: 'compact-cards',
+  },
+  loaders: [
+    async () => {
+      await seedRecipientData(linkedAccountListMock);
+    },
+  ],
+};
+
+/**
+ * Page-based pagination for cards view.
+ * Shows navigation controls similar to the table view instead of "Load More".
+ *
+ * **Use this when:**
+ * - You want users to navigate directly to specific pages
+ * - You prefer page-based navigation over infinite scroll
+ * - You need to show page size selector
+ *
+ * **Features:**
+ * - First/previous/next/last page buttons
+ * - Page size selector (5, 10, 20, 30, 50)
+ * - Shows current page and total pages
+ * - Shows "Showing X to Y of Z" info
+ */
+export const PagesPagination: Story = {
+  args: {
+    mode: 'list',
+    viewMode: 'cards',
+    paginationStyle: 'pages',
+    pageSize: 5,
+  },
+  loaders: [
+    async () => {
+      await seedRecipientData(linkedAccountListMock);
+    },
+  ],
+};
+
+/**
+ * Page-based pagination with compact cards.
+ * Combines compact card layout with page navigation controls.
+ *
+ * **Use this when:**
+ * - You want compact layout with traditional pagination
+ * - Space is limited but you need page navigation
+ */
+export const CompactWithPagesPagination: Story = {
+  args: {
+    mode: 'list',
+    viewMode: 'compact-cards',
+    paginationStyle: 'pages',
+    pageSize: 5,
   },
   loaders: [
     async () => {

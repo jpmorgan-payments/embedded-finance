@@ -22,7 +22,7 @@ import { LinkedAccountWidget } from '@/core/LinkedAccountWidget';
 
 // With callback to handle when accounts are linked/verified
 <LinkedAccountWidget
-  onLinkedAccountSettled={(recipient, error) => {
+  onAccountLinked={(recipient, error) => {
     if (error) {
       showNotification('Failed to link account');
     } else {
@@ -54,24 +54,37 @@ Useful when you only want users to link one account:
 
 ```tsx
 <LinkedAccountWidget
-  variant="singleAccount"
-  showCreateButton={false} // Hide "Link Account" if one already exists
+  mode="single"
+  hideCreateButton // Hide "Link Account" if one already exists
 />
+```
+
+### View Modes
+
+The widget supports three view modes:
+
+```tsx
+// Full cards with rich details (default)
+<LinkedAccountWidget viewMode="cards" />
+
+// Compact row-based cards for space-constrained UIs
+<LinkedAccountWidget viewMode="compact-cards" />
+
+// Sortable table view for managing many accounts
+<LinkedAccountWidget viewMode="table" />
 ```
 
 ### With Payment Integration
 
-The widget includes a built-in payment button for active accounts by default. You typically **don't need to pass** `makePaymentComponent` unless you have a custom implementation:
+Add custom payment actions to each account card:
 
 ```tsx
-// Default behavior - uses embedded-components MakePayment automatically
-<LinkedAccountWidget />
-
-// Only override if you need a custom payment component
-import { CustomPaymentButton } from './CustomPaymentButton';
-
 <LinkedAccountWidget
-  makePaymentComponent={<CustomPaymentButton />}
+  renderPaymentAction={(recipient) => (
+    <Button onClick={() => initiatePayment(recipient.id)}>
+      Pay from this account
+    </Button>
+  )}
 />
 ```
 
@@ -81,19 +94,49 @@ Get notified when accounts are successfully linked or verified:
 
 ```tsx
 function MyApp() {
-  const handleAccountSettled = (recipient, error) => {
+  const handleAccountLinked = (recipient, error) => {
     if (error) {
       toast.error('Failed to link account');
       analytics.track('account_link_failed', { error });
     } else {
       toast.success(`Account ${recipient.accountNumberMask} linked!`);
       analytics.track('account_link_success', { recipientId: recipient.id });
-      // Refresh other data, redirect, etc.
     }
   };
 
-  return <LinkedAccountWidget onLinkedAccountSettled={handleAccountSettled} />;
+  return <LinkedAccountWidget onAccountLinked={handleAccountLinked} />;
 }
+```
+
+### Scrollable List with Virtualization
+
+For handling large lists efficiently:
+
+```tsx
+<LinkedAccountWidget
+  scrollable
+  maxHeight="400px"
+/>
+```
+
+### Page-Based Pagination
+
+Use page navigation controls instead of "Load More" button:
+
+```tsx
+// Cards with page navigation
+<LinkedAccountWidget
+  viewMode="cards"
+  paginationStyle="pages"
+  pageSize={5}
+/>
+
+// Compact cards with page navigation
+<LinkedAccountWidget
+  viewMode="compact-cards"
+  paginationStyle="pages"
+  pageSize={10}
+/>
 ```
 
 ### Responsive Layouts
@@ -103,7 +146,7 @@ The widget uses **container queries** to adapt to its container width:
 ```tsx
 // In a narrow sidebar (< 448px): stacked layout, full-width button
 <aside className="w-80">
-  <LinkedAccountWidget />
+  <LinkedAccountWidget viewMode="compact-cards" />
 </aside>
 
 // In a modal (448px - 896px): horizontal header, single column cards
@@ -121,13 +164,19 @@ The widget uses **container queries** to adapt to its container width:
 
 ## Props
 
-| Prop                     | Type                           | Default     | Description                                                                                                                                              |
-| ------------------------ | ------------------------------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `variant`                | `'default' \| 'singleAccount'` | `'default'` | **`default`**: Show all linked accounts<br>**`singleAccount`**: Only show first active account                                                           |
-| `showCreateButton`       | `boolean`                      | `true`      | Show/hide the "Link A New Account" button<br>In `singleAccount` mode, hides if account exists                                                            |
-| `makePaymentComponent`   | `ReactNode`                    | Built-in    | **Optional**: Custom payment component for active accounts<br>Uses embedded-components `MakePayment` by default—only override for custom implementations |
-| `onLinkedAccountSettled` | `(recipient?, error?) => void` | `undefined` | Callback fired when account is linked or verified<br>Use for notifications, analytics, data refresh                                                      |
-| `className`              | `string`                       | `undefined` | Additional CSS classes for the root container                                                                                                            |
+| Prop                   | Type                                       | Default      | Description                                                            |
+| ---------------------- | ------------------------------------------ | ------------ | ---------------------------------------------------------------------- |
+| `mode`                 | `'list' \| 'single'`                       | `'list'`     | `list`: Show all linked accounts<br>`single`: Only show first account  |
+| `viewMode`             | `'cards' \| 'compact-cards' \| 'table'`    | `'cards'`    | Display mode for accounts                                              |
+| `scrollable`           | `boolean`                                  | `false`      | Enable scrollable container with virtualization                        |
+| `maxHeight`            | `number \| string`                         | `'400px'`    | Max height when scrollable (e.g., `400`, `'50vh'`)                     |
+| `pageSize`             | `number`                                   | `10`         | Number of accounts to fetch per API request                            |
+| `paginationStyle`      | `'loadMore' \| 'pages'`                    | `'loadMore'` | Pagination style for cards/compact-cards views                         |
+| `hideCreateButton`     | `boolean`                                  | `false`      | Hide the "Link New Account" button                                     |
+| `renderPaymentAction`  | `(recipient: Recipient) => ReactNode`      | `undefined`  | Render custom payment/action component for each card                   |
+| `onAccountLinked`      | `(recipient?, error?) => void`             | `undefined`  | Callback fired when account is linked                                  |
+| `onVerificationComplete`| `(response, recipient?) => void`          | `undefined`  | Callback fired when microdeposit verification completes                |
+| `className`            | `string`                                   | `undefined`  | Additional CSS classes for the root container                          |
 
 ## User Flows
 
@@ -174,8 +223,8 @@ For accounts requiring verification:
 
 ```tsx
 <LinkedAccountWidget
-  variant="singleAccount"
-  showCreateButton={false} // Button auto-hides when account exists
+  mode="single"
+  hideCreateButton // Button auto-hides when account exists
 />
 ```
 
@@ -185,7 +234,7 @@ For accounts requiring verification:
 const { refetch: refetchPayments } = usePayments();
 
 <LinkedAccountWidget
-  onLinkedAccountSettled={(recipient, error) => {
+  onAccountLinked={(recipient, error) => {
     if (!error) {
       refetchPayments(); // Refresh payment data
     }
@@ -199,7 +248,7 @@ const { refetch: refetchPayments } = usePayments();
 const router = useRouter();
 
 <LinkedAccountWidget
-  onLinkedAccountSettled={(recipient, error) => {
+  onAccountLinked={(recipient, error) => {
     if (!error) {
       router.push(`/payment?account=${recipient.id}`);
     }
@@ -323,8 +372,8 @@ Each journey is tracked with:
 
 **Causes**:
 
-- `showCreateButton={false}` prop is set
-- In `singleAccount` variant with an existing active account
+- `hideCreateButton` prop is set to `true`
+- In `mode="single"` with an existing active account
 - Check `shouldShowCreateButton` utility logic
 
 ### Microdeposit Verification Failing
@@ -340,12 +389,12 @@ Each journey is tracked with:
 
 ### Payment Component Not Showing
 
-**Problem**: `makePaymentComponent` passed but not rendering.
+**Problem**: `renderPaymentAction` passed but not rendering.
 
 **Check**:
 
 - Account status must be `ACTIVE`
-- Ensure component is passed correctly as JSX: `makePaymentComponent={<Component />}`
+- Ensure function returns valid JSX
 - Verify account has necessary data (`id`, `status`)
 
 ## Testing

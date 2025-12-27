@@ -5,9 +5,7 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
-  getSortedRowModel,
   PaginationState,
-  SortingState,
   useReactTable,
   VisibilityState,
 } from '@tanstack/react-table';
@@ -178,9 +176,6 @@ export const LinkedAccountsTableView: React.FC<
   }, []);
 
   // Table state - pagination controlled here to work with both modes
-  const [sorting, setSorting] = React.useState<SortingState>([
-    { id: 'createdAt', desc: true },
-  ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
@@ -395,16 +390,13 @@ export const LinkedAccountsTableView: React.FC<
     // Use manual pagination for server-side mode
     manualPagination: isServerMode,
     pageCount: isServerMode ? pageCount : undefined,
-    onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: isServerMode ? undefined : getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     state: {
-      sorting,
       columnFilters,
       columnVisibility,
       pagination,

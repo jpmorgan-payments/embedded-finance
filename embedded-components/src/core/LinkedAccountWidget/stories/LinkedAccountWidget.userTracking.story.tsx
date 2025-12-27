@@ -36,7 +36,7 @@ const meta = {
   },
   args: {
     ...commonArgs,
-    variant: 'default',
+    mode: 'list',
   },
 } satisfies Meta<typeof LinkedAccountWidget>;
 

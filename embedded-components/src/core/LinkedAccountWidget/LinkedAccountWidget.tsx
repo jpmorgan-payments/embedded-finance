@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { PaginationState } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ChevronDownIcon, PlusIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -18,9 +19,10 @@ import { LinkedAccountCard } from './components/LinkedAccountCard/LinkedAccountC
 import { LinkedAccountCardSkeleton } from './components/LinkedAccountCardSkeleton/LinkedAccountCardSkeleton';
 import { LinkedAccountFormDialog } from './components/LinkedAccountFormDialog/LinkedAccountFormDialog';
 import { LinkedAccountsTableView } from './components/LinkedAccountsTableView';
+import { Pagination } from './components/Pagination';
 import { RemoveAccountResultDialog } from './components/RemoveAccountResultDialog/RemoveAccountResultDialog';
 import { VerificationResultDialog } from './components/VerificationResultDialog/VerificationResultDialog';
-import { useLinkedAccounts } from './hooks';
+import { useLinkedAccounts, useLinkedAccountsTable } from './hooks';
 import { LINKED_ACCOUNT_USER_JOURNEYS } from './LinkedAccountWidget.constants';
 import { LinkedAccountWidgetProps } from './LinkedAccountWidget.types';
 import { shouldShowCreateButton } from './utils';
@@ -56,10 +58,10 @@ import { shouldShowCreateButton } from './utils';
  * <LinkedAccountWidget scrollable maxHeight={500} />
  * ```
  *
- * @example Compact mode with custom payment action
+ * @example Compact cards with custom payment action
  * ```tsx
  * <LinkedAccountWidget
- *   compact
+ *   viewMode="compact-cards"
  *   renderPaymentAction={(recipient) => (
  *     <Button onClick={() => pay(recipient)}>Pay</Button>
  *   )}
@@ -67,56 +69,22 @@ import { shouldShowCreateButton } from './utils';
  * ```
  */
 export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
-  // New props (preferred)
-  mode,
+  mode = 'list',
   viewMode = 'cards',
-  compact = false,
-  scrollable,
-  maxHeight,
+  scrollable = false,
+  maxHeight = '400px',
   pageSize = 10,
-  hideCreateButton,
+  paginationStyle = 'loadMore',
+  hideCreateButton = false,
   renderPaymentAction,
   onAccountLinked,
   onVerificationComplete,
   className,
   userEventsHandler,
   userEventsLifecycle,
-
-  // Deprecated props (for backward compatibility)
-  variant,
-  showCreateButton,
-  scrollHeight,
-  makePaymentComponent,
-  onLinkedAccountSettled,
-  onMicrodepositVerifySettled,
 }) => {
-  // ============================================================================
-  // Normalize deprecated props to new props
-  // ============================================================================
-
-  // mode: 'list' | 'single' (new) vs variant: 'default' | 'singleAccount' (deprecated)
-  const resolvedMode =
-    mode ?? (variant === 'singleAccount' ? 'single' : 'list');
-
-  // scrollable + maxHeight (new) vs scrollHeight (deprecated)
-  const resolvedScrollable = scrollable ?? scrollHeight !== undefined;
-  const resolvedMaxHeight = maxHeight ?? scrollHeight ?? '400px';
-
-  // hideCreateButton (new) vs showCreateButton (deprecated, inverted logic)
-  const resolvedHideCreateButton =
-    hideCreateButton ??
-    (showCreateButton !== undefined ? !showCreateButton : false);
-
-  // renderPaymentAction (new) vs makePaymentComponent (deprecated)
-  // For backward compatibility, wrap makePaymentComponent in a function
-  const resolvedRenderPaymentAction =
-    renderPaymentAction ??
-    (makePaymentComponent ? () => makePaymentComponent : undefined);
-
-  // Callback normalization
-  const resolvedOnAccountLinked = onAccountLinked ?? onLinkedAccountSettled;
-  const resolvedOnVerificationComplete =
-    onVerificationComplete ?? onMicrodepositVerifySettled;
+  const isCompact = viewMode === 'compact-cards';
+  const usePagesPagination = paginationStyle === 'pages' && !scrollable;
 
   // ============================================================================
   // Component State
@@ -135,10 +103,28 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
     Recipient | undefined
   >(undefined);
 
+  // Pagination state for pages-style pagination
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize,
+  });
+
   // Ref for scroll container (virtualization)
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Use custom hook for data fetching and state management
+  // Use infinite query hook for load-more pagination (default)
+  const loadMoreData = useLinkedAccounts({
+    variant: mode === 'single' ? 'singleAccount' : 'default',
+    pageSize,
+  });
+
+  // Use page-based query hook for pages pagination
+  const pagesData = useLinkedAccountsTable({
+    pagination,
+    onPaginationChange: setPagination,
+  });
+
+  // Select which data source to use based on pagination style
   const {
     linkedAccounts,
     hasActiveAccount,
@@ -152,10 +138,35 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
     isLoadingMore,
     totalCount,
     nextLoadCount,
-  } = useLinkedAccounts({
-    variant: resolvedMode === 'single' ? 'singleAccount' : 'default',
-    pageSize,
-  });
+  } = usePagesPagination
+    ? {
+        linkedAccounts: pagesData.linkedAccounts,
+        hasActiveAccount: pagesData.hasAccounts,
+        isLoading: pagesData.isLoading,
+        isError: pagesData.isError,
+        error: pagesData.error,
+        isSuccess: pagesData.isSuccess,
+        refetch: pagesData.refetch,
+        hasMore: pagination.pageIndex < pagesData.pageCount - 1,
+        loadMore: () => {},
+        isLoadingMore: false,
+        totalCount: pagesData.totalCount,
+        nextLoadCount: 0,
+      }
+    : {
+        linkedAccounts: loadMoreData.linkedAccounts,
+        hasActiveAccount: loadMoreData.hasActiveAccount,
+        isLoading: loadMoreData.isLoading,
+        isError: loadMoreData.isError,
+        error: loadMoreData.error,
+        isSuccess: loadMoreData.isSuccess,
+        refetch: loadMoreData.refetch,
+        hasMore: loadMoreData.hasMore,
+        loadMore: loadMoreData.loadMore,
+        isLoadingMore: loadMoreData.isLoadingMore,
+        totalCount: loadMoreData.totalCount,
+        nextLoadCount: loadMoreData.nextLoadCount,
+      };
 
   // Setup virtualizer for scrollable mode
   const rowVirtualizer = useVirtualizer({
@@ -163,7 +174,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
     getScrollElement: () => scrollContainerRef.current,
     estimateSize: () => 240, // Estimated height - will be measured dynamically
     overscan: 2, // Render 2 items above/below viewport for smooth scrolling
-    enabled: resolvedScrollable, // Only enable when scrollable is true
+    enabled: scrollable, // Only enable when scrollable is true
     measureElement:
       typeof window !== 'undefined'
         ? (element) => (element as HTMLElement).offsetHeight
@@ -172,7 +183,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
 
   // Auto-load more when scrolling near bottom (infinite scroll)
   useEffect(() => {
-    if (!resolvedScrollable || !hasMore || isLoadingMore) return;
+    if (!scrollable || !hasMore || isLoadingMore) return;
 
     const lastItem = rowVirtualizer.getVirtualItems().slice(-1)[0];
     if (!lastItem) return;
@@ -182,7 +193,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
       loadMore();
     }
   }, [
-    resolvedScrollable,
+    scrollable,
     hasMore,
     isLoadingMore,
     rowVirtualizer.getVirtualItems(),
@@ -192,9 +203,9 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
 
   // Determine if create button should be shown
   const showCreate = shouldShowCreateButton(
-    resolvedMode === 'single' ? 'singleAccount' : 'default',
+    mode === 'single' ? 'singleAccount' : 'default',
     hasActiveAccount,
-    !resolvedHideCreateButton
+    !hideCreateButton
   );
 
   // Set up automatic event tracking for data-user-event attributes
@@ -239,7 +250,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
       });
     }
 
-    resolvedOnVerificationComplete?.(response, recipient);
+    onVerificationComplete?.(response, recipient);
   };
 
   // Handle account removal success
@@ -262,7 +273,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
         userEventsHandler,
       });
     }
-    resolvedOnAccountLinked?.(recipient, error);
+    onAccountLinked?.(recipient, error);
   };
 
   return (
@@ -299,7 +310,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                   )}
                 </CardTitle>
               </div>
-              {!compact && (
+              {!isCompact && (
                 <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
                   {t('description')}
                 </p>
@@ -315,7 +326,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                     variant="outline"
                     size="sm"
                     className={cn('eb-shrink-0 eb-bg-background', {
-                      'eb-h-8 eb-px-3': compact,
+                      'eb-h-8 eb-px-3': isCompact,
                     })}
                     data-user-event={LINKED_ACCOUNT_USER_JOURNEYS.LINK_STARTED}
                   >
@@ -333,10 +344,10 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
 
         <CardContent
           className={cn('eb-transition-all eb-duration-300 eb-ease-in-out', {
-            'eb-space-y-0 eb-p-0': compact,
-            'eb-p-0': resolvedScrollable,
+            'eb-space-y-0 eb-p-0': isCompact,
+            'eb-p-0': scrollable,
             'eb-space-y-4 eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': !(
-              resolvedScrollable || compact
+              scrollable || isCompact
             ),
           })}
         >
@@ -344,11 +355,11 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           {isLoading && (
             <div
               className={cn('eb-grid eb-grid-cols-1 eb-gap-3', {
-                'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': resolvedScrollable,
+                'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': scrollable,
               })}
             >
               {/* Show 1 skeleton card during loading */}
-              <LinkedAccountCardSkeleton compact={compact} />
+              <LinkedAccountCardSkeleton compact={isCompact} />
             </div>
           )}
 
@@ -356,7 +367,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           {isError && (
             <div
               className={cn({
-                'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': resolvedScrollable || compact,
+                'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': scrollable || isCompact,
               })}
             >
               <ServerErrorAlert
@@ -376,12 +387,12 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
           {isSuccess && linkedAccounts.length === 0 && (
             <div
               className={cn({
-                'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': resolvedScrollable || compact,
+                'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': scrollable || isCompact,
               })}
             >
               <EmptyState
                 className="eb-animate-fade-in"
-                compact={compact}
+                compact={isCompact}
                 action={
                   showCreate && (
                     <LinkedAccountFormDialog
@@ -392,7 +403,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                         variant="default"
                         size="sm"
                         className={cn({
-                          'eb-h-8 eb-px-3': compact,
+                          'eb-h-8 eb-px-3': isCompact,
                         })}
                       >
                         <PlusIcon className="eb-mr-1.5 eb-h-4 eb-w-4" />
@@ -410,15 +421,11 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
             <>
               {viewMode === 'table' ? (
                 // Table view with server-side pagination
-                <div
-                  className={cn({
-                    'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': true,
-                  })}
-                >
+                <div className="eb-p-1">
                   <LinkedAccountsTableView
                     useServerPagination
-                    renderPaymentAction={resolvedRenderPaymentAction}
-                    onLinkedAccountSettled={resolvedOnAccountLinked}
+                    renderPaymentAction={renderPaymentAction}
+                    onLinkedAccountSettled={onAccountLinked}
                     onMicrodepositVerifySettled={
                       handleMicrodepositVerifySettled
                     }
@@ -427,16 +434,16 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                     showPagination
                   />
                 </div>
-              ) : resolvedScrollable ? (
+              ) : scrollable ? (
                 // Virtualized scrollable list
                 <div
                   ref={scrollContainerRef}
                   style={{
-                    maxHeight: resolvedMaxHeight,
+                    maxHeight,
                     overflow: 'auto',
                   }}
                   className={cn('eb-relative', {
-                    'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': !compact,
+                    'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': !isCompact,
                   })}
                 >
                   <div
@@ -461,21 +468,23 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                             transform: `translateY(${virtualRow.start}px)`,
                           }}
                         >
-                          <div className={cn({ 'eb-px-1 eb-pb-3': !compact })}>
+                          <div
+                            className={cn({ 'eb-px-1 eb-pb-3': !isCompact })}
+                          >
                             <LinkedAccountCard
                               recipient={recipient}
-                              makePaymentComponent={resolvedRenderPaymentAction?.(
+                              makePaymentComponent={renderPaymentAction?.(
                                 recipient
                               )}
-                              onLinkedAccountSettled={resolvedOnAccountLinked}
+                              onLinkedAccountSettled={onAccountLinked}
                               onMicrodepositVerifySettled={
                                 handleMicrodepositVerifySettled
                               }
                               onRemoveSuccess={handleRemoveSuccess}
-                              compact={compact}
+                              compact={isCompact}
                               className={cn({
                                 'eb-border-b-0':
-                                  compact &&
+                                  isCompact &&
                                   virtualRow.index ===
                                     linkedAccounts.length - 1,
                               })}
@@ -498,10 +507,10 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                 <>
                   <div
                     className={cn('eb-grid eb-grid-cols-1 eb-items-start', {
-                      'eb-gap-0': compact,
-                      'eb-gap-3': !compact,
+                      'eb-gap-0': isCompact,
+                      'eb-gap-3': !isCompact,
                       '@4xl:eb-grid-cols-2':
-                        !compact && linkedAccounts.length > 1,
+                        !isCompact && linkedAccounts.length > 1,
                     })}
                   >
                     {linkedAccounts.map((recipient, index) => (
@@ -515,89 +524,121 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                       >
                         <LinkedAccountCard
                           recipient={recipient}
-                          makePaymentComponent={resolvedRenderPaymentAction?.(
+                          makePaymentComponent={renderPaymentAction?.(
                             recipient
                           )}
-                          onLinkedAccountSettled={resolvedOnAccountLinked}
+                          onLinkedAccountSettled={onAccountLinked}
                           onMicrodepositVerifySettled={
                             handleMicrodepositVerifySettled
                           }
                           onRemoveSuccess={handleRemoveSuccess}
-                          compact={compact}
+                          compact={isCompact}
                           className={cn({
                             'eb-border-b-0':
-                              compact && index === linkedAccounts.length - 1,
+                              isCompact && index === linkedAccounts.length - 1,
                           })}
                         />
                       </div>
                     ))}
                   </div>
 
-                  {/* Load More Actions */}
-                  {compact
-                    ? // COMPACT MODE - Full width clickable area
-                      hasMore && (
-                        <div className="eb-border-t">
-                          <button
-                            type="button"
-                            onClick={loadMore}
-                            disabled={isLoadingMore}
-                            className="eb-group eb-w-full eb-bg-muted eb-py-2 eb-text-center eb-transition-colors hover:eb-bg-muted/60 disabled:eb-opacity-50"
-                            aria-label={t('showMoreWithCount', {
-                              defaultValue: 'Show {{count}} more account_other',
-                              count: nextLoadCount,
-                            })}
-                          >
-                            <div className="eb-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-muted-foreground group-hover:eb-text-foreground">
+                  {/* Pagination Controls */}
+                  {usePagesPagination
+                    ? // PAGES PAGINATION - Navigation controls like table view
+                      totalCount > 0 && (
+                        <div
+                          className={cn({
+                            'eb-border-t eb-bg-muted/30': isCompact,
+                            'eb-pt-2': !isCompact,
+                          })}
+                        >
+                          <Pagination
+                            pageIndex={pagination.pageIndex}
+                            pageSize={pagination.pageSize}
+                            totalCount={totalCount}
+                            pageCount={pagesData.pageCount}
+                            canPreviousPage={pagination.pageIndex > 0}
+                            canNextPage={
+                              pagination.pageIndex < pagesData.pageCount - 1
+                            }
+                            onPageChange={(pageIndex) =>
+                              setPagination((prev) => ({ ...prev, pageIndex }))
+                            }
+                            onPageSizeChange={(newPageSize) =>
+                              setPagination({
+                                pageIndex: 0,
+                                pageSize: newPageSize,
+                              })
+                            }
+                            variant={isCompact ? 'compact' : 'default'}
+                          />
+                        </div>
+                      )
+                    : isCompact
+                      ? // COMPACT MODE - Full width clickable area
+                        hasMore && (
+                          <div className="eb-border-t">
+                            <button
+                              type="button"
+                              onClick={loadMore}
+                              disabled={isLoadingMore}
+                              className="eb-group eb-w-full eb-bg-muted eb-py-2 eb-text-center eb-transition-colors hover:eb-bg-muted/60 disabled:eb-opacity-50"
+                              aria-label={t('showMoreWithCount', {
+                                defaultValue:
+                                  'Show {{count}} more account_other',
+                                count: nextLoadCount,
+                              })}
+                            >
+                              <div className="eb-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-muted-foreground group-hover:eb-text-foreground">
+                                {isLoadingMore ? (
+                                  <>
+                                    <div className="eb-h-4 eb-w-4 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
+                                    <span>{t('loadingMore')}</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <ChevronDownIcon className="eb-h-4 eb-w-4" />
+                                    <span>
+                                      {t('showMoreWithCount', {
+                                        defaultValue:
+                                          'Show {{count}} more account_other',
+                                        count: nextLoadCount,
+                                      })}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </button>
+                          </div>
+                        )
+                      : // NON-COMPACT MODE - Small button
+                        hasMore && (
+                          <div className="eb-flex eb-justify-center eb-gap-2 eb-pt-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={loadMore}
+                              disabled={isLoadingMore}
+                              className="eb-h-8 eb-text-xs eb-text-muted-foreground hover:eb-text-foreground"
+                            >
                               {isLoadingMore ? (
                                 <>
-                                  <div className="eb-h-4 eb-w-4 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
-                                  <span>{t('loadingMore')}</span>
+                                  <div className="eb-mr-1.5 eb-h-3.5 eb-w-3.5 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
+                                  {t('loadingMore')}
                                 </>
                               ) : (
                                 <>
-                                  <ChevronDownIcon className="eb-h-4 eb-w-4" />
-                                  <span>
-                                    {t('showMoreWithCount', {
-                                      defaultValue:
-                                        'Show {{count}} more account_other',
-                                      count: nextLoadCount,
-                                    })}
-                                  </span>
+                                  <ChevronDownIcon className="eb-mr-1.5 eb-h-3.5 eb-w-3.5" />
+                                  {t('showMoreWithCount', {
+                                    defaultValue:
+                                      'Show {{count}} more account_other',
+                                    count: nextLoadCount,
+                                  })}
                                 </>
                               )}
-                            </div>
-                          </button>
-                        </div>
-                      )
-                    : // NON-COMPACT MODE - Small button
-                      hasMore && (
-                        <div className="eb-flex eb-justify-center eb-gap-2 eb-pt-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={loadMore}
-                            disabled={isLoadingMore}
-                            className="eb-h-8 eb-text-xs eb-text-muted-foreground hover:eb-text-foreground"
-                          >
-                            {isLoadingMore ? (
-                              <>
-                                <div className="eb-mr-1.5 eb-h-3.5 eb-w-3.5 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
-                                {t('loadingMore')}
-                              </>
-                            ) : (
-                              <>
-                                <ChevronDownIcon className="eb-mr-1.5 eb-h-3.5 eb-w-3.5" />
-                                {t('showMoreWithCount', {
-                                  defaultValue:
-                                    'Show {{count}} more account_other',
-                                  count: nextLoadCount,
-                                })}
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      )}
+                            </Button>
+                          </div>
+                        )}
                 </>
               )}
             </>
