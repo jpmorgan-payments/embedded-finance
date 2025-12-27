@@ -176,14 +176,42 @@ New Code?
 ## Package-Specific Instructions
 
 - **embedded-components**: See `embedded-components/AGENTS.md` for package-specific instructions
-- **app/client-next-ts**: See `app/client-next-ts/.cursorrules` for app-specific rules
+- **app/client-next-ts**: See `app/client-next-ts/.cursorrules` for app-specific configuration
 
 ## Additional Resources
 
-- **Architecture patterns**: `embedded-components/ARCHITECTURE.md` - **Source of truth for architecture**
-- **Component creation**: `.cursor/rules/component-creation-workflow.mdc`
-- **Testing patterns**: `.cursor/rules/component-testing-patterns.mdc`
-- **Styling guidelines**: `.cursor/rules/styling-guidelines.mdc`
+### Primary Documentation
+
+- **`embedded-components/ARCHITECTURE.md`** - Source of truth for architecture patterns
+- **`.github/copilot-instructions.md`** - GitHub Copilot integration instructions
+- **`.github/copilot/skills/`** - Agent Skills (cross-IDE compatible)
+- **`.cursorrules`** - Root configuration (cross-IDE compatible)
+
+### Agent Skills
+
+Agent Skills provide automated, discoverable guidance. Located in `.github/copilot/skills/`:
+
+**Tier 1 - Critical Core:**
+- **embedded-banking-architecture** - Architecture patterns and component structure
+- **component-testing** - Comprehensive testing with MSW and React Query
+- **code-quality-workflow** - Mandatory test-fix-verify workflow
+- **styling-guidelines** - Tailwind CSS with `eb-` prefix patterns
+- **react-patterns** - React 18 hooks and composition
+
+**Tier 2 - Important:**
+- **i18n-l10n** - Internationalization and localization
+- **windows-powershell** - PowerShell commands (NEVER use `&&`)
+- **test-and-fix-workflow** - Automated testing and debugging
+
+See `.github/copilot/skills/README.md` for complete documentation.
+
+### Cross-IDE Compatibility
+
+This repository uses the Agent Skills format (agentskills.io) which works with:
+- ✅ VS Code with GitHub Copilot
+- ✅ Cursor
+- ✅ Claude Code
+- ✅ Other AI tools supporting Agent Skills
 
 ## Git Commit Conventions
 
