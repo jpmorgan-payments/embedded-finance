@@ -8,6 +8,7 @@ import { ExperiencesSection } from '../components/landing/experiences-section';
 import { HeroSection } from '../components/landing/hero-section';
 import { RecipesSection } from '../components/landing/recipes-section';
 import { CompactHomepage } from '../experiments/landing-page/compact-homepage/CompactHomepage';
+import { CompactHomepage2 } from '../experiments/landing-page/compact-homepage2/CompactHomepage2';
 import { LandingPageExperiment } from '../experiments/landing-page/constants';
 
 // Define search param schema with validation
@@ -30,6 +31,11 @@ function LandingPage() {
   // Render compact homepage if experiment is explicitly in URL
   if (activeExperiment === LandingPageExperiment.COMPACT_HOMEPAGE) {
     return <CompactHomepage />;
+  }
+
+  // Render enhanced compact homepage v2 if experiment is explicitly in URL
+  if (activeExperiment === LandingPageExperiment.COMPACT_HOMEPAGE_2) {
+    return <CompactHomepage2 />;
   }
 
   // Default landing page
