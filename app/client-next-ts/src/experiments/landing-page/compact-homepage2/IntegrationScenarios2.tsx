@@ -25,13 +25,13 @@ const integrationGroups = [
     title: 'React Components',
     description: 'Use pre-built components via npm package',
     icon: <Package className="h-5 w-5" />,
-    recommended: true,
   },
   {
     id: 'hosted',
     title: 'Hosted Pages',
     description: 'J.P. Morgan hosted UI with iframe integration',
     icon: <Server className="h-5 w-5" />,
+    recommended: true,
   },
 ] as const;
 
