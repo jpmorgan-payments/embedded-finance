@@ -37,8 +37,8 @@ const quickStats = [
 
 // Value propositions for developers
 const valueProps = [
-  { icon: <Zap className="h-4 w-4" />, text: 'Production-ready' },
-  { icon: <Sparkles className="h-4 w-4" />, text: 'Fully accessible' },
+  { icon: <Zap className="h-4 w-4" />, text: 'Fully customizable' },
+  { icon: <Sparkles className="h-4 w-4" />, text: 'Design & content tokens' },
 ] as const;
 
 const navigationCards = [
@@ -46,7 +46,7 @@ const navigationCards = [
     id: 'demos',
     title: 'Demo Applications',
     description:
-      'Working implementations of embedded finance applications. Includes onboarding workflows, payment processing, and account management examples.',
+      'Sample implementations of Embedded Finance APIs. Includes onboarding workflows, make payment forms, recipients and linked accounts management examples.',
     icon: <Play className="h-6 w-6" />,
     link: '/demos',
     count: 3,
@@ -76,7 +76,7 @@ const navigationCards = [
     id: 'utils',
     title: 'Utility Components',
     description:
-      'Components for dates, industry codes, tax IDs, and addresses. Includes validation logic and formatting for financial forms.',
+      'Components to capture important dates, industry codes, tax IDs, and addresses. Includes validation logic and formatting for financial forms.',
     icon: <Wrench className="h-6 w-6" />,
     link: '/utils',
     count: 4,
@@ -117,7 +117,7 @@ export function CompactHomepage2() {
                 }`}
               >
                 <Sparkles className="h-3.5 w-3.5 animate-pulse" />
-                <span>Build faster with pre-built finance components</span>
+                <span>Build faster with pre-built embedded UI components</span>
               </div>
 
               <h1
