@@ -16,22 +16,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "pnpm"
-          cache-dependency-path: app/client-next-ts/pnpm-lock.yaml
+          cache: "yarn"
+          cache-dependency-path: app/client-next-ts/yarn.lock
 
       - name: Install dependencies
         run: |
           cd app/client-next-ts
-          pnpm install --frozen-lockfile
+          yarn install --frozen-lockfile
 
       - name: Install Playwright
         run: |
@@ -78,7 +73,7 @@ jobs:
           echo "🧪 Testing all scenarios: sellsense-demo, linked-bank-account, onboarding-docs-needed"
 
           # Test all scenarios
-          pnpm run health-check:all
+          yarn health-check:all
         env:
           TARGET_URL: "${{ steps.url.outputs.url }}"
 

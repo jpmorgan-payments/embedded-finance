@@ -5,8 +5,8 @@ Welcome to your new TanStack app!
 To run this application:
 
 ```bash
-pnpm install
-pnpm start
+yarn install
+yarn start
 ```
 
 # Building For Production
@@ -14,7 +14,7 @@ pnpm start
 To build this application for production:
 
 ```bash
-pnpm build
+yarn build
 ```
 
 ## Testing
@@ -23,7 +23,7 @@ This project uses [Vitest](https://vitest.dev/) for testing. You can run the
 tests with:
 
 ```bash
-pnpm test
+yarn test
 ```
 
 ## Styling
@@ -207,7 +207,7 @@ integrating it into you application is a breeze.
 First add your dependencies:
 
 ```bash
-pnpm add @tanstack/react-query @tanstack/react-query-devtools
+yarn add @tanstack/react-query @tanstack/react-query-devtools
 ```
 
 Next we'll need to create a query client and provider. We recommend putting
@@ -292,7 +292,7 @@ starting point for your project.
 First you need to add TanStack Store as a dependency:
 
 ```bash
-pnpm add @tanstack/store
+yarn add @tanstack/store
 ```
 
 Now let's create a simple counter in the `src/App.tsx` file as a demonstration.

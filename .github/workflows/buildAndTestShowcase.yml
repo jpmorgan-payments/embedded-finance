@@ -13,22 +13,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
-          cache-dependency-path: app/client-next-ts/pnpm-lock.yaml
+          cache: 'yarn'
+          cache-dependency-path: app/client-next-ts/yarn.lock
       - name: Install modules
-        run: pnpm install
+        run: yarn install --frozen-lockfile
         working-directory: ./app/client-next-ts
       - name: Build
-        run: pnpm run build
+        run: yarn build
         working-directory: ./app/client-next-ts
       - name: Run tests
-        run: pnpm run test
+        run: yarn test
         working-directory: ./app/client-next-ts
