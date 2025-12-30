@@ -14,7 +14,7 @@
     "health-check:local": "node health-check.js --url http://localhost:3000/sellsense-demo --headless false",
     "health-check:linked-bank": "node health-check.js --scenario=linked-bank-account",
     "health-check:onboarding": "node health-check.js --scenario=onboarding-docs-needed",
-    "health-check:all": "npm run health-check && npm run health-check:linked-bank && npm run health-check:onboarding"
+    "health-check:all": "pnpm health-check && pnpm health-check:linked-bank && pnpm health-check:onboarding"
   },
   "dependencies": {
     "@jpmorgan-payments/embedded-finance-components": "^0.10.9",
@@ -27,6 +27,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-switch": "^1.2.5",
     "@radix-ui/react-tabs": "^1.1.12",
+    "@tanstack/react-query": "^5.62.0",
     "@tanstack/react-router": "^1.114.3",
     "@tanstack/react-router-devtools": "^1.114.3",
     "@tanstack/router-plugin": "^1.114.3",
@@ -35,17 +36,19 @@
     "clsx": "^2.1.1",
     "lodash": "^4.17.21",
     "lucide-react": "^0.476.0",
-    "msw": "^2.7.5",
     "mermaid": "^11.12.2",
+    "msw": "^2.7.5",
     "prism-react-renderer": "^2.4.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "tailwind-merge": "^3.0.2",
     "tailwindcss": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
-    "yaml": "^2.6.0"
+    "yaml": "^2.6.0",
+    "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
     "@playwright/test": "^1.56.1",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.9.1",
@@ -58,7 +61,6 @@
     "jsdom": "^26.0.0",
     "postcss": "^8.4.49",
     "prettier": "^3.5.3",
-    "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
     "prettier-plugin-tailwindcss": "^0.6.14",
     "rimraf": "^6.0.1",
     "typescript": "^5.7.2",
@@ -72,9 +74,14 @@
       "public"
     ]
   },
-  "overrides": {
-    "vite": {
+  "pnpm": {
+    "overrides": {
       "rollup": "npm:@rollup/wasm-node"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "msw",
+      "sharp"
+    ]
   }
 }
