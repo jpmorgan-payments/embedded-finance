@@ -1,5 +1,5 @@
 repository_name,site,views,unique_visitors/cloners
-embedded-banking,developer.payments.jpmorgan.com,5,3
+embedded-banking,developer.payments.jpmorgan.com,2,2
 embedded-banking,search.brave.com,1,1
 embedded-banking,confluence.ngage.netapp.com,1,1
 embedded-banking,jpmorganchase.github.io,3,1
@@ -27,7 +27,7 @@ embedded-banking,gemini.google.com,1,1
 embedded-banking,claude.ai,1,1
 embedded-banking,theforage.com,2,1
 embedded-banking,payments-preview.prod.aws.jpmchase.net,9,1
-embedded-banking,github.com,26,8
+embedded-banking,github.com,14,6
 embedded-banking,confluence.walmart.com,8,1
 embedded-banking,embedded-finance-showcase-next.apps.dev.na-4z.gap.jpmchase.net,3,1
 embedded-banking,Bing,4,1
