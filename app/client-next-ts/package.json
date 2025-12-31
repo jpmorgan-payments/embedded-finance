@@ -14,7 +14,7 @@
     "health-check:local": "node health-check.js --url http://localhost:3000/sellsense-demo --headless false",
     "health-check:linked-bank": "node health-check.js --scenario=linked-bank-account",
     "health-check:onboarding": "node health-check.js --scenario=onboarding-docs-needed",
-    "health-check:all": "yarn health-check && yarn health-check:linked-bank && yarn health-check:onboarding"
+    "health-check:all": "pnpm health-check && pnpm health-check:linked-bank && pnpm health-check:onboarding"
   },
   "dependencies": {
     "@jpmorgan-payments/embedded-finance-components": "^0.10.9",
@@ -72,6 +72,16 @@
     "workerDirectory": [
       "..\\..\\..\\..\\public",
       "public"
+    ]
+  },
+  "pnpm": {
+    "overrides": {
+      "rollup": "npm:@rollup/wasm-node"
+    },
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "msw",
+      "sharp"
     ]
   }
 }

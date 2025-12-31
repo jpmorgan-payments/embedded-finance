@@ -9,10 +9,11 @@ applications:
             - nvm install 20
             - nvm use 20
             - node --version
+            - npm install -g pnpm
         build:
           commands:
-            - yarn install
-            - yarn build
+            - pnpm install
+            - pnpm run build
       artifacts:
         # IMPORTANT - Please verify your build output directory
         baseDirectory: dist
