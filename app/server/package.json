@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.20.0",
+    "express": "^4.21.2",
     "http-proxy-middleware": "^2.0.9",
     "https-proxy-agent": "^5.0.1"
   },
@@ -21,6 +21,7 @@
     "nodemon": "^3.0.2"
   },
   "resolutions": {
-    "path-to-regexp": "0.1.12"
+    "path-to-regexp": "0.1.12",
+    "qs": "^6.14.1"
   }
 }
