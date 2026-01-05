@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { PaginationState } from '@tanstack/react-table';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { useVirtualizer, VirtualItem } from '@tanstack/react-virtual';
 import { ChevronDownIcon, PlusIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -177,7 +177,7 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
     enabled: scrollable, // Only enable when scrollable is true
     measureElement:
       typeof window !== 'undefined'
-        ? (element) => (element as HTMLElement).offsetHeight
+        ? (element: Element) => (element as HTMLElement).offsetHeight
         : undefined,
   });
 
@@ -453,46 +453,48 @@ export const LinkedAccountWidget: React.FC<LinkedAccountWidgetProps> = ({
                       position: 'relative',
                     }}
                   >
-                    {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                      const recipient = linkedAccounts[virtualRow.index];
-                      return (
-                        <div
-                          key={recipient.id}
-                          data-index={virtualRow.index}
-                          ref={rowVirtualizer.measureElement}
-                          style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '100%',
-                            transform: `translateY(${virtualRow.start}px)`,
-                          }}
-                        >
+                    {rowVirtualizer
+                      .getVirtualItems()
+                      .map((virtualRow: VirtualItem) => {
+                        const recipient = linkedAccounts[virtualRow.index];
+                        return (
                           <div
-                            className={cn({ 'eb-px-1 eb-pb-3': !isCompact })}
+                            key={recipient.id}
+                            data-index={virtualRow.index}
+                            ref={rowVirtualizer.measureElement}
+                            style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: '100%',
+                              transform: `translateY(${virtualRow.start}px)`,
+                            }}
                           >
-                            <LinkedAccountCard
-                              recipient={recipient}
-                              makePaymentComponent={renderPaymentAction?.(
-                                recipient
-                              )}
-                              onLinkedAccountSettled={onAccountLinked}
-                              onMicrodepositVerifySettled={
-                                handleMicrodepositVerifySettled
-                              }
-                              onRemoveSuccess={handleRemoveSuccess}
-                              compact={isCompact}
-                              className={cn({
-                                'eb-border-b-0':
-                                  isCompact &&
-                                  virtualRow.index ===
-                                    linkedAccounts.length - 1,
-                              })}
-                            />
+                            <div
+                              className={cn({ 'eb-px-1 eb-pb-3': !isCompact })}
+                            >
+                              <LinkedAccountCard
+                                recipient={recipient}
+                                makePaymentComponent={renderPaymentAction?.(
+                                  recipient
+                                )}
+                                onLinkedAccountSettled={onAccountLinked}
+                                onMicrodepositVerifySettled={
+                                  handleMicrodepositVerifySettled
+                                }
+                                onRemoveSuccess={handleRemoveSuccess}
+                                compact={isCompact}
+                                className={cn({
+                                  'eb-border-b-0':
+                                    isCompact &&
+                                    virtualRow.index ===
+                                      linkedAccounts.length - 1,
+                                })}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
                   </div>
 
                   {/* Loading indicator at bottom when fetching more */}
