@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/chart';
 import { type TrafficData } from '@/lib/csv-parser';
 
-import { type ChartType } from './RumDashboard';
+import { type ChartType } from './GhTrafficStatsDashboard';
 
 interface TrafficChartProps {
   data: TrafficData[];

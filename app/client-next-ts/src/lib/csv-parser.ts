@@ -99,11 +99,11 @@ export function parseCSV<T extends ParsedData>(
           }
         } catch (error) {
           result.errors.push({
-            type: 'TransformError',
+            type: 'Quotes',
             code: 'InvalidData',
             message: `Failed to transform row: ${error instanceof Error ? error.message : String(error)}`,
             row: results.data.indexOf(row),
-          } as Papa.ParseError);
+          } as unknown as Papa.ParseError);
         }
       }
     },

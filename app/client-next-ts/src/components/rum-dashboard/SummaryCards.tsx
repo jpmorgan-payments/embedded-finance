@@ -30,10 +30,7 @@ export function SummaryCards({ data, dateRange, mode }: SummaryCardsProps) {
       }
 
       const totalViews = traffic.reduce((sum, item) => sum + item.views, 0);
-      // Unique visitors: count unique dates with visitors, not sum
-      const uniqueVisitorDates = new Set(
-        traffic.filter((item) => item.unique_visitors > 0).map((item) => item.date)
-      );
+      // Unique visitors: get max unique visitors per day, not sum
       const totalUniqueVisitors = Math.max(
         ...traffic.map((item) => item.unique_visitors),
         0

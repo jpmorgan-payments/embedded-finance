@@ -141,47 +141,59 @@ export function MetricsTable({
   mode,
 }: MetricsTableProps) {
   const trafficRows = useMemo(() => {
-    const source = mode === 'daily' ? data.traffic : data.monthlyTraffic;
-    let filtered = [...source];
-
-    // Only apply date filtering in daily mode
     if (mode === 'daily') {
+      let filtered = [...data.traffic];
+
       if (dateRange.start) {
         filtered = filtered.filter((item) => item.date >= dateRange.start!);
       }
       if (dateRange.end) {
         filtered = filtered.filter((item) => item.date <= dateRange.end!);
       }
-    }
 
-    return filtered.map((item) => ({
-      [mode === 'daily' ? 'date' : 'month']: mode === 'daily' ? item.date : item.month,
-      repository: item.repository_name,
-      views: item.views,
-      unique_visitors: item.unique_visitors,
-    }));
+      return filtered.map((item) => ({
+        date: item.date,
+        repository: item.repository_name,
+        views: item.views,
+        unique_visitors: item.unique_visitors,
+      }));
+    } else {
+      // Monthly mode - no date filtering
+      return data.monthlyTraffic.map((item) => ({
+        month: item.month,
+        repository: item.repository_name,
+        views: item.views,
+        unique_visitors: item.unique_visitors,
+      }));
+    }
   }, [data, dateRange, mode]);
 
   const cloneRows = useMemo(() => {
-    const source = mode === 'daily' ? data.clones : data.monthlyClones;
-    let filtered = [...source];
-
-    // Only apply date filtering in daily mode
     if (mode === 'daily') {
+      let filtered = [...data.clones];
+
       if (dateRange.start) {
         filtered = filtered.filter((item) => item.date >= dateRange.start!);
       }
       if (dateRange.end) {
         filtered = filtered.filter((item) => item.date <= dateRange.end!);
       }
-    }
 
-    return filtered.map((item) => ({
-      [mode === 'daily' ? 'date' : 'month']: mode === 'daily' ? item.date : item.month,
-      repository: item.repository_name,
-      clones: item.clones,
-      unique_cloners: item.unique_cloners,
-    }));
+      return filtered.map((item) => ({
+        date: item.date,
+        repository: item.repository_name,
+        clones: item.clones,
+        unique_cloners: item.unique_cloners,
+      }));
+    } else {
+      // Monthly mode - no date filtering
+      return data.monthlyClones.map((item) => ({
+        month: item.month,
+        repository: item.repository_name,
+        clones: item.clones,
+        unique_cloners: item.unique_cloners,
+      }));
+    }
   }, [data, dateRange, mode]);
 
   const referrerRows = useMemo(() => {

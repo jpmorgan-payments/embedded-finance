@@ -1,6 +1,6 @@
 import { Label } from '@/components/ui/label';
 
-import { type ChartType } from './RumDashboard';
+import { type ChartType } from './GhTrafficStatsDashboard';
 
 interface ChartTypeSelectorProps {
   selected: ChartType;

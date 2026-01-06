@@ -24,7 +24,7 @@ import {
   type MonthlyTrafficData,
 } from '@/lib/csv-parser';
 
-import { type ChartType } from './RumDashboard';
+import { type ChartType } from './GhTrafficStatsDashboard';
 
 interface MonthlyAggregateChartProps {
   trafficData: MonthlyTrafficData[];
