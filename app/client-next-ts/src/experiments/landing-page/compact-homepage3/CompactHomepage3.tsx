@@ -80,9 +80,21 @@ const integrationOptions = [
 
 // Quick links for footer
 const quickLinks = [
-  { label: 'GitHub', href: 'https://github.com/jpmorgan-payments', icon: <Github className="h-4 w-4" /> },
-  { label: 'Storybook', href: '/storybook', icon: <BookOpen className="h-4 w-4" /> },
-  { label: 'API Reference', href: '/documentation', icon: <Code className="h-4 w-4" /> },
+  {
+    label: 'GitHub',
+    href: 'https://github.com/jpmorgan-payments',
+    icon: <Github className="h-4 w-4" />,
+  },
+  {
+    label: 'Storybook',
+    href: '/storybook',
+    icon: <BookOpen className="h-4 w-4" />,
+  },
+  {
+    label: 'API Reference',
+    href: '/documentation',
+    icon: <Code className="h-4 w-4" />,
+  },
 ] as const;
 
 export function CompactHomepage3() {
@@ -109,7 +121,9 @@ export function CompactHomepage3() {
           {/* Badge */}
           <div
             className={`mb-4 inline-flex items-center gap-3 rounded-full border border-sp-border bg-white px-4 py-1.5 text-sm transition-all duration-700 ${
-              isVisible ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'
+              isVisible
+                ? 'translate-y-0 opacity-100'
+                : '-translate-y-4 opacity-0'
             }`}
           >
             <span className="font-medium text-jpm-gray-700">Open Source</span>
@@ -122,7 +136,9 @@ export function CompactHomepage3() {
           {/* Headline */}
           <h1
             className={`mb-4 text-3xl font-bold leading-tight text-jpm-gray-900 transition-all delay-100 duration-700 sm:text-4xl lg:text-5xl ${
-              isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+              isVisible
+                ? 'translate-y-0 opacity-100'
+                : 'translate-y-4 opacity-0'
             }`}
           >
             Embedded Finance
@@ -132,17 +148,21 @@ export function CompactHomepage3() {
           {/* Subtitle */}
           <p
             className={`mx-auto mb-6 max-w-2xl text-base leading-relaxed text-jpm-gray transition-all delay-200 duration-700 sm:text-lg ${
-              isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+              isVisible
+                ? 'translate-y-0 opacity-100'
+                : 'translate-y-4 opacity-0'
             }`}
           >
-            Production-ready React components for J.P. Morgan Embedded Finance APIs.
-            Fully customizable with design and content tokens.
+            Production-ready React components for J.P. Morgan Embedded Finance
+            APIs. Fully customizable with design and content tokens.
           </p>
 
           {/* Code Blocks - Side by Side */}
           <div
             className={`mb-6 grid gap-3 transition-all delay-300 duration-700 sm:grid-cols-2 ${
-              isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+              isVisible
+                ? 'translate-y-0 opacity-100'
+                : 'translate-y-4 opacity-0'
             }`}
           >
             {/* Install Command */}
@@ -151,7 +171,8 @@ export function CompactHomepage3() {
                 Install
               </div>
               <code className="block font-mono text-sm text-jpm-gray-100">
-                <span className="text-jpm-gray-500">$</span> npm install @embedded-components
+                <span className="text-jpm-gray-500">$</span> npm install
+                @embedded-components
               </code>
               <button
                 onClick={() => handleCopy('npm install @embedded-components')}
@@ -183,8 +204,10 @@ export function CompactHomepage3() {
 
           {/* Primary CTA */}
           <div
-            className={`transition-all delay-[400ms] duration-700 ${
-              isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+            className={`delay-[400ms] transition-all duration-700 ${
+              isVisible
+                ? 'translate-y-0 opacity-100'
+                : 'translate-y-4 opacity-0'
             }`}
           >
             <Link to="/demos">
@@ -205,7 +228,9 @@ export function CompactHomepage3() {
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <h2
             className={`mb-6 text-center text-xl font-bold text-jpm-gray-900 transition-all delay-500 duration-700 sm:text-2xl ${
-              isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+              isVisible
+                ? 'translate-y-0 opacity-100'
+                : 'translate-y-4 opacity-0'
             }`}
           >
             What do you want to do?
@@ -217,7 +242,9 @@ export function CompactHomepage3() {
                 key={card.id}
                 to={card.link}
                 className={`group rounded-xl border-2 border-sp-border bg-white p-4 text-center transition-all duration-500 hover:-translate-y-1 hover:border-sp-brand hover:shadow-lg ${
-                  isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+                  isVisible
+                    ? 'translate-y-0 opacity-100'
+                    : 'translate-y-8 opacity-0'
                 }`}
                 style={{ transitionDelay: `${550 + index * 100}ms` }}
               >
@@ -227,9 +254,7 @@ export function CompactHomepage3() {
                 <h3 className="mb-1 text-base font-bold text-jpm-gray-900">
                   {card.title}
                 </h3>
-                <p className="mb-3 text-sm text-jpm-gray">
-                  {card.description}
-                </p>
+                <p className="mb-3 text-sm text-jpm-gray">{card.description}</p>
                 <span className="inline-flex items-center text-sm font-medium text-sp-brand transition-colors group-hover:text-sp-brand-700">
                   {card.cta}
                   <ArrowRight className="ml-1 h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
@@ -245,7 +270,9 @@ export function CompactHomepage3() {
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <h2
             className={`mb-4 text-center text-xl font-bold text-jpm-gray-900 transition-all delay-700 duration-700 sm:text-2xl ${
-              isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+              isVisible
+                ? 'translate-y-0 opacity-100'
+                : 'translate-y-4 opacity-0'
             }`}
           >
             Choose your integration path
@@ -253,8 +280,10 @@ export function CompactHomepage3() {
 
           {/* Tabs */}
           <div
-            className={`mb-4 flex justify-center transition-all delay-[750ms] duration-700 ${
-              isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+            className={`delay-[750ms] mb-4 flex justify-center transition-all duration-700 ${
+              isVisible
+                ? 'translate-y-0 opacity-100'
+                : 'translate-y-4 opacity-0'
             }`}
           >
             <div className="inline-flex rounded-full border border-sp-border bg-white p-1">
@@ -277,8 +306,10 @@ export function CompactHomepage3() {
 
           {/* Tab Content */}
           <div
-            className={`text-center transition-all delay-[800ms] duration-700 ${
-              isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+            className={`delay-[800ms] text-center transition-all duration-700 ${
+              isVisible
+                ? 'translate-y-0 opacity-100'
+                : 'translate-y-4 opacity-0'
             }`}
           >
             <p className="text-jpm-gray">

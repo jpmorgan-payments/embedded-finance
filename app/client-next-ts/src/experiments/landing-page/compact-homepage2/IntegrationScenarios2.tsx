@@ -88,7 +88,7 @@ export function IntegrationScenarios2() {
                 <div className="mt-0.5 flex-shrink-0">
                   <div
                     className={`flex h-9 w-9 items-center justify-center rounded-page-sm bg-sp-accent text-sp-brand transition-transform duration-300 ${
-                      hoveredId === group.id ? 'scale-110 rotate-3' : ''
+                      hoveredId === group.id ? 'rotate-3 scale-110' : ''
                     }`}
                   >
                     {group.icon}

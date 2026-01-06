@@ -16,6 +16,7 @@ import { Route as SellsenseDemoRouteImport } from './routes/sellsense-demo'
 import { Route as PartiallyHostedDemoRouteImport } from './routes/partially-hosted-demo'
 import { Route as MswTestRouteImport } from './routes/msw-test'
 import { Route as GithubRouteImport } from './routes/github'
+import { Route as GhTrafficStatsRouteImport } from './routes/gh-traffic-stats'
 import { Route as DocumentationRouteImport } from './routes/documentation'
 import { Route as DemosRouteImport } from './routes/demos'
 import { Route as ComponentsRouteImport } from './routes/components'
@@ -58,6 +59,11 @@ const GithubRoute = GithubRouteImport.update({
   path: '/github',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GhTrafficStatsRoute = GhTrafficStatsRouteImport.update({
+  id: '/gh-traffic-stats',
+  path: '/gh-traffic-stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DocumentationRoute = DocumentationRouteImport.update({
   id: '/documentation',
   path: '/documentation',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
+  '/gh-traffic-stats': typeof GhTrafficStatsRoute
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
   '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
+  '/gh-traffic-stats': typeof GhTrafficStatsRoute
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
   '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
+  '/gh-traffic-stats': typeof GhTrafficStatsRoute
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
   '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/components'
     | '/demos'
     | '/documentation'
+    | '/gh-traffic-stats'
     | '/github'
     | '/msw-test'
     | '/partially-hosted-demo'
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/components'
     | '/demos'
     | '/documentation'
+    | '/gh-traffic-stats'
     | '/github'
     | '/msw-test'
     | '/partially-hosted-demo'
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '/components'
     | '/demos'
     | '/documentation'
+    | '/gh-traffic-stats'
     | '/github'
     | '/msw-test'
     | '/partially-hosted-demo'
@@ -186,6 +198,7 @@ export interface RootRouteChildren {
   ComponentsRoute: typeof ComponentsRoute
   DemosRoute: typeof DemosRoute
   DocumentationRoute: typeof DocumentationRoute
+  GhTrafficStatsRoute: typeof GhTrafficStatsRoute
   GithubRoute: typeof GithubRoute
   MswTestRoute: typeof MswTestRoute
   PartiallyHostedDemoRoute: typeof PartiallyHostedDemoRoute
@@ -244,6 +257,13 @@ declare module '@tanstack/react-router' {
       path: '/github'
       fullPath: '/github'
       preLoaderRoute: typeof GithubRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gh-traffic-stats': {
+      id: '/gh-traffic-stats'
+      path: '/gh-traffic-stats'
+      fullPath: '/gh-traffic-stats'
+      preLoaderRoute: typeof GhTrafficStatsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/documentation': {
@@ -309,6 +329,7 @@ const rootRouteChildren: RootRouteChildren = {
   ComponentsRoute: ComponentsRoute,
   DemosRoute: DemosRoute,
   DocumentationRoute: DocumentationRoute,
+  GhTrafficStatsRoute: GhTrafficStatsRoute,
   GithubRoute: GithubRoute,
   MswTestRoute: MswTestRoute,
   PartiallyHostedDemoRoute: PartiallyHostedDemoRoute,
