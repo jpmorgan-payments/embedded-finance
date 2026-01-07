@@ -429,13 +429,13 @@ const meta: Meta<MakePaymentStoryArgs> = {
     layout: 'centered',
     msw: {
       handlers: [
-        http.get('*/recipients', () => {
+        http.get('/recipients', () => {
           return HttpResponse.json({ recipients: mockRecipients });
         }),
-        http.get('*/accounts', () => {
+        http.get('/accounts', () => {
           return HttpResponse.json(mockAccounts);
         }),
-        http.get('*/accounts/:accountId/balances', ({ params }) => {
+        http.get('/accounts/:accountId/balances', ({ params }) => {
           const accountId = params.accountId as string;
           const balance =
             mockAccountBalances[accountId as keyof typeof mockAccountBalances];
@@ -448,7 +448,7 @@ const meta: Meta<MakePaymentStoryArgs> = {
           );
         }),
         // Also support versioned paths like /v1/accounts/:accountId/balances
-        http.get('*/v*/accounts/:accountId/balances', ({ params }) => {
+        http.get('/accounts/:accountId/balances', ({ params }) => {
           const accountId = params.accountId as string;
           const balance =
             mockAccountBalances[accountId as keyof typeof mockAccountBalances];
@@ -460,7 +460,7 @@ const meta: Meta<MakePaymentStoryArgs> = {
             { status: 404 }
           );
         }),
-        http.post('*/transactions', () => {
+        http.post('/transactions', () => {
           return HttpResponse.json({
             id: 'txn-12345',
             amount: 100.0,
@@ -545,16 +545,16 @@ export const LimitedDDAAccount: Story = {
     },
     msw: {
       handlers: [
-        http.get('*/recipients', () => {
+        http.get('/recipients', () => {
           return HttpResponse.json({ recipients: mockRecipients });
         }),
-        http.get('*/accounts', () => {
+        http.get('/accounts', () => {
           return HttpResponse.json({
             ...mockAccounts,
             items: [mockAccounts.items[2]], // LIMITED_DDA account only
           });
         }),
-        http.get('*/accounts/:accountId/balances', ({ params }) => {
+        http.get('/accounts/:accountId/balances', ({ params }) => {
           const accountId = params.accountId as string;
           const balance =
             mockAccountBalances[accountId as keyof typeof mockAccountBalances];
@@ -566,7 +566,7 @@ export const LimitedDDAAccount: Story = {
             { status: 404 }
           );
         }),
-        http.post('*/transactions', () => {
+        http.post('/transactions', () => {
           return HttpResponse.json({
             id: 'txn-12345',
             amount: 100.0,
@@ -610,18 +610,18 @@ export const SingleAccountWithSingleLinkedAccount: Story = {
     },
     msw: {
       handlers: [
-        http.get('*/recipients', () => {
+        http.get('/recipients', () => {
           return HttpResponse.json({
             recipients: [mockRecipients[0]], // Only one active linked account
           });
         }),
-        http.get('*/accounts', () => {
+        http.get('/accounts', () => {
           return HttpResponse.json({
             ...mockAccounts,
             items: [mockAccounts.items[2]], // Only LIMITED_DDA account
           });
         }),
-        http.get('*/accounts/:accountId/balances', ({ params }) => {
+        http.get('/accounts/:accountId/balances', ({ params }) => {
           const accountId = params.accountId as string;
           const balance =
             mockAccountBalances[accountId as keyof typeof mockAccountBalances];
@@ -633,7 +633,7 @@ export const SingleAccountWithSingleLinkedAccount: Story = {
             { status: 404 }
           );
         }),
-        http.post('*/transactions', () => {
+        http.post('/transactions', () => {
           return HttpResponse.json({
             id: 'txn-12345',
             amount: 100.0,
@@ -680,13 +680,13 @@ export const WithTransactionError: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get('*/recipients', () => {
+        http.get('/recipients', () => {
           return HttpResponse.json({ recipients: mockRecipients });
         }),
-        http.get('*/accounts', () => {
+        http.get('/accounts', () => {
           return HttpResponse.json(mockAccounts);
         }),
-        http.get('*/accounts/:accountId/balances', ({ params }) => {
+        http.get('/accounts/:accountId/balances', ({ params }) => {
           const accountId = params.accountId as string;
           const balance =
             mockAccountBalances[accountId as keyof typeof mockAccountBalances];
@@ -698,7 +698,7 @@ export const WithTransactionError: Story = {
             { status: 404 }
           );
         }),
-        http.post('*/transactions', () => {
+        http.post('/transactions', () => {
           return HttpResponse.json(
             {
               httpStatus: 400,
@@ -824,14 +824,14 @@ export const ManualRecipientEntry: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get('*/recipients', () => {
+        http.get('/recipients', () => {
           // Still return recipients; user will switch to manual mode
           return HttpResponse.json({ recipients: mockRecipients });
         }),
-        http.get('*/accounts', () => {
+        http.get('/accounts', () => {
           return HttpResponse.json(mockAccounts);
         }),
-        http.get('*/accounts/:accountId/balances', ({ params }) => {
+        http.get('/accounts/:accountId/balances', ({ params }) => {
           const accountId = params.accountId as string;
           const balance =
             mockAccountBalances[accountId as keyof typeof mockAccountBalances];
@@ -843,7 +843,7 @@ export const ManualRecipientEntry: Story = {
             { status: 404 }
           );
         }),
-        http.post('*/transactions', async ({ request }) => {
+        http.post('/transactions', async ({ request }) => {
           // Accept both recipientId or inline recipient details
           const body = (await request.json()) as any;
           return HttpResponse.json({
@@ -904,14 +904,14 @@ export const AccountBalanceError: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get('*/recipients', () => {
+        http.get('/recipients', () => {
           return HttpResponse.json({ recipients: mockRecipients });
         }),
-        http.get('*/accounts', () => {
+        http.get('/accounts', () => {
           return HttpResponse.json(mockAccounts);
         }),
         // Mock failed balance API call - always fails
-        http.get('*/accounts/:accountId/balances', () => {
+        http.get('/accounts/:accountId/balances', () => {
           return HttpResponse.json(
             {
               httpStatus: 500,
@@ -927,7 +927,7 @@ export const AccountBalanceError: Story = {
           );
         }),
         // Also support versioned paths - always fails
-        http.get('*/v*/accounts/:accountId/balances', () => {
+        http.get('/v*/accounts/:accountId/balances', () => {
           return HttpResponse.json(
             {
               httpStatus: 500,
@@ -942,7 +942,7 @@ export const AccountBalanceError: Story = {
             { status: 500 }
           );
         }),
-        http.post('*/transactions', () => {
+        http.post('/transactions', () => {
           return HttpResponse.json({
             id: 'txn-12345',
             amount: 100.0,
@@ -992,11 +992,11 @@ export const AccountsError: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get('*/recipients', () => {
+        http.get('/recipients', () => {
           return HttpResponse.json({ recipients: mockRecipients });
         }),
         // Mock failed accounts API call - succeeds on first retry
-        http.get('*/accounts', () => {
+        http.get('/accounts', () => {
           if (accountsRetryCount.count === 0) {
             // First call fails
             accountsRetryCount.count = 1;
@@ -1019,7 +1019,7 @@ export const AccountsError: Story = {
           return HttpResponse.json(mockAccounts);
         }),
         // Also support versioned paths - succeeds on first retry
-        http.get('*/v*/accounts', () => {
+        http.get('/v*/accounts', () => {
           if (accountsRetryCount.count === 0) {
             accountsRetryCount.count = 1;
             return HttpResponse.json(
@@ -1039,7 +1039,7 @@ export const AccountsError: Story = {
 
           return HttpResponse.json(mockAccounts);
         }),
-        http.get('*/accounts/:accountId/balances', ({ params }) => {
+        http.get('/accounts/:accountId/balances', ({ params }) => {
           const accountId = params.accountId as string;
           const balance =
             mockAccountBalances[accountId as keyof typeof mockAccountBalances];
@@ -1051,7 +1051,7 @@ export const AccountsError: Story = {
             { status: 404 }
           );
         }),
-        http.get('*/v*/accounts/:accountId/balances', ({ params }) => {
+        http.get('/v*/accounts/:accountId/balances', ({ params }) => {
           const accountId = params.accountId as string;
           const balance =
             mockAccountBalances[accountId as keyof typeof mockAccountBalances];
@@ -1063,7 +1063,7 @@ export const AccountsError: Story = {
             { status: 404 }
           );
         }),
-        http.post('*/transactions', () => {
+        http.post('/transactions', () => {
           return HttpResponse.json({
             id: 'txn-12345',
             amount: 100.0,

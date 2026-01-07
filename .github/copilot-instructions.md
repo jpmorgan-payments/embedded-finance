@@ -1,43 +1,111 @@
-# GitHub Copilot Instructions for Embedded Finance Components
+# GitHub Copilot Instructions for Embedded Finance and Solutions Monorepo
 
 ## Repository Overview
 
-This is a monorepo architecture with the following structure:
+This is a monorepo with two main active packages and utility packages:
 
 ```
 /
-├── app/                    # Showcase web application (not active)
-│   ├── client/            # Frontend React application
-│   └── server/            # Backend server
-├── embedded-components/    # Main UI component library (active)
-│   ├── src/               # Source code
-│   ├── .storybook/        # Storybook configuration
-│   ├── dist/              # Built files (not in repo)
-│   └── public/            # Static assets and MSW worker
-└── embedded-finance-sdk/   # TypeScript SDK utilities (not active)
+├── embedded-components/        # ⭐ ACTIVE - UI Component Library
+│   ├── src/                   # Component source code
+│   ├── .storybook/            # Storybook configuration
+│   ├── ARCHITECTURE.md        # Architecture source of truth
+│   └── .cursorrules           # Package-specific config
+│
+├── app/
+│   └── client-next-ts/        # ⭐ ACTIVE - Showcase Web Application
+│       ├── src/               # TanStack Router app
+│       ├── README.md          # Setup and development guide
+│       ├── PRD.md             # Product requirements
+│       └── .cursorrules       # Package-specific config
+│
+├── embedded-finance-sdk/      # Utility - TypeScript SDK (future)
+├── browser-use/               # Utility - Testing agents (Python)
+└── metrics/                   # Utility - Repository metrics
 ```
 
-> **Active Development**: Focus on `embedded-components` package. Other packages are for future development.
+## 📦 Active Packages
 
-## ⚠️ IMPORTANT: Follow ARCHITECTURE.md
+### **1. embedded-components** - UI Component Library
+- **Purpose**: Reusable React components for embedded finance APIs
+- **Tech**: React 18 + TypeScript + Radix UI + Tailwind CSS + React Query
+- **Build**: Vite library mode
+- **Testing**: Vitest + MSW
+- **Docs**: Storybook
+- **Config**: `embedded-components/.cursorrules`
 
-**All code generation MUST follow the patterns defined in `embedded-components/ARCHITECTURE.md`.**
+### **2. app/client-next-ts** - Showcase Application
+- **Purpose**: Demonstrate embedded-components in marketplace scenarios
+- **Tech**: TanStack Router + Vite + MSW + shadcn/ui
+- **Features**: Multiple themes, tone variants, API mocking
+- **Testing**: Vitest + Playwright health checks
+- **Config**: `app/client-next-ts/.cursorrules`
 
-**Before generating any component code, review ARCHITECTURE.md for the complete pattern.**
+## 🎯 Package-Specific vs Shared Rules
+
+### Shared Across All Packages
+- **Architecture patterns**: `embedded-components/ARCHITECTURE.md` (applies to component library only)
+- **Agent Skills**: `.github/copilot/skills/` (cross-package guidance)
+- **Code quality workflow**: Test-fix-verify for all code changes
+- **PowerShell**: Use `;` not `&&` for command chaining
+- **Git conventions**: Lowercase conventional commits
+
+### Package-Specific
+- **embedded-components**: See `embedded-components/.cursorrules` and `ARCHITECTURE.md`
+- **client-next-ts**: See `app/client-next-ts/.cursorrules` and `README.md`
+
+> **Always check package-specific `.cursorrules` for detailed configuration.**
+
+## ⚠️ IMPORTANT: Package-Specific Architecture
+
+### For embedded-components Package ONLY:
+
+**All component code generation MUST follow the patterns defined in `embedded-components/ARCHITECTURE.md`.**
+
+**Before generating component code, review:**
+1. `embedded-components/ARCHITECTURE.md` - Complete architecture patterns
+2. `embedded-components/.cursorrules` - Package configuration
+3. `embedded-components/AGENTS.md` - Package-specific instructions
+
+### For client-next-ts Application:
+
+**Follow TanStack Router and showcase app patterns defined in:**
+1. `app/client-next-ts/README.md` - Setup and routing guide
+2. `app/client-next-ts/PRD.md` - Product requirements and vision
+3. `app/client-next-ts/.cursorrules` - Application configuration
+
+> **Note**: This app **consumes** embedded-components. Component development happens in `embedded-components/`.
 
 ## Technology Stack
 
-When suggesting code, use these technologies:
+### Shared Technologies (Both Packages)
 
 - React 18.x with TypeScript (strict mode)
-- Radix UI primitives for base components
 - Tailwind CSS for styling
+- MSW for API mocking
+- Vitest for unit testing
+
+### embedded-components Specific
+
+- Radix UI primitives for base components
 - Tanstack React Query v5 for data fetching
 - Zod for validation
-- MSW for API mocking
 - Storybook 8.x for component development
+- Vite library mode for building
+- **Tailwind prefix**: `eb-` for all custom classes
+
+### client-next-ts Specific
+
+- TanStack Router for file-based routing
+- shadcn/ui for base UI components
+- Playwright for health checks
+- Vite for dev server and building
+- Multiple theme support (SellSense, PayFicient, etc.)
+- Content tokens for tone variants
 
 ### Component Implementation
+
+> **Note**: These patterns apply to `embedded-components` package. For `client-next-ts` app-specific patterns, see `app/client-next-ts/README.md`.
 
 1. **TypeScript**:
 
@@ -132,8 +200,9 @@ When suggesting code, use these technologies:
 6. **Styling**:
 
    - Use Tailwind CSS classes
-   - Prefix custom Tailwind classes with `eb-` for embedded components
-   - Example:
+   - **embedded-components**: Prefix custom classes with `eb-` (mandatory)
+   - **client-next-ts**: Standard Tailwind classes (no prefix required)
+   - Example (embedded-components):
 
      ```typescript
      // In your component
@@ -373,7 +442,9 @@ test("responds to context changes", async () => {
 
 ## ⚠️ CRITICAL: Code Quality Workflow
 
-**After making ANY code changes, you MUST:**
+**After making ANY code changes in either package, you MUST:**
+
+### For embedded-components:
 
 1. **Run tests**: `cd embedded-components && yarn test`
 
@@ -393,6 +464,12 @@ test("responds to context changes", async () => {
    yarn test
    ```
 
+### For client-next-ts:
+
+1. **Run tests**: `cd app/client-next-ts && npm test`
+2. **Format check**: `npm run format:check` or `npm run format` to auto-fix
+3. **Health checks**: `npm run health-check` to verify app functionality
+
 **Never commit code with:**
 
 - ❌ TypeScript errors
@@ -403,14 +480,23 @@ test("responds to context changes", async () => {
 **Quick Fix Commands:**
 
 ```powershell
+# embedded-components
 cd embedded-components
 yarn format          # Auto-fix formatting
 yarn lint:fix        # Auto-fix linting
 yarn typecheck       # Check types only
 yarn test            # Full test suite
+
+# client-next-ts
+cd app/client-next-ts
+npm run format       # Auto-fix formatting
+npm test             # Run tests
+npm run health-check # Health checks
 ```
 
 ### Storybook Stories
+
+> **Note**: Only for `embedded-components` package. `client-next-ts` uses its own showcase pages.
 
 Generate stories as:
 
@@ -434,6 +520,8 @@ export const Default: Story = {
 ```
 
 ## Provider Requirements
+
+> **Note**: For `embedded-components` only. `client-next-ts` app wraps its routes with the provider.
 
 Always wrap components with EBComponentsProvider:
 
@@ -674,3 +762,55 @@ Always wrap components with EBComponentsProvider:
    ```
 
 Remember to maintain consistency with existing codebase patterns and follow the established project structure.
+
+## Package-Specific Documentation
+
+### embedded-components (Component Library)
+- **Architecture**: `embedded-components/ARCHITECTURE.md` - Complete patterns
+- **Agent Instructions**: `embedded-components/AGENTS.md` - Package-specific guide
+- **Configuration**: `embedded-components/.cursorrules` - Quick reference
+- **Contributing**: `embedded-components/CONTRIBUTING.md` - Contribution guide
+- **Design Tokens**: `embedded-components/DESIGN_TOKENS.md` - Token system
+- **Scripts**: `embedded-components/SCRIPTS_REFERENCE.md` - Build/dev scripts
+
+### client-next-ts (Showcase Application)
+- **Setup Guide**: `app/client-next-ts/README.md` - Complete development guide
+- **Product Vision**: `app/client-next-ts/PRD.md` - Requirements and goals
+- **Configuration**: `app/client-next-ts/.cursorrules` - Quick reference
+- **MSW Setup**: `app/client-next-ts/MSW_SETUP.md` - API mocking guide
+
+## Additional Resources
+
+### Primary Resources
+
+- **Architecture patterns**: `embedded-components/ARCHITECTURE.md` - **Source of truth for architecture**
+- **Agent Skills**: `.github/copilot/skills/` - **Comprehensive, automated guidance**
+
+### Agent Skills (VS Code Copilot)
+
+The `.github/copilot/skills/` directory contains discoverable skills that GitHub Copilot automatically uses:
+
+**Tier 1 - Critical Core:**
+- `embedded-banking-architecture/` - Component structure and organization
+- `component-testing/` - Testing with MSW and React Query
+- `code-quality-workflow/` - Mandatory test-fix-verify workflow
+- `styling-guidelines/` - Tailwind CSS with `eb-` prefix
+- `react-patterns/` - React 18 hooks and patterns
+
+**Tier 2 - Important:**
+- `i18n-l10n/` - Internationalization and localization
+- `windows-powershell/` - PowerShell commands (NEVER use `&&`)
+- `test-and-fix-workflow/` - Automated testing workflow
+
+See `.github/copilot/skills/README.md` for complete documentation.
+
+### How Skills Work
+
+Skills are automatically discovered and activated by GitHub Copilot based on your task:
+- Creating components → `embedded-banking-architecture` skill
+- Writing tests → `component-testing` skill
+- Fixing errors → `code-quality-workflow` skill
+- Applying styles → `styling-guidelines` skill
+
+No manual activation needed!
+

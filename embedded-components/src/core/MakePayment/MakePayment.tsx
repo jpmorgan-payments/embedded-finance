@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { FormProvider } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { v4 as uuidv4 } from 'uuid';
 
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import { useCreateRecipient } from '@/api/generated/ep-recipients';
@@ -40,6 +41,16 @@ import {
 } from './hooks';
 import { MAKE_PAYMENT_USER_JOURNEYS } from './MakePayment.constants';
 import type { PaymentComponentProps } from './types';
+
+// Utility to generate a unique transaction reference ID
+function generateTransactionReferenceId(): string {
+  const prefix = 'PHUI_';
+  const uuid = uuidv4().replace(/-/g, ''); // Remove dashes to fit within the character limit
+  const maxLength = 35;
+  const randomPart = uuid.substring(0, maxLength - prefix.length);
+
+  return prefix + randomPart;
+}
 
 export const MakePayment: React.FC<PaymentComponentProps> = ({
   triggerButton,
@@ -163,9 +174,9 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
       amount: Number(values.amount),
       currency: 'USD',
       debtorAccountId: fromAccount.id,
-      transactionReferenceId: `PAY-${Date.now()}`,
+      transactionReferenceId: generateTransactionReferenceId(),
       type: values.method,
-      memo: values.memo || '',
+      ...(values.memo?.trim() && { memo: values.memo.trim() }),
     } as any;
 
     if (values.recipientMode === 'manual') {
