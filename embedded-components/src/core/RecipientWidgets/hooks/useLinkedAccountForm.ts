@@ -8,7 +8,7 @@ import { ApiError, Recipient } from '@/api/generated/ep-recipients.schemas';
 import {
   BankAccountFormData,
   transformBankAccountFormToRecipientPayload,
-} from '@/components/BankAccountForm';
+} from '../components/BankAccountForm';
 
 import { SupportedRecipientType } from '../types';
 import { invalidateLinkedAccountQueries } from '../utils';

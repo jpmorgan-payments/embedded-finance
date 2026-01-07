@@ -9,7 +9,7 @@ import {
   useRecipientEditConfig,
   type BankAccountFormConfig,
   type BankAccountFormData,
-} from '@/components/BankAccountForm';
+} from '@/core/RecipientWidgets/components/BankAccountForm';
 
 import type { RecipientFormProps } from './RecipientForm.types';
 

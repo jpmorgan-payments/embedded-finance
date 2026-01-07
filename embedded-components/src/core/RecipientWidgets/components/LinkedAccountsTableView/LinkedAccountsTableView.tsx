@@ -61,7 +61,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { RecipientDetailsDialog } from '@/components/RecipientDetailsDialog/RecipientDetailsDialog';
+import { RecipientDetailsDialog } from '../RecipientDetailsDialog/RecipientDetailsDialog';
 import { MakePayment } from '@/core/MakePayment';
 
 import { MicrodepositsFormDialogTrigger } from '../../forms/MicrodepositsForm/MicrodepositsForm';

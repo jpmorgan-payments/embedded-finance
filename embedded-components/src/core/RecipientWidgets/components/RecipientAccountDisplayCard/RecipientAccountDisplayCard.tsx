@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui';
-import { StatusBadge } from '@/core/RecipientWidgets/components/StatusBadge/StatusBadge';
+import { StatusBadge } from '../StatusBadge/StatusBadge';
 
 export interface RecipientAccountDisplayCardProps {
   /** The recipient/account data to display */

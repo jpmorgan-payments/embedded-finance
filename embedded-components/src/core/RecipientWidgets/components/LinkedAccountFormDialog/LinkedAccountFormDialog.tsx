@@ -14,18 +14,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
+import { useClientId } from '@/core/EBComponentsProvider/EBComponentsProvider';
+
+import { useLinkedAccountForm, type LinkedAccountFormMode } from '../../hooks';
+import { RecipientI18nNamespace, SupportedRecipientType } from '../../types';
 import {
   BankAccountForm,
   useLinkedAccountConfig,
   useLinkedAccountEditConfig,
   type BankAccountFormData,
-} from '@/components/BankAccountForm';
-import { RecipientAccountDisplayCard } from '@/components/RecipientAccountDisplayCard/RecipientAccountDisplayCard';
-import { ServerErrorAlert } from '@/components/ServerErrorAlert';
-import { useClientId } from '@/core/EBComponentsProvider/EBComponentsProvider';
-
-import { useLinkedAccountForm, type LinkedAccountFormMode } from '../../hooks';
-import { SupportedRecipientType } from '../../types';
+} from '../BankAccountForm';
+import { RecipientAccountDisplayCard } from '../RecipientAccountDisplayCard/RecipientAccountDisplayCard';
 
 /**
  * Props for LinkedAccountFormDialog component
@@ -59,7 +59,7 @@ export interface LinkedAccountFormDialogProps {
    * i18n namespace to use for translations
    * @default 'linked-accounts'
    */
-  i18nNamespace?: string;
+  i18nNamespace?: RecipientI18nNamespace;
 }
 
 /**
