@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/accordion';
 import { useRumData } from '@/hooks/use-rum-data';
 
+import { AnalyticalInsights } from './AnalyticalInsights';
 import { ChartTypeSelector } from './ChartTypeSelector';
 import { CloneChart } from './CloneChart';
 import { DataSources } from './DataSources';
@@ -151,6 +152,9 @@ export function GhTrafficStatsDashboard() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Analytical Insights */}
+          <AnalyticalInsights data={data} dateRange={dateRange} mode={mode} />
 
           {/* Summary Cards */}
           <SummaryCards data={data} dateRange={dateRange} mode={mode} />
