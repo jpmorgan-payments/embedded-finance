@@ -35,7 +35,7 @@ export const usePaymentData = (
   });
 
   const {
-    data: accounts,
+    data: accountsData,
     status: accountsStatus,
     refetch: refetchAccounts,
   } = useGetAccounts(undefined, {
@@ -43,6 +43,22 @@ export const usePaymentData = (
       enabled: interceptorReady,
     },
   });
+
+  // Filter accounts to only show DDA and LIMITED_DDA
+  const accounts = useMemo(() => {
+    if (!accountsData?.items) return accountsData;
+
+    const filteredItems = accountsData.items.filter(
+      (account) =>
+        account.category === 'LIMITED_DDA_PAYMENTS' ||
+        account.category === 'LIMITED_DDA'
+    );
+
+    return {
+      ...accountsData,
+      items: filteredItems,
+    };
+  }, [accountsData]);
 
   const recipients = recipientsData?.recipients || [];
 
