@@ -35,7 +35,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { StatusBadge } from '@/core/LinkedAccountWidget/components/StatusBadge/StatusBadge';
+import { StatusBadge } from '@/core/RecipientWidgets/components/StatusBadge/StatusBadge';
 
 export interface RecipientDetailsDialogProps {
   /** The recipient/account data to display */

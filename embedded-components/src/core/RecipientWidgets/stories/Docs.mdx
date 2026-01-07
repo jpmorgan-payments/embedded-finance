@@ -1,0 +1,642 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+import * as LinkedAccountWidgetStories from './LinkedAccountWidget.story';
+
+<Meta title="Core/LinkedAccountWidget" of={LinkedAccountWidgetStories} />
+
+# LinkedAccountWidget
+
+The **LinkedAccountWidget** enables users to link and manage external bank accounts within your application. It provides a complete solution for account linking via ACH, including microdeposit verification workflows.
+
+> **Architecture Note:** This component is a thin wrapper around `BaseRecipientsWidget` configured with `recipientType="LINKED_ACCOUNT"`. For payment recipients without microdeposit verification, see [RecipientsWidget](?path=/docs/core-recipientswidget--docs).
+
+## Overview
+
+<table>
+  <thead>
+    <tr>
+      <th>Feature</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        🏦 <strong>Account Management</strong>
+      </td>
+      <td>
+        View, add, edit, and remove linked bank accounts with intuitive UI
+        controls
+      </td>
+    </tr>
+    <tr>
+      <td>
+        ✅ <strong>Microdeposit Verification</strong>
+      </td>
+      <td>
+        Built-in workflow to verify accounts through microdeposit confirmation
+      </td>
+    </tr>
+    <tr>
+      <td>
+        📱 <strong>Responsive Design</strong>
+      </td>
+      <td>
+        Adapts seamlessly from desktop to mobile with grid and compact layouts
+      </td>
+    </tr>
+    <tr>
+      <td>
+        💸 <strong>Payment Integration</strong>
+      </td>
+      <td>Render custom payment actions for each account card</td>
+    </tr>
+    <tr>
+      <td>
+        📊 <strong>User Event Tracking</strong>
+      </td>
+      <td>Integrate with RUM/analytics systems (Dynatrace, Datadog, etc.)</td>
+    </tr>
+  </tbody>
+</table>
+
+## Quick Start
+
+```tsx
+import {
+  EBComponentsProvider,
+  LinkedAccountWidget,
+} from '@embedded-components';
+
+function App() {
+  return (
+    <EBComponentsProvider
+      apiBaseUrl="https://api.example.com/v1"
+      headers={{ Authorization: 'Bearer token' }}
+    >
+      <LinkedAccountWidget
+        onAccountLinked={(recipient, error) => {
+          if (error) {
+            console.error('Link failed:', error);
+          } else {
+            console.log('Account linked:', recipient);
+          }
+        }}
+      />
+    </EBComponentsProvider>
+  );
+}
+```
+
+> 👉 **See the "Default" story in the sidebar for a live interactive demo.**
+
+---
+
+## Props Reference
+
+### Display & Layout
+
+<table>
+  <thead>
+    <tr>
+      <th>Prop</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>mode</code>
+      </td>
+      <td>
+        <code>'list' | 'single'</code>
+      </td>
+      <td>
+        <code>'list'</code>
+      </td>
+      <td>
+        <strong>list</strong>: Show all linked accounts in a grid.{' '}
+        <strong>single</strong>: Show only one account; hides "Link New Account"
+        when active account exists
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>variant</code>
+      </td>
+      <td>
+        <code>'cards' | 'compact-cards' | 'table'</code>
+      </td>
+      <td>
+        <code>'cards'</code>
+      </td>
+      <td>
+        Visual display style for accounts
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>hideCreateButton</code>
+      </td>
+      <td>
+        <code>boolean</code>
+      </td>
+      <td>
+        <code>false</code>
+      </td>
+      <td>Hide the "Link New Account" button for read-only views</td>
+    </tr>
+    <tr>
+      <td>
+        <code>className</code>
+      </td>
+      <td>
+        <code>string</code>
+      </td>
+      <td>—</td>
+      <td>Additional CSS classes for the root Card element</td>
+    </tr>
+  </tbody>
+</table>
+
+### Scrolling & Pagination
+
+<table>
+  <thead>
+    <tr>
+      <th>Prop</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>scrollable</code>
+      </td>
+      <td>
+        <code>boolean</code>
+      </td>
+      <td>
+        <code>false</code>
+      </td>
+      <td>
+        Enable scrollable container with virtual list for performance. Infinite
+        scroll loads more accounts automatically
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>maxHeight</code>
+      </td>
+      <td>
+        <code>number | string</code>
+      </td>
+      <td>
+        <code>'400px'</code>
+      </td>
+      <td>
+        Maximum height when <code>scrollable</code> is true. Accepts px, vh, or
+        percentage
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>paginationStyle</code>
+      </td>
+      <td>
+        <code>'loadMore' | 'pages'</code>
+      </td>
+      <td>
+        <code>'loadMore'</code>
+      </td>
+      <td>
+        Pagination style: incremental loading or traditional numbered pages
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>pageSize</code>
+      </td>
+      <td>
+        <code>number</code>
+      </td>
+      <td>
+        <code>10</code>
+      </td>
+      <td>Number of accounts to fetch per API request</td>
+    </tr>
+  </tbody>
+</table>
+
+### Callbacks
+
+<table>
+  <thead>
+    <tr>
+      <th>Prop</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>onAccountLinked</code>
+      </td>
+      <td>
+        <code>(recipient?, error?) =&gt; void</code>
+      </td>
+      <td>
+        Called when account linking completes (success or failure). Use for
+        analytics, navigation, or notifications
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>onVerificationComplete</code>
+      </td>
+      <td>
+        <code>(response, recipient?) =&gt; void</code>
+      </td>
+      <td>
+        Called when microdeposit verification completes. Check{' '}
+        <code>response.status</code> for <code>'VERIFIED'</code>,{' '}
+        <code>'FAILED'</code>, or <code>'FAILED_MAX_ATTEMPTS_EXCEEDED'</code>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### Custom Actions
+
+<table>
+  <thead>
+    <tr>
+      <th>Prop</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>renderPaymentAction</code>
+      </td>
+      <td>
+        <code>(recipient) =&gt; ReactNode</code>
+      </td>
+      <td>
+        Render a custom action button (e.g., "Pay", "Transfer") for each account
+        card
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**Example: Custom payment action**
+
+```tsx
+<LinkedAccountWidget
+  renderPaymentAction={(recipient) => (
+    <Button onClick={() => openPaymentModal(recipient.id)}>Send Money</Button>
+  )}
+/>
+```
+
+### User Event Tracking
+
+<table>
+  <thead>
+    <tr>
+      <th>Prop</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>userEventsHandler</code>
+      </td>
+      <td>
+        <code>(context) =&gt; void</code>
+      </td>
+      <td>
+        Handler called for each user interaction event. Use for RUM/analytics integration
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>userEventsLifecycle</code>
+      </td>
+      <td>
+        <code>{'{ onEnter, onLeave }'}</code>
+      </td>
+      <td>
+        Lifecycle hooks for action tracking (e.g., Dynatrace enterAction/leaveAction)
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**Example: Analytics integration**
+
+```tsx
+<LinkedAccountWidget
+  userEventsHandler={(context) => {
+    analytics.track(context.actionName, {
+      eventType: context.eventType,
+      timestamp: context.timestamp,
+      metadata: context.metadata,
+    });
+  }}
+  userEventsLifecycle={{
+    onEnter: (context) => dtrum.enterAction(context.actionName),
+    onLeave: (context) => dtrum.leaveAction(context.actionId),
+  }}
+/>
+```
+
+> 👉 **See the "User Journey Tracking" stories** for more examples including Dynatrace and Datadog integration.
+
+---
+
+## Account Status Lifecycle
+
+Linked accounts progress through a series of statuses from creation to activation:
+
+```
+PENDING → MICRODEPOSITS_INITIATED → READY_FOR_VALIDATION → ACTIVE
+```
+
+<table>
+  <thead>
+    <tr>
+      <th>Status</th>
+      <th>Description</th>
+      <th>User Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <strong>PENDING</strong>
+      </td>
+      <td>Initial processing</td>
+      <td>Wait for verification</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>MICRODEPOSITS_INITIATED</strong>
+      </td>
+      <td>Two small deposits sent to bank</td>
+      <td>Wait 3-5 business days</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>READY_FOR_VALIDATION</strong>
+      </td>
+      <td>Deposits arrived</td>
+      <td>Enter deposit amounts</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>ACTIVE</strong>
+      </td>
+      <td>Verified and ready</td>
+      <td>Can send/receive payments</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>REJECTED</strong>
+      </td>
+      <td>Verification failed</td>
+      <td>Re-link account</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>INACTIVE</strong>
+      </td>
+      <td>Deactivated or expired</td>
+      <td>Contact support</td>
+    </tr>
+  </tbody>
+</table>
+
+> **💡 Instant Verification**: Some accounts may verify instantly and skip directly to `ACTIVE` status without microdeposits.
+
+---
+
+## Layout Modes
+
+### List Mode (Default)
+
+Shows all linked accounts in a responsive grid. Users can add unlimited accounts.
+
+```tsx
+<LinkedAccountWidget mode="list" />
+```
+
+### Single Account Mode
+
+Optimized for flows requiring only one linked account (e.g., beneficiary selection). Automatically hides the "Link New Account" button when an active account exists.
+
+```tsx
+<LinkedAccountWidget mode="single" />
+```
+
+### Compact Mode
+
+Dense, row-based layout for space-constrained UIs like sidebars or mobile views.
+
+```tsx
+<LinkedAccountWidget compact />
+```
+
+### Scrollable Mode
+
+Virtual scrolling with infinite load for handling large account lists efficiently.
+
+```tsx
+<LinkedAccountWidget scrollable maxHeight="400px" />
+```
+
+---
+
+## Integration Examples
+
+### With Payment Flow
+
+```tsx
+<LinkedAccountWidget
+  mode="single"
+  renderPaymentAction={(recipient) => (
+    <MakePayment
+      fromAccountId={recipient.id}
+      onPaymentComplete={handlePaymentComplete}
+    />
+  )}
+  onAccountLinked={(recipient) => {
+    if (recipient?.status === 'ACTIVE') {
+      setSelectedAccount(recipient);
+    }
+  }}
+/>
+```
+
+### With Analytics/Tracking
+
+```tsx
+<LinkedAccountWidget
+  userEventsHandler={(event) => {
+    analytics.track(event.eventName, {
+      journey: event.userJourney,
+      action: event.userAction,
+      timestamp: new Date().toISOString(),
+    });
+  }}
+  onAccountLinked={(recipient, error) => {
+    if (error) {
+      analytics.track('link_account_error', { error: error.message });
+    } else {
+      analytics.track('link_account_success', { id: recipient?.id });
+    }
+  }}
+/>
+```
+
+### Read-Only Display
+
+```tsx
+<LinkedAccountWidget hideCreateButton renderPaymentAction={() => null} />
+```
+
+---
+
+## Exploring Stories
+
+Use the Storybook sidebar to explore different configurations:
+
+<table>
+  <thead>
+    <tr>
+      <th>Story Group</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <strong>Default, SingleAccountMode, EmptyState</strong>
+      </td>
+      <td>Basic layout configurations</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>CompactLayout, TableView</strong>
+      </td>
+      <td>Alternative visual styles</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>ScrollableList</strong>
+      </td>
+      <td>Virtual scrolling for large lists</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Account Statuses</strong>
+      </td>
+      <td>All account lifecycle states</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Interactive Workflows</strong>
+      </td>
+      <td>Step-by-step demonstrations</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>User Journey Tracking</strong>
+      </td>
+      <td>Analytics integration examples (Dynatrace, Datadog, etc.)</td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
+## Related Components
+
+- **[RecipientsWidget](?path=/docs/core-recipientswidget--docs)** - For payment recipients without microdeposit verification
+
+---
+
+## Deprecated Props
+
+The following props are deprecated and will be removed in the next major version:
+
+<table>
+  <thead>
+    <tr>
+      <th>Deprecated</th>
+      <th>Use Instead</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>variant</code>
+      </td>
+      <td>
+        <code>mode</code>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>showCreateButton</code>
+      </td>
+      <td>
+        <code>hideCreateButton</code> (inverted)
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>scrollHeight</code>
+      </td>
+      <td>
+        <code>scrollable</code> + <code>maxHeight</code>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>makePaymentComponent</code>
+      </td>
+      <td>
+        <code>renderPaymentAction</code>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>onLinkedAccountSettled</code>
+      </td>
+      <td>
+        <code>onAccountLinked</code>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>onMicrodepositVerifySettled</code>
+      </td>
+      <td>
+        <code>onVerificationComplete</code>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+> **⚠️ Migration Note**: If you're using `showCreateButton={false}`, change it to `hideCreateButton={true}` (the logic is inverted).
