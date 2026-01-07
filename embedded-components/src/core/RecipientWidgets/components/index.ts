@@ -2,7 +2,10 @@ export { BaseRecipientsWidget } from './BaseRecipientsWidget/BaseRecipientsWidge
 export type { BaseRecipientsWidgetProps } from './BaseRecipientsWidget/BaseRecipientsWidget';
 
 export { BankAccountForm } from './BankAccountForm';
-export type { BankAccountFormData, BankAccountFormConfig } from './BankAccountForm';
+export type {
+  BankAccountFormData,
+  BankAccountFormConfig,
+} from './BankAccountForm';
 export { transformBankAccountFormToRecipientPayload } from './BankAccountForm';
 export {
   useLinkedAccountConfig,

@@ -4,7 +4,10 @@ import { RecipientType } from '@/api/generated/ep-recipients.schemas';
  * Supported recipient types for the accounts widget
  * SETTLEMENT_ACCOUNT is excluded as it has a different use case
  */
-export type SupportedRecipientType = Exclude<RecipientType, 'SETTLEMENT_ACCOUNT'>;
+export type SupportedRecipientType = Exclude<
+  RecipientType,
+  'SETTLEMENT_ACCOUNT'
+>;
 
 /**
  * i18n namespace type for type-safe translations

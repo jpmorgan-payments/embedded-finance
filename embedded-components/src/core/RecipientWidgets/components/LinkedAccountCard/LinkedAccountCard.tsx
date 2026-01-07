@@ -34,14 +34,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { RecipientAccountDisplayCard } from '../RecipientAccountDisplayCard/RecipientAccountDisplayCard';
-import { RecipientDetailsDialog } from '../RecipientDetailsDialog/RecipientDetailsDialog';
 import { MakePayment } from '@/core/MakePayment';
 
 import { MicrodepositsFormDialogTrigger } from '../../forms/MicrodepositsForm/MicrodepositsForm';
 import { LINKED_ACCOUNT_USER_JOURNEYS } from '../../RecipientWidgets.constants';
 import { RecipientI18nNamespace, SupportedRecipientType } from '../../types';
 import { LinkedAccountFormDialog } from '../LinkedAccountFormDialog/LinkedAccountFormDialog';
+import { RecipientAccountDisplayCard } from '../RecipientAccountDisplayCard/RecipientAccountDisplayCard';
+import { RecipientDetailsDialog } from '../RecipientDetailsDialog/RecipientDetailsDialog';
 import { RemoveAccountDialogTrigger } from '../RemoveAccountDialog/RemoveAccountDialog';
 import { StatusAlert } from '../StatusAlert/StatusAlert';
 

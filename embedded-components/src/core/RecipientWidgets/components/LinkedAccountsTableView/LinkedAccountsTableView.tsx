@@ -61,7 +61,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { RecipientDetailsDialog } from '../RecipientDetailsDialog/RecipientDetailsDialog';
 import { MakePayment } from '@/core/MakePayment';
 
 import { MicrodepositsFormDialogTrigger } from '../../forms/MicrodepositsForm/MicrodepositsForm';
@@ -69,6 +68,7 @@ import { useLinkedAccountsTable } from '../../hooks/useLinkedAccountsTable';
 import { LINKED_ACCOUNT_USER_JOURNEYS } from '../../RecipientWidgets.constants';
 import { SupportedRecipientType } from '../../types';
 import { LinkedAccountFormDialog } from '../LinkedAccountFormDialog/LinkedAccountFormDialog';
+import { RecipientDetailsDialog } from '../RecipientDetailsDialog/RecipientDetailsDialog';
 import { RemoveAccountDialogTrigger } from '../RemoveAccountDialog/RemoveAccountDialog';
 import { getLinkedAccountsColumns } from './LinkedAccountsTableView.columns';
 

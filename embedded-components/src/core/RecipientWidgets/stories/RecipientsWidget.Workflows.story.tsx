@@ -304,14 +304,12 @@ export const ViewRecipientDetails: Story = {
       // Wait for menu to open and find View details option
       await waitFor(
         () => {
-          const viewDetailsItem = document.querySelector(
-            '[role="menuitem"]'
-          );
+          const viewDetailsItem = document.querySelector('[role="menuitem"]');
           if (!viewDetailsItem) throw new Error('Menu not open yet');
         },
         { timeout: 3000 }
       );
-      
+
       // Find and click the View details menu item
       const menuItems = Array.from(
         document.querySelectorAll('[role="menuitem"]')
@@ -433,7 +431,9 @@ export const RemoveRecipientWorkflow: Story = {
       // Wait for confirmation dialog to appear
       await waitFor(
         () => {
-          const dialog = document.querySelector('[role="alertdialog"], [role="dialog"]');
+          const dialog = document.querySelector(
+            '[role="alertdialog"], [role="dialog"]'
+          );
           if (!dialog) throw new Error('Confirmation dialog not found');
         },
         { timeout: 3000 }
@@ -441,7 +441,9 @@ export const RemoveRecipientWorkflow: Story = {
 
       // Find and click the confirm button in the dialog
       const confirmButton = Array.from(
-        document.querySelectorAll('[role="alertdialog"] button, [role="dialog"] button')
+        document.querySelectorAll(
+          '[role="alertdialog"] button, [role="dialog"] button'
+        )
       ).find((btn) => btn.textContent?.match(/confirm|remove|yes|delete/i));
       if (confirmButton) {
         await userEvent.click(confirmButton);

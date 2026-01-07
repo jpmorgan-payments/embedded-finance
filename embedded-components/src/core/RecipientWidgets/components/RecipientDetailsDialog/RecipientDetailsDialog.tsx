@@ -35,6 +35,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
+
 import { StatusBadge } from '../StatusBadge/StatusBadge';
 
 export interface RecipientDetailsDialogProps {
