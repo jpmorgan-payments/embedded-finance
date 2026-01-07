@@ -158,7 +158,9 @@ export function CompactHomepage2() {
                     className="flex items-center gap-1.5 text-sm text-jpm-gray-700"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    <span className="font-bold text-sp-brand">{stat.value}</span>
+                    <span className="font-bold text-sp-brand">
+                      {stat.value}
+                    </span>
                     <span>{stat.label}</span>
                   </div>
                 ))}
@@ -176,7 +178,7 @@ export function CompactHomepage2() {
 
               {/* Quick Start Code Snippet */}
               <div
-                className={`mb-5 transition-all delay-[350ms] duration-700 ${
+                className={`delay-[350ms] mb-5 transition-all duration-700 ${
                   isVisible
                     ? 'translate-y-0 opacity-100'
                     : 'translate-y-4 opacity-0'
@@ -202,7 +204,7 @@ export function CompactHomepage2() {
               </div>
 
               <div
-                className={`flex flex-col gap-3 transition-all delay-[400ms] duration-700 sm:flex-row ${
+                className={`delay-[400ms] flex flex-col gap-3 transition-all duration-700 sm:flex-row ${
                   isVisible
                     ? 'translate-y-0 opacity-100'
                     : 'translate-y-4 opacity-0'
@@ -276,7 +278,7 @@ export function CompactHomepage2() {
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex-shrink-0 text-sp-brand transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+                      <div className="flex-shrink-0 text-sp-brand transition-all duration-300 group-hover:rotate-3 group-hover:scale-110">
                         {card.icon}
                       </div>
                       <div className="flex items-center gap-2">
