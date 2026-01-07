@@ -18,6 +18,7 @@ import {
   getSupportedPaymentMethods,
   needsAdditionalRouting,
 } from '@/lib/recipientHelpers';
+import { cn } from '@/lib/utils';
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -128,25 +129,24 @@ export const RecipientAccountDisplayCard: React.FC<
 
   return (
     <Card
-      className={`eb-overflow-hidden eb-transition-all ${
-        compact
-          ? `eb-rounded-none eb-border-x-0 eb-border-t-0 eb-shadow-none eb-transition-colors ${
-              needsAttention
-                ? 'eb-border-l-4 eb-border-l-amber-500 eb-bg-amber-50/30 hover:eb-bg-amber-50/60'
-                : isPending
-                  ? 'eb-border-l-4 eb-border-l-slate-400 eb-bg-slate-50/40 hover:eb-bg-slate-50/60'
-                  : hasError
-                    ? 'eb-border-l-4 eb-border-l-red-500 eb-bg-red-50/20 hover:eb-bg-red-50/40'
-                    : isInactive
-                      ? 'eb-bg-muted/30 hover:eb-bg-muted/50'
-                      : 'hover:eb-bg-accent/50'
-            }`
-          : hasError
-            ? 'eb-border-red-200 eb-bg-red-50/30 hover:eb-shadow-lg hover:eb-shadow-red-100'
-            : 'hover:eb-shadow-md'
-      } ${className}`}
+      className={cn(
+        'eb-overflow-hidden eb-transition-all',
+        compact && 'eb-rounded-none eb-border-x-0 eb-border-t-0 eb-shadow-none eb-transition-colors',
+        compact && {
+          'eb-border-l-4 eb-border-l-amber-500 eb-bg-amber-50/30 hover:eb-bg-amber-50/60': needsAttention,
+          'eb-border-l-4 eb-border-l-slate-400 eb-bg-slate-50/40 hover:eb-bg-slate-50/60': isPending,
+          'eb-border-l-4 eb-border-l-red-500 eb-bg-red-50/20 hover:eb-bg-red-50/40': hasError,
+          'eb-bg-muted/30 hover:eb-bg-muted/50': isInactive,
+          'hover:eb-bg-accent/50': !needsAttention && !isPending && !hasError && !isInactive,
+        },
+        !compact && {
+          'eb-border-red-200 eb-bg-red-50/30 hover:eb-shadow-lg hover:eb-shadow-red-100': hasError,
+          'hover:eb-shadow-md': !hasError,
+        },
+        className
+      )}
       role="article"
-      aria-label={`Account: ${displayName}${needsAttention ? ' - Action required' : isPending ? ' - Pending verification' : hasError ? ' - Error' : ''}`}
+      aria-label={`Account: ${displayName}${needsAttention ? ' - Action required' : ''}${isPending ? ' - Pending verification' : ''}${hasError ? ' - Error' : ''}`}
     >
       <CardContent
         className={compact ? 'eb-p-0' : 'eb-flex eb-flex-col eb-p-0'}
@@ -166,24 +166,32 @@ export const RecipientAccountDisplayCard: React.FC<
             <div className="eb-flex eb-min-w-0 eb-items-center eb-gap-3 @sm:eb-col-span-2">
               {/* Icon with status indicator */}
               <div
-                className={`eb-relative eb-flex eb-h-10 eb-w-10 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-transition-colors ${
-                  needsAttention
-                    ? 'eb-bg-amber-200/80 group-hover:eb-bg-amber-200'
-                    : isPending
-                      ? 'eb-bg-slate-200/80 group-hover:eb-bg-slate-200'
-                      : hasError
-                        ? 'eb-bg-red-100 group-hover:eb-bg-red-200'
-                        : 'eb-bg-primary/10 group-hover:eb-bg-primary/15'
-                }`}
+                className={cn(
+                  'eb-relative eb-flex eb-h-10 eb-w-10 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-transition-colors',
+                  {
+                    'eb-bg-amber-200/80 group-hover:eb-bg-amber-200': needsAttention,
+                    'eb-bg-slate-200/80 group-hover:eb-bg-slate-200': isPending,
+                    'eb-bg-red-100 group-hover:eb-bg-red-200': hasError,
+                    'eb-bg-primary/10 group-hover:eb-bg-primary/15': !needsAttention && !isPending && !hasError,
+                  }
+                )}
               >
                 {accountType === 'Individual' ? (
                   <UserIcon
-                    className={`eb-h-5 eb-w-5 ${needsAttention || hasError ? 'eb-text-amber-700' : isPending ? 'eb-text-slate-500' : 'eb-text-primary'}`}
+                    className={cn('eb-h-5 eb-w-5', {
+                      'eb-text-amber-700': needsAttention || hasError,
+                      'eb-text-slate-500': isPending,
+                      'eb-text-primary': !needsAttention && !hasError && !isPending,
+                    })}
                     aria-hidden="true"
                   />
                 ) : (
                   <BuildingIcon
-                    className={`eb-h-5 eb-w-5 ${needsAttention || hasError ? 'eb-text-amber-700' : isPending ? 'eb-text-slate-500' : 'eb-text-primary'}`}
+                    className={cn('eb-h-5 eb-w-5', {
+                      'eb-text-amber-700': needsAttention || hasError,
+                      'eb-text-slate-500': isPending,
+                      'eb-text-primary': !needsAttention && !hasError && !isPending,
+                    })}
                     aria-hidden="true"
                   />
                 )}
@@ -389,11 +397,10 @@ export const RecipientAccountDisplayCard: React.FC<
                                         return (
                                           <tr
                                             key={method}
-                                            className={
-                                              index < paymentMethods.length - 1
-                                                ? 'eb-border-b eb-border-muted/30'
-                                                : ''
-                                            }
+                                            className={cn(
+                                              index < paymentMethods.length - 1 &&
+                                                'eb-border-b eb-border-muted/30'
+                                            )}
                                           >
                                             <td className="eb-px-2.5 eb-py-1">
                                               <span className="eb-text-[10px] eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
@@ -502,9 +509,10 @@ export const RecipientAccountDisplayCard: React.FC<
             <div className="eb-flex eb-items-start eb-justify-between eb-gap-3">
               <div className="eb-min-w-0 eb-flex-1 eb-space-y-1.5">
                 <h3
-                  className={`eb-break-words eb-font-semibold eb-leading-tight ${
+                  className={cn(
+                    'eb-break-words eb-font-semibold eb-leading-tight',
                     compact ? 'eb-text-sm' : 'eb-text-base'
-                  }`}
+                  )}
                   id={`account-name-${recipient.id}`}
                 >
                   {displayName}
