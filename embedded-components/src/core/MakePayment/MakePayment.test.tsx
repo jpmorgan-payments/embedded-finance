@@ -4,10 +4,10 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { userEvent } from '@test-utils';
 
+import { ListAccountsResponse } from '@/api/generated/ep-accounts.schemas';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
 import { MakePayment } from './MakePayment';
-import { ListAccountsResponse } from '@/api/generated/ep-accounts.schemas';
 
 // Setup QueryClient for tests
 const queryClient = new QueryClient({
@@ -73,8 +73,8 @@ const mockAccounts: ListAccountsResponse = {
             value: '112233445',
           },
         ],
-      },  
-    }
+      },
+    },
   ],
   metadata: {
     page: 0,
@@ -249,8 +249,12 @@ describe('MakePayment (Refactored)', () => {
 
     // Check if accounts are loaded
     await waitFor(() => {
-      expect(screen.getAllByText('Checking Account (LIMITED_DDA_PAYMENTS)')).toHaveLength(2); // Option and span
-      expect(screen.getAllByText('Savings Account (LIMITED_DDA)')).toHaveLength(2); // Option and span
+      expect(
+        screen.getAllByText('Checking Account (LIMITED_DDA_PAYMENTS)')
+      ).toHaveLength(2); // Option and span
+      expect(screen.getAllByText('Savings Account (LIMITED_DDA)')).toHaveLength(
+        2
+      ); // Option and span
     });
   });
 
@@ -273,7 +277,9 @@ describe('MakePayment (Refactored)', () => {
     await userEvent.click(accountSelector);
 
     await waitFor(() => {
-      expect(screen.getAllByText('Checking Account (LIMITED_DDA_PAYMENTS)')).toHaveLength(2); // Option and span
+      expect(
+        screen.getAllByText('Checking Account (LIMITED_DDA_PAYMENTS)')
+      ).toHaveLength(2); // Option and span
     });
 
     // Select the account by clicking on the option element directly
@@ -376,11 +382,15 @@ describe('MakePayment (Refactored)', () => {
     }
     await waitFor(() => {
       expect(
-        screen.getByRole('option', { name: 'Checking Account (LIMITED_DDA_PAYMENTS)' })
+        screen.getByRole('option', {
+          name: 'Checking Account (LIMITED_DDA_PAYMENTS)',
+        })
       ).toBeInTheDocument();
     });
     await userEvent.click(
-      screen.getByRole('option', { name: 'Checking Account (LIMITED_DDA_PAYMENTS)' })
+      screen.getByRole('option', {
+        name: 'Checking Account (LIMITED_DDA_PAYMENTS)',
+      })
     );
 
     // Enter amount
@@ -452,11 +462,15 @@ describe('MakePayment (Refactored)', () => {
     }
     await waitFor(() => {
       expect(
-        screen.getByRole('option', { name: 'Checking Account (LIMITED_DDA_PAYMENTS)' })
+        screen.getByRole('option', {
+          name: 'Checking Account (LIMITED_DDA_PAYMENTS)',
+        })
       ).toBeInTheDocument();
     });
     await userEvent.click(
-      screen.getByRole('option', { name: 'Checking Account (LIMITED_DDA_PAYMENTS)' })
+      screen.getByRole('option', {
+        name: 'Checking Account (LIMITED_DDA_PAYMENTS)',
+      })
     );
 
     const amountInput = screen.getByPlaceholderText('0.00');
