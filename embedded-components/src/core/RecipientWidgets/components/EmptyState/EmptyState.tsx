@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 
+import { RecipientI18nNamespace } from '../../types';
+
 export interface EmptyStateProps {
   /** Optional custom message */
   message?: string;
@@ -19,7 +21,7 @@ export interface EmptyStateProps {
    * i18n namespace to use for translations
    * @default 'linked-accounts'
    */
-  i18nNamespace?: string;
+  i18nNamespace?: RecipientI18nNamespace;
 }
 
 /**
