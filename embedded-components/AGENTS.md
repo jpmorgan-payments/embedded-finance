@@ -93,7 +93,7 @@ export type { ComponentNameProps } from './ComponentName.types';
 - Tanstack React Query v5 for data fetching
 - Zod for validation schemas
 - MSW for API mocking in tests and development
-- Storybook 8.x for component development
+- Storybook 10.x for component development
 
 ## Component Implementation
 
