@@ -7,6 +7,7 @@ import { userEvent } from '@test-utils';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
 import { MakePayment } from './MakePayment';
+import { ListAccountsResponse } from '@/api/generated/ep-accounts.schemas';
 
 // Setup QueryClient for tests
 const queryClient = new QueryClient({
@@ -18,22 +19,62 @@ const queryClient = new QueryClient({
 });
 
 // Mock data
-const mockAccounts = {
+const mockAccounts: ListAccountsResponse = {
   items: [
     {
       id: 'account-1',
       label: 'Checking Account',
-      category: 'DDA',
+      category: 'LIMITED_DDA_PAYMENTS',
       createdAt: '2024-01-01T00:00:00Z',
-      state: 'ACTIVE',
+      state: 'OPEN',
+      clientId: 'client-123',
+      paymentRoutingInformation: {
+        accountNumber: '1234567890',
+        country: 'US',
+        routingInformation: [
+          {
+            type: 'ABA',
+            value: '123456789',
+          },
+        ],
+      },
     },
     {
       id: 'account-2',
       label: 'Savings Account',
-      category: 'SAV',
+      category: 'LIMITED_DDA',
       createdAt: '2024-01-01T00:00:00Z',
-      state: 'ACTIVE',
+      state: 'OPEN',
+      clientId: 'client-123',
+      paymentRoutingInformation: {
+        accountNumber: '0987654321',
+        country: 'US',
+        routingInformation: [
+          {
+            type: 'ABA',
+            value: '987654321',
+          },
+        ],
+      },
     },
+    {
+      id: 'account-3',
+      label: 'Savings Account',
+      category: 'PROCESSING',
+      createdAt: '2024-01-01T00:00:00Z',
+      state: 'OPEN',
+      clientId: 'client-123',
+      paymentRoutingInformation: {
+        accountNumber: '1122334455',
+        country: 'US',
+        routingInformation: [
+          {
+            type: 'ABA',
+            value: '112233445',
+          },
+        ],
+      },  
+    }
   ],
   metadata: {
     page: 0,
@@ -208,8 +249,8 @@ describe('MakePayment (Refactored)', () => {
 
     // Check if accounts are loaded
     await waitFor(() => {
-      expect(screen.getAllByText('Checking Account (DDA)')).toHaveLength(2); // Option and span
-      expect(screen.getAllByText('Savings Account (SAV)')).toHaveLength(2); // Option and span
+      expect(screen.getAllByText('Checking Account (LIMITED_DDA_PAYMENTS)')).toHaveLength(2); // Option and span
+      expect(screen.getAllByText('Savings Account (LIMITED_DDA)')).toHaveLength(2); // Option and span
     });
   });
 
@@ -232,12 +273,12 @@ describe('MakePayment (Refactored)', () => {
     await userEvent.click(accountSelector);
 
     await waitFor(() => {
-      expect(screen.getAllByText('Checking Account (DDA)')).toHaveLength(2); // Option and span
+      expect(screen.getAllByText('Checking Account (LIMITED_DDA_PAYMENTS)')).toHaveLength(2); // Option and span
     });
 
     // Select the account by clicking on the option element directly
     const accountOption = screen.getByRole('option', {
-      name: 'Checking Account (DDA)',
+      name: 'Checking Account (LIMITED_DDA_PAYMENTS)',
     });
     await userEvent.click(accountOption);
 
@@ -335,11 +376,11 @@ describe('MakePayment (Refactored)', () => {
     }
     await waitFor(() => {
       expect(
-        screen.getByRole('option', { name: 'Checking Account (DDA)' })
+        screen.getByRole('option', { name: 'Checking Account (LIMITED_DDA_PAYMENTS)' })
       ).toBeInTheDocument();
     });
     await userEvent.click(
-      screen.getByRole('option', { name: 'Checking Account (DDA)' })
+      screen.getByRole('option', { name: 'Checking Account (LIMITED_DDA_PAYMENTS)' })
     );
 
     // Enter amount
@@ -411,11 +452,11 @@ describe('MakePayment (Refactored)', () => {
     }
     await waitFor(() => {
       expect(
-        screen.getByRole('option', { name: 'Checking Account (DDA)' })
+        screen.getByRole('option', { name: 'Checking Account (LIMITED_DDA_PAYMENTS)' })
       ).toBeInTheDocument();
     });
     await userEvent.click(
-      screen.getByRole('option', { name: 'Checking Account (DDA)' })
+      screen.getByRole('option', { name: 'Checking Account (LIMITED_DDA_PAYMENTS)' })
     );
 
     const amountInput = screen.getByPlaceholderText('0.00');
