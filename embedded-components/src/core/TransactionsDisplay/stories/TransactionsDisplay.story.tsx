@@ -5,8 +5,8 @@ import {
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
-import type { BaseStoryArgs } from '../../../.storybook/preview';
-import { TransactionsDisplay } from './TransactionsDisplay';
+import type { BaseStoryArgs } from '../../../../.storybook/preview';
+import { TransactionsDisplay } from '../TransactionsDisplay';
 
 // Helper to get transaction by ID for details endpoint
 const getTransactionById = (id: string) => {
@@ -148,10 +148,10 @@ export const WithAccountIdsProp: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get('*/transactions', () =>
+        http.get('/transactions', () =>
           HttpResponse.json(mockTransactionsResponse)
         ),
-        http.get('*/transactions/:id', ({ params }) => {
+        http.get('/transactions/:id', ({ params }) => {
           const { id } = params;
           const transaction = getTransactionById(id as string);
           if (transaction) {
@@ -176,13 +176,13 @@ export const AutoFetchWithLimitedDDA: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get('*/accounts', () =>
+        http.get('/accounts', () =>
           HttpResponse.json(mockLimitedDDAAccountResponse)
         ),
-        http.get('*/transactions', () =>
+        http.get('/transactions', () =>
           HttpResponse.json(mockTransactionsResponse)
         ),
-        http.get('*/transactions/:id', ({ params }) => {
+        http.get('/transactions/:id', ({ params }) => {
           const { id } = params;
           const transaction = getTransactionById(id as string);
           if (transaction) {
@@ -209,13 +209,13 @@ export const AutoFetchWithLimitedDDAPayments: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get('*/accounts', () =>
+        http.get('/accounts', () =>
           HttpResponse.json(mockLimitedDDAPaymentsAccountResponse)
         ),
-        http.get('*/transactions', () =>
+        http.get('/transactions', () =>
           HttpResponse.json(mockTransactionsResponse)
         ),
-        http.get('*/transactions/:id', ({ params }) => {
+        http.get('/transactions/:id', ({ params }) => {
           const { id } = params;
           const transaction = getTransactionById(id as string);
           if (transaction) {
@@ -242,11 +242,11 @@ export const AutoFetchWithBothCategories: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get('*/accounts', () => HttpResponse.json(mockAccountsResponse)),
-        http.get('*/transactions', () =>
+        http.get('/accounts', () => HttpResponse.json(mockAccountsResponse)),
+        http.get('/transactions', () =>
           HttpResponse.json(mockTransactionsResponse)
         ),
-        http.get('*/transactions/:id', ({ params }) => {
+        http.get('/transactions/:id', ({ params }) => {
           const { id } = params;
           const transaction = getTransactionById(id as string);
           if (transaction) {
@@ -273,13 +273,13 @@ export const AutoFetchNoAccounts: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get('*/accounts', () =>
+        http.get('/accounts', () =>
           HttpResponse.json(mockEmptyAccountsResponse)
         ),
-        http.get('*/transactions', () =>
+        http.get('/transactions', () =>
           HttpResponse.json(mockTransactionsResponse)
         ),
-        http.get('*/transactions/:id', ({ params }) => {
+        http.get('/transactions/:id', ({ params }) => {
           const { id } = params;
           const transaction = getTransactionById(id as string);
           if (transaction) {
@@ -307,7 +307,7 @@ export const Loading: Story = {
   },
   parameters: {
     msw: {
-      handlers: [http.get('*/transactions', () => new Promise(() => {}))],
+      handlers: [http.get('/transactions', () => new Promise(() => {}))],
     },
   },
 };
@@ -360,7 +360,7 @@ export const MultiplePages: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get('*/transactions', () => {
+        http.get('/transactions', () => {
           const manyTransactions = generateManyTransactions(75); // 75 transactions = 3 pages at 25 per page
           return HttpResponse.json({
             items: manyTransactions,
@@ -371,7 +371,7 @@ export const MultiplePages: Story = {
             },
           });
         }),
-        http.get('*/transactions/:id', ({ params }) => {
+        http.get('/transactions/:id', ({ params }) => {
           const { id } = params;
           const manyTransactions = generateManyTransactions(75);
           const transaction = manyTransactions.find((t) => t.id === id);
@@ -411,10 +411,10 @@ export const SellSenseTheme: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get('*/transactions', () =>
+        http.get('/transactions', () =>
           HttpResponse.json(mockTransactionsResponse)
         ),
-        http.get('*/transactions/:id', ({ params }) => {
+        http.get('/transactions/:id', ({ params }) => {
           const { id } = params;
           const transaction = getTransactionById(id as string);
           if (transaction) {
