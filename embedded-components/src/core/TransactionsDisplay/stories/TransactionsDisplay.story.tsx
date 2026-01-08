@@ -110,7 +110,7 @@ const TransactionsDisplayStory = ({
   accountIds?: string[];
 }) => {
   return (
-    <div className="eb-mx-auto eb-max-w-4xl eb-p-6">
+    <div className="eb-pt-6">
       <TransactionsDisplay accountIds={accountIds} />
     </div>
   );

@@ -75,7 +75,9 @@ export function DataTableViewOptions<TData>({
           .getAllColumns()
           .filter(
             (column) =>
-              typeof column.accessorFn !== 'undefined' && column.getCanHide()
+              column.getCanHide() &&
+              (column.accessorFn !== undefined ||
+                (column.columnDef as any).accessorKey !== undefined)
           )
           .map((column) => {
             return (
