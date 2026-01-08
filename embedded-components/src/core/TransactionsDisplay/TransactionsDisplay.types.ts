@@ -21,6 +21,11 @@ export interface TransactionsDisplayProps extends UserTrackingProps {
    * Optional description text to display below the title in the header
    */
   description?: string;
+
+  /**
+   * Additional CSS class name(s) for the root Card element.
+   */
+  className?: string;
 }
 
 /**

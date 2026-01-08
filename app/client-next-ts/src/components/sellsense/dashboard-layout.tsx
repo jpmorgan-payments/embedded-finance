@@ -575,8 +575,8 @@ export function DashboardLayout() {
                   }}
                 >
                   <LinkedAccountWidget
-                    variant="default"
-                    showCreateButton={true}
+                    mode="list"
+                    hideCreateButton={false}
                   />
                 </EBComponentsProvider>
               </div>

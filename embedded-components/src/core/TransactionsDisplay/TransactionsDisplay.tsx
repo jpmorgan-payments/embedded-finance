@@ -12,6 +12,7 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { useLocale } from '@/lib/hooks';
+import { cn } from '@/lib/utils';
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,7 +35,13 @@ export const TransactionsDisplay = forwardRef<
   TransactionsDisplayProps
 >(
   (
-    { accountIds, description, userEventsHandler, userEventsLifecycle },
+    {
+      accountIds,
+      description,
+      userEventsHandler,
+      userEventsLifecycle,
+      className,
+    },
     ref
   ) => {
     const { t } = useTranslation(['transactions']);
@@ -129,7 +136,10 @@ export const TransactionsDisplay = forwardRef<
       <div className="eb-w-full eb-@container">
         <Card
           id="transactions-display-container"
-          className="eb-component eb-mx-auto eb-w-full eb-max-w-5xl eb-overflow-hidden"
+          className={cn(
+            'eb-component eb-w-full eb-overflow-hidden eb-mx-0 eb-max-w-none',
+            className
+          )}
         >
           <CardHeader className="eb-border-b eb-bg-muted/30 eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
             <div className="eb-min-w-0 eb-flex-1">

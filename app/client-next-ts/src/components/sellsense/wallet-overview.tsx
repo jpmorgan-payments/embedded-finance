@@ -6,7 +6,7 @@ import {
   EBComponentsProvider,
   LinkedAccountWidget,
   MakePayment,
-  Recipients,
+  RecipientsWidget,
   TransactionsDisplay,
 } from '@jpmorgan-payments/embedded-finance-components';
 import type {
@@ -124,10 +124,16 @@ export function WalletOverview({
   };
 
   // Handle linked account settlement - trigger component refetch
-  const handleLinkedAccountSettled = () => {
+  const handleLinkedAccountSettled = (
+    recipient?: unknown,
+    error?: unknown
+  ) => {
     // Add a small delay to ensure the linked account is processed
     setTimeout(() => {
-      console.log('Linked account settled - triggering component refetch');
+      console.log('Linked account settled - triggering component refetch', {
+        recipient,
+        error,
+      });
       DatabaseResetUtils.emulateTabSwitch();
     }, 1000);
   };
@@ -191,14 +197,15 @@ export function WalletOverview({
       ],
       component: (
         <LinkedAccountWidget
-          onLinkedAccountSettled={handleLinkedAccountSettled}
-          makePaymentComponent={
+          onAccountLinked={handleLinkedAccountSettled}
+          renderPaymentAction={(_recipient) => (
             <MakePayment
               onTransactionSettled={handleTransactionSettled}
               triggerButtonVariant="secondary"
             />
-          }
-          variant="singleAccount"
+          )}
+          mode="single"
+          viewMode="table"
         />
       ),
       contentTokens: {
@@ -224,7 +231,11 @@ export function WalletOverview({
         'Display transaction details and status',
         'Real-time transaction updates',
       ],
-      component: <TransactionsDisplay accountIds={['0030000131']} />,
+      component: (
+        <TransactionsDisplay
+          accountIds={['0030000131']}
+        />
+      ),
     },
     [AVAILABLE_COMPONENTS.RECIPIENTS]: {
       title: 'Recipients',
@@ -239,14 +250,9 @@ export function WalletOverview({
         'Delete recipients when needed',
       ],
       component: (
-        <Recipients
-          isWidget
-          makePaymentComponent={
-            <MakePayment
-              onTransactionSettled={handleTransactionSettled}
-              triggerButtonVariant="secondary"
-            />
-          }
+        <RecipientsWidget
+          onRecipientAdded={handleLinkedAccountSettled}
+          viewMode="table"
         />
       ),
       contentTokens: {
