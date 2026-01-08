@@ -1,27 +1,150 @@
 {
   "title": "Recipients",
+  "description": "Manage your payment recipients",
+  "link": "Add",
+  "linkNewAccount": "Add Recipient",
+  "showMoreWithCount": "Show {{count}} more recipient",
+  "showMoreWithCount_other": "Show {{count}} more recipients",
+  "loadingMore": "Loading...",
+  "emptyState": {
+    "title": "No recipients yet",
+    "description": "Add a recipient to start making payments to external accounts.",
+    "noRecipients": "No recipients found"
+  },
+  "errors": {
+    "loading": {
+      "title": "Error loading recipients",
+      "default": "An unexpected error occurred while loading your recipients. Please try again.",
+      "400": "Your platform does not have permission to access recipients. Please contact support."
+    }
+  },
+  "status": {
+    "labels": {
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive",
+      "PENDING": "Processing",
+      "READY_FOR_VALIDATION": "Action Required",
+      "REJECTED": "Rejected"
+    },
+    "messages": {
+      "ACTIVE": "This recipient is verified and ready for transactions.",
+      "INACTIVE": "This recipient has been deactivated and cannot be used for transactions.",
+      "PENDING": "Your recipient information is being processed. You'll be notified once complete.",
+      "READY_FOR_VALIDATION": "This recipient requires validation. Please review the account details.",
+      "REJECTED": "There was an issue with this recipient. Please check the account details or contact support."
+    },
+    "paymentDisabledTooltip": {
+      "unavailable": "Payment unavailable",
+      "ACTIVE": "Payment unavailable",
+      "INACTIVE": "Recipient is inactive. Please activate to make payments",
+      "REJECTED": "Recipient verification was rejected. Please contact support",
+      "PENDING": "Recipient is being processed. Please wait to make payments"
+    },
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "rejected": "Rejected",
+    "microdepositsInitiated": "Microdeposits Initiated",
+    "readyForValidation": "Ready For Validation"
+  },
+  "actions": {
+    "verifyAccount": "Verify",
+    "makePayment": "Pay",
+    "addWireRtp": "Add Wire/RTP",
+    "addWire": "Add WIRE",
+    "addRtp": "Add RTP",
+    "manage": "Manage",
+    "viewDetails": "View Details",
+    "edit": "Edit Payment Methods",
+    "editDisabledTooltip": "Payment methods can only be edited for active recipients",
+    "remove": "Remove Recipient",
+    "moreActions": "More actions for {{name}}",
+    "expand": "Expand to show all recipients",
+    "collapse": "Collapse to show fewer recipients",
+    "showAll": "Show all ({{count}})",
+    "showLess": "Show less",
+    "addRecipient": "Add Recipient",
+    "createNewRecipient": "Create New Recipient",
+    "editRecipient": "Edit Recipient",
+    "deactivateRecipient": "Deactivate Recipient",
+    "deactivating": "Deactivating...",
+    "viewRecipientDetails": "View recipient details",
+    "editRecipientTitle": "Edit recipient",
+    "deactivateRecipientTitle": "Deactivate recipient"
+  },
+  "forms": {
+    "linkAccount": {
+      "title": "Add Recipient",
+      "titleSuccessByStatus": {
+        "ACTIVE": "Recipient Added Successfully",
+        "PENDING": "Recipient Creation In Progress",
+        "REJECTED": "Recipient Creation Failed",
+        "INACTIVE": "Recipient Deactivated"
+      },
+      "description": "Enter the recipient's bank account details.",
+      "descriptionSuccess": "Your recipient has been added and is ready to use.",
+      "error": {
+        "title": "Unable to add recipient"
+      },
+      "certify": {
+        "label": "I authorize verification of bank account information",
+        "validation": {
+          "required": "You must authorize verification to continue"
+        }
+      }
+    },
+    "editAccount": {
+      "title": "Edit Recipient",
+      "titleSuccessByStatus": {
+        "ACTIVE": "Recipient Updated Successfully",
+        "PENDING": "Recipient Update Processing",
+        "REJECTED": "Recipient Update Failed",
+        "INACTIVE": "Recipient Deactivated"
+      },
+      "description": "Update the recipient's bank account information and payment methods.",
+      "descriptionSuccess": "Your recipient has been updated successfully.",
+      "error": {
+        "title": "Unable to update recipient"
+      }
+    },
+    "removeAccount": {
+      "title": "Remove Recipient",
+      "titleSuccess": "Recipient Removed",
+      "description": "Are you sure you want to remove <strong>{{name}}</strong> from your recipients?",
+      "descriptionSuccess": "<strong>{{name}}</strong> has been successfully removed from your recipients.",
+      "cancel": "Cancel",
+      "confirm": "Remove Recipient",
+      "removing": "Removing...",
+      "close": "Close",
+      "error": {
+        "title": "Unable to remove recipient"
+      }
+    }
+  },
+  "accountDetails": {
+    "title": "Recipient Details",
+    "accountName": "Recipient Name",
+    "accountType": "Account Type",
+    "status": "Status",
+    "accountNumber": "Account Number",
+    "paymentMethods": "Payment Methods",
+    "bankName": "Bank Name",
+    "showAccountNumber": "Show full account number",
+    "hideAccountNumber": "Hide account number",
+    "noRoutingNumber": "Not configured",
+    "recipientType": {
+      "individualLinkedAccount": "Individual Linked Account",
+      "businessLinkedAccount": "Business Linked Account",
+      "individualRecipient": "Individual Recipient",
+      "businessRecipient": "Business Recipient"
+    }
+  },
   "loading": {
     "recipients": "Loading recipients..."
   },
   "error": {
     "loadFailed": "Failed to load recipients. Please try again.",
     "retry": "Retry"
-  },
-  "emptyState": {
-    "noRecipients": "No recipients found"
-  },
-  "actions": {
-    "addRecipient": "Add Recipient",
-    "createNewRecipient": "Create New Recipient",
-    "editRecipient": "Edit Recipient",
-    "deactivateRecipient": "Deactivate Recipient",
-    "deactivating": "Deactivating...",
-    "viewDetails": "View details",
-    "edit": "Edit",
-    "deactivate": "Deactivate",
-    "viewRecipientDetails": "View recipient details",
-    "editRecipientTitle": "Edit recipient",
-    "deactivateRecipientTitle": "Deactivate recipient"
   },
   "filters": {
     "searchPlaceholder": "Search recipients...",
@@ -119,14 +242,5 @@
     "unknownRecipient": "this recipient",
     "cancel": "Cancel",
     "confirm": "Deactivate"
-  },
-  "status": {
-    "active": "Active",
-    "inactive": "Inactive",
-    "pending": "Pending",
-    "rejected": "Rejected",
-    "microdepositsInitiated": "Microdeposits Initiated",
-    "readyForValidation": "Ready For Validation"
   }
 }
-

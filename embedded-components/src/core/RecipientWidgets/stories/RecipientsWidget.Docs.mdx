@@ -1,0 +1,526 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+import * as RecipientsWidgetStories from './RecipientsWidget.story';
+
+<Meta title="Core/RecipientsWidget" of={RecipientsWidgetStories} />
+
+# RecipientsWidget
+
+The **RecipientsWidget** enables users to manage payment recipients within your application. Unlike `LinkedAccountWidget`, it provides a simpler flow without microdeposit verification, ideal for managing payees and beneficiaries.
+
+## Overview
+
+<table>
+  <thead>
+    <tr>
+      <th>Feature</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        👤 <strong>Recipient Management</strong>
+      </td>
+      <td>
+        View, add, edit, and remove payment recipients with intuitive UI
+        controls
+      </td>
+    </tr>
+    <tr>
+      <td>
+        📱 <strong>Responsive Design</strong>
+      </td>
+      <td>
+        Adapts seamlessly from desktop to mobile with grid and compact layouts
+      </td>
+    </tr>
+    <tr>
+      <td>
+        💸 <strong>Payment Integration</strong>
+      </td>
+      <td>Render custom payment actions for each recipient card</td>
+    </tr>
+    <tr>
+      <td>
+        📊 <strong>User Event Tracking</strong>
+      </td>
+      <td>Integrate with RUM/analytics systems (Dynatrace, Datadog, etc.)</td>
+    </tr>
+  </tbody>
+</table>
+
+## Quick Start
+
+```tsx
+import {
+  EBComponentsProvider,
+  RecipientsWidget,
+} from '@embedded-components';
+
+function App() {
+  return (
+    <EBComponentsProvider
+      apiBaseUrl="https://api.example.com/v1"
+      headers={{ Authorization: 'Bearer token' }}
+    >
+      <RecipientsWidget
+        onRecipientAdded={(recipient, error) => {
+          if (error) {
+            console.error('Add failed:', error);
+          } else {
+            console.log('Recipient added:', recipient);
+          }
+        }}
+      />
+    </EBComponentsProvider>
+  );
+}
+```
+
+> 👉 **See the "Default" story in the sidebar for a live interactive demo.**
+
+---
+
+## Props Reference
+
+### Display & Layout
+
+<table>
+  <thead>
+    <tr>
+      <th>Prop</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>mode</code>
+      </td>
+      <td>
+        <code>'list' | 'single'</code>
+      </td>
+      <td>
+        <code>'list'</code>
+      </td>
+      <td>
+        <strong>list</strong>: Show all recipients in a grid.{' '}
+        <strong>single</strong>: Show only one recipient; hides "Add New Recipient"
+        when active recipient exists
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>variant</code>
+      </td>
+      <td>
+        <code>'cards' | 'compact-cards' | 'table'</code>
+      </td>
+      <td>
+        <code>'cards'</code>
+      </td>
+      <td>
+        Visual display style for recipients
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>hideCreateButton</code>
+      </td>
+      <td>
+        <code>boolean</code>
+      </td>
+      <td>
+        <code>false</code>
+      </td>
+      <td>Hide the "Add New Recipient" button for read-only views</td>
+    </tr>
+    <tr>
+      <td>
+        <code>className</code>
+      </td>
+      <td>
+        <code>string</code>
+      </td>
+      <td>—</td>
+      <td>Additional CSS classes for the root Card element</td>
+    </tr>
+  </tbody>
+</table>
+
+### Scrolling & Pagination
+
+<table>
+  <thead>
+    <tr>
+      <th>Prop</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>scrollable</code>
+      </td>
+      <td>
+        <code>boolean</code>
+      </td>
+      <td>
+        <code>false</code>
+      </td>
+      <td>
+        Enable scrollable container with virtual list for performance. Infinite
+        scroll loads more recipients automatically
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>maxHeight</code>
+      </td>
+      <td>
+        <code>number | string</code>
+      </td>
+      <td>
+        <code>'400px'</code>
+      </td>
+      <td>
+        Maximum height when <code>scrollable</code> is true. Accepts px, vh, or
+        percentage
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>paginationStyle</code>
+      </td>
+      <td>
+        <code>'loadMore' | 'pages'</code>
+      </td>
+      <td>
+        <code>'loadMore'</code>
+      </td>
+      <td>
+        Pagination style: incremental loading or traditional pages
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>pageSize</code>
+      </td>
+      <td>
+        <code>number</code>
+      </td>
+      <td>
+        <code>10</code>
+      </td>
+      <td>Number of recipients to fetch per API request</td>
+    </tr>
+  </tbody>
+</table>
+
+### Callbacks
+
+<table>
+  <thead>
+    <tr>
+      <th>Prop</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>onRecipientAdded</code>
+      </td>
+      <td>
+        <code>(recipient?, error?) =&gt; void</code>
+      </td>
+      <td>
+        Called when recipient is added (success or failure). Use for
+        analytics, navigation, or notifications
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### Custom Actions
+
+<table>
+  <thead>
+    <tr>
+      <th>Prop</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>renderPaymentAction</code>
+      </td>
+      <td>
+        <code>(recipient) =&gt; ReactNode</code>
+      </td>
+      <td>
+        Render a custom action button (e.g., "Pay", "Transfer") for each recipient
+        card
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+**Example: Custom payment action**
+
+```tsx
+<RecipientsWidget
+  renderPaymentAction={(recipient) => (
+    <Button onClick={() => openPaymentModal(recipient.id)}>Send Money</Button>
+  )}
+/>
+```
+
+---
+
+## Recipient Status Lifecycle
+
+Recipients have a simpler status flow without microdeposit verification:
+
+```
+PENDING → ACTIVE
+```
+
+<table>
+  <thead>
+    <tr>
+      <th>Status</th>
+      <th>Description</th>
+      <th>User Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <strong>PENDING</strong>
+      </td>
+      <td>Initial processing</td>
+      <td>Wait for processing</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>ACTIVE</strong>
+      </td>
+      <td>Ready for transactions</td>
+      <td>Can send payments</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>REJECTED</strong>
+      </td>
+      <td>Creation failed</td>
+      <td>Re-add recipient</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>INACTIVE</strong>
+      </td>
+      <td>Deactivated</td>
+      <td>Contact support</td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
+## Layout Modes
+
+### List Mode (Default)
+
+Shows all recipients in a responsive grid. Users can add unlimited recipients.
+
+```tsx
+<RecipientsWidget mode="list" />
+```
+
+### Single Recipient Mode
+
+Optimized for flows requiring only one recipient (e.g., beneficiary selection). Automatically hides the "Add New Recipient" button when an active recipient exists.
+
+```tsx
+<RecipientsWidget mode="single" />
+```
+
+### Compact Mode
+
+Dense, row-based layout for space-constrained UIs like sidebars or mobile views.
+
+```tsx
+<RecipientsWidget variant="compact-cards" />
+```
+
+### Scrollable Mode
+
+Virtual scrolling with infinite load for handling large recipient lists efficiently.
+
+```tsx
+<RecipientsWidget scrollable maxHeight="400px" />
+```
+
+### Table Mode
+
+Tabular display for data-dense views.
+
+```tsx
+<RecipientsWidget variant="table" />
+```
+
+---
+
+## Integration Examples
+
+### With Payment Flow
+
+```tsx
+<RecipientsWidget
+  mode="single"
+  renderPaymentAction={(recipient) => (
+    <MakePayment
+      toRecipientId={recipient.id}
+      onPaymentComplete={handlePaymentComplete}
+    />
+  )}
+  onRecipientAdded={(recipient) => {
+    if (recipient?.status === 'ACTIVE') {
+      setSelectedRecipient(recipient);
+    }
+  }}
+/>
+```
+
+### With Analytics/Tracking
+
+```tsx
+<RecipientsWidget
+  userEventsHandler={(event) => {
+    analytics.track(event.actionName, {
+      eventType: event.eventType,
+      timestamp: new Date().toISOString(),
+      metadata: event.metadata,
+    });
+  }}
+  onRecipientAdded={(recipient, error) => {
+    if (error) {
+      analytics.track('add_recipient_error', { error: error.message });
+    } else {
+      analytics.track('add_recipient_success', { id: recipient?.id });
+    }
+  }}
+/>
+```
+
+### Read-Only Display
+
+```tsx
+<RecipientsWidget hideCreateButton renderPaymentAction={() => null} />
+```
+
+---
+
+## Exploring Stories
+
+Use the Storybook sidebar to explore different configurations:
+
+<table>
+  <thead>
+    <tr>
+      <th>Story Group</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <strong>Default, SingleRecipientMode, EmptyState</strong>
+      </td>
+      <td>Basic layout configurations</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>CompactLayout, TableView</strong>
+      </td>
+      <td>Alternative visual styles</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>ScrollableList</strong>
+      </td>
+      <td>Virtual scrolling for large lists</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Account Statuses</strong>
+      </td>
+      <td>All recipient lifecycle states</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Interactive Workflows</strong>
+      </td>
+      <td>Step-by-step demonstrations</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>User Journey Tracking</strong>
+      </td>
+      <td>Analytics integration examples</td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
+## Comparison with LinkedAccountWidget
+
+<table>
+  <thead>
+    <tr>
+      <th>Feature</th>
+      <th>LinkedAccountWidget</th>
+      <th>RecipientsWidget</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Recipient Type</td>
+      <td><code>LINKED_ACCOUNT</code></td>
+      <td><code>RECIPIENT</code></td>
+    </tr>
+    <tr>
+      <td>i18n Namespace</td>
+      <td><code>linked-accounts</code></td>
+      <td><code>recipients</code></td>
+    </tr>
+    <tr>
+      <td>Microdeposit Verification</td>
+      <td>✅ Supported</td>
+      <td>❌ Not supported</td>
+    </tr>
+    <tr>
+      <td>Callback Prop</td>
+      <td><code>onAccountLinked</code></td>
+      <td><code>onRecipientAdded</code></td>
+    </tr>
+    <tr>
+      <td>Verification Callback</td>
+      <td><code>onVerificationComplete</code></td>
+      <td>N/A</td>
+    </tr>
+  </tbody>
+</table>
+
+> **💡 Use LinkedAccountWidget** when you need to verify bank account ownership through microdeposits.
+> **💡 Use RecipientsWidget** when you just need to manage payment recipients without verification.
