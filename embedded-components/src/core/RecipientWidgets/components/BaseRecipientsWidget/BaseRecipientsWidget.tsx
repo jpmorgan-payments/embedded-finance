@@ -383,9 +383,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
       <Card
         className={cn(
           'eb-component eb-w-full eb-overflow-hidden',
-          viewMode === 'table'
-            ? 'eb-mx-0'
-            : 'eb-mx-auto eb-max-w-5xl',
+          viewMode === 'table' ? 'eb-mx-0' : 'eb-mx-auto eb-max-w-5xl',
           className
         )}
       >

@@ -83,15 +83,13 @@ describe('TransactionsTable', () => {
         />
       );
 
-      expect(screen.getByText('Created')).toBeInTheDocument();
+      // Default visible columns (createdAt, debtorName, creditorName are hidden by default)
       expect(screen.getByText('Posted')).toBeInTheDocument();
-      expect(screen.getByText('Status')).toBeInTheDocument();
-      expect(screen.getByText('From')).toBeInTheDocument();
-      expect(screen.getByText('To')).toBeInTheDocument();
       expect(screen.getByText('Status')).toBeInTheDocument();
       expect(screen.getByText('Type')).toBeInTheDocument();
       expect(screen.getByText('Amount')).toBeInTheDocument();
       expect(screen.getByText('Currency')).toBeInTheDocument();
+      expect(screen.getByText('Counterpart')).toBeInTheDocument();
     });
 
     test('renders transaction data', () => {

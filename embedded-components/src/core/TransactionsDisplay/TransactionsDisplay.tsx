@@ -137,7 +137,7 @@ export const TransactionsDisplay = forwardRef<
         <Card
           id="transactions-display-container"
           className={cn(
-            'eb-component eb-w-full eb-overflow-hidden eb-mx-0 eb-max-w-none',
+            'eb-component eb-mx-0 eb-w-full eb-max-w-none eb-overflow-hidden',
             className
           )}
         >
