@@ -1,6 +1,10 @@
 import './index.css';
 
-export { LinkedAccountWidget } from './core/LinkedAccountWidget/LinkedAccountWidget';
+export { LinkedAccountWidget } from './core/RecipientWidgets';
+export type { LinkedAccountWidgetProps } from './core/RecipientWidgets';
+
+export { RecipientsWidget } from './core/RecipientWidgets';
+export type { RecipientsWidgetProps } from './core/RecipientWidgets';
 
 export * from './core/EBComponentsProvider';
 
