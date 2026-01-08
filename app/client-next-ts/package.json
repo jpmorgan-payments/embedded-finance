@@ -17,7 +17,7 @@
     "health-check:all": "npm run health-check && npm run health-check:linked-bank && npm run health-check:onboarding"
   },
   "dependencies": {
-    "@jpmorgan-payments/embedded-finance-components": "^0.10.9",
+    "@jpmorgan-payments/embedded-finance-components": "^0.10.12",
     "@mswjs/data": "^0.16.2",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-dialog": "^1.1.14",

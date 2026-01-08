@@ -83,12 +83,15 @@ describe('TransactionsTable', () => {
         />
       );
 
-      expect(screen.getByText('Date')).toBeInTheDocument();
+      expect(screen.getByText('Created')).toBeInTheDocument();
+      expect(screen.getByText('Posted')).toBeInTheDocument();
+      expect(screen.getByText('Status')).toBeInTheDocument();
+      expect(screen.getByText('From')).toBeInTheDocument();
+      expect(screen.getByText('To')).toBeInTheDocument();
       expect(screen.getByText('Status')).toBeInTheDocument();
       expect(screen.getByText('Type')).toBeInTheDocument();
       expect(screen.getByText('Amount')).toBeInTheDocument();
       expect(screen.getByText('Currency')).toBeInTheDocument();
-      expect(screen.getByText('Counterpart')).toBeInTheDocument();
     });
 
     test('renders transaction data', () => {
@@ -119,7 +122,7 @@ describe('TransactionsTable', () => {
         />
       );
 
-      expect(screen.getByText(/row\(s\) total/)).toBeInTheDocument();
+      expect(screen.getByText(/Showing \d+ to \d+ of \d+/)).toBeInTheDocument();
       expect(screen.getByText('Rows per page')).toBeInTheDocument();
     });
   });

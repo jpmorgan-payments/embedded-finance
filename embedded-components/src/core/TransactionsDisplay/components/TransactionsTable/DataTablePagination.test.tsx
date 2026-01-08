@@ -46,7 +46,7 @@ describe('DataTablePagination', () => {
     test('displays row count', () => {
       render(<PaginationWrapper dataLength={10} />);
 
-      expect(screen.getByText(/10 row\(s\) total/)).toBeInTheDocument();
+      expect(screen.getByText(/Showing \d+ to \d+ of 10/)).toBeInTheDocument();
     });
 
     test('displays page information', () => {
@@ -65,10 +65,12 @@ describe('DataTablePagination', () => {
       render(<PaginationWrapper dataLength={10} />);
 
       // Previous and Next buttons should be present
-      const buttons = screen.getAllByRole('button');
-      const buttonTexts = buttons.map((btn) => btn.textContent);
-      expect(buttonTexts.some((text) => text?.includes('previous'))).toBe(true);
-      expect(buttonTexts.some((text) => text?.includes('next'))).toBe(true);
+      expect(
+        screen.getByRole('button', { name: /go to previous page/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /go to next page/i })
+      ).toBeInTheDocument();
     });
   });
 
