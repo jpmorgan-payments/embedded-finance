@@ -23,6 +23,8 @@ import {
   BankAccountForm,
   useLinkedAccountConfig,
   useLinkedAccountEditConfig,
+  useRecipientConfig,
+  useRecipientEditConfig,
   type BankAccountFormData,
 } from '../BankAccountForm';
 import { RecipientAccountDisplayCard } from '../RecipientAccountDisplayCard/RecipientAccountDisplayCard';
@@ -102,10 +104,21 @@ export const LinkedAccountFormDialog: FC<LinkedAccountFormDialogProps> = ({
   // Fetch client data using the client ID
   const { data: clientData } = useSmbdoGetClient(clientId ?? '');
 
-  // Get appropriate config based on mode
-  const createConfig = useLinkedAccountConfig();
-  const editConfig = useLinkedAccountEditConfig();
-  const config = mode === 'create' ? createConfig : editConfig;
+  // Get appropriate config based on recipientType and mode
+  const linkedAccountCreateConfig = useLinkedAccountConfig();
+  const linkedAccountEditConfig = useLinkedAccountEditConfig();
+  const recipientCreateConfig = useRecipientConfig();
+  const recipientEditConfig = useRecipientEditConfig();
+
+  // Select config based on recipientType and mode
+  const config =
+    recipientType === 'RECIPIENT'
+      ? mode === 'create'
+        ? recipientCreateConfig
+        : recipientEditConfig
+      : mode === 'create'
+        ? linkedAccountCreateConfig
+        : linkedAccountEditConfig;
 
   // Use the LinkedAccount-specific form hook
   const {
