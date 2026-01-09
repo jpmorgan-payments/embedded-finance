@@ -63,10 +63,13 @@ Embedded Payments provides webhook notifications for the following event categor
 | Events                            | Description                                                                              | UX Recommendation                                                                           |
 | --------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | **New**                           | Application received, initial processing                                                 | Show welcome message with estimated timeline. Display progress tracker starting point.      |
-| **Review in progress**            | Application under review by compliance team                                              | Show progress indicator with "Under Review" status. Display estimated review time.          |
+| **Derived: Ready for Submission** | No webhook event. Platform calculates if all info provided but not submitted | Show prominent "Submit for Review" button with clear call-to-action. Once submitted, transitions to Review in Progress. |
+| **Review in progress**            | Application under review (triggered after submission)                                              | Show progress indicator with "Under Review" status. Display estimated review time.          |
 | **Information requested**         | Additional documents/info needed from customer                                           | Show action panel with clear list of required items. Provide upload/documentation guidance. |
 | **Approved**                      | Application fully approved                                                               | Show success state with next steps. Provide onboarding completion guidance.                 |
-| **Derived: Ready for Submission** | No webhook event. Platform will have to calculate if all info provided but not submitted | Show prominent "Submit for Review" button with clear call-to-action.                        |
+| **Declined**                      | Application declined                                                               | Show clear decline message with reason (if available). Provide guidance on next steps or appeal process if applicable. |
+| **Suspended**                     | Client suspended from product usage                                                               | Display suspension notice with reason. Provide contact information for resolution. Disable restricted features. |
+| **Terminated**                    | Client terminated from product usage or application                                                               | Show termination notice with reason. Provide final account status and any required actions. |
 
 #### Core UX Principles
 
@@ -83,6 +86,29 @@ Embedded Payments provides webhook notifications for the following event categor
 - Status freshness indicator (last update, time zone-appropriate display with consistent UTC in metadata).
 - Notification center for significant transitions, with user-consented email/SMS where applicable.
 - Safe empty states for missing details (e.g., when upstream events don't include itemized requests).
+
+#### Backend Webhook Consumption Strategy
+
+> **Note**: This table outlines backend logic for handling webhook events. Your platform should adapt this based on your state management and business rules.
+
+| Client Status | hasOutstandingInformation | customerIdentityStatus | Backend Action |
+|---------------|---------------------------|------------------------|----------------|
+| **New** | `true` | Not Started | Present outstanding information for client to complete. Poll until cleared from outstanding block. |
+| **New** | `false` | Not Started | Trigger `/verifications` to start client onboarding process. |
+| **Review In Progress** | `false` | Review In Progress | No action. CIP (Customer Identification Program) verification in progress. |
+| **Review In Progress** | `false` | Approved | No action. CIP verified, onboarding continues. |
+| **Information Requested** | `true` | Review In Progress | Present outstanding information. CIP verification in progress. |
+| **Information Requested** | `true` | Information Requested | Present outstanding information. CIP not verified - documents required. Show document requests from outstanding block. |
+| **Information Requested** | `true` | Approved | Present outstanding information. CIP verified but additional info needed. |
+| **Approved** | `false` | Approved | Client approved. Enable product features. |
+| **Declined** | `false` | Review In Progress / Approved | Client declined. Disable onboarding flow. Provide decline reason if available. |
+| **Suspended** | `false` | Approved | Client suspended. Restrict product usage per business rules. |
+| **Terminated** | `true` or `false` | Any | Client terminated. Disable access. Archive client data per retention policy. |
+
+**Key Fields**:
+- `hasOutstandingInformation`: Indicates if client needs to provide additional information
+- `customerIdentityStatus`: CIP verification status (identity verification progress)
+- Backend should poll `/clients/{id}` for current state and outstanding information details
 
 ### 2. C2: End-Customer Transaction & Account Management UI
 

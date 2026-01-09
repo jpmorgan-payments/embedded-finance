@@ -11,6 +11,13 @@ interface ComponentTooltipProps {
   componentFeatures: string[];
   onClose: () => void;
   onFullScreen: () => void;
+  // Mode/viewMode controls for RecipientsWidget and LinkedAccountWidget
+  supportsModeToggle?: boolean;
+  supportsViewModeToggle?: boolean;
+  currentMode?: 'list' | 'single';
+  currentViewMode?: 'cards' | 'compact-cards' | 'table';
+  onModeChange?: (mode: 'list' | 'single') => void;
+  onViewModeChange?: (viewMode: 'cards' | 'compact-cards' | 'table') => void;
 }
 
 export function ComponentTooltip({
@@ -19,6 +26,12 @@ export function ComponentTooltip({
   componentFeatures,
   onClose,
   onFullScreen,
+  supportsModeToggle = false,
+  supportsViewModeToggle = false,
+  currentMode,
+  currentViewMode,
+  onModeChange,
+  onViewModeChange,
 }: ComponentTooltipProps) {
   return (
     <div className="absolute right-0 top-6 z-50 w-96 rounded-lg bg-gray-900 p-4 text-xs text-white shadow-lg">
@@ -62,6 +75,77 @@ export function ComponentTooltip({
             </p>
           </div>
         </div>
+
+        {/* Mode/ViewMode Controls */}
+        {(supportsModeToggle || supportsViewModeToggle) && (
+          <div className="space-y-3 border-t border-gray-700 pt-3">
+            {supportsModeToggle && (
+              <div>
+                <h4 className="mb-2 font-medium text-gray-200">Mode</h4>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onModeChange?.('list')}
+                    className={`rounded px-3 py-1.5 text-xs transition-colors ${
+                      currentMode === 'list'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    List
+                  </button>
+                  <button
+                    onClick={() => onModeChange?.('single')}
+                    className={`rounded px-3 py-1.5 text-xs transition-colors ${
+                      currentMode === 'single'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    Single
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {supportsViewModeToggle && (
+              <div>
+                <h4 className="mb-2 font-medium text-gray-200">View Mode</h4>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => onViewModeChange?.('cards')}
+                    className={`rounded px-3 py-1.5 text-xs transition-colors ${
+                      currentViewMode === 'cards'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    Cards
+                  </button>
+                  <button
+                    onClick={() => onViewModeChange?.('compact-cards')}
+                    className={`rounded px-3 py-1.5 text-xs transition-colors ${
+                      currentViewMode === 'compact-cards'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    Compact
+                  </button>
+                  <button
+                    onClick={() => onViewModeChange?.('table')}
+                    className={`rounded px-3 py-1.5 text-xs transition-colors ${
+                      currentViewMode === 'table'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    Table
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Description */}
         <div>
@@ -125,6 +209,13 @@ interface EmbeddedComponentCardProps {
   isAnyTooltipOpen: boolean;
   onTooltipToggle: (componentName: string, isOpen: boolean) => void;
   onFullScreen: () => void;
+  // Mode/viewMode controls for RecipientsWidget and LinkedAccountWidget
+  supportsModeToggle?: boolean;
+  supportsViewModeToggle?: boolean;
+  currentMode?: 'list' | 'single';
+  currentViewMode?: 'cards' | 'compact-cards' | 'table';
+  onModeChange?: (mode: 'list' | 'single') => void;
+  onViewModeChange?: (viewMode: 'cards' | 'compact-cards' | 'table') => void;
 }
 
 export function EmbeddedComponentCard({
@@ -135,6 +226,12 @@ export function EmbeddedComponentCard({
   isAnyTooltipOpen,
   onTooltipToggle,
   onFullScreen,
+  supportsModeToggle = false,
+  supportsViewModeToggle = false,
+  currentMode,
+  currentViewMode,
+  onModeChange,
+  onViewModeChange,
 }: EmbeddedComponentCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -147,11 +244,7 @@ export function EmbeddedComponentCard({
   const shouldShowIcon = !isAnyTooltipOpen || showTooltip;
 
   return (
-    <div
-      className={`relative rounded-lg border border-white bg-transparent ${
-        showTooltip ? 'p-6' : 'p-0'
-      }`}
-    >
+    <div className="relative rounded-lg border border-white bg-transparent">
       {/* Info Icon Overlay */}
       {shouldShowIcon && (
         <div className="absolute right-2 top-2 z-10">
@@ -165,6 +258,12 @@ export function EmbeddedComponentCard({
                 componentFeatures={componentFeatures}
                 onClose={handleTooltipToggle}
                 onFullScreen={onFullScreen}
+                supportsModeToggle={supportsModeToggle}
+                supportsViewModeToggle={supportsViewModeToggle}
+                currentMode={currentMode}
+                currentViewMode={currentViewMode}
+                onModeChange={onModeChange}
+                onViewModeChange={onViewModeChange}
               />
             )}
           </div>

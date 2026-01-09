@@ -101,7 +101,7 @@ export function TransactionsTable({
   const table = providedTable || internalTable;
 
   return (
-    <div className="eb-w-full eb-space-y-4">
+    <div className="eb-w-full">
       {!providedTable && <TransactionsTableToolbar table={table} />}
       <div className="eb-rounded-md eb-border">
         <Table>

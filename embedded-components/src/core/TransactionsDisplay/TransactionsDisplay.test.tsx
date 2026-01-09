@@ -131,7 +131,8 @@ describe('TransactionsDisplay', () => {
   });
 
   describe('Refresh functionality', () => {
-    test('renders refresh button', () => {
+    test.skip('renders refresh button', () => {
+      // Refresh button was removed from the UI
       renderComponent({ accountIds: ['account1'] });
 
       expect(
@@ -167,7 +168,8 @@ describe('TransactionsDisplay', () => {
       renderComponent({ accountIds: ['account1'] });
 
       await waitFor(() => {
-        expect(screen.getByText('Date')).toBeInTheDocument();
+        expect(screen.getByText('Created')).toBeInTheDocument();
+        expect(screen.getByText('Posted')).toBeInTheDocument();
         expect(screen.getByText('Status')).toBeInTheDocument();
         expect(screen.getByText('Type')).toBeInTheDocument();
         expect(screen.getByText('Amount')).toBeInTheDocument();
