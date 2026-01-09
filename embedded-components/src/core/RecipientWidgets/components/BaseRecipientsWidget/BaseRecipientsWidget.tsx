@@ -17,24 +17,24 @@ import { Button } from '@/components/ui/button';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 
-import { useLinkedAccounts, useLinkedAccountsTable } from '../../hooks';
+import { useRecipients, useRecipientsTable } from '../../hooks';
 import {
   getRecipientTypeConfig,
   getUserJourneys,
   SupportedRecipientType,
 } from '../../types';
 import {
-  invalidateLinkedAccountQueries,
+  invalidateRecipientQueries,
   shouldShowCreateButton,
 } from '../../utils';
 import { EmptyState } from '../EmptyState/EmptyState';
-import { LinkedAccountCard } from '../LinkedAccountCard/LinkedAccountCard';
-import { LinkedAccountCardSkeleton } from '../LinkedAccountCardSkeleton/LinkedAccountCardSkeleton';
-import { LinkedAccountFormDialog } from '../LinkedAccountFormDialog/LinkedAccountFormDialog';
+import { RecipientCard } from '../RecipientCard/RecipientCard';
+import { RecipientCardSkeleton } from '../RecipientCardSkeleton/RecipientCardSkeleton';
+import { RecipientFormDialog } from '../RecipientFormDialog/RecipientFormDialog';
 import {
-  LinkedAccountsTableView,
-  LinkedAccountsTableViewSkeleton,
-} from '../LinkedAccountsTableView';
+  RecipientsTableView,
+  RecipientsTableViewSkeleton,
+} from '../RecipientsTableView';
 import { Pagination } from '../Pagination';
 import { RemoveAccountResultDialog } from '../RemoveAccountResultDialog/RemoveAccountResultDialog';
 import { VerificationResultDialog } from '../VerificationResultDialog/VerificationResultDialog';
@@ -43,7 +43,7 @@ import { VerificationResultDialog } from '../VerificationResultDialog/Verificati
  * Props for the BaseRecipientsWidget component
  *
  * This is the internal base component that powers both
- * LinkedAccountWidget and RecipientsWidget.
+ * LinkedAccountsWidget and RecipientsWidget.
  */
 export interface BaseRecipientsWidgetProps extends UserTrackingProps {
   /**
@@ -139,7 +139,7 @@ export interface BaseRecipientsWidgetProps extends UserTrackingProps {
  * BaseRecipientsWidget - Internal base component for managing recipients (linked accounts and payment recipients)
  *
  * This component is not meant to be used directly. Instead, use:
- * - `LinkedAccountWidget` for managing linked bank accounts (LINKED_ACCOUNT type)
+ * - `LinkedAccountsWidget` for managing linked bank accounts (LINKED_ACCOUNT type)
  * - `RecipientsWidget` for managing payment recipients (RECIPIENT type)
  *
  * @internal
@@ -203,14 +203,14 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Use infinite query hook for load-more pagination (default)
-  const loadMoreData = useLinkedAccounts({
+  const loadMoreData = useRecipients({
     variant: mode === 'single' ? 'singleAccount' : 'default',
     pageSize,
     recipientType,
   });
 
   // Use page-based query hook for pages pagination
-  const pagesData = useLinkedAccountsTable({
+  const pagesData = useRecipientsTable({
     pagination,
     onPaginationChange: setPagination,
     recipientType,
@@ -218,11 +218,11 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
 
   // Select which data source to use based on pagination style
   const {
-    linkedAccounts,
-    hasActiveAccount,
+    recipients,
+    hasActiveRecipient,
     isLoading,
     isError,
-    error: linkedAccountsError,
+    error: recipientsError,
     isSuccess,
     refetch,
     hasMore,
@@ -232,8 +232,8 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
     nextLoadCount,
   } = usePageBasedData
     ? {
-        linkedAccounts: pagesData.linkedAccounts,
-        hasActiveAccount: pagesData.hasAccounts,
+        recipients: pagesData.recipients,
+        hasActiveRecipient: pagesData.hasRecipients,
         isLoading: pagesData.isLoading,
         isError: pagesData.isError,
         error: pagesData.error,
@@ -246,8 +246,8 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
         nextLoadCount: 0,
       }
     : {
-        linkedAccounts: loadMoreData.linkedAccounts,
-        hasActiveAccount: loadMoreData.hasActiveAccount,
+        recipients: loadMoreData.recipients,
+        hasActiveRecipient: loadMoreData.hasActiveRecipient,
         isLoading: loadMoreData.isLoading,
         isError: loadMoreData.isError,
         error: loadMoreData.error,
@@ -262,7 +262,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
 
   // Setup virtualizer for scrollable mode
   const rowVirtualizer = useVirtualizer({
-    count: linkedAccounts.length,
+    count: recipients.length,
     getScrollElement: () => scrollContainerRef.current,
     estimateSize: () => 240, // Estimated height - will be measured dynamically
     overscan: 2, // Render 2 items above/below viewport for smooth scrolling
@@ -281,7 +281,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
     if (!lastItem) return;
 
     // Load more when within 5 items of the end
-    if (lastItem.index >= linkedAccounts.length - 5) {
+    if (lastItem.index >= recipients.length - 5) {
       loadMore();
     }
   }, [
@@ -289,14 +289,14 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
     hasMore,
     isLoadingMore,
     rowVirtualizer.getVirtualItems(),
-    linkedAccounts.length,
+    recipients.length,
     loadMore,
   ]);
 
   // Determine if create button should be shown
   const showCreate = shouldShowCreateButton(
     mode === 'single' ? 'singleAccount' : 'default',
-    hasActiveAccount,
+    hasActiveRecipient,
     !hideCreateButton
   );
 
@@ -307,18 +307,18 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
     userEventsLifecycle,
   });
 
-  // Track view when component loads with accounts
+  // Track view when component loads with recipients
   React.useEffect(() => {
-    if (isSuccess && linkedAccounts.length > 0) {
+    if (isSuccess && recipients.length > 0) {
       trackUserEvent({
         actionName: userJourneys.VIEW_ACCOUNTS,
-        metadata: { count: linkedAccounts.length },
+        metadata: { count: recipients.length },
         userEventsHandler,
       });
     }
   }, [
     isSuccess,
-    linkedAccounts.length,
+    recipients.length,
     userEventsHandler,
     userJourneys.VIEW_ACCOUNTS,
   ]);
@@ -353,7 +353,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   // Handle account removal success
   const handleRemoveSuccess = (recipient: Recipient) => {
     // Invalidate queries to refresh the list
-    invalidateLinkedAccountQueries(queryClient, recipientType);
+    invalidateRecipientQueries(queryClient, recipientType);
     setRemovedRecipient(recipient);
     setShowRemoveResultDialog(true);
     trackUserEvent({
@@ -363,8 +363,8 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
     });
   };
 
-  // Handle account link success
-  const handleLinkedAccountSettled = (recipient?: Recipient, error?: any) => {
+  // Handle recipient creation/edit success
+  const handleRecipientSettled = (recipient?: Recipient, error?: any) => {
     if (recipient && !error) {
       trackUserEvent({
         actionName: userJourneys.LINK_COMPLETED,
@@ -413,18 +413,18 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
 
       {/* Lifted Edit Dialog - Rendered at parent level to survive data updates */}
       {editingRecipient && (
-        <LinkedAccountFormDialog
+        <RecipientFormDialog
           mode="edit"
           recipient={editingRecipient}
           open
           onOpenChange={handleEditDialogOpenChange}
-          onLinkedAccountSettled={handleEditSettled}
+          onRecipientSettled={handleEditSettled}
           recipientType={recipientType}
           i18nNamespace={config.i18nNamespace}
         >
           {/* Empty trigger since we control open state externally */}
           <span />
-        </LinkedAccountFormDialog>
+        </RecipientFormDialog>
       )}
 
       <Card
@@ -452,11 +452,11 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                 </p>
               )}
             </div>
-            {showCreate && !isLoading && linkedAccounts.length > 0 && (
+            {showCreate && !isLoading && recipients.length > 0 && (
               <div className="eb-animate-fade-in">
-                <LinkedAccountFormDialog
+                <RecipientFormDialog
                   mode="create"
-                  onLinkedAccountSettled={handleLinkedAccountSettled}
+                  onRecipientSettled={handleRecipientSettled}
                   recipientType={recipientType}
                   i18nNamespace={config.i18nNamespace}
                 >
@@ -474,7 +474,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                       {t('linkNewAccount')}
                     </span>
                   </Button>
-                </LinkedAccountFormDialog>
+                </RecipientFormDialog>
               </div>
             )}
           </div>
@@ -495,7 +495,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
               {viewMode === 'table' ? (
                 // Table skeleton for table view
                 <div className="eb-p-1">
-                  <LinkedAccountsTableViewSkeleton rowCount={pageSize} />
+                  <RecipientsTableViewSkeleton rowCount={pageSize} />
                 </div>
               ) : (
                 // Card skeleton for card views
@@ -504,7 +504,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                     'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': scrollable,
                   })}
                 >
-                  <LinkedAccountCardSkeleton compact={isCompact} />
+                  <RecipientCardSkeleton compact={isCompact} />
                 </div>
               )}
             </>
@@ -523,7 +523,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                   default: t('errors.loading.default'),
                   400: t('errors.loading.400'),
                 }}
-                error={linkedAccountsError as any}
+                error={recipientsError as any}
                 tryAgainAction={refetch}
                 showDetails
               />
@@ -531,7 +531,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
           )}
 
           {/* Empty state */}
-          {isSuccess && linkedAccounts.length === 0 && (
+          {isSuccess && recipients.length === 0 && (
             <div
               className={cn({
                 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': scrollable || isCompact,
@@ -543,9 +543,9 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                 i18nNamespace={config.i18nNamespace}
                 action={
                   showCreate && (
-                    <LinkedAccountFormDialog
+                    <RecipientFormDialog
                       mode="create"
-                      onLinkedAccountSettled={handleLinkedAccountSettled}
+                      onRecipientSettled={handleRecipientSettled}
                       recipientType={recipientType}
                       i18nNamespace={config.i18nNamespace}
                     >
@@ -559,21 +559,21 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                         <PlusIcon className="eb-mr-1.5 eb-h-4 eb-w-4" />
                         {t('linkNewAccount')}
                       </Button>
-                    </LinkedAccountFormDialog>
+                    </RecipientFormDialog>
                   )
                 }
               />
             </div>
           )}
 
-          {/* Linked accounts list */}
-          {isSuccess && linkedAccounts.length > 0 && (
+          {/* Recipients list */}
+          {isSuccess && recipients.length > 0 && (
             <>
               {viewMode === 'table' ? (
                 // Table view with server-side pagination
                 <div className="eb-p-1">
-                  <LinkedAccountsTableView
-                    data={linkedAccounts}
+                  <RecipientsTableView
+                    data={recipients}
                     paginationState={{
                       pagination,
                       onPaginationChange: setPagination,
@@ -584,7 +584,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                     recipientType={recipientType}
                     renderPaymentAction={renderPaymentAction}
                     onEditRecipient={handleEditRecipient}
-                    onLinkedAccountSettled={onAccountSettled}
+                    onRecipientSettled={onAccountSettled}
                     onMicrodepositVerifySettled={
                       handleMicrodepositVerifySettled
                     }
@@ -613,7 +613,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                     {rowVirtualizer
                       .getVirtualItems()
                       .map((virtualRow: VirtualItem) => {
-                        const recipient = linkedAccounts[virtualRow.index];
+                        const recipient = recipients[virtualRow.index];
                         return (
                           <div
                             key={recipient.id}
@@ -627,13 +627,13 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                               transform: `translateY(${virtualRow.start}px)`,
                             }}
                           >
-                            <LinkedAccountCard
+                            <RecipientCard
                               recipient={recipient}
                               makePaymentComponent={renderPaymentAction?.(
                                 recipient
                               )}
                               onEditRecipient={handleEditRecipient}
-                              onLinkedAccountSettled={onAccountSettled}
+                              onRecipientSettled={onAccountSettled}
                               onMicrodepositVerifySettled={
                                 handleMicrodepositVerifySettled
                               }
@@ -645,7 +645,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                                 'eb-border-b-0':
                                   isCompact &&
                                   virtualRow.index ===
-                                    linkedAccounts.length - 1,
+                                    recipients.length - 1,
                               })}
                             />
                           </div>
@@ -668,10 +668,10 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                       'eb-gap-0': isCompact,
                       'eb-gap-3': !isCompact,
                       '@4xl:eb-grid-cols-2':
-                        !isCompact && linkedAccounts.length > 1,
+                        !isCompact && recipients.length > 1,
                     })}
                   >
-                    {linkedAccounts.map((recipient, index) => (
+                    {recipients.map((recipient, index) => (
                       <div
                         key={recipient.id}
                         className="eb-animate-fade-in"
@@ -680,13 +680,13 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                           animationFillMode: 'backwards',
                         }}
                       >
-                        <LinkedAccountCard
+                        <RecipientCard
                           recipient={recipient}
                           makePaymentComponent={renderPaymentAction?.(
                             recipient
                           )}
                           onEditRecipient={handleEditRecipient}
-                          onLinkedAccountSettled={onAccountSettled}
+                          onRecipientSettled={onAccountSettled}
                           onMicrodepositVerifySettled={
                             handleMicrodepositVerifySettled
                           }
@@ -696,7 +696,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                           recipientType={recipientType}
                           className={cn({
                             'eb-border-b-0':
-                              isCompact && index === linkedAccounts.length - 1,
+                              isCompact && index === recipients.length - 1,
                           })}
                         />
                       </div>

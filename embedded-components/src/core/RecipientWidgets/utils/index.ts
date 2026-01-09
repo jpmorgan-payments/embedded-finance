@@ -1,2 +1,2 @@
-export { invalidateLinkedAccountQueries } from './invalidateLinkedAccountQueries';
+export { invalidateRecipientQueries } from './invalidateRecipientQueries';
 export { shouldShowCreateButton } from './shouldShowCreateButton';

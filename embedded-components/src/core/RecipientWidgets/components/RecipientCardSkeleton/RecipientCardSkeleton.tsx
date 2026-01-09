@@ -5,29 +5,29 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui';
 
 /**
- * Props for LinkedAccountCardSkeleton component
+ * Props for RecipientCardSkeleton component
  */
-export interface LinkedAccountCardSkeletonProps {
+export interface RecipientCardSkeletonProps {
   /** Use compact display mode with reduced padding and smaller elements */
   compact?: boolean;
 }
 
 /**
- * LinkedAccountCardSkeleton - Loading skeleton for LinkedAccountCard
- * Provides a placeholder while account data is being fetched
- * Matches the structure of LinkedAccountCard with header, account details,
+ * RecipientCardSkeleton - Loading skeleton for RecipientCard
+ * Provides a placeholder while recipient data is being fetched
+ * Matches the structure of RecipientCard with header, account details,
  * payment methods, and action buttons
  */
-export const LinkedAccountCardSkeleton: React.FC<
-  LinkedAccountCardSkeletonProps
-> = ({ compact = false }) => {
+export const RecipientCardSkeleton: React.FC<RecipientCardSkeletonProps> = ({
+  compact = false,
+}) => {
   if (compact) {
     return (
       <Card
         className="eb-rounded-none eb-border-0 eb-shadow-none"
         role="article"
         aria-busy="true"
-        aria-label="Loading linked account"
+        aria-label="Loading recipient"
       >
         <CardContent className="eb-flex eb-items-center eb-gap-3 eb-p-4">
           {/* Icon placeholder */}
@@ -62,7 +62,7 @@ export const LinkedAccountCardSkeleton: React.FC<
       className="eb-overflow-hidden eb-transition-shadow"
       role="article"
       aria-busy="true"
-      aria-label="Loading linked account"
+      aria-label="Loading recipient"
     >
       <CardContent className="eb-flex eb-flex-col eb-p-0">
         {/* Header Section */}

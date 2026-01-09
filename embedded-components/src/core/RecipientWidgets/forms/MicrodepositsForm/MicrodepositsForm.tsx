@@ -27,7 +27,7 @@ import { Form } from '@/components/ui/form';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { StandardFormField } from '@/components/StandardFormField';
 
-import { invalidateLinkedAccountQueries } from '../../utils';
+import { invalidateRecipientQueries } from '../../utils';
 import {
   MicrodepositsFormDataType,
   useMicrodepositsFormSchema,
@@ -96,8 +96,8 @@ export const MicrodepositsFormDialogTrigger: FC<
           handleDialogChange(false);
         }
 
-        // Invalidate all linked account queries (handles any page/limit params)
-        invalidateLinkedAccountQueries(queryClient);
+        // Invalidate all recipient queries (handles any page/limit params)
+        invalidateRecipientQueries(queryClient);
         queryClient.invalidateQueries({
           queryKey: ['getRecipient', recipientId],
         });

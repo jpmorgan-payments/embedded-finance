@@ -19,13 +19,13 @@ import { SupportedRecipientType } from '../types';
  * const queryClient = useQueryClient();
  *
  * // After a mutation succeeds for LINKED_ACCOUNT
- * invalidateLinkedAccountQueries(queryClient, 'LINKED_ACCOUNT');
+ * invalidateRecipientQueries(queryClient, 'LINKED_ACCOUNT');
  *
  * // After a mutation succeeds for RECIPIENT
- * invalidateLinkedAccountQueries(queryClient, 'RECIPIENT');
+ * invalidateRecipientQueries(queryClient, 'RECIPIENT');
  * ```
  */
-export function invalidateLinkedAccountQueries(
+export function invalidateRecipientQueries(
   queryClient: QueryClient,
   recipientType: SupportedRecipientType = 'LINKED_ACCOUNT'
 ): void {
@@ -33,7 +33,6 @@ export function invalidateLinkedAccountQueries(
     predicate: (query) => {
       const { queryKey } = query;
       if (Array.isArray(queryKey)) {
-        console.log(queryKey);
         const hasRecipientsPath = queryKey.some((key) => key === '/recipients');
         const hasMatchingType = queryKey.some(
           (key) =>
@@ -42,7 +41,6 @@ export function invalidateLinkedAccountQueries(
             'type' in key &&
             key.type === recipientType
         );
-        console.log(hasMatchingType, recipientType);
         return hasRecipientsPath && hasMatchingType;
       }
       return false;

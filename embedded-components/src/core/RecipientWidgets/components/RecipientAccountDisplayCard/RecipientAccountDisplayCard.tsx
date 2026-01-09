@@ -71,7 +71,7 @@ export interface RecipientAccountDisplayCardProps {
  * RecipientAccountDisplayCard - Generic reusable card component for displaying recipient account information
  *
  * This component provides a consistent display pattern for:
- * - LinkedAccountCard (with full actions and status)
+ * - RecipientCard (with full actions and status)
  * - Recipients (in recipient management)
  * - Account confirmation views
  *

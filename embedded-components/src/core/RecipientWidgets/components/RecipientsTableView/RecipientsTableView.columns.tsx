@@ -92,7 +92,7 @@ export const AccountNumberCell: React.FC<AccountNumberCellProps> = ({
 /**
  * Options for column generation
  */
-export interface GetLinkedAccountsColumnsOptions {
+export interface GetRecipientsColumnsOptions {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   t: (key: string, options?: any) => string;
   /** Render the combined actions cell (includes pay, verify, edit, details, remove) */
@@ -102,14 +102,14 @@ export interface GetLinkedAccountsColumnsOptions {
 }
 
 /**
- * Column definitions for the linked accounts table
+ * Column definitions for the recipients table
  */
-export const getLinkedAccountsColumns = ({
+export const getRecipientsColumns = ({
   t,
   renderActionsCell,
   visibleAccountNumbers,
   onToggleAccountNumber,
-}: GetLinkedAccountsColumnsOptions): ColumnDef<Recipient, unknown>[] => {
+}: GetRecipientsColumnsOptions): ColumnDef<Recipient, unknown>[] => {
   const naText = 'N/A';
 
   return [

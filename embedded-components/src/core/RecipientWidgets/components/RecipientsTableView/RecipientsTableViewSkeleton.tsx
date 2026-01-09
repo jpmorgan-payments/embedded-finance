@@ -10,17 +10,17 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-export interface LinkedAccountsTableViewSkeletonProps {
+export interface RecipientsTableViewSkeletonProps {
   /** Number of rows to display */
   rowCount?: number;
 }
 
 /**
- * Skeleton loading state for LinkedAccountsTableView
+ * Skeleton loading state for RecipientsTableView
  * Matches the actual table structure: Account Holder, Account Number, Status, Payment Methods, Created, Actions
  */
-export const LinkedAccountsTableViewSkeleton: React.FC<
-  LinkedAccountsTableViewSkeletonProps
+export const RecipientsTableViewSkeleton: React.FC<
+  RecipientsTableViewSkeletonProps
 > = ({ rowCount = 5 }) => {
   return (
     <div className="eb-w-full eb-space-y-4 eb-overflow-hidden eb-@container">

@@ -71,7 +71,7 @@ import {
 } from '../../types';
 import { RecipientDetailsDialog } from '../RecipientDetailsDialog/RecipientDetailsDialog';
 import { RemoveAccountDialogTrigger } from '../RemoveAccountDialog/RemoveAccountDialog';
-import { getLinkedAccountsColumns } from './LinkedAccountsTableView.columns';
+import { getRecipientsColumns } from './RecipientsTableView.columns';
 
 /**
  * Server-side pagination state passed from parent component
@@ -92,10 +92,10 @@ export interface TablePaginationState {
 }
 
 /**
- * Props for LinkedAccountsTableView component
+ * Props for RecipientsTableView component
  */
-export interface LinkedAccountsTableViewProps {
-  /** Array of linked account recipients to display (required) */
+export interface RecipientsTableViewProps {
+  /** Array of recipients to display (required) */
   data: Recipient[];
 
   /** Pagination state managed by parent component */
@@ -113,8 +113,8 @@ export interface LinkedAccountsTableViewProps {
    */
   onEditRecipient?: (recipient: Recipient) => void;
 
-  /** Callback when account is edited or removed */
-  onLinkedAccountSettled?: (recipient?: Recipient, error?: ApiError) => void;
+  /** Callback when recipient is edited or removed */
+  onRecipientSettled?: (recipient?: Recipient, error?: ApiError) => void;
 
   /** Callback when microdeposit verification is completed */
   onMicrodepositVerifySettled?: (
@@ -122,7 +122,7 @@ export interface LinkedAccountsTableViewProps {
     recipient?: Recipient
   ) => void;
 
-  /** Callback when account is successfully removed */
+  /** Callback when recipient is successfully removed */
   onRemoveSuccess?: (recipient: Recipient) => void;
 
   /** Optional additional CSS classes */
@@ -130,10 +130,11 @@ export interface LinkedAccountsTableViewProps {
 }
 
 /**
- * LinkedAccountsTableView - Table view for linked accounts using TanStack Table
+ * RecipientsTableView - Table view for recipients using TanStack Table
  *
  * This is a presentational component that receives all data from its parent.
  * The parent is responsible for data fetching and pagination state management.
+ * Supports all recipient types: LINKED_ACCOUNT, RECIPIENT, and future SETTLEMENT_ACCOUNT.
  *
  * Features:
  * - Sortable columns (account holder, status, created date)
@@ -144,8 +145,8 @@ export interface LinkedAccountsTableViewProps {
  *
  * @example
  * ```tsx
- * <LinkedAccountsTableView
- *   data={linkedAccounts}
+ * <RecipientsTableView
+ *   data={recipients}
  *   paginationState={{
  *     pagination,
  *     onPaginationChange: setPagination,
@@ -154,22 +155,20 @@ export interface LinkedAccountsTableViewProps {
  *     isLoading,
  *   }}
  *   recipientType="LINKED_ACCOUNT"
- *   onLinkedAccountSettled={(recipient, error) => {
+ *   onRecipientSettled={(recipient, error) => {
  *     if (error) console.error('Error:', error);
  *     else console.log('Success:', recipient);
  *   }}
  * />
  * ```
  */
-export const LinkedAccountsTableView: React.FC<
-  LinkedAccountsTableViewProps
-> = ({
+export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
   data,
   paginationState,
   recipientType,
   renderPaymentAction,
   onEditRecipient,
-  onLinkedAccountSettled,
+  onRecipientSettled,
   onMicrodepositVerifySettled,
   onRemoveSuccess,
   className,
@@ -286,7 +285,7 @@ export const LinkedAccountsTableView: React.FC<
           {/* Remove Account */}
           <RemoveAccountDialogTrigger
             recipient={recipient}
-            onLinkedAccountSettled={onLinkedAccountSettled}
+            onRecipientSettled={onRecipientSettled}
             onRemoveSuccess={onRemoveSuccess}
           >
             <DropdownMenuItem
@@ -434,14 +433,14 @@ export const LinkedAccountsTableView: React.FC<
       onEditRecipient,
       onMicrodepositVerifySettled,
       onRemoveSuccess,
-      onLinkedAccountSettled,
+      onRecipientSettled,
     ]
   );
 
   // Generate columns with actions
   const columns = React.useMemo(
     () =>
-      getLinkedAccountsColumns({
+      getRecipientsColumns({
         t: t as unknown as (key: string, options?: unknown) => string,
         renderActionsCell: renderRowActionsCell,
         visibleAccountNumbers,

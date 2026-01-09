@@ -39,20 +39,20 @@ import { MakePayment } from '@/core/MakePayment';
 import { MicrodepositsFormDialogTrigger } from '../../forms/MicrodepositsForm/MicrodepositsForm';
 import { LINKED_ACCOUNT_USER_JOURNEYS } from '../../RecipientWidgets.constants';
 import { RecipientI18nNamespace, SupportedRecipientType } from '../../types';
-import { LinkedAccountFormDialog } from '../LinkedAccountFormDialog/LinkedAccountFormDialog';
 import { RecipientAccountDisplayCard } from '../RecipientAccountDisplayCard/RecipientAccountDisplayCard';
 import { RecipientDetailsDialog } from '../RecipientDetailsDialog/RecipientDetailsDialog';
+import { RecipientFormDialog } from '../RecipientFormDialog/RecipientFormDialog';
 import { RemoveAccountDialogTrigger } from '../RemoveAccountDialog/RemoveAccountDialog';
 import { StatusAlert } from '../StatusAlert/StatusAlert';
 
 /**
- * Props for the LinkedAccountCard component
+ * Props for the RecipientCard component
  */
-export interface LinkedAccountCardProps {
-  /** The recipient/linked account data to display */
+export interface RecipientCardProps {
+  /** The recipient data to display */
   recipient: Recipient;
 
-  /** Optional MakePayment component to render when account is active */
+  /** Optional MakePayment component to render when recipient is active */
   makePaymentComponent?: React.ReactNode;
 
   /**
@@ -61,8 +61,8 @@ export interface LinkedAccountCardProps {
    */
   onEditRecipient?: (recipient: Recipient) => void;
 
-  /** Callback when account is edited or removed */
-  onLinkedAccountSettled?: (recipient?: Recipient, error?: ApiError) => void;
+  /** Callback when recipient is edited or removed */
+  onRecipientSettled?: (recipient?: Recipient, error?: ApiError) => void;
 
   /** Callback when microdeposit verification is completed */
   onMicrodepositVerifySettled?: (
@@ -70,7 +70,7 @@ export interface LinkedAccountCardProps {
     recipient?: any
   ) => void;
 
-  /** Callback when account is successfully removed */
+  /** Callback when recipient is successfully removed */
   onRemoveSuccess?: (recipient: Recipient) => void;
 
   /** Hide action buttons and status alerts (useful for confirmation views) */
@@ -102,15 +102,16 @@ export interface LinkedAccountCardProps {
 }
 
 /**
- * LinkedAccountCard - Displays a single linked account with its details and actions
+ * RecipientCard - Displays a single recipient with its details and actions
  * Enhanced with better visual hierarchy and contextual information
- * Now uses RecipientAccountDisplayCard for consistent display patterns
+ * Uses RecipientAccountDisplayCard for consistent display patterns
+ * Supports LINKED_ACCOUNT, RECIPIENT, and future SETTLEMENT_ACCOUNT types
  */
-export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
+export const RecipientCard: React.FC<RecipientCardProps> = ({
   recipient,
   makePaymentComponent,
   onEditRecipient,
-  onLinkedAccountSettled,
+  onRecipientSettled,
   onMicrodepositVerifySettled,
   onRemoveSuccess,
   hideActions = false,
@@ -182,10 +183,10 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
 
     // Fallback to inline dialog when onEditRecipient is not provided
     return (
-      <LinkedAccountFormDialog
+      <RecipientFormDialog
         mode="edit"
         recipient={recipient}
-        onLinkedAccountSettled={onLinkedAccountSettled}
+        onRecipientSettled={onRecipientSettled}
         recipientType={recipientType}
         i18nNamespace={i18nNamespace}
       >
@@ -205,7 +206,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
           />
           <span>{getAddRoutingButtonLabel()}</span>
         </Button>
-      </LinkedAccountFormDialog>
+      </RecipientFormDialog>
     );
   };
 
@@ -252,7 +253,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
   // Shared menu items (Edit and Remove)
   const sharedMenuItems = (
     <>
-      {/* Edit - disabled for non-ACTIVE accounts, uses lifted dialog when available */}
+      {/* Edit - disabled for non-ACTIVE recipients, uses lifted dialog when available */}
       {isActive ? (
         onEditRecipient ? (
           <DropdownMenuItem
@@ -263,10 +264,10 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
             <span>{t('actions.edit')}</span>
           </DropdownMenuItem>
         ) : (
-          <LinkedAccountFormDialog
+          <RecipientFormDialog
             mode="edit"
             recipient={recipient}
-            onLinkedAccountSettled={onLinkedAccountSettled}
+            onRecipientSettled={onRecipientSettled}
             recipientType={recipientType}
             i18nNamespace={i18nNamespace}
           >
@@ -277,7 +278,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
               <PencilIcon className="eb-mr-2 eb-h-4 eb-w-4" />
               <span>{t('actions.edit')}</span>
             </DropdownMenuItem>
-          </LinkedAccountFormDialog>
+          </RecipientFormDialog>
         )
       ) : (
         <Tooltip>
@@ -300,7 +301,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
       <DropdownMenuSeparator />
       <RemoveAccountDialogTrigger
         recipient={recipient}
-        onLinkedAccountSettled={onLinkedAccountSettled}
+        onRecipientSettled={onRecipientSettled}
         onRemoveSuccess={onRemoveSuccess}
         i18nNamespace={i18nNamespace}
       >
