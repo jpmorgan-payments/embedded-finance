@@ -118,7 +118,8 @@ describe('useRecipients', () => {
     );
 
     const { result } = renderHook(
-      () => useRecipients({ variant: 'default', recipientType: 'LINKED_ACCOUNT' }),
+      () =>
+        useRecipients({ variant: 'default', recipientType: 'LINKED_ACCOUNT' }),
       { wrapper: createWrapper() }
     );
 
@@ -179,9 +180,12 @@ describe('useRecipients', () => {
       })
     );
 
-    const { result } = renderHook(() => useRecipients({ recipientType: 'LINKED_ACCOUNT' }), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHook(
+      () => useRecipients({ recipientType: 'LINKED_ACCOUNT' }),
+      {
+        wrapper: createWrapper(),
+      }
+    );
 
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
@@ -211,9 +215,12 @@ describe('useRecipients', () => {
       })
     );
 
-    const { result } = renderHook(() => useRecipients({ recipientType: 'LINKED_ACCOUNT' }), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHook(
+      () => useRecipients({ recipientType: 'LINKED_ACCOUNT' }),
+      {
+        wrapper: createWrapper(),
+      }
+    );
 
     expect(result.current.isLoading).toBe(true);
     expect(result.current.recipients).toHaveLength(0);
@@ -230,9 +237,12 @@ describe('useRecipients', () => {
       })
     );
 
-    const { result } = renderHook(() => useRecipients({ recipientType: 'LINKED_ACCOUNT' }), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHook(
+      () => useRecipients({ recipientType: 'LINKED_ACCOUNT' }),
+      {
+        wrapper: createWrapper(),
+      }
+    );
 
     await waitFor(() => {
       expect(result.current.isError).toBe(true);
@@ -260,9 +270,12 @@ describe('useRecipients', () => {
       })
     );
 
-    const { result } = renderHook(() => useRecipients({ recipientType: 'LINKED_ACCOUNT' }), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHook(
+      () => useRecipients({ recipientType: 'LINKED_ACCOUNT' }),
+      {
+        wrapper: createWrapper(),
+      }
+    );
 
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);

@@ -28,6 +28,7 @@ import {
   shouldShowCreateButton,
 } from '../../utils';
 import { EmptyState } from '../EmptyState/EmptyState';
+import { Pagination } from '../Pagination';
 import { RecipientCard } from '../RecipientCard/RecipientCard';
 import { RecipientCardSkeleton } from '../RecipientCardSkeleton/RecipientCardSkeleton';
 import { RecipientFormDialog } from '../RecipientFormDialog/RecipientFormDialog';
@@ -35,7 +36,6 @@ import {
   RecipientsTableView,
   RecipientsTableViewSkeleton,
 } from '../RecipientsTableView';
-import { Pagination } from '../Pagination';
 import { RemoveAccountResultDialog } from '../RemoveAccountResultDialog/RemoveAccountResultDialog';
 import { VerificationResultDialog } from '../VerificationResultDialog/VerificationResultDialog';
 
@@ -645,8 +645,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                               className={cn({
                                 'eb-border-b-0':
                                   isCompact &&
-                                  virtualRow.index ===
-                                    recipients.length - 1,
+                                  virtualRow.index === recipients.length - 1,
                               })}
                             />
                           </div>
