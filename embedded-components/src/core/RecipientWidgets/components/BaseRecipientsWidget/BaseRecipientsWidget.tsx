@@ -164,6 +164,8 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
 
   const isCompact = viewMode === 'compact-cards';
   const usePagesPagination = paginationStyle === 'pages' && !scrollable;
+  // Table view always uses page-based pagination
+  const usePageBasedData = usePagesPagination || viewMode === 'table';
 
   // ============================================================================
   // Component State
@@ -181,6 +183,12 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   const [removedRecipient, setRemovedRecipient] = useState<
     Recipient | undefined
   >(undefined);
+
+  // Lifted edit dialog state - stores the recipient being edited
+  // This survives data updates because it's at the parent level
+  const [editingRecipient, setEditingRecipient] = useState<Recipient | null>(
+    null
+  );
 
   // Pagination state for pages-style pagination
   const [pagination, setPagination] = useState<PaginationState>({
@@ -219,7 +227,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
     isLoadingMore,
     totalCount,
     nextLoadCount,
-  } = usePagesPagination
+  } = usePageBasedData
     ? {
         linkedAccounts: pagesData.linkedAccounts,
         hasActiveAccount: pagesData.hasAccounts,
@@ -364,6 +372,26 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
     onAccountSettled?.(recipient, error);
   };
 
+  // Handle opening the edit dialog (lifted to parent level)
+  const handleEditRecipient = React.useCallback((recipient: Recipient) => {
+    setEditingRecipient(recipient);
+  }, []);
+
+  // Handle edit dialog state changes
+  const handleEditDialogOpenChange = React.useCallback((open: boolean) => {
+    if (!open) {
+      setEditingRecipient(null);
+    }
+  }, []);
+
+  // Handle edit settled - notify parent but don't close dialog (let user see success state)
+  const handleEditSettled = React.useCallback(
+    (recipient?: Recipient, error?: any) => {
+      onAccountSettled?.(recipient, error);
+    },
+    [onAccountSettled]
+  );
+
   return (
     <div id="recipient-widget" className="eb-w-full eb-@container">
       <VerificationResultDialog
@@ -379,6 +407,22 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
         recipient={removedRecipient}
         i18nNamespace={config.i18nNamespace}
       />
+
+      {/* Lifted Edit Dialog - Rendered at parent level to survive data updates */}
+      {editingRecipient && (
+        <LinkedAccountFormDialog
+          mode="edit"
+          recipient={editingRecipient}
+          open
+          onOpenChange={handleEditDialogOpenChange}
+          onLinkedAccountSettled={handleEditSettled}
+          recipientType={recipientType}
+          i18nNamespace={config.i18nNamespace}
+        >
+          {/* Empty trigger since we control open state externally */}
+          <span />
+        </LinkedAccountFormDialog>
+      )}
 
       <Card
         className={cn(
@@ -517,16 +561,22 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                 // Table view with server-side pagination
                 <div className="eb-p-1">
                   <LinkedAccountsTableView
-                    useServerPagination
+                    data={linkedAccounts}
+                    paginationState={{
+                      pagination,
+                      onPaginationChange: setPagination,
+                      totalCount,
+                      pageCount: pagesData.pageCount,
+                      isLoading,
+                    }}
+                    recipientType={recipientType}
                     renderPaymentAction={renderPaymentAction}
+                    onEditRecipient={handleEditRecipient}
                     onLinkedAccountSettled={onAccountSettled}
                     onMicrodepositVerifySettled={
                       handleMicrodepositVerifySettled
                     }
                     onRemoveSuccess={handleRemoveSuccess}
-                    defaultPageSize={pageSize}
-                    showPagination
-                    recipientType={recipientType}
                   />
                 </div>
               ) : scrollable ? (
@@ -570,6 +620,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                               makePaymentComponent={renderPaymentAction?.(
                                 recipient
                               )}
+                              onEditRecipient={handleEditRecipient}
                               onLinkedAccountSettled={onAccountSettled}
                               onMicrodepositVerifySettled={
                                 handleMicrodepositVerifySettled
@@ -622,6 +673,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                           makePaymentComponent={renderPaymentAction?.(
                             recipient
                           )}
+                          onEditRecipient={handleEditRecipient}
                           onLinkedAccountSettled={onAccountSettled}
                           onMicrodepositVerifySettled={
                             handleMicrodepositVerifySettled

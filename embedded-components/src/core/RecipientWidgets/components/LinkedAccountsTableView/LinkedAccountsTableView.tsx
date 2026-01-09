@@ -4,7 +4,6 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   PaginationState,
   useReactTable,
   VisibilityState,
@@ -23,6 +22,7 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import {
+  canMakePayment,
   canVerifyMicrodeposits,
   getRecipientDisplayName,
 } from '@/lib/recipientHelpers';
@@ -64,31 +64,54 @@ import {
 import { MakePayment } from '@/core/MakePayment';
 
 import { MicrodepositsFormDialogTrigger } from '../../forms/MicrodepositsForm/MicrodepositsForm';
-import { useLinkedAccountsTable } from '../../hooks/useLinkedAccountsTable';
-import { LINKED_ACCOUNT_USER_JOURNEYS } from '../../RecipientWidgets.constants';
-import { SupportedRecipientType } from '../../types';
-import { LinkedAccountFormDialog } from '../LinkedAccountFormDialog/LinkedAccountFormDialog';
+import {
+  getRecipientTypeConfig,
+  getUserJourneys,
+  SupportedRecipientType,
+} from '../../types';
 import { RecipientDetailsDialog } from '../RecipientDetailsDialog/RecipientDetailsDialog';
 import { RemoveAccountDialogTrigger } from '../RemoveAccountDialog/RemoveAccountDialog';
 import { getLinkedAccountsColumns } from './LinkedAccountsTableView.columns';
 
 /**
+ * Server-side pagination state passed from parent component
+ */
+export interface TablePaginationState {
+  /** Current pagination state */
+  pagination: PaginationState;
+  /** Callback to update pagination */
+  onPaginationChange: (
+    pagination: PaginationState | ((prev: PaginationState) => PaginationState)
+  ) => void;
+  /** Total count of all items */
+  totalCount: number;
+  /** Total number of pages */
+  pageCount: number;
+  /** Loading state */
+  isLoading: boolean;
+}
+
+/**
  * Props for LinkedAccountsTableView component
- *
- * Can operate in two modes:
- * 1. Client-side pagination: Pass `data` prop with all accounts
- * 2. Server-side pagination: Set `useServerPagination={true}` and the component
- *    will fetch data automatically
  */
 export interface LinkedAccountsTableViewProps {
-  /** Array of linked account recipients to display (client-side pagination mode) */
-  data?: Recipient[];
+  /** Array of linked account recipients to display (required) */
+  data: Recipient[];
 
-  /** Whether to use server-side pagination via the useLinkedAccountsTable hook */
-  useServerPagination?: boolean;
+  /** Pagination state managed by parent component */
+  paginationState: TablePaginationState;
+
+  /** Type of recipients being displayed */
+  recipientType: SupportedRecipientType;
 
   /** Optional MakePayment component renderer */
   renderPaymentAction?: (recipient: Recipient) => React.ReactNode;
+
+  /**
+   * Callback to open the edit dialog for a recipient.
+   * The edit dialog is lifted to the parent component to survive data updates.
+   */
+  onEditRecipient?: (recipient: Recipient) => void;
 
   /** Callback when account is edited or removed */
   onLinkedAccountSettled?: (recipient?: Recipient, error?: ApiError) => void;
@@ -104,44 +127,33 @@ export interface LinkedAccountsTableViewProps {
 
   /** Optional additional CSS classes */
   className?: string;
-
-  /** Default page size for pagination */
-  defaultPageSize?: number;
-
-  /** Show/hide pagination controls */
-  showPagination?: boolean;
-
-  /**
-   * Type of recipients to display
-   * @default 'LINKED_ACCOUNT'
-   */
-  recipientType?: SupportedRecipientType;
 }
 
 /**
  * LinkedAccountsTableView - Table view for linked accounts using TanStack Table
  *
+ * This is a presentational component that receives all data from its parent.
+ * The parent is responsible for data fetching and pagination state management.
+ *
  * Features:
  * - Sortable columns (account holder, status, created date)
  * - Filterable by status
- * - Pagination with configurable page size (client-side or server-side)
+ * - Server-side pagination controlled by parent
  * - Row actions (edit, verify, delete)
  * - Keyboard accessible
  *
  * @example
  * ```tsx
- * // Server-side pagination (recommended for large datasets)
- * <LinkedAccountsTableView
- *   useServerPagination
- *   onLinkedAccountSettled={(recipient, error) => {
- *     if (error) console.error('Error:', error);
- *     else console.log('Success:', recipient);
- *   }}
- * />
- *
- * // Client-side pagination (for small datasets)
  * <LinkedAccountsTableView
  *   data={linkedAccounts}
+ *   paginationState={{
+ *     pagination,
+ *     onPaginationChange: setPagination,
+ *     totalCount,
+ *     pageCount,
+ *     isLoading,
+ *   }}
+ *   recipientType="LINKED_ACCOUNT"
  *   onLinkedAccountSettled={(recipient, error) => {
  *     if (error) console.error('Error:', error);
  *     else console.log('Success:', recipient);
@@ -152,18 +164,23 @@ export interface LinkedAccountsTableViewProps {
 export const LinkedAccountsTableView: React.FC<
   LinkedAccountsTableViewProps
 > = ({
-  data: propData,
-  useServerPagination = false,
+  data,
+  paginationState,
+  recipientType,
   renderPaymentAction,
+  onEditRecipient,
   onLinkedAccountSettled,
   onMicrodepositVerifySettled,
   onRemoveSuccess,
   className,
-  defaultPageSize = 10,
-  showPagination = true,
-  recipientType = 'LINKED_ACCOUNT',
 }) => {
-  const { t } = useTranslation('linked-accounts');
+  // Get config for recipient type
+  const config = getRecipientTypeConfig(recipientType);
+  const userJourneys = getUserJourneys(config.eventPrefix);
+  const { t } = useTranslation(config.i18nNamespace);
+
+  // Destructure pagination state from parent
+  const { pagination, totalCount, pageCount, isLoading } = paginationState;
 
   // Track which account numbers are visible (show full number)
   const [visibleAccountNumbers, setVisibleAccountNumbers] = React.useState<
@@ -183,194 +200,242 @@ export const LinkedAccountsTableView: React.FC<
     });
   }, []);
 
-  // Table state - pagination controlled here to work with both modes
+  // Table state - only filters and visibility are managed internally
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
-  const [pagination, setPagination] = React.useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: defaultPageSize,
-  });
 
-  // Server-side pagination hook (only used when useServerPagination is true)
-  const serverPaginationData = useLinkedAccountsTable({
-    pagination,
-    onPaginationChange: setPagination,
-    recipientType,
-  });
-
-  // Determine which data and pagination values to use
-  const isServerMode = useServerPagination;
-  const data = isServerMode
-    ? serverPaginationData.linkedAccounts
-    : propData || [];
-  const totalCount = isServerMode
-    ? serverPaginationData.totalCount
-    : data.length;
-  const pageCount = isServerMode
-    ? serverPaginationData.pageCount
-    : Math.ceil(data.length / pagination.pageSize);
-  const isLoading = isServerMode ? serverPaginationData.isLoading : false;
-
-  // Pay button renderer for the table
-  const renderPayButton = React.useCallback(
-    (recipient: Recipient) => {
-      const isActive = recipient.status === 'ACTIVE';
-      const displayName = getRecipientDisplayName(recipient);
-
-      // If custom payment action is provided, use it
-      if (renderPaymentAction) {
-        return isActive ? renderPaymentAction(recipient) : null;
-      }
-
-      // Default: Use built-in MakePayment component
-      if (!isActive) {
-        return null;
-      }
-
-      return (
-        <MakePayment
-          triggerButton={
-            <Button
-              variant="outline"
-              size="sm"
-              className="eb-h-8 eb-text-xs"
-              aria-label={`${t('actions.makePayment')} from ${displayName}`}
-            >
-              {t('actions.makePayment', { defaultValue: 'Pay' })}
-            </Button>
-          }
-          recipientId={recipient.id}
-        />
-      );
-    },
-    [renderPaymentAction, t]
-  );
-
-  // Row actions renderer (dropdown menu)
-  const renderRowActions = React.useCallback(
+  // Render all row actions (inline buttons + overflow menu)
+  const renderRowActionsCell = React.useCallback(
     (recipient: Recipient) => {
       const displayName = getRecipientDisplayName(recipient);
       const showVerifyButton = canVerifyMicrodeposits(recipient);
+      const showPaymentButton = canMakePayment(recipient);
       const isActive = recipient.status === 'ACTIVE';
 
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="eb-h-8 eb-w-8"
-              aria-label={t('actions.moreActions', {
-                defaultValue: 'More actions for {{name}}',
-                name: displayName,
-              })}
-            >
-              <MoreVerticalIcon className="eb-h-4 eb-w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="eb-w-48">
-            {/* View Details - matches card view */}
-            <RecipientDetailsDialog recipient={recipient}>
-              <DropdownMenuItem
-                onSelect={(e) => e.preventDefault()}
-                className="eb-cursor-pointer"
-              >
-                <ClipboardListIcon className="eb-mr-2 eb-h-4 eb-w-4" />
-                {t('actions.viewDetails', { defaultValue: 'View details' })}
-              </DropdownMenuItem>
-            </RecipientDetailsDialog>
+      // Determine what to show inline vs in menu
+      // Prioritize: Pay > Verify > Details > Edit
+      const primaryAction = showPaymentButton
+        ? 'pay'
+        : showVerifyButton
+          ? 'verify'
+          : null;
 
-            {/* Verify Microdeposits */}
-            {showVerifyButton && (
-              <>
-                <DropdownMenuSeparator />
-                <MicrodepositsFormDialogTrigger
-                  recipientId={recipient.id}
-                  onVerificationSettled={(response) =>
-                    onMicrodepositVerifySettled?.(response, recipient)
-                  }
-                >
-                  <DropdownMenuItem
-                    onSelect={(e) => e.preventDefault()}
-                    className="eb-cursor-pointer"
-                    data-user-event={
-                      LINKED_ACCOUNT_USER_JOURNEYS.VERIFY_STARTED
-                    }
-                  >
-                    <ArrowRightIcon className="eb-mr-2 eb-h-4 eb-w-4" />
-                    {t('actions.verifyAccount', {
-                      defaultValue: 'Verify account',
-                    })}
-                  </DropdownMenuItem>
-                </MicrodepositsFormDialogTrigger>
-              </>
-            )}
-
-            <DropdownMenuSeparator />
-
-            {/* Edit Account - disabled for non-ACTIVE accounts (matches card) */}
-            {isActive ? (
-              <LinkedAccountFormDialog
-                mode="edit"
-                recipient={recipient}
-                onLinkedAccountSettled={onLinkedAccountSettled}
+      // Shared menu items (Verify when not inline, Edit, Remove)
+      const sharedMenuItems = (
+        <>
+          {/* Verify Microdeposits - only in menu when not shown inline */}
+          {showVerifyButton && primaryAction !== 'verify' && (
+            <>
+              <MicrodepositsFormDialogTrigger
+                recipientId={recipient.id}
+                onVerificationSettled={(response) =>
+                  onMicrodepositVerifySettled?.(response, recipient)
+                }
               >
                 <DropdownMenuItem
                   onSelect={(e) => e.preventDefault()}
                   className="eb-cursor-pointer"
+                  data-user-event={userJourneys.VERIFY_STARTED}
                 >
-                  <PencilIcon className="eb-mr-2 eb-h-4 eb-w-4" />
-                  {t('actions.edit', { defaultValue: 'Edit' })}
+                  <ArrowRightIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+                  {t('actions.verifyAccount', {
+                    defaultValue: 'Verify account',
+                  })}
                 </DropdownMenuItem>
-              </LinkedAccountFormDialog>
-            ) : (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <DropdownMenuItem
-                      disabled
-                      className="eb-cursor-not-allowed eb-opacity-50"
-                    >
-                      <PencilIcon className="eb-mr-2 eb-h-4 eb-w-4" />
-                      {t('actions.edit', { defaultValue: 'Edit' })}
-                    </DropdownMenuItem>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="left">
-                  <p>
-                    {t('actions.editDisabledTooltip', {
-                      defaultValue: 'Cannot edit inactive account',
-                    })}
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            )}
+              </MicrodepositsFormDialogTrigger>
+              <DropdownMenuSeparator />
+            </>
+          )}
 
-            <DropdownMenuSeparator />
-
-            {/* Remove Account */}
-            <RemoveAccountDialogTrigger
-              recipient={recipient}
-              onLinkedAccountSettled={onLinkedAccountSettled}
-              onRemoveSuccess={onRemoveSuccess}
+          {/* Edit Account */}
+          {isActive && onEditRecipient ? (
+            <DropdownMenuItem
+              onSelect={() => onEditRecipient(recipient)}
+              className="eb-cursor-pointer"
             >
-              <DropdownMenuItem
-                onSelect={(e) => e.preventDefault()}
-                className="eb-cursor-pointer eb-text-destructive focus:eb-text-destructive"
-                data-user-event={LINKED_ACCOUNT_USER_JOURNEYS.REMOVE_STARTED}
+              <PencilIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+              {t('actions.edit', { defaultValue: 'Edit' })}
+            </DropdownMenuItem>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <DropdownMenuItem
+                    disabled
+                    className="eb-cursor-not-allowed eb-opacity-50"
+                  >
+                    <PencilIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+                    {t('actions.edit', { defaultValue: 'Edit' })}
+                  </DropdownMenuItem>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                <p>
+                  {t('actions.editDisabledTooltip', {
+                    defaultValue: 'Cannot edit inactive account',
+                  })}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          <DropdownMenuSeparator />
+
+          {/* Remove Account */}
+          <RemoveAccountDialogTrigger
+            recipient={recipient}
+            onLinkedAccountSettled={onLinkedAccountSettled}
+            onRemoveSuccess={onRemoveSuccess}
+          >
+            <DropdownMenuItem
+              onSelect={(e) => e.preventDefault()}
+              className="eb-cursor-pointer eb-text-destructive focus:eb-text-destructive"
+              data-user-event={userJourneys.REMOVE_STARTED}
+            >
+              <TrashIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+              {t('actions.remove', { defaultValue: 'Remove' })}
+            </DropdownMenuItem>
+          </RemoveAccountDialogTrigger>
+        </>
+      );
+
+      // View Details menu item
+      const viewDetailsMenuItem = (
+        <>
+          <RecipientDetailsDialog recipient={recipient}>
+            <DropdownMenuItem
+              onSelect={(e) => e.preventDefault()}
+              className="eb-cursor-pointer"
+            >
+              <ClipboardListIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+              {t('actions.viewDetails', { defaultValue: 'View details' })}
+            </DropdownMenuItem>
+          </RecipientDetailsDialog>
+          <DropdownMenuSeparator />
+        </>
+      );
+
+      return (
+        <div className="eb-flex eb-items-center eb-justify-end eb-gap-1">
+          {/* Primary action - Pay or Verify */}
+          {primaryAction === 'pay' && (
+            <>
+              {renderPaymentAction ? (
+                renderPaymentAction(recipient)
+              ) : (
+                <MakePayment
+                  triggerButton={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="eb-h-8 eb-text-xs"
+                      aria-label={`${t('actions.makePayment')} from ${displayName}`}
+                    >
+                      {t('actions.makePayment', { defaultValue: 'Pay' })}
+                    </Button>
+                  }
+                  recipientId={recipient.id}
+                />
+              )}
+            </>
+          )}
+
+          {primaryAction === 'verify' && (
+            <MicrodepositsFormDialogTrigger
+              recipientId={recipient.id}
+              onVerificationSettled={(response) =>
+                onMicrodepositVerifySettled?.(response, recipient)
+              }
+            >
+              <Button
+                variant="default"
+                size="sm"
+                className="eb-h-8 eb-text-xs"
+                data-user-event={userJourneys.VERIFY_STARTED}
+                aria-label={`${t('actions.verifyAccount')} for ${displayName}`}
               >
-                <TrashIcon className="eb-mr-2 eb-h-4 eb-w-4" />
-                {t('actions.remove', { defaultValue: 'Remove' })}
-              </DropdownMenuItem>
-            </RemoveAccountDialogTrigger>
-          </DropdownMenuContent>
-        </DropdownMenu>
+                {t('actions.verifyAccount', { defaultValue: 'Verify' })}
+              </Button>
+            </MicrodepositsFormDialogTrigger>
+          )}
+
+          {/* Secondary inline actions - shown at wider widths
+              Use two menus for responsive View Details visibility:
+              - When Details is inline (@2xl+): hide Details from menu
+              - When Details is NOT inline (<@2xl): show Details in menu
+          */}
+          <div className="eb-hidden eb-items-center eb-gap-1 @2xl:eb-flex">
+            {/* Details button - inline at @2xl+ (icon only, full label at @3xl+) */}
+            <RecipientDetailsDialog recipient={recipient}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="eb-h-8 eb-gap-1 eb-text-xs"
+                aria-label={`${t('actions.viewDetails')} for ${displayName}`}
+              >
+                <ClipboardListIcon className="eb-h-3.5 eb-w-3.5" />
+                <span className="eb-hidden @3xl:eb-inline">
+                  {t('actions.details', { defaultValue: 'Details' })}
+                </span>
+              </Button>
+            </RecipientDetailsDialog>
+          </div>
+
+          {/* Menu WITH View Details - shown at <@2xl (when inline Details is hidden) */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="eb-h-8 eb-w-8 @2xl:eb-hidden"
+                aria-label={t('actions.moreActions', {
+                  defaultValue: 'More actions for {{name}}',
+                  name: displayName,
+                })}
+              >
+                <MoreVerticalIcon className="eb-h-4 eb-w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {viewDetailsMenuItem}
+              {sharedMenuItems}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Menu WITHOUT View Details - shown at @2xl+ (when inline Details is visible) */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="eb-hidden eb-h-8 eb-w-8 @2xl:eb-flex"
+                aria-label={t('actions.moreActions', {
+                  defaultValue: 'More actions for {{name}}',
+                  name: displayName,
+                })}
+              >
+                <MoreVerticalIcon className="eb-h-4 eb-w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {sharedMenuItems}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       );
     },
-    [t, onLinkedAccountSettled, onMicrodepositVerifySettled, onRemoveSuccess]
+    [
+      t,
+      userJourneys.VERIFY_STARTED,
+      userJourneys.REMOVE_STARTED,
+      renderPaymentAction,
+      onEditRecipient,
+      onMicrodepositVerifySettled,
+      onRemoveSuccess,
+      onLinkedAccountSettled,
+    ]
   );
 
   // Generate columns with actions
@@ -378,31 +443,23 @@ export const LinkedAccountsTableView: React.FC<
     () =>
       getLinkedAccountsColumns({
         t: t as unknown as (key: string, options?: unknown) => string,
-        renderActions: renderRowActions,
-        renderPayButton,
+        renderActionsCell: renderRowActionsCell,
         visibleAccountNumbers,
         onToggleAccountNumber: handleToggleAccountNumber,
       }),
-    [
-      t,
-      renderRowActions,
-      renderPayButton,
-      visibleAccountNumbers,
-      handleToggleAccountNumber,
-    ]
+    [t, renderRowActionsCell, visibleAccountNumbers, handleToggleAccountNumber]
   );
 
   // Initialize table instance
   const table = useReactTable({
     data,
     columns,
-    // Use manual pagination for server-side mode
-    manualPagination: isServerMode,
-    pageCount: isServerMode ? pageCount : undefined,
+    // Always use manual pagination since parent controls the data
+    manualPagination: true,
+    pageCount,
     onColumnFiltersChange: setColumnFilters,
-    onPaginationChange: setPagination,
+    onPaginationChange: paginationState.onPaginationChange,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: isServerMode ? undefined : getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     state: {
@@ -413,7 +470,7 @@ export const LinkedAccountsTableView: React.FC<
   });
 
   return (
-    <div className={cn('eb-w-full eb-space-y-4', className)}>
+    <div className={cn('eb-w-full eb-space-y-4 eb-@container', className)}>
       {/* Table */}
       <div className="eb-rounded-md eb-border">
         <Table>
@@ -479,7 +536,7 @@ export const LinkedAccountsTableView: React.FC<
       </div>
 
       {/* Pagination */}
-      {showPagination && (isServerMode ? totalCount > 0 : data.length > 0) && (
+      {totalCount > 0 && (
         <div className="eb-flex eb-items-center eb-justify-between eb-px-2">
           <div className="eb-flex eb-items-center eb-space-x-2 eb-text-sm eb-text-muted-foreground">
             <span>
@@ -492,9 +549,9 @@ export const LinkedAccountsTableView: React.FC<
                 to: Math.min(
                   (table.getState().pagination.pageIndex + 1) *
                     table.getState().pagination.pageSize,
-                  isServerMode ? totalCount : data.length
+                  totalCount
                 ),
-                total: isServerMode ? totalCount : data.length,
+                total: totalCount,
               })}
             </span>
           </div>

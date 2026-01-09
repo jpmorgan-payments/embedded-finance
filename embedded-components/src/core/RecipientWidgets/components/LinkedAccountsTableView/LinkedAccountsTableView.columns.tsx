@@ -95,8 +95,8 @@ export const AccountNumberCell: React.FC<AccountNumberCellProps> = ({
 export interface GetLinkedAccountsColumnsOptions {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   t: (key: string, options?: any) => string;
-  renderActions?: (recipient: Recipient) => React.ReactNode;
-  renderPayButton?: (recipient: Recipient) => React.ReactNode;
+  /** Render the combined actions cell (includes pay, verify, edit, details, remove) */
+  renderActionsCell?: (recipient: Recipient) => React.ReactNode;
   visibleAccountNumbers: Set<string>;
   onToggleAccountNumber: (id: string) => void;
 }
@@ -106,8 +106,7 @@ export interface GetLinkedAccountsColumnsOptions {
  */
 export const getLinkedAccountsColumns = ({
   t,
-  renderActions,
-  renderPayButton,
+  renderActionsCell,
   visibleAccountNumbers,
   onToggleAccountNumber,
 }: GetLinkedAccountsColumnsOptions): ColumnDef<Recipient, unknown>[] => {
@@ -228,25 +227,7 @@ export const getLinkedAccountsColumns = ({
       },
     },
 
-    // Pay button column (only if renderPayButton is provided)
-    ...(renderPayButton
-      ? [
-          {
-            id: 'pay',
-            header: () => (
-              <span className="eb-sr-only">
-                {t('table.columns.pay', { defaultValue: 'Pay' })}
-              </span>
-            ),
-            cell: ({ row }: { row: { original: Recipient } }) => {
-              return renderPayButton(row.original);
-            },
-            enableHiding: false,
-          } as ColumnDef<Recipient, unknown>,
-        ]
-      : []),
-
-    // Actions column
+    // Combined Actions column (includes pay, verify, edit, details, remove)
     {
       id: 'actions',
       header: () => (
@@ -255,8 +236,8 @@ export const getLinkedAccountsColumns = ({
         </span>
       ),
       cell: ({ row }) => {
-        if (renderActions) {
-          return renderActions(row.original);
+        if (renderActionsCell) {
+          return renderActionsCell(row.original);
         }
         return null;
       },

@@ -53,15 +53,13 @@ export interface LinkedAccountFormDialogProps {
 
   /**
    * Type of recipient to create/edit
-   * @default 'LINKED_ACCOUNT'
    */
-  recipientType?: SupportedRecipientType;
+  recipientType: SupportedRecipientType;
 
   /**
    * i18n namespace to use for translations
-   * @default 'linked-accounts'
    */
-  i18nNamespace?: RecipientI18nNamespace;
+  i18nNamespace: RecipientI18nNamespace;
 }
 
 /**
@@ -95,8 +93,8 @@ export const LinkedAccountFormDialog: FC<LinkedAccountFormDialogProps> = ({
   open,
   onOpenChange,
   onLinkedAccountSettled,
-  recipientType = 'LINKED_ACCOUNT',
-  i18nNamespace = 'linked-accounts',
+  recipientType,
+  i18nNamespace,
 }) => {
   const { t } = useTranslation(i18nNamespace);
   const clientId = useClientId();

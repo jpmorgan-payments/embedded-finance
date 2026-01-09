@@ -33,6 +33,7 @@ export function invalidateLinkedAccountQueries(
     predicate: (query) => {
       const { queryKey } = query;
       if (Array.isArray(queryKey)) {
+        console.log(queryKey);
         const hasRecipientsPath = queryKey.some((key) => key === '/recipients');
         const hasMatchingType = queryKey.some(
           (key) =>
@@ -41,6 +42,7 @@ export function invalidateLinkedAccountQueries(
             'type' in key &&
             key.type === recipientType
         );
+        console.log(hasMatchingType, recipientType);
         return hasRecipientsPath && hasMatchingType;
       }
       return false;

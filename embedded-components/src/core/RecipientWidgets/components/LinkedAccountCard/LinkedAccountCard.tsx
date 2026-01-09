@@ -55,6 +55,12 @@ export interface LinkedAccountCardProps {
   /** Optional MakePayment component to render when account is active */
   makePaymentComponent?: React.ReactNode;
 
+  /**
+   * Callback to open the edit dialog for a recipient.
+   * The edit dialog is lifted to the parent component to survive data updates.
+   */
+  onEditRecipient?: (recipient: Recipient) => void;
+
   /** Callback when account is edited or removed */
   onLinkedAccountSettled?: (recipient?: Recipient, error?: ApiError) => void;
 
@@ -103,6 +109,7 @@ export interface LinkedAccountCardProps {
 export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
   recipient,
   makePaymentComponent,
+  onEditRecipient,
   onLinkedAccountSettled,
   onMicrodepositVerifySettled,
   onRemoveSuccess,
@@ -148,30 +155,59 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
     ]);
   };
 
-  // Add routing button component
-  const renderAddRoutingButton = (isExpanded: boolean) => (
-    <LinkedAccountFormDialog
-      mode="edit"
-      recipient={recipient}
-      onLinkedAccountSettled={onLinkedAccountSettled}
-      recipientType={recipientType}
-      i18nNamespace={i18nNamespace}
-    >
-      <Button
-        variant="ghost"
-        size="sm"
-        className={
-          isExpanded
-            ? 'eb-mt-1 eb-h-8 eb-justify-start eb-border eb-border-dashed eb-border-border/30 eb-text-xs eb-text-muted-foreground hover:eb-border-border/50 hover:eb-bg-muted/50 hover:eb-text-foreground'
-            : 'eb-h-6 eb-gap-1 eb-border eb-border-dashed eb-px-2 eb-text-xs eb-text-muted-foreground'
-        }
-        aria-label={`Add ${missingPaymentMethods.join(' or ')} routing information for ${displayName}`}
+  // Add routing button component - uses lifted dialog via callback
+  const renderAddRoutingButton = (isExpanded: boolean) => {
+    // Use lifted dialog callback if available, otherwise fall back to inline dialog
+    if (onEditRecipient) {
+      return (
+        <Button
+          variant="ghost"
+          size="sm"
+          className={
+            isExpanded
+              ? 'eb-mt-1 eb-h-8 eb-justify-start eb-border eb-border-dashed eb-border-border/30 eb-text-xs eb-text-muted-foreground hover:eb-border-border/50 hover:eb-bg-muted/50 hover:eb-text-foreground'
+              : 'eb-h-6 eb-gap-1 eb-border eb-border-dashed eb-px-2 eb-text-xs eb-text-muted-foreground'
+          }
+          aria-label={`Add ${missingPaymentMethods.join(' or ')} routing information for ${displayName}`}
+          onClick={() => onEditRecipient(recipient)}
+        >
+          <PlusIcon
+            className="eb-mr-1.5 eb-h-3.5 eb-w-3.5"
+            aria-hidden="true"
+          />
+          <span>{getAddRoutingButtonLabel()}</span>
+        </Button>
+      );
+    }
+
+    // Fallback to inline dialog when onEditRecipient is not provided
+    return (
+      <LinkedAccountFormDialog
+        mode="edit"
+        recipient={recipient}
+        onLinkedAccountSettled={onLinkedAccountSettled}
+        recipientType={recipientType}
+        i18nNamespace={i18nNamespace}
       >
-        <PlusIcon className="eb-mr-1.5 eb-h-3.5 eb-w-3.5" aria-hidden="true" />
-        <span>{getAddRoutingButtonLabel()}</span>
-      </Button>
-    </LinkedAccountFormDialog>
-  );
+        <Button
+          variant="ghost"
+          size="sm"
+          className={
+            isExpanded
+              ? 'eb-mt-1 eb-h-8 eb-justify-start eb-border eb-border-dashed eb-border-border/30 eb-text-xs eb-text-muted-foreground hover:eb-border-border/50 hover:eb-bg-muted/50 hover:eb-text-foreground'
+              : 'eb-h-6 eb-gap-1 eb-border eb-border-dashed eb-px-2 eb-text-xs eb-text-muted-foreground'
+          }
+          aria-label={`Add ${missingPaymentMethods.join(' or ')} routing information for ${displayName}`}
+        >
+          <PlusIcon
+            className="eb-mr-1.5 eb-h-3.5 eb-w-3.5"
+            aria-hidden="true"
+          />
+          <span>{getAddRoutingButtonLabel()}</span>
+        </Button>
+      </LinkedAccountFormDialog>
+    );
+  };
 
   // Status alert component (shows in non-compact mode)
   // In compact mode, statuses with inline messages don't need the alert
@@ -216,23 +252,33 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
   // Shared menu items (Edit and Remove)
   const sharedMenuItems = (
     <>
-      {/* Edit - disabled for non-ACTIVE accounts */}
+      {/* Edit - disabled for non-ACTIVE accounts, uses lifted dialog when available */}
       {isActive ? (
-        <LinkedAccountFormDialog
-          mode="edit"
-          recipient={recipient}
-          onLinkedAccountSettled={onLinkedAccountSettled}
-          recipientType={recipientType}
-          i18nNamespace={i18nNamespace}
-        >
+        onEditRecipient ? (
           <DropdownMenuItem
-            onSelect={(e) => e.preventDefault()}
+            onSelect={() => onEditRecipient(recipient)}
             className="eb-cursor-pointer"
           >
             <PencilIcon className="eb-mr-2 eb-h-4 eb-w-4" />
             <span>{t('actions.edit')}</span>
           </DropdownMenuItem>
-        </LinkedAccountFormDialog>
+        ) : (
+          <LinkedAccountFormDialog
+            mode="edit"
+            recipient={recipient}
+            onLinkedAccountSettled={onLinkedAccountSettled}
+            recipientType={recipientType}
+            i18nNamespace={i18nNamespace}
+          >
+            <DropdownMenuItem
+              onSelect={(e) => e.preventDefault()}
+              className="eb-cursor-pointer"
+            >
+              <PencilIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+              <span>{t('actions.edit')}</span>
+            </DropdownMenuItem>
+          </LinkedAccountFormDialog>
+        )
       ) : (
         <Tooltip>
           <TooltipTrigger asChild>
