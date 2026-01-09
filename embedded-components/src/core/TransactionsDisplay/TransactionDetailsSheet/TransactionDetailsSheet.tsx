@@ -97,44 +97,75 @@ export const TransactionDetailsDialogTrigger: FC<
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="eb-scrollable-dialog eb-max-w-xl">
-        <DialogHeader>
-          <DialogTitle className="eb-group eb-flex eb-items-center eb-gap-2 eb-text-lg">
-            {t('details.title', {
-              transactionId,
-              defaultValue: `Transaction: ${transactionId}`,
-            })}
-            <Button
-              size="icon"
-              variant="outline"
-              className="eb-h-6 eb-w-6 eb-opacity-0 eb-transition-opacity group-hover:eb-opacity-100"
-              onClick={() => navigator.clipboard.writeText(transactionId)}
-            >
-              <CopyIcon className="eb-h-3 eb-w-3" />
-              <span className="eb-sr-only">
-                {t('actions.copyTransactionId.srOnly', {
-                  defaultValue: 'Copy transaction ID',
-                })}
-              </span>
-            </Button>
-          </DialogTitle>
+      <DialogContent className="eb-max-h-full eb-max-w-lg eb-overflow-hidden eb-p-0 sm:eb-max-h-[90vh]">
+        <DialogHeader className="eb-shrink-0 eb-border-b eb-p-6 eb-pb-4">
+          <div className="eb-space-y-3">
+            <DialogTitle className="eb-group eb-flex eb-items-center eb-gap-2 eb-font-header eb-text-xl eb-leading-tight">
+              {t('details.title', {
+                transactionId,
+                defaultValue: `Transaction: ${transactionId}`,
+              })}
+              <Button
+                size="icon"
+                variant="outline"
+                className="eb-h-6 eb-w-6 eb-opacity-0 eb-transition-opacity group-hover:eb-opacity-100"
+                onClick={() => navigator.clipboard.writeText(transactionId)}
+              >
+                <CopyIcon className="eb-h-3 eb-w-3" />
+                <span className="eb-sr-only">
+                  {t('actions.copyTransactionId.srOnly', {
+                    defaultValue: 'Copy transaction ID',
+                  })}
+                </span>
+              </Button>
+            </DialogTitle>
+            {transaction && (
+              <>
+                <div className="eb-text-3xl eb-font-semibold">
+                  {transaction.amount
+                    ? formatNumberToCurrency(
+                        transaction.amount,
+                        transaction.currency ?? 'USD',
+                        locale
+                      )
+                    : naText}
+                </div>
+                <div className="eb-flex eb-flex-wrap eb-items-center eb-gap-2">
+                  {transaction.status && (
+                    <Badge
+                      variant={getStatusVariant(transaction.status)}
+                      className="eb-text-xs"
+                    >
+                      {formatStatusText(transaction.status)}
+                    </Badge>
+                  )}
+                  {transaction.currency && (
+                    <span className="eb-rounded-md eb-bg-muted eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-muted-foreground">
+                      {transaction.currency}
+                    </span>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         </DialogHeader>
-        <div className="eb-mb-4 eb-flex eb-items-center eb-justify-end eb-gap-2">
-          <Switch
-            id="show-all"
-            checked={!hideEmpty}
-            onCheckedChange={(checked) => setHideEmpty(!checked)}
-          />
-          <Label
-            htmlFor="show-all"
-            className="eb-text-xs eb-text-muted-foreground"
-          >
-            {t('details.showAllFields', {
-              defaultValue: 'Show all fields',
-            })}
-          </Label>
-        </div>
-        <div className="eb-scrollable-content">
+
+        <div className="eb-flex-1 eb-overflow-y-auto eb-p-6 eb-pt-5">
+          <div className="eb-mb-4 eb-flex eb-items-center eb-justify-end eb-gap-2">
+            <Switch
+              id="show-all"
+              checked={!hideEmpty}
+              onCheckedChange={(checked) => setHideEmpty(!checked)}
+            />
+            <Label
+              htmlFor="show-all"
+              className="eb-text-xs eb-text-muted-foreground"
+            >
+              {t('details.showAllFields', {
+                defaultValue: 'Show all fields',
+              })}
+            </Label>
+          </div>
           {status === 'pending' && (
             <div className="eb-py-8 eb-text-center eb-text-sm eb-text-muted-foreground">
               {t('loading.details', {
@@ -183,60 +214,23 @@ export const TransactionDetailsDialogTrigger: FC<
             />
           )}
           {status === 'success' && transaction && (
-            <div className="eb-space-y-2">
-              {/* Amount Section - Prominent */}
-              <div className="eb-space-y-2">
-                <div className="eb-text-2xl eb-font-semibold">
-                  {transaction.amount
-                    ? formatNumberToCurrency(
-                        transaction.amount,
-                        transaction.currency ?? 'USD',
-                        locale
-                      )
-                    : naText}
-                </div>
-                {renderField(
-                  t('details.fields.currency', {
-                    defaultValue: 'Currency',
-                  }),
-                  transaction.currency
-                )}
-              </div>
-
+            <div className="eb-space-y-5">
               {/* General Section */}
               {(!hideEmpty ||
                 hasValue(transaction.type) ||
-                hasValue(transaction.status) ||
                 hasValue(transaction.feeType)) && (
                 <>
-                  <div className="eb-border-t eb-border-border/40" />
-                  <div className="eb-space-y-1.5">
-                    <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                  <div className="eb-h-px eb-bg-border" />
+                  <div className="eb-space-y-3">
+                    <h3 className="eb-text-sm eb-font-semibold eb-text-foreground">
                       {t('details.sections.general', {
                         defaultValue: 'General',
                       })}
                     </h3>
-                    <div className="eb-space-y-1">
+                    <div className="eb-space-y-3">
                       {renderField(
                         t('details.fields.type', { defaultValue: 'Type' }),
                         transaction.type
-                      )}
-                      {transaction.status && (
-                        <div className="eb-flex eb-items-start eb-justify-between eb-gap-2">
-                          <Label className="eb-shrink-0 eb-text-sm eb-font-normal eb-text-muted-foreground">
-                            {t('details.fields.status', {
-                              defaultValue: 'Status',
-                            })}
-                          </Label>
-                          <div className="eb-min-w-0 eb-flex-1 eb-text-right eb-text-sm eb-font-normal">
-                            <Badge
-                              variant={getStatusVariant(transaction.status)}
-                              className="eb-text-sm"
-                            >
-                              {formatStatusText(transaction.status)}
-                            </Badge>
-                          </div>
-                        </div>
                       )}
                       {renderField(
                         t('details.fields.feeType', {
@@ -256,14 +250,14 @@ export const TransactionDetailsDialogTrigger: FC<
                 hasValue(transaction.originatingId) ||
                 hasValue(transaction.originatingTransactionType)) && (
                 <>
-                  <div className="eb-border-t eb-border-border/40" />
-                  <div className="eb-space-y-1.5">
-                    <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                  <div className="eb-h-px eb-bg-border" />
+                  <div className="eb-space-y-3">
+                    <h3 className="eb-text-sm eb-font-semibold eb-text-foreground">
                       {t('details.sections.identifiers', {
                         defaultValue: 'Identifiers',
                       })}
                     </h3>
-                    <div className="eb-space-y-1">
+                    <div className="eb-space-y-3">
                       {renderField(
                         t('details.fields.transactionId', {
                           defaultValue: 'Transaction ID',
@@ -300,14 +294,14 @@ export const TransactionDetailsDialogTrigger: FC<
                 hasValue(transaction.effectiveDate) ||
                 hasValue(transaction.postingVersion)) && (
                 <>
-                  <div className="eb-border-t eb-border-border/40" />
-                  <div className="eb-space-y-1.5">
-                    <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                  <div className="eb-h-px eb-bg-border" />
+                  <div className="eb-space-y-3">
+                    <h3 className="eb-text-sm eb-font-semibold eb-text-foreground">
                       {t('details.sections.datesVersioning', {
                         defaultValue: 'Dates & Versioning',
                       })}
                     </h3>
-                    <div className="eb-space-y-1">
+                    <div className="eb-space-y-3">
                       {renderField(
                         t('details.fields.createdAt', {
                           defaultValue: 'Created At',
@@ -347,14 +341,14 @@ export const TransactionDetailsDialogTrigger: FC<
                 hasValue(transaction.debtorAccountNumber) ||
                 hasValue(transaction.debtorClientId)) && (
                 <>
-                  <div className="eb-border-t eb-border-border/40" />
-                  <div className="eb-space-y-1.5">
-                    <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                  <div className="eb-h-px eb-bg-border" />
+                  <div className="eb-space-y-3">
+                    <h3 className="eb-text-sm eb-font-semibold eb-text-foreground">
                       {t('details.sections.debtor', {
                         defaultValue: 'Debtor',
                       })}
                     </h3>
-                    <div className="eb-space-y-1">
+                    <div className="eb-space-y-3">
                       {renderField(
                         t('details.fields.name', { defaultValue: 'Name' }),
                         transaction.debtorName
@@ -389,14 +383,14 @@ export const TransactionDetailsDialogTrigger: FC<
                 hasValue(transaction.creditorAccountNumber) ||
                 hasValue(transaction.creditorClientId)) && (
                 <>
-                  <div className="eb-border-t eb-border-border/40" />
-                  <div className="eb-space-y-1.5">
-                    <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                  <div className="eb-h-px eb-bg-border" />
+                  <div className="eb-space-y-3">
+                    <h3 className="eb-text-sm eb-font-semibold eb-text-foreground">
                       {t('details.sections.creditor', {
                         defaultValue: 'Creditor',
                       })}
                     </h3>
-                    <div className="eb-space-y-1">
+                    <div className="eb-space-y-3">
                       {renderField(
                         t('details.fields.name', { defaultValue: 'Name' }),
                         transaction.creditorName
@@ -430,14 +424,14 @@ export const TransactionDetailsDialogTrigger: FC<
                 hasValue(transaction.memo) ||
                 hasValue(transaction.recipientId)) && (
                 <>
-                  <div className="eb-border-t eb-border-border/40" />
-                  <div className="eb-space-y-1.5">
-                    <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                  <div className="eb-h-px eb-bg-border" />
+                  <div className="eb-space-y-3">
+                    <h3 className="eb-text-sm eb-font-semibold eb-text-foreground">
                       {t('details.sections.financial', {
                         defaultValue: 'Financial',
                       })}
                     </h3>
-                    <div className="eb-space-y-1">
+                    <div className="eb-space-y-3">
                       {renderField(
                         t('details.fields.ledgerBalance', {
                           defaultValue: 'Ledger Balance',
@@ -468,14 +462,14 @@ export const TransactionDetailsDialogTrigger: FC<
               {/* Error Section (conditional) */}
               {transaction.error && (
                 <>
-                  <div className="eb-border-t eb-border-border/40" />
-                  <div className="eb-space-y-1.5 eb-rounded-md eb-border eb-border-destructive/50 eb-bg-destructive/5 eb-p-2">
-                    <h3 className="eb-text-sm eb-font-medium eb-uppercase eb-tracking-wide eb-text-destructive">
+                  <div className="eb-h-px eb-bg-border" />
+                  <div className="eb-space-y-3 eb-rounded-md eb-border eb-border-destructive/50 eb-bg-destructive/5 eb-p-4">
+                    <h3 className="eb-text-sm eb-font-semibold eb-text-destructive">
                       {t('details.sections.errorDetails', {
                         defaultValue: 'Error Details',
                       })}
                     </h3>
-                    <div className="eb-space-y-1">
+                    <div className="eb-space-y-3">
                       {renderField(
                         t('details.fields.title', { defaultValue: 'Title' }),
                         transaction.error.title

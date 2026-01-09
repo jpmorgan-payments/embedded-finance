@@ -41,18 +41,18 @@
     }
   },
   "columns": {
-    "date": "Date",
+    "date": "Posted",
     "status": "Status",
     "type": "Type",
     "amount": "Amount",
     "currency": "Currency",
     "counterpart": "Counterpart",
     "referenceId": "Reference ID",
-    "createdAt": "Created At",
+    "createdAt": "Created",
     "effectiveDate": "Effective Date",
     "memo": "Memo",
-    "debtor": "Debtor",
-    "creditor": "Creditor",
+    "debtor": "From",
+    "creditor": "To",
     "ledgerBalance": "Ledger Balance",
     "postingVersion": "Posting Version",
     "direction": "Direction"

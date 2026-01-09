@@ -131,7 +131,6 @@ export function KycOnboarding({
           'LIMITED_PARTNERSHIP',
           'C_CORPORATION',
         ]}
-        userEventsToTrack={['click', 'submit', 'navigation']}
         userEventsHandler={handleUserEvents}
         docUploadOnlyMode={isOnboardingDocsNeededScenario(clientScenario)}
         hideLinkAccountSection

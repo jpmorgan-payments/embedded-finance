@@ -6,7 +6,7 @@ import {
   EBComponentsProvider,
   LinkedAccountWidget,
   MakePayment,
-  Recipients,
+  RecipientsWidget,
   TransactionsDisplay,
 } from '@jpmorgan-payments/embedded-finance-components';
 import type {
@@ -64,6 +64,20 @@ export function WalletOverview({
     'columns'
   );
   const [openTooltip, setOpenTooltip] = useState<string | null>(null);
+  // State for RecipientsWidget mode/viewMode
+  const [recipientsMode, setRecipientsMode] = useState<'list' | 'single'>(
+    'list'
+  );
+  const [recipientsViewMode, setRecipientsViewMode] = useState<
+    'cards' | 'compact-cards' | 'table'
+  >('table');
+  // State for LinkedAccountWidget mode/viewMode
+  const [linkedAccountMode, setLinkedAccountMode] = useState<'list' | 'single'>(
+    'single'
+  );
+  const [linkedAccountViewMode, setLinkedAccountViewMode] = useState<
+    'cards' | 'compact-cards' | 'table'
+  >('compact-cards');
   const searchParams = useSearch({ from: '/sellsense-demo' });
 
   // Get all parameters from URL to ensure components respond to all changes
@@ -124,10 +138,13 @@ export function WalletOverview({
   };
 
   // Handle linked account settlement - trigger component refetch
-  const handleLinkedAccountSettled = () => {
+  const handleLinkedAccountSettled = (recipient?: unknown, error?: unknown) => {
     // Add a small delay to ensure the linked account is processed
     setTimeout(() => {
-      console.log('Linked account settled - triggering component refetch');
+      console.log('Linked account settled - triggering component refetch', {
+        recipient,
+        error,
+      });
       DatabaseResetUtils.emulateTabSwitch();
     }, 1000);
   };
@@ -189,18 +206,7 @@ export function WalletOverview({
         'Manage linked account status',
         'Secure account verification process',
       ],
-      component: (
-        <LinkedAccountWidget
-          onLinkedAccountSettled={handleLinkedAccountSettled}
-          makePaymentComponent={
-            <MakePayment
-              onTransactionSettled={handleTransactionSettled}
-              triggerButtonVariant="secondary"
-            />
-          }
-          variant="singleAccount"
-        />
-      ),
+      component: null, // Will be rendered dynamically with state
       contentTokens: {
         name: 'enUS',
         tokens: {
@@ -238,17 +244,7 @@ export function WalletOverview({
         'Edit recipient information',
         'Delete recipients when needed',
       ],
-      component: (
-        <Recipients
-          isWidget
-          makePaymentComponent={
-            <MakePayment
-              onTransactionSettled={handleTransactionSettled}
-              triggerButtonVariant="secondary"
-            />
-          }
-        />
-      ),
+      component: null, // Will be rendered dynamically with state
       contentTokens: {
         name: 'enUS',
         tokens: {
@@ -314,6 +310,26 @@ export function WalletOverview({
     const { component, contentTokens: componentContentTokens = {} } =
       componentConfig;
 
+    // Render dynamic components with state
+    let renderedComponent = component;
+    if (componentConfig.componentName === 'LinkedAccountWidget') {
+      renderedComponent = (
+        <LinkedAccountWidget
+          onAccountLinked={handleLinkedAccountSettled}
+          mode={linkedAccountMode}
+          viewMode={linkedAccountViewMode}
+        />
+      );
+    } else if (componentConfig.componentName === 'Recipients') {
+      renderedComponent = (
+        <RecipientsWidget
+          onRecipientAdded={handleLinkedAccountSettled}
+          mode={recipientsMode}
+          viewMode={recipientsViewMode}
+        />
+      );
+    }
+
     // Merge component-specific content tokens with base tokens
     const mergedContentTokens = {
       ...baseContentTokens,
@@ -324,6 +340,40 @@ export function WalletOverview({
       },
     };
 
+    // Determine if this component supports mode/viewMode toggles
+    const supportsModeToggle =
+      componentConfig.componentName === 'LinkedAccountWidget' ||
+      componentConfig.componentName === 'Recipients';
+    const supportsViewModeToggle = supportsModeToggle;
+
+    // Get current mode/viewMode based on component
+    const currentMode =
+      componentConfig.componentName === 'LinkedAccountWidget'
+        ? linkedAccountMode
+        : componentConfig.componentName === 'Recipients'
+          ? recipientsMode
+          : undefined;
+    const currentViewMode =
+      componentConfig.componentName === 'LinkedAccountWidget'
+        ? linkedAccountViewMode
+        : componentConfig.componentName === 'Recipients'
+          ? recipientsViewMode
+          : undefined;
+
+    // Get change handlers based on component
+    const handleModeChange =
+      componentConfig.componentName === 'LinkedAccountWidget'
+        ? setLinkedAccountMode
+        : componentConfig.componentName === 'Recipients'
+          ? setRecipientsMode
+          : undefined;
+    const handleViewModeChange =
+      componentConfig.componentName === 'LinkedAccountWidget'
+        ? setLinkedAccountViewMode
+        : componentConfig.componentName === 'Recipients'
+          ? setRecipientsViewMode
+          : undefined;
+
     return (
       <div key={key} className={isFullWidth ? 'lg:col-span-2' : undefined}>
         <EBComponentsProvider
@@ -333,7 +383,7 @@ export function WalletOverview({
           contentTokens={mergedContentTokens}
         >
           <EmbeddedComponentCard
-            component={component}
+            component={renderedComponent}
             componentName={componentConfig.componentName}
             componentDescription={componentConfig.componentDescription}
             componentFeatures={componentConfig.componentFeatures}
@@ -346,6 +396,12 @@ export function WalletOverview({
               );
               window.open(fullscreenUrl, '_blank');
             }}
+            supportsModeToggle={supportsModeToggle}
+            supportsViewModeToggle={supportsViewModeToggle}
+            currentMode={currentMode}
+            currentViewMode={currentViewMode}
+            onModeChange={handleModeChange}
+            onViewModeChange={handleViewModeChange}
           />
         </EBComponentsProvider>
       </div>

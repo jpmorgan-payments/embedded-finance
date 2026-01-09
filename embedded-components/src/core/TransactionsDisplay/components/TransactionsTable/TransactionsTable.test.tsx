@@ -83,7 +83,8 @@ describe('TransactionsTable', () => {
         />
       );
 
-      expect(screen.getByText('Date')).toBeInTheDocument();
+      // Default visible columns (createdAt, debtorName, creditorName are hidden by default)
+      expect(screen.getByText('Posted')).toBeInTheDocument();
       expect(screen.getByText('Status')).toBeInTheDocument();
       expect(screen.getByText('Type')).toBeInTheDocument();
       expect(screen.getByText('Amount')).toBeInTheDocument();
@@ -119,7 +120,7 @@ describe('TransactionsTable', () => {
         />
       );
 
-      expect(screen.getByText(/row\(s\) total/)).toBeInTheDocument();
+      expect(screen.getByText(/Showing \d+ to \d+ of \d+/)).toBeInTheDocument();
       expect(screen.getByText('Rows per page')).toBeInTheDocument();
     });
   });
