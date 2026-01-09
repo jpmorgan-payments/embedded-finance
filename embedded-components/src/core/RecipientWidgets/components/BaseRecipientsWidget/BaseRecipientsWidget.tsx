@@ -31,7 +31,10 @@ import { EmptyState } from '../EmptyState/EmptyState';
 import { LinkedAccountCard } from '../LinkedAccountCard/LinkedAccountCard';
 import { LinkedAccountCardSkeleton } from '../LinkedAccountCardSkeleton/LinkedAccountCardSkeleton';
 import { LinkedAccountFormDialog } from '../LinkedAccountFormDialog/LinkedAccountFormDialog';
-import { LinkedAccountsTableView } from '../LinkedAccountsTableView';
+import {
+  LinkedAccountsTableView,
+  LinkedAccountsTableViewSkeleton,
+} from '../LinkedAccountsTableView';
 import { Pagination } from '../Pagination';
 import { RemoveAccountResultDialog } from '../RemoveAccountResultDialog/RemoveAccountResultDialog';
 import { VerificationResultDialog } from '../VerificationResultDialog/VerificationResultDialog';
@@ -486,16 +489,25 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
             ),
           })}
         >
-          {/* Loading state with skeleton cards */}
+          {/* Loading state with skeleton */}
           {isLoading && (
-            <div
-              className={cn('eb-grid eb-grid-cols-1 eb-gap-3', {
-                'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': scrollable,
-              })}
-            >
-              {/* Show 1 skeleton card during loading */}
-              <LinkedAccountCardSkeleton compact={isCompact} />
-            </div>
+            <>
+              {viewMode === 'table' ? (
+                // Table skeleton for table view
+                <div className="eb-p-1">
+                  <LinkedAccountsTableViewSkeleton rowCount={pageSize} />
+                </div>
+              ) : (
+                // Card skeleton for card views
+                <div
+                  className={cn('eb-grid eb-grid-cols-1 eb-gap-3', {
+                    'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': scrollable,
+                  })}
+                >
+                  <LinkedAccountCardSkeleton compact={isCompact} />
+                </div>
+              )}
+            </>
           )}
 
           {/* Error state */}
