@@ -6,7 +6,7 @@ import {
   EBComponentsProvider,
   LinkedAccountWidget,
   MakePayment,
-  Recipients,
+  RecipientsWidget,
   TransactionsDisplay,
 } from '@jpmorgan-payments/embedded-finance-components';
 import type {
@@ -465,7 +465,7 @@ export function DashboardLayout() {
                     name: 'enUS',
                   }}
                 >
-                  <Recipients />
+                  <RecipientsWidget mode="list" viewMode="table" />
                 </EBComponentsProvider>
               </div>
             </div>
@@ -576,6 +576,7 @@ export function DashboardLayout() {
                 >
                   <LinkedAccountWidget
                     mode="list"
+                    viewMode="table"
                     hideCreateButton={false}
                   />
                 </EBComponentsProvider>
