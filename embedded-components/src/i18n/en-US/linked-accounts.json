@@ -53,7 +53,7 @@
     "addRtp": "Add RTP",
     "manage": "Manage",
     "viewDetails": "View Details",
-    "details": "Details",
+    "viewDetailsShort": "Details",
     "edit": "Edit Payment Methods",
     "editDisabledTooltip": "Payment methods can only be edited for active accounts",
     "remove": "Remove Account",

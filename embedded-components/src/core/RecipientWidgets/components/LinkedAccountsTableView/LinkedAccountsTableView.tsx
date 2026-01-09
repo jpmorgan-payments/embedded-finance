@@ -377,7 +377,7 @@ export const LinkedAccountsTableView: React.FC<
               >
                 <ClipboardListIcon className="eb-h-3.5 eb-w-3.5" />
                 <span className="eb-hidden @3xl:eb-inline">
-                  {t('actions.details', { defaultValue: 'Details' })}
+                  {t('actions.viewDetailsShort', { defaultValue: 'Details' })}
                 </span>
               </Button>
             </RecipientDetailsDialog>

@@ -460,7 +460,7 @@ export const LinkedAccountCard: React.FC<LinkedAccountCardProps> = ({
                   aria-hidden="true"
                 />
                 <span className="eb-inline @sm:eb-hidden @lg:eb-inline">
-                  Details
+                  {t('actions.viewDetailsShort', { defaultValue: 'Details' })}
                 </span>
               </Button>
             </RecipientDetailsDialog>
