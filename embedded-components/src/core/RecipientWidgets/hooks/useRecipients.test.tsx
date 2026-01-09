@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
-import { useLinkedAccounts } from './useLinkedAccounts';
+import { useRecipients } from './useRecipients';
 
 // Helper to create wrapper with providers
 const createWrapper = () => {
@@ -96,13 +96,13 @@ const mockReadyForValidationRecipient: Recipient = {
   createdAt: new Date().toISOString(),
 };
 
-describe('useLinkedAccounts', () => {
+describe('useRecipients', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     server.resetHandlers();
   });
 
-  it('should fetch and return linked accounts with default variant', async () => {
+  it('should fetch and return recipients with default variant', async () => {
     server.use(
       http.get('/recipients', () => {
         return HttpResponse.json({
@@ -118,7 +118,8 @@ describe('useLinkedAccounts', () => {
     );
 
     const { result } = renderHook(
-      () => useLinkedAccounts({ variant: 'default' }),
+      () =>
+        useRecipients({ variant: 'default', recipientType: 'LINKED_ACCOUNT' }),
       { wrapper: createWrapper() }
     );
 
@@ -126,12 +127,12 @@ describe('useLinkedAccounts', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(result.current.linkedAccounts).toHaveLength(2);
-    expect(result.current.hasActiveAccount).toBe(true);
+    expect(result.current.recipients).toHaveLength(2);
+    expect(result.current.hasActiveRecipient).toBe(true);
     expect(result.current.totalCount).toBe(2);
   });
 
-  it('should return only first account with singleAccount variant', async () => {
+  it('should return only first recipient with singleAccount variant', async () => {
     server.use(
       http.get('/recipients', () => {
         return HttpResponse.json({
@@ -148,8 +149,9 @@ describe('useLinkedAccounts', () => {
 
     const { result } = renderHook(
       () =>
-        useLinkedAccounts({
+        useRecipients({
           variant: 'singleAccount',
+          recipientType: 'LINKED_ACCOUNT',
         }),
       { wrapper: createWrapper() }
     );
@@ -158,12 +160,12 @@ describe('useLinkedAccounts', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(result.current.linkedAccounts).toHaveLength(1);
-    expect(result.current.linkedAccounts[0].id).toBe('recipient-1');
+    expect(result.current.recipients).toHaveLength(1);
+    expect(result.current.recipients[0].id).toBe('recipient-1');
     expect(result.current.totalCount).toBe(2);
   });
 
-  it('should handle empty accounts', async () => {
+  it('should handle empty recipients', async () => {
     server.use(
       http.get('/recipients', () => {
         return HttpResponse.json({
@@ -178,16 +180,19 @@ describe('useLinkedAccounts', () => {
       })
     );
 
-    const { result } = renderHook(() => useLinkedAccounts({}), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHook(
+      () => useRecipients({ recipientType: 'LINKED_ACCOUNT' }),
+      {
+        wrapper: createWrapper(),
+      }
+    );
 
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(result.current.linkedAccounts).toHaveLength(0);
-    expect(result.current.hasActiveAccount).toBe(false);
+    expect(result.current.recipients).toHaveLength(0);
+    expect(result.current.hasActiveRecipient).toBe(false);
   });
 
   it('should handle loading state', async () => {
@@ -210,12 +215,15 @@ describe('useLinkedAccounts', () => {
       })
     );
 
-    const { result } = renderHook(() => useLinkedAccounts({}), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHook(
+      () => useRecipients({ recipientType: 'LINKED_ACCOUNT' }),
+      {
+        wrapper: createWrapper(),
+      }
+    );
 
     expect(result.current.isLoading).toBe(true);
-    expect(result.current.linkedAccounts).toHaveLength(0);
+    expect(result.current.recipients).toHaveLength(0);
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -229,16 +237,19 @@ describe('useLinkedAccounts', () => {
       })
     );
 
-    const { result } = renderHook(() => useLinkedAccounts({}), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHook(
+      () => useRecipients({ recipientType: 'LINKED_ACCOUNT' }),
+      {
+        wrapper: createWrapper(),
+      }
+    );
 
     await waitFor(() => {
       expect(result.current.isError).toBe(true);
     });
 
     expect(result.current.error).toBeTruthy();
-    expect(result.current.linkedAccounts).toHaveLength(0);
+    expect(result.current.recipients).toHaveLength(0);
   });
 
   it('should provide refetch function', async () => {
@@ -259,21 +270,24 @@ describe('useLinkedAccounts', () => {
       })
     );
 
-    const { result } = renderHook(() => useLinkedAccounts({}), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHook(
+      () => useRecipients({ recipientType: 'LINKED_ACCOUNT' }),
+      {
+        wrapper: createWrapper(),
+      }
+    );
 
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(result.current.linkedAccounts).toHaveLength(0);
+    expect(result.current.recipients).toHaveLength(0);
 
     // Refetch
     result.current.refetch();
 
     await waitFor(() => {
-      expect(result.current.linkedAccounts).toHaveLength(1);
+      expect(result.current.recipients).toHaveLength(1);
     });
   });
 });

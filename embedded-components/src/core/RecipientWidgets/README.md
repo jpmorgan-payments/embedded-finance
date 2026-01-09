@@ -6,8 +6,8 @@ This folder contains the `LinkedAccountWidget` and `RecipientsWidget`, along wit
 
 ```
 RecipientWidgets/
-├── LinkedAccountWidget/          # Widget for LINKED_ACCOUNT type (with microdeposits)
-│   ├── LinkedAccountWidget.tsx
+├── LinkedAccountsWidget/         # Widget for LINKED_ACCOUNT type (with microdeposits)
+│   ├── LinkedAccountsWidget.tsx
 │   ├── index.ts
 │   └── README.md
 ├── RecipientsWidget/             # Widget for RECIPIENT type (without microdeposits)
@@ -17,17 +17,17 @@ RecipientWidgets/
 ├── components/                   # Shared components
 │   ├── BaseRecipientsWidget/    # Internal base component (used by both widgets)
 │   ├── EmptyState/
-│   ├── LinkedAccountCard/
-│   ├── LinkedAccountFormDialog/
+│   ├── RecipientCard/
+│   ├── RecipientFormDialog/
 │   └── ...
 ├── hooks/                        # Shared hooks
-│   ├── useLinkedAccounts.ts
-│   ├── useLinkedAccountsTable.ts
-│   └── useLinkedAccountForm.ts
+│   ├── useRecipients.ts
+│   ├── useRecipientsTable.ts
+│   └── useRecipientForm.ts
 ├── types/                        # Shared types
 │   └── recipientType.types.ts   # RecipientType configuration
 ├── utils/                        # Shared utilities
-│   └── invalidateLinkedAccountQueries.ts
+│   └── invalidateRecipientQueries.ts
 ├── forms/                        # Shared forms
 │   └── MicrodepositsForm/
 ├── index.ts                      # Main exports

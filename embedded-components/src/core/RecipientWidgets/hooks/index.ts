@@ -1,18 +1,18 @@
-export { useLinkedAccounts } from './useLinkedAccounts';
+export { useRecipients } from './useRecipients';
 export type {
-  UseLinkedAccountsOptions,
-  UseLinkedAccountsReturn,
-} from './useLinkedAccounts';
+  UseRecipientsOptions,
+  UseRecipientsReturn,
+} from './useRecipients';
 
-export { useLinkedAccountsTable } from './useLinkedAccountsTable';
+export { useRecipientsTable } from './useRecipientsTable';
 export type {
-  UseLinkedAccountsTableOptions,
-  UseLinkedAccountsTableReturn,
-} from './useLinkedAccountsTable';
+  UseRecipientsTableOptions,
+  UseRecipientsTableReturn,
+} from './useRecipientsTable';
 
-export { useLinkedAccountForm } from './useLinkedAccountForm';
+export { useRecipientForm } from './useRecipientForm';
 export type {
-  LinkedAccountFormMode,
-  UseLinkedAccountFormOptions,
-  UseLinkedAccountFormReturn,
-} from './useLinkedAccountForm';
+  RecipientFormMode,
+  UseRecipientFormOptions,
+  UseRecipientFormReturn,
+} from './useRecipientForm';

@@ -8,9 +8,9 @@ import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsPr
 import { SupportedRecipientType } from '../types';
 
 /**
- * Options for the useLinkedAccountsTable hook
+ * Options for the useRecipientsTable hook
  */
-export interface UseLinkedAccountsTableOptions {
+export interface UseRecipientsTableOptions {
   /**
    * Current pagination state from TanStack Table
    */
@@ -22,23 +22,22 @@ export interface UseLinkedAccountsTableOptions {
   onPaginationChange: (pagination: PaginationState) => void;
 
   /**
-   * Type of recipients to fetch
-   * @default 'LINKED_ACCOUNT'
+   * Type of recipients to fetch (required)
    */
-  recipientType?: SupportedRecipientType;
+  recipientType: SupportedRecipientType;
 }
 
 /**
- * Return type for useLinkedAccountsTable hook
+ * Return type for useRecipientsTable hook
  */
-export interface UseLinkedAccountsTableReturn {
-  /** Linked accounts for the current page */
-  linkedAccounts: Recipient[];
+export interface UseRecipientsTableReturn {
+  /** Recipients for the current page */
+  recipients: Recipient[];
 
   /** Metadata from API */
   metadata?: PageMetaData;
 
-  /** Total count of all accounts */
+  /** Total count of all recipients */
   totalCount: number;
 
   /** Total number of pages */
@@ -59,12 +58,12 @@ export interface UseLinkedAccountsTableReturn {
   /** Refetch function */
   refetch: () => void;
 
-  /** Whether user has at least one linked account */
-  hasAccounts: boolean;
+  /** Whether user has at least one recipient */
+  hasRecipients: boolean;
 }
 
 /**
- * Custom hook for linked accounts table with server-side pagination
+ * Custom hook for recipients table with server-side pagination
  *
  * This hook is designed for table views where pagination is controlled by TanStack Table.
  * It fetches only the data needed for the current page, making it efficient for large datasets.
@@ -73,13 +72,13 @@ export interface UseLinkedAccountsTableReturn {
  * ```tsx
  * const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
  *
- * const { linkedAccounts, pageCount, isLoading } = useLinkedAccountsTable({
+ * const { recipients, pageCount, isLoading } = useRecipientsTable({
  *   pagination,
  *   onPaginationChange: setPagination,
  * });
  *
  * const table = useReactTable({
- *   data: linkedAccounts,
+ *   data: recipients,
  *   pageCount,
  *   state: { pagination },
  *   onPaginationChange: setPagination,
@@ -88,10 +87,10 @@ export interface UseLinkedAccountsTableReturn {
  * });
  * ```
  */
-export function useLinkedAccountsTable({
+export function useRecipientsTable({
   pagination,
-  recipientType = 'LINKED_ACCOUNT',
-}: UseLinkedAccountsTableOptions): UseLinkedAccountsTableReturn {
+  recipientType,
+}: UseRecipientsTableOptions): UseRecipientsTableReturn {
   const { interceptorReady } = useInterceptorStatus();
 
   // Fetch data for the current page using standard pagination
@@ -109,8 +108,8 @@ export function useLinkedAccountsTable({
       }
     );
 
-  // Extract accounts from response
-  const linkedAccounts = useMemo(() => {
+  // Extract recipients from response
+  const recipients = useMemo(() => {
     return data?.recipients || [];
   }, [data?.recipients]);
 
@@ -120,7 +119,7 @@ export function useLinkedAccountsTable({
   const pageCount = Math.ceil(totalCount / pagination.pageSize);
 
   return {
-    linkedAccounts,
+    recipients,
     metadata,
     totalCount,
     pageCount,
@@ -129,6 +128,6 @@ export function useLinkedAccountsTable({
     error: error as Error | null,
     isSuccess,
     refetch,
-    hasAccounts: totalCount > 0,
+    hasRecipients: totalCount > 0,
   };
 }

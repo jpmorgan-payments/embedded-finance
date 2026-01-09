@@ -17,7 +17,7 @@ import {
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { useClientId } from '@/core/EBComponentsProvider/EBComponentsProvider';
 
-import { useLinkedAccountForm, type LinkedAccountFormMode } from '../../hooks';
+import { useRecipientForm, type RecipientFormMode } from '../../hooks';
 import { RecipientI18nNamespace, SupportedRecipientType } from '../../types';
 import {
   BankAccountForm,
@@ -30,14 +30,14 @@ import {
 import { RecipientAccountDisplayCard } from '../RecipientAccountDisplayCard/RecipientAccountDisplayCard';
 
 /**
- * Props for LinkedAccountFormDialog component
+ * Props for RecipientFormDialog component
  */
-export interface LinkedAccountFormDialogProps {
+export interface RecipientFormDialogProps {
   /** Dialog trigger element */
   children: ReactNode;
 
   /** Form mode - create or edit */
-  mode: LinkedAccountFormMode;
+  mode: RecipientFormMode;
 
   /** Recipient data (required for edit mode) */
   recipient?: Recipient;
@@ -49,54 +49,52 @@ export interface LinkedAccountFormDialogProps {
   onOpenChange?: (open: boolean) => void;
 
   /** Callback when form submission is settled */
-  onLinkedAccountSettled?: (recipient?: Recipient, error?: any) => void;
+  onRecipientSettled?: (recipient?: Recipient, error?: any) => void;
 
   /**
    * Type of recipient to create/edit
-   * @default 'LINKED_ACCOUNT'
    */
-  recipientType?: SupportedRecipientType;
+  recipientType: SupportedRecipientType;
 
   /**
    * i18n namespace to use for translations
-   * @default 'linked-accounts'
    */
-  i18nNamespace?: RecipientI18nNamespace;
+  i18nNamespace: RecipientI18nNamespace;
 }
 
 /**
- * LinkedAccountFormDialog - Dialog component for creating and editing linked accounts
+ * RecipientFormDialog - Dialog component for creating and editing recipients
  *
- * This component consolidates the common logic between LinkAccountForm and EditAccountForm,
- * reducing code duplication and improving maintainability. It is SPECIFIC to LinkedAccountWidget
- * and automatically handles type='LINKED_ACCOUNT'.
+ * This component consolidates the common logic between creating and editing recipients,
+ * reducing code duplication and improving maintainability. Supports all recipient types:
+ * LINKED_ACCOUNT, RECIPIENT, and future SETTLEMENT_ACCOUNT.
  *
  * @example
  * ```tsx
  * // Create mode
- * <LinkedAccountFormDialog mode="create" onLinkedAccountSettled={handleSettled}>
- *   <Button>Create Account</Button>
- * </LinkedAccountFormDialog>
+ * <RecipientFormDialog mode="create" onRecipientSettled={handleSettled}>
+ *   <Button>Create Recipient</Button>
+ * </RecipientFormDialog>
  *
  * // Edit mode
- * <LinkedAccountFormDialog
+ * <RecipientFormDialog
  *   mode="edit"
  *   recipient={existingRecipient}
- *   onLinkedAccountSettled={handleSettled}
+ *   onRecipientSettled={handleSettled}
  * >
- *   <Button>Edit Account</Button>
- * </LinkedAccountFormDialog>
+ *   <Button>Edit Recipient</Button>
+ * </RecipientFormDialog>
  * ```
  */
-export const LinkedAccountFormDialog: FC<LinkedAccountFormDialogProps> = ({
+export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
   children,
   mode,
   recipient,
   open,
   onOpenChange,
-  onLinkedAccountSettled,
-  recipientType = 'LINKED_ACCOUNT',
-  i18nNamespace = 'linked-accounts',
+  onRecipientSettled,
+  recipientType,
+  i18nNamespace,
 }) => {
   const { t } = useTranslation(i18nNamespace);
   const clientId = useClientId();
@@ -120,21 +118,21 @@ export const LinkedAccountFormDialog: FC<LinkedAccountFormDialogProps> = ({
         ? linkedAccountCreateConfig
         : linkedAccountEditConfig;
 
-  // Use the LinkedAccount-specific form hook
+  // Use the recipient form hook
   const {
     submit,
     reset,
     status,
     data: responseData,
     error: formError,
-  } = useLinkedAccountForm({
+  } = useRecipientForm({
     mode,
     recipientId: recipient?.id,
     recipientType,
-    onSettled: onLinkedAccountSettled,
+    onSettled: onRecipientSettled,
   });
 
-  // Handle form submission - submit already transforms and adds type='LINKED_ACCOUNT'
+  // Handle form submission - submit already transforms and adds the appropriate type
   const handleSubmit = (data: BankAccountFormData) => {
     submit(data);
   };

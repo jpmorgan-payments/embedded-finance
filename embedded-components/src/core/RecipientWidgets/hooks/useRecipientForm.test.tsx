@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
-import { useLinkedAccountForm } from './useLinkedAccountForm';
+import { useRecipientForm } from './useRecipientForm';
 
 // Helper to create wrapper with providers
 const createWrapper = () => {
@@ -25,7 +25,7 @@ const createWrapper = () => {
   );
 };
 
-describe('useLinkedAccountForm', () => {
+describe('useRecipientForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     server.resetHandlers();
@@ -50,8 +50,9 @@ describe('useLinkedAccountForm', () => {
 
     const { result } = renderHook(
       () =>
-        useLinkedAccountForm({
+        useRecipientForm({
           mode: 'create',
+          recipientType: 'LINKED_ACCOUNT',
           onSuccess,
           onSettled,
         }),
@@ -107,8 +108,9 @@ describe('useLinkedAccountForm', () => {
 
     const { result } = renderHook(
       () =>
-        useLinkedAccountForm({
+        useRecipientForm({
           mode: 'edit',
+          recipientType: 'LINKED_ACCOUNT',
           recipientId: 'recipient-1',
           onSuccess,
         }),
@@ -167,8 +169,9 @@ describe('useLinkedAccountForm', () => {
 
     const { result } = renderHook(
       () =>
-        useLinkedAccountForm({
+        useRecipientForm({
           mode: 'create',
+          recipientType: 'LINKED_ACCOUNT',
           onError,
           onSettled,
         }),
@@ -212,8 +215,9 @@ describe('useLinkedAccountForm', () => {
 
     const { result } = renderHook(
       () =>
-        useLinkedAccountForm({
+        useRecipientForm({
           mode: 'edit',
+          recipientType: 'LINKED_ACCOUNT',
           recipientId: 'recipient-1',
           onError,
         }),
@@ -248,8 +252,9 @@ describe('useLinkedAccountForm', () => {
   it('should reset mutation state', async () => {
     const { result } = renderHook(
       () =>
-        useLinkedAccountForm({
+        useRecipientForm({
           mode: 'create',
+          recipientType: 'LINKED_ACCOUNT',
         }),
       { wrapper: createWrapper() }
     );

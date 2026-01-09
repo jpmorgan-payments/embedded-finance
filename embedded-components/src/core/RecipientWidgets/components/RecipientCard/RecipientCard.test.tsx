@@ -3,7 +3,7 @@ import { render, screen, userEvent } from '@test-utils';
 
 import { Recipient } from '@/api/generated/ep-recipients.schemas';
 
-import { LinkedAccountCard } from './LinkedAccountCard';
+import { RecipientCard } from './RecipientCard';
 
 // Mock recipient data
 const mockActiveRecipient: Recipient = {
@@ -75,9 +75,9 @@ const mockReadyForValidationRecipient: Recipient = {
   createdAt: new Date().toISOString(),
 };
 
-describe('LinkedAccountCard', () => {
+describe('RecipientCard', () => {
   it('should render active recipient with account details', () => {
-    render(<LinkedAccountCard recipient={mockActiveRecipient} />);
+    render(<RecipientCard recipient={mockActiveRecipient} />);
 
     expect(screen.getByText(/john doe/i)).toBeInTheDocument();
     expect(screen.getByText(/active/i)).toBeInTheDocument();
@@ -87,27 +87,27 @@ describe('LinkedAccountCard', () => {
 
   it('should render status badge for all statuses', () => {
     const { rerender } = render(
-      <LinkedAccountCard recipient={mockActiveRecipient} />
+      <RecipientCard recipient={mockActiveRecipient} />
     );
     expect(screen.getByText(/active/i)).toBeInTheDocument();
 
-    rerender(<LinkedAccountCard recipient={mockPendingRecipient} />);
+    rerender(<RecipientCard recipient={mockPendingRecipient} />);
     // PENDING status shows as "Processing"
     expect(screen.getByText(/processing/i)).toBeInTheDocument();
 
-    rerender(<LinkedAccountCard recipient={mockReadyForValidationRecipient} />);
+    rerender(<RecipientCard recipient={mockReadyForValidationRecipient} />);
     // READY_FOR_VALIDATION status shows as "Action Required"
     expect(screen.getByText(/action required/i)).toBeInTheDocument();
   });
 
   it('should show verify button for READY_FOR_VALIDATION status', () => {
-    render(<LinkedAccountCard recipient={mockReadyForValidationRecipient} />);
+    render(<RecipientCard recipient={mockReadyForValidationRecipient} />);
 
     expect(screen.getByRole('button', { name: /verify/i })).toBeInTheDocument();
   });
 
   it('should not show verify button for active recipients', () => {
-    render(<LinkedAccountCard recipient={mockActiveRecipient} />);
+    render(<RecipientCard recipient={mockActiveRecipient} />);
 
     expect(
       screen.queryByRole('button', { name: /verify/i })
@@ -116,7 +116,7 @@ describe('LinkedAccountCard', () => {
 
   it('should show manage dropdown menu', async () => {
     const user = userEvent.setup();
-    render(<LinkedAccountCard recipient={mockActiveRecipient} />);
+    render(<RecipientCard recipient={mockActiveRecipient} />);
 
     // The button accessible name includes "More actions for {name}"
     const manageButton = screen.getByRole('button', {
@@ -131,7 +131,7 @@ describe('LinkedAccountCard', () => {
   });
 
   it('should hide actions when hideActions is true', () => {
-    render(<LinkedAccountCard recipient={mockActiveRecipient} hideActions />);
+    render(<RecipientCard recipient={mockActiveRecipient} hideActions />);
 
     expect(
       screen.queryByRole('button', { name: /more actions/i })
@@ -147,7 +147,7 @@ describe('LinkedAccountCard', () => {
     );
 
     render(
-      <LinkedAccountCard
+      <RecipientCard
         recipient={mockActiveRecipient}
         makePaymentComponent={CustomPaymentComponent}
       />
@@ -156,13 +156,13 @@ describe('LinkedAccountCard', () => {
     expect(screen.getByText(/custom payment/i)).toBeInTheDocument();
   });
 
-  it('should call onLinkedAccountSettled callback', () => {
+  it('should call onRecipientSettled callback', () => {
     const onSettled = vi.fn();
 
     render(
-      <LinkedAccountCard
+      <RecipientCard
         recipient={mockActiveRecipient}
-        onLinkedAccountSettled={onSettled}
+        onRecipientSettled={onSettled}
       />
     );
 
@@ -171,7 +171,7 @@ describe('LinkedAccountCard', () => {
   });
 
   it('should show make payment button for active accounts', () => {
-    render(<LinkedAccountCard recipient={mockActiveRecipient} />);
+    render(<RecipientCard recipient={mockActiveRecipient} />);
 
     // Should show make payment button with "Pay from {name}" label
     const payButton = screen.queryByRole('button', {
@@ -181,20 +181,20 @@ describe('LinkedAccountCard', () => {
   });
 
   it('should render masked account number', () => {
-    render(<LinkedAccountCard recipient={mockActiveRecipient} />);
+    render(<RecipientCard recipient={mockActiveRecipient} />);
 
     // Account number appears in the heading as (...5678)
     expect(screen.getByText(/john doe \(\.\.\.5678\)/i)).toBeInTheDocument();
   });
 
   it('should display payment methods', () => {
-    render(<LinkedAccountCard recipient={mockActiveRecipient} />);
+    render(<RecipientCard recipient={mockActiveRecipient} />);
 
     expect(screen.getByText(/ach/i)).toBeInTheDocument();
   });
 
   it('should show status alert for non-active recipients', () => {
-    render(<LinkedAccountCard recipient={mockReadyForValidationRecipient} />);
+    render(<RecipientCard recipient={mockReadyForValidationRecipient} />);
 
     // Should have status alert present
     const alert = screen
@@ -204,7 +204,7 @@ describe('LinkedAccountCard', () => {
   });
 
   it('should not show status alert for active recipients', () => {
-    render(<LinkedAccountCard recipient={mockActiveRecipient} />);
+    render(<RecipientCard recipient={mockActiveRecipient} />);
 
     // Should not have status-specific alert (only status badge)
     const alerts = screen.queryAllByRole('alert');
