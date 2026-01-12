@@ -80,7 +80,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   });
 
   // Get payment data using custom hook
-  const paymentData = usePaymentData(paymentMethods, form);
+  const paymentData = usePaymentData(paymentMethods, form, recipientId);
 
   // Get payment validation using custom hook
   const validation = usePaymentValidation(
@@ -140,10 +140,20 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
 
   // Derived state for recipient selection and warning
   const recipientSelectionState = React.useMemo(() => {
-    if (!recipientId || paymentData.filteredRecipients?.length === 0) {
+    if (!recipientId) {
       return { shouldSelectRecipient: false, recipientNotFound: false };
     }
 
+    // Wait for preselected recipient fetch to complete if it's still pending
+    const isPreselectedRecipientLoading =
+      paymentData.preselectedRecipientStatus === 'pending';
+    
+    // If we're still loading the preselected recipient, don't show warning yet
+    if (isPreselectedRecipientLoading) {
+      return { shouldSelectRecipient: false, recipientNotFound: false };
+    }
+
+    // Check if recipient exists in filtered recipients
     const recipientExists = paymentData.filteredRecipients?.some(
       (r) => r.id === recipientId
     );
@@ -158,8 +168,14 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     }
 
     // Show warning if recipientId is provided but not found in filtered recipients
+    // and the fetch is complete (either succeeded but filtered out, or failed)
     return { shouldSelectRecipient: false, recipientNotFound: true };
-  }, [recipientId, paymentData.filteredRecipients, form]);
+  }, [
+    recipientId,
+    paymentData.filteredRecipients,
+    paymentData.preselectedRecipientStatus,
+    form,
+  ]);
 
   const { recipientNotFound } = recipientSelectionState;
 

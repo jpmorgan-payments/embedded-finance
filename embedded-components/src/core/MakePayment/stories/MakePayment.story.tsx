@@ -432,6 +432,19 @@ const meta: Meta<MakePaymentStoryArgs> = {
         http.get('/recipients', () => {
           return HttpResponse.json({ recipients: mockRecipients });
         }),
+        // Handler for GET /recipients/:id - returns the specific recipient by ID
+        http.get('/recipients/:recipientId', ({ params }) => {
+          const recipientId = params.recipientId as string;
+          const recipient = mockRecipients.find((r) => r.id === recipientId);
+          if (recipient) {
+            return HttpResponse.json(recipient);
+          }
+          // Not found
+          return HttpResponse.json(
+            { error: 'Recipient not found' },
+            { status: 404 }
+          );
+        }),
         http.get('/accounts', () => {
           return HttpResponse.json(mockAccounts);
         }),
@@ -512,7 +525,7 @@ const accountsRetryCount = { count: 0 };
 
 export const Default: Story = {
   args: {
-    apiBaseUrl: '/api',
+    apiBaseUrl: '/',
     paymentMethods: defaultPaymentMethods,
     icon: 'CirclePlus',
   },
@@ -532,7 +545,7 @@ export const Default: Story = {
 export const LimitedDDAAccount: Story = {
   name: 'LIMITED_DDA Account - Active Linked Accounts Only',
   args: {
-    apiBaseUrl: '/api',
+    apiBaseUrl: '/',
     paymentMethods: defaultPaymentMethods,
     icon: 'CirclePlus',
   },
@@ -597,7 +610,7 @@ export const LimitedDDAAccount: Story = {
 export const SingleAccountWithSingleLinkedAccount: Story = {
   name: 'Single Account + Single Active Linked Account',
   args: {
-    apiBaseUrl: '/api',
+    apiBaseUrl: '/',
     paymentMethods: defaultPaymentMethods,
     icon: 'CirclePlus',
   },
@@ -664,7 +677,7 @@ export const SingleAccountWithSingleLinkedAccount: Story = {
 export const WithTransactionError: Story = {
   name: 'Transaction Error Handling',
   args: {
-    apiBaseUrl: '/api',
+    apiBaseUrl: '/',
     paymentMethods: defaultPaymentMethods,
     icon: 'CirclePlus',
     onTransactionSettled: (response, error) => {
@@ -728,21 +741,147 @@ export const WithTransactionError: Story = {
 
 /**
  * Pre-selected Recipient: Tests the recipientId prop functionality.
+ * This story demonstrates the case where the preselected recipient is NOT on the first page
+ * of the paginated list, requiring a separate GET /recipients/:id call to fetch it.
  */
 export const WithPreselectedRecipient: Story = {
-  name: 'Pre-selected Recipient',
+  name: 'Pre-selected Recipient (Not on First Page)',
   args: {
-    apiBaseUrl: '/api',
+    apiBaseUrl: '/',
     paymentMethods: defaultPaymentMethods,
-    recipientId: 'linkedAccount1',
+    recipientId: 'recipient-on-page-2', // This recipient is NOT in the first page
     icon: 'CirclePlus',
   },
   parameters: {
     docs: {
       description: {
         story:
-          'This story demonstrates the recipientId prop functionality. When a valid recipientId is provided, the recipient will be automatically selected once an account is chosen.',
+          'This story demonstrates the recipientId prop functionality when the recipient is NOT on the first page of the paginated list. The component uses GET /recipients/:id to fetch the specific recipient, ensuring it works correctly even when pagination limits the initial list response.',
       },
+    },
+    msw: {
+      handlers: [
+        // Handler for GET /recipients/:id - MUST come before /recipients to avoid conflicts
+        http.get('/recipients/:recipientId', ({ params }) => {
+          const recipientId = params.recipientId as string;
+          
+          // If requesting the preselected recipient, return it
+          if (recipientId === 'recipient-on-page-2') {
+            return HttpResponse.json({
+              id: 'recipient-on-page-2',
+              type: 'RECIPIENT',
+              status: 'ACTIVE',
+              clientId: 'client-001',
+              partyDetails: {
+                type: 'INDIVIDUAL',
+                firstName: 'Bob',
+                lastName: 'Wilson',
+                address: {
+                  addressLine1: '999 Remote Street',
+                  city: 'Seattle',
+                  state: 'WA',
+                  postalCode: '98101',
+                  countryCode: 'US',
+                },
+                contacts: [
+                  {
+                    contactType: 'EMAIL',
+                    value: 'bob.wilson@email.com',
+                  },
+                  {
+                    contactType: 'PHONE',
+                    value: '5559998888',
+                    countryCode: '+1',
+                  },
+                ],
+              },
+              account: {
+                id: 'acc-remote',
+                number: '999988887777',
+                type: 'CHECKING',
+                countryCode: 'US',
+                routingInformation: [
+                  {
+                    routingCodeType: 'USABA',
+                    routingNumber: '777000888',
+                    transactionType: 'ACH',
+                  },
+                  {
+                    routingCodeType: 'USABA',
+                    routingNumber: '777000888',
+                    transactionType: 'RTP',
+                  },
+                  {
+                    routingCodeType: 'USABA',
+                    routingNumber: '777000888',
+                    transactionType: 'WIRE',
+                  },
+                ],
+              },
+              createdAt: '2024-01-25T12:00:00Z',
+              updatedAt: '2024-01-25T12:00:00Z',
+            });
+          }
+          
+          // For other recipient IDs, try to find in mockRecipients
+          const recipient = mockRecipients.find((r) => r.id === recipientId);
+          if (recipient) {
+            return HttpResponse.json(recipient);
+          }
+          
+          // Not found
+          return HttpResponse.json(
+            { error: 'Recipient not found' },
+            { status: 404 }
+          );
+        }),
+        // Paginated recipients list - only returns first 2 recipients (simulating page 1)
+        http.get('/recipients', () => {
+          return HttpResponse.json({
+            recipients: mockRecipients.slice(0, 2), // Only first 2 recipients
+            metadata: {
+              page: 0,
+              limit: 2,
+              total_items: 6, // Total includes all recipients
+            },
+          });
+        }),
+        http.get('/accounts', () => {
+          return HttpResponse.json(mockAccounts);
+        }),
+        http.get('/accounts/:accountId/balances', ({ params }) => {
+          const accountId = params.accountId as string;
+          const balance =
+            mockAccountBalances[accountId as keyof typeof mockAccountBalances];
+          if (balance) {
+            return HttpResponse.json(balance);
+          }
+          return HttpResponse.json(
+            { error: 'Account not found' },
+            { status: 404 }
+          );
+        }),
+        http.post('/transactions', () => {
+          return HttpResponse.json({
+            id: 'txn-12345',
+            amount: 100.0,
+            currency: 'USD',
+            debtorAccountId: 'account1',
+            creditorAccountId: 'acc-remote',
+            recipientId: 'recipient-on-page-2',
+            transactionReferenceId: 'PAY-1234567890',
+            type: 'ACH',
+            memo: 'Test payment',
+            status: 'PENDING',
+            paymentDate: '2024-01-15',
+            createdAt: '2024-01-15T10:30:00Z',
+            debtorName: 'John Doe',
+            creditorName: 'Bob Wilson',
+            debtorAccountNumber: '****1234',
+            creditorAccountNumber: '****7777',
+          });
+        }),
+      ],
     },
   },
 };
@@ -752,7 +891,7 @@ export const WithPreselectedRecipient: Story = {
  */
 export const WithoutPreviewPanel: Story = {
   args: {
-    apiBaseUrl: '/api',
+    apiBaseUrl: '/',
     paymentMethods: defaultPaymentMethods,
     showPreviewPanel: false,
     icon: 'CirclePlus',
@@ -773,7 +912,7 @@ export const WithoutPreviewPanel: Story = {
 export const GhostVariantNoIcon: Story = {
   name: 'Ghost Variant - No Icon',
   args: {
-    apiBaseUrl: '/api',
+    apiBaseUrl: '/',
     paymentMethods: defaultPaymentMethods,
     triggerButtonVariant: 'ghost',
     icon: undefined, // No icon
@@ -794,7 +933,7 @@ export const GhostVariantNoIcon: Story = {
 export const SellSenseTheme: Story = {
   name: 'SellSense Theme',
   args: {
-    apiBaseUrl: '/api',
+    apiBaseUrl: '/',
     paymentMethods: defaultPaymentMethods,
     themePreset: 'SellSense',
     icon: 'CirclePlus',
@@ -816,7 +955,7 @@ export const SellSenseTheme: Story = {
 export const ManualRecipientEntry: Story = {
   name: 'Manual recipient entry',
   args: {
-    apiBaseUrl: '/api',
+    apiBaseUrl: '/',
     paymentMethods: defaultPaymentMethods,
     icon: 'CirclePlus',
     showPreviewPanel: true,
@@ -867,7 +1006,7 @@ export const ManualRecipientEntry: Story = {
 export const FunctionalTestingNoMocks: Story = {
   name: 'Functional Testing with no mocks',
   args: {
-    apiBaseUrl: '/api',
+    apiBaseUrl: '/',
     paymentMethods: defaultPaymentMethods,
     icon: 'CirclePlus',
     showPreviewPanel: true,
@@ -891,7 +1030,7 @@ export const FunctionalTestingNoMocks: Story = {
 export const AccountBalanceError: Story = {
   name: 'Account Balance API Error',
   args: {
-    apiBaseUrl: '/api',
+    apiBaseUrl: '/',
     paymentMethods: defaultPaymentMethods,
     icon: 'CirclePlus',
     showPreviewPanel: true,
@@ -979,7 +1118,7 @@ export const AccountBalanceError: Story = {
 export const AccountsError: Story = {
   name: 'Accounts API Error',
   args: {
-    apiBaseUrl: '/api',
+    apiBaseUrl: '/',
     paymentMethods: defaultPaymentMethods,
     icon: 'CirclePlus',
     showPreviewPanel: true,
