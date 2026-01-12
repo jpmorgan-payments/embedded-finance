@@ -5,7 +5,10 @@ import {
   useGetAccountBalance,
   useGetAccounts,
 } from '@/api/generated/ep-accounts';
-import { useGetAllRecipients } from '@/api/generated/ep-recipients';
+import {
+  useGetAllRecipients,
+  useGetRecipient,
+} from '@/api/generated/ep-recipients';
 
 import { useInterceptorStatus } from '../../EBComponentsProvider/EBComponentsProvider';
 import type { PaymentFormData, PaymentMethod } from '../types';
@@ -20,7 +23,8 @@ import {
  */
 export const usePaymentData = (
   paymentMethods: PaymentMethod[],
-  form: UseFormReturn<PaymentFormData>
+  form: UseFormReturn<PaymentFormData>,
+  recipientId?: string
 ) => {
   const { interceptorReady } = useInterceptorStatus();
   // Fetch recipients from API
@@ -31,6 +35,18 @@ export const usePaymentData = (
   } = useGetAllRecipients(undefined, {
     query: {
       enabled: interceptorReady,
+    },
+  });
+
+  // Fetch specific recipient by ID if recipientId is provided
+  // This ensures we get the recipient even if it's not on the first page of the paginated list
+  const {
+    data: preselectedRecipient,
+    status: preselectedRecipientStatus,
+    error: preselectedRecipientError,
+  } = useGetRecipient(recipientId || '', {
+    query: {
+      enabled: interceptorReady && Boolean(recipientId),
     },
   });
 
@@ -60,7 +76,25 @@ export const usePaymentData = (
     };
   }, [accountsData]);
 
-  const recipients = recipientsData?.recipients || [];
+  // Merge recipients from list with preselected recipient if provided
+  const recipients = useMemo(() => {
+    const listRecipients = recipientsData?.recipients || [];
+
+    // If we have a preselected recipient, ensure it's in the list
+    if (preselectedRecipient) {
+      // Check if preselected recipient is already in the list
+      const existsInList = listRecipients.some(
+        (r) => r.id === preselectedRecipient.id
+      );
+
+      if (!existsInList) {
+        // Add preselected recipient to the list
+        return [preselectedRecipient, ...listRecipients];
+      }
+    }
+
+    return listRecipients;
+  }, [recipientsData?.recipients, preselectedRecipient]);
 
   const selectedAccountId = form.watch('from');
 
@@ -105,6 +139,29 @@ export const usePaymentData = (
     return filterPaymentMethods(paymentMethods, availableRoutingTypes);
   }, [paymentMethods, availableRoutingTypes]);
 
+  // Combine recipients status - if we're fetching a preselected recipient,
+  // consider it part of the overall recipients status
+  const combinedRecipientsStatus = useMemo(() => {
+    // If we have a preselected recipient and it's loading, show loading
+    if (recipientId && preselectedRecipientStatus === 'pending') {
+      return 'pending';
+    }
+    // If list is loading, show loading
+    if (recipientsStatus === 'pending') {
+      return 'pending';
+    }
+    // If preselected recipient fetch failed (404, etc), still return success
+    // since the list query succeeded - the warning will be shown in the component
+    if (recipientsStatus === 'success') {
+      return 'success';
+    }
+    // If list query failed, return error
+    if (recipientsStatus === 'error') {
+      return 'error';
+    }
+    return recipientsStatus;
+  }, [recipientsStatus, preselectedRecipientStatus, recipientId]);
+
   return {
     accounts,
     recipients,
@@ -119,7 +176,9 @@ export const usePaymentData = (
     balanceError,
     refetchBalance,
     accountsStatus,
-    recipientsStatus,
+    recipientsStatus: combinedRecipientsStatus,
+    preselectedRecipientStatus,
+    preselectedRecipientError,
     refetchAccounts,
     refetchRecipients,
   };

@@ -15,11 +15,16 @@ metadata:
 
 **After making ANY code changes, you MUST:**
 
-1. **Run tests**: `cd embedded-components && yarn test`
-2. **Fix any errors that appear**
-3. **Re-run tests until all pass**
+1. **Format code**: `cd embedded-components && yarn format`
+   - Auto-fixes Prettier formatting issues
+   - **DO NOT skip this step** - code must be properly formatted
 
-**DO NOT skip this step** - tests must pass before proceeding.
+2. **Run tests**: `cd embedded-components && yarn test`
+   - This runs: typecheck → format:check → lint → test:unit
+   - **DO NOT skip this step** - tests must pass before proceeding
+
+3. **Fix any errors that appear**
+4. **Re-run tests until all pass**
 
 ## The Test Command
 
@@ -153,13 +158,16 @@ yarn test:watch
 # 1. Make code changes
 # (edit files)
 
-# 2. Run full test suite
+# 2. Format code first
 cd embedded-components
+yarn format
+
+# 3. Run full test suite
 yarn test
 
-# 3. If errors appear:
+# 4. If errors appear:
 
-# Fix formatting
+# Fix formatting (if not already done)
 yarn format
 
 # Fix linting
@@ -171,12 +179,12 @@ yarn lint:fix
 # Fix failing tests
 # (update tests or implementation)
 
-# 4. Re-run tests
+# 5. Re-run tests
 yarn test
 
-# 5. Repeat steps 3-4 until all pass
+# 6. Repeat steps 4-5 until all pass
 
-# 6. Commit code
+# 7. Commit code
 git add .
 git commit -m "feat: add new component"
 ```
@@ -192,6 +200,7 @@ git commit -m "feat: add new component"
 
 Before committing, ensure:
 
+- [ ] `yarn format` has been run (code is formatted)
 - [ ] `yarn test` passes (all checks green)
 - [ ] No TypeScript errors
 - [ ] No formatting errors

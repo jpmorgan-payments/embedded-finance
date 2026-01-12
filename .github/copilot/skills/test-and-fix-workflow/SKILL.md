@@ -17,7 +17,23 @@ Systematic workflow for running tests and fixing failures. This is the implement
 
 ## Workflow Steps
 
-### 1. Run Test Suite
+### 1. Format Code
+
+Auto-fix formatting issues first:
+
+```powershell
+cd embedded-components
+yarn format
+```
+
+This automatically fixes:
+- Indentation
+- Quote style
+- Line breaks
+- Trailing commas
+- etc.
+
+### 2. Run Test Suite
 
 Execute all tests in the project:
 
@@ -32,7 +48,7 @@ This runs:
 - Linting (ESLint)
 - Unit tests (Vitest)
 
-### 2. Analyze Failures
+### 3. Analyze Failures
 
 Categorize failures by type:
 
@@ -60,7 +76,7 @@ Categorize failures by type:
 - Timeout errors
 - Component rendering failures
 
-### 3. Prioritize Fixes
+### 4. Prioritize Fixes
 
 Fix in this order:
 
@@ -69,7 +85,7 @@ Fix in this order:
 3. **Linting errors** - Most auto-fixable
 4. **Test failures** - Requires analysis
 
-### 4. Fix Issues Systematically
+### 5. Fix Issues Systematically
 
 **For TypeScript Errors:**
 
@@ -120,7 +136,7 @@ yarn test:watch ComponentName.test.tsx
 yarn test
 ```
 
-### 5. Verify All Fixes
+### 6. Verify All Fixes
 
 Re-run complete test suite:
 
@@ -301,7 +317,7 @@ Create a PowerShell script to automate fixes:
 # fix-issues.ps1
 cd embedded-components
 
-Write-Host "Fixing formatting..." -ForegroundColor Yellow
+Write-Host "Formatting code..." -ForegroundColor Yellow
 yarn format
 
 Write-Host "Fixing linting..." -ForegroundColor Yellow
@@ -357,6 +373,8 @@ git add embedded-components
 git commit -m "fix: resolve test failures"
 git push
 ```
+
+**Note**: Always run `yarn format` first to ensure code is properly formatted before running tests.
 
 ## Troubleshooting
 

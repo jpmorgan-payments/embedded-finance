@@ -136,21 +136,25 @@ New Code?
 
 **After making ANY code changes, you MUST:**
 
-1. **Run tests**: `cd embedded-components && yarn test`
+1. **Format code**: `cd embedded-components && yarn format`
+   - Auto-fixes Prettier formatting issues
+   - **DO NOT skip this step** - code must be properly formatted
 
+2. **Run tests**: `cd embedded-components && yarn test`
    - This runs: typecheck → format:check → lint → test:unit
    - **DO NOT skip this step** - tests must pass before proceeding
 
-2. **Fix any errors that appear**:
+3. **Fix any errors that appear**:
 
    - **TypeScript errors**: Fix type issues in the code
-   - **Prettier/formatting errors**: Run `yarn format` to auto-fix
+   - **Prettier/formatting errors**: Run `yarn format` to auto-fix (if not already done)
    - **Linting errors**: Run `yarn lint:fix` to auto-fix, or fix manually
    - **Test failures**: Update tests or fix implementation
 
-3. **Re-run tests** until all pass:
+4. **Re-run tests** until all pass:
    ```powershell
    cd embedded-components
+   yarn format
    yarn test
    ```
 
@@ -167,10 +171,10 @@ New Code?
 - One test file per implementation file
 - Minimum 80% line coverage required
 - Use MSW for API mocking
-- **Always run `yarn test` after making changes**
+- **Always run `yarn format` and `yarn test` after making changes**
+- Run formatting: `yarn format` (auto-fixes Prettier issues)
 - Run type checking: `yarn typecheck`
 - Run linting: `yarn lint`
-- Auto-fix formatting: `yarn format`
 - Auto-fix linting: `yarn lint:fix`
 
 ## Package-Specific Instructions

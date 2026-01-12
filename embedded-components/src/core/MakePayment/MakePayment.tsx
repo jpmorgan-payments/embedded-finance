@@ -80,7 +80,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   });
 
   // Get payment data using custom hook
-  const paymentData = usePaymentData(paymentMethods, form);
+  const paymentData = usePaymentData(paymentMethods, form, recipientId);
 
   // Get payment validation using custom hook
   const validation = usePaymentValidation(
@@ -140,10 +140,20 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
 
   // Derived state for recipient selection and warning
   const recipientSelectionState = React.useMemo(() => {
-    if (!recipientId || paymentData.filteredRecipients?.length === 0) {
+    if (!recipientId) {
       return { shouldSelectRecipient: false, recipientNotFound: false };
     }
 
+    // Wait for preselected recipient fetch to complete if it's still pending
+    const isPreselectedRecipientLoading =
+      paymentData.preselectedRecipientStatus === 'pending';
+
+    // If we're still loading the preselected recipient, don't show warning yet
+    if (isPreselectedRecipientLoading) {
+      return { shouldSelectRecipient: false, recipientNotFound: false };
+    }
+
+    // Check if recipient exists in filtered recipients
     const recipientExists = paymentData.filteredRecipients?.some(
       (r) => r.id === recipientId
     );
@@ -158,8 +168,14 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     }
 
     // Show warning if recipientId is provided but not found in filtered recipients
+    // and the fetch is complete (either succeeded but filtered out, or failed)
     return { shouldSelectRecipient: false, recipientNotFound: true };
-  }, [recipientId, paymentData.filteredRecipients, form]);
+  }, [
+    recipientId,
+    paymentData.filteredRecipients,
+    paymentData.preselectedRecipientStatus,
+    form,
+  ]);
 
   const { recipientNotFound } = recipientSelectionState;
 
@@ -434,12 +450,12 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
       >
         <DialogTitle className="eb-sr-only">{t('title')}</DialogTitle>
         <Card className="eb-rounded-none eb-border-none eb-shadow-none sm:eb-rounded-lg">
-          <CardHeader>
-            <CardTitle className="eb-text-xl eb-font-semibold">
+          <CardHeader className="eb-border-b eb-bg-muted/30 eb-p-2.5 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-p-3 @lg:eb-p-4">
+            <CardTitle className="eb-h-8 eb-truncate eb-font-header eb-text-lg eb-font-semibold eb-leading-8 @md:eb-text-xl">
               {t('title', { defaultValue: 'Make a payment' })}
             </CardTitle>
           </CardHeader>
-          <CardContent className="eb-space-y-4 eb-pt-0">
+          <CardContent className="eb-space-y-4 eb-p-2.5 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-p-3 @lg:eb-p-4">
             <DialogDescription>
               {t('description', {
                 defaultValue:
@@ -449,7 +465,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
 
             {/* Show recipient warning immediately if recipientId is invalid */}
             {recipientNotFound && recipientId && (
-              <div className="eb-rounded-md eb-border eb-border-destructive/20 eb-bg-destructive/10 eb-p-3">
+              <div className="eb-rounded-md eb-border eb-border-destructive/20 eb-bg-destructive/10 eb-p-2.5 @md:eb-p-3">
                 <div className="eb-text-sm eb-text-destructive">
                   {t('warnings.recipientNotFound', { recipientId })}
                 </div>
@@ -470,14 +486,14 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                   <Form {...form}>
                     <form
                       onSubmit={form.handleSubmit(handlePaymentSubmit)}
-                      className="eb-p-2"
+                      className="eb-space-y-0"
                     >
                       <div
-                        className={`eb-grid eb-grid-cols-1 eb-gap-4 ${showPreviewPanel ? 'md:eb-grid-cols-2' : ''}`}
+                        className={`eb-grid eb-grid-cols-1 eb-gap-3 ${showPreviewPanel ? 'md:eb-grid-cols-2' : ''}`}
                       >
-                        <div className="eb-space-y-6">
+                        <div className="eb-space-y-3">
                           {/* Recipient section */}
-                          <Card className="eb-p-4">
+                          <Card className="eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
                             <CardContent className="eb-space-y-4 eb-p-0">
                               <div className="eb-space-y-4">
                                 <h3 className="eb-text-base eb-font-semibold">
@@ -529,7 +545,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                           </Card>
 
                           {/* Section 2: Which account are you paying from? */}
-                          <Card className="eb-p-4">
+                          <Card className="eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
                             <CardContent className="eb-p-0">
                               <AccountSelector
                                 accounts={paymentData.accounts}
@@ -546,7 +562,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                           </Card>
 
                           {/* Section 3: How much are you paying? */}
-                          <Card className="eb-p-4">
+                          <Card className="eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
                             <CardContent className="eb-p-0">
                               <AmountInput
                                 isAmountValid={validation.isAmountValid}
@@ -559,7 +575,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                           {/* Section 4: How do you want to pay? */}
                           {form.watch('recipientMode') !== 'manual' &&
                             form.watch('to') && (
-                              <Card className="eb-p-4">
+                              <Card className="eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
                                 <CardContent className="eb-p-0">
                                   <PaymentMethodSelector
                                     paymentMethods={
@@ -575,7 +591,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                             )}
 
                           {/* Section 5: Additional Information (optional) */}
-                          <Card className="eb-p-4">
+                          <Card className="eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
                             <CardContent className="eb-p-0">
                               <AdditionalInformation />
                             </CardContent>
