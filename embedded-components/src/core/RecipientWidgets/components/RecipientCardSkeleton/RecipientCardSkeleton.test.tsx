@@ -1,27 +1,27 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@test-utils';
 
-import { LinkedAccountCardSkeleton } from './LinkedAccountCardSkeleton';
+import { RecipientCardSkeleton } from './RecipientCardSkeleton';
 
-describe('LinkedAccountCardSkeleton', () => {
+describe('RecipientCardSkeleton', () => {
   it('should render loading skeleton', () => {
-    render(<LinkedAccountCardSkeleton />);
+    render(<RecipientCardSkeleton />);
 
     const skeleton = screen.getByRole('article', {
-      name: /loading linked account/i,
+      name: /loading recipient/i,
     });
     expect(skeleton).toBeInTheDocument();
   });
 
   it('should have aria-busy attribute', () => {
-    const { container } = render(<LinkedAccountCardSkeleton />);
+    const { container } = render(<RecipientCardSkeleton />);
 
     const article = container.querySelector('[role="article"]');
     expect(article).toHaveAttribute('aria-busy', 'true');
   });
 
   it('should render multiple skeleton elements', () => {
-    const { container } = render(<LinkedAccountCardSkeleton />);
+    const { container } = render(<RecipientCardSkeleton />);
 
     // Should have multiple skeleton elements for different parts
     // Looking for the eb-animate-pulse class which is on Skeleton components
@@ -29,8 +29,8 @@ describe('LinkedAccountCardSkeleton', () => {
     expect(skeletons.length).toBeGreaterThan(5);
   });
 
-  it('should match the structure of LinkedAccountCard', () => {
-    const { container } = render(<LinkedAccountCardSkeleton />);
+  it('should match the structure of RecipientCard', () => {
+    const { container } = render(<RecipientCardSkeleton />);
 
     // Should have card structure
     expect(container.querySelector('[role="article"]')).toBeInTheDocument();

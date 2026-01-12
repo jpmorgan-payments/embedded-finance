@@ -22,7 +22,7 @@ import { RecipientI18nNamespace } from '../../types';
 type RemoveAccountDialogTriggerProps = {
   children: ReactNode;
   recipient: Recipient;
-  onLinkedAccountSettled?: (recipient?: Recipient, error?: ApiError) => void;
+  onRecipientSettled?: (recipient?: Recipient, error?: ApiError) => void;
   /**
    * Callback when removal succeeds. Parent should handle query invalidation here.
    */
@@ -38,7 +38,7 @@ type RemoveAccountDialogTriggerProps = {
  * RemoveAccountDialogTrigger - Confirmation dialog for removing a linked bank account
  * Sets the recipient status to 'INACTIVE' using amendRecipient
  *
- * The success state is now handled at the LinkedAccountWidget level via onRemoveSuccess callback
+ * The success state is now handled at the RecipientsWidget level via onRemoveSuccess callback
  * to ensure the success dialog persists after the account card is removed.
  */
 export const RemoveAccountDialogTrigger: FC<
@@ -46,7 +46,7 @@ export const RemoveAccountDialogTrigger: FC<
 > = ({
   children,
   recipient,
-  onLinkedAccountSettled,
+  onRecipientSettled,
   onRemoveSuccess,
   i18nNamespace = 'linked-accounts',
 }) => {
@@ -61,7 +61,7 @@ export const RemoveAccountDialogTrigger: FC<
   } = useAmendRecipient({
     mutation: {
       onSuccess: (response) => {
-        onLinkedAccountSettled?.(response);
+        onRecipientSettled?.(response);
         // Close the confirmation dialog and trigger parent success dialog
         // Parent is responsible for query invalidation via onRemoveSuccess
         setDialogOpen(false);
@@ -69,7 +69,7 @@ export const RemoveAccountDialogTrigger: FC<
       },
       onError: (error) => {
         const apiError = error.response?.data as ApiError;
-        onLinkedAccountSettled?.(undefined, apiError);
+        onRecipientSettled?.(undefined, apiError);
       },
     },
   });

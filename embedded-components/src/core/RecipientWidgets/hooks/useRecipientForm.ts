@@ -11,28 +11,27 @@ import {
   transformBankAccountFormToRecipientPayload,
 } from '../components/BankAccountForm';
 import { SupportedRecipientType } from '../types';
-import { invalidateLinkedAccountQueries } from '../utils';
+import { invalidateRecipientQueries } from '../utils';
 
 /**
- * Mode for the linked account form - create new or edit existing
+ * Mode for the recipient form - create new or edit existing
  */
-export type LinkedAccountFormMode = 'create' | 'edit';
+export type RecipientFormMode = 'create' | 'edit';
 
 /**
- * Hook options for linked account form
+ * Hook options for recipient form
  */
-export interface UseLinkedAccountFormOptions {
+export interface UseRecipientFormOptions {
   /** Mode - create or edit */
-  mode: LinkedAccountFormMode;
+  mode: RecipientFormMode;
 
   /** Recipient ID (required for edit mode) */
   recipientId?: string;
 
   /**
-   * Type of recipient to create/edit
-   * @default 'LINKED_ACCOUNT'
+   * Type of recipient to create/edit (required)
    */
-  recipientType?: SupportedRecipientType;
+  recipientType: SupportedRecipientType;
 
   /** Callback when operation succeeds */
   onSuccess?: (recipient?: Recipient) => void;
@@ -45,9 +44,9 @@ export interface UseLinkedAccountFormOptions {
 }
 
 /**
- * Return type for useLinkedAccountForm hook
+ * Return type for useRecipientForm hook
  */
-export interface UseLinkedAccountFormReturn {
+export interface UseRecipientFormReturn {
   /** Submit the form data - properly typed to accept BankAccountFormData */
   submit: (data: BankAccountFormData) => void;
 
@@ -74,15 +73,14 @@ export interface UseLinkedAccountFormReturn {
 }
 
 /**
- * Custom hook for managing linked account form state and mutations
+ * Custom hook for managing recipient form state and mutations
  *
- * This hook is SPECIFIC to LinkedAccountWidget and always creates/edits
- * recipients with type='LINKED_ACCOUNT'. It encapsulates the common logic
- * between creating and editing linked accounts.
+ * This hook encapsulates the common logic between creating and editing recipients
+ * of any supported type (LINKED_ACCOUNT, RECIPIENT, and future SETTLEMENT_ACCOUNT).
  *
  * @example
  * ```tsx
- * const { submit, status, error } = useLinkedAccountForm({
+ * const { submit, status, error } = useRecipientForm({
  *   mode: 'create',
  *   onSettled: (recipient, error) => {
  *     if (error) {
@@ -93,32 +91,32 @@ export interface UseLinkedAccountFormReturn {
  *   }
  * });
  *
- * // Submit automatically includes type: 'LINKED_ACCOUNT'
+ * // Submit automatically includes the configured type
  * submit(formData);
  *
  * // Or create a RECIPIENT type
- * const { submit } = useLinkedAccountForm({
+ * const { submit } = useRecipientForm({
  *   mode: 'create',
  *   recipientType: 'RECIPIENT',
  * });
  * ```
  */
-export function useLinkedAccountForm({
+export function useRecipientForm({
   mode,
   recipientId,
-  recipientType = 'LINKED_ACCOUNT',
+  recipientType,
   onSuccess,
   onError,
   onSettled,
-}: UseLinkedAccountFormOptions): UseLinkedAccountFormReturn {
+}: UseRecipientFormOptions): UseRecipientFormReturn {
   const queryClient = useQueryClient();
 
-  // Create mutation for linked accounts
+  // Create mutation for recipients
   const createMutation = useCreateRecipient({
     mutation: {
       onSuccess: (response) => {
         // Invalidate queries for the recipient type
-        invalidateLinkedAccountQueries(queryClient, recipientType);
+        invalidateRecipientQueries(queryClient, recipientType);
         onSuccess?.(response);
         onSettled?.(response);
       },
@@ -130,12 +128,12 @@ export function useLinkedAccountForm({
     },
   });
 
-  // Edit mutation for linked accounts
+  // Edit mutation for recipients
   const editMutation = useAmendRecipient({
     mutation: {
       onSuccess: (response) => {
         // Invalidate queries for the recipient type
-        invalidateLinkedAccountQueries(queryClient, recipientType);
+        invalidateRecipientQueries(queryClient, recipientType);
         onSuccess?.(response);
         onSettled?.(response);
       },
