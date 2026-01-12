@@ -153,26 +153,43 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
       return { shouldSelectRecipient: false, recipientNotFound: false };
     }
 
-    // Check if recipient exists in filtered recipients
-    const recipientExists = paymentData.filteredRecipients?.some(
-      (r) => r.id === recipientId
+    // If preselected recipient was successfully fetched, it exists (even if filtered out)
+    // Only show warning if the fetch failed (error status)
+    if (paymentData.preselectedRecipientStatus === 'error') {
+      return { shouldSelectRecipient: false, recipientNotFound: true };
+    }
+
+    // If preselected recipient was successfully fetched, check if it's in filtered recipients
+    // If it exists in the full recipients list (via preselectedRecipient), it was found
+    const preselectedRecipientExists = Boolean(
+      paymentData.preselectedRecipient
     );
 
-    if (recipientExists) {
-      // Auto-select the recipient if it exists and no recipient is currently selected
-      const currentRecipient = form.getValues('to');
-      if (!currentRecipient) {
-        form.setValue('to', recipientId);
+    if (preselectedRecipientExists) {
+      // Check if recipient exists in filtered recipients (may be filtered out by account)
+      const recipientExists = paymentData.filteredRecipients?.some(
+        (r) => r.id === recipientId
+      );
+
+      if (recipientExists) {
+        // Auto-select the recipient if it exists and no recipient is currently selected
+        const currentRecipient = form.getValues('to');
+        if (!currentRecipient) {
+          form.setValue('to', recipientId);
+        }
       }
+      // Recipient was found via GET /recipients/:id, don't show warning
+      // (even if filtered out by account selection - that's a different UX concern)
       return { shouldSelectRecipient: false, recipientNotFound: false };
     }
 
-    // Show warning if recipientId is provided but not found in filtered recipients
-    // and the fetch is complete (either succeeded but filtered out, or failed)
+    // If we reach here, preselectedRecipientStatus is 'success' but preselectedRecipient is undefined
+    // This shouldn't happen, but show warning as fallback
     return { shouldSelectRecipient: false, recipientNotFound: true };
   }, [
     recipientId,
     paymentData.filteredRecipients,
+    paymentData.preselectedRecipient,
     paymentData.preselectedRecipientStatus,
     form,
   ]);

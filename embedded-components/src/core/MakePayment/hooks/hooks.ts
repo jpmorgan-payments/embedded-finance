@@ -205,6 +205,7 @@ export const usePaymentData = (
     refetchBalance,
     accountsStatus,
     recipientsStatus: combinedRecipientsStatus,
+    preselectedRecipient,
     preselectedRecipientStatus,
     preselectedRecipientError,
     recipientDisabledMap,
