@@ -270,7 +270,7 @@ export const usePaymentValidation = (
   const validation = useMemo(() => {
     const fee = paymentMethods?.find((m) => m.id === method)?.fee || 0;
     const totalAmount = amount + fee;
-    const isAmountValid = amount > fee && totalAmount <= availableBalance;
+    const isAmountValid = amount > 0 && totalAmount <= availableBalance;
 
     return {
       isAmountValid,

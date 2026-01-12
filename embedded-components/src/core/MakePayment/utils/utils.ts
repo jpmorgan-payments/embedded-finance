@@ -25,7 +25,7 @@ export const calculatePaymentValidation = (
 ): PaymentValidation => {
   const fee = getFee(method, paymentMethods);
   const totalAmount = amount + fee;
-  const isAmountValid = amount > fee && totalAmount <= availableBalance;
+  const isAmountValid = amount > 0 && totalAmount <= availableBalance;
 
   return {
     isAmountValid,

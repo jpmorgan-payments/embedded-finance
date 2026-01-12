@@ -56,9 +56,9 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   triggerButton,
   triggerButtonVariant = 'default',
   paymentMethods = [
-    { id: 'ACH', name: 'ACH', fee: 2.5 },
-    { id: 'RTP', name: 'RTP', fee: 1 },
-    { id: 'WIRE', name: 'WIRE', fee: 25 },
+    { id: 'ACH', name: 'ACH' },
+    { id: 'RTP', name: 'RTP' },
+    { id: 'WIRE', name: 'WIRE' },
   ],
   icon,
   recipientId,
@@ -558,7 +558,6 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                   <PaymentMethodSelector
                                     paymentMethods={paymentMethods}
                                     isFormFilled={validation.isFormFilled}
-                                    amount={validation.amount}
                                     fee={validation.fee}
                                   />
                                   <ManualRecipientFields />
@@ -608,7 +607,6 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                       paymentData.dynamicPaymentMethods
                                     }
                                     isFormFilled={validation.isFormFilled}
-                                    amount={validation.amount}
                                     fee={validation.fee}
                                     accountsStatus={paymentData.accountsStatus}
                                   />
@@ -639,6 +637,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                               }
                               accounts={paymentData.accounts}
                               accountsStatus={paymentData.accountsStatus}
+                              paymentMethods={paymentMethods}
                             />
                           </div>
                         )}

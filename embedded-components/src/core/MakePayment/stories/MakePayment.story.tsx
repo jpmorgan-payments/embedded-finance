@@ -21,7 +21,7 @@ interface MakePaymentStoryArgs extends BaseStoryArgs {
   paymentMethods?: Array<{
     id: string;
     name: string;
-    fee: number;
+    fee?: number;
     description?: string;
   }>;
   recipientId?: string;
