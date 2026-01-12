@@ -14,10 +14,12 @@ Target: Align all core components with API docs, i18n, private labeling (design/
 
 - OnboardingFlow
 - LinkedAccountWidget
-- Recipients
+- RecipientsWidget
 - MakePayment
 - TransactionsDisplay
 - Accounts
+
+> **Note:** The legacy `Recipients` component has been deprecated in favor of `RecipientsWidget`. See the [RecipientWidgets README](./RecipientWidgets/README.md) for migration guidance.
 
 ## Timeline (visual)
 
@@ -63,13 +65,18 @@ gantt
   - [ ] Parity with Recipients payment methods [BL-401-2]
   - [ ] Better status messaging [BL-401-3]
   - [ ] Robust microdeposit flows (retry/lockout messaging) [BL-401-4]
-- Recipients
+- Recipients (DEPRECATED - use RecipientsWidget)
+  - ⚠️ This component is deprecated in favor of RecipientsWidget
   - ✅ Server-side pagination implemented (PR #601 - Dec 9, 2025)
   - ✅ Type filtering implemented (PR #601 - Dec 9, 2025)
   - ✅ Status formatting refined with normalizeRecipientStatus (PR #601 - Dec 9, 2025)
   - [ ] Conditional attributes per payment method (ACH/RTP/WIRE) [BL-402-1]
   - [ ] Edit flows parity + masking [BL-402-2]
   - [ ] Recipient duplicate detection UX [BL-402-3]
+- RecipientsWidget (NEW - recommended)
+  - Shared architecture with LinkedAccountWidget
+  - Modern API with better i18n support
+  - Streamlined UX without microdeposit verification
 - MakePayment
   - ✅ Recipient mode toggle refactored to RadioGroup (PR #601 - Dec 9, 2025) [BL-010]
   - ✅ Manual recipient creation with save option (PR #601 - Dec 9, 2025) [BL-010]

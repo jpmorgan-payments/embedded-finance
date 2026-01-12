@@ -66,11 +66,11 @@ Each locale contains the following namespaces:
 - `accounts.json` - Account-related translations
 - `bank-account-form.json` - Bank account form translations
 - `common.json` - Common/shared translations
-- `linked-accounts.json` - Linked accounts translations
+- `linked-accounts.json` - LinkedAccountWidget translations
 - `make-payment.json` - Payment flow translations
 - `onboarding.json` - Onboarding flow translations
 - `onboarding-overview.json` - Onboarding overview translations
-- `recipients.json` - Recipients management translations
+- `recipients.json` - RecipientsWidget management translations
 - `transactions.json` - Transactions display translations
 - `validation.json` - Form validation messages
 

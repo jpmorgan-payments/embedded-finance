@@ -33,7 +33,10 @@
 - BL-040: Modal accessibility
 - BL-403: Theme 0 enhancements (Recipient/method filtering, fee/time ETA, review/confirmation UX, cross-currency)
 
-**Recipients:**
+**Recipients (DEPRECATED - use RecipientsWidget):**
+
+> ⚠️ The legacy Recipients component is deprecated. Use `RecipientsWidget` for new implementations.
+> Backlog items below are retained for historical reference and ongoing maintenance.
 
 - BL-060: Filter & label standardization
 - BL-061: Pagination text format
