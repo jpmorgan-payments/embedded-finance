@@ -1,5 +1,11 @@
 /**
  * Recipients - Public API
+ *
+ * @deprecated This component is deprecated in favor of RecipientsWidget.
+ * Please use `RecipientsWidget` from `@/core/RecipientWidgets` for new implementations.
+ * The RecipientsWidget provides a modern API with better i18n support and shared architecture with LinkedAccountWidget.
+ *
+ * @see {@link ../RecipientWidgets/RecipientsWidget/README.md} for migration guidance.
  */
 
 // Main component

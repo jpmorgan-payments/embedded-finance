@@ -140,6 +140,18 @@ graph TB
 
 The library currently provides the following components:
 
+| Component            | Description                                            | Status       |
+| -------------------- | ------------------------------------------------------ | ------------ |
+| EBComponentsProvider | Provider wrapper for all embedded components           | Stable       |
+| OnboardingWizardBasic| Legacy onboarding wizard                               | Deprecated   |
+| OnboardingFlow       | Modern onboarding experience                           | Stable       |
+| Accounts             | Account management and display                         | In Testing   |
+| LinkedAccountWidget  | External bank account linking with microdeposits       | Stable       |
+| RecipientsWidget     | Payment recipient management (NEW)                     | Stable       |
+| MakePayment          | Payment processing interface                           | In Testing   |
+| TransactionsDisplay  | Transaction history and display                        | In Testing   |
+| Recipients           | Legacy recipient management                            | **Deprecated** - Use RecipientsWidget |
+
 ### EBComponentsProvider
 
 The `EBComponentsProvider` is a crucial wrapper component that must be placed at the top level of your Embedded UI Components implementation. It handles authentication, applies theming, and provides necessary context to all child Embedded UI Components.
@@ -373,7 +385,13 @@ const AccountsSection = () => {
 };
 ```
 
-### 4. Recipients
+### 4. Recipients (DEPRECATED)
+
+> ⚠️ **DEPRECATED**: The `Recipients` component is deprecated and will be removed in a future release.
+>
+> **Please use the new [`RecipientsWidget`](#5-recipientswidget) component instead.**
+>
+> The `RecipientsWidget` provides a modern, streamlined API for managing payment recipients with better i18n support, improved UX, and shared architecture with `LinkedAccountWidget`.
 
 The `Recipients` component provides comprehensive management of payment recipients, enabling users to create, view, edit, and delete recipient information. It now supports integration with the MakePayment component for seamless payment workflows.
 
@@ -485,7 +503,56 @@ const LinkedAccountSection = () => {
 };
 ```
 
-### 6. MakePayment
+### 6. RecipientsWidget
+
+The `RecipientsWidget` component enables users to manage payment recipients within your application. Unlike `LinkedAccountWidget`, it provides a simpler flow without microdeposit verification, ideal for managing payees and beneficiaries.
+
+#### Main Features:
+
+- 👤 **Recipient Management**: View, add, edit, and remove payment recipients
+- 🔍 **Search & Filter**: Quickly find recipients
+- 📱 **Responsive Design**: Works on all device sizes
+- 🌍 **i18n Support**: Full internationalization via `recipients` namespace
+- 🎨 **Themeable**: Follows design token system
+
+#### Props:
+
+| Prop Name          | Type                                     | Required | Description                                                            |
+| ------------------ | ---------------------------------------- | -------- | ---------------------------------------------------------------------- |
+| `mode`             | `'list' \| 'single'`                     | No       | **list**: Show all recipients. **single**: Show one recipient          |
+| `recipientId`      | `string`                                 | No       | Recipient ID for single mode                                           |
+| `showCreateButton` | `boolean`                                | No       | Show/hide create functionality                                         |
+| `hideActions`      | `boolean`                                | No       | Hide action buttons                                                    |
+| `title`            | `string`                                 | No       | Custom widget title                                                    |
+| `pageSize`         | `number`                                 | No       | Number of recipients per page                                          |
+| `onRecipientAdded` | `(recipient: Recipient) => void`         | No       | Callback when a recipient is added                                     |
+| `onError`          | `(error: Error) => void`                 | No       | Callback when an error occurs                                          |
+
+#### Usage:
+
+```jsx
+import {
+  EBComponentsProvider,
+  RecipientsWidget,
+} from '@jpmorgan-payments/embedded-finance-components';
+
+const RecipientsSection = () => {
+  return (
+    <EBComponentsProvider apiBaseUrl="https://your-api-base-url.com">
+      <RecipientsWidget
+        mode="list"
+        showCreateButton={true}
+        pageSize={10}
+        onRecipientAdded={(recipient) => {
+          console.log('Recipient added:', recipient);
+        }}
+      />
+    </EBComponentsProvider>
+  );
+};
+```
+
+### 7. MakePayment
 
 > **⚠️ In Testing**: This component is currently in testing state and could be not fully integrated with the OpenAPI Specification (OAS) or missing some target state functional/non-functional capabilities. It could be subject to significant changes.
 
@@ -559,7 +626,7 @@ const PaymentSection = () => {
 };
 ```
 
-### 7. TransactionsDisplay
+### 8. TransactionsDisplay
 
 > **⚠️ In Testing**: This component is currently in testing state and could be not fully integrated with the OpenAPI Specification (OAS) or missing some target state functional/non-functional capabilities. It could be subject to significant changes.
 
