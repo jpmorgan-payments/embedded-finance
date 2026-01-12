@@ -33,18 +33,24 @@ interface RecipientSelectorProps {
   selectedAccount: AccountResponse | undefined;
   recipientsStatus: string;
   refetchRecipients: () => void;
+  recipientDisabledMap?: Map<string, boolean>;
+  allRecipients?: Recipient[]; // All recipients (not filtered) for showing disabled options
 }
 
 export const RecipientSelector: React.FC<RecipientSelectorProps> = ({
   filteredRecipients,
   recipientsStatus,
   refetchRecipients,
+  recipientDisabledMap,
+  allRecipients,
 }) => {
   const { t } = useTranslation(['make-payment']);
   const form = useFormContext<PaymentFormData>();
 
+  // Use allRecipients if provided (for showing disabled options), otherwise use filteredRecipients
+  const recipientsToShow = allRecipients || filteredRecipients;
   const { linkedAccounts, regularRecipients } =
-    groupRecipientsByType(filteredRecipients);
+    groupRecipientsByType(recipientsToShow);
 
   // Check if there's only one recipient available
   const hasSingleRecipient = filteredRecipients.length === 1;
@@ -137,15 +143,23 @@ export const RecipientSelector: React.FC<RecipientSelectorProps> = ({
                         <SelectLabel className="eb-text-xs eb-font-medium eb-text-muted-foreground">
                           Linked Accounts
                         </SelectLabel>
-                        {linkedAccounts.map((recipient: Recipient) => (
-                          <SelectItem key={recipient.id} value={recipient.id}>
-                            {renderRecipientName(recipient)}
-                            {' - '}
-                            {recipient.account?.number
-                              ? maskAccount(recipient.account.number)
-                              : ''}
-                          </SelectItem>
-                        ))}
+                        {linkedAccounts.map((recipient: Recipient) => {
+                          const isDisabled =
+                            recipientDisabledMap?.get(recipient.id) || false;
+                          return (
+                            <SelectItem
+                              key={recipient.id}
+                              value={recipient.id}
+                              disabled={isDisabled}
+                            >
+                              {renderRecipientName(recipient)}
+                              {' - '}
+                              {recipient.account?.number
+                                ? maskAccount(recipient.account.number)
+                                : ''}
+                            </SelectItem>
+                          );
+                        })}
                       </SelectGroup>
                     )}
 
@@ -159,15 +173,23 @@ export const RecipientSelector: React.FC<RecipientSelectorProps> = ({
                         <SelectLabel className="eb-text-xs eb-font-medium eb-text-muted-foreground">
                           Recipients
                         </SelectLabel>
-                        {regularRecipients.map((recipient: Recipient) => (
-                          <SelectItem key={recipient.id} value={recipient.id}>
-                            {renderRecipientName(recipient)}
-                            {' - '}
-                            {recipient.account?.number
-                              ? maskAccount(recipient.account.number)
-                              : ''}
-                          </SelectItem>
-                        ))}
+                        {regularRecipients.map((recipient: Recipient) => {
+                          const isDisabled =
+                            recipientDisabledMap?.get(recipient.id) || false;
+                          return (
+                            <SelectItem
+                              key={recipient.id}
+                              value={recipient.id}
+                              disabled={isDisabled}
+                            >
+                              {renderRecipientName(recipient)}
+                              {' - '}
+                              {recipient.account?.number
+                                ? maskAccount(recipient.account.number)
+                                : ''}
+                            </SelectItem>
+                          );
+                        })}
                       </SelectGroup>
                     )}
 
@@ -175,15 +197,23 @@ export const RecipientSelector: React.FC<RecipientSelectorProps> = ({
                     {linkedAccounts.length === 0 &&
                       regularRecipients.length === 0 && (
                         <>
-                          {filteredRecipients.map((recipient: Recipient) => (
-                            <SelectItem key={recipient.id} value={recipient.id}>
-                              {renderRecipientName(recipient)}
-                              {' - '}
-                              {recipient.account?.number
-                                ? maskAccount(recipient.account.number)
-                                : ''}
-                            </SelectItem>
-                          ))}
+                          {recipientsToShow.map((recipient: Recipient) => {
+                            const isDisabled =
+                              recipientDisabledMap?.get(recipient.id) || false;
+                            return (
+                              <SelectItem
+                                key={recipient.id}
+                                value={recipient.id}
+                                disabled={isDisabled}
+                              >
+                                {renderRecipientName(recipient)}
+                                {' - '}
+                                {recipient.account?.number
+                                  ? maskAccount(recipient.account.number)
+                                  : ''}
+                              </SelectItem>
+                            );
+                          })}
                         </>
                       )}
                   </>

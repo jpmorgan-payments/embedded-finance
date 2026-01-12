@@ -129,7 +129,7 @@ const mockRecipients = [
   {
     id: 'linkedAccount3',
     type: 'LINKED_ACCOUNT',
-    status: 'INACTIVE',
+    status: 'ACTIVE',
     clientId: 'client-001',
     partyDetails: {
       type: 'ORGANIZATION',

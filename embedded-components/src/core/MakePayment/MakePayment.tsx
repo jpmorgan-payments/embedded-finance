@@ -371,7 +371,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     }
   }, [dialogOpen, resetPayment, resetForm]);
 
-  // Restore pre-selected values when dialog opens
+  // Restore pre-selected values when dialog opens (only on initial open, not when data changes)
   useEffect(() => {
     if (dialogOpen) {
       // Track form started
@@ -380,23 +380,25 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
         userEventsHandler,
       });
 
-      // Auto-select single account
+      // Auto-select single account only if no account is currently selected
       if (paymentData.accounts?.items?.length === 1) {
-        form.setValue('from', paymentData.accounts.items[0].id);
+        const currentAccount = form.getValues('from');
+        if (!currentAccount) {
+          form.setValue('from', paymentData.accounts.items[0].id);
+        }
       }
 
-      // Auto-select single recipient
+      // Auto-select single recipient only if no recipient is currently selected
+      // This should only happen on initial dialog open, not when filteredRecipients changes
       if (paymentData.filteredRecipients?.length === 1) {
-        form.setValue('to', paymentData.filteredRecipients[0].id);
+        const currentRecipient = form.getValues('to');
+        if (!currentRecipient) {
+          form.setValue('to', paymentData.filteredRecipients[0].id);
+        }
       }
     }
-  }, [
-    dialogOpen,
-    paymentData.accounts?.items,
-    paymentData.filteredRecipients,
-    form,
-    userEventsHandler,
-  ]);
+    // Only run when dialog opens/closes, not when data changes
+  }, [dialogOpen, userEventsHandler]);
 
   // Restore recipient selection when recipients are loaded and dialog is open
   useEffect(() => {
@@ -519,6 +521,10 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                     refetchRecipients={
                                       paymentData.refetchRecipients
                                     }
+                                    recipientDisabledMap={
+                                      paymentData.recipientDisabledMap
+                                    }
+                                    allRecipients={paymentData.recipients}
                                   />
                                   {paymentData.filteredRecipients?.length !==
                                     1 && (
@@ -557,6 +563,9 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                 isBalanceError={paymentData.isBalanceError}
                                 balanceError={paymentData.balanceError}
                                 refetchBalance={paymentData.refetchBalance}
+                                accountDisabledMap={
+                                  paymentData.accountDisabledMap
+                                }
                               />
                             </CardContent>
                           </Card>

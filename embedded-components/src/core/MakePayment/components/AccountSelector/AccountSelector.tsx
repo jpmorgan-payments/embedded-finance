@@ -34,6 +34,7 @@ interface AccountSelectorProps {
   isBalanceError?: boolean;
   balanceError?: any;
   refetchBalance?: () => void;
+  accountDisabledMap?: Map<string, boolean>;
 }
 
 export const AccountSelector: React.FC<AccountSelectorProps> = ({
@@ -46,6 +47,7 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
   isBalanceError,
   balanceError: _balanceError,
   refetchBalance,
+  accountDisabledMap,
 }) => {
   const { t } = useTranslation(['make-payment']);
   const form = useFormContext<PaymentFormData>();
@@ -121,11 +123,19 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {accounts?.items?.map((account: AccountResponseType) => (
-                      <SelectItem key={account.id} value={account.id}>
-                        {account.label} ({account.category})
-                      </SelectItem>
-                    ))}
+                    {accounts?.items?.map((account: AccountResponseType) => {
+                      const isDisabled =
+                        accountDisabledMap?.get(account.id) || false;
+                      return (
+                        <SelectItem
+                          key={account.id}
+                          value={account.id}
+                          disabled={isDisabled}
+                        >
+                          {account.label} ({account.category})
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
                 <FormMessage />

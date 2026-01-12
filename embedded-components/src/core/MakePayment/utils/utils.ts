@@ -1,4 +1,9 @@
-import type { PaymentMethod, PaymentValidation, Recipient } from '../types';
+import type {
+  AccountResponseType,
+  PaymentMethod,
+  PaymentValidation,
+  Recipient,
+} from '../types';
 
 /**
  * Utility functions for payment calculations and formatting
@@ -95,4 +100,79 @@ export const groupRecipientsByType = (recipients: Recipient[]) => {
     linkedAccounts,
     regularRecipients,
   };
+};
+
+/**
+ * Determines if a recipient should be disabled based on the selected account.
+ * Rules:
+ * - LIMITED_DDA_PAYMENTS → can pay to both RECIPIENT and LINKED_ACCOUNT types
+ * - LIMITED_DDA → can only pay to LINKED_ACCOUNT types (not RECIPIENT)
+ *
+ * @param recipient - The recipient to check
+ * @param selectedAccount - The currently selected account (if any)
+ * @returns true if the recipient should be disabled
+ */
+export const isRecipientDisabled = (
+  recipient: Recipient,
+  selectedAccount: any
+): boolean => {
+  // If no account is selected, nothing is disabled
+  if (!selectedAccount) {
+    return false;
+  }
+
+  // LIMITED_DDA_PAYMENTS can pay to both types, so nothing is disabled
+  if (selectedAccount.category === 'LIMITED_DDA_PAYMENTS') {
+    return false;
+  }
+
+  // LIMITED_DDA can only pay to LINKED_ACCOUNT types
+  if (selectedAccount.category === 'LIMITED_DDA') {
+    // Disable RECIPIENT type
+    if (recipient.type === 'RECIPIENT') {
+      return true;
+    }
+    // Disable LINKED_ACCOUNT if not ACTIVE
+    if (recipient.type === 'LINKED_ACCOUNT' && recipient.status !== 'ACTIVE') {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+/**
+ * Determines if an account should be disabled based on the selected recipient.
+ * Rules (reverse of recipient rules):
+ * - RECIPIENT type → can only be paid from LIMITED_DDA_PAYMENTS (disable LIMITED_DDA)
+ * - LINKED_ACCOUNT type → can be paid from both LIMITED_DDA_PAYMENTS and LIMITED_DDA (nothing disabled)
+ *
+ * @param account - The account to check
+ * @param selectedRecipient - The currently selected recipient (if any)
+ * @returns true if the account should be disabled
+ */
+export const isAccountDisabled = (
+  account: AccountResponseType,
+  selectedRecipient: Recipient | undefined
+): boolean => {
+  // If no recipient is selected, nothing is disabled
+  if (!selectedRecipient) {
+    return false;
+  }
+
+  // RECIPIENT type can only be paid from LIMITED_DDA_PAYMENTS
+  if (selectedRecipient.type === 'RECIPIENT') {
+    // Disable LIMITED_DDA accounts
+    if (account.category === 'LIMITED_DDA') {
+      return true;
+    }
+  }
+
+  // LINKED_ACCOUNT type can be paid from both LIMITED_DDA_PAYMENTS and LIMITED_DDA
+  // So nothing is disabled for LINKED_ACCOUNT recipients
+  if (selectedRecipient.type === 'LINKED_ACCOUNT') {
+    return false;
+  }
+
+  return false;
 };
