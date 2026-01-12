@@ -79,20 +79,20 @@ export const usePaymentData = (
   // Merge recipients from list with preselected recipient if provided
   const recipients = useMemo(() => {
     const listRecipients = recipientsData?.recipients || [];
-    
+
     // If we have a preselected recipient, ensure it's in the list
     if (preselectedRecipient) {
       // Check if preselected recipient is already in the list
       const existsInList = listRecipients.some(
         (r) => r.id === preselectedRecipient.id
       );
-      
+
       if (!existsInList) {
         // Add preselected recipient to the list
         return [preselectedRecipient, ...listRecipients];
       }
     }
-    
+
     return listRecipients;
   }, [recipientsData?.recipients, preselectedRecipient]);
 
@@ -139,7 +139,7 @@ export const usePaymentData = (
     return filterPaymentMethods(paymentMethods, availableRoutingTypes);
   }, [paymentMethods, availableRoutingTypes]);
 
-  // Combine recipients status - if we're fetching a preselected recipient, 
+  // Combine recipients status - if we're fetching a preselected recipient,
   // consider it part of the overall recipients status
   const combinedRecipientsStatus = useMemo(() => {
     // If we have a preselected recipient and it's loading, show loading

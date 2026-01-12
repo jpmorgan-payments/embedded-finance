@@ -147,7 +147,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     // Wait for preselected recipient fetch to complete if it's still pending
     const isPreselectedRecipientLoading =
       paymentData.preselectedRecipientStatus === 'pending';
-    
+
     // If we're still loading the preselected recipient, don't show warning yet
     if (isPreselectedRecipientLoading) {
       return { shouldSelectRecipient: false, recipientNotFound: false };

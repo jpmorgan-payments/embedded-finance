@@ -764,7 +764,7 @@ export const WithPreselectedRecipient: Story = {
         // Handler for GET /recipients/:id - MUST come before /recipients to avoid conflicts
         http.get('/recipients/:recipientId', ({ params }) => {
           const recipientId = params.recipientId as string;
-          
+
           // If requesting the preselected recipient, return it
           if (recipientId === 'recipient-on-page-2') {
             return HttpResponse.json({
@@ -822,13 +822,13 @@ export const WithPreselectedRecipient: Story = {
               updatedAt: '2024-01-25T12:00:00Z',
             });
           }
-          
+
           // For other recipient IDs, try to find in mockRecipients
           const recipient = mockRecipients.find((r) => r.id === recipientId);
           if (recipient) {
             return HttpResponse.json(recipient);
           }
-          
+
           // Not found
           return HttpResponse.json(
             { error: 'Recipient not found' },
