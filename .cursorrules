@@ -52,7 +52,7 @@ Skills in `.github/copilot/skills/` are automatically discovered and activated:
 
 ```powershell
 # After code changes (MANDATORY)
-cd embedded-components; yarn test
+cd embedded-components; yarn format; yarn test
 
 # Fix formatting/linting
 cd embedded-components; yarn format; yarn lint:fix
