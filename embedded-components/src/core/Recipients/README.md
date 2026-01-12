@@ -1,5 +1,13 @@
 # Recipients Embedded Component
 
+> ⚠️ **DEPRECATED**: This component is deprecated and will be removed in a future release.
+>
+> **Please use the new [`RecipientsWidget`](../RecipientWidgets/RecipientsWidget/README.md) component instead.**
+>
+> The `RecipientsWidget` provides a modern, streamlined API for managing payment recipients with better i18n support, improved UX, and shared architecture with `LinkedAccountWidget`.
+>
+> For linked bank accounts with microdeposit verification, use [`LinkedAccountWidget`](../RecipientWidgets/LinkedAccountWidget/README.md).
+
 ## Overview
 
 The Recipients embedded component provides a comprehensive interface for managing payment recipients within the Embedded Finance ecosystem. It leverages the Recipients API to create, view, edit, and verify recipients with support for both individual and organizational recipients.

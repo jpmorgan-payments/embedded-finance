@@ -2,6 +2,8 @@
 
 This document catalogues the most prominent UI/UX patterns extracted from the embedded-components codebase. These patterns complement the [Salt Design System patterns](https://www.saltdesignsystem.com/salt/patterns) and follow [Atomic Design principles](https://atomicdesign.bradfrost.com/chapter-2/) and [Nielsen's Usability Heuristics](https://www.nngroup.com/articles/ten-usability-heuristics/).
 
+> **Note:** References to `Recipients/` in this document refer to the legacy Recipients component. For new implementations, use `RecipientsWidget` from `RecipientWidgets/`. See the [RecipientWidgets README](../src/core/RecipientWidgets/README.md) for guidance.
+
 ---
 
 ## Pattern Refinement Matrix

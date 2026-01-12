@@ -12,6 +12,9 @@ export { initEBComponentsManager } from './vanilla/EBComponentsManager';
 
 export * from './core/TransactionsDisplay';
 export * from './core/MakePayment/MakePayment';
+/**
+ * @deprecated The Recipients component is deprecated. Use RecipientsWidget instead.
+ */
 export * from './core/Recipients';
 export * from './core/Accounts';
 
