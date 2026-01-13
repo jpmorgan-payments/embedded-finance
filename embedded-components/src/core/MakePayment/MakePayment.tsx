@@ -144,28 +144,26 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
       return { shouldSelectRecipient: false, recipientNotFound: false };
     }
 
-    // Wait for preselected recipient fetch to complete if it's still pending
-    const isPreselectedRecipientLoading =
-      paymentData.preselectedRecipientStatus === 'pending';
+    const {
+      preselectedRecipientStatus,
+      preselectedRecipient: fetchedRecipient,
+    } = paymentData;
 
-    // If we're still loading the preselected recipient, don't show warning yet
-    if (isPreselectedRecipientLoading) {
+    // Wait for preselected recipient fetch to complete if it's still pending
+    // This includes when the query hasn't started yet (interceptor not ready)
+    if (preselectedRecipientStatus === 'pending') {
       return { shouldSelectRecipient: false, recipientNotFound: false };
     }
 
-    // If preselected recipient was successfully fetched, it exists (even if filtered out)
-    // Only show warning if the fetch failed (error status)
-    if (paymentData.preselectedRecipientStatus === 'error') {
+    // If preselected recipient fetch failed (404, network error, etc), show warning
+    if (preselectedRecipientStatus === 'error') {
       return { shouldSelectRecipient: false, recipientNotFound: true };
     }
 
-    // If preselected recipient was successfully fetched, check if it's in filtered recipients
-    // If it exists in the full recipients list (via preselectedRecipient), it was found
-    const preselectedRecipientExists = Boolean(
-      paymentData.preselectedRecipient
-    );
-
-    if (preselectedRecipientExists) {
+    // If preselected recipient was successfully fetched, it exists (even if filtered out)
+    // Check if the fetched recipient data exists
+    if (preselectedRecipientStatus === 'success' && fetchedRecipient) {
+      // Recipient was found via GET /recipients/:id
       // Check if recipient exists in filtered recipients (may be filtered out by account)
       const recipientExists = paymentData.filteredRecipients?.some(
         (r) => r.id === recipientId
@@ -183,8 +181,9 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
       return { shouldSelectRecipient: false, recipientNotFound: false };
     }
 
-    // If we reach here, preselectedRecipientStatus is 'success' but preselectedRecipient is undefined
-    // This shouldn't happen, but show warning as fallback
+    // Fallback: If status is 'success' but no recipient data (shouldn't happen in normal flow)
+    // or if status is something unexpected, show warning as safety measure
+    // This handles edge cases where the query completed but returned no data
     return { shouldSelectRecipient: false, recipientNotFound: true };
   }, [
     recipientId,
