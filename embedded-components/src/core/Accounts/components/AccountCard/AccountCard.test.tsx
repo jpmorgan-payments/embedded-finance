@@ -67,10 +67,14 @@ describe('AccountCard', () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText(/Limited DDA/i)).toBeInTheDocument();
+      // Check for display name in heading: "Category (...XXXX)"
+      expect(
+        screen.getByRole('heading', { name: /Limited DDA \(\.\.\.3919\)/i })
+      ).toBeInTheDocument();
     });
 
-    expect(screen.getByText(/OPEN/i)).toBeInTheDocument();
+    // Status badge shows translated label "Open" for OPEN state
+    expect(screen.getByText(/Open/i)).toBeInTheDocument();
   });
 
   test('displays masked account number', () => {
@@ -87,9 +91,8 @@ describe('AccountCard', () => {
 
     renderComponent();
 
-    // Check for masked account number pattern
-    expect(screen.getByText(/3919/)).toBeInTheDocument();
-    expect(screen.getByText(/\*\*\*\*/)).toBeInTheDocument();
+    // Check for masked account number pattern "****3919" in the account number section
+    expect(screen.getByText(/\*\*\*\*3919/)).toBeInTheDocument();
   });
 
   test('displays balance information when available', async () => {
@@ -123,7 +126,7 @@ describe('AccountCard', () => {
 
     // Check for skeleton loader - wait for it to appear
     await waitFor(() => {
-      const skeleton = document.querySelector('.eb-h-4');
+      const skeleton = document.querySelector('.eb-h-3');
       expect(skeleton).toBeInTheDocument();
     });
   });

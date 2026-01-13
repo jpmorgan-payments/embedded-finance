@@ -534,8 +534,8 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
         </Table>
       </div>
 
-      {/* Pagination */}
-      {totalCount > 0 && (
+      {/* Pagination - only show if there are more items than page size */}
+      {totalCount > table.getState().pagination.pageSize && (
         <div className="eb-flex eb-items-center eb-justify-between eb-px-2">
           <div className="eb-flex eb-items-center eb-space-x-2 eb-text-sm eb-text-muted-foreground">
             <span>

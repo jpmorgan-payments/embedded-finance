@@ -17,8 +17,8 @@ describe('getAccountStatusIcon', () => {
     expect(icon).not.toBeNull();
   });
 
-  test('returns Clock for PENDING state', () => {
-    const icon = getAccountStatusIcon('PENDING');
+  test('returns Clock for PENDING_CLOSE state', () => {
+    const icon = getAccountStatusIcon('PENDING_CLOSE');
     expect(icon).not.toBeNull();
   });
 

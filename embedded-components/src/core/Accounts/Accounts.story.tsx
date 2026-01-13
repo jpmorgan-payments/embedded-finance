@@ -1,263 +1,224 @@
-import { Meta, StoryObj } from '@storybook/react-vite';
-import { http, HttpResponse } from 'msw';
+/**
+ * Accounts - Main Stories
+ *
+ * Basic configurations and layout options for the Accounts component.
+ * This component displays account information including balances and routing details.
+ *
+ * Features:
+ * - Multiple account categories support
+ * - Balance display with currency formatting
+ * - Account routing information (ACH, Wire/RTP)
+ * - Status indicators (OPEN, PENDING_CLOSE, CLOSED)
+ */
+
+import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import type { BaseStoryArgs } from '../../../.storybook/preview';
 import { Accounts } from './Accounts';
 import type { AccountsProps } from './Accounts.types';
-
-// --- Mock Data (aligned with JPMorgan API docs) ---
-const mockAccountsResponse = {
-  items: [
-    {
-      id: 'account1',
-      clientId: '0085199987',
-      label: 'MAIN3919',
-      state: 'OPEN',
-      paymentRoutingInformation: {
-        accountNumber: '20000057603919',
-        country: 'US',
-        routingInformation: [
-          {
-            type: 'ABA',
-            value: '028000024',
-          },
-        ],
-      },
-      createdAt: '2025-04-14T08:57:21.792272Z',
-      category: 'LIMITED_DDA',
-    },
-    {
-      id: 'account2',
-      clientId: '1000012400',
-      label: 'MAIN3212',
-      state: 'OPEN',
-      paymentRoutingInformation: {
-        accountNumber: '20000097603212',
-        country: 'US',
-        routingInformation: [
-          {
-            type: 'ABA',
-            value: '028000024',
-          },
-        ],
-      },
-      createdAt: '2025-04-14T08:57:21.913631Z',
-      category: 'LIMITED_DDA_PAYMENTS',
-    },
-  ],
-};
-
-const mockEmptyAccountsResponse = { items: [] };
-
-const mockBalanceResponse = {
-  id: 'account1',
-  date: '2023-10-28',
-  currency: 'USD',
-  balanceTypes: [
-    { typeCode: 'ITAV', amount: 5558.42 },
-    { typeCode: 'ITBD', amount: 5758.42 },
-  ],
-};
+import {
+  commonArgs,
+  commonArgTypes,
+  createAccountsHandlers,
+  createErrorHandlers,
+  createLoadingHandlers,
+  mockAccounts,
+} from './stories/story-utils';
 
 /**
  * Story args interface extending base provider args
  */
 interface AccountsStoryArgs extends BaseStoryArgs, AccountsProps {}
 
-/**
- * Wrapper component for stories - NO EBComponentsProvider here!
- * The global decorator in preview.tsx handles the provider wrapping.
- */
-const AccountsStory = (props: AccountsProps) => {
-  return (
-    <div className="eb-mx-auto eb-w-full eb-max-w-6xl eb-p-6">
-      <Accounts {...props} />
-    </div>
-  );
-};
-
 const meta: Meta<AccountsStoryArgs> = {
   title: 'Core/Accounts',
-  component: AccountsStory,
+  component: Accounts,
   tags: ['@core', '@accounts'],
   parameters: {
-    layout: 'centered',
-    docs: {
-      description: {
-        component:
-          'Displays a list of accounts filtered by category, with balances and routing info.',
-      },
+    layout: 'padded',
+    msw: {
+      handlers: createAccountsHandlers(),
     },
+  },
+  args: {
+    ...commonArgs,
   },
   argTypes: {
-    allowedCategories: {
-      control: 'object',
-      description: 'Account categories to display',
-    },
-    clientId: {
-      control: 'text',
-      description: 'Optional client ID filter',
-    },
+    ...commonArgTypes,
   },
-  render: (args) => (
-    <AccountsStory
-      allowedCategories={args.allowedCategories}
-      clientId={args.clientId}
-    />
-  ),
 };
-export default meta;
 
+export default meta;
 type Story = StoryObj<AccountsStoryArgs>;
 
-// --- Stories ---
+/**
+ * Default view showing multiple accounts with different categories.
+ * This is the standard configuration for most applications.
+ *
+ * **Try it:**
+ * - View account balances and details
+ * - Toggle account number visibility (eye icon)
+ * - Copy routing numbers to clipboard
+ */
 export const Default: Story = {
   args: {
-    apiBaseUrl: '/',
     allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
-    clientId: 'client-001',
-  },
-  parameters: {
-    msw: {
-      handlers: [
-        http.get('*/accounts', () => HttpResponse.json(mockAccountsResponse)),
-        http.get('*/accounts/:id/balances', () =>
-          HttpResponse.json(mockBalanceResponse)
-        ),
-      ],
-    },
   },
 };
 
-export const Empty: Story = {
-  args: {
-    apiBaseUrl: '/',
-    allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
-    clientId: 'client-001',
-  },
-  parameters: {
-    msw: {
-      handlers: [
-        http.get('*/accounts', () =>
-          HttpResponse.json(mockEmptyAccountsResponse)
-        ),
-      ],
-    },
-  },
-};
-
-export const Loading: Story = {
-  args: {
-    apiBaseUrl: '/',
-    allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
-    clientId: 'client-001',
-  },
-  parameters: {
-    msw: {
-      handlers: [http.get('*/accounts', () => new Promise(() => {}))],
-    },
-  },
-};
-
-export const Error: Story = {
-  args: {
-    apiBaseUrl: '/',
-    allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
-    clientId: 'client-001',
-  },
-  parameters: {
-    msw: {
-      handlers: [
-        http.get('*/accounts', () =>
-          HttpResponse.json({ error: 'Internal Server Error' }, { status: 500 })
-        ),
-      ],
-    },
-  },
-};
-
-export const DarkTheme: Story = {
-  args: {
-    apiBaseUrl: '/',
-    allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
-    clientId: 'client-001',
-  },
-  parameters: {
-    backgrounds: {
-      default: 'dark',
-      values: [{ name: 'dark', value: '#1a1a1a' }],
-    },
-    msw: {
-      handlers: [
-        http.get('*/accounts', () => HttpResponse.json(mockAccountsResponse)),
-        http.get('*/accounts/:id/balances', () =>
-          HttpResponse.json(mockBalanceResponse)
-        ),
-      ],
-    },
-  },
-};
-
+/**
+ * Single category filter showing only Limited DDA accounts.
+ *
+ * **Use this when:**
+ * - You only want to show specific account types
+ * - Users should see a focused view
+ */
 export const SingleCategory: Story = {
   args: {
-    apiBaseUrl: '/',
     allowedCategories: ['LIMITED_DDA'],
-    clientId: 'client-001',
   },
   parameters: {
     msw: {
-      handlers: [
-        http.get('*/accounts', () =>
-          HttpResponse.json({
-            items: [mockAccountsResponse.items[0]],
-          })
-        ),
-        http.get('*/accounts/:id/balances', () =>
-          HttpResponse.json(mockBalanceResponse)
-        ),
-      ],
-    },
-  },
-};
-
-export const MultipleCategories: Story = {
-  args: {
-    apiBaseUrl: '/',
-    allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
-    clientId: 'client-001',
-  },
-  parameters: {
-    msw: {
-      handlers: [
-        http.get('*/accounts', () => HttpResponse.json(mockAccountsResponse)),
-        http.get('*/accounts/:id/balances', () =>
-          HttpResponse.json(mockBalanceResponse)
-        ),
-      ],
+      handlers: createAccountsHandlers({
+        accounts: mockAccounts.filter((a) => a.category === 'LIMITED_DDA'),
+      }),
     },
   },
 };
 
 /**
- * Story with SellSense theme preset.
- * Theme is applied via themePreset arg which is handled by the global decorator.
+ * First-time user experience with no accounts.
+ * Shows helpful messaging when no accounts match the filter.
+ *
+ * **Use this to test:**
+ * - Empty state messaging
+ * - First-time user experience
  */
-export const SellSenseTheme: Story = {
+export const EmptyState: Story = {
   args: {
-    apiBaseUrl: '/',
     allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
-    clientId: 'client-001',
-    themePreset: 'SellSense',
   },
-  tags: ['@sellsense', '@theme'],
   parameters: {
     msw: {
-      handlers: [
-        http.get('*/accounts', () => HttpResponse.json(mockAccountsResponse)),
-        http.get('*/accounts/:id/balances', () =>
-          HttpResponse.json(mockBalanceResponse)
+      handlers: createAccountsHandlers({ accounts: [] }),
+    },
+  },
+};
+
+/**
+ * Loading state while fetching account data.
+ * Shows skeleton placeholders for better UX.
+ */
+export const Loading: Story = {
+  args: {
+    allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
+  },
+  parameters: {
+    msw: {
+      handlers: createLoadingHandlers(),
+    },
+  },
+};
+
+/**
+ * Error state when account data fails to load.
+ * Shows error message with retry option.
+ */
+export const Error: Story = {
+  args: {
+    allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
+  },
+  parameters: {
+    msw: {
+      handlers: createErrorHandlers(500, 'Internal Server Error'),
+    },
+  },
+};
+
+/**
+ * Accounts with custom title.
+ * Override the default "Accounts" title.
+ */
+export const CustomTitle: Story = {
+  args: {
+    allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
+    title: 'My Business Accounts',
+  },
+};
+
+/**
+ * Single account display.
+ * Shows only one account when filter returns single result.
+ *
+ * **Note:** Layout automatically adjusts for single vs multiple accounts.
+ */
+export const SingleAccount: Story = {
+  args: {
+    allowedCategories: ['LIMITED_DDA_PAYMENTS'],
+  },
+  parameters: {
+    msw: {
+      handlers: createAccountsHandlers({
+        accounts: [mockAccounts[1]],
+      }),
+    },
+  },
+};
+
+/**
+ * Payments DDA account type.
+ * Shows LIMITED_DDA_PAYMENTS accounts with full routing details.
+ *
+ * **Features:**
+ * - Available and current balance display
+ * - Account number with show/hide toggle
+ * - ACH and Wire/RTP routing numbers
+ */
+export const PaymentsDDA: Story = {
+  args: {
+    allowedCategories: ['LIMITED_DDA_PAYMENTS'],
+  },
+  parameters: {
+    msw: {
+      handlers: createAccountsHandlers({
+        accounts: mockAccounts.filter(
+          (a) => a.category === 'LIMITED_DDA_PAYMENTS'
         ),
-      ],
+      }),
+    },
+  },
+};
+
+/**
+ * Limited DDA account type.
+ * Shows LIMITED_DDA accounts with simplified balance view.
+ *
+ * **Note:** LIMITED_DDA accounts show only balance, no routing details.
+ */
+export const LimitedDDA: Story = {
+  args: {
+    allowedCategories: ['LIMITED_DDA'],
+  },
+  parameters: {
+    msw: {
+      handlers: createAccountsHandlers({
+        accounts: mockAccounts.filter((a) => a.category === 'LIMITED_DDA'),
+      }),
+    },
+  },
+};
+
+/**
+ * Slow network simulation.
+ * Shows loading behavior with realistic network delay.
+ */
+export const SlowNetwork: Story = {
+  args: {
+    allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
+  },
+  parameters: {
+    msw: {
+      handlers: createAccountsHandlers({ delayMs: 3000 }),
     },
   },
 };

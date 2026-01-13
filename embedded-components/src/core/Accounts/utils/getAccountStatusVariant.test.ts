@@ -11,8 +11,8 @@ describe('getAccountStatusVariant', () => {
     expect(getAccountStatusVariant('CLOSED')).toBe('destructive');
   });
 
-  test('returns warning for PENDING state', () => {
-    expect(getAccountStatusVariant('PENDING')).toBe('warning');
+  test('returns warning for PENDING_CLOSE state', () => {
+    expect(getAccountStatusVariant('PENDING_CLOSE')).toBe('warning');
   });
 
   test('returns secondary for SUSPENDED state', () => {

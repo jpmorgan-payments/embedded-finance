@@ -49,7 +49,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 /**
- * Default view showing multiple payment recipients in a responsive grid.
+ * Default view showing multiple payment recipients in compact card layout with page-based pagination.
  * This is the standard configuration for most applications.
  *
  * **Try it:**
@@ -128,60 +128,56 @@ export const EmptyState: Story = {
 };
 
 /**
- * Compact layout optimized for space-constrained UIs.
- * Shows recipients as edge-to-edge rows with reduced padding.
+ * Full cards layout with rich details.
+ * Shows recipients as full cards instead of the default compact layout.
  *
  * **Use this when:**
- * - Space is limited (e.g., sidebars, modals, mobile views)
- * - You need to display more recipients in less vertical space
- * - You want a denser, list-style layout
+ * - You want to display more details per recipient
+ * - You have fewer recipients and more screen space
+ * - You prefer a richer visual presentation
  *
  * **Features:**
- * - No padding between cards (edge-to-edge)
- * - Compact header with hidden description
- * - Inline status messages instead of alerts
- * - Horizontal layout with icon, name, and actions
+ * - Full card layout with rich details
+ * - Description text visible in header
+ * - More visual prominence per recipient
  */
-export const CompactLayout: Story = {
-  args: {
-    mode: 'list',
-    viewMode: 'compact-cards',
-  },
-  loaders: [
-    async () => {
-      await seedRecipientData({
-        ...linkedAccountListMock,
-        recipients:
-          linkedAccountListMock.recipients?.map((r) => ({
-            ...r,
-            type: 'RECIPIENT',
-            status: 'ACTIVE',
-          })) ?? [],
-      });
-    },
-  ],
-};
-
-/**
- * Page-based pagination for cards view.
- * Shows navigation controls similar to the table view instead of "Load More".
- *
- * **Use this when:**
- * - You want users to navigate directly to specific pages
- * - You prefer page-based navigation over infinite scroll
- * - You need to show page size selector
- *
- * **Features:**
- * - First/previous/next/last page buttons
- * - Page size selector (5, 10, 20, 30, 50)
- * - Shows current page and total pages
- * - Shows "Showing X to Y of Z" info
- */
-export const PagesPagination: Story = {
+export const CardsLayout: Story = {
   args: {
     mode: 'list',
     viewMode: 'cards',
-    paginationStyle: 'pages',
+  },
+  loaders: [
+    async () => {
+      await seedRecipientData({
+        ...linkedAccountListMock,
+        recipients:
+          linkedAccountListMock.recipients?.map((r) => ({
+            ...r,
+            type: 'RECIPIENT',
+            status: 'ACTIVE',
+          })) ?? [],
+      });
+    },
+  ],
+};
+
+/**
+ * Full cards view with "Load More" pagination.
+ * Shows recipients as full cards with incremental loading instead of page navigation.
+ *
+ * **Use this when:**
+ * - You want full card layout with incremental loading
+ * - You prefer infinite scroll-style loading over page navigation
+ *
+ * **Features:**
+ * - Full card layout with rich details
+ * - "Load More" button for incremental loading
+ */
+export const CardsWithLoadMore: Story = {
+  args: {
+    mode: 'list',
+    viewMode: 'cards',
+    paginationStyle: 'loadMore',
     pageSize: 5,
   },
   loaders: [
@@ -200,55 +196,23 @@ export const PagesPagination: Story = {
 };
 
 /**
- * Page-based pagination with compact cards.
- * Combines compact card layout with page navigation controls.
+ * Compact cards layout with "Load More" pagination.
+ * Uses default compact layout with incremental loading instead of page navigation.
  *
  * **Use this when:**
- * - You want compact layout with traditional pagination
- * - Space is limited but you need page navigation
+ * - You want the default compact layout with incremental loading
+ * - You prefer "Load More" style over page navigation
+ *
+ * **Features:**
+ * - Compact card layout (default)
+ * - "Load More" button for incremental loading
  */
-export const CompactWithPagesPagination: Story = {
+export const CompactWithLoadMore: Story = {
   args: {
     mode: 'list',
     viewMode: 'compact-cards',
-    paginationStyle: 'pages',
+    paginationStyle: 'loadMore',
     pageSize: 5,
-  },
-  loaders: [
-    async () => {
-      await seedRecipientData({
-        ...linkedAccountListMock,
-        recipients:
-          linkedAccountListMock.recipients?.map((r) => ({
-            ...r,
-            type: 'RECIPIENT',
-            status: 'ACTIVE',
-          })) ?? [],
-      });
-    },
-  ],
-};
-
-/**
- * Virtualized scrolling for handling large lists efficiently.
- * Uses virtual scrolling to render only visible items for performance.
- *
- * **Use this when:**
- * - You have many recipients (10+)
- * - You want to limit the widget's height
- * - Performance with large lists is a concern
- *
- * **Features:**
- * - Fixed height container with scrolling
- * - Only renders visible items (virtualized)
- * - Smooth scrolling experience
- * - Automatic height calculation for dynamic content
- */
-export const ScrollableList: Story = {
-  args: {
-    mode: 'list',
-    scrollable: true,
-    maxHeight: '400px',
   },
   loaders: [
     async () => {
@@ -285,6 +249,42 @@ export const TableView: Story = {
     mode: 'list',
     viewMode: 'table',
     pageSize: 10,
+  },
+  loaders: [
+    async () => {
+      await seedRecipientData({
+        ...linkedAccountListMock,
+        recipients:
+          linkedAccountListMock.recipients?.map((r) => ({
+            ...r,
+            type: 'RECIPIENT',
+            status: 'ACTIVE',
+          })) ?? [],
+      });
+    },
+  ],
+};
+
+/**
+ * Virtualized scrolling for handling large lists efficiently.
+ * Uses virtual scrolling to render only visible items for performance.
+ *
+ * **Use this when:**
+ * - You have many recipients (10+)
+ * - You want to limit the widget's height
+ * - Performance with large lists is a concern
+ *
+ * **Features:**
+ * - Fixed height container with scrolling
+ * - Only renders visible items (virtualized)
+ * - Smooth scrolling experience
+ * - Automatic height calculation for dynamic content
+ */
+export const ScrollableList: Story = {
+  args: {
+    mode: 'list',
+    scrollable: true,
+    scrollableMaxHeight: '400px',
   },
   loaders: [
     async () => {

@@ -11,7 +11,7 @@ export function getAccountStatusVariant(
       return 'success';
     case 'CLOSED':
       return 'destructive';
-    case 'PENDING':
+    case 'PENDING_CLOSE':
       return 'warning';
     case 'SUSPENDED':
       return 'secondary';

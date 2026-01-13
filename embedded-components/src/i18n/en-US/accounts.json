@@ -1,5 +1,6 @@
 {
   "title": "Accounts",
+  "description": "View and manage your business accounts",
   "loading": {
     "accounts": "Loading accounts..."
   },
@@ -11,27 +12,36 @@
     "title": "No accounts found",
     "description": "No accounts match the selected categories. Contact support if you need to create an account."
   },
+  "status": {
+    "labels": {
+      "OPEN": "Open",
+      "CLOSED": "Closed",
+      "PENDING_CLOSE": "Pending Close"
+    }
+  },
+  "categories": {
+    "LIMITED_DDA_PAYMENTS": "Limited DDA Payments",
+    "LIMITED_DDA": "Limited DDA",
+    "EMBEDDED_DDA": "Embedded DDA",
+    "DDA": "DDA",
+    "CLIENT_OFFSET": "Client Offset",
+    "MANAGEMENT": "Management",
+    "PROCESSING": "Processing",
+    "PROCESSING_OFFSET": "Processing Offset"
+  },
   "card": {
-    "overview": "Overview",
-    "accountDetails": "Account Details",
-    "accountDetailsTooltip": "Account can be funded from external sources and is externally addressable via routing/account numbers here",
-    "accountNumber": "Account Number:",
-    "achRouting": "ACH Routing:",
-    "wireRtpRouting": "Wire/RTP Routing:",
+    "accountNumber": "Account Number",
+    "routing": "Routing",
+    "achRouting": "ACH Routing Number",
     "showDetails": "Show account details",
     "hideDetails": "Hide account details",
     "copyAccountNumber": "Copy account number",
-    "copyAchRouting": "Copy ACH Routing",
-    "copyWireRtpRouting": "Copy Wire/RTP Routing",
-    "noBalanceData": "No balance data."
-  },
-  "categories": {
-    "LIMITED_DDA_PAYMENTS": "Payments DDA",
-    "LIMITED_DDA": "Limited DDA"
+    "copyRouting": "Copy routing number",
+    "copyAchRouting": "Copy ACH routing number",
+    "noBalanceData": "Balance information unavailable"
   },
   "balanceTypes": {
     "ITAV": "Available Balance",
     "ITBD": "Current Balance"
   }
 }
-

@@ -1,5 +1,6 @@
 {
   "title": "Cuentas",
+  "description": "Vea y administre sus cuentas comerciales",
   "loading": {
     "accounts": "Cargando cuentas..."
   },
@@ -11,27 +12,36 @@
     "title": "No se encontraron cuentas",
     "description": "Ninguna cuenta coincide con las categorías seleccionadas. Contacte al soporte si necesita crear una cuenta."
   },
+  "status": {
+    "labels": {
+      "OPEN": "Abierta",
+      "CLOSED": "Cerrada",
+      "PENDING_CLOSE": "Cierre pendiente"
+    }
+  },
+  "categories": {
+    "LIMITED_DDA_PAYMENTS": "Limited DDA Payments",
+    "LIMITED_DDA": "Limited DDA",
+    "EMBEDDED_DDA": "Embedded DDA",
+    "DDA": "DDA",
+    "CLIENT_OFFSET": "Client Offset",
+    "MANAGEMENT": "Management",
+    "PROCESSING": "Processing",
+    "PROCESSING_OFFSET": "Processing Offset"
+  },
   "card": {
-    "overview": "Resumen",
-    "accountDetails": "Detalles de la cuenta",
-    "accountDetailsTooltip": "La cuenta puede ser financiada desde fuentes externas y es accesible externamente mediante números de enrutamiento/cuenta aquí",
-    "accountNumber": "Número de cuenta:",
-    "achRouting": "Enrutamiento ACH:",
-    "wireRtpRouting": "Enrutamiento Wire/RTP:",
+    "accountNumber": "Número de cuenta",
+    "routing": "Enrutamiento",
+    "achRouting": "Número de enrutamiento ACH",
     "showDetails": "Mostrar detalles de la cuenta",
     "hideDetails": "Ocultar detalles de la cuenta",
     "copyAccountNumber": "Copiar número de cuenta",
-    "copyAchRouting": "Copiar enrutamiento ACH",
-    "copyWireRtpRouting": "Copiar enrutamiento Wire/RTP",
-    "noBalanceData": "Sin datos de saldo."
-  },
-  "categories": {
-    "LIMITED_DDA_PAYMENTS": "DDA de Pagos",
-    "LIMITED_DDA": "DDA Limitado"
+    "copyRouting": "Copiar número de enrutamiento",
+    "copyAchRouting": "Copiar número de enrutamiento ACH",
+    "noBalanceData": "Información de saldo no disponible"
   },
   "balanceTypes": {
     "ITAV": "Saldo disponible",
     "ITBD": "Saldo actual"
   }
 }
-

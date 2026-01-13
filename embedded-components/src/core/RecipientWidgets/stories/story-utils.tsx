@@ -622,7 +622,7 @@ export const commonArgTypes = {
       'View mode: "cards" for full cards, "compact-cards" for row-based compact cards, "table" for sortable table',
     table: {
       category: 'Display Mode',
-      defaultValue: { summary: 'cards' },
+      defaultValue: { summary: 'compact-cards' },
     },
   },
   scrollable: {
@@ -634,10 +634,10 @@ export const commonArgTypes = {
       defaultValue: { summary: 'false' },
     },
   },
-  maxHeight: {
+  scrollableMaxHeight: {
     control: { type: 'text' as const },
     description:
-      'Maximum height of the scrollable container (only when scrollable=true). Accepts CSS values like 400, "50vh", "100%"',
+      'Maximum height of the scrollable container (only applies when scrollable=true). Accepts CSS values like 400, "50vh", "100%"',
     table: {
       category: 'Scrolling',
       defaultValue: { summary: '400px' },
@@ -658,7 +658,7 @@ export const commonArgTypes = {
       'Pagination style for cards/compact-cards views: "loadMore" shows a button to load more, "pages" shows page navigation',
     table: {
       category: 'Pagination',
-      defaultValue: { summary: 'loadMore' },
+      defaultValue: { summary: 'pages' },
     },
   },
   hideCreateButton: {

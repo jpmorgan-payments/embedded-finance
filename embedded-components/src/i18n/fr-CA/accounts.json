@@ -1,5 +1,6 @@
 {
   "title": "Comptes",
+  "description": "Consultez et gérez vos comptes d'entreprise",
   "loading": {
     "accounts": "Chargement des comptes..."
   },
@@ -11,27 +12,34 @@
     "title": "Aucun compte trouvé",
     "description": "Aucun compte ne correspond aux catégories sélectionnées. Contactez le support si vous devez créer un compte."
   },
+  "status": {
+    "labels": {
+      "OPEN": "Ouvert",
+      "CLOSED": "Fermé",
+      "PENDING_CLOSE": "Fermeture en attente"
+    }
+  },
+  "categories": {
+    "LIMITED_DDA_PAYMENTS": "Limited DDA Payments",
+    "LIMITED_DDA": "Limited DDA",
+    "EMBEDDED_DDA": "Embedded DDA",
+    "DDA": "DDA",
+    "CLIENT_OFFSET": "Client Offset",
+    "MANAGEMENT": "Management",
+    "PROCESSING": "Processing",
+    "PROCESSING_OFFSET": "Processing Offset"
+  },
   "card": {
-    "overview": "Aperçu",
-    "accountDetails": "Détails du compte",
-    "accountDetailsTooltip": "Le compte peut être financé à partir de sources externes et est accessible de l'extérieur via les numéros de routage/compte ici",
-    "accountNumber": "Numéro de compte :",
-    "achRouting": "Routage ACH :",
-    "wireRtpRouting": "Routage Wire/RTP :",
+    "accountNumber": "Numéro de compte",
+    "achRouting": "Numéro de routage ACH",
     "showDetails": "Afficher les détails du compte",
     "hideDetails": "Masquer les détails du compte",
     "copyAccountNumber": "Copier le numéro de compte",
-    "copyAchRouting": "Copier le routage ACH",
-    "copyWireRtpRouting": "Copier le routage Wire/RTP",
-    "noBalanceData": "Aucune donnée de solde."
-  },
-  "categories": {
-    "LIMITED_DDA_PAYMENTS": "DDA Paiements",
-    "LIMITED_DDA": "DDA Limité"
+    "copyAchRouting": "Copier le numéro de routage ACH",
+    "noBalanceData": "Informations de solde non disponibles"
   },
   "balanceTypes": {
     "ITAV": "Solde disponible",
     "ITBD": "Solde actuel"
   }
 }
-
