@@ -554,7 +554,6 @@ export const Default: Story = {
  * Story showcasing payment methods with fees.
  */
 export const WithFees: Story = {
-  name: 'With Fees',
   args: {
     apiBaseUrl: '/',
     paymentMethods: paymentMethodsWithFees,
@@ -1327,7 +1326,7 @@ function generateManyRecipients(count: number) {
   ];
   const states = ['NY', 'CA', 'IL', 'TX', 'AZ', 'PA', 'TX', 'CA', 'TX', 'CA'];
 
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < count; i += 1) {
     const firstName = firstNames[i % firstNames.length];
     const lastName = lastNames[i % lastNames.length];
     const cityIndex = i % cities.length;
