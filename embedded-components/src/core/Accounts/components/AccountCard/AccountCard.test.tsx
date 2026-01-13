@@ -67,8 +67,10 @@ describe('AccountCard', () => {
     renderComponent();
 
     await waitFor(() => {
-      // Check for display name pattern: "Category (...XXXX)"
-      expect(screen.getByText(/Limited DDA/i)).toBeInTheDocument();
+      // Check for display name in heading: "Category (...XXXX)"
+      expect(
+        screen.getByRole('heading', { name: /Limited DDA \(\.\.\.3919\)/i })
+      ).toBeInTheDocument();
     });
 
     // Status badge shows translated label "Open" for OPEN state
@@ -89,9 +91,8 @@ describe('AccountCard', () => {
 
     renderComponent();
 
-    // Check for masked account number pattern
-    expect(screen.getByText(/3919/)).toBeInTheDocument();
-    expect(screen.getByText(/\*\*\*\*/)).toBeInTheDocument();
+    // Check for masked account number pattern "****3919" in the account number section
+    expect(screen.getByText(/\*\*\*\*3919/)).toBeInTheDocument();
   });
 
   test('displays balance information when available', async () => {
