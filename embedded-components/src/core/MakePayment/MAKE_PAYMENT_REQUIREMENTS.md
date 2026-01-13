@@ -187,10 +187,18 @@
 ### Payment Methods
 
 ```typescript
+// Default: No fees
 const PAYMENT_METHODS = [
-  { id: 'ACH', name: 'ACH', fee: 2.5 },
-  { id: 'RTP', name: 'RTP', fee: 1 },
-  { id: 'WIRE', name: 'WIRE', fee: 25 },
+  { id: 'ACH', name: 'ACH' },
+  { id: 'RTP', name: 'RTP' },
+  { id: 'WIRE', name: 'WIRE' },
+] as const;
+
+// With optional fees - fee UI is hidden when fee is 0 or undefined
+const PAYMENT_METHODS_WITH_FEES = [
+  { id: 'ACH', name: 'ACH', fee: 2.5, description: 'Standard processing' },
+  { id: 'RTP', name: 'RTP', fee: 1, description: 'Real-time payment' },
+  { id: 'WIRE', name: 'WIRE', fee: 25, description: 'Wire transfer' },
 ] as const;
 ```
 

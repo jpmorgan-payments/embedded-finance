@@ -1,9 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Check, ChevronsUpDown, X } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
+import { cn } from '@/lib/utils';
 import { AccountResponse } from '@/api/generated/ep-accounts.schemas';
 import { Button } from '@/components/ui/button';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import {
   FormControl,
   FormField,
@@ -11,15 +21,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 import type { PaymentFormData, Recipient } from '../../types';
 import {
@@ -33,18 +38,25 @@ interface RecipientSelectorProps {
   selectedAccount: AccountResponse | undefined;
   recipientsStatus: string;
   refetchRecipients: () => void;
+  recipientDisabledMap?: Map<string, boolean>;
+  allRecipients?: Recipient[]; // All recipients (not filtered) for showing disabled options
 }
 
 export const RecipientSelector: React.FC<RecipientSelectorProps> = ({
   filteredRecipients,
   recipientsStatus,
   refetchRecipients,
+  recipientDisabledMap,
+  allRecipients,
 }) => {
   const { t } = useTranslation(['make-payment']);
   const form = useFormContext<PaymentFormData>();
+  const [open, setOpen] = useState(false);
 
+  // Use allRecipients if provided (for showing disabled options), otherwise use filteredRecipients
+  const recipientsToShow = allRecipients || filteredRecipients;
   const { linkedAccounts, regularRecipients } =
-    groupRecipientsByType(filteredRecipients);
+    groupRecipientsByType(recipientsToShow);
 
   // Check if there's only one recipient available
   const hasSingleRecipient = filteredRecipients.length === 1;
@@ -97,98 +109,232 @@ export const RecipientSelector: React.FC<RecipientSelectorProps> = ({
             </div>
           ) : (
             <>
-              <div className="eb-mb-1 eb-text-xs eb-text-muted-foreground">
+              <div className="eb-mb-1 eb-text-[11px] eb-text-muted-foreground">
                 {t('helpers.to', {
-                  defaultValue: 'Select or type recipient',
+                  defaultValue: 'Select or type name or last 4 numbers',
                 })}
               </div>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                value={field.value}
-                disabled={
-                  recipientsStatus !== 'success' ||
-                  filteredRecipients.length === 0
-                }
-              >
+              <Popover open={open} onOpenChange={setOpen}>
                 <FormControl>
-                  <SelectTrigger data-user-event="payment_recipient_selected">
-                    <SelectValue
-                      placeholder={
-                        recipientsStatus === 'pending'
-                          ? 'Loading recipients...'
-                          : recipientsStatus === 'error'
-                            ? 'Failed to load recipients'
-                            : filteredRecipients.length === 0
-                              ? 'No recipients available'
-                              : t('fields.to.placeholder', {
-                                  defaultValue: 'Select or type recipient',
-                                })
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={open}
+                      className="eb-w-full eb-justify-between"
+                      disabled={
+                        recipientsStatus !== 'success' ||
+                        filteredRecipients.length === 0
                       }
-                    />
-                  </SelectTrigger>
+                      data-user-event="payment_recipient_selected"
+                      onClick={(e) => {
+                        // Prevent clearing when clicking the button itself
+                        if (
+                          (e.target as HTMLElement).closest(
+                            '[data-clear-button]'
+                          )
+                        ) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }
+                      }}
+                    >
+                      <span className="eb-flex-1 eb-truncate eb-text-left">
+                        {field.value
+                          ? (() => {
+                              const selected = recipientsToShow.find(
+                                (r) => r.id === field.value
+                              );
+                              return selected
+                                ? `${renderRecipientName(selected)} - ${
+                                    selected.account?.number
+                                      ? maskAccount(selected.account.number)
+                                      : ''
+                                  }`
+                                : t('fields.to.placeholder', {
+                                    defaultValue: 'Pay to',
+                                  });
+                            })()
+                          : recipientsStatus === 'pending'
+                            ? 'Loading recipients...'
+                            : recipientsStatus === 'error'
+                              ? 'Failed to load recipients'
+                              : filteredRecipients.length === 0
+                                ? 'No recipients available'
+                                : t('fields.to.placeholder', {
+                                    defaultValue: 'Pay to',
+                                  })}
+                      </span>
+                      <div className="eb-flex eb-items-center eb-gap-1">
+                        {field.value && (
+                          <button
+                            type="button"
+                            data-clear-button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              field.onChange('');
+                              setOpen(false);
+                            }}
+                            className="eb-rounded-sm eb-opacity-70 eb-ring-offset-background hover:eb-opacity-100 focus:eb-outline-none focus:eb-ring-2 focus:eb-ring-ring focus:eb-ring-offset-2 disabled:eb-pointer-events-none"
+                            aria-label="Clear selection"
+                          >
+                            <X className="eb-h-4 eb-w-4" />
+                          </button>
+                        )}
+                        <ChevronsUpDown className="eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
+                      </div>
+                    </Button>
+                  </PopoverTrigger>
                 </FormControl>
-                <SelectContent className="eb-max-h-60">
-                  {/* Group recipients by type */}
-                  <>
-                    {/* Linked Accounts Group */}
-                    {linkedAccounts.length > 0 && (
-                      <SelectGroup>
-                        <SelectLabel className="eb-text-xs eb-font-medium eb-text-muted-foreground">
-                          Linked Accounts
-                        </SelectLabel>
-                        {linkedAccounts.map((recipient: Recipient) => (
-                          <SelectItem key={recipient.id} value={recipient.id}>
-                            {renderRecipientName(recipient)}
-                            {' - '}
-                            {recipient.account?.number
-                              ? maskAccount(recipient.account.number)
-                              : ''}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    )}
-
-                    {/* Separator if both groups have items */}
-                    {linkedAccounts.length > 0 &&
-                      regularRecipients.length > 0 && <SelectSeparator />}
-
-                    {/* Regular Recipients Group */}
-                    {regularRecipients.length > 0 && (
-                      <SelectGroup>
-                        <SelectLabel className="eb-text-xs eb-font-medium eb-text-muted-foreground">
-                          Recipients
-                        </SelectLabel>
-                        {regularRecipients.map((recipient: Recipient) => (
-                          <SelectItem key={recipient.id} value={recipient.id}>
-                            {renderRecipientName(recipient)}
-                            {' - '}
-                            {recipient.account?.number
-                              ? maskAccount(recipient.account.number)
-                              : ''}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    )}
-
-                    {/* Fallback if no grouping is possible */}
-                    {linkedAccounts.length === 0 &&
-                      regularRecipients.length === 0 && (
-                        <>
-                          {filteredRecipients.map((recipient: Recipient) => (
-                            <SelectItem key={recipient.id} value={recipient.id}>
-                              {renderRecipientName(recipient)}
-                              {' - '}
-                              {recipient.account?.number
+                <PopoverContent className="eb-w-[--radix-popover-trigger-width] eb-p-0">
+                  <Command>
+                    <CommandInput
+                      placeholder={t('fields.to.placeholder', {
+                        defaultValue: 'Search recipient...',
+                      })}
+                      className="eb-h-9"
+                    />
+                    <CommandList>
+                      <CommandEmpty>
+                        {t('fields.to.empty', {
+                          defaultValue: 'No recipient found.',
+                        })}
+                      </CommandEmpty>
+                      {/* Linked Accounts Group */}
+                      {linkedAccounts.length > 0 && (
+                        <CommandGroup>
+                          <div className="eb-px-2 eb-py-1.5 eb-text-xs eb-font-medium eb-text-muted-foreground">
+                            Linked Accounts
+                          </div>
+                          {linkedAccounts.map((recipient: Recipient) => {
+                            const isDisabled =
+                              recipientDisabledMap?.get(recipient.id) || false;
+                            const recipientLabel = `${renderRecipientName(recipient)} - ${
+                              recipient.account?.number
                                 ? maskAccount(recipient.account.number)
-                                : ''}
-                            </SelectItem>
-                          ))}
-                        </>
+                                : ''
+                            }`;
+                            return (
+                              <CommandItem
+                                key={recipient.id}
+                                value={`${recipientLabel} ${recipient.id}`}
+                                onSelect={() => {
+                                  field.onChange(
+                                    recipient.id === field.value
+                                      ? ''
+                                      : recipient.id
+                                  );
+                                  setOpen(false);
+                                }}
+                                disabled={isDisabled}
+                                className="eb-cursor-pointer"
+                              >
+                                <Check
+                                  className={cn(
+                                    'eb-mr-2 eb-h-4 eb-w-4',
+                                    field.value === recipient.id
+                                      ? 'eb-opacity-100'
+                                      : 'eb-opacity-0'
+                                  )}
+                                />
+                                {recipientLabel}
+                              </CommandItem>
+                            );
+                          })}
+                        </CommandGroup>
                       )}
-                  </>
-                </SelectContent>
-              </Select>
+
+                      {/* Regular Recipients Group */}
+                      {regularRecipients.length > 0 && (
+                        <CommandGroup>
+                          <div className="eb-px-2 eb-py-1.5 eb-text-xs eb-font-medium eb-text-muted-foreground">
+                            Recipients
+                          </div>
+                          {regularRecipients.map((recipient: Recipient) => {
+                            const isDisabled =
+                              recipientDisabledMap?.get(recipient.id) || false;
+                            const recipientLabel = `${renderRecipientName(recipient)} - ${
+                              recipient.account?.number
+                                ? maskAccount(recipient.account.number)
+                                : ''
+                            }`;
+                            return (
+                              <CommandItem
+                                key={recipient.id}
+                                value={`${recipientLabel} ${recipient.id}`}
+                                onSelect={() => {
+                                  field.onChange(
+                                    recipient.id === field.value
+                                      ? ''
+                                      : recipient.id
+                                  );
+                                  setOpen(false);
+                                }}
+                                disabled={isDisabled}
+                                className="eb-cursor-pointer"
+                              >
+                                <Check
+                                  className={cn(
+                                    'eb-mr-2 eb-h-4 eb-w-4',
+                                    field.value === recipient.id
+                                      ? 'eb-opacity-100'
+                                      : 'eb-opacity-0'
+                                  )}
+                                />
+                                {recipientLabel}
+                              </CommandItem>
+                            );
+                          })}
+                        </CommandGroup>
+                      )}
+
+                      {/* Fallback if no grouping is possible */}
+                      {linkedAccounts.length === 0 &&
+                        regularRecipients.length === 0 && (
+                          <CommandGroup>
+                            {recipientsToShow.map((recipient: Recipient) => {
+                              const isDisabled =
+                                recipientDisabledMap?.get(recipient.id) ||
+                                false;
+                              const recipientLabel = `${renderRecipientName(recipient)} - ${
+                                recipient.account?.number
+                                  ? maskAccount(recipient.account.number)
+                                  : ''
+                              }`;
+                              return (
+                                <CommandItem
+                                  key={recipient.id}
+                                  value={`${recipientLabel} ${recipient.id}`}
+                                  onSelect={() => {
+                                    field.onChange(
+                                      recipient.id === field.value
+                                        ? ''
+                                        : recipient.id
+                                    );
+                                    setOpen(false);
+                                  }}
+                                  disabled={isDisabled}
+                                  className="eb-cursor-pointer"
+                                >
+                                  <Check
+                                    className={cn(
+                                      'eb-mr-2 eb-h-4 eb-w-4',
+                                      field.value === recipient.id
+                                        ? 'eb-opacity-100'
+                                        : 'eb-opacity-0'
+                                    )}
+                                  />
+                                  {recipientLabel}
+                                </CommandItem>
+                              );
+                            })}
+                          </CommandGroup>
+                        )}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </>
           )}
           <FormMessage />

@@ -4,6 +4,35 @@
 
 The MakePayment component provides a comprehensive payment form for creating transactions. It supports multiple payment methods (ACH, RTP, WIRE), account selection, recipient management, and real-time validation.
 
+## Props
+
+### paymentMethods
+
+Configure available payment methods with optional fees. When `fee` is `undefined` or `0`, the fee UI is hidden.
+
+```tsx
+// Default: No fees (fee UI hidden)
+<MakePayment />
+
+// With fees displayed
+<MakePayment
+  paymentMethods={[
+    { id: 'ACH', name: 'ACH', fee: 2.5, description: 'Standard processing' },
+    { id: 'RTP', name: 'RTP', fee: 1.0, description: 'Real-time payment' },
+    { id: 'WIRE', name: 'WIRE', fee: 25.0, description: 'Wire transfer' },
+  ]}
+/>
+
+// Mixed: Some methods free, others with fees
+<MakePayment
+  paymentMethods={[
+    { id: 'ACH', name: 'ACH' }, // Free - no fee shown
+    { id: 'RTP', name: 'RTP', fee: 5.0 }, // Fee shown
+    { id: 'WIRE', name: 'WIRE', fee: 25.0 }, // Fee shown
+  ]}
+/>
+```
+
 ## User Journey Tracking
 
 When `userEventsHandler` is provided, the MakePayment component automatically tracks the following user journeys:

@@ -6,7 +6,7 @@ import {
   useGetAccounts,
 } from '@/api/generated/ep-accounts';
 import {
-  useGetAllRecipients,
+  useGetAllRecipientsInfinite,
   useGetRecipient,
 } from '@/api/generated/ep-recipients';
 
@@ -16,6 +16,8 @@ import {
   filterPaymentMethods,
   filterRecipients,
   getAvailableRoutingTypes,
+  isAccountDisabled,
+  isRecipientDisabled,
 } from '../utils';
 
 /**
@@ -27,16 +29,84 @@ export const usePaymentData = (
   recipientId?: string
 ) => {
   const { interceptorReady } = useInterceptorStatus();
-  // Fetch recipients from API
+
+  // Fetch all recipients using infinite query to handle pagination
+  // This automatically loads all pages until all recipients are fetched
   const {
-    data: recipientsData,
+    data: recipientsInfiniteData,
     status: recipientsStatus,
     refetch: refetchRecipients,
-  } = useGetAllRecipients(undefined, {
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useGetAllRecipientsInfinite(undefined, {
     query: {
       enabled: interceptorReady,
+      getNextPageParam: (lastPage) => {
+        const totalItems = lastPage.metadata?.total_items || 0;
+        const currentLimit = lastPage.metadata?.limit || 25;
+        const currentPage = lastPage.metadata?.page || 0;
+        const totalPages = Math.ceil(totalItems / currentLimit);
+        // Return next page number if more pages exist
+        return currentPage + 1 < totalPages ? currentPage + 1 : undefined;
+      },
+      initialPageParam: 0,
     },
   });
+
+  // Automatically fetch all pages when data is available
+  // This ensures we load all recipients regardless of pagination
+  useEffect(() => {
+    if (
+      interceptorReady &&
+      recipientsInfiniteData &&
+      hasNextPage &&
+      !isFetchingNextPage &&
+      recipientsStatus === 'success'
+    ) {
+      // Get total items from first page metadata
+      const firstPageMetadata = recipientsInfiniteData.pages[0]?.metadata;
+      const totalItems = firstPageMetadata?.total_items || 0;
+
+      // Calculate how many items we've loaded so far
+      const loadedItems = recipientsInfiniteData.pages.reduce(
+        (sum, page) => sum + (page.recipients?.length || 0),
+        0
+      );
+
+      // If we haven't loaded all items yet, fetch next page
+      // Only trigger if we have a valid total and haven't reached it
+      if (totalItems > 0 && loadedItems < totalItems) {
+        fetchNextPage();
+      }
+    }
+  }, [
+    interceptorReady,
+    recipientsInfiniteData,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    recipientsStatus,
+  ]);
+
+  // Flatten all pages into a single array of recipients
+  const recipientsData = useMemo(() => {
+    if (!recipientsInfiniteData?.pages) {
+      return { recipients: [] };
+    }
+
+    const allRecipients = recipientsInfiniteData.pages.flatMap(
+      (page) => page.recipients || []
+    );
+
+    // Get metadata from first page
+    const metadata = recipientsInfiniteData.pages[0]?.metadata;
+
+    return {
+      recipients: allRecipients,
+      metadata,
+    };
+  }, [recipientsInfiniteData]);
 
   // Fetch specific recipient by ID if recipientId is provided
   // This ensures we get the recipient even if it's not on the first page of the paginated list
@@ -131,6 +201,32 @@ export const usePaymentData = (
     return filteredRecipients.find((r) => r.id === form.watch('to'));
   }, [filteredRecipients, form.watch('to')]);
 
+  // Compute which recipients should be disabled based on selected account
+  // Show all recipients but disable incompatible ones
+  const recipientDisabledMap = useMemo(() => {
+    const disabledMap = new Map<string, boolean>();
+    recipients.forEach((recipient) => {
+      disabledMap.set(
+        recipient.id,
+        isRecipientDisabled(recipient as any, selectedAccount as any)
+      );
+    });
+    return disabledMap;
+  }, [recipients, selectedAccount]);
+
+  // Compute which accounts should be disabled based on selected recipient
+  // Show all accounts but disable incompatible ones
+  const accountDisabledMap = useMemo(() => {
+    const disabledMap = new Map<string, boolean>();
+    accounts?.items?.forEach((account) => {
+      disabledMap.set(
+        account.id,
+        isAccountDisabled(account as any, selectedRecipient as any)
+      );
+    });
+    return disabledMap;
+  }, [accounts?.items, selectedRecipient]);
+
   const availableRoutingTypes = useMemo(() => {
     return getAvailableRoutingTypes(selectedRecipient as any);
   }, [selectedRecipient]);
@@ -177,8 +273,11 @@ export const usePaymentData = (
     refetchBalance,
     accountsStatus,
     recipientsStatus: combinedRecipientsStatus,
+    preselectedRecipient,
     preselectedRecipientStatus,
     preselectedRecipientError,
+    recipientDisabledMap,
+    accountDisabledMap,
     refetchAccounts,
     refetchRecipients,
   };
@@ -239,7 +338,7 @@ export const usePaymentValidation = (
   const validation = useMemo(() => {
     const fee = paymentMethods?.find((m) => m.id === method)?.fee || 0;
     const totalAmount = amount + fee;
-    const isAmountValid = amount > fee && totalAmount <= availableBalance;
+    const isAmountValid = amount > 0 && totalAmount <= availableBalance;
 
     return {
       isAmountValid,
@@ -271,46 +370,41 @@ export const usePaymentAutoSelection = (
   form: UseFormReturn<PaymentFormData>
 ) => {
   useEffect(() => {
-    // Auto-select single recipient if only one is available
-    if (filteredRecipients.length === 1) {
-      const currentRecipient = form.getValues('to');
-      if (currentRecipient !== filteredRecipients[0].id) {
-        form.setValue('to', filteredRecipients[0].id);
-      }
+    const currentRecipient = form.getValues('to');
+    const currentAccount = form.getValues('from');
+    const currentMethod = form.getValues('method');
+
+    // Check if currently selected recipient is still valid in filtered list
+    const isCurrentRecipientValid = currentRecipient
+      ? filteredRecipients.some((r) => r.id === currentRecipient)
+      : false;
+
+    // Recipient auto-selection logic:
+    // IMPORTANT: Only modify recipient selection if:
+    // 1. Current selection is invalid (filtered out) - clear it
+    // 2. No selection exists AND only one recipient available - auto-select it
+    // DO NOT overwrite a valid user selection!
+    if (currentRecipient && !isCurrentRecipientValid) {
+      // Current selection is no longer valid (filtered out by account change)
+      // Only clear if it's actually invalid
+      form.setValue('to', '');
+    } else if (!currentRecipient && filteredRecipients.length === 1) {
+      // No selection yet, and only one recipient available - auto-select it
+      // Only if there's truly no selection
+      form.setValue('to', filteredRecipients[0].id);
     }
+    // If currentRecipient exists and is valid, do nothing - preserve user's selection
 
     // Auto-select single account if only one is available
-    if (accounts?.items?.length === 1) {
-      const currentAccount = form.getValues('from');
-      if (currentAccount !== accounts.items[0].id) {
-        form.setValue('from', accounts.items[0].id);
-      }
+    // Only if no account is currently selected
+    if (accounts?.items?.length === 1 && !currentAccount) {
+      form.setValue('from', accounts.items[0].id);
     }
 
     // Auto-select single payment method if only one is available
-    if (paymentMethods?.length === 1) {
-      const currentMethod = form.getValues('method');
-      if (currentMethod !== paymentMethods[0].id) {
-        form.setValue('method', paymentMethods[0].id);
-      }
-    }
-
-    // Auto-select payment method if only one is available
-    if (paymentMethods?.length === 1) {
-      const currentMethod = form.getValues('method');
-      if (currentMethod !== paymentMethods[0].id) {
-        form.setValue('method', paymentMethods[0].id);
-      }
-    }
-
-    // Reset account when recipient changes (if needed for specific business logic)
-    // This could be used if certain recipients require specific account types
-    const selectedRecipient = filteredRecipients.find(
-      (r) => r.id === form.getValues('to')
-    );
-    if (selectedRecipient) {
-      // For now, we don't reset the account when recipient changes
-      // This could be enhanced based on business requirements
+    // Only if no method is currently selected
+    if (paymentMethods?.length === 1 && !currentMethod) {
+      form.setValue('method', paymentMethods[0].id);
     }
   }, [
     accounts?.items,

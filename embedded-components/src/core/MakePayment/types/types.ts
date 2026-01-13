@@ -20,7 +20,7 @@ export interface Account {
 export interface PaymentMethod {
   id: string;
   name: string;
-  fee: number;
+  fee?: number;
   description?: string;
 }
 

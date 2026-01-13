@@ -21,7 +21,7 @@ interface MakePaymentStoryArgs extends BaseStoryArgs {
   paymentMethods?: Array<{
     id: string;
     name: string;
-    fee: number;
+    fee?: number;
     description?: string;
   }>;
   recipientId?: string;
@@ -129,7 +129,7 @@ const mockRecipients = [
   {
     id: 'linkedAccount3',
     type: 'LINKED_ACCOUNT',
-    status: 'INACTIVE',
+    status: 'ACTIVE',
     clientId: 'client-001',
     partyDetails: {
       type: 'ORGANIZATION',
@@ -514,7 +514,13 @@ export default meta;
 
 type Story = StoryObj<MakePaymentStoryArgs>;
 
-const defaultPaymentMethods = [
+const paymentMethodsNoFees = [
+  { id: 'ACH', name: 'ACH' },
+  { id: 'RTP', name: 'RTP' },
+  { id: 'WIRE', name: 'WIRE' },
+];
+
+const paymentMethodsWithFees = [
   { id: 'ACH', name: 'ACH', fee: 2.5 },
   { id: 'RTP', name: 'RTP', fee: 1 },
   { id: 'WIRE', name: 'WIRE', fee: 25 },
@@ -523,17 +529,41 @@ const defaultPaymentMethods = [
 // Track retry count for accounts error story (refetch succeeds on first retry)
 const accountsRetryCount = { count: 0 };
 
+/**
+ * Default story with no fees - showcases the component without any payment method fees.
+ * This is the standard/default experience.
+ */
 export const Default: Story = {
+  name: 'Default - No Fees',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsNoFees,
     icon: 'CirclePlus',
   },
   parameters: {
     docs: {
       description: {
         story:
-          'Default story with all accounts and recipients. Shows the full functionality including conditional dropdown logic and auto-selection features.',
+          'Default story with all accounts and recipients and no payment method fees. Shows the full functionality including conditional dropdown logic and auto-selection features.',
+      },
+    },
+  },
+};
+
+/**
+ * Story showcasing payment methods with fees.
+ */
+export const WithFees: Story = {
+  args: {
+    apiBaseUrl: '/',
+    paymentMethods: paymentMethodsWithFees,
+    icon: 'CirclePlus',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Demonstrates the component with payment method fees. ACH: $2.50, RTP: $1.00, WIRE: $25.00. The fee is displayed below each payment method option and in the transfer fee section when the form is filled.',
       },
     },
   },
@@ -546,7 +576,7 @@ export const LimitedDDAAccount: Story = {
   name: 'LIMITED_DDA Account - Active Linked Accounts Only',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     icon: 'CirclePlus',
   },
   parameters: {
@@ -611,7 +641,7 @@ export const SingleAccountWithSingleLinkedAccount: Story = {
   name: 'Single Account + Single Active Linked Account',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     icon: 'CirclePlus',
   },
   parameters: {
@@ -678,7 +708,7 @@ export const WithTransactionError: Story = {
   name: 'Transaction Error Handling',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     icon: 'CirclePlus',
     onTransactionSettled: (response, error) => {
       if (response) {
@@ -748,7 +778,7 @@ export const WithPreselectedRecipient: Story = {
   name: 'Pre-selected Recipient (Not on First Page)',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     recipientId: 'recipient-on-page-2', // This recipient is NOT in the first page
     icon: 'CirclePlus',
   },
@@ -892,7 +922,7 @@ export const WithPreselectedRecipient: Story = {
 export const WithoutPreviewPanel: Story = {
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     showPreviewPanel: false,
     icon: 'CirclePlus',
   },
@@ -913,7 +943,7 @@ export const GhostVariantNoIcon: Story = {
   name: 'Ghost Variant - No Icon',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     triggerButtonVariant: 'ghost',
     icon: undefined, // No icon
   },
@@ -934,7 +964,7 @@ export const SellSenseTheme: Story = {
   name: 'SellSense Theme',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     themePreset: 'SellSense',
     icon: 'CirclePlus',
   },
@@ -956,7 +986,7 @@ export const ManualRecipientEntry: Story = {
   name: 'Manual recipient entry',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     icon: 'CirclePlus',
     showPreviewPanel: true,
   },
@@ -1007,7 +1037,7 @@ export const FunctionalTestingNoMocks: Story = {
   name: 'Functional Testing with no mocks',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     icon: 'CirclePlus',
     showPreviewPanel: true,
   },
@@ -1031,7 +1061,7 @@ export const AccountBalanceError: Story = {
   name: 'Account Balance API Error',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     icon: 'CirclePlus',
     showPreviewPanel: true,
     reactQueryDefaultOptions: {
@@ -1119,7 +1149,7 @@ export const AccountsError: Story = {
   name: 'Accounts API Error',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     icon: 'CirclePlus',
     showPreviewPanel: true,
     reactQueryDefaultOptions: {
@@ -1229,6 +1259,232 @@ export const AccountsError: Story = {
         story:
           'This story demonstrates error handling when the GET accounts API fails. The account selector will show an error message with a retry button. Clicking retry will succeed on the first attempt. When a recipient is selected and accounts API is failing, the payment method selector will show "No payment methods available for this recipient."',
       },
+    },
+  },
+};
+
+/**
+ * Helper function to generate a large number of recipients for pagination testing
+ */
+function generateManyRecipients(count: number) {
+  const recipients = [];
+  const firstNames = [
+    'Alice',
+    'Bob',
+    'Charlie',
+    'Diana',
+    'Edward',
+    'Fiona',
+    'George',
+    'Hannah',
+    'Ivan',
+    'Julia',
+    'Kevin',
+    'Laura',
+    'Michael',
+    'Nancy',
+    'Oliver',
+    'Patricia',
+    'Quinn',
+    'Rachel',
+    'Samuel',
+    'Tina',
+  ];
+  const lastNames = [
+    'Anderson',
+    'Brown',
+    'Clark',
+    'Davis',
+    'Evans',
+    'Foster',
+    'Garcia',
+    'Harris',
+    'Jackson',
+    'King',
+    'Lee',
+    'Martinez',
+    'Nelson',
+    'Owen',
+    'Parker',
+    'Quinn',
+    'Roberts',
+    'Smith',
+    'Taylor',
+    'White',
+  ];
+  const cities = [
+    'New York',
+    'Los Angeles',
+    'Chicago',
+    'Houston',
+    'Phoenix',
+    'Philadelphia',
+    'San Antonio',
+    'San Diego',
+    'Dallas',
+    'San Jose',
+  ];
+  const states = ['NY', 'CA', 'IL', 'TX', 'AZ', 'PA', 'TX', 'CA', 'TX', 'CA'];
+
+  for (let i = 0; i < count; i += 1) {
+    const firstName = firstNames[i % firstNames.length];
+    const lastName = lastNames[i % lastNames.length];
+    const cityIndex = i % cities.length;
+    const isLinkedAccount = i % 3 === 0; // Every 3rd recipient is a linked account
+
+    recipients.push({
+      id: `recipient-${i + 1}`,
+      type: isLinkedAccount ? 'LINKED_ACCOUNT' : 'RECIPIENT',
+      status: 'ACTIVE',
+      clientId: 'client-001',
+      partyDetails: {
+        type: 'INDIVIDUAL',
+        firstName,
+        lastName,
+        address: {
+          addressLine1: `${i + 1} Main Street`,
+          city: cities[cityIndex],
+          state: states[cityIndex],
+          postalCode: `${10000 + i}`,
+          countryCode: 'US',
+        },
+        contacts: [
+          {
+            contactType: 'EMAIL',
+            value: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@email.com`,
+          },
+        ],
+      },
+      account: {
+        id: `acc-${i + 1000}`,
+        number: `${1000000000 + i}`,
+        type: i % 2 === 0 ? 'CHECKING' : 'SAVINGS',
+        countryCode: 'US',
+        routingInformation: [
+          {
+            routingCodeType: 'USABA',
+            routingNumber: `${111000000 + (i % 1000)}`,
+            transactionType: 'ACH',
+          },
+          ...(i % 2 === 0
+            ? [
+                {
+                  routingCodeType: 'USABA',
+                  routingNumber: `${111000000 + (i % 1000)}`,
+                  transactionType: 'RTP',
+                },
+              ]
+            : []),
+        ],
+      },
+      createdAt: `2024-01-${String((i % 28) + 1).padStart(2, '0')}T10:30:00Z`,
+      updatedAt: `2024-01-${String((i % 28) + 1).padStart(2, '0')}T10:30:00Z`,
+    });
+  }
+
+  return recipients;
+}
+
+/**
+ * Many Recipients: Demonstrates pagination with a large number of recipients (75 across 3 pages).
+ * This story shows that the infinite query automatically loads all recipients across multiple pages.
+ */
+export const ManyRecipients: Story = {
+  name: 'Many Recipients (3 Pages)',
+  args: {
+    apiBaseUrl: '/',
+    paymentMethods: paymentMethodsWithFees,
+    icon: 'CirclePlus',
+    showPreviewPanel: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'This story demonstrates the MakePayment component with 75 recipients across 3 pages (25 per page). The component uses infinite queries to automatically load all recipients across multiple pages. Open the recipient selector to see all recipients are available for selection, even though they span 3 API pages. You can verify pagination is working by checking the network tab - you should see 3 API calls to /recipients with page=0, page=1, and page=2.',
+      },
+    },
+    msw: {
+      handlers: [
+        // Paginated recipients handler - returns recipients in pages
+        http.get('/recipients', ({ request }) => {
+          const url = new URL(request.url);
+          const page = Math.max(
+            0,
+            parseInt(url.searchParams.get('page') || '0', 10)
+          );
+          const limit = Math.min(
+            25,
+            Math.max(1, parseInt(url.searchParams.get('limit') || '25', 10))
+          );
+
+          // Generate 75 recipients total (3 pages × 25 per page)
+          const allRecipients = generateManyRecipients(75);
+          const totalItems = allRecipients.length;
+
+          // Apply pagination
+          const startIndex = page * limit;
+          const endIndex = startIndex + limit;
+          const paginatedRecipients = allRecipients.slice(startIndex, endIndex);
+
+          return HttpResponse.json({
+            recipients: paginatedRecipients,
+            metadata: {
+              page,
+              limit,
+              total_items: totalItems,
+            },
+          });
+        }),
+        // Handler for GET /recipients/:id
+        http.get('/recipients/:recipientId', ({ params }) => {
+          const recipientId = params.recipientId as string;
+          const allRecipients = generateManyRecipients(75);
+          const recipient = allRecipients.find((r) => r.id === recipientId);
+          if (recipient) {
+            return HttpResponse.json(recipient);
+          }
+          return HttpResponse.json(
+            { error: 'Recipient not found' },
+            { status: 404 }
+          );
+        }),
+        http.get('/accounts', () => {
+          return HttpResponse.json(mockAccounts);
+        }),
+        http.get('/accounts/:accountId/balances', ({ params }) => {
+          const accountId = params.accountId as string;
+          const balance =
+            mockAccountBalances[accountId as keyof typeof mockAccountBalances];
+          if (balance) {
+            return HttpResponse.json(balance);
+          }
+          return HttpResponse.json(
+            { error: 'Account not found' },
+            { status: 404 }
+          );
+        }),
+        http.post('/transactions', () => {
+          return HttpResponse.json({
+            id: 'txn-12345',
+            amount: 100.0,
+            currency: 'USD',
+            debtorAccountId: 'account1',
+            creditorAccountId: 'acc-1234',
+            recipientId: 'recipient-1',
+            transactionReferenceId: 'PAY-1234567890',
+            type: 'ACH',
+            memo: 'Test payment',
+            status: 'PENDING',
+            paymentDate: '2024-01-15',
+            createdAt: '2024-01-15T10:30:00Z',
+            debtorName: 'John Doe',
+            creditorName: 'Alice Anderson',
+            debtorAccountNumber: '****1234',
+            creditorAccountNumber: '****0001',
+          });
+        }),
+      ],
     },
   },
 };

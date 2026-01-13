@@ -188,6 +188,12 @@ export { validateInput } from './validateInput';
 - One test file per implementation file
 - Minimum 80% line coverage
 - Use MSW for API mocking
+- **⚠️ CRITICAL: Always run tests after making ANY code changes**
+- **After modifying code, you MUST:**
+  1. Run `yarn format` to ensure code is formatted
+  2. Run `yarn typecheck` to verify TypeScript types
+  3. Run `yarn test` to verify all tests pass
+  4. If tests fail, fix them before proceeding
 - Always run tests before committing: `yarn test`
 - Run type checking: `yarn typecheck`
 - Run linting: `yarn lint`

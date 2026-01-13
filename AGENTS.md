@@ -137,10 +137,12 @@ New Code?
 **After making ANY code changes, you MUST:**
 
 1. **Format code**: `cd embedded-components && yarn format`
+
    - Auto-fixes Prettier formatting issues
    - **DO NOT skip this step** - code must be properly formatted
 
 2. **Run tests**: `cd embedded-components && yarn test`
+
    - This runs: typecheck → format:check → lint → test:unit
    - **DO NOT skip this step** - tests must pass before proceeding
 
@@ -196,6 +198,7 @@ New Code?
 Agent Skills provide automated, discoverable guidance. Located in `.github/copilot/skills/`:
 
 **Tier 1 - Critical Core:**
+
 - **embedded-banking-architecture** - Architecture patterns and component structure
 - **component-testing** - Comprehensive testing with MSW and React Query
 - **code-quality-workflow** - Mandatory test-fix-verify workflow
@@ -203,6 +206,7 @@ Agent Skills provide automated, discoverable guidance. Located in `.github/copil
 - **react-patterns** - React 18 hooks and composition
 
 **Tier 2 - Important:**
+
 - **i18n-l10n** - Internationalization and localization
 - **windows-powershell** - PowerShell commands (NEVER use `&&`)
 - **test-and-fix-workflow** - Automated testing and debugging
@@ -212,6 +216,7 @@ See `.github/copilot/skills/README.md` for complete documentation.
 ### Cross-IDE Compatibility
 
 This repository uses the Agent Skills format (agentskills.io) which works with:
+
 - ✅ VS Code with GitHub Copilot
 - ✅ Cursor
 - ✅ Claude Code

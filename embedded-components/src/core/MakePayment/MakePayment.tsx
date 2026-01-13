@@ -56,9 +56,9 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
   triggerButton,
   triggerButtonVariant = 'default',
   paymentMethods = [
-    { id: 'ACH', name: 'ACH', fee: 2.5 },
-    { id: 'RTP', name: 'RTP', fee: 1 },
-    { id: 'WIRE', name: 'WIRE', fee: 25 },
+    { id: 'ACH', name: 'ACH' },
+    { id: 'RTP', name: 'RTP' },
+    { id: 'WIRE', name: 'WIRE' },
   ],
   icon,
   recipientId,
@@ -144,35 +144,51 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
       return { shouldSelectRecipient: false, recipientNotFound: false };
     }
 
+    const {
+      preselectedRecipientStatus,
+      preselectedRecipient: fetchedRecipient,
+    } = paymentData;
+
     // Wait for preselected recipient fetch to complete if it's still pending
-    const isPreselectedRecipientLoading =
-      paymentData.preselectedRecipientStatus === 'pending';
-
-    // If we're still loading the preselected recipient, don't show warning yet
-    if (isPreselectedRecipientLoading) {
+    // This includes when the query hasn't started yet (interceptor not ready)
+    if (preselectedRecipientStatus === 'pending') {
       return { shouldSelectRecipient: false, recipientNotFound: false };
     }
 
-    // Check if recipient exists in filtered recipients
-    const recipientExists = paymentData.filteredRecipients?.some(
-      (r) => r.id === recipientId
-    );
+    // If preselected recipient fetch failed (404, network error, etc), show warning
+    if (preselectedRecipientStatus === 'error') {
+      return { shouldSelectRecipient: false, recipientNotFound: true };
+    }
 
-    if (recipientExists) {
-      // Auto-select the recipient if it exists and no recipient is currently selected
-      const currentRecipient = form.getValues('to');
-      if (!currentRecipient) {
-        form.setValue('to', recipientId);
+    // If preselected recipient was successfully fetched, it exists (even if filtered out)
+    // Check if the fetched recipient data exists
+    if (preselectedRecipientStatus === 'success' && fetchedRecipient) {
+      // Recipient was found via GET /recipients/:id
+      // Check if recipient exists in filtered recipients (may be filtered out by account)
+      const recipientExists = paymentData.filteredRecipients?.some(
+        (r) => r.id === recipientId
+      );
+
+      if (recipientExists) {
+        // Auto-select the recipient if it exists and no recipient is currently selected
+        const currentRecipient = form.getValues('to');
+        if (!currentRecipient) {
+          form.setValue('to', recipientId);
+        }
       }
+      // Recipient was found via GET /recipients/:id, don't show warning
+      // (even if filtered out by account selection - that's a different UX concern)
       return { shouldSelectRecipient: false, recipientNotFound: false };
     }
 
-    // Show warning if recipientId is provided but not found in filtered recipients
-    // and the fetch is complete (either succeeded but filtered out, or failed)
+    // Fallback: If status is 'success' but no recipient data (shouldn't happen in normal flow)
+    // or if status is something unexpected, show warning as safety measure
+    // This handles edge cases where the query completed but returned no data
     return { shouldSelectRecipient: false, recipientNotFound: true };
   }, [
     recipientId,
     paymentData.filteredRecipients,
+    paymentData.preselectedRecipient,
     paymentData.preselectedRecipientStatus,
     form,
   ]);
@@ -371,7 +387,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     }
   }, [dialogOpen, resetPayment, resetForm]);
 
-  // Restore pre-selected values when dialog opens
+  // Restore pre-selected values when dialog opens (only on initial open, not when data changes)
   useEffect(() => {
     if (dialogOpen) {
       // Track form started
@@ -380,23 +396,25 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
         userEventsHandler,
       });
 
-      // Auto-select single account
+      // Auto-select single account only if no account is currently selected
       if (paymentData.accounts?.items?.length === 1) {
-        form.setValue('from', paymentData.accounts.items[0].id);
+        const currentAccount = form.getValues('from');
+        if (!currentAccount) {
+          form.setValue('from', paymentData.accounts.items[0].id);
+        }
       }
 
-      // Auto-select single recipient
+      // Auto-select single recipient only if no recipient is currently selected
+      // This should only happen on initial dialog open, not when filteredRecipients changes
       if (paymentData.filteredRecipients?.length === 1) {
-        form.setValue('to', paymentData.filteredRecipients[0].id);
+        const currentRecipient = form.getValues('to');
+        if (!currentRecipient) {
+          form.setValue('to', paymentData.filteredRecipients[0].id);
+        }
       }
     }
-  }, [
-    dialogOpen,
-    paymentData.accounts?.items,
-    paymentData.filteredRecipients,
-    form,
-    userEventsHandler,
-  ]);
+    // Only run when dialog opens/closes, not when data changes
+  }, [dialogOpen, userEventsHandler]);
 
   // Restore recipient selection when recipients are loaded and dialog is open
   useEffect(() => {
@@ -519,6 +537,10 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                     refetchRecipients={
                                       paymentData.refetchRecipients
                                     }
+                                    recipientDisabledMap={
+                                      paymentData.recipientDisabledMap
+                                    }
+                                    allRecipients={paymentData.recipients}
                                   />
                                   {paymentData.filteredRecipients?.length !==
                                     1 && (
@@ -535,7 +557,6 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                   <PaymentMethodSelector
                                     paymentMethods={paymentMethods}
                                     isFormFilled={validation.isFormFilled}
-                                    amount={validation.amount}
                                     fee={validation.fee}
                                   />
                                   <ManualRecipientFields />
@@ -557,6 +578,9 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                 isBalanceError={paymentData.isBalanceError}
                                 balanceError={paymentData.balanceError}
                                 refetchBalance={paymentData.refetchBalance}
+                                accountDisabledMap={
+                                  paymentData.accountDisabledMap
+                                }
                               />
                             </CardContent>
                           </Card>
@@ -582,7 +606,6 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                       paymentData.dynamicPaymentMethods
                                     }
                                     isFormFilled={validation.isFormFilled}
-                                    amount={validation.amount}
                                     fee={validation.fee}
                                     accountsStatus={paymentData.accountsStatus}
                                   />
@@ -613,6 +636,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                               }
                               accounts={paymentData.accounts}
                               accountsStatus={paymentData.accountsStatus}
+                              paymentMethods={paymentMethods}
                             />
                           </div>
                         )}
