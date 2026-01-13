@@ -63,11 +63,11 @@ export interface BaseRecipientsWidgetProps extends UserTrackingProps {
 
   /**
    * View mode for displaying recipients
-   * - `'cards'`: Display recipients as full cards with rich details (default)
-   * - `'compact-cards'`: Display recipients as compact rows with minimal spacing
+   * - `'cards'`: Display recipients as full cards with rich details
+   * - `'compact-cards'`: Display recipients as compact rows with minimal spacing (default)
    * - `'table'`: Display recipients in a sortable/paginated table
    *
-   * @default 'cards'
+   * @default 'compact-cards'
    */
   viewMode?: 'cards' | 'compact-cards' | 'table';
 
@@ -79,11 +79,11 @@ export interface BaseRecipientsWidgetProps extends UserTrackingProps {
   scrollable?: boolean;
 
   /**
-   * Maximum height of the scrollable container (only when `scrollable={true}`).
+   * Maximum height of the scrollable container (only applies when `scrollable={true}`).
    *
    * @default '400px'
    */
-  maxHeight?: number | string;
+  scrollableMaxHeight?: number | string;
 
   /**
    * Number of recipients to fetch per API request.
@@ -94,12 +94,12 @@ export interface BaseRecipientsWidgetProps extends UserTrackingProps {
 
   /**
    * Pagination style for cards and compact-cards views.
-   * - `'loadMore'`: Show a "Load More" button to incrementally load recipients (default)
-   * - `'pages'`: Show page navigation controls similar to the table view
+   * - `'loadMore'`: Show a "Load More" button to incrementally load recipients
+   * - `'pages'`: Show page navigation controls similar to the table view (default)
    *
    * Note: This prop has no effect when `viewMode` is `'table'` (table always uses pages).
    *
-   * @default 'loadMore'
+   * @default 'pages'
    */
   paginationStyle?: 'loadMore' | 'pages';
 
@@ -147,11 +147,11 @@ export interface BaseRecipientsWidgetProps extends UserTrackingProps {
 export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   recipientType,
   mode = 'list',
-  viewMode = 'cards',
+  viewMode = 'compact-cards',
   scrollable = false,
-  maxHeight = '400px',
+  scrollableMaxHeight = '400px',
   pageSize = 10,
-  paginationStyle = 'loadMore',
+  paginationStyle = 'pages',
   hideCreateButton = false,
   renderPaymentAction,
   onAccountSettled,
@@ -597,7 +597,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                 <div
                   ref={scrollContainerRef}
                   style={{
-                    maxHeight,
+                    maxHeight: scrollableMaxHeight,
                     overflow: 'auto',
                   }}
                   className={cn('eb-relative', {
