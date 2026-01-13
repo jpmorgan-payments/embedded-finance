@@ -69,7 +69,6 @@ describe('PaymentMethodSelector', () => {
         <PaymentMethodSelector
           paymentMethods={mockPaymentMethods}
           isFormFilled={false}
-          amount={0}
           fee={0}
         />
       </TestWrapper>
@@ -87,7 +86,6 @@ describe('PaymentMethodSelector', () => {
         <PaymentMethodSelector
           paymentMethods={mockPaymentMethods}
           isFormFilled={false}
-          amount={0}
           fee={0}
         />
       </TestWrapper>
@@ -103,7 +101,6 @@ describe('PaymentMethodSelector', () => {
         <PaymentMethodSelector
           paymentMethods={[]}
           isFormFilled={false}
-          amount={0}
           fee={0}
         />
       </TestWrapper>

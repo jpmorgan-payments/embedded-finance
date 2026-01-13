@@ -514,7 +514,13 @@ export default meta;
 
 type Story = StoryObj<MakePaymentStoryArgs>;
 
-const defaultPaymentMethods = [
+const paymentMethodsNoFees = [
+  { id: 'ACH', name: 'ACH' },
+  { id: 'RTP', name: 'RTP' },
+  { id: 'WIRE', name: 'WIRE' },
+];
+
+const paymentMethodsWithFees = [
   { id: 'ACH', name: 'ACH', fee: 2.5 },
   { id: 'RTP', name: 'RTP', fee: 1 },
   { id: 'WIRE', name: 'WIRE', fee: 25 },
@@ -523,17 +529,42 @@ const defaultPaymentMethods = [
 // Track retry count for accounts error story (refetch succeeds on first retry)
 const accountsRetryCount = { count: 0 };
 
+/**
+ * Default story with no fees - showcases the component without any payment method fees.
+ * This is the standard/default experience.
+ */
 export const Default: Story = {
+  name: 'Default - No Fees',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsNoFees,
     icon: 'CirclePlus',
   },
   parameters: {
     docs: {
       description: {
         story:
-          'Default story with all accounts and recipients. Shows the full functionality including conditional dropdown logic and auto-selection features.',
+          'Default story with all accounts and recipients and no payment method fees. Shows the full functionality including conditional dropdown logic and auto-selection features.',
+      },
+    },
+  },
+};
+
+/**
+ * Story showcasing payment methods with fees.
+ */
+export const WithFees: Story = {
+  name: 'With Fees',
+  args: {
+    apiBaseUrl: '/',
+    paymentMethods: paymentMethodsWithFees,
+    icon: 'CirclePlus',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Demonstrates the component with payment method fees. ACH: $2.50, RTP: $1.00, WIRE: $25.00. The fee is displayed below each payment method option and in the transfer fee section when the form is filled.',
       },
     },
   },
@@ -546,7 +577,7 @@ export const LimitedDDAAccount: Story = {
   name: 'LIMITED_DDA Account - Active Linked Accounts Only',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     icon: 'CirclePlus',
   },
   parameters: {
@@ -611,7 +642,7 @@ export const SingleAccountWithSingleLinkedAccount: Story = {
   name: 'Single Account + Single Active Linked Account',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     icon: 'CirclePlus',
   },
   parameters: {
@@ -678,7 +709,7 @@ export const WithTransactionError: Story = {
   name: 'Transaction Error Handling',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     icon: 'CirclePlus',
     onTransactionSettled: (response, error) => {
       if (response) {
@@ -748,7 +779,7 @@ export const WithPreselectedRecipient: Story = {
   name: 'Pre-selected Recipient (Not on First Page)',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     recipientId: 'recipient-on-page-2', // This recipient is NOT in the first page
     icon: 'CirclePlus',
   },
@@ -892,7 +923,7 @@ export const WithPreselectedRecipient: Story = {
 export const WithoutPreviewPanel: Story = {
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     showPreviewPanel: false,
     icon: 'CirclePlus',
   },
@@ -913,7 +944,7 @@ export const GhostVariantNoIcon: Story = {
   name: 'Ghost Variant - No Icon',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     triggerButtonVariant: 'ghost',
     icon: undefined, // No icon
   },
@@ -934,7 +965,7 @@ export const SellSenseTheme: Story = {
   name: 'SellSense Theme',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     themePreset: 'SellSense',
     icon: 'CirclePlus',
   },
@@ -956,7 +987,7 @@ export const ManualRecipientEntry: Story = {
   name: 'Manual recipient entry',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     icon: 'CirclePlus',
     showPreviewPanel: true,
   },
@@ -1007,7 +1038,7 @@ export const FunctionalTestingNoMocks: Story = {
   name: 'Functional Testing with no mocks',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     icon: 'CirclePlus',
     showPreviewPanel: true,
   },
@@ -1031,7 +1062,7 @@ export const AccountBalanceError: Story = {
   name: 'Account Balance API Error',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     icon: 'CirclePlus',
     showPreviewPanel: true,
     reactQueryDefaultOptions: {
@@ -1119,7 +1150,7 @@ export const AccountsError: Story = {
   name: 'Accounts API Error',
   args: {
     apiBaseUrl: '/',
-    paymentMethods: defaultPaymentMethods,
+    paymentMethods: paymentMethodsWithFees,
     icon: 'CirclePlus',
     showPreviewPanel: true,
     reactQueryDefaultOptions: {
