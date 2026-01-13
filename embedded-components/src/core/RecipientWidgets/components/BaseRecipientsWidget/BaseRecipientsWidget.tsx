@@ -706,7 +706,8 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                   {/* Pagination Controls */}
                   {usePagesPagination
                     ? // PAGES PAGINATION - Navigation controls like table view
-                      totalCount > 0 && (
+                      // Only show pagination if there are more items than page size
+                      totalCount > pagination.pageSize && (
                         <div
                           className={cn({
                             'eb-border-t eb-bg-muted/30': isCompact,
