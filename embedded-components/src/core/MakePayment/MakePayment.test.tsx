@@ -811,7 +811,7 @@ describe('MakePayment (Refactored)', () => {
       () => {
         expect(
           screen.getByText((content, element) => {
-            return (
+            return !!(
               element?.textContent?.includes('Warning') &&
               element?.textContent?.includes(recipientId)
             );
