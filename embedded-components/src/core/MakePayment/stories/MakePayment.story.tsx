@@ -1263,3 +1263,229 @@ export const AccountsError: Story = {
     },
   },
 };
+
+/**
+ * Helper function to generate a large number of recipients for pagination testing
+ */
+function generateManyRecipients(count: number) {
+  const recipients = [];
+  const firstNames = [
+    'Alice',
+    'Bob',
+    'Charlie',
+    'Diana',
+    'Edward',
+    'Fiona',
+    'George',
+    'Hannah',
+    'Ivan',
+    'Julia',
+    'Kevin',
+    'Laura',
+    'Michael',
+    'Nancy',
+    'Oliver',
+    'Patricia',
+    'Quinn',
+    'Rachel',
+    'Samuel',
+    'Tina',
+  ];
+  const lastNames = [
+    'Anderson',
+    'Brown',
+    'Clark',
+    'Davis',
+    'Evans',
+    'Foster',
+    'Garcia',
+    'Harris',
+    'Jackson',
+    'King',
+    'Lee',
+    'Martinez',
+    'Nelson',
+    'Owen',
+    'Parker',
+    'Quinn',
+    'Roberts',
+    'Smith',
+    'Taylor',
+    'White',
+  ];
+  const cities = [
+    'New York',
+    'Los Angeles',
+    'Chicago',
+    'Houston',
+    'Phoenix',
+    'Philadelphia',
+    'San Antonio',
+    'San Diego',
+    'Dallas',
+    'San Jose',
+  ];
+  const states = ['NY', 'CA', 'IL', 'TX', 'AZ', 'PA', 'TX', 'CA', 'TX', 'CA'];
+
+  for (let i = 0; i < count; i++) {
+    const firstName = firstNames[i % firstNames.length];
+    const lastName = lastNames[i % lastNames.length];
+    const cityIndex = i % cities.length;
+    const isLinkedAccount = i % 3 === 0; // Every 3rd recipient is a linked account
+
+    recipients.push({
+      id: `recipient-${i + 1}`,
+      type: isLinkedAccount ? 'LINKED_ACCOUNT' : 'RECIPIENT',
+      status: 'ACTIVE',
+      clientId: 'client-001',
+      partyDetails: {
+        type: 'INDIVIDUAL',
+        firstName,
+        lastName,
+        address: {
+          addressLine1: `${i + 1} Main Street`,
+          city: cities[cityIndex],
+          state: states[cityIndex],
+          postalCode: `${10000 + i}`,
+          countryCode: 'US',
+        },
+        contacts: [
+          {
+            contactType: 'EMAIL',
+            value: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@email.com`,
+          },
+        ],
+      },
+      account: {
+        id: `acc-${i + 1000}`,
+        number: `${1000000000 + i}`,
+        type: i % 2 === 0 ? 'CHECKING' : 'SAVINGS',
+        countryCode: 'US',
+        routingInformation: [
+          {
+            routingCodeType: 'USABA',
+            routingNumber: `${111000000 + (i % 1000)}`,
+            transactionType: 'ACH',
+          },
+          ...(i % 2 === 0
+            ? [
+                {
+                  routingCodeType: 'USABA',
+                  routingNumber: `${111000000 + (i % 1000)}`,
+                  transactionType: 'RTP',
+                },
+              ]
+            : []),
+        ],
+      },
+      createdAt: `2024-01-${String((i % 28) + 1).padStart(2, '0')}T10:30:00Z`,
+      updatedAt: `2024-01-${String((i % 28) + 1).padStart(2, '0')}T10:30:00Z`,
+    });
+  }
+
+  return recipients;
+}
+
+/**
+ * Many Recipients: Demonstrates pagination with a large number of recipients (75 across 3 pages).
+ * This story shows that the infinite query automatically loads all recipients across multiple pages.
+ */
+export const ManyRecipients: Story = {
+  name: 'Many Recipients (3 Pages)',
+  args: {
+    apiBaseUrl: '/',
+    paymentMethods: paymentMethodsWithFees,
+    icon: 'CirclePlus',
+    showPreviewPanel: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'This story demonstrates the MakePayment component with 75 recipients across 3 pages (25 per page). The component uses infinite queries to automatically load all recipients across multiple pages. Open the recipient selector to see all recipients are available for selection, even though they span 3 API pages. You can verify pagination is working by checking the network tab - you should see 3 API calls to /recipients with page=0, page=1, and page=2.',
+      },
+    },
+    msw: {
+      handlers: [
+        // Paginated recipients handler - returns recipients in pages
+        http.get('/recipients', ({ request }) => {
+          const url = new URL(request.url);
+          const page = Math.max(
+            0,
+            parseInt(url.searchParams.get('page') || '0', 10)
+          );
+          const limit = Math.min(
+            25,
+            Math.max(1, parseInt(url.searchParams.get('limit') || '25', 10))
+          );
+
+          // Generate 75 recipients total (3 pages × 25 per page)
+          const allRecipients = generateManyRecipients(75);
+          const totalItems = allRecipients.length;
+
+          // Apply pagination
+          const startIndex = page * limit;
+          const endIndex = startIndex + limit;
+          const paginatedRecipients = allRecipients.slice(startIndex, endIndex);
+
+          return HttpResponse.json({
+            recipients: paginatedRecipients,
+            metadata: {
+              page,
+              limit,
+              total_items: totalItems,
+            },
+          });
+        }),
+        // Handler for GET /recipients/:id
+        http.get('/recipients/:recipientId', ({ params }) => {
+          const recipientId = params.recipientId as string;
+          const allRecipients = generateManyRecipients(75);
+          const recipient = allRecipients.find((r) => r.id === recipientId);
+          if (recipient) {
+            return HttpResponse.json(recipient);
+          }
+          return HttpResponse.json(
+            { error: 'Recipient not found' },
+            { status: 404 }
+          );
+        }),
+        http.get('/accounts', () => {
+          return HttpResponse.json(mockAccounts);
+        }),
+        http.get('/accounts/:accountId/balances', ({ params }) => {
+          const accountId = params.accountId as string;
+          const balance =
+            mockAccountBalances[accountId as keyof typeof mockAccountBalances];
+          if (balance) {
+            return HttpResponse.json(balance);
+          }
+          return HttpResponse.json(
+            { error: 'Account not found' },
+            { status: 404 }
+          );
+        }),
+        http.post('/transactions', () => {
+          return HttpResponse.json({
+            id: 'txn-12345',
+            amount: 100.0,
+            currency: 'USD',
+            debtorAccountId: 'account1',
+            creditorAccountId: 'acc-1234',
+            recipientId: 'recipient-1',
+            transactionReferenceId: 'PAY-1234567890',
+            type: 'ACH',
+            memo: 'Test payment',
+            status: 'PENDING',
+            paymentDate: '2024-01-15',
+            createdAt: '2024-01-15T10:30:00Z',
+            debtorName: 'John Doe',
+            creditorName: 'Alice Anderson',
+            debtorAccountNumber: '****1234',
+            creditorAccountNumber: '****0001',
+          });
+        }),
+      ],
+    },
+  },
+};

@@ -6,7 +6,7 @@ import {
   useGetAccounts,
 } from '@/api/generated/ep-accounts';
 import {
-  useGetAllRecipients,
+  useGetAllRecipientsInfinite,
   useGetRecipient,
 } from '@/api/generated/ep-recipients';
 
@@ -29,16 +29,84 @@ export const usePaymentData = (
   recipientId?: string
 ) => {
   const { interceptorReady } = useInterceptorStatus();
-  // Fetch recipients from API
+
+  // Fetch all recipients using infinite query to handle pagination
+  // This automatically loads all pages until all recipients are fetched
   const {
-    data: recipientsData,
+    data: recipientsInfiniteData,
     status: recipientsStatus,
     refetch: refetchRecipients,
-  } = useGetAllRecipients(undefined, {
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useGetAllRecipientsInfinite(undefined, {
     query: {
       enabled: interceptorReady,
+      getNextPageParam: (lastPage) => {
+        const totalItems = lastPage.metadata?.total_items || 0;
+        const currentLimit = lastPage.metadata?.limit || 25;
+        const currentPage = lastPage.metadata?.page || 0;
+        const totalPages = Math.ceil(totalItems / currentLimit);
+        // Return next page number if more pages exist
+        return currentPage + 1 < totalPages ? currentPage + 1 : undefined;
+      },
+      initialPageParam: 0,
     },
   });
+
+  // Automatically fetch all pages when data is available
+  // This ensures we load all recipients regardless of pagination
+  useEffect(() => {
+    if (
+      interceptorReady &&
+      recipientsInfiniteData &&
+      hasNextPage &&
+      !isFetchingNextPage &&
+      recipientsStatus === 'success'
+    ) {
+      // Get total items from first page metadata
+      const firstPageMetadata = recipientsInfiniteData.pages[0]?.metadata;
+      const totalItems = firstPageMetadata?.total_items || 0;
+
+      // Calculate how many items we've loaded so far
+      const loadedItems = recipientsInfiniteData.pages.reduce(
+        (sum, page) => sum + (page.recipients?.length || 0),
+        0
+      );
+
+      // If we haven't loaded all items yet, fetch next page
+      // Only trigger if we have a valid total and haven't reached it
+      if (totalItems > 0 && loadedItems < totalItems) {
+        fetchNextPage();
+      }
+    }
+  }, [
+    interceptorReady,
+    recipientsInfiniteData,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    recipientsStatus,
+  ]);
+
+  // Flatten all pages into a single array of recipients
+  const recipientsData = useMemo(() => {
+    if (!recipientsInfiniteData?.pages) {
+      return { recipients: [] };
+    }
+
+    const allRecipients = recipientsInfiniteData.pages.flatMap(
+      (page) => page.recipients || []
+    );
+
+    // Get metadata from first page
+    const metadata = recipientsInfiniteData.pages[0]?.metadata;
+
+    return {
+      recipients: allRecipients,
+      metadata,
+    };
+  }, [recipientsInfiniteData]);
 
   // Fetch specific recipient by ID if recipientId is provided
   // This ensures we get the recipient even if it's not on the first page of the paginated list
