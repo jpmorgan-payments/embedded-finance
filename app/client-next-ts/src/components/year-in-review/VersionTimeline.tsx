@@ -21,7 +21,7 @@ export function VersionTimeline() {
 
             {/* Milestones */}
             <div className="relative flex justify-between">
-              {versionJourney.milestones.map((milestone, index) => (
+              {versionJourney.milestones.map((milestone) => (
                 <div
                   key={milestone.version}
                   className="relative flex flex-col items-center"

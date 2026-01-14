@@ -24,7 +24,6 @@ export function ComponentChart() {
     commits: component.commits,
   }));
 
-  const maxCommits = Math.max(...componentActivity.map((c) => c.commits));
   const topComponent = componentActivity[0];
 
   return (
