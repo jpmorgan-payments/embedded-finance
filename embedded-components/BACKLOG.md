@@ -1,8 +1,8 @@
 # Embedded Components - Development Backlog
 
-**Last Updated:** December 9, 2025  
+**Last Updated:** January 14, 2026  
 **Status:** Living Document - Updated as work progresses  
-**Source:** UX Testing Report (2025-12-02, 2025-12-09), Development Roadmap, Recent PRs (#582, #583, #601)
+**Source:** UX Testing Report (2025-12-02, 2025-12-09), Development Roadmap, Recent PRs (#609, #620-#629)
 
 **Note on Tracking IDs:** This backlog uses a hierarchical format (BL-001-1, BL-001-1a, etc.) for detailed task breakdown. New items from 2025-12-09 testing use simple sequential IDs (BL-600+). Future backlog updates may migrate to simpler format for consistency.
 
@@ -57,7 +57,7 @@
 
 **Accounts:**
 
-- BL-003: Account number masking (✅ Code complete, verification needed)
+- BL-003: Account number masking (✅ Code complete, verification done)
 - BL-090: Missing action buttons
 - BL-091: UI improvements
 - BL-092: Component review needed
@@ -68,6 +68,13 @@
 - BL-003: Account number masking (✅ Code complete)
 - BL-070: Tooltips & help text
 - BL-401: Theme 0 enhancements (Parity with Recipients, status messaging, microdeposit flows)
+
+**RecipientsWidget:**
+
+- BL-406: Theme 0 enhancements (Compact/virtual list parity, table view refinements, success states)
+- BL-070: Tooltips & help text
+- BL-080: Responsive design improvements
+- BL-310: Header/title consistency
 
 **All Components:**
 
@@ -109,6 +116,11 @@
 - ✅ **BL-599**: Recipients i18n enhancements (PR #599 - Dec 8, 2025)
 - ✅ **BL-600**: Recipients data inconsistency - RESOLVED (Dec 9, 2025 - Re-test confirmed table and pagination now match)
 - ✅ **BL-600-PR**: SellSense theme consistency (PR #600 - Dec 8, 2025)
+- ✅ **BL-401-5**: LinkedAccountWidget compact/virtualized list + scrollable mode (PR #609 - Dec 12, 2025)
+- ✅ **BL-406-1**: RecipientsWidget compact cards + table view + virtual scroll (PR #622 - Jan 8, 2026)
+- ✅ **BL-405-1**: Accounts responsive cards + visual refresh (PR #629 - Jan 13, 2026)
+- ✅ **BL-504**: Storybook upgrade to v10 (PR #617 - Dec 23, 2025)
+- ✅ **MakePayment**: Preselected recipient fetch + UUID-based reference IDs (PR #621, #626 - Jan 7-12, 2026)
 
 ---
 
@@ -130,6 +142,12 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 
 - ✅ **PR #582** (Dec 3, 2025): Enhanced test setup with ResizeObserver mock, improved test reliability
 - ✅ **PR #583** (Dec 2, 2025): LinkedAccountWidget verification response handling and interaction stories
+- ✅ **PR #609** (Dec 12, 2025): LinkedAccountWidget/RecipientsWidget scrollable virtual list + compact cards
+- ✅ **PR #621** (Jan 7, 2026): MakePayment reference IDs + payment-eligible account filtering
+- ✅ **PR #622** (Jan 8, 2026): RecipientsWidget added with compact/table views
+- ✅ **PR #624** (Jan 8, 2026): RecipientWidgets form config alignment for linked accounts vs recipients
+- ✅ **PR #626** (Jan 12, 2026): MakePayment preselected recipient fetch + layout spacing update
+- ✅ **PR #629** (Jan 13, 2026): Accounts visual refresh and responsive grid
 
 ---
 
@@ -257,7 +275,7 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 **Source:** UX Testing Report - Accounts Component Analysis  
 **Theme Alignment:** Theme 1 (Security & Validation)  
 **Components Affected:** Accounts, LinkedAccountWidget  
-**Status:** ✅ Code updated (Dec 3, 2025) - Browser verification needed  
+**Status:** ✅ Code updated (Dec 3, 2025) - Browser verification completed (Dec 9, 2025)  
 **Tracking ID:** BL-003  
 **Related PRs:** Code updates completed, PR #601 (Dec 9, 2025) - No changes to masking
 
@@ -267,16 +285,16 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
   - [x] **BL-003-1c:** Code updated in AccountCard.tsx (line 67-69) to use `****${accountNumber.slice(-4)}` ✅
   - [x] **BL-003-1d:** Code updated in RecipientAccountDisplayCard uses `getMaskedAccountNumber()` which returns `****${number.slice(-4)}` ✅
   - [x] **BL-003-1e:** Code updated in Recipients components to use `****${number.slice(-4)}` ✅
-- [ ] **BL-003-2:** **VERIFY:** Test in browser to confirm Accounts component displays `****1098` (4 asterisks) not `********1098` (8 asterisks)
-  - [ ] **BL-003-2a:** If browser still shows 8 asterisks, investigate data source or rendering issue
-  - [ ] **BL-003-2b:** Verify all components display consistent 4 asterisk pattern
+- [x] **BL-003-2:** **VERIFY:** Test in browser to confirm Accounts component displays `****1098` (4 asterisks) not `********1098` (8 asterisks) ✅
+  - [x] **BL-003-2a:** If browser still shows 8 asterisks, investigate data source or rendering issue ✅
+  - [x] **BL-003-2b:** Verify all components display consistent 4 asterisk pattern ✅
 - [ ] **BL-003-3:** Document masking rules in design system
 
 **Current State:**
 
 - **Code:** All components use `****${number.slice(-4)}` pattern (4 asterisks) ✅
 - **Linked Accounts:** `****6677` (4 asterisks) ✅ Verified in browser
-- **Accounts:** Code shows 4 asterisks, but browser may show 8 - needs verification
+- **Accounts:** `****1098` (4 asterisks) ✅ Verified in browser
 - **Recipients:** Uses `****${number.slice(-4)}` pattern ✅
 
 ---
@@ -774,6 +792,7 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 #### LinkedAccountWidget [BL-401]
 
 - [x] **BL-401-1:** Handle verification responses (PR #583 - Dec 2, 2025) ✅
+- [x] **BL-401-5:** Compact/virtualized list + scrollable mode (PR #609 - Dec 12, 2025) ✅
 - [ ] **BL-401-2:** Parity with Recipients payment methods
 - [ ] **BL-401-3:** Better status messaging
 - [ ] **BL-401-4:** Robust microdeposit flows (retry/lockout messaging)
@@ -783,6 +802,13 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 - [ ] **BL-402-1:** Conditional attributes per payment method (ACH/RTP/WIRE)
 - [ ] **BL-402-2:** Edit flows parity + masking
 - [ ] **BL-402-3:** Recipient duplicate detection UX
+
+#### RecipientsWidget [BL-406]
+
+- [x] **BL-406-1:** Compact cards + table view + virtualized scroll (PR #622 - Jan 8, 2026) ✅
+- [x] **BL-406-2:** Config-driven create/edit flows aligned to recipient types (PR #624 - Jan 8, 2026) ✅
+- [ ] **BL-406-3:** Success confirmation/feedback after create/edit
+- [ ] **BL-406-4:** Ref-based control (refresh, clear filters, export)
 
 #### MakePayment [BL-403]
 
@@ -799,9 +825,9 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 
 #### Accounts [BL-405]
 
-- [ ] **BL-405-1:** Responsive cards
+- [x] **BL-405-1:** Responsive cards (PR #629 - Jan 13, 2026) ✅
 - [ ] **BL-405-2:** Review balance types mapping and tooltips
-- [ ] **BL-405-3:** Masking/toggle for sensitive routing/account info
+- [x] **BL-405-3:** Masking/toggle for sensitive routing/account info ✅
 
 ---
 
@@ -943,10 +969,13 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 
 #### Storybook Upgrade to v10+ [BL-504]
 
-**Current Version:** 9.1.13  
-**Target Version:** 10.1+ (latest stable)  
-**Priority:** 🟠 High  
+**Current Version:** 10.1.11  
+**Target Version:** 10.x (achieved)  
+**Priority:** ✅ Completed  
+**Status:** ✅ Completed (PR #617 - Dec 23, 2025)  
 **Breaking Changes:** ESM-only distribution, requires Node.js 20.19+ or 22.12+
+
+> Checklist retained for reference.
 
 - [ ] **BL-504-1:** Upgrade Storybook core and all addons to v10+
   - [ ] **BL-504-1a:** Update `storybook` to latest v10.x
