@@ -1,0 +1,16 @@
+{
+  "component": "Make Payment",
+  "date": "2026-01-14",
+  "url": "https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=make-payment&theme=Empty",
+  "navigation": {
+    "total": 365.3
+  },
+  "memory": {
+    "used": 40,
+    "unit": "MB"
+  },
+  "summary": {
+    "totalLoadTime": "365.3ms",
+    "performance": "Excellent - fastest component tested"
+  }
+}

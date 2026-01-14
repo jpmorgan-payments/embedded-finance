@@ -1,0 +1,23 @@
+# Console Logs - Accounts Component
+**Date:** January 14, 2026
+**Component:** Accounts
+**URL:** https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=accounts&theme=Empty
+
+## Summary
+- Total messages: 129
+- Errors: 0
+- Warnings: 0
+- Logs: 129 (MSW initialization and API calls)
+
+## Key Observations
+1. MSW initialization logs
+2. Duplicate API calls observed:
+   - `/ping` called twice
+   - `/ef/do/v1/accounts?clientId=0030000131` called twice
+   - `/ef/do/v1/accounts/acc-002/balances` called twice
+3. Tab switch emulation causing refetch (line 855-856)
+4. All API calls successful (200 OK)
+5. Account number masking verified: `****1098` (4 asterisks - correct pattern)
+
+## Detailed Messages
+[Full console log captured - 129 messages total]

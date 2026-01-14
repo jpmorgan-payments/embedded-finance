@@ -1,0 +1,24 @@
+# Console Logs - Transactions Component
+**Date:** January 14, 2026
+**Component:** Transactions Display
+**URL:** https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=transactions&theme=Empty
+
+## Summary
+- Total messages: 114
+- Errors: 0
+- Warnings: 0
+- Issues: 1 accessibility issue (form field missing id/name attribute - count: 2)
+- Logs: 114 (MSW initialization and API calls)
+
+## Key Observations
+1. MSW initialization logs
+2. Duplicate API calls observed:
+   - `/ping` called twice
+   - `/ef/do/v1/accounts` called twice
+   - `/ef/do/v1/transactions` called twice
+3. Tab switch emulation causing refetch (line 724-725)
+4. All API calls successful (200 OK)
+5. **Accessibility Issue:** Form field elements missing id/name attributes (msgid=723)
+
+## Detailed Messages
+[Full console log captured - 114 messages total]

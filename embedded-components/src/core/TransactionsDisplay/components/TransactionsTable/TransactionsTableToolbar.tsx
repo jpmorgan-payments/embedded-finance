@@ -128,6 +128,8 @@ export function TransactionsTableToolbar<TData>({
 
         {/* Counterpart Name Filter */}
         <Input
+          id="transactions-filter-counterpart"
+          name="transactions-filter-counterpart"
           placeholder={t('filters.counterpart.placeholder', {
             defaultValue: 'Filter counterpart...',
           })}
@@ -142,6 +144,8 @@ export function TransactionsTableToolbar<TData>({
 
         {/* Transaction Reference ID Filter */}
         <Input
+          id="transactions-filter-reference-id"
+          name="transactions-filter-reference-id"
           placeholder={t('filters.referenceId.placeholder', {
             defaultValue: 'Filter reference ID...',
           })}
