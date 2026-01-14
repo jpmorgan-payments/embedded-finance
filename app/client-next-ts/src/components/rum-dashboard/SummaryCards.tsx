@@ -3,6 +3,7 @@ import { Eye, GitBranch, Globe, TrendingUp, Users } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { type RumData } from '@/hooks/use-rum-data';
+
 import { type DataMode } from './ModeSelector';
 
 interface SummaryCardsProps {

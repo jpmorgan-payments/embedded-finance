@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 import { format, startOfMonth, startOfYear, subDays } from 'date-fns';
 
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface DateRangePresetsProps {
   startDate: string | null;
@@ -21,52 +21,59 @@ export function DateRangePresets({
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
 
-  const presets: Array<{ type: PresetType; label: string; getRange: () => { start: string; end: string } }> = useMemo(() => [
-    {
-      type: 'mtd',
-      label: 'MTD',
-      getRange: () => ({
-        start: format(startOfMonth(today), 'yyyy-MM-dd'),
-        end: todayStr,
-      }),
-    },
-    {
-      type: 'ytd',
-      label: 'YTD',
-      getRange: () => ({
-        start: format(startOfYear(today), 'yyyy-MM-dd'),
-        end: todayStr,
-      }),
-    },
-    {
-      type: 'last7',
-      label: 'Last 7 Days',
-      getRange: () => ({
-        start: format(subDays(today, 7), 'yyyy-MM-dd'),
-        end: todayStr,
-      }),
-    },
-    {
-      type: 'last30',
-      label: 'Last 30 Days',
-      getRange: () => ({
-        start: format(subDays(today, 30), 'yyyy-MM-dd'),
-        end: todayStr,
-      }),
-    },
-    {
-      type: 'last90',
-      label: 'Last 90 Days',
-      getRange: () => ({
-        start: format(subDays(today, 90), 'yyyy-MM-dd'),
-        end: todayStr,
-      }),
-    },
-  ], [today, todayStr]);
+  const presets: Array<{
+    type: PresetType;
+    label: string;
+    getRange: () => { start: string; end: string };
+  }> = useMemo(
+    () => [
+      {
+        type: 'mtd',
+        label: 'MTD',
+        getRange: () => ({
+          start: format(startOfMonth(today), 'yyyy-MM-dd'),
+          end: todayStr,
+        }),
+      },
+      {
+        type: 'ytd',
+        label: 'YTD',
+        getRange: () => ({
+          start: format(startOfYear(today), 'yyyy-MM-dd'),
+          end: todayStr,
+        }),
+      },
+      {
+        type: 'last7',
+        label: 'Last 7 Days',
+        getRange: () => ({
+          start: format(subDays(today, 7), 'yyyy-MM-dd'),
+          end: todayStr,
+        }),
+      },
+      {
+        type: 'last30',
+        label: 'Last 30 Days',
+        getRange: () => ({
+          start: format(subDays(today, 30), 'yyyy-MM-dd'),
+          end: todayStr,
+        }),
+      },
+      {
+        type: 'last90',
+        label: 'Last 90 Days',
+        getRange: () => ({
+          start: format(subDays(today, 90), 'yyyy-MM-dd'),
+          end: todayStr,
+        }),
+      },
+    ],
+    [today, todayStr]
+  );
 
   const activePreset = useMemo(() => {
     if (!startDate || !endDate) return 'mtd';
-    
+
     for (const preset of presets) {
       const range = preset.getRange();
       if (startDate === range.start && endDate === range.end) {
@@ -76,7 +83,7 @@ export function DateRangePresets({
     return 'custom';
   }, [startDate, endDate, presets]);
 
-  const handlePresetClick = (preset: typeof presets[0]) => {
+  const handlePresetClick = (preset: (typeof presets)[0]) => {
     const range = preset.getRange();
     onChange({ start: range.start, end: range.end });
   };
@@ -133,4 +140,3 @@ export function DateRangePresets({
     </div>
   );
 }
-

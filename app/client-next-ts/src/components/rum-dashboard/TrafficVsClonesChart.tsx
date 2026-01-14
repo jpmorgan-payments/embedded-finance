@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { format, parseISO } from 'date-fns';
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
 import {
   ChartContainer,
@@ -10,7 +10,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from '@/components/ui/chart';
-import { type TrafficData, type CloneData } from '@/lib/csv-parser';
+import { type CloneData, type TrafficData } from '@/lib/csv-parser';
 
 interface TrafficVsClonesChartProps {
   trafficData: TrafficData[];
@@ -128,4 +128,3 @@ export function TrafficVsClonesChart({
     </ChartContainer>
   );
 }
-

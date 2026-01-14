@@ -20,4 +20,3 @@ export const Route = createFileRoute('/gh-traffic-stats')({
 function GhTrafficStatsPage() {
   return <GhTrafficStatsDashboard />;
 }
-

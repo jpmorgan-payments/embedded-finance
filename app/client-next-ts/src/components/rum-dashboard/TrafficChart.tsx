@@ -134,11 +134,7 @@ export function TrafficChart({
           <YAxis />
           <ChartTooltip content={<ChartTooltipContent />} />
           <ChartLegend content={<ChartLegendContent />} />
-          <Bar
-            dataKey="views"
-            fill="var(--color-views)"
-            radius={4}
-          />
+          <Bar dataKey="views" fill="var(--color-views)" radius={4} />
           <Bar
             dataKey="unique_visitors"
             fill="var(--color-unique_visitors)"

@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as YearInReviewRouteImport } from './routes/year-in-review'
 import { Route as UtilsRouteImport } from './routes/utils'
 import { Route as StoriesRouteImport } from './routes/stories'
 import { Route as SolutionsRouteImport } from './routes/solutions'
@@ -24,6 +25,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as StoriesIndexRouteImport } from './routes/stories.index'
 import { Route as StoriesStoryIdRouteImport } from './routes/stories.$storyId'
 
+const YearInReviewRoute = YearInReviewRouteImport.update({
+  id: '/year-in-review',
+  path: '/year-in-review',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UtilsRoute = UtilsRouteImport.update({
   id: '/utils',
   path: '/utils',
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/solutions': typeof SolutionsRoute
   '/stories': typeof StoriesRouteWithChildren
   '/utils': typeof UtilsRoute
+  '/year-in-review': typeof YearInReviewRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
   '/stories/': typeof StoriesIndexRoute
 }
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/utils': typeof UtilsRoute
+  '/year-in-review': typeof YearInReviewRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
   '/stories': typeof StoriesIndexRoute
 }
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/solutions': typeof SolutionsRoute
   '/stories': typeof StoriesRouteWithChildren
   '/utils': typeof UtilsRoute
+  '/year-in-review': typeof YearInReviewRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
   '/stories/': typeof StoriesIndexRoute
 }
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
     | '/solutions'
     | '/stories'
     | '/utils'
+    | '/year-in-review'
     | '/stories/$storyId'
     | '/stories/'
   fileRoutesByTo: FileRoutesByTo
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
     | '/sellsense-demo'
     | '/solutions'
     | '/utils'
+    | '/year-in-review'
     | '/stories/$storyId'
     | '/stories'
   id:
@@ -189,6 +200,7 @@ export interface FileRouteTypes {
     | '/solutions'
     | '/stories'
     | '/utils'
+    | '/year-in-review'
     | '/stories/$storyId'
     | '/stories/'
   fileRoutesById: FileRoutesById
@@ -206,10 +218,18 @@ export interface RootRouteChildren {
   SolutionsRoute: typeof SolutionsRoute
   StoriesRoute: typeof StoriesRouteWithChildren
   UtilsRoute: typeof UtilsRoute
+  YearInReviewRoute: typeof YearInReviewRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/year-in-review': {
+      id: '/year-in-review'
+      path: '/year-in-review'
+      fullPath: '/year-in-review'
+      preLoaderRoute: typeof YearInReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/utils': {
       id: '/utils'
       path: '/utils'
@@ -337,6 +357,7 @@ const rootRouteChildren: RootRouteChildren = {
   SolutionsRoute: SolutionsRoute,
   StoriesRoute: StoriesRouteWithChildren,
   UtilsRoute: UtilsRoute,
+  YearInReviewRoute: YearInReviewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

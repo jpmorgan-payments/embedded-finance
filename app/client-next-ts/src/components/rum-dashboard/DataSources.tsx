@@ -44,12 +44,14 @@ export function DataSources() {
           >
             <div className="flex-1">
               <h4 className="font-medium">{source.title}</h4>
-              <p className="text-sm text-muted-foreground">{source.description}</p>
+              <p className="text-sm text-muted-foreground">
+                {source.description}
+              </p>
               <a
                 href={source.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-1 text-xs text-primary hover:underline break-all"
+                className="mt-1 break-all text-xs text-primary hover:underline"
               >
                 {source.url}
               </a>
@@ -80,4 +82,3 @@ export function DataSources() {
     </div>
   );
 }
-

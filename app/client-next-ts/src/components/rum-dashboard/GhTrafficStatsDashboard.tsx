@@ -1,7 +1,13 @@
 import { useState } from 'react';
-import { Download, Loader2 } from 'lucide-react';
 import { format, startOfMonth } from 'date-fns';
+import { Download, Loader2 } from 'lucide-react';
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -10,12 +16,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
 import { useRumData } from '@/hooks/use-rum-data';
 
 import { AnalyticalInsights } from './AnalyticalInsights';
@@ -38,7 +38,7 @@ export function GhTrafficStatsDashboard() {
   const { data, loading, error, loadData } = useRumData();
   const [mode, setMode] = useState<DataMode>('daily');
   const [chartType, setChartType] = useState<ChartType>('area');
-  
+
   // Initialize with MTD (Month to Date) as default
   const [dateRange, setDateRange] = useState<{
     start: string | null;
@@ -106,7 +106,8 @@ export function GhTrafficStatsDashboard() {
             <CardHeader>
               <CardTitle className="text-lg">Data Mode</CardTitle>
               <CardDescription>
-                Select daily or monthly data view - this determines all charts and metrics below
+                Select daily or monthly data view - this determines all charts
+                and metrics below
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -137,7 +138,9 @@ export function GhTrafficStatsDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className={`grid gap-4 ${mode === 'daily' ? 'md:grid-cols-2' : 'md:grid-cols-1'}`}>
+              <div
+                className={`grid gap-4 ${mode === 'daily' ? 'md:grid-cols-2' : 'md:grid-cols-1'}`}
+              >
                 <ChartTypeSelector
                   selected={chartType}
                   onChange={setChartType}
@@ -274,11 +277,7 @@ export function GhTrafficStatsDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <MetricsTable
-                data={data}
-                dateRange={dateRange}
-                mode={mode}
-              />
+              <MetricsTable data={data} dateRange={dateRange} mode={mode} />
             </CardContent>
           </Card>
         </>
@@ -286,4 +285,3 @@ export function GhTrafficStatsDashboard() {
     </div>
   );
 }
-
