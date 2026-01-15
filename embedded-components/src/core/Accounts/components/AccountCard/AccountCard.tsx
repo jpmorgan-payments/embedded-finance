@@ -33,6 +33,8 @@ interface AccountCardProps {
   account: AccountResponse;
   /** Use compact display mode with reduced padding and smaller elements */
   compact?: boolean;
+  /** Hide the card border (used when AccountCard is the only item in parent container) */
+  hideBorder?: boolean;
   /** Additional CSS classes to apply to the card */
   className?: string;
 }
@@ -65,7 +67,7 @@ const getCategoryIcon = (_category?: string) => {
 };
 
 export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
-  ({ account, compact = false, className }, ref) => {
+  ({ account, compact = false, hideBorder = false, className }, ref) => {
     const { t } = useTranslation(['accounts', 'common']);
     const locale = useLocale();
     const naText = t('common:na', { defaultValue: 'N/A' });
@@ -291,10 +293,13 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
           'eb-overflow-hidden eb-transition-all',
           {
             'eb-border-red-200 eb-bg-red-50/30 hover:eb-shadow-lg hover:eb-shadow-red-100':
-              isClosed,
+              isClosed && !hideBorder,
+            'eb-bg-red-50/30': isClosed && hideBorder,
             'eb-border-amber-200 eb-bg-amber-50/20 hover:eb-shadow-lg hover:eb-shadow-amber-100':
-              isPendingClose,
-            'hover:eb-shadow-md': isOpen && !isPendingClose,
+              isPendingClose && !hideBorder,
+            'eb-bg-amber-50/20': isPendingClose && hideBorder,
+            'hover:eb-shadow-md': isOpen && !isPendingClose && !hideBorder,
+            'eb-border-0 eb-shadow-none': hideBorder,
           },
           className
         )}
