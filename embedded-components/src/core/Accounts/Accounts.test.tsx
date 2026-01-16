@@ -44,7 +44,7 @@ describe('Accounts', () => {
 
       renderComponent();
 
-      expect(screen.getByText('Accounts')).toBeInTheDocument();
+      expect(screen.getByText('Your accounts')).toBeInTheDocument();
     });
 
     test('renders empty state when no accounts found', async () => {
@@ -65,7 +65,7 @@ describe('Accounts', () => {
 
       renderComponent();
 
-      expect(screen.getByText('Accounts')).toBeInTheDocument();
+      expect(screen.getByText('Your accounts')).toBeInTheDocument();
     });
 
     test('renders with custom title', () => {
@@ -91,7 +91,7 @@ describe('Accounts', () => {
 
       renderComponent({ allowedCategories: ['LIMITED_DDA_PAYMENTS'] });
 
-      expect(screen.getByText('Accounts')).toBeInTheDocument();
+      expect(screen.getByText('Your accounts')).toBeInTheDocument();
     });
 
     test('accepts both categories', () => {
@@ -101,7 +101,7 @@ describe('Accounts', () => {
         allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
       });
 
-      expect(screen.getByText('Accounts')).toBeInTheDocument();
+      expect(screen.getByText('Your accounts')).toBeInTheDocument();
     });
   });
 
@@ -111,7 +111,7 @@ describe('Accounts', () => {
 
       renderComponent({ clientId: 'client-001' });
 
-      expect(screen.getByText('Accounts')).toBeInTheDocument();
+      expect(screen.getByText('Your accounts')).toBeInTheDocument();
     });
 
     test('renders when clientId is not provided', () => {
