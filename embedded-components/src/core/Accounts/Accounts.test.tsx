@@ -119,7 +119,7 @@ describe('Accounts', () => {
 
       renderComponent();
 
-      expect(screen.getByText('Accounts')).toBeInTheDocument();
+      expect(screen.getByText('Your accounts')).toBeInTheDocument();
     });
   });
 
