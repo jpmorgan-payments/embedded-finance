@@ -803,12 +803,35 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   const accountType = form.watch('accountType');
   const paymentTypes = form.watch('paymentTypes');
   const useSameRoutingNumber = form.watch('useSameRoutingNumber');
+  const firstRoutingNumber = form.watch('routingNumbers.0.routingNumber');
 
   // Clear routing number errors when toggling "use same" checkbox
   useEffect(() => {
     // Clear errors when switching between single/multiple routing number modes
     form.clearErrors('routingNumbers');
   }, [useSameRoutingNumber, form]);
+
+  // Sync all routing numbers when "use same" is checked and first routing number changes
+  useEffect(() => {
+    if (useSameRoutingNumber && paymentTypes.length > 1 && firstRoutingNumber) {
+      const currentRoutingNumbers = form.getValues('routingNumbers') || [];
+
+      // Check if any routing numbers are different from the first one
+      const needsSync = currentRoutingNumbers.some(
+        (rn, index) => index > 0 && rn.routingNumber !== firstRoutingNumber
+      );
+
+      if (needsSync) {
+        const updatedRoutingNumbers = paymentTypes.map((method) => ({
+          paymentType: method,
+          routingNumber: firstRoutingNumber,
+        }));
+        form.setValue('routingNumbers', updatedRoutingNumbers, {
+          shouldValidate: false,
+        });
+      }
+    }
+  }, [useSameRoutingNumber, firstRoutingNumber, paymentTypes, form]);
 
   // When payment types change, clean up routing numbers for removed methods
   // and update useSameRoutingNumber checkbox if needed
@@ -1189,14 +1212,14 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                       // and apply it to all other payment methods
                       const currentRoutingNumbers =
                         form.getValues('routingNumbers') || [];
-                      const firstRoutingNumber =
+                      const sourceRoutingNumber =
                         currentRoutingNumbers[0]?.routingNumber || '';
 
-                      if (firstRoutingNumber) {
+                      if (sourceRoutingNumber) {
                         const updatedRoutingNumbers = paymentTypes.map(
                           (method) => ({
                             paymentType: method,
-                            routingNumber: firstRoutingNumber,
+                            routingNumber: sourceRoutingNumber,
                           })
                         );
                         form.setValue('routingNumbers', updatedRoutingNumbers);

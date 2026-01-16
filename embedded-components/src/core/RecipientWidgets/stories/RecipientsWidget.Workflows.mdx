@@ -134,6 +134,39 @@ The workflow stories in this section demonstrate these state transitions:
 - **ViewRecipientDetails** - Viewing recipient information
 - **RemoveRecipientWorkflow** - Removing a recipient
 - **PaginationWorkflow** - Navigating through multiple recipients
+- **RtpUnavailableAtBank** - RTP payment method not supported at bank
+
+## Payment Method Availability
+
+### RTP (Real-Time Payments) Unavailability
+
+Not all financial institutions support RTP (Real-Time Payments). When a user attempts to add a recipient with RTP enabled, but the bank associated with the routing number doesn't support RTP transactions, the API will return an error.
+
+**Error Response:**
+```json
+{
+  "httpStatus": 400,
+  "title": "Payment Method Not Supported",
+  "context": [
+    {
+      "code": "RTP_UNAVAILABLE",
+      "field": "account.routingInformation[].transactionType",
+      "message": "RTP (Real-Time Payments) is not available at this financial institution."
+    }
+  ]
+}
+```
+
+**User Experience:**
+1. User selects RTP as a payment method when adding a recipient
+2. User enters bank details (routing number, account number)
+3. Upon submission, an error message is displayed explaining RTP is unavailable
+4. User can deselect RTP and proceed with other payment methods (ACH, Wire)
+
+**Recommended UI Handling:**
+- Display a clear error message explaining RTP is not available at this bank
+- Suggest the user deselect RTP and try again with other payment methods
+- Do not prevent the user from completing recipient creation with available methods
 
 ## Important Notes
 
