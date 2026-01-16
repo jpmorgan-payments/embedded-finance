@@ -713,6 +713,18 @@ const fillLinkAccountFormWithRtp = async (
 ) => {
   // Step 1: Click "Link Account" button
   await step('Click Link Account button', async () => {
+    // Wait for the component to fully load before looking for the button
+    await waitFor(
+      async () => {
+        const linkButton = await canvas.findByRole('button', {
+          name: /link a new account/i,
+        });
+        if (!linkButton) throw new Error('Link Account button not found');
+        return linkButton;
+      },
+      { timeout: 10000 }
+    );
+
     const linkButton = await canvas.findByRole('button', {
       name: /link a new account/i,
     });
@@ -830,18 +842,24 @@ const fillLinkAccountFormWithRtp = async (
   await step('Enter routing number (bank without RTP support)', async () => {
     await delay(INTERACTION_DELAY);
 
-    // Wait for the routing number section to be ready
-    await waitFor(() => {
-      // Look for either the "use same" checkbox or a routing number input
-      const useSameCheckbox = document.querySelector('#useSameRoutingNumber');
-      const routingInput = document.querySelector(
-        'input[name="routingNumbers.0.routingNumber"]'
-      );
-      if (!useSameCheckbox && !routingInput) {
-        throw new Error('Routing number section not found');
-      }
-      return true;
-    });
+    // Wait for the routing number section to be fully rendered and stable
+    await waitFor(
+      () => {
+        // Look for either the "use same" checkbox or a routing number input
+        const useSameCheckbox = document.querySelector('#useSameRoutingNumber');
+        const routingInput = document.querySelector(
+          'input[name="routingNumbers.0.routingNumber"]'
+        );
+        if (!useSameCheckbox && !routingInput) {
+          throw new Error('Routing number section not found');
+        }
+        return true;
+      },
+      { timeout: 5000 }
+    );
+
+    // Additional delay to ensure checkbox state is fully initialized
+    await delay(500);
 
     // Check if there's a "Use same routing number" checkbox (appears when multiple payment methods)
     const useSameCheckbox = document.querySelector(
@@ -849,6 +867,16 @@ const fillLinkAccountFormWithRtp = async (
     ) as HTMLButtonElement;
 
     if (useSameCheckbox) {
+      // Wait for the checkbox to have a definitive state before checking
+      await waitFor(
+        () => {
+          const state = useSameCheckbox.getAttribute('data-state');
+          if (!state) throw new Error('Checkbox state not initialized');
+          return state;
+        },
+        { timeout: 2000 }
+      );
+
       // Check if it's NOT already checked, then click it
       const isChecked =
         useSameCheckbox.getAttribute('data-state') === 'checked' ||
