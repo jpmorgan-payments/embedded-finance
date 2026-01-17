@@ -102,9 +102,10 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
           <CardHeader className="eb-border-b eb-bg-muted/30 eb-px-2.5 eb-py-2 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-px-3 @md:eb-py-2.5 @lg:eb-px-4 @lg:eb-py-3">
             <div className="eb-flex eb-items-center eb-justify-between">
               <CardTitle className="eb-truncate eb-font-header eb-text-lg eb-font-semibold eb-leading-normal @md:eb-text-xl">
-                {t('accounts:titleSingle', {
-                  defaultValue: 'Your account',
-                })}
+                {_title ??
+                  t('accounts:titleSingle', {
+                    defaultValue: 'Your account',
+                  })}
                 {!isLoading && !isError && filteredAccounts.length > 1 && (
                   <span className="eb-animate-fade-in">
                     {`s (${filteredAccounts.length})`}
