@@ -586,6 +586,249 @@ export const createRecipientHandlers = (
   ];
 };
 
+/**
+ * Creates MSW handlers that simulate RTP being unavailable at the bank.
+ * Use this to demonstrate error handling when a user tries to create a recipient
+ * or link an account with RTP payment method and the bank doesn't support it.
+ *
+ * @param options - Configuration for delays and recipient type (optional)
+ * @returns Array of MSW request handlers
+ *
+ * @example
+ * ```tsx
+ * export const RtpUnavailable: Story = {
+ *   parameters: {
+ *     msw: { handlers: createRtpUnavailableHandlers({ recipientType: 'RECIPIENT' }) }
+ *   }
+ * };
+ * ```
+ */
+export const createRtpUnavailableHandlers = (
+  options?: Pick<RecipientHandlerOptions, 'delayMs' | 'recipientType'>
+) => {
+  const delayMs = options?.delayMs ?? 800;
+  const recipientType = options?.recipientType ?? 'LINKED_ACCOUNT';
+
+  return [
+    // GET /clients/:clientId - Get client with expanded parties
+    http.get('/clients/:clientId', async ({ params }): Promise<Response> => {
+      const { clientId } = params;
+
+      let client = db.client.findFirst({
+        where: { id: { equals: clientId as string } },
+      });
+
+      if (!client) {
+        const allClients = db.client.getAll();
+        [client] = allClients;
+      }
+
+      if (!client) {
+        return HttpResponse.json(
+          { httpStatus: 404, title: 'Client not found' },
+          { status: 404 }
+        );
+      }
+
+      const expandedClient = {
+        ...client,
+        parties: (client.parties as string[])
+          .map((partyId) =>
+            db.party.findFirst({ where: { id: { equals: partyId } } })
+          )
+          .filter(Boolean),
+      };
+
+      return HttpResponse.json(expandedClient);
+    }),
+
+    // GET /recipients - List all active recipients
+    http.get('/recipients', async (): Promise<Response> => {
+      await sleep(delayMs);
+
+      const allRecipients = db.recipient.getAll();
+      const activeRecipients = allRecipients.filter(
+        (r) => r.status !== 'INACTIVE' && r.status !== 'REJECTED'
+      );
+
+      const response: ListRecipientsResponse = {
+        recipients: activeRecipients as Recipient[],
+        metadata: {
+          total_items: activeRecipients.length,
+        },
+      };
+
+      return HttpResponse.json(response);
+    }),
+
+    // GET /recipients/:id - Get single recipient
+    http.get('/recipients/:id', async ({ params }): Promise<Response> => {
+      await sleep(delayMs);
+
+      const { id } = params;
+      const recipient = db.recipient.findFirst({
+        where: { id: { equals: id as string } },
+      });
+
+      if (!recipient) {
+        const error: ApiError = {
+          httpStatus: 404,
+          title: 'Recipient not found',
+          context: [],
+        };
+        return HttpResponse.json(error, { status: 404 });
+      }
+
+      return HttpResponse.json(recipient as Recipient);
+    }),
+
+    // POST /recipients/:id - Update recipient
+    http.post(
+      '/recipients/:id',
+      async ({ params, request }): Promise<Response> => {
+        await sleep(delayMs);
+
+        const { id } = params;
+        const body = (await request.json()) as UpdateRecipientRequest;
+
+        const recipient = db.recipient.findFirst({
+          where: { id: { equals: id as string } },
+        });
+
+        if (!recipient) {
+          const error: ApiError = {
+            httpStatus: 404,
+            title: 'Recipient not found',
+          };
+          return HttpResponse.json(error, { status: 404 });
+        }
+
+        const updatedRecipient = db.recipient.update({
+          where: { id: { equals: id as string } },
+          data: {
+            ...body,
+            updatedAt: new Date().toISOString(),
+          },
+        });
+
+        return HttpResponse.json(updatedRecipient as Recipient);
+      }
+    ),
+
+    // POST /recipients - Create new recipient (WITH RTP CHECK)
+    http.post('/recipients', async ({ request }): Promise<Response> => {
+      await sleep(delayMs);
+
+      const body = (await request.json()) as RecipientRequest;
+
+      // Check if RTP is in the routing information
+      const hasRtp = body?.account?.routingInformation?.some(
+        (ri) => ri.transactionType === 'RTP'
+      );
+
+      debugLog('POST /recipients - Checking for RTP', {
+        hasRtp,
+        routingInfo: body?.account?.routingInformation,
+      });
+
+      if (hasRtp) {
+        // Return error indicating RTP is not available at this bank
+        const error: ApiError = {
+          httpStatus: 400,
+          title: 'Payment Method Not Supported',
+          context: [
+            {
+              code: 'RTP_UNAVAILABLE',
+              field: 'account.routingInformation[].transactionType',
+              message:
+                'RTP (Real-Time Payments) is not available at this financial institution. The bank associated with the provided routing number does not support RTP transactions.',
+            },
+          ],
+        };
+
+        debugLog('POST /recipients - RTP unavailable error returned', {
+          routingNumber: body?.account?.routingInformation?.[0]?.routingNumber,
+          requestedPaymentMethods: body?.account?.routingInformation?.map(
+            (ri) => ri.transactionType
+          ),
+        });
+
+        return HttpResponse.json(error, { status: 400 });
+      }
+
+      // If no RTP, proceed with normal creation
+      const createStatus =
+        recipientType === 'RECIPIENT' ? 'ACTIVE' : 'MICRODEPOSITS_INITIATED';
+
+      const newRecipient = db.recipient.create({
+        id: `recipient-${Date.now()}`,
+        type: recipientType,
+        status: createStatus,
+        clientId: body?.clientId ?? 'mock-client-id',
+        partyDetails: {
+          type: body?.partyDetails?.type ?? 'INDIVIDUAL',
+          firstName: body?.partyDetails?.firstName,
+          lastName: body?.partyDetails?.lastName,
+          businessName: body?.partyDetails?.businessName,
+          address: body?.partyDetails?.address,
+          contacts: body?.partyDetails?.contacts,
+        },
+        account: {
+          type: body?.account?.type ?? 'CHECKING',
+          number: body?.account?.number ?? '1234567890',
+          routingInformation:
+            body?.account?.routingInformation &&
+            Array.isArray(body.account.routingInformation) &&
+            body.account.routingInformation.length > 0
+              ? body.account.routingInformation
+              : [
+                  {
+                    routingCodeType: 'USABA',
+                    routingNumber:
+                      body?.account?.routingInformation?.[0]?.routingNumber ??
+                      '123456789',
+                    transactionType:
+                      body?.account?.routingInformation?.[0]?.transactionType ??
+                      'ACH',
+                  },
+                ],
+          countryCode: body?.account?.countryCode ?? 'US',
+        },
+        createdAt: new Date().toISOString(),
+        verificationAttempts: 0,
+      });
+
+      return HttpResponse.json(newRecipient as Recipient, { status: 201 });
+    }),
+
+    // POST /recipients/:id/verify-microdeposit - Verify microdeposits
+    http.post(
+      '/recipients/:id/verify-microdeposit',
+      async ({ params, request }): Promise<Response> => {
+        await sleep(delayMs);
+
+        const { id } = params;
+        const body = (await request.json()) as MicrodepositAmounts;
+        const amounts = body.amounts ?? [];
+
+        const result = verifyMicrodeposit(id as string, amounts);
+
+        if (result.error) {
+          return HttpResponse.json(result.error as ApiError, {
+            status: result.error.httpStatus ?? 400,
+          });
+        }
+
+        const response: MicrodepositVerificationResponse = {
+          status: result.status as MicrodepositVerificationResponse['status'],
+        };
+
+        return HttpResponse.json(response);
+      }
+    ),
+  ];
+};
+
 // ============================================================================
 // Common Story Configuration
 // ============================================================================

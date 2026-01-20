@@ -1,5 +1,6 @@
 {
-  "title": "Accounts",
+  "title": "Your accounts",
+  "titleSingle": "Your account",
   "description": "View and manage your business accounts",
   "loading": {
     "accounts": "Loading accounts..."
@@ -10,7 +11,7 @@
   },
   "emptyState": {
     "title": "No accounts found",
-    "description": "No accounts match the selected categories. Contact support if you need to create an account."
+    "description": "You don't have any accounts yet. Contact support if you need assistance."
   },
   "status": {
     "labels": {

@@ -28,7 +28,7 @@ export const useRecipientConfig = (): BankAccountFormConfig => {
         },
       },
       allowMultiple: true,
-      defaultSelected: ['ACH'],
+      defaultSelected: [], // No auto-selection for recipients - user must explicitly choose
     },
     accountHolder: {
       allowIndividual: true,
