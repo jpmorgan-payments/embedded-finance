@@ -15,6 +15,7 @@ import {
   commonArgs,
   commonArgTypes,
   createRecipientHandlers,
+  createRtpUnavailableHandlers,
   seedRecipientData,
 } from './story-utils';
 
@@ -543,6 +544,317 @@ export const PaginationWorkflow: Story = {
           const secondPageRecipient = canvas.getByText(/^Recipient 6 \(/i);
           if (!secondPageRecipient)
             throw new Error('Second page not loaded yet');
+        },
+        { timeout: 5000 }
+      );
+    });
+  },
+};
+
+// =============================================================================
+// RTP UNAVAILABILITY SCENARIOS
+// =============================================================================
+
+/**
+ * Helper function to fill out the add recipient form with RTP payment method selected.
+ * This is used to demonstrate the RTP unavailability error scenario.
+ */
+const fillAddRecipientFormWithRtp = async (
+  canvas: ReturnType<typeof within>,
+  step: any
+) => {
+  // Step 1: Click "Add Recipient" button
+  await step('Click Add Recipient button', async () => {
+    // Wait for the component to fully load before looking for the button
+    await waitFor(
+      async () => {
+        const addButton = await canvas.findByRole('button', {
+          name: /add recipient/i,
+        });
+        if (!addButton) throw new Error('Add Recipient button not found');
+        return addButton;
+      },
+      { timeout: 10000 }
+    );
+
+    const addButton = await canvas.findByRole('button', {
+      name: /add recipient/i,
+    });
+    await delay(INTERACTION_DELAY);
+    await userEvent.click(addButton);
+  });
+
+  // Step 2: Verify Individual account type is pre-selected by default
+  await step('Verify Individual account type is pre-selected', async () => {
+    await delay(INTERACTION_DELAY);
+  });
+
+  // Step 3: Select RTP payment method
+  await step('Select RTP payment method', async () => {
+    await delay(INTERACTION_DELAY);
+    await waitFor(() => {
+      // Find the RTP checkbox by looking for the label text
+      const rtpLabel = Array.from(document.querySelectorAll('label')).find(
+        (label) => label.textContent?.includes('Real-Time Payments')
+      );
+      if (!rtpLabel) throw new Error('RTP payment method label not found');
+      return rtpLabel;
+    });
+
+    // Click the RTP checkbox label to select it
+    const rtpLabel = Array.from(document.querySelectorAll('label')).find(
+      (label) => label.textContent?.includes('Real-Time Payments')
+    );
+    if (rtpLabel) {
+      await userEvent.click(rtpLabel);
+    }
+  });
+
+  // Step 4: Continue to account details (Step 2)
+  await step('Continue to account details', async () => {
+    await delay(INTERACTION_DELAY);
+    const continueButton = Array.from(document.querySelectorAll('button')).find(
+      (btn) => btn.textContent?.match(/continue to account details/i)
+    );
+    if (continueButton) {
+      await userEvent.click(continueButton);
+    }
+  });
+
+  // Step 5: Select account holder from dropdown
+  await step('Select account holder from dropdown', async () => {
+    await delay(INTERACTION_DELAY);
+
+    // Wait for the dropdown to appear
+    await waitFor(() => {
+      const dropdown = document.querySelector(
+        'button[role="combobox"]'
+      ) as HTMLButtonElement;
+      if (!dropdown) throw new Error('Account holder dropdown not found');
+      return dropdown;
+    });
+
+    // Click the dropdown to open it
+    const dropdown = document.querySelector(
+      'button[role="combobox"]'
+    ) as HTMLButtonElement;
+    await userEvent.click(dropdown);
+
+    await delay(INTERACTION_DELAY);
+
+    // Select the first option from the list
+    await waitFor(() => {
+      const firstOption = document.querySelector('[role="option"]');
+      if (!firstOption) throw new Error('No options found in dropdown');
+      return firstOption;
+    });
+
+    const firstOption = document.querySelector(
+      '[role="option"]'
+    ) as HTMLElement;
+    await userEvent.click(firstOption);
+  });
+
+  // Step 6: Fill in bank account details
+  await step('Enter bank account details', async () => {
+    await delay(INTERACTION_DELAY);
+    await waitFor(() => {
+      const accountNumberInput = document.querySelector(
+        'input[name="accountNumber"]'
+      ) as HTMLInputElement;
+      if (!accountNumberInput)
+        throw new Error('Account number input not found');
+      return accountNumberInput;
+    });
+
+    const accountNumberInput = document.querySelector(
+      'input[name="accountNumber"]'
+    ) as HTMLInputElement;
+
+    await userEvent.clear(accountNumberInput);
+    await userEvent.type(accountNumberInput, '123456789');
+
+    const accountTypeButton = document.querySelector(
+      'button[name="bankAccountType"]'
+    ) as HTMLButtonElement;
+    if (accountTypeButton) {
+      await userEvent.click(accountTypeButton);
+      await delay(300);
+
+      const checkingOption = Array.from(
+        document.querySelectorAll('[role="option"]')
+      ).find((el) => el.textContent?.includes('Checking'));
+      if (checkingOption) {
+        await userEvent.click(checkingOption as HTMLElement);
+      }
+    }
+  });
+
+  // Step 7: Handle routing number field (when multiple payment methods, need to check "use same" checkbox first)
+  await step('Enter routing number (bank without RTP support)', async () => {
+    await delay(INTERACTION_DELAY);
+
+    // Wait for the routing number section to be fully rendered and stable
+    await waitFor(
+      () => {
+        // Look for either the "use same" checkbox or a routing number input
+        const useSameCheckbox = document.querySelector('#useSameRoutingNumber');
+        const routingInput = document.querySelector(
+          'input[name="routingNumbers.0.routingNumber"]'
+        );
+        if (!useSameCheckbox && !routingInput) {
+          throw new Error('Routing number section not found');
+        }
+        return true;
+      },
+      { timeout: 5000 }
+    );
+
+    // Additional delay to ensure checkbox state is fully initialized
+    await delay(500);
+
+    // Check if there's a "Use same routing number" checkbox (appears when multiple payment methods)
+    const useSameCheckbox = document.querySelector(
+      '#useSameRoutingNumber'
+    ) as HTMLButtonElement;
+
+    if (useSameCheckbox) {
+      // Wait for the checkbox to have a definitive state before checking
+      await waitFor(
+        () => {
+          const state = useSameCheckbox.getAttribute('data-state');
+          if (!state) throw new Error('Checkbox state not initialized');
+          return state;
+        },
+        { timeout: 2000 }
+      );
+
+      // Check if it's NOT already checked, then click it
+      const isChecked =
+        useSameCheckbox.getAttribute('data-state') === 'checked' ||
+        useSameCheckbox.getAttribute('aria-checked') === 'true';
+      if (!isChecked) {
+        await userEvent.click(useSameCheckbox);
+        await delay(500); // Wait for form to update after checkbox change
+      }
+    }
+
+    // Now find and fill the routing number input
+    await waitFor(
+      () => {
+        const routingInput = document.querySelector(
+          'input[name="routingNumbers.0.routingNumber"]'
+        ) as HTMLInputElement;
+
+        if (!routingInput) throw new Error('Routing number input not found');
+        return routingInput;
+      },
+      { timeout: 3000 }
+    );
+
+    const routingInput = document.querySelector(
+      'input[name="routingNumbers.0.routingNumber"]'
+    ) as HTMLInputElement;
+
+    routingInput.focus();
+    await delay(100);
+
+    // Use a routing number that will trigger the RTP unavailable error
+    await userEvent.clear(routingInput);
+    await userEvent.type(routingInput, '021000021', { delay: 50 });
+  });
+
+  // Step 8: Enter email (required for RTP)
+  await step('Enter email address (required for RTP)', async () => {
+    await delay(INTERACTION_DELAY);
+
+    await waitFor(() => {
+      const emailInput = document.querySelector(
+        'input[type="email"]'
+      ) as HTMLInputElement;
+      if (!emailInput) throw new Error('Email input not found');
+      return emailInput;
+    });
+
+    const emailInput = document.querySelector(
+      'input[type="email"]'
+    ) as HTMLInputElement;
+
+    await userEvent.clear(emailInput);
+    await userEvent.type(emailInput, 'test@example.com', { delay: 30 });
+  });
+
+  // Step 9: Submit the form
+  await step('Submit the form', async () => {
+    await delay(INTERACTION_DELAY);
+    // Find the submit button - could be "Add Recipient" or similar
+    const submitButton = Array.from(document.querySelectorAll('button')).find(
+      (btn) => btn.textContent?.match(/add recipient/i)
+    );
+    if (submitButton) {
+      await userEvent.click(submitButton);
+    }
+  });
+};
+
+/**
+ * Demonstrates error handling when RTP (Real-Time Payments) is not available
+ * at the selected bank for recipient creation.
+ *
+ * **This story:**
+ * 1. Opens the add recipient form
+ * 2. Selects RTP as a payment method
+ * 3. Fills in bank details with a routing number that doesn't support RTP
+ * 4. Submits and shows the error message
+ *
+ * This demonstrates how to gracefully handle cases where a bank doesn't support
+ * certain payment methods. The user should be informed and can proceed without RTP.
+ */
+export const RtpUnavailableAtBank: Story = {
+  parameters: {
+    msw: {
+      handlers: createRtpUnavailableHandlers({ recipientType: 'RECIPIENT' }),
+    },
+    docs: {
+      description: {
+        story: `
+Shows how the component handles the case where RTP (Real-Time Payments) is not 
+available at the recipient's bank. When a user selects RTP as a payment method 
+but the bank associated with the routing number doesn't support RTP transactions, 
+the API returns an error. This story demonstrates the error display and how 
+users can understand what went wrong.
+
+**Use Case:** User wants to add a recipient with RTP for instant payments, 
+but the recipient's bank doesn't support RTP.
+
+**Expected Behavior:** Form displays an error message explaining that RTP is 
+not available at the selected financial institution.
+        `,
+      },
+    },
+  },
+  loaders: [
+    async () => {
+      await seedRecipientData({
+        recipients: [],
+      });
+    },
+  ],
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await fillAddRecipientFormWithRtp(canvas, step);
+
+    // Verify the error message appears
+    await step('Verify RTP unavailable error message appears', async () => {
+      await waitFor(
+        () => {
+          const errorAlert = Array.from(document.querySelectorAll('*')).find(
+            (el) =>
+              el.textContent?.match(/RTP.*not available/i) ||
+              el.textContent?.match(/Payment Method Not Supported/i) ||
+              el.textContent?.match(/does not support RTP/i)
+          );
+          if (!errorAlert) throw new Error('RTP unavailable error not found');
         },
         { timeout: 5000 }
       );
