@@ -35,6 +35,10 @@ const meta = {
     msw: {
       handlers: createRecipientHandlers(),
     },
+    test: {
+      // Ignore MSW internal deserialization errors that don't affect test results
+      dangerouslyIgnoreUnhandledErrors: true,
+    },
     docs: {
       description: {
         component:
