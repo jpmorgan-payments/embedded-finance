@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 const SLIDE_COUNT = 11;
 
 interface SlideNavigationProps {
-  sectionRefs: React.RefObject<HTMLElement>[];
+  sectionRefs: React.RefObject<HTMLElement | null>[];
 }
 
 export function SlideNavigation({ sectionRefs }: SlideNavigationProps) {
