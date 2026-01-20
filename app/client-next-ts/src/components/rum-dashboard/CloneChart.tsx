@@ -130,11 +130,7 @@ export function CloneChart({ data, chartType, dateRange }: CloneChartProps) {
           <YAxis />
           <ChartTooltip content={<ChartTooltipContent />} />
           <ChartLegend content={<ChartLegendContent />} />
-          <Bar
-            dataKey="clones"
-            fill="var(--color-clones)"
-            radius={4}
-          />
+          <Bar dataKey="clones" fill="var(--color-clones)" radius={4} />
           <Bar
             dataKey="unique_cloners"
             fill="var(--color-unique_cloners)"

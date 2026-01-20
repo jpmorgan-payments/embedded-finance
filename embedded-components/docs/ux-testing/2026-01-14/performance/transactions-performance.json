@@ -1,0 +1,16 @@
+{
+  "component": "Transactions Display",
+  "date": "2026-01-14",
+  "url": "https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=transactions&theme=Empty",
+  "navigation": {
+    "total": 384.7
+  },
+  "memory": {
+    "used": 29,
+    "unit": "MB"
+  },
+  "summary": {
+    "totalLoadTime": "384.7ms",
+    "performance": "Good"
+  }
+}

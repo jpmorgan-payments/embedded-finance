@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { AlertCircle } from 'lucide-react';
 
-import { type ReferrerData } from '@/lib/csv-parser';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { type ReferrerData } from '@/lib/csv-parser';
 
 interface ReferrerTableProps {
   data: ReferrerData[];
@@ -46,15 +46,16 @@ export function ReferrerTable({ data, dateRange }: ReferrerTableProps) {
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Referrer data is aggregated across all time and is not filtered by the selected date range, 
-            as the source CSV does not include date information.
+            Referrer data is aggregated across all time and is not filtered by
+            the selected date range, as the source CSV does not include date
+            information.
           </AlertDescription>
         </Alert>
       )}
       <div className="rounded-md border">
-        <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+        <div className="max-h-[600px] overflow-x-auto overflow-y-auto">
           <table className="w-full">
-            <thead className="sticky top-0 bg-muted/50 z-10">
+            <thead className="sticky top-0 z-10 bg-muted/50">
               <tr className="border-b">
                 <th className="h-10 px-4 text-left align-middle font-medium">
                   Referrer
@@ -72,9 +73,17 @@ export function ReferrerTable({ data, dateRange }: ReferrerTableProps) {
                 >
                   <td className="p-4 align-middle">
                     <a
-                      href={row.referrer.startsWith('http') ? row.referrer : '#'}
-                      target={row.referrer.startsWith('http') ? '_blank' : undefined}
-                      rel={row.referrer.startsWith('http') ? 'noopener noreferrer' : undefined}
+                      href={
+                        row.referrer.startsWith('http') ? row.referrer : '#'
+                      }
+                      target={
+                        row.referrer.startsWith('http') ? '_blank' : undefined
+                      }
+                      rel={
+                        row.referrer.startsWith('http')
+                          ? 'noopener noreferrer'
+                          : undefined
+                      }
                       className="text-primary hover:underline"
                     >
                       {row.referrer}
@@ -92,4 +101,3 @@ export function ReferrerTable({ data, dateRange }: ReferrerTableProps) {
     </div>
   );
 }
-

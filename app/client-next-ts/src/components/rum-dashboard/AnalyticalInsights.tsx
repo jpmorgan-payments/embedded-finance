@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
+import { differenceInDays, format, parseISO } from 'date-fns';
 import { Lightbulb, TrendingDown, TrendingUp } from 'lucide-react';
-import { format, parseISO, differenceInDays } from 'date-fns';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { type RumData } from '@/hooks/use-rum-data';
+
 import { type DataMode } from './ModeSelector';
 
 interface AnalyticalInsightsProps {
@@ -48,23 +49,30 @@ export function AnalyticalInsights({
       clones.sort((a, b) => a.date.localeCompare(b.date));
 
       // Calculate date range info
-      const dates = traffic.length > 0 
-        ? traffic.map((t) => t.date)
-        : clones.map((c) => c.date);
+      const dates =
+        traffic.length > 0
+          ? traffic.map((t) => t.date)
+          : clones.map((c) => c.date);
       const startDate = dates[0];
       const endDate = dates[dates.length - 1];
-      const dayCount = differenceInDays(parseISO(endDate), parseISO(startDate)) + 1;
+      const dayCount =
+        differenceInDays(parseISO(endDate), parseISO(startDate)) + 1;
 
       // 1. Traffic trend analysis
       if (traffic.length >= 2) {
         const firstHalf = traffic.slice(0, Math.floor(traffic.length / 2));
         const secondHalf = traffic.slice(Math.floor(traffic.length / 2));
-        
-        const firstHalfAvg = firstHalf.reduce((sum, item) => sum + item.views, 0) / firstHalf.length;
-        const secondHalfAvg = secondHalf.reduce((sum, item) => sum + item.views, 0) / secondHalf.length;
-        
-        const trendChange = ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100;
-        
+
+        const firstHalfAvg =
+          firstHalf.reduce((sum, item) => sum + item.views, 0) /
+          firstHalf.length;
+        const secondHalfAvg =
+          secondHalf.reduce((sum, item) => sum + item.views, 0) /
+          secondHalf.length;
+
+        const trendChange =
+          ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100;
+
         if (Math.abs(trendChange) > 10) {
           if (trendChange > 0) {
             result.push({
@@ -82,11 +90,12 @@ export function AnalyticalInsights({
 
       // 2. Peak day analysis
       if (traffic.length > 0) {
-        const peakDay = traffic.reduce((max, item) => 
+        const peakDay = traffic.reduce((max, item) =>
           item.views > max.views ? item : max
         );
-        const avgViews = traffic.reduce((sum, item) => sum + item.views, 0) / traffic.length;
-        
+        const avgViews =
+          traffic.reduce((sum, item) => sum + item.views, 0) / traffic.length;
+
         if (peakDay.views > avgViews * 1.5) {
           const peakDate = format(parseISO(peakDay.date), 'MMM dd, yyyy');
           result.push({
@@ -100,7 +109,7 @@ export function AnalyticalInsights({
       if (clones.length > 0) {
         const totalClones = clones.reduce((sum, item) => sum + item.clones, 0);
         const avgClones = totalClones / clones.length;
-        const peakCloneDay = clones.reduce((max, item) => 
+        const peakCloneDay = clones.reduce((max, item) =>
           item.clones > max.clones ? item : max
         );
 
@@ -136,12 +145,19 @@ export function AnalyticalInsights({
       if (traffic.length >= 2) {
         const firstHalf = traffic.slice(0, Math.floor(traffic.length / 2));
         const secondHalf = traffic.slice(Math.floor(traffic.length / 2));
-        
-        const firstHalfMaxVisitors = Math.max(...firstHalf.map((item) => item.unique_visitors));
-        const secondHalfMaxVisitors = Math.max(...secondHalf.map((item) => item.unique_visitors));
-        
-        const visitorChange = ((secondHalfMaxVisitors - firstHalfMaxVisitors) / firstHalfMaxVisitors) * 100;
-        
+
+        const firstHalfMaxVisitors = Math.max(
+          ...firstHalf.map((item) => item.unique_visitors)
+        );
+        const secondHalfMaxVisitors = Math.max(
+          ...secondHalf.map((item) => item.unique_visitors)
+        );
+
+        const visitorChange =
+          ((secondHalfMaxVisitors - firstHalfMaxVisitors) /
+            firstHalfMaxVisitors) *
+          100;
+
         if (Math.abs(visitorChange) > 15) {
           if (visitorChange > 0) {
             result.push({
@@ -161,7 +177,9 @@ export function AnalyticalInsights({
       if (traffic.length > 0) {
         const views = traffic.map((item) => item.views);
         const avg = views.reduce((sum, v) => sum + v, 0) / views.length;
-        const variance = views.reduce((sum, v) => sum + Math.pow(v - avg, 2), 0) / views.length;
+        const variance =
+          views.reduce((sum, v) => sum + Math.pow(v - avg, 2), 0) /
+          views.length;
         const stdDev = Math.sqrt(variance);
         const coefficientOfVariation = (stdDev / avg) * 100;
 
@@ -180,20 +198,20 @@ export function AnalyticalInsights({
 
       // 7. Time period summary
       if (dayCount > 0) {
-        const periodText = dayCount === 1 
-          ? 'single day'
-          : dayCount <= 7
-          ? `${dayCount} days`
-          : dayCount <= 30
-          ? `${Math.round(dayCount / 7)} weeks`
-          : `${Math.round(dayCount / 30)} months`;
-        
+        const periodText =
+          dayCount === 1
+            ? 'single day'
+            : dayCount <= 7
+              ? `${dayCount} days`
+              : dayCount <= 30
+                ? `${Math.round(dayCount / 7)} weeks`
+                : `${Math.round(dayCount / 30)} months`;
+
         result.push({
           type: 'info',
           text: `Analyzing ${periodText} of data from ${format(parseISO(startDate), 'MMM dd')} to ${format(parseISO(endDate), 'MMM dd, yyyy')}.`,
         });
       }
-
     } else {
       // Monthly mode insights
       const traffic = data.monthlyTraffic;
@@ -211,12 +229,17 @@ export function AnalyticalInsights({
       if (traffic.length >= 2) {
         const firstHalf = traffic.slice(0, Math.floor(traffic.length / 2));
         const secondHalf = traffic.slice(Math.floor(traffic.length / 2));
-        
-        const firstHalfAvg = firstHalf.reduce((sum, item) => sum + item.views, 0) / firstHalf.length;
-        const secondHalfAvg = secondHalf.reduce((sum, item) => sum + item.views, 0) / secondHalf.length;
-        
-        const trendChange = ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100;
-        
+
+        const firstHalfAvg =
+          firstHalf.reduce((sum, item) => sum + item.views, 0) /
+          firstHalf.length;
+        const secondHalfAvg =
+          secondHalf.reduce((sum, item) => sum + item.views, 0) /
+          secondHalf.length;
+
+        const trendChange =
+          ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100;
+
         if (Math.abs(trendChange) > 10) {
           if (trendChange > 0) {
             result.push({
@@ -234,11 +257,12 @@ export function AnalyticalInsights({
 
       // 2. Best performing month
       if (traffic.length > 0) {
-        const bestMonth = traffic.reduce((max, item) => 
+        const bestMonth = traffic.reduce((max, item) =>
           item.views > max.views ? item : max
         );
-        const avgViews = traffic.reduce((sum, item) => sum + item.views, 0) / traffic.length;
-        
+        const avgViews =
+          traffic.reduce((sum, item) => sum + item.views, 0) / traffic.length;
+
         if (bestMonth.views > avgViews * 1.2) {
           result.push({
             type: 'info',
@@ -298,4 +322,3 @@ export function AnalyticalInsights({
     </Card>
   );
 }
-

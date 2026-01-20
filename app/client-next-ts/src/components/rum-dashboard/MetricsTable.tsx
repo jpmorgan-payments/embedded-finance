@@ -27,9 +27,7 @@ function DataTable({
 
     const term = searchTerm.toLowerCase();
     return rows.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val).toLowerCase().includes(term)
-      )
+      Object.values(row).some((val) => String(val).toLowerCase().includes(term))
     );
   }, [rows, searchTerm]);
 
@@ -135,11 +133,7 @@ function DataTable({
   );
 }
 
-export function MetricsTable({
-  data,
-  dateRange,
-  mode,
-}: MetricsTableProps) {
+export function MetricsTable({ data, dateRange, mode }: MetricsTableProps) {
   const trafficRows = useMemo(() => {
     if (mode === 'daily') {
       let filtered = [...data.traffic];
@@ -220,16 +214,25 @@ export function MetricsTable({
       <TabsList>
         <TabsTrigger value="traffic">Traffic</TabsTrigger>
         <TabsTrigger value="clones">Clones</TabsTrigger>
-        {mode === 'daily' && <TabsTrigger value="referrers">Referrers</TabsTrigger>}
+        {mode === 'daily' && (
+          <TabsTrigger value="referrers">Referrers</TabsTrigger>
+        )}
       </TabsList>
       <TabsContent value="traffic">
         <DataTable
           rows={trafficRows}
           columns={[
-            { key: mode === 'daily' ? 'date' : 'month', label: mode === 'daily' ? 'Date' : 'Month' },
+            {
+              key: mode === 'daily' ? 'date' : 'month',
+              label: mode === 'daily' ? 'Date' : 'Month',
+            },
             { key: 'repository', label: 'Repository' },
             { key: 'views', label: 'Views', align: 'right' },
-            { key: 'unique_visitors', label: 'Unique Visitors', align: 'right' },
+            {
+              key: 'unique_visitors',
+              label: 'Unique Visitors',
+              align: 'right',
+            },
           ]}
         />
       </TabsContent>
@@ -237,7 +240,10 @@ export function MetricsTable({
         <DataTable
           rows={cloneRows}
           columns={[
-            { key: mode === 'daily' ? 'date' : 'month', label: mode === 'daily' ? 'Date' : 'Month' },
+            {
+              key: mode === 'daily' ? 'date' : 'month',
+              label: mode === 'daily' ? 'Date' : 'Month',
+            },
             { key: 'repository', label: 'Repository' },
             { key: 'clones', label: 'Clones', align: 'right' },
             { key: 'unique_cloners', label: 'Unique Cloners', align: 'right' },

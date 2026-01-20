@@ -35,4 +35,3 @@ export function ModeSelector({ selected, onChange }: ModeSelectorProps) {
     </div>
   );
 }
-

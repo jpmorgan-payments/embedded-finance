@@ -12,11 +12,24 @@ export const Route = createRootRoute({
 function RootComponent() {
   const location = useLocation();
   const isSellsenseDemo = location.pathname === '/sellsense-demo';
+  const isYearInReview = location.pathname === '/year-in-review';
 
   if (isSellsenseDemo) {
     return (
       <>
         <main>
+          <Outlet />
+        </main>
+        <TanStackRouterDevtools />
+        <DemoNotice />
+      </>
+    );
+  }
+
+  if (isYearInReview) {
+    return (
+      <>
+        <main className="h-screen snap-y snap-mandatory overflow-y-scroll">
           <Outlet />
         </main>
         <TanStackRouterDevtools />

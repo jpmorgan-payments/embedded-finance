@@ -1,0 +1,22 @@
+{
+  "component": "Transactions Display",
+  "date": "2026-01-14",
+  "url": "https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=transactions&theme=Empty",
+  "totalRequests": 25,
+  "summary": {
+    "successful": 17,
+    "failed": 8,
+    "failedReasons": ["304 Not Modified (cached resources)"],
+    "duplicateCalls": true,
+    "duplicateEndpoints": [
+      "/ping",
+      "/ef/do/v1/accounts",
+      "/ef/do/v1/transactions"
+    ]
+  },
+  "findings": {
+    "duplicateCalls": "All API endpoints called twice - consistent pattern",
+    "cachedResources": "Many resources return 304 Not Modified (good caching behavior)",
+    "performance": "Good load time"
+  }
+}
