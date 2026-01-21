@@ -3,21 +3,25 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { FriendlyErrorAlert } from './FriendlyErrorAlert';
 
-// Mock react-i18next
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => {
-      const translations: Record<string, string> = {
-        'errors.known.RTP_UNAVAILABLE.title': 'Payment Method Not Available',
-        'errors.known.RTP_UNAVAILABLE.description':
-          "Real-Time Payments (RTP) is not supported by the recipient's bank.",
-        'errors.known.RTP_UNAVAILABLE.suggestion':
-          'You can still add this recipient using ACH or Wire transfer.',
-      };
-      return translations[key] || key;
-    },
-  }),
-}));
+// Mock react-i18next with all required exports
+vi.mock('react-i18next', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-i18next')>();
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string) => {
+        const translations: Record<string, string> = {
+          'errors.known.RTP_UNAVAILABLE.title': 'Payment Method Not Available',
+          'errors.known.RTP_UNAVAILABLE.description':
+            "Real-Time Payments (RTP) is not supported by the recipient's bank.",
+          'errors.known.RTP_UNAVAILABLE.suggestion':
+            'You can still add this recipient using ACH or Wire transfer.',
+        };
+        return translations[key] || key;
+      },
+    }),
+  };
+});
 
 describe('FriendlyErrorAlert', () => {
   it('should render nothing when error is null', () => {
