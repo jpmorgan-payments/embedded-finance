@@ -1,4 +1,10 @@
 {
+  "sections": {
+    "bankAccountDetails": "Bank Account Details",
+    "paymentMethods": "Payment Methods",
+    "addressInfo": "Address Information",
+    "contactInfo": "Contact Information"
+  },
   "paymentMethods": {
     "ACH": {
       "label": "ACH",
@@ -20,15 +26,147 @@
       "description": "Instant payments 24/7/365 with immediate settlement",
       "helperText": "Instant transfer available 24/7",
       "routingError": "RTP routing number must be exactly 9 digits"
+    },
+    "requiredForLinkedAccount": "Required for Linked Account",
+    "infoButtonAriaLabel": "Information about {{method}}",
+    "selectAtLeastOne": "Select at least one payment method",
+    "validation": {
+      "minOne": "Select at least one payment type",
+      "lockedRequired": "{{method}} is required and cannot be deselected"
     }
   },
-  "sections": {
-    "accountHolderType": "Account Holder Type",
-    "accountHolderInfo": "Account Holder Information",
-    "bankAccountDetails": "Bank Account Details",
-    "paymentMethods": "Payment Methods",
-    "addressInfo": "Address Information",
-    "contactInfo": "Contact Information"
+  "accountHolder": {
+    "selectType": "Select account holder type",
+    "choosePlaceholder": "Choose account type",
+    "individual": "Individual / Personal Account",
+    "organization": "Business / Organization Account"
+  },
+  "individualSelector": {
+    "accountHolder": "Account Holder",
+    "placeholder": "Choose an individual from your organization"
+  },
+  "routingNumbers": {
+    "legend": "Routing Numbers",
+    "useSameForAll": "Use same routing number for all payment methods",
+    "singleMethodLabel": "{{method}} Routing Number",
+    "combinedMethodLabel": "{{methods}} Routing Number",
+    "placeholder": "Enter 9-digit routing number",
+    "validation": {
+      "required": "Routing number is required for {{method}}",
+      "digits": "Routing number must be 9 digits"
+    }
+  },
+  "requiredFor": {
+    "single": "Required for {{method}}",
+    "double": "Required for {{first}} & {{second}}",
+    "multiple": "Required for {{list}} & {{last}}"
+  },
+  "contacts": {
+    "email": {
+      "label": "Email",
+      "placeholder": "Enter email address"
+    },
+    "phone": {
+      "label": "Phone",
+      "placeholder": "Enter phone number"
+    },
+    "validation": {
+      "required": "{{contactType}} is required",
+      "requiredForMethod": "{{contactType}} is required for {{method}}"
+    }
+  },
+  "address": {
+    "legend": "Address Information",
+    "streetAddress": {
+      "label": "Street Address",
+      "placeholder": "Enter street address"
+    },
+    "addressLine2": {
+      "label": "Address Line 2",
+      "placeholder": "Apt, suite, unit, etc. (optional)"
+    },
+    "addressLine3": {
+      "label": "Address Line 3",
+      "placeholder": "Additional info (optional)"
+    },
+    "city": {
+      "label": "City",
+      "placeholder": "Enter city"
+    },
+    "state": {
+      "label": "State",
+      "placeholder": "Select state"
+    },
+    "postalCode": {
+      "label": "ZIP Code",
+      "placeholder": "Enter ZIP code"
+    },
+    "validation": {
+      "required": "Address is required for {{methods}}",
+      "streetAddressRequired": "Street address is required",
+      "cityRequired": "City is required",
+      "stateRequired": "State is required",
+      "stateFormat": "State must be a 2-letter code",
+      "postalCodeRequired": "ZIP code is required",
+      "postalCodeFormat": "Invalid ZIP code format"
+    }
+  },
+  "fields": {
+    "firstName": {
+      "label": "First Name",
+      "placeholder": "Enter first name",
+      "validation": {
+        "required": "First name is required"
+      }
+    },
+    "lastName": {
+      "label": "Last Name",
+      "placeholder": "Enter last name",
+      "validation": {
+        "required": "Last name is required"
+      }
+    },
+    "businessName": {
+      "label": "Business Name",
+      "placeholder": "Enter business or organization name",
+      "validation": {
+        "required": "Business name is required"
+      }
+    },
+    "accountNumber": {
+      "label": "Account Number",
+      "placeholder": "Enter account number",
+      "validation": {
+        "required": "Account number is required",
+        "digitsOnly": "Account number must contain only digits"
+      }
+    },
+    "accountType": {
+      "label": "Account Type",
+      "placeholder": "Select type",
+      "validation": {
+        "required": "Account type is required"
+      }
+    }
+  },
+  "accountTypes": {
+    "checking": "Checking",
+    "savings": "Savings"
+  },
+  "navigation": {
+    "continueToAccountDetails": "Continue to Account Details",
+    "back": "Back",
+    "cancel": "Cancel"
+  },
+  "alerts": {
+    "organizationOnlyAccounts": "You may only link accounts associated with your organization.",
+    "individualOnlyAccountsSingle": "You may only link accounts associated with individuals from your organization.",
+    "individualOnlyAccountsMultiple": "You may only link accounts associated with individuals from your organization. Select the account holder below."
+  },
+  "certification": {
+    "validation": {
+      "required": "You must authorize verification to continue"
+    }
   },
   "linkedAccount": {
     "submitButton": "Confirm and Link Account",

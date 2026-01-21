@@ -20,6 +20,7 @@ import enUS_recipients from './en-US/recipients.json';
 import enUS_transactions from './en-US/transactions.json';
 import enUS_validation from './en-US/validation.json';
 import esUS_accounts from './es-US/accounts.json';
+import esUS_bankAccountForm from './es-US/bank-account-form.json';
 import esUS_recipients from './es-US/recipients.json';
 import esUS_transactions from './es-US/transactions.json';
 import frCA_accounts from './fr-CA/accounts.json';
@@ -68,7 +69,7 @@ export const defaultResources = {
     'onboarding-overview': enUS_onboardingOverview, // Using English onboarding-overview for now
     'make-payment': enUS_makePayment, // Using English make-payment for now
     'linked-accounts': enUS_linkedAccounts, // Using English linked-accounts for now
-    'bank-account-form': enUS_bankAccountForm, // Using English bank-account-form for now
+    'bank-account-form': esUS_bankAccountForm,
     accounts: esUS_accounts,
     recipients: esUS_recipients,
     transactions: esUS_transactions,

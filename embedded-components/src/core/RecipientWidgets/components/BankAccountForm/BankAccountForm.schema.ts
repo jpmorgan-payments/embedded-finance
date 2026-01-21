@@ -1,3 +1,4 @@
+import i18n from 'i18next';
 import { z } from 'zod';
 
 import { RoutingInformationTransactionType } from '@/api/generated/ep-recipients.schemas';
@@ -6,6 +7,28 @@ import type {
   BankAccountFormConfig,
   BankAccountFormData,
 } from './BankAccountForm.types';
+
+/**
+ * Type for the validation message getter function
+ */
+export type ValidationGetter = (
+  key: string,
+  interpolation?: Record<string, string | number>
+) => string;
+
+/**
+ * Hook to get validation messages from i18n
+ * Similar to useGetValidationMessage from OnboardingFlow
+ */
+export const useGetBankAccountValidationMessage = (): ValidationGetter => {
+  return (
+    key: string,
+    interpolation?: Record<string, string | number>
+  ): string => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return i18n.t(`bank-account-form:${key}` as any, interpolation as any);
+  };
+};
 
 /**
  * Address schema - All fields optional in base schema, validation in superRefine
@@ -39,8 +62,12 @@ const contactSchema = z.object({
 
 /**
  * Base schema with all possible fields
+ * @param v - Validation message getter function
  */
-const createBaseSchema = (config: BankAccountFormConfig) => {
+const createBaseSchema = (
+  config: BankAccountFormConfig,
+  v: (key: string, interpolation?: Record<string, string | number>) => string
+) => {
   return z.object({
     // Account holder information
     accountType: z.enum(['INDIVIDUAL', 'ORGANIZATION']),
@@ -57,7 +84,7 @@ const createBaseSchema = (config: BankAccountFormConfig) => {
     // Payment methods
     paymentTypes: z
       .array(z.enum(['ACH', 'WIRE', 'RTP']))
-      .min(1, 'Select at least one payment type'),
+      .min(1, v('paymentMethods.validation.minOne')),
 
     // Address (conditional)
     address: addressSchema.optional(),
@@ -68,7 +95,7 @@ const createBaseSchema = (config: BankAccountFormConfig) => {
     // Certification (conditional)
     certify: config.requiredFields.certification
       ? z.boolean().refine((val) => val === true, {
-          message: 'You must authorize verification to continue',
+          message: v('certification.validation.required'),
         })
       : z.boolean().optional(),
   });
@@ -118,11 +145,14 @@ function getRequiredContactTypes(
 
 /**
  * Create dynamic schema with configuration-based validation
+ * @param config - Form configuration
+ * @param v - Validation message getter function from i18n
  */
 export function createBankAccountFormSchema(
-  config: BankAccountFormConfig
+  config: BankAccountFormConfig,
+  v: (key: string, interpolation?: Record<string, string | number>) => string
 ): z.ZodType<BankAccountFormData> {
-  const baseSchema = createBaseSchema(config);
+  const baseSchema = createBaseSchema(config, v);
 
   return baseSchema.superRefine((data, ctx) => {
     const { accountType, paymentTypes = [] } = data;
@@ -133,14 +163,14 @@ export function createBankAccountFormSchema(
       if (!data.firstName || data.firstName.trim().length === 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'First name is required',
+          message: v('fields.firstName.validation.required'),
           path: ['firstName'],
         });
       }
       if (!data.lastName || data.lastName.trim().length === 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Last name is required',
+          message: v('fields.lastName.validation.required'),
           path: ['lastName'],
         });
       }
@@ -148,7 +178,7 @@ export function createBankAccountFormSchema(
       if (!data.businessName || data.businessName.trim().length === 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Business name is required',
+          message: v('fields.businessName.validation.required'),
           path: ['businessName'],
         });
       }
@@ -159,13 +189,13 @@ export function createBankAccountFormSchema(
     if (!data.accountNumber || data.accountNumber.trim().length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Account number is required',
+        message: v('fields.accountNumber.validation.required'),
         path: ['accountNumber'],
       });
     } else if (!/^\d+$/.test(data.accountNumber)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Account number must contain only digits',
+        message: v('fields.accountNumber.validation.digitsOnly'),
         path: ['accountNumber'],
       });
     }
@@ -174,7 +204,7 @@ export function createBankAccountFormSchema(
     if (!data.bankAccountType) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Account type is required',
+        message: v('fields.accountType.validation.required'),
         path: ['bankAccountType'],
       });
     }
@@ -196,7 +226,9 @@ export function createBankAccountFormSchema(
         if (!routingEntry || !routingEntry.routingNumber.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: `Routing number is required for ${methodConfig.label}`,
+            message: v('routingNumbers.validation.required', {
+              method: methodConfig.label,
+            }),
             path:
               routingEntryIndex >= 0
                 ? ['routingNumbers', routingEntryIndex, 'routingNumber']
@@ -207,7 +239,7 @@ export function createBankAccountFormSchema(
           if (!/^\d{9}$/.test(routingEntry.routingNumber)) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
-              message: 'Routing number must be 9 digits',
+              message: v('routingNumbers.validation.digits'),
               path: ['routingNumbers', routingEntryIndex, 'routingNumber'],
             });
           }
@@ -236,7 +268,11 @@ export function createBankAccountFormSchema(
         );
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `Address is required for ${methodsRequiringAddress.map((m) => config.paymentMethods.configs[m].label).join(', ')}`,
+          message: v('address.validation.required', {
+            methods: methodsRequiringAddress
+              .map((m) => config.paymentMethods.configs[m].label)
+              .join(', '),
+          }),
           path: ['address'],
         });
       } else {
@@ -247,7 +283,7 @@ export function createBankAccountFormSchema(
         ) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: 'Street address is required',
+            message: v('address.validation.streetAddressRequired'),
             path: ['address', 'addressLine1'],
           });
         }
@@ -255,7 +291,7 @@ export function createBankAccountFormSchema(
         if (!data.address.city || data.address.city.trim().length === 0) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: 'City is required',
+            message: v('address.validation.cityRequired'),
             path: ['address', 'city'],
           });
         }
@@ -263,13 +299,13 @@ export function createBankAccountFormSchema(
         if (!data.address.state || data.address.state.trim().length === 0) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: 'State is required',
+            message: v('address.validation.stateRequired'),
             path: ['address', 'state'],
           });
         } else if (!/^[A-Z]{2}$/.test(data.address.state)) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: 'State must be a 2-letter code',
+            message: v('address.validation.stateFormat'),
             path: ['address', 'state'],
           });
         }
@@ -280,13 +316,13 @@ export function createBankAccountFormSchema(
         ) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: 'ZIP code is required',
+            message: v('address.validation.postalCodeRequired'),
             path: ['address', 'postalCode'],
           });
         } else if (!/^\d{5}(-\d{4})?$/.test(data.address.postalCode)) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: 'Invalid ZIP code format',
+            message: v('address.validation.postalCodeFormat'),
             path: ['address', 'postalCode'],
           });
         }
@@ -313,11 +349,19 @@ export function createBankAccountFormSchema(
           .map((m) => config.paymentMethods.configs[m].label)
           .join(', ');
 
+        const formattedContactType =
+          contactType.charAt(0) + contactType.slice(1).toLowerCase();
+
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: methodLabels
-            ? `${contactType.charAt(0) + contactType.slice(1).toLowerCase()} is required for ${methodLabels}`
-            : `${contactType.charAt(0) + contactType.slice(1).toLowerCase()} is required`,
+            ? v('contacts.validation.requiredForMethod', {
+                contactType: formattedContactType,
+                method: methodLabels,
+              })
+            : v('contacts.validation.required', {
+                contactType: formattedContactType,
+              }),
           path: ['contacts'],
         });
       }
@@ -329,13 +373,26 @@ export function createBankAccountFormSchema(
       if (methodConfig?.locked && !paymentTypes.includes(method)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `${methodConfig.label} is required and cannot be deselected`,
+          message: v('paymentMethods.validation.lockedRequired', {
+            method: methodConfig.label,
+          }),
           path: ['paymentTypes'],
         });
       }
     });
   }) as z.ZodType<BankAccountFormData>;
 }
+
+/**
+ * Hook to create the bank account form schema with i18n validation messages
+ * Following the pattern from OnboardingFlow schemas
+ */
+export const useBankAccountFormSchema = () => {
+  const v = useGetBankAccountValidationMessage();
+
+  return (config: BankAccountFormConfig) =>
+    createBankAccountFormSchema(config, v);
+};
 
 /**
  * Type inference helper

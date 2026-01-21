@@ -1,4 +1,10 @@
 {
+  "sections": {
+    "bankAccountDetails": "Détails du compte bancaire",
+    "paymentMethods": "Méthodes de paiement",
+    "addressInfo": "Informations sur l'adresse",
+    "contactInfo": "Informations de contact"
+  },
   "paymentMethods": {
     "ACH": {
       "label": "ACH",
@@ -20,15 +26,147 @@
       "description": "Paiements instantanés 24/7/365 avec règlement immédiat",
       "helperText": "Virement instantané disponible 24/7",
       "routingError": "Le numéro d'acheminement RTP doit comporter exactement 9 chiffres"
+    },
+    "requiredForLinkedAccount": "Requis pour le compte lié",
+    "infoButtonAriaLabel": "Informations sur {{method}}",
+    "selectAtLeastOne": "Sélectionnez au moins une méthode de paiement",
+    "validation": {
+      "minOne": "Sélectionnez au moins un type de paiement",
+      "lockedRequired": "{{method}} est requis et ne peut pas être désélectionné"
     }
   },
-  "sections": {
-    "accountHolderType": "Type de titulaire de compte",
-    "accountHolderInfo": "Informations sur le titulaire du compte",
-    "bankAccountDetails": "Détails du compte bancaire",
-    "paymentMethods": "Méthodes de paiement",
-    "addressInfo": "Informations sur l'adresse",
-    "contactInfo": "Informations de contact"
+  "accountHolder": {
+    "selectType": "Sélectionner le type de titulaire du compte",
+    "choosePlaceholder": "Choisir le type de compte",
+    "individual": "Particulier / Compte personnel",
+    "organization": "Entreprise / Compte d'organisation"
+  },
+  "individualSelector": {
+    "accountHolder": "Titulaire du compte",
+    "placeholder": "Choisir un particulier de votre organisation"
+  },
+  "routingNumbers": {
+    "legend": "Numéros d'acheminement",
+    "useSameForAll": "Utiliser le même numéro d'acheminement pour toutes les méthodes de paiement",
+    "singleMethodLabel": "Numéro d'acheminement {{method}}",
+    "combinedMethodLabel": "Numéro d'acheminement {{methods}}",
+    "placeholder": "Entrer le numéro d'acheminement à 9 chiffres",
+    "validation": {
+      "required": "Le numéro d'acheminement est requis pour {{method}}",
+      "digits": "Le numéro d'acheminement doit comporter 9 chiffres"
+    }
+  },
+  "requiredFor": {
+    "single": "Requis pour {{method}}",
+    "double": "Requis pour {{first}} et {{second}}",
+    "multiple": "Requis pour {{list}} et {{last}}"
+  },
+  "contacts": {
+    "email": {
+      "label": "Courriel",
+      "placeholder": "Entrer l'adresse courriel"
+    },
+    "phone": {
+      "label": "Téléphone",
+      "placeholder": "Entrer le numéro de téléphone"
+    },
+    "validation": {
+      "required": "{{contactType}} est requis",
+      "requiredForMethod": "{{contactType}} est requis pour {{method}}"
+    }
+  },
+  "address": {
+    "legend": "Informations sur l'adresse",
+    "streetAddress": {
+      "label": "Adresse",
+      "placeholder": "Entrer l'adresse"
+    },
+    "addressLine2": {
+      "label": "Ligne d'adresse 2",
+      "placeholder": "App., suite, unité, etc. (facultatif)"
+    },
+    "addressLine3": {
+      "label": "Ligne d'adresse 3",
+      "placeholder": "Informations supplémentaires (facultatif)"
+    },
+    "city": {
+      "label": "Ville",
+      "placeholder": "Entrer la ville"
+    },
+    "state": {
+      "label": "Province",
+      "placeholder": "Sélectionner la province"
+    },
+    "postalCode": {
+      "label": "Code postal",
+      "placeholder": "Entrer le code postal"
+    },
+    "validation": {
+      "required": "L'adresse est requise pour {{methods}}",
+      "streetAddressRequired": "L'adresse est requise",
+      "cityRequired": "La ville est requise",
+      "stateRequired": "La province est requise",
+      "stateFormat": "La province doit être un code à 2 lettres",
+      "postalCodeRequired": "Le code postal est requis",
+      "postalCodeFormat": "Format de code postal invalide"
+    }
+  },
+  "fields": {
+    "firstName": {
+      "label": "Prénom",
+      "placeholder": "Entrer le prénom",
+      "validation": {
+        "required": "Le prénom est requis"
+      }
+    },
+    "lastName": {
+      "label": "Nom de famille",
+      "placeholder": "Entrer le nom de famille",
+      "validation": {
+        "required": "Le nom de famille est requis"
+      }
+    },
+    "businessName": {
+      "label": "Nom de l'entreprise",
+      "placeholder": "Entrer le nom de l'entreprise ou de l'organisation",
+      "validation": {
+        "required": "Le nom de l'entreprise est requis"
+      }
+    },
+    "accountNumber": {
+      "label": "Numéro de compte",
+      "placeholder": "Entrer le numéro de compte",
+      "validation": {
+        "required": "Le numéro de compte est requis",
+        "digitsOnly": "Le numéro de compte doit contenir uniquement des chiffres"
+      }
+    },
+    "accountType": {
+      "label": "Type de compte",
+      "placeholder": "Sélectionner le type",
+      "validation": {
+        "required": "Le type de compte est requis"
+      }
+    }
+  },
+  "accountTypes": {
+    "checking": "Compte courant",
+    "savings": "Compte d'épargne"
+  },
+  "navigation": {
+    "continueToAccountDetails": "Continuer vers les détails du compte",
+    "back": "Retour",
+    "cancel": "Annuler"
+  },
+  "alerts": {
+    "organizationOnlyAccounts": "Vous ne pouvez lier que des comptes associés à votre organisation.",
+    "individualOnlyAccountsSingle": "Vous ne pouvez lier que des comptes associés à des particuliers de votre organisation.",
+    "individualOnlyAccountsMultiple": "Vous ne pouvez lier que des comptes associés à des particuliers de votre organisation. Sélectionnez le titulaire du compte ci-dessous."
+  },
+  "certification": {
+    "validation": {
+      "required": "Vous devez autoriser la vérification pour continuer"
+    }
   },
   "linkedAccount": {
     "submitButton": "Confirmer et lier le compte",
@@ -37,6 +175,7 @@
     "certificationText": "J'autorise la vérification de ce compte bancaire externe, y compris la vérification par microdépôts si nécessaire. Je certifie que les informations fournies sont exactes et correspondent aux détails de mon compte bancaire."
   },
   "linkedAccountEdit": {
+    "successDescription": "Votre compte lié a été mis à jour.",
     "submitButton": "Enregistrer les modifications",
     "cancelButton": "Annuler",
     "loadingMessage": "Mise à jour de votre compte..."
