@@ -16,6 +16,13 @@
       "title": "Error loading linked accounts",
       "default": "An unexpected error occurred while loading your linked accounts. Please try again.",
       "400": "Your platform does not have permission to access linked accounts. Please contact support."
+    },
+    "known": {
+      "RTP_UNAVAILABLE": {
+        "title": "Real-Time Payments Not Available",
+        "description": "The bank associated with this account does not support Real-Time Payments (RTP). This payment method cannot be used for this account.",
+        "suggestion": "You can still link this account using ACH or Wire transfer instead."
+      }
     }
   },
   "status": {

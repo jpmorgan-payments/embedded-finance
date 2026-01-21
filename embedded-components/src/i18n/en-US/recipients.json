@@ -16,6 +16,13 @@
       "title": "Error loading recipients",
       "default": "An unexpected error occurred while loading your recipients. Please try again.",
       "400": "Your platform does not have permission to access recipients. Please contact support."
+    },
+    "known": {
+      "RTP_UNAVAILABLE": {
+        "title": "Real-Time Payments Not Available",
+        "description": "The recipient's bank does not support Real-Time Payments (RTP). This payment method cannot be used for this account.",
+        "suggestion": "You can still add this recipient using ACH or Wire transfer instead."
+      }
     }
   },
   "status": {

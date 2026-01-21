@@ -14,7 +14,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { useClientId } from '@/core/EBComponentsProvider/EBComponentsProvider';
 
 import { useRecipientForm, type RecipientFormMode } from '../../hooks';
@@ -27,14 +26,18 @@ import {
   useRecipientEditConfig,
   type BankAccountFormData,
 } from '../BankAccountForm';
+import { FriendlyErrorAlert } from '../FriendlyErrorAlert/FriendlyErrorAlert';
 import { RecipientAccountDisplayCard } from '../RecipientAccountDisplayCard/RecipientAccountDisplayCard';
 
 /**
  * Props for RecipientFormDialog component
  */
 export interface RecipientFormDialogProps {
-  /** Dialog trigger element */
-  children: ReactNode;
+  /**
+   * Dialog trigger element.
+   * Optional when using controlled mode (with `open` prop).
+   */
+  children?: ReactNode;
 
   /** Form mode - create or edit */
   mode: RecipientFormMode;
@@ -69,21 +72,35 @@ export interface RecipientFormDialogProps {
  * reducing code duplication and improving maintainability. Supports all recipient types:
  * LINKED_ACCOUNT, RECIPIENT, and future SETTLEMENT_ACCOUNT.
  *
+ * Supports two modes:
+ * - **Uncontrolled mode**: Pass a `children` trigger element, dialog opens when clicked
+ * - **Controlled mode**: Pass `open` and `onOpenChange` props, no trigger needed
+ *
  * @example
  * ```tsx
- * // Create mode
+ * // Uncontrolled mode - with trigger
  * <RecipientFormDialog mode="create" onRecipientSettled={handleSettled}>
  *   <Button>Create Recipient</Button>
  * </RecipientFormDialog>
  *
- * // Edit mode
+ * // Controlled mode - no trigger needed
  * <RecipientFormDialog
- *   mode="edit"
- *   recipient={existingRecipient}
+ *   mode="create"
+ *   open={isOpen}
+ *   onOpenChange={setIsOpen}
  *   onRecipientSettled={handleSettled}
- * >
- *   <Button>Edit Recipient</Button>
- * </RecipientFormDialog>
+ * />
+ *
+ * // Edit mode (controlled)
+ * {editingRecipient && (
+ *   <RecipientFormDialog
+ *     mode="edit"
+ *     recipient={editingRecipient}
+ *     open
+ *     onOpenChange={(open) => !open && setEditingRecipient(null)}
+ *     onRecipientSettled={handleSettled}
+ *   />
+ * )}
  * ```
  */
 export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
@@ -169,7 +186,7 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleDialogChange}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent className="eb-max-h-full eb-max-w-2xl eb-overflow-hidden eb-p-0 sm:eb-max-h-[90vh]">
         <DialogHeader className="eb-shrink-0 eb-space-y-2 eb-border-b eb-p-6 eb-py-4">
           <DialogTitle className="eb-font-header eb-text-xl">
@@ -208,10 +225,11 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
             isLoading={status === 'pending'}
             alert={
               formError ? (
-                <ServerErrorAlert
+                <FriendlyErrorAlert
                   error={formError as any}
                   showDetails
                   customTitle={t(`forms.${translationKey}.error.title`)}
+                  i18nNamespace={i18nNamespace}
                 />
               ) : undefined
             }

@@ -187,11 +187,13 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
     Recipient | undefined
   >(undefined);
 
-  // Lifted edit dialog state - stores the recipient being edited
-  // This survives data updates because it's at the parent level
+  // Lifted dialog state - survives data updates because it's at the parent level
+  // Edit dialog - stores the recipient being edited
   const [editingRecipient, setEditingRecipient] = useState<Recipient | null>(
     null
   );
+  // Create dialog - controls open state
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   // Pagination state for pages-style pagination
   const [pagination, setPagination] = useState<PaginationState>({
@@ -375,6 +377,16 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
     onAccountSettled?.(recipient, error);
   };
 
+  // Handle opening the create dialog (lifted to parent level)
+  const handleOpenCreateDialog = React.useCallback(() => {
+    setIsCreateDialogOpen(true);
+  }, []);
+
+  // Handle create dialog state changes
+  const handleCreateDialogOpenChange = React.useCallback((open: boolean) => {
+    setIsCreateDialogOpen(open);
+  }, []);
+
   // Handle opening the edit dialog (lifted to parent level)
   const handleEditRecipient = React.useCallback((recipient: Recipient) => {
     setEditingRecipient(recipient);
@@ -411,6 +423,16 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
         i18nNamespace={config.i18nNamespace}
       />
 
+      {/* Lifted Create Dialog - Rendered at parent level to survive data updates */}
+      <RecipientFormDialog
+        mode="create"
+        open={isCreateDialogOpen}
+        onOpenChange={handleCreateDialogOpenChange}
+        onRecipientSettled={handleRecipientSettled}
+        recipientType={recipientType}
+        i18nNamespace={config.i18nNamespace}
+      />
+
       {/* Lifted Edit Dialog - Rendered at parent level to survive data updates */}
       {editingRecipient && (
         <RecipientFormDialog
@@ -421,10 +443,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
           onRecipientSettled={handleEditSettled}
           recipientType={recipientType}
           i18nNamespace={config.i18nNamespace}
-        >
-          {/* Empty trigger since we control open state externally */}
-          <span />
-        </RecipientFormDialog>
+        />
       )}
 
       <Card
@@ -455,27 +474,21 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
             </div>
             {showCreate && !isLoading && recipients.length > 0 && (
               <div className="eb-animate-fade-in">
-                <RecipientFormDialog
-                  mode="create"
-                  onRecipientSettled={handleRecipientSettled}
-                  recipientType={recipientType}
-                  i18nNamespace={config.i18nNamespace}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn('eb-shrink-0 eb-bg-background', {
+                    'eb-h-8 eb-px-3': isCompact,
+                  })}
+                  data-user-event={userJourneys.LINK_STARTED}
+                  onClick={handleOpenCreateDialog}
                 >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={cn('eb-shrink-0 eb-bg-background', {
-                      'eb-h-8 eb-px-3': isCompact,
-                    })}
-                    data-user-event={userJourneys.LINK_STARTED}
-                  >
-                    <PlusIcon className="eb-mr-1.5 eb-h-4 eb-w-4" />
-                    <span className="@md:eb-hidden">{t('link')}</span>
-                    <span className="eb-hidden @md:eb-inline">
-                      {t('linkNewAccount')}
-                    </span>
-                  </Button>
-                </RecipientFormDialog>
+                  <PlusIcon className="eb-mr-1.5 eb-h-4 eb-w-4" />
+                  <span className="@md:eb-hidden">{t('link')}</span>
+                  <span className="eb-hidden @md:eb-inline">
+                    {t('linkNewAccount')}
+                  </span>
+                </Button>
               </div>
             )}
           </div>
@@ -544,23 +557,17 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                 i18nNamespace={config.i18nNamespace}
                 action={
                   showCreate && (
-                    <RecipientFormDialog
-                      mode="create"
-                      onRecipientSettled={handleRecipientSettled}
-                      recipientType={recipientType}
-                      i18nNamespace={config.i18nNamespace}
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className={cn({
+                        'eb-h-8 eb-px-3': isCompact,
+                      })}
+                      onClick={handleOpenCreateDialog}
                     >
-                      <Button
-                        variant="default"
-                        size="sm"
-                        className={cn({
-                          'eb-h-8 eb-px-3': isCompact,
-                        })}
-                      >
-                        <PlusIcon className="eb-mr-1.5 eb-h-4 eb-w-4" />
-                        {t('linkNewAccount')}
-                      </Button>
-                    </RecipientFormDialog>
+                      <PlusIcon className="eb-mr-1.5 eb-h-4 eb-w-4" />
+                      {t('linkNewAccount')}
+                    </Button>
                   )
                 }
               />
