@@ -73,6 +73,18 @@ const fillAddRecipientForm = async (
 ) => {
   // Step 1: Click "Add Recipient" button
   await step('Click Add Recipient button', async () => {
+    // Wait for the component to fully load before looking for the button
+    await waitFor(
+      async () => {
+        const addButton = await canvas.findByRole('button', {
+          name: /add recipient/i,
+        });
+        if (!addButton) throw new Error('Add Recipient button not found');
+        return addButton;
+      },
+      { timeout: 10000 }
+    );
+
     const addButton = await canvas.findByRole('button', {
       name: /add recipient/i,
     });

@@ -63,6 +63,18 @@ const fillLinkAccountForm = async (
 ) => {
   // Step 1: Click "Link Account" button
   await step('Click Link Account button', async () => {
+    // Wait for the component to fully load before looking for the button
+    await waitFor(
+      async () => {
+        const linkButton = await canvas.findByRole('button', {
+          name: /link a new account/i,
+        });
+        if (!linkButton) throw new Error('Link Account button not found');
+        return linkButton;
+      },
+      { timeout: 10000 }
+    );
+
     const linkButton = await canvas.findByRole('button', {
       name: /link a new account/i,
     });
