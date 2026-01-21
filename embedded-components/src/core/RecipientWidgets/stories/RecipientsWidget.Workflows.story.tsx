@@ -166,7 +166,7 @@ const fillAddRecipientForm = async (
     }
   });
 
-  // Step 8: Submit the form
+  // Step 8: Submit the form and wait for success state
   await step('Submit recipient form', async () => {
     await delay(INTERACTION_DELAY);
     const submitButton = Array.from(document.querySelectorAll('button')).find(
@@ -177,6 +177,18 @@ const fillAddRecipientForm = async (
     if (submitButton) {
       await userEvent.click(submitButton);
     }
+
+    // Wait for the success state to appear (Done button shows on success)
+    // The dialog is now lifted to parent level, so it survives data updates
+    await waitFor(
+      () => {
+        const doneButton = Array.from(
+          document.querySelectorAll('[role="dialog"] button')
+        ).find((btn) => btn.textContent?.match(/^Done$/i));
+        if (!doneButton) throw new Error('Waiting for success state...');
+      },
+      { timeout: 10000 }
+    );
   });
 };
 
@@ -188,7 +200,7 @@ const fillAddRecipientForm = async (
  * 1. Clicks "Add New Recipient"
  * 2. Fills out the multi-step form
  * 3. Submits the recipient
- * 4. Shows success state
+ * 4. Shows success state with Done button
  */
 export const AddRecipientWorkflow: Story = {
   loaders: [
@@ -207,19 +219,17 @@ export const AddRecipientWorkflow: Story = {
     try {
       await fillAddRecipientForm(canvas, step);
 
-      // Step 9: Verify success
+      // Step 9: Verify success state is shown
       await step('Verify recipient was added successfully', async () => {
         await delay(INTERACTION_DELAY);
-        await waitFor(
-          () => {
-            const successMessage = document.querySelector(
-              '[role="status"], [role="alert"]'
-            );
-            if (!successMessage)
-              throw new Error('Success message not found yet');
-          },
-          { timeout: 5000 }
-        );
+        // The success state should already be visible from Step 8
+        // Verify the Done button is still visible
+        const doneButton = Array.from(
+          document.querySelectorAll('[role="dialog"] button')
+        ).find((btn) => btn.textContent?.match(/^Done$/i));
+        if (!doneButton) {
+          throw new Error('Success dialog not visible');
+        }
       });
     } catch (error) {
       console.error('Workflow failed:', error);
