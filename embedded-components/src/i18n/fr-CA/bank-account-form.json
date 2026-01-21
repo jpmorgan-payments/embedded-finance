@@ -1,5 +1,7 @@
 {
   "sections": {
+    "accountHolderType": "Type de titulaire du compte",
+    "accountHolderInfo": "Informations sur le titulaire du compte",
     "bankAccountDetails": "Détails du compte bancaire",
     "paymentMethods": "Méthodes de paiement",
     "addressInfo": "Informations sur l'adresse",

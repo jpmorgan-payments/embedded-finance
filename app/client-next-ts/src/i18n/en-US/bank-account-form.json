@@ -1,5 +1,7 @@
 {
   "sections": {
+    "accountHolderType": "Account Holder Type",
+    "accountHolderInfo": "Account Holder Information",
     "bankAccountDetails": "Bank Account Details",
     "paymentMethods": "Payment Methods",
     "addressInfo": "Address Information",
