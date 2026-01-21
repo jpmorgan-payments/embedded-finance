@@ -25,7 +25,14 @@ Before generating component code, review the architecture document for:
 ```
 /
 ├── embedded-components/    # Main UI component library (active)
-├── app/                    # Showcase web application (not active)
+├── app/                    # Showcase applications and server utilities
+│   ├── client-next-ts/     # Current showcase website (active)
+│   │                        # - Modern stack: Vite, React 18, TypeScript, TanStack Router
+│   │                        # - Features SellSense marketplace demo
+│   │                        # - Uses MSW for API mocking
+│   ├── client/             # Legacy/archived showcase (minimal content)
+│   ├── server/             # API server for J.P. Morgan Sandbox/UAT APIs
+│   └── server-session-transfer/  # Session transfer demo for partially hosted onboarding
 └── embedded-finance-sdk/   # TypeScript SDK utilities (not active)
 ```
 
@@ -42,6 +49,12 @@ Before generating component code, review the architecture document for:
 
 - **embedded-components**: See `embedded-components/AGENTS.md` for package-specific details
 - **app/client-next-ts**: See `app/client-next-ts/.cursorrules` for app configuration
+  - **Current showcase website**: Modern React application demonstrating embedded finance components
+  - **Technology**: Vite, React 18, TypeScript, TanStack Router, Tailwind CSS, MSW
+  - **Main demo**: SellSense marketplace demo at `/sellsense-demo` route
+- **app/client**: Legacy/archived showcase (minimal content, not actively maintained)
+- **app/server**: Express server for proxying requests to J.P. Morgan Sandbox/UAT APIs (sandbox uses OAuth2, UAT uses certificate authentication)
+- **app/server-session-transfer**: Demo application for partially hosted onboarding integration pattern
 
 ## Additional Resources
 
