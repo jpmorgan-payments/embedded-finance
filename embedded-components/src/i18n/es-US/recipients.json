@@ -7,6 +7,15 @@
     "loadFailed": "Error al cargar los beneficiarios. Por favor, intente nuevamente.",
     "retry": "Reintentar"
   },
+  "errors": {
+    "known": {
+      "RTP_UNAVAILABLE": {
+        "title": "Pagos en Tiempo Real No Disponibles",
+        "description": "El banco del beneficiario no admite Pagos en Tiempo Real (RTP). Este método de pago no se puede utilizar para esta cuenta.",
+        "suggestion": "Aún puede agregar este beneficiario utilizando ACH o transferencia bancaria."
+      }
+    }
+  },
   "emptyState": {
     "noRecipients": "No se encontraron beneficiarios"
   },
@@ -129,4 +138,3 @@
     "readyForValidation": "Listo para Validación"
   }
 }
-

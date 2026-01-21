@@ -14,6 +14,9 @@ export {
   useRecipientEditConfig,
 } from './BankAccountForm';
 
+export { FriendlyErrorAlert } from './FriendlyErrorAlert/FriendlyErrorAlert';
+export type { FriendlyErrorAlertProps } from './FriendlyErrorAlert/FriendlyErrorAlert';
+
 export { RecipientAccountDisplayCard } from './RecipientAccountDisplayCard';
 export type { RecipientAccountDisplayCardProps } from './RecipientAccountDisplayCard';
 

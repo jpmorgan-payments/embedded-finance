@@ -14,7 +14,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { useClientId } from '@/core/EBComponentsProvider/EBComponentsProvider';
 
 import { useRecipientForm, type RecipientFormMode } from '../../hooks';
@@ -27,6 +26,7 @@ import {
   useRecipientEditConfig,
   type BankAccountFormData,
 } from '../BankAccountForm';
+import { FriendlyErrorAlert } from '../FriendlyErrorAlert/FriendlyErrorAlert';
 import { RecipientAccountDisplayCard } from '../RecipientAccountDisplayCard/RecipientAccountDisplayCard';
 
 /**
@@ -225,10 +225,11 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
             isLoading={status === 'pending'}
             alert={
               formError ? (
-                <ServerErrorAlert
+                <FriendlyErrorAlert
                   error={formError as any}
                   showDetails
                   customTitle={t(`forms.${translationKey}.error.title`)}
+                  i18nNamespace={i18nNamespace}
                 />
               ) : undefined
             }
