@@ -655,9 +655,9 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
 
   // Modify config if organization name is available from client data
   const effectiveConfig = useMemo(() => {
-    // Only apply this logic for LINKED_ACCOUNT use case when creating (no recipient yet)
+    // Only apply readonly logic when prefillFromClient is enabled and creating (no recipient yet)
     if (
-      config.useCase !== 'LINKED_ACCOUNT' ||
+      !config.accountHolder.prefillFromClient ||
       recipient?.partyDetails?.businessName ||
       recipient?.partyDetails?.firstName
     ) {
@@ -765,12 +765,25 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
         undefined,
       firstName:
         recipient?.partyDetails?.firstName ||
-        (individualParties.length === 1 ? individualParties[0].firstName : ''),
+        // Only pre-fill from client data if config allows it
+        (effectiveConfig.accountHolder.prefillFromClient &&
+        individualParties.length === 1
+          ? individualParties[0].firstName
+          : ''),
       lastName:
         recipient?.partyDetails?.lastName ||
-        (individualParties.length === 1 ? individualParties[0].lastName : ''),
+        // Only pre-fill from client data if config allows it
+        (effectiveConfig.accountHolder.prefillFromClient &&
+        individualParties.length === 1
+          ? individualParties[0].lastName
+          : ''),
       businessName:
-        recipient?.partyDetails?.businessName || organizationName || '',
+        recipient?.partyDetails?.businessName ||
+        // Only pre-fill from client data if config allows it
+        (effectiveConfig.accountHolder.prefillFromClient
+          ? organizationName
+          : '') ||
+        '',
       routingNumbers: initialRoutingNumbers,
       useSameRoutingNumber: (() => {
         // Calculate if all routing numbers are the same
@@ -1137,7 +1150,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                   </>
                 ) : (
                   <>
-                    {effectiveConfig.useCase === 'LINKED_ACCOUNT' &&
+                    {effectiveConfig.accountHolder.prefillFromClient &&
                       organizationName &&
                       !recipient && (
                         <Alert noTitle variant="informative">

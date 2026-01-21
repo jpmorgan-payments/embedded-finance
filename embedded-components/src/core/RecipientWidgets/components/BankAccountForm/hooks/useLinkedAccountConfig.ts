@@ -36,6 +36,7 @@ export const useLinkedAccountConfig = (): BankAccountFormConfig => {
       allowIndividual: true,
       allowOrganization: true,
       defaultType: 'INDIVIDUAL',
+      prefillFromClient: true, // Pre-fill with client's party information
     },
     requiredFields: {
       certification: true,

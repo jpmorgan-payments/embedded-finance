@@ -35,6 +35,7 @@ export const useLinkedAccountEditConfig = (): BankAccountFormConfig => {
       allowIndividual: true,
       allowOrganization: true,
       defaultType: 'INDIVIDUAL',
+      prefillFromClient: false, // In edit mode, use recipient data, not client data
     },
     requiredFields: {
       certification: false, // No certification needed when editing
