@@ -1,0 +1,132 @@
+'use client';
+
+import React from 'react';
+
+import { cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+
+import type {
+  FlowContainerProps,
+  PaymentFlowFormData,
+} from '../PaymentFlow.types';
+import { FlowContextProvider } from './FlowContext';
+import { FlowHeader } from './FlowHeader';
+
+interface FlowContainerFullProps extends FlowContainerProps {
+  /** When true, renders as a Dialog. When false, renders inline. */
+  asModal?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  initialData?: Partial<PaymentFlowFormData>;
+  /** Hide the header entirely (useful when embedding in a page with its own header) */
+  hideHeader?: boolean;
+}
+
+/**
+ * FlowContainerInner - The actual layout without Dialog wrapper
+ */
+function FlowContainerInner({
+  title,
+  children,
+  reviewPanel,
+  reviewPanelWidth = 'sm',
+  hideHeader = false,
+  className,
+}: Omit<
+  FlowContainerFullProps,
+  'asModal' | 'open' | 'onOpenChange' | 'initialData' | 'onClose'
+> & { className?: string }) {
+  const reviewPanelWidthClasses = {
+    sm: '@3xl:eb-w-[280px]',
+    md: '@3xl:eb-w-[320px]',
+    lg: '@3xl:eb-w-[380px]',
+  };
+
+  return (
+    <div
+      className={cn(
+        'eb-component eb-flex eb-h-full eb-flex-col eb-@container',
+        className
+      )}
+    >
+      {/* Header - Optional */}
+      {!hideHeader && <FlowHeader title={title} />}
+
+      {/* Body - Two column layout (container 768px+) */}
+      <div className="eb-flex eb-flex-1 eb-flex-col eb-overflow-hidden @3xl:eb-flex-row">
+        {/* Left Column - Dynamic Content (scrollable, includes mobile review) */}
+        <div className="eb-flex-1 eb-overflow-y-auto eb-px-6 eb-py-4">
+          {children}
+
+          {/* Mobile Review Panel - inside scroll area on narrower containers */}
+          {reviewPanel && (
+            <div className="eb--mx-6 eb-mt-6 eb-border-t eb-bg-muted eb-px-6 eb-py-4 @3xl:eb-hidden">
+              {reviewPanel}
+            </div>
+          )}
+        </div>
+
+        {/* Right Column - Review Panel (hidden on mobile, shown on @3xl+) */}
+        <div
+          className={cn(
+            'eb-hidden eb-shrink-0 eb-border-l eb-bg-muted @3xl:eb-block',
+            reviewPanelWidthClasses[reviewPanelWidth]
+          )}
+        >
+          <div className="eb-h-full eb-overflow-y-auto eb-px-5 eb-py-4">
+            {reviewPanel}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * FlowContainer component
+ * Main container for the payment flow - can be used standalone or as a modal
+ */
+export function FlowContainer({
+  title,
+  onClose: _onClose,
+  children,
+  reviewPanel,
+  reviewPanelWidth = 'sm',
+  asModal = true,
+  open,
+  onOpenChange,
+  initialData,
+  hideHeader = false,
+}: FlowContainerFullProps) {
+  const content = (
+    <FlowContextProvider initialData={initialData}>
+      <FlowContainerInner
+        title={title}
+        reviewPanel={reviewPanel}
+        reviewPanelWidth={reviewPanelWidth}
+        hideHeader={hideHeader}
+        className={asModal ? undefined : 'eb-h-full'}
+      >
+        {children}
+      </FlowContainerInner>
+    </FlowContextProvider>
+  );
+
+  // Render as modal
+  if (asModal && open !== undefined && onOpenChange) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent
+          className="eb-flex eb-h-[85vh] eb-max-h-[700px] eb-w-[95vw] eb-max-w-[900px] eb-flex-col eb-gap-0 eb-overflow-hidden eb-p-0"
+          aria-describedby={undefined}
+        >
+          <DialogTitle className="eb-sr-only">{title}</DialogTitle>
+          {content}
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Render inline
+  return content;
+}
