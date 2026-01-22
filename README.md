@@ -1,126 +1,98 @@
-[Link to deployed version of this app](https://www.embedded-finance-dev.com)
+# Embedded Finance and Solutions UI Components and Showcase Applications
 
-**Note**: This application uses service workers via MSW (Mock Service Worker). Be aware that service workers can become stale in Chromium based browsers such as Chrome, which may require a page reload to ensure the service worker is active.
+[Live Demo](https://www.embedded-finance-dev.com)
 
-# Embedded Finance Showcase App
+React component library and showcase application for J.P. Morgan Embedded Finance APIs.
 
-[Embedded Finance](https://www.jpmorgan.com/payments/solutions/embedded-finance) allows you to add a full range of finance features to your online experience. This showcase is a collection of code samples highlighting how to connect and use Embedded Finance APIs.
+**Note**: Uses MSW (Mock Service Worker) for API mocking. If issues occur, hard refresh (Ctrl+Shift+R) to reload the service worker.
 
-You can:
+## Packages
 
-- Spin-up a sample application with UI that demonstrates the main use case for each endpoint. For example, making a transaction.
-- Explore the API resources using a Postman Collection.
-- Register as a developer and use the showcase application to send requests to live endpoints in our external UAT environment. You must set up SSL authentication for this option.
+### [Embedded Components](./embedded-components/)
 
-## What's included in this repo?
+React component library for embedded banking features.
 
-There are three main directories for you to access:
+Components: OnboardingFlow, LinkedAccountWidget, RecipientsWidget, Accounts, MakePayment, TransactionsDisplay
 
-- `/app` for the showcase UI and server experience.
-- `/postman` for the Postman Collection.
-- `/embedded-finance-sdk` for the Embedded Finance SDK
-- `/embedded-components` for the Embedded UI Components
+NPM: [@jpmorgan-payments/embedded-finance-components](https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components)
 
-### Application (App)
+### [Showcase Application](./app/client-next-ts/)
 
-A TS/JS application with a client and server used to demonstrate how to integrate with our APIs on frontend applications.
+React application demonstrating component usage. Built with Vite, React 18, TypeScript, TanStack Router, Tailwind CSS, MSW.
 
-All your actions on this application are served by mock data included in the app codebase.
+Main demo: `/sellsense-demo`
 
-### Postman Collection
+### [Embedded Finance SDK](./embedded-finance-sdk/) (not active)
 
-Get straight to the API endpoints in action, make calls and see responses.
-To use the Postman collection, import the collection file to Postman and follow the included setup instructions to access all possible calls to the Embedded Finance API. You will need certificates to run these calls.
+TypeScript SDK for payment data validation and field definitions.
 
-### [Embedded Finance SDK](./embedded-finance-sdk/)
+NPM: [@jpmorgan-payments/embedded-finance-sdk](https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-sdk)
 
-Embedded Finance SDK provides a set of tools to validate payment data based on the given country, handle complex conditional logic, and ensure a smooth implementation of UI. Currently published to NPM as [@jpmorgan-payments/embedded-finance-sdk](https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-sdk)
+### [API Server](./app/server/)
 
-## Included in the App project folders
+Express server for proxying requests to J.P. Morgan APIs.
 
-### [Client](./app/client/)
+### [Session Transfer Demo](./app/server-session-transfer/)
 
-This is the core UI application written in TS/JS with the React framework. This application illustrates the various capabilities of Embedded Finance, using mocked responses stored within the codebase.
+Demo for partially hosted (drop-in) embedded components integration using session transfer API.
 
-Such capabilities include:
+## Quick Start
 
-- Making payments.
-- Requesting a debit card.
-- Adding a recipient. A recipient is someone you can make a payment to.
-- Checking an account balance.
-- Authenticating with ForgeRock using forgerock-javascript-sdk
-  - To test this locally, you will need to define `VITE_FR_URL` and `VITE_FR_CLIENT` in `./app/client/.env`
+**Prerequisites**: Node.js 18+, Yarn
 
-Check out the [features](./app/client/src/features/) directory to explore the the components and hooks that explore these features.
-
-### [API-Server](./app/server/)
-
-If you would like to hit the API's using your own credentials you will need to run this codebase following the instructions within the readme. This code allows you to hit J.P. Morgan UAT APIs.
-
-## Run the Showcase Application locally
-
-Install and run a TS/JS application with a client and server used to demonstrate how to integrate with our APIs on frontend applications.
-
-### Install and serve the app
-
-This example requires Yarn.
-
-To start our client code with mocked responses:
-
-1. Clone this repo
-
-2. Install the `client` folder:
-
-```
-cd app
-cd client
+**Run showcase:**
+```bash
 yarn install
-```
-
-3. Start the UI:
-
-```
-yarn start
-```
-
-4. Open a browser and navigate to the locally deployed app using the URL provided in the command line. Usually `localhost:3000`.
-
-You have deployed the showcase Embedded Finance app. Follow the onscreen instructions to explore the finance functionality available.
-
-## Register as a developer for access to UAT
-
-If you are interested in going further with Embedded Finance APIs, you can join the developer community at J.P. Morgan, and get access to the UAT environment.
-
-This process can take a few days, and in order to make calls to the UAT, you must provide some SSL certificates.
-
-To register as a developer with J.P. Morgan's APIs, visit [developer.payments.jpmorgan.com](https://developer.payments.jpmorgan.com).
-
-Once you have completed onboarding, and you have the correct certificate files ready, you can upload them to your server.
-
-**Warning**
-Do not commit certificate files to your codebase. They must be stored on your server.
-
-1. Create a folder called, for example, `certs` that is included in `.gitignore`.
-2. Add your certificate files in the new folder.
-3. Open `server.js` and check that the below lines match where your certs are:
-
-```js
-  agent: new https.Agent({
-    key: fs.readFileSync('certs/jpmc.key'),
-    cert: fs.readFileSync('certs/jpmc.crt'),
-    passphrase: process.env.PASSPHRASE,
-    rejectUnauthorized: false,
-  }),
-```
-
-3. If your SSL certs have a passphrase create a `.env.local` file and include it
-   here, otherwise delete this line.
-4. Inside your Embedded Finance project, run:
-
-```console
-cd server
+cd app/client-next-ts
 yarn install
-yarn start
+yarn dev
 ```
+Open `http://localhost:3000`
 
-You can now send API calls to the Embedded Finance CAT environment.
+**Run Storybook:**
+```bash
+cd embedded-components
+yarn install
+yarn storybook
+```
+Open `http://localhost:6006`
+
+## Available Demos & Features
+
+### SellSense Marketplace Demo
+
+The main showcase at `/sellsense-demo` demonstrates a complete e-commerce platform with embedded finance features:
+
+- **Wallet Overview** - Account balances and transaction history
+- **KYC Onboarding** - Client onboarding flow with document upload
+- **Linked Bank Accounts** - External account linking with microdeposits
+- **Payment Processing** - Send and receive payments
+- **Recipient Management** - Add and manage payment recipients
+- **Theme Customization** - See how components adapt to different brand styles
+
+### Component Showcase
+
+Browse all available components on the landing page:
+
+- Interactive component demos
+- Code examples and integration guides
+- Theme customization examples
+- Responsive design demonstrations
+
+All demos use **Mock Service Worker (MSW)** to simulate API responses, so everything works without any backend setup.
+
+## Connecting to Sandbox Environment
+
+If you want to connect to J.P. Morgan's **sandbox** environment with real API endpoints, follow the [Quick Start Guide](https://developer.payments.jpmorgan.com/docs/quick-start).
+
+## Using the Session Transfer Demo
+
+For partially hosted onboarding integration, see the [Session Transfer Demo README](./app/server-session-transfer/README.md) for detailed setup instructions.
+
+## Documentation
+
+- **[Setup Guide](./docs/setup.md)** - Installation and development commands
+- **[Component Implementation](./docs/component-implementation.md)** - React patterns and best practices
+- **[Testing Guidelines](./docs/testing-guidelines.md)** - Test patterns and MSW setup
+- **[TypeScript Conventions](./docs/typescript-conventions.md)** - Type safety and patterns
+- **[Git Workflow](./docs/git-workflow.md)** - Commit conventions and branching
