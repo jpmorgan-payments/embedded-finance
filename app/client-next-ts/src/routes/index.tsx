@@ -8,6 +8,7 @@ import { ExperiencesSection } from '../components/landing/experiences-section';
 import { HeroSection } from '../components/landing/hero-section';
 import { RecipesSection } from '../components/landing/recipes-section';
 import { CompactHomepage } from '../experiments/landing-page/compact-homepage/CompactHomepage';
+import { CompactHomepage1 } from '../experiments/landing-page/compact-homepage1/CompactHomepage1';
 import { CompactHomepage2 } from '../experiments/landing-page/compact-homepage2/CompactHomepage2';
 import { CompactHomepage3 } from '../experiments/landing-page/compact-homepage3/CompactHomepage3';
 import { LandingPageExperiment } from '../experiments/landing-page/constants';
@@ -32,6 +33,11 @@ function LandingPage() {
   // Render compact homepage if experiment is explicitly in URL
   if (activeExperiment === LandingPageExperiment.COMPACT_HOMEPAGE) {
     return <CompactHomepage />;
+  }
+
+  // Render refined compact homepage v1 if experiment is explicitly in URL
+  if (activeExperiment === LandingPageExperiment.COMPACT_HOMEPAGE_1) {
+    return <CompactHomepage1 />;
   }
 
   // Render enhanced compact homepage v2 if experiment is explicitly in URL
