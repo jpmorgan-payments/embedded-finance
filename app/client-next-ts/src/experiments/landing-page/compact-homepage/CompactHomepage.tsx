@@ -4,6 +4,7 @@
  * Slick, compact landing page with interactive infographic
  */
 
+import { useState } from 'react';
 import { BookOpen, Box, Play, Wrench } from 'lucide-react';
 
 import { Link } from '@tanstack/react-router';
@@ -65,14 +66,14 @@ const navigationCards = [
 ] as const;
 
 export function CompactHomepage() {
+  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
+
   return (
     <div className="min-h-screen">
       {/* Hero Section with Infographic */}
       <section className="relative bg-gradient-to-br from-sp-bg via-sp-accent/30 to-sp-bg py-6 sm:py-8 lg:py-10">
         {/* Decorative gradient overlay inspired by J.P. Morgan Payments Developer Portal */}
         <div className="absolute inset-0 bg-gradient-to-r from-[rgb(226,110,0)]/10 via-[rgb(177,121,207)]/10 to-[rgb(26,123,153)]/10 opacity-60" />
-        {/* Additional vibrant gradient accent */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[rgb(226,110,0)] via-[rgb(177,121,207)] to-[rgb(26,123,153)]" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3 lg:gap-8">
             {/* Left side - Text content */}
@@ -119,7 +120,7 @@ export function CompactHomepage() {
       </section>
 
       {/* Navigation Cards Grid */}
-      <section className="bg-sp-bg py-10">
+      <section className="bg-sp-bg pt-10 pb-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-8 text-center">
             <h2 className="mb-2 text-3xl font-bold text-jpm-gray-900 sm:text-4xl">
@@ -133,13 +134,29 @@ export function CompactHomepage() {
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {navigationCards.map((card) => (
-              <Link key={card.id} to={card.link}>
-                <Card className="group relative h-full min-h-[11rem] cursor-pointer overflow-hidden rounded-page-md border-2 border-sp-border bg-jpm-white shadow-sm transition-all duration-200 hover:shadow-lg flex flex-col">
-                  {/* Gradient border glow on hover */}
-                  <div className={`absolute inset-0 rounded-page-md bg-gradient-to-r ${card.borderGradient} opacity-0 transition-opacity duration-200 group-hover:opacity-20 -z-10 blur-md`} />
+              <Link
+                key={card.id}
+                to={card.link}
+                className="block"
+                onMouseEnter={() => setHoveredCardId(card.id)}
+                onMouseLeave={() => setHoveredCardId(null)}
+              >
+                <Card
+                  className={`relative h-full min-h-[11rem] cursor-pointer overflow-hidden rounded-page-md border-2 border-sp-border bg-jpm-white transition-all duration-200 flex flex-col ${
+                    hoveredCardId === card.id
+                      ? '-translate-y-1 transform border-sp-brand shadow-lg ring-2 ring-sp-brand/20'
+                      : 'shadow-sm hover:shadow-md hover:border-sp-brand/50'
+                  }`}
+                >
                   <CardHeader className={`border-b-2 border-sp-border ${card.accentColor} p-4 flex-shrink-0`}>
                     <div className="flex items-center justify-between mb-2">
-                      <div className={`flex h-12 w-12 items-center justify-center rounded-page-sm ${card.iconBg} text-sp-brand transition-all duration-200 group-hover:scale-110`}>
+                      <div
+                        className={`flex h-12 w-12 items-center justify-center rounded-page-sm ${card.iconBg} text-sp-brand shadow-sm transition-all duration-200 ${
+                          hoveredCardId === card.id
+                            ? 'scale-110 ring-2 ring-sp-brand/30'
+                            : ''
+                        }`}
+                      >
                         {card.icon}
                       </div>
                       <span className="rounded-page-sm border border-sp-brand/30 bg-white px-3 py-1.5 text-base font-bold text-sp-brand shadow-sm">
