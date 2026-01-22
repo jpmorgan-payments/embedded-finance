@@ -18,7 +18,7 @@ const navigationCards = [
     id: 'demos',
     title: 'Demo Applications',
     description:
-      'Working implementations of embedded finance applications. Includes onboarding workflows, payment processing, and account management examples.',
+      'Working implementations showcasing embedded finance features in real-world scenarios.',
     icon: <Play className="h-6 w-6" />,
     link: '/demos',
     count: 3,
@@ -30,7 +30,7 @@ const navigationCards = [
     id: 'components',
     title: 'Business Components',
     description:
-      'Components for client onboarding, linked bank accounts, payment initiation, and transaction display. Includes API integration and error handling.',
+      'Pre-built React components for embedded banking workflows with API integration.',
     icon: <Box className="h-6 w-6" />,
     link: '/components',
     count: 6,
@@ -42,7 +42,7 @@ const navigationCards = [
     id: 'recipes',
     title: 'Implementation Guides',
     description:
-      'Technical guides covering form validation, date input patterns, accessibility requirements, and integration approaches with code examples.',
+      'Technical guides and best practices for building embedded finance solutions.',
     icon: <BookOpen className="h-6 w-6" />,
     link: '/stories',
     count: 3,
@@ -54,7 +54,7 @@ const navigationCards = [
     id: 'utils',
     title: 'Utility Components',
     description:
-      'Components for dates, industry codes, tax IDs, and addresses. Includes validation logic and formatting for financial forms.',
+      'Specialized form components with validation and formatting for financial applications.',
     icon: <Wrench className="h-6 w-6" />,
     link: '/utils',
     count: 4,
