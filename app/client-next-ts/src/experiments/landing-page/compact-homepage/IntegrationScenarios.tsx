@@ -13,20 +13,20 @@ const integrationGroups = [
   {
     id: 'build',
     title: 'Custom Implementation',
-    description: 'Build your own UI using API specifications and guides',
     icon: <Code className="h-5 w-5" />,
+    iconBg: 'bg-sp-brand/15',
   },
   {
     id: 'dropin',
     title: 'React Components',
-    description: 'Use pre-built components via npm package',
     icon: <Package className="h-5 w-5" />,
+    iconBg: 'bg-sp-brand-700/15',
   },
   {
     id: 'hosted',
     title: 'Hosted Pages',
-    description: 'J.P. Morgan hosted UI with iframe integration',
     icon: <Server className="h-5 w-5" />,
+    iconBg: 'bg-sp-brand-800/15',
   },
 ] as const;
 
@@ -49,24 +49,23 @@ export function IntegrationScenarios() {
             onMouseLeave={() => setHoveredId(null)}
           >
             <div
-              className={`relative rounded-page-md border-2 border-sp-border bg-white p-3.5 transition-all duration-200 ${
+              className={`relative overflow-hidden rounded-page-md border-2 border-sp-border bg-white p-3.5 transition-all duration-200 min-h-[4rem] ${
                 hoveredId === group.id
-                  ? '-translate-y-1 transform shadow-lg'
-                  : 'shadow-sm hover:shadow-md'
+                  ? '-translate-y-1 transform border-sp-brand shadow-lg ring-2 ring-sp-brand/20'
+                  : 'shadow-sm hover:shadow-md hover:border-sp-brand/50'
               }`}
             >
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex-shrink-0">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-page-sm bg-sp-accent text-sp-brand">
+              <div className="flex items-center gap-3 h-full">
+                <div className="flex-shrink-0">
+                  <div className={`flex h-9 w-9 items-center justify-center rounded-page-sm ${group.iconBg} text-sp-brand shadow-sm transition-all duration-200 ${
+                    hoveredId === group.id ? 'scale-110 ring-2 ring-sp-brand/30' : ''
+                  }`}>
                     {group.icon}
                   </div>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="mb-1 text-sm font-semibold text-jpm-gray-900">
+                  <div className="text-sm font-semibold text-jpm-gray-900 leading-tight">
                     {group.title}
-                  </div>
-                  <div className="text-sm leading-relaxed text-jpm-gray">
-                    {group.description}
                   </div>
                 </div>
                 <ArrowRight
@@ -78,7 +77,7 @@ export function IntegrationScenarios() {
 
               {/* Connection line to next item */}
               {index < integrationGroups.length - 1 && (
-                <div className="absolute bottom-0 left-8 h-2.5 w-0.5 translate-y-full bg-sp-border" />
+                <div className="absolute bottom-0 left-8 h-2.5 w-0.5 translate-y-full bg-sp-brand/30" />
               )}
             </div>
           </Link>
