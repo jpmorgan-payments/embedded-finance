@@ -120,7 +120,7 @@ export function CompactHomepage() {
       </section>
 
       {/* Navigation Cards Grid */}
-      <section className="bg-sp-bg pt-10 pb-12">
+      <section className="pt-10 pb-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-8 text-center">
             <h2 className="mb-2 text-3xl font-bold text-jpm-gray-900 sm:text-4xl">
