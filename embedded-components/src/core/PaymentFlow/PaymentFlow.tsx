@@ -279,22 +279,37 @@ function MainTransferView({
   const exceedsBalance =
     availableBalance !== undefined && amount > 0 && amount > availableBalance;
 
-  // Auto-advance to next step when selection is made
+  // Auto-advance to next incomplete step when selection is made
   const handlePayeeSelect = useCallback(
     (payee: Payee) => {
       onPayeeSelect(payee);
-      // Move to next step after short delay for visual feedback
-      setTimeout(() => setActiveStep(PANEL_IDS.PAYMENT_METHOD), 150);
+      // Only advance if next step is not complete
+      setTimeout(() => {
+        if (!hasPaymentMethod) {
+          setActiveStep(PANEL_IDS.PAYMENT_METHOD);
+        } else if (!hasAccount) {
+          setActiveStep(PANEL_IDS.FROM_ACCOUNT);
+        } else {
+          setActiveStep('');
+        }
+      }, 150);
     },
-    [onPayeeSelect]
+    [onPayeeSelect, hasPaymentMethod, hasAccount]
   );
 
   const handlePaymentMethodSelect = useCallback(
     (method: PaymentMethodType) => {
       onPaymentMethodSelect(method);
-      setTimeout(() => setActiveStep(PANEL_IDS.FROM_ACCOUNT), 150);
+      // Only advance if next step is not complete
+      setTimeout(() => {
+        if (!hasAccount) {
+          setActiveStep(PANEL_IDS.FROM_ACCOUNT);
+        } else {
+          setActiveStep('');
+        }
+      }, 150);
     },
-    [onPaymentMethodSelect]
+    [onPaymentMethodSelect, hasAccount]
   );
 
   const handleAccountSelect = useCallback(

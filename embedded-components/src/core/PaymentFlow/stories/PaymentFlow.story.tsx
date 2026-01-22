@@ -328,7 +328,13 @@ const mockAccounts = {
 };
 
 // Mock account balances
-const mockAccountBalances: Record<string, { balanceTypes: Array<{ typeCode: string; amount: number }>; currency: string }> = {
+const mockAccountBalances: Record<
+  string,
+  {
+    balanceTypes: Array<{ typeCode: string; amount: number }>;
+    currency: string;
+  }
+> = {
   account1: {
     balanceTypes: [
       { typeCode: 'ITAV', amount: 5000.0 },
@@ -351,9 +357,7 @@ const mockAccountBalances: Record<string, { balanceTypes: Array<{ typeCode: stri
     currency: 'USD',
   },
   account4: {
-    balanceTypes: [
-      { typeCode: 'ITAV', amount: 25000.0 },
-    ],
+    balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
     currency: 'USD',
   },
 };
@@ -377,12 +381,12 @@ const mswHandlers = [
   http.get('/recipients', ({ request }) => {
     const url = new URL(request.url);
     const type = url.searchParams.get('type');
-    
+
     let filteredRecipients = mockRecipients;
     if (type) {
-      filteredRecipients = mockRecipients.filter(r => r.type === type);
+      filteredRecipients = mockRecipients.filter((r) => r.type === type);
     }
-    
+
     return HttpResponse.json({
       recipients: filteredRecipients,
       metadata: {

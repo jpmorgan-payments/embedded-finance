@@ -195,7 +195,7 @@ export function PayeeSelector({
         />
       ) : (
         <ScrollArea className="eb-h-[200px]">
-          <div className="eb-divide-y eb-divide-border">
+          <div className="eb-divide-y eb-divide-border eb-border-b eb-border-border">
             {filteredRecipients.map((payee) => (
               <PayeeListItem
                 key={payee.id}
@@ -252,7 +252,7 @@ export function PayeeSelector({
         />
       ) : (
         <ScrollArea className="eb-h-[200px]">
-          <div className="eb-divide-y eb-divide-border">
+          <div className="eb-divide-y eb-divide-border eb-border-b eb-border-border">
             {filteredLinkedAccounts.map((payee) => (
               <PayeeListItem
                 key={payee.id}
