@@ -15,6 +15,7 @@ import {
   ZapIcon,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 import {
   RecipientContactContactType,
@@ -49,7 +50,7 @@ import {
 import { StandardFormField } from '@/components/StandardFormField';
 import { Separator } from '@/components/ui';
 
-import { createBankAccountFormSchema } from './BankAccountForm.schema';
+import { useBankAccountFormSchema } from './BankAccountForm.schema';
 import type {
   BankAccountFormData,
   BankAccountFormProps,
@@ -73,6 +74,7 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
   configs,
   allowMultiple,
 }) => {
+  const { t } = useTranslation('bank-account-form');
   const handleToggle = (type: RoutingInformationTransactionType) => {
     const config = configs[type];
 
@@ -89,7 +91,7 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
         if (config?.locked) {
           return;
         }
-        newTypes = selectedTypes.filter((t) => t !== type);
+        newTypes = selectedTypes.filter((item) => item !== type);
       } else {
         newTypes = [...selectedTypes, type];
       }
@@ -149,7 +151,7 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
                 {isLocked && (
                   <span className="eb-inline-flex eb-items-center eb-gap-1 eb-rounded-full eb-bg-informative-accent eb-px-2.5 eb-py-1 eb-text-xs eb-font-medium eb-text-informative">
                     <LockIcon className="eb-h-3 eb-w-3" />
-                    Required for Linked Account
+                    {t('paymentMethods.requiredForLinkedAccount')}
                   </span>
                 )}
               </div>
@@ -162,7 +164,9 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
                     variant="ghost"
                     size="icon"
                     className="eb-h-8 eb-w-8 eb-shrink-0 eb-text-muted-foreground hover:eb-text-foreground"
-                    aria-label={`Information about ${config.label}`}
+                    aria-label={t('paymentMethods.infoButtonAriaLabel', {
+                      method: config.label,
+                    })}
                   >
                     <InfoIcon className="eb-h-4 eb-w-4" />
                   </Button>
@@ -187,38 +191,56 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
 };
 
 /**
- * Helper function to get the reason why a field is conditionally required
+ * Helper function to get the payment methods that require a specific field
  */
-const getConditionalRequirementReason = (
+const getRequiredPaymentMethods = (
   fieldType: 'address' | 'email' | 'phone',
   paymentTypes: RoutingInformationTransactionType[],
   configs: BankAccountFormProps['config']['paymentMethods']['configs']
-): string | null => {
-  const reasons: string[] = [];
+): string[] => {
+  const methods: string[] = [];
 
   paymentTypes.forEach((type) => {
     const methodConfig = configs[type];
     if (!methodConfig?.enabled) return;
 
     if (fieldType === 'address' && methodConfig.requiredFields.address) {
-      reasons.push(methodConfig.shortLabel);
+      methods.push(methodConfig.shortLabel);
     } else if (
       fieldType === 'email' &&
       methodConfig.requiredFields.contacts?.includes('EMAIL')
     ) {
-      reasons.push(methodConfig.shortLabel);
+      methods.push(methodConfig.shortLabel);
     } else if (
       fieldType === 'phone' &&
       methodConfig.requiredFields.contacts?.includes('PHONE')
     ) {
-      reasons.push(methodConfig.shortLabel);
+      methods.push(methodConfig.shortLabel);
     }
   });
 
-  if (reasons.length === 0) return null;
-  if (reasons.length === 1) return `Required for ${reasons[0]}`;
-  if (reasons.length === 2) return `Required for ${reasons[0]} & ${reasons[1]}`;
-  return `Required for ${reasons.slice(0, -1).join(', ')} & ${reasons[reasons.length - 1]}`;
+  return methods;
+};
+
+/**
+ * Hook to format "Required for X" message with proper grammar using translations
+ */
+const useFormatRequiredMessage = () => {
+  const { t } = useTranslation('bank-account-form');
+
+  return (methods: string[]): string | null => {
+    if (methods.length === 0) return null;
+    if (methods.length === 1) {
+      return t('requiredFor.single', { method: methods[0] });
+    }
+    if (methods.length === 2) {
+      return t('requiredFor.double', { first: methods[0], second: methods[1] });
+    }
+    return t('requiredFor.multiple', {
+      list: methods.slice(0, -1).join(', '),
+      last: methods[methods.length - 1],
+    });
+  };
 };
 
 /**
@@ -244,23 +266,26 @@ interface IndividualReadonlyFieldProps {
 
 const IndividualReadonlyField: FC<IndividualReadonlyFieldProps> = ({
   individual,
-}) => (
-  <FormItem>
-    <FormLabel>Account Holder</FormLabel>
-    <div className="eb-rounded-md eb-border eb-bg-muted eb-p-3 eb-text-sm">
-      <div className="eb-flex eb-flex-col eb-gap-1">
-        <span className="eb-font-medium">
-          {individual.firstName} {individual.lastName}
-        </span>
-        {individual.roles.length > 0 && (
-          <span className="eb-text-xs">
-            {individual.roles.map(formatRole).join(', ')}
+}) => {
+  const { t } = useTranslation('bank-account-form');
+  return (
+    <FormItem>
+      <FormLabel>{t('individualSelector.accountHolder')}</FormLabel>
+      <div className="eb-rounded-md eb-border eb-bg-muted eb-p-3 eb-text-sm">
+        <div className="eb-flex eb-flex-col eb-gap-1">
+          <span className="eb-font-medium">
+            {individual.firstName} {individual.lastName}
           </span>
-        )}
+          {individual.roles.length > 0 && (
+            <span className="eb-text-xs">
+              {individual.roles.map(formatRole).join(', ')}
+            </span>
+          )}
+        </div>
       </div>
-    </div>
-  </FormItem>
-);
+    </FormItem>
+  );
+};
 
 /**
  * IndividualSelector - Dropdown selector for multiple individuals
@@ -285,6 +310,7 @@ const IndividualSelector: FC<IndividualSelectorProps> = ({
   selectedLastName,
   onSelect,
 }) => {
+  const { t } = useTranslation('bank-account-form');
   const selectedIndividual = individuals.find(
     (party) =>
       party.firstName === selectedFirstName &&
@@ -297,7 +323,7 @@ const IndividualSelector: FC<IndividualSelectorProps> = ({
       name="firstName"
       render={() => (
         <FormItem>
-          <FormLabel>Account Holder</FormLabel>
+          <FormLabel>{t('individualSelector.accountHolder')}</FormLabel>
           <Select
             value={selectedIndividual?.id || ''}
             onValueChange={(partyId) => {
@@ -309,7 +335,9 @@ const IndividualSelector: FC<IndividualSelectorProps> = ({
           >
             <FormControl>
               <SelectTrigger className="eb-h-auto eb-min-h-[48px]">
-                <SelectValue placeholder="Choose an individual from your organization" />
+                <SelectValue
+                  placeholder={t('individualSelector.placeholder')}
+                />
               </SelectTrigger>
             </FormControl>
             <SelectContent>
@@ -356,6 +384,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
   control,
   disabled = false,
 }) => {
+  const { t } = useTranslation('bank-account-form');
   // Only show checkbox if there are multiple payment methods
   const showCheckbox = paymentMethods.length > 1;
 
@@ -370,12 +399,16 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
         name="routingNumbers.0.routingNumber"
         render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel>{config.shortLabel} Routing Number</FormLabel>
+            <FormLabel>
+              {t('routingNumbers.singleMethodLabel', {
+                method: config.shortLabel,
+              })}
+            </FormLabel>
             <FormControl>
               <Input
                 {...field}
                 type="text"
-                placeholder="Enter 9-digit routing number"
+                placeholder={t('routingNumbers.placeholder')}
                 maxLength={9}
                 disabled={disabled}
               />
@@ -391,7 +424,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
   return (
     <fieldset className="eb-space-y-3 eb-rounded-lg eb-border eb-p-4 eb-pt-1">
       <legend className="eb-px-2 eb-text-sm eb-font-semibold">
-        Routing Numbers
+        {t('routingNumbers.legend')}
       </legend>
 
       {/* Checkbox for using same routing number */}
@@ -406,7 +439,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
           disabled={disabled}
         />
         <span className="eb-text-sm eb-font-medium eb-leading-none">
-          Use same routing number for all payment methods
+          {t('routingNumbers.useSameForAll')}
         </span>
       </label>
 
@@ -419,16 +452,17 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
           render={({ field, fieldState }) => (
             <FormItem>
               <FormLabel>
-                {paymentMethods
-                  .map((method) => configs[method].shortLabel)
-                  .join(' / ')}{' '}
-                Routing Number
+                {t('routingNumbers.combinedMethodLabel', {
+                  methods: paymentMethods
+                    .map((method) => configs[method].shortLabel)
+                    .join(' / '),
+                })}
               </FormLabel>
               <FormControl>
                 <Input
                   {...field}
                   type="text"
-                  placeholder="Enter 9-digit routing number"
+                  placeholder={t('routingNumbers.placeholder')}
                   maxLength={9}
                   disabled={disabled}
                 />
@@ -449,12 +483,16 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
                 name={`routingNumbers.${index}.routingNumber`}
                 render={({ field, fieldState }) => (
                   <FormItem>
-                    <FormLabel>{config.shortLabel} Routing Number</FormLabel>
+                    <FormLabel>
+                      {t('routingNumbers.singleMethodLabel', {
+                        method: config.shortLabel,
+                      })}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         {...field}
                         type="text"
-                        placeholder="Enter 9-digit routing number"
+                        placeholder={t('routingNumbers.placeholder')}
                         maxLength={9}
                         disabled={disabled}
                       />
@@ -491,6 +529,7 @@ const ContactFields: FC<ContactFieldsProps> = ({
   configs,
   disabled = false,
 }) => {
+  const { t } = useTranslation('bank-account-form');
   const handleContactChange = (
     type: RecipientContactContactType,
     contactValue: string,
@@ -534,12 +573,15 @@ const ContactFields: FC<ContactFieldsProps> = ({
   }
 
   // Get conditional requirement reasons
-  const emailReason = showEmail
-    ? getConditionalRequirementReason('email', paymentTypes, configs)
-    : null;
-  const phoneReason = showPhone
-    ? getConditionalRequirementReason('phone', paymentTypes, configs)
-    : null;
+  const formatRequiredMessage = useFormatRequiredMessage();
+  const emailMethods = showEmail
+    ? getRequiredPaymentMethods('email', paymentTypes, configs)
+    : [];
+  const phoneMethods = showPhone
+    ? getRequiredPaymentMethods('phone', paymentTypes, configs)
+    : [];
+  const emailReason = formatRequiredMessage(emailMethods);
+  const phoneReason = formatRequiredMessage(phoneMethods);
 
   return (
     <div className="eb-space-y-4">
@@ -549,7 +591,7 @@ const ContactFields: FC<ContactFieldsProps> = ({
             <FormLabel>
               <span className="eb-flex eb-items-center eb-gap-2">
                 <MailIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
-                Email
+                {t('contacts.email.label')}
                 {emailReason && (
                   <span className="eb-ml-auto eb-inline-flex eb-items-center eb-gap-1 eb-rounded-full eb-bg-informative-accent eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-informative">
                     <InfoIcon className="eb-h-3 eb-w-3" />
@@ -563,7 +605,7 @@ const ContactFields: FC<ContactFieldsProps> = ({
                 type="email"
                 value={getContactValue('EMAIL')}
                 onChange={(e) => handleContactChange('EMAIL', e.target.value)}
-                placeholder="Enter email address"
+                placeholder={t('contacts.email.placeholder')}
                 disabled={disabled}
               />
             </FormControl>
@@ -575,7 +617,7 @@ const ContactFields: FC<ContactFieldsProps> = ({
             <FormLabel>
               <span className="eb-flex eb-items-center eb-gap-2">
                 <PhoneIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
-                Phone
+                {t('contacts.phone.label')}
                 {phoneReason && (
                   <span className="eb-ml-auto eb-inline-flex eb-items-center eb-gap-1 eb-rounded-full eb-bg-informative-accent eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-informative">
                     <InfoIcon className="eb-h-3 eb-w-3" />
@@ -589,7 +631,7 @@ const ContactFields: FC<ContactFieldsProps> = ({
                 type="tel"
                 value={getContactValue('PHONE')}
                 onChange={(e) => handleContactChange('PHONE', e.target.value)}
-                placeholder="Enter phone number"
+                placeholder={t('contacts.phone.placeholder')}
                 disabled={disabled}
               />
             </FormControl>
@@ -617,6 +659,8 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   alert,
   client,
 }) => {
+  const { t } = useTranslation('bank-account-form');
+  const formatRequiredMessage = useFormatRequiredMessage();
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
 
   // Extract organization name from client data if available
@@ -655,9 +699,9 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
 
   // Modify config if organization name is available from client data
   const effectiveConfig = useMemo(() => {
-    // Only apply this logic for LINKED_ACCOUNT use case when creating (no recipient yet)
+    // Only apply readonly logic when prefillFromClient is enabled and creating (no recipient yet)
     if (
-      config.useCase !== 'LINKED_ACCOUNT' ||
+      !config.accountHolder.prefillFromClient ||
       recipient?.partyDetails?.businessName ||
       recipient?.partyDetails?.firstName
     ) {
@@ -692,9 +736,10 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   }, [config, organizationName, individualParties, recipient]);
 
   // Create dynamic schema based on effective config
+  const createSchema = useBankAccountFormSchema();
   const formSchema = useMemo(
-    () => createBankAccountFormSchema(effectiveConfig),
-    [effectiveConfig]
+    () => createSchema(effectiveConfig),
+    [createSchema, effectiveConfig]
   );
 
   // Extract payment types and routing numbers from recipient if editing
@@ -765,12 +810,25 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
         undefined,
       firstName:
         recipient?.partyDetails?.firstName ||
-        (individualParties.length === 1 ? individualParties[0].firstName : ''),
+        // Only pre-fill from client data if config allows it
+        (effectiveConfig.accountHolder.prefillFromClient &&
+        individualParties.length === 1
+          ? individualParties[0].firstName
+          : ''),
       lastName:
         recipient?.partyDetails?.lastName ||
-        (individualParties.length === 1 ? individualParties[0].lastName : ''),
+        // Only pre-fill from client data if config allows it
+        (effectiveConfig.accountHolder.prefillFromClient &&
+        individualParties.length === 1
+          ? individualParties[0].lastName
+          : ''),
       businessName:
-        recipient?.partyDetails?.businessName || organizationName || '',
+        recipient?.partyDetails?.businessName ||
+        // Only pre-fill from client data if config allows it
+        (effectiveConfig.accountHolder.prefillFromClient
+          ? organizationName
+          : '') ||
+        '',
       routingNumbers: initialRoutingNumbers,
       useSameRoutingNumber: (() => {
         // Calculate if all routing numbers are the same
@@ -988,19 +1046,21 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                       name="accountType"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Select account holder type</FormLabel>
+                          <FormLabel>{t('accountHolder.selectType')}</FormLabel>
                           {config.readonlyFields?.accountType ? (
                             <div className="eb-rounded-md eb-border eb-bg-muted eb-px-3 eb-py-2 eb-text-sm eb-font-medium">
                               <div className="eb-flex eb-items-center eb-gap-2">
                                 {field.value === 'INDIVIDUAL' ? (
                                   <>
                                     <UserIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
-                                    <span>Individual / Personal Account</span>
+                                    <span>{t('accountHolder.individual')}</span>
                                   </>
                                 ) : (
                                   <>
                                     <BuildingIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
-                                    <span>Business / Organization Account</span>
+                                    <span>
+                                      {t('accountHolder.organization')}
+                                    </span>
                                   </>
                                 )}
                               </div>
@@ -1012,7 +1072,11 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                             >
                               <FormControl>
                                 <SelectTrigger className="eb-h-12">
-                                  <SelectValue placeholder="Choose account type" />
+                                  <SelectValue
+                                    placeholder={t(
+                                      'accountHolder.choosePlaceholder'
+                                    )}
+                                  />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
@@ -1020,7 +1084,9 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                                   <SelectItem value="INDIVIDUAL">
                                     <div className="eb-flex eb-items-center eb-gap-2">
                                       <UserIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
-                                      <span>Individual / Personal Account</span>
+                                      <span>
+                                        {t('accountHolder.individual')}
+                                      </span>
                                     </div>
                                   </SelectItem>
                                 )}
@@ -1029,7 +1095,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                                     <div className="eb-flex eb-items-center eb-gap-2">
                                       <BuildingIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
                                       <span>
-                                        Business / Organization Account
+                                        {t('accountHolder.organization')}
                                       </span>
                                     </div>
                                   </SelectItem>
@@ -1049,7 +1115,9 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                   name="paymentTypes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Select at least one payment method</FormLabel>
+                      <FormLabel>
+                        {t('paymentMethods.selectAtLeastOne')}
+                      </FormLabel>
                       <PaymentMethodSelector
                         selectedTypes={field.value}
                         onChange={field.onChange}
@@ -1082,8 +1150,8 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                           <InfoIcon className="eb-h-4 eb-w-4" />
                           <AlertDescription>
                             {individualParties.length === 1
-                              ? 'You may only link accounts associated with individuals from your organization.'
-                              : 'You may only link accounts associated with individuals from your organization. Select the account holder below.'}
+                              ? t('alerts.individualOnlyAccountsSingle')
+                              : t('alerts.individualOnlyAccountsMultiple')}
                           </AlertDescription>
                         </Alert>
                         {individualParties.length === 1 ? (
@@ -1111,9 +1179,9 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                           type="text"
                           label={
                             effectiveConfig.content.fieldLabels?.firstName ||
-                            'First Name'
+                            t('fields.firstName.label')
                           }
-                          placeholder="Enter first name"
+                          placeholder={t('fields.firstName.placeholder')}
                           required
                           readonly={effectiveConfig.readonlyFields?.firstName}
                           disabled={isLoading}
@@ -1125,9 +1193,9 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                           type="text"
                           label={
                             effectiveConfig.content.fieldLabels?.lastName ||
-                            'Last Name'
+                            t('fields.lastName.label')
                           }
-                          placeholder="Enter last name"
+                          placeholder={t('fields.lastName.placeholder')}
                           required
                           readonly={effectiveConfig.readonlyFields?.lastName}
                           disabled={isLoading}
@@ -1137,14 +1205,13 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                   </>
                 ) : (
                   <>
-                    {effectiveConfig.useCase === 'LINKED_ACCOUNT' &&
+                    {effectiveConfig.accountHolder.prefillFromClient &&
                       organizationName &&
                       !recipient && (
                         <Alert noTitle variant="informative">
                           <InfoIcon className="eb-h-4 eb-w-4" />
                           <AlertDescription>
-                            You may only link accounts associated with your
-                            organization.
+                            {t('alerts.organizationOnlyAccounts')}
                           </AlertDescription>
                         </Alert>
                       )}
@@ -1154,9 +1221,9 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                       type="text"
                       label={
                         effectiveConfig.content.fieldLabels?.businessName ||
-                        'Business Name'
+                        t('fields.businessName.label')
                       }
-                      placeholder="Enter business or organization name"
+                      placeholder={t('fields.businessName.placeholder')}
                       required
                       readonly={effectiveConfig.readonlyFields?.businessName}
                       disabled={isLoading}
@@ -1173,9 +1240,9 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                     type="text"
                     label={
                       effectiveConfig.content.fieldLabels?.accountNumber ||
-                      'Account Number'
+                      t('fields.accountNumber.label')
                     }
-                    placeholder="Enter account number"
+                    placeholder={t('fields.accountNumber.placeholder')}
                     required
                     readonly={effectiveConfig.readonlyFields?.accountNumber}
                     disabled={isLoading}
@@ -1186,15 +1253,15 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                     type="select"
                     label={
                       effectiveConfig.content.fieldLabels?.bankAccountType ||
-                      'Account Type'
+                      t('fields.accountType.label')
                     }
-                    placeholder="Select type"
+                    placeholder={t('fields.accountType.placeholder')}
                     required
                     readonly={effectiveConfig.readonlyFields?.bankAccountType}
                     disabled={isLoading}
                     options={[
-                      { value: 'CHECKING', label: 'Checking' },
-                      { value: 'SAVINGS', label: 'Savings' },
+                      { value: 'CHECKING', label: t('accountTypes.checking') },
+                      { value: 'SAVINGS', label: t('accountTypes.savings') },
                     ]}
                   />
                 </div>
@@ -1233,15 +1300,16 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                 {/* Address Fields */}
                 {showAddressFields &&
                   (() => {
-                    const addressReason = getConditionalRequirementReason(
+                    const addressMethods = getRequiredPaymentMethods(
                       'address',
                       paymentTypes,
                       effectiveConfig.paymentMethods.configs
                     );
+                    const addressReason = formatRequiredMessage(addressMethods);
                     return (
                       <fieldset className="eb-space-y-3 eb-rounded-lg eb-border eb-p-4 eb-pt-1">
                         <legend className="eb-flex eb-items-center eb-gap-2 eb-px-2 eb-text-sm eb-font-semibold">
-                          Address Information
+                          {t('address.legend')}
                           {addressReason && (
                             <span className="eb-inline-flex eb-items-center eb-gap-1 eb-rounded-full eb-bg-informative-accent eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-informative">
                               <InfoIcon className="eb-h-3 eb-w-3" />
@@ -1256,9 +1324,10 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                             type="text"
                             label={
                               effectiveConfig.content.fieldLabels
-                                ?.primaryAddressLine || 'Street Address'
+                                ?.primaryAddressLine ||
+                              t('address.streetAddress.label')
                             }
-                            placeholder="Enter street address"
+                            placeholder={t('address.streetAddress.placeholder')}
                             required
                             disabled={isLoading}
                           />
@@ -1269,9 +1338,12 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                               type="text"
                               label={
                                 effectiveConfig.content.fieldLabels
-                                  ?.secondaryAddressLine || 'Address Line 2'
+                                  ?.secondaryAddressLine ||
+                                t('address.addressLine2.label')
                               }
-                              placeholder="Apt, suite, unit, etc. (optional)"
+                              placeholder={t(
+                                'address.addressLine2.placeholder'
+                              )}
                               disabled={isLoading}
                             />
                             <StandardFormField
@@ -1280,9 +1352,12 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                               type="text"
                               label={
                                 effectiveConfig.content.fieldLabels
-                                  ?.tertiaryAddressLine || 'Address Line 3'
+                                  ?.tertiaryAddressLine ||
+                                t('address.addressLine3.label')
                               }
-                              placeholder="Additional info (optional)"
+                              placeholder={t(
+                                'address.addressLine3.placeholder'
+                              )}
                               disabled={isLoading}
                             />
                           </div>
@@ -1291,8 +1366,8 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                               control={form.control}
                               name="address.city"
                               type="text"
-                              label="City"
-                              placeholder="Enter city"
+                              label={t('address.city.label')}
+                              placeholder={t('address.city.placeholder')}
                               required
                               className="md:eb-col-span-1"
                               disabled={isLoading}
@@ -1301,8 +1376,8 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                               control={form.control}
                               name="address.state"
                               type="us-state"
-                              label="State"
-                              placeholder="Select state"
+                              label={t('address.state.label')}
+                              placeholder={t('address.state.placeholder')}
                               required
                               disabled={isLoading}
                             />
@@ -1310,8 +1385,8 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                               control={form.control}
                               name="address.postalCode"
                               type="text"
-                              label="ZIP Code"
-                              placeholder="Enter ZIP code"
+                              label={t('address.postalCode.label')}
+                              placeholder={t('address.postalCode.placeholder')}
                               required
                               inputProps={{ maxLength: 10 }}
                               disabled={isLoading}
@@ -1388,7 +1463,8 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                     onClick={onCancel}
                     className="eb-w-full sm:eb-w-auto"
                   >
-                    {effectiveConfig.content.cancelButtonText || 'Cancel'}
+                    {effectiveConfig.content.cancelButtonText ||
+                      t('navigation.cancel')}
                   </Button>
                 </DialogClose>
               )}
@@ -1397,7 +1473,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                 onClick={handleStep1Continue}
                 className="eb-w-full sm:eb-w-auto sm:eb-min-w-[200px]"
               >
-                Continue to Account Details <ArrowRightIcon />
+                {t('navigation.continueToAccountDetails')} <ArrowRightIcon />
               </Button>
             </>
           )}
@@ -1411,7 +1487,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                 disabled={isLoading}
                 className="eb-w-full sm:eb-w-auto"
               >
-                <ArrowLeftIcon /> Back
+                <ArrowLeftIcon /> {t('navigation.back')}
               </Button>
               <Button
                 type="submit"

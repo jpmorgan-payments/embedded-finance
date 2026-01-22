@@ -108,6 +108,13 @@ export interface BankAccountFormConfig {
     allowOrganization: boolean;
     /** Default type */
     defaultType?: PartyType;
+    /**
+     * Whether to pre-fill account holder details from client data.
+     * When true, individual names and business names will be auto-populated
+     * from the client's party information.
+     * @default false
+     */
+    prefillFromClient?: boolean;
   };
 
   /** Global required fields */

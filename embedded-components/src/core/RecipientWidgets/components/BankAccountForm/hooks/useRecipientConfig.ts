@@ -34,6 +34,7 @@ export const useRecipientConfig = (): BankAccountFormConfig => {
       allowIndividual: true,
       allowOrganization: true,
       defaultType: 'INDIVIDUAL',
+      prefillFromClient: false, // Recipients are external parties, don't pre-fill
     },
     requiredFields: {
       certification: false,
