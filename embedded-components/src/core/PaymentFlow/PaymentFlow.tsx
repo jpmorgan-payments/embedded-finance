@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import { Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -237,7 +237,7 @@ function MainTransferView({
   isLoadingMoreLinkedAccounts,
   totalLinkedAccounts,
 }: MainTransferViewProps) {
-  const { formData } = useFlowContext();
+  const { formData, setFormData } = useFlowContext();
   const { t } = useTranslation('accounts');
 
   // Helper to get translated category label
@@ -251,8 +251,38 @@ function MainTransferView({
     [t]
   );
 
-  // Track which step is currently active
-  const [activeStep, setActiveStep] = useState<string>(PANEL_IDS.PAYEE);
+  // Track which step is currently active - start with FROM_ACCOUNT
+  // (will be auto-skipped if only one account and it's auto-selected)
+  const [activeStep, setActiveStep] = useState<string>(PANEL_IDS.FROM_ACCOUNT);
+
+  // Track if initial auto-skip has been performed
+  const hasInitiallySkipped = React.useRef(false);
+
+  // Track if payee was just cleared due to account restriction
+  const [showPayeeClearedWarning, setShowPayeeClearedWarning] = useState(false);
+
+  // Skip FROM_ACCOUNT step on initial load if account is already selected (auto-selection or initial data)
+  useEffect(() => {
+    // Only run once on initial load
+    if (hasInitiallySkipped.current) return;
+
+    if (formData.fromAccountId && activeStep === PANEL_IDS.FROM_ACCOUNT) {
+      hasInitiallySkipped.current = true;
+      // Account already selected, move to next incomplete step
+      if (!formData.payeeId) {
+        setActiveStep(PANEL_IDS.PAYEE);
+      } else if (!formData.paymentMethod) {
+        setActiveStep(PANEL_IDS.PAYMENT_METHOD);
+      } else {
+        setActiveStep('');
+      }
+    }
+  }, [
+    formData.fromAccountId,
+    formData.payeeId,
+    formData.paymentMethod,
+    activeStep,
+  ]);
 
   const selectedPayee = useMemo(
     () => [...payees, ...linkedAccounts].find((p) => p.id === formData.payeeId),
@@ -269,6 +299,10 @@ function MainTransferView({
     [paymentMethods, formData.paymentMethod]
   );
 
+  // Account restrictions
+  // LIMITED_DDA accounts can only pay to linked accounts, not regular recipients
+  const isLimitedDDA = selectedAccount?.category === 'LIMITED_DDA';
+
   const hasPayee = !!formData.payeeId;
   const hasPaymentMethod = !!formData.paymentMethod;
   const hasAccount = !!formData.fromAccountId;
@@ -283,42 +317,69 @@ function MainTransferView({
   const handlePayeeSelect = useCallback(
     (payee: Payee) => {
       onPayeeSelect(payee);
+      // Clear the warning when a new payee is selected
+      setShowPayeeClearedWarning(false);
       // Only advance if next step is not complete
       setTimeout(() => {
         if (!hasPaymentMethod) {
           setActiveStep(PANEL_IDS.PAYMENT_METHOD);
-        } else if (!hasAccount) {
-          setActiveStep(PANEL_IDS.FROM_ACCOUNT);
         } else {
           setActiveStep('');
         }
       }, 150);
     },
-    [onPayeeSelect, hasPaymentMethod, hasAccount]
+    [onPayeeSelect, hasPaymentMethod]
   );
 
   const handlePaymentMethodSelect = useCallback(
     (method: PaymentMethodType) => {
       onPaymentMethodSelect(method);
-      // Only advance if next step is not complete
-      setTimeout(() => {
-        if (!hasAccount) {
-          setActiveStep(PANEL_IDS.FROM_ACCOUNT);
-        } else {
-          setActiveStep('');
-        }
-      }, 150);
+      // Payment method is the last step, just close
+      setTimeout(() => setActiveStep(''), 150);
     },
-    [onPaymentMethodSelect, hasAccount]
+    [onPaymentMethodSelect]
   );
 
   const handleAccountSelect = useCallback(
     (accountId: string) => {
       onAccountSelect(accountId);
-      // After all selections, no more steps to advance to
-      setTimeout(() => setActiveStep(''), 150);
+
+      // Check if the newly selected account is LIMITED_DDA
+      const newAccount = accounts.find((a) => a.id === accountId);
+      const isNewAccountLimitedDDA = newAccount?.category === 'LIMITED_DDA';
+
+      // Check if current payee is a recipient (not linked account)
+      const currentPayeeIsRecipient = selectedPayee?.type === 'RECIPIENT';
+
+      // If switching to LIMITED_DDA and current payee is a recipient, clear it
+      if (isNewAccountLimitedDDA && currentPayeeIsRecipient) {
+        setFormData({ payeeId: undefined });
+        // Show warning that payee was cleared
+        setShowPayeeClearedWarning(true);
+        // Always navigate to payee step to select a linked account
+        setTimeout(() => setActiveStep(PANEL_IDS.PAYEE), 150);
+        return;
+      }
+
+      // Advance to next incomplete step
+      setTimeout(() => {
+        if (!hasPayee) {
+          setActiveStep(PANEL_IDS.PAYEE);
+        } else if (!hasPaymentMethod) {
+          setActiveStep(PANEL_IDS.PAYMENT_METHOD);
+        } else {
+          setActiveStep('');
+        }
+      }, 150);
     },
-    [onAccountSelect]
+    [
+      onAccountSelect,
+      hasPayee,
+      hasPaymentMethod,
+      accounts,
+      selectedPayee,
+      setFormData,
+    ]
   );
 
   // Collapse handler - just close the current section
@@ -328,62 +389,9 @@ function MainTransferView({
 
   return (
     <div className="eb-space-y-1">
-      {/* TO PAYEE Section */}
+      {/* FROM ACCOUNT Section - Now first */}
       <StepSection
         stepNumber={1}
-        title="To"
-        isComplete={hasPayee}
-        isActive={activeStep === PANEL_IDS.PAYEE}
-        summary={
-          selectedPayee
-            ? `${selectedPayee.name} (...${selectedPayee.accountNumber?.slice(-4) ?? ''})`
-            : undefined
-        }
-        onHeaderClick={() => setActiveStep(PANEL_IDS.PAYEE)}
-        onCollapse={handleCollapse}
-      >
-        <PayeeSelector
-          selectedPayeeId={formData.payeeId}
-          onSelect={handlePayeeSelect}
-          onAddNew={onAddNewPayee}
-          recipients={payees}
-          linkedAccounts={linkedAccounts}
-          isLoading={isLoading}
-          hasMoreRecipients={hasMoreRecipients}
-          onLoadMoreRecipients={onLoadMoreRecipients}
-          isLoadingMoreRecipients={isLoadingMoreRecipients}
-          totalRecipients={totalRecipients}
-          hasMoreLinkedAccounts={hasMoreLinkedAccounts}
-          onLoadMoreLinkedAccounts={onLoadMoreLinkedAccounts}
-          isLoadingMoreLinkedAccounts={isLoadingMoreLinkedAccounts}
-          totalLinkedAccounts={totalLinkedAccounts}
-        />
-      </StepSection>
-
-      {/* PAYMENT METHOD Section */}
-      <StepSection
-        stepNumber={2}
-        title="Payment Method"
-        isComplete={hasPaymentMethod}
-        isActive={activeStep === PANEL_IDS.PAYMENT_METHOD}
-        summary={selectedMethod?.name}
-        onHeaderClick={() => setActiveStep(PANEL_IDS.PAYMENT_METHOD)}
-        onCollapse={handleCollapse}
-        disabledReason={!hasPayee ? 'Select payee first' : undefined}
-      >
-        <PaymentMethodSelector
-          payee={selectedPayee}
-          selectedMethod={formData.paymentMethod}
-          availableMethods={paymentMethods}
-          onSelect={handlePaymentMethodSelect}
-          onEnableMethod={onEnablePaymentMethod}
-          disabled={!hasPayee}
-        />
-      </StepSection>
-
-      {/* FROM ACCOUNT Section */}
-      <StepSection
-        stepNumber={3}
         title="From"
         isComplete={hasAccount}
         isActive={activeStep === PANEL_IDS.FROM_ACCOUNT}
@@ -394,7 +402,6 @@ function MainTransferView({
         }
         onHeaderClick={() => setActiveStep(PANEL_IDS.FROM_ACCOUNT)}
         onCollapse={handleCollapse}
-        isLast
       >
         <div className="eb-overflow-hidden eb-rounded-lg eb-border eb-border-border">
           {accounts.map((account, index) => {
@@ -452,6 +459,63 @@ function MainTransferView({
             );
           })}
         </div>
+      </StepSection>
+
+      {/* TO PAYEE Section - Now second */}
+      <StepSection
+        stepNumber={2}
+        title="To"
+        isComplete={hasPayee}
+        isActive={activeStep === PANEL_IDS.PAYEE}
+        summary={
+          selectedPayee
+            ? `${selectedPayee.name} (...${selectedPayee.accountNumber?.slice(-4) ?? ''})`
+            : undefined
+        }
+        onHeaderClick={() => setActiveStep(PANEL_IDS.PAYEE)}
+        onCollapse={handleCollapse}
+        disabledReason={!hasAccount ? 'Select account first' : undefined}
+      >
+        <PayeeSelector
+          selectedPayeeId={formData.payeeId}
+          onSelect={handlePayeeSelect}
+          onAddNew={onAddNewPayee}
+          recipients={payees}
+          linkedAccounts={linkedAccounts}
+          isLoading={isLoading}
+          hasMoreRecipients={hasMoreRecipients}
+          onLoadMoreRecipients={onLoadMoreRecipients}
+          isLoadingMoreRecipients={isLoadingMoreRecipients}
+          totalRecipients={totalRecipients}
+          hasMoreLinkedAccounts={hasMoreLinkedAccounts}
+          onLoadMoreLinkedAccounts={onLoadMoreLinkedAccounts}
+          isLoadingMoreLinkedAccounts={isLoadingMoreLinkedAccounts}
+          totalLinkedAccounts={totalLinkedAccounts}
+          recipientsRestricted={isLimitedDDA}
+          showRestrictionWarning={showPayeeClearedWarning}
+        />
+      </StepSection>
+
+      {/* PAYMENT METHOD Section - Now third/last */}
+      <StepSection
+        stepNumber={3}
+        title="Payment Method"
+        isComplete={hasPaymentMethod}
+        isActive={activeStep === PANEL_IDS.PAYMENT_METHOD}
+        summary={selectedMethod?.name}
+        onHeaderClick={() => setActiveStep(PANEL_IDS.PAYMENT_METHOD)}
+        onCollapse={handleCollapse}
+        disabledReason={!hasPayee ? 'Select payee first' : undefined}
+        isLast
+      >
+        <PaymentMethodSelector
+          payee={selectedPayee}
+          selectedMethod={formData.paymentMethod}
+          availableMethods={paymentMethods}
+          onSelect={handlePaymentMethodSelect}
+          onEnableMethod={onEnablePaymentMethod}
+          disabled={!hasPayee}
+        />
       </StepSection>
 
       <Separator className="!eb-my-4" />
@@ -600,6 +664,15 @@ function PaymentFlowContent({
   } = useFlowContext();
   const [pendingPaymentMethod, setPendingPaymentMethod] =
     useState<PaymentMethodType | null>(null);
+
+  // Auto-select account if only one is available
+  useEffect(() => {
+    if (accounts.length === 1 && !formData.fromAccountId) {
+      const account = accounts[0];
+      const availableBalance = account?.balance?.available;
+      setFormData({ fromAccountId: account.id!, availableBalance });
+    }
+  }, [accounts, formData.fromAccountId, setFormData]);
 
   // Handler for payee selection
   const handlePayeeSelect = useCallback(

@@ -7,8 +7,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Link, Loader2, Search, User } from 'lucide-react';
+import { AlertTriangle, Link, Loader2, Lock, Search, User } from 'lucide-react';
 
+import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -30,6 +31,11 @@ interface PayeeSelectorFullProps extends PayeeSelectorProps {
   onLoadMoreLinkedAccounts?: () => void;
   isLoadingMoreLinkedAccounts?: boolean;
   totalLinkedAccounts?: number;
+  // Account restriction - when true, recipients tab shows restriction message
+  recipientsRestricted?: boolean;
+  recipientsRestrictedMessage?: string;
+  // Show warning banner when payee was cleared due to restriction
+  showRestrictionWarning?: boolean;
 }
 
 /**
@@ -51,13 +57,29 @@ export function PayeeSelector({
   onLoadMoreLinkedAccounts,
   isLoadingMoreLinkedAccounts = false,
   totalLinkedAccounts,
+  recipientsRestricted = false,
+  recipientsRestrictedMessage = 'This account type cannot send payments to external recipients. Please select a linked account instead.',
+  showRestrictionWarning = false,
 }: PayeeSelectorFullProps) {
+  // Default to linked-accounts tab when recipients are restricted
   const [activeTab, setActiveTab] = useState<'recipients' | 'linked-accounts'>(
-    'recipients'
+    recipientsRestricted ? 'linked-accounts' : 'recipients'
   );
   const [searchQuery, setSearchQuery] = useState('');
   const recipientsLoadMoreRef = useRef<HTMLDivElement>(null);
   const linkedAccountsLoadMoreRef = useRef<HTMLDivElement>(null);
+
+  // Track previous recipientsRestricted value to detect changes
+  const prevRecipientsRestricted = useRef(recipientsRestricted);
+
+  // Switch to linked-accounts tab only when restriction is first applied
+  useEffect(() => {
+    // Only switch if recipientsRestricted changed from false to true
+    if (recipientsRestricted && !prevRecipientsRestricted.current) {
+      setActiveTab('linked-accounts');
+    }
+    prevRecipientsRestricted.current = recipientsRestricted;
+  }, [recipientsRestricted]);
 
   // Intersection observer for recipients infinite scroll
   useEffect(() => {
@@ -296,51 +318,101 @@ export function PayeeSelector({
   );
 
   return (
-    <Tabs
-      value={activeTab}
-      onValueChange={(value) =>
-        setActiveTab(value as 'recipients' | 'linked-accounts')
-      }
-      className="eb-space-y-3"
-    >
-      <TabsList className="eb-w-full">
-        <TabsTrigger value="recipients" className="eb-flex-1 eb-gap-1.5">
-          <User className="eb-h-3.5 eb-w-3.5" />
-          Recipients ({totalRecipients ?? recipients.length})
-        </TabsTrigger>
-        <TabsTrigger value="linked-accounts" className="eb-flex-1 eb-gap-1.5">
-          <Link className="eb-h-3.5 eb-w-3.5" />
-          Linked Accounts ({totalLinkedAccounts ?? linkedAccounts.length})
-        </TabsTrigger>
-      </TabsList>
-
-      {/* Unified search + list container */}
-      <div className="eb-overflow-hidden eb-rounded-lg eb-border eb-border-border">
-        {/* Search Input - connected to list */}
-        <div className="eb-relative eb-border-b eb-border-border eb-bg-muted/30">
-          <Search className="eb-absolute eb-left-2.5 eb-top-1/2 eb-h-3.5 eb-w-3.5 eb--translate-y-1/2 eb-text-muted-foreground" />
-          <Input
-            placeholder={
-              activeTab === 'recipients'
-                ? 'Search recipients...'
-                : 'Search linked accounts...'
-            }
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="eb-h-9 eb-rounded-none eb-border-0 eb-bg-transparent eb-pl-8 eb-text-sm focus-visible:eb-ring-0 focus-visible:eb-ring-offset-0"
-          />
+    <div className="eb-space-y-3">
+      {/* Warning banner when payee was cleared due to account restriction */}
+      {showRestrictionWarning && (
+        <div className="eb-flex eb-items-start eb-gap-2 eb-rounded-md eb-border eb-border-amber-200 eb-bg-amber-50 eb-p-3 eb-text-sm">
+          <AlertTriangle className="eb-mt-0.5 eb-h-4 eb-w-4 eb-shrink-0 eb-text-amber-600" />
+          <div className="eb-text-amber-800">
+            <span className="eb-font-medium">Recipient cleared.</span> The
+            selected account type can only send payments to linked accounts.
+            Please select a linked account below.
+          </div>
         </div>
+      )}
 
-        {/* List content */}
-        <TabsContent value="recipients" className="eb-mt-0">
-          {recipientsContent}
-        </TabsContent>
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) =>
+          setActiveTab(value as 'recipients' | 'linked-accounts')
+        }
+        className="eb-space-y-3"
+      >
+        <TabsList className="eb-w-full">
+          <TabsTrigger
+            value="recipients"
+            className={cn(
+              'eb-flex-1 eb-gap-1.5',
+              recipientsRestricted && 'eb-text-muted-foreground'
+            )}
+          >
+            {recipientsRestricted ? (
+              <Lock className="eb-h-3.5 eb-w-3.5 eb-text-muted-foreground" />
+            ) : (
+              <User className="eb-h-3.5 eb-w-3.5" />
+            )}
+            Recipients ({totalRecipients ?? recipients.length})
+          </TabsTrigger>
+          <TabsTrigger value="linked-accounts" className="eb-flex-1 eb-gap-1.5">
+            <Link className="eb-h-3.5 eb-w-3.5" />
+            Linked Accounts ({totalLinkedAccounts ?? linkedAccounts.length})
+          </TabsTrigger>
+        </TabsList>
 
-        <TabsContent value="linked-accounts" className="eb-mt-0">
-          {linkedAccountsContent}
-        </TabsContent>
+        {/* Unified search + list container */}
+        <div className="eb-overflow-hidden eb-rounded-lg eb-border eb-border-border">
+          {/* Search Input - connected to list (hidden when recipients restricted and on recipients tab) */}
+          {!(recipientsRestricted && activeTab === 'recipients') && (
+            <div className="eb-relative eb-border-b eb-border-border eb-bg-muted/30">
+              <Search className="eb-absolute eb-left-2.5 eb-top-1/2 eb-h-3.5 eb-w-3.5 eb--translate-y-1/2 eb-text-muted-foreground" />
+              <Input
+                placeholder={
+                  activeTab === 'recipients'
+                    ? 'Search recipients...'
+                    : 'Search linked accounts...'
+                }
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="eb-h-9 eb-rounded-none eb-border-0 eb-bg-transparent eb-pl-8 eb-text-sm focus-visible:eb-ring-0 focus-visible:eb-ring-offset-0"
+              />
+            </div>
+          )}
+
+          {/* List content */}
+          <TabsContent value="recipients" className="eb-mt-0">
+            {recipientsRestricted ? (
+              <RestrictionMessage message={recipientsRestrictedMessage} />
+            ) : (
+              recipientsContent
+            )}
+          </TabsContent>
+
+          <TabsContent value="linked-accounts" className="eb-mt-0">
+            {linkedAccountsContent}
+          </TabsContent>
+        </div>
+      </Tabs>
+    </div>
+  );
+}
+
+/**
+ * RestrictionMessage component
+ * Shows a message when recipients are restricted due to account type
+ */
+function RestrictionMessage({ message }: { message: string }) {
+  return (
+    <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center">
+      <div className="eb-mb-3 eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted">
+        <Lock className="eb-h-6 eb-w-6 eb-text-muted-foreground" />
       </div>
-    </Tabs>
+      <div className="eb-font-medium eb-text-foreground">
+        Recipients Not Available
+      </div>
+      <div className="eb-mt-1 eb-max-w-[280px] eb-text-sm eb-text-muted-foreground">
+        {message}
+      </div>
+    </div>
   );
 }
 
