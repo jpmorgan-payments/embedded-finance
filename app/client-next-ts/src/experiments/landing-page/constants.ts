@@ -5,15 +5,28 @@
  */
 
 export enum LandingPageExperiment {
+  LEGACY = 'legacy',
   COMPACT_HOMEPAGE = 'compact-homepage',
+  COMPACT_HOMEPAGE_1 = 'compact-homepage1',
   COMPACT_HOMEPAGE_2 = 'compact-homepage2',
   COMPACT_HOMEPAGE_3 = 'compact-homepage3',
 }
 
 /**
+ * Constant for the legacy landing page (original default)
+ */
+export const LEGACY = LandingPageExperiment.LEGACY;
+
+/**
  * Constant for the compact homepage experiment
  */
 export const COMPACT_HOMEPAGE = LandingPageExperiment.COMPACT_HOMEPAGE;
+
+/**
+ * Constant for the refined compact homepage experiment (v1)
+ * Features: frontend design principles, sophisticated animations, layered visual details
+ */
+export const COMPACT_HOMEPAGE_1 = LandingPageExperiment.COMPACT_HOMEPAGE_1;
 
 /**
  * Constant for the enhanced compact homepage experiment (v2)

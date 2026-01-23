@@ -11,11 +11,11 @@ import {
 
 export function Footer() {
   return (
-    <footer className="bg-jpm-gray-900 py-16 text-jpm-white">
+    <footer className="bg-jpm-gray-900 pt-12 pb-8 text-jpm-white sm:pt-16 sm:pb-10">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="md:col-span-2">
-            <div className="mb-6 flex items-center">
+            <div className="mb-4 flex items-center">
               <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-page-sm bg-jpm-white">
                 <span className="text-page-small font-semibold text-sp-brand">
                   EF
@@ -38,10 +38,10 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="mb-6 text-page-h4 font-semibold text-jpm-white">
+            <h4 className="mb-4 text-page-h4 font-semibold text-jpm-white">
               Resources
             </h4>
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               <li>
                 <Link
                   to="/documentation"
@@ -81,13 +81,13 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 border-t border-jpm-gray-700 pt-8">
+        <div className="mt-8 border-t border-jpm-gray-700 pt-6">
           <div className="flex flex-col items-center justify-between md:flex-row">
             <p className="text-page-small text-jpm-gray-300">
               © {new Date().getFullYear()} Embedded Finance Solutions. All
               rights reserved.
             </p>
-            <p className="mt-4 text-page-small text-jpm-gray-300 md:mt-0">
+            <p className="mt-3 text-page-small text-jpm-gray-300 md:mt-0">
               This is a demo application for illustrative purposes only.
             </p>
           </div>

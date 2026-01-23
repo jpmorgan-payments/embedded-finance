@@ -4,6 +4,7 @@
  * Slick, compact landing page with interactive infographic
  */
 
+import { useState } from 'react';
 import { BookOpen, Box, Play, Wrench } from 'lucide-react';
 
 import { Link } from '@tanstack/react-router';
@@ -18,46 +19,62 @@ const navigationCards = [
     id: 'demos',
     title: 'Demo Applications',
     description:
-      'Working implementations of embedded finance applications. Includes onboarding workflows, payment processing, and account management examples.',
+      'Working implementations showcasing embedded finance features in real-world scenarios.',
     icon: <Play className="h-6 w-6" />,
     link: '/demos',
     count: 3,
+    accentColor: 'bg-gradient-to-br from-[rgb(26,123,153)]/15 to-[rgb(26,123,153)]/5',
+    iconBg: 'bg-gradient-to-br from-[rgb(26,123,153)]/20 to-[rgb(26,123,153)]/10',
+    borderGradient: 'from-[rgb(26,123,153)]',
   },
   {
     id: 'components',
     title: 'Business Components',
     description:
-      'Components for client onboarding, linked bank accounts, payment initiation, and transaction display. Includes API integration and error handling.',
+      'Pre-built React components for embedded banking workflows with API integration.',
     icon: <Box className="h-6 w-6" />,
     link: '/components',
     count: 6,
+    accentColor: 'bg-gradient-to-br from-[rgb(177,121,207)]/15 to-[rgb(177,121,207)]/5',
+    iconBg: 'bg-gradient-to-br from-[rgb(177,121,207)]/20 to-[rgb(177,121,207)]/10',
+    borderGradient: 'from-[rgb(177,121,207)]',
   },
   {
     id: 'recipes',
     title: 'Implementation Guides',
     description:
-      'Technical guides covering form validation, date input patterns, accessibility requirements, and integration approaches with code examples.',
+      'Technical guides and best practices for building embedded finance solutions.',
     icon: <BookOpen className="h-6 w-6" />,
     link: '/stories',
     count: 3,
+    accentColor: 'bg-gradient-to-br from-[rgb(226,110,0)]/15 to-[rgb(226,110,0)]/5',
+    iconBg: 'bg-gradient-to-br from-[rgb(226,110,0)]/20 to-[rgb(226,110,0)]/10',
+    borderGradient: 'from-[rgb(226,110,0)]',
   },
   {
     id: 'utils',
     title: 'Utility Components',
     description:
-      'Components for dates, industry codes, tax IDs, and addresses. Includes validation logic and formatting for financial forms.',
+      'Specialized form components with validation and formatting for financial applications.',
     icon: <Wrench className="h-6 w-6" />,
     link: '/utils',
     count: 4,
+    accentColor: 'bg-gradient-to-br from-[rgb(26,123,153)]/10 via-[rgb(177,121,207)]/10 to-[rgb(226,110,0)]/10',
+    iconBg: 'bg-gradient-to-br from-[rgb(26,123,153)]/15 via-[rgb(177,121,207)]/15 to-[rgb(226,110,0)]/15',
+    borderGradient: 'from-[rgb(26,123,153)] via-[rgb(177,121,207)] to-[rgb(226,110,0)]',
   },
 ] as const;
 
 export function CompactHomepage() {
+  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
+
   return (
     <div className="min-h-screen">
       {/* Hero Section with Infographic */}
-      <section className="bg-sp-bg py-6 sm:py-8 lg:py-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-gradient-to-br from-sp-bg via-sp-accent/30 to-sp-bg py-6 sm:py-8 lg:py-10">
+        {/* Decorative gradient overlay inspired by J.P. Morgan Payments Developer Portal */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[rgb(226,110,0)]/10 via-[rgb(177,121,207)]/10 to-[rgb(26,123,153)]/10 opacity-60" />
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3 lg:gap-8">
             {/* Left side - Text content */}
             <div className="lg:col-span-2">
@@ -103,7 +120,7 @@ export function CompactHomepage() {
       </section>
 
       {/* Navigation Cards Grid */}
-      <section className="bg-jpm-white py-10">
+      <section className="pt-10 pb-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-8 text-center">
             <h2 className="mb-2 text-3xl font-bold text-jpm-gray-900 sm:text-4xl">
@@ -117,23 +134,41 @@ export function CompactHomepage() {
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {navigationCards.map((card) => (
-              <Link key={card.id} to={card.link}>
-                <Card className="group h-full cursor-pointer rounded-page-md border-2 border-sp-border bg-jpm-white shadow-sm transition-all duration-200 hover:border-sp-brand hover:shadow-lg">
-                  <CardHeader className="border-b-2 border-sp-border bg-sp-accent p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-shrink-0 text-sp-brand transition-transform duration-200 group-hover:scale-110">
+              <Link
+                key={card.id}
+                to={card.link}
+                className="block"
+                onMouseEnter={() => setHoveredCardId(card.id)}
+                onMouseLeave={() => setHoveredCardId(null)}
+              >
+                <Card
+                  className={`relative h-full min-h-[11rem] cursor-pointer overflow-hidden rounded-page-md border-2 border-sp-border bg-jpm-white transition-all duration-200 flex flex-col ${
+                    hoveredCardId === card.id
+                      ? '-translate-y-1 transform border-sp-brand shadow-lg ring-2 ring-sp-brand/20'
+                      : 'shadow-sm hover:shadow-md hover:border-sp-brand/50'
+                  }`}
+                >
+                  <CardHeader className={`border-b-2 border-sp-border ${card.accentColor} p-4 flex-shrink-0`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div
+                        className={`flex h-12 w-12 items-center justify-center rounded-page-sm ${card.iconBg} text-sp-brand shadow-sm transition-all duration-200 ${
+                          hoveredCardId === card.id
+                            ? 'scale-110 ring-2 ring-sp-brand/30'
+                            : ''
+                        }`}
+                      >
                         {card.icon}
                       </div>
-                      <span className="rounded-page-sm border border-sp-border bg-white px-2.5 py-1 text-xs font-bold text-sp-brand">
+                      <span className="rounded-page-sm border border-sp-brand/30 bg-white px-3 py-1.5 text-base font-bold text-sp-brand shadow-sm">
                         {card.count}
                       </span>
                     </div>
-                  </CardHeader>
-                  <CardContent className="p-4">
-                    <CardTitle className="mb-2 text-base font-bold text-jpm-gray-900">
+                    <CardTitle className="text-base font-bold text-jpm-gray-900 leading-tight">
                       {card.title}
                     </CardTitle>
-                    <p className="text-sm leading-relaxed text-jpm-gray">
+                  </CardHeader>
+                  <CardContent className="p-4 flex-1 flex flex-col">
+                    <p className="text-sm leading-relaxed text-jpm-gray flex-1">
                       {card.description}
                     </p>
                   </CardContent>
