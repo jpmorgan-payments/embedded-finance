@@ -20,6 +20,7 @@ certs
 *.iml
 .vscode
 *.icloud
+.cursor
 
 # Logs
 npm-debug.log*
