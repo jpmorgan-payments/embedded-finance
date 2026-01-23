@@ -5,11 +5,17 @@
  */
 
 export enum LandingPageExperiment {
+  LEGACY = 'legacy',
   COMPACT_HOMEPAGE = 'compact-homepage',
   COMPACT_HOMEPAGE_1 = 'compact-homepage1',
   COMPACT_HOMEPAGE_2 = 'compact-homepage2',
   COMPACT_HOMEPAGE_3 = 'compact-homepage3',
 }
+
+/**
+ * Constant for the legacy landing page (original default)
+ */
+export const LEGACY = LandingPageExperiment.LEGACY;
 
 /**
  * Constant for the compact homepage experiment

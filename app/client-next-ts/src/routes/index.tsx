@@ -27,12 +27,19 @@ function LandingPage() {
   const search = Route.useSearch();
 
   // Only use experiment from URL parameter, not localStorage
-  // This ensures the default page is always the legacy layout
   const activeExperiment = search.experiment;
 
-  // Render compact homepage if experiment is explicitly in URL
-  if (activeExperiment === LandingPageExperiment.COMPACT_HOMEPAGE) {
-    return <CompactHomepage />;
+  // Render legacy landing page if experiment is explicitly set to legacy
+  if (activeExperiment === LandingPageExperiment.LEGACY) {
+    return (
+      <div>
+        <HeroSection />
+        <DemoCarousel />
+        <RecipesSection />
+        <ExperiencesSection />
+        <ComponentsSection />
+      </div>
+    );
   }
 
   // Render refined compact homepage v1 if experiment is explicitly in URL
@@ -50,14 +57,6 @@ function LandingPage() {
     return <CompactHomepage3 />;
   }
 
-  // Default landing page
-  return (
-    <div>
-      <HeroSection />
-      <DemoCarousel />
-      <RecipesSection />
-      <ExperiencesSection />
-      <ComponentsSection />
-    </div>
-  );
+  // Default: Render compact homepage (when no experiment or experiment=compact-homepage)
+  return <CompactHomepage />;
 }
