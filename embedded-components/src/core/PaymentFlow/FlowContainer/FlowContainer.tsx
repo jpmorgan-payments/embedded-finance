@@ -9,7 +9,7 @@ import type {
   FlowContainerProps,
   PaymentFlowFormData,
 } from '../PaymentFlow.types';
-import { FlowContextProvider } from './FlowContext';
+import { FlowContextProvider, useFlowContext } from './FlowContext';
 import { FlowHeader } from './FlowHeader';
 
 interface FlowContainerFullProps extends FlowContainerProps {
@@ -36,6 +36,12 @@ function FlowContainerInner({
   FlowContainerFullProps,
   'asModal' | 'open' | 'onOpenChange' | 'initialData' | 'onClose'
 > & { className?: string }) {
+  const { currentView } = useFlowContext();
+
+  // Hide review panel on success view (full-width success content)
+  const isSuccessView = currentView === 'success';
+  const showReviewPanel = reviewPanel && !isSuccessView;
+
   const reviewPanelWidthClasses = {
     sm: '@3xl:eb-w-[280px]',
     md: '@3xl:eb-w-[320px]',
@@ -59,7 +65,7 @@ function FlowContainerInner({
           {children}
 
           {/* Mobile Review Panel - inside scroll area on narrower containers */}
-          {reviewPanel && (
+          {showReviewPanel && (
             <div className="eb--mx-6 eb-mt-6 eb-border-t eb-bg-muted eb-px-6 eb-py-4 @3xl:eb-hidden">
               {reviewPanel}
             </div>
@@ -67,16 +73,18 @@ function FlowContainerInner({
         </div>
 
         {/* Right Column - Review Panel (hidden on mobile, shown on @3xl+) */}
-        <div
-          className={cn(
-            'eb-hidden eb-shrink-0 eb-border-l eb-bg-muted @3xl:eb-block',
-            reviewPanelWidthClasses[reviewPanelWidth]
-          )}
-        >
-          <div className="eb-h-full eb-overflow-y-auto eb-px-5 eb-py-4">
-            {reviewPanel}
+        {showReviewPanel && (
+          <div
+            className={cn(
+              'eb-hidden eb-shrink-0 eb-border-l eb-bg-muted @3xl:eb-block',
+              reviewPanelWidthClasses[reviewPanelWidth]
+            )}
+          >
+            <div className="eb-h-full eb-overflow-y-auto eb-px-5 eb-py-4">
+              {reviewPanel}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

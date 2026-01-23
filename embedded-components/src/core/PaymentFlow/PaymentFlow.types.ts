@@ -107,7 +107,8 @@ export type PaymentFlowView =
   | 'link-account'
   | 'add-recipient-method'
   | 'add-recipient-form'
-  | 'enable-payment-method';
+  | 'enable-payment-method'
+  | 'success';
 
 /**
  * Form data for the payment flow
@@ -298,7 +299,7 @@ export interface ReviewPanelProps {
   accounts?: ListAccountsResponse;
   payees?: Payee[];
   paymentMethods?: PaymentMethod[];
-  onSubmit: () => void;
+  onSubmit: (formData: PaymentFlowFormData) => void;
   isSubmitting?: boolean;
   mobileConfig?: MobileReviewConfig;
   /** Callback when validation fails, receives array of missing field names */

@@ -2,19 +2,28 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQueries } from '@tanstack/react-query';
-import { Check } from 'lucide-react';
+import { Check, CheckCircle2, Copy } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { v4 as uuidv4 } from 'uuid';
 
 import { cn } from '@/lib/utils';
+import { ErrorType } from '@/api/axios-instance';
 import {
   getGetAccountBalanceQueryOptions,
   useGetAccounts,
 } from '@/api/generated/ep-accounts';
 import { useGetAllRecipientsInfinite } from '@/api/generated/ep-recipients';
 import { RecipientType as ApiRecipientType } from '@/api/generated/ep-recipients.schemas';
+import { useCreateTransactionV2 } from '@/api/generated/ep-transactions';
+import type {
+  ApiErrorV2,
+  TransactionResponseV2,
+} from '@/api/generated/ep-transactions.schemas';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 
 import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
 import { FlowContainer, FlowView, useFlowContext } from './FlowContainer';
@@ -615,6 +624,131 @@ function MainTransferView({
 }
 
 /**
+ * Format currency value
+ */
+function formatCurrency(value: number, currency = 'USD'): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+  }).format(value);
+}
+
+/**
+ * SuccessView component
+ * Shows payment success confirmation with transaction details
+ */
+interface SuccessViewProps {
+  transactionResponse?: TransactionResponseV2;
+  formData: {
+    amount: string;
+    payeeId?: string;
+    fromAccountId?: string;
+    memo?: string;
+  };
+  payees: Payee[];
+  accounts: AccountResponse[];
+  onClose: () => void;
+}
+
+function SuccessView({
+  transactionResponse,
+  formData,
+  payees,
+  accounts,
+  onClose,
+}: SuccessViewProps) {
+  const [copied, setCopied] = useState(false);
+
+  const amount = parseFloat(formData.amount) || 0;
+  const payee = payees.find((p) => p.id === formData.payeeId);
+  const account = accounts.find((a) => a.id === formData.fromAccountId);
+  const transactionId =
+    transactionResponse?.id ?? transactionResponse?.transactionReferenceId;
+
+  const handleCopyId = useCallback(() => {
+    if (transactionId) {
+      navigator.clipboard.writeText(transactionId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }, [transactionId]);
+
+  return (
+    <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center">
+      {/* Success Icon */}
+      <div className="eb-mb-4 eb-flex eb-h-16 eb-w-16 eb-items-center eb-justify-center eb-rounded-full eb-bg-green-100">
+        <CheckCircle2 className="eb-h-8 eb-w-8 eb-text-green-600" />
+      </div>
+
+      {/* Success Message */}
+      <h2 className="eb-mb-2 eb-text-xl eb-font-semibold eb-text-foreground">
+        Payment Sent!
+      </h2>
+      <p className="eb-mb-6 eb-text-muted-foreground">
+        Your payment of {formatCurrency(amount)} has been initiated
+      </p>
+
+      {/* Transaction Details */}
+      <div className="eb-w-full eb-max-w-sm eb-space-y-3 eb-rounded-lg eb-border eb-border-border eb-bg-muted/20 eb-p-4 eb-text-left">
+        {payee && (
+          <div className="eb-flex eb-justify-between">
+            <span className="eb-text-sm eb-text-muted-foreground">To</span>
+            <span className="eb-text-sm eb-font-medium">{payee.name}</span>
+          </div>
+        )}
+        {account && (
+          <div className="eb-flex eb-justify-between">
+            <span className="eb-text-sm eb-text-muted-foreground">From</span>
+            <span className="eb-text-sm eb-font-medium">
+              {account.label ?? 'Account'} (...
+              {account.paymentRoutingInformation?.accountNumber?.slice(-4)})
+            </span>
+          </div>
+        )}
+        <div className="eb-flex eb-justify-between">
+          <span className="eb-text-sm eb-text-muted-foreground">Amount</span>
+          <span className="eb-text-sm eb-font-medium">
+            {formatCurrency(amount)}
+          </span>
+        </div>
+        {transactionResponse?.status && (
+          <div className="eb-flex eb-justify-between">
+            <span className="eb-text-sm eb-text-muted-foreground">Status</span>
+            <span className="eb-text-sm eb-font-medium eb-capitalize">
+              {transactionResponse.status.toLowerCase().replace('_', ' ')}
+            </span>
+          </div>
+        )}
+        {transactionId && (
+          <div className="eb-flex eb-items-center eb-justify-between">
+            <span className="eb-text-sm eb-text-muted-foreground">
+              Reference
+            </span>
+            <button
+              type="button"
+              onClick={handleCopyId}
+              className="eb-flex eb-items-center eb-gap-1 eb-text-sm eb-font-medium eb-text-primary hover:eb-underline"
+            >
+              {transactionId.slice(0, 8)}...
+              {copied ? (
+                <Check className="eb-h-3 eb-w-3" />
+              ) : (
+                <Copy className="eb-h-3 eb-w-3" />
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Close Button */}
+      <Button onClick={onClose} className="eb-mt-6 eb-w-full eb-max-w-sm">
+        Done
+      </Button>
+    </div>
+  );
+}
+
+/**
  * PaymentFlowContent component
  * Inner content that uses the flow context
  */
@@ -624,8 +758,14 @@ interface PaymentFlowContentProps {
   accounts: AccountResponse[];
   paymentMethods: PaymentMethod[];
   isLoading: boolean;
-  onSubmit: () => void;
   isSubmitting: boolean;
+  // Transaction response for success state
+  transactionResponse?: TransactionResponseV2;
+  // Transaction error for error display
+  transactionError?: ErrorType<ApiErrorV2> | null;
+  onClose: () => void;
+  // Retry handler for errors
+  onRetry?: () => void;
   // Infinite scroll props - Recipients
   hasMoreRecipients?: boolean;
   onLoadMoreRecipients?: () => void;
@@ -644,8 +784,11 @@ function PaymentFlowContent({
   accounts,
   paymentMethods,
   isLoading,
-  onSubmit: _onSubmit,
   isSubmitting: _isSubmitting,
+  transactionResponse,
+  transactionError,
+  onClose,
+  onRetry,
   hasMoreRecipients,
   onLoadMoreRecipients,
   isLoadingMoreRecipients,
@@ -660,10 +803,18 @@ function PaymentFlowContent({
     setFormData,
     pushView,
     popView,
+    replaceView,
     isComplete: _isComplete,
   } = useFlowContext();
   const [pendingPaymentMethod, setPendingPaymentMethod] =
     useState<PaymentMethodType | null>(null);
+
+  // Navigate to success view when transaction is complete
+  useEffect(() => {
+    if (transactionResponse) {
+      replaceView('success');
+    }
+  }, [transactionResponse, replaceView]);
 
   // Auto-select account if only one is available
   useEffect(() => {
@@ -804,6 +955,29 @@ function PaymentFlowContent({
     <>
       {/* Main Transfer View */}
       <FlowView viewId="main">
+        {/* Transaction Error Alert */}
+        {transactionError && (
+          <div className="eb-mb-4">
+            <ServerErrorAlert
+              error={transactionError}
+              customTitle="Payment Failed"
+              customErrorMessage={{
+                '400': 'Please check the payment details and try again.',
+                '401': 'Your session has expired. Please log in and try again.',
+                '403': 'You do not have permission to make this payment.',
+                '404': 'The account or recipient was not found.',
+                '422':
+                  'The payment details are invalid. Please check and try again.',
+                '500': 'An unexpected error occurred. Please try again later.',
+                '503':
+                  'The service is currently unavailable. Please try again later.',
+                default: 'Failed to process the payment. Please try again.',
+              }}
+              tryAgainAction={onRetry}
+              showDetails={false}
+            />
+          </div>
+        )}
         <MainTransferView
           payees={payees}
           linkedAccounts={linkedAccounts}
@@ -888,6 +1062,17 @@ function PaymentFlowContent({
             }}
           />
         )}
+      </FlowView>
+
+      {/* Success View */}
+      <FlowView viewId="success">
+        <SuccessView
+          transactionResponse={transactionResponse}
+          formData={formData}
+          payees={[...payees, ...linkedAccounts]}
+          accounts={accounts}
+          onClose={onClose}
+        />
       </FlowView>
     </>
   );
@@ -1137,28 +1322,97 @@ export function PaymentFlow({
     isLoadingLinkedAccounts ||
     isLoadingBalances;
 
+  // Transaction mutation
+  const createTransactionMutation = useCreateTransactionV2();
+
+  // Store transaction response for success view
+  const [transactionResponse, setTransactionResponse] = useState<
+    TransactionResponseV2 | undefined
+  >();
+
+  // Store transaction error for error display
+  const [transactionError, setTransactionError] =
+    useState<ErrorType<ApiErrorV2> | null>(null);
+
+  // Generate unique transaction reference ID (matching MakePayment pattern)
+  const generateTransactionReferenceId = useCallback((): string => {
+    const prefix = 'PHUI_';
+    const uuid = uuidv4().replace(/-/g, ''); // Remove dashes to fit within the character limit
+    const maxLength = 35;
+    const randomPart = uuid.substring(0, maxLength - prefix.length);
+    return prefix + randomPart;
+  }, []);
+
   // Handle close
   const handleClose = useCallback(() => {
     setOpen(false);
+    setTransactionResponse(undefined); // Clear transaction response on close
+    setTransactionError(null); // Clear error on close
     onClose?.();
   }, [setOpen, onClose]);
 
-  // Handle submit
-  const handleSubmit = useCallback(async () => {
-    setIsSubmitting(true);
-    try {
-      // TODO: Implement actual transaction submission
-      await new Promise<void>((resolve) => {
-        setTimeout(resolve, 2000);
-      });
-      onTransactionComplete?.();
-      handleClose();
-    } catch {
-      // TODO: Handle error properly
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [handleClose, onTransactionComplete]);
+  // Handle retry - clear error to allow another attempt
+  const handleRetry = useCallback(() => {
+    setTransactionError(null);
+  }, []);
+
+  // Handle submit - creates actual transaction via API
+  const handleTransactionSubmit = useCallback(
+    async (formData: {
+      fromAccountId?: string;
+      payeeId?: string;
+      payee?: Payee;
+      paymentMethod?: PaymentMethodType;
+      amount: string;
+      memo?: string;
+    }) => {
+      setIsSubmitting(true);
+      setTransactionError(null); // Clear any previous error
+      try {
+        // Generate unique transaction reference ID
+        const transactionReferenceId = generateTransactionReferenceId();
+
+        // Determine payment type based on selected method
+        const paymentType = formData.paymentMethod as
+          | 'ACH'
+          | 'WIRE'
+          | 'RTP'
+          | undefined;
+
+        // Build the request
+        const response = await createTransactionMutation.mutateAsync({
+          data: {
+            amount: parseFloat(formData.amount) || 0,
+            currency: 'USD',
+            debtorAccountId: formData.fromAccountId,
+            recipientId: formData.payeeId,
+            memo: formData.memo,
+            transactionReferenceId,
+            type: paymentType,
+          },
+        });
+
+        setTransactionResponse(response);
+        onTransactionComplete?.(response);
+      } catch (error) {
+        // Store error for display (cast to AxiosError type)
+        const axiosError = error as ErrorType<ApiErrorV2>;
+        setTransactionError(axiosError);
+        // Handle error - call onTransactionComplete with error
+        onTransactionComplete?.(undefined, {
+          httpStatus: axiosError.response?.status ?? 500,
+          title: axiosError.response?.data?.title ?? 'Transaction Failed',
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [
+      createTransactionMutation,
+      onTransactionComplete,
+      generateTransactionReferenceId,
+    ]
+  );
 
   // Initial form data
   const initialData = useMemo(
@@ -1206,7 +1460,7 @@ export function PaymentFlow({
             }}
             payees={[...payees, ...linkedAccounts]}
             paymentMethods={paymentMethods}
-            onSubmit={handleSubmit}
+            onSubmit={handleTransactionSubmit}
             isSubmitting={isSubmitting}
           />
         }
@@ -1217,8 +1471,11 @@ export function PaymentFlow({
           accounts={accounts}
           paymentMethods={paymentMethods}
           isLoading={isLoading}
-          onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
+          transactionResponse={transactionResponse}
+          transactionError={transactionError}
+          onClose={handleClose}
+          onRetry={handleRetry}
           hasMoreRecipients={hasNextRecipients}
           onLoadMoreRecipients={fetchNextRecipients}
           isLoadingMoreRecipients={isFetchingNextRecipients}

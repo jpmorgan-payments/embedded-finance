@@ -206,7 +206,8 @@ export function PayeeSelector({
   // Threshold for showing search bar and using fixed height scroll area
   const SHOW_SEARCH_THRESHOLD = 5;
   const showRecipientsSearch = recipients.length >= SHOW_SEARCH_THRESHOLD;
-  const showLinkedAccountsSearch = linkedAccounts.length >= SHOW_SEARCH_THRESHOLD;
+  const showLinkedAccountsSearch =
+    linkedAccounts.length >= SHOW_SEARCH_THRESHOLD;
 
   const recipientsContent = (
     <>
@@ -383,21 +384,22 @@ export function PayeeSelector({
           {/* Search Input - hidden when recipients restricted on recipients tab, or when fewer than 5 items */}
           {!(recipientsRestricted && activeTab === 'recipients') &&
             ((activeTab === 'recipients' && showRecipientsSearch) ||
-              (activeTab === 'linked-accounts' && showLinkedAccountsSearch)) && (
+              (activeTab === 'linked-accounts' &&
+                showLinkedAccountsSearch)) && (
               <div className="eb-relative eb-border-b eb-border-border eb-bg-muted/30">
-              <Search className="eb-absolute eb-left-2.5 eb-top-1/2 eb-h-3.5 eb-w-3.5 eb--translate-y-1/2 eb-text-muted-foreground" />
-              <Input
-                placeholder={
-                  activeTab === 'recipients'
-                    ? 'Search recipients...'
-                    : 'Search linked accounts...'
-                }
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="eb-h-9 eb-rounded-none eb-border-0 eb-bg-transparent eb-pl-8 eb-text-sm focus-visible:eb-ring-0 focus-visible:eb-ring-offset-0"
-              />
-            </div>
-          )}
+                <Search className="eb-absolute eb-left-2.5 eb-top-1/2 eb-h-3.5 eb-w-3.5 eb--translate-y-1/2 eb-text-muted-foreground" />
+                <Input
+                  placeholder={
+                    activeTab === 'recipients'
+                      ? 'Search recipients...'
+                      : 'Search linked accounts...'
+                  }
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="eb-h-9 eb-rounded-none eb-border-0 eb-bg-transparent eb-pl-8 eb-text-sm focus-visible:eb-ring-0 focus-visible:eb-ring-offset-0"
+                />
+              </div>
+            )}
 
           {/* List content */}
           <TabsContent value="recipients" className="eb-mt-0">
