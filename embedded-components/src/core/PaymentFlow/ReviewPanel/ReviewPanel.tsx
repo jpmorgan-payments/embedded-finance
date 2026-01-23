@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ArrowRight,
   Building2,
@@ -38,10 +38,33 @@ export function ReviewPanel({
   paymentMethods,
   onSubmit,
   isSubmitting = false,
+  onValidationFail,
 }: Omit<ReviewPanelProps, 'mobileConfig'>) {
   // Get live form data from context
   const { formData, isComplete, currentView } = useFlowContext();
   const { t } = useTranslation('accounts');
+  
+  // Track if validation has been attempted (to show error state)
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+
+  // Handle submit button click - validate first, then submit if valid
+  const handleSubmitClick = useCallback(() => {
+    setHasAttemptedSubmit(true);
+    
+    if (!isComplete) {
+      // Collect missing fields for callback
+      const missingFields: string[] = [];
+      if (!formData.fromAccountId) missingFields.push('fromAccount');
+      if (!formData.payeeId) missingFields.push('payee');
+      if (!formData.paymentMethod) missingFields.push('paymentMethod');
+      if (!formData.amount || parseFloat(formData.amount) <= 0) missingFields.push('amount');
+      
+      onValidationFail?.(missingFields);
+      return;
+    }
+    
+    onSubmit();
+  }, [isComplete, formData, onSubmit, onValidationFail]);
 
   // Helper to get translated category label
   const getCategoryLabel = (category?: string) => {
@@ -74,6 +97,21 @@ export function ReviewPanel({
     () => accounts?.items?.find((a) => a.id === formData.fromAccountId),
     [accounts, formData.fromAccountId]
   );
+
+  // Compute specific validation message based on what's missing
+  const validationMessage = useMemo(() => {
+    const missing: string[] = [];
+    if (!formData.fromAccountId) missing.push('an account');
+    if (!formData.payeeId) missing.push('a recipient');
+    if (!formData.paymentMethod) missing.push('a payment method');
+    if (!formData.amount || parseFloat(formData.amount) <= 0) missing.push('an amount');
+    
+    if (missing.length === 0) return null;
+    if (missing.length === 1) return `Please select ${missing[0]}`;
+    
+    const lastItem = missing.pop();
+    return `Please select ${missing.join(', ')} and ${lastItem}`;
+  }, [formData.fromAccountId, formData.payeeId, formData.paymentMethod, formData.amount]);
 
   const selectedMethod = useMemo(
     () => paymentMethods?.find((m) => m.id === formData.paymentMethod),
@@ -325,10 +363,16 @@ export function ReviewPanel({
         </div>
 
         {/* Submit Button */}
-        <div className="eb-mt-6">
+        <div className="eb-mt-6 eb-space-y-2">
+          {/* Validation message when form is incomplete */}
+          {hasAttemptedSubmit && validationMessage && (
+            <div className="eb-text-center eb-text-sm eb-text-destructive">
+              {validationMessage}
+            </div>
+          )}
           <Button
-            onClick={onSubmit}
-            disabled={!isComplete || isSubmitting}
+            onClick={handleSubmitClick}
+            disabled={isSubmitting}
             className="eb-w-full"
             size="lg"
           >

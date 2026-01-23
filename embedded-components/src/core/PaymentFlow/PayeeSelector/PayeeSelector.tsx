@@ -203,6 +203,11 @@ export function PayeeSelector({
     onAddNew();
   }, [onAddNew]);
 
+  // Threshold for showing search bar and using fixed height scroll area
+  const SHOW_SEARCH_THRESHOLD = 5;
+  const showRecipientsSearch = recipients.length >= SHOW_SEARCH_THRESHOLD;
+  const showLinkedAccountsSearch = linkedAccounts.length >= SHOW_SEARCH_THRESHOLD;
+
   const recipientsContent = (
     <>
       {isLoading ? (
@@ -216,8 +221,15 @@ export function PayeeSelector({
           searchQuery={searchQuery}
         />
       ) : (
-        <ScrollArea className="eb-h-[200px]">
-          <div className="eb-divide-y eb-divide-border eb-border-b eb-border-border">
+        <ScrollArea
+          className={showRecipientsSearch ? 'eb-h-[200px]' : undefined}
+        >
+          <div
+            className={cn(
+              'eb-divide-y eb-divide-border',
+              showRecipientsSearch && 'eb-border-b eb-border-border'
+            )}
+          >
             {filteredRecipients.map((payee) => (
               <PayeeListItem
                 key={payee.id}
@@ -273,8 +285,15 @@ export function PayeeSelector({
           searchQuery={searchQuery}
         />
       ) : (
-        <ScrollArea className="eb-h-[200px]">
-          <div className="eb-divide-y eb-divide-border eb-border-b eb-border-border">
+        <ScrollArea
+          className={showLinkedAccountsSearch ? 'eb-h-[200px]' : undefined}
+        >
+          <div
+            className={cn(
+              'eb-divide-y eb-divide-border',
+              showLinkedAccountsSearch && 'eb-border-b eb-border-border'
+            )}
+          >
             {filteredLinkedAccounts.map((payee) => (
               <PayeeListItem
                 key={payee.id}
@@ -361,9 +380,11 @@ export function PayeeSelector({
 
         {/* Unified search + list container */}
         <div className="eb-overflow-hidden eb-rounded-lg eb-border eb-border-border">
-          {/* Search Input - connected to list (hidden when recipients restricted and on recipients tab) */}
-          {!(recipientsRestricted && activeTab === 'recipients') && (
-            <div className="eb-relative eb-border-b eb-border-border eb-bg-muted/30">
+          {/* Search Input - hidden when recipients restricted on recipients tab, or when fewer than 5 items */}
+          {!(recipientsRestricted && activeTab === 'recipients') &&
+            ((activeTab === 'recipients' && showRecipientsSearch) ||
+              (activeTab === 'linked-accounts' && showLinkedAccountsSearch)) && (
+              <div className="eb-relative eb-border-b eb-border-border eb-bg-muted/30">
               <Search className="eb-absolute eb-left-2.5 eb-top-1/2 eb-h-3.5 eb-w-3.5 eb--translate-y-1/2 eb-text-muted-foreground" />
               <Input
                 placeholder={

@@ -301,6 +301,8 @@ export interface ReviewPanelProps {
   onSubmit: () => void;
   isSubmitting?: boolean;
   mobileConfig?: MobileReviewConfig;
+  /** Callback when validation fails, receives array of missing field names */
+  onValidationFail?: (missingFields: string[]) => void;
 }
 
 /**
