@@ -260,38 +260,52 @@ function MainTransferView({
     [t]
   );
 
-  // Track which step is currently active - start with FROM_ACCOUNT
-  // (will be auto-skipped if only one account and it's auto-selected)
-  const [activeStep, setActiveStep] = useState<string>(PANEL_IDS.FROM_ACCOUNT);
-
-  // Track if initial auto-skip has been performed
-  const hasInitiallySkipped = React.useRef(false);
-
-  // Track if payee was just cleared due to account restriction
-  const [showPayeeClearedWarning, setShowPayeeClearedWarning] = useState(false);
-
-  // Skip FROM_ACCOUNT step on initial load if account is already selected (auto-selection or initial data)
-  useEffect(() => {
-    // Only run once on initial load
-    if (hasInitiallySkipped.current) return;
-
-    if (formData.fromAccountId && activeStep === PANEL_IDS.FROM_ACCOUNT) {
-      hasInitiallySkipped.current = true;
-      // Account already selected, move to next incomplete step
-      if (!formData.payeeId) {
-        setActiveStep(PANEL_IDS.PAYEE);
-      } else if (!formData.paymentMethod) {
-        setActiveStep(PANEL_IDS.PAYMENT_METHOD);
-      } else {
-        setActiveStep('');
-      }
+  // Compute the initial active step based on current form data
+  // This prevents the "flash" of seeing the FROM_ACCOUNT section animate when data is already selected
+  const getInitialActiveStep = useCallback(() => {
+    // If account is already selected (from initialData or auto-selection), skip to next step
+    if (formData.fromAccountId) {
+      if (!formData.payeeId) return PANEL_IDS.PAYEE;
+      if (!formData.paymentMethod) return PANEL_IDS.PAYMENT_METHOD;
+      return ''; // All steps complete
     }
+    // If only one account exists, it will be auto-selected, so start at PAYEE
+    if (accounts.length === 1) {
+      if (!formData.payeeId) return PANEL_IDS.PAYEE;
+      if (!formData.paymentMethod) return PANEL_IDS.PAYMENT_METHOD;
+      return '';
+    }
+    return PANEL_IDS.FROM_ACCOUNT;
   }, [
     formData.fromAccountId,
     formData.payeeId,
     formData.paymentMethod,
-    activeStep,
+    accounts.length,
   ]);
+
+  // Track which step is currently active
+  const [activeStep, setActiveStep] = useState<string>(() =>
+    getInitialActiveStep()
+  );
+
+  // Update activeStep when formData changes (e.g., auto-selection happens)
+  // This is needed because useState initializer only runs once
+  const prevFromAccountId = React.useRef(formData.fromAccountId);
+  useEffect(() => {
+    // Only update if fromAccountId changed from undefined to a value (auto-selection)
+    if (!prevFromAccountId.current && formData.fromAccountId) {
+      const nextStep = !formData.payeeId
+        ? PANEL_IDS.PAYEE
+        : !formData.paymentMethod
+          ? PANEL_IDS.PAYMENT_METHOD
+          : '';
+      setActiveStep(nextStep);
+    }
+    prevFromAccountId.current = formData.fromAccountId;
+  }, [formData.fromAccountId, formData.payeeId, formData.paymentMethod]);
+
+  // Track if payee was just cleared due to account restriction
+  const [showPayeeClearedWarning, setShowPayeeClearedWarning] = useState(false);
 
   const selectedPayee = useMemo(
     () => [...payees, ...linkedAccounts].find((p) => p.id === formData.payeeId),
