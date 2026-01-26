@@ -17,7 +17,7 @@
     "health-check:all": "npm run health-check && npm run health-check:linked-bank && npm run health-check:onboarding"
   },
   "dependencies": {
-    "@jpmorgan-payments/embedded-finance-components": "^0.10.17",
+    "@jpmorgan-payments/embedded-finance-components": "^0.10.19",
     "@mswjs/data": "^0.16.2",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-dialog": "^1.1.14",
@@ -36,7 +36,7 @@
     "date-fns": "^3.6.0",
     "lodash": "^4.17.21",
     "lucide-react": "^0.476.0",
-    "mermaid": "^11.12.2",
+    "mermaid": "^10.9.5",
     "msw": "^2.7.5",
     "papaparse": "^5.5.3",
     "prism-react-renderer": "^2.4.1",

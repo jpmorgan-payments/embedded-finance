@@ -1,238 +1,117 @@
 # Embedded Finance Components - Agent Instructions
 
-## Repository Overview
+Monorepo containing React component library for embedded banking solutions. Active development focuses on `embedded-components` package.
 
-This is a monorepo containing multiple packages:
+## Package Manager
+
+- **Yarn** (workspaces)
+
+## Quick Start
+
+See [Setup Guide](docs/setup.md) for installation and development commands.
+
+## ⚠️ CRITICAL: Architecture Patterns
+
+**All code generation MUST follow patterns in `embedded-components/ARCHITECTURE.md`.**
+
+Before generating component code, review the architecture document for:
+- Component structure and file organization
+- Import patterns (no aggregation barrels)
+- Type colocation rules
+- Code organization decision tree
+
+## Package Structure
 
 ```
 /
-├── app/                    # Showcase web application (not active)
-│   ├── client/            # Frontend React application
-│   └── server/            # Backend server
 ├── embedded-components/    # Main UI component library (active)
-│   ├── src/               # Source code
-│   ├── .storybook/        # Storybook configuration
-│   ├── dist/              # Built files (not in repo)
-│   └── public/            # Static assets and MSW worker
+├── app/                    # Showcase applications and server utilities
+│   ├── client-next-ts/     # Current showcase website (active)
+│   │                        # - Modern stack: Vite, React 18, TypeScript, TanStack Router
+│   │                        # - Features SellSense marketplace demo
+│   │                        # - Uses MSW for API mocking
+│   ├── client/             # Legacy/archived showcase (minimal content)
+│   ├── server/             # API server for J.P. Morgan Sandbox/UAT APIs
+│   └── server-session-transfer/  # Session transfer demo for partially hosted onboarding
 └── embedded-finance-sdk/   # TypeScript SDK utilities (not active)
 ```
 
-> **Note**: Currently, active development is focused on the `embedded-components` package. Other packages are planned for future development.
+## Documentation
 
-## Setup Commands
-
-- Install dependencies: `yarn install` (from root) or `cd embedded-components && yarn install`
-- Start development server: `cd embedded-components && yarn dev`
-- Run Storybook: `cd embedded-components && yarn storybook`
-- Run tests: `cd embedded-components && yarn test`
-- Type checking: `cd embedded-components && yarn typecheck`
-- Linting: `cd embedded-components && yarn lint`
-
-## ⚠️ CRITICAL: Follow ARCHITECTURE.md
-
-**All code generation MUST follow the patterns defined in `embedded-components/ARCHITECTURE.md`.**
-
-**Before generating any component code, review `embedded-components/ARCHITECTURE.md` for the complete pattern.**
-
-Key architecture principles:
-
-- ✅ Individual hook/util files with colocated tests
-- ✅ Direct imports for components (no aggregation barrels)
-- ✅ Type colocation - only public API in `.types.ts`
-- ✅ Minimal public API - export only what consumers need
-- ✅ Start specific - move to shared only when used by 2+ components
-- ✅ Forms = schemas - no schema? It's a component, not a form
-
-## Technology Stack
-
-- React 18.x with TypeScript (strict mode)
-- Radix UI primitives for base components
-- Tailwind CSS with `eb-` prefix for custom classes
-- Tanstack React Query v5 for data fetching
-- Zod for validation
-- MSW for API mocking
-- Storybook 8.x for component development
-
-## Code Style
-
-- TypeScript strict mode enabled
-- Functional components with hooks only
-- Use explicit prop interfaces with JSDoc comments
-- No 'any' types
-- Single quotes preferred
-- Tailwind CSS for styling with `eb-` prefix for custom classes
-
-## Component Structure (2025 Pattern)
-
-Follow the architecture pattern from `embedded-components/ARCHITECTURE.md`:
-
-```
-ComponentName/
-├── index.ts                          # Public API exports only
-├── ComponentName.tsx                 # Main component
-├── ComponentName.test.tsx            # Colocated test
-├── ComponentName.types.ts            # Public types ONLY
-├── ComponentName.constants.ts        # Constants
-│
-├── hooks/                            # Individual files (flat)
-│   ├── useData.ts
-│   ├── useData.test.tsx
-│   └── index.ts                      # Barrel export
-│
-├── utils/                            # Individual files (flat)
-│   ├── helper.ts
-│   ├── helper.test.ts
-│   └── index.ts                      # Barrel export
-│
-├── components/                       # NO index files
-│   ├── SubCard/
-│   │   ├── SubCard.tsx
-│   │   └── SubCard.test.tsx
-│
-├── forms/                            # Only if .schema.ts exists
-│   └── CreateForm/
-│       ├── CreateForm.tsx
-│       ├── CreateForm.test.tsx
-│       └── CreateForm.schema.ts      # Zod schema
-│
-└── stories/
-    └── ComponentName.story.tsx
-```
-
-## Import Patterns
-
-```typescript
-// ✅ CORRECT - Direct imports (tree-shakeable)
-import { ComponentCard } from "./components/ComponentCard";
-import { ComponentSkeleton } from "./components/ComponentSkeleton";
-import { useComponentData } from "./hooks"; // Can use barrel for convenience
-
-// ❌ WRONG - Aggregation barrel (prevents tree-shaking)
-import { ComponentCard, ComponentSkeleton } from "./components"; // No index.ts!
-```
-
-## Code Organization Decision Tree
-
-```
-New Code?
-  ├─→ Hook?
-  │   ├─→ Used by 2+ components? → src/lib/hooks/useHookName.ts
-  │   └─→ Used by 1 component? → ComponentName/hooks/useHookName.ts
-  │
-  ├─→ Utility?
-  │   ├─→ Used by 2+ components? → src/lib/utils/utilName.ts
-  │   └─→ Used by 1 component? → ComponentName/utils/utilName.ts
-  │
-  ├─→ Component?
-  │   ├─→ Used by 2+ features? → src/components/ComponentName/
-  │   └─→ Used by 1 feature? → ComponentName/components/SubComponent/
-  │
-  ├─→ Form?
-  │   ├─→ Has .schema.ts? → ComponentName/forms/FormName/
-  │   └─→ No schema? → ComponentName/components/DialogName/
-```
-
-## ⚠️ CRITICAL: Code Quality Workflow
-
-**After making ANY code changes, you MUST:**
-
-1. **Format code**: `cd embedded-components && yarn format`
-
-   - Auto-fixes Prettier formatting issues
-   - **DO NOT skip this step** - code must be properly formatted
-
-2. **Run tests**: `cd embedded-components && yarn test`
-
-   - This runs: typecheck → format:check → lint → test:unit
-   - **DO NOT skip this step** - tests must pass before proceeding
-
-3. **Fix any errors that appear**:
-
-   - **TypeScript errors**: Fix type issues in the code
-   - **Prettier/formatting errors**: Run `yarn format` to auto-fix (if not already done)
-   - **Linting errors**: Run `yarn lint:fix` to auto-fix, or fix manually
-   - **Test failures**: Update tests or fix implementation
-
-4. **Re-run tests** until all pass:
-   ```powershell
-   cd embedded-components
-   yarn format
-   yarn test
-   ```
-
-**Never commit code with:**
-
-- ❌ TypeScript errors
-- ❌ Formatting errors (Prettier)
-- ❌ Linting errors
-- ❌ Failing tests
-
-## Testing Instructions
-
-- Tests must be colocated with implementation (not in separate `__tests__/` directories)
-- One test file per implementation file
-- Minimum 80% line coverage required
-- Use MSW for API mocking
-- **Always run `yarn format` and `yarn test` after making changes**
-- Run formatting: `yarn format` (auto-fixes Prettier issues)
-- Run type checking: `yarn typecheck`
-- Run linting: `yarn lint`
-- Auto-fix linting: `yarn lint:fix`
+- **[Setup & Commands](docs/setup.md)** - Installation, build, and development commands
+- **[Code Quality Workflow](docs/code-quality-workflow.md)** - Mandatory test-fix-verify process
+- **[Testing Guidelines](docs/testing-guidelines.md)** - Test patterns, coverage, MSW setup
+- **[TypeScript Conventions](docs/typescript-conventions.md)** - Type safety, patterns, best practices
+- **[Component Implementation](docs/component-implementation.md)** - React patterns, hooks, styling
+- **[Git Workflow](docs/git-workflow.md)** - Commit conventions and branching
 
 ## Package-Specific Instructions
 
-- **embedded-components**: See `embedded-components/AGENTS.md` for package-specific instructions
-- **app/client-next-ts**: See `app/client-next-ts/.cursorrules` for app-specific configuration
+- **embedded-components**: See `embedded-components/AGENTS.md` for package-specific details
+- **app/client-next-ts**: See `app/client-next-ts/.cursorrules` for app configuration
+  - **Current showcase website**: Modern React application demonstrating embedded finance components
+  - **Technology**: Vite, React 18, TypeScript, TanStack Router, Tailwind CSS, MSW
+  - **Main demo**: SellSense marketplace demo at `/sellsense-demo` route
+- **app/client**: Legacy/archived showcase (minimal content, not actively maintained)
+- **app/server**: Express server for proxying requests to J.P. Morgan Sandbox/UAT APIs (sandbox uses OAuth2, UAT uses certificate authentication)
+- **app/server-session-transfer**: Demo application for partially hosted onboarding integration pattern
 
 ## Additional Resources
 
-### Primary Documentation
-
 - **`embedded-components/ARCHITECTURE.md`** - Source of truth for architecture patterns
-- **`.github/copilot-instructions.md`** - GitHub Copilot integration instructions
-- **`.github/copilot/skills/`** - Agent Skills (cross-IDE compatible)
 - **`.cursorrules`** - Root configuration (cross-IDE compatible)
 
-### Agent Skills
+## Agent Skills
 
-Agent Skills provide automated, discoverable guidance. Located in `.github/copilot/skills/`:
+Agent Skills provide specialized guidance for specific tasks. **Always reference relevant skills when working on related tasks.** Skills are located in `.github/skills/` and are automatically loaded by GitHub Copilot and other AI agents.
 
-**Tier 1 - Critical Core:**
+1. **[embedded-banking-architecture](.github/skills/embedded-banking-architecture/)** - Core architecture patterns, component structure, and organization principles. **MUST review before creating any component code.**
+   - Use when: Creating new components, organizing code structure, following 2025 React/TypeScript patterns
+   - See: `.github/skills/embedded-banking-architecture/AGENTS.md` for complete documentation
 
-- **embedded-banking-architecture** - Architecture patterns and component structure
-- **component-testing** - Comprehensive testing with MSW and React Query
-- **code-quality-workflow** - Mandatory test-fix-verify workflow
-- **styling-guidelines** - Tailwind CSS with `eb-` prefix patterns
-- **react-patterns** - React 18 hooks and composition
+2. **[component-testing](.github/skills/component-testing/)** - Comprehensive testing patterns with MSW, React Query, and Vitest. **Required for all components (80% coverage minimum).**
+   - Use when: Writing tests, setting up mocks, testing API interactions, ensuring coverage
+   - See: `.github/skills/component-testing/AGENTS.md` for complete documentation
 
-**Tier 2 - Important:**
+3. **[code-quality-workflow](.github/skills/code-quality-workflow/)** - Mandatory workflow that must run after ANY code changes. **CRITICAL: Run before every commit.**
+   - Use when: After creating/editing files, before commits, when fixing errors
+   - See: `.github/skills/code-quality-workflow/AGENTS.md` for complete documentation
 
-- **i18n-l10n** - Internationalization and localization
-- **windows-powershell** - PowerShell commands (NEVER use `&&`)
-- **test-and-fix-workflow** - Automated testing and debugging
+4. **[styling-guidelines](.github/skills/styling-guidelines/)** - Tailwind CSS patterns with mandatory `eb-` prefix. **ALL Tailwind classes MUST use `eb-` prefix.**
+   - Use when: Applying styles, creating UI, working with design tokens
+   - See: `.github/skills/styling-guidelines/AGENTS.md` for complete documentation
 
-See `.github/copilot/skills/README.md` for complete documentation.
+5. **[react-patterns](.github/skills/react-patterns/)** - React 18 patterns, hooks best practices, component composition, and optimization techniques.
+   - Use when: Creating hooks, optimizing performance, following React patterns
+   - See: `.github/skills/react-patterns/AGENTS.md` for complete documentation
 
-### Cross-IDE Compatibility
+6. **[i18n-l10n](.github/skills/i18n-l10n/)** - Internationalization and localization patterns for multi-locale support (en-US, fr-CA, es-US).
+   - Use when: Implementing translations, formatting dates/numbers/currency, handling locale-specific content
+   - See: `.github/skills/i18n-l10n/AGENTS.md` for complete documentation
 
-This repository uses the Agent Skills format (agentskills.io) which works with:
+7. **[windows-powershell](.github/skills/windows-powershell/)** - Windows PowerShell command patterns. **CRITICAL: NEVER use `&&` in PowerShell, use `;` instead.**
+   - Use when: Running commands, scripts, or terminal operations on Windows
+   - See: `.github/skills/windows-powershell/AGENTS.md` for complete documentation
 
-- ✅ VS Code with GitHub Copilot
-- ✅ Cursor
-- ✅ Claude Code
-- ✅ Other AI tools supporting Agent Skills
+8. **[test-and-fix-workflow](.github/skills/test-and-fix-workflow/)** - Automated workflow for running tests and fixing failures systematically.
+   - Use when: Implementing the mandatory test workflow, fixing code quality issues
+   - See: `.github/skills/test-and-fix-workflow/AGENTS.md` for complete documentation
 
-## Git Commit Conventions
+9. **[vercel-react-best-practices](.github/skills/vercel-react-best-practices/)** - React and Next.js performance optimization guidelines from Vercel Engineering.
+   - Use when: Writing, reviewing, or refactoring React/Next.js code for performance
+   - See: `.github/skills/vercel-react-best-practices/AGENTS.md` for complete documentation (45 rules across 8 categories)
 
-Use conventional commit format with lowercase prefixes:
+### How to Use Skills
 
-- `fix:` for bug fixes
-- `feat:` for new features
-- `perf:` for performance improvements
-- `docs:` for documentation changes
-- `style:` for formatting changes
-- `refactor:` for code refactoring
-- `test:` for adding missing tests
-- `chore:` for maintenance tasks
+Each skill contains:
+- **`SKILL.md`** - Summary with frontmatter, quick reference, and links to detailed documentation
+- **`AGENTS.md`** - Complete detailed documentation for agents and LLMs
+- **`rules/`** directory (where applicable) - Individual rule files for specific patterns
 
-Keep the summary line concise. Include description for non-obvious changes.
+**When working on a task:**
+1. Identify which skills are relevant to your task
+2. Review the `SKILL.md` for quick reference
+3. Consult `AGENTS.md` for detailed instructions and examples
+4. Follow the patterns and guidelines provided
+
+**Skills are automatically loaded by GitHub Copilot**, but you should explicitly reference them in your prompts for best results.
