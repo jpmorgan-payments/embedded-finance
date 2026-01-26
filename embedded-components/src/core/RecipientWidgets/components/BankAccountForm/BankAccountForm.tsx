@@ -1142,7 +1142,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                 {/* Account Holder Details */}
                 {accountType === 'INDIVIDUAL' ? (
                   <>
-                    {effectiveConfig.useCase === 'LINKED_ACCOUNT' &&
+                    {effectiveConfig.accountHolder.prefillFromClient &&
                     individualParties.length > 0 &&
                     !recipient ? (
                       <>
