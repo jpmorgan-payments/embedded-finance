@@ -2,13 +2,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import { FormProvider, useForm } from 'react-hook-form';
 
+import type { ListAccountsResponse } from '@/api/generated/ep-accounts.schemas';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
-import type {
-  ListAccountsResponse,
-  PageMetaData,
-  PaymentFormData,
-} from '../../types';
+import type { PaymentFormData } from '../../types';
 import { AccountSelector } from './AccountSelector';
 
 // Setup QueryClient for tests
@@ -50,30 +47,25 @@ const TestWrapper: React.FC<{
   );
 };
 
-// Simple mock data
+// Mock data aligned with ep-accounts ListAccountsResponse and AccountResponse
 const mockAccounts: ListAccountsResponse = {
+  metadata: { page: 0, limit: 25, total_items: 2 },
   items: [
     {
       id: 'account-1',
       label: 'Checking Account',
-      category: 'CHECKING' as any,
-      createdAt: '2024-01-01T00:00:00Z',
-      state: 'ACTIVE' as any,
-    } as any,
+      state: 'OPEN',
+      createdAt: '2025-01-26T00:00:00.000Z',
+      category: 'LIMITED_DDA_PAYMENTS',
+    },
     {
       id: 'account-2',
       label: 'Savings Account',
-      category: 'SAVINGS' as any,
-      createdAt: '2024-01-01T00:00:00Z',
-      state: 'ACTIVE' as any,
-    } as any,
+      state: 'OPEN',
+      createdAt: '2025-01-26T00:00:00.000Z',
+      category: 'LIMITED_DDA',
+    },
   ],
-  metadata: {
-    page: 0,
-    limit: 25,
-    totalElements: 2,
-    totalPages: 1,
-  } as PageMetaData,
 };
 
 describe('AccountSelector', () => {

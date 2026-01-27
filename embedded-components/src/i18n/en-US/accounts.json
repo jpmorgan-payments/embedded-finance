@@ -39,10 +39,14 @@
     "copyAccountNumber": "Copy account number",
     "copyRouting": "Copy routing number",
     "copyAchRouting": "Copy ACH routing number",
-    "noBalanceData": "Balance information unavailable"
+    "noBalanceData": "Balance information unavailable",
+    "dataAsOf": "As of {{date}}",
+    "balanceTypeInfoAriaLabel": "Learn more about {{type}}"
   },
   "balanceTypes": {
     "ITAV": "Available Balance",
-    "ITBD": "Current Balance"
+    "ITBD": "Current Balance",
+    "ITAV_description": "Funds you can use now, including pending credits and minus holds.",
+    "ITBD_description": "Balance from settled transactions; may not reflect pending activity."
   }
 }

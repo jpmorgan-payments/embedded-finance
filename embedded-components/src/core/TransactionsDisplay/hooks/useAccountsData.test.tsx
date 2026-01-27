@@ -3,6 +3,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
+import type {
+  AccountResponse,
+  ListAccountsResponse,
+} from '@/api/generated/ep-accounts.schemas';
+
 import { EBComponentsProvider } from '../../EBComponentsProvider';
 import { useAccountsData } from './useAccountsData';
 
@@ -31,26 +36,36 @@ describe('useAccountsData', () => {
   });
 
   test('fetches and filters accounts', async () => {
-    const mockAccounts = [
+    const mockItems: AccountResponse[] = [
       {
         id: 'account-1',
+        label: 'MAIN',
+        state: 'OPEN',
+        createdAt: '2025-01-26T00:00:00.000Z',
         category: 'LIMITED_DDA_PAYMENTS',
       },
       {
         id: 'account-2',
+        label: 'MAIN',
+        state: 'OPEN',
+        createdAt: '2025-01-26T00:00:00.000Z',
         category: 'LIMITED_DDA',
       },
       {
         id: 'account-3',
-        category: 'OTHER',
+        label: 'MAIN',
+        state: 'OPEN',
+        createdAt: '2025-01-26T00:00:00.000Z',
+        category: 'MANAGEMENT',
       },
     ];
 
-    server.use(
-      http.get('/accounts', () => {
-        return HttpResponse.json({ items: mockAccounts });
-      })
-    );
+    const response: ListAccountsResponse = {
+      metadata: { page: 0, limit: 25, total_items: 3 },
+      items: mockItems,
+    };
+
+    server.use(http.get('*/accounts', () => HttpResponse.json(response)));
 
     const { result } = renderHook(() => useAccountsData(), { wrapper });
 
@@ -63,18 +78,20 @@ describe('useAccountsData', () => {
   });
 
   test('returns empty array when no matching accounts', async () => {
-    const mockAccounts = [
-      {
-        id: 'account-1',
-        category: 'OTHER',
-      },
-    ];
+    const response: ListAccountsResponse = {
+      metadata: { page: 0, limit: 25, total_items: 1 },
+      items: [
+        {
+          id: 'account-1',
+          label: 'MAIN',
+          state: 'OPEN',
+          createdAt: '2025-01-26T00:00:00.000Z',
+          category: 'MANAGEMENT',
+        },
+      ],
+    };
 
-    server.use(
-      http.get('/accounts', () => {
-        return HttpResponse.json({ items: mockAccounts });
-      })
-    );
+    server.use(http.get('*/accounts', () => HttpResponse.json(response)));
 
     const { result } = renderHook(() => useAccountsData(), { wrapper });
 
@@ -84,11 +101,12 @@ describe('useAccountsData', () => {
   });
 
   test('handles empty accounts response', async () => {
-    server.use(
-      http.get('/accounts', () => {
-        return HttpResponse.json({ items: [] });
-      })
-    );
+    const emptyResponse: ListAccountsResponse = {
+      metadata: { page: 0, limit: 25, total_items: 0 },
+      items: [],
+    };
+
+    server.use(http.get('*/accounts', () => HttpResponse.json(emptyResponse)));
 
     const { result } = renderHook(() => useAccountsData(), { wrapper });
 

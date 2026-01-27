@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { DefaultOptions } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 
+import type { AccountBalanceResponse } from '@/api/generated/ep-accounts.schemas';
+
 import type { BaseStoryArgs } from '../../../../.storybook/preview';
 import { MakePayment } from '../MakePayment';
 
@@ -344,54 +346,40 @@ const mockAccounts = {
   ],
 };
 
-const mockAccountBalances = {
+// AccountBalanceResponse: id, date (yyyy-MM-dd), currency, balanceTypes
+const mockAccountBalances: Record<string, AccountBalanceResponse> = {
   account1: {
-    balanceTypes: [
-      {
-        typeCode: 'ITAV',
-        amount: 5000.0,
-      },
-      {
-        typeCode: 'ITBD',
-        amount: 5200.0,
-      },
-    ],
+    id: 'account1',
+    date: '2025-01-26',
     currency: 'USD',
+    balanceTypes: [
+      { typeCode: 'ITAV', amount: 5000.0 },
+      { typeCode: 'ITBD', amount: 5200.0 },
+    ],
   },
   account2: {
-    balanceTypes: [
-      {
-        typeCode: 'ITAV',
-        amount: 15000.0,
-      },
-      {
-        typeCode: 'ITBD',
-        amount: 15200.0,
-      },
-    ],
+    id: 'account2',
+    date: '2025-01-26',
     currency: 'USD',
+    balanceTypes: [
+      { typeCode: 'ITAV', amount: 15000.0 },
+      { typeCode: 'ITBD', amount: 15200.0 },
+    ],
   },
   account3: {
-    balanceTypes: [
-      {
-        typeCode: 'ITAV',
-        amount: 25000.0,
-      },
-      {
-        typeCode: 'ITBD',
-        amount: 25200.0,
-      },
-    ],
+    id: 'account3',
+    date: '2025-01-26',
     currency: 'USD',
+    balanceTypes: [
+      { typeCode: 'ITAV', amount: 25000.0 },
+      { typeCode: 'ITBD', amount: 25200.0 },
+    ],
   },
   account4: {
-    balanceTypes: [
-      {
-        typeCode: 'ITAV',
-        amount: 25000.0,
-      },
-    ],
+    id: 'account4',
+    date: '2025-01-26',
     currency: 'USD',
+    balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
   },
 };
 

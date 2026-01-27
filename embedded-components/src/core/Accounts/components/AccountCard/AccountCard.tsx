@@ -6,6 +6,7 @@ import {
   CopyCheckIcon,
   EyeIcon,
   EyeOffIcon,
+  InfoIcon,
   LandmarkIcon,
   XCircleIcon,
 } from 'lucide-react';
@@ -15,8 +16,13 @@ import { useLocale } from '@/lib/hooks';
 import { cn } from '@/lib/utils';
 import { useGetAccountBalance } from '@/api/generated/ep-accounts';
 import type { AccountResponse } from '@/api/generated/ep-accounts.schemas';
-import { Badge } from '@/components/ui/badge';
+import { Badge, type BadgeProps } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui';
 
@@ -208,7 +214,11 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                 {/* Status badge - always show */}
                 {account.state && (
                   <Badge
-                    variant={getAccountStatusVariant(account.state) as any}
+                    variant={
+                      getAccountStatusVariant(
+                        account.state
+                      ) as BadgeProps['variant']
+                    }
                     className="eb-inline-flex eb-shrink-0 eb-items-center eb-gap-1 eb-text-xs"
                   >
                     {getStatusIcon(account.state)}
@@ -328,7 +338,11 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
               {account.state && (
                 <div className="eb-shrink-0 eb-self-start">
                   <Badge
-                    variant={getAccountStatusVariant(account.state) as any}
+                    variant={
+                      getAccountStatusVariant(
+                        account.state
+                      ) as BadgeProps['variant']
+                    }
                     className="eb-inline-flex eb-items-center eb-gap-1 eb-text-xs"
                   >
                     {getStatusIcon(account.state)}
@@ -424,33 +438,106 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                 </div>
               </div>
             ) : balanceData?.balanceTypes?.length ? (
-              <div className="eb-flex eb-flex-wrap eb-gap-6 eb-duration-300 eb-animate-in eb-fade-in">
-                {balanceData.balanceTypes.map((b) => (
-                  <div
-                    key={b.typeCode}
-                    className="eb-flex eb-min-w-0 eb-flex-col eb-items-start"
-                  >
-                    <span className="eb-text-[10px] eb-font-medium eb-uppercase eb-tracking-wider eb-text-muted-foreground">
-                      {t(`accounts:balanceTypes.${b.typeCode}`, {
-                        defaultValue:
-                          b.typeCode === 'ITAV'
-                            ? 'Available Balance'
-                            : 'Current Balance',
-                      })}
-                    </span>
-                    <span className="eb-font-mono eb-break-words eb-text-xl eb-font-bold eb-leading-tight eb-text-metric @md:eb-text-2xl">
-                      {formatNumberWithCommas(Number(b.amount), locale).whole}
-                      <span className="eb-text-sm @md:eb-text-base">
-                        .
-                        {
-                          formatNumberWithCommas(Number(b.amount), locale)
-                            .decimal
-                        }{' '}
-                        {balanceData.currency}
+              <div className="eb-space-y-3 eb-duration-300 eb-animate-in eb-fade-in">
+                <div className="eb-flex eb-flex-wrap eb-gap-6">
+                  {balanceData.balanceTypes.map((b) => (
+                    <div
+                      key={b.typeCode}
+                      className="eb-flex eb-min-w-0 eb-flex-col eb-items-start"
+                    >
+                      <div className="eb-flex eb-items-center eb-gap-1">
+                        <span className="eb-text-[10px] eb-font-medium eb-uppercase eb-tracking-wider eb-text-muted-foreground">
+                          {t(`accounts:balanceTypes.${b.typeCode}`, {
+                            defaultValue:
+                              b.typeCode === 'ITAV'
+                                ? 'Available Balance'
+                                : 'Current Balance',
+                          })}
+                        </span>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="eb-h-6 eb-w-6 eb-shrink-0 eb-text-muted-foreground hover:eb-text-foreground"
+                              aria-label={t(
+                                'accounts:card.balanceTypeInfoAriaLabel',
+                                {
+                                  type: t(
+                                    `accounts:balanceTypes.${b.typeCode}`,
+                                    {
+                                      defaultValue:
+                                        b.typeCode === 'ITAV'
+                                          ? 'Available Balance'
+                                          : 'Current Balance',
+                                    }
+                                  ),
+                                }
+                              )}
+                            >
+                              <InfoIcon
+                                className="eb-h-3.5 eb-w-3.5"
+                                aria-hidden="true"
+                              />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            side="top"
+                            align="start"
+                            className="eb-w-72"
+                          >
+                            <div className="eb-space-y-1.5">
+                              <h4 className="eb-text-sm eb-font-semibold">
+                                {t(`accounts:balanceTypes.${b.typeCode}`, {
+                                  defaultValue:
+                                    b.typeCode === 'ITAV'
+                                      ? 'Available Balance'
+                                      : 'Current Balance',
+                                })}
+                              </h4>
+                              <p className="eb-text-xs eb-text-muted-foreground">
+                                {t(
+                                  `accounts:balanceTypes.${b.typeCode}_description`,
+                                  {
+                                    defaultValue:
+                                      b.typeCode === 'ITAV'
+                                        ? 'Funds you can use now, including pending credits and minus holds.'
+                                        : 'Balance from settled transactions; may not reflect pending activity.',
+                                  }
+                                )}
+                              </p>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      <span className="eb-font-mono eb-break-words eb-text-xl eb-font-bold eb-leading-tight eb-text-metric @md:eb-text-2xl">
+                        {formatNumberWithCommas(Number(b.amount), locale).whole}
+                        <span className="eb-text-sm @md:eb-text-base">
+                          .
+                          {
+                            formatNumberWithCommas(Number(b.amount), locale)
+                              .decimal
+                          }{' '}
+                          {balanceData.currency}
+                        </span>
                       </span>
-                    </span>
-                  </div>
-                ))}
+                    </div>
+                  ))}
+                </div>
+                {balanceData.date && (
+                  <p className="eb-text-xs eb-text-muted-foreground">
+                    {t('accounts:card.dataAsOf', {
+                      date: new Date(
+                        `${balanceData.date}T00:00:00`
+                      ).toLocaleDateString(locale, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      }),
+                    })}
+                  </p>
+                )}
               </div>
             ) : (
               <span className="eb-text-xs eb-text-muted-foreground">
