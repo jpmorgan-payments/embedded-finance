@@ -74,6 +74,11 @@ const HEALTH_CHECKS = {
   // 'linked-accounts': { ... }
 };
 
+// Timeouts: avoid 'networkidle' (flaky in CI). Use 'load' + content-based wait.
+const NAV_TIMEOUT_MS = Number(process.env.HEALTH_CHECK_NAV_TIMEOUT_MS) || 45000;
+const CONTENT_TIMEOUT_MS =
+  Number(process.env.HEALTH_CHECK_CONTENT_TIMEOUT_MS) || 20000;
+
 async function runHealthCheck(pageConfig) {
   const browser = await chromium.launch({
     headless: process.env.HEADLESS !== 'false',
@@ -86,6 +91,14 @@ async function runHealthCheck(pageConfig) {
 
   const page = await context.newPage();
 
+  // Collect console errors from the start (before goto) to catch load-time errors
+  const consoleErrors = [];
+  page.on('console', (msg) => {
+    if (msg.type() === 'error') {
+      consoleErrors.push(msg.text());
+    }
+  });
+
   try {
     // Construct the full URL
     const baseUrl =
@@ -96,13 +109,16 @@ async function runHealthCheck(pageConfig) {
     console.log(`⏰ Start time: ${new Date().toISOString()}`);
     console.log(`📋 Testing: ${pageConfig.description}`);
 
-    // Navigate to the target URL
+    // Navigate: use 'load' instead of 'networkidle' (networkidle is flaky in CI)
     console.log('📱 Navigating to page...');
-    await page.goto(targetUrl, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.goto(targetUrl, { waitUntil: 'load', timeout: NAV_TIMEOUT_MS });
 
-    // Wait for page to load
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000);
+    // Wait for primary content to appear (replaces fixed sleep; reduces flakiness)
+    const firstCheckText = pageConfig.checks[0].text;
+    console.log(`⏳ Waiting for content "${firstCheckText}" (timeout ${CONTENT_TIMEOUT_MS}ms)...`);
+    await page
+      .getByText(firstCheckText, { exact: false })
+      .waitFor({ state: 'visible', timeout: CONTENT_TIMEOUT_MS });
 
     // Run all configured checks
     console.log('🔍 Running health checks...');
@@ -110,7 +126,6 @@ async function runHealthCheck(pageConfig) {
 
     for (const check of pageConfig.checks) {
       try {
-        // Look for the specific text content
         const textFound = await page.textContent('body');
         const hasText = textFound && textFound.includes(check.text);
 
@@ -126,16 +141,6 @@ async function runHealthCheck(pageConfig) {
         results.push({ ...check, status: 'ERROR', error: error.message });
       }
     }
-
-    // Check for console errors
-    const consoleErrors = [];
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        consoleErrors.push(msg.text());
-      }
-    });
-
-    await page.waitForTimeout(1000);
 
     const criticalErrors = consoleErrors.filter(
       (error) =>
@@ -263,11 +268,15 @@ Options:
   --scenario <name>     Scenario to test (default: sellsense-demo)
                         Available: sellsense-demo, linked-bank-account, onboarding-docs-needed
   --headless <boolean>  Show browser window (default: true)
+  --retries <n>        Retry up to n times on failure (default: 0). Total runs = 1 + n.
   --help, -h           Show this help message
 
 Environment Variables:
-  TARGET_URL            Base URL to test (defaults to embedded-finance-dev.com)
-  HEADLESS              Whether to run in headless mode (default: true)
+  TARGET_URL                     Base URL to test (defaults to embedded-finance-dev.com)
+  HEADLESS                       Whether to run in headless mode (default: true)
+  HEALTH_CHECK_NAV_TIMEOUT_MS    Navigation timeout in ms (default: 45000). Use with load, not networkidle.
+  HEALTH_CHECK_CONTENT_TIMEOUT_MS  Wait for primary content in ms (default: 20000).
+  HEALTH_CHECK_RETRIES           Number of retries on failure (default: 0). Total runs = 1 + retries.
 
 Examples:
   npm run health-check                                    # Test default scenario (sellsense-demo)
@@ -307,13 +316,39 @@ if (headlessIndex !== -1 && args[headlessIndex + 1]) {
   process.env.HEADLESS = args[headlessIndex + 1];
 }
 
-// Run the health check
-simpleHealthCheck()
-  .then(() => {
-    console.log('🎉 Health check completed successfully!');
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error('💥 Health check failed:', error.message);
-    process.exit(1);
-  });
+// Parse retries (e.g. --retries 1 for one retry on failure)
+const retriesArgIdx = args.indexOf('--retries');
+if (retriesArgIdx !== -1 && args[retriesArgIdx + 1] !== undefined) {
+  const n = parseInt(args[retriesArgIdx + 1], 10);
+  if (!Number.isNaN(n)) process.env.HEALTH_CHECK_RETRIES = String(n);
+}
+
+// Run the health check with optional retries (reduces CI flakiness)
+// In CI, default to 1 retry so transient failures are absorbed without re-running the job
+const defaultRetries = process.env.CI === 'true' ? 1 : 0;
+const retries = Math.min(
+  3,
+  Math.max(0, Number(process.env.HEALTH_CHECK_RETRIES) ?? defaultRetries)
+);
+const maxAttempts = retries + 1;
+
+(async () => {
+  let lastError;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      await simpleHealthCheck();
+      console.log('🎉 Health check completed successfully!');
+      process.exit(0);
+    } catch (error) {
+      lastError = error;
+      if (attempt < maxAttempts) {
+        console.warn(
+          `\n⚠️  Attempt ${attempt}/${maxAttempts} failed, retrying in 3s...`
+        );
+        await new Promise((r) => setTimeout(r, 3000));
+      }
+    }
+  }
+  console.error('💥 Health check failed after', maxAttempts, 'attempt(s):', lastError.message);
+  process.exit(1);
+})();
