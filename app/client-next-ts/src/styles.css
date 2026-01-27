@@ -37,6 +37,20 @@
   }
 }
 
+@layer components {
+  /* Keep list content on one line: "Use `a`, `b`, `c`" instead of each on new line */
+  .rich-markdown-viewer li > p {
+    display: inline !important;
+    margin: 0 0.25em 0 0 !important;
+  }
+  .rich-markdown-viewer li > p:first-child {
+    margin-left: 0 !important;
+  }
+  .rich-markdown-viewer li code {
+    display: inline !important;
+  }
+}
+
 @layer utilities {
   /* Scroll-triggered animation for cards */
   [data-card] {
