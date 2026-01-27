@@ -325,12 +325,14 @@ if (retriesArgIdx !== -1 && args[retriesArgIdx + 1] !== undefined) {
 
 // Run the health check with optional retries (reduces CI flakiness)
 // In CI, default to 1 retry so transient failures are absorbed without re-running the job
+// Note: NaN ?? defaultRetries returns NaN (?? only treats null/undefined), so use Number.isFinite
 const defaultRetries = process.env.CI === 'true' ? 1 : 0;
+const rawRetries = Number(process.env.HEALTH_CHECK_RETRIES);
 const retries = Math.min(
   3,
-  Math.max(0, Number(process.env.HEALTH_CHECK_RETRIES) ?? defaultRetries)
+  Math.max(0, Number.isFinite(rawRetries) ? rawRetries : defaultRetries)
 );
-const maxAttempts = retries + 1;
+const maxAttempts = Math.max(1, retries + 1);
 
 (async () => {
   let lastError;
