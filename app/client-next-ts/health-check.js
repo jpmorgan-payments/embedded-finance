@@ -340,7 +340,8 @@ const maxAttempts = retries + 1;
       console.log('🎉 Health check completed successfully!');
       process.exit(0);
     } catch (error) {
-      lastError = error;
+      lastError =
+        error instanceof Error ? error : error != null ? new Error(String(error)) : new Error('Unknown error');
       if (attempt < maxAttempts) {
         console.warn(
           `\n⚠️  Attempt ${attempt}/${maxAttempts} failed, retrying in 3s...`
@@ -349,6 +350,11 @@ const maxAttempts = retries + 1;
       }
     }
   }
-  console.error('💥 Health check failed after', maxAttempts, 'attempt(s):', lastError.message);
+  console.error(
+    '💥 Health check failed after',
+    maxAttempts,
+    'attempt(s):',
+    lastError?.message ?? String(lastError ?? 'Unknown error')
+  );
   process.exit(1);
 })();
