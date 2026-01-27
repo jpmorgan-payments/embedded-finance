@@ -1,3 +1,4 @@
+import type { ComponentProps } from 'react';
 import {
   forwardRef,
   useEffect,
@@ -143,7 +144,9 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
                       'Invalid request. Please check your parameters.',
                   }),
                 }}
-                error={error as any}
+                error={
+                  error as ComponentProps<typeof ServerErrorAlert>['error']
+                }
                 tryAgainAction={refetch}
                 showDetails
               />

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
+import type { AccountBalanceResponse } from '@/api/generated/ep-accounts.schemas';
 import { Button } from '@/components/ui/button';
 
 import { PaymentFlow } from '../PaymentFlow';
@@ -327,38 +328,40 @@ const mockAccounts = {
   ],
 };
 
-// Mock account balances
-const mockAccountBalances: Record<
-  string,
-  {
-    balanceTypes: Array<{ typeCode: string; amount: number }>;
-    currency: string;
-  }
-> = {
+// Mock account balances (AccountBalanceResponse: id, date yyyy-MM-dd, currency, balanceTypes)
+const mockAccountBalances: Record<string, AccountBalanceResponse> = {
   account1: {
+    id: 'account1',
+    date: '2025-01-26',
+    currency: 'USD',
     balanceTypes: [
       { typeCode: 'ITAV', amount: 5000.0 },
       { typeCode: 'ITBD', amount: 5200.0 },
     ],
-    currency: 'USD',
   },
   account2: {
+    id: 'account2',
+    date: '2025-01-26',
+    currency: 'USD',
     balanceTypes: [
       { typeCode: 'ITAV', amount: 15000.0 },
       { typeCode: 'ITBD', amount: 15200.0 },
     ],
-    currency: 'USD',
   },
   account3: {
+    id: 'account3',
+    date: '2025-01-26',
+    currency: 'USD',
     balanceTypes: [
       { typeCode: 'ITAV', amount: 25000.0 },
       { typeCode: 'ITBD', amount: 25200.0 },
     ],
-    currency: 'USD',
   },
   account4: {
-    balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
+    id: 'account4',
+    date: '2025-01-26',
     currency: 'USD',
+    balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
   },
 };
 

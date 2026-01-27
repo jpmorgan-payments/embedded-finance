@@ -11,11 +11,17 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
+import type {
+  AccountBalanceResponse,
+  ListAccountsResponse,
+} from '@/api/generated/ep-accounts.schemas';
+
 import type { BaseStoryArgs } from '../../../../.storybook/preview';
 import { Accounts } from '../Accounts';
 import type { AccountsProps } from '../Accounts.types';
 
-const mockAccountsResponse = {
+const mockAccountsResponse: ListAccountsResponse = {
+  metadata: { page: 0, limit: 25, total_items: 2 },
   items: [
     {
       id: 'account1',
@@ -25,14 +31,9 @@ const mockAccountsResponse = {
       paymentRoutingInformation: {
         accountNumber: '20000057603919',
         country: 'US',
-        routingInformation: [
-          {
-            type: 'ABA',
-            value: '028000024',
-          },
-        ],
+        routingInformation: [{ type: 'ABA', value: '028000024' }],
       },
-      createdAt: '2025-04-14T08:57:21.792272Z',
+      createdAt: '2025-01-26T14:32:00.000Z',
       category: 'LIMITED_DDA',
     },
     {
@@ -43,14 +44,9 @@ const mockAccountsResponse = {
       paymentRoutingInformation: {
         accountNumber: '20000097603212',
         country: 'US',
-        routingInformation: [
-          {
-            type: 'ABA',
-            value: '028000024',
-          },
-        ],
+        routingInformation: [{ type: 'ABA', value: '028000024' }],
       },
-      createdAt: '2025-04-14T08:57:21.913631Z',
+      createdAt: '2025-01-26T14:35:00.000Z',
       category: 'LIMITED_DDA_PAYMENTS',
     },
   ],
@@ -73,14 +69,17 @@ const meta: Meta<AccountsProps & BaseStoryArgs> = {
         http.get('*/accounts', () => {
           return HttpResponse.json(mockAccountsResponse);
         }),
-        http.get('*/accounts/:id/balance', () => {
-          return HttpResponse.json({
-            balanceTypes: [
-              { typeCode: 'ITAV', amount: '10000.50' },
-              { typeCode: 'ITBD', amount: '10000.50' },
-            ],
+        http.get('*/accounts/:id/balances', ({ params }) => {
+          const balance: AccountBalanceResponse = {
+            id: params.id as string,
+            date: '2025-01-26',
             currency: 'USD',
-          });
+            balanceTypes: [
+              { typeCode: 'ITAV', amount: 10000.5 },
+              { typeCode: 'ITBD', amount: 10000.5 },
+            ],
+          };
+          return HttpResponse.json(balance);
         }),
       ],
     },

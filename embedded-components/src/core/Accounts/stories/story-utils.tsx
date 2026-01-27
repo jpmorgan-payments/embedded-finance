@@ -40,7 +40,7 @@ export const mockAccounts: AccountResponse[] = [
         },
       ],
     },
-    createdAt: '2025-04-14T08:57:21.792272Z',
+    createdAt: '2025-01-26T14:32:00.000Z',
     category: 'LIMITED_DDA',
   },
   {
@@ -58,7 +58,7 @@ export const mockAccounts: AccountResponse[] = [
         },
       ],
     },
-    createdAt: '2025-04-14T08:57:21.913631Z',
+    createdAt: '2025-01-26T14:35:00.000Z',
     category: 'LIMITED_DDA_PAYMENTS',
   },
 ];
@@ -69,7 +69,7 @@ export const mockAccounts: AccountResponse[] = [
 export const mockBalances: Record<string, AccountBalanceResponse> = {
   account1: {
     id: 'account1',
-    date: '2023-10-28',
+    date: '2025-01-26',
     currency: 'USD',
     balanceTypes: [
       { typeCode: 'ITAV', amount: 5558.42 },
@@ -78,7 +78,7 @@ export const mockBalances: Record<string, AccountBalanceResponse> = {
   },
   account2: {
     id: 'account2',
-    date: '2023-10-28',
+    date: '2025-01-26',
     currency: 'USD',
     balanceTypes: [
       { typeCode: 'ITAV', amount: 125750.0 },
