@@ -1215,6 +1215,7 @@ export function PaymentFlow({
   initialAccountId,
   initialPayeeId,
   initialPaymentMethod,
+  showFees = false,
   onTransactionComplete,
   onClose,
   open: controlledOpen,
@@ -1594,6 +1595,7 @@ export function PaymentFlow({
             paymentMethods={paymentMethods}
             onSubmit={handleTransactionSubmit}
             isSubmitting={isSubmitting}
+            showFees={showFees}
           />
         }
       >

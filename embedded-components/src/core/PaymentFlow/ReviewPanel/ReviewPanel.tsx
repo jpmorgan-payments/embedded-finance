@@ -38,6 +38,7 @@ export function ReviewPanel({
   paymentMethods,
   onSubmit,
   isSubmitting = false,
+  showFees = false,
   onValidationFail,
 }: Omit<ReviewPanelProps, 'mobileConfig'>) {
   // Get live form data from context
@@ -128,7 +129,8 @@ export function ReviewPanel({
   // Calculate amounts
   const amount = parseFloat(formData.amount) || 0;
   const fee = selectedMethod?.fee ?? 0;
-  const total = amount + fee;
+  // Only include fee in total if showFees is enabled
+  const total = showFees ? amount + fee : amount;
 
   // Calculate balance after payment
   const currentBalance = selectedAccount?.balance?.available;
@@ -318,11 +320,13 @@ export function ReviewPanel({
               </div>
             </div>
 
-            {/* Fee - show $0.00 or fee amount once payment method is selected */}
-            <div className="eb-flex eb-items-center eb-justify-between eb-text-sm">
-              <span className="eb-text-muted-foreground">Fee</span>
-              <span>{selectedMethod ? formatCurrency(fee) : '—'}</span>
-            </div>
+            {/* Fee - only shown when showFees is enabled */}
+            {showFees && (
+              <div className="eb-flex eb-items-center eb-justify-between eb-text-sm">
+                <span className="eb-text-muted-foreground">Fee</span>
+                <span>{selectedMethod ? formatCurrency(fee) : '—'}</span>
+              </div>
+            )}
 
             {/* Memo */}
             {formData.memo && (
