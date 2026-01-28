@@ -358,8 +358,14 @@ export function PayeeSelector({
     <div className="eb-space-y-3">
       {/* Warning banner when payee was cleared due to account restriction */}
       {showRestrictionWarning && (
-        <div className="eb-flex eb-items-start eb-gap-2 eb-rounded-md eb-border eb-border-amber-200 eb-bg-amber-50 eb-p-3 eb-text-sm">
-          <AlertTriangle className="eb-mt-0.5 eb-h-4 eb-w-4 eb-shrink-0 eb-text-amber-600" />
+        <div
+          role="alert"
+          className="eb-flex eb-items-start eb-gap-2 eb-rounded-md eb-border eb-border-amber-200 eb-bg-amber-50 eb-p-3 eb-text-sm"
+        >
+          <AlertTriangle
+            className="eb-mt-0.5 eb-h-4 eb-w-4 eb-shrink-0 eb-text-amber-600"
+            aria-hidden="true"
+          />
           <div className="eb-text-amber-800">
             <span className="eb-font-medium">Recipient cleared.</span> The
             selected account type can only send payments to linked accounts.
@@ -375,7 +381,10 @@ export function PayeeSelector({
         }
         className="eb-space-y-3"
       >
-        <TabsList className="eb-h-auto eb-w-full eb-flex-col @md:eb-h-9 @md:eb-flex-row">
+        <TabsList
+          className="eb-h-auto eb-w-full eb-flex-col @md:eb-h-9 @md:eb-flex-row"
+          aria-label="Payee type selection"
+        >
           <TabsTrigger
             value="recipients"
             className={cn(
@@ -384,9 +393,15 @@ export function PayeeSelector({
             )}
           >
             {recipientsRestricted ? (
-              <Lock className="eb-h-3.5 eb-w-3.5 eb-shrink-0 eb-text-muted-foreground" />
+              <Lock
+                className="eb-h-3.5 eb-w-3.5 eb-shrink-0 eb-text-muted-foreground"
+                aria-hidden="true"
+              />
             ) : (
-              <User className="eb-h-3.5 eb-w-3.5 eb-shrink-0" />
+              <User
+                className="eb-h-3.5 eb-w-3.5 eb-shrink-0"
+                aria-hidden="true"
+              />
             )}
             Recipients ({totalRecipients ?? recipients.length})
           </TabsTrigger>
@@ -394,7 +409,10 @@ export function PayeeSelector({
             value="linked-accounts"
             className="eb-w-full eb-gap-1.5 eb-text-sm @md:eb-flex-1"
           >
-            <Link className="eb-h-3.5 eb-w-3.5 eb-shrink-0" />
+            <Link
+              className="eb-h-3.5 eb-w-3.5 eb-shrink-0"
+              aria-hidden="true"
+            />
             Linked Accounts ({totalLinkedAccounts ?? linkedAccounts.length})
           </TabsTrigger>
         </TabsList>
@@ -407,7 +425,10 @@ export function PayeeSelector({
               (activeTab === 'linked-accounts' &&
                 showLinkedAccountsSearch)) && (
               <div className="eb-relative eb-border-b eb-border-border eb-bg-muted/30">
-                <Search className="eb-absolute eb-left-2.5 eb-top-1/2 eb-h-3.5 eb-w-3.5 eb--translate-y-1/2 eb-text-muted-foreground" />
+                <Search
+                  className="eb-absolute eb-left-2.5 eb-top-1/2 eb-h-3.5 eb-w-3.5 eb--translate-y-1/2 eb-text-muted-foreground"
+                  aria-hidden="true"
+                />
                 <Input
                   placeholder={
                     activeTab === 'recipients'
@@ -417,6 +438,11 @@ export function PayeeSelector({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="eb-h-9 eb-rounded-none eb-border-0 eb-bg-transparent eb-pl-8 eb-text-sm focus-visible:eb-ring-0 focus-visible:eb-ring-offset-0"
+                  aria-label={
+                    activeTab === 'recipients'
+                      ? 'Search recipients'
+                      : 'Search linked accounts'
+                  }
                 />
               </div>
             )}
@@ -445,9 +471,16 @@ export function PayeeSelector({
  */
 function RestrictionMessage({ message }: { message: string }) {
   return (
-    <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center">
+    <div
+      role="status"
+      aria-live="polite"
+      className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center"
+    >
       <div className="eb-mb-3 eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted">
-        <Lock className="eb-h-6 eb-w-6 eb-text-muted-foreground" />
+        <Lock
+          className="eb-h-6 eb-w-6 eb-text-muted-foreground"
+          aria-hidden="true"
+        />
       </div>
       <div className="eb-font-medium eb-text-foreground">
         Recipients Not Available
@@ -470,7 +503,11 @@ function EmptyState({ type, hasSearch, searchQuery }: EmptyStateProps) {
 
   if (hasSearch) {
     return (
-      <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center">
+      <div
+        role="status"
+        aria-live="polite"
+        className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center"
+      >
         <div className="eb-text-sm eb-text-muted-foreground">
           No {type === 'recipients' ? 'recipients' : 'accounts'} match &ldquo;
           {searchQuery}&rdquo;
@@ -480,9 +517,16 @@ function EmptyState({ type, hasSearch, searchQuery }: EmptyStateProps) {
   }
 
   return (
-    <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center">
+    <div
+      role="status"
+      aria-live="polite"
+      className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center"
+    >
       <div className="eb-mb-3 eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted">
-        <Icon className="eb-h-6 eb-w-6 eb-text-muted-foreground" />
+        <Icon
+          className="eb-h-6 eb-w-6 eb-text-muted-foreground"
+          aria-hidden="true"
+        />
       </div>
       <div className="eb-font-medium">
         {type === 'recipients' ? 'No recipients yet' : 'No linked accounts'}

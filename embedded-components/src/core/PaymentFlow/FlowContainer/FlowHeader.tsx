@@ -25,9 +25,10 @@ export function FlowHeader({ title, className }: FlowHeaderProps) {
     title ?? FLOW_VIEW_TITLES[currentView] ?? 'Transfer Funds';
 
   return (
-    <div
+    <header
+      role="banner"
       className={cn(
-        'eb-flex eb-items-center eb-justify-between eb-border-b eb-px-4 eb-py-3',
+        'eb-flex eb-min-h-[48px] eb-items-center eb-justify-between eb-border-b eb-px-4 eb-py-2',
         className
       )}
     >
@@ -37,14 +38,14 @@ export function FlowHeader({ title, className }: FlowHeaderProps) {
             variant="ghost"
             size="sm"
             onClick={popView}
-            className="eb-h-8 eb-w-8 eb-p-0"
-            aria-label="Go back"
+            className="eb--ml-2 eb-h-8 eb-w-8 eb-p-0"
+            aria-label="Go back to previous screen"
           >
-            <ArrowLeft className="eb-h-4 eb-w-4" />
+            <ArrowLeft className="eb-h-4 eb-w-4" aria-hidden="true" />
           </Button>
         )}
         <h1 className="eb-text-base eb-font-semibold">{displayTitle}</h1>
       </div>
-    </div>
+    </header>
   );
 }

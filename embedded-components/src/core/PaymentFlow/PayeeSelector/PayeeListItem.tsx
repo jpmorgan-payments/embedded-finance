@@ -36,6 +36,10 @@ export function PayeeListItem({
   // Use Building2 for business, User for individuals (regardless of linked account status)
   const Icon = isBusiness ? Building2 : User;
 
+  const accountSuffix = payee.accountNumber
+    ? ` ending in ${payee.accountNumber.slice(-4)}`
+    : '';
+
   return (
     <button
       type="button"
@@ -44,9 +48,14 @@ export function PayeeListItem({
         'eb-flex eb-w-full eb-items-center eb-gap-2 eb-px-3 eb-py-2.5 eb-text-left eb-text-sm eb-transition-colors',
         isSelected ? 'eb-bg-primary/5' : 'hover:eb-bg-muted/50'
       )}
+      aria-label={`${isSelected ? 'Selected: ' : ''}${payee.name}${accountSuffix}`}
+      aria-pressed={isSelected}
     >
       <div className="eb-flex eb-h-7 eb-w-7 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted">
-        <Icon className="eb-h-3.5 eb-w-3.5 eb-text-muted-foreground" />
+        <Icon
+          className="eb-h-3.5 eb-w-3.5 eb-text-muted-foreground"
+          aria-hidden="true"
+        />
       </div>
 
       <div className="eb-min-w-0 eb-flex-1">
@@ -59,7 +68,10 @@ export function PayeeListItem({
       </div>
 
       {isSelected && (
-        <Check className="eb-h-4 eb-w-4 eb-shrink-0 eb-text-primary" />
+        <Check
+          className="eb-h-4 eb-w-4 eb-shrink-0 eb-text-primary"
+          aria-hidden="true"
+        />
       )}
     </button>
   );
@@ -80,8 +92,9 @@ export function AddNewPayeeButton({ label, onClick }: AddNewPayeeButtonProps) {
       type="button"
       onClick={onClick}
       className="eb-flex eb-w-full eb-items-center eb-justify-center eb-gap-1.5 eb-border-t eb-border-border eb-bg-muted/30 eb-px-3 eb-py-2.5 eb-text-sm eb-font-medium eb-text-primary eb-transition-colors hover:eb-bg-muted/50"
+      aria-label={label}
     >
-      <Plus className="eb-h-4 eb-w-4" />
+      <Plus className="eb-h-4 eb-w-4" aria-hidden="true" />
       <span>{label}</span>
     </button>
   );
