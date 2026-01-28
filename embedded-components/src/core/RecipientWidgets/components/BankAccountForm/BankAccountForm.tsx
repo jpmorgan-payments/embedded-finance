@@ -658,10 +658,14 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   isLoading = false,
   alert,
   client,
+  skipStepOne = false,
+  embedded = false,
+  initialPaymentTypes: initialPaymentTypesProp,
 }) => {
   const { t } = useTranslation('bank-account-form');
   const formatRequiredMessage = useFormatRequiredMessage();
-  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
+  // Start on step 2 if skipStepOne is true
+  const [currentStep, setCurrentStep] = useState<1 | 2>(skipStepOne ? 2 : 1);
 
   // Extract organization name from client data if available
   const organizationName = useMemo(() => {
@@ -676,6 +680,15 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
 
     return orgParty?.organizationDetails?.organizationName;
   }, [client]);
+
+  // Helper to sanitize string values from API (handles null, undefined)
+  const sanitizeString = (
+    value: string | null | undefined,
+    defaultValue = ''
+  ): string => {
+    if (value === null || value === undefined) return defaultValue;
+    return value;
+  };
 
   // Extract individual parties from client data for linked account individual selector
   const individualParties = useMemo(() => {
@@ -744,6 +757,11 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
 
   // Extract payment types and routing numbers from recipient if editing
   const initialPaymentTypes = useMemo(() => {
+    // If explicitly provided via prop, use that (e.g., when enabling new payment method)
+    if (initialPaymentTypesProp && initialPaymentTypesProp.length > 0) {
+      return initialPaymentTypesProp;
+    }
+    // Otherwise, extract from existing recipient
     if (recipient?.account?.routingInformation) {
       return recipient.account.routingInformation
         .map((ri) => ri.transactionType)
@@ -753,19 +771,46 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
         );
     }
     return effectiveConfig.paymentMethods.defaultSelected || [];
-  }, [recipient, effectiveConfig.paymentMethods.defaultSelected]);
+  }, [
+    initialPaymentTypesProp,
+    recipient,
+    effectiveConfig.paymentMethods.defaultSelected,
+  ]);
 
   const initialRoutingNumbers = useMemo(() => {
+    // Get existing routing numbers from recipient
+    const existingRoutingNumbers: Array<{
+      paymentType: RoutingInformationTransactionType;
+      routingNumber: string;
+    }> = [];
+
     if (recipient?.account?.routingInformation) {
-      return recipient.account.routingInformation
+      recipient.account.routingInformation
         .filter((ri) => ri.transactionType && ri.routingNumber)
-        .map((ri) => ({
-          paymentType: ri.transactionType,
-          routingNumber: ri.routingNumber,
-        }));
+        .forEach((ri) => {
+          existingRoutingNumbers.push({
+            paymentType:
+              ri.transactionType as RoutingInformationTransactionType,
+            routingNumber: ri.routingNumber as string,
+          });
+        });
     }
-    return [];
-  }, [recipient]);
+
+    // Also add empty entries for any payment methods in initialPaymentTypes that aren't in existing
+    // This handles the "enable new payment method" case
+    initialPaymentTypes.forEach((paymentType) => {
+      if (
+        !existingRoutingNumbers.find((rn) => rn.paymentType === paymentType)
+      ) {
+        existingRoutingNumbers.push({
+          paymentType,
+          routingNumber: '',
+        });
+      }
+    });
+
+    return existingRoutingNumbers;
+  }, [recipient, initialPaymentTypes]);
 
   // Extract contacts from recipient with proper validation
   const initialContacts = useMemo(() => {
@@ -843,13 +888,24 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
       paymentTypes: initialPaymentTypes,
       address: recipient?.partyDetails?.address
         ? {
-            addressLine1: recipient.partyDetails.address.addressLine1 || '',
-            addressLine2: recipient.partyDetails.address.addressLine2 || '',
-            addressLine3: recipient.partyDetails.address.addressLine3 || '',
-            city: recipient.partyDetails.address.city || '',
-            state: recipient.partyDetails.address.state || '',
-            postalCode: recipient.partyDetails.address.postalCode || '',
-            countryCode: recipient.partyDetails.address.countryCode || 'US',
+            addressLine1: sanitizeString(
+              recipient.partyDetails.address.addressLine1
+            ),
+            addressLine2: sanitizeString(
+              recipient.partyDetails.address.addressLine2
+            ),
+            addressLine3: sanitizeString(
+              recipient.partyDetails.address.addressLine3
+            ),
+            city: sanitizeString(recipient.partyDetails.address.city),
+            state: sanitizeString(recipient.partyDetails.address.state),
+            postalCode: sanitizeString(
+              recipient.partyDetails.address.postalCode
+            ),
+            countryCode: (sanitizeString(
+              recipient.partyDetails.address.countryCode,
+              'US'
+            ) || 'US') as 'US',
           }
         : undefined,
       contacts: initialContacts,
@@ -966,6 +1022,90 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     effectiveConfig.paymentMethods.configs,
   ]);
 
+  // Check if recipient's state value is a valid 2-letter US state code
+  // If not, we'll show a text field instead of a dropdown
+  const US_STATE_CODES = [
+    'AL',
+    'AK',
+    'AZ',
+    'AR',
+    'CA',
+    'CO',
+    'CT',
+    'DE',
+    'FL',
+    'GA',
+    'HI',
+    'ID',
+    'IL',
+    'IN',
+    'IA',
+    'KS',
+    'KY',
+    'LA',
+    'ME',
+    'MD',
+    'MA',
+    'MI',
+    'MN',
+    'MS',
+    'MO',
+    'MT',
+    'NE',
+    'NV',
+    'NH',
+    'NJ',
+    'NM',
+    'NY',
+    'NC',
+    'ND',
+    'OH',
+    'OK',
+    'OR',
+    'PA',
+    'RI',
+    'SC',
+    'SD',
+    'TN',
+    'TX',
+    'UT',
+    'VT',
+    'VA',
+    'WA',
+    'WV',
+    'WI',
+    'WY',
+    'DC',
+    'PR',
+    'VI',
+    'GU',
+    'AS',
+    'MP',
+  ];
+  const useStateTextField = useMemo(() => {
+    const recipientState = recipient?.partyDetails?.address?.state;
+    // If no recipient or no state, use dropdown (default)
+    if (!recipientState) return false;
+    // If state is not a valid 2-letter code, use text field
+    return !US_STATE_CODES.includes(recipientState.toUpperCase());
+  }, [recipient?.partyDetails?.address?.state]);
+
+  // Initialize address object when address fields become required
+  useEffect(() => {
+    const currentAddress = form.getValues('address');
+    if (showAddressFields && !currentAddress) {
+      form.setValue('address', {
+        addressLine1: '',
+        addressLine2: '',
+        addressLine3: '',
+        city: '',
+        state: '',
+        postalCode: '',
+        countryCode: 'US',
+      });
+    }
+  }, [showAddressFields, form]);
+
   const requiredContactTypes = useMemo(() => {
     const required = new Set<RecipientContactContactType>();
     effectiveConfig.requiredFields.contacts?.forEach((type) =>
@@ -1032,7 +1172,9 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
         onSubmit={form.handleSubmit(handleFormSubmit)}
         className="eb-flex eb-min-h-0 eb-flex-1 eb-flex-col"
       >
-        <div className="eb-min-h-0 eb-flex-1 eb-overflow-y-auto eb-px-6">
+        <div
+          className={`eb-min-h-0 eb-flex-1 eb-overflow-y-auto ${embedded ? 'eb-px-4' : 'eb-px-6'}`}
+        >
           <div className="eb-space-y-4 eb-py-4">
             {alert}
             {/* Step 1: Account Type & Payment Method Selection */}
@@ -1375,10 +1517,15 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                             <StandardFormField
                               control={form.control}
                               name="address.state"
-                              type="us-state"
+                              type={useStateTextField ? 'text' : 'us-state'}
                               label={t('address.state.label')}
                               placeholder={t('address.state.placeholder')}
                               required
+                              inputProps={
+                                useStateTextField
+                                  ? { maxLength: 34 }
+                                  : undefined
+                              }
                               disabled={isLoading}
                             />
                             <StandardFormField
@@ -1451,12 +1598,12 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
           </div>
         </div>
 
-        {/* Footer */}
-        <DialogFooter className="eb-shrink-0 eb-gap-3 eb-border-t eb-bg-muted/10 eb-p-6 eb-py-4">
-          {currentStep === 1 && (
-            <>
-              {onCancel && (
-                <DialogClose asChild>
+        {/* Footer - Use plain div when embedded, DialogFooter when in dialog context */}
+        {embedded ? (
+          <div className="eb-flex eb-shrink-0 eb-flex-col-reverse eb-gap-3 eb-p-4 sm:eb-flex-row sm:eb-justify-end">
+            {currentStep === 1 && (
+              <>
+                {onCancel && (
                   <Button
                     variant="outline"
                     type="button"
@@ -1466,44 +1613,98 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                     {effectiveConfig.content.cancelButtonText ||
                       t('navigation.cancel')}
                   </Button>
-                </DialogClose>
-              )}
-              <Button
-                type="button"
-                onClick={handleStep1Continue}
-                className="eb-w-full sm:eb-w-auto sm:eb-min-w-[200px]"
-              >
-                {t('navigation.continueToAccountDetails')} <ArrowRightIcon />
-              </Button>
-            </>
-          )}
-
-          {currentStep === 2 && (
-            <>
-              <Button
-                variant="outline"
-                type="button"
-                onClick={handleStep2Back}
-                disabled={isLoading}
-                className="eb-w-full sm:eb-w-auto"
-              >
-                <ArrowLeftIcon /> {t('navigation.back')}
-              </Button>
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="eb-w-full sm:eb-w-auto sm:eb-min-w-[120px]"
-              >
-                {isLoading && (
-                  <Loader2Icon className="eb-mr-2 eb-h-4 eb-w-4 eb-animate-spin" />
                 )}
-                {isLoading
-                  ? effectiveConfig.content.loadingMessage
-                  : effectiveConfig.content.submitButtonText}
-              </Button>
-            </>
-          )}
-        </DialogFooter>
+                <Button
+                  type="button"
+                  onClick={handleStep1Continue}
+                  className="eb-w-full sm:eb-w-auto sm:eb-min-w-[200px]"
+                >
+                  {t('navigation.continueToAccountDetails')} <ArrowRightIcon />
+                </Button>
+              </>
+            )}
+
+            {currentStep === 2 && (
+              <>
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={skipStepOne && onCancel ? onCancel : handleStep2Back}
+                  disabled={isLoading}
+                  className="eb-w-full sm:eb-w-auto"
+                >
+                  <ArrowLeftIcon />{' '}
+                  {skipStepOne ? t('navigation.cancel') : t('navigation.back')}
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="eb-w-full sm:eb-w-auto sm:eb-min-w-[120px]"
+                >
+                  {isLoading && (
+                    <Loader2Icon className="eb-mr-2 eb-h-4 eb-w-4 eb-animate-spin" />
+                  )}
+                  {isLoading
+                    ? effectiveConfig.content.loadingMessage
+                    : effectiveConfig.content.submitButtonText}
+                </Button>
+              </>
+            )}
+          </div>
+        ) : (
+          <DialogFooter className="eb-shrink-0 eb-gap-3 eb-border-t eb-bg-muted/10 eb-p-6 eb-py-4">
+            {currentStep === 1 && (
+              <>
+                {onCancel && (
+                  <DialogClose asChild>
+                    <Button
+                      variant="outline"
+                      type="button"
+                      onClick={onCancel}
+                      className="eb-w-full sm:eb-w-auto"
+                    >
+                      {effectiveConfig.content.cancelButtonText ||
+                        t('navigation.cancel')}
+                    </Button>
+                  </DialogClose>
+                )}
+                <Button
+                  type="button"
+                  onClick={handleStep1Continue}
+                  className="eb-w-full sm:eb-w-auto sm:eb-min-w-[200px]"
+                >
+                  {t('navigation.continueToAccountDetails')} <ArrowRightIcon />
+                </Button>
+              </>
+            )}
+
+            {currentStep === 2 && (
+              <>
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={handleStep2Back}
+                  disabled={isLoading}
+                  className="eb-w-full sm:eb-w-auto"
+                >
+                  <ArrowLeftIcon /> {t('navigation.back')}
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="eb-w-full sm:eb-w-auto sm:eb-min-w-[120px]"
+                >
+                  {isLoading && (
+                    <Loader2Icon className="eb-mr-2 eb-h-4 eb-w-4 eb-animate-spin" />
+                  )}
+                  {isLoading
+                    ? effectiveConfig.content.loadingMessage
+                    : effectiveConfig.content.submitButtonText}
+                </Button>
+              </>
+            )}
+          </DialogFooter>
+        )}
       </form>
     </Form>
   );

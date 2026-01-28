@@ -46,6 +46,8 @@ export function PayeeSelector({
   selectedPayeeId,
   onSelect,
   onAddNew,
+  onAddRecipient,
+  onLinkAccount,
   recipients = [],
   linkedAccounts = [],
   isLoading = false,
@@ -199,9 +201,21 @@ export function PayeeSelector({
     );
   }, [linkedAccounts, searchQuery]);
 
-  const handleAddNew = useCallback(() => {
-    onAddNew();
-  }, [onAddNew]);
+  const handleAddRecipient = useCallback(() => {
+    if (onAddRecipient) {
+      onAddRecipient();
+    } else if (onAddNew) {
+      onAddNew();
+    }
+  }, [onAddRecipient, onAddNew]);
+
+  const handleLinkAccount = useCallback(() => {
+    if (onLinkAccount) {
+      onLinkAccount();
+    } else if (onAddNew) {
+      onAddNew();
+    }
+  }, [onLinkAccount, onAddNew]);
 
   // Threshold for showing search bar and using fixed height scroll area
   const SHOW_SEARCH_THRESHOLD = 5;
@@ -269,7 +283,10 @@ export function PayeeSelector({
       )}
 
       {/* Add New - footer button */}
-      <AddNewPayeeButton label="Add New Recipient" onClick={handleAddNew} />
+      <AddNewPayeeButton
+        label="Add New Recipient"
+        onClick={handleAddRecipient}
+      />
     </>
   );
 
@@ -333,7 +350,7 @@ export function PayeeSelector({
       )}
 
       {/* Add New - footer button */}
-      <AddNewPayeeButton label="Link New Account" onClick={handleAddNew} />
+      <AddNewPayeeButton label="Link New Account" onClick={handleLinkAccount} />
     </>
   );
 

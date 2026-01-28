@@ -38,7 +38,7 @@ const addressSchema = z.object({
   addressLine2: z.string().max(34).optional(),
   addressLine3: z.string().max(34).optional(),
   city: z.string().max(34).optional(),
-  state: z.string().max(2).optional(),
+  state: z.string().max(34).optional(), // Allow longer state values (API may return full names)
   postalCode: z.string().max(10).optional(),
   countryCode: z.string().default('US'),
 });
@@ -300,12 +300,6 @@ export function createBankAccountFormSchema(
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: v('address.validation.stateRequired'),
-            path: ['address', 'state'],
-          });
-        } else if (!/^[A-Z]{2}$/.test(data.address.state)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: v('address.validation.stateFormat'),
             path: ['address', 'state'],
           });
         }

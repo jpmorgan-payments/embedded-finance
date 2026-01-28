@@ -312,7 +312,12 @@ export interface ReviewPanelProps {
 export interface PayeeSelectorProps {
   selectedPayeeId?: string;
   onSelect: (payee: Payee) => void;
-  onAddNew: () => void;
+  /** @deprecated Use onAddRecipient and onLinkAccount instead */
+  onAddNew?: () => void;
+  /** Callback to add a new recipient */
+  onAddRecipient?: () => void;
+  /** Callback to link a new account */
+  onLinkAccount?: () => void;
   isExpanded?: boolean;
   onToggle?: () => void;
 }
