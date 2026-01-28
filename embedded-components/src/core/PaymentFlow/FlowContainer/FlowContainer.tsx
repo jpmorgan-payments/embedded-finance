@@ -61,12 +61,19 @@ function FlowContainerInner({
       {/* Body - Two column layout (container 768px+) */}
       <div className="eb-flex eb-flex-1 eb-flex-col eb-overflow-hidden @3xl:eb-flex-row">
         {/* Left Column - Dynamic Content (scrollable, includes mobile review) */}
-        <div className="eb-flex-1 eb-overflow-y-auto eb-p-3 @md:eb-px-6 @md:eb-py-4">
-          {children}
+        <div className="eb-flex eb-flex-1 eb-flex-col eb-overflow-y-auto eb-px-3 eb-pt-3 @md:eb-px-6 @md:eb-pt-4">
+          <div
+            className={cn(
+              'eb-flex-1',
+              showReviewPanel ? 'eb-pb-0' : 'eb-pb-3 @md:eb-pb-4'
+            )}
+          >
+            {children}
+          </div>
 
           {/* Mobile Review Panel - inside scroll area on narrower containers */}
           {showReviewPanel && (
-            <div className="eb--mx-3 eb-mt-6 eb-border-t eb-bg-muted eb-p-3 @md:eb--mx-6 @md:eb-px-6 @md:eb-py-4 @3xl:eb-hidden">
+            <div className="eb--mx-3 eb-mt-4 eb-border-t eb-bg-muted eb-p-3 @md:eb--mx-6 @md:eb-px-6 @md:eb-py-4 @3xl:eb-hidden">
               {reviewPanel}
             </div>
           )}
