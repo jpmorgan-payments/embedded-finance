@@ -1,581 +1,265 @@
+/**
+ * PaymentFlow - Main Stories
+ *
+ * Basic configurations and layout options for the PaymentFlow component.
+ * This component provides a complete payment/transfer flow within a modal dialog.
+ *
+ * ## Story Organization:
+ * - **Main Stories** (this file): Basic configurations, layouts, initial states
+ * - **Workflows**: Interactive demonstrations with play functions
+ * - **Edge Cases**: Error states, empty states, network issues
+ */
+
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { http, HttpResponse } from 'msw';
 
 import { Button } from '@/components/ui/button';
 
 import { PaymentFlow } from '../PaymentFlow';
-import { DEFAULT_PAYMENT_METHODS } from '../PaymentFlow.constants';
+import {
+  achOnlyPaymentMethods,
+  commonArgs,
+  commonArgTypes,
+  createPaymentFlowHandlers,
+  paymentMethodsWithFees,
+} from './story-utils';
 
-// Helper to log actions
-const logAction = (name: string) => () => {
-  // eslint-disable-next-line no-console
-  console.log(`[Action] ${name}`);
-};
+// ============================================================================
+// Meta Configuration
+// ============================================================================
 
-// Mock recipients matching MakePayment story structure
-const mockRecipients = [
-  // Linked Accounts
-  {
-    id: 'linkedAccount1',
-    type: 'LINKED_ACCOUNT',
-    status: 'ACTIVE',
-    clientId: 'mock-client-id',
-    partyDetails: {
-      type: 'INDIVIDUAL',
-      firstName: 'John',
-      lastName: 'Doe',
-      address: {
-        addressLine1: '123 Main Street',
-        city: 'New York',
-        state: 'NY',
-        postalCode: '10001',
-        countryCode: 'US',
-      },
-      contacts: [
-        {
-          contactType: 'EMAIL',
-          value: 'john.doe@email.com',
-        },
-        {
-          contactType: 'PHONE',
-          value: '5551234567',
-          countryCode: '+1',
-        },
-      ],
-    },
-    account: {
-      id: 'acc-1234',
-      number: '1234567890',
-      type: 'CHECKING',
-      countryCode: 'US',
-      routingInformation: [
-        {
-          routingCodeType: 'USABA',
-          routingNumber: '111000025',
-          transactionType: 'ACH',
-        },
-      ],
-    },
-    createdAt: '2024-01-15T10:30:00Z',
-    updatedAt: '2024-01-15T10:30:00Z',
-  },
-  {
-    id: 'linkedAccount2',
-    type: 'LINKED_ACCOUNT',
-    status: 'ACTIVE',
-    clientId: 'mock-client-id',
-    partyDetails: {
-      type: 'INDIVIDUAL',
-      firstName: 'Jane',
-      lastName: 'Smith',
-      address: {
-        addressLine1: '456 Oak Avenue',
-        city: 'Los Angeles',
-        state: 'CA',
-        postalCode: '90210',
-        countryCode: 'US',
-      },
-      contacts: [
-        {
-          contactType: 'EMAIL',
-          value: 'jane.smith@email.com',
-        },
-        {
-          contactType: 'PHONE',
-          value: '5559876543',
-          countryCode: '+1',
-        },
-      ],
-    },
-    account: {
-      id: 'acc-5678',
-      number: '9876543210',
-      type: 'SAVINGS',
-      countryCode: 'US',
-      routingInformation: [
-        {
-          routingCodeType: 'USABA',
-          routingNumber: '222000111',
-          transactionType: 'ACH',
-        },
-        {
-          routingCodeType: 'USABA',
-          routingNumber: '222000111',
-          transactionType: 'WIRE',
-        },
-      ],
-    },
-    createdAt: '2024-01-10T14:20:00Z',
-    updatedAt: '2024-01-16T09:15:00Z',
-  },
-  {
-    id: 'linkedAccount3',
-    type: 'LINKED_ACCOUNT',
-    status: 'ACTIVE',
-    clientId: 'mock-client-id',
-    partyDetails: {
-      type: 'ORGANIZATION',
-      businessName: 'Company LLC',
-      address: {
-        addressLine1: '789 Business Blvd',
-        city: 'Chicago',
-        state: 'IL',
-        postalCode: '60601',
-        countryCode: 'US',
-      },
-      contacts: [
-        {
-          contactType: 'EMAIL',
-          value: 'payments@companyllc.com',
-        },
-        {
-          contactType: 'WEBSITE',
-          value: 'https://www.companyllc.com',
-        },
-      ],
-    },
-    account: {
-      id: 'acc-9012',
-      number: '2468135790',
-      type: 'CHECKING',
-      countryCode: 'US',
-      routingInformation: [
-        {
-          routingCodeType: 'USABA',
-          routingNumber: '333000222',
-          transactionType: 'RTP',
-        },
-      ],
-    },
-    createdAt: '2024-01-05T11:45:00Z',
-    updatedAt: '2024-01-17T16:30:00Z',
-  },
-  // Regular Recipients
-  {
-    id: 'recipient1',
-    type: 'RECIPIENT',
-    status: 'ACTIVE',
-    clientId: 'mock-client-id',
-    partyDetails: {
-      type: 'INDIVIDUAL',
-      firstName: 'Alice',
-      lastName: 'Johnson',
-      address: {
-        addressLine1: '321 Pine Street',
-        city: 'Miami',
-        state: 'FL',
-        postalCode: '33101',
-        countryCode: 'US',
-      },
-      contacts: [
-        {
-          contactType: 'EMAIL',
-          value: 'alice.johnson@email.com',
-        },
-        {
-          contactType: 'PHONE',
-          value: '5551112222',
-          countryCode: '+1',
-        },
-      ],
-    },
-    account: {
-      id: 'acc-3456',
-      number: '111122223333',
-      type: 'CHECKING',
-      countryCode: 'US',
-      routingInformation: [
-        {
-          routingCodeType: 'USABA',
-          routingNumber: '444000555',
-          transactionType: 'ACH',
-        },
-        {
-          routingCodeType: 'USABA',
-          routingNumber: '444000555',
-          transactionType: 'WIRE',
-        },
-      ],
-    },
-    createdAt: '2024-01-20T08:15:00Z',
-    updatedAt: '2024-01-20T08:15:00Z',
-  },
-  {
-    id: 'recipient2',
-    type: 'RECIPIENT',
-    status: 'ACTIVE',
-    clientId: 'mock-client-id',
-    partyDetails: {
-      type: 'ORGANIZATION',
-      businessName: 'Tech Solutions Inc',
-      address: {
-        addressLine1: '654 Innovation Drive',
-        city: 'Austin',
-        state: 'TX',
-        postalCode: '73301',
-        countryCode: 'US',
-      },
-      contacts: [
-        {
-          contactType: 'EMAIL',
-          value: 'payments@techsolutions.com',
-        },
-        {
-          contactType: 'WEBSITE',
-          value: 'https://www.techsolutions.com',
-        },
-      ],
-    },
-    account: {
-      id: 'acc-7890',
-      number: '555566667777',
-      type: 'CHECKING',
-      countryCode: 'US',
-      routingInformation: [
-        {
-          routingCodeType: 'USABA',
-          routingNumber: '666000777',
-          transactionType: 'ACH',
-        },
-        {
-          routingCodeType: 'USABA',
-          routingNumber: '666000777',
-          transactionType: 'RTP',
-        },
-      ],
-    },
-    createdAt: '2024-01-18T13:30:00Z',
-    updatedAt: '2024-01-19T10:45:00Z',
-  },
-];
-
-// Mock accounts matching MakePayment story structure
-const mockAccounts = {
-  items: [
-    {
-      id: 'account1',
-      clientId: 'mock-client-id',
-      label: 'TAXES',
-      state: 'OPEN',
-      paymentRoutingInformation: {
-        accountNumber: '10000000001035',
-        country: 'US',
-        routingInformation: [
-          {
-            type: 'ABA',
-            value: '028000024',
-          },
-        ],
-      },
-      createdAt: '2025-04-14T08:57:21.592681Z',
-      category: 'MANAGEMENT',
-    },
-    {
-      id: 'account2',
-      clientId: 'mock-client-id',
-      label: 'CLIENT_OFFSET',
-      state: 'OPEN',
-      paymentRoutingInformation: {
-        accountNumber: '10000000001032',
-        country: 'US',
-        routingInformation: [
-          {
-            type: 'ABA',
-            value: '028000024',
-          },
-        ],
-      },
-      createdAt: '2025-04-14T08:57:21.644832Z',
-      category: 'CLIENT_OFFSET',
-    },
-    {
-      id: 'account3',
-      clientId: 'mock-client-id',
-      label: 'MAIN3919',
-      state: 'OPEN',
-      paymentRoutingInformation: {
-        accountNumber: '20000057603919',
-        country: 'US',
-        routingInformation: [
-          {
-            type: 'ABA',
-            value: '028000024',
-          },
-        ],
-      },
-      createdAt: '2025-04-14T08:57:21.792272Z',
-      category: 'LIMITED_DDA',
-    },
-    {
-      id: 'account4',
-      clientId: 'mock-client-id',
-      label: 'MAIN3212',
-      state: 'OPEN',
-      paymentRoutingInformation: {
-        accountNumber: '20000097603212',
-        country: 'US',
-        routingInformation: [
-          {
-            type: 'ABA',
-            value: '028000024',
-          },
-        ],
-      },
-      createdAt: '2025-04-14T08:57:21.913631Z',
-      category: 'LIMITED_DDA_PAYMENTS',
-    },
-  ],
-};
-
-// Mock account balances
-const mockAccountBalances: Record<
-  string,
-  {
-    balanceTypes: Array<{ typeCode: string; amount: number }>;
-    currency: string;
-  }
-> = {
-  account1: {
-    balanceTypes: [
-      { typeCode: 'ITAV', amount: 5000.0 },
-      { typeCode: 'ITBD', amount: 5200.0 },
-    ],
-    currency: 'USD',
-  },
-  account2: {
-    balanceTypes: [
-      { typeCode: 'ITAV', amount: 15000.0 },
-      { typeCode: 'ITBD', amount: 15200.0 },
-    ],
-    currency: 'USD',
-  },
-  account3: {
-    balanceTypes: [
-      { typeCode: 'ITAV', amount: 25000.0 },
-      { typeCode: 'ITBD', amount: 25200.0 },
-    ],
-    currency: 'USD',
-  },
-  account4: {
-    balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
-    currency: 'USD',
-  },
-};
-
-// MSW handlers for PaymentFlow
-const mswHandlers = [
-  // Accounts list
-  http.get('/accounts', () => {
-    return HttpResponse.json(mockAccounts);
-  }),
-  // Account balances
-  http.get('/accounts/:accountId/balances', ({ params }) => {
-    const accountId = params.accountId as string;
-    const balance = mockAccountBalances[accountId];
-    if (balance) {
-      return HttpResponse.json(balance);
-    }
-    return HttpResponse.json({ error: 'Account not found' }, { status: 404 });
-  }),
-  // Recipients list (supports type filter and pagination)
-  http.get('/recipients', ({ request }) => {
-    const url = new URL(request.url);
-    const type = url.searchParams.get('type');
-
-    let filteredRecipients = mockRecipients;
-    if (type) {
-      filteredRecipients = mockRecipients.filter((r) => r.type === type);
-    }
-
-    return HttpResponse.json({
-      recipients: filteredRecipients,
-      metadata: {
-        total_items: filteredRecipients.length,
-        page: 0,
-        limit: 25,
-      },
-    });
-  }),
-  // Single recipient by ID
-  http.get('/recipients/:recipientId', ({ params }) => {
-    const recipientId = params.recipientId as string;
-    const recipient = mockRecipients.find((r) => r.id === recipientId);
-    if (recipient) {
-      return HttpResponse.json(recipient);
-    }
-    return HttpResponse.json({ error: 'Recipient not found' }, { status: 404 });
-  }),
-  // Create transaction
-  http.post('/transactions', () => {
-    return HttpResponse.json({
-      id: 'txn-12345',
-      amount: 100.0,
-      currency: 'USD',
-      debtorAccountId: 'account1',
-      creditorAccountId: 'acc-1234',
-      recipientId: 'linkedAccount1',
-      transactionReferenceId: 'PAY-1234567890',
-      type: 'ACH',
-      memo: 'Test payment',
-      status: 'PENDING',
-      paymentDate: '2024-01-15',
-      createdAt: '2024-01-15T10:30:00Z',
-      debtorName: 'John Doe',
-      creditorName: 'Jane Smith',
-      debtorAccountNumber: '****1234',
-      creditorAccountNumber: '****5678',
-    });
-  }),
-];
-
-const meta: Meta<typeof PaymentFlow> = {
-  title: 'core/PaymentFlow/PaymentFlow',
+const meta = {
+  title: 'Core/PaymentFlow',
   component: PaymentFlow,
-  tags: ['autodocs'],
+  tags: ['@core', '@payments', 'autodocs'],
   parameters: {
     layout: 'centered',
     msw: {
-      handlers: mswHandlers,
+      handlers: createPaymentFlowHandlers(),
     },
     docs: {
       description: {
         component: `
-The PaymentFlow component provides a complete payment/transfer flow within a modal dialog.
-It uses a FlowContainer architecture to avoid double modal issues and provides a clean,
-step-by-step experience for selecting payees, payment methods, accounts, and amounts.
+The PaymentFlow component provides a complete payment/transfer experience within a modal dialog.
 
-## Features
+## Key Features
 
-- **Two-column layout**: Form on left, review panel on right (desktop)
-- **Mobile-optimized**: Collapsible review panel on mobile with mandatory review
-- **FlowContainer architecture**: View-based navigation avoids modal stacking
-- **Collapsible sections**: Payee, Payment Method, From Account, Amount
+- **Two-column layout**: Form on left, review summary on right (desktop)
+- **Mobile-optimized**: Full-screen dialog with responsive layout
+- **Tabbed payee selection**: Switch between Recipients and Linked Accounts
 - **Progressive disclosure**: Payment methods unlock after payee selection
-- **Add payee inline**: Link external account or add new recipient
-- **Enable payment methods**: Enable locked payment methods for existing payees
+- **Inline payee creation**: Add new recipients or link accounts without leaving the flow
+- **Real-time validation**: Form validates as user enters data
+- **Configurable fees**: Show/hide fee breakdown in review panel
+
+## Usage
+
+\`\`\`tsx
+<PaymentFlow
+  clientId="your-client-id"
+  trigger={<Button>Transfer Funds</Button>}
+  onTransactionComplete={(response, error) => {
+    if (error) console.error('Failed:', error);
+    else console.log('Success:', response);
+  }}
+/>
+\`\`\`
         `,
       },
     },
   },
-  argTypes: {
-    clientId: {
-      control: 'text',
-      description: 'Client ID for fetching accounts and recipients',
-    },
-    onTransactionComplete: { action: 'transactionComplete' },
-    onClose: { action: 'close' },
-    paymentMethods: {
-      control: 'object',
-      description: 'Available payment methods',
-    },
-    initialAccountId: {
-      control: 'text',
-      description: 'Pre-selected account ID',
-    },
-    initialPayeeId: {
-      control: 'text',
-      description: 'Pre-selected payee ID',
-    },
-    initialPaymentMethod: {
-      control: 'select',
-      options: ['ACH', 'WIRE', 'RTP', 'BOOK'],
-      description: 'Pre-selected payment method',
-    },
-  },
-};
+  args: commonArgs,
+  argTypes: commonArgTypes,
+} satisfies Meta<typeof PaymentFlow>;
 
 export default meta;
-type Story = StoryObj<typeof PaymentFlow>;
+type Story = StoryObj<typeof meta>;
+
+// ============================================================================
+// Basic Configurations
+// ============================================================================
 
 /**
- * Default PaymentFlow with button trigger
+ * Default configuration with trigger button.
+ * Click the button to open the payment flow dialog.
+ *
+ * **Features shown:**
+ * - Trigger button that opens the dialog
+ * - Two-column layout (form + review panel)
+ * - All payment methods available
+ * - Tabbed payee selection (Recipients / Linked Accounts)
  */
 export const Default: Story = {
   args: {
-    clientId: 'mock-client-id',
     trigger: <Button>Transfer Funds</Button>,
-    paymentMethods: DEFAULT_PAYMENT_METHODS,
-    onTransactionComplete: logAction('transactionComplete'),
-    onClose: logAction('close'),
   },
 };
 
 /**
- * PaymentFlow with initial values pre-selected
+ * Dialog opens immediately without a trigger button.
+ * Use this when you control the open state externally.
+ *
+ * **Use this when:**
+ * - Opening PaymentFlow from another component's action
+ * - Managing open state in parent component
+ * - Integrating into existing navigation flows
  */
-export const WithInitialValues: Story = {
+export const ControlledOpen: Story = {
   args: {
-    clientId: 'mock-client-id',
-    trigger: <Button>Transfer to Acme Corp</Button>,
-    paymentMethods: DEFAULT_PAYMENT_METHODS,
-    initialPayeeId: '1', // Acme Corp from mock data
-    initialPaymentMethod: 'ACH',
-    initialAccountId: 'acc-1',
-    onTransactionComplete: logAction('transactionComplete'),
-    onClose: logAction('close'),
-  },
-};
-
-/**
- * Controlled open state
- */
-export const Controlled: Story = {
-  args: {
-    clientId: 'mock-client-id',
     open: true,
-    paymentMethods: DEFAULT_PAYMENT_METHODS,
-    onTransactionComplete: logAction('transactionComplete'),
-    onClose: logAction('close'),
   },
   parameters: {
     docs: {
       description: {
         story:
-          'The dialog can be controlled externally using the `open` and `onOpenChange` props.',
+          'Control the dialog state externally using `open` and `onOpenChange` props. Useful when integrating into existing UI flows.',
       },
     },
   },
 };
 
+// ============================================================================
+// Initial State Configurations
+// ============================================================================
+
 /**
- * PaymentFlow with limited payment methods
+ * Pre-select an account to transfer from.
+ * Useful when launching from a specific account's page.
+ *
+ * **Use this when:**
+ * - User navigates from an account detail page
+ * - You want to streamline the flow for a specific account
  */
-export const LimitedPaymentMethods: Story = {
+export const WithInitialAccount: Story = {
   args: {
-    clientId: 'mock-client-id',
-    trigger: <Button>ACH Transfer Only</Button>,
-    paymentMethods: [
-      {
-        id: 'ACH',
-        name: 'ACH Transfer',
-        description: '1-3 business days',
-        estimatedDelivery: '1-3 business days',
-        fee: 0,
-      },
-    ],
-    onTransactionComplete: logAction('transactionComplete'),
-    onClose: logAction('close'),
+    trigger: <Button>Transfer from Main Checking</Button>,
+    initialAccountId: 'acc-checking-main',
   },
   parameters: {
     docs: {
       description: {
         story:
-          'The available payment methods can be customized by passing a filtered list.',
+          'Pre-select the "From Account" to skip account selection. The account section will show the selected account.',
       },
     },
   },
 };
 
 /**
- * Mobile viewport
+ * Pre-select a payee (recipient or linked account).
+ * Useful for "Pay Again" or quick transfer scenarios.
+ *
+ * **Use this when:**
+ * - User clicks "Pay" on a specific recipient
+ * - Implementing "Pay Again" from transaction history
+ */
+export const WithInitialPayee: Story = {
+  args: {
+    trigger: <Button>Pay Alice Johnson</Button>,
+    initialPayeeId: 'recipient-alice',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Pre-select a payee to skip the payee selection step. The payee section will show the selected recipient.',
+      },
+    },
+  },
+};
+
+/**
+ * Pre-fill multiple fields for a quick repeat payment.
+ * Useful for "Pay Again" scenarios with full context.
+ *
+ * **Use this when:**
+ * - Implementing "Pay Again" functionality
+ * - Creating payment shortcuts
+ */
+export const WithAllInitialValues: Story = {
+  args: {
+    trigger: <Button>Repeat Last Payment</Button>,
+    initialAccountId: 'acc-checking-main',
+    initialPayeeId: 'recipient-techsolutions',
+    initialPaymentMethod: 'ACH',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Pre-fill account, payee, and payment method. User only needs to enter amount and submit.',
+      },
+    },
+  },
+};
+
+// ============================================================================
+// Payment Method Configurations
+// ============================================================================
+
+/**
+ * Show only ACH transfers (no wire or RTP).
+ * Use when other payment methods aren't available.
+ *
+ * **Use this when:**
+ * - Only ACH is supported for your use case
+ * - You want to simplify the payment method selection
+ */
+export const AchOnly: Story = {
+  args: {
+    trigger: <Button>ACH Transfer</Button>,
+    paymentMethods: achOnlyPaymentMethods,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Limit available payment methods by passing a filtered `paymentMethods` array.',
+      },
+    },
+  },
+};
+
+/**
+ * Display fees for each payment method.
+ * Shows fee breakdown in the review panel.
+ *
+ * **Use this when:**
+ * - Payment methods have associated fees
+ * - You want transparent pricing for users
+ */
+export const WithFees: Story = {
+  args: {
+    trigger: <Button>Transfer Funds</Button>,
+    paymentMethods: paymentMethodsWithFees,
+    showFees: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Enable `showFees` to display fee breakdown in the review panel. Fees are configured per payment method.',
+      },
+    },
+  },
+};
+
+// ============================================================================
+// Responsive Layouts
+// ============================================================================
+
+/**
+ * Mobile viewport display.
+ * Shows how the flow adapts to small screens.
+ *
+ * **Responsive features:**
+ * - Full-screen dialog
+ * - Stacked layout (form above review)
+ * - Vertically stacked tabs
+ * - Touch-friendly controls
  */
 export const MobileView: Story = {
   args: {
-    clientId: 'mock-client-id',
-    trigger: <Button>Transfer Funds</Button>,
-    paymentMethods: DEFAULT_PAYMENT_METHODS,
-    onTransactionComplete: logAction('transactionComplete'),
-    onClose: logAction('close'),
+    open: true,
   },
   parameters: {
     viewport: {
@@ -584,7 +268,56 @@ export const MobileView: Story = {
     docs: {
       description: {
         story:
-          'On mobile, the review panel appears as a collapsible bottom sheet that must be expanded before submitting.',
+          'On mobile viewports (< 640px), the dialog becomes full-screen and the review panel moves below the form.',
+      },
+    },
+  },
+};
+
+/**
+ * Tablet viewport display.
+ * Shows the two-column layout on medium screens.
+ */
+export const TabletView: Story = {
+  args: {
+    open: true,
+  },
+  parameters: {
+    viewport: {
+      defaultViewport: 'tablet',
+    },
+    docs: {
+      description: {
+        story:
+          'On tablet viewports, the dialog uses the standard two-column layout with adequate spacing.',
+      },
+    },
+  },
+};
+
+// ============================================================================
+// Account Type Variations
+// ============================================================================
+
+/**
+ * Limited DDA account selected.
+ * Shows the recipient restriction behavior for LIMITED_DDA accounts.
+ *
+ * **Key behavior:**
+ * - Recipients tab shows "locked" state
+ * - User can only select from Linked Accounts
+ * - Warning banner explains the restriction
+ */
+export const LimitedDDAAccount: Story = {
+  args: {
+    trigger: <Button>Transfer from Payroll</Button>,
+    initialAccountId: 'acc-limited',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'LIMITED_DDA accounts can only transfer to Linked Accounts, not Recipients. The Recipients tab shows a lock icon and restriction message.',
       },
     },
   },
