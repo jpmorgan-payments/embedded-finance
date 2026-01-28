@@ -209,6 +209,8 @@ interface MainTransferViewProps {
   isLoading: boolean;
   onPayeeSelect: (payee: Payee) => void;
   onAddNewPayee: () => void;
+  onAddRecipient?: () => void;
+  onLinkAccount?: () => void;
   onPaymentMethodSelect: (method: PaymentMethodType) => void;
   onEnablePaymentMethod: (method: PaymentMethodType) => void;
   onAccountSelect: (accountId: string) => void;
@@ -234,6 +236,8 @@ function MainTransferView({
   isLoading,
   onPayeeSelect,
   onAddNewPayee,
+  onAddRecipient,
+  onLinkAccount,
   onPaymentMethodSelect,
   onEnablePaymentMethod,
   onAccountSelect,
@@ -511,6 +515,8 @@ function MainTransferView({
           selectedPayeeId={formData.payeeId}
           onSelect={handlePayeeSelect}
           onAddNew={onAddNewPayee}
+          onAddRecipient={onAddRecipient}
+          onLinkAccount={onLinkAccount}
           recipients={payees}
           linkedAccounts={linkedAccounts}
           isLoading={isLoading}
@@ -864,10 +870,37 @@ function PaymentFlowContent({
     [formData.paymentMethod, setFormData]
   );
 
-  // Handler for adding new payee
+  // Handler for adding new payee (shows payee type selection)
   const handleAddNewPayee = useCallback(() => {
     pushView('payee-type');
   }, [pushView]);
+
+  // Handler for directly adding a recipient (skips payee type selection)
+  const handleAddRecipient = useCallback(() => {
+    pushView('add-recipient-form');
+  }, [pushView]);
+
+  // Handler for directly linking an account (skips payee type selection)
+  const handleLinkAccount = useCallback(() => {
+    pushView('link-account');
+  }, [pushView]);
+
+  // Determine if current account is LIMITED_DDA (can only use linked accounts)
+  const selectedAccount = useMemo(
+    () => accounts.find((a) => a.id === formData.fromAccountId),
+    [accounts, formData.fromAccountId]
+  );
+  const isLimitedDDA = selectedAccount?.category === 'LIMITED_DDA';
+
+  // Handler for switching from linked account form to recipient form
+  const handleSwitchToRecipient = useCallback(() => {
+    replaceView('add-recipient-form');
+  }, [replaceView]);
+
+  // Handler for switching from recipient form to linked account form
+  const handleSwitchToLinkedAccount = useCallback(() => {
+    replaceView('link-account');
+  }, [replaceView]);
 
   // Handler for payment method selection
   const handlePaymentMethodSelect = useCallback(
@@ -1081,6 +1114,8 @@ function PaymentFlowContent({
           isLoading={isLoading}
           onPayeeSelect={handlePayeeSelect}
           onAddNewPayee={handleAddNewPayee}
+          onAddRecipient={handleAddRecipient}
+          onLinkAccount={handleLinkAccount}
           onPaymentMethodSelect={handlePaymentMethodSelect}
           onEnablePaymentMethod={handleEnablePaymentMethod}
           onAccountSelect={handleAccountSelect}
@@ -1111,6 +1146,9 @@ function PaymentFlowContent({
           formType="linked-account"
           onSuccess={handleLinkedAccountSuccess}
           onCancel={popView}
+          onSwitchToRecipient={
+            isLimitedDDA ? undefined : handleSwitchToRecipient
+          }
         />
       </FlowView>
 
@@ -1121,6 +1159,7 @@ function PaymentFlowContent({
           availablePaymentMethods={paymentMethods}
           onSuccess={handleRecipientSuccess}
           onCancel={popView}
+          onSwitchToLinkedAccount={handleSwitchToLinkedAccount}
         />
       </FlowView>
 

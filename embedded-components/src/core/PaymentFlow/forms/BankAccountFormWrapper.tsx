@@ -34,6 +34,10 @@ export interface BankAccountFormWrapperProps {
   onSuccess: (recipient: Recipient) => void;
   /** Callback when form is cancelled */
   onCancel: () => void;
+  /** Callback to switch to adding a recipient (only shown when formType is 'linked-account') */
+  onSwitchToRecipient?: () => void;
+  /** Callback to switch to linking an account (only shown when formType is 'recipient') */
+  onSwitchToLinkedAccount?: () => void;
 }
 
 /**
@@ -51,6 +55,8 @@ export function BankAccountFormWrapper({
   availablePaymentMethods,
   onSuccess,
   onCancel,
+  onSwitchToRecipient,
+  onSwitchToLinkedAccount,
 }: BankAccountFormWrapperProps) {
   // Get base config based on form type
   const linkedAccountConfig = useLinkedAccountConfig();
@@ -146,6 +152,25 @@ export function BankAccountFormWrapper({
             ? 'Connect your account from another bank for transfers.'
             : 'Add a new person or business to send payments to.'}
         </p>
+        {/* Switch option link */}
+        {formType === 'linked-account' && onSwitchToRecipient && (
+          <button
+            type="button"
+            onClick={onSwitchToRecipient}
+            className="eb-mt-2 eb-text-sm eb-text-primary eb-underline-offset-4 hover:eb-underline"
+          >
+            Or add an external recipient instead
+          </button>
+        )}
+        {formType === 'recipient' && onSwitchToLinkedAccount && (
+          <button
+            type="button"
+            onClick={onSwitchToLinkedAccount}
+            className="eb-mt-2 eb-text-sm eb-text-primary eb-underline-offset-4 hover:eb-underline"
+          >
+            Or link my account instead
+          </button>
+        )}
       </div>
 
       {/* Form - embedded in a bordered card for visual separation */}
