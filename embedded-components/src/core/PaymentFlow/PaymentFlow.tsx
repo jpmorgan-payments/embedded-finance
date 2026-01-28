@@ -34,7 +34,6 @@ import {
   BankAccountFormWrapper,
   EnablePaymentMethodWrapper,
   PayeeTypeSelector,
-  PaymentMethodSelection,
 } from './forms';
 import { PayeeSelector } from './PayeeSelector';
 import { DEFAULT_PAYMENT_METHODS, PANEL_IDS } from './PaymentFlow.constants';
@@ -923,8 +922,8 @@ function PaymentFlowContent({
   const handleAccountSelect = useCallback(
     (accountId: string) => {
       // Find the account to get its available balance
-      const selectedAccount = accounts.find((a) => a.id === accountId);
-      const availableBalance = selectedAccount?.balance?.available;
+      const account = accounts.find((a) => a.id === accountId);
+      const availableBalance = account?.balance?.available;
       setFormData({ fromAccountId: accountId, availableBalance });
     },
     [accounts, setFormData]
