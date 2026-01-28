@@ -125,7 +125,7 @@ export function FlowContainer({
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
-          className="eb-flex eb-h-[85vh] eb-max-h-[700px] eb-w-[95vw] eb-max-w-[900px] eb-flex-col eb-gap-0 eb-overflow-hidden eb-p-0"
+          className="eb-dialog-responsive-lg eb-flex eb-flex-col eb-gap-0 eb-overflow-hidden eb-p-0"
           aria-describedby={undefined}
         >
           <DialogTitle className="eb-sr-only">{title}</DialogTitle>
