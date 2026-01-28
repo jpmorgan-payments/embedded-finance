@@ -856,7 +856,6 @@ Substantial progress has been made. Re-assessment against latest source and depl
 
 #### Orval & Dependencies [BL-503]
 
-- [ ] **BL-503-1:** Review and update Orval codegen to latest 7.x
 - [ ] **BL-503-2:** Ensure React Query v5 generators and axios mutator are configured
 - [ ] **BL-503-3:** Regenerate from latest OAS in `api-specs/`
 - [ ] **BL-503-4:** Dependency policy: prioritize security patches
@@ -864,6 +863,8 @@ Substantial progress has been made. Re-assessment against latest source and depl
 - [ ] **BL-503-6:** Track axios/react-query/radix/msw/storybook/vite minors
 - [ ] **BL-503-7:** Package manager: migrate to pnpm (workspaces) for speed and content-addressable store
 - [ ] **BL-503-8:** Update docs/CI to use `pnpm -w` equivalents
+- [ ] **BL-503-9:** Upgrade Orval to v8 when stable (tech task)
+  - Orval v8 is a breaking change: ESM config (`.mjs` or `type: "module"`), Node 22.18+, default `httpClient` switched from axios to fetch, removed/renamed options. Stay on 7.20.x for now; plan migration once v8 ecosystem and migration path are stable. See [Orval migration guide v8](https://orval.dev/guides/migration-v8).
 
 #### Other Dependency Updates [BL-508]
 
