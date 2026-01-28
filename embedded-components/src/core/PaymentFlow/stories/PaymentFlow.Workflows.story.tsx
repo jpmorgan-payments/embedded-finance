@@ -76,7 +76,6 @@ export const CompletePaymentFlow: Story = {
     paymentMethods: defaultPaymentMethods,
   },
   play: async ({ step }) => {
-    
     // Wait for dialog to open
     await waitFor(
       async () => {
@@ -85,8 +84,10 @@ export const CompletePaymentFlow: Story = {
       },
       { timeout: 5000 }
     );
-    
-    const dialog = within(document.querySelector('[role="dialog"]') as HTMLElement);
+
+    const dialog = within(
+      document.querySelector('[role="dialog"]') as HTMLElement
+    );
 
     await step('Select a recipient', async () => {
       await delay(STEP_DELAY);
@@ -135,8 +136,10 @@ export const CompletePaymentFlow: Story = {
       await waitFor(() => {
         expect(dialog.getByText('$250.00')).toBeInTheDocument();
       });
-      
-      const submitButton = dialog.getByRole('button', { name: /send payment/i });
+
+      const submitButton = dialog.getByRole('button', {
+        name: /send payment/i,
+      });
       await userEvent.click(submitButton);
     });
 
@@ -169,8 +172,10 @@ export const SwitchPayeeTabs: Story = {
       },
       { timeout: 5000 }
     );
-    
-    const dialog = within(document.querySelector('[role="dialog"]') as HTMLElement);
+
+    const dialog = within(
+      document.querySelector('[role="dialog"]') as HTMLElement
+    );
 
     await step('View Recipients tab (default)', async () => {
       await delay(STEP_DELAY);
@@ -221,8 +226,10 @@ export const SearchPayee: Story = {
       },
       { timeout: 5000 }
     );
-    
-    const dialog = within(document.querySelector('[role="dialog"]') as HTMLElement);
+
+    const dialog = within(
+      document.querySelector('[role="dialog"]') as HTMLElement
+    );
 
     await step('Wait for recipients to load', async () => {
       await waitFor(
@@ -283,8 +290,10 @@ export const AddNewRecipient: Story = {
       },
       { timeout: 5000 }
     );
-    
-    const dialog = within(document.querySelector('[role="dialog"]') as HTMLElement);
+
+    const dialog = within(
+      document.querySelector('[role="dialog"]') as HTMLElement
+    );
 
     await step('Click "Add New Recipient"', async () => {
       await delay(STEP_DELAY);
@@ -306,7 +315,9 @@ export const AddNewRecipient: Story = {
 
     await step('Navigate back to payee selection', async () => {
       await delay(STEP_DELAY);
-      const backButton = document.querySelector('[aria-label*="back" i]') as HTMLElement;
+      const backButton = document.querySelector(
+        '[aria-label*="back" i]'
+      ) as HTMLElement;
       if (backButton) {
         await userEvent.click(backButton);
       }
@@ -316,7 +327,9 @@ export const AddNewRecipient: Story = {
       await delay(STEP_DELAY);
       await waitFor(
         () => {
-          expect(dialog.getByRole('tab', { name: /recipients/i })).toBeInTheDocument();
+          expect(
+            dialog.getByRole('tab', { name: /recipients/i })
+          ).toBeInTheDocument();
         },
         { timeout: 3000 }
       );
@@ -337,8 +350,10 @@ export const LinkNewAccount: Story = {
       },
       { timeout: 5000 }
     );
-    
-    const dialog = within(document.querySelector('[role="dialog"]') as HTMLElement);
+
+    const dialog = within(
+      document.querySelector('[role="dialog"]') as HTMLElement
+    );
 
     await step('Switch to Linked Accounts tab', async () => {
       await delay(STEP_DELAY);
@@ -389,8 +404,10 @@ export const SelectPaymentMethods: Story = {
       },
       { timeout: 5000 }
     );
-    
-    const dialog = within(document.querySelector('[role="dialog"]') as HTMLElement);
+
+    const dialog = within(
+      document.querySelector('[role="dialog"]') as HTMLElement
+    );
 
     await step('Wait for payment methods to load', async () => {
       await waitFor(
@@ -442,8 +459,10 @@ export const NavigateBackFromSubViews: Story = {
       },
       { timeout: 5000 }
     );
-    
-    const dialog = within(document.querySelector('[role="dialog"]') as HTMLElement);
+
+    const dialog = within(
+      document.querySelector('[role="dialog"]') as HTMLElement
+    );
 
     await step('Open add recipient form', async () => {
       await delay(STEP_DELAY);
@@ -464,7 +483,9 @@ export const NavigateBackFromSubViews: Story = {
 
     await step('Click back button', async () => {
       await delay(STEP_DELAY);
-      const backButton = document.querySelector('[aria-label*="back" i]') as HTMLElement;
+      const backButton = document.querySelector(
+        '[aria-label*="back" i]'
+      ) as HTMLElement;
       await userEvent.click(backButton);
     });
 
@@ -472,7 +493,9 @@ export const NavigateBackFromSubViews: Story = {
       await delay(STEP_DELAY);
       await waitFor(
         () => {
-          expect(dialog.getByRole('tab', { name: /recipients/i })).toBeInTheDocument();
+          expect(
+            dialog.getByRole('tab', { name: /recipients/i })
+          ).toBeInTheDocument();
         },
         { timeout: 3000 }
       );
@@ -496,7 +519,9 @@ export const CloseDialog: Story = {
 
     await step('Make some selections', async () => {
       await delay(STEP_DELAY);
-      const dialog = within(document.querySelector('[role="dialog"]') as HTMLElement);
+      const dialog = within(
+        document.querySelector('[role="dialog"]') as HTMLElement
+      );
       const aliceButton = await waitFor(
         () => dialog.getByRole('button', { name: /alice johnson/i }),
         { timeout: 5000 }
@@ -506,7 +531,9 @@ export const CloseDialog: Story = {
 
     await step('Close dialog with X button', async () => {
       await delay(STEP_DELAY);
-      const closeButton = document.querySelector('[aria-label*="close" i]') as HTMLElement;
+      const closeButton = document.querySelector(
+        '[aria-label*="close" i]'
+      ) as HTMLElement;
       if (closeButton) {
         await userEvent.click(closeButton);
       }
