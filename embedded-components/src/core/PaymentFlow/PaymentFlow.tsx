@@ -32,7 +32,7 @@ import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvid
 import { FlowContainer, FlowView, useFlowContext } from './FlowContainer';
 import {
   BankAccountFormWrapper,
-  EnablePaymentMethodForm,
+  EnablePaymentMethodWrapper,
   PayeeTypeSelector,
   PaymentMethodSelection,
 } from './forms';
@@ -1166,11 +1166,11 @@ function PaymentFlowContent({
       {/* Enable Payment Method View */}
       <FlowView viewId="enable-payment-method">
         {selectedPayee && pendingMethod && (
-          <EnablePaymentMethodForm
+          <EnablePaymentMethodWrapper
             payee={selectedPayee}
             paymentMethod={pendingMethod}
-            onSubmit={(_data) => {
-              // TODO: Enable payment method for payee
+            onSuccess={() => {
+              // Payment method is now enabled - select it and go back
               setFormData({ paymentMethod: pendingPaymentMethod! });
               setPendingPaymentMethod(null);
               popView();

@@ -188,6 +188,13 @@ export interface BankAccountFormProps {
    * @default false
    */
   embedded?: boolean;
+  /**
+   * Force initial payment types selection.
+   * When provided, this overrides the default behavior of using recipient's
+   * existing payment types or config.defaultSelected.
+   * Useful when enabling a new payment method on an existing recipient.
+   */
+  initialPaymentTypes?: RoutingInformationTransactionType[];
 }
 
 /**
