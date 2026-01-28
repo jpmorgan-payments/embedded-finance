@@ -375,23 +375,26 @@ export function PayeeSelector({
         }
         className="eb-space-y-3"
       >
-        <TabsList className="eb-w-full">
+        <TabsList className="eb-h-auto eb-w-full eb-flex-col @md:eb-h-9 @md:eb-flex-row">
           <TabsTrigger
             value="recipients"
             className={cn(
-              'eb-flex-1 eb-gap-1.5',
+              'eb-w-full eb-gap-1.5 eb-text-sm @md:eb-flex-1',
               recipientsRestricted && 'eb-text-muted-foreground'
             )}
           >
             {recipientsRestricted ? (
-              <Lock className="eb-h-3.5 eb-w-3.5 eb-text-muted-foreground" />
+              <Lock className="eb-h-3.5 eb-w-3.5 eb-shrink-0 eb-text-muted-foreground" />
             ) : (
-              <User className="eb-h-3.5 eb-w-3.5" />
+              <User className="eb-h-3.5 eb-w-3.5 eb-shrink-0" />
             )}
             Recipients ({totalRecipients ?? recipients.length})
           </TabsTrigger>
-          <TabsTrigger value="linked-accounts" className="eb-flex-1 eb-gap-1.5">
-            <Link className="eb-h-3.5 eb-w-3.5" />
+          <TabsTrigger
+            value="linked-accounts"
+            className="eb-w-full eb-gap-1.5 eb-text-sm @md:eb-flex-1"
+          >
+            <Link className="eb-h-3.5 eb-w-3.5 eb-shrink-0" />
             Linked Accounts ({totalLinkedAccounts ?? linkedAccounts.length})
           </TabsTrigger>
         </TabsList>
