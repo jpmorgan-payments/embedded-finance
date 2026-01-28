@@ -176,6 +176,18 @@ export interface BankAccountFormProps {
   showCard?: boolean;
   /** Custom alert/message to show above the form */
   alert?: ReactNode;
+  /**
+   * Skip step 1 (payment method selection) and go directly to step 2.
+   * Useful when payment method is pre-selected and step 1 would be redundant.
+   * @default false
+   */
+  skipStepOne?: boolean;
+  /**
+   * Render in embedded mode (inside another flow, not a dialog).
+   * When true, cancel button does not use DialogClose wrapper.
+   * @default false
+   */
+  embedded?: boolean;
 }
 
 /**

@@ -658,10 +658,13 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   isLoading = false,
   alert,
   client,
+  skipStepOne = false,
+  embedded = false,
 }) => {
   const { t } = useTranslation('bank-account-form');
   const formatRequiredMessage = useFormatRequiredMessage();
-  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
+  // Start on step 2 if skipStepOne is true
+  const [currentStep, setCurrentStep] = useState<1 | 2>(skipStepOne ? 2 : 1);
 
   // Extract organization name from client data if available
   const organizationName = useMemo(() => {
@@ -1032,7 +1035,9 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
         onSubmit={form.handleSubmit(handleFormSubmit)}
         className="eb-flex eb-min-h-0 eb-flex-1 eb-flex-col"
       >
-        <div className="eb-min-h-0 eb-flex-1 eb-overflow-y-auto eb-px-6">
+        <div
+          className={`eb-min-h-0 eb-flex-1 eb-overflow-y-auto ${embedded ? 'eb-px-4' : 'eb-px-6'}`}
+        >
           <div className="eb-space-y-4 eb-py-4">
             {alert}
             {/* Step 1: Account Type & Payment Method Selection */}
@@ -1451,12 +1456,12 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
           </div>
         </div>
 
-        {/* Footer */}
-        <DialogFooter className="eb-shrink-0 eb-gap-3 eb-border-t eb-bg-muted/10 eb-p-6 eb-py-4">
-          {currentStep === 1 && (
-            <>
-              {onCancel && (
-                <DialogClose asChild>
+        {/* Footer - Use plain div when embedded, DialogFooter when in dialog context */}
+        {embedded ? (
+          <div className="eb-flex eb-shrink-0 eb-flex-col-reverse eb-gap-3 eb-p-4 eb-pt-4 sm:eb-flex-row sm:eb-justify-end">
+            {currentStep === 1 && (
+              <>
+                {onCancel && (
                   <Button
                     variant="outline"
                     type="button"
@@ -1466,44 +1471,98 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                     {effectiveConfig.content.cancelButtonText ||
                       t('navigation.cancel')}
                   </Button>
-                </DialogClose>
-              )}
-              <Button
-                type="button"
-                onClick={handleStep1Continue}
-                className="eb-w-full sm:eb-w-auto sm:eb-min-w-[200px]"
-              >
-                {t('navigation.continueToAccountDetails')} <ArrowRightIcon />
-              </Button>
-            </>
-          )}
-
-          {currentStep === 2 && (
-            <>
-              <Button
-                variant="outline"
-                type="button"
-                onClick={handleStep2Back}
-                disabled={isLoading}
-                className="eb-w-full sm:eb-w-auto"
-              >
-                <ArrowLeftIcon /> {t('navigation.back')}
-              </Button>
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="eb-w-full sm:eb-w-auto sm:eb-min-w-[120px]"
-              >
-                {isLoading && (
-                  <Loader2Icon className="eb-mr-2 eb-h-4 eb-w-4 eb-animate-spin" />
                 )}
-                {isLoading
-                  ? effectiveConfig.content.loadingMessage
-                  : effectiveConfig.content.submitButtonText}
-              </Button>
-            </>
-          )}
-        </DialogFooter>
+                <Button
+                  type="button"
+                  onClick={handleStep1Continue}
+                  className="eb-w-full sm:eb-w-auto sm:eb-min-w-[200px]"
+                >
+                  {t('navigation.continueToAccountDetails')} <ArrowRightIcon />
+                </Button>
+              </>
+            )}
+
+            {currentStep === 2 && (
+              <>
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={skipStepOne && onCancel ? onCancel : handleStep2Back}
+                  disabled={isLoading}
+                  className="eb-w-full sm:eb-w-auto"
+                >
+                  <ArrowLeftIcon />{' '}
+                  {skipStepOne ? t('navigation.cancel') : t('navigation.back')}
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="eb-w-full sm:eb-w-auto sm:eb-min-w-[120px]"
+                >
+                  {isLoading && (
+                    <Loader2Icon className="eb-mr-2 eb-h-4 eb-w-4 eb-animate-spin" />
+                  )}
+                  {isLoading
+                    ? effectiveConfig.content.loadingMessage
+                    : effectiveConfig.content.submitButtonText}
+                </Button>
+              </>
+            )}
+          </div>
+        ) : (
+          <DialogFooter className="eb-shrink-0 eb-gap-3 eb-border-t eb-bg-muted/10 eb-p-6 eb-py-4">
+            {currentStep === 1 && (
+              <>
+                {onCancel && (
+                  <DialogClose asChild>
+                    <Button
+                      variant="outline"
+                      type="button"
+                      onClick={onCancel}
+                      className="eb-w-full sm:eb-w-auto"
+                    >
+                      {effectiveConfig.content.cancelButtonText ||
+                        t('navigation.cancel')}
+                    </Button>
+                  </DialogClose>
+                )}
+                <Button
+                  type="button"
+                  onClick={handleStep1Continue}
+                  className="eb-w-full sm:eb-w-auto sm:eb-min-w-[200px]"
+                >
+                  {t('navigation.continueToAccountDetails')} <ArrowRightIcon />
+                </Button>
+              </>
+            )}
+
+            {currentStep === 2 && (
+              <>
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={handleStep2Back}
+                  disabled={isLoading}
+                  className="eb-w-full sm:eb-w-auto"
+                >
+                  <ArrowLeftIcon /> {t('navigation.back')}
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="eb-w-full sm:eb-w-auto sm:eb-min-w-[120px]"
+                >
+                  {isLoading && (
+                    <Loader2Icon className="eb-mr-2 eb-h-4 eb-w-4 eb-animate-spin" />
+                  )}
+                  {isLoading
+                    ? effectiveConfig.content.loadingMessage
+                    : effectiveConfig.content.submitButtonText}
+                </Button>
+              </>
+            )}
+          </DialogFooter>
+        )}
       </form>
     </Form>
   );

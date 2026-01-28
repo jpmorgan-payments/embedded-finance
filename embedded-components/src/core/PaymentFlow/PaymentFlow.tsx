@@ -13,7 +13,10 @@ import {
   useGetAccounts,
 } from '@/api/generated/ep-accounts';
 import { useGetAllRecipientsInfinite } from '@/api/generated/ep-recipients';
-import { RecipientType as ApiRecipientType } from '@/api/generated/ep-recipients.schemas';
+import {
+  RecipientType as ApiRecipientType,
+  Recipient,
+} from '@/api/generated/ep-recipients.schemas';
 import { useCreateTransactionV2 } from '@/api/generated/ep-transactions';
 import type {
   ApiErrorV2,
@@ -28,9 +31,8 @@ import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
 import { FlowContainer, FlowView, useFlowContext } from './FlowContainer';
 import {
-  AddRecipientForm,
+  BankAccountFormWrapper,
   EnablePaymentMethodForm,
-  LinkAccountForm,
   PayeeTypeSelector,
   PaymentMethodSelection,
 } from './forms';
@@ -433,6 +435,7 @@ function MainTransferView({
             const displayName =
               account.label ?? getCategoryLabel(account.category);
             const isSelected = formData.fromAccountId === account.id;
+            const isPendingClose = account.state === 'PENDING_CLOSE';
 
             return (
               <React.Fragment key={account.id}>
@@ -447,11 +450,16 @@ function MainTransferView({
                 >
                   <div className="eb-flex eb-items-center eb-gap-2">
                     <div>
-                      <div>
+                      <div className="eb-flex eb-items-center eb-gap-2">
                         <span className="eb-font-medium">{displayName}</span>
                         {lastFour && (
-                          <span className="eb-ml-2 eb-text-muted-foreground">
+                          <span className="eb-text-muted-foreground">
                             (...{lastFour})
+                          </span>
+                        )}
+                        {isPendingClose && (
+                          <span className="eb-rounded eb-bg-muted eb-px-1.5 eb-py-0.5 eb-text-xs eb-text-muted-foreground">
+                            Pending Close
                           </span>
                         )}
                       </div>
@@ -940,19 +948,92 @@ function PaymentFlowContent({
       if (type === 'link-account') {
         pushView('link-account');
       } else {
-        pushView('add-recipient-method');
+        // Go directly to add-recipient-form - BankAccountForm handles payment method selection
+        pushView('add-recipient-form');
       }
     },
     [pushView]
   );
 
-  // Payment method selection for new recipient
-  const handleRecipientMethodSelect = useCallback(
-    (method: PaymentMethodType) => {
-      setFormData({ paymentMethod: method });
-      pushView('add-recipient-form');
+  // Handler for successful linked account creation
+  const handleLinkedAccountSuccess = useCallback(
+    (recipient: Recipient) => {
+      // Transform recipient to Payee format (uses flat partyDetails structure)
+      const isOrganization = recipient.partyDetails?.type === 'ORGANIZATION';
+      const name = isOrganization
+        ? (recipient.partyDetails?.businessName ?? 'Linked Account')
+        : `${recipient.partyDetails?.firstName ?? ''} ${recipient.partyDetails?.lastName ?? ''}`.trim() ||
+          'Linked Account';
+
+      const enabledMethods = (recipient.account?.routingInformation ?? [])
+        .map((ri) => ri.transactionType as PaymentMethodType)
+        .filter(Boolean);
+
+      const payee: Payee = {
+        id: recipient.id!,
+        type: 'LINKED_ACCOUNT',
+        name,
+        accountNumber: recipient.account?.number ?? '',
+        routingNumber:
+          recipient.account?.routingInformation?.[0]?.routingNumber ?? '',
+        bankName: undefined,
+        enabledPaymentMethods:
+          enabledMethods.length > 0 ? enabledMethods : ['ACH'],
+        recipientType: isOrganization ? 'BUSINESS' : 'INDIVIDUAL',
+      };
+
+      // Select the newly created linked account
+      setFormData({
+        payeeId: payee.id,
+        payee,
+        paymentMethod: payee.enabledPaymentMethods[0],
+      });
+
+      // Go back to main view
+      popView();
     },
-    [pushView, setFormData]
+    [setFormData, popView]
+  );
+
+  // Handler for successful recipient creation
+  const handleRecipientSuccess = useCallback(
+    (recipient: Recipient) => {
+      // Transform recipient to Payee format (uses flat partyDetails structure)
+      const isOrganization = recipient.partyDetails?.type === 'ORGANIZATION';
+      const name = isOrganization
+        ? (recipient.partyDetails?.businessName ?? 'Recipient')
+        : `${recipient.partyDetails?.firstName ?? ''} ${recipient.partyDetails?.lastName ?? ''}`.trim() ||
+          'Recipient';
+
+      const enabledMethods = (recipient.account?.routingInformation ?? [])
+        .map((ri) => ri.transactionType as PaymentMethodType)
+        .filter(Boolean);
+
+      const payee: Payee = {
+        id: recipient.id!,
+        type: 'RECIPIENT',
+        name,
+        accountNumber: recipient.account?.number ?? '',
+        routingNumber:
+          recipient.account?.routingInformation?.[0]?.routingNumber ?? '',
+        bankName: undefined,
+        enabledPaymentMethods:
+          enabledMethods.length > 0 ? enabledMethods : ['ACH'],
+        recipientType: isOrganization ? 'BUSINESS' : 'INDIVIDUAL',
+      };
+
+      // Select the newly created recipient
+      setFormData({
+        payeeId: payee.id,
+        payee,
+        paymentMethod: formData.paymentMethod ?? payee.enabledPaymentMethods[0],
+      });
+
+      // Go back through the flow (method selection -> main)
+      popView();
+      popView();
+    },
+    [setFormData, popView, formData.paymentMethod]
   );
 
   // Get the selected payee for enable form
@@ -1026,34 +1107,19 @@ function PaymentFlowContent({
 
       {/* Link Account View */}
       <FlowView viewId="link-account">
-        <LinkAccountForm
-          onSubmit={(_data) => {
-            // TODO: Create linked account and select it
-            popView();
-          }}
+        <BankAccountFormWrapper
+          formType="linked-account"
+          onSuccess={handleLinkedAccountSuccess}
           onCancel={popView}
         />
       </FlowView>
 
-      {/* Add Recipient - Payment Method Selection */}
-      <FlowView viewId="add-recipient-method">
-        <PaymentMethodSelection
-          availablePaymentMethods={paymentMethods}
-          onSelect={handleRecipientMethodSelect}
-          onCancel={popView}
-        />
-      </FlowView>
-
-      {/* Add Recipient Form */}
+      {/* Add Recipient Form - BankAccountForm handles payment method selection */}
       <FlowView viewId="add-recipient-form">
-        <AddRecipientForm
-          preSelectedPaymentMethod={formData.paymentMethod}
+        <BankAccountFormWrapper
+          formType="recipient"
           availablePaymentMethods={paymentMethods}
-          onSubmit={(_data) => {
-            // TODO: Create recipient and select it
-            popView();
-            popView(); // Go back to main
-          }}
+          onSuccess={handleRecipientSuccess}
           onCancel={popView}
         />
       </FlowView>
@@ -1190,17 +1256,20 @@ export function PaymentFlow({
   const totalLinkedAccounts =
     linkedAccountsData?.pages?.[0]?.metadata?.total_items ?? 0;
 
-  // Get list of open account IDs for balance fetching
-  const openAccountIds = useMemo(() => {
+  // Get list of active account IDs for balance fetching (OPEN + PENDING_CLOSE)
+  const activeAccountIds = useMemo(() => {
     if (!accountsData?.items) return [];
     return accountsData.items
-      .filter((account) => account.state === 'OPEN')
+      .filter(
+        (account) =>
+          account.state === 'OPEN' || account.state === 'PENDING_CLOSE'
+      )
       .map((account) => account.id);
   }, [accountsData]);
 
-  // Fetch balances for all open accounts in parallel
+  // Fetch balances for all active accounts in parallel
   const balanceQueries = useQueries({
-    queries: openAccountIds.map((accountId) =>
+    queries: activeAccountIds.map((accountId) =>
       getGetAccountBalanceQueryOptions(accountId, {
         query: {
           enabled: interceptorReady && !!accountId,
@@ -1216,7 +1285,7 @@ export function PaymentFlow({
   const balanceMap = useMemo(() => {
     const map: Record<string, { available: number; currency: string }> = {};
     balanceQueries.forEach((query, index) => {
-      const accountId = openAccountIds[index];
+      const accountId = activeAccountIds[index];
       if (query.data && accountId) {
         // Find the ITAV (interim available balance) from balanceTypes
         const availableBalance = query.data.balanceTypes?.find(
@@ -1229,13 +1298,16 @@ export function PaymentFlow({
       }
     });
     return map;
-  }, [balanceQueries, openAccountIds]);
+  }, [balanceQueries, activeAccountIds]);
 
-  // Transform API accounts to AccountResponse with balance
+  // Transform API accounts to AccountResponse with balance (OPEN + PENDING_CLOSE)
   const accounts: AccountResponse[] = useMemo(() => {
     if (!accountsData?.items) return [];
     return accountsData.items
-      .filter((account) => account.state === 'OPEN')
+      .filter(
+        (account) =>
+          account.state === 'OPEN' || account.state === 'PENDING_CLOSE'
+      )
       .map((account) => ({
         ...account,
         balance: balanceMap[account.id] ?? {
