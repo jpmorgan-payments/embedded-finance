@@ -9,15 +9,25 @@ export const Route = createFileRoute('/stories/')({
   component: StoriesIndex,
 });
 
+// Latest first (newest at top by date)
 const stories = [
   {
-    id: 'date-selector-challenges' as const,
-    title: 'Tackling Date Input Challenges: Common User Errors and Solutions',
+    id: 'webhook-integration-recipe' as const,
+    title: 'Webhook Integration Recipe: Persona-Based UX Guidance',
     excerpt:
-      "Our team's experience implementing date selectors revealed critical UX issues that impact user experience. Learn from our mistakes and discover better approaches.",
-    date: '2024-12-23',
-    readTime: '5 min read',
-    tags: ['UX', 'Date Input', 'User Experience'],
+      'Suggested UI/UX principles and patterns for webhook integration—recommendations for onboarding, transactions, operations, and developer UIs.',
+    date: '2025-12-15',
+    readTime: '12 min read',
+    tags: ['Webhooks', 'Integration', 'UX'],
+  },
+  {
+    id: 'partially-hosted-onboarding' as const,
+    title: 'Partially Hosted Onboarding Integration',
+    excerpt:
+      'Implement a hybrid onboarding approach where parts of client verification are handled in your app while leveraging embedded components for regulated steps.',
+    date: '2025-06-12',
+    readTime: '6 min read',
+    tags: ['Onboarding', 'Integration', 'Hybrid'],
   },
   {
     id: 'important-date-selector-component' as const,
@@ -30,13 +40,13 @@ const stories = [
     tags: ['Component Design', 'Accessibility', 'React'],
   },
   {
-    id: 'partially-hosted-onboarding' as const,
-    title: 'Partially Hosted Onboarding Integration',
+    id: 'date-selector-challenges' as const,
+    title: 'Tackling Date Input Challenges: Common User Errors and Solutions',
     excerpt:
-      'Implement a hybrid onboarding approach where parts of client verification are handled in your app while leveraging embedded components for regulated steps.',
-    date: '2025-06-12',
-    readTime: '6 min read',
-    tags: ['Onboarding', 'Integration', 'Hybrid'],
+      "Our team's experience implementing date selectors revealed critical UX issues that impact user experience. Learn from our mistakes and discover better approaches.",
+    date: '2024-12-23',
+    readTime: '5 min read',
+    tags: ['UX', 'Date Input', 'User Experience'],
   },
 ] as const;
 
