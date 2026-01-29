@@ -12,7 +12,6 @@
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import type { AccountBalanceResponse } from '@/api/generated/ep-accounts.schemas';
 import { Button } from '@/components/ui/button';
 
 import { PaymentFlow } from '../PaymentFlow';
