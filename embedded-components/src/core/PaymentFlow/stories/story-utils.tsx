@@ -385,6 +385,30 @@ export function createPaymentFlowHandlers(
 
   const allRecipients = [...recipients, ...mockLinkedAccounts];
 
+  // Mock balance data
+  const balanceData: Record<string, object> = {
+    'acc-checking-main': {
+      accountId: 'acc-checking-main',
+      currency: 'USD',
+      balanceTypes: [{ typeCode: 'ITAV', amount: 15000.0 }],
+    },
+    'acc-checking-ops': {
+      accountId: 'acc-checking-ops',
+      currency: 'USD',
+      balanceTypes: [{ typeCode: 'ITAV', amount: 8500.0 }],
+    },
+    'acc-savings': {
+      accountId: 'acc-savings',
+      currency: 'USD',
+      balanceTypes: [{ typeCode: 'ITAV', amount: 50000.0 }],
+    },
+    'acc-limited': {
+      accountId: 'acc-limited',
+      currency: 'USD',
+      balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
+    },
+  };
+
   return [
     // List accounts
     http.get('*/accounts', async () => {
@@ -392,6 +416,20 @@ export function createPaymentFlowHandlers(
       return HttpResponse.json({
         items: accounts,
         metadata: mockAccounts.metadata,
+      });
+    }),
+
+    // Get account balance
+    http.get('*/accounts/:id/balances', async ({ params }) => {
+      await delay(delayMs);
+      const balance = balanceData[params.id as string];
+      if (balance) {
+        return HttpResponse.json(balance);
+      }
+      return HttpResponse.json({
+        accountId: params.id,
+        currency: 'USD',
+        balanceTypes: [{ typeCode: 'ITAV', amount: 0 }],
       });
     }),
 

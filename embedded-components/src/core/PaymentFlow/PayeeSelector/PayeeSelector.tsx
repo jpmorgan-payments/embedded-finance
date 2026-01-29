@@ -7,9 +7,19 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { AlertTriangle, Link, Loader2, Lock, Search, User } from 'lucide-react';
+import {
+  AlertCircle,
+  AlertTriangle,
+  Link,
+  Loader2,
+  Lock,
+  RefreshCw,
+  Search,
+  User,
+} from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -36,6 +46,11 @@ interface PayeeSelectorFullProps extends PayeeSelectorProps {
   recipientsRestrictedMessage?: string;
   // Show warning banner when payee was cleared due to restriction
   showRestrictionWarning?: boolean;
+  // Error states
+  recipientsError?: boolean;
+  linkedAccountsError?: boolean;
+  onRetryRecipients?: () => void;
+  onRetryLinkedAccounts?: () => void;
 }
 
 /**
@@ -62,6 +77,10 @@ export function PayeeSelector({
   recipientsRestricted = false,
   recipientsRestrictedMessage = 'This account type cannot send payments to external recipients. Please select a linked account instead.',
   showRestrictionWarning = false,
+  recipientsError = false,
+  linkedAccountsError = false,
+  onRetryRecipients,
+  onRetryLinkedAccounts,
 }: PayeeSelectorFullProps) {
   // Default to linked-accounts tab when recipients are restricted
   const [activeTab, setActiveTab] = useState<'recipients' | 'linked-accounts'>(
@@ -225,7 +244,32 @@ export function PayeeSelector({
 
   const recipientsContent = (
     <>
-      {isLoading ? (
+      {recipientsError ? (
+        <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-gap-3 eb-px-4 eb-py-6 eb-text-center">
+          <div className="eb-flex eb-h-10 eb-w-10 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
+            <AlertCircle className="eb-h-5 eb-w-5 eb-text-destructive" />
+          </div>
+          <div className="eb-space-y-1">
+            <p className="eb-text-sm eb-font-medium eb-text-foreground">
+              Unable to load recipients
+            </p>
+            <p className="eb-text-xs eb-text-muted-foreground">
+              We couldn&apos;t load your recipients. Please try again.
+            </p>
+          </div>
+          {onRetryRecipients && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRetryRecipients}
+              className="eb-mt-1"
+            >
+              <RefreshCw className="eb-mr-2 eb-h-3 eb-w-3" />
+              Retry
+            </Button>
+          )}
+        </div>
+      ) : isLoading ? (
         <div className="eb-flex eb-items-center eb-justify-center eb-py-6">
           <Loader2 className="eb-h-5 eb-w-5 eb-animate-spin eb-text-muted-foreground" />
         </div>
@@ -292,7 +336,32 @@ export function PayeeSelector({
 
   const linkedAccountsContent = (
     <>
-      {isLoading ? (
+      {linkedAccountsError ? (
+        <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-gap-3 eb-px-4 eb-py-6 eb-text-center">
+          <div className="eb-flex eb-h-10 eb-w-10 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
+            <AlertCircle className="eb-h-5 eb-w-5 eb-text-destructive" />
+          </div>
+          <div className="eb-space-y-1">
+            <p className="eb-text-sm eb-font-medium eb-text-foreground">
+              Unable to load linked accounts
+            </p>
+            <p className="eb-text-xs eb-text-muted-foreground">
+              We couldn&apos;t load your linked accounts. Please try again.
+            </p>
+          </div>
+          {onRetryLinkedAccounts && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRetryLinkedAccounts}
+              className="eb-mt-1"
+            >
+              <RefreshCw className="eb-mr-2 eb-h-3 eb-w-3" />
+              Retry
+            </Button>
+          )}
+        </div>
+      ) : isLoading ? (
         <div className="eb-flex eb-items-center eb-justify-center eb-py-6">
           <Loader2 className="eb-h-5 eb-w-5 eb-animate-spin eb-text-muted-foreground" />
         </div>

@@ -19,6 +19,10 @@ export interface AccountResponse extends ApiAccountResponse {
     available: number;
     current?: number;
     currency?: string;
+    /** Indicates if fetching the balance failed */
+    hasError?: boolean;
+    /** Indicates if the balance is still being fetched */
+    isLoading?: boolean;
   };
 }
 
@@ -309,6 +313,8 @@ export interface ReviewPanelProps {
   showFees?: boolean;
   /** Callback when validation fails, receives array of missing field names */
   onValidationFail?: (missingFields: string[]) => void;
+  /** Whether data is still loading - shows skeletons for from/to sections */
+  isLoading?: boolean;
 }
 
 /**

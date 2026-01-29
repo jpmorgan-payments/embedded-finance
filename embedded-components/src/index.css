@@ -145,9 +145,9 @@
       right: auto;
       bottom: auto;
       width: 95vw;
-      height: 85vh;
+      height: 90vh;
       max-width: 900px;
-      max-height: 700px;
+      max-height: 800px;
       transform: translate(-50%, -50%);
       border-radius: 0.5rem; /* rounded-lg */
     }

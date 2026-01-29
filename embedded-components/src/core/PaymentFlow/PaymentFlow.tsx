@@ -2,7 +2,13 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQueries } from '@tanstack/react-query';
-import { Check, CheckCircle2, Copy } from 'lucide-react';
+import {
+  AlertCircle,
+  Check,
+  CheckCircle2,
+  Copy,
+  RefreshCw,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -25,6 +31,7 @@ import type {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 
@@ -190,7 +197,7 @@ function StepSection({
             : 'eb-max-h-0 eb-opacity-0'
         )}
       >
-        <div className="eb-pb-4 eb-pt-1">{children}</div>
+        <div className="eb-pt-1">{children}</div>
       </div>
     </div>
   );
@@ -225,6 +232,11 @@ interface MainTransferViewProps {
   onLoadMoreLinkedAccounts?: () => void;
   isLoadingMoreLinkedAccounts?: boolean;
   totalLinkedAccounts?: number;
+  // Error states for payee fetching
+  recipientsError?: boolean;
+  linkedAccountsError?: boolean;
+  onRetryRecipients?: () => void;
+  onRetryLinkedAccounts?: () => void;
 }
 
 function MainTransferView({
@@ -250,6 +262,10 @@ function MainTransferView({
   onLoadMoreLinkedAccounts,
   isLoadingMoreLinkedAccounts,
   totalLinkedAccounts,
+  recipientsError,
+  linkedAccountsError,
+  onRetryRecipients,
+  onRetryLinkedAccounts,
 }: MainTransferViewProps) {
   const { formData, setFormData } = useFlowContext();
   const { t } = useTranslation('accounts');
@@ -335,11 +351,18 @@ function MainTransferView({
   const hasPaymentMethod = !!formData.paymentMethod;
   const hasAccount = !!formData.fromAccountId;
 
-  // Balance validation
+  // Balance validation - only validate when balance is loaded and not errored
   const amount = parseFloat(formData.amount) || 0;
+  const isBalanceLoading = selectedAccount?.balance?.isLoading ?? false;
+  const hasBalanceError = selectedAccount?.balance?.hasError ?? false;
   const availableBalance = selectedAccount?.balance?.available;
+  // Only show exceeds balance error when balance is known (not loading, not errored)
   const exceedsBalance =
-    availableBalance !== undefined && amount > 0 && amount > availableBalance;
+    !isBalanceLoading &&
+    !hasBalanceError &&
+    availableBalance !== undefined &&
+    amount > 0 &&
+    amount > availableBalance;
 
   // Auto-advance to next incomplete step when selection is made
   const handlePayeeSelect = useCallback(
@@ -475,14 +498,34 @@ function MainTransferView({
                   </div>
                   <div className="eb-flex eb-items-center eb-gap-3">
                     <div className="eb-text-right">
-                      <div className="eb-font-medium">
-                        {account.balance?.available !== undefined
-                          ? `$${account.balance.available.toLocaleString()}`
-                          : '$10,000.00'}
-                      </div>
-                      <div className="eb-text-xs eb-text-muted-foreground">
-                        Available
-                      </div>
+                      {account.balance?.isLoading ? (
+                        <>
+                          <Skeleton className="eb-ml-auto eb-h-5 eb-w-20" />
+                          <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
+                            Loading...
+                          </div>
+                        </>
+                      ) : account.balance?.hasError ? (
+                        <>
+                          <div className="eb-font-medium eb-text-muted-foreground">
+                            --
+                          </div>
+                          <div className="eb-text-xs eb-text-destructive">
+                            Unavailable
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="eb-font-medium">
+                            $
+                            {account.balance?.available?.toLocaleString() ??
+                              '0'}
+                          </div>
+                          <div className="eb-text-xs eb-text-muted-foreground">
+                            Available
+                          </div>
+                        </>
+                      )}
                     </div>
                     {isSelected && (
                       <Check className="eb-h-4 eb-w-4 eb-shrink-0 eb-text-primary" />
@@ -529,6 +572,10 @@ function MainTransferView({
           totalLinkedAccounts={totalLinkedAccounts}
           recipientsRestricted={isLimitedDDA}
           showRestrictionWarning={showPayeeClearedWarning}
+          recipientsError={recipientsError}
+          linkedAccountsError={linkedAccountsError}
+          onRetryRecipients={onRetryRecipients}
+          onRetryLinkedAccounts={onRetryLinkedAccounts}
         />
       </StepSection>
 
@@ -658,6 +705,211 @@ function formatCurrency(value: number, currency = 'USD'): string {
     style: 'currency',
     currency,
   }).format(value);
+}
+
+/**
+ * LoadingStateView component
+ * Shows a skeleton loading state while accounts are being fetched
+ * Mirrors the actual StepSection layout for a seamless transition
+ */
+function LoadingStateView() {
+  return (
+    <div className="eb-space-y-1">
+      {/* Step 1: From Account - Skeleton */}
+      <div className="eb-relative">
+        {/* Connecting line - lighter than actual to indicate loading */}
+        <div className="eb-absolute eb-left-[15px] eb-top-[40px] eb-h-[calc(100%-28px)] eb-w-px eb-bg-border/50" />
+
+        {/* Step header */}
+        <div className="eb-relative eb-flex eb-w-full eb-items-center eb-gap-3 eb-py-2">
+          {/* Step indicator circle */}
+          <Skeleton className="eb-h-8 eb-w-8 eb-shrink-0 eb-rounded-full" />
+          {/* Title and action */}
+          <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between">
+            <Skeleton className="eb-h-5 eb-w-12" />
+            <Skeleton className="eb-h-4 eb-w-14" />
+          </div>
+        </div>
+
+        {/* Expanded content - account list skeleton */}
+        <div className="eb-ml-11 eb-pb-4 eb-pt-1">
+          <div className="eb-overflow-hidden eb-rounded-lg eb-border eb-border-border">
+            {/* Account row 1 */}
+            <div className="eb-flex eb-w-full eb-items-center eb-justify-between eb-p-3">
+              <div className="eb-space-y-1.5">
+                <div className="eb-flex eb-items-center eb-gap-2">
+                  <Skeleton className="eb-h-4 eb-w-28" />
+                  <Skeleton className="eb-h-4 eb-w-16" />
+                </div>
+                <Skeleton className="eb-h-3 eb-w-20" />
+              </div>
+              <div className="eb-space-y-1 eb-text-right">
+                <Skeleton className="eb-ml-auto eb-h-4 eb-w-20" />
+                <Skeleton className="eb-ml-auto eb-h-3 eb-w-14" />
+              </div>
+            </div>
+            {/* Account row 2 */}
+            <div className="eb-border-t eb-border-border" />
+            <div className="eb-flex eb-w-full eb-items-center eb-justify-between eb-p-3">
+              <div className="eb-space-y-1.5">
+                <div className="eb-flex eb-items-center eb-gap-2">
+                  <Skeleton className="eb-h-4 eb-w-24" />
+                  <Skeleton className="eb-h-4 eb-w-16" />
+                </div>
+                <Skeleton className="eb-h-3 eb-w-16" />
+              </div>
+              <div className="eb-space-y-1 eb-text-right">
+                <Skeleton className="eb-ml-auto eb-h-4 eb-w-24" />
+                <Skeleton className="eb-ml-auto eb-h-3 eb-w-14" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Step 2: To Payee - Skeleton (collapsed) */}
+      <div className="eb-relative">
+        {/* Connecting line */}
+        <div className="eb-absolute eb-left-[15px] eb-top-[40px] eb-h-[calc(100%-28px)] eb-w-px eb-bg-border/50" />
+
+        {/* Step header */}
+        <div className="eb-relative eb-flex eb-w-full eb-items-center eb-gap-3 eb-py-2">
+          <Skeleton className="eb-h-8 eb-w-8 eb-shrink-0 eb-rounded-full" />
+          <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between">
+            <Skeleton className="eb-h-5 eb-w-8" />
+            <Skeleton className="eb-h-4 eb-w-28 eb-opacity-50" />
+          </div>
+        </div>
+      </div>
+
+      {/* Step 3: Payment Method - Skeleton (collapsed) */}
+      <div className="eb-relative">
+        {/* Step header */}
+        <div className="eb-relative eb-flex eb-w-full eb-items-center eb-gap-3 eb-py-2">
+          <Skeleton className="eb-h-8 eb-w-8 eb-shrink-0 eb-rounded-full" />
+          <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between">
+            <Skeleton className="eb-h-5 eb-w-28" />
+            <Skeleton className="eb-h-4 eb-w-24 eb-opacity-50" />
+          </div>
+        </div>
+      </div>
+
+      {/* Separator */}
+      <Separator className="!eb-my-4" />
+
+      {/* Amount section skeleton */}
+      <div className="eb-space-y-4">
+        <div>
+          <Skeleton className="eb-mb-1.5 eb-h-4 eb-w-14" />
+          <Skeleton className="eb-h-10 eb-w-full eb-rounded-md" />
+        </div>
+
+        {/* Memo section skeleton */}
+        <div>
+          <div className="eb-mb-1.5 eb-flex eb-items-center eb-justify-between">
+            <Skeleton className="eb-h-4 eb-w-20" />
+            <Skeleton className="eb-h-3 eb-w-16" />
+          </div>
+          <Skeleton className="eb-h-20 eb-w-full eb-rounded-md" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * EmptyAccountsView component
+ * Shows when accounts fetch succeeded but no accounts are available
+ */
+interface EmptyAccountsViewProps {
+  title: string;
+  message: string;
+  onClose?: () => void;
+}
+
+function EmptyAccountsView({
+  title,
+  message,
+  onClose,
+}: EmptyAccountsViewProps) {
+  return (
+    <div className="eb-flex eb-h-full eb-flex-col eb-items-center eb-justify-center eb-pb-[15%] eb-text-center">
+      {/* Empty Icon */}
+      <div className="eb-mb-4 eb-flex eb-h-16 eb-w-16 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted">
+        <AlertCircle className="eb-h-8 eb-w-8 eb-text-muted-foreground" />
+      </div>
+
+      {/* Message */}
+      <h2 className="eb-mb-2 eb-text-xl eb-font-semibold eb-text-foreground">
+        {title}
+      </h2>
+      <p className="eb-mb-6 eb-max-w-sm eb-text-muted-foreground">{message}</p>
+
+      {/* Close Button */}
+      {onClose && (
+        <Button
+          onClick={onClose}
+          variant="outline"
+          className="eb-min-w-[140px]"
+        >
+          Close
+        </Button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * FatalErrorView component
+ * Shows a full-screen error when critical data (accounts) fails to load
+ */
+interface FatalErrorViewProps {
+  title: string;
+  message: string;
+  onRetry: () => void;
+  isRetrying?: boolean;
+}
+
+function FatalErrorView({
+  title,
+  message,
+  onRetry,
+  isRetrying = false,
+}: FatalErrorViewProps) {
+  return (
+    <div className="eb-flex eb-h-full eb-flex-col eb-items-center eb-justify-center eb-pb-[15%] eb-text-center">
+      {/* Error Icon */}
+      <div className="eb-mb-4 eb-flex eb-h-16 eb-w-16 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
+        <AlertCircle className="eb-h-8 eb-w-8 eb-text-destructive" />
+      </div>
+
+      {/* Error Message */}
+      <h2 className="eb-mb-2 eb-text-xl eb-font-semibold eb-text-foreground">
+        {title}
+      </h2>
+      <p className="eb-mb-6 eb-max-w-sm eb-text-muted-foreground">{message}</p>
+
+      {/* Retry Button */}
+      <Button
+        onClick={onRetry}
+        disabled={isRetrying}
+        variant="outline"
+        className="eb-min-w-[140px]"
+      >
+        {isRetrying ? (
+          <>
+            <RefreshCw className="eb-mr-2 eb-h-4 eb-w-4 eb-animate-spin" />
+            Retrying...
+          </>
+        ) : (
+          <>
+            <RefreshCw className="eb-mr-2 eb-h-4 eb-w-4" />
+            Try Again
+          </>
+        )}
+      </Button>
+    </div>
+  );
 }
 
 /**
@@ -803,6 +1055,19 @@ interface PaymentFlowContentProps {
   onLoadMoreLinkedAccounts?: () => void;
   isLoadingMoreLinkedAccounts?: boolean;
   totalLinkedAccounts?: number;
+  // Error states for payee fetching
+  recipientsError?: boolean;
+  linkedAccountsError?: boolean;
+  onRetryRecipients?: () => void;
+  onRetryLinkedAccounts?: () => void;
+  // Balance errors
+  hasBalanceErrors?: boolean;
+  // Granular loading states for mismatch detection
+  isAccountsLoaded?: boolean;
+  isPayeesLoaded?: boolean;
+  // Initial IDs for mismatch detection (needed for Storybook soft refresh)
+  initialAccountId?: string;
+  initialPayeeId?: string;
 }
 
 function PaymentFlowContent({
@@ -824,6 +1089,15 @@ function PaymentFlowContent({
   onLoadMoreLinkedAccounts,
   isLoadingMoreLinkedAccounts,
   totalLinkedAccounts,
+  recipientsError,
+  linkedAccountsError,
+  onRetryRecipients,
+  onRetryLinkedAccounts,
+  hasBalanceErrors: _hasBalanceErrors,
+  isAccountsLoaded: _isAccountsLoaded = false,
+  isPayeesLoaded = false,
+  initialAccountId,
+  initialPayeeId,
 }: PaymentFlowContentProps) {
   const {
     formData,
@@ -835,6 +1109,12 @@ function PaymentFlowContent({
   } = useFlowContext();
   const [pendingPaymentMethod, setPendingPaymentMethod] =
     useState<PaymentMethodType | null>(null);
+
+  // Warning state for initial data mismatch
+  const [initialDataWarning, setInitialDataWarning] = useState<{
+    account?: string;
+    payee?: string;
+  } | null>(null);
 
   // Navigate to success view when transaction is complete
   useEffect(() => {
@@ -851,6 +1131,84 @@ function PaymentFlowContent({
       setFormData({ fromAccountId: account.id!, availableBalance });
     }
   }, [accounts, formData.fromAccountId, setFormData]);
+
+  // Validate selected account exists in the fetched accounts list
+  // If the initial/selected account doesn't exist, clear it and show warning
+  // Track the initial ID prop value to reset check on Storybook soft refresh
+  const lastInitialAccountIdRef = React.useRef<string | undefined>(
+    initialAccountId
+  );
+  const hasCheckedAccountMismatch = React.useRef(false);
+
+  // Reset check flag if the initialAccountId prop changes (Storybook soft refresh)
+  useEffect(() => {
+    if (lastInitialAccountIdRef.current !== initialAccountId) {
+      lastInitialAccountIdRef.current = initialAccountId;
+      hasCheckedAccountMismatch.current = false;
+      // Clear any existing warning for account when initial ID changes
+      setInitialDataWarning((prev) =>
+        prev ? { ...prev, account: undefined } : null
+      );
+    }
+  }, [initialAccountId]);
+
+  useEffect(() => {
+    // Only check once when accounts first become available
+    if (
+      !hasCheckedAccountMismatch.current &&
+      accounts.length > 0 &&
+      initialAccountId
+    ) {
+      hasCheckedAccountMismatch.current = true;
+      if (!accounts.find((a) => a.id === initialAccountId)) {
+        // Selected account not found in available accounts - clear selection
+        setFormData({ fromAccountId: undefined, availableBalance: undefined });
+        setInitialDataWarning((prev) => ({
+          ...prev,
+          account: `The pre-selected account (${initialAccountId.slice(-8)}...) was not found. Please select an account.`,
+        }));
+      }
+    }
+  }, [accounts, initialAccountId, setFormData]);
+
+  // Validate selected payee exists in the fetched payees list
+  // If the initial/selected payee doesn't exist, clear it and show warning
+  const allPayees = useMemo(
+    () => [...payees, ...linkedAccounts],
+    [payees, linkedAccounts]
+  );
+  // Track the initial ID prop value to reset check on Storybook soft refresh
+  const lastInitialPayeeIdRef = React.useRef<string | undefined>(
+    initialPayeeId
+  );
+  const hasCheckedPayeeMismatch = React.useRef(false);
+
+  // Reset check flag if the initialPayeeId prop changes (Storybook soft refresh)
+  useEffect(() => {
+    if (lastInitialPayeeIdRef.current !== initialPayeeId) {
+      lastInitialPayeeIdRef.current = initialPayeeId;
+      hasCheckedPayeeMismatch.current = false;
+      // Clear any existing warning for payee when initial ID changes
+      setInitialDataWarning((prev) =>
+        prev ? { ...prev, payee: undefined } : null
+      );
+    }
+  }, [initialPayeeId]);
+
+  useEffect(() => {
+    // Only check once when payees first become available (or when we know they're loaded even if empty)
+    if (!hasCheckedPayeeMismatch.current && isPayeesLoaded && initialPayeeId) {
+      hasCheckedPayeeMismatch.current = true;
+      if (!allPayees.find((p) => p.id === initialPayeeId)) {
+        // Selected payee not found in available payees - clear selection
+        setFormData({ payeeId: undefined, payee: undefined });
+        setInitialDataWarning((prev) => ({
+          ...prev,
+          payee: `The pre-selected payee (${initialPayeeId.slice(-8)}...) was not found. Please select a payee.`,
+        }));
+      }
+    }
+  }, [allPayees, initialPayeeId, isPayeesLoaded, setFormData]);
 
   // Handler for payee selection
   const handlePayeeSelect = useCallback(
@@ -1113,6 +1471,21 @@ function PaymentFlowContent({
             />
           </div>
         )}
+
+        {/* Initial Data Mismatch Warning */}
+        {initialDataWarning && (
+          <div className="eb-mb-4 eb-rounded-lg eb-border eb-border-yellow-200 eb-bg-yellow-50 eb-p-3">
+            <div className="eb-flex eb-items-start eb-gap-2">
+              <AlertCircle className="eb-mt-0.5 eb-h-4 eb-w-4 eb-shrink-0 eb-text-yellow-600" />
+              <div className="eb-space-y-1 eb-text-sm eb-text-yellow-800">
+                {initialDataWarning.account && (
+                  <p>{initialDataWarning.account}</p>
+                )}
+                {initialDataWarning.payee && <p>{initialDataWarning.payee}</p>}
+              </div>
+            </div>
+          </div>
+        )}
         <MainTransferView
           payees={payees}
           linkedAccounts={linkedAccounts}
@@ -1136,6 +1509,10 @@ function PaymentFlowContent({
           onLoadMoreLinkedAccounts={onLoadMoreLinkedAccounts}
           isLoadingMoreLinkedAccounts={isLoadingMoreLinkedAccounts}
           totalLinkedAccounts={totalLinkedAccounts}
+          recipientsError={recipientsError}
+          linkedAccountsError={linkedAccountsError}
+          onRetryRecipients={onRetryRecipients}
+          onRetryLinkedAccounts={onRetryLinkedAccounts}
         />
       </FlowView>
 
@@ -1236,19 +1613,24 @@ export function PaymentFlow({
   const { interceptorReady } = useInterceptorStatus();
 
   // Fetch accounts
-  const { data: accountsData, isLoading: isLoadingAccounts } = useGetAccounts(
-    clientId ? { clientId } : undefined,
-    {
-      query: {
-        enabled: interceptorReady && !!clientId,
-      },
-    }
-  );
+  const {
+    data: accountsData,
+    isLoading: isLoadingAccounts,
+    isError: isAccountsError,
+    error: _accountsError,
+    refetch: refetchAccounts,
+  } = useGetAccounts(clientId ? { clientId } : undefined, {
+    query: {
+      enabled: interceptorReady && !!clientId,
+    },
+  });
 
   // Fetch RECIPIENT type with infinite scroll
   const {
     data: recipientsData,
     isLoading: isLoadingRecipients,
+    isError: isRecipientsError,
+    refetch: refetchRecipients,
     fetchNextPage: fetchNextRecipients,
     hasNextPage: hasNextRecipients,
     isFetchingNextPage: isFetchingNextRecipients,
@@ -1275,6 +1657,8 @@ export function PaymentFlow({
   const {
     data: linkedAccountsData,
     isLoading: isLoadingLinkedAccounts,
+    isError: isLinkedAccountsError,
+    refetch: refetchLinkedAccounts,
     fetchNextPage: fetchNextLinkedAccounts,
     hasNextPage: hasNextLinkedAccounts,
     isFetchingNextPage: isFetchingNextLinkedAccounts,
@@ -1328,20 +1712,52 @@ export function PaymentFlow({
   // Check if any balance query is still loading
   const isLoadingBalances = balanceQueries.some((query) => query.isLoading);
 
+  // Check if any balance query has errors (for display purposes, not blocking)
+  const hasBalanceErrors = balanceQueries.some((query) => query.isError);
+
   // Create a map of account ID to balance for quick lookup
+  // For accounts with balance errors, we'll use undefined to indicate unknown balance
   const balanceMap = useMemo(() => {
-    const map: Record<string, { available: number; currency: string }> = {};
+    const map: Record<
+      string,
+      {
+        available: number;
+        currency: string;
+        hasError?: boolean;
+        isLoading?: boolean;
+      }
+    > = {};
     balanceQueries.forEach((query, index) => {
       const accountId = activeAccountIds[index];
-      if (query.data && accountId) {
-        // Find the ITAV (interim available balance) from balanceTypes
-        const availableBalance = query.data.balanceTypes?.find(
-          (bt) => bt.typeCode === 'ITAV'
-        );
-        map[accountId] = {
-          available: availableBalance?.amount ?? 0,
-          currency: query.data.currency ?? 'USD',
-        };
+      if (accountId) {
+        if (query.isLoading) {
+          // Balance is still loading
+          map[accountId] = {
+            available: 0,
+            currency: 'USD',
+            hasError: false,
+            isLoading: true,
+          };
+        } else if (query.isError) {
+          // Mark that this account has a balance error
+          map[accountId] = {
+            available: 0,
+            currency: 'USD',
+            hasError: true,
+            isLoading: false,
+          };
+        } else if (query.data) {
+          // Find the ITAV (interim available balance) from balanceTypes
+          const availableBalance = query.data.balanceTypes?.find(
+            (bt) => bt.typeCode === 'ITAV'
+          );
+          map[accountId] = {
+            available: availableBalance?.amount ?? 0,
+            currency: query.data.currency ?? 'USD',
+            hasError: false,
+            isLoading: false,
+          };
+        }
       }
     });
     return map;
@@ -1355,13 +1771,25 @@ export function PaymentFlow({
         (account) =>
           account.state === 'OPEN' || account.state === 'PENDING_CLOSE'
       )
-      .map((account) => ({
-        ...account,
-        balance: balanceMap[account.id] ?? {
-          available: 0,
-          currency: 'USD',
-        },
-      }));
+      .map((account) => {
+        const balanceInfo = balanceMap[account.id];
+        return {
+          ...account,
+          balance: balanceInfo
+            ? {
+                available: balanceInfo.available,
+                currency: balanceInfo.currency,
+                hasError: balanceInfo.hasError,
+                isLoading: balanceInfo.isLoading,
+              }
+            : {
+                available: 0,
+                currency: 'USD',
+                hasError: false,
+                isLoading: true, // No data yet means still loading
+              },
+        };
+      });
   }, [accountsData, balanceMap]);
 
   // Helper function to transform API recipients to Payee format
@@ -1582,43 +2010,77 @@ export function PaymentFlow({
         initialData={initialData}
         reviewPanelWidth="md"
         reviewPanel={
-          <ReviewPanel
-            accounts={{
-              items: accounts,
-              metadata: {
-                page: 0,
-                limit: 10,
-                total_items: accounts.length,
-              },
-            }}
-            payees={[...payees, ...linkedAccounts]}
-            paymentMethods={paymentMethods}
-            onSubmit={handleTransactionSubmit}
-            isSubmitting={isSubmitting}
-            showFees={showFees}
-          />
+          // Hide review panel on error or empty states, show otherwise (with loading state)
+          isAccountsError ||
+          (!isLoadingAccounts && accounts.length === 0) ? null : (
+            <ReviewPanel
+              accounts={{
+                items: accounts,
+                metadata: {
+                  page: 0,
+                  limit: 10,
+                  total_items: accounts.length,
+                },
+              }}
+              payees={[...payees, ...linkedAccounts]}
+              paymentMethods={paymentMethods}
+              onSubmit={handleTransactionSubmit}
+              isSubmitting={isSubmitting}
+              showFees={showFees}
+              isLoading={isLoadingAccounts}
+            />
+          )
         }
       >
-        <PaymentFlowContent
-          payees={payees}
-          linkedAccounts={linkedAccounts}
-          accounts={accounts}
-          paymentMethods={paymentMethods}
-          isLoading={isLoading}
-          isSubmitting={isSubmitting}
-          transactionResponse={transactionResponse}
-          transactionError={transactionError}
-          onClose={handleClose}
-          onRetry={handleRetry}
-          hasMoreRecipients={hasNextRecipients}
-          onLoadMoreRecipients={fetchNextRecipients}
-          isLoadingMoreRecipients={isFetchingNextRecipients}
-          totalRecipients={totalRecipients}
-          hasMoreLinkedAccounts={hasNextLinkedAccounts}
-          onLoadMoreLinkedAccounts={fetchNextLinkedAccounts}
-          isLoadingMoreLinkedAccounts={isFetchingNextLinkedAccounts}
-          totalLinkedAccounts={totalLinkedAccounts}
-        />
+        {/* Loading state: accounts are being fetched */}
+        {isLoadingAccounts ? (
+          <LoadingStateView />
+        ) : /* Error state: accounts failed to load */
+        isAccountsError ? (
+          <FatalErrorView
+            title="Unable to Load Accounts"
+            message="We couldn't load your accounts. Please check your connection and try again."
+            onRetry={() => refetchAccounts()}
+            isRetrying={isLoadingAccounts}
+          />
+        ) : /* Empty state: no accounts available */
+        accounts.length === 0 ? (
+          <EmptyAccountsView
+            title="No Accounts Available"
+            message="You don't have any accounts available for transfers. Please contact support if you need assistance."
+            onClose={handleClose}
+          />
+        ) : (
+          <PaymentFlowContent
+            payees={payees}
+            linkedAccounts={linkedAccounts}
+            accounts={accounts}
+            paymentMethods={paymentMethods}
+            isLoading={isLoading}
+            isSubmitting={isSubmitting}
+            transactionResponse={transactionResponse}
+            transactionError={transactionError}
+            onClose={handleClose}
+            onRetry={handleRetry}
+            hasMoreRecipients={hasNextRecipients}
+            onLoadMoreRecipients={fetchNextRecipients}
+            isLoadingMoreRecipients={isFetchingNextRecipients}
+            totalRecipients={totalRecipients}
+            hasMoreLinkedAccounts={hasNextLinkedAccounts}
+            onLoadMoreLinkedAccounts={fetchNextLinkedAccounts}
+            isLoadingMoreLinkedAccounts={isFetchingNextLinkedAccounts}
+            totalLinkedAccounts={totalLinkedAccounts}
+            recipientsError={isRecipientsError}
+            linkedAccountsError={isLinkedAccountsError}
+            onRetryRecipients={() => refetchRecipients()}
+            onRetryLinkedAccounts={() => refetchLinkedAccounts()}
+            hasBalanceErrors={hasBalanceErrors}
+            isAccountsLoaded={!isLoadingAccounts}
+            isPayeesLoaded={!isLoadingRecipients && !isLoadingLinkedAccounts}
+            initialAccountId={initialAccountId}
+            initialPayeeId={initialPayeeId}
+          />
+        )}
       </FlowContainer>
     </>
   );

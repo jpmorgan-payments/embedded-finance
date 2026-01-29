@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import { useFlowContext } from '../FlowContainer/FlowContext';
 import type { ReviewPanelProps } from '../PaymentFlow.types';
@@ -40,6 +41,7 @@ export function ReviewPanel({
   isSubmitting = false,
   showFees = false,
   onValidationFail,
+  isLoading = false,
 }: Omit<ReviewPanelProps, 'mobileConfig'>) {
   // Get live form data from context
   const { formData, isComplete, currentView } = useFlowContext();
@@ -65,8 +67,27 @@ export function ReviewPanel({
       return;
     }
 
+    // Don't submit if balance is still loading or there's a balance error
+    const account = accounts?.items?.find(
+      (a) => a.id === formData.fromAccountId
+    );
+    const balanceIsLoading = account?.balance?.isLoading ?? false;
+    const balanceHasError = account?.balance?.hasError ?? false;
+    const balance = account?.balance?.available ?? 0;
+    const amountValue = parseFloat(formData.amount) || 0;
+
+    if (balanceIsLoading) {
+      onValidationFail?.(['balanceLoading']);
+      return;
+    }
+
+    if (!balanceHasError && amountValue > balance) {
+      onValidationFail?.(['exceedsBalance']);
+      return;
+    }
+
     onSubmit(formData);
-  }, [isComplete, formData, onSubmit, onValidationFail]);
+  }, [isComplete, formData, onSubmit, onValidationFail, accounts]);
 
   // Helper to get translated category label
   const getCategoryLabel = (category?: string) => {
@@ -101,7 +122,8 @@ export function ReviewPanel({
   );
 
   // Compute specific validation message based on what's missing
-  const validationMessage = useMemo(() => {
+  // Note: Balance-related messages are computed separately below
+  const missingFieldsMessage = useMemo(() => {
     const missing: string[] = [];
     if (!formData.fromAccountId) missing.push('an account');
     if (!formData.payeeId) missing.push('a recipient');
@@ -132,10 +154,36 @@ export function ReviewPanel({
   // Only include fee in total if showFees is enabled
   const total = showFees ? amount + fee : amount;
 
-  // Calculate balance after payment
+  // Balance states
+  const isBalanceLoading = selectedAccount?.balance?.isLoading ?? false;
+  const hasBalanceError = selectedAccount?.balance?.hasError ?? false;
   const currentBalance = selectedAccount?.balance?.available;
   const balanceAfterPayment =
-    currentBalance !== undefined ? currentBalance - total : undefined;
+    currentBalance !== undefined && !isBalanceLoading && !hasBalanceError
+      ? currentBalance - total
+      : undefined;
+
+  // Check if amount exceeds available balance (only when balance is known)
+  const exceedsBalance =
+    !isBalanceLoading &&
+    !hasBalanceError &&
+    currentBalance !== undefined &&
+    amount > 0 &&
+    currentBalance < amount;
+
+  // Combined validation message including balance states
+  const validationMessage = useMemo(() => {
+    // First check for missing fields
+    if (missingFieldsMessage) return missingFieldsMessage;
+
+    // Then check for balance-related issues
+    if (isBalanceLoading) return 'Waiting for balance...';
+    if (exceedsBalance && currentBalance !== undefined) {
+      return `Amount exceeds available balance ($${currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`;
+    }
+
+    return null;
+  }, [missingFieldsMessage, isBalanceLoading, exceedsBalance, currentBalance]);
 
   // Get display name for account
   const getAccountDisplayName = () => {
@@ -216,7 +264,13 @@ export function ReviewPanel({
               </div>
               <div className="eb-min-w-0 eb-flex-1">
                 <div className="eb-text-xs eb-text-muted-foreground">From</div>
-                {accountInfo ? (
+                {isLoading && formData.fromAccountId ? (
+                  // Show skeleton when loading with initial account data
+                  <div className="eb-space-y-1">
+                    <Skeleton className="eb-h-4 eb-w-32 eb-bg-muted-foreground/20" />
+                    <Skeleton className="eb-h-3 eb-w-24 eb-bg-muted-foreground/20" />
+                  </div>
+                ) : accountInfo ? (
                   <>
                     <div className="eb-font-medium">
                       {accountInfo.displayName}
@@ -227,11 +281,19 @@ export function ReviewPanel({
                         </span>
                       )}
                     </div>
-                    {currentBalance !== undefined && (
+                    {isBalanceLoading ? (
+                      <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
+                        Loading balance...
+                      </div>
+                    ) : hasBalanceError ? (
+                      <div className="eb-mt-0.5 eb-text-xs eb-text-destructive">
+                        Balance unavailable
+                      </div>
+                    ) : currentBalance !== undefined ? (
                       <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
                         {formatCurrency(currentBalance)} available
                       </div>
-                    )}
+                    ) : null}
                   </>
                 ) : (
                   <div className="eb-text-muted-foreground">Select account</div>
@@ -253,7 +315,13 @@ export function ReviewPanel({
               </div>
               <div className="eb-min-w-0 eb-flex-1">
                 <div className="eb-text-xs eb-text-muted-foreground">To</div>
-                {toInfo.isPlaceholder ? (
+                {isLoading && formData.payeeId ? (
+                  // Show skeleton when loading with initial payee data
+                  <div className="eb-space-y-1">
+                    <Skeleton className="eb-h-4 eb-w-28 eb-bg-muted-foreground/20" />
+                    <Skeleton className="eb-h-3 eb-w-20 eb-bg-muted-foreground/20" />
+                  </div>
+                ) : toInfo.isPlaceholder ? (
                   <div className="eb-text-muted-foreground">{toInfo.name}</div>
                 ) : (
                   <>
@@ -353,7 +421,15 @@ export function ReviewPanel({
               </div>
 
               {/* Balance After Payment */}
-              {balanceAfterPayment !== undefined && (
+              {selectedAccount && isBalanceLoading ? (
+                <div className="eb-flex eb-items-center eb-justify-between eb-rounded-md eb-bg-muted/50 eb-px-3 eb-py-2">
+                  <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
+                    <TrendingDown className="eb-h-4 eb-w-4" />
+                    <span>Remaining balance</span>
+                  </div>
+                  <Skeleton className="eb-h-4 eb-w-16 eb-bg-muted-foreground/20" />
+                </div>
+              ) : balanceAfterPayment !== undefined ? (
                 <div className="eb-flex eb-items-center eb-justify-between eb-rounded-md eb-bg-muted/50 eb-px-3 eb-py-2">
                   <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
                     <TrendingDown className="eb-h-4 eb-w-4" />
@@ -368,7 +444,7 @@ export function ReviewPanel({
                     {formatCurrency(balanceAfterPayment)}
                   </span>
                 </div>
-              )}
+              ) : null}
             </div>
           )}
         </div>
@@ -383,7 +459,7 @@ export function ReviewPanel({
           )}
           <Button
             onClick={handleSubmitClick}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isLoading}
             className="eb-w-full"
             size="lg"
           >
@@ -393,7 +469,7 @@ export function ReviewPanel({
                 Processing...
               </>
             ) : (
-              <>Send {amount > 0 ? formatCurrency(total) : 'Payment'}</>
+              'Confirm payment'
             )}
           </Button>
         </div>
