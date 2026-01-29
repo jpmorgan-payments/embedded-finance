@@ -42,6 +42,7 @@ export function ReviewPanel({
   showFees = false,
   onValidationFail,
   isLoading = false,
+  isPayeesLoading = false,
 }: Omit<ReviewPanelProps, 'mobileConfig'>) {
   // Get live form data from context
   const { formData, isComplete, currentView } = useFlowContext();
@@ -211,6 +212,15 @@ export function ReviewPanel({
         isLinkedAccount,
       };
     }
+    // If we have a payeeId but no selectedPayee, payees might still be loading
+    if (formData.payeeId && isPayeesLoading) {
+      return {
+        name: 'Loading recipient...',
+        lastFour: null,
+        isPlaceholder: false,
+        isLoading: true,
+      };
+    }
     if (isAddingLinkedAccount) {
       return {
         name: 'New Linked Account',
@@ -317,6 +327,12 @@ export function ReviewPanel({
                 <div className="eb-text-xs eb-text-muted-foreground">To</div>
                 {isLoading && formData.payeeId ? (
                   // Show skeleton when loading with initial payee data
+                  <div className="eb-space-y-1">
+                    <Skeleton className="eb-h-4 eb-w-28 eb-bg-muted-foreground/20" />
+                    <Skeleton className="eb-h-3 eb-w-20 eb-bg-muted-foreground/20" />
+                  </div>
+                ) : toInfo.isLoading ? (
+                  // Show skeleton when payees are still loading but we have a payeeId
                   <div className="eb-space-y-1">
                     <Skeleton className="eb-h-4 eb-w-28 eb-bg-muted-foreground/20" />
                     <Skeleton className="eb-h-3 eb-w-20 eb-bg-muted-foreground/20" />

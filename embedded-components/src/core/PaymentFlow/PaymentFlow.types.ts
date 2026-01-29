@@ -313,8 +313,10 @@ export interface ReviewPanelProps {
   showFees?: boolean;
   /** Callback when validation fails, receives array of missing field names */
   onValidationFail?: (missingFields: string[]) => void;
-  /** Whether data is still loading - shows skeletons for from/to sections */
+  /** Whether accounts data is still loading - shows skeletons for from section */
   isLoading?: boolean;
+  /** Whether payees data is still loading - shows skeletons for to section */
+  isPayeesLoading?: boolean;
 }
 
 /**

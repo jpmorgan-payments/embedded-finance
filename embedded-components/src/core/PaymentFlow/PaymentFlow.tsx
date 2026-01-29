@@ -7,6 +7,7 @@ import {
   Check,
   CheckCircle2,
   Copy,
+  Loader2,
   RefreshCw,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -70,6 +71,7 @@ interface StepSectionProps {
   onCollapse?: () => void;
   isLast?: boolean;
   disabledReason?: string;
+  isLoading?: boolean;
 }
 
 function StepSection({
@@ -83,6 +85,7 @@ function StepSection({
   onCollapse,
   isLast = false,
   disabledReason,
+  isLoading = false,
 }: StepSectionProps) {
   const isDisabled = !!disabledReason;
   // Can click to expand if not active and not disabled
@@ -101,6 +104,9 @@ function StepSection({
   const getActionLabel = () => {
     if (isActive) {
       return 'Cancel';
+    }
+    if (isLoading) {
+      return 'Loading...';
     }
     if (isDisabled) {
       return disabledReason;
@@ -138,16 +144,24 @@ function StepSection({
         <div
           className={cn(
             'eb-relative eb-z-10 eb-flex eb-h-8 eb-w-8 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-text-sm eb-font-medium eb-transition-all eb-duration-300',
-            isComplete && 'eb-bg-primary eb-text-primary-foreground',
+            isLoading &&
+              'eb-border-2 eb-border-primary/50 eb-bg-background eb-text-primary',
+            isComplete &&
+              !isLoading &&
+              'eb-bg-primary eb-text-primary-foreground',
             isActive &&
               !isComplete &&
+              !isLoading &&
               'eb-border-2 eb-border-primary eb-bg-background eb-text-primary',
             !isComplete &&
+              !isLoading &&
               !isActive &&
               'eb-border-2 eb-border-muted-foreground/30 eb-bg-background eb-text-muted-foreground'
           )}
         >
-          {isComplete ? (
+          {isLoading ? (
+            <Loader2 className="eb-h-4 eb-w-4 eb-animate-spin" />
+          ) : isComplete ? (
             <Check className="eb-h-4 eb-w-4" strokeWidth={3} />
           ) : (
             <span>{stepNumber}</span>
@@ -213,6 +227,7 @@ interface MainTransferViewProps {
   accounts: AccountResponse[];
   paymentMethods: PaymentMethod[];
   isLoading: boolean;
+  isPayeesLoading?: boolean;
   onPayeeSelect: (payee: Payee) => void;
   onAddNewPayee: () => void;
   onAddRecipient?: () => void;
@@ -245,6 +260,7 @@ function MainTransferView({
   accounts,
   paymentMethods,
   isLoading,
+  isPayeesLoading = false,
   onPayeeSelect,
   onAddNewPayee,
   onAddRecipient,
@@ -542,8 +558,9 @@ function MainTransferView({
       <StepSection
         stepNumber={2}
         title="To"
-        isComplete={hasPayee}
+        isComplete={hasPayee && !!selectedPayee}
         isActive={activeStep === PANEL_IDS.PAYEE}
+        isLoading={hasPayee && isPayeesLoading && !selectedPayee}
         summary={
           selectedPayee
             ? `${selectedPayee.name} (...${selectedPayee.accountNumber?.slice(-4) ?? ''})`
@@ -1492,6 +1509,7 @@ function PaymentFlowContent({
           accounts={accounts}
           paymentMethods={paymentMethods}
           isLoading={isLoading}
+          isPayeesLoading={!isPayeesLoaded}
           onPayeeSelect={handlePayeeSelect}
           onAddNewPayee={handleAddNewPayee}
           onAddRecipient={handleAddRecipient}
@@ -2028,6 +2046,7 @@ export function PaymentFlow({
               isSubmitting={isSubmitting}
               showFees={showFees}
               isLoading={isLoadingAccounts}
+              isPayeesLoading={isLoadingRecipients || isLoadingLinkedAccounts}
             />
           )
         }

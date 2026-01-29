@@ -179,6 +179,74 @@ function createProgressiveLoadingHandlers() {
 }
 
 /**
+ * Creates handlers where accounts load fast but recipients load slowly.
+ * Good for showing the "looking for initial recipient" state.
+ */
+function createLoadingRecipientsHandlers() {
+  const allRecipients = [...mockRecipients, ...mockLinkedAccounts];
+
+  return [
+    // Accounts - fast load
+    http.get('*/accounts', async () => {
+      await delay(300);
+      return HttpResponse.json(mockAccounts);
+    }),
+
+    // Balances - fast load
+    http.get('*/accounts/:id/balances', async ({ params }) => {
+      await delay(500);
+      const balanceData: Record<string, object> = {
+        'acc-checking-main': {
+          accountId: params.id,
+          currency: 'USD',
+          balanceTypes: [{ typeCode: 'ITAV', amount: 15000.0 }],
+        },
+        'acc-checking-ops': {
+          accountId: params.id,
+          currency: 'USD',
+          balanceTypes: [{ typeCode: 'ITAV', amount: 8500.0 }],
+        },
+        'acc-savings': {
+          accountId: params.id,
+          currency: 'USD',
+          balanceTypes: [{ typeCode: 'ITAV', amount: 50000.0 }],
+        },
+        'acc-limited': {
+          accountId: params.id,
+          currency: 'USD',
+          balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
+        },
+      };
+      return HttpResponse.json(
+        balanceData[params.id as string] ?? {
+          accountId: params.id,
+          currency: 'USD',
+          balanceTypes: [{ typeCode: 'ITAV', amount: 0 }],
+        }
+      );
+    }),
+
+    // Recipients - slow load (8 seconds to observe loading state)
+    http.get('*/recipients', async ({ request }) => {
+      await delay(8000);
+      const url = new URL(request.url);
+      const type = url.searchParams.get('type');
+      const filteredRecipients = type
+        ? allRecipients.filter((r) => r.type === type)
+        : allRecipients;
+      return HttpResponse.json({
+        recipients: filteredRecipients,
+        metadata: {
+          page: 0,
+          limit: 100,
+          total_items: filteredRecipients.length,
+        },
+      });
+    }),
+  ];
+}
+
+/**
  * Creates handlers where accounts load quickly but balances load slowly
  */
 function createLoadingBalancesHandlers() {
@@ -718,6 +786,35 @@ export const LoadingBalances: Story = {
       description: {
         story:
           'Shows the state where accounts have loaded but balances are still being fetched. This demonstrates the progressive loading experience.',
+      },
+    },
+  },
+};
+
+/**
+ * Loading recipients with initial payee selected.
+ * Accounts and balances load quickly, but recipients take time to fetch.
+ * Shows the "looking for initial recipient" state.
+ *
+ * **Observe:**
+ * - Account list appears immediately with balances
+ * - Review panel shows skeleton for the pre-selected payee
+ * - Payee section shows loading spinner
+ * - Once recipients load, the initial payee is found and displayed
+ */
+export const LoadingInitialRecipient: Story = {
+  args: {
+    open: true,
+    initialPayeeId: 'recipient-alice',
+  },
+  parameters: {
+    msw: {
+      handlers: createLoadingRecipientsHandlers(),
+    },
+    docs: {
+      description: {
+        story:
+          'Shows the state where an initial payee is selected but recipients are still loading. The review panel shows a skeleton for the payee while we search for it.',
       },
     },
   },
