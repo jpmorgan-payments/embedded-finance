@@ -283,7 +283,7 @@ function MainTransferView({
   onRetryRecipients,
   onRetryLinkedAccounts,
 }: MainTransferViewProps) {
-  const { formData, setFormData } = useFlowContext();
+  const { formData, setFormData: _setFormData } = useFlowContext();
   const { t } = useTranslation('accounts');
 
   // Helper to get translated category label
@@ -363,6 +363,21 @@ function MainTransferView({
   // LIMITED_DDA accounts can only pay to linked accounts, not regular recipients
   const isLimitedDDA = selectedAccount?.category === 'LIMITED_DDA';
 
+  // Helper to check if an account is restricted based on the selected payee
+  const getAccountRestriction = useCallback(
+    (account: AccountResponse): string | undefined => {
+      // If payee is a RECIPIENT (external), LIMITED_DDA accounts cannot be used
+      if (
+        selectedPayee?.type === 'RECIPIENT' &&
+        account.category === 'LIMITED_DDA'
+      ) {
+        return 'Not available for external recipients';
+      }
+      return undefined;
+    },
+    [selectedPayee?.type]
+  );
+
   const hasPayee = !!formData.payeeId;
   const hasPaymentMethod = !!formData.paymentMethod;
   const hasAccount = !!formData.fromAccountId;
@@ -409,24 +424,14 @@ function MainTransferView({
 
   const handleAccountSelect = useCallback(
     (accountId: string) => {
-      onAccountSelect(accountId);
-
-      // Check if the newly selected account is LIMITED_DDA
-      const newAccount = accounts.find((a) => a.id === accountId);
-      const isNewAccountLimitedDDA = newAccount?.category === 'LIMITED_DDA';
-
-      // Check if current payee is a recipient (not linked account)
-      const currentPayeeIsRecipient = selectedPayee?.type === 'RECIPIENT';
-
-      // If switching to LIMITED_DDA and current payee is a recipient, clear it
-      if (isNewAccountLimitedDDA && currentPayeeIsRecipient) {
-        setFormData({ payeeId: undefined });
-        // Show warning that payee was cleared
-        setShowPayeeClearedWarning(true);
-        // Always navigate to payee step to select a linked account
-        setTimeout(() => setActiveStep(PANEL_IDS.PAYEE), 150);
+      // Check if the account is restricted before selecting
+      const account = accounts.find((a) => a.id === accountId);
+      if (account && getAccountRestriction(account)) {
+        // Don't allow selection of restricted accounts
         return;
       }
+
+      onAccountSelect(accountId);
 
       // Advance to next incomplete step
       setTimeout(() => {
@@ -444,8 +449,7 @@ function MainTransferView({
       hasPayee,
       hasPaymentMethod,
       accounts,
-      selectedPayee,
-      setFormData,
+      getAccountRestriction,
     ]
   );
 
@@ -478,6 +482,8 @@ function MainTransferView({
               account.label ?? getCategoryLabel(account.category);
             const isSelected = formData.fromAccountId === account.id;
             const isPendingClose = account.state === 'PENDING_CLOSE';
+            const accountRestriction = getAccountRestriction(account);
+            const isDisabled = !!accountRestriction;
 
             return (
               <React.Fragment key={account.id}>
@@ -485,9 +491,12 @@ function MainTransferView({
                 <button
                   type="button"
                   onClick={() => handleAccountSelect(account.id!)}
+                  disabled={isDisabled}
                   className={cn(
                     'eb-flex eb-w-full eb-items-center eb-justify-between eb-px-3 eb-py-3 eb-text-left eb-text-sm eb-transition-colors',
-                    isSelected ? 'eb-bg-primary/5' : 'hover:eb-bg-muted/50'
+                    isDisabled && 'eb-cursor-not-allowed eb-opacity-50',
+                    isSelected && !isDisabled && 'eb-bg-primary/5',
+                    !isSelected && !isDisabled && 'hover:eb-bg-muted/50'
                   )}
                 >
                   <div className="eb-flex eb-items-center eb-gap-2">
@@ -505,10 +514,23 @@ function MainTransferView({
                           </span>
                         )}
                       </div>
-                      {account.category && (
-                        <div className="eb-text-xs eb-text-muted-foreground">
-                          {getCategoryLabel(account.category)}
+                      {accountRestriction ? (
+                        <div className="eb-space-y-0.5">
+                          {account.category && (
+                            <div className="eb-text-xs eb-text-muted-foreground">
+                              {getCategoryLabel(account.category)}
+                            </div>
+                          )}
+                          <div className="eb-text-xs eb-text-destructive">
+                            {accountRestriction}
+                          </div>
                         </div>
+                      ) : (
+                        account.category && (
+                          <div className="eb-text-xs eb-text-muted-foreground">
+                            {getCategoryLabel(account.category)}
+                          </div>
+                        )
                       )}
                     </div>
                   </div>
@@ -568,7 +590,6 @@ function MainTransferView({
         }
         onHeaderClick={() => setActiveStep(PANEL_IDS.PAYEE)}
         onCollapse={handleCollapse}
-        disabledReason={!hasAccount ? 'Select account first' : undefined}
       >
         <PayeeSelector
           selectedPayeeId={formData.payeeId}

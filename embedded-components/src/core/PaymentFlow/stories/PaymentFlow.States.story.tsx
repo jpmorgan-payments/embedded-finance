@@ -19,6 +19,7 @@ import { PaymentFlow } from '../PaymentFlow';
 import {
   commonArgs,
   commonArgTypes,
+  createPaymentFlowHandlers,
   mockAccounts,
   mockLinkedAccounts,
   mockRecipients,
@@ -1089,6 +1090,84 @@ export const MismatchedBothInitialData: Story = {
       description: {
         story:
           'Demonstrates when both pre-selected account and payee are unavailable. The warning shows both issues, and users must select both manually.',
+      },
+    },
+  },
+};
+
+// ============================================================================
+// Account Restriction Stories
+// ============================================================================
+
+/**
+ * Account restrictions based on payee type.
+ * When an external recipient is selected, LIMITED_DDA accounts are disabled.
+ *
+ * **Observe:**
+ * - External recipient (Alice Johnson) is pre-selected
+ * - "Payroll Account" (LIMITED_DDA) appears disabled with reason text
+ * - Other accounts can be selected normally
+ * - Trying to click the disabled account does nothing
+ */
+export const AccountRestrictionsForRecipient: Story = {
+  args: {
+    open: true,
+    // Pre-select an external recipient (type: 'RECIPIENT')
+    initialPayeeId: 'recipient-alice',
+  },
+  parameters: {
+    msw: {
+      handlers: createPaymentFlowHandlers({ delayMs: 200 }),
+    },
+    docs: {
+      description: {
+        story: `
+Demonstrates proactive account restrictions based on the selected payee type.
+
+**Business Rule:** LIMITED_DDA accounts can only send payments to linked accounts, not external recipients.
+
+**Behavior:**
+- When an external recipient is selected (pre-selected or by user)
+- LIMITED_DDA accounts appear disabled with the reason: "Not available for external recipients"
+- This prevents users from making an invalid account selection
+- User must select a non-LIMITED_DDA account or change the payee to a linked account
+        `,
+      },
+    },
+  },
+};
+
+/**
+ * No account restrictions for linked accounts.
+ * When a linked account payee is selected, all accounts are available.
+ *
+ * **Observe:**
+ * - Linked account (John Doe) is pre-selected
+ * - All accounts including LIMITED_DDA can be selected
+ * - No restrictions are shown
+ */
+export const NoRestrictionsForLinkedAccount: Story = {
+  args: {
+    open: true,
+    // Pre-select a linked account (type: 'LINKED_ACCOUNT')
+    initialPayeeId: 'linked-john',
+  },
+  parameters: {
+    msw: {
+      handlers: createPaymentFlowHandlers({ delayMs: 200 }),
+    },
+    docs: {
+      description: {
+        story: `
+Demonstrates that linked account payees have no account restrictions.
+
+**Business Rule:** Linked accounts can receive payments from any account type, including LIMITED_DDA.
+
+**Behavior:**
+- When a linked account is selected (pre-selected or by user)
+- All accounts are available for selection
+- This includes LIMITED_DDA accounts (e.g., "Payroll Account")
+        `,
       },
     },
   },
