@@ -579,7 +579,7 @@ function MainTransferView({
                     <div className="eb-text-right">
                       {account.balance?.isLoading ? (
                         <>
-                          <Skeleton className="eb-ml-auto eb-h-5 eb-w-20" />
+                          <Skeleton className="eb-ml-auto eb-h-4 eb-w-20" />
                           <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
                             Loading...
                           </div>
