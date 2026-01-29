@@ -86,6 +86,9 @@ export const mockAccounts = {
   metadata: { page: 0, limit: 10, total_items: 3 },
 };
 
+/** Single account for stories that test single-account behavior */
+export const singleAccount = [mockAccounts.items[1]]; // Main Payments Account
+
 // ============================================================================
 // Mock Data - Recipients (Regular)
 // ============================================================================

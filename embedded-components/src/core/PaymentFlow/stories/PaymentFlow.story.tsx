@@ -21,6 +21,7 @@ import {
   commonArgTypes,
   createPaymentFlowHandlers,
   paymentMethodsWithFees,
+  singleAccount,
 } from './story-utils';
 
 // ============================================================================
@@ -318,6 +319,31 @@ export const LimitedDDAAccount: Story = {
       description: {
         story:
           'LIMITED_DDA accounts can only transfer to Linked Accounts, not Recipients. The Recipients tab shows a lock icon and restriction message.',
+      },
+    },
+  },
+};
+
+/**
+ * Single account available.
+ * Shows behavior when user has only one account.
+ *
+ * **Key behavior:**
+ * - Account is automatically selected
+ * - No account selection UI needed
+ */
+export const SingleAccount: Story = {
+  args: {
+    trigger: <Button>Transfer Funds</Button>,
+  },
+  parameters: {
+    msw: {
+      handlers: createPaymentFlowHandlers({ accounts: singleAccount }),
+    },
+    docs: {
+      description: {
+        story:
+          'When only one account is available, it is automatically pre-selected.',
       },
     },
   },
