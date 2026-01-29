@@ -411,7 +411,7 @@ export function createPaymentFlowHandlers(
 
   return [
     // List accounts
-    http.get('*/accounts', async () => {
+    http.get('/accounts', async () => {
       await delay(delayMs);
       return HttpResponse.json({
         items: accounts,
@@ -420,7 +420,7 @@ export function createPaymentFlowHandlers(
     }),
 
     // Get account balance
-    http.get('*/accounts/:id/balances', async ({ params }) => {
+    http.get('/accounts/:id/balances', async ({ params }) => {
       await delay(delayMs);
       const balance = balanceData[params.id as string];
       if (balance) {
@@ -434,7 +434,7 @@ export function createPaymentFlowHandlers(
     }),
 
     // List recipients (includes linked accounts)
-    http.get('*/recipients', async ({ request }) => {
+    http.get('/recipients', async ({ request }) => {
       await delay(delayMs);
       const url = new URL(request.url);
       const type = url.searchParams.get('type');
@@ -452,7 +452,7 @@ export function createPaymentFlowHandlers(
     }),
 
     // Get single recipient
-    http.get('*/recipients/:recipientId', async ({ params }) => {
+    http.get('/recipients/:recipientId', async ({ params }) => {
       await delay(delayMs);
       const recipient = allRecipients.find((r) => r.id === params.recipientId);
       if (recipient) {
@@ -465,7 +465,7 @@ export function createPaymentFlowHandlers(
     }),
 
     // Create recipient
-    http.post('*/recipients', async ({ request }) => {
+    http.post('/recipients', async ({ request }) => {
       await delay(delayMs);
       const body = await request.json();
       const newRecipient = {
@@ -481,7 +481,7 @@ export function createPaymentFlowHandlers(
     }),
 
     // Update recipient (for enabling payment methods)
-    http.patch('*/recipients/:recipientId', async ({ params, request }) => {
+    http.patch('/recipients/:recipientId', async ({ params, request }) => {
       await delay(delayMs);
       const body = await request.json();
       const recipient = allRecipients.find((r) => r.id === params.recipientId);
@@ -500,7 +500,7 @@ export function createPaymentFlowHandlers(
     }),
 
     // Create transaction
-    http.post('*/transactions', async ({ request }) => {
+    http.post('/transactions', async ({ request }) => {
       await delay(delayMs * 2); // Slightly longer for transaction
 
       if (simulateError) {

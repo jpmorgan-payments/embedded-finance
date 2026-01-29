@@ -71,7 +71,7 @@ function createLoadingHandlers() {
 
   return [
     // Accounts - very slow load (10 seconds to observe skeleton)
-    http.get('*/accounts', async () => {
+    http.get('/accounts', async () => {
       await delay(10000);
       return HttpResponse.json({
         items: [],
@@ -80,7 +80,7 @@ function createLoadingHandlers() {
     }),
 
     // Balances - won't be called since no accounts
-    http.get('*/accounts/:id/balances', async () => {
+    http.get('/accounts/:id/balances', async () => {
       await delay(300);
       return HttpResponse.json({
         accountId: 'unknown',
@@ -90,7 +90,7 @@ function createLoadingHandlers() {
     }),
 
     // Recipients - normal
-    http.get('*/recipients', async ({ request }) => {
+    http.get('/recipients', async ({ request }) => {
       await delay(300);
       const url = new URL(request.url);
       const type = url.searchParams.get('type');
@@ -120,13 +120,13 @@ function createProgressiveLoadingHandlers() {
 
   return [
     // Accounts - slow load (4 seconds)
-    http.get('*/accounts', async () => {
+    http.get('/accounts', async () => {
       await delay(4000);
       return HttpResponse.json(mockAccounts);
     }),
 
     // Balances - loads after accounts (2 more seconds)
-    http.get('*/accounts/:id/balances', async ({ params }) => {
+    http.get('/accounts/:id/balances', async ({ params }) => {
       await delay(2000);
       const balanceData: Record<string, object> = {
         'acc-checking-main': {
@@ -160,7 +160,7 @@ function createProgressiveLoadingHandlers() {
     }),
 
     // Recipients - fast load (1 second)
-    http.get('*/recipients', async ({ request }) => {
+    http.get('/recipients', async ({ request }) => {
       await delay(1000);
       const url = new URL(request.url);
       const type = url.searchParams.get('type');
@@ -188,13 +188,13 @@ function createLoadingRecipientsHandlers() {
 
   return [
     // Accounts - fast load
-    http.get('*/accounts', async () => {
+    http.get('/accounts', async () => {
       await delay(300);
       return HttpResponse.json(mockAccounts);
     }),
 
     // Balances - fast load
-    http.get('*/accounts/:id/balances', async ({ params }) => {
+    http.get('/accounts/:id/balances', async ({ params }) => {
       await delay(500);
       const balanceData: Record<string, object> = {
         'acc-checking-main': {
@@ -228,7 +228,7 @@ function createLoadingRecipientsHandlers() {
     }),
 
     // Recipients - slow load (8 seconds to observe loading state)
-    http.get('*/recipients', async ({ request }) => {
+    http.get('/recipients', async ({ request }) => {
       await delay(8000);
       const url = new URL(request.url);
       const type = url.searchParams.get('type');
@@ -255,13 +255,13 @@ function createLoadingBalancesHandlers() {
 
   return [
     // Accounts - fast load
-    http.get('*/accounts', async () => {
+    http.get('/accounts', async () => {
       await delay(300);
       return HttpResponse.json(mockAccounts);
     }),
 
     // Balances - slow load (5 seconds to observe)
-    http.get('*/accounts/:id/balances', async ({ params }) => {
+    http.get('/accounts/:id/balances', async ({ params }) => {
       await delay(5000);
       const balanceData: Record<string, object> = {
         'acc-checking-main': {
@@ -295,7 +295,7 @@ function createLoadingBalancesHandlers() {
     }),
 
     // Recipients - normal
-    http.get('*/recipients', async ({ request }) => {
+    http.get('/recipients', async ({ request }) => {
       await delay(300);
       const url = new URL(request.url);
       const type = url.searchParams.get('type');
@@ -322,7 +322,7 @@ function createAccountsErrorHandlers() {
 
   return [
     // Accounts - 500 error
-    http.get('*/accounts', async () => {
+    http.get('/accounts', async () => {
       await delay(500);
       return HttpResponse.json(
         {
@@ -334,7 +334,7 @@ function createAccountsErrorHandlers() {
     }),
 
     // Recipients - normal
-    http.get('*/recipients', async ({ request }) => {
+    http.get('/recipients', async ({ request }) => {
       await delay(300);
       const url = new URL(request.url);
       const type = url.searchParams.get('type');
@@ -361,7 +361,7 @@ function createEmptyAccountsHandlers() {
 
   return [
     // Accounts - empty response
-    http.get('*/accounts', async () => {
+    http.get('/accounts', async () => {
       await delay(500);
       return HttpResponse.json({
         items: [],
@@ -370,7 +370,7 @@ function createEmptyAccountsHandlers() {
     }),
 
     // Recipients - normal
-    http.get('*/recipients', async ({ request }) => {
+    http.get('/recipients', async ({ request }) => {
       await delay(300);
       const url = new URL(request.url);
       const type = url.searchParams.get('type');
@@ -395,13 +395,13 @@ function createEmptyAccountsHandlers() {
 function createNetworkTimeoutHandlers() {
   return [
     // Accounts - network error
-    http.get('*/accounts', async () => {
+    http.get('/accounts', async () => {
       await delay(1000);
       return HttpResponse.error();
     }),
 
     // Recipients - normal but also fails
-    http.get('*/recipients', async () => {
+    http.get('/recipients', async () => {
       await delay(300);
       return HttpResponse.error();
     }),
@@ -417,7 +417,7 @@ function createRetrySuccessHandlers() {
 
   return [
     // Accounts - fails first time, succeeds on retry
-    http.get('*/accounts', async () => {
+    http.get('/accounts', async () => {
       await delay(500);
       accountsAttempts += 1;
 
@@ -450,7 +450,7 @@ function createRetrySuccessHandlers() {
     }),
 
     // Recipients - normal
-    http.get('*/recipients', async ({ request }) => {
+    http.get('/recipients', async ({ request }) => {
       await delay(300);
       const url = new URL(request.url);
       const type = url.searchParams.get('type');
@@ -477,13 +477,13 @@ function createFailedBalancesHandlers() {
 
   return [
     // Accounts - normal
-    http.get('*/accounts', async () => {
+    http.get('/accounts', async () => {
       await delay(300);
       return HttpResponse.json(mockAccounts);
     }),
 
     // Balances - 500 error
-    http.get('*/accounts/:id/balances', async () => {
+    http.get('/accounts/:id/balances', async () => {
       await delay(500);
       return HttpResponse.json(
         { error: 'Failed to fetch balance' },
@@ -492,7 +492,7 @@ function createFailedBalancesHandlers() {
     }),
 
     // Recipients - normal
-    http.get('*/recipients', async ({ request }) => {
+    http.get('/recipients', async ({ request }) => {
       await delay(300);
       const url = new URL(request.url);
       const type = url.searchParams.get('type');
@@ -517,13 +517,13 @@ function createFailedBalancesHandlers() {
 function createFailedRecipientsHandlers() {
   return [
     // Accounts - normal
-    http.get('*/accounts', async () => {
+    http.get('/accounts', async () => {
       await delay(300);
       return HttpResponse.json(mockAccounts);
     }),
 
     // Balances - normal
-    http.get('*/accounts/:id/balances', async ({ params }) => {
+    http.get('/accounts/:id/balances', async ({ params }) => {
       await delay(300);
       const balanceData: Record<string, object> = {
         'acc-checking-main': {
@@ -557,7 +557,7 @@ function createFailedRecipientsHandlers() {
     }),
 
     // Recipients - 500 error
-    http.get('*/recipients', async () => {
+    http.get('/recipients', async () => {
       await delay(500);
       return HttpResponse.json(
         { error: 'Failed to fetch recipients' },
@@ -576,13 +576,13 @@ function createMismatchedAccountHandlers() {
 
   return [
     // Accounts - normal but doesn't contain the initial account ID
-    http.get('*/accounts', async () => {
+    http.get('/accounts', async () => {
       await delay(500);
       return HttpResponse.json(mockAccounts);
     }),
 
     // Balances - normal
-    http.get('*/accounts/:id/balances', async ({ params }) => {
+    http.get('/accounts/:id/balances', async ({ params }) => {
       await delay(300);
       const balanceData: Record<string, object> = {
         'acc-checking-main': {
@@ -616,7 +616,7 @@ function createMismatchedAccountHandlers() {
     }),
 
     // Recipients - normal
-    http.get('*/recipients', async ({ request }) => {
+    http.get('/recipients', async ({ request }) => {
       await delay(300);
       const url = new URL(request.url);
       const type = url.searchParams.get('type');
@@ -644,13 +644,13 @@ function createMismatchedPayeeHandlers() {
 
   return [
     // Accounts - normal
-    http.get('*/accounts', async () => {
+    http.get('/accounts', async () => {
       await delay(300);
       return HttpResponse.json(mockAccounts);
     }),
 
     // Balances - normal
-    http.get('*/accounts/:id/balances', async ({ params }) => {
+    http.get('/accounts/:id/balances', async ({ params }) => {
       await delay(300);
       const balanceData: Record<string, object> = {
         'acc-checking-main': {
@@ -684,7 +684,7 @@ function createMismatchedPayeeHandlers() {
     }),
 
     // Recipients - normal
-    http.get('*/recipients', async ({ request }) => {
+    http.get('/recipients', async ({ request }) => {
       await delay(300);
       const url = new URL(request.url);
       const type = url.searchParams.get('type');
