@@ -88,11 +88,14 @@ function StepSection({
   isLoading = false,
 }: StepSectionProps) {
   const isDisabled = !!disabledReason;
-  // Can click to expand if not active and not disabled
-  // Can click to collapse if active
-  const canClick = isActive || !isDisabled;
+  // Can click to expand if not active, not disabled, and not loading
+  // Can click to collapse if active (and not loading)
+  const canClick = isLoading ? false : isActive || !isDisabled;
 
   const handleClick = () => {
+    if (isLoading) {
+      return; // Don't allow any clicks while loading
+    }
     if (isActive && onCollapse) {
       onCollapse();
     } else if (!isActive && !isDisabled && onHeaderClick) {
@@ -193,8 +196,8 @@ function StepSection({
             className={cn(
               'eb-text-xs eb-font-medium',
               isActive && 'eb-text-muted-foreground',
-              !isActive && !isDisabled && 'eb-text-primary',
-              isDisabled && 'eb-text-muted-foreground/60'
+              !isActive && !isDisabled && !isLoading && 'eb-text-primary',
+              (isDisabled || isLoading) && 'eb-text-muted-foreground/60'
             )}
           >
             {getActionLabel()}
@@ -283,7 +286,7 @@ function MainTransferView({
   onRetryRecipients,
   onRetryLinkedAccounts,
 }: MainTransferViewProps) {
-  const { formData, setFormData: _setFormData } = useFlowContext();
+  const { formData, setFormData } = useFlowContext();
   const { t } = useTranslation('accounts');
 
   // Helper to get translated category label
@@ -344,6 +347,10 @@ function MainTransferView({
   // Track if payee was just cleared due to account restriction
   const [showPayeeClearedWarning, setShowPayeeClearedWarning] = useState(false);
 
+  // Track if account was cleared due to conflict with loaded payee
+  const [showAccountClearedWarning, setShowAccountClearedWarning] =
+    useState(false);
+
   const selectedPayee = useMemo(
     () => [...payees, ...linkedAccounts].find((p) => p.id === formData.payeeId),
     [payees, linkedAccounts, formData.payeeId]
@@ -354,6 +361,21 @@ function MainTransferView({
     [accounts, formData.fromAccountId]
   );
 
+  // Detect conflict: LIMITED_DDA account selected but loaded payee is RECIPIENT
+  // This can happen when user selects account while initial payee is still loading
+  useEffect(() => {
+    if (
+      selectedAccount?.category === 'LIMITED_DDA' &&
+      selectedPayee?.type === 'RECIPIENT'
+    ) {
+      // Clear the account selection since the payee was pre-selected (intentional)
+      setFormData({ fromAccountId: undefined, availableBalance: undefined });
+      setShowAccountClearedWarning(true);
+      // Navigate to account step so user can select a different account
+      setActiveStep(PANEL_IDS.FROM_ACCOUNT);
+    }
+  }, [selectedPayee?.type, selectedAccount?.category, setFormData]);
+
   const selectedMethod = useMemo(
     () => paymentMethods.find((m) => m.id === formData.paymentMethod),
     [paymentMethods, formData.paymentMethod]
@@ -362,6 +384,10 @@ function MainTransferView({
   // Account restrictions
   // LIMITED_DDA accounts can only pay to linked accounts, not regular recipients
   const isLimitedDDA = selectedAccount?.category === 'LIMITED_DDA';
+
+  const hasPayee = !!formData.payeeId;
+  const hasPaymentMethod = !!formData.paymentMethod;
+  const hasAccount = !!formData.fromAccountId;
 
   // Helper to check if an account is restricted based on the selected payee
   const getAccountRestriction = useCallback(
@@ -377,10 +403,6 @@ function MainTransferView({
     },
     [selectedPayee?.type]
   );
-
-  const hasPayee = !!formData.payeeId;
-  const hasPaymentMethod = !!formData.paymentMethod;
-  const hasAccount = !!formData.fromAccountId;
 
   // Balance validation - only validate when balance is loaded and not errored
   const amount = parseFloat(formData.amount) || 0;
@@ -432,6 +454,8 @@ function MainTransferView({
       }
 
       onAccountSelect(accountId);
+      // Clear any account warning when user makes a new selection
+      setShowAccountClearedWarning(false);
 
       // Advance to next incomplete step
       setTimeout(() => {
@@ -474,6 +498,23 @@ function MainTransferView({
         onHeaderClick={() => setActiveStep(PANEL_IDS.FROM_ACCOUNT)}
         onCollapse={handleCollapse}
       >
+        {/* Warning banner when account was cleared due to payee conflict */}
+        {showAccountClearedWarning && (
+          <div
+            role="alert"
+            className="eb-mb-3 eb-flex eb-items-start eb-gap-2 eb-rounded-md eb-border eb-border-amber-200 eb-bg-amber-50 eb-p-3 eb-text-sm"
+          >
+            <AlertCircle
+              className="eb-mt-0.5 eb-h-4 eb-w-4 eb-shrink-0 eb-text-amber-600"
+              aria-hidden="true"
+            />
+            <div className="eb-text-amber-800">
+              <span className="eb-font-medium">Account unavailable.</span> The
+              selected account cannot send payments to external recipients.
+              Please select a different account.
+            </div>
+          </div>
+        )}
         <div className="eb-overflow-hidden eb-rounded-lg eb-border eb-border-border">
           {accounts.map((account, index) => {
             const lastFour =
@@ -590,6 +631,9 @@ function MainTransferView({
         }
         onHeaderClick={() => setActiveStep(PANEL_IDS.PAYEE)}
         onCollapse={handleCollapse}
+        disabledReason={
+          !hasAccount && !selectedPayee ? 'Select account first' : undefined
+        }
       >
         <PayeeSelector
           selectedPayeeId={formData.payeeId}
@@ -629,14 +673,24 @@ function MainTransferView({
         disabledReason={!hasPayee ? 'Select payee first' : undefined}
         isLast
       >
-        <PaymentMethodSelector
-          payee={selectedPayee}
-          selectedMethod={formData.paymentMethod}
-          availableMethods={paymentMethods}
-          onSelect={handlePaymentMethodSelect}
-          onEnableMethod={onEnablePaymentMethod}
-          disabled={!hasPayee}
-        />
+        {/* Show loading message when we have a payee ID but haven't loaded the payee yet */}
+        {hasPayee && isPayeesLoading && !selectedPayee ? (
+          <div className="eb-flex eb-items-center eb-gap-2 eb-py-3 eb-text-sm eb-text-muted-foreground">
+            <Loader2 className="eb-h-4 eb-w-4 eb-animate-spin" />
+            <span>
+              Loading recipient details to show available payment methods...
+            </span>
+          </div>
+        ) : (
+          <PaymentMethodSelector
+            payee={selectedPayee}
+            selectedMethod={formData.paymentMethod}
+            availableMethods={paymentMethods}
+            onSelect={handlePaymentMethodSelect}
+            onEnableMethod={onEnablePaymentMethod}
+            disabled={!hasPayee}
+          />
+        )}
       </StepSection>
 
       <Separator className="!eb-my-4" />
