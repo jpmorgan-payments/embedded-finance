@@ -147,7 +147,7 @@
       width: 95vw;
       height: 95vh;
       max-width: 900px;
-      max-height: 800px;
+      max-height: 700px;
       transform: translate(-50%, -50%);
       border-radius: 0.5rem; /* rounded-lg */
     }
