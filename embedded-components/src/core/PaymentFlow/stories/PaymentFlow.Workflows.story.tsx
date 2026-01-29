@@ -15,7 +15,6 @@ import {
   commonArgs,
   commonArgTypes,
   createPaymentFlowHandlers,
-  defaultPaymentMethods,
 } from './story-utils';
 
 // ============================================================================
@@ -72,9 +71,6 @@ type Story = StoryObj<typeof meta>;
  * Demonstrates selecting a payee, payment method, account, entering amount, and submitting.
  */
 export const CompletePaymentFlow: Story = {
-  args: {
-    paymentMethods: defaultPaymentMethods,
-  },
   play: async ({ step }) => {
     // Wait for dialog to open
     await waitFor(

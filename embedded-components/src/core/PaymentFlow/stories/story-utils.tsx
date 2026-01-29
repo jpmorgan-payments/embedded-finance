@@ -293,29 +293,8 @@ export const mockLinkedAccounts = [
 // Mock Data - Payment Methods
 // ============================================================================
 
-export const defaultPaymentMethods: PaymentMethod[] = [
-  {
-    id: 'ACH',
-    name: 'ACH Transfer',
-    description: 'Standard bank transfer',
-    estimatedDelivery: '1-3 business days',
-    fee: 0,
-  },
-  {
-    id: 'WIRE',
-    name: 'Wire Transfer',
-    description: 'Same-day transfer',
-    estimatedDelivery: 'Same day',
-    fee: 25,
-  },
-  {
-    id: 'RTP',
-    name: 'Real-Time Payment',
-    description: 'Instant transfer',
-    estimatedDelivery: 'Within minutes',
-    fee: 5,
-  },
-];
+// Note: Component uses DEFAULT_PAYMENT_METHODS from PaymentFlow.constants.ts
+// by default. These exports are only for stories that need specific configurations.
 
 export const achOnlyPaymentMethods: PaymentMethod[] = [
   {
@@ -539,7 +518,6 @@ export function createErrorHandlers(errorConfig?: {
 
 export const commonArgs = {
   clientId: 'mock-client-id',
-  paymentMethods: defaultPaymentMethods,
 };
 
 export const commonArgTypes = {
