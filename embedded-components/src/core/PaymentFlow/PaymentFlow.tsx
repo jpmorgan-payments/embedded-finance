@@ -1015,10 +1015,14 @@ function PaymentFlowContent({
       };
 
       // Select the newly created linked account
+      // Only auto-select payment method if there's exactly one enabled method
       setFormData({
         payeeId: payee.id,
         payee,
-        paymentMethod: payee.enabledPaymentMethods[0],
+        paymentMethod:
+          payee.enabledPaymentMethods.length === 1
+            ? payee.enabledPaymentMethods[0]
+            : undefined,
       });
 
       // Go back to main view
@@ -1055,10 +1059,14 @@ function PaymentFlowContent({
       };
 
       // Select the newly created recipient
+      // Only auto-select payment method if there's exactly one enabled method
       setFormData({
         payeeId: payee.id,
         payee,
-        paymentMethod: formData.paymentMethod ?? payee.enabledPaymentMethods[0],
+        paymentMethod:
+          payee.enabledPaymentMethods.length === 1
+            ? (formData.paymentMethod ?? payee.enabledPaymentMethods[0])
+            : undefined,
       });
 
       // Go back through the flow (method selection -> main)
@@ -1207,6 +1215,7 @@ export function PaymentFlow({
   initialAccountId,
   initialPayeeId,
   initialPaymentMethod,
+  showFees = false,
   onTransactionComplete,
   onClose,
   open: controlledOpen,
@@ -1586,6 +1595,7 @@ export function PaymentFlow({
             paymentMethods={paymentMethods}
             onSubmit={handleTransactionSubmit}
             isSubmitting={isSubmitting}
+            showFees={showFees}
           />
         }
       >

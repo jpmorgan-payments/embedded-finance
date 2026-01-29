@@ -250,6 +250,9 @@ export interface PaymentFlowProps extends UserTrackingProps {
   /** Initial payment method to pre-select */
   initialPaymentMethod?: PaymentMethodType;
 
+  /** Whether to show fees in the review panel (default: false) */
+  showFees?: boolean;
+
   /** Callback when transaction is completed */
   onTransactionComplete?: (
     response?: TransactionResponseV2,
@@ -302,6 +305,8 @@ export interface ReviewPanelProps {
   onSubmit: (formData: PaymentFlowFormData) => void;
   isSubmitting?: boolean;
   mobileConfig?: MobileReviewConfig;
+  /** Whether to show fees in the review panel (default: false) */
+  showFees?: boolean;
   /** Callback when validation fails, receives array of missing field names */
   onValidationFail?: (missingFields: string[]) => void;
 }

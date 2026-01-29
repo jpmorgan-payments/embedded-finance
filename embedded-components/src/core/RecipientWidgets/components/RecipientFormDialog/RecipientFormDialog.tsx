@@ -156,7 +156,8 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
 
   // Handle dialog open/close
   const handleDialogChange = (isOpen: boolean) => {
-    if (isOpen) {
+    // Reset when dialog closes to ensure clean state on next open
+    if (!isOpen) {
       reset();
     }
     onOpenChange?.(isOpen);
