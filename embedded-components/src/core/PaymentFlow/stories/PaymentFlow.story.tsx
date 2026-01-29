@@ -132,7 +132,7 @@ export const ControlledOpen: Story = {
 export const WithInitialAccount: Story = {
   args: {
     trigger: <Button>Transfer from Main Checking</Button>,
-    initialAccountId: 'acc-checking-main',
+    initialAccountId: 'acc-payments-main',
   },
   parameters: {
     docs: {
@@ -178,7 +178,7 @@ export const WithInitialPayee: Story = {
 export const WithAllInitialValues: Story = {
   args: {
     trigger: <Button>Repeat Last Payment</Button>,
-    initialAccountId: 'acc-checking-main',
+    initialAccountId: 'acc-payments-main',
     initialPayeeId: 'recipient-techsolutions',
     initialPaymentMethod: 'ACH',
   },
@@ -311,7 +311,7 @@ export const TabletView: Story = {
 export const LimitedDDAAccount: Story = {
   args: {
     trigger: <Button>Transfer from Payroll</Button>,
-    initialAccountId: 'acc-limited',
+    initialAccountId: 'acc-limited-dda',
   },
   parameters: {
     docs: {

@@ -129,25 +129,20 @@ function createProgressiveLoadingHandlers() {
     http.get('/accounts/:id/balances', async ({ params }) => {
       await delay(2000);
       const balanceData: Record<string, object> = {
-        'acc-checking-main': {
+        'acc-limited-dda': {
+          accountId: params.id,
+          currency: 'USD',
+          balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
+        },
+        'acc-payments-main': {
           accountId: params.id,
           currency: 'USD',
           balanceTypes: [{ typeCode: 'ITAV', amount: 15000.0 }],
         },
-        'acc-checking-ops': {
+        'acc-payments-empty': {
           accountId: params.id,
           currency: 'USD',
-          balanceTypes: [{ typeCode: 'ITAV', amount: 8500.0 }],
-        },
-        'acc-savings': {
-          accountId: params.id,
-          currency: 'USD',
-          balanceTypes: [{ typeCode: 'ITAV', amount: 50000.0 }],
-        },
-        'acc-limited': {
-          accountId: params.id,
-          currency: 'USD',
-          balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
+          balanceTypes: [{ typeCode: 'ITAV', amount: 0 }],
         },
       };
       return HttpResponse.json(
@@ -197,25 +192,20 @@ function createLoadingRecipientsHandlers() {
     http.get('/accounts/:id/balances', async ({ params }) => {
       await delay(500);
       const balanceData: Record<string, object> = {
-        'acc-checking-main': {
+        'acc-limited-dda': {
+          accountId: params.id,
+          currency: 'USD',
+          balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
+        },
+        'acc-payments-main': {
           accountId: params.id,
           currency: 'USD',
           balanceTypes: [{ typeCode: 'ITAV', amount: 15000.0 }],
         },
-        'acc-checking-ops': {
+        'acc-payments-empty': {
           accountId: params.id,
           currency: 'USD',
-          balanceTypes: [{ typeCode: 'ITAV', amount: 8500.0 }],
-        },
-        'acc-savings': {
-          accountId: params.id,
-          currency: 'USD',
-          balanceTypes: [{ typeCode: 'ITAV', amount: 50000.0 }],
-        },
-        'acc-limited': {
-          accountId: params.id,
-          currency: 'USD',
-          balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
+          balanceTypes: [{ typeCode: 'ITAV', amount: 0 }],
         },
       };
       return HttpResponse.json(
@@ -264,25 +254,20 @@ function createLoadingBalancesHandlers() {
     http.get('/accounts/:id/balances', async ({ params }) => {
       await delay(5000);
       const balanceData: Record<string, object> = {
-        'acc-checking-main': {
+        'acc-limited-dda': {
+          accountId: params.id,
+          currency: 'USD',
+          balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
+        },
+        'acc-payments-main': {
           accountId: params.id,
           currency: 'USD',
           balanceTypes: [{ typeCode: 'ITAV', amount: 15000.0 }],
         },
-        'acc-checking-ops': {
+        'acc-payments-empty': {
           accountId: params.id,
           currency: 'USD',
-          balanceTypes: [{ typeCode: 'ITAV', amount: 8500.0 }],
-        },
-        'acc-savings': {
-          accountId: params.id,
-          currency: 'USD',
-          balanceTypes: [{ typeCode: 'ITAV', amount: 50000.0 }],
-        },
-        'acc-limited': {
-          accountId: params.id,
-          currency: 'USD',
-          balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
+          balanceTypes: [{ typeCode: 'ITAV', amount: 0 }],
         },
       };
       return HttpResponse.json(
@@ -431,11 +416,11 @@ function createRetrySuccessHandlers() {
       return HttpResponse.json({
         items: [
           {
-            id: 'acc-checking-main',
+            id: 'acc-payments-main',
             clientId: 'mock-client-id',
-            label: 'Main Checking',
+            label: 'Main Payments Account',
             state: 'OPEN',
-            category: 'MAIN',
+            category: 'LIMITED_DDA_PAYMENTS',
             paymentRoutingInformation: {
               accountNumber: '10000000001234',
               country: 'US',
@@ -526,25 +511,20 @@ function createFailedRecipientsHandlers() {
     http.get('/accounts/:id/balances', async ({ params }) => {
       await delay(300);
       const balanceData: Record<string, object> = {
-        'acc-checking-main': {
+        'acc-limited-dda': {
+          accountId: params.id,
+          currency: 'USD',
+          balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
+        },
+        'acc-payments-main': {
           accountId: params.id,
           currency: 'USD',
           balanceTypes: [{ typeCode: 'ITAV', amount: 15000.0 }],
         },
-        'acc-checking-ops': {
+        'acc-payments-empty': {
           accountId: params.id,
           currency: 'USD',
-          balanceTypes: [{ typeCode: 'ITAV', amount: 8500.0 }],
-        },
-        'acc-savings': {
-          accountId: params.id,
-          currency: 'USD',
-          balanceTypes: [{ typeCode: 'ITAV', amount: 50000.0 }],
-        },
-        'acc-limited': {
-          accountId: params.id,
-          currency: 'USD',
-          balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
+          balanceTypes: [{ typeCode: 'ITAV', amount: 0 }],
         },
       };
       return HttpResponse.json(
@@ -585,25 +565,20 @@ function createMismatchedAccountHandlers() {
     http.get('/accounts/:id/balances', async ({ params }) => {
       await delay(300);
       const balanceData: Record<string, object> = {
-        'acc-checking-main': {
+        'acc-limited-dda': {
+          accountId: params.id,
+          currency: 'USD',
+          balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
+        },
+        'acc-payments-main': {
           accountId: params.id,
           currency: 'USD',
           balanceTypes: [{ typeCode: 'ITAV', amount: 15000.0 }],
         },
-        'acc-checking-ops': {
+        'acc-payments-empty': {
           accountId: params.id,
           currency: 'USD',
-          balanceTypes: [{ typeCode: 'ITAV', amount: 8500.0 }],
-        },
-        'acc-savings': {
-          accountId: params.id,
-          currency: 'USD',
-          balanceTypes: [{ typeCode: 'ITAV', amount: 50000.0 }],
-        },
-        'acc-limited': {
-          accountId: params.id,
-          currency: 'USD',
-          balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
+          balanceTypes: [{ typeCode: 'ITAV', amount: 0 }],
         },
       };
       return HttpResponse.json(
@@ -653,25 +628,20 @@ function createMismatchedPayeeHandlers() {
     http.get('/accounts/:id/balances', async ({ params }) => {
       await delay(300);
       const balanceData: Record<string, object> = {
-        'acc-checking-main': {
+        'acc-limited-dda': {
+          accountId: params.id,
+          currency: 'USD',
+          balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
+        },
+        'acc-payments-main': {
           accountId: params.id,
           currency: 'USD',
           balanceTypes: [{ typeCode: 'ITAV', amount: 15000.0 }],
         },
-        'acc-checking-ops': {
+        'acc-payments-empty': {
           accountId: params.id,
           currency: 'USD',
-          balanceTypes: [{ typeCode: 'ITAV', amount: 8500.0 }],
-        },
-        'acc-savings': {
-          accountId: params.id,
-          currency: 'USD',
-          balanceTypes: [{ typeCode: 'ITAV', amount: 50000.0 }],
-        },
-        'acc-limited': {
-          accountId: params.id,
-          currency: 'USD',
-          balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
+          balanceTypes: [{ typeCode: 'ITAV', amount: 0 }],
         },
       };
       return HttpResponse.json(
@@ -750,7 +720,7 @@ export const LoadingState: Story = {
 export const LoadingStateWithInitialData: Story = {
   args: {
     open: true,
-    initialAccountId: 'acc-checking-main',
+    initialAccountId: 'acc-payments-main',
     initialPayeeId: 'recipient-alice',
   },
   parameters: {

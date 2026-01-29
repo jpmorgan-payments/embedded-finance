@@ -41,49 +41,7 @@ export interface PaymentFlowHandlerOptions {
 export const mockAccounts = {
   items: [
     {
-      id: 'acc-checking-main',
-      clientId: 'mock-client-id',
-      label: 'Main Checking',
-      state: 'OPEN',
-      category: 'MAIN',
-      paymentRoutingInformation: {
-        accountNumber: '10000000001234',
-        country: 'US',
-        routingInformation: [{ type: 'ABA', value: '028000024' }],
-      },
-      balance: { available: 15000.0, current: 15250.0, currency: 'USD' },
-      createdAt: '2024-01-01T08:00:00Z',
-    },
-    {
-      id: 'acc-checking-ops',
-      clientId: 'mock-client-id',
-      label: 'Operations Account',
-      state: 'OPEN',
-      category: 'OPERATIONS',
-      paymentRoutingInformation: {
-        accountNumber: '10000000005678',
-        country: 'US',
-        routingInformation: [{ type: 'ABA', value: '028000024' }],
-      },
-      balance: { available: 8500.0, current: 8500.0, currency: 'USD' },
-      createdAt: '2024-01-05T10:00:00Z',
-    },
-    {
-      id: 'acc-savings',
-      clientId: 'mock-client-id',
-      label: 'Reserve Savings',
-      state: 'OPEN',
-      category: 'RESERVE',
-      paymentRoutingInformation: {
-        accountNumber: '20000000009012',
-        country: 'US',
-        routingInformation: [{ type: 'ABA', value: '028000024' }],
-      },
-      balance: { available: 50000.0, current: 50000.0, currency: 'USD' },
-      createdAt: '2024-01-02T09:00:00Z',
-    },
-    {
-      id: 'acc-limited',
+      id: 'acc-limited-dda',
       clientId: 'mock-client-id',
       label: 'Payroll Account',
       state: 'OPEN',
@@ -96,8 +54,36 @@ export const mockAccounts = {
       balance: { available: 25000.0, current: 25000.0, currency: 'USD' },
       createdAt: '2024-01-03T11:00:00Z',
     },
+    {
+      id: 'acc-payments-main',
+      clientId: 'mock-client-id',
+      label: 'Main Payments Account',
+      state: 'OPEN',
+      category: 'LIMITED_DDA_PAYMENTS',
+      paymentRoutingInformation: {
+        accountNumber: '10000000001234',
+        country: 'US',
+        routingInformation: [{ type: 'ABA', value: '028000024' }],
+      },
+      balance: { available: 15000.0, current: 15250.0, currency: 'USD' },
+      createdAt: '2024-01-01T08:00:00Z',
+    },
+    {
+      id: 'acc-payments-empty',
+      clientId: 'mock-client-id',
+      label: 'Secondary Payments Account',
+      state: 'OPEN',
+      category: 'LIMITED_DDA_PAYMENTS',
+      paymentRoutingInformation: {
+        accountNumber: '10000000005678',
+        country: 'US',
+        routingInformation: [{ type: 'ABA', value: '028000024' }],
+      },
+      balance: { available: 0, current: 0, currency: 'USD' },
+      createdAt: '2024-01-05T10:00:00Z',
+    },
   ],
-  metadata: { page: 0, limit: 10, total_items: 4 },
+  metadata: { page: 0, limit: 10, total_items: 3 },
 };
 
 // ============================================================================
@@ -387,25 +373,20 @@ export function createPaymentFlowHandlers(
 
   // Mock balance data
   const balanceData: Record<string, object> = {
-    'acc-checking-main': {
-      accountId: 'acc-checking-main',
+    'acc-limited-dda': {
+      accountId: 'acc-limited-dda',
+      currency: 'USD',
+      balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
+    },
+    'acc-payments-main': {
+      accountId: 'acc-payments-main',
       currency: 'USD',
       balanceTypes: [{ typeCode: 'ITAV', amount: 15000.0 }],
     },
-    'acc-checking-ops': {
-      accountId: 'acc-checking-ops',
+    'acc-payments-empty': {
+      accountId: 'acc-payments-empty',
       currency: 'USD',
-      balanceTypes: [{ typeCode: 'ITAV', amount: 8500.0 }],
-    },
-    'acc-savings': {
-      accountId: 'acc-savings',
-      currency: 'USD',
-      balanceTypes: [{ typeCode: 'ITAV', amount: 50000.0 }],
-    },
-    'acc-limited': {
-      accountId: 'acc-limited',
-      currency: 'USD',
-      balanceTypes: [{ typeCode: 'ITAV', amount: 25000.0 }],
+      balanceTypes: [{ typeCode: 'ITAV', amount: 0 }],
     },
   };
 
