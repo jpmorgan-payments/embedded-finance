@@ -36,10 +36,14 @@
     "hideDetails": "Masquer les détails du compte",
     "copyAccountNumber": "Copier le numéro de compte",
     "copyAchRouting": "Copier le numéro de routage ACH",
-    "noBalanceData": "Informations de solde non disponibles"
+    "noBalanceData": "Informations de solde non disponibles",
+    "dataAsOf": "Au {{date}}",
+    "balanceTypeInfoAriaLabel": "En savoir plus sur {{type}}"
   },
   "balanceTypes": {
     "ITAV": "Solde disponible",
-    "ITBD": "Solde actuel"
+    "ITBD": "Solde actuel",
+    "ITAV_description": "Fonds utilisables immédiatement, y compris les crédits en attente et moins les blocages.",
+    "ITBD_description": "Solde des opérations réglées; peut ne pas refléter l'activité en attente."
   }
 }

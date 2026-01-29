@@ -11,13 +11,14 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "health-check": "node health-check.js",
-    "health-check:local": "node health-check.js --url http://localhost:3000/sellsense-demo --headless false",
+    "health-check:local": "node health-check.js --url http://localhost:3000 --headless false",
     "health-check:linked-bank": "node health-check.js --scenario=linked-bank-account",
     "health-check:onboarding": "node health-check.js --scenario=onboarding-docs-needed",
-    "health-check:all": "npm run health-check && npm run health-check:linked-bank && npm run health-check:onboarding"
+    "health-check:all": "npm run health-check && npm run health-check:linked-bank && npm run health-check:onboarding",
+    "e2e:sellsense-urls": "playwright test tests/e2e/sellsense-demo-urls.spec.ts"
   },
   "dependencies": {
-    "@jpmorgan-payments/embedded-finance-components": "^0.10.19",
+    "@jpmorgan-payments/embedded-finance-components": "^0.10.20",
     "@mswjs/data": "^0.16.2",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-dialog": "^1.1.14",

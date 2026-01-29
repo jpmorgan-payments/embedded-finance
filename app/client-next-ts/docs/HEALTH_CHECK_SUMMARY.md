@@ -6,10 +6,11 @@ A CI/CD pipeline that automatically detects PR deployments and runs health check
 
 1. **Enhanced Health Check Script** (`health-check.js`)
 
-   - **Dynamic URL support** - Can test any URL including PR deployments
+   - **Dynamic URL support** - Can test any URL including PR deployments (pass base URL only; script adds `/sellsense-demo`)
    - **Improved MSW verification** - Better transaction element detection
    - **Enhanced error reporting** - More detailed debugging information
    - **CLI-friendly** - Multiple options for different testing scenarios
+   - **CI flakiness mitigations** - Uses `load` instead of `networkidle`; waits for primary content with configurable timeouts; optional retries (default 1 retry when `CI=true`). Env: `HEALTH_CHECK_NAV_TIMEOUT_MS`, `HEALTH_CHECK_CONTENT_TIMEOUT_MS`, `HEALTH_CHECK_RETRIES`; CLI: `--retries 1`.
 
 2. **Smart PR Detection Workflow** (`.github/workflows/wait-and-verify-deployment.yml`)
 
@@ -94,8 +95,8 @@ npm run health-check
 npm run dev  # Terminal 1
 npm run health-check:local  # Terminal 2
 
-# Test against custom URL (like PR deployment)
-node health-check.js --url "https://pr-527.d2hwh33w4gkjqk.amplifyapp.com/sellsense-demo"
+# Test against custom URL (like PR deployment). Use base URL only; script adds /sellsense-demo.
+node health-check.js --url "https://pr-527.d2hwh33w4gkjqk.amplifyapp.com"
 ```
 
 ### **PR Testing**

@@ -38,10 +38,14 @@
     "copyAccountNumber": "Copiar número de cuenta",
     "copyRouting": "Copiar número de enrutamiento",
     "copyAchRouting": "Copiar número de enrutamiento ACH",
-    "noBalanceData": "Información de saldo no disponible"
+    "noBalanceData": "Información de saldo no disponible",
+    "dataAsOf": "Al {{date}}",
+    "balanceTypeInfoAriaLabel": "Más información sobre {{type}}"
   },
   "balanceTypes": {
     "ITAV": "Saldo disponible",
-    "ITBD": "Saldo actual"
+    "ITBD": "Saldo actual",
+    "ITAV_description": "Fondos que puede usar ahora, incluyendo créditos pendientes y menos retenciones.",
+    "ITBD_description": "Saldo de transacciones liquidadas; puede no reflejar actividad pendiente."
   }
 }

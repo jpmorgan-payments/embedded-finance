@@ -2,7 +2,10 @@ import { server } from '@/msw/server';
 import { render, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
-import type { AccountResponse } from '@/api/generated/ep-accounts.schemas';
+import type {
+  AccountBalanceResponse,
+  AccountResponse,
+} from '@/api/generated/ep-accounts.schemas';
 
 import { EBComponentsProvider } from '../../../EBComponentsProvider';
 import { AccountCard } from './AccountCard';
@@ -22,7 +25,7 @@ const mockAccount: AccountResponse = {
       },
     ],
   },
-  createdAt: '2025-04-14T08:57:21.792272Z',
+  createdAt: '2025-01-26T14:32:00.000Z',
   category: 'LIMITED_DDA',
 };
 
@@ -53,15 +56,14 @@ describe('AccountCard', () => {
   });
 
   test('renders account information', async () => {
+    const mockBalance: AccountBalanceResponse = {
+      id: 'account1',
+      date: '2025-01-26',
+      currency: 'USD',
+      balanceTypes: [{ typeCode: 'ITAV', amount: 5558.42 }],
+    };
     server.use(
-      http.get('*/accounts/:id/balances', () =>
-        HttpResponse.json({
-          id: 'account1',
-          date: '2023-10-28',
-          currency: 'USD',
-          balanceTypes: [{ typeCode: 'ITAV', amount: 5558.42 }],
-        })
-      )
+      http.get('*/accounts/:id/balances', () => HttpResponse.json(mockBalance))
     );
 
     renderComponent();
@@ -78,15 +80,14 @@ describe('AccountCard', () => {
   });
 
   test('displays masked account number', () => {
+    const mockBalance: AccountBalanceResponse = {
+      id: 'account1',
+      date: '2025-01-26',
+      currency: 'USD',
+      balanceTypes: [],
+    };
     server.use(
-      http.get('*/accounts/:id/balances', () =>
-        HttpResponse.json({
-          id: 'account1',
-          date: '2023-10-28',
-          currency: 'USD',
-          balanceTypes: [],
-        })
-      )
+      http.get('*/accounts/:id/balances', () => HttpResponse.json(mockBalance))
     );
 
     renderComponent();
@@ -96,18 +97,17 @@ describe('AccountCard', () => {
   });
 
   test('displays balance information when available', async () => {
+    const mockBalance: AccountBalanceResponse = {
+      id: 'account1',
+      date: '2025-01-26',
+      currency: 'USD',
+      balanceTypes: [
+        { typeCode: 'ITAV', amount: 5558.42 },
+        { typeCode: 'ITBD', amount: 5758.42 },
+      ],
+    };
     server.use(
-      http.get('*/accounts/:id/balances', () =>
-        HttpResponse.json({
-          id: 'account1',
-          date: '2023-10-28',
-          currency: 'USD',
-          balanceTypes: [
-            { typeCode: 'ITAV', amount: 5558.42 },
-            { typeCode: 'ITBD', amount: 5758.42 },
-          ],
-        })
-      )
+      http.get('*/accounts/:id/balances', () => HttpResponse.json(mockBalance))
     );
 
     renderComponent();
