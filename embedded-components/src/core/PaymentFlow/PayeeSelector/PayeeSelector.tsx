@@ -7,9 +7,19 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { AlertTriangle, Link, Loader2, Lock, Search, User } from 'lucide-react';
+import {
+  AlertCircle,
+  AlertTriangle,
+  Link,
+  Loader2,
+  Lock,
+  RefreshCw,
+  Search,
+  User,
+} from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -36,6 +46,11 @@ interface PayeeSelectorFullProps extends PayeeSelectorProps {
   recipientsRestrictedMessage?: string;
   // Show warning banner when payee was cleared due to restriction
   showRestrictionWarning?: boolean;
+  // Error states
+  recipientsError?: boolean;
+  linkedAccountsError?: boolean;
+  onRetryRecipients?: () => void;
+  onRetryLinkedAccounts?: () => void;
 }
 
 /**
@@ -62,6 +77,10 @@ export function PayeeSelector({
   recipientsRestricted = false,
   recipientsRestrictedMessage = 'This account type cannot send payments to external recipients. Please select a linked account instead.',
   showRestrictionWarning = false,
+  recipientsError = false,
+  linkedAccountsError = false,
+  onRetryRecipients,
+  onRetryLinkedAccounts,
 }: PayeeSelectorFullProps) {
   // Default to linked-accounts tab when recipients are restricted
   const [activeTab, setActiveTab] = useState<'recipients' | 'linked-accounts'>(
@@ -225,7 +244,32 @@ export function PayeeSelector({
 
   const recipientsContent = (
     <>
-      {isLoading ? (
+      {recipientsError ? (
+        <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-gap-3 eb-px-4 eb-py-6 eb-text-center">
+          <div className="eb-flex eb-h-10 eb-w-10 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
+            <AlertCircle className="eb-h-5 eb-w-5 eb-text-destructive" />
+          </div>
+          <div className="eb-space-y-1">
+            <p className="eb-text-sm eb-font-medium eb-text-foreground">
+              Unable to load recipients
+            </p>
+            <p className="eb-text-xs eb-text-muted-foreground">
+              We couldn&apos;t load your recipients. Please try again.
+            </p>
+          </div>
+          {onRetryRecipients && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRetryRecipients}
+              className="eb-mt-1"
+            >
+              <RefreshCw className="eb-mr-2 eb-h-3 eb-w-3" />
+              Retry
+            </Button>
+          )}
+        </div>
+      ) : isLoading ? (
         <div className="eb-flex eb-items-center eb-justify-center eb-py-6">
           <Loader2 className="eb-h-5 eb-w-5 eb-animate-spin eb-text-muted-foreground" />
         </div>
@@ -292,7 +336,32 @@ export function PayeeSelector({
 
   const linkedAccountsContent = (
     <>
-      {isLoading ? (
+      {linkedAccountsError ? (
+        <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-gap-3 eb-px-4 eb-py-6 eb-text-center">
+          <div className="eb-flex eb-h-10 eb-w-10 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
+            <AlertCircle className="eb-h-5 eb-w-5 eb-text-destructive" />
+          </div>
+          <div className="eb-space-y-1">
+            <p className="eb-text-sm eb-font-medium eb-text-foreground">
+              Unable to load linked accounts
+            </p>
+            <p className="eb-text-xs eb-text-muted-foreground">
+              We couldn&apos;t load your linked accounts. Please try again.
+            </p>
+          </div>
+          {onRetryLinkedAccounts && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRetryLinkedAccounts}
+              className="eb-mt-1"
+            >
+              <RefreshCw className="eb-mr-2 eb-h-3 eb-w-3" />
+              Retry
+            </Button>
+          )}
+        </div>
+      ) : isLoading ? (
         <div className="eb-flex eb-items-center eb-justify-center eb-py-6">
           <Loader2 className="eb-h-5 eb-w-5 eb-animate-spin eb-text-muted-foreground" />
         </div>
@@ -358,8 +427,14 @@ export function PayeeSelector({
     <div className="eb-space-y-3">
       {/* Warning banner when payee was cleared due to account restriction */}
       {showRestrictionWarning && (
-        <div className="eb-flex eb-items-start eb-gap-2 eb-rounded-md eb-border eb-border-amber-200 eb-bg-amber-50 eb-p-3 eb-text-sm">
-          <AlertTriangle className="eb-mt-0.5 eb-h-4 eb-w-4 eb-shrink-0 eb-text-amber-600" />
+        <div
+          role="alert"
+          className="eb-flex eb-items-start eb-gap-2 eb-rounded-md eb-border eb-border-amber-200 eb-bg-amber-50 eb-p-3 eb-text-sm"
+        >
+          <AlertTriangle
+            className="eb-mt-0.5 eb-h-4 eb-w-4 eb-shrink-0 eb-text-amber-600"
+            aria-hidden="true"
+          />
           <div className="eb-text-amber-800">
             <span className="eb-font-medium">Recipient cleared.</span> The
             selected account type can only send payments to linked accounts.
@@ -375,23 +450,38 @@ export function PayeeSelector({
         }
         className="eb-space-y-3"
       >
-        <TabsList className="eb-w-full">
+        <TabsList
+          className="eb-h-auto eb-w-full eb-flex-col @md:eb-h-9 @md:eb-flex-row"
+          aria-label="Payee type selection"
+        >
           <TabsTrigger
             value="recipients"
             className={cn(
-              'eb-flex-1 eb-gap-1.5',
+              'eb-w-full eb-gap-1.5 eb-text-sm @md:eb-flex-1',
               recipientsRestricted && 'eb-text-muted-foreground'
             )}
           >
             {recipientsRestricted ? (
-              <Lock className="eb-h-3.5 eb-w-3.5 eb-text-muted-foreground" />
+              <Lock
+                className="eb-h-3.5 eb-w-3.5 eb-shrink-0 eb-text-muted-foreground"
+                aria-hidden="true"
+              />
             ) : (
-              <User className="eb-h-3.5 eb-w-3.5" />
+              <User
+                className="eb-h-3.5 eb-w-3.5 eb-shrink-0"
+                aria-hidden="true"
+              />
             )}
             Recipients ({totalRecipients ?? recipients.length})
           </TabsTrigger>
-          <TabsTrigger value="linked-accounts" className="eb-flex-1 eb-gap-1.5">
-            <Link className="eb-h-3.5 eb-w-3.5" />
+          <TabsTrigger
+            value="linked-accounts"
+            className="eb-w-full eb-gap-1.5 eb-text-sm @md:eb-flex-1"
+          >
+            <Link
+              className="eb-h-3.5 eb-w-3.5 eb-shrink-0"
+              aria-hidden="true"
+            />
             Linked Accounts ({totalLinkedAccounts ?? linkedAccounts.length})
           </TabsTrigger>
         </TabsList>
@@ -404,7 +494,10 @@ export function PayeeSelector({
               (activeTab === 'linked-accounts' &&
                 showLinkedAccountsSearch)) && (
               <div className="eb-relative eb-border-b eb-border-border eb-bg-muted/30">
-                <Search className="eb-absolute eb-left-2.5 eb-top-1/2 eb-h-3.5 eb-w-3.5 eb--translate-y-1/2 eb-text-muted-foreground" />
+                <Search
+                  className="eb-absolute eb-left-2.5 eb-top-1/2 eb-h-3.5 eb-w-3.5 eb--translate-y-1/2 eb-text-muted-foreground"
+                  aria-hidden="true"
+                />
                 <Input
                   placeholder={
                     activeTab === 'recipients'
@@ -414,6 +507,11 @@ export function PayeeSelector({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="eb-h-9 eb-rounded-none eb-border-0 eb-bg-transparent eb-pl-8 eb-text-sm focus-visible:eb-ring-0 focus-visible:eb-ring-offset-0"
+                  aria-label={
+                    activeTab === 'recipients'
+                      ? 'Search recipients'
+                      : 'Search linked accounts'
+                  }
                 />
               </div>
             )}
@@ -442,9 +540,16 @@ export function PayeeSelector({
  */
 function RestrictionMessage({ message }: { message: string }) {
   return (
-    <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center">
+    <div
+      role="status"
+      aria-live="polite"
+      className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center"
+    >
       <div className="eb-mb-3 eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted">
-        <Lock className="eb-h-6 eb-w-6 eb-text-muted-foreground" />
+        <Lock
+          className="eb-h-6 eb-w-6 eb-text-muted-foreground"
+          aria-hidden="true"
+        />
       </div>
       <div className="eb-font-medium eb-text-foreground">
         Recipients Not Available
@@ -467,7 +572,11 @@ function EmptyState({ type, hasSearch, searchQuery }: EmptyStateProps) {
 
   if (hasSearch) {
     return (
-      <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center">
+      <div
+        role="status"
+        aria-live="polite"
+        className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center"
+      >
         <div className="eb-text-sm eb-text-muted-foreground">
           No {type === 'recipients' ? 'recipients' : 'accounts'} match &ldquo;
           {searchQuery}&rdquo;
@@ -477,9 +586,16 @@ function EmptyState({ type, hasSearch, searchQuery }: EmptyStateProps) {
   }
 
   return (
-    <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center">
+    <div
+      role="status"
+      aria-live="polite"
+      className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center"
+    >
       <div className="eb-mb-3 eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted">
-        <Icon className="eb-h-6 eb-w-6 eb-text-muted-foreground" />
+        <Icon
+          className="eb-h-6 eb-w-6 eb-text-muted-foreground"
+          aria-hidden="true"
+        />
       </div>
       <div className="eb-font-medium">
         {type === 'recipients' ? 'No recipients yet' : 'No linked accounts'}

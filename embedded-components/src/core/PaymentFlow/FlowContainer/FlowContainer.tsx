@@ -61,12 +61,21 @@ function FlowContainerInner({
       {/* Body - Two column layout (container 768px+) */}
       <div className="eb-flex eb-flex-1 eb-flex-col eb-overflow-hidden @3xl:eb-flex-row">
         {/* Left Column - Dynamic Content (scrollable, includes mobile review) */}
-        <div className="eb-flex-1 eb-overflow-y-auto eb-px-6 eb-py-4">
-          {children}
+        <div className="eb-flex eb-flex-1 eb-flex-col eb-overflow-y-auto eb-px-3 eb-pb-1 eb-pt-0 @md:eb-px-6 @md:eb-pt-4">
+          <div
+            className={cn(
+              'eb-flex-1',
+              showReviewPanel
+                ? 'eb-pb-0 @3xl:eb-pb-4' // No padding on mobile (review panel below has mt-4), but add padding on desktop (side panel)
+                : 'eb-pb-3 @md:eb-pb-4'
+            )}
+          >
+            {children}
+          </div>
 
           {/* Mobile Review Panel - inside scroll area on narrower containers */}
           {showReviewPanel && (
-            <div className="eb--mx-6 eb-mt-6 eb-border-t eb-bg-muted eb-px-6 eb-py-4 @3xl:eb-hidden">
+            <div className="eb--mx-3 eb-mt-4 eb-border-t eb-bg-muted eb-p-3 @md:eb--mx-6 @md:eb-px-6 @md:eb-py-4 @3xl:eb-hidden">
               {reviewPanel}
             </div>
           )}
@@ -125,7 +134,7 @@ export function FlowContainer({
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
-          className="eb-flex eb-h-[85vh] eb-max-h-[700px] eb-w-[95vw] eb-max-w-[900px] eb-flex-col eb-gap-0 eb-overflow-hidden eb-p-0"
+          className="eb-dialog-responsive-lg eb-flex eb-flex-col eb-gap-0 eb-overflow-hidden eb-p-0"
           aria-describedby={undefined}
         >
           <DialogTitle className="eb-sr-only">{title}</DialogTitle>

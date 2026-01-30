@@ -19,6 +19,10 @@ export interface AccountResponse extends ApiAccountResponse {
     available: number;
     current?: number;
     currency?: string;
+    /** Indicates if fetching the balance failed */
+    hasError?: boolean;
+    /** Indicates if the balance is still being fetched */
+    isLoading?: boolean;
   };
 }
 
@@ -250,6 +254,9 @@ export interface PaymentFlowProps extends UserTrackingProps {
   /** Initial payment method to pre-select */
   initialPaymentMethod?: PaymentMethodType;
 
+  /** Whether to show fees in the review panel (default: false) */
+  showFees?: boolean;
+
   /** Callback when transaction is completed */
   onTransactionComplete?: (
     response?: TransactionResponseV2,
@@ -302,8 +309,14 @@ export interface ReviewPanelProps {
   onSubmit: (formData: PaymentFlowFormData) => void;
   isSubmitting?: boolean;
   mobileConfig?: MobileReviewConfig;
+  /** Whether to show fees in the review panel (default: false) */
+  showFees?: boolean;
   /** Callback when validation fails, receives array of missing field names */
   onValidationFail?: (missingFields: string[]) => void;
+  /** Whether accounts data is still loading - shows skeletons for from section */
+  isLoading?: boolean;
+  /** Whether payees data is still loading - shows skeletons for to section */
+  isPayeesLoading?: boolean;
 }
 
 /**
