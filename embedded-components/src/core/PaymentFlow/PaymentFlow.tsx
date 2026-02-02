@@ -2,14 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQueries } from '@tanstack/react-query';
-import {
-  AlertCircle,
-  Check,
-  CheckCircle2,
-  Copy,
-  Loader2,
-  RefreshCw,
-} from 'lucide-react';
+import { AlertCircle, Check, Copy, Loader2, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -1014,10 +1007,12 @@ interface SuccessViewProps {
     amount: string;
     payeeId?: string;
     fromAccountId?: string;
+    paymentMethod?: string;
     memo?: string;
   };
   payees: Payee[];
   accounts: AccountResponse[];
+  paymentMethods: PaymentMethod[];
   onClose: () => void;
 }
 
@@ -1026,6 +1021,7 @@ function SuccessView({
   formData,
   payees,
   accounts,
+  paymentMethods,
   onClose,
 }: SuccessViewProps) {
   const [copied, setCopied] = useState(false);
@@ -1033,8 +1029,24 @@ function SuccessView({
   const amount = parseFloat(formData.amount) || 0;
   const payee = payees.find((p) => p.id === formData.payeeId);
   const account = accounts.find((a) => a.id === formData.fromAccountId);
+  const selectedMethod = paymentMethods.find(
+    (m) => m.id === formData.paymentMethod
+  );
   const transactionId =
     transactionResponse?.id ?? transactionResponse?.transactionReferenceId;
+
+  // Get recipient type label matching ReviewPanel pattern
+  const getRecipientTypeLabel = () => {
+    if (!payee) return '';
+    if (payee.type === 'LINKED_ACCOUNT') {
+      return payee.recipientType === 'BUSINESS'
+        ? 'Linked business account'
+        : 'Linked individual account';
+    }
+    return payee.recipientType === 'BUSINESS'
+      ? 'Business recipient'
+      : 'Individual recipient';
+  };
 
   const handleCopyId = useCallback(() => {
     if (transactionId) {
@@ -1046,9 +1058,9 @@ function SuccessView({
 
   return (
     <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center">
-      {/* Success Icon */}
-      <div className="eb-mb-4 eb-flex eb-h-16 eb-w-16 eb-items-center eb-justify-center eb-rounded-full eb-bg-green-100">
-        <CheckCircle2 className="eb-h-8 eb-w-8 eb-text-green-600" />
+      {/* Success Icon with animation */}
+      <div className="eb-mb-6 eb-flex eb-h-16 eb-w-16 eb-items-center eb-justify-center eb-rounded-full eb-bg-green-600 eb-duration-300 eb-animate-in eb-zoom-in-50">
+        <Check className="eb-h-8 eb-w-8 eb-text-white" strokeWidth={3} />
       </div>
 
       {/* Success Message */}
@@ -1064,15 +1076,42 @@ function SuccessView({
         {payee && (
           <div className="eb-flex eb-justify-between">
             <span className="eb-text-sm eb-text-muted-foreground">To</span>
-            <span className="eb-text-sm eb-font-medium">{payee.name}</span>
+            <div className="eb-text-right">
+              <div className="eb-text-sm eb-font-medium">
+                {payee.name}
+                {payee.accountNumber && (
+                  <span className="eb-font-normal eb-text-muted-foreground">
+                    {' '}
+                    (...{payee.accountNumber.slice(-4)})
+                  </span>
+                )}
+              </div>
+              <div className="eb-text-xs eb-text-muted-foreground">
+                {getRecipientTypeLabel()}
+              </div>
+            </div>
           </div>
         )}
         {account && (
           <div className="eb-flex eb-justify-between">
             <span className="eb-text-sm eb-text-muted-foreground">From</span>
             <span className="eb-text-sm eb-font-medium">
-              {account.label ?? 'Account'} (...
-              {account.paymentRoutingInformation?.accountNumber?.slice(-4)})
+              {account.label ?? 'Account'}
+              {account.paymentRoutingInformation?.accountNumber && (
+                <span className="eb-font-normal eb-text-muted-foreground">
+                  {' '}
+                  (...
+                  {account.paymentRoutingInformation.accountNumber.slice(-4)})
+                </span>
+              )}
+            </span>
+          </div>
+        )}
+        {selectedMethod && (
+          <div className="eb-flex eb-justify-between">
+            <span className="eb-text-sm eb-text-muted-foreground">Method</span>
+            <span className="eb-text-sm eb-font-medium">
+              {selectedMethod.name}
             </span>
           </div>
         )}
@@ -1667,6 +1706,7 @@ function PaymentFlowContent({
           formData={formData}
           payees={[...payees, ...linkedAccounts]}
           accounts={accounts}
+          paymentMethods={paymentMethods}
           onClose={onClose}
         />
       </FlowView>

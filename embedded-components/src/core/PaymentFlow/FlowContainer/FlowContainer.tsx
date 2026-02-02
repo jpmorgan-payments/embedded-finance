@@ -23,6 +23,39 @@ interface FlowContainerFullProps extends FlowContainerProps {
 }
 
 /**
+ * DialogWrapper - Wraps content in Dialog and dynamically adjusts size based on success state
+ */
+function DialogWrapper({
+  open,
+  onOpenChange,
+  title,
+  children,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  children: React.ReactNode;
+}) {
+  const { currentView } = useFlowContext();
+  const isSuccessView = currentView === 'success';
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className={cn(
+          'eb-dialog-responsive-lg eb-flex eb-flex-col eb-gap-0 eb-overflow-hidden eb-p-0',
+          isSuccessView && 'eb-dialog-success'
+        )}
+        aria-describedby={undefined}
+      >
+        <DialogTitle className="eb-sr-only">{title}</DialogTitle>
+        {children}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
  * FlowContainerInner - The actual layout without Dialog wrapper
  */
 function FlowContainerInner({
@@ -115,35 +148,33 @@ export function FlowContainer({
   initialData,
   hideHeader = false,
 }: FlowContainerFullProps) {
-  const content = (
-    <FlowContextProvider initialData={initialData}>
-      <FlowContainerInner
-        title={title}
-        reviewPanel={reviewPanel}
-        reviewPanelWidth={reviewPanelWidth}
-        hideHeader={hideHeader}
-        className={asModal ? undefined : 'eb-h-full'}
-      >
-        {children}
-      </FlowContainerInner>
-    </FlowContextProvider>
+  const innerContent = (
+    <FlowContainerInner
+      title={title}
+      reviewPanel={reviewPanel}
+      reviewPanelWidth={reviewPanelWidth}
+      hideHeader={hideHeader}
+      className={asModal ? undefined : 'eb-h-full'}
+    >
+      {children}
+    </FlowContainerInner>
   );
 
-  // Render as modal
+  // Render as modal - wrap with provider outside dialog so DialogWrapper can access context
   if (asModal && open !== undefined && onOpenChange) {
     return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent
-          className="eb-dialog-responsive-lg eb-flex eb-flex-col eb-gap-0 eb-overflow-hidden eb-p-0"
-          aria-describedby={undefined}
-        >
-          <DialogTitle className="eb-sr-only">{title}</DialogTitle>
-          {content}
-        </DialogContent>
-      </Dialog>
+      <FlowContextProvider initialData={initialData}>
+        <DialogWrapper open={open} onOpenChange={onOpenChange} title={title}>
+          {innerContent}
+        </DialogWrapper>
+      </FlowContextProvider>
     );
   }
 
   // Render inline
-  return content;
+  return (
+    <FlowContextProvider initialData={initialData}>
+      {innerContent}
+    </FlowContextProvider>
+  );
 }
