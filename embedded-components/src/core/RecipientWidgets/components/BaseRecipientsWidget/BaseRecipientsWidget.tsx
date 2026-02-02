@@ -5,6 +5,7 @@ import { useVirtualizer, VirtualItem } from '@tanstack/react-virtual';
 import { ChevronDownIcon, PlusIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { getRecipientDisplayName } from '@/lib/recipientHelpers';
 import type { UserTrackingProps } from '@/lib/types/userTracking.types';
 import { cn } from '@/lib/utils';
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
@@ -13,9 +14,15 @@ import {
   Recipient,
 } from '@/api/generated/ep-recipients.schemas';
 import type { ApiError } from '@/api/generated/ep-recipients.schemas';
+import type {
+  ApiErrorV2,
+  TransactionResponseV2,
+} from '@/api/generated/ep-transactions.schemas';
 import { Button } from '@/components/ui/button';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { PaymentFlow } from '@/core/PaymentFlow';
+import type { PaymentMethod } from '@/core/PaymentFlow/PaymentFlow.types';
 
 import { useRecipients, useRecipientsTable } from '../../hooks';
 import {
@@ -112,8 +119,36 @@ export interface BaseRecipientsWidgetProps extends UserTrackingProps {
 
   /**
    * Render a custom payment/action component for each recipient card.
+   * If not provided and clientId is set, a default PaymentFlow button will be rendered.
    */
   renderPaymentAction?: (recipient: Recipient) => React.ReactNode;
+
+  /**
+   * Client ID for PaymentFlow integration.
+   * When provided, enables the built-in "Pay" button for each recipient.
+   * If not provided and renderPaymentAction is also not provided, no pay button will be shown.
+   */
+  clientId?: string;
+
+  /**
+   * Payment methods available for PaymentFlow.
+   * Only used when clientId is provided.
+   */
+  paymentMethods?: PaymentMethod[];
+
+  /**
+   * Whether to show fees in the PaymentFlow review panel.
+   * @default false
+   */
+  showPaymentFees?: boolean;
+
+  /**
+   * Callback when a payment transaction completes.
+   */
+  onPaymentComplete?: (
+    response?: TransactionResponseV2,
+    error?: ApiErrorV2
+  ) => void;
 
   /**
    * Called when a recipient operation completes (success or failure).
@@ -154,6 +189,10 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   paginationStyle = 'pages',
   hideCreateButton = false,
   renderPaymentAction,
+  clientId,
+  paymentMethods,
+  showPaymentFees = false,
+  onPaymentComplete,
   onAccountSettled,
   onVerificationComplete,
   className,
@@ -194,6 +233,14 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   );
   // Create dialog - controls open state
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
+  // PaymentFlow dialog state - single instance for all recipients
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [paymentPayeeId, setPaymentPayeeId] = useState<string | undefined>(
+    undefined
+  );
+  // Reset key counter - increments each time the dialog opens to force state reset
+  const [paymentResetKey, setPaymentResetKey] = useState(0);
 
   // Pagination state for pages-style pagination
   const [pagination, setPagination] = useState<PaginationState>({
@@ -407,6 +454,42 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
     [onAccountSettled]
   );
 
+  // Handle opening the payment dialog for a specific recipient
+  const handleOpenPaymentDialog = React.useCallback((recipientId: string) => {
+    setPaymentPayeeId(recipientId);
+    setPaymentResetKey((prev) => prev + 1); // Increment to force state reset
+    setPaymentDialogOpen(true);
+  }, []);
+
+  // Handle payment dialog close
+  const handlePaymentDialogClose = React.useCallback(() => {
+    setPaymentDialogOpen(false);
+    setPaymentPayeeId(undefined);
+  }, []);
+
+  // Default payment action renderer - uses PaymentFlow
+  const defaultRenderPaymentAction = React.useCallback(
+    (recipient: Recipient) => {
+      if (!clientId) return null;
+      return (
+        <Button
+          variant="outline"
+          size="sm"
+          className="eb-h-8 eb-text-xs"
+          onClick={() => handleOpenPaymentDialog(recipient.id)}
+          aria-label={`${t('actions.makePayment', { defaultValue: 'Pay' })} to ${getRecipientDisplayName(recipient)}`}
+        >
+          {t('actions.makePayment', { defaultValue: 'Pay' })}
+        </Button>
+      );
+    },
+    [clientId, handleOpenPaymentDialog, t]
+  );
+
+  // Use custom renderer if provided, otherwise use default (if clientId is set)
+  const effectiveRenderPaymentAction =
+    renderPaymentAction ?? (clientId ? defaultRenderPaymentAction : undefined);
+
   return (
     <div id="recipient-widget" className="eb-w-full eb-@container">
       <VerificationResultDialog
@@ -443,6 +526,21 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
           onRecipientSettled={handleEditSettled}
           recipientType={recipientType}
           i18nNamespace={config.i18nNamespace}
+        />
+      )}
+
+      {/* PaymentFlow Dialog - Single instance for all recipients */}
+      {clientId && (
+        <PaymentFlow
+          clientId={clientId}
+          open={paymentDialogOpen}
+          onOpenChange={setPaymentDialogOpen}
+          onClose={handlePaymentDialogClose}
+          initialPayeeId={paymentPayeeId}
+          paymentMethods={paymentMethods}
+          showFees={showPaymentFees}
+          onTransactionComplete={onPaymentComplete}
+          resetKey={paymentResetKey}
         />
       )}
 
@@ -590,7 +688,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                       isLoading,
                     }}
                     recipientType={recipientType}
-                    renderPaymentAction={renderPaymentAction}
+                    renderPaymentAction={effectiveRenderPaymentAction}
                     onEditRecipient={handleEditRecipient}
                     onRecipientSettled={onAccountSettled}
                     onMicrodepositVerifySettled={
@@ -637,7 +735,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                           >
                             <RecipientCard
                               recipient={recipient}
-                              makePaymentComponent={renderPaymentAction?.(
+                              makePaymentComponent={effectiveRenderPaymentAction?.(
                                 recipient
                               )}
                               onEditRecipient={handleEditRecipient}
@@ -689,7 +787,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                       >
                         <RecipientCard
                           recipient={recipient}
-                          makePaymentComponent={renderPaymentAction?.(
+                          makePaymentComponent={effectiveRenderPaymentAction?.(
                             recipient
                           )}
                           onEditRecipient={handleEditRecipient}

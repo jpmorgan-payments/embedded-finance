@@ -274,6 +274,9 @@ export interface PaymentFlowProps extends UserTrackingProps {
 
   /** Callback when open state changes (controlled mode) */
   onOpenChange?: (open: boolean) => void;
+
+  /** Key to force reset of flow state. Change this to reset the flow. */
+  resetKey?: string | number;
 }
 
 /**

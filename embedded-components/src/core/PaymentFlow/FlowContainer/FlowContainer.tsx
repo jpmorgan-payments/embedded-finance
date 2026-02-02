@@ -27,6 +27,8 @@ interface FlowContainerFullProps extends FlowContainerProps {
   hideHeader?: boolean;
   /** Trigger element to open the dialog */
   trigger?: React.ReactNode;
+  /** Key to force reset of flow state. Change this to reset the flow. */
+  resetKey?: string | number;
 }
 
 /**
@@ -162,6 +164,7 @@ export function FlowContainer({
   initialData,
   hideHeader = false,
   trigger,
+  resetKey,
 }: FlowContainerFullProps) {
   const innerContent = (
     <FlowContainerInner
@@ -178,7 +181,7 @@ export function FlowContainer({
   // Render as modal - wrap with provider outside dialog so DialogWrapper can access context
   if (asModal && open !== undefined && onOpenChange) {
     return (
-      <FlowContextProvider initialData={initialData}>
+      <FlowContextProvider key={resetKey} initialData={initialData}>
         <DialogWrapper
           open={open}
           onOpenChange={onOpenChange}
@@ -193,7 +196,7 @@ export function FlowContainer({
 
   // Render inline
   return (
-    <FlowContextProvider initialData={initialData}>
+    <FlowContextProvider key={resetKey} initialData={initialData}>
       {innerContent}
     </FlowContextProvider>
   );

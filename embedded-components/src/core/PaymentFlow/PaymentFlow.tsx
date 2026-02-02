@@ -1731,6 +1731,7 @@ export function PaymentFlow({
   onClose,
   open: controlledOpen,
   onOpenChange,
+  resetKey,
   userEventsHandler: _userEventsHandler,
   userEventsLifecycle: _userEventsLifecycle,
 }: PaymentFlowProps) {
@@ -2130,6 +2131,7 @@ export function PaymentFlow({
       onOpenChange={setOpen}
       initialData={initialData}
       trigger={trigger}
+      resetKey={resetKey}
       reviewPanelWidth="md"
       reviewPanel={
         // Hide review panel on error or empty states, show otherwise (with loading state)
