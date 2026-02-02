@@ -53,9 +53,9 @@ const mockRecipientsResponse = {
 };
 
 const meta: Meta<PaymentComponentProps & BaseStoryArgs> = {
-  title: 'Core/MakePayment/User Journey Tracking',
+  title: 'Legacy/MakePayment/User Journey Tracking',
   component: MakePayment,
-  tags: ['@core', '@make-payment', '@user-tracking'],
+  tags: ['@legacy', '@make-payment', '@user-tracking'],
   parameters: {
     layout: 'padded',
     docs: {

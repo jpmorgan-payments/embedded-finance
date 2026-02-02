@@ -17,9 +17,9 @@ import { Recipients } from '../Recipients';
 import type { RecipientsProps } from '../Recipients.types';
 
 const meta: Meta<RecipientsProps & BaseStoryArgs> = {
-  title: 'Core/Recipients/User Journey Tracking',
+  title: 'Legacy/Recipients/User Journey Tracking',
   component: Recipients,
-  tags: ['@core', '@recipients', '@user-tracking'],
+  tags: ['@legacy', '@recipients', '@user-tracking'],
   parameters: {
     layout: 'padded',
     docs: {

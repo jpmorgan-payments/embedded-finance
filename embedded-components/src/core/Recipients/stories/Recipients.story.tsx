@@ -238,9 +238,9 @@ const RecipientsStory = (props: RecipientsProps) => {
 };
 
 const meta: Meta<RecipientsStoryArgs> = {
-  title: 'Core/Recipients',
+  title: 'Legacy/Recipients',
   component: RecipientsStory,
-  tags: ['@core', '@recipients'],
+  tags: ['@legacy', '@recipients'],
   parameters: {
     layout: 'fullscreen',
     docs: {

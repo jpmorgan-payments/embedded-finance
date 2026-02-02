@@ -161,9 +161,9 @@ const mockBalanceResponse = {
  * When `fee` is undefined or 0, the fee UI is hidden entirely.
  */
 const meta: Meta<MakePaymentFeesStoryArgs> = {
-  title: 'Core/MakePayment/Fee Configurations',
+  title: 'Legacy/MakePayment/Fee Configurations',
   component: MakePayment as any,
-  tags: ['autodocs'],
+  tags: ['@legacy', 'autodocs'],
   parameters: {
     docs: {
       description: {
