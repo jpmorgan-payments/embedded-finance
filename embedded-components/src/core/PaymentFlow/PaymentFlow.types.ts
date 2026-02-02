@@ -337,6 +337,13 @@ export interface ReviewPanelProps {
   isLoading?: boolean;
   /** Whether payees data is still loading - shows skeletons for to section */
   isPayeesLoading?: boolean;
+  /** Transaction error to display above the submit button */
+  transactionError?: {
+    title: string;
+    message: string;
+  } | null;
+  /** Callback to dismiss the transaction error */
+  onDismissError?: () => void;
 }
 
 /**

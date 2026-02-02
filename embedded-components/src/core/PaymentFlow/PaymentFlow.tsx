@@ -27,7 +27,6 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
-import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 
 import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
 import { FlowContainer, FlowView, useFlowContext } from './FlowContainer';
@@ -47,6 +46,123 @@ import type {
 } from './PaymentFlow.types';
 import { PaymentMethodSelector } from './PaymentMethodSelector';
 import { ReviewPanel } from './ReviewPanel';
+
+/**
+ * Error context item from API response
+ */
+interface ErrorContextItem {
+  code?: string;
+  location?: string;
+  field?: string;
+  message?: string;
+}
+
+/**
+ * Maps API error context codes to user-friendly messages
+ */
+function getErrorMessageFromContext(
+  context: ErrorContextItem[]
+): { title: string; message: string } | null {
+  if (!context || context.length === 0) return null;
+
+  // Look for specific error codes and provide user-friendly messages
+  for (const item of context) {
+    const { code, field: rawField } = item;
+    const field = rawField?.toLowerCase();
+
+    // Currency/payment method not supported (code 10104 from API)
+    if (
+      code === '10104' ||
+      field === 'targetcurrency' ||
+      field === 'currency'
+    ) {
+      return {
+        title: 'Payment Method Not Supported',
+        message:
+          'The selected payment method is not available for this account. Please select a different payment method or use a different account.',
+      };
+    }
+
+    // Recipient validation issues
+    if (field === 'recipientid' || field === 'recipient') {
+      return {
+        title: 'Recipient Error',
+        message:
+          'There was a problem with the selected recipient. Please verify the recipient details or select a different recipient.',
+      };
+    }
+  }
+
+  // If we have context but no specific mapping, show the first message
+  const firstMessage = context.find((c) => c.message)?.message;
+  if (firstMessage) {
+    return {
+      title: 'Payment Error',
+      message: firstMessage,
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Parse a transaction error into a user-friendly title and message
+ */
+function parseTransactionError(
+  error: ErrorType<ApiErrorV2> | null | undefined
+): { title: string; message: string } | null {
+  if (!error) return null;
+
+  const errorData = error.response?.data;
+  const httpStatus = errorData?.httpStatus ?? error.status ?? 500;
+
+  // Try to get a specific error message from context
+  const contextError = getErrorMessageFromContext(
+    (errorData as { context?: ErrorContextItem[] })?.context ?? []
+  );
+
+  if (contextError) return contextError;
+
+  // Default messages by HTTP status
+  switch (httpStatus) {
+    case 400:
+      return {
+        title: 'Invalid Request',
+        message: 'Please check the payment details and try again.',
+      };
+    case 401:
+      return {
+        title: 'Session Expired',
+        message: 'Your session has expired. Please log in and try again.',
+      };
+    case 403:
+      return {
+        title: 'Permission Denied',
+        message: 'You do not have permission to make this payment.',
+      };
+    case 404:
+      return {
+        title: 'Not Found',
+        message: 'The account or recipient was not found.',
+      };
+    case 422:
+      return {
+        title: 'Validation Error',
+        message: 'The payment details are invalid. Please check and try again.',
+      };
+    case 503:
+      return {
+        title: 'Service Unavailable',
+        message:
+          'The service is currently unavailable. Please try again later.',
+      };
+    default:
+      return {
+        title: 'Payment Failed',
+        message: 'An unexpected error occurred. Please try again later.',
+      };
+  }
+}
 
 /**
  * StepSection component
@@ -1367,9 +1483,9 @@ function PaymentFlowContent({
   isLoading,
   isSubmitting: _isSubmitting,
   transactionResponse,
-  transactionError,
+  transactionError: _transactionError,
   onClose,
-  onRetry,
+  onRetry: _onRetry,
   hasMoreRecipients,
   onLoadMoreRecipients,
   isLoadingMoreRecipients,
@@ -1737,30 +1853,6 @@ function PaymentFlowContent({
     <>
       {/* Main Transfer View */}
       <FlowView viewId="main">
-        {/* Transaction Error Alert */}
-        {transactionError && (
-          <div className="eb-mb-4">
-            <ServerErrorAlert
-              error={transactionError}
-              customTitle="Payment Failed"
-              customErrorMessage={{
-                '400': 'Please check the payment details and try again.',
-                '401': 'Your session has expired. Please log in and try again.',
-                '403': 'You do not have permission to make this payment.',
-                '404': 'The account or recipient was not found.',
-                '422':
-                  'The payment details are invalid. Please check and try again.',
-                '500': 'An unexpected error occurred. Please try again later.',
-                '503':
-                  'The service is currently unavailable. Please try again later.',
-                default: 'Failed to process the payment. Please try again.',
-              }}
-              tryAgainAction={onRetry}
-              showDetails={false}
-            />
-          </div>
-        )}
-
         {/* Initial Data Mismatch Warning */}
         {initialDataWarning && (
           <div className="eb-mb-4 eb-rounded-lg eb-border eb-border-yellow-200 eb-bg-yellow-50 eb-p-3">
@@ -2312,6 +2404,8 @@ export function PaymentFlow({
             showFees={showFees}
             isLoading={isLoadingAccounts}
             isPayeesLoading={isLoadingRecipients || isLoadingLinkedAccounts}
+            transactionError={parseTransactionError(transactionError)}
+            onDismissError={handleRetry}
           />
         )
       }

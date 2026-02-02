@@ -1,13 +1,21 @@
 'use client';
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
+  AlertCircle,
   ArrowRight,
   Building2,
   Loader2,
   TrendingDown,
   User,
   Wallet,
+  X,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -43,6 +51,8 @@ export function ReviewPanel({
   onValidationFail,
   isLoading = false,
   isPayeesLoading = false,
+  transactionError,
+  onDismissError,
 }: Omit<ReviewPanelProps, 'mobileConfig'>) {
   // Get live form data from context
   const { formData, isComplete, currentView, setValidationErrors } =
@@ -51,6 +61,19 @@ export function ReviewPanel({
 
   // Track if validation has been attempted (to show error state)
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+
+  // Ref for error alert to scroll into view on mobile
+  const errorAlertRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to error alert when it appears
+  useEffect(() => {
+    if (transactionError && errorAlertRef.current) {
+      errorAlertRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  }, [transactionError]);
 
   // Handle submit button click - validate first, then submit if valid
   const handleSubmitClick = useCallback(() => {
@@ -483,7 +506,35 @@ export function ReviewPanel({
         </div>
 
         {/* Submit Button */}
-        <div className="eb-mt-6 eb-space-y-2">
+        <div className="eb-mt-6 eb-space-y-3">
+          {/* Transaction error from API */}
+          {transactionError && (
+            <div
+              ref={errorAlertRef}
+              className="eb-flex eb-items-start eb-gap-2 eb-rounded-lg eb-border eb-border-destructive/30 eb-bg-destructive/5 eb-p-3"
+            >
+              <AlertCircle className="eb-mt-0.5 eb-h-4 eb-w-4 eb-shrink-0 eb-text-destructive" />
+              <div className="eb-flex-1 eb-space-y-0.5">
+                <div className="eb-text-sm eb-font-medium eb-text-destructive">
+                  {transactionError.title}
+                </div>
+                <div className="eb-text-xs eb-text-muted-foreground">
+                  {transactionError.message}
+                </div>
+              </div>
+              {onDismissError && (
+                <button
+                  type="button"
+                  onClick={onDismissError}
+                  className="eb-shrink-0 eb-rounded eb-p-0.5 eb-text-muted-foreground eb-transition-colors hover:eb-bg-muted hover:eb-text-foreground"
+                  aria-label="Dismiss error"
+                >
+                  <X className="eb-h-3.5 eb-w-3.5" />
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Validation message when form is incomplete */}
           {hasAttemptedSubmit && validationMessage && (
             <div className="eb-text-center eb-text-sm eb-text-destructive">
