@@ -2122,101 +2122,88 @@ export function PaymentFlow({
   );
 
   return (
-    <>
-      {/* Trigger */}
-      {trigger && (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="eb-appearance-none eb-border-0 eb-bg-transparent eb-p-0"
-        >
-          {trigger}
-        </button>
-      )}
-
-      {/* Flow Container */}
-      <FlowContainer
-        title="Transfer Funds"
-        onClose={handleClose}
-        asModal
-        open={open}
-        onOpenChange={setOpen}
-        initialData={initialData}
-        reviewPanelWidth="md"
-        reviewPanel={
-          // Hide review panel on error or empty states, show otherwise (with loading state)
-          isAccountsError ||
-          (!isLoadingAccounts && accounts.length === 0) ? null : (
-            <ReviewPanel
-              accounts={{
-                items: accounts,
-                metadata: {
-                  page: 0,
-                  limit: 10,
-                  total_items: accounts.length,
-                },
-              }}
-              payees={[...payees, ...linkedAccounts]}
-              paymentMethods={paymentMethods}
-              onSubmit={handleTransactionSubmit}
-              isSubmitting={isSubmitting}
-              showFees={showFees}
-              isLoading={isLoadingAccounts}
-              isPayeesLoading={isLoadingRecipients || isLoadingLinkedAccounts}
-            />
-          )
-        }
-      >
-        {/* Loading state: accounts are being fetched */}
-        {isLoadingAccounts ? (
-          <LoadingStateView />
-        ) : /* Error state: accounts failed to load */
-        isAccountsError ? (
-          <FatalErrorView
-            title="Unable to Load Accounts"
-            message="We couldn't load your accounts. Please check your connection and try again."
-            onRetry={() => refetchAccounts()}
-            isRetrying={isLoadingAccounts}
-          />
-        ) : /* Empty state: no accounts available */
-        accounts.length === 0 ? (
-          <EmptyAccountsView
-            title="No Accounts Available"
-            message="You don't have any accounts available for transfers. Please contact support if you need assistance."
-            onClose={handleClose}
-          />
-        ) : (
-          <PaymentFlowContent
-            payees={payees}
-            linkedAccounts={linkedAccounts}
-            accounts={accounts}
+    <FlowContainer
+      title="Transfer Funds"
+      onClose={handleClose}
+      asModal
+      open={open}
+      onOpenChange={setOpen}
+      initialData={initialData}
+      trigger={trigger}
+      reviewPanelWidth="md"
+      reviewPanel={
+        // Hide review panel on error or empty states, show otherwise (with loading state)
+        isAccountsError ||
+        (!isLoadingAccounts && accounts.length === 0) ? null : (
+          <ReviewPanel
+            accounts={{
+              items: accounts,
+              metadata: {
+                page: 0,
+                limit: 10,
+                total_items: accounts.length,
+              },
+            }}
+            payees={[...payees, ...linkedAccounts]}
             paymentMethods={paymentMethods}
-            isLoading={isLoading}
+            onSubmit={handleTransactionSubmit}
             isSubmitting={isSubmitting}
-            transactionResponse={transactionResponse}
-            transactionError={transactionError}
-            onClose={handleClose}
-            onRetry={handleRetry}
-            hasMoreRecipients={hasNextRecipients}
-            onLoadMoreRecipients={fetchNextRecipients}
-            isLoadingMoreRecipients={isFetchingNextRecipients}
-            totalRecipients={totalRecipients}
-            hasMoreLinkedAccounts={hasNextLinkedAccounts}
-            onLoadMoreLinkedAccounts={fetchNextLinkedAccounts}
-            isLoadingMoreLinkedAccounts={isFetchingNextLinkedAccounts}
-            totalLinkedAccounts={totalLinkedAccounts}
-            recipientsError={isRecipientsError}
-            linkedAccountsError={isLinkedAccountsError}
-            onRetryRecipients={() => refetchRecipients()}
-            onRetryLinkedAccounts={() => refetchLinkedAccounts()}
-            hasBalanceErrors={hasBalanceErrors}
-            isAccountsLoaded={!isLoadingAccounts}
-            isPayeesLoaded={!isLoadingRecipients && !isLoadingLinkedAccounts}
-            initialAccountId={initialAccountId}
-            initialPayeeId={initialPayeeId}
+            showFees={showFees}
+            isLoading={isLoadingAccounts}
+            isPayeesLoading={isLoadingRecipients || isLoadingLinkedAccounts}
           />
-        )}
-      </FlowContainer>
-    </>
+        )
+      }
+    >
+      {/* Loading state: accounts are being fetched */}
+      {isLoadingAccounts ? (
+        <LoadingStateView />
+      ) : /* Error state: accounts failed to load */
+      isAccountsError ? (
+        <FatalErrorView
+          title="Unable to Load Accounts"
+          message="We couldn't load your accounts. Please check your connection and try again."
+          onRetry={() => refetchAccounts()}
+          isRetrying={isLoadingAccounts}
+        />
+      ) : /* Empty state: no accounts available */
+      accounts.length === 0 ? (
+        <EmptyAccountsView
+          title="No Accounts Available"
+          message="You don't have any accounts available for transfers. Please contact support if you need assistance."
+          onClose={handleClose}
+        />
+      ) : (
+        <PaymentFlowContent
+          payees={payees}
+          linkedAccounts={linkedAccounts}
+          accounts={accounts}
+          paymentMethods={paymentMethods}
+          isLoading={isLoading}
+          isSubmitting={isSubmitting}
+          transactionResponse={transactionResponse}
+          transactionError={transactionError}
+          onClose={handleClose}
+          onRetry={handleRetry}
+          hasMoreRecipients={hasNextRecipients}
+          onLoadMoreRecipients={fetchNextRecipients}
+          isLoadingMoreRecipients={isFetchingNextRecipients}
+          totalRecipients={totalRecipients}
+          hasMoreLinkedAccounts={hasNextLinkedAccounts}
+          onLoadMoreLinkedAccounts={fetchNextLinkedAccounts}
+          isLoadingMoreLinkedAccounts={isFetchingNextLinkedAccounts}
+          totalLinkedAccounts={totalLinkedAccounts}
+          recipientsError={isRecipientsError}
+          linkedAccountsError={isLinkedAccountsError}
+          onRetryRecipients={() => refetchRecipients()}
+          onRetryLinkedAccounts={() => refetchLinkedAccounts()}
+          hasBalanceErrors={hasBalanceErrors}
+          isAccountsLoaded={!isLoadingAccounts}
+          isPayeesLoaded={!isLoadingRecipients && !isLoadingLinkedAccounts}
+          initialAccountId={initialAccountId}
+          initialPayeeId={initialPayeeId}
+        />
+      )}
+    </FlowContainer>
   );
 }

@@ -3,7 +3,12 @@
 import React from 'react';
 
 import { cn } from '@/lib/utils';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 import type {
   FlowContainerProps,
@@ -20,6 +25,8 @@ interface FlowContainerFullProps extends FlowContainerProps {
   initialData?: Partial<PaymentFlowFormData>;
   /** Hide the header entirely (useful when embedding in a page with its own header) */
   hideHeader?: boolean;
+  /** Trigger element to open the dialog */
+  trigger?: React.ReactNode;
 }
 
 /**
@@ -29,11 +36,13 @@ function DialogWrapper({
   open,
   onOpenChange,
   title,
+  trigger,
   children,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
+  trigger?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const { currentView } = useFlowContext();
@@ -41,6 +50,11 @@ function DialogWrapper({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
+      {trigger && (
+        <DialogTrigger asChild>
+          <span className="eb-component eb-inline-block">{trigger}</span>
+        </DialogTrigger>
+      )}
       <DialogContent
         className={cn(
           'eb-dialog-responsive-lg eb-flex eb-flex-col eb-gap-0 eb-overflow-hidden eb-p-0',
@@ -147,6 +161,7 @@ export function FlowContainer({
   onOpenChange,
   initialData,
   hideHeader = false,
+  trigger,
 }: FlowContainerFullProps) {
   const innerContent = (
     <FlowContainerInner
@@ -164,7 +179,12 @@ export function FlowContainer({
   if (asModal && open !== undefined && onOpenChange) {
     return (
       <FlowContextProvider initialData={initialData}>
-        <DialogWrapper open={open} onOpenChange={onOpenChange} title={title}>
+        <DialogWrapper
+          open={open}
+          onOpenChange={onOpenChange}
+          title={title}
+          trigger={trigger}
+        >
           {innerContent}
         </DialogWrapper>
       </FlowContextProvider>
