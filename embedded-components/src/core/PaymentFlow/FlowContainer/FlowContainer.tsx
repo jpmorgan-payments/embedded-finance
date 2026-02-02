@@ -29,6 +29,8 @@ interface FlowContainerFullProps extends FlowContainerProps {
   trigger?: React.ReactNode;
   /** Key to force reset of flow state. Change this to reset the flow. */
   resetKey?: string | number;
+  /** Whether the form is currently submitting (synced to context) */
+  isSubmitting?: boolean;
 }
 
 /**
@@ -47,11 +49,19 @@ function DialogWrapper({
   trigger?: React.ReactNode;
   children: React.ReactNode;
 }) {
-  const { currentView } = useFlowContext();
+  const { currentView, isSubmitting } = useFlowContext();
   const isSuccessView = currentView === 'success';
 
+  // Prevent closing while submitting
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && isSubmitting) {
+      return; // Block close attempts while submitting
+    }
+    onOpenChange(newOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       {trigger && (
         <DialogTrigger asChild>
           <span className="eb-component eb-inline-block">{trigger}</span>
@@ -165,6 +175,7 @@ export function FlowContainer({
   hideHeader = false,
   trigger,
   resetKey,
+  isSubmitting = false,
 }: FlowContainerFullProps) {
   const innerContent = (
     <FlowContainerInner
@@ -181,7 +192,11 @@ export function FlowContainer({
   // Render as modal - wrap with provider outside dialog so DialogWrapper can access context
   if (asModal && open !== undefined && onOpenChange) {
     return (
-      <FlowContextProvider key={resetKey} initialData={initialData}>
+      <FlowContextProvider
+        key={resetKey}
+        initialData={initialData}
+        isSubmitting={isSubmitting}
+      >
         <DialogWrapper
           open={open}
           onOpenChange={onOpenChange}
@@ -196,7 +211,11 @@ export function FlowContainer({
 
   // Render inline
   return (
-    <FlowContextProvider key={resetKey} initialData={initialData}>
+    <FlowContextProvider
+      key={resetKey}
+      initialData={initialData}
+      isSubmitting={isSubmitting}
+    >
       {innerContent}
     </FlowContextProvider>
   );

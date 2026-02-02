@@ -167,6 +167,10 @@ export interface FlowState {
   viewStack: PaymentFlowView[];
   formData: PaymentFlowFormData;
   expandedPanels: string[];
+  /** Fields that failed validation, mapped to panel IDs */
+  validationErrors: string[];
+  /** Whether the form is currently being submitted */
+  isSubmitting: boolean;
 }
 
 /**
@@ -186,6 +190,9 @@ export type FlowAction =
     }
   | { type: 'TOGGLE_PANEL'; panelId: string }
   | { type: 'SET_FORM_DATA'; data: Partial<PaymentFlowFormData> }
+  | { type: 'SET_VALIDATION_ERRORS'; errors: string[] }
+  | { type: 'CLEAR_VALIDATION_ERRORS' }
+  | { type: 'SET_SUBMITTING'; isSubmitting: boolean }
   | { type: 'RESET' };
 
 /**
@@ -216,6 +223,13 @@ export interface FlowContextValue {
 
   // Validation
   isComplete: boolean;
+  validationErrors: string[];
+  setValidationErrors: (errors: string[]) => void;
+  clearValidationErrors: () => void;
+
+  // Submission state
+  isSubmitting: boolean;
+  setIsSubmitting: (isSubmitting: boolean) => void;
 }
 
 /**

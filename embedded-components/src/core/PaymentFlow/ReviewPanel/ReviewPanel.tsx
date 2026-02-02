@@ -45,7 +45,8 @@ export function ReviewPanel({
   isPayeesLoading = false,
 }: Omit<ReviewPanelProps, 'mobileConfig'>) {
   // Get live form data from context
-  const { formData, isComplete, currentView } = useFlowContext();
+  const { formData, isComplete, currentView, setValidationErrors } =
+    useFlowContext();
   const { t } = useTranslation('accounts');
 
   // Track if validation has been attempted (to show error state)
@@ -64,6 +65,8 @@ export function ReviewPanel({
       if (!formData.amount || parseFloat(formData.amount) <= 0)
         missingFields.push('amount');
 
+      // Update context with validation errors (for MainTransferView to highlight)
+      setValidationErrors(missingFields);
       onValidationFail?.(missingFields);
       return;
     }
@@ -83,12 +86,20 @@ export function ReviewPanel({
     }
 
     if (!balanceHasError && amountValue > balance) {
+      setValidationErrors(['exceedsBalance']);
       onValidationFail?.(['exceedsBalance']);
       return;
     }
 
     onSubmit(formData);
-  }, [isComplete, formData, onSubmit, onValidationFail, accounts]);
+  }, [
+    isComplete,
+    formData,
+    onSubmit,
+    onValidationFail,
+    accounts,
+    setValidationErrors,
+  ]);
 
   // Helper to get translated category label
   const getCategoryLabel = (category?: string) => {

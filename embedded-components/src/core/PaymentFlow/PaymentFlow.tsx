@@ -65,6 +65,10 @@ interface StepSectionProps {
   isLast?: boolean;
   disabledReason?: string;
   isLoading?: boolean;
+  /** Show error state on this section */
+  hasError?: boolean;
+  /** Disable section interactions (e.g., while form is submitting) */
+  disabled?: boolean;
 }
 
 function StepSection({
@@ -79,8 +83,10 @@ function StepSection({
   isLast = false,
   disabledReason,
   isLoading = false,
+  hasError = false,
+  disabled = false,
 }: StepSectionProps) {
-  const isDisabled = !!disabledReason;
+  const isDisabled = !!disabledReason || disabled;
   // Can click to expand if not active, not disabled, and not loading
   // Can click to collapse if active (and not loading)
   const canClick = isLoading ? false : isActive || !isDisabled;
@@ -142,23 +148,32 @@ function StepSection({
             'eb-relative eb-z-10 eb-flex eb-h-8 eb-w-8 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-text-sm eb-font-medium eb-transition-all eb-duration-300',
             isLoading &&
               'eb-border-2 eb-border-primary/50 eb-bg-background eb-text-primary',
+            // Error state takes precedence over other states (except loading)
+            hasError &&
+              !isLoading &&
+              'eb-border-2 eb-border-destructive eb-bg-destructive/10 eb-text-destructive',
             isComplete &&
               !isLoading &&
+              !hasError &&
               'eb-bg-primary eb-text-primary-foreground',
             isActive &&
               !isComplete &&
               !isLoading &&
+              !hasError &&
               'eb-border-2 eb-border-primary eb-bg-background eb-text-primary',
             !isComplete &&
               !isLoading &&
               !isActive &&
+              !hasError &&
               'eb-border-2 eb-border-muted-foreground/30 eb-bg-background eb-text-muted-foreground'
           )}
         >
           {isLoading ? (
             <Loader2 className="eb-h-4 eb-w-4 eb-animate-spin" />
-          ) : isComplete ? (
+          ) : isComplete && !hasError ? (
             <Check className="eb-h-4 eb-w-4" strokeWidth={3} />
+          ) : hasError ? (
+            <AlertCircle className="eb-h-4 eb-w-4" />
           ) : (
             <span>{stepNumber}</span>
           )}
@@ -170,9 +185,13 @@ function StepSection({
             <span
               className={cn(
                 'eb-font-medium eb-transition-colors eb-duration-200',
-                isActive && 'eb-text-foreground',
-                isComplete && !isActive && 'eb-text-foreground',
-                !isComplete && !isActive && 'eb-text-muted-foreground'
+                hasError && 'eb-text-destructive',
+                isActive && !hasError && 'eb-text-foreground',
+                isComplete && !isActive && !hasError && 'eb-text-foreground',
+                !isComplete &&
+                  !isActive &&
+                  !hasError &&
+                  'eb-text-muted-foreground'
               )}
             >
               {title}
@@ -188,12 +207,19 @@ function StepSection({
           <span
             className={cn(
               'eb-text-xs eb-font-medium',
-              isActive && 'eb-text-muted-foreground',
-              !isActive && !isDisabled && !isLoading && 'eb-text-primary',
-              (isDisabled || isLoading) && 'eb-text-muted-foreground/60'
+              hasError && 'eb-text-destructive',
+              isActive && !hasError && 'eb-text-muted-foreground',
+              !isActive &&
+                !isDisabled &&
+                !isLoading &&
+                !hasError &&
+                'eb-text-primary',
+              (isDisabled || isLoading) &&
+                !hasError &&
+                'eb-text-muted-foreground/60'
             )}
           >
-            {getActionLabel()}
+            {hasError ? 'Required' : getActionLabel()}
           </span>
         </div>
       </button>
@@ -279,7 +305,13 @@ function MainTransferView({
   onRetryRecipients,
   onRetryLinkedAccounts,
 }: MainTransferViewProps) {
-  const { formData, setFormData } = useFlowContext();
+  const {
+    formData,
+    setFormData,
+    validationErrors,
+    setValidationErrors,
+    isSubmitting,
+  } = useFlowContext();
   const { t } = useTranslation('accounts');
 
   // Helper to get translated category label
@@ -291,6 +323,28 @@ function MainTransferView({
       });
     },
     [t]
+  );
+
+  // Map validation error field names to panel IDs
+  const fieldToPanelId: Record<string, string> = useMemo(
+    () => ({
+      fromAccount: PANEL_IDS.FROM_ACCOUNT,
+      payee: PANEL_IDS.PAYEE,
+      paymentMethod: PANEL_IDS.PAYMENT_METHOD,
+      amount: PANEL_IDS.AMOUNT,
+      exceedsBalance: PANEL_IDS.AMOUNT,
+    }),
+    []
+  );
+
+  // Check if a panel has a validation error
+  const hasPanelError = useCallback(
+    (panelId: string) => {
+      return validationErrors.some(
+        (error) => fieldToPanelId[error] === panelId
+      );
+    },
+    [validationErrors, fieldToPanelId]
   );
 
   // Compute the initial active step based on current form data
@@ -343,6 +397,79 @@ function MainTransferView({
   // Track if account was cleared due to conflict with loaded payee
   const [showAccountClearedWarning, setShowAccountClearedWarning] =
     useState(false);
+
+  // Ref for amount input to focus on validation error
+  const amountInputRef = React.useRef<HTMLInputElement>(null);
+
+  // When validation errors change, expand the first section that has an error
+  // and focus the amount input if it's the error field
+  useEffect(() => {
+    if (validationErrors.length > 0) {
+      // Find the first panel with an error (in form order)
+      const panelOrder = [
+        PANEL_IDS.FROM_ACCOUNT,
+        PANEL_IDS.PAYEE,
+        PANEL_IDS.PAYMENT_METHOD,
+        PANEL_IDS.AMOUNT,
+      ];
+
+      for (const panelId of panelOrder) {
+        if (hasPanelError(panelId)) {
+          setActiveStep(panelId);
+
+          // If amount is the first error field, focus it
+          if (panelId === PANEL_IDS.AMOUNT) {
+            // Delay focus to ensure input is visible after scroll
+            setTimeout(() => {
+              amountInputRef.current?.focus();
+              amountInputRef.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+              });
+            }, 100);
+          }
+          break;
+        }
+      }
+    }
+  }, [validationErrors, hasPanelError]);
+
+  // Clear specific field errors when that field changes (react-hook-form pattern)
+  const prevFormDataRef = React.useRef(formData);
+  useEffect(() => {
+    const prev = prevFormDataRef.current;
+
+    if (validationErrors.length > 0) {
+      const errorsToRemove: string[] = [];
+
+      // Check each field and mark its error for removal if value changed
+      if (prev.fromAccountId !== formData.fromAccountId) {
+        errorsToRemove.push('fromAccount');
+      }
+      if (prev.payeeId !== formData.payeeId) {
+        errorsToRemove.push('payee');
+      }
+      if (prev.paymentMethod !== formData.paymentMethod) {
+        errorsToRemove.push('paymentMethod');
+      }
+      if (prev.amount !== formData.amount) {
+        errorsToRemove.push('amount', 'exceedsBalance');
+      }
+
+      // Only update if there are errors to remove
+      if (errorsToRemove.length > 0) {
+        const remainingErrors = validationErrors.filter(
+          (error) => !errorsToRemove.includes(error)
+        );
+        // Only dispatch if errors actually changed
+        if (remainingErrors.length !== validationErrors.length) {
+          setValidationErrors(remainingErrors);
+        }
+      }
+    }
+
+    prevFormDataRef.current = formData;
+  }, [formData, validationErrors, setValidationErrors]);
 
   const selectedPayee = useMemo(
     () => [...payees, ...linkedAccounts].find((p) => p.id === formData.payeeId),
@@ -483,6 +610,7 @@ function MainTransferView({
         title="From"
         isComplete={hasAccount}
         isActive={activeStep === PANEL_IDS.FROM_ACCOUNT}
+        hasError={hasPanelError(PANEL_IDS.FROM_ACCOUNT)}
         summary={
           selectedAccount
             ? `${selectedAccount.label ?? getCategoryLabel(selectedAccount.category)} (...${selectedAccount.paymentRoutingInformation?.accountNumber?.slice(-4) ?? ''})`
@@ -490,6 +618,7 @@ function MainTransferView({
         }
         onHeaderClick={() => setActiveStep(PANEL_IDS.FROM_ACCOUNT)}
         onCollapse={handleCollapse}
+        disabled={isSubmitting}
       >
         {/* Warning banner when account was cleared due to payee conflict */}
         {showAccountClearedWarning && (
@@ -616,6 +745,7 @@ function MainTransferView({
         title="To"
         isComplete={hasPayee && !!selectedPayee}
         isActive={activeStep === PANEL_IDS.PAYEE}
+        hasError={hasPanelError(PANEL_IDS.PAYEE)}
         isLoading={hasPayee && isPayeesLoading && !selectedPayee}
         summary={
           selectedPayee
@@ -627,6 +757,7 @@ function MainTransferView({
         disabledReason={
           !hasAccount && !selectedPayee ? 'Select account first' : undefined
         }
+        disabled={isSubmitting}
       >
         <PayeeSelector
           selectedPayeeId={formData.payeeId}
@@ -660,11 +791,13 @@ function MainTransferView({
         title="Payment Method"
         isComplete={hasPaymentMethod}
         isActive={activeStep === PANEL_IDS.PAYMENT_METHOD}
+        hasError={hasPanelError(PANEL_IDS.PAYMENT_METHOD)}
         summary={selectedMethod?.name}
         onHeaderClick={() => setActiveStep(PANEL_IDS.PAYMENT_METHOD)}
         onCollapse={handleCollapse}
         disabledReason={!hasPayee ? 'Select payee first' : undefined}
         isLast
+        disabled={isSubmitting}
       >
         {/* Show loading message when we have a payee ID but haven't loaded the payee yet */}
         {hasPayee && isPayeesLoading && !selectedPayee ? (
@@ -693,15 +826,23 @@ function MainTransferView({
         <div>
           <label
             htmlFor="amount"
-            className="eb-mb-1.5 eb-block eb-text-sm eb-font-medium"
+            className={cn(
+              'eb-mb-1.5 eb-block eb-text-sm eb-font-medium',
+              hasPanelError(PANEL_IDS.AMOUNT) && 'eb-text-destructive'
+            )}
           >
             Amount
+            {hasPanelError(PANEL_IDS.AMOUNT) && (
+              <span className="eb-ml-1 eb-text-xs eb-font-normal">
+                (Required)
+              </span>
+            )}
           </label>
           <div className="eb-relative eb-flex eb-items-center">
             <span
               className={cn(
                 'eb-absolute eb-left-3',
-                exceedsBalance
+                exceedsBalance || hasPanelError(PANEL_IDS.AMOUNT)
                   ? 'eb-text-destructive'
                   : 'eb-text-muted-foreground'
               )}
@@ -709,6 +850,7 @@ function MainTransferView({
               $
             </span>
             <Input
+              ref={amountInputRef}
               id="amount"
               type="text"
               inputMode="decimal"
@@ -741,10 +883,11 @@ function MainTransferView({
               }}
               className={cn(
                 'eb-w-full eb-pl-7',
-                exceedsBalance &&
+                (exceedsBalance || hasPanelError(PANEL_IDS.AMOUNT)) &&
                   'eb-border-destructive eb-text-destructive focus-visible:eb-ring-destructive'
               )}
               autoComplete="off"
+              disabled={isSubmitting}
             />
           </div>
           {exceedsBalance && availableBalance !== undefined && (
@@ -775,6 +918,7 @@ function MainTransferView({
             value={formData.memo ?? ''}
             onChange={(e) => onMemoChange(e.target.value)}
             rows={2}
+            disabled={isSubmitting}
           />
         </div>
       </div>
@@ -2133,6 +2277,7 @@ export function PaymentFlow({
       trigger={trigger}
       resetKey={resetKey}
       reviewPanelWidth="md"
+      isSubmitting={isSubmitting}
       reviewPanel={
         // Hide review panel on error or empty states, show otherwise (with loading state)
         isAccountsError ||
