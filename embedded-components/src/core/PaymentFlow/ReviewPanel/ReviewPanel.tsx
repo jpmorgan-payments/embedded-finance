@@ -408,7 +408,7 @@ export function ReviewPanel({
 
           {/* Payment Details Section */}
           <div className="eb-space-y-2.5">
-            {/* Amount - only show when fees are displayed (to show Amount + Fee = Total breakdown) */}
+            {/* Amount - only show breakdown row when fees are displayed */}
             {showFees && (
               <div className="eb-flex eb-items-center eb-justify-between">
                 <span className="eb-text-sm eb-text-muted-foreground">
@@ -463,21 +463,26 @@ export function ReviewPanel({
             )}
           </div>
 
-          {/* Total & Balance Section */}
-          {amount > 0 && (
+          {/* Total & Balance Section - always show when no fees, or when amount > 0 with fees */}
+          {(amount > 0 || !showFees) && (
             <div className="eb-space-y-2 eb-border-t eb-border-border eb-pt-4">
               {/* Total (or Amount when no fees are shown) */}
               <div className="eb-flex eb-items-center eb-justify-between">
                 <span className="eb-font-medium">
                   {showFees ? 'Total' : 'Amount'}
                 </span>
-                <span className="eb-text-lg eb-font-semibold">
-                  {formatCurrency(total)}
+                <span
+                  className={cn(
+                    'eb-text-lg eb-font-semibold',
+                    amount <= 0 && 'eb-text-muted-foreground'
+                  )}
+                >
+                  {amount > 0 ? formatCurrency(total) : '—'}
                 </span>
               </div>
 
-              {/* Balance After Payment */}
-              {selectedAccount && isBalanceLoading ? (
+              {/* Balance After Payment - only show when amount > 0 */}
+              {amount > 0 && selectedAccount && isBalanceLoading ? (
                 <div className="eb-flex eb-items-center eb-justify-between eb-rounded-md eb-bg-muted/50 eb-px-3 eb-py-2">
                   <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
                     <TrendingDown className="eb-h-4 eb-w-4" />
@@ -485,7 +490,7 @@ export function ReviewPanel({
                   </div>
                   <Skeleton className="eb-h-4 eb-w-16 eb-bg-muted-foreground/20" />
                 </div>
-              ) : balanceAfterPayment !== undefined ? (
+              ) : amount > 0 && balanceAfterPayment !== undefined ? (
                 <div className="eb-flex eb-items-center eb-justify-between eb-rounded-md eb-bg-muted/50 eb-px-3 eb-py-2">
                   <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
                     <TrendingDown className="eb-h-4 eb-w-4" />
