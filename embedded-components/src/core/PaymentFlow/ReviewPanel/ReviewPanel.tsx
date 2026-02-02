@@ -374,21 +374,25 @@ export function ReviewPanel({
 
           {/* Payment Details Section */}
           <div className="eb-space-y-2.5">
-            {/* Amount */}
-            <div className="eb-flex eb-items-center eb-justify-between">
-              <span className="eb-text-sm eb-text-muted-foreground">
-                Amount
-              </span>
-              <div className="eb-text-right">
-                {amount > 0 ? (
-                  <span className="eb-font-medium">
-                    {formatCurrency(amount)}
-                  </span>
-                ) : (
-                  <span className="eb-text-sm eb-text-muted-foreground">—</span>
-                )}
+            {/* Amount - only show when fees are displayed (to show Amount + Fee = Total breakdown) */}
+            {showFees && (
+              <div className="eb-flex eb-items-center eb-justify-between">
+                <span className="eb-text-sm eb-text-muted-foreground">
+                  Amount
+                </span>
+                <div className="eb-text-right">
+                  {amount > 0 ? (
+                    <span className="eb-font-medium">
+                      {formatCurrency(amount)}
+                    </span>
+                  ) : (
+                    <span className="eb-text-sm eb-text-muted-foreground">
+                      —
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Payment Method */}
             <div className="eb-flex eb-items-center eb-justify-between">
@@ -428,9 +432,11 @@ export function ReviewPanel({
           {/* Total & Balance Section */}
           {amount > 0 && (
             <div className="eb-space-y-2 eb-border-t eb-border-border eb-pt-4">
-              {/* Total */}
+              {/* Total (or Amount when no fees are shown) */}
               <div className="eb-flex eb-items-center eb-justify-between">
-                <span className="eb-font-medium">Total</span>
+                <span className="eb-font-medium">
+                  {showFees ? 'Total' : 'Amount'}
+                </span>
                 <span className="eb-text-lg eb-font-semibold">
                   {formatCurrency(total)}
                 </span>

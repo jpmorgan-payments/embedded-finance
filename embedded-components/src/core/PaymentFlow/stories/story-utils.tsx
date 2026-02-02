@@ -206,6 +206,74 @@ export const mockRecipients = [
     createdAt: '2024-01-22T14:00:00Z',
     updatedAt: '2024-01-22T14:00:00Z',
   },
+  {
+    id: 'recipient-carol',
+    type: 'RECIPIENT',
+    status: 'ACTIVE',
+    clientId: 'mock-client-id',
+    partyDetails: {
+      type: 'INDIVIDUAL',
+      firstName: 'Carol',
+      lastName: 'Davis',
+      address: {
+        addressLine1: '456 Elm Avenue',
+        city: 'Denver',
+        state: 'CO',
+        postalCode: '80201',
+        countryCode: 'US',
+      },
+      contacts: [{ contactType: 'EMAIL', value: 'carol.davis@email.com' }],
+    },
+    account: {
+      id: 'acc-carol',
+      number: '222233334444',
+      type: 'CHECKING',
+      countryCode: 'US',
+      routingInformation: [
+        {
+          routingCodeType: 'USABA',
+          routingNumber: '888000999',
+          transactionType: 'ACH',
+        },
+      ],
+    },
+    createdAt: '2024-01-25T09:00:00Z',
+    updatedAt: '2024-01-25T09:00:00Z',
+  },
+  {
+    id: 'recipient-david',
+    type: 'RECIPIENT',
+    status: 'ACTIVE',
+    clientId: 'mock-client-id',
+    partyDetails: {
+      type: 'INDIVIDUAL',
+      firstName: 'David',
+      lastName: 'Miller',
+      address: {
+        addressLine1: '789 Maple Drive',
+        city: 'Portland',
+        state: 'OR',
+        postalCode: '97201',
+        countryCode: 'US',
+      },
+      contacts: [{ contactType: 'EMAIL', value: 'david.miller@email.com' }],
+    },
+    account: {
+      id: 'acc-david',
+      number: '333344445555',
+      type: 'CHECKING',
+      countryCode: 'US',
+      routingInformation: [
+        {
+          routingCodeType: 'USABA',
+          routingNumber: '999000111',
+          transactionType: 'ACH',
+        },
+      ],
+    },
+    createdAt: '2024-01-26T10:30:00Z',
+    updatedAt: '2024-01-26T10:30:00Z',
+  },
 ];
 
 // ============================================================================
