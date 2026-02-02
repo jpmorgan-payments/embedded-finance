@@ -185,6 +185,8 @@ interface StepSectionProps {
   hasError?: boolean;
   /** Disable section interactions (e.g., while form is submitting) */
   disabled?: boolean;
+  /** Ref to the section container for scrolling */
+  sectionRef?: React.RefObject<HTMLDivElement>;
 }
 
 function StepSection({
@@ -201,6 +203,7 @@ function StepSection({
   isLoading = false,
   hasError = false,
   disabled = false,
+  sectionRef,
 }: StepSectionProps) {
   const isDisabled = !!disabledReason || disabled;
   // Can click to expand if not active, not disabled, and not loading
@@ -248,7 +251,7 @@ function StepSection({
   };
 
   return (
-    <div className="eb-relative">
+    <div ref={sectionRef} className="eb-relative">
       {/* Connecting line (except for last item) */}
       {!isLast && (
         <div
@@ -531,8 +534,22 @@ function MainTransferView({
   // Ref for amount input to focus on validation error
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
+  // Refs for each section to scroll on validation error
+  const fromAccountSectionRef = React.useRef<HTMLDivElement>(null);
+  const payeeSectionRef = React.useRef<HTMLDivElement>(null);
+  const paymentMethodSectionRef = React.useRef<HTMLDivElement>(null);
+  const amountSectionRef = React.useRef<HTMLDivElement>(null);
+
+  // Map panel IDs to their refs for easy lookup
+  const sectionRefs: Record<string, React.RefObject<HTMLDivElement>> = {
+    [PANEL_IDS.FROM_ACCOUNT]: fromAccountSectionRef,
+    [PANEL_IDS.PAYEE]: payeeSectionRef,
+    [PANEL_IDS.PAYMENT_METHOD]: paymentMethodSectionRef,
+    [PANEL_IDS.AMOUNT]: amountSectionRef,
+  };
+
   // When validation errors change, expand the first section that has an error
-  // and focus the amount input if it's the error field
+  // and scroll to it (focus the amount input if that's the error field)
   useEffect(() => {
     if (validationErrors.length > 0) {
       // Find the first panel with an error (in form order)
@@ -547,9 +564,12 @@ function MainTransferView({
         if (hasPanelError(panelId)) {
           setActiveStep(panelId);
 
-          // If amount is the first error field, focus it
+          // Scroll to the section with the error
+          const sectionRef = sectionRefs[panelId];
+
+          // If amount is the first error field, focus the input
           if (panelId === PANEL_IDS.AMOUNT) {
-            // Delay focus to ensure input is visible after scroll
+            // Delay focus to ensure input is visible after expand animation
             setTimeout(() => {
               amountInputRef.current?.focus();
               amountInputRef.current?.scrollIntoView({
@@ -557,12 +577,20 @@ function MainTransferView({
                 block: 'center',
               });
             }, 100);
+          } else {
+            // For other sections, scroll to the section header
+            setTimeout(() => {
+              sectionRef?.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+              });
+            }, 100);
           }
           break;
         }
       }
     }
-  }, [validationErrors, hasPanelError]);
+  }, [validationErrors, hasPanelError, sectionRefs]);
 
   // Clear specific field errors when that field changes (react-hook-form pattern)
   const prevFormDataRef = React.useRef(formData);
@@ -749,6 +777,7 @@ function MainTransferView({
         onHeaderClick={() => setActiveStep(PANEL_IDS.FROM_ACCOUNT)}
         onCollapse={handleCollapse}
         disabled={isSubmitting}
+        sectionRef={fromAccountSectionRef}
       >
         {/* Warning banner when account was cleared due to payee conflict */}
         {showAccountClearedWarning && (
@@ -888,6 +917,7 @@ function MainTransferView({
           !hasAccount && !selectedPayee ? 'Select account first' : undefined
         }
         disabled={isSubmitting}
+        sectionRef={payeeSectionRef}
       >
         <PayeeSelector
           selectedPayeeId={formData.payeeId}
@@ -928,6 +958,7 @@ function MainTransferView({
         disabledReason={!hasPayee ? 'Select payee first' : undefined}
         isLast
         disabled={isSubmitting}
+        sectionRef={paymentMethodSectionRef}
       >
         {/* Show loading message when we have a payee ID but haven't loaded the payee yet */}
         {hasPayee && isPayeesLoading && !selectedPayee ? (
@@ -952,7 +983,7 @@ function MainTransferView({
       <Separator className="!eb-my-4" />
 
       {/* AMOUNT & MEMO Section - Always visible */}
-      <div className="eb-space-y-4">
+      <div ref={amountSectionRef} className="eb-space-y-4">
         <div>
           <label
             htmlFor="amount"
