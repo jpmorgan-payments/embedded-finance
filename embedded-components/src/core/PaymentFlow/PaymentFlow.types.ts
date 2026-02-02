@@ -254,6 +254,9 @@ export interface PaymentFlowProps extends UserTrackingProps {
   /** Initial payment method to pre-select */
   initialPaymentMethod?: PaymentMethodType;
 
+  /** Initial amount to pre-fill */
+  initialAmount?: string;
+
   /** Whether to show fees in the review panel (default: false) */
   showFees?: boolean;
 

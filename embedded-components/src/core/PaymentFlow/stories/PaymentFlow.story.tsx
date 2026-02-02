@@ -183,12 +183,13 @@ export const WithAllInitialValues: Story = {
     initialAccountId: 'acc-payments-main',
     initialPayeeId: 'recipient-techsolutions',
     initialPaymentMethod: 'ACH',
+    initialAmount: '500.00',
   },
   parameters: {
     docs: {
       description: {
         story:
-          'Pre-fill account, payee, and payment method. User only needs to enter amount and submit.',
+          'Pre-fill account, payee, payment method, and amount. Ready to submit immediately.',
       },
     },
   },

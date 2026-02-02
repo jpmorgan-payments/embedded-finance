@@ -623,6 +623,11 @@ export const commonArgTypes = {
     description: 'Pre-selected payment method',
     table: { category: 'Initial State' },
   },
+  initialAmount: {
+    control: { type: 'text' as const },
+    description: 'Pre-filled amount',
+    table: { category: 'Initial State' },
+  },
   onTransactionComplete: {
     action: 'transactionComplete',
     description: 'Callback when transaction completes (success or error)',

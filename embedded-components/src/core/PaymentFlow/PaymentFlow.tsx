@@ -1725,6 +1725,7 @@ export function PaymentFlow({
   initialAccountId,
   initialPayeeId,
   initialPaymentMethod,
+  initialAmount,
   showFees = false,
   onTransactionComplete,
   onClose,
@@ -2114,10 +2115,10 @@ export function PaymentFlow({
       payeeId: initialPayeeId,
       paymentMethod: initialPaymentMethod,
       fromAccountId: initialAccountId,
-      amount: '',
+      amount: initialAmount ?? '',
       currency: 'USD',
     }),
-    [initialAccountId, initialPayeeId, initialPaymentMethod]
+    [initialAccountId, initialPayeeId, initialPaymentMethod, initialAmount]
   );
 
   return (
