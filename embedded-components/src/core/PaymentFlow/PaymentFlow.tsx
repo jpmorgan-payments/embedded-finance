@@ -91,6 +91,18 @@ function StepSection({
   // Can click to collapse if active (and not loading)
   const canClick = isLoading ? false : isActive || !isDisabled;
 
+  // Ref to set inert attribute imperatively (React doesn't handle it well as a prop)
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (contentRef.current) {
+      if (!isActive) {
+        contentRef.current.setAttribute('inert', '');
+      } else {
+        contentRef.current.removeAttribute('inert');
+      }
+    }
+  }, [isActive]);
+
   const handleClick = () => {
     if (isLoading) {
       return; // Don't allow any clicks while loading
@@ -226,12 +238,14 @@ function StepSection({
 
       {/* Content with animation */}
       <div
+        ref={contentRef}
         className={cn(
           'eb-ml-11 eb-overflow-hidden eb-transition-all eb-duration-300 eb-ease-in-out',
           isActive
             ? 'eb-max-h-[1000px] eb-opacity-100'
             : 'eb-max-h-0 eb-opacity-0'
         )}
+        aria-hidden={!isActive}
       >
         <div className="eb-pt-1">{children}</div>
       </div>
