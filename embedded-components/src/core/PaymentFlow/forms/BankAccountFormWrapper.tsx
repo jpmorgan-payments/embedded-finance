@@ -5,7 +5,10 @@ import React, { useMemo } from 'react';
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
-import { useClientId } from '@/core/EBComponentsProvider/EBComponentsProvider';
+import {
+  useClientId,
+  useInterceptorStatus,
+} from '@/core/EBComponentsProvider/EBComponentsProvider';
 import {
   BankAccountForm,
   useLinkedAccountConfig,
@@ -64,9 +67,10 @@ export function BankAccountFormWrapper({
 
   // Fetch client data for linked accounts (needed for individual selector prefill)
   const clientId = useClientId();
+  const { interceptorReady } = useInterceptorStatus();
   const { data: clientData } = useSmbdoGetClient(clientId ?? '', {
     query: {
-      enabled: formType === 'linked-account' && !!clientId,
+      enabled: interceptorReady && formType === 'linked-account' && !!clientId,
     },
   });
 
