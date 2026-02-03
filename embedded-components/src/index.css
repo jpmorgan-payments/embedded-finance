@@ -156,14 +156,20 @@
       max-height: 700px;
       transform: translate(-50%, -50%);
       border-radius: 0.5rem; /* rounded-lg */
+      /* Smooth size transition for view changes (e.g., to success view) */
+      transition:
+        width 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+        height 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+        max-width 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+        max-height 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* Success state - dynamic size based on content */
+    /* Success state - smaller dialog with animated transition */
+    /* Note: Using fixed values instead of 'auto' to enable CSS transitions */
     .eb-dialog-responsive-lg.eb-dialog-success {
-      width: auto;
-      height: auto;
-      min-width: 480px;
-      max-width: 600px;
+      width: 500px;
+      height: fit-content;
+      max-width: 500px;
       max-height: 90vh;
     }
   }
