@@ -25,7 +25,8 @@
   ],
   "files": [
     "dist",
-    "src/i18n"
+    "src/i18n",
+    "LICENSE"
   ],
   "main": "./dist/umd/ef-components.js",
   "module": "./dist/esm/ef-components.js",
