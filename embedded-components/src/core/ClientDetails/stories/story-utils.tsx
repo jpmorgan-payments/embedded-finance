@@ -45,7 +45,9 @@ export function createClientDetailsHandlers(
   return [
     http.get('*/clients/:clientId', async () => {
       if (delayMs > 0) {
-        await new Promise((r) => setTimeout(r, delayMs));
+        await new Promise((r) => {
+          setTimeout(r, delayMs);
+        });
       }
       if (status !== 200) {
         return HttpResponse.json(

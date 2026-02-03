@@ -16,7 +16,7 @@ export function ResultsSection({
   client,
   title = 'Verification results',
 }: ResultsSectionProps) {
-  const results = client.results;
+  const { results } = client;
   if (!results) return null;
 
   return (

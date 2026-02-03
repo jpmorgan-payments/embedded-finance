@@ -5,7 +5,7 @@
 
 import { cn } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import { Skeleton, Title } from '@/components/ui';
+import { Skeleton } from '@/components/ui';
 
 import { CLIENT_DETAILS_DEFAULT_VIEW_MODE } from './ClientDetails.constants';
 import type { ClientDetailsProps } from './ClientDetails.types';
@@ -90,7 +90,7 @@ export function ClientDetails({
           {title}
         </h1>
       </header>
-      <div className="eb-flex eb-flex-1 eb-flex-col eb-overflow-y-auto eb-px-4 eb-py-4 @md:eb-px-6 @md:eb-py-5">
+      <div className="eb-flex eb-flex-1 eb-flex-col eb-overflow-y-auto eb-p-4 @md:eb-px-6 @md:eb-py-5">
         {viewMode === 'accordion' ? (
           <AccordionView client={client} />
         ) : (
