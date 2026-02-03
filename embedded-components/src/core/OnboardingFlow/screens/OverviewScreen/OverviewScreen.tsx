@@ -211,7 +211,7 @@ export const OverviewScreen = () => {
                     </span>
 
                     <p className="eb-mt-3 eb-flex eb-gap-2 eb-text-xs eb-italic eb-text-muted-foreground">
-                      <span className="eb-sr-only">{t('common.warning')}:</span>
+                      <span className="eb-sr-only">{t('common:warning')}:</span>
                       <AlertTriangleIcon
                         className="eb-size-4"
                         aria-hidden="true"
