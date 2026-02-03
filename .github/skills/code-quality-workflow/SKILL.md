@@ -16,6 +16,7 @@ Mandatory code quality workflow ensuring all code meets standards before commits
 ## When to Apply
 
 Use this workflow:
+
 - After making ANY code changes
 - Before committing code
 - When fixing errors or issues
@@ -27,8 +28,9 @@ Use this workflow:
 
 1. **Format code**: `cd embedded-components; yarn format`
 2. **Run tests**: `cd embedded-components; yarn test`
-3. **Fix any errors that appear**
-4. **Re-run tests until all pass**
+3. **For large changes** (new components, refactors, many files): **also run** `yarn typecheck`, `yarn build`, then `yarn test` (e.g. `yarn format; yarn typecheck; yarn build; yarn test`)
+4. **Fix any errors that appear**
+5. **Re-run until all pass**
 
 ## Quick Reference
 
@@ -40,6 +42,7 @@ yarn test
 ```
 
 This runs in sequence:
+
 1. `typecheck` - TypeScript type checking
 2. `format:check` - Prettier formatting verification
 3. `lint` - ESLint linting
@@ -59,6 +62,9 @@ yarn lint:fix
 # Check types only
 yarn typecheck
 
+# Full build (always run for large changes)
+yarn build
+
 # Run tests only
 yarn test:unit
 
@@ -66,9 +72,12 @@ yarn test:unit
 yarn test
 ```
 
+**For large changes:** run `yarn format`, then `yarn typecheck`, then `yarn build`, then `yarn test`.
+
 ## Never Commit Code With
 
 - ❌ TypeScript errors
+- ❌ Build failures (for large changes: run `yarn build` first)
 - ❌ Formatting errors (Prettier)
 - ❌ Linting errors
 - ❌ Failing tests
@@ -85,7 +94,7 @@ yarn test
 For detailed instructions, examples, and troubleshooting:
 
 - **Full guide**: `AGENTS.md` - Complete workflow documentation
-- **Related skills**: 
+- **Related skills**:
   - `test-and-fix-workflow` - Systematic debugging workflow
   - `component-testing` - Testing patterns and examples
 
