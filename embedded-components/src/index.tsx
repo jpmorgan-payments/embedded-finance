@@ -18,6 +18,9 @@ export * from './core/MakePayment/MakePayment';
 export * from './core/Recipients';
 export * from './core/Accounts';
 
+export { PaymentFlow } from './core/PaymentFlow';
+export type { PaymentFlowProps } from './core/PaymentFlow';
+
 export * from './core/OnboardingWizardBasic/OnboardingWizardBasic';
 
 export * from './core/OnboardingFlow';

@@ -1357,6 +1357,7 @@ interface SuccessViewProps {
   accounts: AccountResponse[];
   paymentMethods: PaymentMethod[];
   onClose: () => void;
+  onMakeAnotherPayment?: () => void;
 }
 
 function SuccessView({
@@ -1366,8 +1367,27 @@ function SuccessView({
   accounts,
   paymentMethods,
   onClose,
+  onMakeAnotherPayment,
 }: SuccessViewProps) {
+  const { replaceView, setFormData } = useFlowContext();
   const [copied, setCopied] = useState(false);
+
+  const handleMakeAnotherPayment = useCallback(() => {
+    // Clear form data (keep only currency)
+    setFormData({
+      payeeId: undefined,
+      payee: undefined,
+      fromAccountId: undefined,
+      availableBalance: undefined,
+      paymentMethod: undefined,
+      amount: '',
+      memo: undefined,
+    });
+    // Navigate back to main view
+    replaceView('main');
+    // Notify parent to clear transaction response
+    onMakeAnotherPayment?.();
+  }, [setFormData, replaceView, onMakeAnotherPayment]);
 
   const amount = parseFloat(formData.amount) || 0;
   const payee = payees.find((p) => p.id === formData.payeeId);
@@ -1493,10 +1513,19 @@ function SuccessView({
         )}
       </div>
 
-      {/* Close Button */}
-      <Button onClick={onClose} className="eb-mt-6 eb-w-full eb-max-w-sm">
-        Done
-      </Button>
+      {/* Action Buttons */}
+      <div className="eb-mt-6 eb-flex eb-w-full eb-max-w-sm eb-flex-col eb-gap-2">
+        <Button
+          variant="outline"
+          onClick={handleMakeAnotherPayment}
+          className="eb-w-full"
+        >
+          Make Another Payment
+        </Button>
+        <Button onClick={onClose} className="eb-w-full">
+          Done
+        </Button>
+      </div>
     </div>
   );
 }
@@ -1542,6 +1571,8 @@ interface PaymentFlowContentProps {
   // Initial IDs for mismatch detection (needed for Storybook soft refresh)
   initialAccountId?: string;
   initialPayeeId?: string;
+  // Handler to start a new payment
+  onMakeAnotherPayment?: () => void;
 }
 
 function PaymentFlowContent({
@@ -1572,6 +1603,7 @@ function PaymentFlowContent({
   isPayeesLoaded = false,
   initialAccountId,
   initialPayeeId,
+  onMakeAnotherPayment,
 }: PaymentFlowContentProps) {
   const {
     formData,
@@ -2057,6 +2089,7 @@ function PaymentFlowContent({
           accounts={accounts}
           paymentMethods={paymentMethods}
           onClose={onClose}
+          onMakeAnotherPayment={onMakeAnotherPayment}
         />
       </FlowView>
     </>
@@ -2414,6 +2447,12 @@ export function PaymentFlow({
     setTransactionError(null);
   }, []);
 
+  // Handle make another payment - clear parent state
+  const handleMakeAnotherPayment = useCallback(() => {
+    setTransactionResponse(undefined);
+    setTransactionError(null);
+  }, []);
+
   // Handle submit - creates actual transaction via API
   const handleTransactionSubmit = useCallback(
     async (formData: {
@@ -2569,6 +2608,7 @@ export function PaymentFlow({
           isPayeesLoaded={!isLoadingRecipients && !isLoadingLinkedAccounts}
           initialAccountId={initialAccountId}
           initialPayeeId={initialPayeeId}
+          onMakeAnotherPayment={handleMakeAnotherPayment}
         />
       )}
     </FlowContainer>

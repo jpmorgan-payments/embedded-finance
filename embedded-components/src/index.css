@@ -135,12 +135,6 @@
     max-height: 100%;
     transform: none;
     border-radius: 0;
-    /* Smooth transition for size changes */
-    transition:
-      width 0.3s ease-in-out,
-      height 0.3s ease-in-out,
-      max-width 0.3s ease-in-out,
-      max-height 0.3s ease-in-out;
   }
 
   @media (min-width: 640px) {
@@ -156,12 +150,6 @@
       max-height: 700px;
       transform: translate(-50%, -50%);
       border-radius: 0.5rem; /* rounded-lg */
-      /* Smooth size transition for view changes (e.g., to success view) */
-      transition:
-        width 0.15s cubic-bezier(0.4, 0, 0.2, 1),
-        height 0.15s cubic-bezier(0.4, 0, 0.2, 1),
-        max-width 0.15s cubic-bezier(0.4, 0, 0.2, 1),
-        max-height 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     /* Success state - smaller dialog with animated transition */
