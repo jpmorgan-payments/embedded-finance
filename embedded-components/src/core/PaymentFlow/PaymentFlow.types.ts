@@ -250,9 +250,6 @@ export interface MobileReviewConfig {
  * Props for the main PaymentFlow component
  */
 export interface PaymentFlowProps extends UserTrackingProps {
-  /** Client ID for fetching accounts and recipients */
-  clientId: string;
-
   /** Trigger element to open the payment flow */
   trigger?: React.ReactNode;
 

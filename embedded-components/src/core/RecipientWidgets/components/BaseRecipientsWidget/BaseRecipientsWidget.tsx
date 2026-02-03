@@ -119,20 +119,12 @@ export interface BaseRecipientsWidgetProps extends UserTrackingProps {
 
   /**
    * Render a custom payment/action component for each recipient card.
-   * If not provided and clientId is set, a default PaymentFlow button will be rendered.
+   * If not provided, a default PaymentFlow button will be rendered.
    */
   renderPaymentAction?: (recipient: Recipient) => React.ReactNode;
 
   /**
-   * Client ID for PaymentFlow integration.
-   * When provided, enables the built-in "Pay" button for each recipient.
-   * If not provided and renderPaymentAction is also not provided, no pay button will be shown.
-   */
-  clientId?: string;
-
-  /**
    * Payment methods available for PaymentFlow.
-   * Only used when clientId is provided.
    */
   paymentMethods?: PaymentMethod[];
 
@@ -189,7 +181,6 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   paginationStyle = 'pages',
   hideCreateButton = false,
   renderPaymentAction,
-  clientId,
   paymentMethods,
   showPaymentFees = false,
   onPaymentComplete,
@@ -470,7 +461,6 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   // Default payment action renderer - uses PaymentFlow
   const defaultRenderPaymentAction = React.useCallback(
     (recipient: Recipient) => {
-      if (!clientId) return null;
       return (
         <Button
           variant="outline"
@@ -483,12 +473,12 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
         </Button>
       );
     },
-    [clientId, handleOpenPaymentDialog, t]
+    [handleOpenPaymentDialog, t]
   );
 
-  // Use custom renderer if provided, otherwise use default (if clientId is set)
+  // Use custom renderer if provided, otherwise use default
   const effectiveRenderPaymentAction =
-    renderPaymentAction ?? (clientId ? defaultRenderPaymentAction : undefined);
+    renderPaymentAction ?? defaultRenderPaymentAction;
 
   return (
     <div id="recipient-widget" className="eb-w-full eb-@container">
@@ -530,19 +520,16 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
       )}
 
       {/* PaymentFlow Dialog - Single instance for all recipients */}
-      {clientId && (
-        <PaymentFlow
-          clientId={clientId}
-          open={paymentDialogOpen}
-          onOpenChange={setPaymentDialogOpen}
-          onClose={handlePaymentDialogClose}
-          initialPayeeId={paymentPayeeId}
-          paymentMethods={paymentMethods}
-          showFees={showPaymentFees}
-          onTransactionComplete={onPaymentComplete}
-          resetKey={paymentResetKey}
-        />
-      )}
+      <PaymentFlow
+        open={paymentDialogOpen}
+        onOpenChange={setPaymentDialogOpen}
+        onClose={handlePaymentDialogClose}
+        initialPayeeId={paymentPayeeId}
+        paymentMethods={paymentMethods}
+        showFees={showPaymentFees}
+        onTransactionComplete={onPaymentComplete}
+        resetKey={paymentResetKey}
+      />
 
       <Card
         className={cn(

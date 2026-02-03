@@ -587,16 +587,9 @@ export function createErrorHandlers(errorConfig?: {
 // Common Story Args
 // ============================================================================
 
-export const commonArgs = {
-  clientId: 'mock-client-id',
-};
+export const commonArgs = {};
 
 export const commonArgTypes = {
-  clientId: {
-    control: { type: 'text' as const },
-    description: 'Client ID for fetching accounts and recipients',
-    table: { category: 'Required' },
-  },
   paymentMethods: {
     control: { type: 'object' as const },
     description: 'Available payment methods with fees and delivery times',

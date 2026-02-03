@@ -2101,7 +2101,6 @@ function PaymentFlowContent({
  * Main payment flow component with FlowContainer architecture
  */
 export function PaymentFlow({
-  clientId,
   trigger,
   paymentMethods = DEFAULT_PAYMENT_METHODS,
   initialAccountId,
@@ -2142,16 +2141,16 @@ export function PaymentFlow({
   // API hooks
   const { interceptorReady } = useInterceptorStatus();
 
-  // Fetch accounts
+  // Fetch accounts (clientId is automatically added by EBComponentsProvider interceptor)
   const {
     data: accountsData,
     isLoading: isLoadingAccounts,
     isError: isAccountsError,
     error: _accountsError,
     refetch: refetchAccounts,
-  } = useGetAccounts(clientId ? { clientId } : undefined, {
+  } = useGetAccounts(undefined, {
     query: {
-      enabled: interceptorReady && !!clientId,
+      enabled: interceptorReady,
     },
   });
 
@@ -2165,10 +2164,10 @@ export function PaymentFlow({
     hasNextPage: hasNextRecipients,
     isFetchingNextPage: isFetchingNextRecipients,
   } = useGetAllRecipientsInfinite(
-    clientId ? { clientId, type: 'RECIPIENT', limit: 25 } : undefined,
+    { type: 'RECIPIENT', limit: 25 },
     {
       query: {
-        enabled: interceptorReady && !!clientId,
+        enabled: interceptorReady,
         initialPageParam: 0,
         getNextPageParam: (lastPage, allPages) => {
           const totalItems =
@@ -2193,10 +2192,10 @@ export function PaymentFlow({
     hasNextPage: hasNextLinkedAccounts,
     isFetchingNextPage: isFetchingNextLinkedAccounts,
   } = useGetAllRecipientsInfinite(
-    clientId ? { clientId, type: 'LINKED_ACCOUNT', limit: 25 } : undefined,
+    { type: 'LINKED_ACCOUNT', limit: 25 },
     {
       query: {
-        enabled: interceptorReady && !!clientId,
+        enabled: interceptorReady,
         initialPageParam: 0,
         getNextPageParam: (lastPage, allPages) => {
           const totalItems =
