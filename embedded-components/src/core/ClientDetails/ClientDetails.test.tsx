@@ -67,7 +67,9 @@ describe('ClientDetails', () => {
 
       expect(screen.getByText('Client information')).toBeInTheDocument();
       expect(screen.getByText('Organization')).toBeInTheDocument();
-      expect(screen.getAllByText('Controller').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Controller').length).toBeGreaterThanOrEqual(
+        1
+      );
       // Business-facing data only (no internal client ID; org name may be in collapsed accordion)
       expect(screen.getByText('Information requested')).toBeInTheDocument();
     });
@@ -87,9 +89,13 @@ describe('ClientDetails', () => {
 
       expect(screen.getByText('Client information')).toBeInTheDocument();
       expect(screen.getByText('Organization')).toBeInTheDocument();
-      expect(screen.getAllByText('Controller').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Controller').length).toBeGreaterThanOrEqual(
+        1
+      );
       // Business-facing data only (no internal client ID)
-      expect(screen.getAllByText('Neverland Books').length).toBeGreaterThanOrEqual(1);
+      expect(
+        screen.getAllByText('Neverland Books').length
+      ).toBeGreaterThanOrEqual(1);
     });
 
     test('renders custom title when provided', async () => {

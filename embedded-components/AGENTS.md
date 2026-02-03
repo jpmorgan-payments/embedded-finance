@@ -20,8 +20,11 @@ All commands run from this directory (`embedded-components/`):
 - Run tests: `yarn test`
 - Run tests in watch mode: `yarn test:watch`
 - Type checking: `yarn typecheck`
+- Build: `yarn build` (**always run for large changes** – new components, refactors, many files)
 - Linting: `yarn lint`
 - Format code: `yarn format`
+
+**For large changes:** run `yarn format`, then `yarn typecheck`, then `yarn build`, then `yarn test` before committing.
 
 ## Documentation
 
@@ -79,11 +82,13 @@ Agent Skills provide specialized guidance for specific tasks. **Always reference
 ### How to Use Skills
 
 Each skill contains:
+
 - **`SKILL.md`** - Summary with frontmatter, quick reference, and links to detailed documentation
 - **`AGENTS.md`** - Complete detailed documentation for agents and LLMs
 - **`rules/`** directory (where applicable) - Individual rule files for specific patterns
 
 **When working on a task:**
+
 1. Identify which skills are relevant to your task
 2. Review the `SKILL.md` for quick reference
 3. Consult `AGENTS.md` for detailed instructions and examples

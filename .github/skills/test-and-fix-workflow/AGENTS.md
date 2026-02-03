@@ -34,6 +34,7 @@ yarn format
 ```
 
 This automatically fixes:
+
 - Indentation
 - Quote style
 - Line breaks
@@ -50,6 +51,7 @@ yarn test
 ```
 
 This runs:
+
 - Type checking (TypeScript)
 - Format checking (Prettier)
 - Linting (ESLint)
@@ -60,24 +62,28 @@ This runs:
 Categorize failures by type:
 
 **TypeScript Errors:**
+
 - Type mismatches
 - Missing type definitions
 - Import errors
 - Interface violations
 
 **Formatting Errors:**
+
 - Indentation issues
 - Quote style violations
 - Line break problems
 - Trailing comma issues
 
 **Linting Errors:**
+
 - Unused variables
 - Missing dependencies
 - Code style violations
 - Best practice violations
 
 **Test Failures:**
+
 - Assertion failures
 - Mock issues
 - Timeout errors
@@ -88,9 +94,10 @@ Categorize failures by type:
 Fix in this order:
 
 1. **TypeScript errors** - Must be fixed first (blocking)
-2. **Formatting errors** - Auto-fixable
-3. **Linting errors** - Most auto-fixable
-4. **Test failures** - Requires analysis
+2. **Build errors** - For large changes, run `yarn build` and fix compilation/export issues
+3. **Formatting errors** - Auto-fixable
+4. **Linting errors** - Most auto-fixable
+5. **Test failures** - Requires analysis
 
 ### 5. Fix Issues Systematically
 
@@ -187,7 +194,7 @@ const age: number = parseInt("25", 10);
 const name = "John";
 
 // ✅ Fix: Auto-fixed by yarn format
-const name = 'John';
+const name = "John";
 ```
 
 ### Linting: Unused Variable
@@ -374,6 +381,9 @@ yarn test:watch
 cd embedded-components
 yarn format; yarn lint:fix; yarn test
 
+# For LARGE changes (new components, refactors, many files), also run:
+yarn typecheck; yarn build
+
 # If all pass, commit
 cd ..
 git add embedded-components
@@ -381,7 +391,7 @@ git commit -m "fix: resolve test failures"
 git push
 ```
 
-**Note**: Always run `yarn format` first to ensure code is properly formatted before running tests.
+**Note**: Always run `yarn format` first. For large changes, run `yarn format`, `yarn typecheck`, `yarn build`, and `yarn test` before committing.
 
 ## Troubleshooting
 

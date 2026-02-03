@@ -3,14 +3,17 @@
  * Renders Organization, Controller, and Beneficial owners with business labels only (no internal IDs).
  */
 
-import type { ClientResponse, PartyResponse } from '@/api/generated/smbdo.schemas';
+import type {
+  ClientResponse,
+  PartyResponse,
+} from '@/api/generated/smbdo.schemas';
 
+import { formatRoleLabels } from '../../utils/formatClientFacing';
 import {
   getBeneficialOwnerParties,
   getControllerParty,
   getOrganizationParty,
 } from '../../utils/partyGrouping';
-import { formatRoleLabels } from '../../utils/formatClientFacing';
 import { PartyDetailsBlock } from '../PartyDetailsBlock/PartyDetailsBlock';
 
 interface PartiesSectionProps {

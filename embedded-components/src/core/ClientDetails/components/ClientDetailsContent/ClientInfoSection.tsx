@@ -1,4 +1,5 @@
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
+
 import {
   formatApplicationStatus,
   formatDateTime,
@@ -29,7 +30,10 @@ export function ClientInfoSection({
         </h2>
       ) : null}
       <dl className="eb-divide-y eb-divide-border/60">
-        <DetailRow label="Application status" value={formatApplicationStatus(client.status)} />
+        <DetailRow
+          label="Application status"
+          value={formatApplicationStatus(client.status)}
+        />
         <DetailRow label="Products" value={formatProducts(client.products)} />
         <DetailRow label="Created" value={formatDateTime(client.createdAt)} />
       </dl>

@@ -3,8 +3,8 @@
  * from GET /clients/:id. Supports accordion and cards view modes.
  */
 
-import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { cn } from '@/lib/utils';
+import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { Skeleton, Title } from '@/components/ui';
 
 import { CLIENT_DETAILS_DEFAULT_VIEW_MODE } from './ClientDetails.constants';
@@ -20,12 +20,14 @@ export function ClientDetails({
   title = DEFAULT_TITLE,
   className,
 }: ClientDetailsProps) {
-  const { data: client, isLoading, isError, error } = useSmbdoGetClient(
-    clientId,
-    {
-      query: { enabled: !!clientId },
-    }
-  );
+  const {
+    data: client,
+    isLoading,
+    isError,
+    error,
+  } = useSmbdoGetClient(clientId, {
+    query: { enabled: !!clientId },
+  });
 
   if (!clientId) {
     return (
@@ -79,7 +81,7 @@ export function ClientDetails({
   return (
     <div
       className={cn(
-        'eb-component eb-w-full eb-max-w-full eb-flex eb-flex-col',
+        'eb-component eb-flex eb-w-full eb-max-w-full eb-flex-col',
         className
       )}
     >

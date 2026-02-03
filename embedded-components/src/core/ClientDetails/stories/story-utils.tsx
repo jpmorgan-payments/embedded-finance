@@ -2,14 +2,14 @@
  * Shared utilities for ClientDetails stories
  */
 
+import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
+import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { http, HttpResponse } from 'msw';
 
 import {
   ClientStatus,
   type ClientResponse,
 } from '@/api/generated/smbdo.schemas';
-import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
-import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 
 /** Mock client for stories (APPROVED for "fully onboarded" demo) */
 export const mockClientDetails: ClientResponse = {

@@ -1,4 +1,5 @@
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
+
 import { formatCustomerIdentityStatus } from '../../utils/formatClientFacing';
 import { DetailRow } from '../DetailRow/DetailRow';
 

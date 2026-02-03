@@ -81,7 +81,7 @@ export function getClientDetailsSections(
   const beneficialOwners = getBeneficialOwnerParties(client);
   const hasResults = !!client.results;
 
-  return [
+  const sections: ClientDetailsSectionGroup[] = [
     {
       id: 'client-info',
       label: SECTION_LABELS['client-info'],
@@ -118,5 +118,6 @@ export function getClientDetailsSections(
       type: 'question-responses',
       hasContent: true,
     },
-  ].filter((s) => s.hasContent);
+  ];
+  return sections.filter((s) => s.hasContent) as ClientDetailsSectionGroup[];
 }

@@ -2,17 +2,16 @@
  * PartyDetailsBlock - Renders party fields in a clean block (card-style).
  */
 
+import { _get, cn, isValueEmpty } from '@/lib/utils';
 import type { PartyResponse } from '@/api/generated/smbdo.schemas';
-import { cn } from '@/lib/utils';
-import { _get, isValueEmpty } from '@/lib/utils';
 
+import { formatRoleLabels } from '../../utils/formatClientFacing';
+import { getPartyDisplayName } from '../../utils/getPartyDisplayName';
 import {
   individualFieldDefinitions,
   organizationFieldDefinitions,
 } from '../../utils/partyFieldDefinitions';
 import type { PartyFieldConfig } from '../../utils/partyFieldDefinitions';
-import { formatRoleLabels } from '../../utils/formatClientFacing';
-import { getPartyDisplayName } from '../../utils/getPartyDisplayName';
 import { DetailRow } from '../DetailRow/DetailRow';
 
 interface PartyDetailsBlockProps {
@@ -30,7 +29,12 @@ function renderFields(party: PartyResponse, fields: PartyFieldConfig[]) {
     const raw = _get(party, path);
     if (isValueEmpty(raw)) return null;
     const value = transform ? transform(raw) : raw;
-    if (value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) return null;
+    if (
+      value === undefined ||
+      value === '' ||
+      (Array.isArray(value) && value.length === 0)
+    )
+      return null;
     return <DetailRow key={path} label={label} value={value} />;
   });
 }
@@ -42,7 +46,9 @@ export function PartyDetailsBlock({
   compact = false,
 }: PartyDetailsBlockProps) {
   const isOrg = party.partyType === 'ORGANIZATION';
-  const fields = isOrg ? organizationFieldDefinitions : individualFieldDefinitions;
+  const fields = isOrg
+    ? organizationFieldDefinitions
+    : individualFieldDefinitions;
   const name = heading ?? getPartyDisplayName(party);
   const roleLabel = formatRoleLabels(party.roles ?? undefined);
 
@@ -53,7 +59,12 @@ export function PartyDetailsBlock({
         compact && 'eb-p-3'
       )}
     >
-      <div className={cn('eb-mb-3 eb-flex eb-flex-col eb-gap-0.5', compact && 'eb-mb-2')}>
+      <div
+        className={cn(
+          'eb-mb-3 eb-flex eb-flex-col eb-gap-0.5',
+          compact && 'eb-mb-2'
+        )}
+      >
         <h3 className="eb-text-sm eb-font-semibold eb-tracking-tight eb-text-foreground @md:eb-text-base">
           {name}
         </h3>

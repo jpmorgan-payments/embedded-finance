@@ -14,7 +14,8 @@ import { createClientDetailsHandlers } from './story-utils';
 
 const CLIENT_ID = '0030000133';
 
-type ClientDetailsStoryArgs = Omit<BaseStoryArgs, 'clientId'> & ClientDetailsProps;
+type ClientDetailsStoryArgs = Omit<BaseStoryArgs, 'clientId'> &
+  ClientDetailsProps;
 
 const meta: Meta<ClientDetailsStoryArgs> = {
   title: 'Beta/ClientDetails',
@@ -32,16 +33,20 @@ const meta: Meta<ClientDetailsStoryArgs> = {
     title: 'Client details',
   },
   argTypes: {
-    clientId: { control: 'text', description: 'Client ID to fetch (GET /clients/:id)' },
-    viewMode: { control: 'radio', options: ['accordion', 'cards'], description: 'Display mode' },
+    clientId: {
+      control: 'text',
+      description: 'Client ID to fetch (GET /clients/:id)',
+    },
+    viewMode: {
+      control: 'radio',
+      options: ['accordion', 'cards'],
+      description: 'Display mode',
+    },
     title: { control: 'text', description: 'Section title' },
   },
   // Ensure clientId is always passed so the component never shows "Client ID is required"
   render: (args) => (
-    <ClientDetails
-      {...args}
-      clientId={args.clientId || CLIENT_ID}
-    />
+    <ClientDetails {...args} clientId={args.clientId || CLIENT_ID} />
   ),
 };
 
