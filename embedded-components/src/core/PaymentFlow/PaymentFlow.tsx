@@ -2,7 +2,15 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQueries } from '@tanstack/react-query';
-import { AlertCircle, Check, Copy, Loader2, RefreshCw } from 'lucide-react';
+import {
+  AlertCircle,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Loader2,
+  RefreshCw,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -233,22 +241,29 @@ function StepSection({
     }
   };
 
-  // Determine the action label
-  const getActionLabel = () => {
+  // Determine the action label and chevron direction
+  const getActionLabel = (): {
+    text: string;
+    chevron: 'up' | 'down' | null;
+  } => {
     if (isActive) {
-      return 'Cancel';
+      return { text: 'Cancel', chevron: 'up' };
     }
     if (isLoading) {
-      return 'Loading...';
+      return { text: 'Loading...', chevron: null };
     }
+    // When disabled, show the disabled reason (no chevron since not clickable)
     if (isDisabled) {
-      return disabledReason;
+      return { text: disabledReason ?? '', chevron: null };
     }
+    // Clickable states - show down chevron
     if (isComplete) {
-      return 'Change';
+      return { text: 'Change', chevron: 'down' };
     }
-    return 'Select';
+    return { text: 'Select', chevron: 'down' };
   };
+
+  const actionLabel = getActionLabel();
 
   return (
     <div ref={sectionRef} className="eb-relative">
@@ -327,7 +342,12 @@ function StepSection({
             >
               {title}
             </span>
-            {isComplete && !isActive && summary && (
+            {hasError && !isActive && (
+              <span className="eb-text-xs eb-font-medium eb-text-destructive">
+                (Required)
+              </span>
+            )}
+            {isComplete && !isActive && !hasError && summary && (
               <span className="eb-text-sm eb-text-muted-foreground">
                 — {summary}
               </span>
@@ -337,20 +357,22 @@ function StepSection({
           {/* Action label */}
           <span
             className={cn(
-              'eb-text-xs eb-font-medium',
-              hasError && 'eb-text-destructive',
-              isActive && !hasError && 'eb-text-muted-foreground',
-              !isActive &&
-                !isDisabled &&
-                !isLoading &&
-                !hasError &&
-                'eb-text-primary',
-              (isDisabled || isLoading) &&
-                !hasError &&
-                'eb-text-muted-foreground/60'
+              'eb-flex eb-items-center eb-gap-0.5 eb-text-xs eb-font-medium',
+              // When disabled, always use muted styling
+              (isDisabled || isLoading) && 'eb-text-muted-foreground/60',
+              // Active (expanded) state
+              isActive && 'eb-text-muted-foreground',
+              // Clickable states - use primary color
+              !isActive && !isDisabled && !isLoading && 'eb-text-primary'
             )}
           >
-            {hasError ? 'Required' : getActionLabel()}
+            {actionLabel.text}
+            {actionLabel.chevron === 'down' && (
+              <ChevronDown className="eb-h-3.5 eb-w-3.5" />
+            )}
+            {actionLabel.chevron === 'up' && (
+              <ChevronUp className="eb-h-3.5 eb-w-3.5" />
+            )}
           </span>
         </div>
       </button>
@@ -540,18 +562,31 @@ function MainTransferView({
   const paymentMethodSectionRef = React.useRef<HTMLDivElement>(null);
   const amountSectionRef = React.useRef<HTMLDivElement>(null);
 
-  // Map panel IDs to their refs for easy lookup
-  const sectionRefs: Record<string, React.RefObject<HTMLDivElement>> = {
-    [PANEL_IDS.FROM_ACCOUNT]: fromAccountSectionRef,
-    [PANEL_IDS.PAYEE]: payeeSectionRef,
-    [PANEL_IDS.PAYMENT_METHOD]: paymentMethodSectionRef,
-    [PANEL_IDS.AMOUNT]: amountSectionRef,
-  };
+  // Map panel IDs to their refs for easy lookup (memoized for stable reference)
+  const sectionRefs = React.useMemo<
+    Record<string, React.RefObject<HTMLDivElement>>
+  >(
+    () => ({
+      [PANEL_IDS.FROM_ACCOUNT]: fromAccountSectionRef,
+      [PANEL_IDS.PAYEE]: payeeSectionRef,
+      [PANEL_IDS.PAYMENT_METHOD]: paymentMethodSectionRef,
+      [PANEL_IDS.AMOUNT]: amountSectionRef,
+    }),
+    []
+  );
 
-  // When validation errors change, expand the first section that has an error
-  // and scroll to it (focus the amount input if that's the error field)
+  // Track previous validation errors count to detect when errors are first shown
+  const prevValidationErrorsCountRef = React.useRef(0);
+
+  // When validation errors are FIRST SET (transition from 0 to >0), expand the first
+  // section that has an error and scroll to it. This should only run once when errors
+  // appear, not when the user navigates between sections.
   useEffect(() => {
-    if (validationErrors.length > 0) {
+    const wasEmpty = prevValidationErrorsCountRef.current === 0;
+    const hasErrors = validationErrors.length > 0;
+
+    // Only expand/scroll when errors first appear (not on every re-render)
+    if (wasEmpty && hasErrors) {
       // Find the first panel with an error (in form order)
       const panelOrder = [
         PANEL_IDS.FROM_ACCOUNT,
@@ -590,6 +625,9 @@ function MainTransferView({
         }
       }
     }
+
+    // Update ref after effect runs
+    prevValidationErrorsCountRef.current = validationErrors.length;
   }, [validationErrors, hasPanelError, sectionRefs]);
 
   // Clear specific field errors when that field changes (react-hook-form pattern)
