@@ -410,9 +410,9 @@ const MakePaymentStory = (props: {
 };
 
 const meta: Meta<MakePaymentStoryArgs> = {
-  title: 'Core/MakePayment',
+  title: 'Legacy/MakePayment',
   component: MakePaymentStory,
-  tags: ['@core', '@payment'],
+  tags: ['@legacy', '@payment'],
   parameters: {
     layout: 'centered',
     msw: {

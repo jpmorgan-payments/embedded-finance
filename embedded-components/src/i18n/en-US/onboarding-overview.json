@@ -763,6 +763,8 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 10})",
+        "invalid": "Postal code must be 5 digits or 9 digits (ZIP+4 format)",
         "pattern": "Postal code must be exactly 5 digits"
       }
     },

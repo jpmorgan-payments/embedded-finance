@@ -60,7 +60,51 @@ export interface ClientSeedOptions {
   clientId?: string;
   /** Client data to seed. If not provided, a default client with parties will be created */
   clientData?: Partial<ClientResponse>;
-} // ============================================================================
+}
+
+// ============================================================================
+// Mock Data - Accounts (for PaymentFlow integration)
+// ============================================================================
+
+/**
+ * Mock accounts for PaymentFlow integration within RecipientWidgets.
+ * These accounts are used when the "Pay" button is clicked on a recipient.
+ */
+export const mockAccounts = {
+  items: [
+    {
+      id: 'acc-payments-main',
+      clientId: 'mock-client-id',
+      label: 'Main Payments Account',
+      state: 'OPEN',
+      category: 'LIMITED_DDA_PAYMENTS',
+      paymentRoutingInformation: {
+        accountNumber: '10000000001234',
+        country: 'US',
+        routingInformation: [{ type: 'ABA', value: '028000024' }],
+      },
+      balance: { available: 15000.0, current: 15250.0, currency: 'USD' },
+      createdAt: '2024-01-01T08:00:00Z',
+    },
+    {
+      id: 'acc-limited-dda',
+      clientId: 'mock-client-id',
+      label: 'Payroll Account',
+      state: 'OPEN',
+      category: 'LIMITED_DDA',
+      paymentRoutingInformation: {
+        accountNumber: '30000000003456',
+        country: 'US',
+        routingInformation: [{ type: 'ABA', value: '028000024' }],
+      },
+      balance: { available: 25000.0, current: 25000.0, currency: 'USD' },
+      createdAt: '2024-01-03T11:00:00Z',
+    },
+  ],
+  metadata: { page: 0, limit: 10, total_items: 2 },
+};
+
+// ============================================================================
 // Database Management
 // ============================================================================
 
@@ -583,6 +627,70 @@ export const createRecipientHandlers = (
         return HttpResponse.json(response);
       }
     ),
+
+    // GET /accounts - List client accounts (for PaymentFlow integration)
+    http.get('/accounts', async (): Promise<Response> => {
+      await sleep(delay);
+
+      debugLog('GET /accounts', {
+        total: mockAccounts.items.length,
+      });
+
+      return HttpResponse.json({
+        items: mockAccounts.items,
+        metadata: mockAccounts.metadata,
+      });
+    }),
+
+    // GET /accounts/:id/balances - Get account balance (for PaymentFlow)
+    http.get(
+      '/accounts/:id/balances',
+      async ({ params }): Promise<Response> => {
+        await sleep(delay);
+
+        const { id } = params;
+        const account = mockAccounts.items.find((a) => a.id === id);
+
+        debugLog('GET /accounts/:id/balances', { id, found: !!account });
+
+        if (account?.balance) {
+          return HttpResponse.json({
+            accountId: id,
+            currency: account.balance.currency ?? 'USD',
+            balanceTypes: [
+              { typeCode: 'ITAV', amount: account.balance.available ?? 0 },
+              { typeCode: 'CLAV', amount: account.balance.current ?? 0 },
+            ],
+          });
+        }
+
+        return HttpResponse.json({
+          accountId: id,
+          currency: 'USD',
+          balanceTypes: [{ typeCode: 'ITAV', amount: 0 }],
+        });
+      }
+    ),
+
+    // POST /payments - Create payment (for PaymentFlow)
+    http.post('/payments', async ({ request }): Promise<Response> => {
+      await sleep(delay);
+
+      const body = (await request.json()) as Record<string, unknown>;
+
+      debugLog('POST /payments', { body });
+
+      // Return a successful payment response
+      return HttpResponse.json(
+        {
+          id: `pmt-${Date.now()}`,
+          status: 'PENDING',
+          ...body,
+          createdAt: new Date().toISOString(),
+        },
+        { status: 201 }
+      );
+    }),
   ];
 };
 
@@ -826,6 +934,61 @@ export const createRtpUnavailableHandlers = (
         return HttpResponse.json(response);
       }
     ),
+
+    // GET /accounts - List client accounts (for PaymentFlow integration)
+    http.get('/accounts', async (): Promise<Response> => {
+      await sleep(delayMs);
+
+      return HttpResponse.json({
+        items: mockAccounts.items,
+        metadata: mockAccounts.metadata,
+      });
+    }),
+
+    // GET /accounts/:id/balances - Get account balance (for PaymentFlow)
+    http.get(
+      '/accounts/:id/balances',
+      async ({ params }): Promise<Response> => {
+        await sleep(delayMs);
+
+        const { id } = params;
+        const account = mockAccounts.items.find((a) => a.id === id);
+
+        if (account?.balance) {
+          return HttpResponse.json({
+            accountId: id,
+            currency: account.balance.currency ?? 'USD',
+            balanceTypes: [
+              { typeCode: 'ITAV', amount: account.balance.available ?? 0 },
+              { typeCode: 'CLAV', amount: account.balance.current ?? 0 },
+            ],
+          });
+        }
+
+        return HttpResponse.json({
+          accountId: id,
+          currency: 'USD',
+          balanceTypes: [{ typeCode: 'ITAV', amount: 0 }],
+        });
+      }
+    ),
+
+    // POST /payments - Create payment (for PaymentFlow)
+    http.post('/payments', async ({ request }): Promise<Response> => {
+      await sleep(delayMs);
+
+      const body = (await request.json()) as Record<string, unknown>;
+
+      return HttpResponse.json(
+        {
+          id: `pmt-${Date.now()}`,
+          status: 'PENDING',
+          ...body,
+          createdAt: new Date().toISOString(),
+        },
+        { status: 201 }
+      );
+    }),
   ];
 };
 

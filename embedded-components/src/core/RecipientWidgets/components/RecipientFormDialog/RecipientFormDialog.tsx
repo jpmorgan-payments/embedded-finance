@@ -14,7 +14,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { useClientId } from '@/core/EBComponentsProvider/EBComponentsProvider';
+import {
+  useClientId,
+  useInterceptorStatus,
+} from '@/core/EBComponentsProvider/EBComponentsProvider';
 
 import { useRecipientForm, type RecipientFormMode } from '../../hooks';
 import { RecipientI18nNamespace, SupportedRecipientType } from '../../types';
@@ -115,9 +118,14 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
 }) => {
   const { t } = useTranslation(i18nNamespace);
   const clientId = useClientId();
+  const { interceptorReady } = useInterceptorStatus();
 
   // Fetch client data using the client ID
-  const { data: clientData } = useSmbdoGetClient(clientId ?? '');
+  const { data: clientData } = useSmbdoGetClient(clientId ?? '', {
+    query: {
+      enabled: interceptorReady && !!clientId,
+    },
+  });
 
   // Get appropriate config based on recipientType and mode
   const linkedAccountCreateConfig = useLinkedAccountConfig();

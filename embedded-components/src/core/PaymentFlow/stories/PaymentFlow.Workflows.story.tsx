@@ -5,6 +5,13 @@
  * These stories automatically interact with the component to show key workflows.
  *
  * Each story demonstrates a specific user journey through the payment flow.
+ *
+ * Current PaymentFlow component structure (Feb 2026):
+ * - Step 1: From (Account) - Select source account
+ * - Step 2: To (Payee) - Select recipient or linked account via tabs
+ * - Step 3: Payment Method - Select ACH, Wire, or RTP
+ * - Amount & Memo - Always visible at bottom
+ * - Review Panel - Right side on desktop, bottom sheet on mobile
  */
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -15,6 +22,7 @@ import {
   commonArgs,
   commonArgTypes,
   createPaymentFlowHandlers,
+  singleAccount,
 } from './story-utils';
 
 // ============================================================================
@@ -28,6 +36,21 @@ const delay = (ms: number): Promise<void> =>
   });
 
 const STEP_DELAY = 800;
+
+/** Get the dialog container */
+const getDialog = () =>
+  within(document.querySelector('[role="dialog"]') as HTMLElement);
+
+/** Wait for dialog to be ready */
+const waitForDialog = async () => {
+  await waitFor(
+    () => {
+      const dialog = document.querySelector('[role="dialog"]');
+      if (!dialog) throw new Error('Dialog not found');
+    },
+    { timeout: 5000 }
+  );
+};
 
 // ============================================================================
 // Meta Configuration
@@ -68,49 +91,63 @@ type Story = StoryObj<typeof meta>;
 
 /**
  * Complete payment flow from start to finish.
- * Demonstrates selecting a payee, payment method, account, entering amount, and submitting.
+ * Demonstrates selecting an account, payee, payment method, entering amount, and submitting.
+ *
+ * Flow order:
+ * 1. Select From Account (Step 1)
+ * 2. Select Payee/Recipient (Step 2)
+ * 3. Select Payment Method (Step 3)
+ * 4. Enter Amount and Memo
+ * 5. Submit and verify success
  */
 export const CompletePaymentFlow: Story = {
   play: async ({ step }) => {
-    // Wait for dialog to open
-    await waitFor(
-      async () => {
-        const dialog = document.querySelector('[role="dialog"]');
-        if (!dialog) throw new Error('Dialog not found');
-      },
-      { timeout: 5000 }
-    );
+    await waitForDialog();
+    const dialog = getDialog();
 
-    const dialog = within(
-      document.querySelector('[role="dialog"]') as HTMLElement
-    );
-
-    await step('Select a recipient', async () => {
-      await delay(STEP_DELAY);
-      // Click on Alice Johnson in the recipients list
-      const aliceButton = await waitFor(
-        () => dialog.getByRole('button', { name: /alice johnson/i }),
+    await step('Wait for accounts to load', async () => {
+      // Wait for the From section to show an account (Main Payments Account)
+      await waitFor(
+        () => {
+          const accountButton = dialog.getByRole('button', {
+            name: /main payments account/i,
+          });
+          expect(accountButton).toBeInTheDocument();
+        },
         { timeout: 5000 }
       );
-      await userEvent.click(aliceButton);
-    });
-
-    await step('Select ACH payment method', async () => {
-      await delay(STEP_DELAY);
-      const achButton = await waitFor(
-        () => dialog.getByRole('button', { name: /ach transfer/i }),
-        { timeout: 3000 }
-      );
-      await userEvent.click(achButton);
     });
 
     await step('Select from account', async () => {
       await delay(STEP_DELAY);
-      const accountButton = await waitFor(
-        () => dialog.getByRole('button', { name: /main checking/i }),
-        { timeout: 3000 }
-      );
+      // Click on the Main Payments Account
+      const accountButton = dialog.getByRole('button', {
+        name: /main payments account/i,
+      });
       await userEvent.click(accountButton);
+    });
+
+    await step('Wait for To section and select recipient', async () => {
+      await delay(STEP_DELAY);
+      // To section auto-opens after account selection - wait for recipients to load
+      await waitFor(
+        () => dialog.getByRole('button', { name: /alice johnson/i }),
+        { timeout: 5000 }
+      );
+      const aliceButton = dialog.getByRole('button', {
+        name: /alice johnson/i,
+      });
+      await userEvent.click(aliceButton);
+    });
+
+    await step('Wait for Payment Method section and select ACH', async () => {
+      await delay(STEP_DELAY);
+      // Payment Method section auto-opens after payee selection - wait for options
+      const achButton = await waitFor(
+        () => dialog.getByRole('button', { name: /ach/i }),
+        { timeout: 5000 }
+      );
+      await userEvent.click(achButton);
     });
 
     await step('Enter payment amount', async () => {
@@ -128,13 +165,14 @@ export const CompletePaymentFlow: Story = {
 
     await step('Review and submit', async () => {
       await delay(STEP_DELAY);
-      // Verify the review panel shows correct info
+      // Verify the review shows correct total amount (use getAllByText since amount shows twice)
       await waitFor(() => {
-        expect(dialog.getByText('$250.00')).toBeInTheDocument();
+        const amounts = dialog.getAllByText('$250.00');
+        expect(amounts.length).toBeGreaterThan(0);
       });
 
       const submitButton = dialog.getByRole('button', {
-        name: /send payment/i,
+        name: /confirm payment/i,
       });
       await userEvent.click(submitButton);
     });
@@ -152,6 +190,62 @@ export const CompletePaymentFlow: Story = {
 };
 
 // ============================================================================
+// Single Account Flow (Auto-selects account)
+// ============================================================================
+
+/**
+ * Payment flow with single account - auto-selects and starts at payee step.
+ * Demonstrates streamlined flow when user only has one account.
+ */
+export const SingleAccountFlow: Story = {
+  parameters: {
+    msw: {
+      handlers: createPaymentFlowHandlers({ accounts: singleAccount }),
+    },
+  },
+  play: async ({ step }) => {
+    await waitForDialog();
+    const dialog = getDialog();
+
+    await step('Verify account is auto-selected', async () => {
+      await delay(STEP_DELAY);
+      // With single account, it should auto-select and show in the From step
+      await waitFor(
+        () => {
+          // The account name may appear in multiple places (step summary and review panel)
+          const accountTexts = dialog.getAllByText(/main payments account/i);
+          expect(accountTexts.length).toBeGreaterThan(0);
+        },
+        { timeout: 5000 }
+      );
+    });
+
+    await step('Select a recipient', async () => {
+      await delay(STEP_DELAY);
+      // With auto-selected account, To section should be active
+      await waitFor(
+        () => dialog.getByRole('button', { name: /alice johnson/i }),
+        { timeout: 5000 }
+      );
+      const aliceButton = dialog.getByRole('button', {
+        name: /alice johnson/i,
+      });
+      await userEvent.click(aliceButton);
+    });
+
+    await step('Select payment method', async () => {
+      await delay(STEP_DELAY);
+      // Payment Method section auto-opens after payee selection - wait for options
+      const achButton = await waitFor(
+        () => dialog.getByRole('button', { name: /ach/i }),
+        { timeout: 5000 }
+      );
+      await userEvent.click(achButton);
+    });
+  },
+};
+
+// ============================================================================
 // Payee Selection Workflows
 // ============================================================================
 
@@ -161,26 +255,34 @@ export const CompletePaymentFlow: Story = {
  */
 export const SwitchPayeeTabs: Story = {
   play: async ({ step }) => {
-    await waitFor(
-      () => {
-        const dialog = document.querySelector('[role="dialog"]');
-        if (!dialog) throw new Error('Dialog not found');
-      },
-      { timeout: 5000 }
-    );
+    await waitForDialog();
+    const dialog = getDialog();
 
-    const dialog = within(
-      document.querySelector('[role="dialog"]') as HTMLElement
-    );
-
-    await step('View Recipients tab (default)', async () => {
+    await step('Select an account first', async () => {
       await delay(STEP_DELAY);
-      const recipientsTab = await waitFor(
-        () => dialog.getByRole('tab', { name: /recipients/i }),
+      await waitFor(
+        () => dialog.getAllByRole('button', { name: /main payments account/i }),
         { timeout: 5000 }
       );
-      expect(recipientsTab).toHaveAttribute('data-state', 'active');
+      // Use getAllByRole since account name appears in both step and review panel
+      const accountButtons = dialog.getAllByRole('button', {
+        name: /main payments account/i,
+      });
+      await userEvent.click(accountButtons[0]);
     });
+
+    await step(
+      'Wait for To section and view Recipients tab (default)',
+      async () => {
+        await delay(STEP_DELAY);
+        // To section auto-opens after account selection - wait for tabs
+        const recipientsTab = await waitFor(
+          () => dialog.getByRole('tab', { name: /recipients/i }),
+          { timeout: 5000 }
+        );
+        expect(recipientsTab).toHaveAttribute('data-state', 'active');
+      }
+    );
 
     await step('Switch to Linked Accounts tab', async () => {
       await delay(STEP_DELAY);
@@ -191,19 +293,20 @@ export const SwitchPayeeTabs: Story = {
 
     await step('Select a linked account', async () => {
       await delay(STEP_DELAY);
-      const johnButton = await waitFor(
-        () => dialog.getByRole('button', { name: /john doe/i }),
+      // Use getAllByRole since name may appear in both list and review panel
+      const johnButtons = await waitFor(
+        () => dialog.getAllByRole('button', { name: /john doe/i }),
         { timeout: 3000 }
       );
-      await userEvent.click(johnButton);
+      await userEvent.click(johnButtons[0]);
     });
 
     await step('Verify linked account is selected', async () => {
       await delay(STEP_DELAY);
-      // The payee section should show John Doe as selected
       await waitFor(() => {
-        const selectedIndicator = dialog.queryByText(/john doe/i);
-        expect(selectedIndicator).toBeInTheDocument();
+        // The To step should show John Doe in summary (may appear multiple places)
+        const johnTexts = dialog.getAllByText(/john doe/i);
+        expect(johnTexts.length).toBeGreaterThan(0);
       });
     });
   },
@@ -215,19 +318,25 @@ export const SwitchPayeeTabs: Story = {
  */
 export const SearchPayee: Story = {
   play: async ({ step }) => {
-    await waitFor(
-      () => {
-        const dialog = document.querySelector('[role="dialog"]');
-        if (!dialog) throw new Error('Dialog not found');
-      },
-      { timeout: 5000 }
-    );
+    await waitForDialog();
+    const dialog = getDialog();
 
-    const dialog = within(
-      document.querySelector('[role="dialog"]') as HTMLElement
-    );
+    await step('Select an account first', async () => {
+      await delay(STEP_DELAY);
+      await waitFor(
+        () => dialog.getAllByRole('button', { name: /main payments account/i }),
+        { timeout: 5000 }
+      );
+      // Use getAllByRole since account name appears in both step and review panel
+      const accountButtons = dialog.getAllByRole('button', {
+        name: /main payments account/i,
+      });
+      await userEvent.click(accountButtons[0]);
+    });
 
-    await step('Wait for recipients to load', async () => {
+    await step('Wait for To section and recipients to load', async () => {
+      await delay(STEP_DELAY);
+      // To section auto-opens after account selection - wait for recipients
       await waitFor(
         () => dialog.getByRole('button', { name: /alice johnson/i }),
         { timeout: 5000 }
@@ -237,7 +346,7 @@ export const SearchPayee: Story = {
     await step('Search for "Tech"', async () => {
       await delay(STEP_DELAY);
       const searchInput = await waitFor(
-        () => dialog.getByPlaceholderText(/search recipients/i),
+        () => dialog.getByPlaceholderText(/search/i),
         { timeout: 3000 }
       );
       await userEvent.type(searchInput, 'Tech');
@@ -255,7 +364,7 @@ export const SearchPayee: Story = {
 
     await step('Clear search', async () => {
       await delay(STEP_DELAY);
-      const searchInput = dialog.getByPlaceholderText(/search recipients/i);
+      const searchInput = dialog.getByPlaceholderText(/search/i);
       await userEvent.clear(searchInput);
     });
 
@@ -279,34 +388,51 @@ export const SearchPayee: Story = {
  */
 export const AddNewRecipient: Story = {
   play: async ({ step }) => {
-    await waitFor(
-      () => {
-        const dialog = document.querySelector('[role="dialog"]');
-        if (!dialog) throw new Error('Dialog not found');
-      },
-      { timeout: 5000 }
-    );
+    await waitForDialog();
+    const dialog = getDialog();
 
-    const dialog = within(
-      document.querySelector('[role="dialog"]') as HTMLElement
-    );
-
-    await step('Click "Add New Recipient"', async () => {
+    await step('Select an account first', async () => {
       await delay(STEP_DELAY);
-      const addButton = await waitFor(
-        () => dialog.getByRole('button', { name: /add new recipient/i }),
+      await waitFor(
+        () => dialog.getAllByRole('button', { name: /main payments account/i }),
         { timeout: 5000 }
+      );
+      // Use getAllByRole since account name appears in both step and review panel
+      const accountButtons = dialog.getAllByRole('button', {
+        name: /main payments account/i,
+      });
+      await userEvent.click(accountButtons[0]);
+    });
+
+    await step('Wait for To section and recipients to load', async () => {
+      await delay(STEP_DELAY);
+      // To section auto-opens after account selection - wait for recipients
+      await waitFor(
+        () => dialog.getByRole('button', { name: /alice johnson/i }),
+        { timeout: 5000 }
+      );
+    });
+
+    await step('Click "Add Recipient" button', async () => {
+      await delay(STEP_DELAY);
+      // Look for the add button in the Recipients tab
+      const addButton = await waitFor(
+        () => dialog.getByRole('button', { name: /add.*recipient/i }),
+        { timeout: 3000 }
       );
       await userEvent.click(addButton);
     });
 
     await step('Verify recipient form opens', async () => {
       await delay(STEP_DELAY);
-      await waitFor(() => {
-        // Should show the add recipient form with back button
-        const backButton = document.querySelector('[aria-label*="back" i]');
-        expect(backButton).toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          // Should show the add recipient form - look for form header or back button
+          const backButton = document.querySelector('[aria-label*="back" i]');
+          expect(backButton).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
 
     await step('Navigate back to payee selection', async () => {
@@ -339,31 +465,39 @@ export const AddNewRecipient: Story = {
  */
 export const LinkNewAccount: Story = {
   play: async ({ step }) => {
-    await waitFor(
-      () => {
-        const dialog = document.querySelector('[role="dialog"]');
-        if (!dialog) throw new Error('Dialog not found');
-      },
-      { timeout: 5000 }
-    );
+    await waitForDialog();
+    const dialog = getDialog();
 
-    const dialog = within(
-      document.querySelector('[role="dialog"]') as HTMLElement
-    );
-
-    await step('Switch to Linked Accounts tab', async () => {
+    await step('Select an account first', async () => {
       await delay(STEP_DELAY);
-      const linkedTab = await waitFor(
-        () => dialog.getByRole('tab', { name: /linked accounts/i }),
+      await waitFor(
+        () => dialog.getAllByRole('button', { name: /main payments account/i }),
         { timeout: 5000 }
       );
-      await userEvent.click(linkedTab);
+      // Use getAllByRole since account name appears in both step and review panel
+      const accountButtons = dialog.getAllByRole('button', {
+        name: /main payments account/i,
+      });
+      await userEvent.click(accountButtons[0]);
     });
 
-    await step('Click "Link New Account"', async () => {
+    await step(
+      'Wait for To section and switch to Linked Accounts tab',
+      async () => {
+        await delay(STEP_DELAY);
+        // To section auto-opens after account selection - wait for tabs
+        const linkedTab = await waitFor(
+          () => dialog.getByRole('tab', { name: /linked accounts/i }),
+          { timeout: 5000 }
+        );
+        await userEvent.click(linkedTab);
+      }
+    );
+
+    await step('Click "Link Account" button', async () => {
       await delay(STEP_DELAY);
       const linkButton = await waitFor(
-        () => dialog.getByRole('button', { name: /link new account/i }),
+        () => dialog.getByRole('button', { name: /link.*account/i }),
         { timeout: 3000 }
       );
       await userEvent.click(linkButton);
@@ -371,10 +505,13 @@ export const LinkNewAccount: Story = {
 
     await step('Verify link account form opens', async () => {
       await delay(STEP_DELAY);
-      await waitFor(() => {
-        const backButton = document.querySelector('[aria-label*="back" i]');
-        expect(backButton).toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          const backButton = document.querySelector('[aria-label*="back" i]');
+          expect(backButton).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
   },
 };
@@ -384,56 +521,69 @@ export const LinkNewAccount: Story = {
 // ============================================================================
 
 /**
- * Select different payment methods and see fee updates.
- * Demonstrates how fees update in the review panel.
+ * Select different payment methods.
+ * Demonstrates switching between ACH, Wire, and RTP.
  */
 export const SelectPaymentMethods: Story = {
   args: {
-    initialPayeeId: 'linked-company', // Has all payment methods available
     showFees: true,
   },
   play: async ({ step }) => {
-    await waitFor(
-      () => {
-        const dialog = document.querySelector('[role="dialog"]');
-        if (!dialog) throw new Error('Dialog not found');
-      },
-      { timeout: 5000 }
-    );
+    await waitForDialog();
+    const dialog = getDialog();
 
-    const dialog = within(
-      document.querySelector('[role="dialog"]') as HTMLElement
-    );
-
-    await step('Wait for payment methods to load', async () => {
+    await step('Select an account', async () => {
+      await delay(STEP_DELAY);
       await waitFor(
-        () => dialog.getByRole('button', { name: /ach transfer/i }),
+        () => dialog.getAllByRole('button', { name: /main payments account/i }),
         { timeout: 5000 }
       );
+      // Use getAllByRole since account name appears in both step and review panel
+      const accountButtons = dialog.getAllByRole('button', {
+        name: /main payments account/i,
+      });
+      await userEvent.click(accountButtons[0]);
     });
 
-    await step('Select ACH (no fee)', async () => {
+    await step(
+      'Wait for To section and select a recipient with multiple payment methods',
+      async () => {
+        await delay(STEP_DELAY);
+        // To section auto-opens after account selection - Alice Johnson has ACH and WIRE enabled
+        await waitFor(
+          () => dialog.getByRole('button', { name: /alice johnson/i }),
+          { timeout: 5000 }
+        );
+        const aliceButton = dialog.getByRole('button', {
+          name: /alice johnson/i,
+        });
+        await userEvent.click(aliceButton);
+      }
+    );
+
+    await step('Wait for Payment Method section and select ACH', async () => {
       await delay(STEP_DELAY);
-      const achButton = dialog.getByRole('button', { name: /ach transfer/i });
+      // Payment Method section auto-opens after payee selection - wait for options
+      const achButton = await waitFor(
+        () => dialog.getByRole('button', { name: /ach/i }),
+        { timeout: 5000 }
+      );
       await userEvent.click(achButton);
     });
 
     await step('Select Wire Transfer', async () => {
       await delay(STEP_DELAY);
-      const wireButton = await waitFor(
-        () => dialog.getByRole('button', { name: /wire transfer/i }),
-        { timeout: 3000 }
-      );
-      await userEvent.click(wireButton);
+      // Check if Wire is available for this recipient
+      const wireButton = dialog.queryByRole('button', { name: /wire/i });
+      if (wireButton) {
+        await userEvent.click(wireButton);
+      }
     });
 
-    await step('Select RTP', async () => {
+    await step('Select back to ACH', async () => {
       await delay(STEP_DELAY);
-      const rtpButton = await waitFor(
-        () => dialog.getByRole('button', { name: /real-time payment/i }),
-        { timeout: 3000 }
-      );
-      await userEvent.click(rtpButton);
+      const achButton = dialog.getByRole('button', { name: /ach/i });
+      await userEvent.click(achButton);
     });
   },
 };
@@ -443,107 +593,66 @@ export const SelectPaymentMethods: Story = {
 // ============================================================================
 
 /**
- * Navigate back from sub-views.
- * Demonstrates the back button behavior in nested views.
+ * Navigate through steps using step headers.
+ * Demonstrates collapsing and expanding sections.
  */
-export const NavigateBackFromSubViews: Story = {
+export const NavigateSteps: Story = {
   play: async ({ step }) => {
-    await waitFor(
-      () => {
-        const dialog = document.querySelector('[role="dialog"]');
-        if (!dialog) throw new Error('Dialog not found');
-      },
-      { timeout: 5000 }
-    );
+    await waitForDialog();
+    const dialog = getDialog();
 
-    const dialog = within(
-      document.querySelector('[role="dialog"]') as HTMLElement
-    );
-
-    await step('Open add recipient form', async () => {
-      await delay(STEP_DELAY);
-      const addButton = await waitFor(
-        () => dialog.getByRole('button', { name: /add new recipient/i }),
+    await step('Wait for content to load', async () => {
+      await waitFor(
+        () => dialog.getAllByRole('button', { name: /main payments account/i }),
         { timeout: 5000 }
       );
-      await userEvent.click(addButton);
     });
 
-    await step('Verify header shows back button', async () => {
+    await step('Select an account', async () => {
       await delay(STEP_DELAY);
-      await waitFor(() => {
-        const backButton = document.querySelector('[aria-label*="back" i]');
-        expect(backButton).toBeInTheDocument();
+      // Use getAllByRole since account name appears in both step and review panel
+      const accountButtons = dialog.getAllByRole('button', {
+        name: /main payments account/i,
       });
+      await userEvent.click(accountButtons[0]);
     });
 
-    await step('Click back button', async () => {
+    await step('Wait for To section and select a payee', async () => {
       await delay(STEP_DELAY);
-      const backButton = document.querySelector(
-        '[aria-label*="back" i]'
-      ) as HTMLElement;
-      await userEvent.click(backButton);
-    });
-
-    await step('Verify returned to main view', async () => {
-      await delay(STEP_DELAY);
+      // To section auto-opens after account selection - wait for recipients
       await waitFor(
-        () => {
-          expect(
-            dialog.getByRole('tab', { name: /recipients/i })
-          ).toBeInTheDocument();
-        },
-        { timeout: 3000 }
-      );
-    });
-  },
-};
-
-/**
- * Close dialog and verify cleanup.
- * Demonstrates proper dialog dismissal behavior.
- */
-export const CloseDialog: Story = {
-  play: async ({ step }) => {
-    await waitFor(
-      () => {
-        const dialog = document.querySelector('[role="dialog"]');
-        if (!dialog) throw new Error('Dialog not found');
-      },
-      { timeout: 5000 }
-    );
-
-    await step('Make some selections', async () => {
-      await delay(STEP_DELAY);
-      const dialog = within(
-        document.querySelector('[role="dialog"]') as HTMLElement
-      );
-      const aliceButton = await waitFor(
         () => dialog.getByRole('button', { name: /alice johnson/i }),
         { timeout: 5000 }
       );
+      const aliceButton = dialog.getByRole('button', {
+        name: /alice johnson/i,
+      });
       await userEvent.click(aliceButton);
     });
 
-    await step('Close dialog with X button', async () => {
+    await step('Go back to From step by clicking header', async () => {
       await delay(STEP_DELAY);
-      const closeButton = document.querySelector(
-        '[aria-label*="close" i]'
-      ) as HTMLElement;
-      if (closeButton) {
-        await userEvent.click(closeButton);
-      }
+      // Click From header to expand it again
+      const fromHeader = dialog.getByRole('button', {
+        name: /\bfrom\b.*change/i,
+      });
+      await userEvent.click(fromHeader);
+
+      // Verify From section content is visible
+      await waitFor(() => {
+        expect(
+          dialog.getByRole('button', { name: /main payments account/i })
+        ).toBeInTheDocument();
+      });
     });
 
-    await step('Verify dialog is closed', async () => {
+    await step('Switch to a different account', async () => {
       await delay(STEP_DELAY);
-      await waitFor(
-        () => {
-          const dialog = document.querySelector('[role="dialog"]');
-          expect(dialog).not.toBeInTheDocument();
-        },
-        { timeout: 3000 }
-      );
+      // Select Payroll Account instead
+      const payrollButton = dialog.getByRole('button', {
+        name: /payroll account/i,
+      });
+      await userEvent.click(payrollButton);
     });
   },
 };

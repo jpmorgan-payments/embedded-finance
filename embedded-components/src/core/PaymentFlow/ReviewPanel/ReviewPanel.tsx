@@ -1,13 +1,21 @@
 'use client';
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
+  AlertCircle,
   ArrowRight,
   Building2,
   Loader2,
   TrendingDown,
   User,
   Wallet,
+  X,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -43,13 +51,29 @@ export function ReviewPanel({
   onValidationFail,
   isLoading = false,
   isPayeesLoading = false,
+  transactionError,
+  onDismissError,
 }: Omit<ReviewPanelProps, 'mobileConfig'>) {
   // Get live form data from context
-  const { formData, isComplete, currentView } = useFlowContext();
+  const { formData, isComplete, currentView, setValidationErrors } =
+    useFlowContext();
   const { t } = useTranslation('accounts');
 
   // Track if validation has been attempted (to show error state)
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+
+  // Ref for error alert to scroll into view on mobile
+  const errorAlertRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to error alert when it appears
+  useEffect(() => {
+    if (transactionError && errorAlertRef.current) {
+      errorAlertRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  }, [transactionError]);
 
   // Handle submit button click - validate first, then submit if valid
   const handleSubmitClick = useCallback(() => {
@@ -64,6 +88,8 @@ export function ReviewPanel({
       if (!formData.amount || parseFloat(formData.amount) <= 0)
         missingFields.push('amount');
 
+      // Update context with validation errors (for MainTransferView to highlight)
+      setValidationErrors(missingFields);
       onValidationFail?.(missingFields);
       return;
     }
@@ -83,12 +109,20 @@ export function ReviewPanel({
     }
 
     if (!balanceHasError && amountValue > balance) {
+      setValidationErrors(['exceedsBalance']);
       onValidationFail?.(['exceedsBalance']);
       return;
     }
 
     onSubmit(formData);
-  }, [isComplete, formData, onSubmit, onValidationFail, accounts]);
+  }, [
+    isComplete,
+    formData,
+    onSubmit,
+    onValidationFail,
+    accounts,
+    setValidationErrors,
+  ]);
 
   // Helper to get translated category label
   const getCategoryLabel = (category?: string) => {
@@ -374,21 +408,25 @@ export function ReviewPanel({
 
           {/* Payment Details Section */}
           <div className="eb-space-y-2.5">
-            {/* Amount */}
-            <div className="eb-flex eb-items-center eb-justify-between">
-              <span className="eb-text-sm eb-text-muted-foreground">
-                Amount
-              </span>
-              <div className="eb-text-right">
-                {amount > 0 ? (
-                  <span className="eb-font-medium">
-                    {formatCurrency(amount)}
-                  </span>
-                ) : (
-                  <span className="eb-text-sm eb-text-muted-foreground">—</span>
-                )}
+            {/* Amount - only show breakdown row when fees are displayed */}
+            {showFees && (
+              <div className="eb-flex eb-items-center eb-justify-between">
+                <span className="eb-text-sm eb-text-muted-foreground">
+                  Amount
+                </span>
+                <div className="eb-text-right">
+                  {amount > 0 ? (
+                    <span className="eb-font-medium">
+                      {formatCurrency(amount)}
+                    </span>
+                  ) : (
+                    <span className="eb-text-sm eb-text-muted-foreground">
+                      —
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Payment Method */}
             <div className="eb-flex eb-items-center eb-justify-between">
@@ -425,19 +463,26 @@ export function ReviewPanel({
             )}
           </div>
 
-          {/* Total & Balance Section */}
-          {amount > 0 && (
+          {/* Total & Balance Section - always show when no fees, or when amount > 0 with fees */}
+          {(amount > 0 || !showFees) && (
             <div className="eb-space-y-2 eb-border-t eb-border-border eb-pt-4">
-              {/* Total */}
+              {/* Total (or Amount when no fees are shown) */}
               <div className="eb-flex eb-items-center eb-justify-between">
-                <span className="eb-font-medium">Total</span>
-                <span className="eb-text-lg eb-font-semibold">
-                  {formatCurrency(total)}
+                <span className="eb-font-medium">
+                  {showFees ? 'Total' : 'Amount'}
+                </span>
+                <span
+                  className={cn(
+                    'eb-text-lg eb-font-semibold',
+                    amount <= 0 && 'eb-text-muted-foreground'
+                  )}
+                >
+                  {amount > 0 ? formatCurrency(total) : '—'}
                 </span>
               </div>
 
-              {/* Balance After Payment */}
-              {selectedAccount && isBalanceLoading ? (
+              {/* Balance After Payment - only show when amount > 0 */}
+              {amount > 0 && selectedAccount && isBalanceLoading ? (
                 <div className="eb-flex eb-items-center eb-justify-between eb-rounded-md eb-bg-muted/50 eb-px-3 eb-py-2">
                   <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
                     <TrendingDown className="eb-h-4 eb-w-4" />
@@ -445,7 +490,7 @@ export function ReviewPanel({
                   </div>
                   <Skeleton className="eb-h-4 eb-w-16 eb-bg-muted-foreground/20" />
                 </div>
-              ) : balanceAfterPayment !== undefined ? (
+              ) : amount > 0 && balanceAfterPayment !== undefined ? (
                 <div className="eb-flex eb-items-center eb-justify-between eb-rounded-md eb-bg-muted/50 eb-px-3 eb-py-2">
                   <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
                     <TrendingDown className="eb-h-4 eb-w-4" />
@@ -466,7 +511,35 @@ export function ReviewPanel({
         </div>
 
         {/* Submit Button */}
-        <div className="eb-mt-6 eb-space-y-2">
+        <div className="eb-mt-6 eb-space-y-3">
+          {/* Transaction error from API */}
+          {transactionError && (
+            <div
+              ref={errorAlertRef}
+              className="eb-flex eb-items-start eb-gap-2 eb-rounded-lg eb-border eb-border-destructive/30 eb-bg-destructive/5 eb-p-3"
+            >
+              <AlertCircle className="eb-mt-0.5 eb-h-4 eb-w-4 eb-shrink-0 eb-text-destructive" />
+              <div className="eb-flex-1 eb-space-y-0.5">
+                <div className="eb-text-sm eb-font-medium eb-text-destructive">
+                  {transactionError.title}
+                </div>
+                <div className="eb-text-xs eb-text-muted-foreground">
+                  {transactionError.message}
+                </div>
+              </div>
+              {onDismissError && (
+                <button
+                  type="button"
+                  onClick={onDismissError}
+                  className="eb-shrink-0 eb-rounded eb-p-0.5 eb-text-muted-foreground eb-transition-colors hover:eb-bg-muted hover:eb-text-foreground"
+                  aria-label="Dismiss error"
+                >
+                  <X className="eb-h-3.5 eb-w-3.5" />
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Validation message when form is incomplete */}
           {hasAttemptedSubmit && validationMessage && (
             <div className="eb-text-center eb-text-sm eb-text-destructive">

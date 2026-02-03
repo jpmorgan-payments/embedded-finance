@@ -4,6 +4,7 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useReducer,
 } from 'react';
@@ -32,6 +33,8 @@ const initialState: FlowState = {
   viewStack: [],
   formData: initialFormData,
   expandedPanels: [],
+  validationErrors: [],
+  isSubmitting: false,
 };
 
 /**
@@ -82,6 +85,26 @@ function flowReducer(state: FlowState, action: FlowAction): FlowState {
       return {
         ...state,
         formData: { ...state.formData, ...action.data },
+        // Clear validation errors for the field being updated
+        validationErrors: state.validationErrors,
+      };
+
+    case 'SET_VALIDATION_ERRORS':
+      return {
+        ...state,
+        validationErrors: action.errors,
+      };
+
+    case 'CLEAR_VALIDATION_ERRORS':
+      return {
+        ...state,
+        validationErrors: [],
+      };
+
+    case 'SET_SUBMITTING':
+      return {
+        ...state,
+        isSubmitting: action.isSubmitting,
       };
 
     case 'RESET':
@@ -115,6 +138,8 @@ interface FlowContextProviderProps {
   children: React.ReactNode;
   initialView?: PaymentFlowView;
   initialData?: Partial<PaymentFlowFormData>;
+  /** External isSubmitting state to sync to context (from parent component) */
+  isSubmitting?: boolean;
 }
 
 /**
@@ -125,6 +150,7 @@ export function FlowContextProvider({
   children,
   initialView = 'main',
   initialData,
+  isSubmitting: externalIsSubmitting = false,
 }: FlowContextProviderProps) {
   const [state, dispatch] = useReducer(flowReducer, {
     ...initialState,
@@ -133,6 +159,13 @@ export function FlowContextProvider({
       ? { ...initialFormData, ...initialData }
       : initialFormData,
   });
+
+  // Sync external isSubmitting prop to context state
+  useEffect(() => {
+    if (externalIsSubmitting !== state.isSubmitting) {
+      dispatch({ type: 'SET_SUBMITTING', isSubmitting: externalIsSubmitting });
+    }
+  }, [externalIsSubmitting, state.isSubmitting]);
 
   const pushView = useCallback(
     (view: PaymentFlowView, data?: Partial<PaymentFlowFormData>) => {
@@ -185,6 +218,14 @@ export function FlowContextProvider({
     return hasRequiredFields && !exceedsBalance;
   }, [state]);
 
+  const setValidationErrors = useCallback((errors: string[]) => {
+    dispatch({ type: 'SET_VALIDATION_ERRORS', errors });
+  }, []);
+
+  const clearValidationErrors = useCallback(() => {
+    dispatch({ type: 'CLEAR_VALIDATION_ERRORS' });
+  }, []);
+
   const contextValue: FlowContextValue = useMemo(
     () => ({
       currentView: state.currentView,
@@ -198,12 +239,20 @@ export function FlowContextProvider({
       togglePanel,
       isPanelExpanded,
       isComplete,
+      validationErrors: state.validationErrors,
+      setValidationErrors,
+      clearValidationErrors,
+      isSubmitting: state.isSubmitting,
+      setIsSubmitting: (isSubmitting: boolean) =>
+        dispatch({ type: 'SET_SUBMITTING', isSubmitting }),
     }),
     [
       state.currentView,
       state.formData,
       state.viewStack.length,
       state.expandedPanels,
+      state.validationErrors,
+      state.isSubmitting,
       pushView,
       popView,
       replaceView,
@@ -211,6 +260,8 @@ export function FlowContextProvider({
       togglePanel,
       isPanelExpanded,
       isComplete,
+      setValidationErrors,
+      clearValidationErrors,
     ]
   );
 

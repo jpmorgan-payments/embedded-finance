@@ -167,6 +167,10 @@ export interface FlowState {
   viewStack: PaymentFlowView[];
   formData: PaymentFlowFormData;
   expandedPanels: string[];
+  /** Fields that failed validation, mapped to panel IDs */
+  validationErrors: string[];
+  /** Whether the form is currently being submitted */
+  isSubmitting: boolean;
 }
 
 /**
@@ -186,6 +190,9 @@ export type FlowAction =
     }
   | { type: 'TOGGLE_PANEL'; panelId: string }
   | { type: 'SET_FORM_DATA'; data: Partial<PaymentFlowFormData> }
+  | { type: 'SET_VALIDATION_ERRORS'; errors: string[] }
+  | { type: 'CLEAR_VALIDATION_ERRORS' }
+  | { type: 'SET_SUBMITTING'; isSubmitting: boolean }
   | { type: 'RESET' };
 
 /**
@@ -216,6 +223,13 @@ export interface FlowContextValue {
 
   // Validation
   isComplete: boolean;
+  validationErrors: string[];
+  setValidationErrors: (errors: string[]) => void;
+  clearValidationErrors: () => void;
+
+  // Submission state
+  isSubmitting: boolean;
+  setIsSubmitting: (isSubmitting: boolean) => void;
 }
 
 /**
@@ -254,6 +268,9 @@ export interface PaymentFlowProps extends UserTrackingProps {
   /** Initial payment method to pre-select */
   initialPaymentMethod?: PaymentMethodType;
 
+  /** Initial amount to pre-fill */
+  initialAmount?: string;
+
   /** Whether to show fees in the review panel (default: false) */
   showFees?: boolean;
 
@@ -271,6 +288,9 @@ export interface PaymentFlowProps extends UserTrackingProps {
 
   /** Callback when open state changes (controlled mode) */
   onOpenChange?: (open: boolean) => void;
+
+  /** Key to force reset of flow state. Change this to reset the flow. */
+  resetKey?: string | number;
 }
 
 /**
@@ -317,6 +337,13 @@ export interface ReviewPanelProps {
   isLoading?: boolean;
   /** Whether payees data is still loading - shows skeletons for to section */
   isPayeesLoading?: boolean;
+  /** Transaction error to display above the submit button */
+  transactionError?: {
+    title: string;
+    message: string;
+  } | null;
+  /** Callback to dismiss the transaction error */
+  onDismissError?: () => void;
 }
 
 /**

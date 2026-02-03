@@ -91,6 +91,7 @@ type Story = StoryObj<typeof meta>;
  */
 export const Default: Story = {
   args: {
+    ...commonArgs,
     trigger: <Button>Transfer Funds</Button>,
   },
 };
@@ -182,12 +183,13 @@ export const WithAllInitialValues: Story = {
     initialAccountId: 'acc-payments-main',
     initialPayeeId: 'recipient-techsolutions',
     initialPaymentMethod: 'ACH',
+    initialAmount: '500.00',
   },
   parameters: {
     docs: {
       description: {
         story:
-          'Pre-fill account, payee, and payment method. User only needs to enter amount and submit.',
+          'Pre-fill account, payee, payment method, and amount. Ready to submit immediately.',
       },
     },
   },
@@ -239,58 +241,6 @@ export const WithFees: Story = {
       description: {
         story:
           'Enable `showFees` to display fee breakdown in the review panel. Fees are configured per payment method.',
-      },
-    },
-  },
-};
-
-// ============================================================================
-// Responsive Layouts
-// ============================================================================
-
-/**
- * Mobile viewport display.
- * Shows how the flow adapts to small screens.
- *
- * **Responsive features:**
- * - Full-screen dialog
- * - Stacked layout (form above review)
- * - Vertically stacked tabs
- * - Touch-friendly controls
- */
-export const MobileView: Story = {
-  args: {
-    open: true,
-  },
-  parameters: {
-    viewport: {
-      defaultViewport: 'mobile1',
-    },
-    docs: {
-      description: {
-        story:
-          'On mobile viewports (< 640px), the dialog becomes full-screen and the review panel moves below the form.',
-      },
-    },
-  },
-};
-
-/**
- * Tablet viewport display.
- * Shows the two-column layout on medium screens.
- */
-export const TabletView: Story = {
-  args: {
-    open: true,
-  },
-  parameters: {
-    viewport: {
-      defaultViewport: 'tablet',
-    },
-    docs: {
-      description: {
-        story:
-          'On tablet viewports, the dialog uses the standard two-column layout with adequate spacing.',
       },
     },
   },

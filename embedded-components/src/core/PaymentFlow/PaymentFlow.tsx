@@ -2,14 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQueries } from '@tanstack/react-query';
-import {
-  AlertCircle,
-  Check,
-  CheckCircle2,
-  Copy,
-  Loader2,
-  RefreshCw,
-} from 'lucide-react';
+import { AlertCircle, Check, Copy, Loader2, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -34,7 +27,6 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
-import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 
 import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
 import { FlowContainer, FlowView, useFlowContext } from './FlowContainer';
@@ -56,6 +48,123 @@ import { PaymentMethodSelector } from './PaymentMethodSelector';
 import { ReviewPanel } from './ReviewPanel';
 
 /**
+ * Error context item from API response
+ */
+interface ErrorContextItem {
+  code?: string;
+  location?: string;
+  field?: string;
+  message?: string;
+}
+
+/**
+ * Maps API error context codes to user-friendly messages
+ */
+function getErrorMessageFromContext(
+  context: ErrorContextItem[]
+): { title: string; message: string } | null {
+  if (!context || context.length === 0) return null;
+
+  // Look for specific error codes and provide user-friendly messages
+  for (const item of context) {
+    const { code, field: rawField } = item;
+    const field = rawField?.toLowerCase();
+
+    // Currency/payment method not supported (code 10104 from API)
+    if (
+      code === '10104' ||
+      field === 'targetcurrency' ||
+      field === 'currency'
+    ) {
+      return {
+        title: 'Payment Method Not Supported',
+        message:
+          'The selected payment method is not available for this account. Please select a different payment method or use a different account.',
+      };
+    }
+
+    // Recipient validation issues
+    if (field === 'recipientid' || field === 'recipient') {
+      return {
+        title: 'Recipient Error',
+        message:
+          'There was a problem with the selected recipient. Please verify the recipient details or select a different recipient.',
+      };
+    }
+  }
+
+  // If we have context but no specific mapping, show the first message
+  const firstMessage = context.find((c) => c.message)?.message;
+  if (firstMessage) {
+    return {
+      title: 'Payment Error',
+      message: firstMessage,
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Parse a transaction error into a user-friendly title and message
+ */
+function parseTransactionError(
+  error: ErrorType<ApiErrorV2> | null | undefined
+): { title: string; message: string } | null {
+  if (!error) return null;
+
+  const errorData = error.response?.data;
+  const httpStatus = errorData?.httpStatus ?? error.status ?? 500;
+
+  // Try to get a specific error message from context
+  const contextError = getErrorMessageFromContext(
+    (errorData as { context?: ErrorContextItem[] })?.context ?? []
+  );
+
+  if (contextError) return contextError;
+
+  // Default messages by HTTP status
+  switch (httpStatus) {
+    case 400:
+      return {
+        title: 'Invalid Request',
+        message: 'Please check the payment details and try again.',
+      };
+    case 401:
+      return {
+        title: 'Session Expired',
+        message: 'Your session has expired. Please log in and try again.',
+      };
+    case 403:
+      return {
+        title: 'Permission Denied',
+        message: 'You do not have permission to make this payment.',
+      };
+    case 404:
+      return {
+        title: 'Not Found',
+        message: 'The account or recipient was not found.',
+      };
+    case 422:
+      return {
+        title: 'Validation Error',
+        message: 'The payment details are invalid. Please check and try again.',
+      };
+    case 503:
+      return {
+        title: 'Service Unavailable',
+        message:
+          'The service is currently unavailable. Please try again later.',
+      };
+    default:
+      return {
+        title: 'Payment Failed',
+        message: 'An unexpected error occurred. Please try again later.',
+      };
+  }
+}
+
+/**
  * StepSection component
  * A clean stepper-style section with smooth animations
  * Based on checkout flow patterns (Stripe, Apple Pay style)
@@ -72,6 +181,12 @@ interface StepSectionProps {
   isLast?: boolean;
   disabledReason?: string;
   isLoading?: boolean;
+  /** Show error state on this section */
+  hasError?: boolean;
+  /** Disable section interactions (e.g., while form is submitting) */
+  disabled?: boolean;
+  /** Ref to the section container for scrolling */
+  sectionRef?: React.RefObject<HTMLDivElement>;
 }
 
 function StepSection({
@@ -86,11 +201,26 @@ function StepSection({
   isLast = false,
   disabledReason,
   isLoading = false,
+  hasError = false,
+  disabled = false,
+  sectionRef,
 }: StepSectionProps) {
-  const isDisabled = !!disabledReason;
+  const isDisabled = !!disabledReason || disabled;
   // Can click to expand if not active, not disabled, and not loading
   // Can click to collapse if active (and not loading)
   const canClick = isLoading ? false : isActive || !isDisabled;
+
+  // Ref to set inert attribute imperatively (React doesn't handle it well as a prop)
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (contentRef.current) {
+      if (!isActive) {
+        contentRef.current.setAttribute('inert', '');
+      } else {
+        contentRef.current.removeAttribute('inert');
+      }
+    }
+  }, [isActive]);
 
   const handleClick = () => {
     if (isLoading) {
@@ -121,7 +251,7 @@ function StepSection({
   };
 
   return (
-    <div className="eb-relative">
+    <div ref={sectionRef} className="eb-relative">
       {/* Connecting line (except for last item) */}
       {!isLast && (
         <div
@@ -149,23 +279,32 @@ function StepSection({
             'eb-relative eb-z-10 eb-flex eb-h-8 eb-w-8 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-text-sm eb-font-medium eb-transition-all eb-duration-300',
             isLoading &&
               'eb-border-2 eb-border-primary/50 eb-bg-background eb-text-primary',
+            // Error state takes precedence over other states (except loading)
+            hasError &&
+              !isLoading &&
+              'eb-border-2 eb-border-destructive eb-bg-destructive/10 eb-text-destructive',
             isComplete &&
               !isLoading &&
+              !hasError &&
               'eb-bg-primary eb-text-primary-foreground',
             isActive &&
               !isComplete &&
               !isLoading &&
+              !hasError &&
               'eb-border-2 eb-border-primary eb-bg-background eb-text-primary',
             !isComplete &&
               !isLoading &&
               !isActive &&
+              !hasError &&
               'eb-border-2 eb-border-muted-foreground/30 eb-bg-background eb-text-muted-foreground'
           )}
         >
           {isLoading ? (
             <Loader2 className="eb-h-4 eb-w-4 eb-animate-spin" />
-          ) : isComplete ? (
+          ) : isComplete && !hasError ? (
             <Check className="eb-h-4 eb-w-4" strokeWidth={3} />
+          ) : hasError ? (
+            <AlertCircle className="eb-h-4 eb-w-4" />
           ) : (
             <span>{stepNumber}</span>
           )}
@@ -177,9 +316,13 @@ function StepSection({
             <span
               className={cn(
                 'eb-font-medium eb-transition-colors eb-duration-200',
-                isActive && 'eb-text-foreground',
-                isComplete && !isActive && 'eb-text-foreground',
-                !isComplete && !isActive && 'eb-text-muted-foreground'
+                hasError && 'eb-text-destructive',
+                isActive && !hasError && 'eb-text-foreground',
+                isComplete && !isActive && !hasError && 'eb-text-foreground',
+                !isComplete &&
+                  !isActive &&
+                  !hasError &&
+                  'eb-text-muted-foreground'
               )}
             >
               {title}
@@ -195,24 +338,33 @@ function StepSection({
           <span
             className={cn(
               'eb-text-xs eb-font-medium',
-              isActive && 'eb-text-muted-foreground',
-              !isActive && !isDisabled && !isLoading && 'eb-text-primary',
-              (isDisabled || isLoading) && 'eb-text-muted-foreground/60'
+              hasError && 'eb-text-destructive',
+              isActive && !hasError && 'eb-text-muted-foreground',
+              !isActive &&
+                !isDisabled &&
+                !isLoading &&
+                !hasError &&
+                'eb-text-primary',
+              (isDisabled || isLoading) &&
+                !hasError &&
+                'eb-text-muted-foreground/60'
             )}
           >
-            {getActionLabel()}
+            {hasError ? 'Required' : getActionLabel()}
           </span>
         </div>
       </button>
 
       {/* Content with animation */}
       <div
+        ref={contentRef}
         className={cn(
           'eb-ml-11 eb-overflow-hidden eb-transition-all eb-duration-300 eb-ease-in-out',
           isActive
             ? 'eb-max-h-[1000px] eb-opacity-100'
             : 'eb-max-h-0 eb-opacity-0'
         )}
+        aria-hidden={!isActive}
       >
         <div className="eb-pt-1">{children}</div>
       </div>
@@ -286,7 +438,13 @@ function MainTransferView({
   onRetryRecipients,
   onRetryLinkedAccounts,
 }: MainTransferViewProps) {
-  const { formData, setFormData } = useFlowContext();
+  const {
+    formData,
+    setFormData,
+    validationErrors,
+    setValidationErrors,
+    isSubmitting,
+  } = useFlowContext();
   const { t } = useTranslation('accounts');
 
   // Helper to get translated category label
@@ -298,6 +456,28 @@ function MainTransferView({
       });
     },
     [t]
+  );
+
+  // Map validation error field names to panel IDs
+  const fieldToPanelId: Record<string, string> = useMemo(
+    () => ({
+      fromAccount: PANEL_IDS.FROM_ACCOUNT,
+      payee: PANEL_IDS.PAYEE,
+      paymentMethod: PANEL_IDS.PAYMENT_METHOD,
+      amount: PANEL_IDS.AMOUNT,
+      exceedsBalance: PANEL_IDS.AMOUNT,
+    }),
+    []
+  );
+
+  // Check if a panel has a validation error
+  const hasPanelError = useCallback(
+    (panelId: string) => {
+      return validationErrors.some(
+        (error) => fieldToPanelId[error] === panelId
+      );
+    },
+    [validationErrors, fieldToPanelId]
   );
 
   // Compute the initial active step based on current form data
@@ -350,6 +530,104 @@ function MainTransferView({
   // Track if account was cleared due to conflict with loaded payee
   const [showAccountClearedWarning, setShowAccountClearedWarning] =
     useState(false);
+
+  // Ref for amount input to focus on validation error
+  const amountInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Refs for each section to scroll on validation error
+  const fromAccountSectionRef = React.useRef<HTMLDivElement>(null);
+  const payeeSectionRef = React.useRef<HTMLDivElement>(null);
+  const paymentMethodSectionRef = React.useRef<HTMLDivElement>(null);
+  const amountSectionRef = React.useRef<HTMLDivElement>(null);
+
+  // Map panel IDs to their refs for easy lookup
+  const sectionRefs: Record<string, React.RefObject<HTMLDivElement>> = {
+    [PANEL_IDS.FROM_ACCOUNT]: fromAccountSectionRef,
+    [PANEL_IDS.PAYEE]: payeeSectionRef,
+    [PANEL_IDS.PAYMENT_METHOD]: paymentMethodSectionRef,
+    [PANEL_IDS.AMOUNT]: amountSectionRef,
+  };
+
+  // When validation errors change, expand the first section that has an error
+  // and scroll to it (focus the amount input if that's the error field)
+  useEffect(() => {
+    if (validationErrors.length > 0) {
+      // Find the first panel with an error (in form order)
+      const panelOrder = [
+        PANEL_IDS.FROM_ACCOUNT,
+        PANEL_IDS.PAYEE,
+        PANEL_IDS.PAYMENT_METHOD,
+        PANEL_IDS.AMOUNT,
+      ];
+
+      for (const panelId of panelOrder) {
+        if (hasPanelError(panelId)) {
+          setActiveStep(panelId);
+
+          // Scroll to the section with the error
+          const sectionRef = sectionRefs[panelId];
+
+          // If amount is the first error field, focus the input
+          if (panelId === PANEL_IDS.AMOUNT) {
+            // Delay focus to ensure input is visible after expand animation
+            setTimeout(() => {
+              amountInputRef.current?.focus();
+              amountInputRef.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+              });
+            }, 100);
+          } else {
+            // For other sections, scroll to the section header
+            setTimeout(() => {
+              sectionRef?.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+              });
+            }, 100);
+          }
+          break;
+        }
+      }
+    }
+  }, [validationErrors, hasPanelError, sectionRefs]);
+
+  // Clear specific field errors when that field changes (react-hook-form pattern)
+  const prevFormDataRef = React.useRef(formData);
+  useEffect(() => {
+    const prev = prevFormDataRef.current;
+
+    if (validationErrors.length > 0) {
+      const errorsToRemove: string[] = [];
+
+      // Check each field and mark its error for removal if value changed
+      if (prev.fromAccountId !== formData.fromAccountId) {
+        errorsToRemove.push('fromAccount');
+      }
+      if (prev.payeeId !== formData.payeeId) {
+        errorsToRemove.push('payee');
+      }
+      if (prev.paymentMethod !== formData.paymentMethod) {
+        errorsToRemove.push('paymentMethod');
+      }
+      if (prev.amount !== formData.amount) {
+        errorsToRemove.push('amount', 'exceedsBalance');
+      }
+
+      // Only update if there are errors to remove
+      if (errorsToRemove.length > 0) {
+        const remainingErrors = validationErrors.filter(
+          (error) => !errorsToRemove.includes(error)
+        );
+        // Only dispatch if errors actually changed
+        if (remainingErrors.length !== validationErrors.length) {
+          setValidationErrors(remainingErrors);
+        }
+      }
+    }
+
+    prevFormDataRef.current = formData;
+  }, [formData, validationErrors, setValidationErrors]);
 
   const selectedPayee = useMemo(
     () => [...payees, ...linkedAccounts].find((p) => p.id === formData.payeeId),
@@ -490,6 +768,7 @@ function MainTransferView({
         title="From"
         isComplete={hasAccount}
         isActive={activeStep === PANEL_IDS.FROM_ACCOUNT}
+        hasError={hasPanelError(PANEL_IDS.FROM_ACCOUNT)}
         summary={
           selectedAccount
             ? `${selectedAccount.label ?? getCategoryLabel(selectedAccount.category)} (...${selectedAccount.paymentRoutingInformation?.accountNumber?.slice(-4) ?? ''})`
@@ -497,6 +776,8 @@ function MainTransferView({
         }
         onHeaderClick={() => setActiveStep(PANEL_IDS.FROM_ACCOUNT)}
         onCollapse={handleCollapse}
+        disabled={isSubmitting}
+        sectionRef={fromAccountSectionRef}
       >
         {/* Warning banner when account was cleared due to payee conflict */}
         {showAccountClearedWarning && (
@@ -623,6 +904,7 @@ function MainTransferView({
         title="To"
         isComplete={hasPayee && !!selectedPayee}
         isActive={activeStep === PANEL_IDS.PAYEE}
+        hasError={hasPanelError(PANEL_IDS.PAYEE)}
         isLoading={hasPayee && isPayeesLoading && !selectedPayee}
         summary={
           selectedPayee
@@ -634,6 +916,8 @@ function MainTransferView({
         disabledReason={
           !hasAccount && !selectedPayee ? 'Select account first' : undefined
         }
+        disabled={isSubmitting}
+        sectionRef={payeeSectionRef}
       >
         <PayeeSelector
           selectedPayeeId={formData.payeeId}
@@ -667,11 +951,14 @@ function MainTransferView({
         title="Payment Method"
         isComplete={hasPaymentMethod}
         isActive={activeStep === PANEL_IDS.PAYMENT_METHOD}
+        hasError={hasPanelError(PANEL_IDS.PAYMENT_METHOD)}
         summary={selectedMethod?.name}
         onHeaderClick={() => setActiveStep(PANEL_IDS.PAYMENT_METHOD)}
         onCollapse={handleCollapse}
         disabledReason={!hasPayee ? 'Select payee first' : undefined}
         isLast
+        disabled={isSubmitting}
+        sectionRef={paymentMethodSectionRef}
       >
         {/* Show loading message when we have a payee ID but haven't loaded the payee yet */}
         {hasPayee && isPayeesLoading && !selectedPayee ? (
@@ -696,19 +983,27 @@ function MainTransferView({
       <Separator className="!eb-my-4" />
 
       {/* AMOUNT & MEMO Section - Always visible */}
-      <div className="eb-space-y-4">
+      <div ref={amountSectionRef} className="eb-space-y-4">
         <div>
           <label
             htmlFor="amount"
-            className="eb-mb-1.5 eb-block eb-text-sm eb-font-medium"
+            className={cn(
+              'eb-mb-1.5 eb-block eb-text-sm eb-font-medium',
+              hasPanelError(PANEL_IDS.AMOUNT) && 'eb-text-destructive'
+            )}
           >
             Amount
+            {hasPanelError(PANEL_IDS.AMOUNT) && (
+              <span className="eb-ml-1 eb-text-xs eb-font-normal">
+                (Required)
+              </span>
+            )}
           </label>
           <div className="eb-relative eb-flex eb-items-center">
             <span
               className={cn(
                 'eb-absolute eb-left-3',
-                exceedsBalance
+                exceedsBalance || hasPanelError(PANEL_IDS.AMOUNT)
                   ? 'eb-text-destructive'
                   : 'eb-text-muted-foreground'
               )}
@@ -716,6 +1011,7 @@ function MainTransferView({
               $
             </span>
             <Input
+              ref={amountInputRef}
               id="amount"
               type="text"
               inputMode="decimal"
@@ -748,10 +1044,11 @@ function MainTransferView({
               }}
               className={cn(
                 'eb-w-full eb-pl-7',
-                exceedsBalance &&
+                (exceedsBalance || hasPanelError(PANEL_IDS.AMOUNT)) &&
                   'eb-border-destructive eb-text-destructive focus-visible:eb-ring-destructive'
               )}
               autoComplete="off"
+              disabled={isSubmitting}
             />
           </div>
           {exceedsBalance && availableBalance !== undefined && (
@@ -782,6 +1079,7 @@ function MainTransferView({
             value={formData.memo ?? ''}
             onChange={(e) => onMemoChange(e.target.value)}
             rows={2}
+            disabled={isSubmitting}
           />
         </div>
       </div>
@@ -1014,10 +1312,12 @@ interface SuccessViewProps {
     amount: string;
     payeeId?: string;
     fromAccountId?: string;
+    paymentMethod?: string;
     memo?: string;
   };
   payees: Payee[];
   accounts: AccountResponse[];
+  paymentMethods: PaymentMethod[];
   onClose: () => void;
 }
 
@@ -1026,6 +1326,7 @@ function SuccessView({
   formData,
   payees,
   accounts,
+  paymentMethods,
   onClose,
 }: SuccessViewProps) {
   const [copied, setCopied] = useState(false);
@@ -1033,8 +1334,24 @@ function SuccessView({
   const amount = parseFloat(formData.amount) || 0;
   const payee = payees.find((p) => p.id === formData.payeeId);
   const account = accounts.find((a) => a.id === formData.fromAccountId);
+  const selectedMethod = paymentMethods.find(
+    (m) => m.id === formData.paymentMethod
+  );
   const transactionId =
     transactionResponse?.id ?? transactionResponse?.transactionReferenceId;
+
+  // Get recipient type label matching ReviewPanel pattern
+  const getRecipientTypeLabel = () => {
+    if (!payee) return '';
+    if (payee.type === 'LINKED_ACCOUNT') {
+      return payee.recipientType === 'BUSINESS'
+        ? 'Linked business account'
+        : 'Linked individual account';
+    }
+    return payee.recipientType === 'BUSINESS'
+      ? 'Business recipient'
+      : 'Individual recipient';
+  };
 
   const handleCopyId = useCallback(() => {
     if (transactionId) {
@@ -1046,9 +1363,9 @@ function SuccessView({
 
   return (
     <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center">
-      {/* Success Icon */}
-      <div className="eb-mb-4 eb-flex eb-h-16 eb-w-16 eb-items-center eb-justify-center eb-rounded-full eb-bg-green-100">
-        <CheckCircle2 className="eb-h-8 eb-w-8 eb-text-green-600" />
+      {/* Success Icon with animation */}
+      <div className="eb-mb-6 eb-flex eb-h-16 eb-w-16 eb-items-center eb-justify-center eb-rounded-full eb-bg-green-600 eb-duration-300 eb-animate-in eb-zoom-in-50">
+        <Check className="eb-h-8 eb-w-8 eb-text-white" strokeWidth={3} />
       </div>
 
       {/* Success Message */}
@@ -1064,15 +1381,42 @@ function SuccessView({
         {payee && (
           <div className="eb-flex eb-justify-between">
             <span className="eb-text-sm eb-text-muted-foreground">To</span>
-            <span className="eb-text-sm eb-font-medium">{payee.name}</span>
+            <div className="eb-text-right">
+              <div className="eb-text-sm eb-font-medium">
+                {payee.name}
+                {payee.accountNumber && (
+                  <span className="eb-font-normal eb-text-muted-foreground">
+                    {' '}
+                    (...{payee.accountNumber.slice(-4)})
+                  </span>
+                )}
+              </div>
+              <div className="eb-text-xs eb-text-muted-foreground">
+                {getRecipientTypeLabel()}
+              </div>
+            </div>
           </div>
         )}
         {account && (
           <div className="eb-flex eb-justify-between">
             <span className="eb-text-sm eb-text-muted-foreground">From</span>
             <span className="eb-text-sm eb-font-medium">
-              {account.label ?? 'Account'} (...
-              {account.paymentRoutingInformation?.accountNumber?.slice(-4)})
+              {account.label ?? 'Account'}
+              {account.paymentRoutingInformation?.accountNumber && (
+                <span className="eb-font-normal eb-text-muted-foreground">
+                  {' '}
+                  (...
+                  {account.paymentRoutingInformation.accountNumber.slice(-4)})
+                </span>
+              )}
+            </span>
+          </div>
+        )}
+        {selectedMethod && (
+          <div className="eb-flex eb-justify-between">
+            <span className="eb-text-sm eb-text-muted-foreground">Method</span>
+            <span className="eb-text-sm eb-font-medium">
+              {selectedMethod.name}
             </span>
           </div>
         )}
@@ -1170,9 +1514,9 @@ function PaymentFlowContent({
   isLoading,
   isSubmitting: _isSubmitting,
   transactionResponse,
-  transactionError,
+  transactionError: _transactionError,
   onClose,
-  onRetry,
+  onRetry: _onRetry,
   hasMoreRecipients,
   onLoadMoreRecipients,
   isLoadingMoreRecipients,
@@ -1540,30 +1884,6 @@ function PaymentFlowContent({
     <>
       {/* Main Transfer View */}
       <FlowView viewId="main">
-        {/* Transaction Error Alert */}
-        {transactionError && (
-          <div className="eb-mb-4">
-            <ServerErrorAlert
-              error={transactionError}
-              customTitle="Payment Failed"
-              customErrorMessage={{
-                '400': 'Please check the payment details and try again.',
-                '401': 'Your session has expired. Please log in and try again.',
-                '403': 'You do not have permission to make this payment.',
-                '404': 'The account or recipient was not found.',
-                '422':
-                  'The payment details are invalid. Please check and try again.',
-                '500': 'An unexpected error occurred. Please try again later.',
-                '503':
-                  'The service is currently unavailable. Please try again later.',
-                default: 'Failed to process the payment. Please try again.',
-              }}
-              tryAgainAction={onRetry}
-              showDetails={false}
-            />
-          </div>
-        )}
-
         {/* Initial Data Mismatch Warning */}
         {initialDataWarning && (
           <div className="eb-mb-4 eb-rounded-lg eb-border eb-border-yellow-200 eb-bg-yellow-50 eb-p-3">
@@ -1667,6 +1987,7 @@ function PaymentFlowContent({
           formData={formData}
           payees={[...payees, ...linkedAccounts]}
           accounts={accounts}
+          paymentMethods={paymentMethods}
           onClose={onClose}
         />
       </FlowView>
@@ -1685,11 +2006,13 @@ export function PaymentFlow({
   initialAccountId,
   initialPayeeId,
   initialPaymentMethod,
+  initialAmount,
   showFees = false,
   onTransactionComplete,
   onClose,
   open: controlledOpen,
   onOpenChange,
+  resetKey,
   userEventsHandler: _userEventsHandler,
   userEventsLifecycle: _userEventsLifecycle,
 }: PaymentFlowProps) {
@@ -2074,108 +2397,99 @@ export function PaymentFlow({
       payeeId: initialPayeeId,
       paymentMethod: initialPaymentMethod,
       fromAccountId: initialAccountId,
-      amount: '',
+      amount: initialAmount ?? '',
       currency: 'USD',
     }),
-    [initialAccountId, initialPayeeId, initialPaymentMethod]
+    [initialAccountId, initialPayeeId, initialPaymentMethod, initialAmount]
   );
 
   return (
-    <>
-      {/* Trigger */}
-      {trigger && (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="eb-appearance-none eb-border-0 eb-bg-transparent eb-p-0"
-        >
-          {trigger}
-        </button>
-      )}
-
-      {/* Flow Container */}
-      <FlowContainer
-        title="Transfer Funds"
-        onClose={handleClose}
-        asModal
-        open={open}
-        onOpenChange={setOpen}
-        initialData={initialData}
-        reviewPanelWidth="md"
-        reviewPanel={
-          // Hide review panel on error or empty states, show otherwise (with loading state)
-          isAccountsError ||
-          (!isLoadingAccounts && accounts.length === 0) ? null : (
-            <ReviewPanel
-              accounts={{
-                items: accounts,
-                metadata: {
-                  page: 0,
-                  limit: 10,
-                  total_items: accounts.length,
-                },
-              }}
-              payees={[...payees, ...linkedAccounts]}
-              paymentMethods={paymentMethods}
-              onSubmit={handleTransactionSubmit}
-              isSubmitting={isSubmitting}
-              showFees={showFees}
-              isLoading={isLoadingAccounts}
-              isPayeesLoading={isLoadingRecipients || isLoadingLinkedAccounts}
-            />
-          )
-        }
-      >
-        {/* Loading state: accounts are being fetched */}
-        {isLoadingAccounts ? (
-          <LoadingStateView />
-        ) : /* Error state: accounts failed to load */
-        isAccountsError ? (
-          <FatalErrorView
-            title="Unable to Load Accounts"
-            message="We couldn't load your accounts. Please check your connection and try again."
-            onRetry={() => refetchAccounts()}
-            isRetrying={isLoadingAccounts}
-          />
-        ) : /* Empty state: no accounts available */
-        accounts.length === 0 ? (
-          <EmptyAccountsView
-            title="No Accounts Available"
-            message="You don't have any accounts available for transfers. Please contact support if you need assistance."
-            onClose={handleClose}
-          />
-        ) : (
-          <PaymentFlowContent
-            payees={payees}
-            linkedAccounts={linkedAccounts}
-            accounts={accounts}
+    <FlowContainer
+      title="Transfer Funds"
+      onClose={handleClose}
+      asModal
+      open={open}
+      onOpenChange={setOpen}
+      initialData={initialData}
+      trigger={trigger}
+      resetKey={resetKey}
+      reviewPanelWidth="md"
+      isSubmitting={isSubmitting}
+      reviewPanel={
+        // Hide review panel on error or empty states, show otherwise (with loading state)
+        isAccountsError ||
+        (!isLoadingAccounts && accounts.length === 0) ? null : (
+          <ReviewPanel
+            accounts={{
+              items: accounts,
+              metadata: {
+                page: 0,
+                limit: 10,
+                total_items: accounts.length,
+              },
+            }}
+            payees={[...payees, ...linkedAccounts]}
             paymentMethods={paymentMethods}
-            isLoading={isLoading}
+            onSubmit={handleTransactionSubmit}
             isSubmitting={isSubmitting}
-            transactionResponse={transactionResponse}
-            transactionError={transactionError}
-            onClose={handleClose}
-            onRetry={handleRetry}
-            hasMoreRecipients={hasNextRecipients}
-            onLoadMoreRecipients={fetchNextRecipients}
-            isLoadingMoreRecipients={isFetchingNextRecipients}
-            totalRecipients={totalRecipients}
-            hasMoreLinkedAccounts={hasNextLinkedAccounts}
-            onLoadMoreLinkedAccounts={fetchNextLinkedAccounts}
-            isLoadingMoreLinkedAccounts={isFetchingNextLinkedAccounts}
-            totalLinkedAccounts={totalLinkedAccounts}
-            recipientsError={isRecipientsError}
-            linkedAccountsError={isLinkedAccountsError}
-            onRetryRecipients={() => refetchRecipients()}
-            onRetryLinkedAccounts={() => refetchLinkedAccounts()}
-            hasBalanceErrors={hasBalanceErrors}
-            isAccountsLoaded={!isLoadingAccounts}
-            isPayeesLoaded={!isLoadingRecipients && !isLoadingLinkedAccounts}
-            initialAccountId={initialAccountId}
-            initialPayeeId={initialPayeeId}
+            showFees={showFees}
+            isLoading={isLoadingAccounts}
+            isPayeesLoading={isLoadingRecipients || isLoadingLinkedAccounts}
+            transactionError={parseTransactionError(transactionError)}
+            onDismissError={handleRetry}
           />
-        )}
-      </FlowContainer>
-    </>
+        )
+      }
+    >
+      {/* Loading state: accounts are being fetched */}
+      {isLoadingAccounts ? (
+        <LoadingStateView />
+      ) : /* Error state: accounts failed to load */
+      isAccountsError ? (
+        <FatalErrorView
+          title="Unable to Load Accounts"
+          message="We couldn't load your accounts. Please check your connection and try again."
+          onRetry={() => refetchAccounts()}
+          isRetrying={isLoadingAccounts}
+        />
+      ) : /* Empty state: no accounts available */
+      accounts.length === 0 ? (
+        <EmptyAccountsView
+          title="No Accounts Available"
+          message="You don't have any accounts available for transfers. Please contact support if you need assistance."
+          onClose={handleClose}
+        />
+      ) : (
+        <PaymentFlowContent
+          payees={payees}
+          linkedAccounts={linkedAccounts}
+          accounts={accounts}
+          paymentMethods={paymentMethods}
+          isLoading={isLoading}
+          isSubmitting={isSubmitting}
+          transactionResponse={transactionResponse}
+          transactionError={transactionError}
+          onClose={handleClose}
+          onRetry={handleRetry}
+          hasMoreRecipients={hasNextRecipients}
+          onLoadMoreRecipients={fetchNextRecipients}
+          isLoadingMoreRecipients={isFetchingNextRecipients}
+          totalRecipients={totalRecipients}
+          hasMoreLinkedAccounts={hasNextLinkedAccounts}
+          onLoadMoreLinkedAccounts={fetchNextLinkedAccounts}
+          isLoadingMoreLinkedAccounts={isFetchingNextLinkedAccounts}
+          totalLinkedAccounts={totalLinkedAccounts}
+          recipientsError={isRecipientsError}
+          linkedAccountsError={isLinkedAccountsError}
+          onRetryRecipients={() => refetchRecipients()}
+          onRetryLinkedAccounts={() => refetchLinkedAccounts()}
+          hasBalanceErrors={hasBalanceErrors}
+          isAccountsLoaded={!isLoadingAccounts}
+          isPayeesLoaded={!isLoadingRecipients && !isLoadingLinkedAccounts}
+          initialAccountId={initialAccountId}
+          initialPayeeId={initialPayeeId}
+        />
+      )}
+    </FlowContainer>
   );
 }
