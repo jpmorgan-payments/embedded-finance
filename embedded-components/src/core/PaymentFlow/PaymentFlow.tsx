@@ -1645,11 +1645,41 @@ function PaymentFlowContent({
     }
   }, [accounts, initialAccountId, setFormData]);
 
+  // Merge formData.payee into the appropriate list if it's not already present.
+  // This ensures newly created recipients appear immediately without waiting for refetch.
+  const mergedPayees = useMemo(() => {
+    // If no formData.payee or it's a linked account type, return original list
+    if (!formData.payee || formData.payee.type === 'LINKED_ACCOUNT') {
+      return payees;
+    }
+    // Check if the payee is already in the list
+    const exists = payees.some((p) => p.id === formData.payee?.id);
+    if (exists) {
+      return payees;
+    }
+    // Prepend the new payee to the list so it appears first
+    return [formData.payee, ...payees];
+  }, [payees, formData.payee]);
+
+  const mergedLinkedAccounts = useMemo(() => {
+    // If no formData.payee or it's a recipient type, return original list
+    if (!formData.payee || formData.payee.type === 'RECIPIENT') {
+      return linkedAccounts;
+    }
+    // Check if the payee is already in the list
+    const exists = linkedAccounts.some((p) => p.id === formData.payee?.id);
+    if (exists) {
+      return linkedAccounts;
+    }
+    // Prepend the new linked account to the list so it appears first
+    return [formData.payee, ...linkedAccounts];
+  }, [linkedAccounts, formData.payee]);
+
   // Validate selected payee exists in the fetched payees list
   // If the initial/selected payee doesn't exist, clear it and show warning
   const allPayees = useMemo(
-    () => [...payees, ...linkedAccounts],
-    [payees, linkedAccounts]
+    () => [...mergedPayees, ...mergedLinkedAccounts],
+    [mergedPayees, mergedLinkedAccounts]
   );
   // Track the initial ID prop value to reset check on Storybook soft refresh
   const lastInitialPayeeIdRef = React.useRef<string | undefined>(
@@ -1937,8 +1967,8 @@ function PaymentFlowContent({
           </div>
         )}
         <MainTransferView
-          payees={payees}
-          linkedAccounts={linkedAccounts}
+          payees={mergedPayees}
+          linkedAccounts={mergedLinkedAccounts}
           accounts={accounts}
           paymentMethods={paymentMethods}
           isLoading={isLoading}
