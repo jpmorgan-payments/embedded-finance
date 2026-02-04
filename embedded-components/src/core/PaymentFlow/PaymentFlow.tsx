@@ -1630,6 +1630,30 @@ function PaymentFlowContent({
     }
   }, [transactionResponse, replaceView]);
 
+  // Sync availableBalance in formData when the selected account's balance finishes loading
+  // This handles the case where user selects an account before its balance has loaded
+  useEffect(() => {
+    if (formData.fromAccountId) {
+      const account = accounts.find((a) => a.id === formData.fromAccountId);
+      const balance = account?.balance?.available;
+      const balanceIsLoading = account?.balance?.isLoading ?? true;
+      // Update formData when balance has finished loading and we have a valid balance
+      // This ensures the latest balance is always synced to form data
+      if (
+        !balanceIsLoading &&
+        balance !== undefined &&
+        balance !== formData.availableBalance
+      ) {
+        setFormData({ availableBalance: balance });
+      }
+    }
+  }, [
+    accounts,
+    formData.fromAccountId,
+    formData.availableBalance,
+    setFormData,
+  ]);
+
   // Auto-select account if only one is available
   useEffect(() => {
     if (accounts.length === 1 && !formData.fromAccountId) {
