@@ -1629,6 +1629,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                 <Button
                   variant="outline"
                   type="button"
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={skipStepOne && onCancel ? onCancel : handleStep2Back}
                   disabled={isLoading}
                   className="eb-w-full sm:eb-w-auto"
@@ -1683,6 +1684,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                 <Button
                   variant="outline"
                   type="button"
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={handleStep2Back}
                   disabled={isLoading}
                   className="eb-w-full sm:eb-w-auto"
