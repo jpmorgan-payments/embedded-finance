@@ -31,6 +31,10 @@ interface FlowContainerFullProps extends FlowContainerProps {
   resetKey?: string | number;
   /** Whether the form is currently submitting (synced to context) */
   isSubmitting?: boolean;
+  /** Additional CSS class name(s) for the container (inline mode only) */
+  className?: string;
+  /** Whether to show a visible container (border, shadow) in inline mode. Default: true */
+  showContainer?: boolean;
 }
 
 /**
@@ -91,6 +95,7 @@ function FlowContainerInner({
   reviewPanelWidth = 'sm',
   hideHeader = false,
   className,
+  showContainer = true,
 }: Omit<
   FlowContainerFullProps,
   'asModal' | 'open' | 'onOpenChange' | 'initialData' | 'onClose'
@@ -110,7 +115,14 @@ function FlowContainerInner({
   return (
     <div
       className={cn(
-        'eb-component eb-flex eb-h-full eb-flex-col eb-@container',
+        'eb-component eb-flex eb-flex-col eb-@container',
+        // Container styling for inline mode (Card-like appearance)
+        showContainer && [
+          'eb-w-full eb-overflow-hidden eb-rounded-lg eb-border eb-bg-background eb-shadow-sm',
+          'eb-min-h-[500px]', // Sensible minimum height
+        ],
+        // Height handling
+        showContainer ? 'eb-h-auto' : 'eb-h-full',
         className
       )}
     >
@@ -118,9 +130,9 @@ function FlowContainerInner({
       {!hideHeader && <FlowHeader title={title} />}
 
       {/* Body - Two column layout (container 768px+) */}
-      <div className="eb-flex eb-flex-1 eb-flex-col eb-overflow-hidden @3xl:eb-flex-row">
+      <div className="eb-flex eb-flex-1 eb-flex-col eb-overflow-hidden eb-bg-card @3xl:eb-flex-row">
         {/* Left Column - Dynamic Content (scrollable, includes mobile review) */}
-        <div className="eb-flex eb-flex-1 eb-flex-col eb-overflow-y-auto eb-px-3 eb-pb-1 eb-pt-0 @md:eb-px-6 @md:eb-pt-4">
+        <div className="eb-flex eb-flex-1 eb-flex-col eb-overflow-y-auto eb-px-3 eb-pt-0 @md:eb-px-6 @md:eb-pt-4">
           <div
             className={cn(
               'eb-flex-1',
@@ -176,14 +188,20 @@ export function FlowContainer({
   trigger,
   resetKey,
   isSubmitting = false,
+  className,
+  showContainer,
 }: FlowContainerFullProps) {
+  // For inline mode, default showContainer to true unless explicitly set to false
+  const shouldShowContainer = asModal ? false : (showContainer ?? true);
+
   const innerContent = (
     <FlowContainerInner
       title={title}
       reviewPanel={reviewPanel}
       reviewPanelWidth={reviewPanelWidth}
       hideHeader={hideHeader}
-      className={asModal ? undefined : 'eb-h-full'}
+      showContainer={shouldShowContainer}
+      className={asModal ? undefined : className}
     >
       {children}
     </FlowContainerInner>

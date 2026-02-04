@@ -48,6 +48,7 @@ import { DEFAULT_PAYMENT_METHODS, PANEL_IDS } from './PaymentFlow.constants';
 import type {
   AccountResponse,
   Payee,
+  PaymentFlowInlineProps,
   PaymentFlowProps,
   PaymentMethod,
   PaymentMethodType,
@@ -2583,6 +2584,448 @@ export function PaymentFlow({
           payees={payees}
           linkedAccounts={linkedAccounts}
           accounts={accounts}
+          paymentMethods={paymentMethods}
+          isLoading={isLoading}
+          isSubmitting={isSubmitting}
+          transactionResponse={transactionResponse}
+          transactionError={transactionError}
+          onClose={handleClose}
+          onRetry={handleRetry}
+          hasMoreRecipients={hasNextRecipients}
+          onLoadMoreRecipients={fetchNextRecipients}
+          isLoadingMoreRecipients={isFetchingNextRecipients}
+          totalRecipients={totalRecipients}
+          hasMoreLinkedAccounts={hasNextLinkedAccounts}
+          onLoadMoreLinkedAccounts={fetchNextLinkedAccounts}
+          isLoadingMoreLinkedAccounts={isFetchingNextLinkedAccounts}
+          totalLinkedAccounts={totalLinkedAccounts}
+          recipientsError={isRecipientsError}
+          linkedAccountsError={isLinkedAccountsError}
+          onRetryRecipients={() => refetchRecipients()}
+          onRetryLinkedAccounts={() => refetchLinkedAccounts()}
+          hasBalanceErrors={hasBalanceErrors}
+          isAccountsLoaded={!isLoadingAccounts}
+          isPayeesLoaded={!isLoadingRecipients && !isLoadingLinkedAccounts}
+          initialAccountId={initialAccountId}
+          initialPayeeId={initialPayeeId}
+          onMakeAnotherPayment={handleMakeAnotherPayment}
+        />
+      )}
+    </FlowContainer>
+  );
+}
+
+/**
+ * PaymentFlowInline component
+ * Inline/embedded version of PaymentFlow - renders directly on the page without a dialog
+ *
+ * @example
+ * ```tsx
+ * <PaymentFlowInline
+ *   initialPayeeId="recipient-123"
+ *   onTransactionComplete={(response) => console.log('Payment complete:', response)}
+ * />
+ * ```
+ */
+export function PaymentFlowInline({
+  paymentMethods = DEFAULT_PAYMENT_METHODS,
+  initialAccountId,
+  initialPayeeId,
+  initialPaymentMethod,
+  initialAmount,
+  showFees = false,
+  onTransactionComplete,
+  resetKey,
+  hideHeader = false,
+  showContainer = true,
+  className,
+  userEventsHandler: _userEventsHandler,
+  userEventsLifecycle: _userEventsLifecycle,
+}: PaymentFlowInlineProps) {
+  // State
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // API hooks
+  const { interceptorReady } = useInterceptorStatus();
+
+  // Fetch accounts (clientId is automatically added by EBComponentsProvider interceptor)
+  const {
+    data: accountsData,
+    isLoading: isLoadingAccounts,
+    isError: isAccountsError,
+    error: _accountsError,
+    refetch: refetchAccounts,
+  } = useGetAccounts(undefined, {
+    query: {
+      enabled: interceptorReady,
+    },
+  });
+
+  // Fetch RECIPIENT type with infinite scroll
+  const {
+    data: recipientsData,
+    isLoading: isLoadingRecipients,
+    isError: isRecipientsError,
+    refetch: refetchRecipients,
+    fetchNextPage: fetchNextRecipients,
+    hasNextPage: hasNextRecipients,
+    isFetchingNextPage: isFetchingNextRecipients,
+  } = useGetAllRecipientsInfinite(
+    { type: 'RECIPIENT', limit: 25 },
+    {
+      query: {
+        enabled: interceptorReady,
+        initialPageParam: 0,
+        getNextPageParam: (lastPage, allPages) => {
+          const totalItems =
+            lastPage?.metadata?.total_items ?? lastPage?.total_items ?? 0;
+          const loadedItems = allPages.reduce(
+            (acc, page) => acc + (page?.recipients?.length ?? 0),
+            0
+          );
+          return loadedItems < totalItems ? allPages.length : undefined;
+        },
+      },
+    }
+  );
+
+  // Fetch LINKED_ACCOUNT type with infinite scroll
+  const {
+    data: linkedAccountsData,
+    isLoading: isLoadingLinkedAccounts,
+    isError: isLinkedAccountsError,
+    refetch: refetchLinkedAccounts,
+    fetchNextPage: fetchNextLinkedAccounts,
+    hasNextPage: hasNextLinkedAccounts,
+    isFetchingNextPage: isFetchingNextLinkedAccounts,
+  } = useGetAllRecipientsInfinite(
+    { type: 'LINKED_ACCOUNT', limit: 25 },
+    {
+      query: {
+        enabled: interceptorReady,
+        initialPageParam: 0,
+        getNextPageParam: (lastPage, allPages) => {
+          const totalItems =
+            lastPage?.metadata?.total_items ?? lastPage?.total_items ?? 0;
+          const loadedItems = allPages.reduce(
+            (acc, page) => acc + (page?.recipients?.length ?? 0),
+            0
+          );
+          return loadedItems < totalItems ? allPages.length : undefined;
+        },
+      },
+    }
+  );
+
+  // Get total counts for recipients and linked accounts
+  const totalRecipients =
+    recipientsData?.pages?.[0]?.metadata?.total_items ??
+    recipientsData?.pages?.[0]?.total_items ??
+    0;
+  const totalLinkedAccounts =
+    linkedAccountsData?.pages?.[0]?.metadata?.total_items ??
+    linkedAccountsData?.pages?.[0]?.total_items ??
+    0;
+
+  // Extract accounts from response
+  const accounts: AccountResponse[] = useMemo(
+    () => accountsData?.items ?? [],
+    [accountsData]
+  );
+
+  // Fetch balances for all accounts in parallel
+  const balanceQueries = useQueries({
+    queries: accounts.map((account) => ({
+      ...getGetAccountBalanceQueryOptions(account.id),
+      enabled: interceptorReady && accounts.length > 0,
+      retry: 1,
+      staleTime: 30000,
+    })),
+  });
+
+  // Merge balances into accounts
+  const accountsWithBalances: AccountResponse[] = useMemo(() => {
+    return accounts.map((account, index) => {
+      const balanceQuery = balanceQueries[index];
+      // Find the ITAV (interim available balance) from balanceTypes
+      const availableBalance = balanceQuery?.data?.balanceTypes?.find(
+        (bt) => bt.typeCode === 'ITAV'
+      );
+      const currentBalance = balanceQuery?.data?.balanceTypes?.find(
+        (bt) => bt.typeCode === 'ITBD'
+      );
+      return {
+        ...account,
+        balance: {
+          available: availableBalance?.amount ?? 0,
+          current: currentBalance?.amount,
+          currency: balanceQuery?.data?.currency ?? 'USD',
+          hasError: balanceQuery?.isError ?? false,
+          isLoading: balanceQuery?.isLoading ?? false,
+        },
+      };
+    });
+  }, [accounts, balanceQueries]);
+
+  // Check if any balance queries had errors
+  const hasBalanceErrors = balanceQueries.some((q) => q.isError);
+
+  // Check if balances are still loading
+  const isLoadingBalances = balanceQueries.some((q) => q.isLoading);
+
+  // Transform recipients to payees
+  const transformRecipientsToPayees = useCallback(
+    (
+      data: typeof recipientsData | typeof linkedAccountsData | undefined
+    ): Payee[] => {
+      if (!data?.pages) return [];
+
+      return data.pages
+        .flatMap((page) => page?.recipients ?? [])
+        .map((recipient) => {
+          const isOrganization =
+            recipient.partyDetails?.type === 'ORGANIZATION';
+          const isLinkedAccount = recipient.type === 'LINKED_ACCOUNT';
+
+          // Get enabled payment methods from routing information
+          const enabledMethods: PaymentMethodType[] = [];
+          if (recipient.account?.routingInformation) {
+            recipient.account.routingInformation.forEach((ri) => {
+              if (
+                ri.transactionType === 'ACH' &&
+                !enabledMethods.includes('ACH')
+              ) {
+                enabledMethods.push('ACH');
+              }
+              if (
+                ri.transactionType === 'WIRE' &&
+                !enabledMethods.includes('WIRE')
+              ) {
+                enabledMethods.push('WIRE');
+              }
+              if (
+                ri.transactionType === 'RTP' &&
+                !enabledMethods.includes('RTP')
+              ) {
+                enabledMethods.push('RTP');
+              }
+            });
+          }
+
+          // Build name based on party type
+          const name = isOrganization
+            ? (recipient.partyDetails?.businessName ?? 'Unknown Business')
+            : `${recipient.partyDetails?.firstName ?? ''} ${recipient.partyDetails?.lastName ?? ''}`.trim() ||
+              'Unknown';
+
+          return {
+            id: recipient.id,
+            type: isLinkedAccount ? 'LINKED_ACCOUNT' : 'RECIPIENT',
+            name,
+            accountNumber: recipient.account?.number ?? '',
+            routingNumber:
+              recipient.account?.routingInformation?.[0]?.routingNumber ?? '',
+            bankName: undefined,
+            enabledPaymentMethods:
+              enabledMethods.length > 0 ? enabledMethods : ['ACH'],
+            recipientType: isOrganization ? 'BUSINESS' : 'INDIVIDUAL',
+            details: {
+              email: recipient.partyDetails?.contacts?.find(
+                (c) => c.contactType === 'EMAIL'
+              )?.value,
+              phone: recipient.partyDetails?.contacts?.find(
+                (c) => c.contactType === 'PHONE'
+              )?.value,
+              beneficiaryAddress: recipient.partyDetails?.address?.addressLine1,
+              beneficiaryCity: recipient.partyDetails?.address?.city,
+              beneficiaryState: recipient.partyDetails?.address?.state,
+              beneficiaryZip: recipient.partyDetails?.address?.postalCode,
+            },
+          } as Payee;
+        });
+    },
+    []
+  );
+
+  // Transform API recipients to Payee arrays
+  const payees = useMemo(
+    () => transformRecipientsToPayees(recipientsData),
+    [recipientsData, transformRecipientsToPayees]
+  );
+
+  const linkedAccounts = useMemo(
+    () => transformRecipientsToPayees(linkedAccountsData),
+    [linkedAccountsData, transformRecipientsToPayees]
+  );
+
+  const isLoading =
+    isLoadingAccounts ||
+    isLoadingRecipients ||
+    isLoadingLinkedAccounts ||
+    isLoadingBalances;
+
+  // Transaction mutation
+  const createTransactionMutation = useCreateTransactionV2();
+
+  // Store transaction response for success view
+  const [transactionResponse, setTransactionResponse] = useState<
+    TransactionResponseV2 | undefined
+  >();
+
+  // Store transaction error for error display
+  const [transactionError, setTransactionError] =
+    useState<ErrorType<ApiErrorV2> | null>(null);
+
+  // Generate unique transaction reference ID
+  const generateTransactionReferenceId = useCallback((): string => {
+    const prefix = 'PHUI_';
+    const uuid = uuidv4().replace(/-/g, '');
+    const maxLength = 35;
+    const randomPart = uuid.substring(0, maxLength - prefix.length);
+    return prefix + randomPart;
+  }, []);
+
+  // Handle retry - clear error to allow another attempt
+  const handleRetry = useCallback(() => {
+    setTransactionError(null);
+  }, []);
+
+  // Handle make another payment - clear parent state
+  const handleMakeAnotherPayment = useCallback(() => {
+    setTransactionResponse(undefined);
+    setTransactionError(null);
+  }, []);
+
+  // Handle submit - creates actual transaction via API
+  const handleTransactionSubmit = useCallback(
+    async (formData: {
+      fromAccountId?: string;
+      payeeId?: string;
+      payee?: Payee;
+      paymentMethod?: PaymentMethodType;
+      amount: string;
+      memo?: string;
+    }) => {
+      setIsSubmitting(true);
+      setTransactionError(null);
+      try {
+        const transactionReferenceId = generateTransactionReferenceId();
+        const paymentType = formData.paymentMethod as
+          | 'ACH'
+          | 'WIRE'
+          | 'RTP'
+          | undefined;
+
+        const response = await createTransactionMutation.mutateAsync({
+          data: {
+            amount: parseFloat(formData.amount) || 0,
+            currency: 'USD',
+            debtorAccountId: formData.fromAccountId,
+            recipientId: formData.payeeId,
+            memo: formData.memo,
+            transactionReferenceId,
+            type: paymentType,
+          },
+        });
+
+        setTransactionResponse(response);
+        onTransactionComplete?.(response);
+      } catch (error) {
+        const axiosError = error as ErrorType<ApiErrorV2>;
+        setTransactionError(axiosError);
+        onTransactionComplete?.(undefined, {
+          httpStatus: axiosError.response?.status ?? 500,
+          title: axiosError.response?.data?.title ?? 'Transaction Failed',
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [
+      createTransactionMutation,
+      onTransactionComplete,
+      generateTransactionReferenceId,
+    ]
+  );
+
+  // Initial form data
+  const initialData = useMemo(
+    () => ({
+      payeeId: initialPayeeId,
+      paymentMethod: initialPaymentMethod,
+      fromAccountId: initialAccountId,
+      amount: initialAmount ?? '',
+      currency: 'USD',
+    }),
+    [initialAccountId, initialPayeeId, initialPaymentMethod, initialAmount]
+  );
+
+  // No-op close handler for inline mode (component stays rendered)
+  const handleClose = useCallback(() => {
+    // In inline mode, closing typically means clearing the form
+    // The parent component decides what to do via callbacks
+  }, []);
+
+  return (
+    <FlowContainer
+      title="Transfer Funds"
+      onClose={handleClose}
+      asModal={false}
+      initialData={initialData}
+      resetKey={resetKey}
+      reviewPanelWidth="md"
+      isSubmitting={isSubmitting}
+      hideHeader={hideHeader}
+      showContainer={showContainer}
+      className={className}
+      reviewPanel={
+        isAccountsError ||
+        (!isLoadingAccounts && accounts.length === 0) ? null : (
+          <ReviewPanel
+            accounts={{
+              items: accountsWithBalances,
+              metadata: {
+                page: 0,
+                limit: 10,
+                total_items: accountsWithBalances.length,
+              },
+            }}
+            payees={[...payees, ...linkedAccounts]}
+            paymentMethods={paymentMethods}
+            onSubmit={handleTransactionSubmit}
+            isSubmitting={isSubmitting}
+            showFees={showFees}
+            isLoading={isLoadingAccounts}
+            isPayeesLoading={isLoadingRecipients || isLoadingLinkedAccounts}
+            transactionError={parseTransactionError(transactionError)}
+            onDismissError={handleRetry}
+          />
+        )
+      }
+    >
+      {/* Loading state: accounts are being fetched */}
+      {isLoadingAccounts ? (
+        <LoadingStateView />
+      ) : /* Error state: accounts failed to load */
+      isAccountsError ? (
+        <FatalErrorView
+          title="Unable to Load Accounts"
+          message="We couldn't load your accounts. Please check your connection and try again."
+          onRetry={() => refetchAccounts()}
+          isRetrying={isLoadingAccounts}
+        />
+      ) : /* Empty state: no accounts available */
+      accounts.length === 0 ? (
+        <EmptyAccountsView
+          title="No Accounts Available"
+          message="You don't have any accounts available for transfers. Please contact support if you need assistance."
+          onClose={handleClose}
+        />
+      ) : (
+        <PaymentFlowContent
+          payees={payees}
+          linkedAccounts={linkedAccounts}
+          accounts={accountsWithBalances}
           paymentMethods={paymentMethods}
           isLoading={isLoading}
           isSubmitting={isSubmitting}

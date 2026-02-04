@@ -28,7 +28,7 @@ export function FlowHeader({ title, className }: FlowHeaderProps) {
     <header
       role="banner"
       className={cn(
-        'eb-flex eb-min-h-[48px] eb-items-center eb-justify-between eb-border-b eb-px-4 eb-py-2',
+        'eb-flex eb-min-h-[48px] eb-items-center eb-justify-between eb-border-b eb-bg-card eb-px-4 eb-py-2',
         className
       )}
     >
