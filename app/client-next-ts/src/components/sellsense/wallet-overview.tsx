@@ -6,6 +6,7 @@ import {
   EBComponentsProvider,
   LinkedAccountWidget,
   MakePayment,
+  PaymentFlow,
   RecipientsWidget,
   TransactionsDisplay,
 } from '@jpmorgan-payments/embedded-finance-components';
@@ -35,6 +36,7 @@ import { createFullscreenUrl, EmbeddedComponentCard } from './shared';
 import { useThemeStyles } from './theme-utils';
 import { useSellSenseThemes } from './use-sellsense-themes';
 import type { ThemeOption } from './use-sellsense-themes';
+import { Button } from '../ui/button';
 
 interface ComponentInfo {
   title: string;
@@ -169,7 +171,10 @@ export function WalletOverview({
           >
             Make Payment
           </h2>
-          <MakePayment onTransactionSettled={handleTransactionSettled} />
+          <PaymentFlow
+            onTransactionComplete={handleTransactionSettled}
+            trigger={<Button>Make Payment</Button>}
+          />
         </div>
       ),
     },
@@ -318,6 +323,7 @@ export function WalletOverview({
           onAccountLinked={handleLinkedAccountSettled}
           mode={linkedAccountMode}
           viewMode={linkedAccountViewMode}
+          onPaymentComplete={handleTransactionSettled}
         />
       );
     } else if (componentConfig.componentName === 'Recipients') {
@@ -326,6 +332,7 @@ export function WalletOverview({
           onRecipientAdded={handleLinkedAccountSettled}
           mode={recipientsMode}
           viewMode={recipientsViewMode}
+          onPaymentComplete={handleTransactionSettled}
         />
       );
     }

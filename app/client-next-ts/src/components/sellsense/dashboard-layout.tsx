@@ -6,6 +6,7 @@ import {
   EBComponentsProvider,
   LinkedAccountWidget,
   MakePayment,
+  PaymentFlow,
   RecipientsWidget,
   TransactionsDisplay,
 } from '@jpmorgan-payments/embedded-finance-components';
@@ -19,6 +20,7 @@ import { useNavigate, useSearch } from '@tanstack/react-router';
 import { usePingService } from '@/hooks/use-ping-service';
 import { DatabaseResetUtils } from '@/lib/database-reset-utils';
 
+import { Button } from '../ui/button';
 import { ContentTokenEditorDrawer } from './content-token-editor-drawer';
 import { DashboardOverview } from './dashboard-overview';
 import { Footer } from './footer';
@@ -420,7 +422,7 @@ export function DashboardLayout() {
       case 'payout':
         return <PayoutSettings />;
       case 'payments':
-        return <MakePayment />;
+        return <PaymentFlow />;
       default:
         return (
           <DashboardOverview
@@ -534,25 +536,7 @@ export function DashboardLayout() {
                     name: 'enUS',
                   }}
                 >
-                  <MakePayment
-                    paymentMethods={[
-                      {
-                        fee: 2.5,
-                        id: 'ACH',
-                        name: 'ACH',
-                      },
-                      {
-                        fee: 1,
-                        id: 'RTP',
-                        name: 'RTP',
-                      },
-                      {
-                        fee: 25,
-                        id: 'WIRE',
-                        name: 'WIRE',
-                      },
-                    ]}
-                  />
+                  <PaymentFlow trigger={<Button>Make Payment</Button>} />
                 </EBComponentsProvider>
               </div>
             </div>
