@@ -169,7 +169,7 @@ interface MicrodepositVerificationResponse {
 - Add action buttons (Link New Account, Verify Microdeposits, Edit, Deactivate)
 - Implement responsive technical design for mobile/desktop
 - Use generated loading states and error handling
-- Support MakePayment component integration
+- Support custom payment action via `renderPaymentAction` prop (integrates with PaymentFlow)
 
 #### 2.2 LinkAccountForm Component
 

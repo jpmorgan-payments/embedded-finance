@@ -61,7 +61,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { MakePayment } from '@/core/MakePayment';
 
 import { MicrodepositsFormDialogTrigger } from '../../forms/MicrodepositsForm/MicrodepositsForm';
 import {
@@ -104,7 +103,7 @@ export interface RecipientsTableViewProps {
   /** Type of recipients being displayed */
   recipientType: SupportedRecipientType;
 
-  /** Optional MakePayment component renderer */
+  /** Optional custom payment action renderer */
   renderPaymentAction?: (recipient: Recipient) => React.ReactNode;
 
   /**
@@ -319,26 +318,8 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
       return (
         <div className="eb-flex eb-items-center eb-justify-end eb-gap-1">
           {/* Primary action - Pay or Verify */}
-          {primaryAction === 'pay' && (
-            <>
-              {renderPaymentAction ? (
-                renderPaymentAction(recipient)
-              ) : (
-                <MakePayment
-                  triggerButton={
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="eb-h-8 eb-text-xs"
-                      aria-label={`${t('actions.makePayment')} from ${displayName}`}
-                    >
-                      {t('actions.makePayment', { defaultValue: 'Pay' })}
-                    </Button>
-                  }
-                  recipientId={recipient.id}
-                />
-              )}
-            </>
+          {primaryAction === 'pay' && renderPaymentAction && (
+            renderPaymentAction(recipient)
           )}
 
           {primaryAction === 'verify' && (

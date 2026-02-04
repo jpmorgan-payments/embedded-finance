@@ -127,7 +127,7 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
         return (
           <div key={type} className="eb-flex eb-items-center eb-gap-2">
             <label
-              className={`eb-flex eb-flex-1 eb-items-center eb-gap-3 eb-rounded-lg eb-border eb-bg-card eb-p-4 eb-transition-all ${
+              className={`eb-flex eb-flex-1 eb-items-start eb-gap-3 eb-rounded-lg eb-border eb-bg-card eb-p-4 eb-transition-all ${
                 isSelected
                   ? 'eb-border-primary eb-bg-primary/5 eb-shadow-sm'
                   : 'eb-border-border hover:eb-border-primary/50 hover:eb-bg-accent/50'
@@ -142,16 +142,19 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
                     handleToggle(type);
                   }
                 }}
+                className="eb-mt-0.5"
               />
-              <div className="eb-flex eb-items-center eb-gap-2 eb-text-primary">
+              <div className="eb-mt-0.5 eb-flex eb-items-center eb-gap-2 eb-text-primary">
                 {getPaymentIcon(type)}
               </div>
-              <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between">
+              <div className="eb-flex eb-min-w-0 eb-flex-1 eb-flex-col eb-gap-1 sm:eb-flex-row sm:eb-flex-wrap sm:eb-items-center sm:eb-justify-between sm:eb-gap-2">
                 <span className="eb-font-medium">{config.label}</span>
                 {isLocked && (
-                  <span className="eb-inline-flex eb-items-center eb-gap-1 eb-rounded-full eb-bg-informative-accent eb-px-2.5 eb-py-1 eb-text-xs eb-font-medium eb-text-informative">
-                    <LockIcon className="eb-h-3 eb-w-3" />
-                    {t('paymentMethods.requiredForLinkedAccount')}
+                  <span className="eb-inline-flex eb-items-center eb-gap-1 eb-self-start eb-rounded-full eb-bg-informative-accent eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-informative sm:eb-px-2.5 sm:eb-py-1">
+                    <LockIcon className="eb-h-3 eb-w-3 eb-shrink-0" />
+                    <span className="eb-whitespace-nowrap">
+                      {t('paymentMethods.requiredForLinkedAccount')}
+                    </span>
                   </span>
                 )}
               </div>

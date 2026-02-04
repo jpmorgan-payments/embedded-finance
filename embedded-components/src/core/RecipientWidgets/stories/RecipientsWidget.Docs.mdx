@@ -385,20 +385,41 @@ Tabular display for data-dense views.
 ### With Payment Flow
 
 ```tsx
-<RecipientsWidget
-  mode="single"
-  renderPaymentAction={(recipient) => (
-    <MakePayment
-      toRecipientId={recipient.id}
-      onPaymentComplete={handlePaymentComplete}
-    />
-  )}
-  onRecipientAdded={(recipient) => {
-    if (recipient?.status === 'ACTIVE') {
-      setSelectedRecipient(recipient);
-    }
-  }}
-/>
+import { PaymentFlow } from '@embedded-components';
+
+function MyComponent() {
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [selectedRecipientId, setSelectedRecipientId] = useState<string>();
+
+  return (
+    <>
+      <RecipientsWidget
+        mode="single"
+        renderPaymentAction={(recipient) => (
+          <Button
+            onClick={() => {
+              setSelectedRecipientId(recipient.id);
+              setPaymentOpen(true);
+            }}
+          >
+            Pay
+          </Button>
+        )}
+        onRecipientAdded={(recipient) => {
+          if (recipient?.status === 'ACTIVE') {
+            setSelectedRecipient(recipient);
+          }
+        }}
+      />
+      <PaymentFlow
+        open={paymentOpen}
+        onOpenChange={setPaymentOpen}
+        initialPayeeId={selectedRecipientId}
+        onTransactionComplete={handlePaymentComplete}
+      />
+    </>
+  );
+}
 ```
 
 ### With Analytics/Tracking
