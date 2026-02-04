@@ -2139,6 +2139,9 @@ export function PaymentFlow({
     prevOpenRef.current = open;
   }, [open]);
 
+  // Compute effective reset key (external or internal)
+  const effectiveResetKey = resetKey ?? internalResetKey;
+
   // API hooks
   const { interceptorReady } = useInterceptorStatus();
 
@@ -2416,14 +2419,47 @@ export function PaymentFlow({
   // Transaction mutation
   const createTransactionMutation = useCreateTransactionV2();
 
-  // Store transaction response for success view
-  const [transactionResponse, setTransactionResponse] = useState<
-    TransactionResponseV2 | undefined
-  >();
+  // Store transaction state keyed to the resetKey
+  // This ensures stale state is automatically invalidated when dialog reopens
+  const [transactionState, setTransactionState] = useState<{
+    resetKey: number | string;
+    response?: TransactionResponseV2;
+    error?: ErrorType<ApiErrorV2> | null;
+  }>({ resetKey: effectiveResetKey });
 
-  // Store transaction error for error display
-  const [transactionError, setTransactionError] =
-    useState<ErrorType<ApiErrorV2> | null>(null);
+  // Derived state: only use response/error if they belong to the current resetKey
+  // This prevents stale success screens from showing when dialog reopens
+  const transactionResponse =
+    transactionState.resetKey === effectiveResetKey
+      ? transactionState.response
+      : undefined;
+  const transactionError =
+    transactionState.resetKey === effectiveResetKey
+      ? transactionState.error
+      : null;
+
+  // Helper to update transaction state with current resetKey
+  const setTransactionResponse = useCallback(
+    (response: TransactionResponseV2 | undefined) => {
+      setTransactionState((prev) => ({
+        ...prev,
+        resetKey: effectiveResetKey,
+        response,
+      }));
+    },
+    [effectiveResetKey]
+  );
+
+  const setTransactionError = useCallback(
+    (error: ErrorType<ApiErrorV2> | null) => {
+      setTransactionState((prev) => ({
+        ...prev,
+        resetKey: effectiveResetKey,
+        error,
+      }));
+    },
+    [effectiveResetKey]
+  );
 
   // Generate unique transaction reference ID (matching MakePayment pattern)
   const generateTransactionReferenceId = useCallback((): string => {
@@ -2440,18 +2476,18 @@ export function PaymentFlow({
     setTransactionResponse(undefined); // Clear transaction response on close
     setTransactionError(null); // Clear error on close
     onClose?.();
-  }, [setOpen, onClose]);
+  }, [setOpen, onClose, setTransactionResponse, setTransactionError]);
 
   // Handle retry - clear error to allow another attempt
   const handleRetry = useCallback(() => {
     setTransactionError(null);
-  }, []);
+  }, [setTransactionError]);
 
   // Handle make another payment - clear parent state
   const handleMakeAnotherPayment = useCallback(() => {
     setTransactionResponse(undefined);
     setTransactionError(null);
-  }, []);
+  }, [setTransactionResponse, setTransactionError]);
 
   // Handle submit - creates actual transaction via API
   const handleTransactionSubmit = useCallback(
@@ -2532,7 +2568,7 @@ export function PaymentFlow({
       onOpenChange={setOpen}
       initialData={initialData}
       trigger={trigger}
-      resetKey={resetKey ?? internalResetKey}
+      resetKey={effectiveResetKey}
       reviewPanelWidth="md"
       isSubmitting={isSubmitting}
       reviewPanel={
