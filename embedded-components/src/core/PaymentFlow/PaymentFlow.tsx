@@ -2471,13 +2471,11 @@ export function PaymentFlow({
     return prefix + randomPart;
   }, []);
 
-  // Handle close
+  // Handle close - just close dialog, state cleanup happens on unmount
   const handleClose = useCallback(() => {
     setOpen(false);
-    setTransactionResponse(undefined); // Clear transaction response on close
-    setTransactionError(null); // Clear error on close
     onClose?.();
-  }, [setOpen, onClose, setTransactionResponse, setTransactionError]);
+  }, [setOpen, onClose]);
 
   // Handle retry - clear error to allow another attempt
   const handleRetry = useCallback(() => {
@@ -2527,6 +2525,7 @@ export function PaymentFlow({
         });
 
         setTransactionResponse(response);
+        createTransactionMutation.reset(); // Clear cached mutation state
         onTransactionComplete?.(response);
       } catch (error) {
         // Store error for display (cast to AxiosError type)
@@ -2966,6 +2965,7 @@ export function PaymentFlowInline({
         });
 
         setTransactionResponse(response);
+        createTransactionMutation.reset(); // Clear cached mutation state
         onTransactionComplete?.(response);
       } catch (error) {
         const axiosError = error as ErrorType<ApiErrorV2>;
