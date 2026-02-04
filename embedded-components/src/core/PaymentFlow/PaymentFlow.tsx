@@ -2121,8 +2121,8 @@ export function PaymentFlow({
   const [internalOpen, setInternalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Internal reset key that increments when dialog opens
-  // This causes the FlowContextProvider to remount and reset all state
+  // Internal reset key that increments when dialog re-opens
+  // This triggers FlowContextProvider to reset its state (without remounting)
   const [internalResetKey, setInternalResetKey] = useState(0);
   const prevOpenRef = React.useRef(false);
 
@@ -2131,7 +2131,8 @@ export function PaymentFlow({
   const open = isControlled ? controlledOpen : internalOpen;
   const setOpen = isControlled ? onOpenChange! : setInternalOpen;
 
-  // Increment reset key when dialog opens (transition from closed to open)
+  // Increment reset key when dialog re-opens (transition from closed to open)
+  // This resets the flow state for a fresh start
   React.useEffect(() => {
     if (open && !prevOpenRef.current) {
       setInternalResetKey((prev) => prev + 1);

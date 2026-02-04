@@ -146,19 +146,10 @@
       bottom: auto;
       width: 95vw;
       height: 95vh;
-      max-width: 900px;
+      max-width: 56rem; /* max-w-4xl */
       max-height: 700px;
       transform: translate(-50%, -50%);
       border-radius: 0.5rem; /* rounded-lg */
-    }
-
-    /* Success state - smaller dialog with animated transition */
-    /* Note: Using fixed values instead of 'auto' to enable CSS transitions */
-    .eb-dialog-responsive-lg.eb-dialog-success {
-      width: 500px;
-      height: fit-content;
-      max-width: 500px;
-      max-height: 90vh;
     }
   }
 }
