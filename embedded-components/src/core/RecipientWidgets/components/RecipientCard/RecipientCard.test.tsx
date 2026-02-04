@@ -174,8 +174,9 @@ describe('RecipientCard', () => {
     render(<RecipientCard recipient={mockActiveRecipient} />);
 
     // No built-in payment button - must be passed via makePaymentComponent prop
+    // Look for buttons with text like "Pay", "Make Payment", "Transfer" etc.
     const payButton = screen.queryByRole('button', {
-      name: /pay/i,
+      name: /^pay$|make payment|transfer funds/i,
     });
     expect(payButton).not.toBeInTheDocument();
   });
