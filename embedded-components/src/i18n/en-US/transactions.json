@@ -38,7 +38,10 @@
     "reset": "Reset",
     "copyTransactionId": {
       "srOnly": "Copy transaction ID"
-    }
+    },
+    "viewDetails": "View details",
+    "viewDetailsShort": "Details",
+    "moreActions": "More actions"
   },
   "columns": {
     "date": "Posted",
@@ -55,7 +58,8 @@
     "creditor": "To",
     "ledgerBalance": "Ledger Balance",
     "postingVersion": "Posting Version",
-    "direction": "Direction"
+    "direction": "Direction",
+    "actions": "Actions"
   },
   "filters": {
     "status": {
