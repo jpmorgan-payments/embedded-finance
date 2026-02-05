@@ -3,6 +3,8 @@ name: Wait and Verify Deployment
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+    paths:
+      - "app/client-next-ts/**"
   push:
     branches: [main]
 
