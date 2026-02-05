@@ -1,12 +1,12 @@
 repository_name,site,views,unique_visitors/cloners
-embedded-banking,developer.payments.jpmorgan.com,11,6
+embedded-banking,developer.payments.jpmorgan.com,2,2
 embedded-banking,search.brave.com,1,1
 embedded-banking,confluence.ngage.netapp.com,1,1
 embedded-banking,jpmorganchase.github.io,1,1
 embedded-banking,online-payments-dev.com,2,1
 embedded-banking,bitbucketdc.jpmchase.net,1,1
 embedded-banking,perplexity.ai,1,1
-embedded-banking,Google,9,5
+embedded-banking,Google,10,6
 embedded-banking,DuckDuckGo,1,1
 embedded-banking,teams.microsoft.com,1,1
 embedded-banking,eb-components-demo.apps.dev.na-1z.gap.jpmchase.net,12,2
@@ -23,7 +23,7 @@ embedded-banking,mail.google.com,1,1
 embedded-banking,l.threads.com,15,1
 embedded-banking,com.google.android.gm,3,1
 embedded-banking,m.sogou.com,1,1
-embedded-banking,embedded-finance-dev.com,2,2
+embedded-banking,embedded-finance-dev.com,3,3
 embedded-banking,gitdiagram.com,1,1
 embedded-banking,copilot.microsoft.com,1,1
 embedded-banking,gemini.google.com,1,1
