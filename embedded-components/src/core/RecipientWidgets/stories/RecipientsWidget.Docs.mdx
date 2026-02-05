@@ -53,10 +53,7 @@ The **RecipientsWidget** enables users to manage payment recipients within your 
 ## Quick Start
 
 ```tsx
-import {
-  EBComponentsProvider,
-  RecipientsWidget,
-} from '@embedded-components';
+import { EBComponentsProvider, RecipientsWidget } from '@embedded-components';
 
 function App() {
   return (
@@ -108,8 +105,8 @@ function App() {
       </td>
       <td>
         <strong>list</strong>: Show all recipients in a grid.{' '}
-        <strong>single</strong>: Show only one recipient; hides "Add New Recipient"
-        when active recipient exists
+        <strong>single</strong>: Show only one recipient; hides "Add New
+        Recipient" when active recipient exists
       </td>
     </tr>
     <tr>
@@ -122,9 +119,7 @@ function App() {
       <td>
         <code>'cards'</code>
       </td>
-      <td>
-        Visual display style for recipients
-      </td>
+      <td>Visual display style for recipients</td>
     </tr>
     <tr>
       <td>
@@ -203,9 +198,7 @@ function App() {
       <td>
         <code>'loadMore'</code>
       </td>
-      <td>
-        Pagination style: incremental loading or traditional pages
-      </td>
+      <td>Pagination style: incremental loading or traditional pages</td>
     </tr>
     <tr>
       <td>
@@ -241,8 +234,8 @@ function App() {
         <code>(recipient?, error?) =&gt; void</code>
       </td>
       <td>
-        Called when recipient is added (success or failure). Use for
-        analytics, navigation, or notifications
+        Called when recipient is added (success or failure). Use for analytics,
+        navigation, or notifications
       </td>
     </tr>
   </tbody>
@@ -267,8 +260,8 @@ function App() {
         <code>(recipient) =&gt; ReactNode</code>
       </td>
       <td>
-        Render a custom action button (e.g., "Pay", "Transfer") for each recipient
-        card
+        Render a custom action button (e.g., "Pay", "Transfer") for each
+        recipient card
       </td>
     </tr>
   </tbody>
@@ -385,20 +378,41 @@ Tabular display for data-dense views.
 ### With Payment Flow
 
 ```tsx
-<RecipientsWidget
-  mode="single"
-  renderPaymentAction={(recipient) => (
-    <MakePayment
-      toRecipientId={recipient.id}
-      onPaymentComplete={handlePaymentComplete}
-    />
-  )}
-  onRecipientAdded={(recipient) => {
-    if (recipient?.status === 'ACTIVE') {
-      setSelectedRecipient(recipient);
-    }
-  }}
-/>
+import { PaymentFlow } from '@embedded-components';
+
+function MyComponent() {
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [selectedRecipientId, setSelectedRecipientId] = useState<string>();
+
+  return (
+    <>
+      <RecipientsWidget
+        mode="single"
+        renderPaymentAction={(recipient) => (
+          <Button
+            onClick={() => {
+              setSelectedRecipientId(recipient.id);
+              setPaymentOpen(true);
+            }}
+          >
+            Pay
+          </Button>
+        )}
+        onRecipientAdded={(recipient) => {
+          if (recipient?.status === 'ACTIVE') {
+            setSelectedRecipient(recipient);
+          }
+        }}
+      />
+      <PaymentFlow
+        open={paymentOpen}
+        onOpenChange={setPaymentOpen}
+        initialPayeeId={selectedRecipientId}
+        onTransactionComplete={handlePaymentComplete}
+      />
+    </>
+  );
+}
 ```
 
 ### With Analytics/Tracking
@@ -496,13 +510,21 @@ Use the Storybook sidebar to explore different configurations:
   <tbody>
     <tr>
       <td>Recipient Type</td>
-      <td><code>LINKED_ACCOUNT</code></td>
-      <td><code>RECIPIENT</code></td>
+      <td>
+        <code>LINKED_ACCOUNT</code>
+      </td>
+      <td>
+        <code>RECIPIENT</code>
+      </td>
     </tr>
     <tr>
       <td>i18n Namespace</td>
-      <td><code>linked-accounts</code></td>
-      <td><code>recipients</code></td>
+      <td>
+        <code>linked-accounts</code>
+      </td>
+      <td>
+        <code>recipients</code>
+      </td>
     </tr>
     <tr>
       <td>Microdeposit Verification</td>
@@ -511,12 +533,18 @@ Use the Storybook sidebar to explore different configurations:
     </tr>
     <tr>
       <td>Callback Prop</td>
-      <td><code>onAccountLinked</code></td>
-      <td><code>onRecipientAdded</code></td>
+      <td>
+        <code>onAccountLinked</code>
+      </td>
+      <td>
+        <code>onRecipientAdded</code>
+      </td>
     </tr>
     <tr>
       <td>Verification Callback</td>
-      <td><code>onVerificationComplete</code></td>
+      <td>
+        <code>onVerificationComplete</code>
+      </td>
       <td>N/A</td>
     </tr>
   </tbody>

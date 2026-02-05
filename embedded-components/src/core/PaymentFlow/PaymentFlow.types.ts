@@ -247,12 +247,9 @@ export interface MobileReviewConfig {
 }
 
 /**
- * Props for the main PaymentFlow component
+ * Props for the main PaymentFlow component (dialog mode)
  */
 export interface PaymentFlowProps extends UserTrackingProps {
-  /** Client ID for fetching accounts and recipients */
-  clientId: string;
-
   /** Trigger element to open the payment flow */
   trigger?: React.ReactNode;
 
@@ -291,6 +288,48 @@ export interface PaymentFlowProps extends UserTrackingProps {
 
   /** Key to force reset of flow state. Change this to reset the flow. */
   resetKey?: string | number;
+}
+
+/**
+ * Props for the PaymentFlowInline component (inline/embedded mode)
+ * Same as PaymentFlowProps but without dialog-specific props
+ */
+export interface PaymentFlowInlineProps extends UserTrackingProps {
+  /** Available payment methods */
+  paymentMethods?: PaymentMethod[];
+
+  /** Initial account ID to pre-select */
+  initialAccountId?: string;
+
+  /** Initial payee ID to pre-select */
+  initialPayeeId?: string;
+
+  /** Initial payment method to pre-select */
+  initialPaymentMethod?: PaymentMethodType;
+
+  /** Initial amount to pre-fill */
+  initialAmount?: string;
+
+  /** Whether to show fees in the review panel (default: false) */
+  showFees?: boolean;
+
+  /** Callback when transaction is completed */
+  onTransactionComplete?: (
+    response?: TransactionResponseV2,
+    error?: ApiErrorV2
+  ) => void;
+
+  /** Key to force reset of flow state. Change this to reset the flow. */
+  resetKey?: string | number;
+
+  /** Hide the header (useful when embedding in a page with its own header) */
+  hideHeader?: boolean;
+
+  /** Whether to show a visible container (border, shadow). Default: true */
+  showContainer?: boolean;
+
+  /** Additional CSS class name(s) for the container */
+  className?: string;
 }
 
 /**

@@ -1002,7 +1002,7 @@ export const createRtpUnavailableHandlers = (
  */
 export const commonArgs = {
   mode: 'list' as const,
-  hideCreateButton: false,
+  // hideCreateButton: false,
   clientId: 'mock-client-id',
 };
 

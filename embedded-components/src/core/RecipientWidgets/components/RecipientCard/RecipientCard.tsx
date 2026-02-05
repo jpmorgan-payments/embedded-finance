@@ -34,7 +34,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { MakePayment } from '@/core/MakePayment';
 
 import { MicrodepositsFormDialogTrigger } from '../../forms/MicrodepositsForm/MicrodepositsForm';
 import { LINKED_ACCOUNT_USER_JOURNEYS } from '../../RecipientWidgets.constants';
@@ -52,7 +51,7 @@ export interface RecipientCardProps {
   /** The recipient data to display */
   recipient: Recipient;
 
-  /** Optional MakePayment component to render when recipient is active */
+  /** Optional custom payment action component to render when recipient is active */
   makePaymentComponent?: React.ReactNode;
 
   /**
@@ -144,16 +143,6 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
     return t(
       `actions.add${missingPaymentMethods[0].charAt(0) + missingPaymentMethods[0].slice(1).toLowerCase()}` as any
     );
-  };
-
-  // Helper to get tooltip message for disabled pay button
-  const getDisabledPayTooltip = () => {
-    if (!recipient.status)
-      return t('status.paymentDisabledTooltip.unavailable');
-    return t([
-      `status.paymentDisabledTooltip.${recipient.status}`,
-      'status.paymentDisabledTooltip.unavailable',
-    ]);
   };
 
   // Add routing button component - uses lifted dialog via callback
@@ -386,59 +375,6 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
                     ? 'eb-h-8 eb-shrink-0 eb-text-xs'
                     : undefined,
                 })
-              ) : !showPaymentButton && !hidePayButton ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={cn(
-                          compact
-                            ? 'eb-h-8 eb-shrink-0 eb-text-xs'
-                            : 'eb-bg-background'
-                        )}
-                        disabled
-                        aria-label={`${t('actions.makePayment')} from ${displayName} - ${getDisabledPayTooltip()}`}
-                      >
-                        <span>{t('actions.makePayment')}</span>
-                        {!compact && (
-                          <ArrowRightIcon
-                            className="eb-ml-2 eb-h-4 eb-w-4"
-                            aria-hidden="true"
-                          />
-                        )}
-                      </Button>
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{getDisabledPayTooltip()}</p>
-                  </TooltipContent>
-                </Tooltip>
-              ) : showPaymentButton && !hidePayButton ? (
-                <MakePayment
-                  triggerButton={
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={cn(
-                        compact
-                          ? 'eb-h-8 eb-shrink-0 eb-text-xs'
-                          : 'eb-bg-background'
-                      )}
-                      aria-label={`${t('actions.makePayment')} from ${displayName}`}
-                    >
-                      <span>{t('actions.makePayment')}</span>
-                      {!compact && (
-                        <ArrowRightIcon
-                          className="eb-ml-2 eb-h-4 eb-w-4"
-                          aria-hidden="true"
-                        />
-                      )}
-                    </Button>
-                  }
-                  recipientId={recipient.id}
-                />
               ) : null}
             </>
           )}

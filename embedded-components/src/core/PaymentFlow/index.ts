@@ -5,12 +5,13 @@
  * Internal components should not be exported from here.
  */
 
-// Main component
-export { PaymentFlow } from './PaymentFlow';
+// Main components
+export { PaymentFlow, PaymentFlowInline } from './PaymentFlow';
 
 // Types (public API only)
 export type {
   PaymentFlowProps,
+  PaymentFlowInlineProps,
   Payee,
   PaymentMethod,
   PaymentMethodType,

@@ -140,6 +140,8 @@ interface FlowContextProviderProps {
   initialData?: Partial<PaymentFlowFormData>;
   /** External isSubmitting state to sync to context (from parent component) */
   isSubmitting?: boolean;
+  /** Key to trigger state reset without remounting. Change this to reset all flow state. */
+  resetKey?: string | number;
 }
 
 /**
@@ -151,6 +153,7 @@ export function FlowContextProvider({
   initialView = 'main',
   initialData,
   isSubmitting: externalIsSubmitting = false,
+  resetKey,
 }: FlowContextProviderProps) {
   const [state, dispatch] = useReducer(flowReducer, {
     ...initialState,
@@ -159,6 +162,23 @@ export function FlowContextProvider({
       ? { ...initialFormData, ...initialData }
       : initialFormData,
   });
+
+  // Track the last resetKey to detect changes
+  const lastResetKeyRef = React.useRef(resetKey);
+
+  // Reset state when resetKey changes (without remounting)
+  useEffect(() => {
+    if (resetKey !== lastResetKeyRef.current) {
+      lastResetKeyRef.current = resetKey;
+      dispatch({ type: 'RESET' });
+      if (initialData) {
+        dispatch({ type: 'SET_FORM_DATA', data: initialData });
+      }
+      if (initialView !== 'main') {
+        dispatch({ type: 'REPLACE_VIEW', view: initialView });
+      }
+    }
+  }, [resetKey, initialData, initialView]);
 
   // Sync external isSubmitting prop to context state
   useEffect(() => {

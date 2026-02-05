@@ -2,7 +2,15 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQueries } from '@tanstack/react-query';
-import { AlertCircle, Check, Copy, Loader2, RefreshCw } from 'lucide-react';
+import {
+  AlertCircle,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Loader2,
+  RefreshCw,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -40,6 +48,7 @@ import { DEFAULT_PAYMENT_METHODS, PANEL_IDS } from './PaymentFlow.constants';
 import type {
   AccountResponse,
   Payee,
+  PaymentFlowInlineProps,
   PaymentFlowProps,
   PaymentMethod,
   PaymentMethodType,
@@ -233,22 +242,29 @@ function StepSection({
     }
   };
 
-  // Determine the action label
-  const getActionLabel = () => {
+  // Determine the action label and chevron direction
+  const getActionLabel = (): {
+    text: string;
+    chevron: 'up' | 'down' | null;
+  } => {
     if (isActive) {
-      return 'Cancel';
+      return { text: 'Cancel', chevron: 'up' };
     }
     if (isLoading) {
-      return 'Loading...';
+      return { text: 'Loading...', chevron: null };
     }
+    // When disabled, show the disabled reason (no chevron since not clickable)
     if (isDisabled) {
-      return disabledReason;
+      return { text: disabledReason ?? '', chevron: null };
     }
+    // Clickable states - show down chevron
     if (isComplete) {
-      return 'Change';
+      return { text: 'Change', chevron: 'down' };
     }
-    return 'Select';
+    return { text: 'Select', chevron: 'down' };
   };
+
+  const actionLabel = getActionLabel();
 
   return (
     <div ref={sectionRef} className="eb-relative">
@@ -327,7 +343,12 @@ function StepSection({
             >
               {title}
             </span>
-            {isComplete && !isActive && summary && (
+            {hasError && !isActive && (
+              <span className="eb-text-xs eb-font-medium eb-text-destructive">
+                (Required)
+              </span>
+            )}
+            {isComplete && !isActive && !hasError && summary && (
               <span className="eb-text-sm eb-text-muted-foreground">
                 — {summary}
               </span>
@@ -337,20 +358,22 @@ function StepSection({
           {/* Action label */}
           <span
             className={cn(
-              'eb-text-xs eb-font-medium',
-              hasError && 'eb-text-destructive',
-              isActive && !hasError && 'eb-text-muted-foreground',
-              !isActive &&
-                !isDisabled &&
-                !isLoading &&
-                !hasError &&
-                'eb-text-primary',
-              (isDisabled || isLoading) &&
-                !hasError &&
-                'eb-text-muted-foreground/60'
+              'eb-flex eb-items-center eb-gap-0.5 eb-text-xs eb-font-medium',
+              // When disabled, always use muted styling
+              (isDisabled || isLoading) && 'eb-text-muted-foreground/60',
+              // Active (expanded) state
+              isActive && 'eb-text-muted-foreground',
+              // Clickable states - use primary color
+              !isActive && !isDisabled && !isLoading && 'eb-text-primary'
             )}
           >
-            {hasError ? 'Required' : getActionLabel()}
+            {actionLabel.text}
+            {actionLabel.chevron === 'down' && (
+              <ChevronDown className="eb-h-3.5 eb-w-3.5" />
+            )}
+            {actionLabel.chevron === 'up' && (
+              <ChevronUp className="eb-h-3.5 eb-w-3.5" />
+            )}
           </span>
         </div>
       </button>
@@ -540,18 +563,31 @@ function MainTransferView({
   const paymentMethodSectionRef = React.useRef<HTMLDivElement>(null);
   const amountSectionRef = React.useRef<HTMLDivElement>(null);
 
-  // Map panel IDs to their refs for easy lookup
-  const sectionRefs: Record<string, React.RefObject<HTMLDivElement>> = {
-    [PANEL_IDS.FROM_ACCOUNT]: fromAccountSectionRef,
-    [PANEL_IDS.PAYEE]: payeeSectionRef,
-    [PANEL_IDS.PAYMENT_METHOD]: paymentMethodSectionRef,
-    [PANEL_IDS.AMOUNT]: amountSectionRef,
-  };
+  // Map panel IDs to their refs for easy lookup (memoized for stable reference)
+  const sectionRefs = React.useMemo<
+    Record<string, React.RefObject<HTMLDivElement>>
+  >(
+    () => ({
+      [PANEL_IDS.FROM_ACCOUNT]: fromAccountSectionRef,
+      [PANEL_IDS.PAYEE]: payeeSectionRef,
+      [PANEL_IDS.PAYMENT_METHOD]: paymentMethodSectionRef,
+      [PANEL_IDS.AMOUNT]: amountSectionRef,
+    }),
+    []
+  );
 
-  // When validation errors change, expand the first section that has an error
-  // and scroll to it (focus the amount input if that's the error field)
+  // Track previous validation errors count to detect when errors are first shown
+  const prevValidationErrorsCountRef = React.useRef(0);
+
+  // When validation errors are FIRST SET (transition from 0 to >0), expand the first
+  // section that has an error and scroll to it. This should only run once when errors
+  // appear, not when the user navigates between sections.
   useEffect(() => {
-    if (validationErrors.length > 0) {
+    const wasEmpty = prevValidationErrorsCountRef.current === 0;
+    const hasErrors = validationErrors.length > 0;
+
+    // Only expand/scroll when errors first appear (not on every re-render)
+    if (wasEmpty && hasErrors) {
       // Find the first panel with an error (in form order)
       const panelOrder = [
         PANEL_IDS.FROM_ACCOUNT,
@@ -590,6 +626,9 @@ function MainTransferView({
         }
       }
     }
+
+    // Update ref after effect runs
+    prevValidationErrorsCountRef.current = validationErrors.length;
   }, [validationErrors, hasPanelError, sectionRefs]);
 
   // Clear specific field errors when that field changes (react-hook-form pattern)
@@ -1319,6 +1358,7 @@ interface SuccessViewProps {
   accounts: AccountResponse[];
   paymentMethods: PaymentMethod[];
   onClose: () => void;
+  onMakeAnotherPayment?: () => void;
 }
 
 function SuccessView({
@@ -1328,8 +1368,27 @@ function SuccessView({
   accounts,
   paymentMethods,
   onClose,
+  onMakeAnotherPayment,
 }: SuccessViewProps) {
+  const { replaceView, setFormData } = useFlowContext();
   const [copied, setCopied] = useState(false);
+
+  const handleMakeAnotherPayment = useCallback(() => {
+    // Clear form data (keep only currency)
+    setFormData({
+      payeeId: undefined,
+      payee: undefined,
+      fromAccountId: undefined,
+      availableBalance: undefined,
+      paymentMethod: undefined,
+      amount: '',
+      memo: undefined,
+    });
+    // Navigate back to main view
+    replaceView('main');
+    // Notify parent to clear transaction response
+    onMakeAnotherPayment?.();
+  }, [setFormData, replaceView, onMakeAnotherPayment]);
 
   const amount = parseFloat(formData.amount) || 0;
   const payee = payees.find((p) => p.id === formData.payeeId);
@@ -1455,10 +1514,19 @@ function SuccessView({
         )}
       </div>
 
-      {/* Close Button */}
-      <Button onClick={onClose} className="eb-mt-6 eb-w-full eb-max-w-sm">
-        Done
-      </Button>
+      {/* Action Buttons */}
+      <div className="eb-mt-6 eb-flex eb-w-full eb-max-w-sm eb-flex-col eb-gap-2">
+        <Button
+          variant="outline"
+          onClick={handleMakeAnotherPayment}
+          className="eb-w-full"
+        >
+          Make Another Payment
+        </Button>
+        <Button onClick={onClose} className="eb-w-full">
+          Done
+        </Button>
+      </div>
     </div>
   );
 }
@@ -1504,6 +1572,8 @@ interface PaymentFlowContentProps {
   // Initial IDs for mismatch detection (needed for Storybook soft refresh)
   initialAccountId?: string;
   initialPayeeId?: string;
+  // Handler to start a new payment
+  onMakeAnotherPayment?: () => void;
 }
 
 function PaymentFlowContent({
@@ -1534,6 +1604,7 @@ function PaymentFlowContent({
   isPayeesLoaded = false,
   initialAccountId,
   initialPayeeId,
+  onMakeAnotherPayment,
 }: PaymentFlowContentProps) {
   const {
     formData,
@@ -1558,6 +1629,30 @@ function PaymentFlowContent({
       replaceView('success');
     }
   }, [transactionResponse, replaceView]);
+
+  // Sync availableBalance in formData when the selected account's balance finishes loading
+  // This handles the case where user selects an account before its balance has loaded
+  useEffect(() => {
+    if (formData.fromAccountId) {
+      const account = accounts.find((a) => a.id === formData.fromAccountId);
+      const balance = account?.balance?.available;
+      const balanceIsLoading = account?.balance?.isLoading ?? true;
+      // Update formData when balance has finished loading and we have a valid balance
+      // This ensures the latest balance is always synced to form data
+      if (
+        !balanceIsLoading &&
+        balance !== undefined &&
+        balance !== formData.availableBalance
+      ) {
+        setFormData({ availableBalance: balance });
+      }
+    }
+  }, [
+    accounts,
+    formData.fromAccountId,
+    formData.availableBalance,
+    setFormData,
+  ]);
 
   // Auto-select account if only one is available
   useEffect(() => {
@@ -1607,11 +1702,41 @@ function PaymentFlowContent({
     }
   }, [accounts, initialAccountId, setFormData]);
 
+  // Merge formData.payee into the appropriate list if it's not already present.
+  // This ensures newly created recipients appear immediately without waiting for refetch.
+  const mergedPayees = useMemo(() => {
+    // If no formData.payee or it's a linked account type, return original list
+    if (!formData.payee || formData.payee.type === 'LINKED_ACCOUNT') {
+      return payees;
+    }
+    // Check if the payee is already in the list
+    const exists = payees.some((p) => p.id === formData.payee?.id);
+    if (exists) {
+      return payees;
+    }
+    // Prepend the new payee to the list so it appears first
+    return [formData.payee, ...payees];
+  }, [payees, formData.payee]);
+
+  const mergedLinkedAccounts = useMemo(() => {
+    // If no formData.payee or it's a recipient type, return original list
+    if (!formData.payee || formData.payee.type === 'RECIPIENT') {
+      return linkedAccounts;
+    }
+    // Check if the payee is already in the list
+    const exists = linkedAccounts.some((p) => p.id === formData.payee?.id);
+    if (exists) {
+      return linkedAccounts;
+    }
+    // Prepend the new linked account to the list so it appears first
+    return [formData.payee, ...linkedAccounts];
+  }, [linkedAccounts, formData.payee]);
+
   // Validate selected payee exists in the fetched payees list
   // If the initial/selected payee doesn't exist, clear it and show warning
   const allPayees = useMemo(
-    () => [...payees, ...linkedAccounts],
-    [payees, linkedAccounts]
+    () => [...mergedPayees, ...mergedLinkedAccounts],
+    [mergedPayees, mergedLinkedAccounts]
   );
   // Track the initial ID prop value to reset check on Storybook soft refresh
   const lastInitialPayeeIdRef = React.useRef<string | undefined>(
@@ -1899,8 +2024,8 @@ function PaymentFlowContent({
           </div>
         )}
         <MainTransferView
-          payees={payees}
-          linkedAccounts={linkedAccounts}
+          payees={mergedPayees}
+          linkedAccounts={mergedLinkedAccounts}
           accounts={accounts}
           paymentMethods={paymentMethods}
           isLoading={isLoading}
@@ -1989,6 +2114,7 @@ function PaymentFlowContent({
           accounts={accounts}
           paymentMethods={paymentMethods}
           onClose={onClose}
+          onMakeAnotherPayment={onMakeAnotherPayment}
         />
       </FlowView>
     </>
@@ -2000,7 +2126,6 @@ function PaymentFlowContent({
  * Main payment flow component with FlowContainer architecture
  */
 export function PaymentFlow({
-  clientId,
   trigger,
   paymentMethods = DEFAULT_PAYMENT_METHODS,
   initialAccountId,
@@ -2020,24 +2145,41 @@ export function PaymentFlow({
   const [internalOpen, setInternalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Internal reset key that increments when dialog re-opens
+  // This triggers FlowContextProvider to reset its state (without remounting)
+  const [internalResetKey, setInternalResetKey] = useState(0);
+  const prevOpenRef = React.useRef(false);
+
   // Controlled vs uncontrolled
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
   const setOpen = isControlled ? onOpenChange! : setInternalOpen;
 
+  // Increment reset key when dialog re-opens (transition from closed to open)
+  // This resets the flow state for a fresh start
+  React.useEffect(() => {
+    if (open && !prevOpenRef.current) {
+      setInternalResetKey((prev) => prev + 1);
+    }
+    prevOpenRef.current = open;
+  }, [open]);
+
+  // Compute effective reset key (external or internal)
+  const effectiveResetKey = resetKey ?? internalResetKey;
+
   // API hooks
   const { interceptorReady } = useInterceptorStatus();
 
-  // Fetch accounts
+  // Fetch accounts (clientId is automatically added by EBComponentsProvider interceptor)
   const {
     data: accountsData,
     isLoading: isLoadingAccounts,
     isError: isAccountsError,
     error: _accountsError,
     refetch: refetchAccounts,
-  } = useGetAccounts(clientId ? { clientId } : undefined, {
+  } = useGetAccounts(undefined, {
     query: {
-      enabled: interceptorReady && !!clientId,
+      enabled: interceptorReady,
     },
   });
 
@@ -2051,10 +2193,10 @@ export function PaymentFlow({
     hasNextPage: hasNextRecipients,
     isFetchingNextPage: isFetchingNextRecipients,
   } = useGetAllRecipientsInfinite(
-    clientId ? { clientId, type: 'RECIPIENT', limit: 25 } : undefined,
+    { type: 'RECIPIENT', limit: 25 },
     {
       query: {
-        enabled: interceptorReady && !!clientId,
+        enabled: interceptorReady,
         initialPageParam: 0,
         getNextPageParam: (lastPage, allPages) => {
           const totalItems =
@@ -2079,10 +2221,10 @@ export function PaymentFlow({
     hasNextPage: hasNextLinkedAccounts,
     isFetchingNextPage: isFetchingNextLinkedAccounts,
   } = useGetAllRecipientsInfinite(
-    clientId ? { clientId, type: 'LINKED_ACCOUNT', limit: 25 } : undefined,
+    { type: 'LINKED_ACCOUNT', limit: 25 },
     {
       query: {
-        enabled: interceptorReady && !!clientId,
+        enabled: interceptorReady,
         initialPageParam: 0,
         getNextPageParam: (lastPage, allPages) => {
           const totalItems =
@@ -2302,14 +2444,47 @@ export function PaymentFlow({
   // Transaction mutation
   const createTransactionMutation = useCreateTransactionV2();
 
-  // Store transaction response for success view
-  const [transactionResponse, setTransactionResponse] = useState<
-    TransactionResponseV2 | undefined
-  >();
+  // Store transaction state keyed to the resetKey
+  // This ensures stale state is automatically invalidated when dialog reopens
+  const [transactionState, setTransactionState] = useState<{
+    resetKey: number | string;
+    response?: TransactionResponseV2;
+    error?: ErrorType<ApiErrorV2> | null;
+  }>({ resetKey: effectiveResetKey });
 
-  // Store transaction error for error display
-  const [transactionError, setTransactionError] =
-    useState<ErrorType<ApiErrorV2> | null>(null);
+  // Derived state: only use response/error if they belong to the current resetKey
+  // This prevents stale success screens from showing when dialog reopens
+  const transactionResponse =
+    transactionState.resetKey === effectiveResetKey
+      ? transactionState.response
+      : undefined;
+  const transactionError =
+    transactionState.resetKey === effectiveResetKey
+      ? transactionState.error
+      : null;
+
+  // Helper to update transaction state with current resetKey
+  const setTransactionResponse = useCallback(
+    (response: TransactionResponseV2 | undefined) => {
+      setTransactionState((prev) => ({
+        ...prev,
+        resetKey: effectiveResetKey,
+        response,
+      }));
+    },
+    [effectiveResetKey]
+  );
+
+  const setTransactionError = useCallback(
+    (error: ErrorType<ApiErrorV2> | null) => {
+      setTransactionState((prev) => ({
+        ...prev,
+        resetKey: effectiveResetKey,
+        error,
+      }));
+    },
+    [effectiveResetKey]
+  );
 
   // Generate unique transaction reference ID (matching MakePayment pattern)
   const generateTransactionReferenceId = useCallback((): string => {
@@ -2320,18 +2495,22 @@ export function PaymentFlow({
     return prefix + randomPart;
   }, []);
 
-  // Handle close
+  // Handle close - just close dialog, state cleanup happens on unmount
   const handleClose = useCallback(() => {
     setOpen(false);
-    setTransactionResponse(undefined); // Clear transaction response on close
-    setTransactionError(null); // Clear error on close
     onClose?.();
   }, [setOpen, onClose]);
 
   // Handle retry - clear error to allow another attempt
   const handleRetry = useCallback(() => {
     setTransactionError(null);
-  }, []);
+  }, [setTransactionError]);
+
+  // Handle make another payment - clear parent state
+  const handleMakeAnotherPayment = useCallback(() => {
+    setTransactionResponse(undefined);
+    setTransactionError(null);
+  }, [setTransactionResponse, setTransactionError]);
 
   // Handle submit - creates actual transaction via API
   const handleTransactionSubmit = useCallback(
@@ -2370,6 +2549,7 @@ export function PaymentFlow({
         });
 
         setTransactionResponse(response);
+        createTransactionMutation.reset(); // Clear cached mutation state
         onTransactionComplete?.(response);
       } catch (error) {
         // Store error for display (cast to AxiosError type)
@@ -2412,7 +2592,7 @@ export function PaymentFlow({
       onOpenChange={setOpen}
       initialData={initialData}
       trigger={trigger}
-      resetKey={resetKey}
+      resetKey={effectiveResetKey}
       reviewPanelWidth="md"
       isSubmitting={isSubmitting}
       reviewPanel={
@@ -2488,6 +2668,450 @@ export function PaymentFlow({
           isPayeesLoaded={!isLoadingRecipients && !isLoadingLinkedAccounts}
           initialAccountId={initialAccountId}
           initialPayeeId={initialPayeeId}
+          onMakeAnotherPayment={handleMakeAnotherPayment}
+        />
+      )}
+    </FlowContainer>
+  );
+}
+
+/**
+ * PaymentFlowInline component
+ * Inline/embedded version of PaymentFlow - renders directly on the page without a dialog
+ *
+ * @example
+ * ```tsx
+ * <PaymentFlowInline
+ *   initialPayeeId="recipient-123"
+ *   onTransactionComplete={(response) => console.log('Payment complete:', response)}
+ * />
+ * ```
+ */
+export function PaymentFlowInline({
+  paymentMethods = DEFAULT_PAYMENT_METHODS,
+  initialAccountId,
+  initialPayeeId,
+  initialPaymentMethod,
+  initialAmount,
+  showFees = false,
+  onTransactionComplete,
+  resetKey,
+  hideHeader = false,
+  showContainer = true,
+  className,
+  userEventsHandler: _userEventsHandler,
+  userEventsLifecycle: _userEventsLifecycle,
+}: PaymentFlowInlineProps) {
+  // State
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // API hooks
+  const { interceptorReady } = useInterceptorStatus();
+
+  // Fetch accounts (clientId is automatically added by EBComponentsProvider interceptor)
+  const {
+    data: accountsData,
+    isLoading: isLoadingAccounts,
+    isError: isAccountsError,
+    error: _accountsError,
+    refetch: refetchAccounts,
+  } = useGetAccounts(undefined, {
+    query: {
+      enabled: interceptorReady,
+    },
+  });
+
+  // Fetch RECIPIENT type with infinite scroll
+  const {
+    data: recipientsData,
+    isLoading: isLoadingRecipients,
+    isError: isRecipientsError,
+    refetch: refetchRecipients,
+    fetchNextPage: fetchNextRecipients,
+    hasNextPage: hasNextRecipients,
+    isFetchingNextPage: isFetchingNextRecipients,
+  } = useGetAllRecipientsInfinite(
+    { type: 'RECIPIENT', limit: 25 },
+    {
+      query: {
+        enabled: interceptorReady,
+        initialPageParam: 0,
+        getNextPageParam: (lastPage, allPages) => {
+          const totalItems =
+            lastPage?.metadata?.total_items ?? lastPage?.total_items ?? 0;
+          const loadedItems = allPages.reduce(
+            (acc, page) => acc + (page?.recipients?.length ?? 0),
+            0
+          );
+          return loadedItems < totalItems ? allPages.length : undefined;
+        },
+      },
+    }
+  );
+
+  // Fetch LINKED_ACCOUNT type with infinite scroll
+  const {
+    data: linkedAccountsData,
+    isLoading: isLoadingLinkedAccounts,
+    isError: isLinkedAccountsError,
+    refetch: refetchLinkedAccounts,
+    fetchNextPage: fetchNextLinkedAccounts,
+    hasNextPage: hasNextLinkedAccounts,
+    isFetchingNextPage: isFetchingNextLinkedAccounts,
+  } = useGetAllRecipientsInfinite(
+    { type: 'LINKED_ACCOUNT', limit: 25 },
+    {
+      query: {
+        enabled: interceptorReady,
+        initialPageParam: 0,
+        getNextPageParam: (lastPage, allPages) => {
+          const totalItems =
+            lastPage?.metadata?.total_items ?? lastPage?.total_items ?? 0;
+          const loadedItems = allPages.reduce(
+            (acc, page) => acc + (page?.recipients?.length ?? 0),
+            0
+          );
+          return loadedItems < totalItems ? allPages.length : undefined;
+        },
+      },
+    }
+  );
+
+  // Get total counts for recipients and linked accounts
+  const totalRecipients =
+    recipientsData?.pages?.[0]?.metadata?.total_items ??
+    recipientsData?.pages?.[0]?.total_items ??
+    0;
+  const totalLinkedAccounts =
+    linkedAccountsData?.pages?.[0]?.metadata?.total_items ??
+    linkedAccountsData?.pages?.[0]?.total_items ??
+    0;
+
+  // Extract accounts from response
+  const accounts: AccountResponse[] = useMemo(
+    () => accountsData?.items ?? [],
+    [accountsData]
+  );
+
+  // Fetch balances for all accounts in parallel
+  const balanceQueries = useQueries({
+    queries: accounts.map((account) => ({
+      ...getGetAccountBalanceQueryOptions(account.id),
+      enabled: interceptorReady && accounts.length > 0,
+      retry: 1,
+      staleTime: 30000,
+    })),
+  });
+
+  // Merge balances into accounts
+  const accountsWithBalances: AccountResponse[] = useMemo(() => {
+    return accounts.map((account, index) => {
+      const balanceQuery = balanceQueries[index];
+      // Find the ITAV (interim available balance) from balanceTypes
+      const availableBalance = balanceQuery?.data?.balanceTypes?.find(
+        (bt) => bt.typeCode === 'ITAV'
+      );
+      const currentBalance = balanceQuery?.data?.balanceTypes?.find(
+        (bt) => bt.typeCode === 'ITBD'
+      );
+      return {
+        ...account,
+        balance: {
+          available: availableBalance?.amount ?? 0,
+          current: currentBalance?.amount,
+          currency: balanceQuery?.data?.currency ?? 'USD',
+          hasError: balanceQuery?.isError ?? false,
+          isLoading: balanceQuery?.isLoading ?? false,
+        },
+      };
+    });
+  }, [accounts, balanceQueries]);
+
+  // Check if any balance queries had errors
+  const hasBalanceErrors = balanceQueries.some((q) => q.isError);
+
+  // Check if balances are still loading
+  const isLoadingBalances = balanceQueries.some((q) => q.isLoading);
+
+  // Transform recipients to payees
+  const transformRecipientsToPayees = useCallback(
+    (
+      data: typeof recipientsData | typeof linkedAccountsData | undefined
+    ): Payee[] => {
+      if (!data?.pages) return [];
+
+      return data.pages
+        .flatMap((page) => page?.recipients ?? [])
+        .map((recipient) => {
+          const isOrganization =
+            recipient.partyDetails?.type === 'ORGANIZATION';
+          const isLinkedAccount = recipient.type === 'LINKED_ACCOUNT';
+
+          // Get enabled payment methods from routing information
+          const enabledMethods: PaymentMethodType[] = [];
+          if (recipient.account?.routingInformation) {
+            recipient.account.routingInformation.forEach((ri) => {
+              if (
+                ri.transactionType === 'ACH' &&
+                !enabledMethods.includes('ACH')
+              ) {
+                enabledMethods.push('ACH');
+              }
+              if (
+                ri.transactionType === 'WIRE' &&
+                !enabledMethods.includes('WIRE')
+              ) {
+                enabledMethods.push('WIRE');
+              }
+              if (
+                ri.transactionType === 'RTP' &&
+                !enabledMethods.includes('RTP')
+              ) {
+                enabledMethods.push('RTP');
+              }
+            });
+          }
+
+          // Build name based on party type
+          const name = isOrganization
+            ? (recipient.partyDetails?.businessName ?? 'Unknown Business')
+            : `${recipient.partyDetails?.firstName ?? ''} ${recipient.partyDetails?.lastName ?? ''}`.trim() ||
+              'Unknown';
+
+          return {
+            id: recipient.id,
+            type: isLinkedAccount ? 'LINKED_ACCOUNT' : 'RECIPIENT',
+            name,
+            accountNumber: recipient.account?.number ?? '',
+            routingNumber:
+              recipient.account?.routingInformation?.[0]?.routingNumber ?? '',
+            bankName: undefined,
+            enabledPaymentMethods:
+              enabledMethods.length > 0 ? enabledMethods : ['ACH'],
+            recipientType: isOrganization ? 'BUSINESS' : 'INDIVIDUAL',
+            details: {
+              email: recipient.partyDetails?.contacts?.find(
+                (c) => c.contactType === 'EMAIL'
+              )?.value,
+              phone: recipient.partyDetails?.contacts?.find(
+                (c) => c.contactType === 'PHONE'
+              )?.value,
+              beneficiaryAddress: recipient.partyDetails?.address?.addressLine1,
+              beneficiaryCity: recipient.partyDetails?.address?.city,
+              beneficiaryState: recipient.partyDetails?.address?.state,
+              beneficiaryZip: recipient.partyDetails?.address?.postalCode,
+            },
+          } as Payee;
+        });
+    },
+    []
+  );
+
+  // Transform API recipients to Payee arrays
+  const payees = useMemo(
+    () => transformRecipientsToPayees(recipientsData),
+    [recipientsData, transformRecipientsToPayees]
+  );
+
+  const linkedAccounts = useMemo(
+    () => transformRecipientsToPayees(linkedAccountsData),
+    [linkedAccountsData, transformRecipientsToPayees]
+  );
+
+  const isLoading =
+    isLoadingAccounts ||
+    isLoadingRecipients ||
+    isLoadingLinkedAccounts ||
+    isLoadingBalances;
+
+  // Transaction mutation
+  const createTransactionMutation = useCreateTransactionV2();
+
+  // Store transaction response for success view
+  const [transactionResponse, setTransactionResponse] = useState<
+    TransactionResponseV2 | undefined
+  >();
+
+  // Store transaction error for error display
+  const [transactionError, setTransactionError] =
+    useState<ErrorType<ApiErrorV2> | null>(null);
+
+  // Generate unique transaction reference ID
+  const generateTransactionReferenceId = useCallback((): string => {
+    const prefix = 'PHUI_';
+    const uuid = uuidv4().replace(/-/g, '');
+    const maxLength = 35;
+    const randomPart = uuid.substring(0, maxLength - prefix.length);
+    return prefix + randomPart;
+  }, []);
+
+  // Handle retry - clear error to allow another attempt
+  const handleRetry = useCallback(() => {
+    setTransactionError(null);
+  }, []);
+
+  // Handle make another payment - clear parent state
+  const handleMakeAnotherPayment = useCallback(() => {
+    setTransactionResponse(undefined);
+    setTransactionError(null);
+  }, []);
+
+  // Handle submit - creates actual transaction via API
+  const handleTransactionSubmit = useCallback(
+    async (formData: {
+      fromAccountId?: string;
+      payeeId?: string;
+      payee?: Payee;
+      paymentMethod?: PaymentMethodType;
+      amount: string;
+      memo?: string;
+    }) => {
+      setIsSubmitting(true);
+      setTransactionError(null);
+      try {
+        const transactionReferenceId = generateTransactionReferenceId();
+        const paymentType = formData.paymentMethod as
+          | 'ACH'
+          | 'WIRE'
+          | 'RTP'
+          | undefined;
+
+        const response = await createTransactionMutation.mutateAsync({
+          data: {
+            amount: parseFloat(formData.amount) || 0,
+            currency: 'USD',
+            debtorAccountId: formData.fromAccountId,
+            recipientId: formData.payeeId,
+            memo: formData.memo,
+            transactionReferenceId,
+            type: paymentType,
+          },
+        });
+
+        setTransactionResponse(response);
+        createTransactionMutation.reset(); // Clear cached mutation state
+        onTransactionComplete?.(response);
+      } catch (error) {
+        const axiosError = error as ErrorType<ApiErrorV2>;
+        setTransactionError(axiosError);
+        onTransactionComplete?.(undefined, {
+          httpStatus: axiosError.response?.status ?? 500,
+          title: axiosError.response?.data?.title ?? 'Transaction Failed',
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [
+      createTransactionMutation,
+      onTransactionComplete,
+      generateTransactionReferenceId,
+    ]
+  );
+
+  // Initial form data
+  const initialData = useMemo(
+    () => ({
+      payeeId: initialPayeeId,
+      paymentMethod: initialPaymentMethod,
+      fromAccountId: initialAccountId,
+      amount: initialAmount ?? '',
+      currency: 'USD',
+    }),
+    [initialAccountId, initialPayeeId, initialPaymentMethod, initialAmount]
+  );
+
+  // No-op close handler for inline mode (component stays rendered)
+  const handleClose = useCallback(() => {
+    // In inline mode, closing typically means clearing the form
+    // The parent component decides what to do via callbacks
+  }, []);
+
+  return (
+    <FlowContainer
+      title="Transfer Funds"
+      onClose={handleClose}
+      asModal={false}
+      initialData={initialData}
+      resetKey={resetKey}
+      reviewPanelWidth="md"
+      isSubmitting={isSubmitting}
+      hideHeader={hideHeader}
+      showContainer={showContainer}
+      className={className}
+      reviewPanel={
+        isAccountsError ||
+        (!isLoadingAccounts && accounts.length === 0) ? null : (
+          <ReviewPanel
+            accounts={{
+              items: accountsWithBalances,
+              metadata: {
+                page: 0,
+                limit: 10,
+                total_items: accountsWithBalances.length,
+              },
+            }}
+            payees={[...payees, ...linkedAccounts]}
+            paymentMethods={paymentMethods}
+            onSubmit={handleTransactionSubmit}
+            isSubmitting={isSubmitting}
+            showFees={showFees}
+            isLoading={isLoadingAccounts}
+            isPayeesLoading={isLoadingRecipients || isLoadingLinkedAccounts}
+            transactionError={parseTransactionError(transactionError)}
+            onDismissError={handleRetry}
+          />
+        )
+      }
+    >
+      {/* Loading state: accounts are being fetched */}
+      {isLoadingAccounts ? (
+        <LoadingStateView />
+      ) : /* Error state: accounts failed to load */
+      isAccountsError ? (
+        <FatalErrorView
+          title="Unable to Load Accounts"
+          message="We couldn't load your accounts. Please check your connection and try again."
+          onRetry={() => refetchAccounts()}
+          isRetrying={isLoadingAccounts}
+        />
+      ) : /* Empty state: no accounts available */
+      accounts.length === 0 ? (
+        <EmptyAccountsView
+          title="No Accounts Available"
+          message="You don't have any accounts available for transfers. Please contact support if you need assistance."
+          onClose={handleClose}
+        />
+      ) : (
+        <PaymentFlowContent
+          payees={payees}
+          linkedAccounts={linkedAccounts}
+          accounts={accountsWithBalances}
+          paymentMethods={paymentMethods}
+          isLoading={isLoading}
+          isSubmitting={isSubmitting}
+          transactionResponse={transactionResponse}
+          transactionError={transactionError}
+          onClose={handleClose}
+          onRetry={handleRetry}
+          hasMoreRecipients={hasNextRecipients}
+          onLoadMoreRecipients={fetchNextRecipients}
+          isLoadingMoreRecipients={isFetchingNextRecipients}
+          totalRecipients={totalRecipients}
+          hasMoreLinkedAccounts={hasNextLinkedAccounts}
+          onLoadMoreLinkedAccounts={fetchNextLinkedAccounts}
+          isLoadingMoreLinkedAccounts={isFetchingNextLinkedAccounts}
+          totalLinkedAccounts={totalLinkedAccounts}
+          recipientsError={isRecipientsError}
+          linkedAccountsError={isLinkedAccountsError}
+          onRetryRecipients={() => refetchRecipients()}
+          onRetryLinkedAccounts={() => refetchLinkedAccounts()}
+          hasBalanceErrors={hasBalanceErrors}
+          isAccountsLoaded={!isLoadingAccounts}
+          isPayeesLoaded={!isLoadingRecipients && !isLoadingLinkedAccounts}
+          initialAccountId={initialAccountId}
+          initialPayeeId={initialPayeeId}
+          onMakeAnotherPayment={handleMakeAnotherPayment}
         />
       )}
     </FlowContainer>
