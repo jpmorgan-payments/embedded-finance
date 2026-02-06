@@ -3,10 +3,12 @@ import type { ThemeOption } from './use-sellsense-themes';
 
 interface FooterProps {
   theme: ThemeOption;
+  /** When theme is Custom, use this for logo/portal styling (e.g. Empty stays Empty) */
+  themeForDisplay: ThemeOption;
 }
 
-export function Footer({ theme }: FooterProps) {
-  const themeStyles = useThemeStyles(theme);
+export function Footer({ theme, themeForDisplay }: FooterProps) {
+  const themeStyles = useThemeStyles(themeForDisplay);
 
   return (
     <footer

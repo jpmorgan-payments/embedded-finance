@@ -169,7 +169,14 @@ export function DashboardLayout() {
   const [theme, setTheme] = useState<ThemeOption>(
     searchParams.theme || 'SellSense'
   );
-  const themeStyles = useThemeStyles(theme);
+  // When theme is Custom, use baseTheme for portal styling (logo, colors) so e.g. Empty stays Empty
+  const themeForDisplay: ThemeOption =
+    theme === 'Custom' && customThemeData?.baseTheme
+      ? customThemeData.baseTheme
+      : theme === 'Custom'
+        ? 'SellSense'
+        : theme;
+  const themeStyles = useThemeStyles(themeForDisplay);
   const [contentTone, setContentTone] = useState<ContentTone>(
     searchParams.contentTone || 'Standard'
   );
@@ -655,6 +662,7 @@ export function DashboardLayout() {
         clientScenario={clientScenario}
         setClientScenario={handleScenarioChange}
         theme={theme}
+        themeForDisplay={themeForDisplay}
         setTheme={handleThemeChange}
         contentTone={contentTone}
         setContentTone={handleContentToneChange}
@@ -689,7 +697,7 @@ export function DashboardLayout() {
           {/* Add padding for mobile to account for fixed bottom navigation and footer */}
           <div className="pb-32 md:pb-8">
             {renderMainContent()}
-            <Footer theme={theme} />
+            <Footer theme={theme} themeForDisplay={themeForDisplay} />
           </div>
         </main>
         {/* Mobile menu overlay */}
