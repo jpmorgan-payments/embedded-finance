@@ -1,8 +1,18 @@
 import { ColumnDef } from '@tanstack/react-table';
+import { ClipboardListIcon, MoreVerticalIcon } from 'lucide-react';
 
 import { PaymentTypeResponse } from '@/api/generated/ep-transactions.schemas';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
+import { TransactionDetailsDialogTrigger } from '../../TransactionDetailsSheet/TransactionDetailsSheet';
+import { TRANSACTIONS_DISPLAY_USER_JOURNEYS } from '../../TransactionsDisplay.constants';
 import {
   formatNumberToCurrency,
   formatStatusText,
@@ -363,6 +373,83 @@ export const getTransactionsColumns = (
         const direction = row.getValue(id) as string | undefined;
         return value.includes(direction || '');
       },
+    },
+    // Actions - Details (pattern aligned with RecipientsTableView / LinkedAccountWidget table)
+    {
+      id: 'actions',
+      header: () => (
+        <span className="eb-sr-only">
+          {t('columns.actions', { defaultValue: 'Actions' })}
+        </span>
+      ),
+      cell: ({ row }) => {
+        const transaction = row.original;
+        const transactionId = transaction.id ?? '';
+        const viewDetailsLabel = t('actions.viewDetails', {
+          defaultValue: 'View details',
+        });
+        const viewDetailsShort = t('actions.viewDetailsShort', {
+          defaultValue: 'Details',
+        });
+        const moreActionsLabel = t('actions.moreActions', {
+          defaultValue: 'More actions',
+        });
+        // Inline Details button at @2xl+ (icon only; label at @3xl+)
+        const detailsButton = (
+          <TransactionDetailsDialogTrigger transactionId={transactionId}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="eb-h-8 eb-gap-1 eb-text-xs"
+              aria-label={`${viewDetailsLabel} ${transactionId}`}
+              data-user-event={TRANSACTIONS_DISPLAY_USER_JOURNEYS.VIEW_DETAILS}
+              data-transaction-id={transactionId}
+            >
+              <ClipboardListIcon className="eb-h-3.5 eb-w-3.5" />
+              <span className="eb-hidden @3xl:eb-inline">
+                {viewDetailsShort}
+              </span>
+            </Button>
+          </TransactionDetailsDialogTrigger>
+        );
+        // View details menu item for dropdown (<@2xl)
+        const viewDetailsMenuItem = (
+          <TransactionDetailsDialogTrigger transactionId={transactionId}>
+            <DropdownMenuItem
+              onSelect={(e) => e.preventDefault()}
+              className="eb-cursor-pointer"
+            >
+              <ClipboardListIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+              {viewDetailsLabel}
+            </DropdownMenuItem>
+          </TransactionDetailsDialogTrigger>
+        );
+        return (
+          <div className="eb-flex eb-items-center eb-justify-end eb-gap-1">
+            {/* Details button - inline at @2xl+ (matches RecipientsTableView) */}
+            <div className="eb-hidden eb-items-center eb-gap-1 @2xl:eb-flex">
+              {detailsButton}
+            </div>
+            {/* Dropdown with View details - shown at <@2xl */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="eb-h-8 eb-w-8 @2xl:eb-hidden"
+                  aria-label={moreActionsLabel}
+                >
+                  <MoreVerticalIcon className="eb-h-4 eb-w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {viewDetailsMenuItem}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
+      enableHiding: false,
     },
   ];
 };

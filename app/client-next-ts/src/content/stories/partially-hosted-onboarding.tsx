@@ -59,7 +59,7 @@ export default function PartiallyHostedOnboardingArticle() {
         <li>
           <strong>Integration Guide:</strong>{' '}
           <a
-            href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/app/client/src/docs/PARTIALLY_HOSTED_ONBOARDING_INTEGRATION_GUIDE.md"
+            href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md"
             target="_blank"
             rel="noopener noreferrer"
             className="break-words text-sp-brand underline"
