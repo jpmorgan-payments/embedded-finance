@@ -40,6 +40,8 @@ interface HeaderProps {
   clientScenario: ClientScenario;
   setClientScenario: (scenario: ClientScenario) => void;
   theme: ThemeOption;
+  /** When theme is Custom, use this for logo/portal styling (e.g. Empty stays Empty) */
+  themeForDisplay: ThemeOption;
   setTheme: (theme: ThemeOption, customVariables?: EBThemeVariables) => void;
   contentTone: ContentTone;
   setContentTone: (tone: ContentTone) => void;
@@ -58,6 +60,7 @@ export function Header({
   clientScenario,
   setClientScenario,
   theme,
+  themeForDisplay,
   setTheme,
   contentTone,
   isMobileMenuOpen,
@@ -70,7 +73,7 @@ export function Header({
   isContentTokenEditorOpen,
   setIsContentTokenEditorOpen,
 }: HeaderProps) {
-  const themeStyles = useThemeStyles(theme);
+  const themeStyles = useThemeStyles(themeForDisplay);
   const [isThemeDrawerOpen, setIsThemeDrawerOpen] = useState(false);
 
   // Get current scenario key and next/previous scenarios

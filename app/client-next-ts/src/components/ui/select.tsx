@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { Check, ChevronDown } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -10,6 +11,7 @@ interface SelectContextType {
   onValueChange: (value: string) => void;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  triggerRef: React.RefObject<HTMLButtonElement | null>;
 }
 
 const SelectContext = React.createContext<SelectContextType | null>(null);
@@ -22,6 +24,7 @@ interface SelectProps {
 
 const Select = ({ value = '', onValueChange, children }: SelectProps) => {
   const [open, setOpen] = React.useState(false);
+  const triggerRef = React.useRef<HTMLButtonElement | null>(null);
 
   const contextValue = React.useMemo(
     () => ({
@@ -29,6 +32,7 @@ const Select = ({ value = '', onValueChange, children }: SelectProps) => {
       onValueChange: onValueChange || (() => {}),
       open,
       onOpenChange: setOpen,
+      triggerRef,
     }),
     [value, onValueChange, open]
   );
@@ -40,6 +44,17 @@ const Select = ({ value = '', onValueChange, children }: SelectProps) => {
   );
 };
 
+function mergeRefs<T>(
+  ...refs: (React.Ref<T> | undefined)[]
+): (instance: T | null) => void {
+  return (instance: T | null) => {
+    refs.forEach((ref) => {
+      if (typeof ref === 'function') ref(instance);
+      else if (ref != null) (ref as React.MutableRefObject<T | null>).current = instance;
+    });
+  };
+}
+
 const SelectTrigger = React.forwardRef<
   HTMLButtonElement,
   React.ButtonHTMLAttributes<HTMLButtonElement>
@@ -49,7 +64,7 @@ const SelectTrigger = React.forwardRef<
 
   return (
     <button
-      ref={ref}
+      ref={mergeRefs(ref, context.triggerRef)}
       type="button"
       aria-haspopup="listbox"
       aria-expanded={context.open}
@@ -89,27 +104,71 @@ const SelectContent = React.forwardRef<
   const context = React.useContext(SelectContext);
   if (!context) throw new Error('SelectContent must be used within Select');
 
+  const [position, setPosition] = React.useState<{
+    top?: number;
+    bottom?: number;
+    left: number;
+    width: number;
+  } | null>(null);
+
+  React.useLayoutEffect(() => {
+    if (!context.open) {
+      setPosition(null);
+      return;
+    }
+    const el = context.triggerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const gap = 4;
+    const dropdownMaxHeight = 320;
+    const spaceBelow =
+      typeof window !== 'undefined'
+        ? window.innerHeight - rect.bottom - gap
+        : dropdownMaxHeight;
+    const openAbove = spaceBelow < Math.min(dropdownMaxHeight, 200);
+    setPosition({
+      ...(openAbove
+        ? { bottom: window.innerHeight - rect.top + gap }
+        : { top: rect.bottom + gap }),
+      left: rect.left,
+      width: Math.max(rect.width, 128),
+    });
+  }, [context.open]);
+
   if (!context.open) return null;
 
-  return (
+  const content = (
     <>
       <div
-        className="fixed inset-0 z-40"
+        className="fixed inset-0 z-[9998]"
         onClick={() => context.onOpenChange(false)}
+        aria-hidden
       />
       <div
         ref={ref}
         className={cn(
-          'absolute z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95',
-          'top-full mt-1 w-full',
+          'fixed z-[9999] min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95',
           className
         )}
+        style={
+          position
+            ? {
+                ...(position.top !== undefined && { top: position.top }),
+                ...(position.bottom !== undefined && { bottom: position.bottom }),
+                left: position.left,
+                width: position.width,
+              }
+            : { visibility: 'hidden' }
+        }
         {...props}
       >
-        <div className="max-h-60 overflow-auto p-1">{children}</div>
+        <div className="max-h-80 overflow-auto p-1">{children}</div>
       </div>
     </>
   );
+
+  if (typeof document === 'undefined') return content;
+  return createPortal(content, document.body);
 });
 SelectContent.displayName = 'SelectContent';
 
