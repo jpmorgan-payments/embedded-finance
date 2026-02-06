@@ -697,7 +697,7 @@ export function DashboardLayout() {
           {/* Add padding for mobile to account for fixed bottom navigation and footer */}
           <div className="pb-32 md:pb-8">
             {renderMainContent()}
-            <Footer theme={theme} themeForDisplay={themeForDisplay} />
+            <Footer themeForDisplay={themeForDisplay} />
           </div>
         </main>
         {/* Mobile menu overlay */}
