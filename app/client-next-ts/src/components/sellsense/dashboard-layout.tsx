@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Accounts,
   EBComponentsProvider,
@@ -117,6 +117,8 @@ export function DashboardLayout() {
   );
   const [hasProcessedInitialLoad, setHasProcessedInitialLoad] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const mainContentRef = useRef<HTMLElement | null>(null);
+  const pendingScrollRestoreRef = useRef<{ scrollTop: number; scrollLeft: number } | null>(null);
 
   // Initialize customThemeVariables from URL if present
   const getInitialCustomThemeVariables = (): EBThemeVariables => {
@@ -226,6 +228,11 @@ export function DashboardLayout() {
     newTheme: ThemeOption,
     customVariables?: EBThemeVariables | any
   ) => {
+    // Preserve scroll position when only theme/tokens change (main content has overflow-auto, not window)
+    const mainEl = mainContentRef.current;
+    const scrollTop = mainEl?.scrollTop ?? window.scrollY;
+    const scrollLeft = mainEl?.scrollLeft ?? window.scrollX;
+
     setTheme(newTheme);
 
     // Handle CustomThemeData structure
@@ -242,6 +249,8 @@ export function DashboardLayout() {
         const updates: Record<string, any> = { theme: newTheme };
         updates.customTheme = JSON.stringify(customThemeData);
         updateSearchParams(updates);
+        pendingScrollRestoreRef.current = { scrollTop, scrollLeft };
+        restoreMainScroll(scrollTop, scrollLeft);
         return;
       } else if (Object.keys(customVariables).length > 0) {
         // This is just variables (legacy structure)
@@ -267,7 +276,32 @@ export function DashboardLayout() {
     // test
 
     updateSearchParams(updates);
+    pendingScrollRestoreRef.current = { scrollTop, scrollLeft };
+    restoreMainScroll(scrollTop, scrollLeft);
   };
+
+  const restoreMainScroll = (scrollTop: number, scrollLeft: number) => {
+    const apply = () => {
+      if (mainContentRef.current) {
+        mainContentRef.current.scrollTop = scrollTop;
+        mainContentRef.current.scrollLeft = scrollLeft;
+      } else {
+        window.scrollTo(scrollLeft, scrollTop);
+      }
+    };
+    requestAnimationFrame(() => {
+      requestAnimationFrame(apply);
+    });
+    [50, 150, 300, 500, 800].forEach((ms) => setTimeout(apply, ms));
+  };
+
+  // Restore scroll after theme-driven re-renders (catches late layout/scroll from embedded components)
+  useEffect(() => {
+    const pending = pendingScrollRestoreRef.current;
+    if (!pending) return;
+    pendingScrollRestoreRef.current = null;
+    restoreMainScroll(pending.scrollTop, pending.scrollLeft);
+  }, [customThemeData, customThemeVariables]);
 
   const handleContentToneChange = (newContentTone: ContentTone) => {
     setContentTone(newContentTone);
@@ -301,6 +335,7 @@ export function DashboardLayout() {
         return newSearch;
       },
       replace,
+      resetScroll: false, // Keep scroll position when only search params change (e.g. theme tokens)
     });
   };
 
@@ -692,8 +727,11 @@ export function DashboardLayout() {
           isMobileMenuOpen={isMobileMenuOpen}
           setIsMobileMenuOpen={setIsMobileMenuOpen}
         />
-        {/* Main content area - responsive */}
-        <main className="w-full min-w-0 flex-1 overflow-auto">
+        {/* Main content area - responsive (ref used to preserve scroll on theme token change) */}
+        <main
+          ref={mainContentRef}
+          className="w-full min-w-0 flex-1 overflow-auto"
+        >
           {/* Add padding for mobile to account for fixed bottom navigation and footer */}
           <div className="pb-32 md:pb-8">
             {renderMainContent()}
