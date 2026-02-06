@@ -228,10 +228,9 @@ export function DashboardLayout() {
     newTheme: ThemeOption,
     customVariables?: EBThemeVariables | any
   ) => {
-    // Preserve scroll position when only theme/tokens change (main content has overflow-auto, not window)
-    const mainEl = mainContentRef.current;
-    const scrollTop = mainEl?.scrollTop ?? window.scrollY;
-    const scrollLeft = mainEl?.scrollLeft ?? window.scrollX;
+    const main = mainContentRef.current;
+    const scrollTop = main?.scrollTop ?? window.scrollY;
+    const scrollLeft = main?.scrollLeft ?? window.scrollX;
 
     setTheme(newTheme);
 
@@ -282,20 +281,18 @@ export function DashboardLayout() {
 
   const restoreMainScroll = (scrollTop: number, scrollLeft: number) => {
     const apply = () => {
-      if (mainContentRef.current) {
-        mainContentRef.current.scrollTop = scrollTop;
-        mainContentRef.current.scrollLeft = scrollLeft;
+      const el = mainContentRef.current;
+      if (el) {
+        el.scrollTop = scrollTop;
+        el.scrollLeft = scrollLeft;
       } else {
         window.scrollTo(scrollLeft, scrollTop);
       }
     };
-    requestAnimationFrame(() => {
-      requestAnimationFrame(apply);
-    });
-    [50, 150, 300, 500, 800].forEach((ms) => setTimeout(apply, ms));
+    requestAnimationFrame(() => requestAnimationFrame(apply));
   };
 
-  // Restore scroll after theme-driven re-renders (catches late layout/scroll from embedded components)
+  // Restore scroll after theme state has committed and children have re-rendered
   useEffect(() => {
     const pending = pendingScrollRestoreRef.current;
     if (!pending) return;

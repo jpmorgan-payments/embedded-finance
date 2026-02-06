@@ -1536,7 +1536,7 @@ export function ThemeCustomizationDrawer({
           {/* Theme Groups */}
           <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full">
-              <div className="px-6 pb-12">
+              <div className="px-6 pb-48">
                 {/* Accessibility Check Section - Moved to Top */}
                 <div className="mb-6 border-b border-gray-200 pb-6">
                   {(() => {
