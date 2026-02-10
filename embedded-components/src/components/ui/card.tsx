@@ -1,5 +1,7 @@
 import * as React from 'react';
 
+import type { HeadingLevel } from '@/lib/types/headingLevel.types';
+import { getHeadingTag } from '@/lib/types/headingLevel.types';
 import { cn } from '@/lib/utils';
 
 const Card = React.forwardRef<
@@ -32,20 +34,31 @@ const CardHeader = React.forwardRef<
 ));
 CardHeader.displayName = 'CardHeader';
 
-const CardTitle = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  // eslint-disable-next-line jsx-a11y/heading-has-content
-  <div
-    ref={ref}
-    className={cn(
-      'eb-text-2xl eb-font-semibold eb-leading-none eb-tracking-tight eb-text-foreground',
-      className
-    )}
-    {...props}
-  />
-));
+interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
+  /**
+   * The heading level to render (1-6).
+   * Use this to maintain proper heading hierarchy when embedding components.
+   *
+   * @default 2
+   */
+  headingLevel?: HeadingLevel;
+}
+
+const CardTitle = React.forwardRef<HTMLHeadingElement, CardTitleProps>(
+  ({ className, headingLevel = 2, ...props }, ref) => {
+    const Tag = getHeadingTag(headingLevel);
+    return (
+      <Tag
+        ref={ref}
+        className={cn(
+          'eb-text-2xl eb-font-semibold eb-leading-none eb-tracking-tight eb-text-foreground',
+          className
+        )}
+        {...props}
+      />
+    );
+  }
+);
 CardTitle.displayName = 'CardTitle';
 
 const CardDescription = React.forwardRef<

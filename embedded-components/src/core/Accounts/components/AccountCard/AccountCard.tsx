@@ -13,6 +13,8 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { useLocale } from '@/lib/hooks';
+import type { HeadingLevel } from '@/lib/types/headingLevel.types';
+import { getHeadingTag } from '@/lib/types/headingLevel.types';
 import { cn } from '@/lib/utils';
 import { useGetAccountBalance } from '@/api/generated/ep-accounts';
 import type { AccountResponse } from '@/api/generated/ep-accounts.schemas';
@@ -43,6 +45,13 @@ interface AccountCardProps {
   hideBorder?: boolean;
   /** Additional CSS classes to apply to the card */
   className?: string;
+  /**
+   * Heading level for the account card title.
+   * Should be one level below the parent widget's heading.
+   *
+   * @default 3
+   */
+  headingLevel?: HeadingLevel;
 }
 
 /**
@@ -73,10 +82,23 @@ const getCategoryIcon = (_category?: string) => {
 };
 
 export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
-  ({ account, compact = false, hideBorder = false, className }, ref) => {
+  (
+    {
+      account,
+      compact = false,
+      hideBorder = false,
+      className,
+      headingLevel = 3,
+    },
+    ref
+  ) => {
     const { t } = useTranslation(['accounts', 'common']);
     const locale = useLocale();
     const naText = t('common:na', { defaultValue: 'N/A' });
+
+    // Get the heading tag for this card (e.g., 'h3')
+    const Heading = getHeadingTag(headingLevel);
+
     const {
       data: balanceData,
       isLoading: isBalanceLoading,
@@ -205,12 +227,12 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
             {/* Account details */}
             <div className="eb-min-w-0 eb-flex-1 eb-overflow-hidden">
               <div className="eb-flex eb-flex-wrap eb-items-center eb-gap-2">
-                <h3
+                <Heading
                   className="eb-max-w-full eb-break-words eb-text-sm eb-font-semibold eb-leading-tight"
                   style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
                 >
                   {displayName}
-                </h3>
+                </Heading>
                 {/* Status badge - always show */}
                 {account.state && (
                   <Badge
@@ -322,12 +344,12 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
             {/* Name, Type, and Status */}
             <div className="eb-flex eb-items-start eb-justify-between eb-gap-3">
               <div className="eb-min-w-0 eb-flex-1 eb-space-y-1.5">
-                <h3
+                <Heading
                   className="eb-break-words eb-text-base eb-font-semibold eb-leading-tight @md:eb-text-lg"
                   style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
                 >
                   {displayName}
-                </h3>
+                </Heading>
                 {/* Category subheader with icon - varies by category */}
                 <div className="eb-flex eb-items-center eb-gap-1.5 eb-text-xs eb-text-muted-foreground">
                   {getCategoryIcon(account.category)}

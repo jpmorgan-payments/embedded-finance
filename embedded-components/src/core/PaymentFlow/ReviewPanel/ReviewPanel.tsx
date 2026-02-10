@@ -161,7 +161,9 @@ export function ReviewPanel({
   const missingFieldsMessage = useMemo(() => {
     const missing: string[] = [];
     if (!formData.fromAccountId) missing.push('an account');
-    if (!formData.payeeId) missing.push('a recipient');
+    // A recipient is valid if either a saved payeeId OR an unsavedRecipient is present
+    if (!formData.payeeId && !formData.unsavedRecipient)
+      missing.push('a recipient');
     if (!formData.paymentMethod) missing.push('a payment method');
     if (!formData.amount || parseFloat(formData.amount) <= 0)
       missing.push('an amount');
@@ -174,6 +176,7 @@ export function ReviewPanel({
   }, [
     formData.fromAccountId,
     formData.payeeId,
+    formData.unsavedRecipient,
     formData.paymentMethod,
     formData.amount,
   ]);
@@ -234,6 +237,20 @@ export function ReviewPanel({
 
   // Determine display for "To" section
   const getToDisplay = () => {
+    // Handle unsaved recipient (one-time payment without saving)
+    if (formData.unsavedRecipient) {
+      const lastFour =
+        formData.unsavedRecipient.accountNumber?.slice(-4) ?? null;
+      const isBusiness = formData.unsavedRecipient.recipientType === 'BUSINESS';
+      return {
+        name: formData.unsavedRecipient.displayName,
+        lastFour,
+        isPlaceholder: false,
+        isBusiness,
+        isLinkedAccount: false,
+        isUnsaved: true,
+      };
+    }
     if (selectedPayee) {
       const lastFour = selectedPayee.accountNumber?.slice(-4) ?? null;
       const isBusiness = selectedPayee.recipientType === 'BUSINESS';

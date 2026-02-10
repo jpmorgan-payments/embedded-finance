@@ -52,6 +52,7 @@ import type {
   PaymentFlowProps,
   PaymentMethod,
   PaymentMethodType,
+  UnsavedRecipient,
 } from './PaymentFlow.types';
 import { PaymentMethodSelector } from './PaymentMethodSelector';
 import { ReviewPanel } from './ReviewPanel';
@@ -508,13 +509,15 @@ function MainTransferView({
   const getInitialActiveStep = useCallback(() => {
     // If account is already selected (from initialData or auto-selection), skip to next step
     if (formData.fromAccountId) {
-      if (!formData.payeeId) return PANEL_IDS.PAYEE;
+      if (!formData.payeeId && !formData.unsavedRecipient)
+        return PANEL_IDS.PAYEE;
       if (!formData.paymentMethod) return PANEL_IDS.PAYMENT_METHOD;
       return ''; // All steps complete
     }
     // If only one account exists, it will be auto-selected, so start at PAYEE
     if (accounts.length === 1) {
-      if (!formData.payeeId) return PANEL_IDS.PAYEE;
+      if (!formData.payeeId && !formData.unsavedRecipient)
+        return PANEL_IDS.PAYEE;
       if (!formData.paymentMethod) return PANEL_IDS.PAYMENT_METHOD;
       return '';
     }
@@ -522,6 +525,7 @@ function MainTransferView({
   }, [
     formData.fromAccountId,
     formData.payeeId,
+    formData.unsavedRecipient,
     formData.paymentMethod,
     accounts.length,
   ]);
@@ -537,7 +541,8 @@ function MainTransferView({
   useEffect(() => {
     // Only update if fromAccountId changed from undefined to a value (auto-selection)
     if (!prevFromAccountId.current && formData.fromAccountId) {
-      const nextStep = !formData.payeeId
+      const hasRecipient = formData.payeeId || formData.unsavedRecipient;
+      const nextStep = !hasRecipient
         ? PANEL_IDS.PAYEE
         : !formData.paymentMethod
           ? PANEL_IDS.PAYMENT_METHOD
@@ -545,7 +550,12 @@ function MainTransferView({
       setActiveStep(nextStep);
     }
     prevFromAccountId.current = formData.fromAccountId;
-  }, [formData.fromAccountId, formData.payeeId, formData.paymentMethod]);
+  }, [
+    formData.fromAccountId,
+    formData.payeeId,
+    formData.unsavedRecipient,
+    formData.paymentMethod,
+  ]);
 
   // Track if payee was just cleared due to account restriction
   const [showPayeeClearedWarning, setShowPayeeClearedWarning] = useState(false);
@@ -668,10 +678,25 @@ function MainTransferView({
     prevFormDataRef.current = formData;
   }, [formData, validationErrors, setValidationErrors]);
 
-  const selectedPayee = useMemo(
-    () => [...payees, ...linkedAccounts].find((p) => p.id === formData.payeeId),
-    [payees, linkedAccounts, formData.payeeId]
-  );
+  const selectedPayee = useMemo(() => {
+    // If there's an unsaved recipient (one-time payment), create a virtual payee for display
+    if (formData.unsavedRecipient) {
+      return {
+        id: 'unsaved-recipient',
+        type: 'RECIPIENT' as const,
+        name: formData.unsavedRecipient.displayName,
+        accountNumber: formData.unsavedRecipient.accountNumber,
+        routingNumber: formData.unsavedRecipient.routingNumber,
+        bankName: formData.unsavedRecipient.bankName,
+        enabledPaymentMethods: formData.unsavedRecipient.enabledPaymentMethods,
+        recipientType: formData.unsavedRecipient.recipientType,
+      };
+    }
+    // Otherwise, find the saved payee from the lists
+    return [...payees, ...linkedAccounts].find(
+      (p) => p.id === formData.payeeId
+    );
+  }, [payees, linkedAccounts, formData.payeeId, formData.unsavedRecipient]);
 
   const selectedAccount = useMemo(
     () => accounts.find((a) => a.id === formData.fromAccountId),
@@ -702,7 +727,7 @@ function MainTransferView({
   // LIMITED_DDA accounts can only pay to linked accounts, not regular recipients
   const isLimitedDDA = selectedAccount?.category === 'LIMITED_DDA';
 
-  const hasPayee = !!formData.payeeId;
+  const hasPayee = !!formData.payeeId || !!formData.unsavedRecipient;
   const hasPaymentMethod = !!formData.paymentMethod;
   const hasAccount = !!formData.fromAccountId;
 
@@ -1995,11 +2020,49 @@ function PaymentFlowContent({
     [setFormData, popView, formData.paymentMethod]
   );
 
-  // Get the selected payee for enable form
-  const selectedPayee = useMemo(
-    () => [...payees, ...linkedAccounts].find((p) => p.id === formData.payeeId),
-    [payees, linkedAccounts, formData.payeeId]
+  // Handler for one-time recipient (not saved)
+  const handleUnsavedRecipientSubmit = useCallback(
+    (unsavedRecipient: UnsavedRecipient) => {
+      // Set the unsaved recipient in form state and clear any saved payee
+      // Only auto-select payment method if there's exactly one enabled method
+      setFormData({
+        payeeId: undefined,
+        payee: undefined,
+        unsavedRecipient,
+        paymentMethod:
+          unsavedRecipient.enabledPaymentMethods.length === 1
+            ? (formData.paymentMethod ??
+              unsavedRecipient.enabledPaymentMethods[0])
+            : undefined,
+      });
+
+      // Go back through the flow (method selection -> main)
+      popView();
+      popView();
+    },
+    [setFormData, popView, formData.paymentMethod]
   );
+
+  // Get the selected payee for enable form
+  const selectedPayee = useMemo(() => {
+    // If there's an unsaved recipient (one-time payment), create a virtual payee for display
+    if (formData.unsavedRecipient) {
+      return {
+        id: 'unsaved-recipient',
+        type: 'RECIPIENT' as const,
+        name: formData.unsavedRecipient.displayName,
+        accountNumber: formData.unsavedRecipient.accountNumber,
+        routingNumber: formData.unsavedRecipient.routingNumber,
+        bankName: formData.unsavedRecipient.bankName,
+        enabledPaymentMethods: formData.unsavedRecipient.enabledPaymentMethods,
+        recipientType: formData.unsavedRecipient.recipientType,
+      };
+    }
+    // Otherwise, find the saved payee from the lists
+    return [...payees, ...linkedAccounts].find(
+      (p) => p.id === formData.payeeId
+    );
+  }, [payees, linkedAccounts, formData.payeeId, formData.unsavedRecipient]);
 
   const pendingMethod = pendingPaymentMethod
     ? paymentMethods.find((m) => m.id === pendingPaymentMethod)
@@ -2080,6 +2143,7 @@ function PaymentFlowContent({
           formType="recipient"
           availablePaymentMethods={paymentMethods}
           onSuccess={handleRecipientSuccess}
+          onSubmitWithoutSave={handleUnsavedRecipientSubmit}
           onCancel={popView}
           onSwitchToLinkedAccount={handleSwitchToLinkedAccount}
         />
@@ -2518,6 +2582,7 @@ export function PaymentFlow({
       fromAccountId?: string;
       payeeId?: string;
       payee?: Payee;
+      unsavedRecipient?: UnsavedRecipient;
       paymentMethod?: PaymentMethodType;
       amount: string;
       memo?: string;
@@ -2535,13 +2600,16 @@ export function PaymentFlow({
           | 'RTP'
           | undefined;
 
-        // Build the request
+        // Build the request - use recipient for one-time payments, recipientId for saved recipients
         const response = await createTransactionMutation.mutateAsync({
           data: {
             amount: parseFloat(formData.amount) || 0,
             currency: 'USD',
             debtorAccountId: formData.fromAccountId,
-            recipientId: formData.payeeId,
+            // Use inline recipient for one-time payments, recipientId for saved recipients
+            ...(formData.unsavedRecipient
+              ? { recipient: formData.unsavedRecipient.transactionRecipient }
+              : { recipientId: formData.payeeId }),
             memo: formData.memo,
             transactionReferenceId,
             type: paymentType,
@@ -2962,6 +3030,7 @@ export function PaymentFlowInline({
       fromAccountId?: string;
       payeeId?: string;
       payee?: Payee;
+      unsavedRecipient?: UnsavedRecipient;
       paymentMethod?: PaymentMethodType;
       amount: string;
       memo?: string;
@@ -2976,12 +3045,16 @@ export function PaymentFlowInline({
           | 'RTP'
           | undefined;
 
+        // Build the request - use recipient for one-time payments, recipientId for saved recipients
         const response = await createTransactionMutation.mutateAsync({
           data: {
             amount: parseFloat(formData.amount) || 0,
             currency: 'USD',
             debtorAccountId: formData.fromAccountId,
-            recipientId: formData.payeeId,
+            // Use inline recipient for one-time payments, recipientId for saved recipients
+            ...(formData.unsavedRecipient
+              ? { recipient: formData.unsavedRecipient.transactionRecipient }
+              : { recipientId: formData.payeeId }),
             memo: formData.memo,
             transactionReferenceId,
             type: paymentType,

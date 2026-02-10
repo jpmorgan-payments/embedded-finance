@@ -1,3 +1,7 @@
+import type {
+  HeadingLevel,
+  HeadingLevelProps,
+} from '@/lib/types/headingLevel.types';
 import type { UserTrackingProps } from '@/lib/types/userTracking.types';
 
 /**
@@ -8,7 +12,7 @@ import type { UserTrackingProps } from '@/lib/types/userTracking.types';
 /**
  * Props for the Accounts component
  */
-export interface AccountsProps extends UserTrackingProps {
+export interface AccountsProps extends UserTrackingProps, HeadingLevelProps {
   allowedCategories: string[];
   clientId?: string;
   /** Optional title for the accounts section */
@@ -24,3 +28,6 @@ export interface AccountsRef {
   // exportAccounts: () => void;
   // getAccountsData: () => AccountResponse[];
 }
+
+// Re-export for convenience
+export type { HeadingLevel };
