@@ -545,9 +545,9 @@ function RestrictionMessage({ message }: { message: string }) {
       aria-live="polite"
       className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center"
     >
-      <div className="eb-mb-3 eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted">
+      <div className="eb-mb-3 eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
         <Lock
-          className="eb-h-6 eb-w-6 eb-text-muted-foreground"
+          className="eb-h-6 eb-w-6 eb-text-destructive"
           aria-hidden="true"
         />
       </div>
@@ -591,11 +591,8 @@ function EmptyState({ type, hasSearch, searchQuery }: EmptyStateProps) {
       aria-live="polite"
       className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center"
     >
-      <div className="eb-mb-3 eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted">
-        <Icon
-          className="eb-h-6 eb-w-6 eb-text-muted-foreground"
-          aria-hidden="true"
-        />
+      <div className="eb-mb-3 eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary/10">
+        <Icon className="eb-h-6 eb-w-6 eb-text-primary" aria-hidden="true" />
       </div>
       <div className="eb-font-medium">
         {type === 'recipients' ? 'No recipients yet' : 'No linked accounts'}

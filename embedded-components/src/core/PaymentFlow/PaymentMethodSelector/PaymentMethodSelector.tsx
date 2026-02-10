@@ -1,11 +1,12 @@
 'use client';
 
 import React from 'react';
-import { Banknote, Building2, Check, Lock, Zap } from 'lucide-react';
+import { Banknote, Building2, Zap } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
+import { RadioIndicator } from '../components/RadioIndicator';
 import type {
   PaymentMethod,
   PaymentMethodSelectorProps,
@@ -65,8 +66,10 @@ function PaymentMethodOption({
     // Locked state - compact with sublabel
     return (
       <div className="eb-flex eb-items-center eb-gap-3 eb-bg-muted/30 eb-p-3 eb-opacity-70">
-        <div className="eb-flex eb-h-8 eb-w-8 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted">
-          <Lock className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
+        <RadioIndicator isSelected={false} locked />
+
+        <div className="eb-flex eb-h-8 eb-w-8 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted/50">
+          <Icon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
         </div>
 
         <div className="eb-min-w-0 eb-flex-1">
@@ -101,18 +104,10 @@ function PaymentMethodOption({
         isSelected ? 'eb-bg-primary/5' : 'hover:eb-bg-muted/50'
       )}
     >
-      <div
-        className={cn(
-          'eb-flex eb-h-8 eb-w-8 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full',
-          isSelected ? 'eb-bg-primary/10' : 'eb-bg-muted'
-        )}
-      >
-        <Icon
-          className={cn(
-            'eb-h-4 eb-w-4',
-            isSelected ? 'eb-text-primary' : 'eb-text-muted-foreground'
-          )}
-        />
+      <RadioIndicator isSelected={isSelected} />
+
+      <div className="eb-flex eb-h-8 eb-w-8 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary/10">
+        <Icon className="eb-h-4 eb-w-4 eb-text-primary" />
       </div>
 
       <div className="eb-flex-1">
@@ -123,10 +118,6 @@ function PaymentMethodOption({
           </span>
         )}
       </div>
-
-      {isSelected && (
-        <Check className="eb-h-4 eb-w-4 eb-shrink-0 eb-text-primary" />
-      )}
     </button>
   );
 }

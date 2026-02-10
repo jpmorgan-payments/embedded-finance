@@ -320,8 +320,8 @@ export function ReviewPanel({
           <div className="eb-rounded-lg eb-border eb-border-border eb-bg-muted/20">
             {/* From Account */}
             <div className="eb-flex eb-items-start eb-gap-3 eb-p-3">
-              <div className="eb-flex eb-h-9 eb-w-9 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-background eb-shadow-sm">
-                <Wallet className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
+              <div className="eb-flex eb-h-9 eb-w-9 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary/10 eb-shadow-sm">
+                <Wallet className="eb-h-4 eb-w-4 eb-text-primary" />
               </div>
               <div className="eb-min-w-0 eb-flex-1">
                 <div className="eb-text-xs eb-text-muted-foreground">From</div>
@@ -371,8 +371,8 @@ export function ReviewPanel({
 
             {/* To Recipient */}
             <div className="eb-flex eb-items-start eb-gap-3 eb-p-3">
-              <div className="eb-flex eb-h-9 eb-w-9 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted eb-shadow-sm">
-                <RecipientIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
+              <div className="eb-flex eb-h-9 eb-w-9 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary/10 eb-shadow-sm">
+                <RecipientIcon className="eb-h-4 eb-w-4 eb-text-primary" />
               </div>
               <div className="eb-min-w-0 eb-flex-1">
                 <div className="eb-text-xs eb-text-muted-foreground">To</div>

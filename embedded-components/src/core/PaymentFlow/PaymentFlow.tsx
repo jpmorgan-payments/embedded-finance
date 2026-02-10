@@ -37,6 +37,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 
 import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
+import { RadioIndicator } from './components/RadioIndicator';
 import { FlowContainer, FlowView, useFlowContext } from './FlowContainer';
 import {
   BankAccountFormWrapper,
@@ -885,7 +886,11 @@ function MainTransferView({
                     !isSelected && !isDisabled && 'hover:eb-bg-muted/50'
                   )}
                 >
-                  <div className="eb-flex eb-items-center eb-gap-2">
+                  <div className="eb-flex eb-items-center eb-gap-3">
+                    <RadioIndicator
+                      isSelected={isSelected}
+                      disabled={isDisabled}
+                    />
                     <div>
                       <div className="eb-flex eb-items-center eb-gap-2">
                         <span className="eb-font-medium">{displayName}</span>
@@ -920,39 +925,32 @@ function MainTransferView({
                       )}
                     </div>
                   </div>
-                  <div className="eb-flex eb-items-center eb-gap-3">
-                    <div className="eb-text-right">
-                      {account.balance?.isLoading ? (
-                        <>
-                          <Skeleton className="eb-ml-auto eb-h-4 eb-w-20" />
-                          <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
-                            Loading...
-                          </div>
-                        </>
-                      ) : account.balance?.hasError ? (
-                        <>
-                          <div className="eb-font-medium eb-text-muted-foreground">
-                            --
-                          </div>
-                          <div className="eb-text-xs eb-text-destructive">
-                            Unavailable
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="eb-font-medium">
-                            $
-                            {account.balance?.available?.toLocaleString() ??
-                              '0'}
-                          </div>
-                          <div className="eb-text-xs eb-text-muted-foreground">
-                            Available
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    {isSelected && (
-                      <Check className="eb-h-4 eb-w-4 eb-shrink-0 eb-text-primary" />
+                  <div className="eb-text-right">
+                    {account.balance?.isLoading ? (
+                      <>
+                        <Skeleton className="eb-ml-auto eb-h-4 eb-w-20" />
+                        <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
+                          Loading...
+                        </div>
+                      </>
+                    ) : account.balance?.hasError ? (
+                      <>
+                        <div className="eb-font-medium eb-text-muted-foreground">
+                          --
+                        </div>
+                        <div className="eb-text-xs eb-text-destructive">
+                          Unavailable
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="eb-font-medium">
+                          ${account.balance?.available?.toLocaleString() ?? '0'}
+                        </div>
+                        <div className="eb-text-xs eb-text-muted-foreground">
+                          Available
+                        </div>
+                      </>
                     )}
                   </div>
                 </button>
