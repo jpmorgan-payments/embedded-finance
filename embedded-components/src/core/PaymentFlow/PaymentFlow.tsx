@@ -432,6 +432,8 @@ interface MainTransferViewProps {
   linkedAccountsError?: boolean;
   onRetryRecipients?: () => void;
   onRetryLinkedAccounts?: () => void;
+  // Account count after applying payee restrictions (for skipping account step)
+  validAccountCount?: number;
 }
 
 function MainTransferView({
@@ -462,6 +464,7 @@ function MainTransferView({
   linkedAccountsError,
   onRetryRecipients,
   onRetryLinkedAccounts,
+  validAccountCount,
 }: MainTransferViewProps) {
   const {
     formData,
@@ -516,7 +519,8 @@ function MainTransferView({
       return ''; // All steps complete
     }
     // If only one account exists, it will be auto-selected, so start at PAYEE
-    if (accounts.length === 1) {
+    // Also check validAccountCount for cases where payee restrictions reduce valid accounts to 1
+    if (accounts.length === 1 || validAccountCount === 1) {
       if (!formData.payeeId && !formData.unsavedRecipient)
         return PANEL_IDS.PAYEE;
       if (!formData.paymentMethod) return PANEL_IDS.PAYMENT_METHOD;
@@ -529,6 +533,7 @@ function MainTransferView({
     formData.unsavedRecipient,
     formData.paymentMethod,
     accounts.length,
+    validAccountCount,
   ]);
 
   // Track which step is currently active
@@ -920,6 +925,11 @@ function MainTransferView({
                         account.category && (
                           <div className="eb-text-xs eb-text-muted-foreground">
                             {getCategoryLabel(account.category)}
+                            {account.category === 'LIMITED_DDA' && (
+                              <span className="eb-ml-1 eb-text-muted-foreground/70">
+                                · Linked accounts only
+                              </span>
+                            )}
                           </div>
                         )
                       )}
@@ -1686,6 +1696,47 @@ function PaymentFlowContent({
     }
   }, [accounts, formData.fromAccountId, setFormData]);
 
+  // Auto-select account when initial payee is external and only one valid account exists
+  // LIMITED_DDA accounts cannot be used for external recipients (RECIPIENT type)
+  useEffect(() => {
+    // Only run if we have an initial payee that's an external recipient
+    // and no account is currently selected
+    if (
+      formData.payeeId &&
+      !formData.fromAccountId &&
+      accounts.length > 0 &&
+      isPayeesLoaded
+    ) {
+      // Find the payee from the loaded data
+      const payee = [...payees, ...linkedAccounts].find(
+        (p) => p.id === formData.payeeId
+      );
+
+      // Only auto-select if payee is an external recipient
+      if (payee?.type === 'RECIPIENT') {
+        // Filter out LIMITED_DDA accounts which can't be used for external recipients
+        const validAccounts = accounts.filter(
+          (account) => account.category !== 'LIMITED_DDA'
+        );
+
+        // Auto-select if exactly one valid account remains
+        if (validAccounts.length === 1) {
+          const account = validAccounts[0];
+          const availableBalance = account?.balance?.available;
+          setFormData({ fromAccountId: account.id!, availableBalance });
+        }
+      }
+    }
+  }, [
+    accounts,
+    payees,
+    linkedAccounts,
+    formData.payeeId,
+    formData.fromAccountId,
+    isPayeesLoaded,
+    setFormData,
+  ]);
+
   // Validate selected account exists in the fetched accounts list
   // If the initial/selected account doesn't exist, clear it and show warning
   // Track the initial ID prop value to reset check on Storybook soft refresh
@@ -2066,6 +2117,15 @@ function PaymentFlowContent({
     ? paymentMethods.find((m) => m.id === pendingPaymentMethod)
     : null;
 
+  // Compute valid account count considering payee restrictions
+  // If payee is an external recipient, LIMITED_DDA accounts cannot be used
+  const validAccountCount = useMemo(() => {
+    if (selectedPayee?.type === 'RECIPIENT') {
+      return accounts.filter((a) => a.category !== 'LIMITED_DDA').length;
+    }
+    return accounts.length;
+  }, [accounts, selectedPayee?.type]);
+
   return (
     <>
       {/* Main Transfer View */}
@@ -2112,6 +2172,7 @@ function PaymentFlowContent({
           linkedAccountsError={linkedAccountsError}
           onRetryRecipients={onRetryRecipients}
           onRetryLinkedAccounts={onRetryLinkedAccounts}
+          validAccountCount={validAccountCount}
         />
       </FlowView>
 
