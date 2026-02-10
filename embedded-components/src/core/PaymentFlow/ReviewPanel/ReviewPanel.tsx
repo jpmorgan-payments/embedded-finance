@@ -148,9 +148,12 @@ export function ReviewPanel({
   ].includes(currentView);
 
   // Find selected entities
+  // Check payees list first, then fall back to formData.payee (for newly created recipients)
   const selectedPayee = useMemo(
-    () => payees?.find((p) => p.id === formData.payeeId),
-    [payees, formData.payeeId]
+    () =>
+      payees?.find((p) => p.id === formData.payeeId) ??
+      (formData.payee?.id === formData.payeeId ? formData.payee : undefined),
+    [payees, formData.payeeId, formData.payee]
   );
 
   const selectedAccount = useMemo(

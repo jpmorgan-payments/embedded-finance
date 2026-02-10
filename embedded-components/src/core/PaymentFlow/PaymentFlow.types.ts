@@ -12,6 +12,8 @@ import type {
   TransactionResponseV2,
 } from '@/api/generated/ep-transactions.schemas';
 
+import type { BankAccountFormData } from '../RecipientWidgets/components/BankAccountForm';
+
 /**
  * Extended AccountResponse with balance information for UI display
  */
@@ -112,6 +114,7 @@ export type PaymentFlowView =
   | 'link-account'
   | 'add-recipient-method'
   | 'add-recipient-form'
+  | 'save-recipient-form'
   | 'enable-payment-method'
   | 'success';
 
@@ -134,6 +137,8 @@ export interface UnsavedRecipient {
   recipientType?: RecipientType;
   /** Full transaction recipient details for API submission */
   transactionRecipient: TransactionRecipientDetailsV2;
+  /** Original form data for saving (if user decides to save later) */
+  originalFormData?: BankAccountFormData;
 }
 
 /**

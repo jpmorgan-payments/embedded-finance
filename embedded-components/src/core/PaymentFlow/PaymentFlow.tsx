@@ -11,6 +11,7 @@ import {
   Loader2,
   Pencil,
   RefreshCw,
+  Save,
   User,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -39,6 +40,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 
 import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
+import { useRecipientForm } from '../RecipientWidgets/hooks';
 import { RadioIndicator } from './components/RadioIndicator';
 import { FlowContainer, FlowView, useFlowContext } from './FlowContainer';
 import {
@@ -456,6 +458,12 @@ interface MainTransferViewProps {
   onEditUnsavedRecipient?: () => void;
   // Clear unsaved recipient handler (to choose a different recipient)
   onClearUnsavedRecipient?: () => void;
+  // Save unsaved recipient handler (to save it permanently)
+  onSaveUnsavedRecipient?: () => void;
+  // Loading state for saving unsaved recipient
+  isSavingUnsavedRecipient?: boolean;
+  // Error from saving unsaved recipient (for non-400 errors shown inline)
+  saveUnsavedRecipientError?: Error | null;
 }
 
 function MainTransferView({
@@ -489,6 +497,9 @@ function MainTransferView({
   validAccountCount,
   onEditUnsavedRecipient,
   onClearUnsavedRecipient,
+  onSaveUnsavedRecipient,
+  isSavingUnsavedRecipient = false,
+  saveUnsavedRecipientError,
 }: MainTransferViewProps) {
   const {
     formData,
@@ -1040,28 +1051,55 @@ function MainTransferView({
                 </div>
               </div>
               {/* Action buttons */}
-              <div className="eb-mt-4 eb-flex eb-gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={onEditUnsavedRecipient}
-                  className="eb-gap-1.5"
-                >
-                  <Pencil className="eb-h-3.5 eb-w-3.5" />
-                  Edit
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={onClearUnsavedRecipient}
-                  className="eb-text-muted-foreground"
-                >
-                  Choose different recipient
-                </Button>
+              <div className="eb-mt-4 eb-flex eb-flex-col eb-gap-2">
+                {/* Show inline error for non-400 errors */}
+                {saveUnsavedRecipientError && (
+                  <div className="eb-flex eb-items-center eb-gap-2 eb-rounded-md eb-bg-destructive/10 eb-px-3 eb-py-2 eb-text-sm eb-text-destructive">
+                    <AlertCircle className="eb-h-4 eb-w-4 eb-flex-shrink-0" />
+                    <span>
+                      {(saveUnsavedRecipientError as any)?.message ||
+                        'Failed to save recipient. Please try again.'}
+                    </span>
+                  </div>
+                )}
+                <div className="eb-flex eb-gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={onEditUnsavedRecipient}
+                    className="eb-gap-1.5"
+                    disabled={isSavingUnsavedRecipient}
+                  >
+                    <Pencil className="eb-h-3.5 eb-w-3.5" />
+                    Edit
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={onSaveUnsavedRecipient}
+                    disabled={isSavingUnsavedRecipient}
+                    className="eb-gap-1.5"
+                  >
+                    {isSavingUnsavedRecipient ? (
+                      <Loader2 className="eb-h-3.5 eb-w-3.5 eb-animate-spin" />
+                    ) : (
+                      <Save className="eb-h-3.5 eb-w-3.5" />
+                    )}
+                    {isSavingUnsavedRecipient ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
               </div>
             </div>
+            {/* Choose different recipient link - outside the card */}
+            <button
+              type="button"
+              onClick={onClearUnsavedRecipient}
+              className="eb-text-sm eb-text-primary hover:eb-underline"
+            >
+              Choose a different recipient
+            </button>
           </div>
         ) : (
           <PayeeSelector
@@ -1759,6 +1797,73 @@ function PaymentFlowContent({
     payee?: string;
   } | null>(null);
 
+  // State to store error from save attempt (to pass to form if user is redirected there)
+  const [saveRecipientError, setSaveRecipientError] = useState<Error | null>(
+    null
+  );
+
+  // Hook for saving unsaved recipient directly from the card
+  const {
+    submit: saveRecipient,
+    isPending: isSavingUnsavedRecipient,
+    reset: resetSaveRecipient,
+    error: saveRecipientHookError,
+  } = useRecipientForm({
+    mode: 'create',
+    recipientType: 'RECIPIENT',
+    onSuccess: (savedRecipient) => {
+      if (savedRecipient) {
+        // Transform recipient to Payee format (same logic as handleRecipientSuccess)
+        const isOrganization =
+          savedRecipient.partyDetails?.type === 'ORGANIZATION';
+        const name = isOrganization
+          ? (savedRecipient.partyDetails?.businessName ?? 'Recipient')
+          : `${savedRecipient.partyDetails?.firstName ?? ''} ${savedRecipient.partyDetails?.lastName ?? ''}`.trim() ||
+            'Recipient';
+
+        const enabledMethods = (
+          savedRecipient.account?.routingInformation ?? []
+        )
+          .map((ri) => ri.transactionType as PaymentMethodType)
+          .filter(Boolean);
+
+        // Update formData with the saved recipient
+        setFormData({
+          payeeId: savedRecipient.id,
+          payee: {
+            id: savedRecipient.id!,
+            type: 'RECIPIENT',
+            name,
+            accountNumber: savedRecipient.account?.number ?? '',
+            routingNumber:
+              savedRecipient.account?.routingInformation?.[0]?.routingNumber ??
+              '',
+            bankName: undefined,
+            enabledPaymentMethods:
+              enabledMethods.length > 0 ? enabledMethods : ['ACH'],
+            recipientType: isOrganization ? 'BUSINESS' : 'INDIVIDUAL',
+          },
+          unsavedRecipient: undefined, // Clear unsaved recipient
+        });
+      }
+    },
+    onError: (apiError) => {
+      // Only navigate to form on 400 errors (bad request - user can fix the data)
+      // Other errors (401, 500, etc.) should just show an error message
+      const httpStatus = (apiError as any)?.httpStatus;
+      if (httpStatus === 400 && formData.unsavedRecipient) {
+        // Store the error to display in the form
+        setSaveRecipientError(apiError as unknown as Error);
+        // Navigate to the save-recipient-form (no confirmation step)
+        setEditingUnsavedRecipient(formData.unsavedRecipient);
+        setRecipientFormKey((k) => k + 1);
+        pushView('save-recipient-form');
+      }
+      // For non-400 errors, the error will be available via the hook's error state
+      // but we don't navigate - the user can retry from the card
+    },
+  });
+
   // Navigate to success view when transaction is complete
   useEffect(() => {
     if (transactionResponse) {
@@ -2224,6 +2329,17 @@ function PaymentFlowContent({
     });
   }, [setFormData]);
 
+  // Handler to save unsaved recipient - calls API directly from the card
+  // If it fails, the onError callback will navigate to the form at step 2
+  const handleSaveUnsavedRecipient = useCallback(() => {
+    if (formData.unsavedRecipient?.originalFormData) {
+      // Reset any previous error state
+      resetSaveRecipient();
+      // Submit the original form data directly
+      saveRecipient(formData.unsavedRecipient.originalFormData);
+    }
+  }, [formData.unsavedRecipient, saveRecipient, resetSaveRecipient]);
+
   // Get the selected payee for enable form
   const selectedPayee = useMemo(() => {
     // If there's an unsaved recipient (one-time payment), create a virtual payee for display
@@ -2315,6 +2431,9 @@ function PaymentFlowContent({
           validAccountCount={validAccountCount}
           onEditUnsavedRecipient={handleEditUnsavedRecipient}
           onClearUnsavedRecipient={handleClearUnsavedRecipient}
+          onSaveUnsavedRecipient={handleSaveUnsavedRecipient}
+          isSavingUnsavedRecipient={isSavingUnsavedRecipient}
+          saveUnsavedRecipientError={saveRecipientHookError}
         />
       </FlowView>
 
@@ -2348,12 +2467,31 @@ function PaymentFlowContent({
           onSubmitWithoutSave={handleUnsavedRecipientSubmit}
           onCancel={() => {
             setEditingUnsavedRecipient(undefined);
+            setSaveRecipientError(null);
             popView();
           }}
           onSwitchToLinkedAccount={handleSwitchToLinkedAccount}
           initialData={editingUnsavedRecipient}
           isEditing={!!editingUnsavedRecipient}
-          skipStepOne={!!editingUnsavedRecipient}
+          initialError={saveRecipientError}
+        />
+      </FlowView>
+
+      {/* Save Unsaved Recipient Form - save-only mode (no one-time option) */}
+      <FlowView viewId="save-recipient-form">
+        <BankAccountFormWrapper
+          key={`save-recipient-form-${recipientFormKey}`}
+          formType="recipient"
+          availablePaymentMethods={paymentMethods}
+          onSuccess={handleRecipientSuccess}
+          onCancel={() => {
+            setEditingUnsavedRecipient(undefined);
+            setSaveRecipientError(null);
+            popView();
+          }}
+          initialData={editingUnsavedRecipient}
+          isEditing
+          initialError={saveRecipientError}
         />
       </FlowView>
 

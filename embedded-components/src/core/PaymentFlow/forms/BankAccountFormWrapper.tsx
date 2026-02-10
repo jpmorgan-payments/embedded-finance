@@ -50,8 +50,8 @@ export interface BankAccountFormWrapperProps {
   initialData?: UnsavedRecipient;
   /** Whether we're editing an existing unsaved recipient */
   isEditing?: boolean;
-  /** Whether to skip step 1 (payment method selection) and go directly to step 2 */
-  skipStepOne?: boolean;
+  /** Initial error to display (e.g., from a failed save attempt from unsaved recipient card) */
+  initialError?: Error | null;
 }
 
 /**
@@ -74,16 +74,25 @@ export function BankAccountFormWrapper({
   onSwitchToLinkedAccount,
   initialData,
   isEditing = false,
-  skipStepOne = false,
+  initialError = null,
 }: BankAccountFormWrapperProps) {
   // For recipients with one-time option, show confirmation step after form
-  // Don't pre-initialize from initialData - we want to show the form first when editing
+  // If there's an initial error with originalFormData, start at confirmation step to show the error
   const [pendingFormData, setPendingFormData] =
-    useState<BankAccountFormData | null>(null);
+    useState<BankAccountFormData | null>(
+      initialError && initialData?.originalFormData
+        ? initialData.originalFormData
+        : null
+    );
 
   // Track form data to restore when returning from confirmation
+  // If there's an initial error with originalFormData, use it to pre-fill the form at step 2
   const [formDataToRestore, setFormDataToRestore] =
-    useState<BankAccountFormData | null>(null);
+    useState<BankAccountFormData | null>(
+      initialError && initialData?.originalFormData
+        ? initialData.originalFormData
+        : null
+    );
 
   // Key to force form remount when returning from confirmation
   const [formKey, setFormKey] = useState(0);
@@ -191,6 +200,16 @@ export function BankAccountFormWrapper({
     onSuccess: (recipient) => {
       if (recipient) {
         onSuccess(recipient);
+      }
+    },
+    onError: (apiError) => {
+      // Only go back to form step 2 on 400 errors (bad request - user can fix the data)
+      // Other errors (401, 500, etc.) should show error on the confirmation step
+      const httpStatus = (apiError as any)?.httpStatus;
+      if (httpStatus === 400 && pendingFormData) {
+        setFormDataToRestore(pendingFormData);
+        setPendingFormData(null);
+        setFormKey((k) => k + 1);
       }
     },
   });
@@ -316,12 +335,21 @@ export function BankAccountFormWrapper({
       recipientType:
         data.accountType === 'INDIVIDUAL' ? 'INDIVIDUAL' : 'BUSINESS',
       transactionRecipient,
+      // Store original form data for saving later if user decides to save
+      originalFormData: data,
     };
   };
 
   // Handle form submission
   const handleSubmit = (data: BankAccountFormData) => {
-    // For recipients with one-time option, go to confirmation step
+    // When editing an unsaved recipient, directly update without asking save/use-once
+    if (isEditing && onSubmitWithoutSave) {
+      const unsavedRecipient = transformToUnsavedRecipient(data);
+      onSubmitWithoutSave(unsavedRecipient);
+      return;
+    }
+
+    // For new recipients with one-time option, go to confirmation step
     if (formType === 'recipient' && onSubmitWithoutSave) {
       setPendingFormData(data);
       return;
@@ -388,9 +416,9 @@ export function BankAccountFormWrapper({
         </div>
 
         {/* Error alert */}
-        {formError && (
+        {(formError || initialError) && (
           <ServerErrorAlert
-            error={formError as any}
+            error={(formError || initialError) as any}
             customTitle="Failed to add recipient"
             customErrorMessage={{
               '400': 'Please check the information you entered and try again.',
@@ -508,7 +536,6 @@ export function BankAccountFormWrapper({
           isLoading={status === 'pending'}
           showCard={false}
           embedded
-          skipStepOne={skipStepOne}
           initialStep={formDataToRestore ? 2 : 1}
           initialPaymentTypes={
             formDataToRestore?.paymentTypes ??
@@ -517,9 +544,9 @@ export function BankAccountFormWrapper({
             >)
           }
           alert={
-            formError ? (
+            formError || initialError ? (
               <ServerErrorAlert
-                error={formError as any}
+                error={(formError || initialError) as any}
                 customTitle={
                   formType === 'linked-account'
                     ? 'Failed to link account'
