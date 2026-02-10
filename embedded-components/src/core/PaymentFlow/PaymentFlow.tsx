@@ -9,7 +9,9 @@ import {
   ChevronUp,
   Copy,
   Loader2,
+  Pencil,
   RefreshCw,
+  User,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
@@ -434,6 +436,10 @@ interface MainTransferViewProps {
   onRetryLinkedAccounts?: () => void;
   // Account count after applying payee restrictions (for skipping account step)
   validAccountCount?: number;
+  // Edit unsaved recipient handler
+  onEditUnsavedRecipient?: () => void;
+  // Clear unsaved recipient handler (to choose a different recipient)
+  onClearUnsavedRecipient?: () => void;
 }
 
 function MainTransferView({
@@ -465,6 +471,8 @@ function MainTransferView({
   onRetryRecipients,
   onRetryLinkedAccounts,
   validAccountCount,
+  onEditUnsavedRecipient,
+  onClearUnsavedRecipient,
 }: MainTransferViewProps) {
   const {
     formData,
@@ -991,30 +999,80 @@ function MainTransferView({
         disabled={isSubmitting}
         sectionRef={payeeSectionRef}
       >
-        <PayeeSelector
-          selectedPayeeId={formData.payeeId}
-          onSelect={handlePayeeSelect}
-          onAddNew={onAddNewPayee}
-          onAddRecipient={onAddRecipient}
-          onLinkAccount={onLinkAccount}
-          recipients={payees}
-          linkedAccounts={linkedAccounts}
-          isLoading={isLoading}
-          hasMoreRecipients={hasMoreRecipients}
-          onLoadMoreRecipients={onLoadMoreRecipients}
-          isLoadingMoreRecipients={isLoadingMoreRecipients}
-          totalRecipients={totalRecipients}
-          hasMoreLinkedAccounts={hasMoreLinkedAccounts}
-          onLoadMoreLinkedAccounts={onLoadMoreLinkedAccounts}
-          isLoadingMoreLinkedAccounts={isLoadingMoreLinkedAccounts}
-          totalLinkedAccounts={totalLinkedAccounts}
-          recipientsRestricted={isLimitedDDA}
-          showRestrictionWarning={showPayeeClearedWarning}
-          recipientsError={recipientsError}
-          linkedAccountsError={linkedAccountsError}
-          onRetryRecipients={onRetryRecipients}
-          onRetryLinkedAccounts={onRetryLinkedAccounts}
-        />
+        {/* Show unsaved recipient management UI when one is selected */}
+        {formData.unsavedRecipient ? (
+          <div className="eb-space-y-3">
+            {/* Unsaved recipient info card */}
+            <div className="eb-rounded-lg eb-border eb-bg-card eb-p-4">
+              <div className="eb-flex eb-items-start eb-justify-between eb-gap-3">
+                <div className="eb-flex eb-items-center eb-gap-3">
+                  <div className="eb-flex eb-h-10 eb-w-10 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary/10">
+                    <User className="eb-h-5 eb-w-5 eb-text-primary" />
+                  </div>
+                  <div>
+                    <div className="eb-font-medium">
+                      {formData.unsavedRecipient.displayName}
+                    </div>
+                    <div className="eb-text-sm eb-text-muted-foreground">
+                      Account ending in ...
+                      {formData.unsavedRecipient.accountNumber.slice(-4)}
+                    </div>
+                    <div className="eb-mt-1 eb-text-xs eb-text-muted-foreground">
+                      One-time recipient (not saved)
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Action buttons */}
+              <div className="eb-mt-4 eb-flex eb-gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onEditUnsavedRecipient}
+                  className="eb-gap-1.5"
+                >
+                  <Pencil className="eb-h-3.5 eb-w-3.5" />
+                  Edit
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={onClearUnsavedRecipient}
+                  className="eb-text-muted-foreground"
+                >
+                  Choose different recipient
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <PayeeSelector
+            selectedPayeeId={formData.payeeId}
+            onSelect={handlePayeeSelect}
+            onAddNew={onAddNewPayee}
+            onAddRecipient={onAddRecipient}
+            onLinkAccount={onLinkAccount}
+            recipients={payees}
+            linkedAccounts={linkedAccounts}
+            isLoading={isLoading}
+            hasMoreRecipients={hasMoreRecipients}
+            onLoadMoreRecipients={onLoadMoreRecipients}
+            isLoadingMoreRecipients={isLoadingMoreRecipients}
+            totalRecipients={totalRecipients}
+            hasMoreLinkedAccounts={hasMoreLinkedAccounts}
+            onLoadMoreLinkedAccounts={onLoadMoreLinkedAccounts}
+            isLoadingMoreLinkedAccounts={isLoadingMoreLinkedAccounts}
+            totalLinkedAccounts={totalLinkedAccounts}
+            recipientsRestricted={isLimitedDDA}
+            showRestrictionWarning={showPayeeClearedWarning}
+            recipientsError={recipientsError}
+            linkedAccountsError={linkedAccountsError}
+            onRetryRecipients={onRetryRecipients}
+            onRetryLinkedAccounts={onRetryLinkedAccounts}
+          />
+        )}
       </StepSection>
 
       {/* PAYMENT METHOD Section - Now third/last */}
@@ -1650,6 +1708,11 @@ function PaymentFlowContent({
   const [pendingPaymentMethod, setPendingPaymentMethod] =
     useState<PaymentMethodType | null>(null);
 
+  // State for editing an unsaved recipient
+  const [editingUnsavedRecipient, setEditingUnsavedRecipient] = useState<
+    UnsavedRecipient | undefined
+  >(undefined);
+
   // Warning state for initial data mismatch
   const [initialDataWarning, setInitialDataWarning] = useState<{
     account?: string;
@@ -2053,9 +2116,11 @@ function PaymentFlowContent({
 
       // Select the newly created recipient
       // Only auto-select payment method if there's exactly one enabled method
+      // Clear unsavedRecipient since we now have a saved recipient
       setFormData({
         payeeId: payee.id,
         payee,
+        unsavedRecipient: undefined,
         paymentMethod:
           payee.enabledPaymentMethods.length === 1
             ? (formData.paymentMethod ?? payee.enabledPaymentMethods[0])
@@ -2085,12 +2150,33 @@ function PaymentFlowContent({
             : undefined,
       });
 
+      // Clear editing state
+      setEditingUnsavedRecipient(undefined);
+
       // Go back through the flow (method selection -> main)
       popView();
       popView();
     },
     [setFormData, popView, formData.paymentMethod]
   );
+
+  // Handler to edit an unsaved recipient
+  const handleEditUnsavedRecipient = useCallback(() => {
+    if (formData.unsavedRecipient) {
+      // Store the unsaved recipient data for editing
+      setEditingUnsavedRecipient(formData.unsavedRecipient);
+      // Navigate to the add recipient form
+      pushView('add-recipient-form');
+    }
+  }, [formData.unsavedRecipient, pushView]);
+
+  // Handler to clear unsaved recipient and go back to recipient selection
+  const handleClearUnsavedRecipient = useCallback(() => {
+    setFormData({
+      unsavedRecipient: undefined,
+      paymentMethod: undefined, // Clear payment method since it was tied to the recipient
+    });
+  }, [setFormData]);
 
   // Get the selected payee for enable form
   const selectedPayee = useMemo(() => {
@@ -2173,6 +2259,8 @@ function PaymentFlowContent({
           onRetryRecipients={onRetryRecipients}
           onRetryLinkedAccounts={onRetryLinkedAccounts}
           validAccountCount={validAccountCount}
+          onEditUnsavedRecipient={handleEditUnsavedRecipient}
+          onClearUnsavedRecipient={handleClearUnsavedRecipient}
         />
       </FlowView>
 
@@ -2203,8 +2291,13 @@ function PaymentFlowContent({
           availablePaymentMethods={paymentMethods}
           onSuccess={handleRecipientSuccess}
           onSubmitWithoutSave={handleUnsavedRecipientSubmit}
-          onCancel={popView}
+          onCancel={() => {
+            setEditingUnsavedRecipient(undefined);
+            popView();
+          }}
           onSwitchToLinkedAccount={handleSwitchToLinkedAccount}
+          initialData={editingUnsavedRecipient}
+          isEditing={!!editingUnsavedRecipient}
         />
       </FlowView>
 

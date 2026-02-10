@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { ArrowLeft, Loader2, Save, UserX } from 'lucide-react';
 
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import type { TransactionRecipientDetailsV2 } from '@/api/generated/ep-transactions.schemas';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import {
   useClientId,
@@ -46,6 +46,10 @@ export interface BankAccountFormWrapperProps {
   onSwitchToRecipient?: () => void;
   /** Callback to switch to linking an account (only shown when formType is 'recipient') */
   onSwitchToLinkedAccount?: () => void;
+  /** Initial data to pre-fill the form (for editing unsaved recipients) */
+  initialData?: UnsavedRecipient;
+  /** Whether we're editing an existing unsaved recipient */
+  isEditing?: boolean;
 }
 
 /**
@@ -55,8 +59,8 @@ export interface BankAccountFormWrapperProps {
  * Handles API submission and provides proper configuration for both
  * linked accounts and recipients.
  *
- * This reduces duplication and ensures consistent form behavior across
- * the PaymentFlow and RecipientWidgets.
+ * For recipients, shows a confirmation step after form validation
+ * where user can choose to save or use without saving.
  */
 export function BankAccountFormWrapper({
   formType,
@@ -66,9 +70,52 @@ export function BankAccountFormWrapper({
   onCancel,
   onSwitchToRecipient,
   onSwitchToLinkedAccount,
+  initialData,
+  isEditing = false,
 }: BankAccountFormWrapperProps) {
-  // State for "Save for future payments" checkbox (only shown for recipients when onSubmitWithoutSave is provided)
-  const [saveForFuture, setSaveForFuture] = useState(true);
+  // For recipients with one-time option, show confirmation step after form
+  // Don't pre-initialize from initialData - we want to show the form first when editing
+  const [pendingFormData, setPendingFormData] =
+    useState<BankAccountFormData | null>(null);
+
+  // Transform UnsavedRecipient to a Recipient-like object for form pre-fill
+  const recipientForEdit = useMemo(() => {
+    if (!initialData) return undefined;
+    const { transactionRecipient } = initialData;
+    const { partyDetails, account } = transactionRecipient;
+    // Create a fake Recipient object that BankAccountForm can use for default values
+    return {
+      id: 'editing',
+      partyDetails: {
+        type: partyDetails?.type,
+        firstName:
+          partyDetails?.type === 'INDIVIDUAL'
+            ? partyDetails?.firstName
+            : undefined,
+        lastName:
+          partyDetails?.type === 'INDIVIDUAL'
+            ? partyDetails?.lastName
+            : undefined,
+        businessName:
+          partyDetails?.type === 'ORGANIZATION'
+            ? partyDetails?.businessName
+            : undefined,
+        address: partyDetails?.address,
+        contacts: partyDetails?.contacts,
+      },
+      account: {
+        number: account?.number,
+        type: account?.type,
+        routingInformation: account?.routingInformation?.map((ri) => ({
+          routingCodeType: ri.routingCodeType,
+          routingNumber: ri.routingNumber,
+          transactionType: ri.transactionType,
+        })),
+      },
+    } as Recipient;
+  }, [initialData]);
+  const showConfirmation =
+    formType === 'recipient' && onSubmitWithoutSave && pendingFormData !== null;
 
   // Get base config based on form type
   const linkedAccountConfig = useLinkedAccountConfig();
@@ -109,6 +156,15 @@ export function BankAccountFormWrapper({
       formType === 'linked-account' ? linkedAccountConfig : recipientConfig;
     const isLinkedAccount = formType === 'linked-account';
 
+    // Determine button text
+    let submitButtonText = isLinkedAccount ? 'Link Account' : 'Add Recipient';
+    if (isEditing) {
+      submitButtonText = 'Update Recipient';
+    } else if (!isLinkedAccount && onSubmitWithoutSave) {
+      // When one-time option is available, use "Continue" to go to confirmation
+      submitButtonText = 'Continue';
+    }
+
     // For recipients, filter available payment methods if specified
     if (!isLinkedAccount && availablePaymentMethods) {
       const availableMethodIds = availablePaymentMethods.map(
@@ -122,25 +178,30 @@ export function BankAccountFormWrapper({
             availableMethodIds.includes(m as 'ACH' | 'WIRE' | 'RTP')
           ),
         },
-        // Customize content for embedded flow
         content: {
           ...baseConfig.content,
-          submitButtonText: 'Add Recipient',
+          submitButtonText,
           cancelButtonText: 'Cancel',
         },
       };
     }
 
-    // For linked accounts, just customize the submit button text
     return {
       ...baseConfig,
       content: {
         ...baseConfig.content,
-        submitButtonText: isLinkedAccount ? 'Link Account' : 'Add Recipient',
+        submitButtonText,
         cancelButtonText: 'Cancel',
       },
     };
-  }, [formType, linkedAccountConfig, recipientConfig, availablePaymentMethods]);
+  }, [
+    formType,
+    linkedAccountConfig,
+    recipientConfig,
+    availablePaymentMethods,
+    isEditing,
+    onSubmitWithoutSave,
+  ]);
 
   /**
    * Transform BankAccountFormData to UnsavedRecipient for one-time payments
@@ -215,10 +276,9 @@ export function BankAccountFormWrapper({
 
   // Handle form submission
   const handleSubmit = (data: BankAccountFormData) => {
-    // For recipients with save option disabled, use one-time flow
-    if (formType === 'recipient' && !saveForFuture && onSubmitWithoutSave) {
-      const unsavedRecipient = transformToUnsavedRecipient(data);
-      onSubmitWithoutSave(unsavedRecipient);
+    // For recipients with one-time option, go to confirmation step
+    if (formType === 'recipient' && onSubmitWithoutSave) {
+      setPendingFormData(data);
       return;
     }
 
@@ -226,23 +286,145 @@ export function BankAccountFormWrapper({
     submit(data);
   };
 
+  // Handle "Save & Add" from confirmation
+  const handleSaveAndAdd = () => {
+    if (pendingFormData) {
+      submit(pendingFormData);
+    }
+  };
+
+  // Handle "Use Without Saving" from confirmation
+  const handleUseWithoutSaving = () => {
+    if (pendingFormData && onSubmitWithoutSave) {
+      const unsavedRecipient = transformToUnsavedRecipient(pendingFormData);
+      onSubmitWithoutSave(unsavedRecipient);
+    }
+  };
+
+  // Go back to form from confirmation
+  const handleBackToForm = () => {
+    setPendingFormData(null);
+    reset();
+  };
+
   // Reset on cancel
   const handleCancel = () => {
     reset();
+    setPendingFormData(null);
     onCancel();
   };
 
+  // Get display name from pending form data
+  const getPendingDisplayName = () => {
+    if (!pendingFormData) return '';
+    return pendingFormData.accountType === 'INDIVIDUAL'
+      ? `${pendingFormData.firstName ?? ''} ${pendingFormData.lastName ?? ''}`.trim()
+      : (pendingFormData.businessName ?? 'Recipient');
+  };
+
+  // Confirmation step view
+  if (showConfirmation) {
+    return (
+      <div className="eb-flex eb-flex-col eb-gap-4">
+        {/* Header */}
+        <div className="eb-px-1">
+          <h2 className="eb-text-lg eb-font-semibold">Save Recipient?</h2>
+          <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
+            Would you like to save{' '}
+            <span className="eb-font-medium eb-text-foreground">
+              {getPendingDisplayName()}
+            </span>{' '}
+            for future payments?
+          </p>
+        </div>
+
+        {/* Error alert */}
+        {formError && (
+          <ServerErrorAlert
+            error={formError as any}
+            customTitle="Failed to add recipient"
+            customErrorMessage={{
+              '400': 'Please check the information you entered and try again.',
+              '401': 'Your session has expired. Please log in and try again.',
+              '409': 'This recipient may already exist.',
+              '422':
+                'The recipient information is invalid. Please verify and try again.',
+              '500': 'An unexpected error occurred. Please try again later.',
+              default: 'An unexpected error occurred. Please try again.',
+            }}
+            showDetails={false}
+          />
+        )}
+
+        {/* Action buttons */}
+        <div className="eb-flex eb-flex-col eb-gap-3">
+          <Button
+            onClick={handleSaveAndAdd}
+            disabled={status === 'pending'}
+            className="eb-w-full eb-justify-start eb-gap-3 eb-px-4 eb-py-6"
+            variant="outline"
+          >
+            {status === 'pending' ? (
+              <Loader2 className="eb-h-5 eb-w-5 eb-animate-spin eb-text-primary" />
+            ) : (
+              <Save className="eb-h-5 eb-w-5 eb-text-primary" />
+            )}
+            <div className="eb-text-left">
+              <div className="eb-font-medium">Save & Continue</div>
+              <div className="eb-text-xs eb-font-normal eb-text-muted-foreground">
+                Add to your recipients for easy access
+              </div>
+            </div>
+          </Button>
+
+          <Button
+            onClick={handleUseWithoutSaving}
+            disabled={status === 'pending'}
+            variant="outline"
+            className="eb-w-full eb-justify-start eb-gap-3 eb-px-4 eb-py-6"
+          >
+            <UserX className="eb-h-5 eb-w-5 eb-text-muted-foreground" />
+            <div className="eb-text-left">
+              <div className="eb-font-medium">Use Once</div>
+              <div className="eb-text-xs eb-font-normal eb-text-muted-foreground">
+                For this payment only
+              </div>
+            </div>
+          </Button>
+        </div>
+
+        {/* Back link */}
+        <button
+          type="button"
+          onClick={handleBackToForm}
+          disabled={status === 'pending'}
+          className="eb-flex eb-items-center eb-gap-1 eb-text-sm eb-text-primary hover:eb-underline disabled:eb-opacity-50"
+        >
+          <ArrowLeft className="eb-h-3.5 eb-w-3.5" />
+          Edit recipient details
+        </button>
+      </div>
+    );
+  }
+
+  // Main form view
   return (
     <div className="eb-flex eb-flex-col eb-gap-3">
       {/* Header */}
       <div className="eb-px-1">
         <h2 className="eb-text-lg eb-font-semibold">
-          {formType === 'linked-account' ? 'Link My Account' : 'Add Recipient'}
+          {formType === 'linked-account'
+            ? 'Link My Account'
+            : isEditing
+              ? 'Edit Recipient'
+              : 'Add Recipient'}
         </h2>
         <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
           {formType === 'linked-account'
             ? 'Connect your account from another bank for transfers.'
-            : 'Add a new person or business to send payments to.'}
+            : isEditing
+              ? 'Update the recipient details below.'
+              : 'Add a new person or business to send payments to.'}
         </p>
         {/* Switch option link */}
         {formType === 'linked-account' && onSwitchToRecipient && (
@@ -254,7 +436,7 @@ export function BankAccountFormWrapper({
             Or add an external recipient instead
           </button>
         )}
-        {formType === 'recipient' && onSwitchToLinkedAccount && (
+        {formType === 'recipient' && onSwitchToLinkedAccount && !isEditing && (
           <button
             type="button"
             onClick={onSwitchToLinkedAccount}
@@ -265,28 +447,12 @@ export function BankAccountFormWrapper({
         )}
       </div>
 
-      {/* Save for future payments checkbox - only for recipients when onSubmitWithoutSave is provided */}
-      {formType === 'recipient' && onSubmitWithoutSave && (
-        <div className="eb-flex eb-items-center eb-gap-2 eb-px-1">
-          <Checkbox
-            id="save-for-future"
-            checked={saveForFuture}
-            onCheckedChange={(checked) => setSaveForFuture(checked === true)}
-          />
-          <Label
-            htmlFor="save-for-future"
-            className="eb-cursor-pointer eb-text-sm eb-font-normal"
-          >
-            Save this recipient for future payments
-          </Label>
-        </div>
-      )}
-
       {/* Form - embedded in a bordered card for visual separation */}
       <div className="eb-rounded-lg eb-border eb-bg-card">
         <BankAccountForm
           config={config}
           client={formType === 'linked-account' ? clientData : undefined}
+          recipient={recipientForEdit}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
           isLoading={status === 'pending'}
