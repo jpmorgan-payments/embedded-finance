@@ -7,6 +7,7 @@
 
 ## Table of Contents
 
+- [Prerequisites: Client Creation](#prerequisites-client-creation)
 - [1. Integration Overview](#1-integration-overview)
 - [2. API Reference: Session Transfer](#2-api-reference-session-transfer)
 - [3. Frontend Implementation: Embedding the Onboarding UI](#3-frontend-implementation-embedding-the-onboarding-ui)
@@ -27,6 +28,13 @@
 
 This guide outlines the process for integrating the hosted Onboarding UI into
 your platform.
+
+## Prerequisites: Client Creation
+
+The Hosted Onboarding UI requires a **Client ID** before a session can be initiated. You can create clients in two ways:
+
+- **API** — Call `POST /clients` with a minimal payload (`products`, `partyType`, `roles`, and organization name). The response returns the Client ID. See the [Onboard a Client](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client) documentation for details.
+- **Batch upload** — For bulk provisioning or migrations, the J.P. Morgan Operations team can create clients from a CSV file. Contact your account representative for the upload format and process.
 
 ## 1. Integration Overview
 
