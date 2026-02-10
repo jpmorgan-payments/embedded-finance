@@ -23,15 +23,22 @@ Mandatory code quality workflow that must run after ANY code changes. This workf
 **After making ANY code changes, you MUST:**
 
 1. **Format code**: `cd embedded-components; yarn format`
+
    - Auto-fixes Prettier formatting issues
    - **DO NOT skip this step** - code must be properly formatted
 
 2. **Run tests**: `cd embedded-components; yarn test`
+
    - This runs: typecheck → format:check → lint → test:unit
    - **DO NOT skip this step** - tests must pass before proceeding
 
-3. **Fix any errors that appear**
-4. **Re-run tests until all pass**
+3. **For large changes** (new components, refactors, many files touched): **also run build, types, and format explicitly:**
+
+   - `cd embedded-components; yarn format; yarn typecheck; yarn build; yarn test`
+   - **DO NOT skip build** - `yarn build` catches compilation/export issues that may not surface the same way in `yarn test`.
+
+4. **Fix any errors that appear**
+5. **Re-run until all pass**
 
 ## The Test Command
 
@@ -41,6 +48,7 @@ yarn test
 ```
 
 This runs in sequence:
+
 1. `typecheck` - TypeScript type checking
 2. `format:check` - Prettier formatting verification
 3. `lint` - ESLint linting
@@ -63,6 +71,7 @@ const value: string = "123";
 ```
 
 Run to verify:
+
 ```powershell
 cd embedded-components
 yarn typecheck
@@ -78,6 +87,7 @@ yarn format
 ```
 
 This automatically fixes:
+
 - Indentation
 - Quote style
 - Line breaks
@@ -139,6 +149,9 @@ yarn lint:fix
 # Check types only
 yarn typecheck
 
+# Full build (always run for large changes)
+yarn build
+
 # Run tests only
 yarn test:unit
 
@@ -152,9 +165,12 @@ yarn test ComponentName.test.tsx
 yarn test:watch
 ```
 
+**For large changes:** run `yarn format`, then `yarn typecheck`, then `yarn build`, then `yarn test`.
+
 ## Never Commit Code With
 
 - ❌ TypeScript errors
+- ❌ Build failures (for large changes: run `yarn build` and fix before committing)
 - ❌ Formatting errors (Prettier)
 - ❌ Linting errors
 - ❌ Failing tests
@@ -172,7 +188,11 @@ yarn format
 # 3. Run full test suite
 yarn test
 
-# 4. If errors appear:
+# 4. For LARGE changes (new components, refactors, many files), also run:
+yarn typecheck
+yarn build
+
+# 5. If errors appear:
 
 # Fix formatting (if not already done)
 yarn format
@@ -180,18 +200,18 @@ yarn format
 # Fix linting
 yarn lint:fix
 
-# Fix TypeScript errors
+# Fix TypeScript / build errors
 # (edit code manually)
 
 # Fix failing tests
 # (update tests or implementation)
 
-# 5. Re-run tests
-yarn test
+# 6. Re-run: format, typecheck, build (if large), test
+yarn format; yarn typecheck; yarn build; yarn test
 
-# 6. Repeat steps 4-5 until all pass
+# 7. Repeat until all pass
 
-# 7. Commit code
+# 8. Commit code
 git add .
 git commit -m "feat: add new component"
 ```
@@ -209,7 +229,9 @@ Before committing, ensure:
 
 - [ ] `yarn format` has been run (code is formatted)
 - [ ] `yarn test` passes (all checks green)
+- [ ] **For large changes:** `yarn typecheck` and `yarn build` have been run and pass
 - [ ] No TypeScript errors
+- [ ] No build failures
 - [ ] No formatting errors
 - [ ] No linting errors
 - [ ] No failing tests

@@ -98,6 +98,7 @@ const FONT_FAMILIES = [
 // Semantic token labels (Salt-inspired) for display
 const TOKEN_LABELS: Record<string, string> = {
   contentFontFamily: 'Content Font Family',
+  contentPrimaryForeground: 'Content Foreground',
   textHeadingFontFamily: 'Header Font Family',
   actionableFontFamily: 'Actionable Font Family',
   actionableFontWeight: 'Actionable Font Weight',
@@ -179,6 +180,193 @@ const TOKEN_LABELS: Record<string, string> = {
   actionableNegativeBoldFontWeight: 'Negative Bold Font Weight',
   accentMetricBackground: 'Metric Accent Background',
 };
+
+// Plain-English tooltips for each design token (what the token changes in the UI)
+const TOKEN_TOOLTIPS: Record<string, string> = {
+  contentFontFamily: 'Sets the primary font used for body text throughout the experience.',
+  contentPrimaryForeground:
+    'Controls the main body text color for readability on your background.',
+  textHeadingFontFamily: 'Sets the font used for headings and titles (H1–H6).',
+  actionableFontFamily: 'Sets the font used for all buttons and interactive controls.',
+  actionableFontWeight: 'Controls how bold button text looks by default.',
+  actionableFontSize: 'Adjusts the size of text inside buttons.',
+  actionableLineHeight: 'Adjusts vertical spacing around button text for readability.',
+  actionableTextTransform: 'Controls whether button labels appear in UPPERCASE, Capitalized, or normal case.',
+  actionableLetterSpacing: 'Fine-tunes the spacing between letters in button labels.',
+  actionableAccentedBoldFontWeight: 'Controls how bold the text is on primary call-to-action buttons.',
+  actionableSubtleFontWeight: 'Controls how bold the text is on secondary buttons.',
+
+  containerPrimaryBackground: 'Sets the main page background color across the experience.',
+  containerCardBackground: 'Controls the background color of cards, panels, and content blocks.',
+  containerPrimaryForeground: 'Sets the default text color on primary surfaces and cards.',
+  containerSecondaryBackground: 'Background color for muted or secondary sections.',
+  containerSecondaryForeground: 'Text color on muted or secondary surfaces.',
+  overlayableBackground: 'Background color for overlays like dialogs, popovers, and flyouts.',
+  overlayableForeground: 'Text color inside overlays and popovers.',
+  overlayableZIndex: 'Controls how far overlays sit above other content (stacking order).',
+  accentBackground: 'General accent background for highlighted chips, tags, or subtle accents.',
+  contentAccentForeground: 'Text color for accent elements like links, highlights, or key figures.',
+
+  actionableAccentedBoldBackground: 'Main background color for primary call-to-action buttons.',
+  actionableAccentedBoldBackgroundHover: 'Background when hovering over primary buttons.',
+  actionableAccentedBoldBackgroundActive: 'Background for primary buttons while pressed.',
+  actionableAccentedBoldForeground: 'Text and icon color on primary call-to-action buttons.',
+  actionableAccentedBoldForegroundHover: 'Text and icon color on primary buttons when hovered.',
+  actionableAccentedBoldForegroundActive: 'Text and icon color on primary buttons while pressed.',
+  actionableAccentedBoldBorderWidth: 'Border thickness for primary call-to-action buttons.',
+  actionableBorderRadius: 'Rounds the corners of all buttons (from sharp to pill-shaped).',
+  actionableShiftOnActive: 'How much buttons visually “press down” when clicked.',
+
+  actionableSubtleBackground: 'Background color for secondary, low-emphasis buttons.',
+  actionableSubtleBackgroundHover: 'Background for secondary buttons on hover.',
+  actionableSubtleBackgroundActive: 'Background for secondary buttons while pressed.',
+  actionableSubtleForeground: 'Text and icon color for secondary buttons.',
+  actionableSubtleForegroundHover: 'Text and icon color for secondary buttons on hover.',
+  actionableSubtleForegroundActive: 'Text and icon color for secondary buttons while pressed.',
+  actionableSubtleBorderWidth: 'Border thickness for secondary buttons.',
+  // Removed duplicate key: actionableSubtleFontWeight (already defined above)
+
+  editableBackground: 'Background color for input fields and text areas.',
+  editableBorderColor: 'Border color around inputs and form fields.',
+  editableBorderRadius: 'Rounds the corners of input fields and text areas.',
+  editableLabelFontSize: 'Size of form labels (e.g. field names).',
+  editableLabelFontWeight: 'How bold form labels appear.',
+  editableLabelLineHeight: 'Vertical spacing for multi-line form labels.',
+  editableLabelForeground: 'Text color for form labels.',
+
+  separableBorderColor: 'Default border color for cards, dividers, and outlined elements.',
+  separableBorderRadius: 'Base corner radius applied to most components and surfaces.',
+  spacingUnit: 'Base spacing unit that drives padding and gaps across the layout.',
+
+  focusedRingColor: 'Color of the focus ring when tabbing to buttons, links, and inputs.',
+
+  actionableNegativeBoldBackground: 'Background color for destructive or “danger” buttons (e.g. Delete).',
+  actionableNegativeBoldBackgroundHover: 'Background for destructive buttons on hover.',
+  actionableNegativeBoldBackgroundActive: 'Background for destructive buttons while pressed.',
+  actionableNegativeBoldForeground: 'Text and icon color on destructive buttons.',
+  actionableNegativeBoldForegroundHover: 'Text and icon color on destructive buttons when hovered.',
+  actionableNegativeBoldForegroundActive: 'Text and icon color on destructive buttons while pressed.',
+  actionableNegativeBoldBorderWidth: 'Border thickness for destructive buttons.',
+  actionableNegativeBoldFontWeight: 'How bold the text appears on destructive buttons.',
+
+  sentimentNegativeAccentBackground: 'Accent background for negative states (e.g. critical alerts).',
+  sentimentCautionForeground: 'Text color for caution or warning messages.',
+  sentimentCautionAccentBackground: 'Background accent for warning or “be careful” banners.',
+  sentimentPositiveForeground: 'Text color for success messages and positive states.',
+  sentimentPositiveAccentBackground: 'Accent background for success toasts, badges, or highlights.',
+  statusInfoForeground: 'Text color for neutral “information” status messages.',
+  statusInfoAccentBackground: 'Accent background for informational banners and callouts.',
+  statusErrorForegroundInformative: 'Text color for error messages in informational components.',
+  statusErrorBackground: 'Background color for error surfaces (e.g. error banners).',
+  statusSuccessForeground: 'Text color for success status messages and confirmations.',
+  statusSuccessAccentBackground: 'Accent background for success banners, badges, and confirmations.',
+  statusWarningForeground: 'Text color for warning status messages.',
+  statusWarningAccentBackground: 'Accent background for warning banners and inline warnings.',
+  navigableBackground: 'Background color for navigation areas (e.g. sidebars, nav rails).',
+  navigableForeground: 'Default text and icon color inside navigation areas.',
+  navigableAccentBackground: 'Background for the active or highlighted navigation item.',
+  navigableAccentForeground: 'Text and icon color for active or highlighted nav items.',
+  accentMetricBackground: 'Accent background for key metrics and KPI tiles in dashboards.',
+};
+
+// Placeholders and optional hint text for simple input controls (format expectations)
+const INPUT_FORMAT: Record<
+  string,
+  { placeholder: string; hint?: string }
+> = {
+  // Radius (pixels or number)
+  actionableBorderRadius: {
+    placeholder: 'e.g. 4 or 0.25rem',
+    hint: 'Pixels (0–100) or CSS length (e.g. 0.25rem). Rounds button corners.',
+  },
+  editableBorderRadius: {
+    placeholder: 'e.g. 4 or 0.25rem',
+    hint: 'Pixels (0–100) or CSS length. Rounds input corners.',
+  },
+  separableBorderRadius: {
+    placeholder: 'e.g. 4 or 0.25rem',
+    hint: 'Pixels (0–100) or CSS length. Default corner radius for cards and surfaces.',
+  },
+  // Border width (pixels)
+  actionableAccentedBoldBorderWidth: {
+    placeholder: 'e.g. 1',
+    hint: 'Pixels (0–100). Primary button border thickness.',
+  },
+  actionableSubtleBorderWidth: {
+    placeholder: 'e.g. 1',
+    hint: 'Pixels (0–100). Secondary button border thickness.',
+  },
+  actionableNegativeBoldBorderWidth: {
+    placeholder: 'e.g. 1',
+    hint: 'Pixels (0–100). Destructive button border thickness.',
+  },
+  // Spacing
+  spacingUnit: {
+    placeholder: 'e.g. 8',
+    hint: 'Base unit (0–100). Multiplier for padding and gaps across the layout.',
+  },
+  // Z-index
+  overlayableZIndex: {
+    placeholder: 'e.g. 50',
+    hint: 'Integer 0–9999. Higher values sit on top of other content.',
+  },
+  // Typography (rem)
+  actionableFontSize: {
+    placeholder: 'e.g. 0.875',
+    hint: 'Rem (0.1–10). 0.875 ≈ 14px. Button text size.',
+  },
+  actionableLineHeight: {
+    placeholder: 'e.g. 1.25',
+    hint: 'Unitless or rem (0.1–10). Line height for button text.',
+  },
+  editableLabelFontSize: {
+    placeholder: 'e.g. 0.875',
+    hint: 'Rem (0.1–10). Form label text size.',
+  },
+  editableLabelLineHeight: {
+    placeholder: 'e.g. 1.25',
+    hint: 'Unitless or rem. Form label line height.',
+  },
+  // Text transform & letter spacing (string)
+  actionableTextTransform: {
+    placeholder: 'none | uppercase | lowercase | capitalize',
+    hint: 'CSS text-transform. Use lowercase for the value.',
+  },
+  actionableLetterSpacing: {
+    placeholder: 'e.g. 0 or 0.05em',
+    hint: 'CSS letter-spacing. Number (em) or length (e.g. 0.5px).',
+  },
+};
+
+// Derive placeholder/hint for tokens not in INPUT_FORMAT (by pattern)
+function getInputFormat(token: string): {
+  placeholder: string;
+  hint?: string;
+} {
+  const exact = INPUT_FORMAT[token];
+  if (exact) return exact;
+  const lower = token.toLowerCase();
+  if (lower.includes('radius'))
+    return {
+      placeholder: 'e.g. 4 or 0.25rem',
+      hint: 'Pixels (0–100) or CSS length.',
+    };
+  if (lower.includes('width') && !lower.includes('borderwidth'))
+    return { placeholder: 'e.g. 1', hint: 'Pixels (0–100).' };
+  if (lower.includes('spacing'))
+    return {
+      placeholder: 'e.g. 8 or 8px',
+      hint: 'Number (multiplier) or CSS length (px/rem).',
+    };
+  if (lower.includes('fontsize') || lower.includes('lineheight'))
+    return {
+      placeholder: 'e.g. 0.875',
+      hint: 'Rem (0.1–10).',
+    };
+  if (lower.includes('zindex'))
+    return { placeholder: 'e.g. 50', hint: 'Integer 0–9999.' };
+  return { placeholder: 'Value', hint: undefined };
+}
 
 // Semantic token order following Salt Design System characteristics
 // Order: Actionable, Category, Container, Content, Editable, Focused, Navigable, Overlayable, Selectable, Sentiment, Separable, Status, Target, Text
@@ -961,15 +1149,20 @@ export function ThemeCustomizationDrawer({
               type="text"
               value={value || ''}
               onChange={(e) => handleTokenChange(token, e.target.value)}
-              placeholder="Color value"
+              placeholder="e.g. #3b82f6 or rgb(59, 130, 246)"
               className="flex-1 border-gray-300 bg-white text-gray-900 placeholder-gray-500"
             />
             {contrastBadge}
           </div>
-          {contrastBadge && relevantPairs.length > 0 && (
+          {(contrastBadge && relevantPairs.length > 0) && (
             <div className="ml-14 text-xs text-gray-500">
               {relevantPairs[0].label}
             </div>
+          )}
+          {!(contrastBadge && relevantPairs.length > 0) && (
+            <p className="ml-14 text-xs text-gray-500">
+              Hex, rgb(), or any valid CSS color.
+            </p>
           )}
         </div>
       );
@@ -997,45 +1190,74 @@ export function ThemeCustomizationDrawer({
 
     if (isNumber) {
       const constraints = getNumberConstraints(token);
+      const { placeholder, hint } = getInputFormat(token as string);
       return (
-        <Input
-          type="number"
-          value={value || 0}
-          onChange={(e) => handleTokenChange(token, Number(e.target.value))}
-          min={constraints.min}
-          max={constraints.max}
-          step={constraints.step}
-          className="w-32 border-gray-300 bg-white text-gray-900"
-        />
+        <div className="space-y-1">
+          <Input
+            type="number"
+            value={value ?? ''}
+            onChange={(e) =>
+              handleTokenChange(token, Number(e.target.value) || 0)
+            }
+            min={constraints.min}
+            max={constraints.max}
+            step={constraints.step}
+            placeholder={placeholder}
+            className="w-32 border-gray-300 bg-white text-gray-900 placeholder-gray-500"
+            aria-describedby={hint ? `${token}-hint` : undefined}
+          />
+          {hint && (
+            <p className="text-xs text-gray-500" id={`${token}-hint`}>
+              {hint}
+            </p>
+          )}
+        </div>
       );
     }
 
     if (isSpacing) {
+      const { placeholder, hint } = getInputFormat(token as string);
       // For spacing tokens that are numeric, use number input
       if (typeof value === 'number' || !isNaN(Number(value))) {
         const constraints = getNumberConstraints(token);
         return (
-          <Input
-            type="number"
-            value={value || ''}
-            onChange={(e) => handleTokenChange(token, e.target.value)}
-            min={constraints.min}
-            max={constraints.max}
-            step={constraints.step}
-            placeholder="e.g., 8"
-            className="w-32 border-gray-300 bg-white text-gray-900 placeholder-gray-500"
-          />
+          <div className="space-y-1">
+            <Input
+              type="number"
+              value={value ?? ''}
+              onChange={(e) => handleTokenChange(token, e.target.value)}
+              min={constraints.min}
+              max={constraints.max}
+              step={constraints.step}
+              placeholder={placeholder}
+              className="w-32 border-gray-300 bg-white text-gray-900 placeholder-gray-500"
+              aria-describedby={hint ? `${token}-hint` : undefined}
+            />
+            {hint && (
+              <p className="text-xs text-gray-500" id={`${token}-hint`}>
+                {hint}
+              </p>
+            )}
+          </div>
         );
       }
       // For string-based spacing (like CSS units), use text input
       return (
-        <Input
-          type="text"
-          value={value || ''}
-          onChange={(e) => handleTokenChange(token, e.target.value)}
-          placeholder="e.g., 8px, 0.5rem"
-          className="flex-1 border-gray-300 bg-white text-gray-900 placeholder-gray-500"
-        />
+        <div className="space-y-1">
+          <Input
+            type="text"
+            value={value || ''}
+            onChange={(e) => handleTokenChange(token, e.target.value)}
+            placeholder={placeholder}
+            className="flex-1 border-gray-300 bg-white text-gray-900 placeholder-gray-500"
+            aria-describedby={hint ? `${token}-hint` : undefined}
+          />
+          {hint && (
+            <p className="text-xs text-gray-500" id={`${token}-hint`}>
+              {hint}
+            </p>
+          )}
+        </div>
       );
     }
 
@@ -1065,29 +1287,47 @@ export function ThemeCustomizationDrawer({
 
     if (isFontSize) {
       const constraints = getNumberConstraints(token);
+      const { placeholder, hint } = getInputFormat(token as string);
       return (
-        <Input
-          type="number"
-          value={value || ''}
-          onChange={(e) => handleTokenChange(token, e.target.value)}
-          min={constraints.min}
-          max={constraints.max}
-          step={constraints.step}
-          placeholder="e.g., 0.875"
-          className="w-32 border-gray-300 bg-white text-gray-900 placeholder-gray-500"
-        />
+        <div className="space-y-1">
+          <Input
+            type="number"
+            value={value ?? ''}
+            onChange={(e) => handleTokenChange(token, e.target.value)}
+            min={constraints.min}
+            max={constraints.max}
+            step={constraints.step}
+            placeholder={placeholder}
+            className="w-32 border-gray-300 bg-white text-gray-900 placeholder-gray-500"
+            aria-describedby={hint ? `${token}-hint` : undefined}
+          />
+          {hint && (
+            <p className="text-xs text-gray-500" id={`${token}-hint`}>
+              {hint}
+            </p>
+          )}
+        </div>
       );
     }
 
-    // Default text input
+    // Default text input (e.g. text transform, letter spacing)
+    const { placeholder, hint } = getInputFormat(token as string);
     return (
-      <Input
-        type="text"
-        value={value || ''}
-        onChange={(e) => handleTokenChange(token, e.target.value)}
-        placeholder="Value"
-        className="flex-1 border-gray-300 bg-white text-gray-900 placeholder-gray-500"
-      />
+      <div className="space-y-1">
+        <Input
+          type="text"
+          value={value || ''}
+          onChange={(e) => handleTokenChange(token, e.target.value)}
+          placeholder={placeholder}
+          className="flex-1 border-gray-300 bg-white text-gray-900 placeholder-gray-500"
+          aria-describedby={hint ? `${token}-hint` : undefined}
+        />
+        {hint && (
+          <p className="text-xs text-gray-500" id={`${token}-hint`}>
+            {hint}
+          </p>
+        )}
+      </div>
     );
   };
 
@@ -1296,7 +1536,7 @@ export function ThemeCustomizationDrawer({
           {/* Theme Groups */}
           <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full">
-              <div className="px-6 pb-12">
+              <div className="px-6 pb-48">
                 {/* Accessibility Check Section - Moved to Top */}
                 <div className="mb-6 border-b border-gray-200 pb-6">
                   {(() => {
@@ -1633,14 +1873,34 @@ export function ThemeCustomizationDrawer({
                                       token as keyof EBThemeVariables
                                     ];
 
+                              const tooltipText = TOKEN_TOOLTIPS[token];
                               return (
                                 <div key={token} className="space-y-2">
-                                  <Label
-                                    htmlFor={token}
-                                    className="text-xs font-medium text-gray-900"
-                                  >
-                                    {TOKEN_LABELS[token] || token}
-                                  </Label>
+                                  <div className="flex items-center gap-1.5">
+                                    <Label
+                                      htmlFor={token}
+                                      className="text-xs font-medium text-gray-900"
+                                    >
+                                      {TOKEN_LABELS[token] || token}
+                                    </Label>
+                                    {tooltipText && (
+                                      <span className="group relative inline-flex flex-shrink-0">
+                                        <button
+                                          type="button"
+                                          className="rounded p-0.5 text-gray-400 outline-none hover:text-gray-600 focus:text-gray-600 focus:ring-2 focus:ring-gray-300 focus:ring-offset-1"
+                                          aria-label={`What does ${TOKEN_LABELS[token] || token} change?`}
+                                        >
+                                          <Info className="h-3.5 w-3.5" />
+                                        </button>
+                                        <span
+                                          className="pointer-events-none absolute left-0 top-full z-50 mt-1 hidden min-w-[18rem] max-w-[28rem] whitespace-normal rounded-md border border-gray-200 bg-gray-900 px-3 py-2.5 text-left text-sm font-normal leading-snug text-white shadow-lg group-hover:block group-focus-within:block"
+                                          role="tooltip"
+                                        >
+                                          {tooltipText}
+                                        </span>
+                                      </span>
+                                    )}
+                                  </div>
                                   {renderTokenControl(
                                     token as keyof EBThemeVariables,
                                     value

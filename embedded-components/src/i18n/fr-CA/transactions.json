@@ -38,7 +38,10 @@
     "reset": "Réinitialiser",
     "copyTransactionId": {
       "srOnly": "Copier l'ID de transaction"
-    }
+    },
+    "viewDetails": "Voir les détails",
+    "viewDetailsShort": "Détails",
+    "moreActions": "Plus d'actions"
   },
   "columns": {
     "date": "Date",
@@ -55,7 +58,8 @@
     "creditor": "Créancier",
     "ledgerBalance": "Solde du grand livre",
     "postingVersion": "Version de publication",
-    "direction": "Direction"
+    "direction": "Direction",
+    "actions": "Actions"
   },
   "filters": {
     "status": {

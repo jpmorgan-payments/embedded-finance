@@ -421,24 +421,10 @@ function PaymentSection() {
         },
       }}
     >
-      <MakePayment
-        triggerButtonVariant="link"
-        accounts={[
-          { id: 'account1', name: 'Main Account' },
-          { id: 'account2', name: 'Savings Account' },
-        ]}
-        recipients={[
-          {
-            id: 'recipient1',
-            name: 'John Doe',
-            accountNumber: '****1234',
-          },
-        ]}
-        paymentMethods={[
-          { id: 'ACH', name: 'ACH Transfer', fee: 2.5 },
-          { id: 'WIRE', name: 'Wire Transfer', fee: 25.0 },
-        ]}
-        onTransactionSettled={(response, error) => {
+      <PaymentFlow
+        clientId="your-client-id"
+        trigger={<Button>Make Payment</Button>}
+        onTransactionComplete={(response, error) => {
           if (response) {
             console.log('Payment successful:', response);
           }

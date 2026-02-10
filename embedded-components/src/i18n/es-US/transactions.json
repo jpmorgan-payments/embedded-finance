@@ -38,7 +38,10 @@
     "reset": "Restablecer",
     "copyTransactionId": {
       "srOnly": "Copiar ID de transacción"
-    }
+    },
+    "viewDetails": "Ver detalles",
+    "viewDetailsShort": "Detalles",
+    "moreActions": "Más acciones"
   },
   "columns": {
     "date": "Fecha",
@@ -55,7 +58,8 @@
     "creditor": "Acreedor",
     "ledgerBalance": "Saldo del libro mayor",
     "postingVersion": "Versión de registro",
-    "direction": "Dirección"
+    "direction": "Dirección",
+    "actions": "Acciones"
   },
   "filters": {
     "status": {

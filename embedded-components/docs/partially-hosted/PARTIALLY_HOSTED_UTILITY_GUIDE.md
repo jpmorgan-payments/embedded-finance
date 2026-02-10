@@ -573,7 +573,7 @@ Apache License 2.0
 
 ## Related Documentation
 
-- [Integration Guide](./PARTIALLY_HOSTED_ONBOARDING_INTEGRATION_GUIDE.md)
+- [Integration Guide](./PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md)
 - [Embedded Components README](../../../embedded-components/README.md)
 - [Theme Documentation](../../../embedded-components/README.md#theming)
 - [Content Tokens](../../../embedded-components/README.md#content-tokens)

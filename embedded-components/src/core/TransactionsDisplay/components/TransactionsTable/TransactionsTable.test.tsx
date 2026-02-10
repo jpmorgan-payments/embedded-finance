@@ -104,6 +104,21 @@ describe('TransactionsTable', () => {
       expect(screen.getByText('Jane Smith')).toBeInTheDocument();
     });
 
+    test('renders Details action button per row', () => {
+      renderWithProviders(
+        <TransactionsTable
+          columns={transactionsColumns}
+          data={mockTransactions}
+        />
+      );
+
+      // Actions column has a Details button per row (aria-label includes "View details" or "Details")
+      const detailsButtons = screen.getAllByRole('button', {
+        name: /view details|details/i,
+      });
+      expect(detailsButtons).toHaveLength(mockTransactions.length);
+    });
+
     test('renders empty state when no data', () => {
       renderWithProviders(
         <TransactionsTable columns={transactionsColumns} data={[]} />

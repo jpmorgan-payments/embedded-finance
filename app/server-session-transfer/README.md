@@ -424,7 +424,7 @@ DEBUG=true
 
 ## 📚 References
 
-- [Partially Hosted Onboarding Integration Guide](https://github.com/jpmorgan-payments/embedded-finance/blob/main/app/client/src/docs/PARTIALLY_HOSTED_ONBOARDING_INTEGRATION_GUIDE.md)
+- [Partially Hosted Onboarding Integration Guide](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md)
 
 ## 🚀 Production Implementation Guidelines
 
@@ -450,4 +450,4 @@ This demo provides a foundation for production implementation. For production de
 - **Document security controls** for audit and compliance purposes
 - **Regular security assessments** and penetration testing
 
-For detailed implementation guidance, refer to the [Partially Hosted Onboarding Integration Guide](https://github.com/jpmorgan-payments/embedded-finance/blob/main/app/client/src/docs/PARTIALLY_HOSTED_ONBOARDING_INTEGRATION_GUIDE.md). 
+For detailed implementation guidance, refer to the [Partially Hosted Onboarding Integration Guide](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md). 

@@ -2,11 +2,12 @@ import { useThemeStyles } from './theme-utils';
 import type { ThemeOption } from './use-sellsense-themes';
 
 interface FooterProps {
-  theme: ThemeOption;
+  /** Theme used for logo/portal styling (when Custom, this is the base theme e.g. Empty) */
+  themeForDisplay: ThemeOption;
 }
 
-export function Footer({ theme }: FooterProps) {
-  const themeStyles = useThemeStyles(theme);
+export function Footer({ themeForDisplay }: FooterProps) {
+  const themeStyles = useThemeStyles(themeForDisplay);
 
   return (
     <footer

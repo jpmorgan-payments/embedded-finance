@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Accounts,
   EBComponentsProvider,
   LinkedAccountWidget,
-  MakePayment,
+  PaymentFlow,
   RecipientsWidget,
   TransactionsDisplay,
 } from '@jpmorgan-payments/embedded-finance-components';
@@ -19,6 +19,7 @@ import { useNavigate, useSearch } from '@tanstack/react-router';
 import { usePingService } from '@/hooks/use-ping-service';
 import { DatabaseResetUtils } from '@/lib/database-reset-utils';
 
+import { Button } from '../ui/button';
 import { ContentTokenEditorDrawer } from './content-token-editor-drawer';
 import { DashboardOverview } from './dashboard-overview';
 import { Footer } from './footer';
@@ -116,6 +117,8 @@ export function DashboardLayout() {
   );
   const [hasProcessedInitialLoad, setHasProcessedInitialLoad] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const mainContentRef = useRef<HTMLElement | null>(null);
+  const pendingScrollRestoreRef = useRef<{ scrollTop: number; scrollLeft: number } | null>(null);
 
   // Initialize customThemeVariables from URL if present
   const getInitialCustomThemeVariables = (): EBThemeVariables => {
@@ -168,7 +171,14 @@ export function DashboardLayout() {
   const [theme, setTheme] = useState<ThemeOption>(
     searchParams.theme || 'SellSense'
   );
-  const themeStyles = useThemeStyles(theme);
+  // When theme is Custom, use baseTheme for portal styling (logo, colors) so e.g. Empty stays Empty
+  const themeForDisplay: ThemeOption =
+    theme === 'Custom' && customThemeData?.baseTheme
+      ? customThemeData.baseTheme
+      : theme === 'Custom'
+        ? 'SellSense'
+        : theme;
+  const themeStyles = useThemeStyles(themeForDisplay);
   const [contentTone, setContentTone] = useState<ContentTone>(
     searchParams.contentTone || 'Standard'
   );
@@ -218,6 +228,10 @@ export function DashboardLayout() {
     newTheme: ThemeOption,
     customVariables?: EBThemeVariables | any
   ) => {
+    const main = mainContentRef.current;
+    const scrollTop = main?.scrollTop ?? window.scrollY;
+    const scrollLeft = main?.scrollLeft ?? window.scrollX;
+
     setTheme(newTheme);
 
     // Handle CustomThemeData structure
@@ -234,6 +248,8 @@ export function DashboardLayout() {
         const updates: Record<string, any> = { theme: newTheme };
         updates.customTheme = JSON.stringify(customThemeData);
         updateSearchParams(updates);
+        pendingScrollRestoreRef.current = { scrollTop, scrollLeft };
+        restoreMainScroll(scrollTop, scrollLeft);
         return;
       } else if (Object.keys(customVariables).length > 0) {
         // This is just variables (legacy structure)
@@ -259,7 +275,30 @@ export function DashboardLayout() {
     // test
 
     updateSearchParams(updates);
+    pendingScrollRestoreRef.current = { scrollTop, scrollLeft };
+    restoreMainScroll(scrollTop, scrollLeft);
   };
+
+  const restoreMainScroll = (scrollTop: number, scrollLeft: number) => {
+    const apply = () => {
+      const el = mainContentRef.current;
+      if (el) {
+        el.scrollTop = scrollTop;
+        el.scrollLeft = scrollLeft;
+      } else {
+        window.scrollTo(scrollLeft, scrollTop);
+      }
+    };
+    requestAnimationFrame(() => requestAnimationFrame(apply));
+  };
+
+  // Restore scroll after theme state has committed and children have re-rendered
+  useEffect(() => {
+    const pending = pendingScrollRestoreRef.current;
+    if (!pending) return;
+    pendingScrollRestoreRef.current = null;
+    restoreMainScroll(pending.scrollTop, pending.scrollLeft);
+  }, [customThemeData, customThemeVariables]);
 
   const handleContentToneChange = (newContentTone: ContentTone) => {
     setContentTone(newContentTone);
@@ -293,6 +332,7 @@ export function DashboardLayout() {
         return newSearch;
       },
       replace,
+      resetScroll: false, // Keep scroll position when only search params change (e.g. theme tokens)
     });
   };
 
@@ -420,7 +460,7 @@ export function DashboardLayout() {
       case 'payout':
         return <PayoutSettings />;
       case 'payments':
-        return <MakePayment />;
+        return <PaymentFlow />;
       default:
         return (
           <DashboardOverview
@@ -534,25 +574,7 @@ export function DashboardLayout() {
                     name: 'enUS',
                   }}
                 >
-                  <MakePayment
-                    paymentMethods={[
-                      {
-                        fee: 2.5,
-                        id: 'ACH',
-                        name: 'ACH',
-                      },
-                      {
-                        fee: 1,
-                        id: 'RTP',
-                        name: 'RTP',
-                      },
-                      {
-                        fee: 25,
-                        id: 'WIRE',
-                        name: 'WIRE',
-                      },
-                    ]}
-                  />
+                  <PaymentFlow trigger={<Button>Make Payment</Button>} />
                 </EBComponentsProvider>
               </div>
             </div>
@@ -672,6 +694,7 @@ export function DashboardLayout() {
         clientScenario={clientScenario}
         setClientScenario={handleScenarioChange}
         theme={theme}
+        themeForDisplay={themeForDisplay}
         setTheme={handleThemeChange}
         contentTone={contentTone}
         setContentTone={handleContentToneChange}
@@ -701,12 +724,15 @@ export function DashboardLayout() {
           isMobileMenuOpen={isMobileMenuOpen}
           setIsMobileMenuOpen={setIsMobileMenuOpen}
         />
-        {/* Main content area - responsive */}
-        <main className="w-full min-w-0 flex-1 overflow-auto">
+        {/* Main content area - responsive (ref used to preserve scroll on theme token change) */}
+        <main
+          ref={mainContentRef}
+          className="w-full min-w-0 flex-1 overflow-auto"
+        >
           {/* Add padding for mobile to account for fixed bottom navigation and footer */}
           <div className="pb-32 md:pb-8">
             {renderMainContent()}
-            <Footer theme={theme} />
+            <Footer themeForDisplay={themeForDisplay} />
           </div>
         </main>
         {/* Mobile menu overlay */}

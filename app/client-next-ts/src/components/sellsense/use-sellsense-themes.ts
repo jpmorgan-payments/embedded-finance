@@ -22,8 +22,8 @@ export const useSellSenseThemes = () => {
           return customVariables || {};
 
         case 'Empty':
-          // Empty theme - no design tokens to show component defaults
-          return {};
+          // Empty theme - minimal tokens so component defaults show; include focus ring for a11y
+          return { focusedRingColor: '#0060f0' };
 
         case 'Default Blue':
           return {
