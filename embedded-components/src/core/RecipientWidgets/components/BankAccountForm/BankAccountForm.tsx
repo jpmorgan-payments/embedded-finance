@@ -664,11 +664,14 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   skipStepOne = false,
   embedded = false,
   initialPaymentTypes: initialPaymentTypesProp,
+  initialStep = 1,
 }) => {
   const { t } = useTranslation('bank-account-form');
   const formatRequiredMessage = useFormatRequiredMessage();
-  // Start on step 2 if skipStepOne is true
-  const [currentStep, setCurrentStep] = useState<1 | 2>(skipStepOne ? 2 : 1);
+  // Start on step 2 if skipStepOne is true OR initialStep is 2
+  const [currentStep, setCurrentStep] = useState<1 | 2>(
+    skipStepOne ? 2 : initialStep
+  );
 
   // Extract organization name from client data if available
   const organizationName = useMemo(() => {

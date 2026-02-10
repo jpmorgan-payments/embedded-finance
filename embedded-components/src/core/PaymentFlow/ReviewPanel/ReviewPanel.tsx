@@ -83,7 +83,9 @@ export function ReviewPanel({
       // Collect missing fields for callback
       const missingFields: string[] = [];
       if (!formData.fromAccountId) missingFields.push('fromAccount');
-      if (!formData.payeeId) missingFields.push('payee');
+      // A recipient is valid if either a saved payeeId OR an unsavedRecipient is present
+      if (!formData.payeeId && !formData.unsavedRecipient)
+        missingFields.push('payee');
       if (!formData.paymentMethod) missingFields.push('paymentMethod');
       if (!formData.amount || parseFloat(formData.amount) <= 0)
         missingFields.push('amount');
@@ -565,7 +567,7 @@ export function ReviewPanel({
           )}
           <Button
             onClick={handleSubmitClick}
-            disabled={isSubmitting || isLoading}
+            disabled={isSubmitting || isLoading || currentView !== 'main'}
             className="eb-w-full"
             size="lg"
           >

@@ -80,8 +80,22 @@ function getErrorMessageFromContext(
 
   // Look for specific error codes and provide user-friendly messages
   for (const item of context) {
-    const { code, field: rawField } = item;
+    const { code, field: rawField, message: errorMessage } = item;
     const field = rawField?.toLowerCase();
+
+    // 10104 on recipientId with routing number message → Payment method not enabled for recipient
+    if (
+      code === '10104' &&
+      field === 'recipientid' &&
+      errorMessage?.toLowerCase().includes('routing number')
+    ) {
+      return {
+        title: 'Payment Method Not Enabled',
+        message:
+          errorMessage ||
+          'The selected payment method is not configured for this recipient. Please enable the payment method for this recipient or choose a different payment method.',
+      };
+    }
 
     // Currency/payment method not supported (code 10104 from API)
     if (
@@ -92,6 +106,7 @@ function getErrorMessageFromContext(
       return {
         title: 'Payment Method Not Supported',
         message:
+          errorMessage ||
           'The selected payment method is not available for this account. Please select a different payment method or use a different account.',
       };
     }
@@ -101,6 +116,7 @@ function getErrorMessageFromContext(
       return {
         title: 'Recipient Error',
         message:
+          errorMessage ||
           'There was a problem with the selected recipient. Please verify the recipient details or select a different recipient.',
       };
     }
@@ -1444,6 +1460,7 @@ interface SuccessViewProps {
     fromAccountId?: string;
     paymentMethod?: string;
     memo?: string;
+    unsavedRecipient?: UnsavedRecipient;
   };
   payees: Payee[];
   accounts: AccountResponse[];
@@ -1469,6 +1486,7 @@ function SuccessView({
     setFormData({
       payeeId: undefined,
       payee: undefined,
+      unsavedRecipient: undefined,
       fromAccountId: undefined,
       availableBalance: undefined,
       paymentMethod: undefined,
@@ -1483,6 +1501,7 @@ function SuccessView({
 
   const amount = parseFloat(formData.amount) || 0;
   const payee = payees.find((p) => p.id === formData.payeeId);
+  const { unsavedRecipient } = formData;
   const account = accounts.find((a) => a.id === formData.fromAccountId);
   const selectedMethod = paymentMethods.find(
     (m) => m.id === formData.paymentMethod
@@ -1490,18 +1509,36 @@ function SuccessView({
   const transactionId =
     transactionResponse?.id ?? transactionResponse?.transactionReferenceId;
 
-  // Get recipient type label matching ReviewPanel pattern
-  const getRecipientTypeLabel = () => {
-    if (!payee) return '';
-    if (payee.type === 'LINKED_ACCOUNT') {
-      return payee.recipientType === 'BUSINESS'
-        ? 'Linked business account'
-        : 'Linked individual account';
+  // Get recipient display info - works for both saved payees and unsaved recipients
+  const recipientInfo = useMemo(() => {
+    if (payee) {
+      const typeLabel =
+        payee.type === 'LINKED_ACCOUNT'
+          ? payee.recipientType === 'BUSINESS'
+            ? 'Linked business account'
+            : 'Linked individual account'
+          : payee.recipientType === 'BUSINESS'
+            ? 'Business recipient'
+            : 'Individual recipient';
+      return {
+        name: payee.name,
+        lastFour: payee.accountNumber?.slice(-4),
+        typeLabel,
+      };
     }
-    return payee.recipientType === 'BUSINESS'
-      ? 'Business recipient'
-      : 'Individual recipient';
-  };
+    if (unsavedRecipient) {
+      const typeLabel =
+        unsavedRecipient.recipientType === 'BUSINESS'
+          ? 'Business recipient (one-time)'
+          : 'Individual recipient (one-time)';
+      return {
+        name: unsavedRecipient.displayName,
+        lastFour: unsavedRecipient.accountNumber?.slice(-4),
+        typeLabel,
+      };
+    }
+    return null;
+  }, [payee, unsavedRecipient]);
 
   const handleCopyId = useCallback(() => {
     if (transactionId) {
@@ -1528,21 +1565,21 @@ function SuccessView({
 
       {/* Transaction Details */}
       <div className="eb-w-full eb-max-w-sm eb-space-y-3 eb-rounded-lg eb-border eb-border-border eb-bg-muted/20 eb-p-4 eb-text-left">
-        {payee && (
+        {recipientInfo && (
           <div className="eb-flex eb-justify-between">
             <span className="eb-text-sm eb-text-muted-foreground">To</span>
             <div className="eb-text-right">
               <div className="eb-text-sm eb-font-medium">
-                {payee.name}
-                {payee.accountNumber && (
+                {recipientInfo.name}
+                {recipientInfo.lastFour && (
                   <span className="eb-font-normal eb-text-muted-foreground">
                     {' '}
-                    (...{payee.accountNumber.slice(-4)})
+                    (...{recipientInfo.lastFour})
                   </span>
                 )}
               </div>
               <div className="eb-text-xs eb-text-muted-foreground">
-                {getRecipientTypeLabel()}
+                {recipientInfo.typeLabel}
               </div>
             </div>
           </div>
@@ -1712,6 +1749,9 @@ function PaymentFlowContent({
   const [editingUnsavedRecipient, setEditingUnsavedRecipient] = useState<
     UnsavedRecipient | undefined
   >(undefined);
+
+  // Counter to force remount of recipient form when navigating to it
+  const [recipientFormKey, setRecipientFormKey] = useState(0);
 
   // Warning state for initial data mismatch
   const [initialDataWarning, setInitialDataWarning] = useState<{
@@ -1932,6 +1972,7 @@ function PaymentFlowContent({
 
   // Handler for directly adding a recipient (skips payee type selection)
   const handleAddRecipient = useCallback(() => {
+    setRecipientFormKey((k) => k + 1);
     pushView('add-recipient-form');
   }, [pushView]);
 
@@ -1949,6 +1990,7 @@ function PaymentFlowContent({
 
   // Handler for switching from linked account form to recipient form
   const handleSwitchToRecipient = useCallback(() => {
+    setRecipientFormKey((k) => k + 1);
     replaceView('add-recipient-form');
   }, [replaceView]);
 
@@ -1968,6 +2010,7 @@ function PaymentFlowContent({
   // Handler for enabling a payment method
   const handleEnablePaymentMethod = useCallback(
     (method: PaymentMethodType) => {
+      // Use the same enable-payment-method flow for both saved and unsaved recipients
       setPendingPaymentMethod(method);
       pushView('enable-payment-method');
     },
@@ -2037,6 +2080,7 @@ function PaymentFlowContent({
         pushView('link-account');
       } else {
         // Go directly to add-recipient-form - BankAccountForm handles payment method selection
+        setRecipientFormKey((k) => k + 1);
         pushView('add-recipient-form');
       }
     },
@@ -2165,6 +2209,8 @@ function PaymentFlowContent({
     if (formData.unsavedRecipient) {
       // Store the unsaved recipient data for editing
       setEditingUnsavedRecipient(formData.unsavedRecipient);
+      // Increment key to force fresh form with editing data
+      setRecipientFormKey((k) => k + 1);
       // Navigate to the add recipient form
       pushView('add-recipient-form');
     }
@@ -2193,11 +2239,19 @@ function PaymentFlowContent({
         recipientType: formData.unsavedRecipient.recipientType,
       };
     }
-    // Otherwise, find the saved payee from the lists
-    return [...payees, ...linkedAccounts].find(
+    // Try to find the saved payee from the lists first
+    const foundPayee = [...payees, ...linkedAccounts].find(
       (p) => p.id === formData.payeeId
     );
-  }, [payees, linkedAccounts, formData.payeeId, formData.unsavedRecipient]);
+    // Fall back to formData.payee if not found in lists (e.g., newly created recipient)
+    return foundPayee ?? formData.payee;
+  }, [
+    payees,
+    linkedAccounts,
+    formData.payeeId,
+    formData.unsavedRecipient,
+    formData.payee,
+  ]);
 
   const pendingMethod = pendingPaymentMethod
     ? paymentMethods.find((m) => m.id === pendingPaymentMethod)
@@ -2287,6 +2341,7 @@ function PaymentFlowContent({
       {/* Add Recipient Form - BankAccountForm handles payment method selection */}
       <FlowView viewId="add-recipient-form">
         <BankAccountFormWrapper
+          key={`recipient-form-${recipientFormKey}`}
           formType="recipient"
           availablePaymentMethods={paymentMethods}
           onSuccess={handleRecipientSuccess}
@@ -2298,6 +2353,7 @@ function PaymentFlowContent({
           onSwitchToLinkedAccount={handleSwitchToLinkedAccount}
           initialData={editingUnsavedRecipient}
           isEditing={!!editingUnsavedRecipient}
+          skipStepOne={!!editingUnsavedRecipient}
         />
       </FlowView>
 
@@ -2307,9 +2363,19 @@ function PaymentFlowContent({
           <EnablePaymentMethodWrapper
             payee={selectedPayee}
             paymentMethod={pendingMethod}
+            unsavedRecipient={formData.unsavedRecipient}
             onSuccess={() => {
               // Payment method is now enabled - select it and go back
               setFormData({ paymentMethod: pendingPaymentMethod! });
+              setPendingPaymentMethod(null);
+              popView();
+            }}
+            onUnsavedSuccess={(updatedUnsaved) => {
+              // Update the unsaved recipient with new payment methods and select the method
+              setFormData({
+                unsavedRecipient: updatedUnsaved,
+                paymentMethod: pendingPaymentMethod!,
+              });
               setPendingPaymentMethod(null);
               popView();
             }}

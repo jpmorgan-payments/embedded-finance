@@ -50,6 +50,8 @@ export interface BankAccountFormWrapperProps {
   initialData?: UnsavedRecipient;
   /** Whether we're editing an existing unsaved recipient */
   isEditing?: boolean;
+  /** Whether to skip step 1 (payment method selection) and go directly to step 2 */
+  skipStepOne?: boolean;
 }
 
 /**
@@ -72,14 +74,57 @@ export function BankAccountFormWrapper({
   onSwitchToLinkedAccount,
   initialData,
   isEditing = false,
+  skipStepOne = false,
 }: BankAccountFormWrapperProps) {
   // For recipients with one-time option, show confirmation step after form
   // Don't pre-initialize from initialData - we want to show the form first when editing
   const [pendingFormData, setPendingFormData] =
     useState<BankAccountFormData | null>(null);
 
+  // Track form data to restore when returning from confirmation
+  const [formDataToRestore, setFormDataToRestore] =
+    useState<BankAccountFormData | null>(null);
+
+  // Key to force form remount when returning from confirmation
+  const [formKey, setFormKey] = useState(0);
+
+  /**
+   * Transform BankAccountFormData to a Recipient-like object for form pre-fill
+   */
+  const transformFormDataToRecipient = (
+    data: BankAccountFormData
+  ): Recipient => {
+    return {
+      id: 'restoring',
+      partyDetails: {
+        type: data.accountType,
+        firstName:
+          data.accountType === 'INDIVIDUAL' ? data.firstName : undefined,
+        lastName: data.accountType === 'INDIVIDUAL' ? data.lastName : undefined,
+        businessName:
+          data.accountType === 'ORGANIZATION' ? data.businessName : undefined,
+        address: data.address,
+        contacts: data.contacts,
+      },
+      account: {
+        number: data.accountNumber,
+        type: data.bankAccountType,
+        routingInformation: data.routingNumbers.map((rn) => ({
+          routingCodeType: 'USABA' as const,
+          routingNumber: rn.routingNumber,
+          transactionType: rn.paymentType,
+        })),
+      },
+    } as Recipient;
+  };
+
   // Transform UnsavedRecipient to a Recipient-like object for form pre-fill
   const recipientForEdit = useMemo(() => {
+    // First priority: restore form data when returning from confirmation
+    if (formDataToRestore) {
+      return transformFormDataToRecipient(formDataToRestore);
+    }
+    // Second priority: use initialData when editing existing unsaved recipient
     if (!initialData) return undefined;
     const { transactionRecipient } = initialData;
     const { partyDetails, account } = transactionRecipient;
@@ -113,7 +158,7 @@ export function BankAccountFormWrapper({
         })),
       },
     } as Recipient;
-  }, [initialData]);
+  }, [initialData, formDataToRestore]);
   const showConfirmation =
     formType === 'recipient' && onSubmitWithoutSave && pendingFormData !== null;
 
@@ -159,7 +204,7 @@ export function BankAccountFormWrapper({
     // Determine button text
     let submitButtonText = isLinkedAccount ? 'Link Account' : 'Add Recipient';
     if (isEditing) {
-      submitButtonText = 'Update Recipient';
+      submitButtonText = 'Continue';
     } else if (!isLinkedAccount && onSubmitWithoutSave) {
       // When one-time option is available, use "Continue" to go to confirmation
       submitButtonText = 'Continue';
@@ -303,7 +348,11 @@ export function BankAccountFormWrapper({
 
   // Go back to form from confirmation
   const handleBackToForm = () => {
+    // Save the form data so we can restore it
+    setFormDataToRestore(pendingFormData);
     setPendingFormData(null);
+    // Increment key to force form remount with restored data
+    setFormKey((k) => k + 1);
     reset();
   };
 
@@ -450,6 +499,7 @@ export function BankAccountFormWrapper({
       {/* Form - embedded in a bordered card for visual separation */}
       <div className="eb-rounded-lg eb-border eb-bg-card">
         <BankAccountForm
+          key={formKey}
           config={config}
           client={formType === 'linked-account' ? clientData : undefined}
           recipient={recipientForEdit}
@@ -458,6 +508,14 @@ export function BankAccountFormWrapper({
           isLoading={status === 'pending'}
           showCard={false}
           embedded
+          skipStepOne={skipStepOne}
+          initialStep={formDataToRestore ? 2 : 1}
+          initialPaymentTypes={
+            formDataToRestore?.paymentTypes ??
+            (initialData?.enabledPaymentMethods as Array<
+              'ACH' | 'WIRE' | 'RTP'
+            >)
+          }
           alert={
             formError ? (
               <ServerErrorAlert

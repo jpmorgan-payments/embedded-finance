@@ -222,8 +222,10 @@ export function FlowContextProvider({
   const isComplete = useMemo(() => {
     const { formData } = state;
     const amount = parseFloat(formData.amount) || 0;
+    // A recipient is valid if either a saved payeeId OR an unsavedRecipient is present
+    const hasRecipient = !!(formData.payeeId || formData.unsavedRecipient);
     const hasRequiredFields = !!(
-      formData.payeeId &&
+      hasRecipient &&
       formData.paymentMethod &&
       formData.fromAccountId &&
       formData.amount &&

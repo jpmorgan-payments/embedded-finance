@@ -179,9 +179,17 @@ export interface BankAccountFormProps {
   /**
    * Skip step 1 (payment method selection) and go directly to step 2.
    * Useful when payment method is pre-selected and step 1 would be redundant.
+   * When true, back button on step 2 calls onCancel instead of going to step 1.
    * @default false
    */
   skipStepOne?: boolean;
+  /**
+   * Initial step to start on (1 or 2).
+   * Unlike skipStepOne, this preserves normal back button navigation.
+   * Useful when returning to the form after reviewing data.
+   * @default 1
+   */
+  initialStep?: 1 | 2;
   /**
    * Render in embedded mode (inside another flow, not a dialog).
    * When true, cancel button does not use DialogClose wrapper.
