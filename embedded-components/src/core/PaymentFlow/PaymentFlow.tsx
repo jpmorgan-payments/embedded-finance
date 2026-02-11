@@ -2603,7 +2603,7 @@ export function PaymentFlow({
     },
   });
 
-  // Fetch RECIPIENT type with infinite scroll
+  // Fetch RECIPIENT type with infinite scroll (only ACTIVE recipients)
   const {
     data: recipientsData,
     isLoading: isLoadingRecipients,
@@ -2659,7 +2659,7 @@ export function PaymentFlow({
     }
   );
 
-  // Get total counts from metadata
+  // Get total counts from metadata (for pagination display)
   const totalRecipients =
     recipientsData?.pages?.[0]?.metadata?.total_items ?? 0;
   const totalLinkedAccounts =
@@ -3145,7 +3145,7 @@ export function PaymentFlowInline({
     },
   });
 
-  // Fetch RECIPIENT type with infinite scroll
+  // Fetch RECIPIENT type with infinite scroll (only ACTIVE recipients)
   const {
     data: recipientsData,
     isLoading: isLoadingRecipients,
@@ -3201,7 +3201,7 @@ export function PaymentFlowInline({
     }
   );
 
-  // Get total counts for recipients and linked accounts
+  // Get total counts from metadata (for pagination display)
   const totalRecipients =
     recipientsData?.pages?.[0]?.metadata?.total_items ??
     recipientsData?.pages?.[0]?.total_items ??

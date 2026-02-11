@@ -69,11 +69,11 @@ export function PayeeSelector({
   hasMoreRecipients = false,
   onLoadMoreRecipients,
   isLoadingMoreRecipients = false,
-  totalRecipients,
+  totalRecipients: _totalRecipients,
   hasMoreLinkedAccounts = false,
   onLoadMoreLinkedAccounts,
   isLoadingMoreLinkedAccounts = false,
-  totalLinkedAccounts,
+  totalLinkedAccounts: _totalLinkedAccounts,
   recipientsRestricted = false,
   recipientsRestrictedMessage = 'This account type cannot send payments to external recipients. Please select a linked account instead.',
   showRestrictionWarning = false,
@@ -472,7 +472,7 @@ export function PayeeSelector({
                 aria-hidden="true"
               />
             )}
-            Recipients ({totalRecipients ?? recipients.length})
+            Recipients ({recipients.length})
           </TabsTrigger>
           <TabsTrigger
             value="linked-accounts"
@@ -482,7 +482,7 @@ export function PayeeSelector({
               className="eb-h-3.5 eb-w-3.5 eb-shrink-0"
               aria-hidden="true"
             />
-            Linked Accounts ({totalLinkedAccounts ?? linkedAccounts.length})
+            Linked Accounts ({linkedAccounts.length})
           </TabsTrigger>
         </TabsList>
 
