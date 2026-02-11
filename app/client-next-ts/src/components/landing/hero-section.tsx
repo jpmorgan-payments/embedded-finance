@@ -1,5 +1,6 @@
-import { Button } from '@/components/ui/button';
 import { Link } from '@tanstack/react-router';
+
+import { Button } from '@/components/ui/button';
 
 function ConceptVisualization() {
   const scrollToSection = (sectionId: string) => {
@@ -13,39 +14,39 @@ function ConceptVisualization() {
     <div className="flex flex-col items-center">
       {/* Outermost layer - Demo Applications */}
       <div
-        className="bg-sp-bg border-2 border-sp-border rounded-md px-8 py-6 cursor-pointer hover:bg-sp-accent transition-colors w-full max-w-lg"
+        className="w-full max-w-lg cursor-pointer rounded-md border-2 border-sp-border bg-sp-bg px-8 py-6 transition-colors hover:bg-sp-accent"
         onClick={() => scrollToSection('demo-applications')}
       >
-        <div className="flex justify-center mb-4">
-          <span className="text-sm font-medium text-sp-brand px-3 py-1 bg-sp-accent rounded-full">
+        <div className="mb-4 flex justify-center">
+          <span className="rounded-full bg-sp-accent px-3 py-1 text-sm font-medium text-sp-brand">
             Demo Applications and Recipes
           </span>
         </div>
 
         {/* Middle layer - Embedded Components */}
         <div
-          className="bg-sp-accent border-2 border-sp-border rounded-md px-7 py-5 cursor-pointer hover:bg-white transition-colors"
+          className="cursor-pointer rounded-md border-2 border-sp-border bg-sp-accent px-7 py-5 transition-colors hover:bg-white"
           onClick={(e) => {
             e.stopPropagation();
             scrollToSection('embedded-components');
           }}
         >
-          <div className="flex justify-center mb-4">
-            <span className="text-sm font-medium text-sp-brand px-3 py-1 bg-white rounded-full">
+          <div className="mb-4 flex justify-center">
+            <span className="rounded-full bg-white px-3 py-1 text-sm font-medium text-sp-brand">
               Embedded Components
             </span>
           </div>
 
           {/* Innermost layer - Utility Components */}
           <div
-            className="bg-white border-2 border-sp-border rounded-md px-6 py-4 cursor-pointer hover:bg-sp-accent transition-colors"
+            className="cursor-pointer rounded-md border-2 border-sp-border bg-white px-6 py-4 transition-colors hover:bg-sp-accent"
             onClick={(e) => {
               e.stopPropagation();
               scrollToSection('utility-components');
             }}
           >
             <div className="flex justify-center">
-              <span className="text-sm font-medium text-sp-brand px-3 py-1 bg-sp-accent rounded-full">
+              <span className="rounded-full bg-sp-accent px-3 py-1 text-sm font-medium text-sp-brand">
                 Utility Components
               </span>
             </div>
@@ -59,27 +60,27 @@ function ConceptVisualization() {
 export function HeroSection() {
   return (
     <section className="bg-sp-bg py-6 sm:py-8 md:py-10 lg:py-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-center">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-3 lg:gap-12">
           {/* Left side - Text content */}
           <div className="max-w-4xl lg:col-span-2">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-page-hero text-sp-brand leading-tight mb-4 sm:mb-5 md:mb-6">
+            <h1 className="mb-4 text-3xl leading-tight text-sp-brand sm:mb-5 sm:text-4xl md:mb-6 md:text-5xl lg:text-page-hero">
               Embedded Finance and Solutions
               <span className="block font-bold text-sp-brand">
                 Showcases and Components
               </span>
             </h1>
 
-            <p className="text-base sm:text-lg md:text-xl lg:text-page-body text-jpm-blue leading-relaxed mb-6 sm:mb-7 md:mb-8 max-w-3xl">
+            <p className="mb-6 max-w-3xl text-base leading-relaxed text-jpm-blue sm:mb-7 sm:text-lg md:mb-8 md:text-xl lg:text-page-body">
               Live demos, engineering recipes, and components that unlock the
               full power of Embedded Finance APIs.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row">
               <Link to="/demos">
                 <Button
                   size="lg"
-                  className="w-full sm:w-auto bg-sp-brand hover:bg-sp-brand-700 !text-jpm-white font-semibold px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base lg:text-page-body rounded-page-md shadow-page-card border-0"
+                  className="w-full rounded-page-md border-0 bg-sp-brand px-6 py-3 text-sm font-semibold !text-jpm-white shadow-page-card hover:bg-sp-brand-700 sm:w-auto sm:px-8 sm:py-4 sm:text-base lg:text-page-body"
                 >
                   EXPLORE DEMOS
                 </Button>
@@ -88,7 +89,7 @@ export function HeroSection() {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="w-full sm:w-auto border-2 border-sp-brand text-sp-brand hover:bg-sp-brand hover:text-jpm-white font-semibold px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base lg:text-page-body rounded-page-md transition-all duration-200"
+                  className="w-full rounded-page-md border-2 border-sp-brand px-6 py-3 text-sm font-semibold text-sp-brand transition-all duration-200 hover:bg-sp-brand hover:text-jpm-white sm:w-auto sm:px-8 sm:py-4 sm:text-base lg:text-page-body"
                 >
                   VIEW DOCUMENTATION
                 </Button>

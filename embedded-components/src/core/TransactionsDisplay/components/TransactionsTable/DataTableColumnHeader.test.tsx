@@ -1,4 +1,5 @@
 import {
+  ColumnDef,
   createColumnHelper,
   getCoreRowModel,
   useReactTable,
@@ -20,9 +21,7 @@ const TableWrapper = ({
   column,
   title,
 }: {
-  column:
-    | ReturnType<typeof columnHelper.display>
-    | ReturnType<typeof columnHelper.accessor>;
+  column: ColumnDef<TestData, unknown>;
   title: string;
 }) => {
   const table = useReactTable({
@@ -55,7 +54,7 @@ describe('DataTableColumnHeader', () => {
     test('renders sortable header with button', () => {
       const column = columnHelper.accessor('name', {
         enableSorting: true,
-      });
+      }) as ColumnDef<TestData, unknown>;
 
       render(<TableWrapper column={column} title="Name" />);
 
@@ -68,7 +67,7 @@ describe('DataTableColumnHeader', () => {
       const user = userEvent.setup();
       const column = columnHelper.accessor('name', {
         enableSorting: true,
-      });
+      }) as ColumnDef<TestData, unknown>;
 
       render(<TableWrapper column={column} title="Name" />);
 
@@ -84,7 +83,7 @@ describe('DataTableColumnHeader', () => {
       const column = columnHelper.accessor('name', {
         enableSorting: true,
         enableHiding: true,
-      });
+      }) as ColumnDef<TestData, unknown>;
 
       render(<TableWrapper column={column} title="Name" />);
 
@@ -99,7 +98,7 @@ describe('DataTableColumnHeader', () => {
       const column = columnHelper.accessor('name', {
         enableSorting: true,
         enableHiding: false,
-      });
+      }) as ColumnDef<TestData, unknown>;
 
       render(<TableWrapper column={column} title="Name" />);
 

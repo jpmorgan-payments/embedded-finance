@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Maximize2, Info } from 'lucide-react';
+import { Info, Maximize2 } from 'lucide-react';
+
 import packageJson from '../../../../package.json';
 
 interface ComponentTooltipProps {
@@ -10,6 +11,13 @@ interface ComponentTooltipProps {
   componentFeatures: string[];
   onClose: () => void;
   onFullScreen: () => void;
+  // Mode/viewMode controls for RecipientsWidget and LinkedAccountWidget
+  supportsModeToggle?: boolean;
+  supportsViewModeToggle?: boolean;
+  currentMode?: 'list' | 'single';
+  currentViewMode?: 'cards' | 'compact-cards' | 'table';
+  onModeChange?: (mode: 'list' | 'single') => void;
+  onViewModeChange?: (viewMode: 'cards' | 'compact-cards' | 'table') => void;
 }
 
 export function ComponentTooltip({
@@ -18,18 +26,24 @@ export function ComponentTooltip({
   componentFeatures,
   onClose,
   onFullScreen,
+  supportsModeToggle = false,
+  supportsViewModeToggle = false,
+  currentMode,
+  currentViewMode,
+  onModeChange,
+  onViewModeChange,
 }: ComponentTooltipProps) {
   return (
-    <div className="absolute top-6 right-0 w-96 bg-gray-900 text-white text-xs rounded-lg p-4 shadow-lg z-50">
+    <div className="absolute right-0 top-6 z-50 w-96 rounded-lg bg-gray-900 p-4 text-xs text-white shadow-lg">
       <div className="space-y-4">
         {/* Header with close button */}
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold">
             {componentName} Component Details
           </h3>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-700 rounded text-gray-300 hover:text-white"
+            className="rounded p-1 text-gray-300 hover:bg-gray-700 hover:text-white"
           >
             ✕
           </button>
@@ -37,7 +51,7 @@ export function ComponentTooltip({
 
         {/* Component Information */}
         <div>
-          <h4 className="font-medium mb-2 text-gray-200">
+          <h4 className="mb-2 font-medium text-gray-200">
             Component Information
           </h4>
           <div className="space-y-1 text-gray-300">
@@ -62,19 +76,90 @@ export function ComponentTooltip({
           </div>
         </div>
 
+        {/* Mode/ViewMode Controls */}
+        {(supportsModeToggle || supportsViewModeToggle) && (
+          <div className="space-y-3 border-t border-gray-700 pt-3">
+            {supportsModeToggle && (
+              <div>
+                <h4 className="mb-2 font-medium text-gray-200">Mode</h4>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onModeChange?.('list')}
+                    className={`rounded px-3 py-1.5 text-xs transition-colors ${
+                      currentMode === 'list'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    List
+                  </button>
+                  <button
+                    onClick={() => onModeChange?.('single')}
+                    className={`rounded px-3 py-1.5 text-xs transition-colors ${
+                      currentMode === 'single'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    Single
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {supportsViewModeToggle && (
+              <div>
+                <h4 className="mb-2 font-medium text-gray-200">View Mode</h4>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => onViewModeChange?.('cards')}
+                    className={`rounded px-3 py-1.5 text-xs transition-colors ${
+                      currentViewMode === 'cards'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    Cards
+                  </button>
+                  <button
+                    onClick={() => onViewModeChange?.('compact-cards')}
+                    className={`rounded px-3 py-1.5 text-xs transition-colors ${
+                      currentViewMode === 'compact-cards'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    Compact
+                  </button>
+                  <button
+                    onClick={() => onViewModeChange?.('table')}
+                    className={`rounded px-3 py-1.5 text-xs transition-colors ${
+                      currentViewMode === 'table'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    Table
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Description */}
         <div>
-          <h4 className="font-medium mb-2 text-gray-200">Description</h4>
+          <h4 className="mb-2 font-medium text-gray-200">Description</h4>
           <p className="text-gray-300">{componentDescription}</p>
         </div>
 
         {/* Key Features */}
         <div>
-          <h4 className="font-medium mb-2 text-gray-200">Key Features</h4>
+          <h4 className="mb-2 font-medium text-gray-200">Key Features</h4>
           <ul className="space-y-1 text-gray-300">
             {componentFeatures.map((feature, index) => (
               <li key={index} className="flex items-start">
-                <span className="text-gray-400 mr-2">•</span>
+                <span className="mr-2 text-gray-400">•</span>
                 {feature}
               </li>
             ))}
@@ -82,10 +167,10 @@ export function ComponentTooltip({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 pt-2 border-t border-gray-700">
+        <div className="flex gap-2 border-t border-gray-700 pt-2">
           <button
             onClick={onFullScreen}
-            className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
+            className="flex items-center gap-2 rounded bg-blue-600 px-3 py-1.5 text-xs text-white transition-colors hover:bg-blue-700"
           >
             <Maximize2 size={12} />
             Open Full Screen
@@ -94,7 +179,7 @@ export function ComponentTooltip({
       </div>
 
       {/* Tooltip Arrow */}
-      <div className="absolute -top-1 right-3 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+      <div className="absolute -top-1 right-3 h-2 w-2 rotate-45 transform bg-gray-900"></div>
     </div>
   );
 }
@@ -108,7 +193,7 @@ export function InfoIcon({ onClick, title }: InfoIconProps) {
   return (
     <button
       onClick={onClick}
-      className="w-5 h-5 rounded-full flex items-center justify-center transition-colors hover:bg-amber-200/20"
+      className="flex h-5 w-5 items-center justify-center rounded-full transition-colors hover:bg-amber-200/20"
       title={title}
     >
       <Info size={12} className="text-amber-700" />
@@ -124,6 +209,13 @@ interface EmbeddedComponentCardProps {
   isAnyTooltipOpen: boolean;
   onTooltipToggle: (componentName: string, isOpen: boolean) => void;
   onFullScreen: () => void;
+  // Mode/viewMode controls for RecipientsWidget and LinkedAccountWidget
+  supportsModeToggle?: boolean;
+  supportsViewModeToggle?: boolean;
+  currentMode?: 'list' | 'single';
+  currentViewMode?: 'cards' | 'compact-cards' | 'table';
+  onModeChange?: (mode: 'list' | 'single') => void;
+  onViewModeChange?: (viewMode: 'cards' | 'compact-cards' | 'table') => void;
 }
 
 export function EmbeddedComponentCard({
@@ -134,6 +226,12 @@ export function EmbeddedComponentCard({
   isAnyTooltipOpen,
   onTooltipToggle,
   onFullScreen,
+  supportsModeToggle = false,
+  supportsViewModeToggle = false,
+  currentMode,
+  currentViewMode,
+  onModeChange,
+  onViewModeChange,
 }: EmbeddedComponentCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -146,14 +244,10 @@ export function EmbeddedComponentCard({
   const shouldShowIcon = !isAnyTooltipOpen || showTooltip;
 
   return (
-    <div
-      className={`rounded-lg border border-white bg-transparent relative ${
-        showTooltip ? 'p-6' : 'p-0'
-      }`}
-    >
+    <div className="relative rounded-lg border border-white bg-transparent">
       {/* Info Icon Overlay */}
       {shouldShowIcon && (
-        <div className="absolute top-2 right-2 z-10">
+        <div className="absolute right-2 top-2 z-10">
           <div className="relative">
             <InfoIcon onClick={handleTooltipToggle} title="Component Details" />
 
@@ -164,6 +258,12 @@ export function EmbeddedComponentCard({
                 componentFeatures={componentFeatures}
                 onClose={handleTooltipToggle}
                 onFullScreen={onFullScreen}
+                supportsModeToggle={supportsModeToggle}
+                supportsViewModeToggle={supportsViewModeToggle}
+                currentMode={currentMode}
+                currentViewMode={currentViewMode}
+                onModeChange={onModeChange}
+                onViewModeChange={onViewModeChange}
               />
             )}
           </div>
@@ -180,7 +280,7 @@ export function EmbeddedComponentCard({
 export function createFullscreenUrl(
   componentName: string,
   currentTheme: string = 'SellSense',
-  additionalParams?: Record<string, string>,
+  additionalParams?: Record<string, string>
 ) {
   const componentMap: Record<string, string> = {
     Accounts: 'accounts',

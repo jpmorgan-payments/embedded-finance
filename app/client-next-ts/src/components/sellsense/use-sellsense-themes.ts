@@ -15,15 +15,15 @@ export const useSellSenseThemes = () => {
   const getThemeVariables = useCallback(
     (
       themeOption: ThemeOption,
-      customVariables?: EBThemeVariables,
+      customVariables?: EBThemeVariables
     ): EBThemeVariables => {
       switch (themeOption) {
         case 'Custom':
           return customVariables || {};
 
         case 'Empty':
-          // Empty theme - no design tokens to show component defaults
-          return {};
+          // Empty theme - minimal tokens so component defaults show; include focus ring for a11y
+          return { focusedRingColor: '#0060f0' };
 
         case 'Default Blue':
           return {
@@ -461,7 +461,7 @@ export const useSellSenseThemes = () => {
           };
       }
     },
-    [],
+    []
   );
 
   const mapThemeOption = useCallback(
@@ -472,7 +472,7 @@ export const useSellSenseThemes = () => {
         variables,
       };
     },
-    [getThemeVariables],
+    [getThemeVariables]
   );
 
   const mapCustomTheme = useCallback((customVariables: EBThemeVariables) => {
@@ -491,7 +491,7 @@ export const useSellSenseThemes = () => {
 
 // Helper function to get theme variables directly
 export const getThemeVariables = (
-  themeOption: ThemeOption,
+  themeOption: ThemeOption
 ): EBThemeVariables => {
   const { getThemeVariables } = useSellSenseThemes();
   return getThemeVariables(themeOption);

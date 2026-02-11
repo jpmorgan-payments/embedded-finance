@@ -1,0 +1,203 @@
+{
+  "sections": {
+    "accountHolderType": "Tipo de titular de cuenta",
+    "accountHolderInfo": "Información del titular de la cuenta",
+    "bankAccountDetails": "Detalles de la cuenta bancaria",
+    "paymentMethods": "Métodos de pago",
+    "addressInfo": "Información de dirección",
+    "contactInfo": "Información de contacto"
+  },
+  "paymentMethods": {
+    "ACH": {
+      "label": "ACH",
+      "shortLabel": "ACH",
+      "description": "Automated Clearing House - Transferencia bancaria electrónica estándar",
+      "helperText": "Transferencia bancaria estándar, se liquida en 1-3 días hábiles",
+      "routingError": "El número de ruta ACH debe tener exactamente 9 dígitos"
+    },
+    "WIRE": {
+      "label": "Transferencia bancaria",
+      "shortLabel": "Wire",
+      "description": "Transferencia bancaria tradicional con liquidación el mismo día",
+      "helperText": "Transferencia el mismo día, requiere información de dirección completa",
+      "routingError": "El número de ruta Wire debe tener exactamente 9 dígitos"
+    },
+    "RTP": {
+      "label": "Pagos en tiempo real (RTP)",
+      "shortLabel": "RTP",
+      "description": "Pagos instantáneos 24/7/365 con liquidación inmediata",
+      "helperText": "Transferencia instantánea disponible 24/7",
+      "routingError": "El número de ruta RTP debe tener exactamente 9 dígitos"
+    },
+    "requiredForLinkedAccount": "Requerido para cuenta vinculada",
+    "infoButtonAriaLabel": "Información sobre {{method}}",
+    "selectAtLeastOne": "Seleccione al menos un método de pago",
+    "validation": {
+      "minOne": "Seleccione al menos un tipo de pago",
+      "lockedRequired": "{{method}} es requerido y no se puede deseleccionar"
+    }
+  },
+  "accountHolder": {
+    "selectType": "Seleccionar tipo de titular de cuenta",
+    "choosePlaceholder": "Elegir tipo de cuenta",
+    "individual": "Individual / Cuenta personal",
+    "organization": "Empresa / Cuenta de organización"
+  },
+  "individualSelector": {
+    "accountHolder": "Titular de la cuenta",
+    "placeholder": "Elegir un individuo de su organización"
+  },
+  "routingNumbers": {
+    "legend": "Números de ruta",
+    "useSameForAll": "Usar el mismo número de ruta para todos los métodos de pago",
+    "singleMethodLabel": "Número de ruta {{method}}",
+    "combinedMethodLabel": "Número de ruta {{methods}}",
+    "placeholder": "Ingrese número de ruta de 9 dígitos",
+    "validation": {
+      "required": "El número de ruta es requerido para {{method}}",
+      "digits": "El número de ruta debe tener 9 dígitos"
+    }
+  },
+  "requiredFor": {
+    "single": "Requerido para {{method}}",
+    "double": "Requerido para {{first}} y {{second}}",
+    "multiple": "Requerido para {{list}} y {{last}}"
+  },
+  "contacts": {
+    "email": {
+      "label": "Correo electrónico",
+      "placeholder": "Ingrese dirección de correo electrónico"
+    },
+    "phone": {
+      "label": "Teléfono",
+      "placeholder": "Ingrese número de teléfono"
+    },
+    "validation": {
+      "required": "{{contactType}} es requerido",
+      "requiredForMethod": "{{contactType}} es requerido para {{method}}"
+    }
+  },
+  "address": {
+    "legend": "Información de dirección",
+    "streetAddress": {
+      "label": "Dirección",
+      "placeholder": "Ingrese dirección"
+    },
+    "addressLine2": {
+      "label": "Línea de dirección 2",
+      "placeholder": "Apt, suite, unidad, etc. (opcional)"
+    },
+    "addressLine3": {
+      "label": "Línea de dirección 3",
+      "placeholder": "Información adicional (opcional)"
+    },
+    "city": {
+      "label": "Ciudad",
+      "placeholder": "Ingrese ciudad"
+    },
+    "state": {
+      "label": "Estado",
+      "placeholder": "Seleccione estado"
+    },
+    "postalCode": {
+      "label": "Código postal",
+      "placeholder": "Ingrese código postal"
+    },
+    "validation": {
+      "required": "La dirección es requerida para {{methods}}",
+      "streetAddressRequired": "La dirección es requerida",
+      "cityRequired": "La ciudad es requerida",
+      "stateRequired": "El estado es requerido",
+      "stateFormat": "El estado debe ser un código de 2 letras",
+      "postalCodeRequired": "El código postal es requerido",
+      "postalCodeFormat": "Formato de código postal inválido"
+    }
+  },
+  "fields": {
+    "firstName": {
+      "label": "Nombre",
+      "placeholder": "Ingrese nombre",
+      "validation": {
+        "required": "El nombre es requerido"
+      }
+    },
+    "lastName": {
+      "label": "Apellido",
+      "placeholder": "Ingrese apellido",
+      "validation": {
+        "required": "El apellido es requerido"
+      }
+    },
+    "businessName": {
+      "label": "Nombre de la empresa",
+      "placeholder": "Ingrese nombre de empresa u organización",
+      "validation": {
+        "required": "El nombre de la empresa es requerido"
+      }
+    },
+    "accountNumber": {
+      "label": "Número de cuenta",
+      "placeholder": "Ingrese número de cuenta",
+      "validation": {
+        "required": "El número de cuenta es requerido",
+        "digitsOnly": "El número de cuenta debe contener solo dígitos"
+      }
+    },
+    "accountType": {
+      "label": "Tipo de cuenta",
+      "placeholder": "Seleccione tipo",
+      "validation": {
+        "required": "El tipo de cuenta es requerido"
+      }
+    }
+  },
+  "accountTypes": {
+    "checking": "Cuenta corriente",
+    "savings": "Cuenta de ahorros"
+  },
+  "navigation": {
+    "continueToAccountDetails": "Continuar a detalles de cuenta",
+    "back": "Atrás",
+    "cancel": "Cancelar"
+  },
+  "alerts": {
+    "organizationOnlyAccounts": "Solo puede vincular cuentas asociadas con su organización.",
+    "individualOnlyAccountsSingle": "Solo puede vincular cuentas asociadas con individuos de su organización.",
+    "individualOnlyAccountsMultiple": "Solo puede vincular cuentas asociadas con individuos de su organización. Seleccione el titular de la cuenta abajo."
+  },
+  "certification": {
+    "validation": {
+      "required": "Debe autorizar la verificación para continuar"
+    }
+  },
+  "linkedAccount": {
+    "submitButton": "Confirmar y vincular cuenta",
+    "cancelButton": "Cancelar",
+    "loadingMessage": "Vinculando su cuenta...",
+    "certificationText": "Autorizo la verificación de esta cuenta bancaria externa, incluyendo la verificación por microdepósitos si es necesario. Certifico que la información proporcionada es precisa y coincide con los detalles de mi cuenta bancaria."
+  },
+  "linkedAccountEdit": {
+    "successDescription": "Su cuenta vinculada ha sido actualizada.",
+    "submitButton": "Guardar cambios",
+    "cancelButton": "Cancelar",
+    "loadingMessage": "Actualizando su cuenta..."
+  },
+  "recipient": {
+    "submitButton": "Crear destinatario",
+    "cancelButton": "Cancelar",
+    "loadingMessage": "Creando destinatario...",
+    "sections": {
+      "accountHolderType": "Tipo de destinatario",
+      "accountHolderInfo": "Información del destinatario"
+    }
+  },
+  "recipientEdit": {
+    "submitButton": "Guardar cambios",
+    "cancelButton": "Cancelar",
+    "loadingMessage": "Actualizando destinatario...",
+    "sections": {
+      "accountHolderType": "Tipo de destinatario",
+      "accountHolderInfo": "Información del destinatario"
+    }
+  }
+}

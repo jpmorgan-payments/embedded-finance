@@ -25,19 +25,22 @@ function checkFontSizes(variables: EBThemeVariables): A11yCheckResult[] {
   // Check actionable font size (buttons, links)
   const actionableFontSize = variables.actionableFontSize;
   if (actionableFontSize) {
-    const sizeValue = parseFloat(String(actionableFontSize).replace(/rem|px|em/, ''));
+    const sizeValue = parseFloat(
+      String(actionableFontSize).replace(/rem|px|em/, '')
+    );
     const unit = String(actionableFontSize).replace(/[\d.]/g, '') || 'rem';
-    
+
     // Convert to pixels for comparison (assuming 16px base)
     const pxSize = unit === 'rem' ? sizeValue * 16 : sizeValue;
-    
+
     if (pxSize < 14) {
       results.push({
         id: 'font-size-actionable',
         label: 'Actionable Font Size',
         status: 'fail',
         message: `Font size is ${actionableFontSize} (${pxSize.toFixed(1)}px), below minimum 14px`,
-        recommendation: 'Increase actionableFontSize to at least 0.875rem (14px) for better readability',
+        recommendation:
+          'Increase actionableFontSize to at least 0.875rem (14px) for better readability',
       });
     } else if (pxSize < 16) {
       results.push({
@@ -60,17 +63,20 @@ function checkFontSizes(variables: EBThemeVariables): A11yCheckResult[] {
   // Check label font size
   const labelFontSize = variables.editableLabelFontSize;
   if (labelFontSize) {
-    const sizeValue = parseFloat(String(labelFontSize).replace(/rem|px|em/, ''));
+    const sizeValue = parseFloat(
+      String(labelFontSize).replace(/rem|px|em/, '')
+    );
     const unit = String(labelFontSize).replace(/[\d.]/g, '') || 'rem';
     const pxSize = unit === 'rem' ? sizeValue * 16 : sizeValue;
-    
+
     if (pxSize < 12) {
       results.push({
         id: 'font-size-label',
         label: 'Label Font Size',
         status: 'fail',
         message: `Label font size is ${labelFontSize} (${pxSize.toFixed(1)}px), below minimum 12px`,
-        recommendation: 'Increase editableLabelFontSize to at least 0.75rem (12px)',
+        recommendation:
+          'Increase editableLabelFontSize to at least 0.75rem (12px)',
       });
     } else {
       results.push({
@@ -98,7 +104,8 @@ function checkFocusRing(variables: EBThemeVariables): A11yCheckResult[] {
       label: 'Focus Ring',
       status: 'fail',
       message: 'Focus ring color is not defined',
-      recommendation: 'Set focusedRingColor to ensure keyboard navigation is visible',
+      recommendation:
+        'Set focusedRingColor to ensure keyboard navigation is visible',
     });
     return results;
   }
@@ -109,7 +116,8 @@ function checkFocusRing(variables: EBThemeVariables): A11yCheckResult[] {
     label: 'Focus Ring',
     status: 'pass',
     message: `Focus ring color is defined: ${focusRingColor}`,
-    recommendation: 'Ensure focus ring has at least 3:1 contrast with background colors',
+    recommendation:
+      'Ensure focus ring has at least 3:1 contrast with background colors',
   });
 
   return results;
@@ -123,7 +131,9 @@ function checkTouchTargets(variables: EBThemeVariables): A11yCheckResult[] {
 
   const spacingUnit = variables.spacingUnit;
   if (spacingUnit) {
-    const spacingValue = parseFloat(String(spacingUnit).replace(/rem|px|em/, ''));
+    const spacingValue = parseFloat(
+      String(spacingUnit).replace(/rem|px|em/, '')
+    );
     const unit = String(spacingUnit).replace(/[\d.]/g, '') || 'rem';
     const pxSpacing = unit === 'rem' ? spacingValue * 16 : spacingValue;
 
@@ -135,7 +145,8 @@ function checkTouchTargets(variables: EBThemeVariables): A11yCheckResult[] {
         label: 'Touch Target Spacing',
         status: 'warning',
         message: `Spacing unit is ${spacingUnit} (${pxSpacing.toFixed(1)}px), may be too small for touch targets`,
-        recommendation: 'Ensure interactive elements have at least 44px (2.75rem) touch target size',
+        recommendation:
+          'Ensure interactive elements have at least 44px (2.75rem) touch target size',
       });
     } else {
       results.push({
@@ -158,9 +169,16 @@ function checkBorderRadius(variables: EBThemeVariables): A11yCheckResult[] {
 
   const borderRadius = variables.actionableBorderRadius;
   if (borderRadius) {
-    const radiusValue = parseFloat(String(borderRadius).replace(/rem|px|em|%/, ''));
+    const radiusValue = parseFloat(
+      String(borderRadius).replace(/rem|px|em|%/, '')
+    );
     const unit = String(borderRadius).replace(/[\d.]/g, '') || 'rem';
-    const pxRadius = unit === 'rem' ? radiusValue * 16 : unit === '%' ? radiusValue : radiusValue;
+    const pxRadius =
+      unit === 'rem'
+        ? radiusValue * 16
+        : unit === '%'
+          ? radiusValue
+          : radiusValue;
 
     // Very large border radius can make buttons look like pills and reduce clarity
     if (pxRadius > 50) {
@@ -169,7 +187,8 @@ function checkBorderRadius(variables: EBThemeVariables): A11yCheckResult[] {
         label: 'Border Radius',
         status: 'warning',
         message: `Border radius is ${borderRadius}, may reduce button clarity`,
-        recommendation: 'Consider using smaller border radius (typically 4-8px) for better button recognition',
+        recommendation:
+          'Consider using smaller border radius (typically 4-8px) for better button recognition',
       });
     } else {
       results.push({
@@ -207,4 +226,3 @@ export function runA11yChecks(variables: EBThemeVariables): A11yCheckSummary {
     checks,
   };
 }
-

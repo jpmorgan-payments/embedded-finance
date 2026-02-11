@@ -11,13 +11,13 @@ export default function PartiallyHostedOnboardingArticle() {
         diligence questions served by the API. This partially hosted integration
         pattern enables you to embed a hosted Onboarding UI within your platform
         using an iframe, allowing you to maintain control over the user
-        experience while the hosted UI handles regulated KYC verification
-        steps. The integration involves session transfer from your backend to
-        obtain a short-lived JWT token, which is then used to load the
-        Onboarding UI in a secure iframe on your frontend.
+        experience while the hosted UI handles regulated KYC verification steps.
+        The integration involves session transfer from your backend to obtain a
+        short-lived JWT token, which is then used to load the Onboarding UI in a
+        secure iframe on your frontend.
       </p>
 
-      <h2 className="text-page-h3 text-jpm-gray-900 mt-8 mb-3">
+      <h2 className="mb-3 mt-8 text-page-h3 text-jpm-gray-900">
         Integration Overview
       </h2>
       <p className="mb-6 leading-relaxed text-jpm-gray">
@@ -52,17 +52,17 @@ export default function PartiallyHostedOnboardingArticle() {
         </li>
       </ol>
 
-      <h2 className="text-page-h3 text-jpm-gray-900 mt-8 mb-3">
+      <h2 className="mb-3 mt-8 text-page-h3 text-jpm-gray-900">
         Documentation & Resources
       </h2>
       <ul className="mb-6 ml-6 list-disc space-y-3 leading-relaxed text-jpm-gray">
         <li>
           <strong>Integration Guide:</strong>{' '}
           <a
-            href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/app/client/src/docs/PARTIALLY_HOSTED_ONBOARDING_INTEGRATION_GUIDE.md"
+            href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sp-brand underline break-words"
+            className="break-words text-sp-brand underline"
           >
             Partially Hosted Onboarding Integration Guide
           </a>{' '}
@@ -76,7 +76,7 @@ export default function PartiallyHostedOnboardingArticle() {
             href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/app/client/src/docs/PARTIALLY_HOSTED_UI_COMPONENT_README.md"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sp-brand underline break-words"
+            className="break-words text-sp-brand underline"
           >
             Partially Hosted UI Component README
           </a>{' '}
@@ -90,7 +90,7 @@ export default function PartiallyHostedOnboardingArticle() {
             href="https://github.com/jpmorgan-payments/embedded-banking/blob/b15e7e3f4b1f2d217fe046aadfbff0efbe29169a/app/server-session-transfer"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sp-brand underline break-words"
+            className="break-words text-sp-brand underline"
           >
             server-session-transfer
           </a>{' '}

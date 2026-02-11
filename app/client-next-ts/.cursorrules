@@ -1,32 +1,198 @@
-# Client-Next-TS Project Rules
+# Client-Next-TS - Showcase Application
 
-This is the client-next-ts application within the embedded-banking monorepo.
+> **Cross-IDE Compatible**: Works with Cursor, VS Code Copilot, Claude Code, and other AI agents.
+> 
+> **✅ ACTIVE**: Embedded Finance & Solutions Showcase web application
 
-## Project-Specific Rules
+## 📚 Documentation
 
-Follow these rules for consistent development patterns:
+**For implementation details, refer to:**
 
-- [TanStack Router Patterns](.cursor/rules/tanstack-router-patterns.mdc) - Route
-  structure and conditional layouts
-- [UI Component Patterns](.cursor/rules/ui-component-patterns.mdc) - Custom UI
-  library and controlled components
-- [Sellsense Demo Patterns](.cursor/rules/sellsense-demo-patterns.mdc) -
-  Application architecture and branding
-- [Development Workflow](.cursor/rules/development-workflow.mdc) - Project
-  structure and development server
+1. **`README.md`** - Complete setup and development guide
+2. **`PRD.md`** - Product requirements and vision
+3. **`../../.github/copilot-instructions.md`** - General implementation patterns
+4. **`../../.github/copilot/skills/`** - Task-specific agent skills
+5. **`../../AGENTS.md`** - Repository-wide instructions
 
-## shadcn/ui Instructions
+## Project Overview
 
-Use the latest version of Shadcn to install new components, like this command to
-add a button component:
+This is a **TanStack Router showcase application** that demonstrates JPMorgan Chase's Embedded Finance APIs and the `@jpmorgan-payments/embedded-finance-components` library.
 
+**Purpose**: Enable partners and developers to:
+- Explore end-to-end API flows (KYC onboarding, bank accounts, transactions, payments)
+- Preview UI components with theming and tone variants
+- Copy code snippets and integration examples
+- Experience different marketplace scenarios (e.g., "SellSense")
+
+## 🛠️ Technology Stack
+
+- **React 18.x** with TypeScript
+- **TanStack Router** (file-based routing)
+- **Vite** for build and dev server
+- **Tailwind CSS** for styling (design tokens in `tailwind.config.js`)
+- **shadcn/ui** for base UI components
+- **MSW** (Mock Service Worker) for client-side API mocking
+- **Vitest** for testing
+- **Playwright** for health checks
+
+## 🎯 Key Features
+
+1. **Theming**: Multiple built-in themes (Default Blue, Salt, SellSense, PayFicient)
+2. **Tone Variants**: Content tokens for "Standard" vs "Industry-specific" voice
+3. **Mock APIs**: Stateful client-side mocking via MSW (no backend)
+4. **Component Showcase**: Demonstrates embedded-components library usage
+5. **Scenario-based**: Different marketplace/use-case demonstrations
+
+## ⚡ Quick Commands
+
+**Development:**
+```bash
+npm install              # Install dependencies
+npm run dev              # Start dev server (localhost:3000)
+npm run start            # Alias for dev
+```
+
+**Production:**
+```bash
+npm run build            # Build for production
+npm run serve            # Preview production build
+```
+
+**Testing:**
+```bash
+npm run test                      # Run Vitest tests
+npm run health-check              # Run Playwright health checks
+npm run health-check:all          # Run all health check scenarios
+```
+
+**Code Quality:**
+```bash
+npm run format           # Auto-fix formatting
+npm run format:check     # Check formatting
+```
+
+## 📁 Project Structure
+
+```
+src/
+├── routes/              # TanStack Router file-based routes
+├── components/          # Application-specific components
+├── content/             # Content tokens and copy
+├── mocks/               # MSW mock data
+├── msw/                 # MSW setup
+├── hooks/               # Custom React hooks
+├── lib/                 # Utility functions
+├── i18n/                # Internationalization
+└── data/                # Static data
+```
+
+## 🎨 Styling Guidelines
+
+**Design Tokens:**
+- Defined in `tailwind.config.js` under `theme.extend`
+- Semantic font families: `font-heading`, `font-body`, `font-card`
+- Global base font: `font-sans` on `<html>`
+
+**Example:**
+```tsx
+<h2 className="font-heading text-page-h2">Heading</h2>
+<p className="font-body text-page-body">Body copy</p>
+<div className="font-card">Card content</div>
+```
+
+**Add shadcn/ui components:**
 ```bash
 pnpx shadcn@latest add button
 ```
 
-## Quick Start
+## 🧭 Routing (TanStack Router)
 
-1. Run development server: `npm run dev`
-2. Server runs on `localhost:3000`
-3. Use path aliases: `@/components/ui/component`
-4. Static assets go in `public/` with absolute paths
+**File-based routing** - Routes are files in `src/routes/`
+
+**Layout:**
+- Root layout: `src/routes/__root.tsx`
+- Use `<Outlet />` for nested route content
+
+**Navigation:**
+```tsx
+import { Link } from '@tanstack/react-router';
+
+<Link to="/demo">View Demo</Link>
+```
+
+**Data Loading:**
+```tsx
+const route = createRoute({
+  path: '/people',
+  loader: async () => {
+    const response = await fetch('/api/people');
+    return response.json();
+  },
+  component: () => {
+    const data = route.useLoaderData();
+    return <div>{/* Render data */}</div>;
+  },
+});
+```
+
+## 🎭 Mock Service Worker (MSW)
+
+- Client-side API mocking with stateful behavior
+- Mock definitions in `src/mocks/`
+- MSW setup in `src/msw/`
+- No backend required - all data mocked client-side
+- Demonstrates various API scenarios and states
+
+## 🧪 Testing
+
+**Unit Tests:**
+- Framework: Vitest
+- Run: `npm run test`
+
+**Health Checks:**
+- Framework: Playwright
+- Scenarios: Default, linked bank account, onboarding
+- Run: `npm run health-check:all`
+
+## 📖 Component Usage
+
+This app **consumes** the `@jpmorgan-payments/embedded-finance-components` library:
+
+```tsx
+import { 
+  OnboardingFlow,
+  LinkedAccountWidget,
+  TransactionsList 
+} from '@jpmorgan-payments/embedded-finance-components';
+```
+
+**Note**: To modify components, work in `../../embedded-components/` package.
+
+## 🔗 Important Links
+
+- **API Docs**: `developer.payments.jpmorgan.com/api/embedded-finance-solutions`
+- **Component Library**: `../../embedded-components/`
+- **Embedded Components Docs**: See library README and Storybook
+
+## 🚀 Development Workflow
+
+1. Start dev server: `npm run dev`
+2. Navigate to: `http://localhost:3000`
+3. Make changes to routes/components in `src/`
+4. Hot reload updates automatically
+5. Test with: `npm run test`
+6. Health check: `npm run health-check`
+
+## ⚠️ Important Notes
+
+- **This is a showcase app** - not the component library itself
+- **Component development**: Work in `../../embedded-components/`
+- **No real backend**: All APIs mocked via MSW
+- **Path aliases**: Use `@/components/ui/component` for imports
+- **Static assets**: Place in `public/` with absolute paths
+
+---
+
+**Format**: Agent Skills 1.0 (agentskills.io)  
+**Updated**: December 24, 2025  
+**Cross-IDE**: ✅ Cursor, VS Code Copilot, Claude Code

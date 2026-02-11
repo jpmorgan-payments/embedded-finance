@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type {
   ListAccountsResponse,
   PaymentFormData,
+  PaymentMethod,
   Recipient,
 } from '../../types';
 import { formatCurrency, maskAccount, renderRecipientName } from '../../utils';
@@ -23,12 +24,14 @@ interface ReviewPanelProps {
   filteredRecipients: Recipient[];
   accounts: ListAccountsResponse | undefined;
   accountsStatus: string;
+  paymentMethods?: PaymentMethod[];
 }
 
 export const ReviewPanel: React.FC<ReviewPanelProps> = ({
   filteredRecipients,
   accounts,
   accountsStatus,
+  paymentMethods = [],
 }) => {
   const { t } = useTranslation(['make-payment']);
   const form = useFormContext<PaymentFormData>();
@@ -42,6 +45,12 @@ export const ReviewPanel: React.FC<ReviewPanelProps> = ({
   const memo = form.watch('memo');
 
   const recipient = filteredRecipients?.find((r) => r.id === to);
+
+  // Calculate fee from paymentMethods prop
+  const fee = useMemo(() => {
+    if (!method || !paymentMethods) return 0;
+    return paymentMethods.find((m) => m.id === method)?.fee || 0;
+  }, [method, paymentMethods]);
 
   return (
     <div className="eb-sticky eb-top-0 eb-space-y-4">
@@ -152,22 +161,17 @@ export const ReviewPanel: React.FC<ReviewPanelProps> = ({
                     : '—'}
                 </span>
               </div>
-              <div className="eb-flex eb-justify-between">
-                <span className="eb-text-muted-foreground">
-                  {t('labels.fee', { defaultValue: 'Fee' })}
-                </span>
-                <span>
-                  ${formatCurrency(recipient && method ? getFee(method) : 0)}
-                </span>
-              </div>
+              {fee > 0 && (
+                <div className="eb-flex eb-justify-between">
+                  <span className="eb-text-muted-foreground">
+                    {t('labels.fee', { defaultValue: 'Fee' })}
+                  </span>
+                  <span>${formatCurrency(fee)}</span>
+                </div>
+              )}
               <div className="eb-flex eb-justify-between eb-font-medium">
                 <span>{t('labels.total', { defaultValue: 'Total' })}</span>
-                <span>
-                  $
-                  {formatCurrency(
-                    amount + (recipient && method ? getFee(method) : 0)
-                  )}
-                </span>
+                <span>${formatCurrency(amount + fee)}</span>
               </div>
             </div>
           </div>
@@ -190,16 +194,4 @@ export const ReviewPanel: React.FC<ReviewPanelProps> = ({
       </Card>
     </div>
   );
-};
-
-// Helper function for fee calculation (simplified for ReviewPanel)
-const getFee = (paymentMethodId: string): number => {
-  // This is a simplified version - in real implementation,
-  // you'd pass the actual payment methods array
-  const feeMap: Record<string, number> = {
-    ACH: 2.5,
-    RTP: 1,
-    WIRE: 25,
-  };
-  return feeMap[paymentMethodId] || 0;
 };

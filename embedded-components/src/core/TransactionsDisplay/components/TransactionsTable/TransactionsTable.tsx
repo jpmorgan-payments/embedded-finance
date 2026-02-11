@@ -22,8 +22,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-import { TransactionDetailsDialogTrigger } from '../../TransactionDetailsSheet/TransactionDetailsSheet';
-import { TRANSACTIONS_DISPLAY_USER_JOURNEYS } from '../../TransactionsDisplay.constants';
 import type { ModifiedTransaction } from '../../utils';
 import { DataTablePagination } from './DataTablePagination';
 import { TransactionsTableToolbar } from './TransactionsTableToolbar';
@@ -101,7 +99,7 @@ export function TransactionsTable({
   const table = providedTable || internalTable;
 
   return (
-    <div className="eb-w-full eb-space-y-4">
+    <div className="eb-w-full">
       {!providedTable && <TransactionsTableToolbar table={table} />}
       <div className="eb-rounded-md eb-border">
         <Table>
@@ -125,43 +123,23 @@ export function TransactionsTable({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => {
-                const transaction = row.original;
-                const transactionId = transaction.id ?? '';
-                return (
-                  <TransactionDetailsDialogTrigger
-                    key={row.id}
-                    transactionId={transactionId}
-                  >
-                    <TableRow
-                      data-user-event={
-                        TRANSACTIONS_DISPLAY_USER_JOURNEYS.VIEW_DETAILS
-                      }
-                      data-transaction-id={transactionId}
-                      data-state={row.getIsSelected() && 'selected'}
-                      className="eb-cursor-pointer eb-transition-colors hover:eb-bg-muted/50"
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          // Trigger click on the row to open dialog
-                          (e.currentTarget as HTMLElement).click();
-                        }
-                      }}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </TransactionDetailsDialogTrigger>
-                );
-              })
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-transaction-id={row.original.id ?? ''}
+                  data-state={row.getIsSelected() && 'selected'}
+                  className="eb-transition-colors hover:eb-bg-muted/50"
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
             ) : (
               <TableRow>
                 <TableCell

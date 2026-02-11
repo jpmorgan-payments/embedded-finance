@@ -1,0 +1,90 @@
+{
+  "component": "Linked Accounts",
+  "date": "2026-01-14",
+  "url": "https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=linked-accounts&theme=Empty",
+  "totalRequests": 34,
+  "summary": {
+    "successful": 34,
+    "failed": 0,
+    "duplicateCalls": true,
+    "duplicateEndpoints": [
+      "/ping",
+      "/ef/do/v1/recipients?type=LINKED_ACCOUNT&limit=10",
+      "/ef/do/v1/recipients?type=LINKED_ACCOUNT&page=0&limit=10",
+      "/ef/do/v1/recipients",
+      "/ef/do/v1/recipients/linked-account-003",
+      "/ef/do/v1/accounts",
+      "/ef/do/v1/accounts/acc-002/balances"
+    ]
+  },
+  "requests": [
+    {
+      "id": 1,
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=linked-accounts&theme=Empty",
+      "status": 200,
+      "type": "document"
+    },
+    {
+      "id": 21,
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ping",
+      "status": 200,
+      "type": "fetch",
+      "note": "Called twice (reqid 21, 28)"
+    },
+    {
+      "id": 22,
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/recipients?type=LINKED_ACCOUNT&limit=10",
+      "status": 200,
+      "type": "fetch",
+      "note": "Called twice (reqid 22, 29)"
+    },
+    {
+      "id": 23,
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/recipients?type=LINKED_ACCOUNT&page=0&limit=10",
+      "status": 200,
+      "type": "fetch",
+      "note": "Called twice (reqid 23, 30)"
+    },
+    {
+      "id": 24,
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/recipients",
+      "status": 200,
+      "type": "fetch",
+      "note": "Called twice (reqid 24, 31)"
+    },
+    {
+      "id": 25,
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/recipients/linked-account-003",
+      "status": 200,
+      "type": "fetch",
+      "note": "Called twice (reqid 25, 32)"
+    },
+    {
+      "id": 26,
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/accounts",
+      "status": 200,
+      "type": "fetch",
+      "note": "Called twice (reqid 26, 33)"
+    },
+    {
+      "id": 27,
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/accounts/acc-002/balances",
+      "status": 200,
+      "type": "fetch",
+      "note": "Called twice (reqid 27, 34)"
+    }
+  ],
+  "findings": {
+    "duplicateCalls": "All API endpoints called twice - likely due to tab switch emulation or React Query refetching",
+    "allSuccessful": true,
+    "performance": "All requests completed successfully"
+  }
+}

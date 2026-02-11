@@ -6,14 +6,15 @@ This directory contains the main embedded banking components organized by functi
 
 ### **Core Components** (Primary Business Logic)
 
-These are the main 6 components that provide core embedded banking functionality:
+These are the main components that provide core embedded banking functionality:
 
 - **`Accounts/`** - Account management and display
-- **`Recipients/`** - Payment recipient management
+- **`RecipientWidgets/`** - Payment recipient and linked account management
+  - **`LinkedAccountWidget/`** - External bank account linking with microdeposit verification
+  - **`RecipientsWidget/`** - Payment recipient management (without microdeposits)
 - **`MakePayment/`** - Payment processing and forms
 - **`TransactionsDisplay/`** - Transaction history and display
 - **`OnboardingFlow/`** - Customer onboarding process
-- **`LinkedAccountWidget/`** - External account linking
 
 ### **Utility Components** (Supporting Infrastructure)
 
@@ -27,6 +28,8 @@ These provide supporting functionality and infrastructure:
 These are older components maintained for reference:
 
 - **`OnboardingWizardBasic/`** - Legacy onboarding wizard (deprecated)
+- **`Recipients/`** - Legacy recipient management (deprecated, use `RecipientWidgets/RecipientsWidget/` instead)
+- **`RecipientListWidget/`** - Legacy recipient list widget (deprecated)
 
 ## 🏷️ Storybook Tags Strategy
 
@@ -39,11 +42,11 @@ These are older components maintained for reference:
 ### **Component-Specific Tags**
 
 - **`@accounts`** - Account-related components
-- **`@recipients`** - Recipient management
+- **`@recipient-widgets`** - Recipient and linked account widgets (LinkedAccountWidget, RecipientsWidget)
 - **`@payment`** - Payment processing
 - **`@transactions`** - Transaction display
 - **`@onboarding`** - Onboarding flows
-- **`@linked-accounts`** - External account linking
+- **`@legacy`** - Deprecated components (including legacy Recipients)
 
 ### **Feature Tags**
 
@@ -56,11 +59,11 @@ These are older components maintained for reference:
 
 ```
 Core/Accounts
-Core/Recipients
+Core/RecipientWidgets/LinkedAccountWidget
+Core/RecipientWidgets/RecipientsWidget
 Core/MakePayment
 Core/TransactionsDisplay
 Core/OnboardingFlow
-Core/LinkedAccountWidget
 ```
 
 ### **Legacy Component Stories**
@@ -72,13 +75,16 @@ Legacy/OnboardingWizardBasic/ErrorStates
 Legacy/OnboardingWizardBasic/ContentTokens
 Legacy/OnboardingWizardBasic/ClientVariants
 Legacy/OnboardingWizardBasic/ApiStates
+Legacy/Recipients
+Legacy/Recipients/Validation
+Legacy/Recipients/Configuration
 ```
 
 ### **Sub-Stories**
 
 ```
-Core/Recipients/Validation
-Core/Recipients/Configuration
+Core/RecipientWidgets/LinkedAccountWidget/Verification
+Core/RecipientWidgets/LinkedAccountWidget/Configuration
 Core/OnboardingFlow/Mocks
 Core/OnboardingFlow/DocumentUpload
 ```

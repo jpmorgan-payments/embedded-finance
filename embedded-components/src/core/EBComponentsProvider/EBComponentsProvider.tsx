@@ -78,7 +78,8 @@ const logError = (error: Error, info: ErrorInfo) => {
 export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
   children,
   apiBaseUrl,
-  apiBaseUrls,
+  apiBaseUrlTransforms,
+  apiBaseUrls, // deprecated
   headers = {},
   queryParams = {},
   theme = {},
@@ -117,6 +118,18 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
           // Check if this is a GET request
           const isGetRequest = config.method?.toUpperCase() === 'GET';
 
+          // Determine the final URL based on base URL transforms or deprecated base URLs
+          let finalBaseURL = apiBaseUrl;
+
+          // New behavior: apiBaseUrlTransforms transforms the base URL for specific paths
+          if (apiBaseUrlTransforms?.[urlPath]) {
+            finalBaseURL = apiBaseUrlTransforms[urlPath](apiBaseUrl);
+          }
+          // Deprecated behavior: apiBaseUrls overrides the entire base URL
+          else if (apiBaseUrls?.[urlPath]) {
+            finalBaseURL = apiBaseUrls[urlPath];
+          }
+
           return {
             ...config,
             headers: {
@@ -136,7 +149,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
                     clientId,
                   }
                 : config.data,
-            baseURL: apiBaseUrls?.[urlPath] ?? apiBaseUrl,
+            baseURL: finalBaseURL,
           };
         } catch (error) {
           // eslint-disable-next-line no-console
@@ -158,6 +171,8 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
     };
   }, [
     apiBaseUrl,
+    apiBaseUrlTransforms,
+    JSON.stringify(apiBaseUrls),
     JSON.stringify(headers),
     JSON.stringify(queryParams),
     clientId,

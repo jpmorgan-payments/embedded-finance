@@ -2,7 +2,7 @@
 
 Target: Align all core components with API docs, i18n, private labeling (design/content tokens), security (OWASP), performance (Core Web Vitals), a11y (WCAG 2.1 AA), UX-tested flows, and OAS-superset client validation.
 
-**Last Updated:** December 9, 2025  
+**Last Updated:** January 14, 2026  
 **Related Documents:**
 
 - `BACKLOG.md` - Detailed task backlog with priorities and UX testing findings (updated with tracking IDs)
@@ -14,10 +14,12 @@ Target: Align all core components with API docs, i18n, private labeling (design/
 
 - OnboardingFlow
 - LinkedAccountWidget
-- Recipients
+- RecipientsWidget
 - MakePayment
 - TransactionsDisplay
 - Accounts
+
+> **Note:** The legacy `Recipients` component has been deprecated in favor of `RecipientsWidget`. See the [RecipientWidgets README](./RecipientWidgets/README.md) for migration guidance.
 
 ## Timeline (visual)
 
@@ -25,7 +27,7 @@ Each theme applies to all components. Within every theme, we will review and enh
 
 Baseline readiness: Basic functionality across all themes for all components is ready and verified. This roadmap captures the next iteration of enhancements and evolution.
 
-**Last Updated:** December 9, 2025  
+**Last Updated:** January 14, 2026  
 **Related Documents:** See `BACKLOG.md` for detailed task breakdown and UX testing findings. All backlog items now have unique tracking IDs (BL-XXX format).
 
 ```mermaid
@@ -60,22 +62,35 @@ gantt
 - LinkedAccountWidget
   - ✅ Handle verification responses (PR #583 - Dec 2, 2025) [BL-401-1]
   - ✅ Add interaction stories (PR #583 - Dec 2, 2025) [BL-401-1]
+  - ✅ Compact/virtualized list with scrollable mode (PR #609 - Dec 12, 2025) [BL-401-5]
   - [ ] Parity with Recipients payment methods [BL-401-2]
   - [ ] Better status messaging [BL-401-3]
   - [ ] Robust microdeposit flows (retry/lockout messaging) [BL-401-4]
-- Recipients
+- Recipients (DEPRECATED - use RecipientsWidget)
+  - ⚠️ This component is deprecated in favor of RecipientsWidget
   - ✅ Server-side pagination implemented (PR #601 - Dec 9, 2025)
   - ✅ Type filtering implemented (PR #601 - Dec 9, 2025)
   - ✅ Status formatting refined with normalizeRecipientStatus (PR #601 - Dec 9, 2025)
   - [ ] Conditional attributes per payment method (ACH/RTP/WIRE) [BL-402-1]
   - [ ] Edit flows parity + masking [BL-402-2]
   - [ ] Recipient duplicate detection UX [BL-402-3]
+- RecipientsWidget (NEW - recommended)
+  - Shared architecture with LinkedAccountWidget
+  - Modern API with better i18n support
+  - Streamlined UX without microdeposit verification
+  - ✅ Compact-cards default + table view (PR #622 - Jan 8, 2026)
+  - ✅ Scrollable virtual list + load-more pagination (PR #609 - Dec 12, 2025)
+  - ✅ Config-driven forms aligned to recipient vs linked-account flows (PR #624 - Jan 8, 2026)
 - MakePayment
   - ✅ Recipient mode toggle refactored to RadioGroup (PR #601 - Dec 9, 2025) [BL-010]
   - ✅ Manual recipient creation with save option (PR #601 - Dec 9, 2025) [BL-010]
   - ✅ Payment method selector UI overhaul with icons (PR #601 - Dec 9, 2025) [BL-010]
   - ✅ Section headings standardized to h3 (PR #601 - Dec 9, 2025) [BL-310]
   - ✅ Account selector error handling and retry (PR #601 - Dec 9, 2025)
+  - ✅ Account list filtered to payment-eligible categories (PR #621 - Jan 7, 2026)
+  - ✅ UUID-based transaction reference IDs + trimmed memos (PR #621 - Jan 7, 2026)
+  - ✅ Preselected recipient fetch by ID for paginated lists (PR #626 - Jan 12, 2026)
+  - ✅ Dialog card header/spacing refresh (PR #626 - Jan 12, 2026)
   - [ ] Recipient/method filtering logic [BL-403-1]
   - [ ] Review fee/time ETA display [BL-403-2, BL-031]
   - [ ] Review/confirmation UX [BL-403-3]
@@ -89,9 +104,10 @@ gantt
 - Accounts
   - ✅ Account number masking code updated to `****${number.slice(-4)}` (Dec 3, 2025) [BL-003-1]
   - ✅ Browser verification completed - all components use `****1098` pattern (Dec 9, 2025) [BL-003-2]
-  - [ ] Responsive cards [BL-405-1]
+  - ✅ Visual refresh with updated header and spacing (PR #629 - Jan 13, 2026)
+  - ✅ Responsive cards layout (PR #629 - Jan 13, 2026) [BL-405-1]
   - [ ] Review balance types mapping and tooltips [BL-405-2]
-  - [ ] Masking/toggle for sensitive routing/account info [BL-405-3]
+  - ✅ Masking/toggle for sensitive routing/account info [BL-405-3]
   - [ ] Add "View Transactions" / "Transfer Funds" buttons [BL-090-1, BL-090-2]
   - [ ] Remove redundant "Accounts" heading [BL-091-1]
 
@@ -179,7 +195,7 @@ gantt
   - Rebaseline CI (typecheck/lint/test/storybook build) performance and caching.
 
 - Per-component docs (usage, configuration, validation, security, a11y, testing, performance).
-- Enhanced Cursor rules and codegen/dev templates for AI agents.
+- Enhanced AI agent skills and codegen/dev templates.
 
 ## Orval & Dependencies
 

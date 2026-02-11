@@ -9,17 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as YearInReviewRouteImport } from './routes/year-in-review'
+import { Route as UtilsRouteImport } from './routes/utils'
 import { Route as StoriesRouteImport } from './routes/stories'
 import { Route as SolutionsRouteImport } from './routes/solutions'
 import { Route as SellsenseDemoRouteImport } from './routes/sellsense-demo'
+import { Route as PartiallyHostedDemoRouteImport } from './routes/partially-hosted-demo'
 import { Route as MswTestRouteImport } from './routes/msw-test'
 import { Route as GithubRouteImport } from './routes/github'
+import { Route as GhTrafficStatsRouteImport } from './routes/gh-traffic-stats'
 import { Route as DocumentationRouteImport } from './routes/documentation'
 import { Route as DemosRouteImport } from './routes/demos'
+import { Route as ComponentsRouteImport } from './routes/components'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StoriesIndexRouteImport } from './routes/stories.index'
 import { Route as StoriesStoryIdRouteImport } from './routes/stories.$storyId'
 
+const YearInReviewRoute = YearInReviewRouteImport.update({
+  id: '/year-in-review',
+  path: '/year-in-review',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UtilsRoute = UtilsRouteImport.update({
+  id: '/utils',
+  path: '/utils',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StoriesRoute = StoriesRouteImport.update({
   id: '/stories',
   path: '/stories',
@@ -35,6 +50,11 @@ const SellsenseDemoRoute = SellsenseDemoRouteImport.update({
   path: '/sellsense-demo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PartiallyHostedDemoRoute = PartiallyHostedDemoRouteImport.update({
+  id: '/partially-hosted-demo',
+  path: '/partially-hosted-demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MswTestRoute = MswTestRouteImport.update({
   id: '/msw-test',
   path: '/msw-test',
@@ -45,6 +65,11 @@ const GithubRoute = GithubRouteImport.update({
   path: '/github',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GhTrafficStatsRoute = GhTrafficStatsRouteImport.update({
+  id: '/gh-traffic-stats',
+  path: '/gh-traffic-stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DocumentationRoute = DocumentationRouteImport.update({
   id: '/documentation',
   path: '/documentation',
@@ -53,6 +78,11 @@ const DocumentationRoute = DocumentationRouteImport.update({
 const DemosRoute = DemosRouteImport.update({
   id: '/demos',
   path: '/demos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComponentsRoute = ComponentsRouteImport.update({
+  id: '/components',
+  path: '/components',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -73,37 +103,52 @@ const StoriesStoryIdRoute = StoriesStoryIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
+  '/gh-traffic-stats': typeof GhTrafficStatsRoute
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
+  '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/stories': typeof StoriesRouteWithChildren
+  '/utils': typeof UtilsRoute
+  '/year-in-review': typeof YearInReviewRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
   '/stories/': typeof StoriesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
+  '/gh-traffic-stats': typeof GhTrafficStatsRoute
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
+  '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
+  '/utils': typeof UtilsRoute
+  '/year-in-review': typeof YearInReviewRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
   '/stories': typeof StoriesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
+  '/gh-traffic-stats': typeof GhTrafficStatsRoute
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
+  '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/stories': typeof StoriesRouteWithChildren
+  '/utils': typeof UtilsRoute
+  '/year-in-review': typeof YearInReviewRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
   '/stories/': typeof StoriesIndexRoute
 }
@@ -111,53 +156,87 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/components'
     | '/demos'
     | '/documentation'
+    | '/gh-traffic-stats'
     | '/github'
     | '/msw-test'
+    | '/partially-hosted-demo'
     | '/sellsense-demo'
     | '/solutions'
     | '/stories'
+    | '/utils'
+    | '/year-in-review'
     | '/stories/$storyId'
     | '/stories/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/components'
     | '/demos'
     | '/documentation'
+    | '/gh-traffic-stats'
     | '/github'
     | '/msw-test'
+    | '/partially-hosted-demo'
     | '/sellsense-demo'
     | '/solutions'
+    | '/utils'
+    | '/year-in-review'
     | '/stories/$storyId'
     | '/stories'
   id:
     | '__root__'
     | '/'
+    | '/components'
     | '/demos'
     | '/documentation'
+    | '/gh-traffic-stats'
     | '/github'
     | '/msw-test'
+    | '/partially-hosted-demo'
     | '/sellsense-demo'
     | '/solutions'
     | '/stories'
+    | '/utils'
+    | '/year-in-review'
     | '/stories/$storyId'
     | '/stories/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ComponentsRoute: typeof ComponentsRoute
   DemosRoute: typeof DemosRoute
   DocumentationRoute: typeof DocumentationRoute
+  GhTrafficStatsRoute: typeof GhTrafficStatsRoute
   GithubRoute: typeof GithubRoute
   MswTestRoute: typeof MswTestRoute
+  PartiallyHostedDemoRoute: typeof PartiallyHostedDemoRoute
   SellsenseDemoRoute: typeof SellsenseDemoRoute
   SolutionsRoute: typeof SolutionsRoute
   StoriesRoute: typeof StoriesRouteWithChildren
+  UtilsRoute: typeof UtilsRoute
+  YearInReviewRoute: typeof YearInReviewRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/year-in-review': {
+      id: '/year-in-review'
+      path: '/year-in-review'
+      fullPath: '/year-in-review'
+      preLoaderRoute: typeof YearInReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/utils': {
+      id: '/utils'
+      path: '/utils'
+      fullPath: '/utils'
+      preLoaderRoute: typeof UtilsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/stories': {
       id: '/stories'
       path: '/stories'
@@ -179,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SellsenseDemoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/partially-hosted-demo': {
+      id: '/partially-hosted-demo'
+      path: '/partially-hosted-demo'
+      fullPath: '/partially-hosted-demo'
+      preLoaderRoute: typeof PartiallyHostedDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/msw-test': {
       id: '/msw-test'
       path: '/msw-test'
@@ -193,6 +279,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GithubRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/gh-traffic-stats': {
+      id: '/gh-traffic-stats'
+      path: '/gh-traffic-stats'
+      fullPath: '/gh-traffic-stats'
+      preLoaderRoute: typeof GhTrafficStatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/documentation': {
       id: '/documentation'
       path: '/documentation'
@@ -205,6 +298,13 @@ declare module '@tanstack/react-router' {
       path: '/demos'
       fullPath: '/demos'
       preLoaderRoute: typeof DemosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/components': {
+      id: '/components'
+      path: '/components'
+      fullPath: '/components'
+      preLoaderRoute: typeof ComponentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -246,13 +346,18 @@ const StoriesRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ComponentsRoute: ComponentsRoute,
   DemosRoute: DemosRoute,
   DocumentationRoute: DocumentationRoute,
+  GhTrafficStatsRoute: GhTrafficStatsRoute,
   GithubRoute: GithubRoute,
   MswTestRoute: MswTestRoute,
+  PartiallyHostedDemoRoute: PartiallyHostedDemoRoute,
   SellsenseDemoRoute: SellsenseDemoRoute,
   SolutionsRoute: SolutionsRoute,
   StoriesRoute: StoriesRouteWithChildren,
+  UtilsRoute: UtilsRoute,
+  YearInReviewRoute: YearInReviewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

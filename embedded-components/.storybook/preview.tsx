@@ -1,8 +1,10 @@
+import React, { useEffect, useState } from 'react';
 import { defaultResources } from '@/i18n/config';
 import type { Decorator } from '@storybook/react';
 import { Preview } from '@storybook/react-vite';
 import { DefaultOptions } from '@tanstack/react-query';
 import { initialize, mswLoader } from 'msw-storybook-addon';
+import { createPortal } from 'react-dom';
 import { themes } from 'storybook/theming';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
@@ -13,12 +15,169 @@ import '@/index.css';
 
 import { EBTheme } from '@/core/EBComponentsProvider/config.types';
 
+// ============================================================================
+// MSW Status Indicator Component
+// ============================================================================
+
+type MswStatus = 'checking' | 'active' | 'stale';
+
+/**
+ * MSW Status Indicator - shows in top-left corner when MSW becomes unresponsive.
+ * Click to hard refresh the page when stale.
+ */
+function MswStatusIndicator() {
+  const [status, setStatus] = useState<MswStatus>('active');
+  const [lastCheck, setLastCheck] = useState<Date | null>(null);
+  const [failureCount, setFailureCount] = useState(0);
+
+  useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval>;
+
+    const checkMswHealth = async () => {
+      try {
+        // Check if service worker is registered and active
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (!registration?.active) {
+          setFailureCount((prev) => prev + 1);
+          // Only mark as stale after 3 consecutive failures
+          if (failureCount >= 2) {
+            setStatus('stale');
+          }
+          return;
+        }
+
+        // Check service worker state
+        if (registration.active.state !== 'activated') {
+          setFailureCount((prev) => prev + 1);
+          if (failureCount >= 2) {
+            setStatus('stale');
+          }
+          return;
+        }
+
+        // Try to make a test request that MSW should intercept
+        // Use a unique URL that won't be cached
+        const testUrl = `/__msw_health_check__?t=${Date.now()}`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        try {
+          // If MSW is working, it will either handle this or pass it through
+          // The key is that fetch itself works - if SW is broken, fetch may hang
+          await fetch(testUrl, {
+            signal: controller.signal,
+            method: 'HEAD',
+          });
+        } catch (fetchError) {
+          // 404 is expected - we just want to know fetch completes
+          // AbortError means timeout
+          if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+            throw new Error('Fetch timeout');
+          }
+        } finally {
+          clearTimeout(timeoutId);
+        }
+
+        // If we got here, service worker is responsive
+        setStatus('active');
+        setLastCheck(new Date());
+        setFailureCount(0);
+      } catch {
+        setFailureCount((prev) => prev + 1);
+        // Only mark as stale after 3 consecutive failures
+        if (failureCount >= 2) {
+          setStatus('stale');
+        }
+      }
+    };
+
+    // Initial check after a longer delay to let MSW initialize
+    const initialTimeout = setTimeout(checkMswHealth, 5000);
+
+    // Periodic health checks every 30 seconds
+    intervalId = setInterval(checkMswHealth, 30000);
+
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(intervalId);
+    };
+  }, [failureCount]);
+
+  const handleClick = () => {
+    if (status === 'stale') {
+      window.location.reload();
+    }
+  };
+
+  // Only show when stale
+  if (status !== 'stale') {
+    return null;
+  }
+
+  // Use portal to render outside of React tree (bypasses dialog overlays)
+  return createPortal(
+    <button
+      onClick={handleClick}
+      style={{
+        position: 'fixed',
+        top: '8px',
+        left: '8px',
+        padding: '6px 10px',
+        fontSize: '11px',
+        fontFamily: 'system-ui, sans-serif',
+        fontWeight: 500,
+        color: '#b91c1c',
+        backgroundColor: '#fef2f2',
+        border: '1px solid #fecaca',
+        borderRadius: '6px',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        pointerEvents: 'auto', // Ensure clickability
+      }}
+      title={`MSW service worker is not responding. Last successful check: ${lastCheck?.toLocaleTimeString() ?? 'never'}. Click to refresh.`}
+    >
+      <span
+        style={{
+          width: '8px',
+          height: '8px',
+          borderRadius: '50%',
+          backgroundColor: '#dc2626',
+        }}
+      />
+      MSW Stale - Click to Refresh
+    </button>,
+    document.body
+  );
+}
+
+// ============================================================================
+// MSW Initialization
+// ============================================================================
+
 // Prevents edge cases where the service worker is not ready when the preview is loaded
 const mockWatcher = new Promise<void>((resolve) => {
   navigator.serviceWorker.addEventListener('message', (event) => {
     if (event.data.type === 'MOCKING_ENABLED') resolve();
   });
 });
+
+// Suppress unhandled promise rejections from MSW service worker
+if (typeof window !== 'undefined') {
+  window.addEventListener('unhandledrejection', (event) => {
+    const error = event.reason;
+    // Suppress MSW deserialization errors
+    if (
+      error?.message?.includes('Cannot read properties of undefined') &&
+      error?.stack?.includes('deserializeRequest')
+    ) {
+      event.preventDefault();
+      return;
+    }
+  });
+}
 
 // Initialize MSW
 initialize({
@@ -93,19 +252,23 @@ const withEBComponentsProvider: Decorator<BaseStoryArgs> = (Story, context) => {
   };
 
   return (
-    <EBComponentsProvider
-      apiBaseUrl={args.apiBaseUrl ?? '/'}
-      apiBaseUrls={{
-        clients: `${(args.apiBaseUrl ?? '/').split('/v1')[0]}/do/v1`,
-      }}
-      headers={args.headers}
-      theme={theme}
-      contentTokens={contentTokens as any}
-      clientId={args.clientId ?? ''}
-      reactQueryDefaultOptions={args.reactQueryDefaultOptions}
-    >
-      <Story />
-    </EBComponentsProvider>
+    <>
+      <MswStatusIndicator />
+      <EBComponentsProvider
+        apiBaseUrl={args.apiBaseUrl ?? '/'}
+        apiBaseUrlTransforms={{
+          clients: (baseUrl) => baseUrl.replace('/v1', '/do/v1'),
+          transactions: (baseUrl) => baseUrl.replace('/v1', '/v2'),
+        }}
+        headers={args.headers}
+        theme={theme}
+        contentTokens={contentTokens as any}
+        clientId={args.clientId ?? ''}
+        reactQueryDefaultOptions={args.reactQueryDefaultOptions}
+      >
+        <Story />
+      </EBComponentsProvider>
+    </>
   );
 };
 

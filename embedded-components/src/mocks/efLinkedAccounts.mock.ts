@@ -42,7 +42,7 @@ export const linkedAccountListMock: ListRecipientsResponse = {
         ],
       },
       account: {
-        number: '2134380369277971423204567',
+        number: '12345678901234567',
         type: AccountType.CHECKING,
         countryCode: CountryCode.US,
         routingInformation: [
@@ -220,7 +220,7 @@ export const linkedAccountMicrodepositListMock: ListRecipientsResponse = {
         ],
       },
       account: {
-        number: '2134380369277971423204567',
+        number: '12345678901234567',
         type: AccountType.CHECKING,
         countryCode: CountryCode.US,
         routingInformation: [
@@ -274,7 +274,7 @@ export const linkedAccountReadyForValidationMock: ListRecipientsResponse = {
         ],
       },
       account: {
-        number: '2134380369277971423204567',
+        number: '12345678901234567',
         type: AccountType.CHECKING,
         countryCode: CountryCode.US,
         routingInformation: [
@@ -329,7 +329,7 @@ export const linkedAccountRejectedMock: ListRecipientsResponse = {
         ],
       },
       account: {
-        number: '2134380369277971423204567',
+        number: '12345678901234567',
         type: AccountType.CHECKING,
         countryCode: CountryCode.US,
         routingInformation: [
@@ -482,7 +482,7 @@ export const linkedAccountActiveMock: ListRecipientsResponse = {
         ],
       },
       account: {
-        number: '2134380369277971423204567',
+        number: '12345678901234567',
         type: AccountType.CHECKING,
         countryCode: CountryCode.US,
         routingInformation: [

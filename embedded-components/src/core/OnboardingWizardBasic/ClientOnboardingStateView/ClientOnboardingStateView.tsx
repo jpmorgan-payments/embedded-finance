@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LinkedAccountWidget } from '@/core/LinkedAccountWidget/LinkedAccountWidget';
+import { LinkedAccountWidget } from '@/core/RecipientWidgets';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { AdvancedReviewInProgressLoadingState } from './AdvancedReviewInProgressLoadingState';
@@ -236,7 +236,7 @@ export const ClientOnboardingStateView: React.FC<
                     'While your onboarding is being processed, you can start adding linked accounts to your profile.'
                   )}
                 </p>
-                <LinkedAccountWidget variant="singleAccount" />
+                <LinkedAccountWidget mode="single" />
               </div>
             )}
           </CardContent>

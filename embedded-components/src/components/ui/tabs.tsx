@@ -5,7 +5,17 @@ import * as TabsPrimitive from '@radix-ui/react-tabs';
 
 import { cn } from '@/lib/utils';
 
-const Tabs = TabsPrimitive.Root;
+const Tabs = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.Root
+    ref={ref}
+    className={cn('eb-flex eb-flex-col eb-gap-2', className)}
+    {...props}
+  />
+));
+Tabs.displayName = TabsPrimitive.Root.displayName;
 
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
@@ -14,7 +24,7 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      'eb-inline-flex eb-h-10 eb-items-center eb-justify-center eb-rounded-md eb-bg-muted eb-p-1 eb-text-muted-foreground',
+      'eb-inline-flex eb-h-9 eb-w-fit eb-items-center eb-justify-center eb-rounded-lg eb-bg-muted eb-p-1 eb-text-muted-foreground',
       className
     )}
     {...props}
@@ -29,7 +39,12 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      'eb-inline-flex eb-items-center eb-justify-center eb-whitespace-nowrap eb-rounded-sm eb-px-3 eb-py-1.5 eb-text-sm eb-font-medium eb-ring-offset-background eb-transition-all focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-ring focus-visible:eb-ring-offset-2 disabled:eb-pointer-events-none disabled:eb-opacity-50 data-[state=active]:eb-bg-background data-[state=active]:eb-text-foreground data-[state=active]:eb-shadow-sm',
+      'eb-inline-flex eb-flex-1 eb-items-center eb-justify-center eb-gap-1.5 eb-whitespace-nowrap eb-rounded-md eb-border eb-border-transparent eb-px-3 eb-py-1 eb-text-sm eb-font-medium eb-shadow-none eb-transition-all eb-duration-200 eb-ease-in-out',
+      'eb-text-muted-foreground hover:eb-text-foreground',
+      'focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-ring focus-visible:eb-ring-offset-2',
+      'disabled:eb-pointer-events-none disabled:eb-opacity-50',
+      'data-[state=active]:eb-border-border data-[state=active]:eb-bg-background data-[state=active]:eb-text-foreground data-[state=active]:eb-shadow',
+      '[&_svg]:eb-pointer-events-none [&_svg]:eb-size-4 [&_svg]:eb-shrink-0',
       className
     )}
     {...props}
@@ -44,7 +59,8 @@ const TabsContent = React.forwardRef<
   <TabsPrimitive.Content
     ref={ref}
     className={cn(
-      'eb-mt-2 eb-ring-offset-background focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-ring focus-visible:eb-ring-offset-2',
+      'eb-flex-1 eb-text-sm eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-ring focus-visible:eb-ring-offset-2',
+      'data-[state=active]:eb-animate-fade-in',
       className
     )}
     {...props}

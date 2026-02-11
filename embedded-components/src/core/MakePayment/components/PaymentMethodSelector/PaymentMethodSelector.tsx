@@ -1,21 +1,9 @@
-import React, { useState } from 'react';
-import {
-  ArrowRightLeftIcon,
-  BanknoteIcon,
-  ChevronDown,
-  ChevronUp,
-  ZapIcon,
-} from 'lucide-react';
+import React from 'react';
+import { ArrowRightLeftIcon, BanknoteIcon, ZapIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import {
   FormControl,
   FormField,
@@ -31,7 +19,6 @@ import type { PaymentFormData, PaymentMethod } from '../../types';
 interface PaymentMethodSelectorProps {
   paymentMethods: PaymentMethod[];
   isFormFilled: boolean;
-  amount: number;
   fee: number;
   accountsStatus?: 'pending' | 'error' | 'success';
 }
@@ -39,13 +26,11 @@ interface PaymentMethodSelectorProps {
 export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   paymentMethods,
   isFormFilled,
-  amount,
   fee,
   accountsStatus,
 }) => {
   const { t } = useTranslation(['make-payment']);
   const form = useFormContext<PaymentFormData>();
-  const [isOpen, setIsOpen] = useState(true);
 
   // Get icon for payment method type (matching LinkedAccountWidget/BankAccountForm)
   const getPaymentIcon = (methodId: string) => {
@@ -135,9 +120,12 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                               paymentMethod.name
                             )}
                           </span>
-                          <span className="eb-text-xs eb-text-muted-foreground">
-                            ${paymentMethod.fee.toFixed(2)} fee
-                          </span>
+                          {paymentMethod.fee !== undefined &&
+                            paymentMethod.fee > 0 && (
+                              <span className="eb-text-xs eb-text-muted-foreground">
+                                ${paymentMethod.fee.toFixed(2)} fee
+                              </span>
+                            )}
                         </div>
                       </Label>
                     </div>
@@ -150,55 +138,20 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
         )}
       />
 
-      {isFormFilled && (
+      {isFormFilled && fee > 0 && (
         <>
           <Separator className="eb-my-2" />
-          <div className="eb-space-y-3">
-            <Collapsible
-              open={isOpen}
-              onOpenChange={setIsOpen}
-              className="eb-w-full eb-rounded-md eb-border eb-border-input eb-px-3 eb-py-2"
-            >
-              <div className="eb-flex eb-items-center eb-justify-between eb-space-x-4">
-                <h4 className="eb-text-sm eb-font-medium">
-                  {t('transferFee.label', {
-                    amount: fee.toFixed(2),
-                  })}
-                </h4>
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="eb-h-8 eb-w-8 eb-p-0"
-                  >
-                    {isOpen ? (
-                      <ChevronUp className="eb-h-4 eb-w-4" />
-                    ) : (
-                      <ChevronDown className="eb-h-4 eb-w-4" />
-                    )}
-                    <span className="eb-sr-only">
-                      {t('transferFee.toggle')}
-                    </span>
-                  </Button>
-                </CollapsibleTrigger>
-              </div>
-              <CollapsibleContent className="eb-mt-2">
-                <div className="eb-rounded-md eb-bg-muted eb-px-3 eb-py-2 eb-text-sm eb-text-muted-foreground">
-                  {form.watch('method') &&
-                    t(`feeDescriptions.${form.watch('method')}`, {
-                      defaultValue:
-                        paymentMethods.find(
-                          (m) => m.id === form.watch('method')
-                        )?.description || '',
-                    })}
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-
-            <div className="eb-text-sm eb-font-medium">
-              {t('recipientGets', {
-                amount: (amount - fee).toFixed(2),
-              })}
+          <div className="eb-rounded-md eb-border eb-border-input eb-px-3 eb-py-2">
+            <div className="eb-flex eb-items-center eb-justify-between">
+              <span className="eb-text-sm eb-text-muted-foreground">
+                {t('transferFee.label', {
+                  amount: fee.toFixed(2),
+                  defaultValue: `Transfer fee: $${fee.toFixed(2)}`,
+                })}
+              </span>
+              <span className="eb-text-sm eb-font-medium">
+                ${fee.toFixed(2)}
+              </span>
             </div>
           </div>
         </>

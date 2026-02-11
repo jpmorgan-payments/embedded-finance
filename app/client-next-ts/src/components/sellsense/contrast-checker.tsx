@@ -1,9 +1,10 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Check, X, AlertCircle } from 'lucide-react';
-import { calculateContrast } from '@/lib/color-contrast';
+import { AlertCircle, Check, X } from 'lucide-react';
+
 import { Badge } from '@/components/ui/badge';
+import { calculateContrast } from '@/lib/color-contrast';
 import { cn } from '@/lib/utils';
 
 interface ContrastCheckerProps {
@@ -25,14 +26,12 @@ export function ContrastChecker({
 }: ContrastCheckerProps) {
   const result = useMemo(
     () => calculateContrast(foreground, background),
-    [foreground, background],
+    [foreground, background]
   );
 
   if (!result) {
     return (
-      <div className="text-xs text-gray-500">
-        Invalid color combination
-      </div>
+      <div className="text-xs text-gray-500">Invalid color combination</div>
     );
   }
 
@@ -53,10 +52,10 @@ export function ContrastChecker({
     return (
       <Badge
         className={cn(
-          'flex items-center gap-1 text-xs border-0',
+          'flex items-center gap-1 border-0 text-xs',
           level === 'AAA' && 'bg-green-100 text-green-800',
           level === 'AA' && 'bg-amber-100 text-amber-800',
-          level === 'Fail' && 'bg-red-100 text-red-800',
+          level === 'Fail' && 'bg-red-100 text-red-800'
         )}
       >
         {icon}
@@ -66,11 +65,11 @@ export function ContrastChecker({
   }
 
   return (
-    <div className="space-y-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
+    <div className="space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-gray-900">{label}</span>
         {showRatio && (
-          <span className="text-sm font-mono text-gray-600">
+          <span className="font-mono text-sm text-gray-600">
             Ratio: {ratio}:1
           </span>
         )}
@@ -102,7 +101,7 @@ export function ContrastChecker({
 
       {/* Live Preview */}
       <div
-        className="p-2 rounded text-center text-sm border border-gray-300"
+        className="rounded border border-gray-300 p-2 text-center text-sm"
         style={{
           backgroundColor: background,
           color: foreground,
@@ -115,7 +114,7 @@ export function ContrastChecker({
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1">
           <div
-            className="w-4 h-4 rounded border border-gray-300"
+            className="h-4 w-4 rounded border border-gray-300"
             style={{ backgroundColor: foreground }}
             title="Foreground color"
           />
@@ -124,7 +123,7 @@ export function ContrastChecker({
         <span className="text-xs text-gray-400">→</span>
         <div className="flex items-center gap-1">
           <div
-            className="w-4 h-4 rounded border border-gray-300"
+            className="h-4 w-4 rounded border border-gray-300"
             style={{ backgroundColor: background }}
             title="Background color"
           />
@@ -133,12 +132,11 @@ export function ContrastChecker({
       </div>
 
       {result.recommendation && (
-        <div className="flex items-start gap-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
-          <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
+        <div className="flex items-start gap-2 rounded border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
+          <AlertCircle className="mt-0.5 h-3 w-3 flex-shrink-0" />
           <span>{result.recommendation}</span>
         </div>
       )}
     </div>
   );
 }
-

@@ -1,4 +1,3 @@
-
 // Mock recipients data for Recipients component
 export const mockRecipientsResponse = {
   recipients: [
@@ -159,7 +158,7 @@ export const mockEmptyRecipientsResponse = {
 
 // Mock recipients with different statuses
 export const mockActiveRecipients = mockRecipientsResponse.recipients.filter(
-  (r) => r.status === 'ACTIVE',
+  (r) => r.status === 'ACTIVE'
 );
 
 // Mock verification responses
@@ -178,9 +177,7 @@ export const mockVerificationFailure = {
 };
 
 // Function to create mock recipient
-export const createMockRecipient = (
-  overrides: Partial<any> = {},
-): any => {
+export const createMockRecipient = (overrides: Partial<any> = {}): any => {
   return {
     id: `recipient-${Date.now()}`,
     type: 'RECIPIENT',
@@ -226,7 +223,7 @@ export const createMockRecipient = (
 export const createMockRecipientsResponse = (
   recipients: any[] = mockRecipientsResponse.recipients,
   page: number = 0,
-  limit: number = 25,
+  limit: number = 25
 ): any => {
   // Use 0-based page index (OAS-aligned)
   const startIndex = page * limit;

@@ -1,15 +1,16 @@
+import { FileText, Package, Server } from 'lucide-react';
+
 import { Card, CardContent } from '@/components/ui/card';
-import { Package, FileText, Server } from 'lucide-react';
 
 export function ContentSection() {
   return (
-    <section className="py-12 bg-sp-bg">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto text-center mb-12">
-          <h2 className="text-page-h2 text-jpm-gray-900 mb-6">
+    <section className="bg-sp-bg py-12">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto mb-12 max-w-4xl text-center">
+          <h2 className="mb-6 text-page-h2 text-jpm-gray-900">
             In this showcase
           </h2>
-          <p className="text-page-body text-jpm-gray leading-relaxed">
+          <p className="text-page-body leading-relaxed text-jpm-gray">
             This showcase application demonstrates the main use cases for
             embedded finance APIs and components. Explore this app to get a
             general sense of the experiences you can create, alongside mocked
@@ -18,50 +19,50 @@ export function ContentSection() {
         </div>
 
         <div className="mb-16">
-          <h3 className="text-page-h3 text-jpm-gray-900 mb-8 text-center">
+          <h3 className="mb-8 text-center text-page-h3 text-jpm-gray-900">
             API Workflows & Implementation Approaches
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-md">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            <Card className="rounded-page-md border-0 bg-jpm-white shadow-page-card">
               <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-sp-accent rounded-full flex items-center justify-center mx-auto mb-6 border border-sp-border">
+                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-sp-border bg-sp-accent">
                   <Package className="h-8 w-8 text-sp-brand" />
                 </div>
-                <h4 className="text-page-h4 text-jpm-gray-900 mb-4">
+                <h4 className="mb-4 text-page-h4 text-jpm-gray-900">
                   Embedded Components
                 </h4>
-                <p className="text-page-body text-jpm-gray leading-relaxed">
+                <p className="text-page-body leading-relaxed text-jpm-gray">
                   Build-time UI injection published as npm packages for seamless
                   integration
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-md">
+            <Card className="rounded-page-md border-0 bg-jpm-white shadow-page-card">
               <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-sp-accent rounded-full flex items-center justify-center mx-auto mb-6 border border-sp-border">
+                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-sp-border bg-sp-accent">
                   <FileText className="h-8 w-8 text-sp-brand" />
                 </div>
-                <h4 className="text-page-h4 text-jpm-gray-900 mb-4">
+                <h4 className="mb-4 text-page-h4 text-jpm-gray-900">
                   UI/UX Recipes
                 </h4>
-                <p className="text-page-body text-jpm-gray leading-relaxed">
+                <p className="text-page-body leading-relaxed text-jpm-gray">
                   Detailed guidelines and patterns for implementing financial
                   workflows
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-page-card bg-jpm-white rounded-page-md">
+            <Card className="rounded-page-md border-0 bg-jpm-white shadow-page-card">
               <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-sp-accent rounded-full flex items-center justify-center mx-auto mb-6 border border-sp-border">
+                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-sp-border bg-sp-accent">
                   <Server className="h-8 w-8 text-sp-brand" />
                 </div>
-                <h4 className="text-page-h4 text-jpm-gray-900 mb-4">
+                <h4 className="mb-4 text-page-h4 text-jpm-gray-900">
                   Hosted Solutions
                 </h4>
-                <p className="text-page-body text-jpm-gray leading-relaxed">
+                <p className="text-page-body leading-relaxed text-jpm-gray">
                   Fully hosted UI components with complete infrastructure and
                   security
                 </p>

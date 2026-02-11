@@ -1,8 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ExternalLink, Play } from 'lucide-react';
+
+import { createFileRoute, Link } from '@tanstack/react-router';
+
 import { Button } from '@/components/ui/button';
-import { Link } from '@tanstack/react-router';
-import { Play, ExternalLink } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const Route = createFileRoute('/demos')({
   component: DemosPage,
@@ -58,29 +59,29 @@ const demos = [
 
 function DemosPage() {
   return (
-    <div className="min-h-screen py-16 bg-sp-bg">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h1 className="text-page-h2 font-bold text-jpm-gray-900 mb-6">
+    <div className="min-h-screen bg-sp-bg py-16">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mb-16 text-center">
+          <h1 className="mb-6 text-page-h2 font-bold text-jpm-gray-900">
             Interactive Demo Applications
           </h1>
-          <p className="text-page-body text-jpm-gray max-w-3xl mx-auto leading-relaxed">
+          <p className="mx-auto max-w-3xl text-page-body leading-relaxed text-jpm-gray">
             Explore live demonstrations of embedded finance solutions in action.
             Each demo showcases different use cases and implementation patterns.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 xl:grid-cols-3">
           {demos.map((demo) => (
             <Card
               key={demo.id}
-              className="border-0 shadow-page-card bg-jpm-white rounded-page-md overflow-hidden"
+              className="overflow-hidden rounded-page-md border-0 bg-jpm-white shadow-page-card"
             >
               <div className="aspect-video w-full overflow-hidden">
                 <img
                   src={demo.image}
                   alt={demo.title}
-                  className="w-full h-full object-cover"
+                  className="h-full w-full object-cover"
                 />
               </div>
               <CardHeader>
@@ -89,9 +90,9 @@ function DemosPage() {
                     {demo.title}
                   </CardTitle>
                   <span
-                    className={`px-2 py-1 text-page-small font-medium rounded-page-sm ${
+                    className={`rounded-page-sm px-2 py-1 text-page-small font-medium ${
                       demo.status === 'active'
-                        ? 'bg-sp-accent text-sp-brand border border-sp-border'
+                        ? 'border border-sp-border bg-sp-accent text-sp-brand'
                         : 'bg-orange-100 text-orange-800'
                     }`}
                   >
@@ -100,18 +101,18 @@ function DemosPage() {
                 </div>
               </CardHeader>
               <CardContent className="p-6">
-                <p className="text-page-body text-jpm-gray leading-relaxed mb-6">
+                <p className="mb-6 text-page-body leading-relaxed text-jpm-gray">
                   {demo.description}
                 </p>
 
                 <div className="mb-6">
-                  <h4 className="text-page-small font-semibold mb-3 text-jpm-gray-900">
+                  <h4 className="mb-3 text-page-small font-semibold text-jpm-gray-900">
                     Features Demonstrated:
                   </h4>
-                  <ul className="text-page-small text-jpm-gray space-y-2">
+                  <ul className="space-y-2 text-page-small text-jpm-gray">
                     {demo.features.map((feature, index) => (
                       <li key={index} className="flex items-center">
-                        <div className="w-1.5 h-1.5 bg-jpm-brown rounded-full mr-3"></div>
+                        <div className="mr-3 h-1.5 w-1.5 rounded-full bg-jpm-brown"></div>
                         {feature}
                       </li>
                     ))}
@@ -123,8 +124,8 @@ function DemosPage() {
                   variant={demo.status === 'active' ? 'default' : 'outline'}
                   className={`w-full rounded-page-md font-semibold ${
                     demo.status === 'active'
-                      ? 'bg-sp-brand hover:bg-sp-brand-700 text-white shadow-page-card border-0'
-                      : 'border-jpm-gray-300 text-jpm-gray opacity-50 cursor-not-allowed'
+                      ? 'border-0 bg-sp-brand text-white shadow-page-card hover:bg-sp-brand-700'
+                      : 'cursor-not-allowed border-jpm-gray-300 text-jpm-gray opacity-50'
                   }`}
                   disabled={demo.status !== 'active'}
                 >

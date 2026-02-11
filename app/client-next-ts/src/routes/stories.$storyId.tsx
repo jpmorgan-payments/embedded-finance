@@ -1,12 +1,15 @@
-import { createFileRoute, Link, notFound } from '@tanstack/react-router';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar } from 'lucide-react';
 import { lazy, Suspense } from 'react';
+import { ArrowLeft, Calendar } from 'lucide-react';
 import { z } from 'zod';
+
+import { createFileRoute, Link, notFound } from '@tanstack/react-router';
+
+import { Button } from '@/components/ui/button';
 
 // Parameter validation schema
 const storySearchSchema = z.object({
   storyId: z.enum([
+    'webhook-integration-recipe',
     'date-selector-challenges',
     'important-date-selector-component',
     'partially-hosted-onboarding',
@@ -14,18 +17,27 @@ const storySearchSchema = z.object({
 });
 
 // Dynamic imports for stories
+const WebhookIntegrationRecipe = lazy(
+  () => import('@/content/stories/webhook-integration-recipe')
+);
 const DateSelectorChallenges = lazy(
-  () => import('@/content/stories/date-selector-challenges'),
+  () => import('@/content/stories/date-selector-challenges')
 );
 const ImportantDateSelectorComponent = lazy(
-  () => import('@/content/stories/important-date-selector-component'),
+  () => import('@/content/stories/important-date-selector-component')
 );
 const PartiallyHostedOnboarding = lazy(
-  () => import('../content/stories/partially-hosted-onboarding'),
+  () => import('../content/stories/partially-hosted-onboarding')
 );
 
 // Story metadata (serializable data only)
 const storyMeta = {
+  'webhook-integration-recipe': {
+    title: 'Webhook Integration Recipe: Persona-Based UX Guidance',
+    date: '2025-12-15',
+    readTime: '12 min read',
+    tags: ['Webhooks', 'Integration', 'UX'],
+  },
   'date-selector-challenges': {
     title: 'Tackling Date Input Challenges: Common User Errors and Solutions',
     date: '2025-06-03',
@@ -49,6 +61,7 @@ const storyMeta = {
 
 // Component mapping (separate from serializable data)
 const storyComponents = {
+  'webhook-integration-recipe': WebhookIntegrationRecipe,
   'date-selector-challenges': DateSelectorChallenges,
   'important-date-selector-component': ImportantDateSelectorComponent,
   'partially-hosted-onboarding': PartiallyHostedOnboarding,
@@ -74,15 +87,15 @@ export const Route = createFileRoute('/stories/$storyId')({
   component: Story,
   // Loading component
   pendingComponent: () => (
-    <div className="py-8 bg-jpm-white">
-      <div className="max-w-4xl mx-auto px-6 lg:px-8">
+    <div className="bg-jpm-white py-8">
+      <div className="mx-auto max-w-4xl px-6 lg:px-8">
         <div className="animate-pulse">
-          <div className="h-8 bg-jpm-gray-200 rounded mb-4"></div>
-          <div className="h-12 bg-jpm-gray-200 rounded mb-8"></div>
+          <div className="mb-4 h-8 rounded bg-jpm-gray-200"></div>
+          <div className="mb-8 h-12 rounded bg-jpm-gray-200"></div>
           <div className="space-y-4">
-            <div className="h-4 bg-jpm-gray-200 rounded"></div>
-            <div className="h-4 bg-jpm-gray-200 rounded"></div>
-            <div className="h-4 bg-jpm-gray-200 rounded"></div>
+            <div className="h-4 rounded bg-jpm-gray-200"></div>
+            <div className="h-4 rounded bg-jpm-gray-200"></div>
+            <div className="h-4 rounded bg-jpm-gray-200"></div>
           </div>
         </div>
       </div>
@@ -90,19 +103,19 @@ export const Route = createFileRoute('/stories/$storyId')({
   ),
   // Error component
   errorComponent: () => (
-    <div className="py-8 bg-jpm-white">
-      <div className="max-w-4xl mx-auto px-6 lg:px-8">
+    <div className="bg-jpm-white py-8">
+      <div className="mx-auto max-w-4xl px-6 lg:px-8">
         <div className="text-center">
-          <h1 className="text-page-h2 text-jpm-gray-900 mb-4">
+          <h1 className="mb-4 text-page-h2 text-jpm-gray-900">
             Story Not Found
           </h1>
-          <p className="text-page-body text-jpm-gray mb-6">
+          <p className="mb-6 text-page-body text-jpm-gray">
             The story you're looking for doesn't exist.
           </p>
           <Link to="/stories">
             <Button
               variant="outline"
-              className="border-jpm-brown text-jpm-brown hover:bg-jpm-brown-100 rounded-page-md"
+              className="rounded-page-md border-jpm-brown text-jpm-brown hover:bg-jpm-brown-100"
             >
               Back to Recipes
             </Button>
@@ -119,14 +132,14 @@ function Story() {
     storyComponents[storyId as keyof typeof storyComponents];
 
   return (
-    <div className="py-8 bg-jpm-white">
-      <div className="max-w-4xl mx-auto px-6 lg:px-8">
+    <div className="bg-jpm-white py-8">
+      <div className="mx-auto max-w-4xl px-6 lg:px-8">
         {/* Back button */}
         <div className="mb-8">
           <Link to="/stories">
             <Button
               variant="outline"
-              className="border-sp-brand text-sp-brand hover:bg-sp-accent rounded-page-md flex items-center"
+              className="flex items-center rounded-page-md border-sp-brand text-sp-brand hover:bg-sp-accent"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               BACK TO RECIPES
@@ -136,8 +149,8 @@ function Story() {
 
         {/* Story header */}
         <header className="mb-8">
-          <div className="flex items-center text-page-small text-jpm-gray mb-4">
-            <Calendar className="h-4 w-4 mr-2" />
+          <div className="mb-4 flex items-center text-page-small text-jpm-gray">
+            <Calendar className="mr-2 h-4 w-4" />
             <time dateTime={story.date}>
               {new Date(story.date).toLocaleDateString('en-US', {
                 year: 'numeric',
@@ -149,7 +162,7 @@ function Story() {
             <span>{story.readTime}</span>
           </div>
 
-          <h1 className="text-page-hero text-jpm-gray-900 mb-4">
+          <h1 className="mb-4 text-page-hero text-jpm-gray-900">
             {story.title}
           </h1>
 
@@ -157,7 +170,7 @@ function Story() {
             {story.tags.map((tag: string) => (
               <span
                 key={tag}
-                className="px-2 py-1 bg-sp-accent text-sp-brand text-page-small rounded-page-sm border border-sp-border"
+                className="rounded-page-sm border border-sp-border bg-sp-accent px-2 py-1 text-page-small text-sp-brand"
               >
                 {tag}
               </span>
@@ -170,9 +183,9 @@ function Story() {
           <Suspense
             fallback={
               <div className="animate-pulse space-y-4">
-                <div className="h-4 bg-jpm-gray-200 rounded"></div>
-                <div className="h-4 bg-jpm-gray-200 rounded"></div>
-                <div className="h-4 bg-jpm-gray-200 rounded"></div>
+                <div className="h-4 rounded bg-jpm-gray-200"></div>
+                <div className="h-4 rounded bg-jpm-gray-200"></div>
+                <div className="h-4 rounded bg-jpm-gray-200"></div>
               </div>
             }
           >

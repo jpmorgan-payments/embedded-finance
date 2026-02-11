@@ -1,7 +1,9 @@
 import React from 'react';
+import { X } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   FormControl,
@@ -34,6 +36,7 @@ interface AccountSelectorProps {
   isBalanceError?: boolean;
   balanceError?: any;
   refetchBalance?: () => void;
+  accountDisabledMap?: Map<string, boolean>;
 }
 
 export const AccountSelector: React.FC<AccountSelectorProps> = ({
@@ -46,6 +49,7 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
   isBalanceError,
   balanceError: _balanceError,
   refetchBalance,
+  accountDisabledMap,
 }) => {
   const { t } = useTranslation(['make-payment']);
   const form = useFormContext<PaymentFormData>();
@@ -100,34 +104,59 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
                     defaultValue: 'Select or type name or last 4 numbers',
                   })}
                 </div>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
-                  disabled={accountsStatus !== 'success'}
-                >
-                  <FormControl>
-                    <SelectTrigger
-                      data-user-event="payment_account_selected"
-                      aria-label={t('fields.from.label', {
-                        defaultValue: 'Which account are you paying from?',
-                      })}
-                    >
-                      <SelectValue
-                        placeholder={t('fields.from.placeholder', {
-                          defaultValue: 'Pay from',
+                <div className="eb-relative">
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    value={field.value}
+                    disabled={accountsStatus !== 'success'}
+                  >
+                    <FormControl>
+                      <SelectTrigger
+                        data-user-event="payment_account_selected"
+                        aria-label={t('fields.from.label', {
+                          defaultValue: 'Which account are you paying from?',
                         })}
-                      />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {accounts?.items?.map((account: AccountResponseType) => (
-                      <SelectItem key={account.id} value={account.id}>
-                        {account.label} ({account.category})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                        className={cn(field.value && 'eb-pr-8')}
+                      >
+                        <SelectValue
+                          placeholder={t('fields.from.placeholder', {
+                            defaultValue: 'Pay from',
+                          })}
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {accounts?.items?.map((account: AccountResponseType) => {
+                        const isDisabled =
+                          accountDisabledMap?.get(account.id) || false;
+                        return (
+                          <SelectItem
+                            key={account.id}
+                            value={account.id}
+                            disabled={isDisabled}
+                          >
+                            {account.label} ({account.category})
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                  {field.value && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        field.onChange('');
+                      }}
+                      className="eb-absolute eb-right-8 eb-top-1/2 eb--translate-y-1/2 eb-rounded-sm eb-opacity-70 eb-ring-offset-background hover:eb-opacity-100 focus:eb-outline-none focus:eb-ring-2 focus:eb-ring-ring focus:eb-ring-offset-2 disabled:eb-pointer-events-none"
+                      aria-label="Clear selection"
+                    >
+                      <X className="eb-h-4 eb-w-4" />
+                    </button>
+                  )}
+                </div>
                 <FormMessage />
               </>
             )}

@@ -1,4 +1,6 @@
 import { Link } from '@tanstack/react-router';
+
+import { ArazzoFlowDialogContent } from '@/components/api-flow-explorer/arazzo-flow-dialog';
 import {
   Dialog,
   DialogContent,
@@ -6,30 +8,29 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { ArazzoFlowDialogContent } from '@/components/api-flow-explorer/arazzo-flow-dialog';
 
 export function Footer() {
   return (
-    <footer className="bg-jpm-gray-900 text-jpm-white py-16">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+    <footer className="bg-jpm-gray-900 pt-12 pb-8 text-jpm-white sm:pt-16 sm:pb-10">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="md:col-span-2">
-            <div className="flex items-center mb-6">
-              <div className="w-8 h-8 bg-jpm-white rounded-page-sm flex items-center justify-center mr-3">
-                <span className="text-sp-brand font-semibold text-page-small">
+            <div className="mb-4 flex items-center">
+              <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-page-sm bg-jpm-white">
+                <span className="text-page-small font-semibold text-sp-brand">
                   EF
                 </span>
               </div>
               <div className="flex flex-col">
-                <span className="font-semibold text-jpm-white text-page-h4 leading-none">
+                <span className="text-page-h4 font-semibold leading-none text-jpm-white">
                   Embedded Finance
                 </span>
-                <span className="text-jpm-gray-300 text-page-small leading-none">
+                <span className="text-page-small leading-none text-jpm-gray-300">
                   Solutions Showcase
                 </span>
               </div>
             </div>
-            <p className="text-page-body text-jpm-gray-300 leading-relaxed max-w-md">
+            <p className="max-w-md text-page-body leading-relaxed text-jpm-gray-300">
               Embedded Finance solutions that help you integrate financial
               services directly into your platform with enterprise-grade
               security and reliability.
@@ -37,14 +38,14 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-semibold text-jpm-white mb-6 text-page-h4">
+            <h4 className="mb-4 text-page-h4 font-semibold text-jpm-white">
               Resources
             </h4>
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               <li>
                 <Link
                   to="/documentation"
-                  className="text-jpm-gray-300 hover:text-jpm-white text-page-body transition-colors duration-200"
+                  className="text-page-body text-jpm-gray-300 transition-colors duration-200 hover:text-jpm-white"
                 >
                   Documentation
                 </Link>
@@ -52,7 +53,7 @@ export function Footer() {
               <li>
                 <Link
                   to="/github"
-                  className="text-jpm-gray-300 hover:text-jpm-white text-page-body transition-colors duration-200"
+                  className="text-page-body text-jpm-gray-300 transition-colors duration-200 hover:text-jpm-white"
                 >
                   GitHub Repository
                 </Link>
@@ -62,13 +63,13 @@ export function Footer() {
                   <DialogTrigger asChild>
                     <a
                       href="#"
-                      className="text-jpm-gray-300 hover:text-jpm-white text-page-body transition-colors duration-200"
+                      className="text-page-body text-jpm-gray-300 transition-colors duration-200 hover:text-jpm-white"
                       aria-label="Open API Flow Explorer"
                     >
                       API Workflows Explorer (BETA)
                     </a>
                   </DialogTrigger>
-                  <DialogContent className="w-[96vw] max-w-[1600px] h-[85vh]">
+                  <DialogContent className="h-[85vh] w-[96vw] max-w-[1600px]">
                     <DialogHeader>
                       <DialogTitle>API Flow Explorer</DialogTitle>
                     </DialogHeader>
@@ -80,13 +81,13 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-jpm-gray-700 mt-12 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-jpm-gray-300 text-page-small">
+        <div className="mt-8 border-t border-jpm-gray-700 pt-6">
+          <div className="flex flex-col items-center justify-between md:flex-row">
+            <p className="text-page-small text-jpm-gray-300">
               © {new Date().getFullYear()} Embedded Finance Solutions. All
               rights reserved.
             </p>
-            <p className="text-jpm-gray-300 text-page-small mt-4 md:mt-0">
+            <p className="mt-3 text-page-small text-jpm-gray-300 md:mt-0">
               This is a demo application for illustrative purposes only.
             </p>
           </div>

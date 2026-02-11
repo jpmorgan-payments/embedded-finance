@@ -61,7 +61,8 @@ export const defaultTheme: EBTheme = {
     containerCardBackground: 'hsl(0 0% 100%)',
     containerPrimaryForeground: 'hsl(240 10% 3.9%)',
     containerSecondaryBackground: 'hsl(240 4.8% 95.9%)',
-    containerSecondaryForeground: 'hsl(240 3.8% 46.1%)',
+    // Updated from 46.1% to 40% lightness for WCAG AA 4.5:1 contrast ratio compliance
+    containerSecondaryForeground: 'hsl(240 3.8% 40%)',
 
     // ═══════════════════════════════════════════════════════════════════════════
     // EDITABLE CHARACTERISTIC

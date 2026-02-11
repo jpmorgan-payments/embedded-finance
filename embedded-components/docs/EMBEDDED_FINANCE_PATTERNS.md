@@ -2,6 +2,8 @@
 
 This document catalogues the most prominent UI/UX patterns extracted from the embedded-components codebase. These patterns complement the [Salt Design System patterns](https://www.saltdesignsystem.com/salt/patterns) and follow [Atomic Design principles](https://atomicdesign.bradfrost.com/chapter-2/) and [Nielsen's Usability Heuristics](https://www.nngroup.com/articles/ten-usability-heuristics/).
 
+> **Note:** References to `Recipients/` in this document refer to the legacy Recipients component. For new implementations, use `RecipientsWidget` from `RecipientWidgets/`. `LinkedAccountWidget` and `RecipientsWidget` share `BaseRecipientsWidget`, which provides compact cards, table view, pagination styles, and virtualized scroll. See the [RecipientWidgets README](../src/core/RecipientWidgets/README.md) for guidance.
+
 ---
 
 ## Pattern Refinement Matrix
@@ -33,6 +35,7 @@ This matrix tracks the implementation status of UI/UX patterns across all embedd
 - **Enhanced Data Grid**: Powerful data tables with TanStack Table providing sorting, filtering, pagination, and column visibility
 - **Filter & Search**: Combined search and filter controls with real-time filtering and clear filters action
 - **Pagination**: Server-side pagination with page size controls, navigation buttons, and result count display
+- **Virtualized Scroll List**: Render large lists efficiently using windowed/virtualized rows with optional scrollable containers
 
 **User Feedback & States**
 
@@ -65,7 +68,7 @@ This matrix tracks the implementation status of UI/UX patterns across all embedd
 
 ### Implementation Status Matrix
 
-| Pattern                     | OnboardingFlow | Accounts | LinkedAccountWidget | MakePayment | TransactionsDisplay | Recipients  |
+| Pattern                     | OnboardingFlow | Accounts | LinkedAccountWidget | MakePayment | TransactionsDisplay | RecipientsWidget |
 | --------------------------- | -------------- | -------- | ------------------- | ----------- | ------------------- | ----------- |
 | **Data Display & Security** |
 | Sensitive Data Masking      | -              | ✅       | -                   | -           | ⚠️ Needs            | ⚠️ Partial  |
@@ -110,6 +113,8 @@ This matrix tracks the implementation status of UI/UX patterns across all embedd
 - ⚠️ Low Prio = Pattern would be nice-to-have but lower priority for this component
 - - = Not applicable
 
+> **Legacy Recipients:** The deprecated `Recipients` component is tracked separately and should not be used for new implementations.
+
 ### UX Testing Findings Integration
 
 Based on the UX Testing Report (December 2, 2025), the following issues have been identified and reflected in the matrix:
@@ -122,7 +127,7 @@ Based on the UX Testing Report (December 2, 2025), the following issues have bee
 - **Filter Labels**: Inconsistent capitalization ("All Status" vs "All statuses") - Filter & Search pattern needs standardization
 - **Pagination Format**: Inconsistent text formats - Pagination pattern needs standardization
 - **Missing Tooltips**: Icon-only buttons lack tooltips - Component Control patterns need enhancement
-- **Responsive Design**: Recipients table has horizontal scrollbar - Responsive Table/Cards needs improvement
+- **Responsive Design**: Legacy Recipients table has horizontal scrollbar - Responsive Table/Cards needs improvement
 - **Data Quality**: Many "N/A" values and "$NaN" display issues - Compact Details and Field Toggle patterns need refinement
 
 ---
@@ -178,7 +183,7 @@ const [showSensitiveInfo, setShowSensitiveInfo] = useState(false);
 
 **Refinement Needed**:
 
-- ✅ **Recipients**: Masking is implemented (`****1234` format) in RecipientDetails, RecipientCard, RecipientsTable. Missing: reveal toggle functionality like Accounts component.
+- ✅ **RecipientsWidget**: Masking is implemented (`****1234` format) in RecipientDetails/RecipientCard. Missing: reveal toggle functionality like Accounts component.
 - ⚠️ **TransactionsDisplay**: Could benefit from masked account references
 
 **Usability Alignment**:
@@ -195,7 +200,7 @@ const [showSensitiveInfo, setShowSensitiveInfo] = useState(false);
 
 **Implementation**:
 
-- **Primary**: `Recipients/Recipients.tsx` (lines 85-91, 137-144)
+- **Primary**: `RecipientWidgets/components/RecipientCard/` (RecipientsWidget + LinkedAccountWidget)
 - **Secondary**: `LinkedAccountWidget/components/StatusBadge/`
 - **Status**: ✅ Well-implemented with variant mapping
 
@@ -288,7 +293,7 @@ reValidateMode: 'onChange', // Re-validate on change after first submit
 **Implementation**:
 
 - **Primary**: `Accounts/Accounts.tsx` (lines 87-109)
-- **Secondary**: `Recipients/Recipients.tsx` (lines 403-420)
+- **Secondary**: `RecipientWidgets/components/RecipientCardSkeleton/`
 - **Tertiary**: `LinkedAccountWidget/components/LinkedAccountCardSkeleton/`
 - **Status**: ✅ Well-implemented with structure matching
 
@@ -332,7 +337,7 @@ reValidateMode: 'onChange', // Re-validate on change after first submit
 
 **Implementation**:
 
-- **Primary**: `Recipients/Recipients.tsx` (lines 423-443)
+- **Primary**: `RecipientWidgets/components/BaseRecipientsWidget/`
 - **Secondary**: `LinkedAccountWidget/LinkedAccountWidget.tsx` (lines 117-128)
 - **Advanced**: `components/ServerErrorAlert/`
 - **Status**: ✅ Well-implemented with retry actions
@@ -384,7 +389,7 @@ if (isError) {
 **Implementation**:
 
 - **Primary**: `LinkedAccountWidget/components/EmptyState/`
-- **Secondary**: `Recipients/Recipients.tsx` (lines 577-585, 633-636)
+- **Secondary**: `RecipientWidgets/components/EmptyState/`
 - **Tertiary**: `TransactionsDisplay/TransactionsDisplay.tsx` (lines 193-196)
 - **Status**: ✅ Well-implemented with actionable guidance
 
@@ -436,7 +441,7 @@ if (isError) {
 
 **Implementation**:
 
-- **Primary**: `Recipients/Recipients.tsx` (lines 564-890)
+- **Primary**: `RecipientWidgets/components/BaseRecipientsWidget/` (RecipientsWidget + LinkedAccountWidget)
 - **Secondary**: `TransactionsDisplay/TransactionsDisplay.tsx` (lines 29-90, 181-192)
 - **Status**: ✅ Well-implemented with container queries
 
@@ -761,7 +766,7 @@ ComponentTable/
 **Refinement Needed**:
 
 - ⚠️ **Accounts**: Could benefit from enhanced data grid pattern
-- ⚠️ **Recipients (embedded-components)**: Could migrate to this pattern
+- ⚠️ **RecipientsWidget**: Could migrate to this pattern
 - ⚠️ **Server-side pagination**: Some tables may need server-side implementation
 
 **Usability Alignment**:
@@ -780,7 +785,7 @@ ComponentTable/
 
 **Implementation**:
 
-- **Primary**: `Recipients/Recipients.tsx` (lines 454-480, 923-970)
+- **Primary**: `RecipientWidgets/components/RecipientFormDialog/`
 - **Secondary**: `MakePayment/MakePayment.tsx` (lines 271-476)
 - **Tertiary**: `LinkedAccountWidget/components/LinkedAccountFormDialog/`
 - **Status**: ✅ Well-implemented with scrollable dialogs
@@ -1058,7 +1063,7 @@ For resources with history or timeline information, display in a dedicated secti
 
 **Current Implementation**:
 
-- **Primary**: `Recipients/Recipients.tsx` (Dialog for RecipientDetails)
+- **Primary**: `RecipientWidgets/components/RecipientDetailsDialog/`
 - **Secondary**: `TransactionsDisplay/TransactionDetailsSheet/TransactionDetailsSheet.tsx` (Dialog for TransactionDetails)
 - **Status**: ✅ Currently using Dialog (Modal) pattern consistently
 
@@ -1144,7 +1149,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 
 **Current Usage**:
 
-- ✅ Recipients: RecipientDetails in Dialog
+- ✅ RecipientsWidget: RecipientDetails in Dialog
 - ✅ TransactionsDisplay: TransactionDetails in Dialog
 
 ---
@@ -1398,7 +1403,7 @@ export function useDetailNavigation<T>(resource: T | null) {
 
 **Implementation**:
 
-- **Primary**: `Recipients/Recipients.tsx` (lines 486-561)
+- **Primary**: `RecipientWidgets/components/BaseRecipientsWidget/`
 - **Status**: ✅ Well-implemented with multiple filter types
 
 **Pattern Details**:
@@ -1485,7 +1490,7 @@ const filteredRecipients = useMemo(() => {
 **Refinement Needed**:
 
 - ⚠️ **OnboardingFlow**: Could benefit from review panels in stepper flows
-- ⚠️ **Recipients**: Edit form could show review panel
+- ⚠️ **RecipientsWidget**: Edit form could show review panel
 
 **Usability Alignment**:
 
@@ -1650,7 +1655,7 @@ export const CONTAINER_BREAKPOINTS = {
 
 **Refinement Needed**:
 
-- ✅ **Recipients**: Implements container-based responsive detection via `useElementWidth` hook with `isMobile` and `isTablet` breakpoints
+- ✅ **RecipientsWidget**: Implements container-based responsive detection via `useElementWidth` hook with `isMobile` and `isTablet` breakpoints
 - ✅ **Accounts**: Implements container-based responsive detection via `useElementWidth` hook with `isMobile` breakpoint for card layout adaptation
 
 **Usability Alignment**:
@@ -1710,7 +1715,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
 
 **Refinement Needed**:
 
-- ⚠️ **Recipients**: Could expose `refresh()`, `clearFilters()`, `getRecipientsData()` via ref (currently no ref interface)
+- ⚠️ **RecipientsWidget**: Could expose `refresh()`, `clearFilters()`, `getRecipientsData()` via ref (currently no ref interface)
 - ⚠️ **LinkedAccountWidget**: Could expose refresh method
 
 **Usability Alignment**:
@@ -1811,7 +1816,7 @@ const requiredContactTypes = getRequiredContactTypes(
 
 **Refinement Needed**:
 
-- ⚠️ **Recipients**: Could support manual entry mode
+- ⚠️ **RecipientsWidget**: Could support manual entry mode
 - ⚠️ **LinkedAccountWidget**: Could have manual account entry mode
 
 **Usability Alignment**:
@@ -1860,7 +1865,7 @@ const requiredContactTypes = getRequiredContactTypes(
 
 **Refinement Needed**:
 
-- ⚠️ **Recipients**: Currently dialog closes silently on success - could show success toast/confirmation message before closing
+- ⚠️ **RecipientsWidget**: Currently dialog closes silently on success - could show success toast/confirmation message before closing
 - ⚠️ **LinkedAccountWidget**: Success state for account linking
 
 **Usability Alignment**:
@@ -1920,11 +1925,11 @@ const { data } = useGetAccounts(undefined, {
 
 ### Pagination Pattern
 
-**Description**: Server-side pagination with page size controls, navigation buttons, and result count display.
+**Description**: Server-side pagination with page size controls, navigation buttons, result count display, and optional load-more pagination for compact card layouts.
 
 **Implementation**:
 
-- **Primary**: `Recipients/Recipients.tsx` (lines 247-248, 891-920)
+- **Primary**: `RecipientWidgets/components/BaseRecipientsWidget/` (page-based + load-more styles)
 - **Status**: ✅ Well-implemented with server-side pagination
 
 **Pattern Details**:
@@ -2111,7 +2116,7 @@ const { mutate: createRecipient } = useCreateRecipient({
 **Refinement Needed**:
 
 - ⚠️ **MakePayment**: Could benefit from more granular error mapping
-- ⚠️ **Recipients**: Some error scenarios could be more specific
+- ⚠️ **RecipientsWidget**: Some error scenarios could be more specific
 
 **Technical Benefits**:
 
@@ -2428,7 +2433,7 @@ recipients: oldData.recipients.map((r) =>
 - ⚠️ **OnboardingFlow**: Could use optimistic updates for form submissions
 - ⚠️ **MakePayment**: Could use optimistic updates for payment submission
 - ⚠️ **Accounts**: Could use optimistic updates for account operations
-- ⚠️ **Recipients**: Already uses invalidateQueries, could add setQueryData for instant feedback
+- ⚠️ **RecipientsWidget**: Already uses invalidateQueries, could add setQueryData for instant feedback
 - ⚠️ **TransactionsDisplay**: Read-only component, optimistic updates not applicable
 
 **Current Implementation Status**:
@@ -2504,7 +2509,7 @@ recipients: oldData.recipients.map((r) =>
 **Implementation**:
 
 - **Primary**: `LinkedAccountWidget/components/RemoveAccountDialog/RemoveAccountDialog.tsx`
-- **Secondary**: `Recipients/Recipients.tsx` (deactivate confirmation)
+- **Secondary**: `RecipientWidgets/components/RemoveAccountDialog/RemoveAccountDialog.tsx`
 - **Status**: ✅ Well-implemented with consequence explanation
 
 **Pattern Details**:
@@ -2803,7 +2808,7 @@ const { t } = useTranslation(['make-payment']);
 **Refinement Needed**:
 
 - ✅ **Accounts**: i18n integration implemented with useTranslation hook and translation keys with default values
-- ⚠️ **Recipients**: Partial i18n (some hardcoded strings)
+- ⚠️ **RecipientsWidget**: Partial i18n (some hardcoded strings)
 - ⚠️ **TransactionsDisplay**: Partial i18n
 
 **Usability Alignment**:
@@ -2933,7 +2938,7 @@ const contentTokens = useContext(ContentTokensContext);
 1. **Standardize Status Badge System**: Create shared status badge component with consistent variants and colors across all components (UX Issue: Button style inconsistency)
 2. **Standardize Sensitive Data Masking**: Fix inconsistent masking patterns (4 vs 8 asterisks) - always show last 4 digits with 4 asterisks (UX Issue: Account number masking inconsistency)
 3. **Improve Make Payment Form Discoverability**: Add visual hints or preview that form opens on button click, improve field ordering consistency between tabs (UX Issue: Form discoverability)
-4. **Standardize Filter Labels**: Use consistent capitalization ("All Statuses", "All Types" - title case, plural) across Recipients and TransactionsDisplay (UX Issue: Filter label inconsistency)
+4. **Standardize Filter Labels**: Use consistent capitalization ("All Statuses", "All Types" - title case, plural) across RecipientsWidget and TransactionsDisplay (UX Issue: Filter label inconsistency)
 5. **Standardize Pagination Format**: Use consistent text format ("Showing 1-3 of 3" or "3 total") and default rows per page (10 or 25) across all components (UX Issue: Pagination format inconsistency)
 6. **Add Tooltips to Icon-Only Buttons**: Add tooltips and ARIA labels to all icon-only buttons (UX Issue: Missing tooltips)
 7. **Fix Data Quality Issues**: Fix "$NaN" display in Transaction Details, populate or hide "N/A" fields, improve Field Toggle pattern (UX Issue: Data quality)
@@ -2946,8 +2951,8 @@ const contentTokens = useContext(ContentTokensContext);
 4. **Success State Standardization**: Add success toast/confirmation to Recipients and LinkedAccountWidget after create/edit
 5. **Ref Control Enhancement**: Add ref-based control to Recipients and LinkedAccountWidget
 6. **Clipboard Copy Pattern**: Add copy-to-clipboard to Recipients (account numbers) and MakePayment (reference IDs)
-7. **Responsive Design Fixes**: Fix horizontal scrollbar in Recipients table, implement responsive table design (UX Issue: Responsive design)
-8. **i18n Standardization**: Add internationalization to Accounts, Recipients, and TransactionsDisplay (currently missing or partial)
+7. **Responsive Design Fixes**: Fix horizontal scrollbar in legacy Recipients table, implement responsive table design (UX Issue: Responsive design)
+8. **i18n Standardization**: Finish internationalization for RecipientsWidget and TransactionsDisplay (remaining hardcoded strings)
 
 ### Low Priority
 
@@ -2957,7 +2962,7 @@ const contentTokens = useContext(ContentTokensContext);
 4. **Configuration-Driven Forms**: Enhance MakePayment and OnboardingFlow with more configuration options
 5. **Field Toggle Pattern**: Add show/hide empty fields toggle to Recipients details
 6. **Staggered Animation Pattern**: Apply to Recipients cards and TransactionsDisplay mobile cards for polish
-7. **Enhanced Data Grid Migration**: Migrate Recipients table to Enhanced Data Grid pattern (TanStack Table)
+7. **Enhanced Data Grid Migration**: Migrate RecipientsWidget table to Enhanced Data Grid pattern (TanStack Table)
 
 ---
 

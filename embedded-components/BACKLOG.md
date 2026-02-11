@@ -1,8 +1,9 @@
 # Embedded Components - Development Backlog
 
-**Last Updated:** December 9, 2025  
+**Last Updated:** January 27, 2026  
 **Status:** Living Document - Updated as work progresses  
-**Source:** UX Testing Report (2025-12-02, 2025-12-09), Development Roadmap, Recent PRs (#582, #583, #601)
+**Source:** UX Testing Report (2025-12-02, 2025-12-09), Development Roadmap, Recent PRs  
+**Reference:** Deployed showcase https://embedded-finance-dev.com/sellsense-demo (onboarding, linked-accounts, recipients, transactions, accounts, make-payment)
 
 **Note on Tracking IDs:** This backlog uses a hierarchical format (BL-001-1, BL-001-1a, etc.) for detailed task breakdown. New items from 2025-12-09 testing use simple sequential IDs (BL-600+). Future backlog updates may migrate to simpler format for consistency.
 
@@ -24,7 +25,6 @@
 
 **MakePayment:**
 
-- BL-010: Form discoverability & UX
 - BL-020: Form field ordering consistency
 - BL-030: Tab switching behavior
 - BL-031: Fee display enhancement
@@ -33,7 +33,10 @@
 - BL-040: Modal accessibility
 - BL-403: Theme 0 enhancements (Recipient/method filtering, fee/time ETA, review/confirmation UX, cross-currency)
 
-**Recipients:**
+**Recipients (DEPRECATED - use RecipientsWidget):**
+
+> ⚠️ The legacy Recipients component is deprecated. Use `RecipientsWidget` for new implementations.
+> Backlog items below are retained for historical reference and ongoing maintenance.
 
 - BL-060: Filter & label standardization
 - BL-061: Pagination text format
@@ -54,7 +57,6 @@
 
 **Accounts:**
 
-- BL-003: Account number masking (✅ Code complete, verification needed)
 - BL-090: Missing action buttons
 - BL-091: UI improvements
 - BL-092: Component review needed
@@ -62,13 +64,19 @@
 
 **LinkedAccountWidget:**
 
-- BL-003: Account number masking (✅ Code complete)
 - BL-070: Tooltips & help text
 - BL-401: Theme 0 enhancements (Parity with Recipients, status messaging, microdeposit flows)
 
+**RecipientsWidget:**
+
+- BL-406: Theme 0 enhancements (Compact/virtual list parity, table view refinements, success states)
+- BL-070: Tooltips & help text
+- BL-080: Responsive design improvements
+- BL-310: Header/title consistency
+
 **All Components:**
 
-- BL-001: Design system standardization (Button library, primary color, footer color)
+- BL-001: Design system standardization (see re-assessed section below)
 - BL-002: Primary action color standardization
 - BL-009: Footer color standardization
 - BL-070: Tooltips & help text
@@ -76,7 +84,6 @@
 - BL-110: Date formatting standardization
 - BL-120: Menu & dialog enhancements
 - BL-200: Console errors & MSW issues
-- BL-210: Duplicate API calls
 - BL-220: Performance optimization
 - BL-300: Collection display patterns
 - BL-310: Component header/title format standardization
@@ -91,21 +98,12 @@
 - BL-501: TypeScript & toolchain updates
 - BL-502: Build/test infrastructure (Vite, Vitest)
 - BL-503: Orval & API dependencies
-- BL-504: Storybook upgrade to v10+
 - BL-505: ESLint upgrade to v9
 - BL-506: Tailwind CSS upgrade to v4
 - BL-507: React & UI library updates
 - BL-508: Other dependency updates
 
-### Completed Items
-
-- ✅ **BL-003**: Account Number Masking Standardization - Code updated (Dec 3, 2025), browser verified (Dec 9, 2025) - Pattern `****1098` confirmed
-- ✅ **BL-582**: Test setup improvements (PR #582 - Dec 3, 2025) - Enhanced ResizeObserver mock, improved test reliability
-- ✅ **BL-583**: LinkedAccountWidget verification handling (PR #583 - Dec 2, 2025) - Verification response handling and interaction stories
-- ✅ **BL-601**: MakePayment enhancements (PR #601 - Dec 9, 2025) - Recipient creation, error handling, UI improvements, h3 headings, RadioGroup toggle
-- ✅ **BL-599**: Recipients i18n enhancements (PR #599 - Dec 8, 2025)
-- ✅ **BL-600**: Recipients data inconsistency - RESOLVED (Dec 9, 2025 - Re-test confirmed table and pagination now match)
-- ✅ **BL-600-PR**: SellSense theme consistency (PR #600 - Dec 8, 2025)
+Completed items are not listed in this document.
 
 ---
 
@@ -119,88 +117,56 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 - 🟠 **High** - Significant UX impact, should be addressed soon
 - 🟡 **Medium** - Important but not blocking
 - 🟢 **Low** - Nice to have, polish items
-- ✅ **Completed** - Work finished (date completed)
 - 🚧 **In Progress** - Currently being worked on
 - 📋 **Planned** - Scheduled for future work
 
-### Recent Completions
-
-- ✅ **PR #582** (Dec 3, 2025): Enhanced test setup with ResizeObserver mock, improved test reliability
-- ✅ **PR #583** (Dec 2, 2025): LinkedAccountWidget verification response handling and interaction stories
+_(Completed items are removed from this document and not listed.)_
 
 ---
 
 ## 🎯 Priority 1: Critical UX & Design System Issues
 
-### 1.1 Design System Standardization 🔴 [BL-001]
+### 1.1 Design System Standardization 🟠 [BL-001] — Re-assessed January 2026
 
 **Source:** UX Testing Report - Critical Inconsistencies Summary  
 **Theme Alignment:** Theme 6 (Atomic Design), Theme 7 (A11y & UX Testing)  
 **Components Affected:** All  
-**Tracking ID:** BL-001
+**Tracking ID:** BL-001  
+**Reference:** Latest source and deployed showcase (https://embedded-finance-dev.com/sellsense-demo — onboarding, linked-accounts, recipients, transactions, accounts, make-payment)
 
-#### Button Component Library [BL-001]
+#### Current State (as of January 2026)
 
-- [ ] **BL-001-1:** Create standardized button component system
-  - [ ] **BL-001-1a:** `ButtonPrimary` - Consistent primary action color (choose purple or blue)
-  - [ ] **BL-001-1b:** `ButtonSecondary` - White with border style
-  - [ ] **BL-001-1c:** `ButtonTertiary` - Text link style
-  - [ ] **BL-001-1d:** `ButtonIcon` - Icon-only with tooltip and ARIA labels
-  - [ ] **BL-001-1e:** `StatusBadge` - Consistent status indicator styling
-- [ ] **BL-001-2:** Document button usage patterns in design system
-- [ ] **BL-001-3:** Migrate all components to use standardized buttons
-- [ ] **BL-001-4:** Update Storybook stories to showcase button variants
+Substantial progress has been made. Re-assessment against latest source and deployed components shows:
 
-**Current State:**
+- **Button system:** A single shared `Button` component (`@/components/ui/button`) is used across core components. Variants: `default` (primary), `outline`, `secondary`, `ghost`, `link`, `destructive`, `warning`, `input`. All use `eb-` prefixed design tokens.
+- **Theme & tokens:** `EBComponentsProvider` and `convert-theme-to-css-variables` drive primary, secondary, destructive, etc. from `EBTheme` / `EBThemeVariables`. Salt-aligned token naming is in use.
+- **Component usage:** Onboarding, LinkedAccountWidget, RecipientsWidget, TransactionsDisplay, Accounts, MakePayment/PaymentFlow consistently import and use `Button` with semantic variants (e.g. primary submit = `default`, cancel = `outline`, icon actions = `ghost`).
 
-- Linked Accounts: White bordered, green pill, gray buttons, text links
-- Recipients: Purple primary, white secondary
-- Make Payment: Purple primary
-- Transactions: White buttons
-- Accounts: Icon-only buttons
+#### Remaining work [BL-001]
 
-**Target:** Single consistent button system across all components
+- [ ] **BL-001-1:** Document button usage patterns (when to use default vs outline vs ghost vs link) in design system or component docs
+- [ ] **BL-001-2:** Optionally extract `StatusBadge` as a first-class design-system component (Badge exists; status semantics could be standardized)
+- [ ] **BL-001-3:** Ensure Storybook stories showcase button variants where relevant
 
-#### Primary Action Color Standardization [BL-002]
+#### Primary Action Color [BL-002]
 
-- [ ] **BL-002-1:** Decide on single primary action color (purple vs blue)
-- [ ] **BL-002-2:** Apply consistently across all components
-- [ ] **BL-002-3:** Update design tokens to enforce primary color
+- [ ] **BL-002-1:** Confirm single primary action color (theme-driven; ensure all themes define it consistently)
+- [ ] **BL-002-2:** Document primary/secondary semantics in design tokens
 
-**Current State:**
+#### Footer Color [BL-009]
 
-- Recipients: Purple
-- Make Payment: Purple
-- Linked Accounts: White with border
-- **Issue:** No consistent primary color
-
-#### Footer Color Standardization [BL-009]
-
-- [ ] **BL-009-1:** Standardize footer color across all pages
-- [ ] **BL-009-2:** Update Make Payment footer (currently teal, should match others)
-
-**Current State:**
-
-- Most pages: Blue
-- Make Payment: Teal
-- **Issue:** Inconsistent footer colors
+- [ ] **BL-009-1:** In the **showcase app** (client-next-ts / SellSense), standardize footer color across fullscreen component views (onboarding, linked-accounts, recipients, transactions, accounts, make-payment) if any variance remains.
 
 ---
 
-### 1.2 Make Payment Form Discoverability & UX 🔴 [BL-010]
+### 1.2 Make Payment Form UX 🟠 [BL-020+] — Re-assessed Jan 2026
 
 **Source:** UX Testing Report - Make Payment Component Analysis  
 **Theme Alignment:** Theme 0 (Functional Enhancements), Theme 7 (A11y & UX Testing)  
-**Components Affected:** MakePayment  
-**Tracking ID:** BL-010
+**Components Affected:** MakePayment / PaymentFlow  
+**Tracking IDs:** BL-020, BL-030, BL-031, BL-032, BL-033, BL-040, BL-403
 
-#### Form Discoverability [BL-010]
-
-- [ ] **BL-010-1:** Add visual hint that form opens on button click
-  - [ ] **BL-010-1a:** Option A: Add text hint "Click to start payment"
-  - [ ] **BL-010-1b:** Option B: Show form preview or inline form
-  - [ ] **BL-010-1c:** Option C: Add icon/visual indicator on button
-- [ ] **BL-010-2:** Improve initial view to indicate comprehensive form exists
+**Re-assessed (Jan 2026):** PaymentFlow and MakePayment use shared Button, PayeeSelector, ReviewPanel, etc. Field order, tab behavior, fee display, validation, date, and modal a11y are still product/design choices; verify against latest source and deployed make-payment view (embedded-finance-dev.com) for current behavior.
 
 #### Form Field Ordering Consistency [BL-020]
 
@@ -245,513 +211,349 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 - [ ] **BL-040-3:** Add visual indication if content is scrollable
 - [ ] **BL-040-4:** Ensure responsive modal sizing
 
-**Estimated Impact:** High - Improves discoverability and user flow consistency
+**Estimated Impact:** High - Improves user flow consistency
 
 ---
 
-### 1.3 Account Number Masking Standardization ✅ [BL-003]
-
-**Source:** UX Testing Report - Accounts Component Analysis  
-**Theme Alignment:** Theme 1 (Security & Validation)  
-**Components Affected:** Accounts, LinkedAccountWidget  
-**Status:** ✅ Code updated (Dec 3, 2025) - Browser verification needed  
-**Tracking ID:** BL-003  
-**Related PRs:** Code updates completed, PR #601 (Dec 9, 2025) - No changes to masking
-
-- [x] **BL-003-1:** Standardize account number masking pattern ✅
-  - [x] **BL-003-1a:** Always show last 4 digits ✅
-  - [x] **BL-003-1b:** Use consistent number of asterisks (4: `****1098`) ✅
-  - [x] **BL-003-1c:** Code updated in AccountCard.tsx (line 67-69) to use `****${accountNumber.slice(-4)}` ✅
-  - [x] **BL-003-1d:** Code updated in RecipientAccountDisplayCard uses `getMaskedAccountNumber()` which returns `****${number.slice(-4)}` ✅
-  - [x] **BL-003-1e:** Code updated in Recipients components to use `****${number.slice(-4)}` ✅
-- [ ] **BL-003-2:** **VERIFY:** Test in browser to confirm Accounts component displays `****1098` (4 asterisks) not `********1098` (8 asterisks)
-  - [ ] **BL-003-2a:** If browser still shows 8 asterisks, investigate data source or rendering issue
-  - [ ] **BL-003-2b:** Verify all components display consistent 4 asterisk pattern
-- [ ] **BL-003-3:** Document masking rules in design system
-
-**Current State:**
-
-- **Code:** All components use `****${number.slice(-4)}` pattern (4 asterisks) ✅
-- **Linked Accounts:** `****6677` (4 asterisks) ✅ Verified in browser
-- **Accounts:** Code shows 4 asterisks, but browser may show 8 - needs verification
-- **Recipients:** Uses `****${number.slice(-4)}` pattern ✅
-
----
-
-### 1.4 Data Quality & Display Issues 🟠 [BL-050]
+### 1.3 Data Quality & Display Issues 🟠 [BL-050] — Re-assessed Jan 2026
 
 **Source:** UX Testing Report - Transaction Details Modal, Technical Analysis  
 **Theme Alignment:** Theme 0 (Functional Enhancements), Theme 8 (Comprehensive Testing)  
 **Components Affected:** TransactionsDisplay  
 **Tracking ID:** BL-050
 
-**Note:** Some issues may be related to mock data (MSW) rather than actual API responses. However, these should be fixed regardless to ensure proper handling of real data.
+**Re-assessed (Jan 2026):** TransactionDetailsSheet uses `renderField` with `hideEmpty` and `naText`; ledger balance is formatted via `formatNumberToCurrency(transaction.ledgerBalance, ...)`. `formatNumberToCurrency` does not guard against `NaN` — `Intl.NumberFormat().format(NaN)` yields "NaN". Columns use `naText` and optional hiding. Reference ID is a column and filter; Transaction filters have id/name on inputs.
 
 #### Transaction Details Modal [BL-050]
 
-- [ ] **BL-050-1:** Fix "$NaN" display for Ledger Balance (data formatting bug)
-  - [ ] **BL-050-1a:** Check if this is mock data issue or actual formatting bug
-  - [ ] **BL-050-1b:** Add proper number formatting/validation
-  - [ ] **BL-050-1c:** Handle null/undefined values gracefully
-- [ ] **BL-050-2:** Replace "N/A" values with meaningful data or hide fields
-  - [ ] **BL-050-2a:** Determine if "N/A" values are due to mock data or missing API fields
-  - [ ] **BL-050-2b:** If mock data: update MSW handlers to provide realistic data
-  - [ ] **BL-050-2c:** If API data: hide fields that consistently show "N/A" or add proper empty state handling
-- [ ] **BL-050-3:** Only show "Show all fields" toggle if there are meaningful additional fields
-- [ ] **BL-050-4:** Populate additional fields with actual data if available
+- [ ] **BL-050-1:** Harden Ledger Balance (and any currency) against NaN/undefined: validate before calling `formatNumberToCurrency`, or extend formatter to return `naText`/hide when not a valid number
+- [ ] **BL-050-2:** Keep "N/A" vs hide approach consistent: `hideEmpty` plus `hasValue` already control visibility; ensure MSW/API provide realistic values where possible
+- [ ] **BL-050-3:** Only show "Show all fields" when there are meaningful extra fields (logic exists; verify against real API shape)
+- [ ] **BL-050-4:** Populate additional fields from API when available
 
 #### Reference ID Column [BL-051]
 
-- [ ] **BL-051-1:** Populate Reference ID data, OR
-- [ ] **BL-051-2:** Hide column when data is not available
-- [ ] **BL-051-3:** Check if this is mock data limitation or actual API response
+- [ ] **BL-051-1:** Populate reference ID from API, or hide column when never available
+- [ ] **BL-051-2:** Confirm behavior with real vs mock data
 
 #### Missing Data Handling [BL-052]
 
-- [ ] **BL-052-1:** Add loading states for data fetching
-- [ ] **BL-052-2:** Add empty states for no data scenarios
-- [ ] **BL-052-3:** Standardize "N/A" vs hiding fields approach
-- [ ] **BL-052-4:** Ensure proper handling of both mock and real API data
+- [ ] **BL-052-1:** Loading/empty: confirm TransactionsDisplay and TransactionDetailsSheet have clear loading and empty states (skeletons and empty messaging exist; validate in UI)
+- [ ] **BL-052-2:** Standardize when to show "N/A" vs omit field (already driven by `hideEmpty` and `hasValue` in details sheet)
 
 ---
 
 ## 🎯 Priority 2: High Impact UX Improvements
 
-### 2.1 Filter & Label Standardization 🟠 [BL-060]
+### 2.1 Filter & Label Standardization 🟠 [BL-060] — Re-assessed Jan 2026
 
 **Source:** UX Testing Report - Recipients & Transactions Components  
 **Theme Alignment:** Theme 0 (Functional Enhancements)  
-**Components Affected:** Recipients, TransactionsDisplay  
+**Components Affected:** Recipients (legacy), RecipientsWidget table (if filters added), TransactionsDisplay  
 **Tracking ID:** BL-060
+
+**Re-assessed (Jan 2026):** Source shows Transactions uses `transactions.json` "All statuses"/"All types" (lowercase); legacy Recipients uses `recipients.json` "All Types"/"All Status". RecipientsWidget table view (RecipientsTableView/BaseRecipientsWidget) does not expose status/type filters in code — filters apply to legacy Recipients and Transactions only.
 
 #### Filter Labels [BL-060]
 
-- [ ] **BL-060-1:** Standardize filter labels to "All Statuses" (title case, plural)
-- [ ] **BL-060-2:** Standardize filter labels to "All Types" (title case, plural)
-- [ ] **BL-060-3:** Update Recipients component (currently "All Types", "All Status")
-- [ ] **BL-060-4:** Update Transactions component (currently "All statuses", "All types")
+- [ ] **BL-060-1:** Standardize to "All Statuses" and "All Types" (title case, plural) across components
+- [ ] **BL-060-2:** Update Transactions: `transactions.json` filters.status.all / filters.type.all (currently "All statuses", "All types")
+- [ ] **BL-060-3:** Update legacy Recipients: `recipients.json` filters.status.all / filters.type.all (currently "All Status", "All Types")
 
-**Current State:**
-
-- Recipients: "All Types", "All Status"
-- Transactions: "All statuses", "All types"
-- **Issue:** Inconsistent capitalization and pluralization
+**Current state:** Transactions: "All statuses", "All types". Legacy Recipients: "All Types", "All Status". **Remaining:** Pick one convention and apply in both i18n files.
 
 #### Pagination Text Format [BL-061]
 
-- [ ] **BL-061-1:** Standardize pagination text format
-  - [ ] **BL-061-1a:** Option A: "Showing 1-3 of 3"
-  - [ ] **BL-061-1b:** Option B: "3 total"
-- [ ] **BL-061-2:** Update Recipients (currently "Showing 1 to 3 of 3 recipients")
-- [ ] **BL-061-3:** Update Transactions (currently "4 row(s) total")
+- [ ] **BL-061-1:** Standardize pagination copy: either "Showing X to Y of Z" or "X total"
+- [ ] **BL-061-2:** Transactions and RecipientsWidget table use "Showing {{from}} to {{to}} of {{total}}" (DataTablePagination / RecipientsTableView). Legacy Recipients uses "{{count}} row(s) total" (RecipientsPagination).
+
+**Current state:** Transactions + RecipientsWidget table: "Showing X to Y of Z". Legacy Recipients: "X row(s) total". **Remaining:** Decide single pattern and align legacy Recipients if still in use.
 
 #### Default Rows Per Page [BL-062]
 
-- [ ] **BL-062-1:** Standardize default rows per page (recommend 10 or 25 consistently)
-- [ ] **BL-062-2:** Update Recipients (currently 10)
-- [ ] **BL-062-3:** Update Transactions (currently 25)
-- [ ] **BL-062-4:** Hide pagination controls when only one page exists
+- [ ] **BL-062-1:** Standardize default page size (e.g. 10 or 25)
+- [ ] **BL-062-2:** RecipientsWidget/BaseRecipientsWidget default `pageSize = 10`; Transactions default `pageSize: 25`.
+
+**Current state:** RecipientsWidget 10, Transactions 25. **Remaining:** Document or standardize default; hide pagination when only one page exists (RecipientsWidget already does: `totalCount > pagination.pageSize`).
 
 ---
 
-### 2.2 Tooltips & Help Text 🟠 [BL-070]
+### 2.2 Tooltips & Help Text 🟠 [BL-070] — Re-assessed Jan 2026
 
 **Source:** UX Testing Report - Multiple Components  
 **Theme Alignment:** Theme 7 (A11y & UX Testing)  
 **Components Affected:** All  
 **Tracking ID:** BL-070
 
-- [ ] **BL-070-1:** Add tooltips to all icon-only buttons
-  - [ ] **BL-070-1a:** "View" button in Recipients (purpose unclear)
-  - [ ] **BL-070-1b:** "View" button in Transactions (purpose unclear)
-  - [ ] **BL-070-1c:** Info icon in Accounts (purpose unclear)
-  - [ ] **BL-070-1d:** "Manage" button (ellipsis) in Linked Accounts
-- [ ] **BL-070-2:** Add ARIA labels for accessibility
-- [ ] **BL-070-3:** Add help text for complex features
-- [ ] **BL-070-4:** Ensure all interactive elements have descriptive labels
+**Re-assessed (Jan 2026):** RecipientsWidget/RecipientCard and RecipientsTableView use `aria-label` (e.g. `actions.viewDetails`, `actions.moreActions`, `actions.makePayment`) and Tooltip where needed (e.g. edit-disabled, payment-disabled). Accounts AccountCard uses Popover + `aria-label` for balance-type info (`card.balanceTypeInfoAriaLabel`). Transactions "View" opens TransactionDetailsSheet; toolbar/columns use aria-labels.
 
-**Components Needing Tooltips:**
+- [ ] **BL-070-1:** Ensure every icon-only or ambiguous control has either a visible tooltip or an `aria-label` (and document pattern)
+- [ ] **BL-070-2:** Audit remaining spots: Transactions "View" / columns button, RecipientsWidget "more actions" visibility of purpose (aria exists; add tooltip if UX needs it)
+- [ ] **BL-070-3:** Add help text for complex features where still missing
+- [ ] **BL-070-4:** Confirm all interactive elements have descriptive labels (many already do)
 
-- Recipients: "View" button
-- Transactions: "View" button
-- Accounts: Info icon
-- Linked Accounts: "Manage" button (ellipsis)
+**Current state:** RecipientsWidget and Accounts use aria-labels and Popover/tooltips. **Remaining:** Targeted audit for any icon-only buttons still missing tooltip or aria-label; prefer aria-label as baseline.
 
 ---
 
-### 2.3 Responsive Design Improvements 🟠 [BL-080]
+### 2.3 Responsive Design Improvements 🟠 [BL-080] — Re-assessed Jan 2026
 
 **Source:** UX Testing Report - Recipients Component  
 **Theme Alignment:** Theme 6 (Atomic Design & Performance)  
-**Components Affected:** Recipients, TransactionsDisplay  
+**Components Affected:** RecipientsWidget, TransactionsDisplay  
 **Tracking ID:** BL-080
+
+**Re-assessed (Jan 2026):** RecipientsWidget supports `viewMode: 'cards' | 'compact-cards' | 'table'` and `scrollable`; compact/table and card layouts exist. TransactionsDisplay has TransactionCard and table; DataTable is used. Accounts uses responsive grid (PR #629).
 
 #### Table Responsiveness [BL-080]
 
-- [ ] **BL-080-1:** Remove horizontal scrollbar in Recipients table
-- [ ] **BL-080-2:** Implement responsive table design
-- [ ] **BL-080-3:** Add card view for tables on small screens
-- [ ] **BL-080-4:** Test all components on mobile/tablet viewports
-- [ ] **BL-080-5:** Ensure tables are fully responsive on smaller screens
+- [ ] **BL-080-1:** If RecipientsWidget or Transactions table still shows horizontal scroll on small viewports, refine breakpoints or column visibility
+- [ ] **BL-080-2:** Document when to use card vs table on small screens (RecipientsWidget already offers card/table by prop)
+- [ ] **BL-080-3:** Test fullscreen component views (embedded-finance-dev.com) on mobile/tablet and fix any overflow or scroll issues
+- [ ] **BL-080-4:** Ensure Transactions table has a usable small-screen pattern (e.g. card swap or responsive columns)
 
-**Current State:**
-
-- Recipients table has horizontal scrollbar
-- Suggests table may not be fully responsive
+**Current state:** RecipientsWidget has compact-cards and table; Accounts has responsive cards. **Remaining:** Validate on real viewports and document responsive behavior.
 
 ---
 
-### 2.4 Accounts Component Enhancements 🟡 [BL-090]
+### 2.4 Accounts Component Enhancements 🟡 [BL-090] — Re-assessed Jan 2026
 
 **Source:** UX Testing Report - Accounts Component Analysis  
 **Theme Alignment:** Theme 0 (Functional Enhancements)  
 **Components Affected:** Accounts  
 **Tracking ID:** BL-090
 
+**Re-assessed (Jan 2026):** Accounts uses `CardTitle` with `_title ?? t('accounts:titleSingle')` plus "s (N)" for multiple; parent can pass `title`. Balance-type info uses Popover + `card.balanceTypeInfoAriaLabel` and balance-type descriptions in i18n. Responsive layout and grid updated in PR #629.
+
 #### Missing Action Buttons [BL-090]
 
-- [ ] **BL-090-1:** Add "View Transactions" button/link
-- [ ] **BL-090-2:** Add "Transfer Funds" button
-- [ ] **BL-090-3:** Add "Manage Account" button
-- [ ] **BL-090-4:** Add "Download Statement" button
+- [ ] **BL-090-1:** Add "View Transactions" link/button (if product requirement)
+- [ ] **BL-090-2:** Add "Transfer Funds" / "Manage Account" / "Download Statement" only if required by product
 
 #### UI Improvements [BL-091]
 
-- [ ] **BL-091-1:** Remove redundant "Accounts" heading (appears as both page title and card title)
-  - [ ] **BL-091-1a:** Review Accounts.tsx to see if card title can be made more specific
-  - [ ] **BL-091-1b:** Consider using account category or account name instead of generic "Accounts"
-- [ ] **BL-091-2:** Make card title more specific (e.g., "My Checking Account" or use account category)
-- [ ] **BL-091-3:** Add tooltip for info icon next to "Account Details" heading, OR
-- [ ] **BL-091-4:** Remove info icon if decorative
-  - [ ] **BL-091-4a:** Current tooltip exists: "Account can be funded from external sources and is externally addressable via routing/account numbers here"
-  - [ ] **BL-091-4b:** Verify tooltip is visible/accessible
+- [ ] **BL-091-1:** Redundant "Accounts" heading is typically from **showcase app** (page title + card title). In component, card title is configurable via `title` prop and defaults to "Your account(s)". App can pass a different title to avoid redundancy.
+- [ ] **BL-091-2:** Card title is already driven by prop/i18n; optional: use account category/name when showing a single account.
+- [ ] **BL-091-3/4:** Info icon next to balance types uses Popover and aria-label; verify in showcase that it’s visible and accessible.
 
-#### Component Review Needed [BL-092]
+#### Component Review [BL-092]
 
-- [ ] **BL-092-1:** Review Accounts component structure and compare with other components
-- [ ] **BL-092-2:** Check if Accounts component follows same patterns as LinkedAccountWidget and Recipients
-- [ ] **BL-092-3:** Verify responsive design works correctly
-- [ ] **BL-092-4:** Review Accounts.tsx implementation for consistency with other components
+- [ ] **BL-092-1:** Compare Accounts structure with LinkedAccountWidget/RecipientsWidget for consistency (e.g. empty state, loading, error, refs).
+- [ ] **BL-092-2:** Confirm responsive behavior on embedded-finance-dev.com fullscreen views.
 
 ---
 
 ## 🎯 Priority 3: Medium Priority Improvements
 
-### 3.1 Status Badge Standardization 🟡 [BL-100]
+### 3.1 Status Badge Standardization 🟡 [BL-100] — Re-assessed Jan 2026
 
 **Source:** UX Testing Report - Multiple Components  
 **Theme Alignment:** Theme 6 (Atomic Design)  
 **Components Affected:** All  
 **Tracking ID:** BL-100
 
-- [ ] **BL-100-1:** Ensure consistent status badge styling across components
-- [ ] **BL-100-2:** Document status color system
-  - [ ] **BL-100-2a:** Success/Completed: Blue
-  - [ ] **BL-100-2b:** Pending: Beige/Light Brown
-  - [ ] **BL-100-2c:** Error/Rejected: Red
-- [ ] **BL-100-3:** Add hover states to status badges
-- [ ] **BL-100-4:** Improve contrast for accessibility (WCAG AA)
-- [ ] **BL-100-5:** Create StatusBadge component in design system
+**Re-assessed (Jan 2026):** Badge component exists (`@/components/ui/badge`); Transactions uses `getStatusVariant(status)` and Badge `variant={getStatusVariant(...)}`; direction uses `'default' | 'secondary'`. Recipients and LinkedAccountWidget use status styling. No single StatusBadge semantic wrapper yet.
+
+- [ ] **BL-100-1:** Audit status badge styling (Transactions, RecipientsWidget, LinkedAccountWidget, Accounts) and align variants
+- [ ] **BL-100-2:** Document status → color/variant mapping (e.g. Success/Completed, Pending, Error/Rejected) in design system or component docs
+- [ ] **BL-100-3:** Add hover/contrast if needed for WCAG AA
+- [ ] **BL-100-4:** Optional: introduce a StatusBadge wrapper that maps status to Badge variant + i18n label
 
 ---
 
-### 3.2 Date Formatting Standardization 🟡 [BL-110]
+### 3.2 Date Formatting Standardization 🟡 [BL-110] — Re-assessed Jan 2026
 
 **Source:** UX Testing Report - Recipient Details Modal  
-**Theme Alignment:** Theme 0 (Functional Enhancements)  
+**Theme Alignment:** Theme 0 (Functional Enhancements), Theme 2 (i18n)  
 **Components Affected:** All  
 **Tracking ID:** BL-110
 
-- [ ] **BL-110-1:** Standardize date formatting across all components
-- [ ] **BL-110-2:** Update Recipient Details modal (currently "1/15/2024, 5:30:00 AM")
-- [ ] **BL-110-3:** Ensure consistent date format in all modals and detail views
-- [ ] **BL-110-4:** Consider using i18n for date formatting (Theme 2)
+**Re-assessed (Jan 2026):** TransactionDetailsSheet uses `useLocale()` and `toLocaleDateString` / `toLocaleString` with locale. RecipientDetailsDialog and other detail views use various date formatting. Theme 2 (i18n) will drive locale-aware formatting.
+
+- [ ] **BL-110-1:** Standardize date/datetime format (e.g. short date vs long, with/without time) and document in design system or i18n guide
+- [ ] **BL-110-2:** Use a shared formatter (e.g. date-fns + locale or Intl + locale) everywhere; ensure Recipient details and Transaction details use same rules
+- [ ] **BL-110-3:** Wire i18n/locale for dates (Theme 2) so format respects user locale
 
 ---
 
-### 3.3 Menu & Dialog Enhancements 🟡 [BL-120]
+### 3.3 Menu & Dialog Enhancements 🟡 [BL-120] — Re-assessed Jan 2026
 
 **Source:** UX Testing Report - Linked Account Manage Menu  
 **Theme Alignment:** Theme 7 (A11y & UX Testing)  
-**Components Affected:** LinkedAccountWidget  
+**Components Affected:** LinkedAccountWidget, RecipientsWidget  
 **Tracking ID:** BL-120
 
-#### Manage Menu Improvements [BL-120]
+**Re-assessed (Jan 2026):** RecipientCard and RecipientsTableView use DropdownMenuTrigger with `aria-label={t('actions.moreActions', { name: displayName })}`. RemoveAccountDialog exists for remove flow. Radix DropdownMenu provides keyboard support (Enter, Escape, arrows) by default.
 
-- [ ] **BL-120-1:** Add tooltip to "Manage" button: "Manage account" or "More actions"
-- [ ] **BL-120-2:** Add confirmation dialog for "Remove Account" action
-- [ ] **BL-120-3:** Add keyboard navigation support (arrow keys, Enter, Escape)
-- [ ] **BL-120-4:** Ensure menu doesn't get cut off on smaller screens or near viewport edges
-- [ ] **BL-120-5:** Consider adding "View Details" option if account details modal exists
+- [ ] **BL-120-1:** Add visible tooltip to "More actions" trigger (e.g. "Manage account" / "More actions") — aria-label already present
+- [ ] **BL-120-2:** Confirm "Remove Account" uses confirmation (RemoveAccountDialog) before submit
+- [ ] **BL-120-3:** Verify DropdownMenu keyboard behavior (Radix default); fix any custom handling that blocks it
+- [ ] **BL-120-4:** Ensure menu positioning (align="end", collisionBoundary) avoids viewport cutoff on small screens
+- [ ] **BL-120-5:** "View Details" exists where recipient/account details are implemented; add only if product requires it in menu
 
 ---
 
-### 3.4 Timeline & Activity History 🟡 [BL-130]
+### 3.4 Timeline & Activity History 🟡 [BL-130] — Re-assessed Jan 2026
 
 **Source:** UX Testing Report - Recipient Details Modal  
 **Theme Alignment:** Theme 0 (Functional Enhancements)  
-**Components Affected:** Recipients  
+**Components Affected:** RecipientsWidget (RecipientDetailsDialog), legacy Recipients  
 **Tracking ID:** BL-130
 
-- [ ] **BL-130-1:** Enhance Timeline section in Recipient Details modal
-  - [ ] **BL-130-1a:** Add more timeline events if available (e.g., "Last payment", "Last updated")
-  - [ ] **BL-130-1b:** OR rename section to "Created" if timeline functionality isn't implemented
-- [ ] **BL-130-2:** Consider adding activity history to other detail views
+**Re-assessed (Jan 2026):** Scope is RecipientDetailsDialog (and legacy Recipients detail view). Backlog is about naming and content of a "Timeline" section.
+
+- [ ] **BL-130-1:** If RecipientDetailsDialog has a "Timeline" section with limited events, either add more events from API (e.g. last payment, last updated) or rename to "Created" / "Activity" so copy matches behavior
+- [ ] **BL-130-2:** Extend activity/history to other detail views only if product specifies it
 
 ---
 
 ## 🎯 Priority 4: Technical Debt & Performance
 
-### 4.1 Console Errors & MSW Issues 🟡 [BL-200]
+### 4.1 Console Errors & MSW Issues 🟡 [BL-200] — Re-assessed Jan 2026
 
 **Source:** UX Testing Report - Technical Analysis  
 **Theme Alignment:** Theme 8 (Comprehensive Testing)  
 **Components Affected:** All (MSW initialization)  
-**Tracking ID:** BL-200
+**Tracking ID:** BL-200  
+**See also:** BL-603 (same MSW duplicate-party issue)
 
-- [ ] **BL-200-1:** Fix duplicate party creation logic in MSW initialization
-  - [ ] **BL-200-1a:** Error: "Failed to create a 'party' entity: an entity with the same primary key already exists"
-  - [ ] **BL-200-1b:** Occurrences: 3 errors for parties 2200000111, 2200000112, 2200000113
-  - [ ] **BL-200-1c:** Root Cause: Client 0030000134 attempts to create parties that already exist from Client 0030000132
-- [ ] **BL-200-2:** Consider reducing console.log verbosity in production builds
-- [ ] **BL-200-3:** Implement log levels (debug, info, warn, error)
-- [ ] **BL-200-4:** Minimize MSW logging in production
+**Re-assessed (Jan 2026):** Duplicate party creation in MSW is a known init/seed issue; fix in handlers or seed (e.g. idempotent create or single client).
 
----
-
-### 4.2 Duplicate API Calls 🟡 [BL-210]
-
-**Source:** UX Testing Report - Network Requests Analysis  
-**Theme Alignment:** Theme 6 (Atomic Design & Performance)  
-**Components Affected:** All  
-**Tracking ID:** BL-210
-
-- [ ] **BL-210-1:** Investigate why API calls are duplicated (called twice)
-- [ ] **BL-210-2:** Implement request deduplication
-- [ ] **BL-210-3:** Review React Query refetching logic
-- [ ] **BL-210-4:** Check tab switch emulation causing duplicate calls
-- [ ] **BL-210-5:** Monitor actual network performance in production (not just mocked)
-
-**Current State:**
-
-- `/ping` called 2 times
-- `/ef/do/v1/accounts` called 2 times
-- `/ef/do/v1/transactions` called 2 times
-- **Issue:** Likely due to React Query refetching or tab switch emulation
+- [ ] **BL-200-1:** Fix duplicate party creation in MSW (parties 2200000111–2200000113; client 0030000134 vs 0030000132) — align with BL-603
+- [ ] **BL-200-2:** Reduce console verbosity in production; optional log levels (debug/info/warn/error)
+- [ ] **BL-200-3:** Minimize MSW logging in production builds
 
 ---
 
-### 4.3 Performance Optimization 🟢 [BL-220]
+**Note:** Duplicate API calls observed in the development environment (e.g. tab-switch emulation, MSW) are dev-only behavior and are not tracked in this backlog.
+
+---
+
+### 4.2 Performance Optimization 🟢 [BL-220] — Re-assessed Jan 2026
 
 **Source:** UX Testing Report - Performance Metrics  
 **Theme Alignment:** Theme 6 (Atomic Design & Performance)  
 **Components Affected:** All  
 **Tracking ID:** BL-220
 
-- [ ] **BL-220-1:** Monitor actual production performance (not just mocked)
-- [ ] **BL-220-2:** Consider code splitting for large JavaScript bundles
-- [ ] **BL-220-3:** Implement lazy loading for non-critical resources
-- [ ] **BL-220-4:** Optimize bundle sizes if they exceed 500KB
-- [ ] **BL-220-5:** Set Core Web Vitals targets
+**Re-assessed (Jan 2026):** Metrics from mocked/showcase environment; production monitoring and bundle targets remain relevant. Virtualization and lazy patterns already used in RecipientsWidget/LinkedAccountWidget.
 
-**Current State:**
-
-- Load time: ~204ms (excellent, but from mocked environment)
-- Largest resource: `sellsense-demo-DHwOlM2K.js` (160.1ms load time)
-- Memory usage: Good (2.2% of limit used)
+- [ ] **BL-220-1:** Monitor production performance (LCP, FID, CLS) on embedded-finance-dev.com and real host apps
+- [ ] **BL-220-2:** Code-split / lazy-load non-critical routes or heavy components if bundles grow
+- [ ] **BL-220-3:** Keep bundle size under target (e.g. 500KB) and set Core Web Vitals targets
+- [ ] **BL-220-4:** Document current baseline (mocked load ~204ms, main chunk timing) and track over time
 
 ---
 
 ## 🎯 Priority 5: Design System Foundation
 
-### 5.0 Collection Display Patterns 🔴 [BL-300]
+### 5.0 Collection Display Patterns 🟠 [BL-300] — Re-assessed Jan 2026
 
 **Source:** User Feedback - Missing Consistent Pattern  
 **Theme Alignment:** Theme 6 (Atomic Design & Performance)  
 **Components Affected:** All components displaying collections  
 **Tracking ID:** BL-300
 
+**Re-assessed (Jan 2026):** RecipientsWidget and LinkedAccountWidget support `viewMode: 'cards' | 'compact-cards' | 'table'` and `scrollable`; choice is caller-driven. Accounts uses responsive card grid (PR #629). TransactionsDisplay uses table + TransactionCard. So table-vs-cards is often a product/config choice, not a single global rule.
+
 #### Collection Display Rules [BL-300]
 
-- [ ] **BL-300-1:** Define consistent pattern for displaying collections:
-  - [ ] **BL-300-1a:** **3+ items:** Use data grid/table layout
-  - [ ] **BL-300-1b:** **1-3 items:** Use card layout
-    - [ ] **BL-300-1b-i:** **TBD:** Decide on card layout for 1-3 items:
-      - [ ] **BL-300-1b-i-A:** Option A: Stacked cards (vertical layout)
-      - [ ] **BL-300-1b-i-B:** Option B: Grid layout (2\*n for large viewports, stacked on mobile)
-      - [ ] **BL-300-1b-i-C:** Option C: Single column on mobile, 2 columns on tablet, 3+ on desktop
-- [ ] **BL-300-2:** Document collection display rules in design system
-- [ ] **BL-300-3:** Apply pattern consistently across:
-  - [ ] **BL-300-3a:** LinkedAccountWidget (currently uses cards)
-  - [ ] **BL-300-3b:** Recipients (currently uses table)
-  - [ ] **BL-300-3c:** TransactionsDisplay (currently uses table)
-  - [ ] **BL-300-3d:** Accounts (currently uses cards)
-  - [ ] **BL-300-3e:** Any future collection components
+- [ ] **BL-300-1:** Document when to use cards vs table (e.g. by count, by viewport, or by product choice) and recommend defaults (e.g. 1–N cards, N+ table, or always table for transactions)
+- [ ] **BL-300-2:** Capture current behavior: RecipientsWidget/LinkedAccountWidget = cards or table via prop; Accounts = cards; Transactions = table (and card in list?). Add to design system or component docs
+- [ ] **BL-300-3:** If a single "collection display" rule is desired, define it and align components; otherwise treat as documented product options
 
 #### Implementation [BL-301]
 
-- [ ] **BL-301-1:** Create reusable `CollectionDisplay` component or utility
-- [ ] **BL-301-2:** Add responsive breakpoints for card/grid transitions
-- [ ] **BL-301-3:** Ensure accessibility for both grid and card layouts
-- [ ] **BL-301-4:** Update Storybook stories to showcase collection patterns
-
-**Current State:**
-
-- Recipients: Always uses table (even for 1-3 items)
-- TransactionsDisplay: Always uses table
-- LinkedAccountWidget: Uses cards
-- Accounts: Uses cards
-- **Issue:** No consistent rule for when to use table vs cards
+- [ ] **BL-301-1:** Optional: shared `CollectionDisplay` or layout utilities only if multiple components would reuse the same breakpoint/rule logic
+- [ ] **BL-301-2:** Ensure card and table layouts are accessible and responsive; document patterns in Storybook
 
 ---
 
-### 5.1 Component Header/Title Format Standardization 🔴 [BL-310]
+### 5.1 Component Header/Title Format Standardization 🟠 [BL-310] — Re-assessed Jan 2026
 
 **Source:** User Feedback - Different Header/Title Formats  
 **Theme Alignment:** Theme 6 (Atomic Design)  
 **Components Affected:** All components  
 **Tracking ID:** BL-310
 
+**Re-assessed (Jan 2026):** Header/title patterns are partly component-owned and partly from the host (showcase app). Accounts accepts `title` and uses CardTitle; RecipientsWidget/LinkedAccountWidget/TransactionsDisplay typically receive or render a main title; OnboardingFlow uses StepLayout. Redundancy (e.g. "Accounts" twice) often comes from the host rendering both a page title and passing/defaulting the same text into the component.
+
 #### Header/Title Pattern Analysis [BL-310]
 
-- [ ] **BL-310-1:** Audit all component header/title formats:
-  - [ ] **BL-310-1a:** Accounts: "Accounts" (H1) + "Accounts" (card title) - redundant
-  - [ ] **BL-310-1b:** LinkedAccountWidget: "Linked Accounts" (H1) + "Linked Accounts (1)" (section header)
-  - [ ] **BL-310-1c:** Recipients: "Recipients" (H1) + table with no card title
-  - [ ] **BL-310-1d:** TransactionsDisplay: "Transactions" (H1) + table with no card title
-  - [ ] **BL-310-1e:** MakePayment: "Make Payment" (H1) + modal title
-  - [ ] **BL-310-1f:** OnboardingFlow: Uses StepLayout with title, subtitle, description pattern
-- [ ] **BL-310-2:** Document current header/title patterns
-- [ ] **BL-310-3:** Define standard header/title format:
-  - [ ] **BL-310-3a:** Page title (H1) format
-  - [ ] **BL-310-3b:** Section header format
-  - [ ] **BL-310-3c:** Card title format
-  - [ ] **BL-310-3d:** Modal/dialog title format
-  - [ ] **BL-310-3e:** Subtitle/description format
-- [ ] **BL-310-4:** Create Header/Title component library:
-  - [ ] **BL-310-4a:** `PageHeader` - Main page title with optional description
-  - [ ] **BL-310-4b:** `SectionHeader` - Section title with optional count/badge
-  - [ ] **BL-310-4c:** `CardTitle` - Card title format
-  - [ ] **BL-310-4d:** `ModalTitle` - Modal/dialog title format
+- [ ] **BL-310-1:** Audit who renders H1 (host vs component) for onboarding, linked-accounts, recipients, transactions, accounts, make-payment in the showcase; document which components expose a `title` or slot
+- [ ] **BL-310-2:** Document current patterns: Page title (H1), section/card title, modal title; recommend heading hierarchy (H1 → H2 → H3)
+- [ ] **BL-310-3:** Define convention for page vs section vs card titles and document in design system or AGENTS/ARCHITECTURE
+- [ ] **BL-310-4:** Optional: introduce PageHeader/SectionHeader/CardTitle/ModalTitle primitives if multiple components would share them
 
 #### Implementation [BL-311]
 
-- [ ] **BL-311-1:** Standardize all component headers to use consistent format
-- [ ] **BL-311-2:** Remove redundant titles (e.g., Accounts component)
-- [ ] **BL-311-3:** Ensure proper heading hierarchy (H1 → H2 → H3)
-- [ ] **BL-311-4:** Add consistent spacing and typography
-- [ ] **BL-311-5:** Update all components to use standardized header components
-
-**Current State:**
-
-- **Inconsistent patterns:**
-  - Some use H1 + card title
-  - Some use H1 + section header with count
-  - Some use H1 only
-  - OnboardingFlow uses different StepLayout pattern
-- **Issue:** No consistent header/title format across components
+- [ ] **BL-311-1:** Where redundancy exists (e.g. showcase "Accounts" + card "Accounts"), fix in **showcase** by varying page title or component `title` prop
+- [ ] **BL-311-2:** Ensure components that render headings use semantic levels consistently; add spacing/typography tokens if needed
 
 ---
 
-### 5.2 Component Library Creation 🟡 [BL-320]
+### 5.2 Component Library Creation 🟡 [BL-320] — Re-assessed Jan 2026
 
 **Source:** UX Testing Report - Design System Recommendations  
 **Theme Alignment:** Theme 6 (Atomic Design & Performance)  
 **Components Affected:** All  
 **Tracking ID:** BL-320
 
+**Re-assessed (Jan 2026):** Button with variants (default, outline, secondary, ghost, link, destructive, warning) exists and is used; Card/CardHeader/CardTitle/CardContent/CardFooter exist; Table, Select, Input, Label, Form patterns exist. DataTable and pagination are used in Transactions and RecipientsWidget. See BL-001 for button system; BL-100 for StatusBadge.
+
 #### Button Components [BL-320]
 
-- [ ] **BL-320-1:** `ButtonPrimary` - Main action button (consistent color)
-- [ ] **BL-320-2:** `ButtonSecondary` - Secondary action (white with border)
-- [ ] **BL-320-3:** `ButtonTertiary` - Text link style
-- [ ] **BL-320-4:** `ButtonIcon` - Icon-only with tooltip
-- [ ] **BL-320-5:** `StatusBadge` - Status indicator with consistent colors
+- **BL-320-1–4:** Covered by shared Button + variants (see BL-001). Optional: document "Primary/Secondary/Tertiary/Icon" as semantic aliases for default/outline/link/icon.
+- [ ] **BL-320-5:** StatusBadge semantic wrapper (map status → Badge variant + label) — see BL-100.
 
-#### Form Components [BL-321]
+#### Form / Table / Card [BL-321–323]
 
-- [ ] **BL-321-1:** `InputText` - Text input with validation
-- [ ] **BL-321-2:** `InputNumber` - Number input with formatting
-- [ ] **BL-321-3:** `Select` - Dropdown with search
-- [ ] **BL-321-4:** `DatePicker` - Date selection
-- [ ] **BL-321-5:** `FormField` - Wrapper with label and error handling
-
-#### Table Components [BL-322]
-
-- [ ] **BL-322-1:** `DataTable` - Responsive table with sorting
-- [ ] **BL-322-2:** `TableRow` - Table row with actions
-- [ ] **BL-322-3:** `Pagination` - Consistent pagination controls
-
-#### Card Components [BL-323]
-
-- [ ] **BL-323-1:** `Card` - Base card component
-- [ ] **BL-323-2:** `CardHeader` - Card header with title
-- [ ] **BL-323-3:** `CardBody` - Card content area
-- [ ] **BL-323-4:** `CardFooter` - Card footer with actions
+- [ ] **BL-321:** Standardize form primitives (Input, Select, DatePicker, FormField) and document usage; many exist in `@/components/ui` and StandardFormField.
+- [ ] **BL-322:** DataTable and Pagination are in use; document table + pagination pattern and optional shared wrapper.
+- [ ] **BL-323:** Card primitives exist; document CardHeader/CardTitle/CardBody/CardFooter usage.
 
 ---
 
-### 5.2 Color Palette Standardization 🟡 [BL-330]
+### 5.2 Color Palette Standardization 🟡 [BL-330] — Re-assessed Jan 2026
 
 **Source:** UX Testing Report - Design System Recommendations  
 **Theme Alignment:** Theme 2 (i18n & Design Tokens)  
 **Components Affected:** All  
 **Tracking ID:** BL-330
 
-#### Primary Colors [BL-330]
+**Re-assessed (Jan 2026):** EBThemeVariables and convert-theme-to-css-variables define primary, secondary, destructive, muted, etc.; Salt-aligned token names in use. Button and UI components consume these via `eb-` tokens. BL-002 and BL-009 cover primary and footer consistency.
 
-- [ ] **BL-330-1:** Choose single Primary Action color (Purple or Blue)
-- [ ] **BL-330-2:** Define Secondary Action: White with border
-- [ ] **BL-330-3:** Define Tertiary Action: Text link (blue)
-
-#### Status Colors [BL-331]
-
-- [ ] **BL-331-1:** Success/Completed: Blue (#0066CC or similar)
-- [ ] **BL-331-2:** Pending: Beige/Light Brown (#D4A574 or similar)
-- [ ] **BL-331-3:** Error/Rejected: Red (#DC3545 or similar)
-- [ ] **BL-331-4:** Warning: Orange/Yellow (if needed)
-- [ ] **BL-331-5:** Info: Blue (if needed)
-
-#### Neutral Colors [BL-332]
-
-- [ ] **BL-332-1:** Text Primary: Dark Gray (#1A1A1A or similar)
-- [ ] **BL-332-2:** Text Secondary: Medium Gray (#666666 or similar)
-- [ ] **BL-332-3:** Text Tertiary: Light Gray (#999999 or similar)
-- [ ] **BL-332-4:** Background: White (#FFFFFF)
-- [ ] **BL-332-5:** Border: Light Gray (#E5E5E5 or similar)
-
-#### Footer [BL-333]
-
-- [ ] **BL-333-1:** Background: Consistent color (Blue or Teal)
-- [ ] **BL-333-2:** Text: White
+- [ ] **BL-330-1:** Document token → color mapping (primary, secondary, tertiary, status, neutral) in design system
+- [ ] **BL-330-2:** Align status colors (success/pending/error/warning) with Badge/StatusBadge usage (see BL-100)
+- [ ] **BL-330-3:** Footer color consistency is showcase-app concern (BL-009)
 
 ---
 
-### 5.3 Typography System 🟢 [BL-340]
+### 5.3 Typography System 🟢 [BL-340] — Re-assessed Jan 2026
 
 **Source:** UX Testing Report - Design System Recommendations  
 **Theme Alignment:** Theme 2 (i18n & Design Tokens)  
 **Components Affected:** All  
 **Tracking ID:** BL-340
 
-- [ ] **BL-340-1:** Define heading hierarchy (H1-H4)
-- [ ] **BL-340-2:** Define body text sizes (Large, Medium, Small)
-- [ ] **BL-340-3:** Define label styles (form labels, table headers)
-- [ ] **BL-340-4:** Document typography system in design tokens
+**Re-assessed (Jan 2026):** EBThemeVariables include contentFontFamily, textHeadingFontFamily; components use `eb-font-*`, `eb-text-*` and Title/Text. Full typography scale and heading hierarchy are not yet documented as tokens.
+
+- [ ] **BL-340-1:** Define and document heading hierarchy (H1–H4) and body/label scales in design tokens or style guide
+- [ ] **BL-340-2:** Ensure typography tokens are used consistently (or document current usage)
 
 ---
 
-### 5.4 Spacing System 🟢 [BL-350]
+### 5.4 Spacing System 🟢 [BL-350] — Re-assessed Jan 2026
 
 **Source:** UX Testing Report - Design System Recommendations  
 **Theme Alignment:** Theme 2 (i18n & Design Tokens)  
 **Components Affected:** All  
 **Tracking ID:** BL-350
 
-- [ ] **BL-350-1:** Define card spacing (padding, margin, border radius)
-- [ ] **BL-350-2:** Define form spacing (field spacing, label spacing, button spacing)
-- [ ] **BL-350-3:** Define table spacing (cell padding, row spacing, header spacing)
-- [ ] **BL-350-4:** Document spacing system in design tokens
+**Re-assessed (Jan 2026):** Spacing is applied via Tailwind `eb-*` utilities and component-level classes; no single spacing scale is documented as design tokens.
+
+- [ ] **BL-350-1:** Define spacing scale (card, form, table) and document in design tokens or style guide
+- [ ] **BL-350-2:** Optional: introduce spacing tokens and refactor high-traffic components to use them
 
 ---
 
@@ -770,7 +572,6 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 
 #### LinkedAccountWidget [BL-401]
 
-- [x] **BL-401-1:** Handle verification responses (PR #583 - Dec 2, 2025) ✅
 - [ ] **BL-401-2:** Parity with Recipients payment methods
 - [ ] **BL-401-3:** Better status messaging
 - [ ] **BL-401-4:** Robust microdeposit flows (retry/lockout messaging)
@@ -780,6 +581,11 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 - [ ] **BL-402-1:** Conditional attributes per payment method (ACH/RTP/WIRE)
 - [ ] **BL-402-2:** Edit flows parity + masking
 - [ ] **BL-402-3:** Recipient duplicate detection UX
+
+#### RecipientsWidget [BL-406]
+
+- [ ] **BL-406-3:** Success confirmation/feedback after create/edit
+- [ ] **BL-406-4:** Ref-based control (refresh, clear filters, export)
 
 #### MakePayment [BL-403]
 
@@ -796,9 +602,7 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 
 #### Accounts [BL-405]
 
-- [ ] **BL-405-1:** Responsive cards
 - [ ] **BL-405-2:** Review balance types mapping and tooltips
-- [ ] **BL-405-3:** Masking/toggle for sensitive routing/account info
 
 ---
 
@@ -888,10 +692,9 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 ### 6.8 Theme 7: A11y & UX Testing [BL-470]
 
 **Source:** Development Roadmap, UX Testing Report  
-**Status:** 🚧 In Progress (UX Testing completed Dec 2, 2025)  
+**Status:** 🚧 In Progress  
 **Tracking ID:** BL-470
 
-- [x] **BL-470-1:** UX scenarios per component (completed Dec 2, 2025) ✅
 - [ ] **BL-470-2:** Mitigate found issues (see Priority 1-3 items)
 - [ ] **BL-470-3:** WCAG 2.1 AA compliance
 - [ ] **BL-470-4:** Axe automated tests
@@ -908,8 +711,6 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 
 - [ ] **BL-480-1:** 90%+ coverage: unit (validators/hooks), component, integration (MSW), E2E for critical paths
 - [ ] **BL-480-2:** Storybook scenarios: loading/error/empty/edge/i18n/theme/a11y
-- [x] **BL-480-3:** Enhanced test setup with ResizeObserver mock (PR #582 - Dec 3, 2025) ✅
-- [x] **BL-480-4:** Improved test reliability (PR #582 - Dec 3, 2025) ✅
 
 ---
 
@@ -920,7 +721,7 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 **Tracking ID:** BL-490
 
 - [ ] **BL-490-1:** Per-component docs (usage, configuration, validation, security, a11y, testing, performance)
-- [ ] **BL-490-2:** Enhanced Cursor rules and codegen/dev templates for AI agents
+- [ ] **BL-490-2:** Enhanced AI agent skills and codegen/dev templates
 
 ---
 
@@ -937,40 +738,6 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 - [ ] **BL-500-3:** Consolidate eslint/prettier configs; drop overlapping/legacy rules
 - [ ] **BL-500-4:** Run security audit: `yarn audit --level moderate` and address vulnerabilities
 - [ ] **BL-500-5:** Verify package integrity after recent npm supply chain attacks (eslint-config-prettier, etc.)
-
-#### Storybook Upgrade to v10+ [BL-504]
-
-**Current Version:** 9.1.13  
-**Target Version:** 10.1+ (latest stable)  
-**Priority:** 🟠 High  
-**Breaking Changes:** ESM-only distribution, requires Node.js 20.19+ or 22.12+
-
-- [ ] **BL-504-1:** Upgrade Storybook core and all addons to v10+
-  - [ ] **BL-504-1a:** Update `storybook` to latest v10.x
-  - [ ] **BL-504-1b:** Update `@storybook/react-vite` to latest v10.x
-  - [ ] **BL-504-1c:** Update `@storybook/addon-*` packages to latest v10.x
-  - [ ] **BL-504-1d:** Update `@storybook/blocks` to latest v10.x (if used)
-- [ ] **BL-504-2:** Convert Storybook configuration to ESM format
-  - [ ] **BL-504-2a:** Update `.storybook/main.js|ts` to valid ESM
-  - [ ] **BL-504-2b:** Update `.storybook/preview.js|ts` to valid ESM
-  - [ ] **BL-504-2c:** Convert all presets and addon configs to ESM
-- [ ] **BL-504-3:** Verify Node.js version compatibility (20.19+ or 22.12+)
-  - [ ] **BL-504-3a:** Update CI/CD to use compatible Node.js version
-  - [ ] **BL-504-3b:** Update local development documentation
-- [ ] **BL-504-4:** Leverage new Storybook 10 features
-  - [ ] **BL-504-4a:** Implement module automocking for easier testing
-  - [ ] **BL-504-4b:** Use typesafe CSF factories for React
-  - [ ] **BL-504-4c:** Explore improved UI editing and sharing capabilities
-- [ ] **BL-504-5:** Test Storybook build and all stories after upgrade
-  - [ ] **BL-504-5a:** Verify `yarn storybook` runs successfully
-  - [ ] **BL-504-5b:** Verify `yarn storybook:build` completes without errors
-  - [ ] **BL-504-5c:** Test all component stories for compatibility
-- [ ] **BL-504-6:** Update Storybook migration documentation
-
-**Migration Resources:**
-
-- Official migration guide: https://storybook.js.org/docs/releases/migration-guide
-- Run automatic upgrade: `npx storybook@latest upgrade`
 
 #### ESLint Upgrade to v9 [BL-505]
 
@@ -1089,7 +856,6 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 
 #### Orval & Dependencies [BL-503]
 
-- [ ] **BL-503-1:** Review and update Orval codegen to latest 7.x
 - [ ] **BL-503-2:** Ensure React Query v5 generators and axios mutator are configured
 - [ ] **BL-503-3:** Regenerate from latest OAS in `api-specs/`
 - [ ] **BL-503-4:** Dependency policy: prioritize security patches
@@ -1097,6 +863,8 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 - [ ] **BL-503-6:** Track axios/react-query/radix/msw/storybook/vite minors
 - [ ] **BL-503-7:** Package manager: migrate to pnpm (workspaces) for speed and content-addressable store
 - [ ] **BL-503-8:** Update docs/CI to use `pnpm -w` equivalents
+- [ ] **BL-503-9:** Upgrade Orval to v8 when stable (tech task)
+  - Orval v8 is a breaking change: ESM config (`.mjs` or `type: "module"`), Node 22.18+, default `httpClient` switched from axios to fetch, removed/renamed options. Stay on 7.20.x for now; plan migration once v8 ecosystem and migration path are stable. See [Orval migration guide v8](https://orval.dev/guides/migration-v8).
 
 #### Other Dependency Updates [BL-508]
 
@@ -1126,16 +894,11 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 ## 📊 Backlog Statistics
 
 **Total Items:** ~200+  
-**Critical Priority:** 6 major areas (including new collection patterns and header standardization)  
-**High Priority:** 5 major areas (including Storybook, ESLint, Tailwind upgrades)  
-**Medium Priority:** 4 major areas  
-**Low Priority:** 3 major areas  
-**Tech Debt:** 8 major upgrade areas (Storybook v10+, ESLint v9, Tailwind v4, TypeScript, Vite/Vitest, React/UI libraries, Orval, other dependencies)
-
-**Completed Recently:**
-
-- LinkedAccountWidget verification handling (PR #583)
-- Test setup improvements (PR #582)
+**Critical Priority:** Design system (re-assessed), Make Payment form UX, data quality  
+**High Priority:** Filter/label/tooltips/responsive, Accounts enhancements  
+**Medium Priority:** Status badge, date formatting, menu/dialog, timeline  
+**Low Priority:** Performance optimization  
+**Tech Debt:** ESLint v9, Tailwind v4, TypeScript, Vite/Vitest, React/UI libraries, Orval, other dependencies
 
 **In Progress:**
 
@@ -1143,7 +906,7 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 - Theme 1: Security & Validation
 - Theme 2: i18n & Design Tokens
 - Theme 3: Functional Testing (CAT)
-- Theme 7: A11y & UX Testing (UX testing completed, mitigation in progress)
+- Theme 7: A11y & UX Testing (mitigation in progress)
 
 ---
 
@@ -1152,10 +915,9 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 ### For Agents
 
 1. **Check Status First:** Review item status (🔴 Critical, 🟠 High, etc.) before starting work
-2. **Update Status:** Mark items as 🚧 In Progress when starting, ✅ Completed when done
+2. **Update Status:** Mark items as 🚧 In Progress when starting
 3. **Reference Sources:** Check UX Testing Report and Development Roadmap for context
-4. **Link PRs:** Reference PR numbers when completing items
-5. **Update Dates:** Add completion dates to completed items
+4. **When complete:** Remove the item from the backlog (do not retain completed items in this document)
 
 ### For Product/Design
 
@@ -1174,9 +936,8 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 ## 📝 Notes for Future Updates
 
 - This backlog should be updated after each sprint/iteration
-- Mark completed items with ✅ and completion date
+- Do not include completed items; remove them when work is done
 - Add new items from future UX testing or roadmap updates
-- Remove or archive items that are no longer relevant
 - Keep priority levels current based on user feedback and business needs
 
 ---
@@ -1187,104 +948,57 @@ This backlog consolidates findings from UX testing, development roadmap themes, 
 
 ### BL-600+: New Findings from December 9, 2025 Testing
 
-#### BL-600: Recipients Data Inconsistency ✅
+#### BL-601: Dialog Accessibility Warning 🟡 — Re-assessed Jan 2026
 
 **Source:** UX Testing Report 2025-12-09  
-**Component:** Recipients  
-**Priority:** Critical  
-**Status:** ✅ **RESOLVED** (Dec 9, 2025 - Re-test)
-
-**Issue:**
-
-- Table displays "No recipients found" but pagination shows "4 row(s) total"
-- Data inconsistency between table display and pagination count
-
-**Actions:**
-
-- [x] **BL-600-1:** Investigate root cause (data filtering, rendering, or API response issue) ✅
-- [x] **BL-600-2:** Fix data consistency between table and pagination ✅
-- [x] **BL-600-3:** Verify fix in browser ✅ (Dec 9, 2025 - Re-test confirmed)
-
-**Resolution:**
-
-- Table now correctly displays 4 rows of recipient data
-- Pagination correctly shows "4 row(s) total" matching table content
-- Data consistency verified in browser re-test (Dec 9, 2025)
-
-**Tracking:** BL-600
-
----
-
-#### BL-601: Dialog Accessibility Warning 🟡
-
-**Source:** UX Testing Report 2025-12-09  
-**Component:** Transactions  
+**Component:** TransactionsDisplay (TransactionDetailsSheet)  
 **Priority:** Medium  
 **Status:** 📋 Planned
 
-**Issue:**
+**Re-assessed (Jan 2026):** TransactionDetailsSheet uses `DialogContent` without `DialogDescription` or `aria-describedby`. Radix Dialog recommends a description for screen readers. Other dialogs (RecipientDetailsDialog, RemoveAccountDialog, etc.) should be audited.
 
-- Console warning: "Missing `Description` or `aria-describedby={undefined}` for {DialogContent}"
-- Affects accessibility compliance
+**Issue:** Console warning: "Missing `Description` or `aria-describedby={undefined}` for {DialogContent}"; affects a11y.
 
 **Actions:**
 
-- [ ] **BL-601-1:** Add `Description` or `aria-describedby` to Transaction details dialog
-- [ ] **BL-601-2:** Audit all dialogs for missing descriptions
-- [ ] **BL-601-3:** Update dialog component to require description by default
+- [ ] **BL-601-1:** Add `DialogDescription` (or `aria-describedby`) to TransactionDetailsSheet — e.g. short summary of transaction details
+- [ ] **BL-601-2:** Audit all dialogs (Transaction, Recipient, RemoveAccount, VerificationResult, etc.) for missing description
+- [ ] **BL-601-3:** Optionally make description required in shared Dialog usage guidelines
 
 **Tracking:** BL-601 (Note: Different from PR #601)
 
 ---
 
-#### BL-602: Duplicate API Calls Across All Components 🟠
-
-**Source:** UX Testing Report 2025-12-09  
-**Components:** All  
-**Priority:** High  
-**Status:** 🚧 Needs Investigation
-
-**Issue:**
-
-- All components make duplicate API calls (endpoints called twice)
-- Common endpoints: `/ping`, `/ef/do/v1/recipients`, `/ef/do/v1/accounts`, `/ef/do/v1/transactions`
-- Likely due to React Query refetching or tab switch emulation
-
-**Actions:**
-
-- [ ] **BL-602-1:** Investigate React Query refetching logic
-- [ ] **BL-602-2:** Check tab switch emulation causing duplicate calls
-- [ ] **BL-602-3:** Implement request deduplication if needed
-- [ ] **BL-602-4:** Monitor actual network performance in production
-
-**Tracking:** BL-602
-
----
-
-#### BL-603: MSW Initialization Errors 🟡
+#### BL-603: MSW Initialization Errors 🟡 — Re-assessed Jan 2026
 
 **Source:** UX Testing Report 2025-12-09  
 **Components:** All (MSW initialization)  
 **Priority:** Medium  
 **Status:** 📋 Planned
 
-**Issue:**
+**Re-assessed (Jan 2026):** Same as BL-200-1 (duplicate party creation). Resolve in one place; keep one tracking id.
 
-- 3 duplicate party creation errors during MSW initialization
-- Error: "Failed to create a 'party' entity: an entity with the same primary key already exists"
-- Parties affected: 2200000111, 2200000112, 2200000113
-- Root cause: Client 0030000134 attempts to create parties that already exist from Client 0030000132
+**Issue:** Duplicate party creation during MSW init: "Failed to create a 'party' entity: an entity with the same primary key already exists" (parties 2200000111–2200000113). Client 0030000134 creates parties that already exist from 0030000132.
 
 **Actions:**
 
-- [ ] **BL-603-1:** Fix duplicate party creation logic in MSW initialization
-- [ ] **BL-603-2:** Add check for existing parties before creation
-- [ ] **BL-603-3:** Reduce console.log verbosity in production builds
+- [ ] **BL-603-1:** Fix duplicate party creation in MSW handlers/seed (e.g. check existing before create, or single client seed)
+- [ ] **BL-603-2:** Reduce console verbosity in production/dev as in BL-200
 
-**Tracking:** BL-603
+**Tracking:** BL-603 (duplicate of BL-200-1 for same MSW issue)
+
+---
+
+---
+
+## 🆕 New Issues from 2026-01-14 Testing Session
+
+### BL-700+: New Findings from January 14, 2026 Testing
+
+_(Open items only.)_
 
 ---
 
 **Document Maintainers:** Development Team  
 **Review Frequency:** Weekly during active development, bi-weekly during maintenance  
-**Last Major Update:** December 9, 2025
+**Last Major Update:** January 27, 2026 (full re-assessment of open backlog items)

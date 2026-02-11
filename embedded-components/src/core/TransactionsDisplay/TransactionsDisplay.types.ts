@@ -16,6 +16,16 @@ export interface TransactionsDisplayProps extends UserTrackingProps {
    * If not provided, transactions from all LIMITED_DDA_PAYMENTS and LIMITED_DDA accounts will be shown.
    */
   accountIds?: string[];
+
+  /**
+   * Optional description text to display below the title in the header
+   */
+  description?: string;
+
+  /**
+   * Additional CSS class name(s) for the root Card element.
+   */
+  className?: string;
 }
 
 /**

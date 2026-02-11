@@ -170,15 +170,15 @@ export const getScenarioByKey = (key: ScenarioKey) => {
 
 export const getScenarioByDisplayName = (displayName: string) => {
   return Object.values(SCENARIOS_CONFIG).find(
-    (scenario) => scenario.displayName === displayName,
+    (scenario) => scenario.displayName === displayName
   );
 };
 
 export const getScenarioKeyByDisplayName = (
-  displayName: string,
+  displayName: string
 ): ScenarioKey | undefined => {
   const entry = Object.entries(SCENARIOS_CONFIG).find(
-    ([_, config]) => config.displayName === displayName,
+    ([_, config]) => config.displayName === displayName
   );
   return entry?.[0] as ScenarioKey | undefined;
 };
@@ -191,7 +191,7 @@ export const getNextScenario = (currentKey: ScenarioKey): ScenarioKey => {
 
 export const getScenarioDisplayNames = () => {
   const names = Object.values(SCENARIOS_CONFIG).map(
-    (config) => config.displayName,
+    (config) => config.displayName
   );
   return names.length > 0 ? names : ['Active Seller with Direct Payouts']; // Fallback
 };
@@ -210,7 +210,7 @@ export const getActiveScenarios = () => {
 
 // Utility function to check if a scenario should show recipients
 export const shouldShowRecipientsForScenario = (
-  scenarioDisplayName: string,
+  scenarioDisplayName: string
 ): boolean => {
   const scenarioKey = getScenarioKeyByDisplayName(scenarioDisplayName);
   if (!scenarioKey) {
@@ -224,19 +224,19 @@ export const shouldShowRecipientsForScenario = (
   const visibleComponents = (scenario as any).visibleComponents || [];
   return visibleComponents.some(
     (config: ComponentConfig) =>
-      config.component === AVAILABLE_COMPONENTS.RECIPIENTS,
+      config.component === AVAILABLE_COMPONENTS.RECIPIENTS
   );
 };
 
 // Enhanced utility function to get visible components with positions for a scenario
 export const getVisibleComponentsForScenario = (
-  scenarioDisplayName: string,
+  scenarioDisplayName: string
 ): ComponentConfig[] => {
   // Safety check for undefined or empty scenario name
   if (!scenarioDisplayName || typeof scenarioDisplayName !== 'string') {
     console.warn(
       'getVisibleComponentsForScenario: Invalid scenario name:',
-      scenarioDisplayName,
+      scenarioDisplayName
     );
     return [];
   }
@@ -245,7 +245,7 @@ export const getVisibleComponentsForScenario = (
   if (!scenarioKey) {
     console.warn(
       'getVisibleComponentsForScenario: Unknown scenario:',
-      scenarioDisplayName,
+      scenarioDisplayName
     );
     return []; // Fallback for unknown scenarios
   }
@@ -259,7 +259,7 @@ export const getVisibleComponentsForScenario = (
 
 // Utility function to get just component names (for backward compatibility)
 export const getVisibleComponentNamesForScenario = (
-  scenarioDisplayName: string,
+  scenarioDisplayName: string
 ): ComponentName[] => {
   const componentConfigs = getVisibleComponentsForScenario(scenarioDisplayName);
   return componentConfigs.map((config) => config.component);
@@ -268,7 +268,7 @@ export const getVisibleComponentNamesForScenario = (
 // Utility function to check if a specific component should be visible for a scenario
 export const isComponentVisibleForScenario = (
   scenarioDisplayName: string,
-  componentName: ComponentName,
+  componentName: ComponentName
 ): boolean => {
   const visibleComponents =
     getVisibleComponentsForScenario(scenarioDisplayName);
@@ -278,19 +278,19 @@ export const isComponentVisibleForScenario = (
 // Utility function to get component position for a scenario
 export const getComponentPosition = (
   scenarioDisplayName: string,
-  componentName: ComponentName,
+  componentName: ComponentName
 ): ComponentPosition | null => {
   const visibleComponents =
     getVisibleComponentsForScenario(scenarioDisplayName);
   const componentConfig = visibleComponents.find(
-    (config) => config.component === componentName,
+    (config) => config.component === componentName
   );
   return componentConfig?.position || null;
 };
 
 // Utility function to get grid dimensions for a scenario
 export const getGridDimensions = (
-  scenarioDisplayName: string,
+  scenarioDisplayName: string
 ): { maxRows: number; maxColumns: number } => {
   const visibleComponents =
     getVisibleComponentsForScenario(scenarioDisplayName);
@@ -322,7 +322,7 @@ export const hasResetDbScenario = (scenarioDisplayName: string): boolean => {
 
 // Utility function to get the reset DB scenario value
 export const getResetDbScenario = (
-  scenarioDisplayName: string,
+  scenarioDisplayName: string
 ): string | undefined => {
   const scenarioKey = getScenarioKeyByDisplayName(scenarioDisplayName);
   if (!scenarioKey) {
@@ -334,7 +334,7 @@ export const getResetDbScenario = (
 
 // Utility function to get header title for a scenario
 export const getHeaderTitleForScenario = (
-  scenarioDisplayName: string,
+  scenarioDisplayName: string
 ): string => {
   const scenarioKey = getScenarioKeyByDisplayName(scenarioDisplayName);
   if (!scenarioKey) {
@@ -346,7 +346,7 @@ export const getHeaderTitleForScenario = (
 
 // Utility function to get header description for a scenario
 export const getHeaderDescriptionForScenario = (
-  scenarioDisplayName: string,
+  scenarioDisplayName: string
 ): string => {
   const scenarioKey = getScenarioKeyByDisplayName(scenarioDisplayName);
   if (!scenarioKey) {
@@ -361,7 +361,7 @@ export const getHeaderDescriptionForScenario = (
 
 // Utility function to check if a scenario is the ONBOARDING_DOCS_NEEDED scenario
 export const isOnboardingDocsNeededScenario = (
-  scenarioDisplayName: string,
+  scenarioDisplayName: string
 ): boolean => {
   const scenarioKey = getScenarioKeyByDisplayName(scenarioDisplayName);
   if (!scenarioKey) {

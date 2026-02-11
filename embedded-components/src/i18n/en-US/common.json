@@ -1,5 +1,6 @@
 {
   "noTokenFallback": "NO CONTENT TOKEN FOUND: {{key}}",
+  "warning": "Warning",
   "next": "Next",
   "previous": "Previous",
   "submit": "Submit",

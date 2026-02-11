@@ -1,23 +1,24 @@
 import { factory, primaryKey } from '@mswjs/data';
 import merge from 'lodash/merge';
+
+import { efClientQuestionsMock, efDocumentRequestDetailsList } from '../mocks';
 import {
-  SoleProprietorExistingClient,
-  LLCExistingClient,
-  LLCExistingClientOutstandingDocuments,
-} from '../mocks/clientDetails.mock';
-import { efDocumentRequestDetailsList, efClientQuestionsMock } from '../mocks';
-import { mockRecipientsResponse } from '../mocks/recipients.mock';
-import { mockLinkedAccounts } from '../mocks/linkedAccounts.mock';
-import { mockTransactionsResponse } from '../mocks/transactions.mock';
-import {
-  mockAccounts,
   mockAccountBalance,
   mockAccountBalance2,
+  mockAccounts,
   mockActiveAccounts,
-  mockActiveWithRecipientsAccounts,
   mockActiveBalances,
+  mockActiveWithRecipientsAccounts,
   mockActiveWithRecipientsBalances,
 } from '../mocks/accounts.mock';
+import {
+  LLCExistingClient,
+  LLCExistingClientOutstandingDocuments,
+  SoleProprietorExistingClient,
+} from '../mocks/clientDetails.mock';
+import { mockLinkedAccounts } from '../mocks/linkedAccounts.mock';
+import { mockRecipientsResponse } from '../mocks/recipients.mock';
+import { mockTransactionsResponse } from '../mocks/transactions.mock';
 
 // Magic values configuration
 export const MAGIC_VALUES = {
@@ -141,7 +142,7 @@ export const db = factory({
 export function updateAccountBalance(
   accountId,
   amount,
-  transactionType = 'CREDIT',
+  transactionType = 'CREDIT'
 ) {
   const balance = db.accountBalance.findFirst({
     where: { accountId: { equals: accountId } },
@@ -336,7 +337,7 @@ export function updateTransactionStatus(transactionId, newStatus) {
   }
 
   console.log(
-    `Updated transaction ${transactionId} status from ${oldStatus} to ${newStatus}`,
+    `Updated transaction ${transactionId} status from ${oldStatus} to ${newStatus}`
   );
   logDbState('Transaction Status Update');
 
@@ -413,7 +414,7 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
     const validScenarios = Object.values(DB_SCENARIOS);
     if (!validScenarios.includes(scenario)) {
       console.warn(
-        `Invalid scenario: ${scenario}. Using default: ${DEFAULT_SCENARIO}`,
+        `Invalid scenario: ${scenario}. Using default: ${DEFAULT_SCENARIO}`
       );
       scenario = DEFAULT_SCENARIO;
     }
@@ -527,16 +528,16 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
           if (clientData.status === 'INFORMATION_REQUESTED') {
             // Find individual parties
             const individualParties = parties.filter(
-              (p) => p.partyType === 'INDIVIDUAL',
+              (p) => p.partyType === 'INDIVIDUAL'
             );
 
             // Create document requests for individual parties
             for (const indParty of individualParties) {
               const indDocRequest = efDocumentRequestDetailsList.find(
-                (req) => req.id === '68430',
+                (req) => req.id === '68430'
               );
               const generatedDocRequestId = Math.floor(
-                10000 + Math.random() * 90000,
+                10000 + Math.random() * 90000
               ).toString(); // 5 digit number
               try {
                 upsertDocumentRequest(generatedDocRequestId, {
@@ -572,14 +573,14 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
 
             // Create document request for organization if exists
             const orgParty = parties.find(
-              (p) => p.partyType === 'ORGANIZATION',
+              (p) => p.partyType === 'ORGANIZATION'
             );
             if (orgParty) {
               const orgDocRequest = efDocumentRequestDetailsList.find(
-                (req) => req.id === '68803',
+                (req) => req.id === '68803'
               );
               const generatedDocRequestId = Math.floor(
-                10000 + Math.random() * 90000,
+                10000 + Math.random() * 90000
               ).toString(); // 5 digit number
               try {
                 upsertDocumentRequest(generatedDocRequestId, {
@@ -592,7 +593,7 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
 
                 // Add the generated ID to client's outstanding block
                 newClient.outstanding.documentRequestIds.push(
-                  generatedDocRequestId,
+                  generatedDocRequestId
                 );
               } catch (error) {
                 console.error('Error creating document request:', error);
@@ -625,7 +626,7 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
           ...mockLinkedAccounts.recipients,
         ];
         console.log(
-          'Active with recipients scenario: Initializing all recipients',
+          'Active with recipients scenario: Initializing all recipients'
         );
       }
 
@@ -661,7 +662,7 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
         // Default: both accounts for ACTIVE_WITH_RECIPIENTS scenario
         accountsToInitialize = mockActiveWithRecipientsAccounts.items;
         console.log(
-          'Active with recipients scenario: Initializing both accounts (acc-001 and acc-002)',
+          'Active with recipients scenario: Initializing both accounts (acc-001 and acc-002)'
         );
       }
 
@@ -709,7 +710,7 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
         try {
           console.log(
             `Creating balance for account ${balance.accountId}:`,
-            balance,
+            balance
           );
           db.accountBalance.create(balance);
         } catch (error) {
@@ -740,7 +741,7 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
           };
           console.log(
             `Creating transaction ${transaction.id}:`,
-            newTransaction,
+            newTransaction
           );
           db.transaction.create(newTransaction);
         } catch (error) {
@@ -778,10 +779,10 @@ export function handleMagicValues(clientId, verificationData = {}) {
 
   const taxId =
     rootParty.organizationDetails?.organizationIds?.find(
-      (id) => id.idType === 'EIN',
+      (id) => id.idType === 'EIN'
     )?.value ||
     rootParty.individualDetails?.individualIds?.find(
-      (id) => id.idType === 'SSN',
+      (id) => id.idType === 'SSN'
     )?.value;
 
   let updatedClient = { ...client };
@@ -799,15 +800,15 @@ export function handleMagicValues(clientId, verificationData = {}) {
       // Handle organization document requests
       if (rootParty.partyType === 'ORGANIZATION') {
         const generatedDocRequestId = Math.floor(
-          10000 + Math.random() * 90000,
+          10000 + Math.random() * 90000
         ).toString();
         updatedClient.outstanding.documentRequestIds.push(
-          generatedDocRequestId,
+          generatedDocRequestId
         );
 
         // Create or update organization document request using the mock data
         const orgDocRequest = efDocumentRequestDetailsList.find(
-          (req) => req.id === '68803',
+          (req) => req.id === '68803'
         );
         upsertDocumentRequest(generatedDocRequestId, {
           ...orgDocRequest,
@@ -821,16 +822,16 @@ export function handleMagicValues(clientId, verificationData = {}) {
       // Handle individual document requests and validation response
       const individualParties = client.parties
         .map((partyId) =>
-          db.party.findFirst({ where: { id: { equals: partyId } } }),
+          db.party.findFirst({ where: { id: { equals: partyId } } })
         )
         .filter((party) => party && party.partyType === 'INDIVIDUAL');
 
       for (const indParty of individualParties) {
         const generatedDocRequestId = Math.floor(
-          10000 + Math.random() * 90000,
+          10000 + Math.random() * 90000
         ).toString();
         updatedClient.outstanding.documentRequestIds.push(
-          generatedDocRequestId,
+          generatedDocRequestId
         );
 
         // Update the party with validation response
@@ -854,7 +855,7 @@ export function handleMagicValues(clientId, verificationData = {}) {
 
         // Create or update individual document request using the mock data
         const indDocRequest = efDocumentRequestDetailsList.find(
-          (req) => req.id === '68430',
+          (req) => req.id === '68430'
         );
         upsertDocumentRequest(generatedDocRequestId, {
           ...indDocRequest,

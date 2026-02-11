@@ -1,0 +1,180 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+import { Mermaid } from '../../../../.storybook/Mermaid';
+
+<Meta title="Core/RecipientsWidget/Interactive Workflows/State Machine" />
+
+# Recipient State Machine
+
+This document describes the state transitions for payment recipients in the Embedded Payments API.
+
+## Status Overview
+
+Recipients have a simpler status flow compared to linked accounts (no microdeposit verification):
+
+- **ACTIVE** - Recipient is ready for transactions
+- **INACTIVE** - Recipient has been deactivated and cannot be used
+- **REJECTED** - Recipient creation failed or was rejected
+- **PENDING** - Recipient information is being processed
+
+## State Diagram
+
+<Mermaid>
+  {`
+stateDiagram-v2
+    [*] --> Validation: Recipient Creation
+    
+    Validation --> ACTIVE: Validation Success
+    Validation --> PENDING: Processing Required
+    Validation --> REJECTED: Validation Failed
+    
+    PENDING --> ACTIVE: Processing Complete
+    PENDING --> REJECTED: Processing Failed
+    
+    ACTIVE --> INACTIVE: Deactivated
+    
+    ACTIVE --> [*]
+    REJECTED --> [*]
+    INACTIVE --> [*]
+    
+    note right of PENDING
+        Used when additional processing
+        or verification is required
+    end note
+`}
+</Mermaid>
+
+## Status Transition Chains
+
+### 1. Instant Creation (Happy Path)
+
+**Chain:** `START → ACTIVE`
+
+**Description:** Recipient validation succeeds immediately. Account information is verified and ready for transactions.
+
+**User Experience:** Recipient is ready to use immediately after creation.
+
+---
+
+### 2. Pending Processing
+
+**Chain:** `START → PENDING → ACTIVE`
+
+**Description:** Recipient requires additional processing before becoming active. This may occur for certain account types or when additional verification is needed.
+
+**User Experience:**
+
+1. Recipient created with pending status
+2. System processes the recipient
+3. Recipient becomes active automatically
+
+---
+
+### 3. Pending to Rejected
+
+**Chain:** `START → PENDING → REJECTED`
+
+**Description:** Recipient was created but processing failed during the pending phase.
+
+**User Experience:** User is notified of failure and must re-add the recipient.
+
+---
+
+### 4. Immediate Rejection
+
+**Chain:** `START → REJECTED`
+
+**Description:** Recipient validation immediately rejects due to invalid information (invalid account number, routing number, etc.).
+
+**User Experience:** Immediate failure with error message indicating what needs to be corrected.
+
+---
+
+### 5. Deactivation
+
+**Chain:** `ACTIVE → INACTIVE`
+
+**Description:** An active recipient is manually deactivated, either by user request or system action.
+
+**User Experience:** Recipient can no longer be used for transactions.
+
+---
+
+## Terminal States
+
+**Final Success States:**
+
+- **ACTIVE** - Recipient fully validated and operational
+
+**Final Failure States:**
+
+- **REJECTED** - Validation failed, cannot be recovered
+- **INACTIVE** - Deactivated, requires re-adding
+
+## Comparison with Linked Accounts
+
+| Aspect         | Recipients              | Linked Accounts                     |
+| -------------- | ----------------------- | ----------------------------------- |
+| Verification   | Account validation only | Microdeposit verification           |
+| Status Flow    | Simple (3-4 states)     | Complex (6+ states)                 |
+| Time to Active | Usually immediate       | 3-5 business days (if microdeposit) |
+| User Action    | Provide account details | May need to verify deposit amounts  |
+
+## Key Differences from LinkedAccountWidget
+
+Recipients do **not** have these statuses (which are specific to microdeposit verification):
+
+- ❌ `MICRODEPOSITS_INITIATED` - No microdeposit flow
+- ❌ `READY_FOR_VALIDATION` - No deposit amount verification
+
+## Testing These Flows
+
+The workflow stories in this section demonstrate these state transitions:
+
+- **AddRecipientWorkflow** - Standard recipient creation flow
+- **ViewRecipientDetails** - Viewing recipient information
+- **RemoveRecipientWorkflow** - Removing a recipient
+- **PaginationWorkflow** - Navigating through multiple recipients
+- **RtpUnavailableAtBank** - RTP payment method not supported at bank
+
+## Payment Method Availability
+
+### RTP (Real-Time Payments) Unavailability
+
+Not all financial institutions support RTP (Real-Time Payments). When a user attempts to add a recipient with RTP enabled, but the bank associated with the routing number doesn't support RTP transactions, the API will return an error.
+
+**Error Response:**
+
+```json
+{
+  "httpStatus": 400,
+  "title": "Payment Method Not Supported",
+  "context": [
+    {
+      "code": "RTP_UNAVAILABLE",
+      "field": "account.routingInformation[].transactionType",
+      "message": "RTP (Real-Time Payments) is not available at this financial institution."
+    }
+  ]
+}
+```
+
+**User Experience:**
+
+1. User selects RTP as a payment method when adding a recipient
+2. User enters bank details (routing number, account number)
+3. Upon submission, an error message is displayed explaining RTP is unavailable
+4. User can deselect RTP and proceed with other payment methods (ACH, Wire)
+
+**Recommended UI Handling:**
+
+- Display a clear error message explaining RTP is not available at this bank
+- Suggest the user deselect RTP and try again with other payment methods
+- Do not prevent the user from completing recipient creation with available methods
+
+## Important Notes
+
+- **Simpler Flow:** Recipients have a much simpler status flow than linked accounts
+- **No Verification Required:** Users don't need to verify microdeposit amounts
+- **Immediate Availability:** Most recipients become active immediately after creation
+- **Use Case:** Best for managing payees and beneficiaries where account ownership verification isn't required

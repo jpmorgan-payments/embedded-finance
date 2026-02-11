@@ -7,6 +7,15 @@
     "loadFailed": "Échec du chargement des bénéficiaires. Veuillez réessayer.",
     "retry": "Réessayer"
   },
+  "errors": {
+    "known": {
+      "RTP_UNAVAILABLE": {
+        "title": "Paiements en Temps Réel Non Disponibles",
+        "description": "La banque du bénéficiaire ne prend pas en charge les Paiements en Temps Réel (RTP). Ce mode de paiement ne peut pas être utilisé pour ce compte.",
+        "suggestion": "Vous pouvez toujours ajouter ce bénéficiaire en utilisant ACH ou un virement bancaire."
+      }
+    }
+  },
   "emptyState": {
     "noRecipients": "Aucun bénéficiaire trouvé"
   },
@@ -129,4 +138,3 @@
     "readyForValidation": "Prêt pour validation"
   }
 }
-

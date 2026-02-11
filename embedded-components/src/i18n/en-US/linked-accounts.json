@@ -1,6 +1,7 @@
 {
   "title": "Linked Accounts",
   "description": "Manage your external bank accounts for payments",
+  "link": "Link",
   "linkNewAccount": "Link A New Account",
   "count": "({{count}})",
   "showMoreWithCount": "Show {{count}} more account",
@@ -15,6 +16,13 @@
       "title": "Error loading linked accounts",
       "default": "An unexpected error occurred while loading your linked accounts. Please try again.",
       "400": "Your platform does not have permission to access linked accounts. Please contact support."
+    },
+    "known": {
+      "RTP_UNAVAILABLE": {
+        "title": "Real-Time Payments Not Available",
+        "description": "The bank associated with this account does not support Real-Time Payments (RTP). This payment method cannot be used for this account.",
+        "suggestion": "You can still link this account using ACH or Wire transfer instead."
+      }
     }
   },
   "status": {
@@ -51,7 +59,10 @@
     "addWire": "Add WIRE",
     "addRtp": "Add RTP",
     "manage": "Manage",
+    "viewDetails": "View Details",
+    "viewDetailsShort": "Details",
     "edit": "Edit Payment Methods",
+    "editDisabledTooltip": "Payment methods can only be edited for active accounts",
     "remove": "Remove Account",
     "moreActions": "More actions for {{name}}",
     "expand": "Expand to show all accounts",
@@ -164,5 +175,23 @@
     "title": "Account Verified Successfully",
     "description": "Linking <strong>{{name}}</strong> has been successfully completed and the account is now ready for transactions.",
     "close": "Close"
+  },
+  "accountDetails": {
+    "title": "Account Details",
+    "accountName": "Account Name",
+    "accountType": "Account Type",
+    "status": "Status",
+    "accountNumber": "Account Number",
+    "paymentMethods": "Payment Methods",
+    "bankName": "Bank Name",
+    "showAccountNumber": "Show full account number",
+    "hideAccountNumber": "Hide account number",
+    "noRoutingNumber": "Not configured",
+    "recipientType": {
+      "individualLinkedAccount": "Individual Linked Account",
+      "businessLinkedAccount": "Business Linked Account",
+      "individualRecipient": "Individual Recipient",
+      "businessRecipient": "Business Recipient"
+    }
   }
 }

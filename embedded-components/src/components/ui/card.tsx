@@ -33,11 +33,11 @@ const CardHeader = React.forwardRef<
 CardHeader.displayName = 'CardHeader';
 
 const CardTitle = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
+  HTMLHeadingElement,
+  React.HTMLAttributes<HTMLHeadingElement>
 >(({ className, ...props }, ref) => (
   // eslint-disable-next-line jsx-a11y/heading-has-content
-  <div
+  <h2
     ref={ref}
     className={cn(
       'eb-text-2xl eb-font-semibold eb-leading-none eb-tracking-tight eb-text-foreground',

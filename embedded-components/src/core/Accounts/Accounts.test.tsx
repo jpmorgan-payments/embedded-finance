@@ -2,6 +2,12 @@ import { server } from '@/msw/server';
 import { render, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
+import type {
+  AccountBalanceResponse,
+  AccountResponse,
+  ListAccountsResponse,
+} from '@/api/generated/ep-accounts.schemas';
+
 import { EBComponentsProvider } from '../EBComponentsProvider';
 import { Accounts } from './Accounts';
 import type { AccountsProps } from './Accounts.types';
@@ -40,15 +46,21 @@ describe('Accounts', () => {
 
   describe('Rendering', () => {
     test('renders loading state', () => {
-      server.use(http.get('/accounts', () => new Promise(() => {})));
+      server.use(http.get('*/accounts', () => new Promise(() => {})));
 
       renderComponent();
 
-      expect(screen.getByText('Accounts')).toBeInTheDocument();
+      expect(screen.getByText('Your account')).toBeInTheDocument();
     });
 
     test('renders empty state when no accounts found', async () => {
-      server.use(http.get('/accounts', () => HttpResponse.json({ items: [] })));
+      const emptyResponse: ListAccountsResponse = {
+        metadata: { page: 0, limit: 25, total_items: 0 },
+        items: [],
+      };
+      server.use(
+        http.get('*/accounts', () => HttpResponse.json(emptyResponse))
+      );
 
       renderComponent();
 
@@ -61,15 +73,27 @@ describe('Accounts', () => {
     });
 
     test('renders with default title', () => {
-      server.use(http.get('/accounts', () => HttpResponse.json({ items: [] })));
+      const emptyResponse: ListAccountsResponse = {
+        metadata: { page: 0, limit: 25, total_items: 0 },
+        items: [],
+      };
+      server.use(
+        http.get('*/accounts', () => HttpResponse.json(emptyResponse))
+      );
 
       renderComponent();
 
-      expect(screen.getByText('Accounts')).toBeInTheDocument();
+      expect(screen.getByText('Your account')).toBeInTheDocument();
     });
 
     test('renders with custom title', () => {
-      server.use(http.get('/accounts', () => HttpResponse.json({ items: [] })));
+      const emptyResponse: ListAccountsResponse = {
+        metadata: { page: 0, limit: 25, total_items: 0 },
+        items: [],
+      };
+      server.use(
+        http.get('*/accounts', () => HttpResponse.json(emptyResponse))
+      );
 
       renderComponent({ title: 'My Accounts' });
 
@@ -78,48 +102,68 @@ describe('Accounts', () => {
   });
 
   describe('Filtering', () => {
+    const emptyResponse: ListAccountsResponse = {
+      metadata: { page: 0, limit: 25, total_items: 0 },
+      items: [],
+    };
+
     test('accepts LIMITED_DDA category', () => {
-      server.use(http.get('/accounts', () => HttpResponse.json({ items: [] })));
+      server.use(
+        http.get('*/accounts', () => HttpResponse.json(emptyResponse))
+      );
 
       renderComponent({ allowedCategories: ['LIMITED_DDA'] });
 
-      expect(screen.getByText('Accounts')).toBeInTheDocument();
+      expect(screen.getByText('Your account')).toBeInTheDocument();
     });
 
     test('accepts LIMITED_DDA_PAYMENTS category', () => {
-      server.use(http.get('/accounts', () => HttpResponse.json({ items: [] })));
+      server.use(
+        http.get('*/accounts', () => HttpResponse.json(emptyResponse))
+      );
 
       renderComponent({ allowedCategories: ['LIMITED_DDA_PAYMENTS'] });
 
-      expect(screen.getByText('Accounts')).toBeInTheDocument();
+      expect(screen.getByText('Your account')).toBeInTheDocument();
     });
 
     test('accepts both categories', () => {
-      server.use(http.get('/accounts', () => HttpResponse.json({ items: [] })));
+      server.use(
+        http.get('*/accounts', () => HttpResponse.json(emptyResponse))
+      );
 
       renderComponent({
         allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
       });
 
-      expect(screen.getByText('Accounts')).toBeInTheDocument();
+      expect(screen.getByText('Your account')).toBeInTheDocument();
     });
   });
 
   describe('With clientId filter', () => {
+    const emptyResponse: ListAccountsResponse = {
+      metadata: { page: 0, limit: 25, total_items: 0 },
+      items: [],
+    };
+
     test('renders when clientId is provided', () => {
-      server.use(http.get('/accounts', () => HttpResponse.json({ items: [] })));
+      server.use(
+        http.get('*/accounts', () => HttpResponse.json(emptyResponse))
+      );
 
       renderComponent({ clientId: 'client-001' });
 
-      expect(screen.getByText('Accounts')).toBeInTheDocument();
+      expect(screen.getByText('Your account')).toBeInTheDocument();
     });
 
     test('renders when clientId is not provided', () => {
-      server.use(http.get('/accounts', () => HttpResponse.json({ items: [] })));
+      server.use(
+        http.get('*/accounts', () => HttpResponse.json(emptyResponse))
+      );
 
       renderComponent();
 
-      expect(screen.getByText('Accounts')).toBeInTheDocument();
+      expect(screen.getByText('Your account')).toBeInTheDocument();
     });
   });
 
@@ -152,7 +196,7 @@ describe('Accounts', () => {
 
   describe.skip('Status Badges', () => {
     test('displays status badge for account state', async () => {
-      const mockAccount = {
+      const mockAccount: AccountResponse = {
         id: 'account1',
         clientId: '0085199987',
         label: 'MAIN3919',
@@ -160,29 +204,28 @@ describe('Accounts', () => {
         paymentRoutingInformation: {
           accountNumber: '20000057603919',
           country: 'US',
-          routingInformation: [
-            {
-              type: 'ABA',
-              value: '028000024',
-            },
-          ],
+          routingInformation: [{ type: 'ABA', value: '028000024' }],
         },
-        createdAt: '2025-04-14T08:57:21.792272Z',
+        createdAt: '2025-01-26T14:32:00.000Z',
         category: 'LIMITED_DDA',
       };
 
-      // Use wildcard pattern to match any baseURL (stories use this pattern)
+      const mockBalance: AccountBalanceResponse = {
+        id: 'account1',
+        date: '2025-01-26',
+        currency: 'USD',
+        balanceTypes: [{ typeCode: 'ITAV', amount: 5558.42 }],
+      };
+
+      const accountsResponse: ListAccountsResponse = {
+        metadata: { page: 0, limit: 25, total_items: 1 },
+        items: [mockAccount],
+      };
+
       server.use(
-        http.get('*/accounts', () =>
-          HttpResponse.json({ items: [mockAccount] })
-        ),
+        http.get('*/accounts', () => HttpResponse.json(accountsResponse)),
         http.get('*/accounts/:id/balances', () =>
-          HttpResponse.json({
-            id: 'account1',
-            date: '2023-10-28',
-            currency: 'USD',
-            balanceTypes: [{ typeCode: 'ITAV', amount: 5558.42 }],
-          })
+          HttpResponse.json(mockBalance)
         )
       );
 

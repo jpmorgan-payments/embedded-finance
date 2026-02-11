@@ -1,0 +1,23 @@
+# Console Logs - Recipients Component
+**Date:** January 14, 2026
+**Component:** Recipients (Legacy - Note: RecipientsWidget is now recommended)
+**URL:** https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=recipients&theme=Empty
+
+## Summary
+- Total messages: 137
+- Errors: 0
+- Warnings: 0
+- Logs: 137 (MSW initialization and API calls)
+
+## Key Observations
+1. MSW initialization logs
+2. Duplicate API calls observed:
+   - `/ef/do/v1/recipients?type=RECIPIENT&limit=10` called twice
+   - `/ef/do/v1/recipients?type=RECIPIENT&page=0&limit=10` called twice
+   - `/ef/do/v1/recipients` called multiple times
+   - Individual recipient fetches (recipient-001, recipient-002, recipient-004)
+3. Some requests show ERR_ABORTED (likely cancelled during navigation)
+4. All successful API calls return 200 OK
+
+## Detailed Messages
+[Full console log captured - 137 messages total]

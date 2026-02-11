@@ -12,7 +12,7 @@ export function getAccountStatusIcon(state?: string) {
       return <CheckCircle2 className={iconClass} />;
     case 'CLOSED':
       return <XCircle className={iconClass} />;
-    case 'PENDING':
+    case 'PENDING_CLOSE':
       return <Clock className={iconClass} />;
     case 'SUSPENDED':
       return <AlertTriangle className={iconClass} />;

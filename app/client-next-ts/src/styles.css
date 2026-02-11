@@ -22,6 +22,11 @@
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
   --radius: 0.5rem;
+  --chart-1: 12 76% 61%;
+  --chart-2: 173 58% 39%;
+  --chart-3: 197 37% 24%;
+  --chart-4: 43 74% 66%;
+  --chart-5: 27 87% 67%;
 }
 
 @layer base {
@@ -29,5 +34,33 @@
     @apply m-0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  /* Keep list content on one line: "Use `a`, `b`, `c`" instead of each on new line */
+  .rich-markdown-viewer li > p {
+    display: inline !important;
+    margin: 0 0.25em 0 0 !important;
+  }
+  .rich-markdown-viewer li > p:first-child {
+    margin-left: 0 !important;
+  }
+  .rich-markdown-viewer li code {
+    display: inline !important;
+  }
+}
+
+@layer utilities {
+  /* Scroll-triggered animation for cards */
+  [data-card] {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  }
+  
+  [data-card].animate-in {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

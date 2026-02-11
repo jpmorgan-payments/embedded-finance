@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+
 import { useSellSenseThemes } from './use-sellsense-themes';
 
 describe('useSellSenseThemes hook', () => {
@@ -47,11 +48,11 @@ describe('useSellSenseThemes hook', () => {
     expect(typeof themeVars).toBe('object');
   });
 
-  it('should return empty object for Empty theme', () => {
+  it('should return minimal object with focusedRingColor for Empty theme (a11y)', () => {
     const { result } = renderHook(() => useSellSenseThemes());
 
     const themeVars = result.current.getThemeVariables('Empty');
-    expect(themeVars).toEqual({});
+    expect(themeVars).toEqual({ focusedRingColor: '#0060f0' });
   });
 
   it('should map theme options correctly', () => {

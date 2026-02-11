@@ -28,9 +28,9 @@ const RecipientsStory = (props: RecipientsProps) => {
 };
 
 const meta: Meta<RecipientsConfigStoryArgs> = {
-  title: 'Core/Recipients/Configuration',
+  title: 'Legacy/Recipients/Configuration',
   component: RecipientsStory,
-  tags: ['@core', '@recipients'],
+  tags: ['@legacy', '@recipients'],
   parameters: {
     layout: 'fullscreen',
     docs: {

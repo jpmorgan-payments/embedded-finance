@@ -1,8 +1,18 @@
 import { ColumnDef } from '@tanstack/react-table';
+import { ClipboardListIcon, MoreVerticalIcon } from 'lucide-react';
 
 import { PaymentTypeResponse } from '@/api/generated/ep-transactions.schemas';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
+import { TransactionDetailsDialogTrigger } from '../../TransactionDetailsSheet/TransactionDetailsSheet';
+import { TRANSACTIONS_DISPLAY_USER_JOURNEYS } from '../../TransactionsDisplay.constants';
 import {
   formatNumberToCurrency,
   formatStatusText,
@@ -13,6 +23,7 @@ import { DataTableColumnHeader } from './DataTableColumnHeader';
 
 /**
  * Format date for display
+ * Parses ISO 8601 date strings and displays the date portion without timezone conversion
  */
 const formatDate = (
   date?: string,
@@ -20,7 +31,15 @@ const formatDate = (
   locale = 'en-US'
 ): string => {
   if (!date) return naText;
-  return new Date(date).toLocaleDateString(locale, {
+
+  // Extract date portion from ISO 8601 string (YYYY-MM-DD)
+  const dateStr = date.split('T')[0];
+  const [year, month, day] = dateStr.split('-').map(Number);
+
+  // Create date in local timezone to avoid shifting
+  const dateObj = new Date(year, month - 1, day);
+
+  return dateObj.toLocaleDateString(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -61,7 +80,7 @@ export const getTransactionsColumns = (
   const naText = t('common:na', { defaultValue: 'N/A' });
   // Get locale from language code if not provided, or use provided locale
   const currentLocale = locale || 'en-US';
-  const dateTitle = t('columns.date', { defaultValue: 'Date' });
+  const dateTitle = t('columns.date', { defaultValue: 'Posted' });
   const statusTitle = t('columns.status', { defaultValue: 'Status' });
   const typeTitle = t('columns.type', { defaultValue: 'Type' });
   const amountTitle = t('columns.amount', { defaultValue: 'Amount' });
@@ -73,14 +92,14 @@ export const getTransactionsColumns = (
     defaultValue: 'Reference ID',
   });
   const createdAtTitle = t('columns.createdAt', {
-    defaultValue: 'Created At',
+    defaultValue: 'Created',
   });
   const effectiveDateTitle = t('columns.effectiveDate', {
     defaultValue: 'Effective Date',
   });
   const memoTitle = t('columns.memo', { defaultValue: 'Memo' });
-  const debtorTitle = t('columns.debtor', { defaultValue: 'Debtor' });
-  const creditorTitle = t('columns.creditor', { defaultValue: 'Creditor' });
+  const debtorTitle = t('columns.debtor', { defaultValue: 'From' });
+  const creditorTitle = t('columns.creditor', { defaultValue: 'To' });
   const ledgerBalanceTitle = t('columns.ledgerBalance', {
     defaultValue: 'Ledger Balance',
   });
@@ -90,7 +109,27 @@ export const getTransactionsColumns = (
   const directionTitle = t('columns.direction', { defaultValue: 'Direction' });
 
   return [
-    // Date - Default visible
+    // Created - Default visible (1st column)
+    {
+      accessorKey: 'createdAt',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={createdAtTitle} />
+      ),
+      accessorFn: (row) => {
+        if (row.createdAt === undefined) {
+          return '';
+        }
+        return new Date(row.createdAt).getTime();
+      },
+      cell: ({ row }) => {
+        return (
+          <div>
+            {formatDateTime(row.original.createdAt, naText, currentLocale)}
+          </div>
+        );
+      },
+    },
+    // Posted - Default visible (2nd column)
     {
       accessorKey: 'paymentDate',
       header: ({ column }) => (
@@ -109,43 +148,36 @@ export const getTransactionsColumns = (
           </div>
         );
       },
-      enableHiding: false,
     },
-    // Status - Default visible
+    // From - Default visible (3rd column)
     {
-      accessorKey: 'status',
+      accessorKey: 'debtorName',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={statusTitle} />
+        <DataTableColumnHeader column={column} title={debtorTitle} />
       ),
       cell: ({ row }) => {
-        const status = row.getValue('status') as string | undefined;
-        return (
-          <Badge variant={getStatusVariant(status)}>
-            {formatStatusText(status)}
-          </Badge>
-        );
+        return <div>{row.getValue('debtorName') || naText}</div>;
       },
       filterFn: (row, id, value) => {
-        const status = row.getValue(id) as string | undefined;
-        return value.includes(status || '');
+        const debtor = (row.getValue(id) as string | undefined) || '';
+        return debtor.toLowerCase().includes(value.toLowerCase());
       },
     },
-    // Type - Default visible
+    // To - Default visible (4th column)
     {
-      accessorKey: 'type',
+      accessorKey: 'creditorName',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={typeTitle} />
+        <DataTableColumnHeader column={column} title={creditorTitle} />
       ),
       cell: ({ row }) => {
-        const type = row.getValue('type') as PaymentTypeResponse | undefined;
-        return <div>{type || naText}</div>;
+        return <div>{row.getValue('creditorName') || naText}</div>;
       },
       filterFn: (row, id, value) => {
-        const type = row.getValue(id) as PaymentTypeResponse | undefined;
-        return value.includes(type || '');
+        const creditor = (row.getValue(id) as string | undefined) || '';
+        return creditor.toLowerCase().includes(value.toLowerCase());
       },
     },
-    // Amount - Default visible
+    // Amount - Default visible (5th column)
     {
       accessorKey: 'amount',
       header: ({ column }) => (
@@ -175,9 +207,8 @@ export const getTransactionsColumns = (
           <div className="eb-text-right eb-font-medium">{displayAmount}</div>
         );
       },
-      enableHiding: false,
     },
-    // Currency - Default visible
+    // Currency - Default visible (6th column)
     {
       accessorKey: 'currency',
       header: ({ column }) => (
@@ -186,9 +217,42 @@ export const getTransactionsColumns = (
       cell: ({ row }) => {
         return <div>{row.getValue('currency') || naText}</div>;
       },
-      enableHiding: false,
     },
-    // Counterpart - Default visible
+    // Status - Default visible (7th column)
+    {
+      accessorKey: 'status',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={statusTitle} />
+      ),
+      cell: ({ row }) => {
+        const status = row.getValue('status') as string | undefined;
+        return (
+          <Badge variant={getStatusVariant(status)} className="eb-text-xs">
+            {formatStatusText(status)}
+          </Badge>
+        );
+      },
+      filterFn: (row, id, value) => {
+        const status = row.getValue(id) as string | undefined;
+        return value.includes(status || '');
+      },
+    },
+    // Type - Default visible (8th column)
+    {
+      accessorKey: 'type',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={typeTitle} />
+      ),
+      cell: ({ row }) => {
+        const type = row.getValue('type') as PaymentTypeResponse | undefined;
+        return <div>{type || naText}</div>;
+      },
+      filterFn: (row, id, value) => {
+        const type = row.getValue(id) as PaymentTypeResponse | undefined;
+        return value.includes(type || '');
+      },
+    },
+    // Counterpart - Hidden by default
     {
       accessorKey: 'counterpartName',
       header: ({ column }) => (
@@ -217,26 +281,6 @@ export const getTransactionsColumns = (
       filterFn: (row, id, value) => {
         const refId = (row.getValue(id) as string | undefined) || '';
         return refId.toLowerCase().includes(value.toLowerCase());
-      },
-    },
-    // Created At - Hidden by default
-    {
-      accessorKey: 'createdAt',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={createdAtTitle} />
-      ),
-      accessorFn: (row) => {
-        if (row.createdAt === undefined) {
-          return '';
-        }
-        return new Date(row.createdAt).getTime();
-      },
-      cell: ({ row }) => {
-        return (
-          <div>
-            {formatDateTime(row.original.createdAt, naText, currentLocale)}
-          </div>
-        );
       },
     },
     // Effective Date - Hidden by default
@@ -274,34 +318,6 @@ export const getTransactionsColumns = (
       filterFn: (row, id, value) => {
         const memo = (row.getValue(id) as string | undefined) || '';
         return memo.toLowerCase().includes(value.toLowerCase());
-      },
-    },
-    // Debtor Name - Hidden by default
-    {
-      accessorKey: 'debtorName',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={debtorTitle} />
-      ),
-      cell: ({ row }) => {
-        return <div>{row.getValue('debtorName') || naText}</div>;
-      },
-      filterFn: (row, id, value) => {
-        const debtor = (row.getValue(id) as string | undefined) || '';
-        return debtor.toLowerCase().includes(value.toLowerCase());
-      },
-    },
-    // Creditor Name - Hidden by default
-    {
-      accessorKey: 'creditorName',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={creditorTitle} />
-      ),
-      cell: ({ row }) => {
-        return <div>{row.getValue('creditorName') || naText}</div>;
-      },
-      filterFn: (row, id, value) => {
-        const creditor = (row.getValue(id) as string | undefined) || '';
-        return creditor.toLowerCase().includes(value.toLowerCase());
       },
     },
     // Ledger Balance - Hidden by default
@@ -357,6 +373,83 @@ export const getTransactionsColumns = (
         const direction = row.getValue(id) as string | undefined;
         return value.includes(direction || '');
       },
+    },
+    // Actions - Details (pattern aligned with RecipientsTableView / LinkedAccountWidget table)
+    {
+      id: 'actions',
+      header: () => (
+        <span className="eb-sr-only">
+          {t('columns.actions', { defaultValue: 'Actions' })}
+        </span>
+      ),
+      cell: ({ row }) => {
+        const transaction = row.original;
+        const transactionId = transaction.id ?? '';
+        const viewDetailsLabel = t('actions.viewDetails', {
+          defaultValue: 'View details',
+        });
+        const viewDetailsShort = t('actions.viewDetailsShort', {
+          defaultValue: 'Details',
+        });
+        const moreActionsLabel = t('actions.moreActions', {
+          defaultValue: 'More actions',
+        });
+        // Inline Details button at @2xl+ (icon only; label at @3xl+)
+        const detailsButton = (
+          <TransactionDetailsDialogTrigger transactionId={transactionId}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="eb-h-8 eb-gap-1 eb-text-xs"
+              aria-label={`${viewDetailsLabel} ${transactionId}`}
+              data-user-event={TRANSACTIONS_DISPLAY_USER_JOURNEYS.VIEW_DETAILS}
+              data-transaction-id={transactionId}
+            >
+              <ClipboardListIcon className="eb-h-3.5 eb-w-3.5" />
+              <span className="eb-hidden @3xl:eb-inline">
+                {viewDetailsShort}
+              </span>
+            </Button>
+          </TransactionDetailsDialogTrigger>
+        );
+        // View details menu item for dropdown (<@2xl)
+        const viewDetailsMenuItem = (
+          <TransactionDetailsDialogTrigger transactionId={transactionId}>
+            <DropdownMenuItem
+              onSelect={(e) => e.preventDefault()}
+              className="eb-cursor-pointer"
+            >
+              <ClipboardListIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+              {viewDetailsLabel}
+            </DropdownMenuItem>
+          </TransactionDetailsDialogTrigger>
+        );
+        return (
+          <div className="eb-flex eb-items-center eb-justify-end eb-gap-1">
+            {/* Details button - inline at @2xl+ (matches RecipientsTableView) */}
+            <div className="eb-hidden eb-items-center eb-gap-1 @2xl:eb-flex">
+              {detailsButton}
+            </div>
+            {/* Dropdown with View details - shown at <@2xl */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="eb-h-8 eb-w-8 @2xl:eb-hidden"
+                  aria-label={moreActionsLabel}
+                >
+                  <MoreVerticalIcon className="eb-h-4 eb-w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {viewDetailsMenuItem}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
+      enableHiding: false,
     },
   ];
 };
