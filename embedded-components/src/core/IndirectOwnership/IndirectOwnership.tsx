@@ -122,6 +122,34 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
     [beneficialOwners]
   );
 
+  // Get all business names from owners and their hierarchies
+  const allExistingBusinessNames = useMemo(() => {
+    const businessNames = new Set<string>();
+
+    beneficialOwners.forEach((owner) => {
+      // Add business entity owners
+      if (
+        owner.partyType === 'ORGANIZATION' &&
+        owner.organizationDetails?.organizationName
+      ) {
+        businessNames.add(
+          owner.organizationDetails.organizationName.toLowerCase()
+        );
+      }
+
+      // Add all companies from ownership hierarchies
+      if (owner.ownershipHierarchy?.steps) {
+        owner.ownershipHierarchy.steps.forEach((step) => {
+          if (step.entityName) {
+            businessNames.add(step.entityName.toLowerCase());
+          }
+        });
+      }
+    });
+
+    return businessNames;
+  }, [beneficialOwners]);
+
   // Track view when component loads with ownership data
   React.useEffect(() => {
     if (beneficialOwners.length > 0) {
@@ -624,6 +652,7 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
         onClose={handleCloseDialog}
         onSubmit={handleOwnerSubmit}
         existingOwners={beneficialOwners}
+        allExistingBusinessNames={allExistingBusinessNames}
       />
 
       {/* Hierarchy Building Dialog */}
@@ -937,6 +966,7 @@ interface AddOwnerDialogProps {
     ownershipType: 'DIRECT' | 'INDIRECT';
   }) => void;
   existingOwners: BeneficialOwner[];
+  allExistingBusinessNames: Set<string>;
 }
 
 const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
@@ -944,6 +974,7 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
   onClose,
   onSubmit,
   existingOwners,
+  allExistingBusinessNames,
 }) => {
   const [entityType, setEntityType] = useState<'INDIVIDUAL' | 'BUSINESS'>(
     'INDIVIDUAL'
@@ -989,16 +1020,15 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
         newErrors.push('Business name is required');
       }
 
-      // Check for duplicates among business entities
-      const isDuplicate = existingOwners.some(
-        (owner) =>
-          owner.partyType === 'ORGANIZATION' &&
-          owner.organizationDetails?.organizationName?.toLowerCase() ===
-            businessName.trim().toLowerCase()
+      // Check for duplicates against ALL business names (owners + hierarchies)
+      const isDuplicate = allExistingBusinessNames.has(
+        businessName.trim().toLowerCase()
       );
 
       if (isDuplicate) {
-        newErrors.push('Business entity with this name already exists');
+        newErrors.push(
+          'Business entity with this name already exists in the ownership structure'
+        );
       }
     }
 
