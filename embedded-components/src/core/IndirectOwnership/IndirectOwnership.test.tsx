@@ -140,9 +140,7 @@ describe('IndirectOwnership Component', () => {
     ).toBeInTheDocument();
 
     // Empty state message
-    expect(
-      screen.getByText(/No beneficial owners added yet/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/No owners added yet/i)).toBeInTheDocument();
   });
 
   it('renders with client data showing beneficial owners', () => {
@@ -170,9 +168,7 @@ describe('IndirectOwnership Component', () => {
     );
 
     // Should show empty state
-    expect(
-      screen.getByText(/No beneficial owners added yet/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/No owners added yet/i)).toBeInTheDocument();
 
     // Should show add button
     expect(
