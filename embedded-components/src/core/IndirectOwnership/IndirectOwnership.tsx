@@ -1067,160 +1067,162 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="eb-max-w-md eb-p-6">
-        <DialogHeader className="eb-pb-4">
+      <DialogContent className="eb-flex eb-max-h-[90vh] eb-max-w-md eb-flex-col eb-p-0">
+        <DialogHeader className="eb-border-b eb-p-6 eb-pb-4">
           <DialogTitle className="eb-font-header eb-text-lg eb-font-semibold">
             Add Owner
           </DialogTitle>
         </DialogHeader>
 
-        <div className="eb-space-y-6">
-          {errors.length > 0 && (
-            <Alert className="eb-border-destructive eb-bg-destructive-accent">
-              <AlertTriangle className="eb-h-4 eb-w-4 eb-text-destructive" />
-              <AlertDescription>
-                <div className="eb-space-y-1">
-                  {errors.map((error, index) => (
-                    <div key={index} className="eb-text-destructive">
-                      {error}
-                    </div>
-                  ))}
-                </div>
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <form onSubmit={handleSubmit} className="eb-space-y-5">
-            {/* Entity Type Selection */}
-            <div className="eb-space-y-3">
-              <Label>Owner Type</Label>
-              <RadioGroup
-                value={entityType}
-                onValueChange={(value: 'INDIVIDUAL' | 'BUSINESS') =>
-                  setEntityType(value)
-                }
-                className="eb-space-y-3"
-              >
-                <div className="eb-flex eb-cursor-pointer eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-p-3 hover:eb-bg-accent">
-                  <RadioGroupItem
-                    value="INDIVIDUAL"
-                    id="individual"
-                    className="eb-mt-0.5"
-                  />
-                  <div className="eb-flex-1 eb-space-y-1">
-                    <Label htmlFor="individual" className="eb-cursor-pointer">
-                      Individual person
-                    </Label>
-                    <p className="eb-text-sm eb-text-muted-foreground">
-                      Add a beneficial owner who is an individual
-                    </p>
+        <div className="eb-flex-1 eb-overflow-y-auto eb-px-6 eb-py-4">
+          <div className="eb-space-y-6">
+            {errors.length > 0 && (
+              <Alert className="eb-border-destructive eb-bg-destructive-accent">
+                <AlertTriangle className="eb-h-4 eb-w-4 eb-text-destructive" />
+                <AlertDescription>
+                  <div className="eb-space-y-1">
+                    {errors.map((error, index) => (
+                      <div key={index} className="eb-text-destructive">
+                        {error}
+                      </div>
+                    ))}
                   </div>
-                </div>
-                <div className="eb-flex eb-cursor-pointer eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-p-3 hover:eb-bg-accent">
-                  <RadioGroupItem
-                    value="BUSINESS"
-                    id="business"
-                    className="eb-mt-0.5"
-                  />
-                  <div className="eb-flex-1 eb-space-y-1">
-                    <Label htmlFor="business" className="eb-cursor-pointer">
-                      Business entity
-                    </Label>
-                    <p className="eb-text-sm eb-text-muted-foreground">
-                      No individual owns 25% or more of this entity
-                    </p>
-                  </div>
-                </div>
-              </RadioGroup>
-            </div>
-
-            {/* Conditional Fields Based on Entity Type */}
-            {entityType === 'INDIVIDUAL' ? (
-              <>
-                <div className="eb-space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input
-                    id="firstName"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="John"
-                    className="eb-h-10"
-                  />
-                </div>
-
-                <div className="eb-space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    placeholder="Smith"
-                    className="eb-h-10"
-                  />
-                </div>
-              </>
-            ) : (
-              <div className="eb-space-y-2">
-                <Label htmlFor="businessName">Business Name</Label>
-                <Input
-                  id="businessName"
-                  value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
-                  placeholder="ABC Corporation"
-                  className="eb-h-10"
-                />
-              </div>
+                </AlertDescription>
+              </Alert>
             )}
 
-            <div className="eb-space-y-3">
-              <Label>Ownership Type</Label>
-              <RadioGroup
-                value={ownershipType}
-                onValueChange={(value: 'DIRECT' | 'INDIRECT') =>
-                  setOwnershipType(value)
-                }
-                className="eb-space-y-3"
-              >
-                <div className="eb-flex eb-cursor-pointer eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-p-3 hover:eb-bg-accent">
-                  <RadioGroupItem
-                    value="DIRECT"
-                    id="direct"
-                    className="eb-mt-0.5"
-                  />
-                  <div className="eb-flex-1 eb-space-y-1">
-                    <Label htmlFor="direct" className="eb-cursor-pointer">
-                      Direct Owner
-                    </Label>
-                    <p className="eb-text-sm eb-text-muted-foreground">
-                      {entityType === 'INDIVIDUAL'
-                        ? 'Has 25% or more ownership directly'
-                        : 'Owns the business directly'}
-                    </p>
+            <form onSubmit={handleSubmit} className="eb-space-y-5">
+              {/* Entity Type Selection */}
+              <div className="eb-space-y-3">
+                <Label>Owner Type</Label>
+                <RadioGroup
+                  value={entityType}
+                  onValueChange={(value: 'INDIVIDUAL' | 'BUSINESS') =>
+                    setEntityType(value)
+                  }
+                  className="eb-space-y-3"
+                >
+                  <div className="eb-flex eb-cursor-pointer eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-p-3 hover:eb-bg-accent">
+                    <RadioGroupItem
+                      value="INDIVIDUAL"
+                      id="individual"
+                      className="eb-mt-0.5"
+                    />
+                    <div className="eb-flex-1 eb-space-y-1">
+                      <Label htmlFor="individual" className="eb-cursor-pointer">
+                        Individual person
+                      </Label>
+                      <p className="eb-text-sm eb-text-muted-foreground">
+                        Add a beneficial owner who is an individual
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="eb-flex eb-cursor-pointer eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-p-3 hover:eb-bg-accent">
-                  <RadioGroupItem
-                    value="INDIRECT"
-                    id="indirect"
-                    className="eb-mt-0.5"
-                  />
-                  <div className="eb-flex-1 eb-space-y-1">
-                    <Label htmlFor="indirect" className="eb-cursor-pointer">
-                      Indirect Owner
-                    </Label>
-                    <p className="eb-text-sm eb-text-muted-foreground">
-                      {entityType === 'INDIVIDUAL'
-                        ? 'Has 25% or more ownership through other companies'
-                        : 'Owns the business through other companies'}
-                    </p>
+                  <div className="eb-flex eb-cursor-pointer eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-p-3 hover:eb-bg-accent">
+                    <RadioGroupItem
+                      value="BUSINESS"
+                      id="business"
+                      className="eb-mt-0.5"
+                    />
+                    <div className="eb-flex-1 eb-space-y-1">
+                      <Label htmlFor="business" className="eb-cursor-pointer">
+                        Business entity
+                      </Label>
+                      <p className="eb-text-sm eb-text-muted-foreground">
+                        No individual owns 25% or more of this entity
+                      </p>
+                    </div>
                   </div>
+                </RadioGroup>
+              </div>
+
+              {/* Conditional Fields Based on Entity Type */}
+              {entityType === 'INDIVIDUAL' ? (
+                <>
+                  <div className="eb-space-y-2">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input
+                      id="firstName"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="John"
+                      className="eb-h-10"
+                    />
+                  </div>
+
+                  <div className="eb-space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Smith"
+                      className="eb-h-10"
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="eb-space-y-2">
+                  <Label htmlFor="businessName">Business Name</Label>
+                  <Input
+                    id="businessName"
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    placeholder="ABC Corporation"
+                    className="eb-h-10"
+                  />
                 </div>
-              </RadioGroup>
-            </div>
-          </form>
+              )}
+
+              <div className="eb-space-y-3">
+                <Label>Ownership Type</Label>
+                <RadioGroup
+                  value={ownershipType}
+                  onValueChange={(value: 'DIRECT' | 'INDIRECT') =>
+                    setOwnershipType(value)
+                  }
+                  className="eb-space-y-3"
+                >
+                  <div className="eb-flex eb-cursor-pointer eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-p-3 hover:eb-bg-accent">
+                    <RadioGroupItem
+                      value="DIRECT"
+                      id="direct"
+                      className="eb-mt-0.5"
+                    />
+                    <div className="eb-flex-1 eb-space-y-1">
+                      <Label htmlFor="direct" className="eb-cursor-pointer">
+                        Direct Owner
+                      </Label>
+                      <p className="eb-text-sm eb-text-muted-foreground">
+                        {entityType === 'INDIVIDUAL'
+                          ? 'Has 25% or more ownership directly'
+                          : 'Owns the business directly'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="eb-flex eb-cursor-pointer eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-p-3 hover:eb-bg-accent">
+                    <RadioGroupItem
+                      value="INDIRECT"
+                      id="indirect"
+                      className="eb-mt-0.5"
+                    />
+                    <div className="eb-flex-1 eb-space-y-1">
+                      <Label htmlFor="indirect" className="eb-cursor-pointer">
+                        Indirect Owner
+                      </Label>
+                      <p className="eb-text-sm eb-text-muted-foreground">
+                        {entityType === 'INDIVIDUAL'
+                          ? 'Has 25% or more ownership through other companies'
+                          : 'Owns the business through other companies'}
+                      </p>
+                    </div>
+                  </div>
+                </RadioGroup>
+              </div>
+            </form>
+          </div>
         </div>
 
-        <DialogFooter className="eb-space-x-2 eb-pt-6">
+        <DialogFooter className="eb-border-t eb-px-6 eb-py-4">
           <Button type="button" variant="outline" onClick={handleClose}>
             Cancel
           </Button>
