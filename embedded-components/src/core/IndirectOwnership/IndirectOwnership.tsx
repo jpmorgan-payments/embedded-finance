@@ -1269,15 +1269,23 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
     }>
   >([]);
 
-  // Filter existing entities to exclude those already in current hierarchy chain
+  // Combine existing entities with current chain entities for autocomplete
   const existingEntities = React.useMemo(() => {
     const currentChainEntities = hierarchySteps.map((step) =>
-      step.entityName.toLowerCase()
+      step.entityName.trim()
     );
-    return allExistingEntities.filter(
-      (entity) =>
-        !currentChainEntities.includes(entity.toLowerCase()) &&
-        entity.toLowerCase() !== rootCompanyName.toLowerCase()
+
+    // Combine all entities and remove duplicates (case-insensitive)
+    const allEntities = [...allExistingEntities, ...currentChainEntities];
+    const uniqueEntities = Array.from(
+      new Map(
+        allEntities.map((entity) => [entity.toLowerCase(), entity])
+      ).values()
+    );
+
+    // Filter out root company name
+    return uniqueEntities.filter(
+      (entity) => entity.toLowerCase() !== rootCompanyName.toLowerCase()
     );
   }, [allExistingEntities, hierarchySteps, rootCompanyName]);
   const [currentCompanyName, setCurrentCompanyName] = useState('');
@@ -1305,6 +1313,18 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
   const handleAddCompany = (ownsRootBusinessDirectly?: boolean) => {
     if (!currentCompanyName.trim()) {
       setErrors(['Company name is required']);
+      return;
+    }
+
+    // Check for duplicates in current chain
+    const isDuplicateInChain = hierarchySteps.some(
+      (step) =>
+        step.entityName.toLowerCase() ===
+        currentCompanyName.trim().toLowerCase()
+    );
+
+    if (isDuplicateInChain) {
+      setErrors(['This company is already in the ownership chain']);
       return;
     }
 
