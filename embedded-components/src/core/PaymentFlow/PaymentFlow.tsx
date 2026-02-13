@@ -1055,7 +1055,7 @@ function MainTransferView({
                 {/* Show inline error for non-400 errors */}
                 {saveUnsavedRecipientError && (
                   <div className="eb-flex eb-items-center eb-gap-2 eb-rounded-md eb-bg-destructive/10 eb-px-3 eb-py-2 eb-text-sm eb-text-destructive">
-                    <AlertCircle className="eb-h-4 eb-w-4 eb-flex-shrink-0" />
+                    <AlertCircle className="eb-h-4 eb-w-4 eb-shrink-0" />
                     <span>
                       {(saveUnsavedRecipientError as any)?.message ||
                         'Failed to save recipient. Please try again.'}
