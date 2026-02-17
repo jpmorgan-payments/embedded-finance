@@ -214,8 +214,6 @@ export function ClientDetails({
         <ClientSummaryCard
           client={client}
           onSectionClick={handleSectionClick}
-          onRefresh={() => refetch()}
-          isRefreshing={isRefetching}
           sections={sections}
           actions={actions}
           className={cn('eb-component', className)}
