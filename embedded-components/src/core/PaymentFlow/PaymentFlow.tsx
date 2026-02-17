@@ -9,7 +9,10 @@ import {
   ChevronUp,
   Copy,
   Loader2,
+  Pencil,
   RefreshCw,
+  Save,
+  User,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
@@ -37,6 +40,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 
 import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
+import { useRecipientForm } from '../RecipientWidgets/hooks';
+import { RadioIndicator } from './components/RadioIndicator';
 import { FlowContainer, FlowView, useFlowContext } from './FlowContainer';
 import {
   BankAccountFormWrapper,
@@ -52,6 +57,7 @@ import type {
   PaymentFlowProps,
   PaymentMethod,
   PaymentMethodType,
+  UnsavedRecipient,
 } from './PaymentFlow.types';
 import { PaymentMethodSelector } from './PaymentMethodSelector';
 import { ReviewPanel } from './ReviewPanel';
@@ -76,8 +82,22 @@ function getErrorMessageFromContext(
 
   // Look for specific error codes and provide user-friendly messages
   for (const item of context) {
-    const { code, field: rawField } = item;
+    const { code, field: rawField, message: errorMessage } = item;
     const field = rawField?.toLowerCase();
+
+    // 10104 on recipientId with routing number message → Payment method not enabled for recipient
+    if (
+      code === '10104' &&
+      field === 'recipientid' &&
+      errorMessage?.toLowerCase().includes('routing number')
+    ) {
+      return {
+        title: 'Payment Method Not Enabled',
+        message:
+          errorMessage ||
+          'The selected payment method is not configured for this recipient. Please enable the payment method for this recipient or choose a different payment method.',
+      };
+    }
 
     // Currency/payment method not supported (code 10104 from API)
     if (
@@ -88,6 +108,7 @@ function getErrorMessageFromContext(
       return {
         title: 'Payment Method Not Supported',
         message:
+          errorMessage ||
           'The selected payment method is not available for this account. Please select a different payment method or use a different account.',
       };
     }
@@ -97,6 +118,7 @@ function getErrorMessageFromContext(
       return {
         title: 'Recipient Error',
         message:
+          errorMessage ||
           'There was a problem with the selected recipient. Please verify the recipient details or select a different recipient.',
       };
     }
@@ -430,6 +452,18 @@ interface MainTransferViewProps {
   linkedAccountsError?: boolean;
   onRetryRecipients?: () => void;
   onRetryLinkedAccounts?: () => void;
+  // Account count after applying payee restrictions (for skipping account step)
+  validAccountCount?: number;
+  // Edit unsaved recipient handler
+  onEditUnsavedRecipient?: () => void;
+  // Clear unsaved recipient handler (to choose a different recipient)
+  onClearUnsavedRecipient?: () => void;
+  // Save unsaved recipient handler (to save it permanently)
+  onSaveUnsavedRecipient?: () => void;
+  // Loading state for saving unsaved recipient
+  isSavingUnsavedRecipient?: boolean;
+  // Error from saving unsaved recipient (for non-400 errors shown inline)
+  saveUnsavedRecipientError?: Error | null;
 }
 
 function MainTransferView({
@@ -460,6 +494,12 @@ function MainTransferView({
   linkedAccountsError,
   onRetryRecipients,
   onRetryLinkedAccounts,
+  validAccountCount,
+  onEditUnsavedRecipient,
+  onClearUnsavedRecipient,
+  onSaveUnsavedRecipient,
+  isSavingUnsavedRecipient = false,
+  saveUnsavedRecipientError,
 }: MainTransferViewProps) {
   const {
     formData,
@@ -508,13 +548,16 @@ function MainTransferView({
   const getInitialActiveStep = useCallback(() => {
     // If account is already selected (from initialData or auto-selection), skip to next step
     if (formData.fromAccountId) {
-      if (!formData.payeeId) return PANEL_IDS.PAYEE;
+      if (!formData.payeeId && !formData.unsavedRecipient)
+        return PANEL_IDS.PAYEE;
       if (!formData.paymentMethod) return PANEL_IDS.PAYMENT_METHOD;
       return ''; // All steps complete
     }
     // If only one account exists, it will be auto-selected, so start at PAYEE
-    if (accounts.length === 1) {
-      if (!formData.payeeId) return PANEL_IDS.PAYEE;
+    // Also check validAccountCount for cases where payee restrictions reduce valid accounts to 1
+    if (accounts.length === 1 || validAccountCount === 1) {
+      if (!formData.payeeId && !formData.unsavedRecipient)
+        return PANEL_IDS.PAYEE;
       if (!formData.paymentMethod) return PANEL_IDS.PAYMENT_METHOD;
       return '';
     }
@@ -522,8 +565,10 @@ function MainTransferView({
   }, [
     formData.fromAccountId,
     formData.payeeId,
+    formData.unsavedRecipient,
     formData.paymentMethod,
     accounts.length,
+    validAccountCount,
   ]);
 
   // Track which step is currently active
@@ -537,7 +582,8 @@ function MainTransferView({
   useEffect(() => {
     // Only update if fromAccountId changed from undefined to a value (auto-selection)
     if (!prevFromAccountId.current && formData.fromAccountId) {
-      const nextStep = !formData.payeeId
+      const hasRecipient = formData.payeeId || formData.unsavedRecipient;
+      const nextStep = !hasRecipient
         ? PANEL_IDS.PAYEE
         : !formData.paymentMethod
           ? PANEL_IDS.PAYMENT_METHOD
@@ -545,7 +591,12 @@ function MainTransferView({
       setActiveStep(nextStep);
     }
     prevFromAccountId.current = formData.fromAccountId;
-  }, [formData.fromAccountId, formData.payeeId, formData.paymentMethod]);
+  }, [
+    formData.fromAccountId,
+    formData.payeeId,
+    formData.unsavedRecipient,
+    formData.paymentMethod,
+  ]);
 
   // Track if payee was just cleared due to account restriction
   const [showPayeeClearedWarning, setShowPayeeClearedWarning] = useState(false);
@@ -668,10 +719,25 @@ function MainTransferView({
     prevFormDataRef.current = formData;
   }, [formData, validationErrors, setValidationErrors]);
 
-  const selectedPayee = useMemo(
-    () => [...payees, ...linkedAccounts].find((p) => p.id === formData.payeeId),
-    [payees, linkedAccounts, formData.payeeId]
-  );
+  const selectedPayee = useMemo(() => {
+    // If there's an unsaved recipient (one-time payment), create a virtual payee for display
+    if (formData.unsavedRecipient) {
+      return {
+        id: 'unsaved-recipient',
+        type: 'RECIPIENT' as const,
+        name: formData.unsavedRecipient.displayName,
+        accountNumber: formData.unsavedRecipient.accountNumber,
+        routingNumber: formData.unsavedRecipient.routingNumber,
+        bankName: formData.unsavedRecipient.bankName,
+        enabledPaymentMethods: formData.unsavedRecipient.enabledPaymentMethods,
+        recipientType: formData.unsavedRecipient.recipientType,
+      };
+    }
+    // Otherwise, find the saved payee from the lists
+    return [...payees, ...linkedAccounts].find(
+      (p) => p.id === formData.payeeId
+    );
+  }, [payees, linkedAccounts, formData.payeeId, formData.unsavedRecipient]);
 
   const selectedAccount = useMemo(
     () => accounts.find((a) => a.id === formData.fromAccountId),
@@ -702,7 +768,7 @@ function MainTransferView({
   // LIMITED_DDA accounts can only pay to linked accounts, not regular recipients
   const isLimitedDDA = selectedAccount?.category === 'LIMITED_DDA';
 
-  const hasPayee = !!formData.payeeId;
+  const hasPayee = !!formData.payeeId || !!formData.unsavedRecipient;
   const hasPaymentMethod = !!formData.paymentMethod;
   const hasAccount = !!formData.fromAccountId;
 
@@ -860,7 +926,11 @@ function MainTransferView({
                     !isSelected && !isDisabled && 'hover:eb-bg-muted/50'
                   )}
                 >
-                  <div className="eb-flex eb-items-center eb-gap-2">
+                  <div className="eb-flex eb-items-center eb-gap-3">
+                    <RadioIndicator
+                      isSelected={isSelected}
+                      disabled={isDisabled}
+                    />
                     <div>
                       <div className="eb-flex eb-items-center eb-gap-2">
                         <span className="eb-font-medium">{displayName}</span>
@@ -890,44 +960,42 @@ function MainTransferView({
                         account.category && (
                           <div className="eb-text-xs eb-text-muted-foreground">
                             {getCategoryLabel(account.category)}
+                            {account.category === 'LIMITED_DDA' && (
+                              <span className="eb-ml-1 eb-text-muted-foreground/70">
+                                · Linked accounts only
+                              </span>
+                            )}
                           </div>
                         )
                       )}
                     </div>
                   </div>
-                  <div className="eb-flex eb-items-center eb-gap-3">
-                    <div className="eb-text-right">
-                      {account.balance?.isLoading ? (
-                        <>
-                          <Skeleton className="eb-ml-auto eb-h-4 eb-w-20" />
-                          <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
-                            Loading...
-                          </div>
-                        </>
-                      ) : account.balance?.hasError ? (
-                        <>
-                          <div className="eb-font-medium eb-text-muted-foreground">
-                            --
-                          </div>
-                          <div className="eb-text-xs eb-text-destructive">
-                            Unavailable
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="eb-font-medium">
-                            $
-                            {account.balance?.available?.toLocaleString() ??
-                              '0'}
-                          </div>
-                          <div className="eb-text-xs eb-text-muted-foreground">
-                            Available
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    {isSelected && (
-                      <Check className="eb-h-4 eb-w-4 eb-shrink-0 eb-text-primary" />
+                  <div className="eb-text-right">
+                    {account.balance?.isLoading ? (
+                      <>
+                        <Skeleton className="eb-ml-auto eb-h-4 eb-w-20" />
+                        <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
+                          Loading...
+                        </div>
+                      </>
+                    ) : account.balance?.hasError ? (
+                      <>
+                        <div className="eb-font-medium eb-text-muted-foreground">
+                          --
+                        </div>
+                        <div className="eb-text-xs eb-text-destructive">
+                          Unavailable
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="eb-font-medium">
+                          ${account.balance?.available?.toLocaleString() ?? '0'}
+                        </div>
+                        <div className="eb-text-xs eb-text-muted-foreground">
+                          Available
+                        </div>
+                      </>
                     )}
                   </div>
                 </button>
@@ -958,30 +1026,107 @@ function MainTransferView({
         disabled={isSubmitting}
         sectionRef={payeeSectionRef}
       >
-        <PayeeSelector
-          selectedPayeeId={formData.payeeId}
-          onSelect={handlePayeeSelect}
-          onAddNew={onAddNewPayee}
-          onAddRecipient={onAddRecipient}
-          onLinkAccount={onLinkAccount}
-          recipients={payees}
-          linkedAccounts={linkedAccounts}
-          isLoading={isLoading}
-          hasMoreRecipients={hasMoreRecipients}
-          onLoadMoreRecipients={onLoadMoreRecipients}
-          isLoadingMoreRecipients={isLoadingMoreRecipients}
-          totalRecipients={totalRecipients}
-          hasMoreLinkedAccounts={hasMoreLinkedAccounts}
-          onLoadMoreLinkedAccounts={onLoadMoreLinkedAccounts}
-          isLoadingMoreLinkedAccounts={isLoadingMoreLinkedAccounts}
-          totalLinkedAccounts={totalLinkedAccounts}
-          recipientsRestricted={isLimitedDDA}
-          showRestrictionWarning={showPayeeClearedWarning}
-          recipientsError={recipientsError}
-          linkedAccountsError={linkedAccountsError}
-          onRetryRecipients={onRetryRecipients}
-          onRetryLinkedAccounts={onRetryLinkedAccounts}
-        />
+        {/* Show unsaved recipient management UI when one is selected */}
+        {formData.unsavedRecipient ? (
+          <div className="eb-space-y-3">
+            {/* Unsaved recipient info card */}
+            <div className="eb-rounded-lg eb-border eb-bg-card eb-p-4">
+              <div className="eb-flex eb-items-start eb-justify-between eb-gap-3">
+                <div className="eb-flex eb-items-center eb-gap-3">
+                  <div className="eb-flex eb-h-10 eb-w-10 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary/10">
+                    <User className="eb-h-5 eb-w-5 eb-text-primary" />
+                  </div>
+                  <div>
+                    <div className="eb-font-medium">
+                      {formData.unsavedRecipient.displayName}
+                    </div>
+                    <div className="eb-text-sm eb-text-muted-foreground">
+                      Account ending in ...
+                      {formData.unsavedRecipient.accountNumber.slice(-4)}
+                    </div>
+                    <div className="eb-mt-1 eb-text-xs eb-text-muted-foreground">
+                      One-time recipient (not saved)
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Action buttons */}
+              <div className="eb-mt-4 eb-flex eb-flex-col eb-gap-2">
+                {/* Show inline error for non-400 errors */}
+                {saveUnsavedRecipientError && (
+                  <div className="eb-flex eb-items-center eb-gap-2 eb-rounded-md eb-bg-destructive/10 eb-px-3 eb-py-2 eb-text-sm eb-text-destructive">
+                    <AlertCircle className="eb-h-4 eb-w-4 eb-shrink-0" />
+                    <span>
+                      {(saveUnsavedRecipientError as any)?.message ||
+                        'Failed to save recipient. Please try again.'}
+                    </span>
+                  </div>
+                )}
+                <div className="eb-flex eb-gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={onEditUnsavedRecipient}
+                    className="eb-gap-1.5"
+                    disabled={isSavingUnsavedRecipient}
+                  >
+                    <Pencil className="eb-h-3.5 eb-w-3.5" />
+                    Edit
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={onSaveUnsavedRecipient}
+                    disabled={isSavingUnsavedRecipient}
+                    className="eb-gap-1.5"
+                  >
+                    {isSavingUnsavedRecipient ? (
+                      <Loader2 className="eb-h-3.5 eb-w-3.5 eb-animate-spin" />
+                    ) : (
+                      <Save className="eb-h-3.5 eb-w-3.5" />
+                    )}
+                    {isSavingUnsavedRecipient ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+            {/* Choose different recipient link - outside the card */}
+            <button
+              type="button"
+              onClick={onClearUnsavedRecipient}
+              className="eb-text-sm eb-text-primary hover:eb-underline"
+            >
+              Choose a different recipient
+            </button>
+          </div>
+        ) : (
+          <PayeeSelector
+            selectedPayeeId={formData.payeeId}
+            onSelect={handlePayeeSelect}
+            onAddNew={onAddNewPayee}
+            onAddRecipient={onAddRecipient}
+            onLinkAccount={onLinkAccount}
+            recipients={payees}
+            linkedAccounts={linkedAccounts}
+            isLoading={isLoading}
+            hasMoreRecipients={hasMoreRecipients}
+            onLoadMoreRecipients={onLoadMoreRecipients}
+            isLoadingMoreRecipients={isLoadingMoreRecipients}
+            totalRecipients={totalRecipients}
+            hasMoreLinkedAccounts={hasMoreLinkedAccounts}
+            onLoadMoreLinkedAccounts={onLoadMoreLinkedAccounts}
+            isLoadingMoreLinkedAccounts={isLoadingMoreLinkedAccounts}
+            totalLinkedAccounts={totalLinkedAccounts}
+            recipientsRestricted={isLimitedDDA}
+            showRestrictionWarning={showPayeeClearedWarning}
+            recipientsError={recipientsError}
+            linkedAccountsError={linkedAccountsError}
+            onRetryRecipients={onRetryRecipients}
+            onRetryLinkedAccounts={onRetryLinkedAccounts}
+          />
+        )}
       </StepSection>
 
       {/* PAYMENT METHOD Section - Now third/last */}
@@ -1353,6 +1498,7 @@ interface SuccessViewProps {
     fromAccountId?: string;
     paymentMethod?: string;
     memo?: string;
+    unsavedRecipient?: UnsavedRecipient;
   };
   payees: Payee[];
   accounts: AccountResponse[];
@@ -1378,6 +1524,7 @@ function SuccessView({
     setFormData({
       payeeId: undefined,
       payee: undefined,
+      unsavedRecipient: undefined,
       fromAccountId: undefined,
       availableBalance: undefined,
       paymentMethod: undefined,
@@ -1392,6 +1539,7 @@ function SuccessView({
 
   const amount = parseFloat(formData.amount) || 0;
   const payee = payees.find((p) => p.id === formData.payeeId);
+  const { unsavedRecipient } = formData;
   const account = accounts.find((a) => a.id === formData.fromAccountId);
   const selectedMethod = paymentMethods.find(
     (m) => m.id === formData.paymentMethod
@@ -1399,18 +1547,36 @@ function SuccessView({
   const transactionId =
     transactionResponse?.id ?? transactionResponse?.transactionReferenceId;
 
-  // Get recipient type label matching ReviewPanel pattern
-  const getRecipientTypeLabel = () => {
-    if (!payee) return '';
-    if (payee.type === 'LINKED_ACCOUNT') {
-      return payee.recipientType === 'BUSINESS'
-        ? 'Linked business account'
-        : 'Linked individual account';
+  // Get recipient display info - works for both saved payees and unsaved recipients
+  const recipientInfo = useMemo(() => {
+    if (payee) {
+      const typeLabel =
+        payee.type === 'LINKED_ACCOUNT'
+          ? payee.recipientType === 'BUSINESS'
+            ? 'Linked business account'
+            : 'Linked individual account'
+          : payee.recipientType === 'BUSINESS'
+            ? 'Business recipient'
+            : 'Individual recipient';
+      return {
+        name: payee.name,
+        lastFour: payee.accountNumber?.slice(-4),
+        typeLabel,
+      };
     }
-    return payee.recipientType === 'BUSINESS'
-      ? 'Business recipient'
-      : 'Individual recipient';
-  };
+    if (unsavedRecipient) {
+      const typeLabel =
+        unsavedRecipient.recipientType === 'BUSINESS'
+          ? 'Business recipient (one-time)'
+          : 'Individual recipient (one-time)';
+      return {
+        name: unsavedRecipient.displayName,
+        lastFour: unsavedRecipient.accountNumber?.slice(-4),
+        typeLabel,
+      };
+    }
+    return null;
+  }, [payee, unsavedRecipient]);
 
   const handleCopyId = useCallback(() => {
     if (transactionId) {
@@ -1437,21 +1603,21 @@ function SuccessView({
 
       {/* Transaction Details */}
       <div className="eb-w-full eb-max-w-sm eb-space-y-3 eb-rounded-lg eb-border eb-border-border eb-bg-muted/20 eb-p-4 eb-text-left">
-        {payee && (
+        {recipientInfo && (
           <div className="eb-flex eb-justify-between">
             <span className="eb-text-sm eb-text-muted-foreground">To</span>
             <div className="eb-text-right">
               <div className="eb-text-sm eb-font-medium">
-                {payee.name}
-                {payee.accountNumber && (
+                {recipientInfo.name}
+                {recipientInfo.lastFour && (
                   <span className="eb-font-normal eb-text-muted-foreground">
                     {' '}
-                    (...{payee.accountNumber.slice(-4)})
+                    (...{recipientInfo.lastFour})
                   </span>
                 )}
               </div>
               <div className="eb-text-xs eb-text-muted-foreground">
-                {getRecipientTypeLabel()}
+                {recipientInfo.typeLabel}
               </div>
             </div>
           </div>
@@ -1617,11 +1783,86 @@ function PaymentFlowContent({
   const [pendingPaymentMethod, setPendingPaymentMethod] =
     useState<PaymentMethodType | null>(null);
 
+  // State for editing an unsaved recipient
+  const [editingUnsavedRecipient, setEditingUnsavedRecipient] = useState<
+    UnsavedRecipient | undefined
+  >(undefined);
+
+  // Counter to force remount of recipient form when navigating to it
+  const [recipientFormKey, setRecipientFormKey] = useState(0);
+
   // Warning state for initial data mismatch
   const [initialDataWarning, setInitialDataWarning] = useState<{
     account?: string;
     payee?: string;
   } | null>(null);
+
+  // State to store error from save attempt (to pass to form if user is redirected there)
+  const [saveRecipientError, setSaveRecipientError] = useState<Error | null>(
+    null
+  );
+
+  // Hook for saving unsaved recipient directly from the card
+  const {
+    submit: saveRecipient,
+    isPending: isSavingUnsavedRecipient,
+    reset: resetSaveRecipient,
+    error: saveRecipientHookError,
+  } = useRecipientForm({
+    mode: 'create',
+    recipientType: 'RECIPIENT',
+    onSuccess: (savedRecipient) => {
+      if (savedRecipient) {
+        // Transform recipient to Payee format (same logic as handleRecipientSuccess)
+        const isOrganization =
+          savedRecipient.partyDetails?.type === 'ORGANIZATION';
+        const name = isOrganization
+          ? (savedRecipient.partyDetails?.businessName ?? 'Recipient')
+          : `${savedRecipient.partyDetails?.firstName ?? ''} ${savedRecipient.partyDetails?.lastName ?? ''}`.trim() ||
+            'Recipient';
+
+        const enabledMethods = (
+          savedRecipient.account?.routingInformation ?? []
+        )
+          .map((ri) => ri.transactionType as PaymentMethodType)
+          .filter(Boolean);
+
+        // Update formData with the saved recipient
+        setFormData({
+          payeeId: savedRecipient.id,
+          payee: {
+            id: savedRecipient.id!,
+            type: 'RECIPIENT',
+            name,
+            accountNumber: savedRecipient.account?.number ?? '',
+            routingNumber:
+              savedRecipient.account?.routingInformation?.[0]?.routingNumber ??
+              '',
+            bankName: undefined,
+            enabledPaymentMethods:
+              enabledMethods.length > 0 ? enabledMethods : ['ACH'],
+            recipientType: isOrganization ? 'BUSINESS' : 'INDIVIDUAL',
+          },
+          unsavedRecipient: undefined, // Clear unsaved recipient
+        });
+      }
+    },
+    onError: (apiError) => {
+      // Only navigate to form on 400 errors (bad request - user can fix the data)
+      // Other errors (401, 500, etc.) should just show an error message
+      const httpStatus = (apiError as any)?.httpStatus;
+      if (httpStatus === 400 && formData.unsavedRecipient) {
+        // Store the error to display in the form
+        setSaveRecipientError(apiError as unknown as Error);
+        // Navigate to the save-recipient-form (no confirmation step)
+        setEditingUnsavedRecipient(formData.unsavedRecipient);
+        setRecipientFormKey((k) => k + 1);
+        pushView('save-recipient-form');
+      }
+      // For non-400 errors, the error will be available via the hook's error state
+      // but we don't navigate - the user can retry from the card
+    },
+  });
 
   // Navigate to success view when transaction is complete
   useEffect(() => {
@@ -1662,6 +1903,47 @@ function PaymentFlowContent({
       setFormData({ fromAccountId: account.id!, availableBalance });
     }
   }, [accounts, formData.fromAccountId, setFormData]);
+
+  // Auto-select account when initial payee is external and only one valid account exists
+  // LIMITED_DDA accounts cannot be used for external recipients (RECIPIENT type)
+  useEffect(() => {
+    // Only run if we have an initial payee that's an external recipient
+    // and no account is currently selected
+    if (
+      formData.payeeId &&
+      !formData.fromAccountId &&
+      accounts.length > 0 &&
+      isPayeesLoaded
+    ) {
+      // Find the payee from the loaded data
+      const payee = [...payees, ...linkedAccounts].find(
+        (p) => p.id === formData.payeeId
+      );
+
+      // Only auto-select if payee is an external recipient
+      if (payee?.type === 'RECIPIENT') {
+        // Filter out LIMITED_DDA accounts which can't be used for external recipients
+        const validAccounts = accounts.filter(
+          (account) => account.category !== 'LIMITED_DDA'
+        );
+
+        // Auto-select if exactly one valid account remains
+        if (validAccounts.length === 1) {
+          const account = validAccounts[0];
+          const availableBalance = account?.balance?.available;
+          setFormData({ fromAccountId: account.id!, availableBalance });
+        }
+      }
+    }
+  }, [
+    accounts,
+    payees,
+    linkedAccounts,
+    formData.payeeId,
+    formData.fromAccountId,
+    isPayeesLoaded,
+    setFormData,
+  ]);
 
   // Validate selected account exists in the fetched accounts list
   // If the initial/selected account doesn't exist, clear it and show warning
@@ -1795,6 +2077,7 @@ function PaymentFlowContent({
 
   // Handler for directly adding a recipient (skips payee type selection)
   const handleAddRecipient = useCallback(() => {
+    setRecipientFormKey((k) => k + 1);
     pushView('add-recipient-form');
   }, [pushView]);
 
@@ -1812,6 +2095,7 @@ function PaymentFlowContent({
 
   // Handler for switching from linked account form to recipient form
   const handleSwitchToRecipient = useCallback(() => {
+    setRecipientFormKey((k) => k + 1);
     replaceView('add-recipient-form');
   }, [replaceView]);
 
@@ -1831,6 +2115,7 @@ function PaymentFlowContent({
   // Handler for enabling a payment method
   const handleEnablePaymentMethod = useCallback(
     (method: PaymentMethodType) => {
+      // Use the same enable-payment-method flow for both saved and unsaved recipients
       setPendingPaymentMethod(method);
       pushView('enable-payment-method');
     },
@@ -1900,6 +2185,7 @@ function PaymentFlowContent({
         pushView('link-account');
       } else {
         // Go directly to add-recipient-form - BankAccountForm handles payment method selection
+        setRecipientFormKey((k) => k + 1);
         pushView('add-recipient-form');
       }
     },
@@ -1979,9 +2265,11 @@ function PaymentFlowContent({
 
       // Select the newly created recipient
       // Only auto-select payment method if there's exactly one enabled method
+      // Clear unsavedRecipient since we now have a saved recipient
       setFormData({
         payeeId: payee.id,
         payee,
+        unsavedRecipient: undefined,
         paymentMethod:
           payee.enabledPaymentMethods.length === 1
             ? (formData.paymentMethod ?? payee.enabledPaymentMethods[0])
@@ -1995,15 +2283,104 @@ function PaymentFlowContent({
     [setFormData, popView, formData.paymentMethod]
   );
 
-  // Get the selected payee for enable form
-  const selectedPayee = useMemo(
-    () => [...payees, ...linkedAccounts].find((p) => p.id === formData.payeeId),
-    [payees, linkedAccounts, formData.payeeId]
+  // Handler for one-time recipient (not saved)
+  const handleUnsavedRecipientSubmit = useCallback(
+    (unsavedRecipient: UnsavedRecipient) => {
+      // Set the unsaved recipient in form state and clear any saved payee
+      // Only auto-select payment method if there's exactly one enabled method
+      setFormData({
+        payeeId: undefined,
+        payee: undefined,
+        unsavedRecipient,
+        paymentMethod:
+          unsavedRecipient.enabledPaymentMethods.length === 1
+            ? (formData.paymentMethod ??
+              unsavedRecipient.enabledPaymentMethods[0])
+            : undefined,
+      });
+
+      // Clear editing state
+      setEditingUnsavedRecipient(undefined);
+
+      // Go back through the flow (method selection -> main)
+      popView();
+      popView();
+    },
+    [setFormData, popView, formData.paymentMethod]
   );
+
+  // Handler to edit an unsaved recipient
+  const handleEditUnsavedRecipient = useCallback(() => {
+    if (formData.unsavedRecipient) {
+      // Store the unsaved recipient data for editing
+      setEditingUnsavedRecipient(formData.unsavedRecipient);
+      // Increment key to force fresh form with editing data
+      setRecipientFormKey((k) => k + 1);
+      // Navigate to the add recipient form
+      pushView('add-recipient-form');
+    }
+  }, [formData.unsavedRecipient, pushView]);
+
+  // Handler to clear unsaved recipient and go back to recipient selection
+  const handleClearUnsavedRecipient = useCallback(() => {
+    setFormData({
+      unsavedRecipient: undefined,
+      paymentMethod: undefined, // Clear payment method since it was tied to the recipient
+    });
+  }, [setFormData]);
+
+  // Handler to save unsaved recipient - calls API directly from the card
+  // If it fails, the onError callback will navigate to the form at step 2
+  const handleSaveUnsavedRecipient = useCallback(() => {
+    if (formData.unsavedRecipient?.originalFormData) {
+      // Reset any previous error state
+      resetSaveRecipient();
+      // Submit the original form data directly
+      saveRecipient(formData.unsavedRecipient.originalFormData);
+    }
+  }, [formData.unsavedRecipient, saveRecipient, resetSaveRecipient]);
+
+  // Get the selected payee for enable form
+  const selectedPayee = useMemo(() => {
+    // If there's an unsaved recipient (one-time payment), create a virtual payee for display
+    if (formData.unsavedRecipient) {
+      return {
+        id: 'unsaved-recipient',
+        type: 'RECIPIENT' as const,
+        name: formData.unsavedRecipient.displayName,
+        accountNumber: formData.unsavedRecipient.accountNumber,
+        routingNumber: formData.unsavedRecipient.routingNumber,
+        bankName: formData.unsavedRecipient.bankName,
+        enabledPaymentMethods: formData.unsavedRecipient.enabledPaymentMethods,
+        recipientType: formData.unsavedRecipient.recipientType,
+      };
+    }
+    // Try to find the saved payee from the lists first
+    const foundPayee = [...payees, ...linkedAccounts].find(
+      (p) => p.id === formData.payeeId
+    );
+    // Fall back to formData.payee if not found in lists (e.g., newly created recipient)
+    return foundPayee ?? formData.payee;
+  }, [
+    payees,
+    linkedAccounts,
+    formData.payeeId,
+    formData.unsavedRecipient,
+    formData.payee,
+  ]);
 
   const pendingMethod = pendingPaymentMethod
     ? paymentMethods.find((m) => m.id === pendingPaymentMethod)
     : null;
+
+  // Compute valid account count considering payee restrictions
+  // If payee is an external recipient, LIMITED_DDA accounts cannot be used
+  const validAccountCount = useMemo(() => {
+    if (selectedPayee?.type === 'RECIPIENT') {
+      return accounts.filter((a) => a.category !== 'LIMITED_DDA').length;
+    }
+    return accounts.length;
+  }, [accounts, selectedPayee?.type]);
 
   return (
     <>
@@ -2051,6 +2428,12 @@ function PaymentFlowContent({
           linkedAccountsError={linkedAccountsError}
           onRetryRecipients={onRetryRecipients}
           onRetryLinkedAccounts={onRetryLinkedAccounts}
+          validAccountCount={validAccountCount}
+          onEditUnsavedRecipient={handleEditUnsavedRecipient}
+          onClearUnsavedRecipient={handleClearUnsavedRecipient}
+          onSaveUnsavedRecipient={handleSaveUnsavedRecipient}
+          isSavingUnsavedRecipient={isSavingUnsavedRecipient}
+          saveUnsavedRecipientError={saveRecipientHookError}
         />
       </FlowView>
 
@@ -2077,11 +2460,38 @@ function PaymentFlowContent({
       {/* Add Recipient Form - BankAccountForm handles payment method selection */}
       <FlowView viewId="add-recipient-form">
         <BankAccountFormWrapper
+          key={`recipient-form-${recipientFormKey}`}
           formType="recipient"
           availablePaymentMethods={paymentMethods}
           onSuccess={handleRecipientSuccess}
-          onCancel={popView}
+          onSubmitWithoutSave={handleUnsavedRecipientSubmit}
+          onCancel={() => {
+            setEditingUnsavedRecipient(undefined);
+            setSaveRecipientError(null);
+            popView();
+          }}
           onSwitchToLinkedAccount={handleSwitchToLinkedAccount}
+          initialData={editingUnsavedRecipient}
+          isEditing={!!editingUnsavedRecipient}
+          initialError={saveRecipientError}
+        />
+      </FlowView>
+
+      {/* Save Unsaved Recipient Form - save-only mode (no one-time option) */}
+      <FlowView viewId="save-recipient-form">
+        <BankAccountFormWrapper
+          key={`save-recipient-form-${recipientFormKey}`}
+          formType="recipient"
+          availablePaymentMethods={paymentMethods}
+          onSuccess={handleRecipientSuccess}
+          onCancel={() => {
+            setEditingUnsavedRecipient(undefined);
+            setSaveRecipientError(null);
+            popView();
+          }}
+          initialData={editingUnsavedRecipient}
+          isEditing
+          initialError={saveRecipientError}
         />
       </FlowView>
 
@@ -2091,9 +2501,19 @@ function PaymentFlowContent({
           <EnablePaymentMethodWrapper
             payee={selectedPayee}
             paymentMethod={pendingMethod}
+            unsavedRecipient={formData.unsavedRecipient}
             onSuccess={() => {
               // Payment method is now enabled - select it and go back
               setFormData({ paymentMethod: pendingPaymentMethod! });
+              setPendingPaymentMethod(null);
+              popView();
+            }}
+            onUnsavedSuccess={(updatedUnsaved) => {
+              // Update the unsaved recipient with new payment methods and select the method
+              setFormData({
+                unsavedRecipient: updatedUnsaved,
+                paymentMethod: pendingPaymentMethod!,
+              });
               setPendingPaymentMethod(null);
               popView();
             }}
@@ -2183,7 +2603,7 @@ export function PaymentFlow({
     },
   });
 
-  // Fetch RECIPIENT type with infinite scroll
+  // Fetch RECIPIENT type with infinite scroll (only ACTIVE recipients)
   const {
     data: recipientsData,
     isLoading: isLoadingRecipients,
@@ -2239,7 +2659,7 @@ export function PaymentFlow({
     }
   );
 
-  // Get total counts from metadata
+  // Get total counts from metadata (for pagination display)
   const totalRecipients =
     recipientsData?.pages?.[0]?.metadata?.total_items ?? 0;
   const totalLinkedAccounts =
@@ -2518,6 +2938,7 @@ export function PaymentFlow({
       fromAccountId?: string;
       payeeId?: string;
       payee?: Payee;
+      unsavedRecipient?: UnsavedRecipient;
       paymentMethod?: PaymentMethodType;
       amount: string;
       memo?: string;
@@ -2535,13 +2956,16 @@ export function PaymentFlow({
           | 'RTP'
           | undefined;
 
-        // Build the request
+        // Build the request - use recipient for one-time payments, recipientId for saved recipients
         const response = await createTransactionMutation.mutateAsync({
           data: {
             amount: parseFloat(formData.amount) || 0,
             currency: 'USD',
             debtorAccountId: formData.fromAccountId,
-            recipientId: formData.payeeId,
+            // Use inline recipient for one-time payments, recipientId for saved recipients
+            ...(formData.unsavedRecipient
+              ? { recipient: formData.unsavedRecipient.transactionRecipient }
+              : { recipientId: formData.payeeId }),
             memo: formData.memo,
             transactionReferenceId,
             type: paymentType,
@@ -2721,7 +3145,7 @@ export function PaymentFlowInline({
     },
   });
 
-  // Fetch RECIPIENT type with infinite scroll
+  // Fetch RECIPIENT type with infinite scroll (only ACTIVE recipients)
   const {
     data: recipientsData,
     isLoading: isLoadingRecipients,
@@ -2777,7 +3201,7 @@ export function PaymentFlowInline({
     }
   );
 
-  // Get total counts for recipients and linked accounts
+  // Get total counts from metadata (for pagination display)
   const totalRecipients =
     recipientsData?.pages?.[0]?.metadata?.total_items ??
     recipientsData?.pages?.[0]?.total_items ??
@@ -2962,6 +3386,7 @@ export function PaymentFlowInline({
       fromAccountId?: string;
       payeeId?: string;
       payee?: Payee;
+      unsavedRecipient?: UnsavedRecipient;
       paymentMethod?: PaymentMethodType;
       amount: string;
       memo?: string;
@@ -2976,12 +3401,16 @@ export function PaymentFlowInline({
           | 'RTP'
           | undefined;
 
+        // Build the request - use recipient for one-time payments, recipientId for saved recipients
         const response = await createTransactionMutation.mutateAsync({
           data: {
             amount: parseFloat(formData.amount) || 0,
             currency: 'USD',
             debtorAccountId: formData.fromAccountId,
-            recipientId: formData.payeeId,
+            // Use inline recipient for one-time payments, recipientId for saved recipients
+            ...(formData.unsavedRecipient
+              ? { recipient: formData.unsavedRecipient.transactionRecipient }
+              : { recipientId: formData.payeeId }),
             memo: formData.memo,
             transactionReferenceId,
             type: paymentType,

@@ -56,8 +56,8 @@ export function PaymentMethodSelection({
               onClick={() => onSelect(method.id)}
               className="eb-flex eb-w-full eb-items-center eb-gap-4 eb-rounded-lg eb-border eb-border-border eb-p-4 eb-text-left eb-transition-colors hover:eb-border-primary hover:eb-bg-muted/50"
             >
-              <div className="eb-flex eb-h-12 eb-w-12 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted">
-                <Icon className="eb-h-6 eb-w-6" />
+              <div className="eb-flex eb-h-12 eb-w-12 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary/10">
+                <Icon className="eb-h-6 eb-w-6 eb-text-primary" />
               </div>
               <div className="eb-flex-1">
                 <div className="eb-font-medium">{method.name}</div>

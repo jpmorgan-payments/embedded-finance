@@ -6,6 +6,8 @@ import { ChevronDownIcon, PlusIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { getRecipientDisplayName } from '@/lib/recipientHelpers';
+import type { HeadingLevelProps } from '@/lib/types/headingLevel.types';
+import { getChildHeadingLevel } from '@/lib/types/headingLevel.types';
 import type { UserTrackingProps } from '@/lib/types/userTracking.types';
 import { cn } from '@/lib/utils';
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
@@ -52,7 +54,9 @@ import { VerificationResultDialog } from '../VerificationResultDialog/Verificati
  * This is the internal base component that powers both
  * LinkedAccountsWidget and RecipientsWidget.
  */
-export interface BaseRecipientsWidgetProps extends UserTrackingProps {
+export interface BaseRecipientsWidgetProps
+  extends UserTrackingProps,
+    HeadingLevelProps {
   /**
    * Type of recipients to display
    */
@@ -180,6 +184,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   pageSize = 10,
   paginationStyle = 'pages',
   hideCreateButton = false,
+  headingLevel = 2,
   renderPaymentAction,
   paymentMethods,
   showPaymentFees = false,
@@ -194,6 +199,9 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   const config = getRecipientTypeConfig(recipientType);
   const userJourneys = getUserJourneys(config.eventPrefix);
   const queryClient = useQueryClient();
+
+  // Calculate child heading level (for h3 elements like cards, empty state)
+  const childHeadingLevel = getChildHeadingLevel(headingLevel);
 
   const isCompact = viewMode === 'compact-cards';
   const usePagesPagination = paginationStyle === 'pages' && !scrollable;
@@ -542,7 +550,10 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
           <div className="eb-flex eb-flex-col eb-gap-2 @xs:eb-flex-row @xs:eb-items-center @xs:eb-justify-between @xs:eb-gap-4">
             <div className="eb-min-w-0 eb-flex-1">
               <div className="eb-flex eb-items-center eb-gap-2">
-                <CardTitle className="eb-h-8 eb-truncate eb-font-header eb-text-lg eb-font-semibold eb-leading-8 @md:eb-text-xl">
+                <CardTitle
+                  headingLevel={headingLevel}
+                  className="eb-h-8 eb-truncate eb-font-header eb-text-lg eb-font-semibold eb-leading-8 @md:eb-text-xl"
+                >
                   {t('title')}{' '}
                   {!isLoading && !isError && (
                     <span className="eb-animate-fade-in">
@@ -640,6 +651,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                 className="eb-animate-fade-in"
                 compact={isCompact}
                 i18nNamespace={config.i18nNamespace}
+                headingLevel={childHeadingLevel}
                 action={
                   showCreate && (
                     <Button
@@ -734,6 +746,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                               compact={isCompact}
                               i18nNamespace={config.i18nNamespace}
                               recipientType={recipientType}
+                              headingLevel={childHeadingLevel}
                               className={cn({
                                 'eb-border-b-0':
                                   isCompact &&
@@ -786,6 +799,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                           compact={isCompact}
                           i18nNamespace={config.i18nNamespace}
                           recipientType={recipientType}
+                          headingLevel={childHeadingLevel}
                           className={cn({
                             'eb-border-b-0':
                               isCompact && index === recipients.length - 1,

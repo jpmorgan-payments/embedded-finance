@@ -18,6 +18,8 @@ import {
   getSupportedPaymentMethods,
   needsAdditionalRouting,
 } from '@/lib/recipientHelpers';
+import type { HeadingLevel } from '@/lib/types/headingLevel.types';
+import { getHeadingTag } from '@/lib/types/headingLevel.types';
 import { cn } from '@/lib/utils';
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { Badge } from '@/components/ui/badge';
@@ -65,6 +67,14 @@ export interface RecipientAccountDisplayCardProps {
 
   /** Enable compact row mode with minimal spacing and reduced padding */
   compact?: boolean;
+
+  /**
+   * Heading level for the card title.
+   * Should be one level below the parent widget's heading.
+   *
+   * @default 3
+   */
+  headingLevel?: HeadingLevel;
 }
 
 /**
@@ -91,11 +101,15 @@ export const RecipientAccountDisplayCard: React.FC<
   renderAddRoutingButton,
   className = '',
   compact = false,
+  headingLevel = 3,
 }) => {
   const { t } = useTranslation('linked-accounts');
   const [showFullAccount, setShowFullAccount] = useState(false);
   const [showDetailedPaymentMethods, setShowDetailedPaymentMethods] =
     useState(false);
+
+  // Get the heading tag for this card (e.g., 'h3')
+  const Heading = getHeadingTag(headingLevel);
 
   const displayName = getRecipientDisplayName(recipient);
   const maskedAccount = getMaskedAccountNumber(recipient);
@@ -221,7 +235,7 @@ export const RecipientAccountDisplayCard: React.FC<
               <div className="eb-min-w-0 eb-flex-1 eb-overflow-hidden">
                 <div className="eb-flex eb-flex-wrap eb-items-center eb-gap-2">
                   {/* Name */}
-                  <h3
+                  <Heading
                     className="eb-max-w-full eb-break-words eb-text-sm eb-font-semibold eb-leading-tight"
                     id={`account-name-${recipient.id}`}
                     title={displayName}
@@ -231,7 +245,7 @@ export const RecipientAccountDisplayCard: React.FC<
                     }}
                   >
                     {displayName}
-                  </h3>
+                  </Heading>
                   {/* Status badge - hide in compact mode for states with inline messages, always show in non-compact */}
                   {recipient.status &&
                     recipient.status !== 'ACTIVE' &&
@@ -520,7 +534,7 @@ export const RecipientAccountDisplayCard: React.FC<
             {/* Name, Type, and Status */}
             <div className="eb-flex eb-items-start eb-justify-between eb-gap-3">
               <div className="eb-min-w-0 eb-flex-1 eb-space-y-1.5">
-                <h3
+                <Heading
                   className={cn(
                     'eb-break-words eb-font-semibold eb-leading-tight',
                     compact ? 'eb-text-sm' : 'eb-text-base'
@@ -528,7 +542,7 @@ export const RecipientAccountDisplayCard: React.FC<
                   id={`account-name-${recipient.id}`}
                 >
                   {displayName}
-                </h3>
+                </Heading>
                 <div className="eb-flex eb-items-center eb-gap-1.5 eb-text-xs eb-text-muted-foreground">
                   {accountType === 'Individual' ? (
                     <UserIcon className="eb-h-3.5 eb-w-3.5" />

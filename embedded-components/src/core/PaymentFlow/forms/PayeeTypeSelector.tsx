@@ -15,13 +15,13 @@ const PAYEE_TYPE_OPTIONS: PayeeTypeOption[] = [
     type: 'link-account',
     title: 'Link My Account',
     description: 'Transfer to another account you own at a different bank',
-    icon: <Link2 className="eb-h-6 eb-w-6" />,
+    icon: <Link2 className="eb-h-6 eb-w-6 eb-text-primary" />,
   },
   {
     type: 'add-recipient',
     title: 'Add a Recipient',
     description: 'Send money to someone else (person or business)',
-    icon: <Building2 className="eb-h-6 eb-w-6" />,
+    icon: <Building2 className="eb-h-6 eb-w-6 eb-text-primary" />,
   },
 ];
 
@@ -52,7 +52,7 @@ export function PayeeTypeSelector({
             onClick={() => onSelect(option.type)}
             className="eb-flex eb-w-full eb-items-center eb-gap-4 eb-rounded-lg eb-border eb-border-border eb-p-4 eb-text-left eb-transition-colors hover:eb-border-primary hover:eb-bg-muted/50"
           >
-            <div className="eb-flex eb-h-12 eb-w-12 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted">
+            <div className="eb-flex eb-h-12 eb-w-12 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary/10">
               {option.icon}
             </div>
             <div className="eb-flex-1">

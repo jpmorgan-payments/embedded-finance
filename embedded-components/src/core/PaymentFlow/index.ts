@@ -17,6 +17,7 @@ export type {
   PaymentMethodType,
   PaymentFlowFormData,
   AccountResponse,
+  UnsavedRecipient,
 } from './PaymentFlow.types';
 
 // Constants (public API only)

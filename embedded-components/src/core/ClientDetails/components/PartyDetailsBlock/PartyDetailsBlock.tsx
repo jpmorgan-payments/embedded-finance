@@ -1,5 +1,6 @@
 /**
- * PartyDetailsBlock - Renders party fields in a clean block (card-style).
+ * PartyDetailsBlock - Compact party details display
+ * Information-dense layout with minimal spacing
  */
 
 import { _get, cn, isValueEmpty } from '@/lib/utils';
@@ -12,31 +13,44 @@ import {
   organizationFieldDefinitions,
 } from '../../utils/partyFieldDefinitions';
 import type { PartyFieldConfig } from '../../utils/partyFieldDefinitions';
-import { DetailRow } from '../DetailRow/DetailRow';
 
 interface PartyDetailsBlockProps {
   party: PartyResponse;
-  /** Optional heading (e.g. party name). If not provided, display name is used. */
   heading?: string;
-  /** Optional subheading (e.g. roles) */
   subheading?: string;
-  /** Compact layout (e.g. inside accordion) */
   compact?: boolean;
 }
 
 function renderFields(party: PartyResponse, fields: PartyFieldConfig[]) {
-  return fields.map(({ label, path, transform }) => {
+  const rows: React.ReactNode[] = [];
+
+  fields.forEach(({ label, path, transform }) => {
     const raw = _get(party, path);
-    if (isValueEmpty(raw)) return null;
+    if (isValueEmpty(raw)) return;
     const value = transform ? transform(raw) : raw;
     if (
       value === undefined ||
       value === '' ||
       (Array.isArray(value) && value.length === 0)
     )
-      return null;
-    return <DetailRow key={path} label={label} value={value} />;
+      return;
+
+    const display = Array.isArray(value) ? value.join(', ') : String(value);
+
+    rows.push(
+      <div
+        key={path}
+        className="eb-flex eb-justify-between eb-gap-2 eb-py-0.5 eb-text-xs"
+      >
+        <span className="eb-shrink-0 eb-text-muted-foreground">{label}</span>
+        <span className="eb-truncate eb-text-right eb-text-foreground">
+          {display}
+        </span>
+      </div>
+    );
   });
+
+  return rows;
 }
 
 export function PartyDetailsBlock({
@@ -55,28 +69,23 @@ export function PartyDetailsBlock({
   return (
     <div
       className={cn(
-        'eb-w-full eb-rounded-lg eb-border eb-border-border eb-bg-muted/20 eb-p-4 eb-transition-colors',
-        compact && 'eb-p-3'
+        'eb-w-full eb-rounded eb-border eb-border-border eb-bg-card',
+        compact ? 'eb-p-2' : 'eb-p-2.5'
       )}
     >
-      <div
-        className={cn(
-          'eb-mb-3 eb-flex eb-flex-col eb-gap-0.5',
-          compact && 'eb-mb-2'
-        )}
-      >
-        <h3 className="eb-text-sm eb-font-semibold eb-tracking-tight eb-text-foreground @md:eb-text-base">
-          {name}
-        </h3>
-        {(subheading ?? roleLabel) && (
-          <p className="eb-text-xs eb-text-muted-foreground @md:eb-text-sm">
-            {subheading ?? roleLabel}
-          </p>
-        )}
+      <div className="eb-mb-1.5 eb-border-b eb-border-border eb-pb-1.5">
+        <div className="eb-flex eb-items-baseline eb-justify-between eb-gap-2">
+          <h3 className="eb-truncate eb-text-xs eb-font-semibold eb-text-foreground">
+            {name}
+          </h3>
+          {(subheading ?? roleLabel) && (
+            <span className="eb-shrink-0 eb-text-xs eb-text-muted-foreground">
+              {subheading ?? roleLabel}
+            </span>
+          )}
+        </div>
       </div>
-      <dl className="eb-divide-y eb-divide-border/60">
-        {renderFields(party, fields)}
-      </dl>
+      <div className="eb-space-y-0">{renderFields(party, fields)}</div>
     </div>
   );
 }

@@ -15,6 +15,7 @@ import {
   getMissingPaymentMethods,
   getRecipientDisplayName,
 } from '@/lib/recipientHelpers';
+import type { HeadingLevel } from '@/lib/types/headingLevel.types';
 import { cn } from '@/lib/utils';
 import {
   ApiError,
@@ -98,6 +99,14 @@ export interface RecipientCardProps {
    * @default 'LINKED_ACCOUNT'
    */
   recipientType?: SupportedRecipientType;
+
+  /**
+   * Heading level for the recipient card title.
+   * Should be one level below the parent widget's heading.
+   *
+   * @default 3
+   */
+  headingLevel?: HeadingLevel;
 }
 
 /**
@@ -119,6 +128,7 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
   hideMicrodepositActions = false,
   i18nNamespace = 'linked-accounts',
   recipientType = 'LINKED_ACCOUNT',
+  headingLevel = 3,
 }) => {
   const { t } = useTranslation(i18nNamespace);
 
@@ -486,6 +496,7 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
       renderAddRoutingButton={renderAddRoutingButton}
       compact={compact}
       className={className}
+      headingLevel={headingLevel}
     />
   );
 };

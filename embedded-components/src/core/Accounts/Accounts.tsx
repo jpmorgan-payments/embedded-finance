@@ -9,6 +9,7 @@ import {
 import { Landmark } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { getChildHeadingLevel } from '@/lib/types/headingLevel.types';
 import { cn } from '@/lib/utils';
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import { useGetAccounts } from '@/api/generated/ep-accounts';
@@ -28,6 +29,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
     {
       allowedCategories,
       clientId,
+      headingLevel = 2,
       title: _title,
       userEventsHandler,
       userEventsLifecycle,
@@ -36,6 +38,11 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
   ) => {
     const { t } = useTranslation(['accounts', 'common']);
     const { interceptorReady } = useInterceptorStatus();
+
+    // Calculate child heading level (for h3 elements like empty state)
+    const childHeadingLevel = getChildHeadingLevel(headingLevel);
+    // Get the tag for child headings (e.g., 'h3' when main heading is 'h2')
+    const ChildHeading = `h${childHeadingLevel}` as const;
 
     const { data, isLoading, isError, error, refetch } = useGetAccounts(
       clientId ? { clientId } : undefined,
@@ -102,7 +109,10 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
         <Card className={cn('eb-component eb-w-full eb-overflow-hidden')}>
           <CardHeader className="eb-border-b eb-bg-muted/30 eb-px-2.5 eb-py-2 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-px-3 @md:eb-py-2.5 @lg:eb-px-4 @lg:eb-py-3">
             <div className="eb-flex eb-items-center eb-justify-between">
-              <CardTitle className="eb-truncate eb-font-header eb-text-lg eb-font-semibold eb-leading-normal @md:eb-text-xl">
+              <CardTitle
+                headingLevel={headingLevel}
+                className="eb-truncate eb-font-header eb-text-lg eb-font-semibold eb-leading-normal @md:eb-text-xl"
+              >
                 {_title ??
                   t('accounts:titleSingle', {
                     defaultValue: 'Your account',
@@ -162,11 +172,11 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
                     <Landmark className="eb-h-6 eb-w-6 eb-text-muted-foreground" />
                   </div>
                   <div className="eb-space-y-1">
-                    <h3 className="eb-text-sm eb-font-semibold eb-text-foreground">
+                    <ChildHeading className="eb-text-sm eb-font-semibold eb-text-foreground">
                       {t('accounts:emptyState.title', {
                         defaultValue: 'No accounts found',
                       })}
-                    </h3>
+                    </ChildHeading>
                     <p className="eb-max-w-xs eb-text-xs eb-text-muted-foreground">
                       {t('accounts:emptyState.description', {
                         defaultValue:
@@ -201,6 +211,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
                         <AccountCard
                           account={account}
                           hideBorder={isSingleAccount}
+                          headingLevel={childHeadingLevel}
                           ref={(cardRef) => {
                             accountCardRefs.current[account.id] = cardRef;
                           }}

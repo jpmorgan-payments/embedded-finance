@@ -8,8 +8,11 @@ import type {
 import type { Recipient as ApiRecipient } from '@/api/generated/ep-recipients.schemas';
 import type {
   ApiErrorV2,
+  TransactionRecipientDetailsV2,
   TransactionResponseV2,
 } from '@/api/generated/ep-transactions.schemas';
+
+import type { BankAccountFormData } from '../RecipientWidgets/components/BankAccountForm';
 
 /**
  * Extended AccountResponse with balance information for UI display
@@ -111,8 +114,32 @@ export type PaymentFlowView =
   | 'link-account'
   | 'add-recipient-method'
   | 'add-recipient-form'
+  | 'save-recipient-form'
   | 'enable-payment-method'
   | 'success';
+
+/**
+ * Unsaved recipient data for one-time payments
+ * Matches TransactionRecipientDetailsV2 structure for inline transaction requests
+ */
+export interface UnsavedRecipient {
+  /** Display name for the UI */
+  displayName: string;
+  /** Account number (masked for display) */
+  accountNumber: string;
+  /** Routing number */
+  routingNumber: string;
+  /** Bank name (if available) */
+  bankName?: string;
+  /** Payment methods enabled for this recipient */
+  enabledPaymentMethods: PaymentMethodType[];
+  /** Recipient type (INDIVIDUAL or ORGANIZATION/BUSINESS) */
+  recipientType?: RecipientType;
+  /** Full transaction recipient details for API submission */
+  transactionRecipient: TransactionRecipientDetailsV2;
+  /** Original form data for saving (if user decides to save later) */
+  originalFormData?: BankAccountFormData;
+}
 
 /**
  * Form data for the payment flow
@@ -121,6 +148,9 @@ export interface PaymentFlowFormData {
   // Selected payee
   payeeId?: string;
   payee?: Payee;
+
+  // Unsaved recipient for one-time payments (not saved to recipient list)
+  unsavedRecipient?: UnsavedRecipient;
 
   // Payment method
   paymentMethod?: PaymentMethodType;

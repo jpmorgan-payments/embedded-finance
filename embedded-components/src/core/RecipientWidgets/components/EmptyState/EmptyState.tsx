@@ -2,6 +2,8 @@ import React from 'react';
 import { LandmarkIcon, PlusCircleIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import type { HeadingLevel } from '@/lib/types/headingLevel.types';
+import { getHeadingTag } from '@/lib/types/headingLevel.types';
 import { cn } from '@/lib/utils';
 
 import { RecipientI18nNamespace } from '../../types';
@@ -22,6 +24,13 @@ export interface EmptyStateProps {
    * @default 'linked-accounts'
    */
   i18nNamespace?: RecipientI18nNamespace;
+  /**
+   * Heading level for the empty state title.
+   * Should be one level below the parent widget's heading.
+   *
+   * @default 3
+   */
+  headingLevel?: HeadingLevel;
 }
 
 /**
@@ -35,8 +44,10 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   action,
   compact = false,
   i18nNamespace = 'linked-accounts',
+  headingLevel = 3,
 }) => {
   const { t } = useTranslation(i18nNamespace);
+  const Heading = getHeadingTag(headingLevel);
 
   return (
     <div
@@ -57,14 +68,14 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         </div>
       )}
       <div className="eb-mb-2 eb-space-y-1">
-        <h3
+        <Heading
           className={cn(
             'eb-font-semibold eb-text-foreground',
             compact ? 'eb-text-sm' : 'eb-text-base'
           )}
         >
           {message || t('emptyState.title')}
-        </h3>
+        </Heading>
         <p
           className={cn(
             'eb-text-muted-foreground',

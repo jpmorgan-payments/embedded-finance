@@ -33,9 +33,12 @@ export function QuestionResponsesSection({
   );
 
   const { data: questionsData, isLoading: questionsLoading } =
-    useSmbdoListQuestions(questionIds ? { questionIds } : undefined, {
-      query: { enabled: !!questionIds },
-    });
+    useSmbdoListQuestions(
+      { questionIds },
+      {
+        query: { enabled: questionIds.length > 0 },
+      }
+    );
 
   const questions = questionsData?.questions ?? [];
   const showLoading =
