@@ -13,11 +13,8 @@
 
 import { useMemo } from 'react';
 import {
-  AlertCircle,
-  BadgeCheck,
   Building2,
   ChevronRight,
-  Clock,
   FileText,
   MapPin,
   User,
@@ -154,44 +151,7 @@ function getIndividualParties(client: ClientResponse) {
   return people;
 }
 
-/**
- * Extract verification summary
- */
-function getVerificationDetails(client: ClientResponse) {
-  const kycStatus = client.results?.customerIdentityStatus;
-  return {
-    kycStatus,
-    isVerified: kycStatus === 'APPROVED',
-    needsInfo: kycStatus === 'INFORMATION_REQUESTED',
-    isPending:
-      !kycStatus ||
-      (kycStatus !== 'APPROVED' && kycStatus !== 'INFORMATION_REQUESTED'),
-  };
-}
-
-/**
- * Extract compliance/document summary
- */
-function getComplianceDetails(client: ClientResponse) {
-  const pendingDocs = client.outstanding?.documentRequestIds?.length ?? 0;
-  const pendingQuestions = client.outstanding?.questionIds?.length ?? 0;
-  const answeredQuestions = client.questionResponses?.length ?? 0;
-
-  return {
-    pendingDocs,
-    pendingQuestions,
-    answeredQuestions,
-    totalPending: pendingDocs + pendingQuestions,
-    isComplete: pendingDocs === 0 && pendingQuestions === 0,
-  };
-}
-
-const DEFAULT_SECTIONS: ClientSection[] = [
-  'identity',
-  'verification',
-  'ownership',
-  'compliance',
-];
+const DEFAULT_SECTIONS: ClientSection[] = ['identity', 'ownership'];
 
 export function ClientSummaryCard({
   client,
@@ -204,8 +164,6 @@ export function ClientSummaryCard({
 
   const org = useMemo(() => getOrganizationDetails(client), [client]);
   const people = useMemo(() => getIndividualParties(client), [client]);
-  const verification = useMemo(() => getVerificationDetails(client), [client]);
-  const compliance = useMemo(() => getComplianceDetails(client), [client]);
 
   const statusType = getStatusType(client.status);
   const isApproved = client.status === 'APPROVED';
@@ -436,88 +394,6 @@ export function ClientSummaryCard({
               )
             }
           />
-        )}
-
-        {/* Onboarding sections - only when not approved */}
-        {!isApproved && (
-          <>
-            {/* Verification Section */}
-            {sections.includes('verification') && (
-              <SectionRow
-                section="verification"
-                icon={
-                  verification.isVerified
-                    ? BadgeCheck
-                    : verification.needsInfo
-                      ? AlertCircle
-                      : Clock
-                }
-                iconClassName={cn(
-                  verification.isVerified
-                    ? 'eb-text-green-600 dark:eb-text-green-400'
-                    : verification.needsInfo
-                      ? 'eb-text-amber-600 dark:eb-text-amber-400'
-                      : 'eb-text-gray-500'
-                )}
-                iconBgClassName={cn(
-                  verification.isVerified
-                    ? 'eb-bg-green-100 dark:eb-bg-green-900/30'
-                    : verification.needsInfo
-                      ? 'eb-bg-amber-100 dark:eb-bg-amber-900/30'
-                      : 'eb-bg-gray-100 dark:eb-bg-gray-900/30'
-                )}
-                title="Verification"
-                subtitle={
-                  verification.isVerified
-                    ? 'Identity verified'
-                    : verification.needsInfo
-                      ? 'Additional information requested'
-                      : 'Verification in progress'
-                }
-              />
-            )}
-
-            {/* Compliance Section */}
-            {sections.includes('compliance') && (
-              <SectionRow
-                section="compliance"
-                icon={FileText}
-                iconClassName={cn(
-                  compliance.isComplete
-                    ? 'eb-text-green-600 dark:eb-text-green-400'
-                    : 'eb-text-amber-600 dark:eb-text-amber-400'
-                )}
-                iconBgClassName={cn(
-                  compliance.isComplete
-                    ? 'eb-bg-green-100 dark:eb-bg-green-900/30'
-                    : 'eb-bg-amber-100 dark:eb-bg-amber-900/30'
-                )}
-                title="Documents & Questions"
-                badge={
-                  compliance.totalPending > 0 ? (
-                    <span className="eb-rounded eb-bg-amber-200 eb-px-1.5 eb-py-0.5 eb-text-xs eb-font-medium eb-text-amber-800 dark:eb-bg-amber-800/50 dark:eb-text-amber-200">
-                      {compliance.totalPending} pending
-                    </span>
-                  ) : null
-                }
-                subtitle={
-                  compliance.isComplete ? (
-                    'All requirements complete'
-                  ) : (
-                    <span>
-                      {compliance.pendingDocs > 0 &&
-                        `${compliance.pendingDocs} document${compliance.pendingDocs > 1 ? 's' : ''} needed`}
-                      {compliance.pendingDocs > 0 &&
-                        compliance.pendingQuestions > 0 &&
-                        ', '}
-                      {compliance.pendingQuestions > 0 &&
-                        `${compliance.pendingQuestions} question${compliance.pendingQuestions > 1 ? 's' : ''} to answer`}
-                    </span>
-                  )
-                }
-              />
-            )}
-          </>
         )}
       </div>
 

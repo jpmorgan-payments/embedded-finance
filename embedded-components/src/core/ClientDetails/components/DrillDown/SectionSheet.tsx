@@ -3,14 +3,12 @@
  * Maximizes content visibility with minimal chrome
  */
 
-import { X } from 'lucide-react';
-
 import { cn } from '@/lib/utils';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
-import { Button } from '@/components/ui/button';
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
@@ -38,12 +36,21 @@ interface SectionSheetProps {
 }
 
 const SECTION_TITLES: Record<ClientSection, string> = {
-  identity: 'Organization',
-  verification: 'Verification',
-  ownership: 'Ownership',
-  compliance: 'Compliance',
+  identity: 'Organization Details',
+  verification: 'Organization Details',
+  ownership: 'People',
+  compliance: 'Organization Details',
   accounts: 'Accounts',
   activity: 'Activity',
+};
+
+const SECTION_DESCRIPTIONS: Record<ClientSection, string> = {
+  identity: 'Business info, verification status, and compliance',
+  verification: 'Business info, verification status, and compliance',
+  ownership: 'Controllers and beneficial owners',
+  compliance: 'Business info, verification status, and compliance',
+  accounts: 'Linked accounts and payment instruments',
+  activity: 'Recent transactions and payment activity',
 };
 
 function SectionContent({
@@ -57,30 +64,21 @@ function SectionContent({
 }) {
   switch (section) {
     case 'identity':
-      return (
-        <div className="eb-space-y-3">
-          <OrganizationSection client={client} title="" />
-          <ControllerSection client={client} title="Controller" />
-        </div>
-      );
     case 'verification':
+    case 'compliance':
       return (
-        <div className="eb-space-y-3">
-          <ClientInfoSection client={client} title="" />
-          <ResultsSection client={client} title="" />
+        <div className="eb-space-y-6">
+          <OrganizationSection client={client} title="Business Information" />
+          <ClientInfoSection client={client} title="Application Status" />
+          <ResultsSection client={client} title="Verification" />
+          <QuestionResponsesSection client={client} title="Compliance" />
         </div>
       );
     case 'ownership':
       return (
-        <div className="eb-space-y-3">
-          <ControllerSection client={client} title="Controller" />
+        <div className="eb-space-y-6">
+          <ControllerSection client={client} title="Controllers" />
           <BeneficialOwnersSection client={client} title="Beneficial Owners" />
-        </div>
-      );
-    case 'compliance':
-      return (
-        <div className="eb-space-y-3">
-          <QuestionResponsesSection client={client} title="" />
         </div>
       );
     case 'accounts':
@@ -111,36 +109,25 @@ export function SectionSheet({
   if (!section) return null;
 
   const title = SECTION_TITLES[section];
+  const description = SECTION_DESCRIPTIONS[section];
   const showNavigation = sections && sections.length > 1 && onNavigate;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         className={cn(
-          'eb-flex eb-w-full eb-flex-col eb-overflow-hidden eb-p-0 sm:eb-max-w-lg',
+          'eb-flex eb-h-full eb-max-h-screen eb-w-full eb-flex-col eb-gap-0 eb-p-0 sm:eb-max-w-lg',
           className
         )}
       >
-        {/* Minimal Header */}
-        <SheetHeader className="eb-shrink-0 eb-border-b eb-border-border eb-px-3 eb-py-2">
-          <div className="eb-flex eb-items-center eb-justify-between">
-            <SheetTitle className="eb-text-sm eb-font-semibold eb-text-foreground">
-              {title}
-            </SheetTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="eb-h-6 eb-w-6"
-              onClick={() => onOpenChange(false)}
-              aria-label="Close"
-            >
-              <X className="eb-h-4 eb-w-4" aria-hidden="true" />
-            </Button>
-          </div>
+        {/* Header with its own padding */}
+        <SheetHeader className="eb-shrink-0 eb-border-b eb-border-border eb-px-6 eb-py-4 eb-pr-14">
+          <SheetTitle>{title}</SheetTitle>
+          <SheetDescription>{description}</SheetDescription>
         </SheetHeader>
 
-        {/* Content - takes most space */}
-        <div className="eb-flex-1 eb-overflow-y-auto eb-p-3">
+        {/* Content - scrollable with its own padding */}
+        <div className="eb-min-h-0 eb-flex-1 eb-overflow-y-auto eb-px-6 eb-py-4">
           <SectionContent
             client={client}
             clientId={clientId}
@@ -148,9 +135,9 @@ export function SectionSheet({
           />
         </div>
 
-        {/* Compact Navigation */}
+        {/* Navigation footer with its own padding */}
         {showNavigation && (
-          <div className="eb-shrink-0 eb-border-t eb-border-border eb-px-3 eb-py-2">
+          <div className="eb-shrink-0 eb-border-t eb-border-border eb-bg-muted/30 eb-px-6 eb-py-3">
             <SectionNavigation
               sections={sections}
               currentSection={section}

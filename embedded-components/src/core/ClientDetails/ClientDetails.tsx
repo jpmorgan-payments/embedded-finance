@@ -26,12 +26,7 @@ import {
 
 const DEFAULT_TITLE = 'Client details';
 
-const DEFAULT_SECTIONS: ClientSection[] = [
-  'identity',
-  'verification',
-  'ownership',
-  'compliance',
-];
+const DEFAULT_SECTIONS: ClientSection[] = ['identity', 'ownership'];
 
 function buildSectionInfos(
   client: ClientResponse,
@@ -132,8 +127,6 @@ export function ClientDetails({
     isLoading,
     isError,
     error,
-    refetch,
-    isRefetching,
   } = useSmbdoGetClient(clientId, {
     query: { enabled: !!clientId },
   });

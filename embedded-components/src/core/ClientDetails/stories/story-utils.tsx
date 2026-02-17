@@ -148,7 +148,9 @@ export function createClientDetailsHandlers(
       const fromMock = efClientQuestionsMock.questions.filter((q) =>
         ids.includes(q.id)
       );
+      // Stub descriptions for question IDs not in the mock
       const stubDescriptions: Record<string, string> = {
+        '30005': 'What is your total annual revenue in local currency?',
         '300001': 'In which country is your business primarily located?',
         '300002': 'Do you have a registered business address?',
         '300003': 'Is your business publicly traded?',
@@ -160,7 +162,13 @@ export function createClientDetailsHandlers(
           id,
           description: stubDescriptions[id] ?? `Question ${id}`,
           defaultLocale: 'en-US',
-          content: [],
+          content: [
+            {
+              description: stubDescriptions[id] ?? `Question ${id}`,
+              label: stubDescriptions[id] ?? `Question ${id}`,
+              locale: 'en-US',
+            },
+          ],
           responseSchema: { type: 'array', items: {} },
           subQuestions: [],
         }));
@@ -207,8 +215,81 @@ export function createClientDetailsHandlers(
   ];
 }
 
+// ============================================================================
+// Common Story Configuration
+// ============================================================================
+
+/**
+ * Common default args for ClientDetails stories
+ */
 export const commonArgs = {
   clientId: '0030000133',
-  viewMode: 'accordion' as const,
+  viewMode: 'summary' as const,
   title: 'Client details',
+  enableDrillDown: true,
+};
+
+/**
+ * Storybook controls and documentation for ClientDetails stories.
+ */
+export const commonArgTypes = {
+  clientId: {
+    control: { type: 'text' as const },
+    description: 'Client ID to fetch (GET /clients/:id)',
+    table: {
+      category: 'Data',
+      defaultValue: { summary: '0030000133' },
+    },
+  },
+  viewMode: {
+    control: { type: 'radio' as const },
+    options: ['summary', 'accordion', 'cards'],
+    description: 'Display mode for client information',
+    table: {
+      category: 'Display',
+      defaultValue: { summary: 'summary' },
+    },
+  },
+  title: {
+    control: { type: 'text' as const },
+    description: 'Section title (not used in summary mode)',
+    table: {
+      category: 'Display',
+      defaultValue: { summary: 'Client details' },
+    },
+  },
+  enableDrillDown: {
+    control: { type: 'boolean' as const },
+    description:
+      'Enable drill-down sheets when clicking sections (summary mode)',
+    table: {
+      category: 'Behavior',
+      defaultValue: { summary: 'true' },
+    },
+  },
+  sections: {
+    control: { type: 'check' as const },
+    options: [
+      'identity',
+      'verification',
+      'ownership',
+      'compliance',
+      'accounts',
+      'activity',
+    ],
+    description: 'Which sections to display (summary mode)',
+    table: {
+      category: 'Display',
+    },
+  },
+
+  // === Callbacks ===
+  onSectionClick: {
+    control: { disable: true },
+    description: 'Callback when a section is clicked (overrides drill-down)',
+    table: {
+      category: 'Callbacks',
+      type: { summary: '(section: ClientSection) => void' },
+    },
+  },
 };

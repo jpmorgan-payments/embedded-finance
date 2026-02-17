@@ -197,7 +197,7 @@ describe('ClientDetails', () => {
       ).not.toBeInTheDocument();
     });
 
-    test('renders onboarding sections for non-approved client', async () => {
+    test('renders summary sections for non-approved client', async () => {
       server.use(
         http.get('*/clients/:clientId', () =>
           HttpResponse.json(mockOnboardingClient)
@@ -210,15 +210,12 @@ describe('ClientDetails', () => {
         expect(screen.getByText('Business Details')).toBeInTheDocument();
       });
 
-      // For non-approved clients, onboarding sections should be visible
+      // Default sections are identity and ownership (verification & compliance consolidated into identity)
       expect(screen.getByText('People')).toBeInTheDocument();
-      // Verification and compliance sections are shown for non-approved clients
-      expect(screen.getByText('Verification')).toBeInTheDocument();
-      expect(screen.getByText('Documents & Questions')).toBeInTheDocument();
     });
 
     test('renders only specified sections when sections prop is provided', async () => {
-      // Use onboarding client to test section visibility (verification is only shown during onboarding)
+      // Use onboarding client to test section visibility
       server.use(
         http.get('*/clients/:clientId', () =>
           HttpResponse.json(mockOnboardingClient)
@@ -227,22 +224,15 @@ describe('ClientDetails', () => {
 
       renderComponent({
         viewMode: 'summary',
-        sections: ['identity', 'verification'],
+        sections: ['identity'],
       });
 
       await waitFor(() => {
         expect(screen.getByText('Business Details')).toBeInTheDocument();
       });
 
-      // For non-approved client with sections=['identity', 'verification'],
-      // should show Business Details and Verification (in onboarding sections)
-      expect(screen.getByText('Verification')).toBeInTheDocument();
-      // People section is excluded
+      // Only identity section should be visible (People/ownership excluded)
       expect(screen.queryByText('People')).not.toBeInTheDocument();
-      // Documents & Questions section is excluded
-      expect(
-        screen.queryByText('Documents & Questions')
-      ).not.toBeInTheDocument();
     });
 
     test('opens drill-down sheet when section is clicked', async () => {

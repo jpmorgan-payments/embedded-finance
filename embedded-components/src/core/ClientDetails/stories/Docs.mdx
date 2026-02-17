@@ -1,0 +1,160 @@
+import { Canvas, Controls, Description, Meta, Story } from '@storybook/blocks';
+
+import * as ClientDetailsStories from '../ClientDetails.story';
+
+<Meta title="Core/ClientDetails" of={ClientDetailsStories} />
+
+# ClientDetails
+
+The **ClientDetails** component displays comprehensive information for a fully onboarded client retrieved from `GET /clients/:id`. It provides three flexible view modes to suit different use cases.
+
+## Features
+
+- **Three View Modes**: Summary, Accordion, and Cards
+- **Drill-Down Navigation**: Click sections to view detailed information in slide-out sheets
+- **Custom Actions**: Add action buttons for workflows like editing or contacting support
+- **Section Filtering**: Choose which sections to display
+- **Status Indicators**: Visual badges for client approval status
+
+## View Modes
+
+| Mode          | Description                                          | Best For                                     |
+| ------------- | ---------------------------------------------------- | -------------------------------------------- |
+| **Summary**   | Compact card with quick stats and clickable sections | Dashboards, overviews, quick reference       |
+| **Accordion** | Collapsible sections showing full details            | Detailed review, printing, compliance checks |
+| **Cards**     | Grid of cards for each information section           | Visual browsing, side-by-side comparison     |
+
+## Summary Mode
+
+The summary view is designed for dashboard integration, providing at-a-glance information with the ability to drill down into details.
+
+### Key Features
+
+- **Business Header**: Organization name with DBA, type, and status badge
+- **Business Details Section**: Address and key business information
+- **People Section**: Shows beneficial owners count with controller name
+- **Documents Section**: Verification status and compliance information
+- **Drill-Down Sheets**: Click any section to open detailed view with navigation
+
+<Canvas of={ClientDetailsStories.Default} />
+
+### Controls
+
+<Controls of={ClientDetailsStories.Default} />
+
+## Accordion Mode
+
+Full detail view with collapsible sections, similar to the onboarding review experience.
+
+<Canvas of={ClientDetailsStories.AccordionView} />
+
+## Cards Mode
+
+Information grouped into visual cards in a responsive grid layout.
+
+<Canvas of={ClientDetailsStories.CardsView} />
+
+## Usage Examples
+
+### Basic Usage
+
+```tsx
+import { ClientDetails } from '@embedded-components/core/ClientDetails';
+
+// Summary view (default)
+<ClientDetails clientId="0030000133" />
+
+// Accordion view
+<ClientDetails clientId="0030000133" viewMode="accordion" />
+
+// Cards view
+<ClientDetails clientId="0030000133" viewMode="cards" />
+```
+
+### Custom Sections
+
+Display only specific sections relevant to your use case:
+
+```tsx
+<ClientDetails
+  clientId="0030000133"
+  sections={['identity', 'verification', 'ownership']}
+/>
+```
+
+### With Custom Actions
+
+Add action buttons for your workflow:
+
+```tsx
+<ClientDetails
+  clientId="0030000133"
+  actions={
+    <>
+      <Button variant="outline" size="sm">
+        Contact Support
+      </Button>
+      <Button variant="default" size="sm">
+        Edit Client
+      </Button>
+    </>
+  }
+/>
+```
+
+### External Navigation Handler
+
+Handle section clicks externally for custom routing:
+
+```tsx
+<ClientDetails
+  clientId="0030000133"
+  onSectionClick={(section) => {
+    navigate(`/client/${clientId}/${section}`);
+  }}
+/>
+```
+
+## Available Sections
+
+| Section        | Description                                  |
+| -------------- | -------------------------------------------- |
+| `identity`     | Business identity and registration details   |
+| `verification` | KYC/KYB verification status and results      |
+| `ownership`    | Beneficial owners and controllers            |
+| `compliance`   | Compliance questionnaire responses           |
+| `accounts`     | Associated bank accounts (when available)    |
+| `activity`     | Recent transaction activity (when available) |
+
+## Props
+
+| Prop              | Type                                  | Default            | Description                              |
+| ----------------- | ------------------------------------- | ------------------ | ---------------------------------------- |
+| `clientId`        | `string`                              | Required           | Client ID to fetch                       |
+| `viewMode`        | `'summary' \| 'accordion' \| 'cards'` | `'summary'`        | Display mode                             |
+| `title`           | `string`                              | `'Client details'` | Section title (accordion/cards modes)    |
+| `enableDrillDown` | `boolean`                             | `true`             | Enable drill-down sheets in summary mode |
+| `sections`        | `ClientSection[]`                     | All sections       | Which sections to display                |
+| `onSectionClick`  | `(section) => void`                   | -                  | External navigation handler              |
+| `actions`         | `ReactNode`                           | -                  | Custom action buttons                    |
+
+## States
+
+### Loading State
+
+Shows skeleton placeholders while fetching client data.
+
+<Canvas of={ClientDetailsStories.Loading} />
+
+### Error State
+
+Displays error message when client fetch fails.
+
+<Canvas of={ClientDetailsStories.Error} />
+
+### Status Variations
+
+The component displays appropriate status badges for non-approved clients:
+
+- **In Review**: Client is under review
+- **Information Requested**: Additional information needed from the client
