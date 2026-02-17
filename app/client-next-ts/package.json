@@ -15,7 +15,8 @@
     "health-check:linked-bank": "node health-check.js --scenario=linked-bank-account",
     "health-check:onboarding": "node health-check.js --scenario=onboarding-docs-needed",
     "health-check:all": "npm run health-check && npm run health-check:linked-bank && npm run health-check:onboarding",
-    "e2e:sellsense-urls": "playwright test tests/e2e/sellsense-demo-urls.spec.ts"
+    "e2e:sellsense-urls": "playwright test tests/e2e/sellsense-demo-urls.spec.ts",
+    "e2e:recipients": "playwright test tests/e2e/recipients-widget.spec.ts"
   },
   "dependencies": {
     "@jpmorgan-payments/embedded-finance-components": "^0.11.7",
@@ -53,7 +54,7 @@
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
-    "@playwright/test": "^1.56.1",
+    "@playwright/test": "^1.58.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.2.0",
