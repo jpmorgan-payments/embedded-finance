@@ -180,7 +180,6 @@ export function ClientSummaryCard({
   const people = useMemo(() => getIndividualParties(client), [client]);
 
   const statusType = getStatusType(client.status);
-  const isApproved = client.status === 'APPROVED';
 
   // Determine click behavior:
   // - External handler: use onSectionClick callback
@@ -219,7 +218,7 @@ export function ClientSummaryCard({
     badge?: React.ReactNode;
     children?: React.ReactNode;
   }) => (
-    <>
+    <div className="eb-flex eb-w-full eb-items-start eb-gap-2 @sm:eb-gap-3">
       {/* Large container: Icon in colored box */}
       <div
         className={cn(
@@ -250,7 +249,7 @@ export function ClientSummaryCard({
           {badge}
         </div>
         {subtitle && (
-          <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
+          <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground eb-duration-300 eb-animate-in eb-fade-in">
             {subtitle}
           </div>
         )}
@@ -262,7 +261,7 @@ export function ClientSummaryCard({
           aria-hidden="true"
         />
       )}
-    </>
+    </div>
   );
 
   // Reusable section row - wraps with Dialog when using built-in, otherwise uses button
@@ -280,7 +279,7 @@ export function ClientSummaryCard({
     children?: React.ReactNode;
   }) => {
     const rowClassName = cn(
-      'eb-group eb-flex eb-w-full eb-items-start eb-gap-2 eb-p-3 eb-text-left eb-transition-colors @sm:eb-gap-3',
+      'eb-group eb-w-full eb-p-3 eb-text-left eb-transition-colors @sm:eb-gap-3',
       isClickable
         ? 'hover:eb-bg-muted/50 active:eb-bg-muted/70 eb-cursor-pointer'
         : 'eb-cursor-default'
@@ -332,8 +331,8 @@ export function ClientSummaryCard({
             />
           </div>
 
-          {/* Business Info */}
-          <div className="eb-min-w-0 eb-flex-1">
+          {/* Business Info - dynamic content with fade-in */}
+          <div className="eb-min-w-0 eb-flex-1 eb-duration-300 eb-animate-in eb-fade-in">
             <h2 className="eb-text-lg eb-font-semibold eb-leading-tight eb-text-foreground">
               {org.name}
             </h2>
@@ -346,21 +345,19 @@ export function ClientSummaryCard({
               </p>
             )}
 
-            {/* Status - only show if not approved */}
-            {!isApproved && (
-              <div className="eb-mt-2 eb-flex eb-items-center eb-gap-1.5 eb-text-xs eb-text-muted-foreground">
-                <span
-                  className={cn(
-                    'eb-h-2 eb-w-2 eb-rounded-full',
-                    statusType === 'success' && 'eb-bg-green-500',
-                    statusType === 'warning' && 'eb-bg-amber-500',
-                    statusType === 'error' && 'eb-bg-red-500',
-                    statusType === 'pending' && 'eb-bg-blue-500'
-                  )}
-                />
-                <span>{translatedStatus}</span>
-              </div>
-            )}
+            {/* Status indicator */}
+            <div className="eb-mt-2 eb-flex eb-items-center eb-gap-1.5 eb-text-xs eb-text-muted-foreground">
+              <span
+                className={cn(
+                  'eb-h-2 eb-w-2 eb-rounded-full',
+                  statusType === 'success' && 'eb-bg-green-500',
+                  statusType === 'warning' && 'eb-bg-amber-500',
+                  statusType === 'error' && 'eb-bg-red-500',
+                  statusType === 'pending' && 'eb-bg-blue-500'
+                )}
+              />
+              <span>{translatedStatus}</span>
+            </div>
           </div>
         </div>
       </div>
