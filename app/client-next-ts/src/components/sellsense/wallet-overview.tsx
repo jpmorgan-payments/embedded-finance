@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import {
   Accounts,
+  ClientDetails,
   EBComponentsProvider,
   LinkedAccountWidget,
   PaymentFlow,
@@ -31,6 +32,7 @@ import {
   type ComponentConfig,
   type ComponentName,
 } from './scenarios-config';
+import { getClientIdForScenario } from './scenarios-config';
 import { createFullscreenUrl, EmbeddedComponentCard } from './shared';
 import { useThemeStyles } from './theme-utils';
 import { useSellSenseThemes } from './use-sellsense-themes';
@@ -93,6 +95,9 @@ export function WalletOverview({
   // Get visible components with positions for the current scenario
   const visibleComponents =
     getVisibleComponentsForScenario(currentScenario) || [];
+
+  // Get clientId for the current scenario (if defined)
+  const scenarioClientId = getClientIdForScenario(currentScenario);
 
   // Get grid dimensions for the current scenario
   const { maxRows, maxColumns } = getGridDimensions(currentScenario);
@@ -193,7 +198,7 @@ export function WalletOverview({
       component: (
         <Accounts
           allowedCategories={['LIMITED_DDA_PAYMENTS', 'LIMITED_DDA']}
-          clientId="0030000131"
+          clientId={scenarioClientId || '0030000131'}
         />
       ),
     },
@@ -287,6 +292,34 @@ export function WalletOverview({
             <p className="mt-2 text-sm">
               This component is available but not yet implemented in this demo
             </p>
+          </div>
+        </div>
+      ),
+    },
+    [AVAILABLE_COMPONENTS.CLIENT_DETAILS]: {
+      title: 'Client Details',
+      description: 'View your client details and information.',
+      componentName: 'ClientDetails',
+      componentDescription:
+        'A comprehensive widget for displaying client details and information.',
+      componentFeatures: [
+        'View client details and information',
+      ],
+      component: scenarioClientId ? (
+        <ClientDetails clientId={scenarioClientId} />
+      ) : (
+        <div
+          className={`rounded-lg border p-6 ${themeStyles.getCardStyles()}`}
+        >
+          <h2
+            className={`mb-4 text-xl font-semibold ${themeStyles.getHeaderTextStyles()}`}
+          >
+            Client Details
+          </h2>
+          <div
+            className={`py-4 text-sm ${themeStyles.getHeaderLabelStyles()}`}
+          >
+            Client details are not available for this scenario.
           </div>
         </div>
       ),
@@ -415,7 +448,9 @@ export function WalletOverview({
   };
 
   const isFullWidthComponent = (componentName: string) =>
-    componentName === 'TransactionsDisplay' || componentName === 'Recipients';
+    componentName === 'TransactionsDisplay' ||
+    componentName === 'Recipients' ||
+    componentName === 'ClientDetails';
 
   // Helper function to render components in grid layout
   const renderGridLayout = () => {

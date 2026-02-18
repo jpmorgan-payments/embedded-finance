@@ -5,7 +5,6 @@ import { Preview } from '@storybook/react-vite';
 import { DefaultOptions } from '@tanstack/react-query';
 import { initialize, mswLoader } from 'msw-storybook-addon';
 import { createPortal } from 'react-dom';
-import { themes } from 'storybook/theming';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
@@ -278,12 +277,6 @@ const preview: Preview = {
   loaders: [mswLoader, async () => await mockWatcher],
 
   parameters: {
-    darkMode: {
-      stylePreview: true,
-      dark: { ...themes.dark, appPreviewBg: 'dark' },
-      light: { ...themes.normal },
-    },
-
     docs: {
       codePanel: true,
     },
@@ -385,10 +378,5 @@ const preview: Preview = {
   },
 
   decorators: [withEBComponentsProvider],
-
-  // Set the initial entry to the introduction page
-  initialGlobals: {
-    sb_theme: 'light',
-  },
 };
 export default preview;

@@ -62,8 +62,20 @@ describe('EBComponentsProvider', () => {
 
     // Verify that error was logged
     expect(mockConsoleError).toHaveBeenCalled();
-    // Check if the error message contains our test error
-    expect(mockConsoleError.mock.calls[0][0]).toContain('Test error message');
+    // React/Vitest can emit multiple error logs with varying formats.
+    // Assert that at least one logged argument contains the thrown error message.
+    const hasTestErrorMessage = mockConsoleError.mock.calls.some((callArgs) =>
+      callArgs.some((arg) => {
+        if (typeof arg === 'string') {
+          return arg.includes('Test error message');
+        }
+        if (arg instanceof Error) {
+          return arg.message.includes('Test error message');
+        }
+        return false;
+      })
+    );
+    expect(hasTestErrorMessage).toBe(true);
   });
 
   it('isolates errors to specific components', () => {
