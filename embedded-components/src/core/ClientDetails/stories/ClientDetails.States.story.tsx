@@ -20,7 +20,7 @@ type ClientDetailsStoryArgs = Omit<BaseStoryArgs, 'clientId'> &
   ClientDetailsProps;
 
 const meta: Meta<ClientDetailsStoryArgs> = {
-  title: 'Core/ClientDetails/States',
+  title: 'Beta/ClientDetails/States',
   component: ClientDetails,
   tags: ['@core', '@client-details'],
   parameters: {
