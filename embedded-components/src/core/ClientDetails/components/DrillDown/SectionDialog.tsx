@@ -16,13 +16,9 @@ import {
 
 import { Accounts } from '../../../Accounts';
 import { TransactionsDisplay } from '../../../TransactionsDisplay';
-import { BeneficialOwnersSection } from '../ClientDetailsContent/BeneficialOwnersSection';
-import { ClientInfoSection } from '../ClientDetailsContent/ClientInfoSection';
-import { ControllerSection } from '../ClientDetailsContent/ControllerSection';
-import { OrganizationSection } from '../ClientDetailsContent/OrganizationSection';
-import { QuestionResponsesSection } from '../ClientDetailsContent/QuestionResponsesSection';
-import { ResultsSection } from '../ClientDetailsContent/ResultsSection';
+import { PeopleSection } from '../ClientDetailsContent/PeopleSection';
 import type { ClientSection, SectionInfo } from '../Summary/SectionList';
+import { BusinessDetailsContent } from './BusinessDetailsContent';
 import { SectionNavigation } from './SectionNavigation';
 
 export interface SectionDialogProps {
@@ -43,10 +39,10 @@ export interface SectionDialogProps {
 }
 
 const SECTION_TITLES: Record<ClientSection, string> = {
-  identity: 'Organization Details',
-  verification: 'Organization Details',
+  identity: 'Business Details',
+  verification: 'Business Details',
   ownership: 'People',
-  compliance: 'Organization Details',
+  compliance: 'Business Details',
   accounts: 'Accounts',
   activity: 'Activity',
 };
@@ -73,21 +69,9 @@ function SectionContent({
     case 'identity':
     case 'verification':
     case 'compliance':
-      return (
-        <div className="eb-space-y-6">
-          <OrganizationSection client={client} title="Business Information" />
-          <ClientInfoSection client={client} title="Application Status" />
-          <ResultsSection client={client} title="Verification" />
-          <QuestionResponsesSection client={client} title="Compliance" />
-        </div>
-      );
+      return <BusinessDetailsContent client={client} />;
     case 'ownership':
-      return (
-        <div className="eb-space-y-6">
-          <ControllerSection client={client} title="Controllers" />
-          <BeneficialOwnersSection client={client} title="Beneficial Owners" />
-        </div>
-      );
+      return <PeopleSection client={client} title="" />;
     case 'accounts':
       return (
         <Accounts

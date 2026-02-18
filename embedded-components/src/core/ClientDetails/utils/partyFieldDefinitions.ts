@@ -3,7 +3,7 @@
  * Business-facing labels and formatted values only (no internal IDs).
  */
 
-import { formatJobTitleDisplay, formatRoleLabels } from './formatClientFacing';
+import { formatJobTitleDisplay } from './formatClientFacing';
 
 export interface PartyFieldConfig {
   label: string;
@@ -82,13 +82,8 @@ export const organizationFieldDefinitions: PartyFieldConfig[] = [
   },
 ];
 
-/** Individual fields: role/job → name → personal → ownership → contact → IDs */
+/** Individual fields: job → name → personal → ownership → contact → IDs */
 export const individualFieldDefinitions: PartyFieldConfig[] = [
-  {
-    label: 'Role',
-    path: 'roles',
-    transform: (v) => formatRoleLabels(Array.isArray(v) ? v : undefined),
-  },
   {
     label: 'Job title',
     path: 'individualDetails',

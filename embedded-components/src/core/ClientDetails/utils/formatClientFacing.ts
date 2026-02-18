@@ -25,8 +25,8 @@ const CUSTOMER_IDENTITY_STATUS_LABELS: Record<string, string> = {
 };
 
 const PRODUCT_LABELS: Record<string, string> = {
-  EMBEDDED_PAYMENTS: 'Embedded payments',
-  MERCHANT_SERVICES: 'Merchant services',
+  EMBEDDED_PAYMENTS: 'Embedded Payments',
+  MERCHANT_SERVICES: 'Merchant Services',
 };
 
 export function formatApplicationStatus(status: string | undefined): string {
