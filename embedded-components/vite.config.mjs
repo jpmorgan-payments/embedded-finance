@@ -31,9 +31,26 @@ export default defineConfig(({ mode }) => {
       },
     },
     test: {
+      // Keep test discovery constrained for Vitest v4 performance and predictability.
+      dir: './src',
+      // Coverage-instrumented runs are slower in Vitest v4; keep UI/form tests stable.
+      testTimeout: 20000,
       globals: true,
       environment: 'jsdom',
       setupFiles: './vitest.setup.mjs',
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'html'],
+        // Vitest v4 includes only covered files by default; define include explicitly.
+        include: ['src/**/*.{ts,tsx}'],
+        exclude: [
+          '**/*.test.{ts,tsx}',
+          '**/*.story.{ts,tsx}',
+          '**/*.d.ts',
+          '**/api/generated/**',
+          '**/node_modules/**',
+        ],
+      },
     },
     build: {
       lib: {

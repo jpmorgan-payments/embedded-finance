@@ -289,6 +289,7 @@ export function createFullscreenUrl(
     TransactionsDisplay: 'transactions',
     MakePayment: 'make-payment',
     OnboardingFlow: 'onboarding',
+    ClientDetails: 'client-details',
   };
 
   const params = new URLSearchParams({
