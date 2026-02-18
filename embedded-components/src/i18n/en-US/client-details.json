@@ -1,0 +1,113 @@
+{
+  "sections": {
+    "businessInformation": "Business Information",
+    "contactInformation": "Contact Information",
+    "questionResponses": "Question Responses",
+    "accountStatus": "Account Status",
+    "technicalDetails": "Technical Details",
+    "businessDetails": "Business Details",
+    "people": "People",
+    "clientInfo": "Client information",
+    "organization": "Organization",
+    "controller": "Controller",
+    "beneficialOwners": "Beneficial owners",
+    "verificationResults": "Verification results"
+  },
+  "labels": {
+    "businessName": "Business Name",
+    "dbaName": "Doing Business As",
+    "businessType": "Business Type",
+    "industry": "Industry",
+    "industryCode": "Industry Code",
+    "ein": "EIN",
+    "countryOfFormation": "Country of Formation",
+    "yearOfFormation": "Year of Formation",
+    "jurisdiction": "Jurisdiction",
+    "products": "Products",
+    "applicationStatus": "Application Status",
+    "identityVerification": "Identity Verification",
+    "clientId": "Client ID",
+    "created": "Created",
+    "addressContactInfo": "Address, contact info, and more",
+    "noOwnershipInfo": "No ownership info on file",
+    "controllerAndOwner": "(Controller & Owner)",
+    "controller": "(Controller)",
+    "owner": "(Owner)"
+  },
+  "maskedValue": {
+    "showValue": "Show value",
+    "hideValue": "Hide value"
+  },
+  "applicationStatuses": {
+    "APPROVED": "Approved",
+    "DECLINED": "Declined",
+    "INFORMATION_REQUESTED": "Information Requested",
+    "NEW": "New",
+    "REVIEW_IN_PROGRESS": "Review in Progress",
+    "SUSPENDED": "Suspended",
+    "TERMINATED": "Terminated"
+  },
+  "identityStatuses": {
+    "APPROVED": "Approved",
+    "INFORMATION_REQUESTED": "Information Requested",
+    "NOT_STARTED": "Not Started",
+    "REVIEW_IN_PROGRESS": "Review in Progress"
+  },
+  "products": {
+    "EMBEDDED_PAYMENTS": "Embedded Payments",
+    "MERCHANT_SERVICES": "Merchant Services"
+  },
+  "businessTypes": {
+    "LIMITED_LIABILITY_COMPANY": "Limited Liability Company (LLC)",
+    "LIMITED_LIABILITY_PARTNERSHIP": "Limited Liability Partnership (LLP)",
+    "GENERAL_PARTNERSHIP": "General Partnership",
+    "LIMITED_PARTNERSHIP": "Limited Partnership",
+    "C_CORPORATION": "C Corporation",
+    "S_CORPORATION": "S Corporation",
+    "PARTNERSHIP": "Partnership",
+    "NON_PROFIT_CORPORATION": "Non-Profit Corporation",
+    "GOVERNMENT_ENTITY": "Government Entity",
+    "SOLE_PROPRIETORSHIP": "Sole Proprietorship",
+    "UNINCORPORATED_ASSOCIATION": "Unincorporated Association",
+    "PUBLICLY_TRADED_COMPANY": "Publicly Traded Company"
+  },
+  "roles": {
+    "CLIENT": "Client",
+    "CONTROLLER": "Controller",
+    "BENEFICIAL_OWNER": "Beneficial Owner"
+  },
+  "dialogTitles": {
+    "identity": "Business Details",
+    "verification": "Business Details",
+    "ownership": "People",
+    "compliance": "Business Details",
+    "accounts": "Accounts",
+    "activity": "Activity"
+  },
+  "dialogDescriptions": {
+    "identity": "Business info, verification status, and compliance",
+    "verification": "Business info, verification status, and compliance",
+    "ownership": "Controllers and beneficial owners",
+    "compliance": "Business info, verification status, and compliance",
+    "accounts": "Linked accounts and payment instruments",
+    "activity": "Recent transactions and payment activity"
+  },
+  "peopleLabels": {
+    "jobTitle": "Job Title",
+    "firstName": "First Name",
+    "middleName": "Middle Name",
+    "lastName": "Last Name",
+    "nameSuffix": "Name Suffix",
+    "birthDate": "Birth Date",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "ssn": "SSN",
+    "ownershipPercentage": "Ownership"
+  },
+  "booleanValues": {
+    "true": "Yes",
+    "false": "No"
+  },
+  "emptyValue": "—"
+}

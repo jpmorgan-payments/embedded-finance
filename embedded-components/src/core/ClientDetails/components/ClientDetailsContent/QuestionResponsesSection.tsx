@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { useSmbdoListQuestions } from '@/api/generated/smbdo';
@@ -15,13 +16,22 @@ interface QuestionResponsesSectionProps {
   title?: string;
 }
 
-/** Fallback when question details are not available (no internal ID shown). */
-const QUESTION_LABEL_UNAVAILABLE = 'Question text unavailable';
-
 export function QuestionResponsesSection({
   client,
-  title = 'Question responses',
+  title,
 }: QuestionResponsesSectionProps) {
+  const { t, i18n } = useTranslation('client-details');
+  const locale =
+    i18n.resolvedLanguage
+      ?.replace('_', '-')
+      .replace('US', '-US')
+      .replace('CA', '-CA') || 'en-US';
+
+  const sectionTitle = title ?? t('sections.questionResponses');
+  const questionLabelUnavailable = t('labels.questionTextUnavailable', {
+    defaultValue: 'Question text unavailable',
+  });
+
   const questionResponses = client.questionResponses ?? [];
   const questionIds = useMemo(
     () =>
@@ -59,7 +69,9 @@ export function QuestionResponsesSection({
       ) : null}
       {questionResponses.length === 0 ? (
         <p className="eb-py-2 eb-text-sm eb-text-muted-foreground">
-          No question responses.
+          {t('labels.noQuestionResponses', {
+            defaultValue: 'No question responses.',
+          })}
         </p>
       ) : showLoading ? (
         <dl className="eb-divide-y eb-divide-border/60">
@@ -83,8 +95,13 @@ export function QuestionResponsesSection({
             const question = questions.find((q) => q.id === qr.questionId);
             const questionLabel = question?.description?.trim()
               ? question.description.trim()
-              : QUESTION_LABEL_UNAVAILABLE;
-            const displayValue = formatQuestionResponseValue(qr);
+              : questionLabelUnavailable;
+            const rawValue = formatQuestionResponseValue(qr, locale);
+            // Translate boolean values using i18n
+            const displayValue =
+              rawValue === 'true' || rawValue === 'false'
+                ? t(`booleanValues.${rawValue}`)
+                : rawValue;
 
             return (
               <div

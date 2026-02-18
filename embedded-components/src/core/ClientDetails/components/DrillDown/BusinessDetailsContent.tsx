@@ -28,12 +28,7 @@ import {
 } from '@/components/ui/collapsible';
 import { Separator } from '@/components/ui/separator';
 
-import {
-  formatApplicationStatus,
-  formatCustomerIdentityStatus,
-  formatDateTime,
-  formatProducts,
-} from '../../utils/formatClientFacing';
+import { formatDateTime, formatEIN } from '../../utils/formatClientFacing';
 import { getOrganizationParty } from '../../utils/partyGrouping';
 import { QuestionResponsesSection } from '../ClientDetailsContent/QuestionResponsesSection';
 
@@ -170,7 +165,12 @@ const MaskedValue: React.FC<MaskedValueProps> = ({
 export function BusinessDetailsContent({
   client,
 }: BusinessDetailsContentProps) {
-  const { t } = useTranslation(['client-details', 'onboarding-overview']);
+  const { t, i18n } = useTranslation(['client-details', 'onboarding-overview']);
+  const locale =
+    i18n.resolvedLanguage
+      ?.replace('_', '-')
+      .replace('US', '-US')
+      .replace('CA', '-CA') || 'en-US';
   const org = getOrganizationParty(client);
   const orgDetails = org?.organizationDetails;
   const address = orgDetails?.addresses?.[0];
@@ -179,18 +179,24 @@ export function BusinessDetailsContent({
 
   // Translate business type using i18n tokens
   const translatedOrgType = orgDetails?.organizationType
-    ? t(`onboarding-overview:organizationTypes.${orgDetails.organizationType}`, {
-        defaultValue: orgDetails.organizationType.replace(/_/g, ' '),
-      })
+    ? t(
+        `onboarding-overview:organizationTypes.${orgDetails.organizationType}`,
+        {
+          defaultValue: orgDetails.organizationType.replace(/_/g, ' '),
+        }
+      )
     : null;
 
-  // Format industry to show both category and type if available
-  const industryDisplay = [
+  // Format industry description and code
+  const industryDescription = [
     orgDetails?.industryCategory,
     orgDetails?.industryType,
   ]
     .filter(Boolean)
     .join(' — ');
+
+  // Get industry code from the industry object
+  const industryCode = orgDetails?.industry?.code;
 
   // Format address lines
   const addressLines = address
@@ -234,15 +240,21 @@ export function BusinessDetailsContent({
           />
           <DetailRow
             label={t('client-details:labels.industry')}
-            value={industryDisplay || null}
+            value={industryDescription || null}
           />
+          {industryCode && (
+            <DetailRow
+              label={t('client-details:labels.industryCode')}
+              value={industryCode}
+            />
+          )}
           {ein?.value && (
             <DetailRow
               label={t('client-details:labels.ein')}
               value={
                 <MaskedValue
-                  value={ein.value}
-                  maskedValue={`****${ein.value.slice(-4)}`}
+                  value={formatEIN(ein.value) || ein.value}
+                  maskedValue={`**-***${ein.value.slice(-4)}`}
                   showLabel={t('client-details:maskedValue.showValue')}
                   hideLabel={t('client-details:maskedValue.hideValue')}
                 />
@@ -328,7 +340,7 @@ export function BusinessDetailsContent({
           <Separator />
           <QuestionResponsesSection
             client={client}
-            title="Question Responses"
+            title={t('client-details:sections.questionResponses')}
           />
         </>
       )}
@@ -336,21 +348,43 @@ export function BusinessDetailsContent({
       {/* Account & Application Status */}
       <Separator />
       <Section
-        title="Account Status"
+        title={t('client-details:sections.accountStatus')}
         icon={<ClipboardCheckIcon className="eb-h-4 eb-w-4" />}
       >
         <div className="eb-space-y-3">
-          <DetailRow label="Products" value={formatProducts(client.products)} />
           <DetailRow
-            label="Application Status"
-            value={formatApplicationStatus(client.status)}
+            label={t('client-details:labels.products')}
+            value={
+              client.products?.length
+                ? client.products
+                    .map((p) =>
+                      t(`client-details:products.${p}`, { defaultValue: p })
+                    )
+                    .join(', ')
+                : t('client-details:emptyValue')
+            }
+          />
+          <DetailRow
+            label={t('client-details:labels.applicationStatus')}
+            value={
+              client.status
+                ? t(`client-details:applicationStatuses.${client.status}`, {
+                    defaultValue: client.status,
+                  })
+                : t('client-details:emptyValue')
+            }
           />
           {results && (
             <DetailRow
-              label="Identity Verification"
-              value={formatCustomerIdentityStatus(
+              label={t('client-details:labels.identityVerification')}
+              value={
                 results.customerIdentityStatus
-              )}
+                  ? t(
+                      `client-details:identityStatuses.${results.customerIdentityStatus}`,
+                      { defaultValue: results.customerIdentityStatus }
+                    )
+                  : t('client-details:emptyValue')
+              }
             />
           )}
         </div>
@@ -359,19 +393,19 @@ export function BusinessDetailsContent({
       {/* Technical Details - Collapsible */}
       <Separator />
       <CollapsibleSection
-        title="Technical Details"
+        title={t('client-details:sections.technicalDetails')}
         icon={<CalendarIcon className="eb-h-4 eb-w-4" />}
         defaultOpen={false}
       >
         <div className="eb-space-y-2">
           <DetailRow
-            label="Client ID"
+            label={t('client-details:labels.clientId')}
             value={<span className="eb-font-mono eb-text-xs">{client.id}</span>}
             small
           />
           <DetailRow
-            label="Created"
-            value={formatDateTime(client.createdAt)}
+            label={t('client-details:labels.created')}
+            value={formatDateTime(client.createdAt, locale)}
             small
           />
         </div>

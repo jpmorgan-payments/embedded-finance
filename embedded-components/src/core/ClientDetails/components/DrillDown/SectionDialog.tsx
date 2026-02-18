@@ -3,6 +3,8 @@
  * Following the RecipientDetailsDialog pattern from RecipientsWidget
  */
 
+import { useTranslation } from 'react-i18next';
+
 import { cn } from '@/lib/utils';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 import {
@@ -16,9 +18,9 @@ import {
 
 import { Accounts } from '../../../Accounts';
 import { TransactionsDisplay } from '../../../TransactionsDisplay';
-import { PeopleSection } from '../ClientDetailsContent/PeopleSection';
 import type { ClientSection, SectionInfo } from '../Summary/SectionList';
 import { BusinessDetailsContent } from './BusinessDetailsContent';
+import { PeopleDetailsContent } from './PeopleDetailsContent';
 import { SectionNavigation } from './SectionNavigation';
 
 export interface SectionDialogProps {
@@ -38,24 +40,6 @@ export interface SectionDialogProps {
   className?: string;
 }
 
-const SECTION_TITLES: Record<ClientSection, string> = {
-  identity: 'Business Details',
-  verification: 'Business Details',
-  ownership: 'People',
-  compliance: 'Business Details',
-  accounts: 'Accounts',
-  activity: 'Activity',
-};
-
-const SECTION_DESCRIPTIONS: Record<ClientSection, string> = {
-  identity: 'Business info, verification status, and compliance',
-  verification: 'Business info, verification status, and compliance',
-  ownership: 'Controllers and beneficial owners',
-  compliance: 'Business info, verification status, and compliance',
-  accounts: 'Linked accounts and payment instruments',
-  activity: 'Recent transactions and payment activity',
-};
-
 function SectionContent({
   client,
   clientId,
@@ -71,7 +55,7 @@ function SectionContent({
     case 'compliance':
       return <BusinessDetailsContent client={client} />;
     case 'ownership':
-      return <PeopleSection client={client} title="" />;
+      return <PeopleDetailsContent client={client} />;
     case 'accounts':
       return (
         <Accounts
@@ -100,8 +84,9 @@ export function SectionDialog({
   children,
   className,
 }: SectionDialogProps) {
-  const title = SECTION_TITLES[section];
-  const description = SECTION_DESCRIPTIONS[section];
+  const { t } = useTranslation('client-details');
+  const title = t(`dialogTitles.${section}`);
+  const description = t(`dialogDescriptions.${section}`);
   const showNavigation = sections && sections.length > 1 && onNavigate;
 
   return (
