@@ -472,20 +472,41 @@ Virtual scrolling with infinite load for handling large account lists efficientl
 ### With Payment Flow
 
 ```tsx
-<LinkedAccountWidget
-  mode="single"
-  renderPaymentAction={(recipient) => (
-    <MakePayment
-      fromAccountId={recipient.id}
-      onPaymentComplete={handlePaymentComplete}
-    />
-  )}
-  onAccountLinked={(recipient) => {
-    if (recipient?.status === 'ACTIVE') {
-      setSelectedAccount(recipient);
-    }
-  }}
-/>
+import { PaymentFlow } from '@embedded-components';
+
+function MyComponent() {
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [selectedRecipientId, setSelectedRecipientId] = useState<string>();
+
+  return (
+    <>
+      <LinkedAccountWidget
+        mode="single"
+        renderPaymentAction={(recipient) => (
+          <Button
+            onClick={() => {
+              setSelectedRecipientId(recipient.id);
+              setPaymentOpen(true);
+            }}
+          >
+            Pay
+          </Button>
+        )}
+        onAccountLinked={(recipient) => {
+          if (recipient?.status === 'ACTIVE') {
+            setSelectedAccount(recipient);
+          }
+        }}
+      />
+      <PaymentFlow
+        open={paymentOpen}
+        onOpenChange={setPaymentOpen}
+        initialPayeeId={selectedRecipientId}
+        onTransactionComplete={handlePaymentComplete}
+      />
+    </>
+  );
+}
 ```
 
 ### With Analytics/Tracking

@@ -1,10 +1,11 @@
 'use client';
 
 import React from 'react';
-import { Building2, Check, Plus, User } from 'lucide-react';
+import { Building2, Plus, User } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
+import { RadioIndicator } from '../components/RadioIndicator';
 import type { Payee } from '../PaymentFlow.types';
 
 interface PayeeListItemProps {
@@ -51,9 +52,11 @@ export function PayeeListItem({
       aria-label={`${isSelected ? 'Selected: ' : ''}${payee.name}${accountSuffix}`}
       aria-pressed={isSelected}
     >
-      <div className="eb-flex eb-h-7 eb-w-7 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted">
+      <RadioIndicator isSelected={isSelected} size="sm" />
+
+      <div className="eb-flex eb-h-7 eb-w-7 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary/10">
         <Icon
-          className="eb-h-3.5 eb-w-3.5 eb-text-muted-foreground"
+          className="eb-h-3.5 eb-w-3.5 eb-text-primary"
           aria-hidden="true"
         />
       </div>
@@ -66,13 +69,6 @@ export function PayeeListItem({
           </span>
         )}
       </div>
-
-      {isSelected && (
-        <Check
-          className="eb-h-4 eb-w-4 eb-shrink-0 eb-text-primary"
-          aria-hidden="true"
-        />
-      )}
     </button>
   );
 }

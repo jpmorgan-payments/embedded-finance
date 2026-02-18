@@ -1062,7 +1062,6 @@
   },
   "idValueLabels": {
     "placeholder": "Enter ID value",
-
     "SSN": "Social Security Number",
     "ITIN": "Individual Taxpayer Identification Number",
     "NATIONAL_ID": "National ID",
@@ -1070,7 +1069,6 @@
     "PASSPORT": "Passport",
     "SOCIAL_INSURANCE_NUMBER": "Social Insurance Number",
     "OTHER_GOVERNMENT_ID": "Other Government ID",
-
     "EIN": "Employer Identification Number",
     "BUSINESS_REGISTRATION_ID": "Business Registration ID",
     "BUSINESS_NUMBER": "Business Number",
@@ -1199,6 +1197,18 @@
       "SUSPENDED": "Suspended",
       "TERMINATED": "Terminated"
     }
+  },
+  "clientSummary": {
+    "actionRequired": "Action Required",
+    "outstandingItems": "{{docs}} document(s) and {{questions}} question(s) needed",
+    "additionalVerificationNeeded": "Additional verification needed",
+    "approvedAndVerified": "Approved & Verified",
+    "outstandingItemsDocuments": "{{count}} document(s) to upload",
+    "outstandingItemsQuestions": "{{count}} question(s) to answer",
+    "outstandingItemsLabel": "Outstanding Items",
+    "owners_one": "{{count}} owner",
+    "owners_other": "{{count}} owners",
+    "controller": "Controller"
   },
   "linkedAccount": {
     "title": "Linked Accounts"

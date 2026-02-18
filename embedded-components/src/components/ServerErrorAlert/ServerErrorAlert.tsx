@@ -140,12 +140,25 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
   const httpStatus =
     error.response?.data?.httpStatus?.toString() ?? error.status?.toString();
 
+  // Get the API message from response if available
+  // Use type assertion since 'message' may exist on the actual API response but not in the typed schema
+  const apiMessage =
+    (error.response?.data as any)?.message ||
+    error.response?.data?.context?.[0]?.message;
+
   // Determine the error message to display
   const getErrorMessage = () => {
+    // If a custom string is provided, use it
     if (typeof customErrorMessage === 'string') {
       return customErrorMessage;
     }
 
+    // Prefer the API message when available (e.g., "ABA routing number 533100000 not found")
+    if (apiMessage) {
+      return apiMessage;
+    }
+
+    // Fall back to status-based messages
     if (typeof customErrorMessage === 'object' && httpStatus) {
       return (
         customErrorMessage[httpStatus] ||

@@ -61,7 +61,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { MakePayment } from '@/core/MakePayment';
 
 import { MicrodepositsFormDialogTrigger } from '../../forms/MicrodepositsForm/MicrodepositsForm';
 import {
@@ -104,7 +103,7 @@ export interface RecipientsTableViewProps {
   /** Type of recipients being displayed */
   recipientType: SupportedRecipientType;
 
-  /** Optional MakePayment component renderer */
+  /** Optional custom payment action renderer */
   renderPaymentAction?: (recipient: Recipient) => React.ReactNode;
 
   /**
@@ -319,27 +318,9 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
       return (
         <div className="eb-flex eb-items-center eb-justify-end eb-gap-1">
           {/* Primary action - Pay or Verify */}
-          {primaryAction === 'pay' && (
-            <>
-              {renderPaymentAction ? (
-                renderPaymentAction(recipient)
-              ) : (
-                <MakePayment
-                  triggerButton={
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="eb-h-8 eb-text-xs"
-                      aria-label={`${t('actions.makePayment')} from ${displayName}`}
-                    >
-                      {t('actions.makePayment', { defaultValue: 'Pay' })}
-                    </Button>
-                  }
-                  recipientId={recipient.id}
-                />
-              )}
-            </>
-          )}
+          {primaryAction === 'pay' &&
+            renderPaymentAction &&
+            renderPaymentAction(recipient)}
 
           {primaryAction === 'verify' && (
             <MicrodepositsFormDialogTrigger
@@ -534,8 +515,8 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
         </Table>
       </div>
 
-      {/* Pagination - only show if there are more items than page size */}
-      {totalCount > table.getState().pagination.pageSize && (
+      {/* Pagination - only hide if there are 5 or fewer items */}
+      {totalCount > 5 && (
         <div className="eb-flex eb-items-center eb-justify-between eb-px-2">
           <div className="eb-flex eb-items-center eb-space-x-2 eb-text-sm eb-text-muted-foreground">
             <span>
@@ -572,7 +553,7 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
                   />
                 </SelectTrigger>
                 <SelectContent side="top">
-                  {[5, 10, 20, 30, 50].map((pageSize) => (
+                  {[5, 10, 25].map((pageSize) => (
                     <SelectItem key={pageSize} value={`${pageSize}`}>
                       {pageSize}
                     </SelectItem>

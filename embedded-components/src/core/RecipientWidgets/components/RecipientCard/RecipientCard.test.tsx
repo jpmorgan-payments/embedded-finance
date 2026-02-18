@@ -170,14 +170,15 @@ describe('RecipientCard', () => {
     expect(screen.getByText(/john doe/i)).toBeInTheDocument();
   });
 
-  it('should show make payment button for active accounts', () => {
+  it('should not show make payment button by default (requires makePaymentComponent prop)', () => {
     render(<RecipientCard recipient={mockActiveRecipient} />);
 
-    // Should show make payment button with "Pay from {name}" label
+    // No built-in payment button - must be passed via makePaymentComponent prop
+    // Look for buttons with text like "Pay", "Make Payment", "Transfer" etc.
     const payButton = screen.queryByRole('button', {
-      name: /pay from john doe/i,
+      name: /^pay$|make payment|transfer funds/i,
     });
-    expect(payButton).toBeInTheDocument();
+    expect(payButton).not.toBeInTheDocument();
   });
 
   it('should render masked account number', () => {

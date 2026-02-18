@@ -56,7 +56,6 @@ The PaymentFlow component provides a complete payment/transfer experience within
 
 \`\`\`tsx
 <PaymentFlow
-  clientId="your-client-id"
   trigger={<Button>Transfer Funds</Button>}
   onTransactionComplete={(response, error) => {
     if (error) console.error('Failed:', error);

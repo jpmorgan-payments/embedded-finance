@@ -18,6 +18,12 @@ export * from './core/MakePayment/MakePayment';
 export * from './core/Recipients';
 export * from './core/Accounts';
 
+export { PaymentFlow, PaymentFlowInline } from './core/PaymentFlow';
+export type {
+  PaymentFlowProps,
+  PaymentFlowInlineProps,
+} from './core/PaymentFlow';
+
 export * from './core/OnboardingWizardBasic/OnboardingWizardBasic';
 
 export * from './core/OnboardingFlow';

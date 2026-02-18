@@ -6,6 +6,8 @@ import { ChevronDownIcon, PlusIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { getRecipientDisplayName } from '@/lib/recipientHelpers';
+import type { HeadingLevelProps } from '@/lib/types/headingLevel.types';
+import { getChildHeadingLevel } from '@/lib/types/headingLevel.types';
 import type { UserTrackingProps } from '@/lib/types/userTracking.types';
 import { cn } from '@/lib/utils';
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
@@ -52,7 +54,9 @@ import { VerificationResultDialog } from '../VerificationResultDialog/Verificati
  * This is the internal base component that powers both
  * LinkedAccountsWidget and RecipientsWidget.
  */
-export interface BaseRecipientsWidgetProps extends UserTrackingProps {
+export interface BaseRecipientsWidgetProps
+  extends UserTrackingProps,
+    HeadingLevelProps {
   /**
    * Type of recipients to display
    */
@@ -119,20 +123,12 @@ export interface BaseRecipientsWidgetProps extends UserTrackingProps {
 
   /**
    * Render a custom payment/action component for each recipient card.
-   * If not provided and clientId is set, a default PaymentFlow button will be rendered.
+   * If not provided, a default PaymentFlow button will be rendered.
    */
   renderPaymentAction?: (recipient: Recipient) => React.ReactNode;
 
   /**
-   * Client ID for PaymentFlow integration.
-   * When provided, enables the built-in "Pay" button for each recipient.
-   * If not provided and renderPaymentAction is also not provided, no pay button will be shown.
-   */
-  clientId?: string;
-
-  /**
    * Payment methods available for PaymentFlow.
-   * Only used when clientId is provided.
    */
   paymentMethods?: PaymentMethod[];
 
@@ -188,8 +184,8 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   pageSize = 10,
   paginationStyle = 'pages',
   hideCreateButton = false,
+  headingLevel = 2,
   renderPaymentAction,
-  clientId,
   paymentMethods,
   showPaymentFees = false,
   onPaymentComplete,
@@ -203,6 +199,9 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   const config = getRecipientTypeConfig(recipientType);
   const userJourneys = getUserJourneys(config.eventPrefix);
   const queryClient = useQueryClient();
+
+  // Calculate child heading level (for h3 elements like cards, empty state)
+  const childHeadingLevel = getChildHeadingLevel(headingLevel);
 
   const isCompact = viewMode === 'compact-cards';
   const usePagesPagination = paginationStyle === 'pages' && !scrollable;
@@ -470,7 +469,6 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   // Default payment action renderer - uses PaymentFlow
   const defaultRenderPaymentAction = React.useCallback(
     (recipient: Recipient) => {
-      if (!clientId) return null;
       return (
         <Button
           variant="outline"
@@ -483,12 +481,12 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
         </Button>
       );
     },
-    [clientId, handleOpenPaymentDialog, t]
+    [handleOpenPaymentDialog, t]
   );
 
-  // Use custom renderer if provided, otherwise use default (if clientId is set)
+  // Use custom renderer if provided, otherwise use default
   const effectiveRenderPaymentAction =
-    renderPaymentAction ?? (clientId ? defaultRenderPaymentAction : undefined);
+    renderPaymentAction ?? defaultRenderPaymentAction;
 
   return (
     <div id="recipient-widget" className="eb-w-full eb-@container">
@@ -530,19 +528,16 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
       )}
 
       {/* PaymentFlow Dialog - Single instance for all recipients */}
-      {clientId && (
-        <PaymentFlow
-          clientId={clientId}
-          open={paymentDialogOpen}
-          onOpenChange={setPaymentDialogOpen}
-          onClose={handlePaymentDialogClose}
-          initialPayeeId={paymentPayeeId}
-          paymentMethods={paymentMethods}
-          showFees={showPaymentFees}
-          onTransactionComplete={onPaymentComplete}
-          resetKey={paymentResetKey}
-        />
-      )}
+      <PaymentFlow
+        open={paymentDialogOpen}
+        onOpenChange={setPaymentDialogOpen}
+        onClose={handlePaymentDialogClose}
+        initialPayeeId={paymentPayeeId}
+        paymentMethods={paymentMethods}
+        showFees={showPaymentFees}
+        onTransactionComplete={onPaymentComplete}
+        resetKey={paymentResetKey}
+      />
 
       <Card
         className={cn(
@@ -555,7 +550,10 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
           <div className="eb-flex eb-flex-col eb-gap-2 @xs:eb-flex-row @xs:eb-items-center @xs:eb-justify-between @xs:eb-gap-4">
             <div className="eb-min-w-0 eb-flex-1">
               <div className="eb-flex eb-items-center eb-gap-2">
-                <CardTitle className="eb-h-8 eb-truncate eb-font-header eb-text-lg eb-font-semibold eb-leading-8 @md:eb-text-xl">
+                <CardTitle
+                  headingLevel={headingLevel}
+                  className="eb-h-8 eb-truncate eb-font-header eb-text-lg eb-font-semibold eb-leading-8 @md:eb-text-xl"
+                >
                   {t('title')}{' '}
                   {!isLoading && !isError && (
                     <span className="eb-animate-fade-in">
@@ -653,6 +651,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                 className="eb-animate-fade-in"
                 compact={isCompact}
                 i18nNamespace={config.i18nNamespace}
+                headingLevel={childHeadingLevel}
                 action={
                   showCreate && (
                     <Button
@@ -747,6 +746,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                               compact={isCompact}
                               i18nNamespace={config.i18nNamespace}
                               recipientType={recipientType}
+                              headingLevel={childHeadingLevel}
                               className={cn({
                                 'eb-border-b-0':
                                   isCompact &&
@@ -799,6 +799,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                           compact={isCompact}
                           i18nNamespace={config.i18nNamespace}
                           recipientType={recipientType}
+                          headingLevel={childHeadingLevel}
                           className={cn({
                             'eb-border-b-0':
                               isCompact && index === recipients.length - 1,
@@ -811,8 +812,8 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                   {/* Pagination Controls */}
                   {usePagesPagination
                     ? // PAGES PAGINATION - Navigation controls like table view
-                      // Only show pagination if there are more items than page size
-                      totalCount > pagination.pageSize && (
+                      // Only hide pagination if there are 5 or fewer items
+                      totalCount > 5 && (
                         <div
                           className={cn({
                             'eb-border-t eb-bg-muted/30': isCompact,

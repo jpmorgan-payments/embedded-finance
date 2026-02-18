@@ -135,12 +135,6 @@
     max-height: 100%;
     transform: none;
     border-radius: 0;
-    /* Smooth transition for size changes */
-    transition:
-      width 0.3s ease-in-out,
-      height 0.3s ease-in-out,
-      max-width 0.3s ease-in-out,
-      max-height 0.3s ease-in-out;
   }
 
   @media (min-width: 640px) {
@@ -152,19 +146,10 @@
       bottom: auto;
       width: 95vw;
       height: 95vh;
-      max-width: 900px;
+      max-width: 56rem; /* max-w-4xl */
       max-height: 700px;
       transform: translate(-50%, -50%);
       border-radius: 0.5rem; /* rounded-lg */
-    }
-
-    /* Success state - dynamic size based on content */
-    .eb-dialog-responsive-lg.eb-dialog-success {
-      width: auto;
-      height: auto;
-      min-width: 480px;
-      max-width: 600px;
-      max-height: 90vh;
     }
   }
 }

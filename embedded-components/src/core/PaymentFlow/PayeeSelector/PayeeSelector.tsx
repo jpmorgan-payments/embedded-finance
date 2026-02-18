@@ -69,11 +69,11 @@ export function PayeeSelector({
   hasMoreRecipients = false,
   onLoadMoreRecipients,
   isLoadingMoreRecipients = false,
-  totalRecipients,
+  totalRecipients: _totalRecipients,
   hasMoreLinkedAccounts = false,
   onLoadMoreLinkedAccounts,
   isLoadingMoreLinkedAccounts = false,
-  totalLinkedAccounts,
+  totalLinkedAccounts: _totalLinkedAccounts,
   recipientsRestricted = false,
   recipientsRestrictedMessage = 'This account type cannot send payments to external recipients. Please select a linked account instead.',
   showRestrictionWarning = false,
@@ -472,7 +472,7 @@ export function PayeeSelector({
                 aria-hidden="true"
               />
             )}
-            Recipients ({totalRecipients ?? recipients.length})
+            Recipients ({recipients.length})
           </TabsTrigger>
           <TabsTrigger
             value="linked-accounts"
@@ -482,7 +482,7 @@ export function PayeeSelector({
               className="eb-h-3.5 eb-w-3.5 eb-shrink-0"
               aria-hidden="true"
             />
-            Linked Accounts ({totalLinkedAccounts ?? linkedAccounts.length})
+            Linked Accounts ({linkedAccounts.length})
           </TabsTrigger>
         </TabsList>
 
@@ -545,9 +545,9 @@ function RestrictionMessage({ message }: { message: string }) {
       aria-live="polite"
       className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center"
     >
-      <div className="eb-mb-3 eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted">
+      <div className="eb-mb-3 eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
         <Lock
-          className="eb-h-6 eb-w-6 eb-text-muted-foreground"
+          className="eb-h-6 eb-w-6 eb-text-destructive"
           aria-hidden="true"
         />
       </div>
@@ -591,11 +591,8 @@ function EmptyState({ type, hasSearch, searchQuery }: EmptyStateProps) {
       aria-live="polite"
       className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center"
     >
-      <div className="eb-mb-3 eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted">
-        <Icon
-          className="eb-h-6 eb-w-6 eb-text-muted-foreground"
-          aria-hidden="true"
-        />
+      <div className="eb-mb-3 eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary/10">
+        <Icon className="eb-h-6 eb-w-6 eb-text-primary" aria-hidden="true" />
       </div>
       <div className="eb-font-medium">
         {type === 'recipients' ? 'No recipients yet' : 'No linked accounts'}

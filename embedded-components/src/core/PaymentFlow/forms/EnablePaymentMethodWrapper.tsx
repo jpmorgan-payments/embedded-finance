@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { useGetRecipient } from '@/api/generated/ep-recipients';
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
+import type { TransactionRecipientDetailsV2 } from '@/api/generated/ep-transactions.schemas';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import {
@@ -15,7 +16,11 @@ import {
 } from '@/core/RecipientWidgets/components/BankAccountForm';
 import { useRecipientForm } from '@/core/RecipientWidgets/hooks/useRecipientForm';
 
-import type { Payee, PaymentMethod } from '../PaymentFlow.types';
+import type {
+  Payee,
+  PaymentMethod,
+  UnsavedRecipient,
+} from '../PaymentFlow.types';
 
 /**
  * Props for EnablePaymentMethodWrapper
@@ -25,39 +30,53 @@ export interface EnablePaymentMethodWrapperProps {
   payee: Payee;
   /** The payment method to enable */
   paymentMethod: PaymentMethod;
-  /** Callback when recipient is successfully updated */
+  /** Callback when recipient is successfully updated (for saved recipients) */
   onSuccess: (recipient: Recipient) => void;
+  /** Callback when unsaved recipient is updated (for unsaved recipients) */
+  onUnsavedSuccess?: (unsavedRecipient: UnsavedRecipient) => void;
   /** Callback when form is cancelled */
   onCancel: () => void;
+  /** Unsaved recipient data (if enabling for an unsaved recipient) */
+  unsavedRecipient?: UnsavedRecipient;
 }
 
 /**
  * EnablePaymentMethodWrapper
  *
  * Uses the BankAccountForm in edit mode to enable a new payment method
- * for an existing payee (recipient or linked account).
+ * for an existing payee (recipient, linked account, or unsaved recipient).
  */
 export function EnablePaymentMethodWrapper({
   payee,
   paymentMethod,
   onSuccess,
+  onUnsavedSuccess,
   onCancel,
+  unsavedRecipient,
 }: EnablePaymentMethodWrapperProps) {
+  const isUnsaved = !!unsavedRecipient;
   const isLinkedAccount = payee.type === 'LINKED_ACCOUNT';
   const recipientType = isLinkedAccount ? 'LINKED_ACCOUNT' : 'RECIPIENT';
 
-  // Fetch the full recipient data
+  // Track loading state for unsaved recipient "submission"
+  const [isSubmittingUnsaved, setIsSubmittingUnsaved] = useState(false);
+
+  // Fetch the full recipient data (only for saved recipients)
   const {
     data: recipient,
     isLoading: isLoadingRecipient,
     error: fetchError,
-  } = useGetRecipient(payee.id);
+  } = useGetRecipient(payee.id, {
+    query: {
+      enabled: !isUnsaved, // Don't fetch for unsaved recipients
+    },
+  });
 
   // Get base config based on payee type
   const linkedAccountConfig = useLinkedAccountConfig();
   const recipientConfig = useRecipientConfig();
 
-  // Use the recipient form hook for API submission (edit mode)
+  // Use the recipient form hook for API submission (edit mode) - only for saved recipients
   const {
     submit,
     status,
@@ -65,7 +84,7 @@ export function EnablePaymentMethodWrapper({
     reset,
   } = useRecipientForm({
     mode: 'edit',
-    recipientId: payee.id,
+    recipientId: isUnsaved ? undefined : payee.id,
     recipientType,
     onSuccess: (updatedRecipient) => {
       if (updatedRecipient) {
@@ -73,6 +92,44 @@ export function EnablePaymentMethodWrapper({
       }
     },
   });
+
+  // Build a fake Recipient object from unsaved recipient for form pre-fill
+  const recipientForForm = useMemo(() => {
+    if (!isUnsaved || !unsavedRecipient) return recipient;
+
+    const { transactionRecipient } = unsavedRecipient;
+    const { partyDetails, account } = transactionRecipient;
+
+    return {
+      id: 'unsaved',
+      partyDetails: {
+        type: partyDetails?.type,
+        firstName:
+          partyDetails?.type === 'INDIVIDUAL'
+            ? partyDetails?.firstName
+            : undefined,
+        lastName:
+          partyDetails?.type === 'INDIVIDUAL'
+            ? partyDetails?.lastName
+            : undefined,
+        businessName:
+          partyDetails?.type === 'ORGANIZATION'
+            ? partyDetails?.businessName
+            : undefined,
+        address: partyDetails?.address,
+        contacts: partyDetails?.contacts,
+      },
+      account: {
+        number: account?.number,
+        type: account?.type,
+        routingInformation: account?.routingInformation?.map((ri) => ({
+          routingCodeType: ri.routingCodeType,
+          routingNumber: ri.routingNumber,
+          transactionType: ri.transactionType,
+        })),
+      },
+    } as Recipient;
+  }, [isUnsaved, unsavedRecipient, recipient]);
 
   // Build customized config for enabling the payment method
   const config: BankAccountFormConfig = useMemo(() => {
@@ -128,9 +185,88 @@ export function EnablePaymentMethodWrapper({
     return [...new Set([...existingMethods, methodToEnable])];
   }, [payee.enabledPaymentMethods, paymentMethod.id]);
 
+  /**
+   * Transform BankAccountFormData to UnsavedRecipient
+   */
+  const transformToUnsavedRecipient = (
+    data: BankAccountFormData
+  ): UnsavedRecipient => {
+    const displayName =
+      data.accountType === 'INDIVIDUAL'
+        ? `${data.firstName ?? ''} ${data.lastName ?? ''}`.trim()
+        : (data.businessName ?? 'Recipient');
+
+    const primaryRoutingNumber = data.routingNumbers[0]?.routingNumber ?? '';
+
+    const routingInformation = data.routingNumbers.map((routingConfig) => ({
+      routingCodeType: 'USABA' as const,
+      routingNumber: routingConfig.routingNumber,
+      transactionType: routingConfig.paymentType,
+    }));
+
+    const transactionRecipient: TransactionRecipientDetailsV2 = {
+      account: {
+        countryCode: 'US',
+        number: data.accountNumber,
+        routingInformation,
+        type: data.bankAccountType,
+      },
+      partyDetails: {
+        type: data.accountType,
+        ...(data.accountType === 'INDIVIDUAL'
+          ? {
+              firstName: data.firstName!,
+              lastName: data.lastName!,
+            }
+          : {
+              businessName: data.businessName!,
+            }),
+        ...(data.address && {
+          address: {
+            addressLine1: data.address.addressLine1,
+            addressLine2: data.address.addressLine2,
+            addressLine3: data.address.addressLine3,
+            city: data.address.city,
+            state: data.address.state,
+            postalCode: data.address.postalCode,
+            countryCode: data.address.countryCode,
+          },
+        }),
+        ...(data.contacts &&
+          data.contacts.length > 0 && {
+            contacts: data.contacts,
+          }),
+      },
+      recipientType: 'RECIPIENT',
+    };
+
+    return {
+      displayName,
+      accountNumber: data.accountNumber,
+      routingNumber: primaryRoutingNumber,
+      bankName: undefined,
+      enabledPaymentMethods: data.paymentTypes as Array<'ACH' | 'RTP' | 'WIRE'>,
+      recipientType:
+        data.accountType === 'INDIVIDUAL' ? 'INDIVIDUAL' : 'BUSINESS',
+      transactionRecipient,
+    };
+  };
+
   // Handle form submission
   const handleSubmit = (data: BankAccountFormData) => {
-    submit(data);
+    if (isUnsaved && onUnsavedSuccess) {
+      // For unsaved recipients, just transform and return
+      setIsSubmittingUnsaved(true);
+      const updated = transformToUnsavedRecipient(data);
+      // Small delay to show loading state
+      setTimeout(() => {
+        setIsSubmittingUnsaved(false);
+        onUnsavedSuccess(updated);
+      }, 100);
+    } else {
+      // For saved recipients, submit via API
+      submit(data);
+    }
   };
 
   // Reset on cancel
@@ -139,8 +275,8 @@ export function EnablePaymentMethodWrapper({
     onCancel();
   };
 
-  // Loading state
-  if (isLoadingRecipient) {
+  // Loading state (only for saved recipients)
+  if (!isUnsaved && isLoadingRecipient) {
     return (
       <div className="eb-flex eb-flex-col eb-gap-3">
         <div className="eb-px-1">
@@ -158,8 +294,8 @@ export function EnablePaymentMethodWrapper({
     );
   }
 
-  // Error fetching recipient
-  if (fetchError) {
+  // Error fetching recipient (only for saved recipients)
+  if (!isUnsaved && fetchError) {
     return (
       <div className="eb-flex eb-flex-col eb-gap-3">
         <ServerErrorAlert
@@ -174,6 +310,8 @@ export function EnablePaymentMethodWrapper({
       </div>
     );
   }
+
+  const isLoading = isUnsaved ? isSubmittingUnsaved : status === 'pending';
 
   return (
     <div className="eb-flex eb-flex-col eb-gap-3">
@@ -190,12 +328,12 @@ export function EnablePaymentMethodWrapper({
       {/* Form - embedded in a bordered card for visual separation */}
       <div className="eb-rounded-lg eb-border eb-bg-card">
         <BankAccountForm
-          key={`${payee.id}-${recipient?.id}`}
+          key={`${payee.id}-${recipientForForm?.id}`}
           config={config}
-          recipient={recipient}
+          recipient={recipientForForm}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
-          isLoading={status === 'pending'}
+          isLoading={isLoading}
           showCard={false}
           embedded
           skipStepOne
