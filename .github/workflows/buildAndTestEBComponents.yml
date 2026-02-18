@@ -22,7 +22,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install modules
-        run: yarn install --immutable
+        env:
+          YARN_ENABLE_HARDENED_MODE: 0
+        run: yarn install
       - name: Build
         run: yarn build
       - name: Run tests
