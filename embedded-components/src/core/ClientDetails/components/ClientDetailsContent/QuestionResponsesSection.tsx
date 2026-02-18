@@ -75,16 +75,33 @@ export function QuestionResponsesSection({
         </p>
       ) : showLoading ? (
         <dl className="eb-divide-y eb-divide-border/60">
-          {questionResponses.map((qr: ClientQuestionResponse) => (
+          {questionResponses.map((qr: ClientQuestionResponse, index) => (
             <div
               key={qr.questionId}
-              className="eb-flex eb-items-start eb-justify-between eb-gap-4 eb-py-2 eb-text-sm"
+              className="eb-flex eb-items-start eb-justify-between eb-gap-4 eb-py-2.5 eb-text-sm"
             >
-              <dt className="eb-max-w-[50%] eb-shrink-0">
-                <Skeleton className="eb-h-4 eb-w-full eb-rounded" />
+              <dt className="eb-max-w-[60%] eb-shrink-0 eb-space-y-1">
+                {/* Question text skeleton - varies width for realism */}
+                <Skeleton
+                  className={cn(
+                    'eb-h-4 eb-rounded',
+                    index % 3 === 0 && 'eb-w-48',
+                    index % 3 === 1 && 'eb-w-56',
+                    index % 3 === 2 && 'eb-w-40'
+                  )}
+                />
+                {/* Some questions have second line */}
+                {index % 2 === 0 && (
+                  <Skeleton className="eb-h-4 eb-w-32 eb-rounded" />
+                )}
               </dt>
               <dd className="eb-min-w-0">
-                <Skeleton className="eb-h-4 eb-w-20 eb-rounded" />
+                <Skeleton
+                  className={cn(
+                    'eb-h-4 eb-rounded',
+                    index % 2 === 0 ? 'eb-w-16' : 'eb-w-24'
+                  )}
+                />
               </dd>
             </div>
           ))}
