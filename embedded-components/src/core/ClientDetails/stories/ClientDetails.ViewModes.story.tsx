@@ -1,8 +1,7 @@
 /**
  * ClientDetails - View Modes
  *
- * Showcase of different display modes for client information.
- * Choose the view mode that best fits your use case.
+ * Different layout options for displaying client information.
  */
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -55,28 +54,12 @@ type Story = StoryObj<ClientDetailsStoryArgs>;
 // =============================================================================
 
 /**
- * **Summary with Custom Sections**
+ * **Summary - All Sections**
  *
- * Only display specific sections relevant to your use case.
- * Here we show just identity, verification, and ownership.
- */
-export const SummaryCustomSections: Story = {
-  name: 'Summary (Custom Sections)',
-  args: {
-    viewMode: 'summary',
-    sections: ['identity', 'verification', 'ownership'],
-    enableDrillDown: true,
-  },
-};
-
-/**
- * **Summary with All Sections**
- *
- * Display all available sections including accounts and activity
- * (placeholders for future integration).
+ * Display all available sections including accounts and activity placeholders.
  */
 export const SummaryAllSections: Story = {
-  name: 'Summary (All Sections)',
+  name: 'Summary - All Sections',
   args: {
     viewMode: 'summary',
     sections: [
@@ -92,26 +75,12 @@ export const SummaryAllSections: Story = {
 };
 
 /**
- * **Summary without Drill-Down**
+ * **Summary - With Custom Actions**
  *
- * Display-only mode where sections show information but aren't clickable.
- * Useful for compact dashboards or when you handle navigation externally.
- */
-export const SummaryNoDrillDown: Story = {
-  name: 'Summary (No Drill-Down)',
-  args: {
-    viewMode: 'summary',
-    enableDrillDown: false,
-  },
-};
-
-/**
- * **Summary with Custom Actions**
- *
- * Add custom action buttons in the card footer for quick actions.
+ * Add action buttons in the card footer for common operations.
  */
 export const SummaryWithActions: Story = {
-  name: 'Summary (With Actions)',
+  name: 'Summary - With Actions',
   args: {
     viewMode: 'summary',
     enableDrillDown: true,
@@ -136,6 +105,19 @@ export const SummaryWithActions: Story = {
   ),
 };
 
+/**
+ * **Summary - No Drill-Down**
+ *
+ * Read-only mode where sections display info but aren't clickable.
+ */
+export const SummaryReadOnly: Story = {
+  name: 'Summary - Read Only',
+  args: {
+    viewMode: 'summary',
+    enableDrillDown: false,
+  },
+};
+
 // =============================================================================
 // ACCORDION & CARDS VIEWS
 // =============================================================================
@@ -144,27 +126,23 @@ export const SummaryWithActions: Story = {
  * **Accordion View**
  *
  * Full detail view with collapsible sections.
- * Similar to the onboarding final review step.
- * Best for detailed review or printing.
+ * Best for detailed review workflows or printing.
  */
 export const AccordionView: Story = {
-  name: 'Accordion',
   args: {
     viewMode: 'accordion',
-    title: 'Client details',
+    title: 'Client Details',
   },
 };
 
 /**
  * **Cards View**
  *
- * Full detail view with information grouped as visual cards.
- * Responsive grid: 1 column on small screens, 2 on medium+.
+ * Visual cards layout in responsive grid (1 col → 2 cols on medium screens).
  */
 export const CardsView: Story = {
-  name: 'Cards',
   args: {
     viewMode: 'cards',
-    title: 'Client details',
+    title: 'Client Details',
   },
 };

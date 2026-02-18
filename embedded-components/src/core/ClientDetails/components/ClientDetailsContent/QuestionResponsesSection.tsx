@@ -27,7 +27,6 @@ export function QuestionResponsesSection({
       .replace('US', '-US')
       .replace('CA', '-CA') || 'en-US';
 
-  const sectionTitle = title ?? t('sections.questionResponses');
   const questionLabelUnavailable = t('labels.questionTextUnavailable', {
     defaultValue: 'Question text unavailable',
   });

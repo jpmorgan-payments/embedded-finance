@@ -1,12 +1,22 @@
 /**
- * ClientDetails - Main Stories
+ * ClientDetails - Main Entry Point
  *
- * Displays all information for a fully onboarded ACTIVE client from GET /clients/:id.
- * View modes: summary (compact card with drill-down), accordion, and cards.
+ * Displays all information for a fully onboarded client from GET /clients/:id.
  *
- * For specialized scenarios, see:
- * - View Modes/* - Summary variants, Accordion, and Cards views
- * - Client Statuses/* - Loading, error, and approval status states
+ * **View Modes:**
+ * - `summary` - Compact card with drill-down capability (default)
+ * - `accordion` - Full detail view with collapsible sections
+ * - `cards` - Visual cards layout in responsive grid
+ *
+ * **Features:**
+ * - i18n support (en-US, es-US, fr-CA)
+ * - Loading skeletons per view mode
+ * - Section drill-down with navigation
+ * - Custom actions support
+ *
+ * **See Also:**
+ * - View Modes/* - Different layout options
+ * - States/* - Loading, error, and client status variants
  */
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -20,9 +30,6 @@ import {
   createClientDetailsHandlers,
 } from './stories/story-utils';
 
-/**
- * Story args interface extending base provider args
- */
 type ClientDetailsStoryArgs = Omit<BaseStoryArgs, 'clientId'> &
   ClientDetailsProps;
 
@@ -56,11 +63,14 @@ export default meta;
 type Story = StoryObj<ClientDetailsStoryArgs>;
 
 /**
- * **Default Summary View**
+ * **Default - Summary View**
  *
- * Compact card with quick stats and section navigation.
- * Click on any section to drill down into details via slide-out sheet.
- * Use the navigation at the bottom of the sheet to move between sections.
+ * Compact card showing business overview with clickable sections.
+ * Click any section to open drill-down sheet with navigation.
+ *
+ * See also:
+ * - View Modes/* for layout variants
+ * - States/* for loading, error, and status variants
  */
 export const Default: Story = {
   args: {

@@ -8,12 +8,12 @@ import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
-import { Skeleton } from '@/components/ui';
 
 import { CLIENT_DETAILS_DEFAULT_VIEW_MODE } from './ClientDetails.constants';
 import type { ClientDetailsProps, ClientSection } from './ClientDetails.types';
 import { AccordionView } from './components/AccordionView/AccordionView';
 import { CardsView } from './components/CardsView/CardsView';
+import { ClientDetailsSkeleton } from './components/ClientDetailsSkeleton';
 import { ClientSummaryCard } from './components/Summary/ClientSummaryCard';
 import type { SectionInfo } from './components/Summary/SectionList';
 import { getSectionIcon } from './components/Summary/SectionList';
@@ -146,20 +146,10 @@ export function ClientDetails({
 
   if (isLoading) {
     return (
-      <div
-        className={cn(
-          'eb-component eb-w-full eb-space-y-4 eb-px-4 eb-py-4 @md:eb-px-6',
-          className
-        )}
-      >
-        <Skeleton className="eb-h-6 eb-w-40 eb-rounded" />
-        <div className="eb-space-y-3">
-          <Skeleton className="eb-h-4 eb-w-full eb-rounded" />
-          <Skeleton className="eb-h-4 eb-w-5/6 eb-rounded" />
-          <Skeleton className="eb-h-4 eb-w-4/6 eb-rounded" />
-          <Skeleton className="eb-h-20 eb-w-full eb-rounded" />
-        </div>
-      </div>
+      <ClientDetailsSkeleton
+        viewMode={viewMode}
+        className={cn('eb-component', className)}
+      />
     );
   }
 
