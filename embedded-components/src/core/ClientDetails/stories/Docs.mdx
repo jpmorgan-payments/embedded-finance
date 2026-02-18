@@ -1,4 +1,4 @@
-import { Canvas, Controls, Description, Meta, Story } from '@storybook/blocks';
+import { Meta } from '@storybook/addon-docs/blocks';
 
 import * as ClientDetailsStories from '../ClientDetails.story';
 
@@ -36,23 +36,13 @@ The summary view is designed for dashboard integration, providing at-a-glance in
 - **Documents Section**: Verification status and compliance information
 - **Drill-Down Sheets**: Click any section to open detailed view with navigation
 
-<Canvas of={ClientDetailsStories.Default} />
-
-### Controls
-
-<Controls of={ClientDetailsStories.Default} />
-
 ## Accordion Mode
 
 Full detail view with collapsible sections, similar to the onboarding review experience.
 
-<Canvas of={ClientDetailsStories.AccordionView} />
-
 ## Cards Mode
 
 Information grouped into visual cards in a responsive grid layout.
-
-<Canvas of={ClientDetailsStories.CardsView} />
 
 ## Usage Examples
 
@@ -144,13 +134,9 @@ Handle section clicks externally for custom routing:
 
 Shows skeleton placeholders while fetching client data.
 
-<Canvas of={ClientDetailsStories.Loading} />
-
 ### Error State
 
 Displays error message when client fetch fails.
-
-<Canvas of={ClientDetailsStories.Error} />
 
 ### Status Variations
 
