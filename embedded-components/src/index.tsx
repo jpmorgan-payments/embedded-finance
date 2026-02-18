@@ -28,4 +28,6 @@ export * from './core/OnboardingWizardBasic/OnboardingWizardBasic';
 
 export * from './core/OnboardingFlow';
 
+export * from './core/ClientDetails';
+
 export * as types from './api/generated/smbdo.schemas';

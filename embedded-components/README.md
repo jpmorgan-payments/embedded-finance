@@ -1133,8 +1133,8 @@ By default VS Code will not trigger completions when editing "string" content, f
 ### Guidelines
 
 1. Create a new component in `./src/core`
-2. Export it in `./src/index.tsx`
-3. Also add it to `./src/vanilla/componentRegistry.ts`
+2. Export it in `./src/index.tsx` (this is the main public API for React/npm consumers)
+3. Optionally add it to `./src/vanilla/componentRegistry.ts` only if the component should be mountable by name via `initEBComponentsManager()` (e.g. for the HTML/vanilla JS demo)
 
 ### Onboarding fieldMap.ts configuration
 

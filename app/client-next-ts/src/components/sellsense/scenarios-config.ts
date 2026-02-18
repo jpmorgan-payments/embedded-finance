@@ -19,6 +19,7 @@ export const AVAILABLE_COMPONENTS = {
   TRANSACTIONS: 'TransactionsDisplay',
   RECIPIENTS: 'Recipients',
   ONBOARDING_FLOW: 'OnboardingFlow',
+  CLIENT_DETAILS: 'ClientDetails',
 } as const;
 
 export type ComponentName =
@@ -132,19 +133,23 @@ export const SCENARIOS_CONFIG = {
     visibleComponents: [
       {
         component: AVAILABLE_COMPONENTS.ACCOUNTS,
-        position: { x: 0, y: 0 }, // Top left
+        position: { x: 0, y: 0 }, // Top right
       },
       {
         component: AVAILABLE_COMPONENTS.LINKED_ACCOUNTS,
-        position: { x: 0, y: 1 }, // Top right
+        position: { x: 0, y: 1 }, // Bottom left
       },
       {
         component: AVAILABLE_COMPONENTS.TRANSACTIONS,
-        position: { x: 1, y: 1 }, // Bottom right
+        position: { x: 1, y: 0 }, // Bottom left
       },
       {
         component: AVAILABLE_COMPONENTS.RECIPIENTS,
-        position: { x: 1, y: 0 }, // Bottom left
+        position: { x: 2, y: 0 }, // Bottom left
+      },
+      {
+        component: AVAILABLE_COMPONENTS.CLIENT_DETAILS,
+        position: { x: 3, y: 0 }, // Top left
       },
     ] as ComponentConfig[],
     headerTitle: 'Payments DDA Account',
@@ -305,6 +310,18 @@ export const getGridDimensions = (
     Math.max(...visibleComponents.map((config) => config.position.y)) + 1;
 
   return { maxRows, maxColumns };
+};
+
+// Utility function to get clientId for a scenario display name
+export const getClientIdForScenario = (
+  scenarioDisplayName: string
+): string | undefined => {
+  const scenarioKey = getScenarioKeyByDisplayName(scenarioDisplayName);
+  if (!scenarioKey) {
+    return undefined;
+  }
+  const scenario = SCENARIOS_CONFIG[scenarioKey];
+  return (scenario as any).clientId;
 };
 
 // Utility function to check if a scenario has a reset DB scenario

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   Accounts,
+  ClientDetails,
   EBComponentsProvider,
   LinkedAccountWidget,
   PaymentFlow,
@@ -35,6 +36,7 @@ import {
   getScenarioKeyByDisplayName,
   hasResetDbScenario,
 } from './scenarios-config';
+import { getClientIdForScenario } from './scenarios-config';
 import { SettingsDrawer } from './settings-drawer';
 import { Sidebar } from './sidebar';
 import { useThemeStyles } from './theme-utils';
@@ -481,6 +483,12 @@ export function DashboardLayout() {
     const { mapThemeOption } = useSellSenseThemes();
     const themeObject = mapThemeOption(fullscreenTheme);
 
+    // Determine clientId for fullscreen components that require it
+    const fullscreenClientScenario =
+      (searchParams.scenario as ClientScenario) || clientScenario;
+    const fullscreenClientId =
+      getClientIdForScenario(fullscreenClientScenario) || '0030000131';
+
     switch (searchParams.component) {
       case 'onboarding':
         return (
@@ -551,7 +559,7 @@ export function DashboardLayout() {
                 >
                   <Accounts
                     allowedCategories={['LIMITED_DDA_PAYMENTS']}
-                    clientId="0030000131"
+                    clientId={fullscreenClientId}
                   />
                 </EBComponentsProvider>
               </div>
@@ -601,6 +609,28 @@ export function DashboardLayout() {
                     viewMode="table"
                     hideCreateButton={false}
                   />
+                </EBComponentsProvider>
+              </div>
+            </div>
+          </div>
+        );
+      case 'client-details':
+        return (
+          <div className="h-screen p-6">
+            <div className="mx-auto max-w-4xl">
+              <h1 className="mb-6 text-2xl font-bold">Client Details</h1>
+              <div className="rounded-lg border bg-white p-6">
+                <EBComponentsProvider
+                  apiBaseUrl="/ef/do/v1/"
+                  theme={themeObject}
+                  headers={{
+                    'Content-Type': 'application/json',
+                  }}
+                  contentTokens={{
+                    name: 'enUS',
+                  }}
+                >
+                  <ClientDetails clientId={fullscreenClientId} />
                 </EBComponentsProvider>
               </div>
             </div>
