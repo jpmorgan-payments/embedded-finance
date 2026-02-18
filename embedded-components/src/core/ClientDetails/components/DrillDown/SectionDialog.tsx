@@ -1,17 +1,18 @@
 /**
- * SectionSheet - Information-dense slide-out panel
- * Maximizes content visibility with minimal chrome
+ * SectionDialog - Information-dense modal dialog for client details
+ * Following the RecipientDetailsDialog pattern from RecipientsWidget
  */
 
 import { cn } from '@/lib/utils';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 import { Accounts } from '../../../Accounts';
 import { TransactionsDisplay } from '../../../TransactionsDisplay';
@@ -24,14 +25,20 @@ import { ResultsSection } from '../ClientDetailsContent/ResultsSection';
 import type { ClientSection, SectionInfo } from '../Summary/SectionList';
 import { SectionNavigation } from './SectionNavigation';
 
-interface SectionSheetProps {
+export interface SectionDialogProps {
+  /** The client data to display */
   client: ClientResponse;
+  /** The client ID for fetching related data */
   clientId: string;
-  section: ClientSection | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  /** The section to display */
+  section: ClientSection;
+  /** Available sections for navigation */
   sections?: SectionInfo[];
+  /** Callback when navigating to a different section */
   onNavigate?: (section: ClientSection) => void;
+  /** The trigger element to open the dialog */
+  children: React.ReactNode;
+  /** Additional class name for the dialog content */
   className?: string;
 }
 
@@ -96,38 +103,41 @@ function SectionContent({
   }
 }
 
-export function SectionSheet({
+/**
+ * SectionDialog - Displays detailed client information in a modal dialog
+ * Pattern inspired by RecipientDetailsDialog from RecipientsWidget
+ */
+export function SectionDialog({
   client,
   clientId,
   section,
-  open,
-  onOpenChange,
   sections,
   onNavigate,
+  children,
   className,
-}: SectionSheetProps) {
-  if (!section) return null;
-
+}: SectionDialogProps) {
   const title = SECTION_TITLES[section];
   const description = SECTION_DESCRIPTIONS[section];
   const showNavigation = sections && sections.length > 1 && onNavigate;
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        className={cn(
-          'eb-flex eb-h-full eb-max-h-screen eb-w-full eb-flex-col eb-gap-0 eb-p-0 sm:eb-max-w-lg',
-          className
-        )}
+    <Dialog>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent
+        className={cn('eb-overflow-hidden eb-p-0 sm:eb-max-w-lg', className)}
       >
-        {/* Header with its own padding */}
-        <SheetHeader className="eb-shrink-0 eb-border-b eb-border-border eb-px-6 eb-py-4 eb-pr-14">
-          <SheetTitle>{title}</SheetTitle>
-          <SheetDescription>{description}</SheetDescription>
-        </SheetHeader>
+        {/* Header - matching RecipientDetailsDialog pattern */}
+        <DialogHeader className="eb-shrink-0 eb-border-b eb-p-6 eb-py-4">
+          <DialogTitle className="eb-break-words eb-text-left eb-font-header eb-text-xl eb-leading-tight">
+            {title}
+          </DialogTitle>
+          <DialogDescription className="eb-mt-1 eb-text-left">
+            {description}
+          </DialogDescription>
+        </DialogHeader>
 
-        {/* Content - scrollable with its own padding */}
-        <div className="eb-min-h-0 eb-flex-1 eb-overflow-y-auto eb-px-6 eb-py-4">
+        {/* Content - scrollable, matching RecipientDetailsDialog */}
+        <div className="eb-flex-1 eb-overflow-y-auto eb-p-6 eb-pt-5">
           <SectionContent
             client={client}
             clientId={clientId}
@@ -135,9 +145,9 @@ export function SectionSheet({
           />
         </div>
 
-        {/* Navigation footer with its own padding */}
+        {/* Navigation footer */}
         {showNavigation && (
-          <div className="eb-shrink-0 eb-border-t eb-border-border eb-bg-muted/30 eb-px-6 eb-py-3">
+          <div className="eb-shrink-0 eb-border-t eb-bg-muted/30 eb-px-6 eb-py-3">
             <SectionNavigation
               sections={sections}
               currentSection={section}
@@ -145,7 +155,7 @@ export function SectionSheet({
             />
           </div>
         )}
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }

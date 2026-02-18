@@ -3,7 +3,7 @@
  * from GET /clients/:id. Supports summary, accordion and cards view modes.
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { cn } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
@@ -14,7 +14,6 @@ import { CLIENT_DETAILS_DEFAULT_VIEW_MODE } from './ClientDetails.constants';
 import type { ClientDetailsProps, ClientSection } from './ClientDetails.types';
 import { AccordionView } from './components/AccordionView/AccordionView';
 import { CardsView } from './components/CardsView/CardsView';
-import { SectionSheet } from './components/DrillDown/SectionSheet';
 import { ClientSummaryCard } from './components/Summary/ClientSummaryCard';
 import type { SectionInfo } from './components/Summary/SectionList';
 import { getSectionIcon } from './components/Summary/SectionList';
@@ -117,11 +116,6 @@ export function ClientDetails({
   onSectionClick,
   actions,
 }: ClientDetailsProps) {
-  const [activeSection, setActiveSection] = useState<ClientSection | null>(
-    null
-  );
-  const [sheetOpen, setSheetOpen] = useState(false);
-
   const {
     data: client,
     isLoading,
@@ -136,20 +130,6 @@ export function ClientDetails({
     () => (client ? buildSectionInfos(client, sections) : []),
     [client, sections]
   );
-
-  const handleSectionClick = (section: ClientSection) => {
-    // If external handler provided, call it
-    if (onSectionClick) {
-      onSectionClick(section);
-      return;
-    }
-
-    // Otherwise, use built-in drill-down if enabled
-    if (enableDrillDown) {
-      setActiveSection(section);
-      setSheetOpen(true);
-    }
-  };
 
   if (!clientId) {
     return (
@@ -200,29 +180,24 @@ export function ClientDetails({
     );
   }
 
-  // Summary view mode - compact card with drill-down
+  // Summary view mode - compact card with built-in Dialog drill-down
   if (viewMode === 'summary') {
+    // Priority: external handler > built-in dialog > not clickable
+    // When onSectionClick is provided, use it (external navigation)
+    // When enableDrillDown is true and no external handler, use built-in dialog
+    const useExternalHandler = !!onSectionClick;
+    const useBuiltInDialog = enableDrillDown && !onSectionClick;
+
     return (
-      <>
-        <ClientSummaryCard
-          client={client}
-          onSectionClick={handleSectionClick}
-          sections={sections}
-          actions={actions}
-          className={cn('eb-component', className)}
-        />
-        {enableDrillDown && !onSectionClick && (
-          <SectionSheet
-            client={client}
-            clientId={clientId}
-            section={activeSection}
-            open={sheetOpen}
-            onOpenChange={setSheetOpen}
-            sections={sectionInfos}
-            onNavigate={setActiveSection}
-          />
-        )}
-      </>
+      <ClientSummaryCard
+        client={client}
+        clientId={clientId}
+        onSectionClick={useExternalHandler ? onSectionClick : undefined}
+        sections={sections}
+        sectionInfos={useBuiltInDialog ? sectionInfos : undefined}
+        actions={actions}
+        className={cn('eb-component', className)}
+      />
     );
   }
 

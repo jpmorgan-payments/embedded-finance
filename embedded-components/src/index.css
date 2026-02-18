@@ -102,7 +102,6 @@
     max-height: 100%;
     transform: none;
     border-radius: 0;
-    padding: 1rem;
   }
 
   @media (min-width: 640px) {
@@ -118,7 +117,6 @@
       max-height: 85vh;
       transform: translate(-50%, -50%);
       border-radius: 0.5rem; /* rounded-lg */
-      padding: 1.5rem; /* p-6 */
     }
   }
 

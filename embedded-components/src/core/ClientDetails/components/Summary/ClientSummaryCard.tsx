@@ -32,12 +32,20 @@ import {
   getControllerParty,
   getOrganizationParty,
 } from '../../utils/partyGrouping';
-import type { ClientSection } from './SectionList';
+import { SectionDialog } from '../DrillDown/SectionDialog';
+import type { ClientSection, SectionInfo } from './SectionList';
 
 interface ClientSummaryCardProps {
   client: ClientResponse;
+  /** Client ID for fetching related data (required for drill-down) */
+  clientId: string;
+  /** External navigation handler - disables built-in dialog drill-down */
   onSectionClick?: (section: ClientSection) => void;
+  /** Which sections to display */
   sections?: ClientSection[];
+  /** Section info for navigation (used by SectionDialog) */
+  sectionInfos?: SectionInfo[];
+  /** Custom actions to render in the footer */
   actions?: React.ReactNode;
   className?: string;
 }
@@ -155,8 +163,10 @@ const DEFAULT_SECTIONS: ClientSection[] = ['identity', 'ownership'];
 
 export function ClientSummaryCard({
   client,
+  clientId,
   onSectionClick,
   sections = DEFAULT_SECTIONS,
+  sectionInfos,
   actions,
   className,
 }: ClientSummaryCardProps) {
@@ -167,7 +177,14 @@ export function ClientSummaryCard({
 
   const statusType = getStatusType(client.status);
   const isApproved = client.status === 'APPROVED';
-  const isClickable = !!onSectionClick;
+
+  // Determine click behavior:
+  // - External handler: use onSectionClick callback
+  // - Built-in dialog: use SectionDialog (requires sectionInfos)
+  // - Neither: not clickable
+  const useExternalHandler = !!onSectionClick;
+  const useBuiltInDialog = !onSectionClick && !!sectionInfos;
+  const isClickable = useExternalHandler || useBuiltInDialog;
 
   const translatedOrgType = org.organizationType
     ? t(`onboarding-overview:organizationTypes.${org.organizationType}`, {
@@ -180,15 +197,8 @@ export function ClientSummaryCard({
     { defaultValue: client.status.replace(/_/g, ' ') }
   );
 
-  const handleSectionClick = (section: ClientSection) => {
-    if (onSectionClick) {
-      onSectionClick(section);
-    }
-  };
-
-  // Reusable section row component for consistent styling
-  const SectionRow = ({
-    section,
+  // Reusable row content component for consistent styling
+  const SectionRowContent = ({
     icon: Icon,
     iconClassName,
     iconBgClassName,
@@ -197,7 +207,6 @@ export function ClientSummaryCard({
     badge,
     children,
   }: {
-    section: ClientSection;
     icon: React.ComponentType<{ className?: string }>;
     iconClassName: string;
     iconBgClassName: string;
@@ -206,17 +215,7 @@ export function ClientSummaryCard({
     badge?: React.ReactNode;
     children?: React.ReactNode;
   }) => (
-    <button
-      type="button"
-      onClick={() => handleSectionClick(section)}
-      disabled={!isClickable}
-      className={cn(
-        'eb-group eb-flex eb-w-full eb-items-start eb-gap-2 eb-p-3 eb-text-left eb-transition-colors @sm:eb-gap-3',
-        isClickable
-          ? 'hover:eb-bg-muted/50 active:eb-bg-muted/70'
-          : 'eb-cursor-default'
-      )}
-    >
+    <>
       {/* Large container: Icon in colored box */}
       <div
         className={cn(
@@ -259,8 +258,58 @@ export function ClientSummaryCard({
           aria-hidden="true"
         />
       )}
-    </button>
+    </>
   );
+
+  // Reusable section row - wraps with Dialog when using built-in, otherwise uses button
+  const SectionRow = ({
+    section,
+    ...contentProps
+  }: {
+    section: ClientSection;
+    icon: React.ComponentType<{ className?: string }>;
+    iconClassName: string;
+    iconBgClassName: string;
+    title: string;
+    subtitle?: React.ReactNode;
+    badge?: React.ReactNode;
+    children?: React.ReactNode;
+  }) => {
+    const rowClassName = cn(
+      'eb-group eb-flex eb-w-full eb-items-start eb-gap-2 eb-p-3 eb-text-left eb-transition-colors @sm:eb-gap-3',
+      isClickable
+        ? 'hover:eb-bg-muted/50 active:eb-bg-muted/70 eb-cursor-pointer'
+        : 'eb-cursor-default'
+    );
+
+    // Use built-in Dialog when no external handler
+    if (useBuiltInDialog) {
+      return (
+        <SectionDialog
+          client={client}
+          clientId={clientId}
+          section={section}
+          sections={sectionInfos}
+        >
+          <button type="button" className={rowClassName}>
+            <SectionRowContent {...contentProps} />
+          </button>
+        </SectionDialog>
+      );
+    }
+
+    // External handler - use simple button
+    return (
+      <button
+        type="button"
+        onClick={() => onSectionClick?.(section)}
+        disabled={!isClickable}
+        className={rowClassName}
+      >
+        <SectionRowContent {...contentProps} />
+      </button>
+    );
+  };
 
   return (
     <Card
