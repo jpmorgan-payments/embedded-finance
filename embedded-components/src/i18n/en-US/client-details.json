@@ -16,6 +16,7 @@
   "labels": {
     "businessName": "Business Name",
     "dbaName": "Doing Business As",
+    "doingBusinessAs": "doing business as",
     "businessType": "Business Type",
     "industry": "Industry",
     "industryCode": "Industry Code",

@@ -16,6 +16,7 @@
   "labels": {
     "businessName": "Nom de l'entreprise",
     "dbaName": "Faisant affaires sous",
+    "doingBusinessAs": "faisant affaires sous le nom",
     "businessType": "Type d'entreprise",
     "industry": "Industrie",
     "industryCode": "Code d'industrie",

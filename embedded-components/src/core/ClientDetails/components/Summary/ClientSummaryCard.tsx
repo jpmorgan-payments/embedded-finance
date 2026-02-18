@@ -170,7 +170,11 @@ export function ClientSummaryCard({
   actions,
   className,
 }: ClientSummaryCardProps) {
-  const { t } = useTranslation(['onboarding-old', 'onboarding-overview']);
+  const { t } = useTranslation([
+    'client-details',
+    'onboarding-old',
+    'onboarding-overview',
+  ]);
 
   const org = useMemo(() => getOrganizationDetails(client), [client]);
   const people = useMemo(() => getIndividualParties(client), [client]);
@@ -335,7 +339,7 @@ export function ClientSummaryCard({
             </h2>
             {org.dbaName && (
               <p className="eb-mt-0.5 eb-text-sm eb-text-muted-foreground">
-                doing business as{' '}
+                {t('client-details:labels.doingBusinessAs')}{' '}
                 <span className="eb-font-medium eb-text-foreground">
                   &ldquo;{org.dbaName}&rdquo;
                 </span>
@@ -372,7 +376,7 @@ export function ClientSummaryCard({
             icon={FileText}
             iconClassName="eb-text-blue-600 dark:eb-text-blue-400"
             iconBgClassName="eb-bg-blue-100 dark:eb-bg-blue-900/30"
-            title="Business Details"
+            title={t('client-details:sections.businessDetails')}
             subtitle={
               <div className="eb-space-y-0.5">
                 {translatedOrgType && (
@@ -391,7 +395,7 @@ export function ClientSummaryCard({
                   </div>
                 )}
                 {!translatedOrgType && !org.fullAddress && (
-                  <span>Address, contact info, and more</span>
+                  <span>{t('client-details:labels.addressContactInfo')}</span>
                 )}
               </div>
             }
@@ -405,7 +409,7 @@ export function ClientSummaryCard({
             icon={people.length > 1 ? Users : User}
             iconClassName="eb-text-purple-600 dark:eb-text-purple-400"
             iconBgClassName="eb-bg-purple-100 dark:eb-bg-purple-900/30"
-            title="People"
+            title={t('client-details:sections.people')}
             badge={
               people.length > 0 ? (
                 <span className="eb-rounded eb-bg-purple-100 eb-px-1.5 eb-py-0.5 eb-text-xs eb-font-medium eb-text-purple-700 dark:eb-bg-purple-900/30 dark:eb-text-purple-300">
@@ -430,16 +434,18 @@ export function ClientSummaryCard({
                       <span className="eb-text-muted-foreground/60">
                         {person.isController &&
                         person.roles.includes('Beneficial Owner')
-                          ? '(Controller & Owner)'
+                          ? t('client-details:labels.controllerAndOwner')
                           : person.isController
-                            ? '(Controller)'
-                            : '(Owner)'}
+                            ? t('client-details:labels.controller')
+                            : t('client-details:labels.owner')}
                       </span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <span className="eb-italic">No ownership info on file</span>
+                <span className="eb-italic">
+                  {t('client-details:labels.noOwnershipInfo')}
+                </span>
               )
             }
           />

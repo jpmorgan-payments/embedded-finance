@@ -16,6 +16,7 @@
   "labels": {
     "businessName": "Nombre del Negocio",
     "dbaName": "Haciendo Negocios Como",
+    "doingBusinessAs": "opera como",
     "businessType": "Tipo de Negocio",
     "industry": "Industria",
     "industryCode": "Código de Industria",
