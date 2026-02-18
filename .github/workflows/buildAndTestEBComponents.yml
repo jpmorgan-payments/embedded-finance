@@ -1,4 +1,6 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# This workflow will do a clean install of node dependencies, build the source code, run tests,
+# and build Storybook for the embedded-components package.
+# Runs on push and pull_request so PRs cannot be merged when build, tests, or Storybook build fail.
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
 name: Build & Test EB Components
@@ -7,9 +9,12 @@ on:
   push:
     paths:
       - "embedded-components/**"
+  pull_request:
+    paths:
+      - "embedded-components/**"
 
 jobs:
-  build:
+  build-and-test:
     defaults:
       run:
         working-directory: "./embedded-components"
@@ -22,3 +27,5 @@ jobs:
         run: yarn build
       - name: Run tests
         run: yarn run test
+      - name: Build Storybook
+        run: yarn storybook:build
