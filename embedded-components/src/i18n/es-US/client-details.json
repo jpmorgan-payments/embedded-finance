@@ -1,0 +1,114 @@
+{
+  "sections": {
+    "businessInformation": "Información del Negocio",
+    "contactInformation": "Información de Contacto",
+    "questionResponses": "Respuestas a Preguntas",
+    "accountStatus": "Estado de la Cuenta",
+    "technicalDetails": "Detalles Técnicos",
+    "businessDetails": "Detalles del Negocio",
+    "people": "Personas",
+    "clientInfo": "Información del cliente",
+    "organization": "Organización",
+    "controller": "Controlador",
+    "beneficialOwners": "Beneficiarios finales",
+    "verificationResults": "Resultados de verificación"
+  },
+  "labels": {
+    "businessName": "Nombre del Negocio",
+    "dbaName": "Haciendo Negocios Como",
+    "doingBusinessAs": "opera como",
+    "businessType": "Tipo de Negocio",
+    "industry": "Industria",
+    "industryCode": "Código de Industria",
+    "ein": "EIN",
+    "countryOfFormation": "País de Constitución",
+    "yearOfFormation": "Año de Constitución",
+    "jurisdiction": "Jurisdicción",
+    "products": "Productos",
+    "applicationStatus": "Estado de la Solicitud",
+    "identityVerification": "Verificación de Identidad",
+    "clientId": "ID del Cliente",
+    "created": "Creado",
+    "addressContactInfo": "Dirección, información de contacto y más",
+    "noOwnershipInfo": "No hay información de propiedad en archivo",
+    "controllerAndOwner": "(Controlador y Propietario)",
+    "controller": "(Controlador)",
+    "owner": "(Propietario)"
+  },
+  "maskedValue": {
+    "showValue": "Mostrar valor",
+    "hideValue": "Ocultar valor"
+  },
+  "applicationStatuses": {
+    "APPROVED": "Aprobado",
+    "DECLINED": "Rechazado",
+    "INFORMATION_REQUESTED": "Información Solicitada",
+    "NEW": "Nuevo",
+    "REVIEW_IN_PROGRESS": "Revisión en Progreso",
+    "SUSPENDED": "Suspendido",
+    "TERMINATED": "Terminado"
+  },
+  "identityStatuses": {
+    "APPROVED": "Aprobado",
+    "INFORMATION_REQUESTED": "Información Solicitada",
+    "NOT_STARTED": "No Iniciado",
+    "REVIEW_IN_PROGRESS": "Revisión en Progreso"
+  },
+  "products": {
+    "EMBEDDED_PAYMENTS": "Pagos Integrados",
+    "MERCHANT_SERVICES": "Servicios Comerciales"
+  },
+  "businessTypes": {
+    "LIMITED_LIABILITY_COMPANY": "Sociedad de Responsabilidad Limitada (LLC)",
+    "LIMITED_LIABILITY_PARTNERSHIP": "Sociedad de Responsabilidad Limitada (LLP)",
+    "GENERAL_PARTNERSHIP": "Sociedad General",
+    "LIMITED_PARTNERSHIP": "Sociedad Limitada",
+    "C_CORPORATION": "Corporación C",
+    "S_CORPORATION": "Corporación S",
+    "PARTNERSHIP": "Sociedad",
+    "NON_PROFIT_CORPORATION": "Corporación Sin Fines de Lucro",
+    "GOVERNMENT_ENTITY": "Entidad Gubernamental",
+    "SOLE_PROPRIETORSHIP": "Empresa Individual",
+    "UNINCORPORATED_ASSOCIATION": "Asociación No Incorporada",
+    "PUBLICLY_TRADED_COMPANY": "Empresa Pública"
+  },
+  "roles": {
+    "CLIENT": "Cliente",
+    "CONTROLLER": "Controlador",
+    "BENEFICIAL_OWNER": "Beneficiario Final"
+  },
+  "dialogTitles": {
+    "identity": "Detalles del Negocio",
+    "verification": "Detalles del Negocio",
+    "ownership": "Personas",
+    "compliance": "Detalles del Negocio",
+    "accounts": "Cuentas",
+    "activity": "Actividad"
+  },
+  "dialogDescriptions": {
+    "identity": "Información del negocio, estado de verificación y cumplimiento",
+    "verification": "Información del negocio, estado de verificación y cumplimiento",
+    "ownership": "Controladores y beneficiarios finales",
+    "compliance": "Información del negocio, estado de verificación y cumplimiento",
+    "accounts": "Cuentas vinculadas e instrumentos de pago",
+    "activity": "Transacciones recientes y actividad de pago"
+  },
+  "peopleLabels": {
+    "jobTitle": "Cargo",
+    "firstName": "Nombre",
+    "middleName": "Segundo Nombre",
+    "lastName": "Apellido",
+    "nameSuffix": "Sufijo",
+    "birthDate": "Fecha de Nacimiento",
+    "email": "Correo Electrónico",
+    "phone": "Teléfono",
+    "address": "Dirección",
+    "ssn": "SSN",
+    "ownershipPercentage": "Propiedad"
+  },
+  "booleanValues": {
+    "true": "Sí",
+    "false": "No"
+  },
+  "emptyValue": "—"
+}

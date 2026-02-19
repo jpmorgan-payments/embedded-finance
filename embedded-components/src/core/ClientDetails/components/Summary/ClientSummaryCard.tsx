@@ -32,12 +32,20 @@ import {
   getControllerParty,
   getOrganizationParty,
 } from '../../utils/partyGrouping';
-import type { ClientSection } from './SectionList';
+import { SectionDialog } from '../DrillDown/SectionDialog';
+import type { ClientSection, SectionInfo } from './SectionList';
 
 interface ClientSummaryCardProps {
   client: ClientResponse;
+  /** Client ID for fetching related data (required for drill-down) */
+  clientId: string;
+  /** External navigation handler - disables built-in dialog drill-down */
   onSectionClick?: (section: ClientSection) => void;
+  /** Which sections to display */
   sections?: ClientSection[];
+  /** Section info for navigation (used by SectionDialog) */
+  sectionInfos?: SectionInfo[];
+  /** Custom actions to render in the footer */
   actions?: React.ReactNode;
   className?: string;
 }
@@ -155,19 +163,31 @@ const DEFAULT_SECTIONS: ClientSection[] = ['identity', 'ownership'];
 
 export function ClientSummaryCard({
   client,
+  clientId,
   onSectionClick,
   sections = DEFAULT_SECTIONS,
+  sectionInfos,
   actions,
   className,
 }: ClientSummaryCardProps) {
-  const { t } = useTranslation(['onboarding-old', 'onboarding-overview']);
+  const { t } = useTranslation([
+    'client-details',
+    'onboarding-old',
+    'onboarding-overview',
+  ]);
 
   const org = useMemo(() => getOrganizationDetails(client), [client]);
   const people = useMemo(() => getIndividualParties(client), [client]);
 
   const statusType = getStatusType(client.status);
-  const isApproved = client.status === 'APPROVED';
-  const isClickable = !!onSectionClick;
+
+  // Determine click behavior:
+  // - External handler: use onSectionClick callback
+  // - Built-in dialog: use SectionDialog (requires sectionInfos)
+  // - Neither: not clickable
+  const useExternalHandler = !!onSectionClick;
+  const useBuiltInDialog = !onSectionClick && !!sectionInfos;
+  const isClickable = useExternalHandler || useBuiltInDialog;
 
   const translatedOrgType = org.organizationType
     ? t(`onboarding-overview:organizationTypes.${org.organizationType}`, {
@@ -180,15 +200,8 @@ export function ClientSummaryCard({
     { defaultValue: client.status.replace(/_/g, ' ') }
   );
 
-  const handleSectionClick = (section: ClientSection) => {
-    if (onSectionClick) {
-      onSectionClick(section);
-    }
-  };
-
-  // Reusable section row component for consistent styling
-  const SectionRow = ({
-    section,
+  // Reusable row content component for consistent styling
+  const SectionRowContent = ({
     icon: Icon,
     iconClassName,
     iconBgClassName,
@@ -197,7 +210,6 @@ export function ClientSummaryCard({
     badge,
     children,
   }: {
-    section: ClientSection;
     icon: React.ComponentType<{ className?: string }>;
     iconClassName: string;
     iconBgClassName: string;
@@ -206,17 +218,7 @@ export function ClientSummaryCard({
     badge?: React.ReactNode;
     children?: React.ReactNode;
   }) => (
-    <button
-      type="button"
-      onClick={() => handleSectionClick(section)}
-      disabled={!isClickable}
-      className={cn(
-        'eb-group eb-flex eb-w-full eb-items-start eb-gap-2 eb-p-3 eb-text-left eb-transition-colors @sm:eb-gap-3',
-        isClickable
-          ? 'hover:eb-bg-muted/50 active:eb-bg-muted/70'
-          : 'eb-cursor-default'
-      )}
-    >
+    <div className="eb-flex eb-w-full eb-items-start eb-gap-2 @sm:eb-gap-3">
       {/* Large container: Icon in colored box */}
       <div
         className={cn(
@@ -247,7 +249,7 @@ export function ClientSummaryCard({
           {badge}
         </div>
         {subtitle && (
-          <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
+          <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground eb-duration-300 eb-animate-in eb-fade-in">
             {subtitle}
           </div>
         )}
@@ -259,8 +261,58 @@ export function ClientSummaryCard({
           aria-hidden="true"
         />
       )}
-    </button>
+    </div>
   );
+
+  // Reusable section row - wraps with Dialog when using built-in, otherwise uses button
+  const SectionRow = ({
+    section,
+    ...contentProps
+  }: {
+    section: ClientSection;
+    icon: React.ComponentType<{ className?: string }>;
+    iconClassName: string;
+    iconBgClassName: string;
+    title: string;
+    subtitle?: React.ReactNode;
+    badge?: React.ReactNode;
+    children?: React.ReactNode;
+  }) => {
+    const rowClassName = cn(
+      'eb-group eb-w-full eb-p-3 eb-text-left eb-transition-colors @sm:eb-gap-3',
+      isClickable
+        ? 'hover:eb-bg-muted/50 active:eb-bg-muted/70 eb-cursor-pointer'
+        : 'eb-cursor-default'
+    );
+
+    // Use built-in Dialog when no external handler
+    if (useBuiltInDialog) {
+      return (
+        <SectionDialog
+          client={client}
+          clientId={clientId}
+          section={section}
+          sections={sectionInfos}
+        >
+          <button type="button" className={rowClassName}>
+            <SectionRowContent {...contentProps} />
+          </button>
+        </SectionDialog>
+      );
+    }
+
+    // External handler - use simple button
+    return (
+      <button
+        type="button"
+        onClick={() => onSectionClick?.(section)}
+        disabled={!isClickable}
+        className={rowClassName}
+      >
+        <SectionRowContent {...contentProps} />
+      </button>
+    );
+  };
 
   return (
     <Card
@@ -279,35 +331,33 @@ export function ClientSummaryCard({
             />
           </div>
 
-          {/* Business Info */}
-          <div className="eb-min-w-0 eb-flex-1">
+          {/* Business Info - dynamic content with fade-in */}
+          <div className="eb-min-w-0 eb-flex-1 eb-duration-300 eb-animate-in eb-fade-in">
             <h2 className="eb-text-lg eb-font-semibold eb-leading-tight eb-text-foreground">
               {org.name}
             </h2>
             {org.dbaName && (
               <p className="eb-mt-0.5 eb-text-sm eb-text-muted-foreground">
-                doing business as{' '}
+                {t('client-details:labels.doingBusinessAs')}{' '}
                 <span className="eb-font-medium eb-text-foreground">
                   &ldquo;{org.dbaName}&rdquo;
                 </span>
               </p>
             )}
 
-            {/* Status - only show if not approved */}
-            {!isApproved && (
-              <div className="eb-mt-2 eb-flex eb-items-center eb-gap-1.5 eb-text-xs eb-text-muted-foreground">
-                <span
-                  className={cn(
-                    'eb-h-2 eb-w-2 eb-rounded-full',
-                    statusType === 'success' && 'eb-bg-green-500',
-                    statusType === 'warning' && 'eb-bg-amber-500',
-                    statusType === 'error' && 'eb-bg-red-500',
-                    statusType === 'pending' && 'eb-bg-blue-500'
-                  )}
-                />
-                <span>{translatedStatus}</span>
-              </div>
-            )}
+            {/* Status indicator */}
+            <div className="eb-mt-2 eb-flex eb-items-center eb-gap-1.5 eb-text-xs eb-text-muted-foreground">
+              <span
+                className={cn(
+                  'eb-h-2 eb-w-2 eb-rounded-full',
+                  statusType === 'success' && 'eb-bg-green-500',
+                  statusType === 'warning' && 'eb-bg-amber-500',
+                  statusType === 'error' && 'eb-bg-red-500',
+                  statusType === 'pending' && 'eb-bg-blue-500'
+                )}
+              />
+              <span>{translatedStatus}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -323,7 +373,7 @@ export function ClientSummaryCard({
             icon={FileText}
             iconClassName="eb-text-blue-600 dark:eb-text-blue-400"
             iconBgClassName="eb-bg-blue-100 dark:eb-bg-blue-900/30"
-            title="Business Details"
+            title={t('client-details:sections.businessDetails')}
             subtitle={
               <div className="eb-space-y-0.5">
                 {translatedOrgType && (
@@ -342,7 +392,7 @@ export function ClientSummaryCard({
                   </div>
                 )}
                 {!translatedOrgType && !org.fullAddress && (
-                  <span>Address, contact info, and more</span>
+                  <span>{t('client-details:labels.addressContactInfo')}</span>
                 )}
               </div>
             }
@@ -356,7 +406,7 @@ export function ClientSummaryCard({
             icon={people.length > 1 ? Users : User}
             iconClassName="eb-text-purple-600 dark:eb-text-purple-400"
             iconBgClassName="eb-bg-purple-100 dark:eb-bg-purple-900/30"
-            title="People"
+            title={t('client-details:sections.people')}
             badge={
               people.length > 0 ? (
                 <span className="eb-rounded eb-bg-purple-100 eb-px-1.5 eb-py-0.5 eb-text-xs eb-font-medium eb-text-purple-700 dark:eb-bg-purple-900/30 dark:eb-text-purple-300">
@@ -381,16 +431,18 @@ export function ClientSummaryCard({
                       <span className="eb-text-muted-foreground/60">
                         {person.isController &&
                         person.roles.includes('Beneficial Owner')
-                          ? '(Controller & Owner)'
+                          ? t('client-details:labels.controllerAndOwner')
                           : person.isController
-                            ? '(Controller)'
-                            : '(Owner)'}
+                            ? t('client-details:labels.controller')
+                            : t('client-details:labels.owner')}
                       </span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <span className="eb-italic">No ownership info on file</span>
+                <span className="eb-italic">
+                  {t('client-details:labels.noOwnershipInfo')}
+                </span>
               )
             }
           />

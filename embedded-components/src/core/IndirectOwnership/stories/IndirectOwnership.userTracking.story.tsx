@@ -30,7 +30,7 @@ const mockClient = {
 };
 
 const meta: Meta<IndirectOwnershipProps & BaseStoryArgs> = {
-  title: 'Core/IndirectOwnership/User Journey Tracking',
+  title: 'Beta/IndirectOwnership/User Journey Tracking',
   component: IndirectOwnership,
   tags: ['@core', '@indirect-ownership', '@user-tracking'],
   parameters: {

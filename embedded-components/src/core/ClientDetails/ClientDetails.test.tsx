@@ -54,14 +54,14 @@ describe('ClientDetails', () => {
       expect(document.querySelector('.eb-animate-pulse')).toBeInTheDocument();
     });
 
-    test('renders client details in accordion view by default', async () => {
+    test('renders client details in accordion view when viewMode is accordion', async () => {
       server.use(
         http.get('*/clients/:clientId', () =>
           HttpResponse.json(efClientCorpEBMock)
         )
       );
 
-      renderComponent();
+      renderComponent({ viewMode: 'accordion' });
 
       await waitFor(() => {
         expect(screen.getByText('Client details')).toBeInTheDocument();
@@ -108,7 +108,7 @@ describe('ClientDetails', () => {
         )
       );
 
-      renderComponent({ title: 'My client' });
+      renderComponent({ title: 'My client', viewMode: 'accordion' });
 
       await waitFor(() => {
         expect(screen.getByText('My client')).toBeInTheDocument();
