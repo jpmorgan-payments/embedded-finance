@@ -217,66 +217,105 @@ export function BusinessDetailsContent({
     client.questionResponses && client.questionResponses.length > 0;
 
   return (
-    <div className="eb-space-y-5">
-      {/* Business Information Section (includes formation) */}
-      <Section
-        title={t('client-details:sections.businessInformation')}
-        icon={<Building2Icon className="eb-h-4 eb-w-4" />}
-      >
-        <div className="eb-space-y-3">
-          <DetailRow
-            label={t('client-details:labels.businessName')}
-            value={orgDetails?.organizationName}
-          />
-          {orgDetails?.dbaName && (
-            <DetailRow
-              label={t('client-details:labels.dbaName')}
-              value={orgDetails.dbaName}
-            />
+    <div className="eb-space-y-6">
+      {/* Business Identity */}
+      <div className="eb-space-y-4">
+        <div className="eb-flex eb-items-center eb-gap-3">
+          <div className="eb-flex eb-h-10 eb-w-10 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-lg eb-bg-slate-100 dark:eb-bg-slate-800">
+            <Building2Icon className="eb-h-5 eb-w-5 eb-text-slate-600 dark:eb-text-slate-400" />
+          </div>
+          <div className="eb-min-w-0">
+            <h3 className="eb-text-base eb-font-semibold eb-text-foreground">
+              {orgDetails?.organizationName || t('client-details:emptyValue')}
+            </h3>
+            {orgDetails?.dbaName && (
+              <p className="eb-text-sm eb-text-muted-foreground">
+                {t('client-details:labels.doingBusinessAs')} &ldquo;
+                {orgDetails.dbaName}&rdquo;
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Business Details Grid */}
+        <div className="eb-grid eb-gap-x-8 eb-gap-y-3 @sm:eb-grid-cols-2">
+          {translatedOrgType && (
+            <div>
+              <dt className="eb-text-xs eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                {t('client-details:labels.businessType')}
+              </dt>
+              <dd className="eb-mt-0.5 eb-text-sm eb-text-foreground">
+                {translatedOrgType}
+              </dd>
+            </div>
           )}
-          <DetailRow
-            label={t('client-details:labels.businessType')}
-            value={translatedOrgType}
-          />
-          <DetailRow
-            label={t('client-details:labels.industry')}
-            value={industryDescription || null}
-          />
+          {industryDescription && (
+            <div>
+              <dt className="eb-text-xs eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                {t('client-details:labels.industry')}
+              </dt>
+              <dd className="eb-mt-0.5 eb-text-sm eb-capitalize eb-text-foreground">
+                {industryDescription.toLowerCase().replace(/_/g, ' ')}
+              </dd>
+            </div>
+          )}
           {industryCode && (
-            <DetailRow
-              label={t('client-details:labels.industryCode')}
-              value={industryCode}
-            />
+            <div>
+              <dt className="eb-text-xs eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                {t('client-details:labels.industryCode')}
+              </dt>
+              <dd className="eb-font-mono eb-mt-0.5 eb-text-sm eb-text-foreground">
+                {industryCode}
+              </dd>
+            </div>
           )}
           {ein?.value && (
-            <DetailRow
-              label={t('client-details:labels.ein')}
-              value={
+            <div>
+              <dt className="eb-text-xs eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                {t('client-details:labels.ein')}
+              </dt>
+              <dd className="eb-mt-0.5">
                 <MaskedValue
                   value={formatEIN(ein.value) || ein.value}
                   maskedValue={`**-***${ein.value.slice(-4)}`}
                   showLabel={t('client-details:maskedValue.showValue')}
                   hideLabel={t('client-details:maskedValue.hideValue')}
                 />
-              }
-            />
+              </dd>
+            </div>
           )}
-          <DetailRow
-            label={t('client-details:labels.countryOfFormation')}
-            value={orgDetails?.countryOfFormation}
-          />
-          <DetailRow
-            label={t('client-details:labels.yearOfFormation')}
-            value={orgDetails?.yearOfFormation}
-          />
+          {orgDetails?.yearOfFormation && (
+            <div>
+              <dt className="eb-text-xs eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                {t('client-details:labels.yearOfFormation')}
+              </dt>
+              <dd className="eb-mt-0.5 eb-text-sm eb-text-foreground">
+                {orgDetails.yearOfFormation}
+              </dd>
+            </div>
+          )}
+          {orgDetails?.countryOfFormation && (
+            <div>
+              <dt className="eb-text-xs eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                {t('client-details:labels.countryOfFormation')}
+              </dt>
+              <dd className="eb-mt-0.5 eb-text-sm eb-text-foreground">
+                {orgDetails.countryOfFormation}
+              </dd>
+            </div>
+          )}
           {orgDetails?.jurisdiction && (
-            <DetailRow
-              label={t('client-details:labels.jurisdiction')}
-              value={orgDetails.jurisdiction}
-            />
+            <div>
+              <dt className="eb-text-xs eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+                {t('client-details:labels.jurisdiction')}
+              </dt>
+              <dd className="eb-mt-0.5 eb-text-sm eb-text-foreground">
+                {orgDetails.jurisdiction}
+              </dd>
+            </div>
           )}
         </div>
-      </Section>
+      </div>
 
       {/* Contact Information */}
       {(org?.email ||
@@ -286,46 +325,62 @@ export function BusinessDetailsContent({
         <>
           <Separator />
           <Section title={t('client-details:sections.contactInformation')}>
-            <div className="eb-space-y-3">
+            <div className="eb-grid eb-gap-x-8 eb-gap-y-3 @sm:eb-grid-cols-2">
               {org?.email && (
                 <div className="eb-flex eb-items-center eb-gap-2">
                   <MailIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
-                  <a
-                    href={`mailto:${org.email}`}
-                    className="eb-text-sm eb-text-primary hover:eb-underline"
-                  >
-                    {org.email}
-                  </a>
+                  <div>
+                    <dt className="eb-sr-only">Email</dt>
+                    <dd>
+                      <a
+                        href={`mailto:${org.email}`}
+                        className="eb-text-sm eb-text-primary hover:eb-underline"
+                      >
+                        {org.email}
+                      </a>
+                    </dd>
+                  </div>
                 </div>
               )}
               {phone?.phoneNumber && (
                 <div className="eb-flex eb-items-center eb-gap-2">
                   <PhoneIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
-                  <span className="eb-text-sm">
-                    {phone.countryCode} {phone.phoneNumber}
-                  </span>
+                  <div>
+                    <dt className="eb-sr-only">Phone</dt>
+                    <dd className="eb-text-sm">
+                      {phone.countryCode} {phone.phoneNumber}
+                    </dd>
+                  </div>
                 </div>
               )}
               {orgDetails?.website && (
                 <div className="eb-flex eb-items-center eb-gap-2">
                   <GlobeIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
-                  <a
-                    href={orgDetails.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="eb-text-sm eb-text-primary hover:eb-underline"
-                  >
-                    {orgDetails.website}
-                  </a>
+                  <div>
+                    <dt className="eb-sr-only">Website</dt>
+                    <dd>
+                      <a
+                        href={orgDetails.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="eb-text-sm eb-text-primary hover:eb-underline"
+                      >
+                        {orgDetails.website.replace(/^https?:\/\//, '')}
+                      </a>
+                    </dd>
+                  </div>
                 </div>
               )}
               {addressLines && (
-                <div className="eb-flex eb-gap-2">
+                <div className="eb-flex eb-gap-2 @sm:eb-col-span-2">
                   <MapPinIcon className="eb-mt-0.5 eb-h-4 eb-w-4 eb-shrink-0 eb-text-muted-foreground" />
-                  <div className="eb-text-sm">
-                    {addressLines.map((line, idx) => (
-                      <div key={idx}>{line}</div>
-                    ))}
+                  <div>
+                    <dt className="eb-sr-only">Address</dt>
+                    <dd className="eb-text-sm">
+                      {addressLines.map((line, idx) => (
+                        <div key={idx}>{line}</div>
+                      ))}
+                    </dd>
                   </div>
                 </div>
               )}
