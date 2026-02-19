@@ -64,7 +64,7 @@ Before generating component code, review the architecture document for:
 
 ## Agent Skills
 
-Agent Skills provide specialized guidance for specific tasks. **Always reference relevant skills when working on related tasks.** Skills are located in `.github/skills/` and are automatically loaded by GitHub Copilot and other AI agents.
+Agent Skills provide specialized guidance for specific tasks. **Always reference relevant skills when working on related tasks.** Skills are located in `.github/skills/` and are automatically loaded by GitHub Copilot and other AI agents. **Cursor users:** create a local symlink `.cursor` → `.github` so Cursor finds the same content.
 
 1. **[embedded-banking-architecture](.github/skills/embedded-banking-architecture/)** - Core architecture patterns, component structure, and organization principles. **MUST review before creating any component code.**
 
@@ -125,4 +125,4 @@ Each skill contains:
 3. Consult `AGENTS.md` for detailed instructions and examples
 4. Follow the patterns and guidelines provided
 
-**Skills are automatically loaded by GitHub Copilot**, but you should explicitly reference them in your prompts for best results.
+**Skills are automatically loaded by GitHub Copilot** from `.github/skills/`. Cursor: use a local `.cursor` → `.github` symlink. Explicitly reference skills in your prompts for best results.

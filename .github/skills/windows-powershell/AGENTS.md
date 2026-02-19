@@ -404,6 +404,6 @@ cd ..; git add .; git commit -m "feat: new component"; git push
 
 ## References
 
-- See `.github/copilot/prompts/` for related prompts
-- See `.github/copilot/skills/code-quality-workflow/` for testing workflow
+- See `.github/prompts/` for related prompts
+- See `.github/skills/code-quality-workflow/` for testing workflow
 - Microsoft PowerShell documentation: https://docs.microsoft.com/powershell/

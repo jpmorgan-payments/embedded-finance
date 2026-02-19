@@ -8,12 +8,12 @@
 
 1. **`embedded-components/ARCHITECTURE.md`** - ⭐ **Source of truth** for all architecture patterns
 2. **`.github/copilot-instructions.md`** - Complete implementation guide for GitHub Copilot
-3. **`.github/copilot/skills/`** - Task-specific agent skills (automatically activated)
+3. **`.github/skills/`** - Task-specific agent skills (automatically activated; Cursor: use `.cursor` → `.github` symlink locally)
 4. **`AGENTS.md`** - Repository-wide agent instructions
 
 ## 🎯 Agent Skills (Automatic)
 
-Skills in `.github/copilot/skills/` are automatically discovered and activated:
+Skills in `.github/skills/` are automatically discovered and activated:
 
 **Tier 1 - Critical:**
 - `embedded-banking-architecture` - Component structure & organization
@@ -43,7 +43,7 @@ Skills in `.github/copilot/skills/` are automatically discovered and activated:
 ├── embedded-components/     # ACTIVE - Main UI component library
 │   ├── ARCHITECTURE.md     # ⭐ Source of truth
 │   └── .cursorrules        # Package-specific config
-└── .github/copilot/
+└── .github/
     ├── copilot-instructions.md  # Complete guide
     └── skills/                   # Agent skills
 ```
@@ -65,7 +65,7 @@ cd embedded-components; yarn format; yarn lint:fix
 
 - **Implementation patterns** → `.github/copilot-instructions.md`
 - **Architecture decisions** → `embedded-components/ARCHITECTURE.md`
-- **Task-specific help** → `.github/copilot/skills/`
+- **Task-specific help** → `.github/skills/`
 - **Package config** → `embedded-components/.cursorrules`
 
 ---

@@ -23,7 +23,7 @@ The source of truth for architecture patterns is:
 
 ## Additional Resources
 
-- **`.github/copilot/skills/`** - Agent Skills (cross-IDE compatible guidance)
+- **`.github/skills/`** - Agent Skills (GitHub Copilot; Cursor: use `.cursor` → `.github` symlink locally)
 - **`.cursorrules`** - Root configuration (cross-IDE compatible)
 
 ## Progressive Disclosure

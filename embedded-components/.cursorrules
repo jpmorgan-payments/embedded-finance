@@ -8,7 +8,7 @@
 
 1. **`ARCHITECTURE.md`** - ⭐ **Source of truth** for all architecture patterns
 2. **`../.github/copilot-instructions.md`** - Complete implementation guide
-3. **`../.github/copilot/skills/`** - Task-specific agent skills (automatically activated)
+3. **`../.github/skills/`** - Task-specific agent skills (automatically activated)
 4. **`AGENTS.md`** - Package-specific instructions
 
 ## ⚠️ CRITICAL: Follow ARCHITECTURE.md
@@ -62,9 +62,9 @@ yarn test       # Verify all checks pass
 
 - **All patterns** → `ARCHITECTURE.md` (source of truth)
 - **React/Hook/Testing patterns** → `../.github/copilot-instructions.md`
-- **Styling** → `../.github/copilot/skills/styling-guidelines/`
-- **Testing** → `../.github/copilot/skills/component-testing/`
-- **Code quality** → `../.github/copilot/skills/code-quality-workflow/`
+- **Styling** → `../.github/skills/styling-guidelines/`
+- **Testing** → `../.github/skills/component-testing/`
+- **Code quality** → `../.github/skills/code-quality-workflow/`
 
 ---
 
