@@ -11,6 +11,7 @@ import type { EBConfig } from '@/core/EBComponentsProvider/config.types';
 
 import enUS_accounts from './en-US/accounts.json';
 import enUS_bankAccountForm from './en-US/bank-account-form.json';
+import enUS_clientDetails from './en-US/client-details.json';
 import enUS_common from './en-US/common.json';
 import enUS_linkedAccounts from './en-US/linked-accounts.json';
 import enUS_makePayment from './en-US/make-payment.json';
@@ -21,10 +22,12 @@ import enUS_transactions from './en-US/transactions.json';
 import enUS_validation from './en-US/validation.json';
 import esUS_accounts from './es-US/accounts.json';
 import esUS_bankAccountForm from './es-US/bank-account-form.json';
+import esUS_clientDetails from './es-US/client-details.json';
 import esUS_recipients from './es-US/recipients.json';
 import esUS_transactions from './es-US/transactions.json';
 import frCA_accounts from './fr-CA/accounts.json';
 import frCA_bankAccountForm from './fr-CA/bank-account-form.json';
+import frCA_clientDetails from './fr-CA/client-details.json';
 import frCA_common from './fr-CA/common.json';
 import frCA_linkedAccounts from './fr-CA/linked-accounts.json';
 import frCA_makePayment from './fr-CA/make-payment.json';
@@ -42,6 +45,7 @@ export const defaultResources = {
     'make-payment': enUS_makePayment,
     'linked-accounts': enUS_linkedAccounts,
     'bank-account-form': enUS_bankAccountForm,
+    'client-details': enUS_clientDetails,
     accounts: enUS_accounts,
     recipients: enUS_recipients,
     transactions: enUS_transactions,
@@ -56,6 +60,7 @@ export const defaultResources = {
     'make-payment': frCA_makePayment,
     'linked-accounts': frCA_linkedAccounts,
     'bank-account-form': frCA_bankAccountForm,
+    'client-details': frCA_clientDetails,
     accounts: frCA_accounts,
     recipients: frCA_recipients,
     transactions: frCA_transactions,
@@ -70,6 +75,7 @@ export const defaultResources = {
     'make-payment': enUS_makePayment, // Using English make-payment for now
     'linked-accounts': enUS_linkedAccounts, // Using English linked-accounts for now
     'bank-account-form': esUS_bankAccountForm,
+    'client-details': esUS_clientDetails,
     accounts: esUS_accounts,
     recipients: esUS_recipients,
     transactions: esUS_transactions,
@@ -103,6 +109,7 @@ i18n.use(initReactI18next).init({
     'make-payment',
     'linked-accounts',
     'bank-account-form',
+    'client-details',
     'accounts',
     'recipients',
     'transactions',

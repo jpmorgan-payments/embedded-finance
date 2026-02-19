@@ -3,10 +3,11 @@
  * Information-dense layout with minimal spacing
  */
 
+import { useTranslation } from 'react-i18next';
+
 import { _get, cn, isValueEmpty } from '@/lib/utils';
 import type { PartyResponse } from '@/api/generated/smbdo.schemas';
 
-import { formatRoleLabels } from '../../utils/formatClientFacing';
 import { getPartyDisplayName } from '../../utils/getPartyDisplayName';
 import {
   individualFieldDefinitions,
@@ -59,12 +60,17 @@ export function PartyDetailsBlock({
   subheading,
   compact = false,
 }: PartyDetailsBlockProps) {
+  const { t } = useTranslation('client-details');
   const isOrg = party.partyType === 'ORGANIZATION';
   const fields = isOrg
     ? organizationFieldDefinitions
     : individualFieldDefinitions;
   const name = heading ?? getPartyDisplayName(party);
-  const roleLabel = formatRoleLabels(party.roles ?? undefined);
+
+  // Format role labels using i18n
+  const roleLabel = party.roles?.length
+    ? party.roles.map((r) => t(`roles.${r}`, { defaultValue: r })).join(', ')
+    : undefined;
 
   return (
     <div

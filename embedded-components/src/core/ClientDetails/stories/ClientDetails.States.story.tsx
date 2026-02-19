@@ -1,8 +1,7 @@
 /**
- * ClientDetails - Client Statuses
+ * ClientDetails - States
  *
- * Showcase of different client statuses and loading/error states.
- * See how the component displays based on the client's approval status.
+ * Loading, error, and client status variants.
  */
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -21,7 +20,7 @@ type ClientDetailsStoryArgs = Omit<BaseStoryArgs, 'clientId'> &
   ClientDetailsProps;
 
 const meta: Meta<ClientDetailsStoryArgs> = {
-  title: 'Core/ClientDetails/Client Statuses',
+  title: 'Beta/ClientDetails/States',
   component: ClientDetails,
   tags: ['@core', '@client-details'],
   parameters: {
@@ -54,11 +53,12 @@ type Story = StoryObj<ClientDetailsStoryArgs>;
 // =============================================================================
 
 /**
- * **Loading State**
+ * **Loading - Summary**
  *
- * Shows skeleton loading state while fetching client data.
+ * Skeleton loading state for summary view mode.
  */
-export const Loading: Story = {
+export const LoadingSummary: Story = {
+  name: 'Loading - Summary',
   parameters: {
     msw: {
       handlers: createClientDetailsHandlers({ delayMs: 60000 }),
@@ -70,18 +70,54 @@ export const Loading: Story = {
 };
 
 /**
+ * **Loading - Accordion**
+ *
+ * Skeleton loading state for accordion view mode.
+ */
+export const LoadingAccordion: Story = {
+  name: 'Loading - Accordion',
+  parameters: {
+    msw: {
+      handlers: createClientDetailsHandlers({ delayMs: 60000 }),
+    },
+  },
+  args: {
+    viewMode: 'accordion',
+    title: 'Client Details',
+  },
+};
+
+/**
+ * **Loading - Cards**
+ *
+ * Skeleton loading state for cards view mode.
+ */
+export const LoadingCards: Story = {
+  name: 'Loading - Cards',
+  parameters: {
+    msw: {
+      handlers: createClientDetailsHandlers({ delayMs: 60000 }),
+    },
+  },
+  args: {
+    viewMode: 'cards',
+    title: 'Client Details',
+  },
+};
+
+/**
  * **Error State**
  *
- * Shows error message when client fetch fails.
+ * Displays error message when client fetch fails.
  */
-export const Error: Story = {
+export const ErrorState: Story = {
   parameters: {
     msw: {
       handlers: createClientDetailsHandlers({ status: 404 }),
     },
   },
   args: {
-    clientId: 'invalid-id',
+    clientId: 'invalid-client-id',
     viewMode: 'summary',
   },
 };
@@ -91,23 +127,24 @@ export const Error: Story = {
 // =============================================================================
 
 /**
- * **Approved Client**
+ * **Status - Approved**
  *
- * Default state - fully approved client with all sections available.
+ * Fully approved client - all checks passed.
  */
-export const Approved: Story = {
+export const StatusApproved: Story = {
+  name: 'Status - Approved',
   args: {
     viewMode: 'summary',
   },
 };
 
 /**
- * **In Review**
+ * **Status - In Review**
  *
- * Shows how the component displays when client is under review.
- * Status badge indicates "In Review" state.
+ * Client application is being reviewed.
  */
-export const InReview: Story = {
+export const StatusInReview: Story = {
+  name: 'Status - In Review',
   parameters: {
     msw: {
       handlers: createClientDetailsHandlers({
@@ -127,12 +164,12 @@ export const InReview: Story = {
 };
 
 /**
- * **Information Requested**
+ * **Status - Information Requested**
  *
- * Shows warning indicators when additional information is needed.
- * Outstanding items are highlighted in the verification section.
+ * Additional information needed - shows warning indicators.
  */
-export const InformationRequested: Story = {
+export const StatusInfoRequested: Story = {
+  name: 'Status - Info Requested',
   parameters: {
     msw: {
       handlers: createClientDetailsHandlers({
@@ -158,11 +195,12 @@ export const InformationRequested: Story = {
 };
 
 /**
- * **Declined**
+ * **Status - Declined**
  *
- * Shows how the component displays when client has been declined.
+ * Client application was declined.
  */
-export const Declined: Story = {
+export const StatusDeclined: Story = {
+  name: 'Status - Declined',
   parameters: {
     msw: {
       handlers: createClientDetailsHandlers({
@@ -182,11 +220,12 @@ export const Declined: Story = {
 };
 
 /**
- * **New (Not Started)**
+ * **Status - New**
  *
- * Shows a client that has just been created but not yet submitted.
+ * Newly created client that hasn't been submitted yet.
  */
-export const New: Story = {
+export const StatusNew: Story = {
+  name: 'Status - New',
   parameters: {
     msw: {
       handlers: createClientDetailsHandlers({

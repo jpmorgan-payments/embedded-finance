@@ -13,7 +13,7 @@ const mockClientWithOwners = efClientWithOwnershipStructure;
 const mockEmptyClient = efClientEmptyOwnership;
 
 const meta = {
-  title: 'Core/IndirectOwnership',
+  title: 'Beta/IndirectOwnership',
   component: IndirectOwnership,
   tags: ['@core', '@indirect-ownership'],
   parameters: {

@@ -1,0 +1,114 @@
+{
+  "sections": {
+    "businessInformation": "Informations sur l'entreprise",
+    "contactInformation": "Coordonnées",
+    "questionResponses": "Réponses aux questions",
+    "accountStatus": "État du compte",
+    "technicalDetails": "Détails techniques",
+    "businessDetails": "Détails de l'entreprise",
+    "people": "Personnes",
+    "clientInfo": "Informations sur le client",
+    "organization": "Organisation",
+    "controller": "Contrôleur",
+    "beneficialOwners": "Bénéficiaires effectifs",
+    "verificationResults": "Résultats de vérification"
+  },
+  "labels": {
+    "businessName": "Nom de l'entreprise",
+    "dbaName": "Faisant affaires sous",
+    "doingBusinessAs": "faisant affaires sous le nom",
+    "businessType": "Type d'entreprise",
+    "industry": "Industrie",
+    "industryCode": "Code d'industrie",
+    "ein": "EIN",
+    "countryOfFormation": "Pays de constitution",
+    "yearOfFormation": "Année de constitution",
+    "jurisdiction": "Juridiction",
+    "products": "Produits",
+    "applicationStatus": "État de la demande",
+    "identityVerification": "Vérification d'identité",
+    "clientId": "ID du client",
+    "created": "Créé",
+    "addressContactInfo": "Adresse, coordonnées et plus",
+    "noOwnershipInfo": "Aucune information sur la propriété au dossier",
+    "controllerAndOwner": "(Contrôleur et propriétaire)",
+    "controller": "(Contrôleur)",
+    "owner": "(Propriétaire)"
+  },
+  "maskedValue": {
+    "showValue": "Afficher la valeur",
+    "hideValue": "Masquer la valeur"
+  },
+  "applicationStatuses": {
+    "APPROVED": "Approuvé",
+    "DECLINED": "Refusé",
+    "INFORMATION_REQUESTED": "Informations demandées",
+    "NEW": "Nouveau",
+    "REVIEW_IN_PROGRESS": "Examen en cours",
+    "SUSPENDED": "Suspendu",
+    "TERMINATED": "Résilié"
+  },
+  "identityStatuses": {
+    "APPROVED": "Approuvé",
+    "INFORMATION_REQUESTED": "Informations demandées",
+    "NOT_STARTED": "Non commencé",
+    "REVIEW_IN_PROGRESS": "Examen en cours"
+  },
+  "products": {
+    "EMBEDDED_PAYMENTS": "Paiements intégrés",
+    "MERCHANT_SERVICES": "Services aux commerçants"
+  },
+  "businessTypes": {
+    "LIMITED_LIABILITY_COMPANY": "Société à responsabilité limitée (LLC)",
+    "LIMITED_LIABILITY_PARTNERSHIP": "Société en commandite à responsabilité limitée (LLP)",
+    "GENERAL_PARTNERSHIP": "Société en nom collectif",
+    "LIMITED_PARTNERSHIP": "Société en commandite",
+    "C_CORPORATION": "Corporation C",
+    "S_CORPORATION": "Corporation S",
+    "PARTNERSHIP": "Société de personnes",
+    "NON_PROFIT_CORPORATION": "Corporation sans but lucratif",
+    "GOVERNMENT_ENTITY": "Entité gouvernementale",
+    "SOLE_PROPRIETORSHIP": "Entreprise individuelle",
+    "UNINCORPORATED_ASSOCIATION": "Association non constituée",
+    "PUBLICLY_TRADED_COMPANY": "Société cotée en bourse"
+  },
+  "roles": {
+    "CLIENT": "Client",
+    "CONTROLLER": "Contrôleur",
+    "BENEFICIAL_OWNER": "Bénéficiaire effectif"
+  },
+  "dialogTitles": {
+    "identity": "Détails de l'entreprise",
+    "verification": "Détails de l'entreprise",
+    "ownership": "Personnes",
+    "compliance": "Détails de l'entreprise",
+    "accounts": "Comptes",
+    "activity": "Activité"
+  },
+  "dialogDescriptions": {
+    "identity": "Informations sur l'entreprise, statut de vérification et conformité",
+    "verification": "Informations sur l'entreprise, statut de vérification et conformité",
+    "ownership": "Contrôleurs et bénéficiaires effectifs",
+    "compliance": "Informations sur l'entreprise, statut de vérification et conformité",
+    "accounts": "Comptes liés et instruments de paiement",
+    "activity": "Transactions récentes et activité de paiement"
+  },
+  "peopleLabels": {
+    "jobTitle": "Titre du poste",
+    "firstName": "Prénom",
+    "middleName": "Deuxième prénom",
+    "lastName": "Nom de famille",
+    "nameSuffix": "Suffixe",
+    "birthDate": "Date de naissance",
+    "email": "Courriel",
+    "phone": "Téléphone",
+    "address": "Adresse",
+    "ssn": "SSN",
+    "ownershipPercentage": "Propriété"
+  },
+  "booleanValues": {
+    "true": "Oui",
+    "false": "Non"
+  },
+  "emptyValue": "—"
+}

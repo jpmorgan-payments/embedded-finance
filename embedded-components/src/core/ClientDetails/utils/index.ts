@@ -16,9 +16,10 @@ export {
 } from './partyGrouping';
 export type { ClientDetailsSectionGroup } from './partyGrouping';
 export {
-  formatApplicationStatus,
-  formatProducts,
   formatDateTime,
-  formatCustomerIdentityStatus,
+  formatCurrency,
   formatQuestionResponseValue,
+  formatJobTitleDisplay,
+  formatEIN,
+  formatSSN,
 } from './formatClientFacing';

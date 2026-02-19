@@ -8,7 +8,7 @@
 import type { ClientDetailsViewMode } from './ClientDetails.types';
 
 export const CLIENT_DETAILS_DEFAULT_VIEW_MODE: ClientDetailsViewMode =
-  'accordion';
+  'summary';
 
 export const CLIENT_DETAILS_SECTION_IDS = {
   CLIENT_INFO: 'client-info',
