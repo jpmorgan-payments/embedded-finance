@@ -1,8 +1,9 @@
 ---
 name: React Patterns
-description: React 18 patterns, hooks, state, forms, and performance for embedded-components
+description: React 18 patterns, hooks, state, forms, and performance for embedded-components. Use when implementing or refactoring React code.
 argument-hint: "e.g. Add a form with validation, refactor to use a custom hook, fix re-renders."
 tools: ['editFiles', 'codebase', 'search', 'usages']
+model: inherit
 ---
 
 # React patterns agent

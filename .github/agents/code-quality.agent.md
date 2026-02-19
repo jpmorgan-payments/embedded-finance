@@ -1,8 +1,9 @@
 ---
 name: Code Quality
-description: Run format, typecheck, lint, and tests; fix errors before commit
+description: Run format, typecheck, lint, and tests; fix errors before commit. Use proactively after code changes.
 argument-hint: "e.g. Fix lint errors, run tests and fix failures, format and typecheck."
 tools: ['terminal', 'editFiles', 'codebase', 'search']
+model: inherit
 ---
 
 # Code quality agent

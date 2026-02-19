@@ -1,6 +1,6 @@
-# Custom agents (VS Code / GitHub Copilot)
+# Custom agents (VS Code, GitHub Copilot, Cursor)
 
-These custom agents are **chat personas** for VS Code and GitHub Copilot. They are derived from the fuller **skills** in `.github/skills/` and give the AI a focused role and tool set when you pick them in the agents dropdown.
+These custom agents are **chat personas** for VS Code, GitHub Copilot, and **Cursor subagents**. They are derived from the fuller **skills** in `.github/skills/` and give the AI a focused role (and in VS Code/Copilot, a tool set) when you pick them.
 
 | Agent | Purpose | Full skill |
 |-------|---------|------------|
@@ -11,7 +11,27 @@ These custom agents are **chat personas** for VS Code and GitHub Copilot. They a
 | **Styling** | Tailwind with `eb-` prefix | `.github/skills/styling-guidelines/` |
 | **i18n** | Translations, dates, currency, locales | `.github/skills/i18n-l10n/` |
 
-- **VS Code**: [Custom agents in VS Code](https://code.visualstudio.com/docs/copilot/customization/custom-agents) — agents appear in the chat agents dropdown when this folder is under `.github/agents`.
-- **Cursor**: With a local `.cursor` → `.github` symlink, Cursor can use the same layout; skills in `.github/skills/` remain the main reference for detailed rules.
+## Cross-use: one folder for all
 
-Files use the `.agent.md` format (name, description, tools, body instructions). Edit the body to refine behavior; for full rules and examples, use the linked skills.
+- **VS Code / GitHub Copilot** read custom agents from **`.github/agents/`** ([Custom agents in VS Code](https://code.visualstudio.com/docs/copilot/customization/custom-agents)). They use `name`, `description`, `tools`, and body; `argument-hint` and `handoffs` are optional.
+- **Cursor** reads subagents from **`.cursor/agents/`** ([Subagents - File locations](https://cursor.com/docs/context/subagents#file-locations)). With a local **`.cursor` → `.github`** junction/symlink, `./.cursor/agents/` is the same as `./.github/agents/`, so **the same files** are used as Cursor subagents. Cursor uses `name`, `description`, and body; it ignores `tools` and `argument-hint`. Optional Cursor fields: `model` (e.g. `inherit` or `fast`), `readonly`, `is_background`.
+
+Create the symlink from repo root (see [Setup](docs/setup.md)):
+
+```powershell
+# Windows
+cmd /c mklink /J ".cursor" ".github"
+```
+
+```bash
+# macOS/Linux
+ln -s .github .cursor
+```
+
+Then both VS Code/Copilot (`.github/agents/`) and Cursor (`.cursor/agents/`) use this directory.
+
+## File format
+
+- **Extension**: `.agent.md` (VS Code; Cursor accepts markdown in `.cursor/agents/`).
+- **Frontmatter**: `name`, `description`; VS Code adds `tools`, `argument-hint`; Cursor adds optional `model`, `readonly`, `is_background`.
+- **Body**: Instructions in Markdown. For full rules and examples, use the linked skills.

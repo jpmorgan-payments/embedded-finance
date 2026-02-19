@@ -1,8 +1,9 @@
 ---
 name: Architecture
-description: Component structure, file organization, and where to place code in embedded-components
+description: Component structure, file organization, and where to place code in embedded-components. Use when deciding where code lives or creating components.
 argument-hint: "e.g. Where should I put this hook? Create a component following our structure."
 tools: ['codebase', 'search', 'usages', 'fetch']
+model: inherit
 ---
 
 # Architecture agent

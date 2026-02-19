@@ -1,8 +1,9 @@
 ---
 name: Component Testing
-description: Add or fix tests with MSW, React Query, and Vitest (80% coverage)
+description: Add or fix tests with MSW, React Query, and Vitest (80% coverage). Use when writing or fixing component tests.
 argument-hint: "e.g. Add tests for this component, mock this API, fix this test."
 tools: ['editFiles', 'terminal', 'codebase', 'search']
+model: inherit
 ---
 
 # Component testing agent

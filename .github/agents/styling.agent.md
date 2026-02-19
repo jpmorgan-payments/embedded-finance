@@ -1,8 +1,9 @@
 ---
 name: Styling
-description: Tailwind CSS with mandatory eb- prefix for embedded components
+description: Tailwind CSS with mandatory eb- prefix for embedded components. Use when applying or fixing styles.
 argument-hint: "e.g. Style this component with Tailwind, add responsive layout, use design tokens."
 tools: ['editFiles', 'search', 'codebase']
+model: inherit
 ---
 
 # Styling agent
