@@ -1,0 +1,1295 @@
+openapi: 3.0.1
+info:
+  title: Transactions API
+  version: 2.0.47
+  description: Create, track, and manage payments, such as ACH, wire, and real-time transfers, while easily filtering and retrieving transaction details by type, status, account, or date. This lets you automate fund movement and gain real-time visibility into your payment activity, all through a secure and flexible interface.
+  contact:
+    name: JPMC Technical Services Support
+servers:
+  - url: https://api.payments.jpmorgan.com/embedded/v2
+    description: PRODUCTION - MTLS
+  - url: https://api-mock.payments.jpmorgan.com/embedded/v2
+    description: MOCK
+  - url: https://api-sandbox.payments.jpmorgan.com/embedded/v2
+    description: CLIENT TESTING - MTLS
+tags:
+  - name: Transactions
+    description: Initiate and track the movement of funds, including payments.
+paths:
+  /transactions:
+    get:
+      summary: List transactions
+      description: Lists transactions for a specific client, which can be filtered using optional parameters.
+      operationId: listTransactionsV2
+      tags:
+        - Transactions
+      parameters:
+        - $ref: '#/components/parameters/token'
+        - in: query
+          name: type
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/RequestTransactionTypeV2'
+            minItems: 0
+          description: Filters for types of transaction. Use a comma separated list to send the transaction types you require.
+          required: false
+          examples:
+            completed:
+              summary: ACH type
+              value:
+                - ACH
+            completedAndPending:
+              summary: ACH and TRANSFER type
+              value:
+                - ACH
+                - TRANSFER
+        - in: query
+          name: status
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/RequestTransactionStatus'
+            minItems: 0
+          description: Filters by comma separated list of statuses for transactions.
+          required: false
+          examples:
+            completed:
+              summary: Completed status
+              value:
+                - COMPLETED
+            completedAndPending:
+              summary: Completed and Pending statuses
+              value:
+                - COMPLETED
+                - PENDING
+        - in: query
+          name: accountId
+          example: ae86b765e14741c5a44acc570af517ab
+          schema:
+            type: string
+          description: Filters by the Embedded Finance account id connected to the transaction.
+          required: false
+        - in: query
+          name: amountEquals
+          example: '100'
+          schema:
+            type: string
+          description: Filters by an exact amount.
+          required: false
+        - in: query
+          name: amountGreaterThan
+          example: '100'
+          schema:
+            type: string
+          description: Filters by amounts greater than a specified value.
+          required: false
+        - in: query
+          name: amountLessThan
+          example: '100'
+          schema:
+            type: string
+          description: Filters by amounts less than a specified value.
+          required: false
+        - in: query
+          name: dateEquals
+          example: '2022-01-01'
+          schema:
+            type: string
+          description: Filters transactions by an exact date.
+          required: false
+        - in: query
+          name: dateGreaterThan
+          example: '2022-01-01'
+          schema:
+            type: string
+          description: Filters for transactions made after this payment date.
+          required: false
+        - in: query
+          name: dateLessThan
+          example: '2022-01-01'
+          schema:
+            type: string
+          description: Filters for transactions made before this payment date.
+          required: false
+        - in: query
+          name: dateTimeGreaterThan
+          example: '2022-01-01T00:00:00.000Z'
+          schema:
+            type: string
+            format: date-time
+          description: Filters for transactions created after this date and time.
+          required: false
+        - in: query
+          name: dateTimeLessThan
+          example: '2022-01-01T00:00:00.000Z'
+          schema:
+            type: string
+            format: date-time
+          description: Filters for transactions created before this date and time.
+          required: false
+        - in: query
+          name: recipientId
+          example: 616d93a1-ce53-4c71-b03b-02a11396db28
+          schema:
+            type: string
+          description: Filters for transactions from/to this recipientId.
+          required: false
+        - in: query
+          name: transactionReferenceId
+          example: inv-pay-1234
+          schema:
+            type: string
+          description: Filters for a transaction that matches a specific transaction reference ID provided by the client.
+          required: false
+        - $ref: '#/components/parameters/clientIdInQuery'
+      responses:
+        '200':
+          description: Ok.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTransactionsSearchResponseV2'
+              examples:
+                GetTransactionsRes:
+                  $ref: '#/components/examples/GetTransactionsRes'
+        '400':
+          $ref: '#/components/responses/400V2'
+        '401':
+          $ref: '#/components/responses/401V2'
+        '403':
+          $ref: '#/components/responses/403V2'
+        '404':
+          $ref: '#/components/responses/404V2'
+        '500':
+          $ref: '#/components/responses/500V2'
+        '503':
+          $ref: '#/components/responses/503V2'
+    post:
+      summary: Create transaction
+      description: Creates a new transaction, such as a payment via ACH, Wire or Real Time Payments (RTP).
+      operationId: createTransactionV2
+      tags:
+        - Transactions
+      parameters:
+        - $ref: '#/components/parameters/token'
+      requestBody:
+        required: true
+        description: Contains the required information to create a payment transaction.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostTransactionRequestV2'
+            examples:
+              Post a payment to a registered recipient using ACH:
+                summary: Create Transaction - ACH Payout
+                description: Create Transaction - ACH PayOut
+                value:
+                  transactionReferenceId: hisSuUVnakPD9qSA
+                  amount: 3100
+                  currency: USD
+                  type: ACH
+                  recipientId: 616d93a1-ce53-4c71-b03b-02a11396db39
+                  debtorAccountId: d3371713f14e423f82065c9486ebe15b
+                  memo: Memo for Transaction for 1000010400
+              Post a payment to a registered recipient using RTP:
+                summary: Create Transaction - RTP Payout
+                description: Create Transaction - RTP PayOut
+                value:
+                  transactionReferenceId: 5wQN9wSJl4rugac4
+                  amount: 3100
+                  currency: USD
+                  type: RTP
+                  recipientId: 616d93a1-ce53-4c71-b03b-02a11396db39
+                  debtorAccountId: d3371713f14e423f82065c9486ebe15b
+                  memo: Memo for Transaction for 1000010400
+              Post a payment to a registered recipient using WIRE:
+                summary: Create Transaction - WIRE Payout
+                description: Create Transaction - WIRE PayOut
+                value:
+                  transactionReferenceId: iIbqZdlNuuogLaBo
+                  amount: 3100
+                  currency: USD
+                  type: WIRE
+                  recipientId: 616d93a1-ce53-4c71-b03b-02a11396db39
+                  debtorAccountId: d3371713f14e423f82065c9486ebe15b
+                  memo: Memo for Transaction for 1000010400
+              Post a payment to an unregistered recipient using ACH:
+                summary: Create Transaction - Payout with recipient details
+                description: Create Transaction - Payout with recipient details
+                value:
+                  transactionReferenceId: uilRuUUkakPD9qGF
+                  amount: 3100
+                  currency: USD
+                  type: ACH
+                  recipient:
+                    partyDetails:
+                      address:
+                        addressLine1: 345 Wouda St
+                        addressLine2: Malibu Point
+                        addressLine3: Greater Woking
+                        city: Springfield
+                        countryCode: US
+                        state: ND
+                        postalCode: '58008'
+                      type: INDIVIDUAL
+                      firstName: Jon
+                      lastName: Smith
+                      businessName: Widget Co.
+                      contacts:
+                        - contactType: PHONE
+                          countryCode: '+1'
+                          value: '6316215110'
+                    account:
+                      number: '021000021'
+                      type: CHECKING
+                      routingCodeType: USABA
+                      routingNumber: '021000021'
+                      countryCode: US
+                  debtorAccountId: d3371713f14e423f82065c9486ebe15b
+                  memo: Memo for Transaction for 1000010400
+              Transfer funds from one account to another:
+                summary: Create Transaction - V2V
+                description: Create Transaction - V2V
+                value:
+                  transactionReferenceId: 39d222165fb1488c896b940321550f77
+                  amount: 3100
+                  type: TRANSFER
+                  currency: USD
+                  creditorAccountId: 616d4c7102a11396db39hjfsd88980
+                  debtorAccountId: d3371713f14e423f82065c9486ebe15b
+      responses:
+        '201':
+          description: Created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponseV2'
+              examples:
+                CreateTransactionRes:
+                  $ref: '#/components/examples/CreateTransactionPayoutACHRes'
+                CreateTransactionPayoutWIRERes:
+                  $ref: '#/components/examples/CreateTransactionPayoutRTPRes'
+                CreateTransactionPayoutRTPRes:
+                  $ref: '#/components/examples/CreateTransactionPayoutWIRERes'
+                CreateTransactionV2VRes:
+                  $ref: '#/components/examples/CreateTransactionV2VRes'
+                CreateTransactionPayOutBookRes:
+                  $ref: '#/components/examples/CreateTransactionPayOutBookRes'
+                CreateTransactionPayIntoRes:
+                  $ref: '#/components/examples/CreateTransactionPayIntoRes'
+        '400':
+          $ref: '#/components/responses/400V2'
+        '401':
+          $ref: '#/components/responses/401V2'
+        '403':
+          $ref: '#/components/responses/403V2'
+        '404':
+          $ref: '#/components/responses/404V2'
+        '500':
+          $ref: '#/components/responses/500V2'
+        '503':
+          $ref: '#/components/responses/503V2'
+  /transactions/{id}:
+    get:
+      summary: Get transaction
+      description: Returns details for a specific transaction using its unique identifier.
+      operationId: getTransactionV2
+      tags:
+        - Transactions
+      parameters:
+        - $ref: '#/components/parameters/token'
+        - name: id
+          in: path
+          description: Unique identifier for a transaction.
+          required: true
+          example: m6p8kqkk5hjne3
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Ok.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionGetResponseV2'
+              examples:
+                GetTransactionByIdRes:
+                  $ref: '#/components/examples/GetTransactionByIdRes'
+        '400':
+          $ref: '#/components/responses/400V2'
+        '401':
+          $ref: '#/components/responses/401V2'
+        '403':
+          $ref: '#/components/responses/403V2'
+        '404':
+          $ref: '#/components/responses/404V2'
+        '500':
+          $ref: '#/components/responses/500V2'
+        '503':
+          $ref: '#/components/responses/503V2'
+components:
+  parameters:
+    token:
+      name: token
+      in: header
+      description: JWT Client token
+      required: false
+      schema:
+        type: string
+        minLength: 0
+    clientIdInQuery:
+      name: clientId
+      in: query
+      description: Unique Client identifier
+      required: false
+      example: '9000000001'
+      schema:
+        type: string
+        pattern: ^\d{10}$
+        minLength: 10
+        maxLength: 10
+  schemas:
+    RequestTransactionTypeV2:
+      description: The types of transaction that the client is allowed to search by.
+      type: string
+      enum:
+        - RTP
+        - WIRE
+        - ACH
+        - TRANSFER
+        - REVERSAL
+        - RETURN
+        - OTHER
+        - CARD
+        - FEE
+      example: ACH
+    RequestTransactionStatus:
+      description: The statuses of the transaction that the client is allowed to search by.
+      type: string
+      enum:
+        - PENDING
+        - CANCELED
+        - COMPLETED
+        - COMPLETED_WITH_EXCEPTIONS
+        - REJECTED
+        - RETURNED
+        - PARTIALLY_COMPLETED
+        - UNDEFINED
+      example: PENDING
+    PageMetaData:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 0
+          format: int32
+          example: 1
+          description: |
+            Page Number.
+        limit:
+          type: integer
+          minimum: 0
+          format: int32
+          example: 30
+          description: |
+            Number of records per page.
+        total_items:
+          type: integer
+          minimum: 0
+          format: int32
+          example: 1
+          description: |
+            Total number of items.
+    TransactionStatus:
+      description: "The current status of the transaction as it is processed:\n * `PENDING` - The transaction is still being processed.\n * `CANCELED` - The transaction has been canceled.\n * `COMPLETED` - The transaction has been completed.\n * `COMPLETED_WITH_EXCEPTIONS` - The transaction has completed, but not all of the requested criteria has been fulfilled.\n * `REJECTED` - The transaction has been rejected and will not be completed.\n * `RETURNED` - The payment rail failed to deliver funds to the recipient, so the payment was returned to the originator. \n * `UNDEFINED` - The status of this transaction cannot be found.\n"
+      type: string
+      enum:
+        - PENDING
+        - CANCELED
+        - COMPLETED
+        - COMPLETED_WITH_EXCEPTIONS
+        - COMPLETED_NOT_IN_TARGET_WALLET
+        - REJECTED
+        - RETURNED
+        - PARTIALLY_COMPLETED
+        - UNDEFINED
+      example: PENDING
+    TransactionGetResponseBase:
+      type: object
+      required:
+        - id
+        - currency
+        - paymentDate
+        - type
+        - status
+      properties:
+        id:
+          type: string
+          description: The resource Id of your transaction to use when looking up details of this transaction.
+          example: '123434534'
+        transactionReferenceId:
+          description: Transaction reference id provided by client
+          type: string
+          example: inv-pay-1234
+        originatingId:
+          description: Shows the resource ID of the original transaction when a transaction is reversed or returned.
+          type: string
+          example: ff1b6152-3ea7-4c59-b4ae-606c6497cd52
+        ledgerBalance:
+          description: The ledger balance shows the total of all settled transactions at the time the request is made. Transactions which are in a pending state and transactions of type hold are excluded from this balance. The ledger balance is updated only when a transaction is settled.
+          type: number
+          example: 10000
+        debtorClientId:
+          type: string
+          example: '0030000131'
+          description: The clientId of the client whose account is to be debited.
+        debtorAccountId:
+          description: The Id of the on-us account that the transaction amount will be/has been debited from.
+          type: string
+          example: dc2eda9084bf40b7a1d8baa8c5e0ea0ax
+        debtorName:
+          description: The name of the account holder making the payment. This is either the name of the account holder's business or their first and last name.
+          type: string
+          example: JPMC C2
+        debtorAccountNumber:
+          description: The last 4 digits of the debtor account number - PRN or DDA. The digits are preceded by ... to show that the account number has been masked.
+          type: string
+          example: '...6044'
+        creditorClientId:
+          type: string
+          example: '0030000131'
+          description: The clientId of the client whose account is to be credited.
+        creditorAccountId:
+          description: The Id of the on-us account that the transaction amount will be/has been credited to.
+          type: string
+          example: dc2eda9084bf40b7a1d8baa8c5e0ea0ax
+        creditorAccountNumber:
+          description: The last 4 digits of the creditor account number - PRN or DDA. The digits are preceded by ... to show that the account number has been masked.
+          type: string
+          example: '...6044'
+        creditorName:
+          description: The name of the account holder receiving the payment. This is either the name of the account holder's business or their first and last name.
+          type: string
+          example: JPMC
+        recipientId:
+          description: The resource Id of the recipient that was used in this transaction.  Further details of the recipient can be found via the /recipient API
+          type: string
+          example: a8eb71c9-7bbb-41f2-8d9e-b0f5
+        amount:
+          description: The value of the transaction
+          type: number
+          example: 100
+        currency:
+          description: The currency of the transaction
+          type: string
+          example: USD
+        memo:
+          description: Transaction information that states its purpose for easier tracking
+          type: string
+          example: Invoice 1234
+        paymentDate:
+          description: The scheduled date for the payment to be initiated
+          type: string
+          format: date
+          example: '2022-01-01'
+        createdAt:
+          description: The date and time the transaction was created.
+          type: string
+          format: date-time
+          example: '2023-02-22T15:05:46.952Z'
+        effectiveDate:
+          description: The date when the payment completes, accounting for weekends and bank holidays.
+          type: string
+          format: date
+          example: '2023-02-22'
+        postingVersion:
+          description: A measure of how many times an account has been updated by a new transaction. The posting version is incremented by 1 whenever there's a an event on the account. It can be used to track the order in which transactions have occurred, so you can present the user with the most recent transactions first.
+          type: integer
+          example: 1
+        status:
+          $ref: '#/components/schemas/TransactionStatus'
+    PaymentTypeResponse:
+      description: |
+        The transaction type indicates the nature of the transaction.  Certain types cannot be initiated through the API and, as a result, are excluded from the transaction request type field.
+      type: string
+      nullable: false
+      enum:
+        - RTP
+        - WIRE
+        - ACH
+        - TRANSFER
+        - REVERSAL
+        - RETURN
+        - OTHER
+        - CARD
+        - FEE
+      example: ACH
+    OriginatingTransactionType:
+      description: The transaction type of the originating transaction that incurred a 'FEE' or 'RETURN' transaction. This is only available for transactions of type 'FEE' or 'RETURN'. * ACH_PAYOUT - the original transaction was a payout made by ACH payment route. * RTP_PAYOUT - the original transaction was a payout made by ACH payment route. * WIRE_PAYOUT - the original transaction was a payout made by WIRE payment route. * DEBIT_CARD_REQUEST - the original transaction was a debit card request. * FEE - the original transaction was a fee that was reversed.
+      type: string
+      enum:
+        - ACH_PAYOUT
+        - RTP_PAYOUT
+        - WIRE_PAYOUT
+        - DEBIT_CARD_REQUEST
+        - FEE
+      example: ACH_PAYOUT
+    TransactionsSearchResponseV2:
+      allOf:
+        - $ref: '#/components/schemas/TransactionGetResponseBase'
+        - type: object
+          properties:
+            type:
+              $ref: '#/components/schemas/PaymentTypeResponse'
+            originatingTransactionType:
+              $ref: '#/components/schemas/OriginatingTransactionType'
+            ledgerBalance:
+              description: The ledger balance shows the total of all settled transactions at the time the request is made. Transactions which are in a pending state and transactions of type hold are excluded from this balance. The ledger balance is updated only when a transaction is settled.
+              type: number
+              example: 10000
+            postingVersion:
+              description: A measure of how many times an account has been updated by a new transaction. The posting version is incremented by 1 whenever there's a an event on the account. It can be used to track the order in which transactions have occurred, so you can present the user with the most recent transactions first.
+              type: integer
+              example: 1
+    ListTransactionsSearchResponseV2:
+      type: object
+      required:
+        - metadata
+        - items
+      properties:
+        metadata:
+          $ref: '#/components/schemas/PageMetaData'
+        items:
+          type: array
+          nullable: false
+          description: List of transactions meeting the request criteria
+          items:
+            $ref: '#/components/schemas/TransactionsSearchResponseV2'
+          minItems: 0
+    ApiErrorReasonV2:
+      type: object
+      description: Schema representing detailed reasons for an API error, including code, location, and message.
+      required:
+        - message
+      properties:
+        code:
+          type: string
+          example: '11000'
+          description: Short code that identifies the error - publicly cataloged and documented
+          minLength: 0
+        location:
+          type: string
+          enum:
+            - BODY
+            - QUERY
+            - PATH
+            - HEADER
+          example: BODY
+          description: Part of the request which is responsible for the reason
+        field:
+          type: string
+          description: The location of the property or parameter in error
+          minLength: 0
+        message:
+          type: string
+          example: Client with ID 0031234567 does not exist.
+          description: Message describing the reason. This message can typically be displayed to your platform's users, except in cases specified otherwise
+          minLength: 0
+    ApiErrorV2:
+      type: object
+      description: Schema representing a version 2 API error, including title, HTTP status, and additional context.
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          description: Short humanly-readable title of the error
+          example: BAD_REQUEST
+          minLength: 0
+        httpStatus:
+          type: integer
+          description: HTTP status code
+          minimum: 100
+          format: int32
+          example: 400
+        traceId:
+          type: string
+          description: Internal assigned traced identifier
+          minLength: 0
+        requestId:
+          type: string
+          description: Client provided request identifier
+          minLength: 0
+        context:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiErrorReasonV2'
+          description: Provides additional context and detail on the validation errors
+          minItems: 0
+          maxItems: 100
+    PaymentType:
+      description: |
+        The type of transaction being initiated
+         * `RTP` for Realtime Transactions
+         * `ACH` for ACH Transactions
+         * `WIRE` for Wire Transactions
+         * `TRANSFER` for transactions internal to JPMorgan
+         * `CARD` for Push to Card Transactions
+      type: string
+      nullable: false
+      enum:
+        - RTP
+        - WIRE
+        - ACH
+        - TRANSFER
+        - CARD
+      example: ACH
+    CountryCode:
+      type: string
+      enum:
+        - US
+      description: Two letter country code based on ISO 3166 standard
+      example: US
+    RecipientAddress:
+      description: Address details for the recipient. Mandatory for payments using the RTP payment type.
+      type: object
+      required:
+        - addressLine1
+        - city
+        - countryCode
+      properties:
+        addressType:
+          type: string
+          example: Principal place of business
+          description: Type of address e.g. 'Primary Residence' | 'Principal place of business'.
+        addressLine1:
+          type: string
+          minLength: 1
+          maxLength: 34
+          pattern: ^(.|\s)*\S(.|\s)*$
+          example: 90 Bedford Street
+          description: First line of address; required and must not be a PO Box.
+        addressLine2:
+          type: string
+          minLength: 0
+          maxLength: 34
+          example: Apt 2E
+          description: Second line of address; not required.
+        addressLine3:
+          type: string
+          minLength: 0
+          maxLength: 34
+          description: Third line of address; not required.
+        city:
+          type: string
+          minLength: 1
+          maxLength: 34
+          pattern: ^(.|\s)*\S(.|\s)*$
+          example: New York
+          description: Address city.
+        state:
+          type: string
+          maxLength: 30
+          example: NY
+          description: State code in alpha-2 format. State is mandatory for countries like United States.
+        postalCode:
+          type: string
+          maxLength: 10
+          example: '10014'
+          description: Postal/ZIP code.
+        countryCode:
+          $ref: '#/components/schemas/CountryCode'
+    PartyType:
+      type: string
+      enum:
+        - INDIVIDUAL
+        - ORGANIZATION
+      nullable: false
+      example: INDIVIDUAL
+    RecipientContact:
+      type: object
+      required:
+        - contactType
+        - value
+      properties:
+        contactType:
+          type: string
+          nullable: false
+          enum:
+            - EMAIL
+            - WEBSITE
+            - PHONE
+          description: Type of contact information being provided
+          example: PHONE
+        countryCode:
+          type: string
+          pattern: ^\+[1-9]\d{0,2}$
+          description: |
+            E.164 format compatible telephone country code
+            Mandatory for contactType PHONE
+          example: '+1'
+        value:
+          type: string
+          nullable: false
+          minLength: 1
+          maxLength: 2048
+          pattern: ^(.|\s)*\S(.|\s)*$
+          description: "Contact information corresponding to contactType: \nPHONE - E.164-compliant telephone number (excluding country code).\nEMAIL - Email address (addr-spec in Section 3.4 of RFC 5322).\nWEBSITE - URL starting with http:// or https://.\n"
+          example: '6316215110'
+    RecipientPartyDetails:
+      type: object
+      required:
+        - type
+      properties:
+        address:
+          $ref: '#/components/schemas/RecipientAddress'
+        type:
+          $ref: '#/components/schemas/PartyType'
+        firstName:
+          type: string
+          maxLength: 70
+          pattern: ^(.|\s)*\S(.|\s)*$
+          description: |
+            Recipient's first name. Mandatory for recipient type INDIVIDUAL.
+          example: Monica
+        lastName:
+          type: string
+          maxLength: 70
+          pattern: ^(.|\s)*\S(.|\s)*$
+          description: |
+            Recipient's last name. Mandatory for recipient type INDIVIDUAL.
+          example: Gellar
+        businessName:
+          type: string
+          maxLength: 140
+          pattern: ^(.|\s)*\S(.|\s)*$
+          description: |
+            Recipient company name. Mandatory for recipient type ORGANIZATION.
+          example: Central Park Getaways
+        contacts:
+          type: array
+          description: Contact details for the recipient.
+          items:
+            $ref: '#/components/schemas/RecipientContact'
+          minItems: 0
+    AccountNumber:
+      type: string
+      nullable: false
+      pattern: ^[A-Z0-9]{1,35}$
+      description: Demand Deposit Account number or International Account Number (IBAN).
+      example: '021000021'
+    AccountType:
+      type: string
+      nullable: false
+      enum:
+        - CHECKING
+        - IBAN
+        - SAVINGS
+      description: Type of bank account.
+      example: CHECKING
+    RoutingNumber:
+      type: string
+      nullable: false
+      minLength: 1
+      maxLength: 13
+      pattern: ^[A-Za-z0-9]([A-Za-z0-9\-]{0,11})[A-Za-z0-9]$
+      description: Routing number corresponding to the routing code type
+      example: '021000021'
+    RoutingInformationTransactionType:
+      type: string
+      nullable: false
+      enum:
+        - ACH
+        - RTP
+        - WIRE
+      description: Type of transaction.
+      example: RTP
+    RoutingCodeType:
+      type: string
+      nullable: false
+      enum:
+        - USABA
+      description: Type of routing code.
+      example: USABA
+    RoutingInformation:
+      type: object
+      required:
+        - routingNumber
+        - transactionType
+        - routingCodeType
+      properties:
+        routingNumber:
+          $ref: '#/components/schemas/RoutingNumber'
+        transactionType:
+          $ref: '#/components/schemas/RoutingInformationTransactionType'
+        routingCodeType:
+          $ref: '#/components/schemas/RoutingCodeType'
+    RecipientAccount:
+      type: object
+      required:
+        - number
+        - countryCode
+      description: Bank account details of the recipient.
+      properties:
+        number:
+          $ref: '#/components/schemas/AccountNumber'
+        type:
+          $ref: '#/components/schemas/AccountType'
+        routingInformation:
+          type: array
+          description: Routing information.
+          items:
+            $ref: '#/components/schemas/RoutingInformation'
+          minItems: 1
+          maxItems: 3
+        countryCode:
+          $ref: '#/components/schemas/CountryCode'
+    RecipientType:
+      type: string
+      enum:
+        - RECIPIENT
+        - LINKED_ACCOUNT
+        - SETTLEMENT_ACCOUNT
+      nullable: false
+      example: RECIPIENT
+    TransactionRecipientDetailsV2:
+      description: Payment recipient, either recipient or recipient id must be provided for Payouts
+      type: object
+      anyOf:
+        - type: object
+          required:
+            - account
+      properties:
+        partyDetails:
+          $ref: '#/components/schemas/RecipientPartyDetails'
+        account:
+          $ref: '#/components/schemas/RecipientAccount'
+        recipientType:
+          $ref: '#/components/schemas/RecipientType'
+    PostTransactionRequestBase:
+      type: object
+      required:
+        - currency
+        - transactionReferenceId
+        - amount
+      properties:
+        transactionReferenceId:
+          description: A unique reference ID that you must generate and provide for each transaction.
+          type: string
+          pattern: '[_0-9A-Za-z]+'
+          minLength: 1
+          maxLength: 35
+          example: Inv-Pay-1234
+        type:
+          $ref: '#/components/schemas/PaymentType'
+        debtorAccountId:
+          description: ID of the account to make the payment from.
+          type: string
+          minLength: 1
+          maxLength: 35
+          pattern: ^(.|\s)*\S(.|\s)*$
+          example: dc2eda9084bf40b7a1d8baa8c5e0ea0ax
+        creditorAccountId:
+          description: ID of the account to make the payment to.
+          type: string
+          minLength: 1
+          maxLength: 35
+          pattern: ^(.|\s)*\S(.|\s)*$
+          example: dc2eda9084bf40b7a1d8baa8c5e0ea0ax
+        amount:
+          description: The amount that is moved out or into your account in the currency specified
+          type: number
+          minimum: 0.01
+          example: 100
+        currency:
+          description: This denotes the currency of the payment in ISO 4217 Alpha-3 Currency Code format
+          type: string
+          nullable: false
+          enum:
+            - USD
+          example: USD
+        recipientId:
+          description: The resource Id of the recipient to be used in this transaction.  Must have been pre-registered via the /recipient API
+          type: string
+          example: a8eb71c9-7bbb-41f2-8d9e-b0f5
+        memo:
+          description: Transaction information that states its purpose for easier tracking
+          type: string
+          pattern: ^(.|\s)*\S(.|\s)*$
+          maxLength: 140
+          example: Invoice 1234
+        recipient:
+          $ref: '#/components/schemas/TransactionRecipientDetailsV2'
+    PostTransactionRequestV2:
+      type: object
+      required:
+        - currency
+        - transactionReferenceId
+      allOf:
+        - $ref: '#/components/schemas/PostTransactionRequestBase'
+    TransactionRequestResponseBase:
+      type: object
+      properties:
+        id:
+          description: The resource Id of your transaction to use when looking up details of this transaction.
+          type: string
+          example: '123434534'
+        transactionReferenceId:
+          description: Transaction reference ID provided by client
+          nullable: false
+          type: string
+          example: inv-pay-1234
+        status:
+          $ref: '#/components/schemas/TransactionStatus'
+        type:
+          $ref: '#/components/schemas/PaymentTypeResponse'
+        debtorAccountId:
+          description: The Id of the on-us account that the transaction amount will be/has been debited from.
+          type: string
+          example: dc2eda9084bf40b7a1d8baa8c5e0ea0ax
+        creditorAccountId:
+          description: The Id of the on-us account that the transaction amount will be/has been credited to.
+          type: string
+          example: dc2eda9084bf40b7a1d8baa8c5e0ea0ax
+        amount:
+          description: The value of the transaction
+          type: number
+          example: 100
+        currency:
+          description: The currency of the transaction
+          type: string
+          nullable: false
+          example: USD
+        createdAt:
+          description: The date and time the transaction was created.
+          type: string
+          format: date-time
+          example: '2023-02-22T15:05:46.952Z'
+        recipientId:
+          description: The resource Id of the recipient that was used in this transaction.  Further details of the recipient can be found via the /recipient API
+          type: string
+          example: a8eb71c9-7bbb-41f2-8d9e-b0f5
+        memo:
+          description: Transaction information that states its purpose for easier tracking
+          type: string
+          example: Invoice 1234
+    TransactionResponseV2:
+      type: object
+      required:
+        - paymentDate
+        - currency
+        - status
+        - createdAt
+      allOf:
+        - $ref: '#/components/schemas/TransactionRequestResponseBase'
+        - type: object
+          properties:
+            debtorName:
+              description: Name of the debtor account holder.
+              type: string
+              example: John Doe
+            creditorName:
+              description: Name of the debtor account holder.
+              type: string
+              example: John Doe
+            debtorAccountNumber:
+              description: The last 4 digits of the debtor account number - PRN or DDA. The digits are preceded by ... to show that the account number has been masked.
+              type: string
+              example: '...6044'
+            creditorAccountNumber:
+              description: The last 4 digits of the creditor account number - PRN or DDA. The digits are preceded by ... to show that the account number has been masked.
+              type: string
+              example: '...6044'
+            paymentDate:
+              description: The date when the payment is requested to be processed.
+              type: string
+              format: date
+              example: '2025-07-21'
+    FeeType:
+      description: The type of the fee transaction. Use this to differentiate between the fee transactions that were charged and those that were reversed.<br> * `CHARGE` - the fee that was incurred as a result of a transaction.<br> * `REVERSAL` - the fee was incurred and then voided on a transaction.
+      enum:
+        - CHARGE
+        - REVERSAL
+      type: string
+      example: CHARGE
+    TransactionGetResponse:
+      allOf:
+        - $ref: '#/components/schemas/TransactionGetResponseBase'
+      type: object
+      properties:
+        feeType:
+          $ref: '#/components/schemas/FeeType'
+        error:
+          $ref: '#/components/schemas/ApiErrorV2'
+    TransactionGetResponseV2:
+      type: object
+      required:
+        - id
+        - currency
+        - paymentDate
+        - type
+        - status
+        - createdAt
+      allOf:
+        - $ref: '#/components/schemas/TransactionGetResponse'
+        - type: object
+          properties:
+            type:
+              $ref: '#/components/schemas/PaymentTypeResponse'
+            originatingTransactionType:
+              $ref: '#/components/schemas/OriginatingTransactionType'
+            ledgerBalance:
+              description: The ledger balance shows the total of all settled transactions at the time the request is made. Transactions which are in a pending state and transactions of type hold are excluded from this balance. The ledger balance is updated only when a transaction is settled.
+              type: number
+              example: 10000
+            postingVersion:
+              description: A measure of how many times an account has been updated by a new transaction. The posting version is incremented by 1 whenever there's a an event on the account. It can be used to track the order in which transactions have occurred, so you can present the user with the most recent transactions first.
+              type: integer
+              example: 1
+  examples:
+    GetTransactionsRes:
+      summary: Get Transactions - Sole Prop
+      description: Get Transactions - Sole Prop
+      value:
+        metadata:
+          page: 0
+          limit: 10
+          total_items: 4
+        items:
+          - id: m6p8kqkk5hjne3
+            status: COMPLETED
+            type: TRANSFER
+            debtorAccountId: d3371713f14e423f82065c9486ebe15b
+            creditorAccountId: 616d93a1-ce53-4c71-b03b-02a11396db39
+            amount: 3100
+            currency: USD
+            paymentDate: '2023-09-26'
+            createdAt: '2023-09-26T15:55:49.560Z'
+            transactionReferenceId: 39d222165fb1488c896b940321550f77
+            postingVersion: 1
+            effectiveDate: '2023-09-27'
+            memo: Invoice 123
+          - id: m6p8kqkk5hjn4
+            status: PENDING
+            transactionReferenceId: hisSuUVnakPD9qSA
+            amount: 3100
+            currency: USD
+            type: ACH
+            paymentDate: '2023-10-31'
+            createdAt: '2023-09-26T17:55:49.562Z'
+            recipientId: 616d93a1-ce53-4c71-b03b-02a11396db39
+            debtorAccountId: d3371713f14e423f82065c9486ebe15b
+            memo: Memo for Transaction for 1000010400
+          - id: 713f14e423f82a
+            status: PENDING
+            type: TRANSFER
+            creditorAccountId: e423f82065c9486jfdf09lee09kllj
+            debtorAccountId: d3371713f14e423f82065c9486ebe15b
+            amount: 3100
+            currency: USD
+            paymentDate: '2023-10-31'
+            createdAt: '2023-09-26T17:55:49.562Z'
+            transactionReferenceId: 5hjne3gfgD9qSA
+            memo: Invoice 125
+          - id: WAL121QCDYYXS54
+            status: PENDING
+            type: TRANSFER
+            creditorAccountId: 71713f14e423f82065c9486ebe15bd33
+            debtorAccountId: e423f82065c9486jfdf09lee09kllj
+            amount: 3100
+            currency: USD
+            paymentDate: '2023-10-31'
+            createdAt: '2023-09-07T17:55:49.562Z'
+            transactionReferenceId: oIctbxQ2pujoc8yc
+            memo: Invoice 126
+    CreateTransactionPayoutACHRes:
+      summary: Create Transaction - ACH Payout
+      description: Create Transaction - ACH PayOut
+      value:
+        id: m6p8kqkk5hjne4
+        status: PENDING
+        transactionReferenceId: hisSuUVnakPD9qSA
+        amount: 3100
+        currency: USD
+        type: ACH
+        paymentDate: '2023-10-31'
+        recipientId: 616d93a1-ce53-4c71-b03b-02a11396db39
+        createdAt: '2023-09-26T15:55:49.560Z'
+        debtorAccountId: d3371713f14e423f82065c9486ebe15b
+        memo: Memo for Transaction for 1000010400
+    CreateTransactionPayoutRTPRes:
+      summary: Create Transaction - RTP Payout
+      description: Create Transaction - RTP PayOut
+      value:
+        id: m6p8kqkk5hjne4
+        status: PENDING
+        transactionReferenceId: 5wQN9wSJl4rugac4
+        amount: 3100
+        currency: USD
+        type: RTP
+        paymentDate: '2023-10-31'
+        recipientId: 616d93a1-ce53-4c71-b03b-02a11396db39
+        createdAt: '2023-09-26T15:55:49.560Z'
+        debtorAccountId: d3371713f14e423f82065c9486ebe15b
+        memo: Memo for Transaction for 1000010400
+    CreateTransactionPayoutWIRERes:
+      summary: Create Transaction - WIRE Payout
+      description: Create Transaction - WIRE PayOut
+      value:
+        id: m6p8kqkk5hjne4
+        status: PENDING
+        transactionReferenceId: iIbqZdlNuuogLaBo
+        amount: 3100
+        currency: USD
+        type: WIRE
+        paymentDate: '2023-10-31'
+        recipientId: 616d93a1-ce53-4c71-b03b-02a11396db39
+        createdAt: '2023-09-26T15:55:49.560Z'
+        debtorAccountId: d3371713f14e423f82065c9486ebe15b
+        memo: Memo for Transaction for 1000010400
+    CreateTransactionV2VRes:
+      summary: Create Transaction - V2V
+      description: Create Transaction - V2V
+      value:
+        id: m6p8kqkk5hjne3
+        status: COMPLETED
+        type: TRANSFER
+        debtorAccountId: d3371713f14e423f82065c9486ebe15b
+        creditorAccountId: 616d93a1-ce53-4c71-b03b-02a11396db39
+        amount: 3100
+        currency: USD
+        paymentDate: '2023-10-31'
+        createdAt: '2023-09-26T15:55:49.560Z'
+        transactionReferenceId: 39d222165fb1488c896b940321550f77
+        memo: Invoice 123
+    CreateTransactionPayOutBookRes:
+      summary: Create Transaction - Payout Book
+      description: Create Transaction - Payout Book
+      value:
+        id: 713f14e423f82a
+        status: PENDING
+        type: TRANSFER
+        creditorAccountId: e423f82065c9486jfdf09lee09kllj
+        debtorAccountId: d3371713f14e423f82065c9486ebe15b
+        amount: 3100
+        currency: USD
+        paymentDate: '2023-10-31'
+        createdAt: '2023-09-26T15:55:49.560Z'
+        transactionReferenceId: 5hjne3gfgD9qSA
+        memo: Invoice 125
+    CreateTransactionPayIntoRes:
+      summary: Create Transaction - PayInto
+      description: Create Transaction - PayInto
+      value:
+        id: WAL121QCDYYXS54
+        status: PENDING
+        type: TRANSFER
+        creditorAccountId: 71713f14e423f82065c9486ebe15bd33
+        debtorAccountId: e423f82065c9486jfdf09lee09kllj
+        amount: 3100
+        currency: USD
+        paymentDate: '2023-10-31'
+        createdAt: '2023-09-26T15:55:49.560Z'
+        transactionReferenceId: oIctbxQ2pujoc8yc
+        memo: Invoice 126
+    GetTransactionByIdRes:
+      summary: Get Transaction
+      description: Get Transaction
+      value:
+        id: m6p8kqkk5hjne4
+        status: PENDING
+        transactionReferenceId: hisSuUVnakPD9qSA
+        amount: 3100
+        currency: USD
+        type: ACH
+        paymentDate: '2023-10-31'
+        recipientId: 616d93a1-ce53-4c71-b03b-02a11396db39
+        debtorAccountId: d3371713f14e423f82065c9486ebe15b
+        createdAt: '2023-09-26T15:55:49.560Z'
+        memo: Memo for Transaction for 1000010400
+  headers:
+    requestId:
+      description: Unique identifier for the request. This identifier is specific to this particular request. If the same payload is sent in a new request, a new identifier needs to be provided
+      schema:
+        type: string
+      example: efeacff8-fd2c-4f54-a12e-2a8f90d4d325
+  responses:
+    400V2:
+      description: Bad Request
+      headers:
+        request-id:
+          $ref: '#/components/headers/requestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorV2'
+          example:
+            title: Bad Request
+            httpStatus: 400
+    401V2:
+      description: Unauthorized
+      headers:
+        request-id:
+          $ref: '#/components/headers/requestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorV2'
+          example:
+            title: Unauthorized Request
+            httpStatus: 401
+    403V2:
+      description: Forbidden
+      headers:
+        request-id:
+          $ref: '#/components/headers/requestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorV2'
+          example:
+            title: Forbidden
+            httpStatus: 403
+    404V2:
+      description: Not Found
+      headers:
+        request-id:
+          $ref: '#/components/headers/requestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorV2'
+          example:
+            title: Not Found
+            httpStatus: 404
+    500V2:
+      description: Internal Server Error
+      headers:
+        request-id:
+          $ref: '#/components/headers/requestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorV2'
+          example:
+            title: Internal Server Error
+            httpStatus: 500
+    503V2:
+      description: Service Unavailable
+      headers:
+        request-id:
+          $ref: '#/components/headers/requestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorV2'
+          example:
+            title: Service Unavailable
+            httpStatus: 503
+x-jpmc-securityDefinitions:
+  MutualTLS:
+    type: x509
+    description: Mutual TLS authentication using client and server certificates.
+x-jpmc-security:
+  - MutualTLS

@@ -28,7 +28,7 @@ module.exports = {
     },
   },
   'ep-recipients': {
-    input: './api-specs/embedded-finance-pub-ep-recipients-1.0.27.yaml',
+    input: './api-specs/embedded-finance-pub-ep-recipients-1.0.47.yaml',
     output: {
       mode: 'split',
       target: './src/api/generated/ep-recipients.ts',
@@ -47,7 +47,7 @@ module.exports = {
     },
   },
   'ep-transactions': {
-    input: './api-specs/embedded-finance-pub-ep-transactions-2.0.27.yaml',
+    input: './api-specs/embedded-finance-pub-ep-transactions-2.0.47.yaml',
     output: {
       mode: 'split',
       target: './src/api/generated/ep-transactions.ts',
