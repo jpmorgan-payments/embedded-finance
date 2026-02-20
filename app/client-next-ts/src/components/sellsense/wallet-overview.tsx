@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Accounts,
   ClientDetails,
@@ -58,6 +58,12 @@ interface WalletOverviewProps {
   contentTokens?: EBConfig['contentTokens'];
 }
 
+const DEFAULT_FULL_WIDTH_COMPONENTS = [
+  'TransactionsDisplay',
+  'Recipients',
+  'ClientDetails',
+];
+
 export function WalletOverview({
   theme,
   customThemeVariables = {},
@@ -95,6 +101,18 @@ export function WalletOverview({
   // Get visible components with positions for the current scenario
   const visibleComponents =
     getVisibleComponentsForScenario(currentScenario) || [];
+
+  // Apply scenario default viewModes on scenario change (user can still toggle via card tooltip)
+  useEffect(() => {
+    const components =
+      getVisibleComponentsForScenario(currentScenario) || [];
+    components.forEach((c: ComponentConfig) => {
+      if (c.component === AVAILABLE_COMPONENTS.LINKED_ACCOUNTS && c.viewMode)
+        setLinkedAccountViewMode(c.viewMode);
+      if (c.component === AVAILABLE_COMPONENTS.RECIPIENTS && c.viewMode)
+        setRecipientsViewMode(c.viewMode);
+    });
+  }, [currentScenario]);
 
   // Get clientId for the current scenario (if defined)
   const scenarioClientId = getClientIdForScenario(currentScenario);
@@ -379,11 +397,9 @@ export function WalletOverview({
       },
     };
 
-    // Determine if this component supports mode/viewMode toggles
-    const supportsModeToggle =
+    const isWidgetWithToggles =
       componentConfig.componentName === 'LinkedAccountWidget' ||
       componentConfig.componentName === 'Recipients';
-    const supportsViewModeToggle = supportsModeToggle;
 
     // Get current mode/viewMode based on component
     const currentMode =
@@ -435,8 +451,8 @@ export function WalletOverview({
               );
               window.open(fullscreenUrl, '_blank');
             }}
-            supportsModeToggle={supportsModeToggle}
-            supportsViewModeToggle={supportsViewModeToggle}
+            supportsModeToggle={isWidgetWithToggles}
+            supportsViewModeToggle={isWidgetWithToggles}
             currentMode={currentMode}
             currentViewMode={currentViewMode}
             onModeChange={handleModeChange}
@@ -447,10 +463,11 @@ export function WalletOverview({
     );
   };
 
-  const isFullWidthComponent = (componentName: string) =>
-    componentName === 'TransactionsDisplay' ||
-    componentName === 'Recipients' ||
-    componentName === 'ClientDetails';
+  const isFullWidthComponent = (
+    componentName: string,
+    componentConfig?: { fullWidth?: boolean }
+  ) =>
+    componentConfig?.fullWidth ?? DEFAULT_FULL_WIDTH_COMPONENTS.includes(componentName);
 
   // Helper function to render components in grid layout
   const renderGridLayout = () => {
@@ -479,7 +496,7 @@ export function WalletOverview({
           renderComponentWithProvider(
             componentConfig,
             `grid-${index}`,
-            isFullWidthComponent(componentConfig.componentName)
+            isFullWidthComponent(componentConfig.componentName, componentConfig)
           )
         )}
       </div>
@@ -502,7 +519,7 @@ export function WalletOverview({
           renderComponentWithProvider(
             componentConfig,
             `columns-${index}`,
-            isFullWidthComponent(componentConfig.componentName)
+            isFullWidthComponent(componentConfig.componentName, componentConfig)
           )
         )}
       </div>

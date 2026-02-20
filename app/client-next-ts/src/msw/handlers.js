@@ -1,6 +1,7 @@
 import merge from 'lodash/merge';
 import { http, HttpResponse } from 'msw';
 
+import { getClientStatusOverrideForScenario } from '../components/sellsense/scenarios-config';
 import {
   createMockLinkedAccountsResponse,
   createMockTransactionsResponse,
@@ -40,16 +41,20 @@ export const createHandlers = (apiUrl) => [
       return new HttpResponse(null, { status: 404 });
     }
 
+    const scenarioDisplayName = req.request.headers.get('X-Scenario');
+    const statusOverride = getClientStatusOverrideForScenario(scenarioDisplayName);
+
     // Expand party references to full party objects
     const expandedClient = {
       ...client,
+      ...(statusOverride && { status: statusOverride }),
       // Map party IDs to full party objects
       parties: client.parties
         .map((partyId) => {
           const party = db.party.findFirst({
             where: { id: { equals: partyId } },
           });
-          return party || null;
+          return party ? { ...party, ...(statusOverride && party.id === client.partyId && { profileStatus: statusOverride }) } : null;
         })
         .filter(Boolean), // Remove any null entries if party not found
     };
