@@ -12,11 +12,15 @@ Use this prompt to run a complete UX testing session:
 Please conduct comprehensive UX testing for the following embedded finance components using browser automation tools:
 
 Components to test:
-1. Linked Accounts: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=linked-accounts&theme=Empty
-2. Recipients: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=recipients&theme=Empty
-3. Make Payment: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=make-payment&theme=Empty
-4. Transactions: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=transactions&theme=Empty
-5. Accounts: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=accounts&theme=Empty
+1. Onboarding: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=onboarding&theme=Empty
+2. Linked Accounts: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=linked-accounts&theme=Empty
+3. Recipients: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=recipients&theme=Empty
+4. Make Payment: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=make-payment&theme=Empty
+5. Transactions: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=transactions&theme=Empty
+6. Accounts: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=accounts&theme=Empty
+7. Client Details: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=client-details&theme=Empty
+
+Optionally, test the same components in Storybook at https://storybook.embedded-finance-dev.com/ for isolated component behavior and story coverage (see Storybook Testing section below).
 
 Testing Requirements:
 
@@ -90,6 +94,52 @@ Run performance analysis for [COMPONENT_NAME] at [URL]:
 6. Compare against performance budgets
 7. Document recommendations
 ```
+
+### Storybook Testing
+
+**Base URL:** https://storybook.embedded-finance-dev.com/
+
+**Finding component stories:** Use the left sidebar to browse stories by component. Stories are grouped by package/category; expand nodes to see individual stories (e.g. Default, WithData, Empty). The Canvas shows the rendered story; the Controls panel (bottom or right) lets you change args.
+
+**Copy-paste prompt for Storybook testing:**
+
+```
+Conduct UX testing for embedded finance components in Storybook:
+
+Storybook URL: https://storybook.embedded-finance-dev.com/
+
+For each relevant component story (use sidebar to discover stories):
+
+1. Visual checks
+   - Open the story on Canvas; take a screenshot of initial state
+   - Note layout, typography, spacing, and styling consistency
+   - Check for obvious visual bugs or truncation
+
+2. Interaction checks
+   - Use Controls (args) to change props (e.g. loading, error, empty states)
+   - Interact with buttons, links, inputs, and menus within the story
+   - Document any broken interactions or missing handlers
+
+3. Technical checks
+   - Open the Docs tab for the story and confirm docs render correctly
+   - Capture console messages (errors, warnings) while switching stories and changing controls
+   - If the accessibility addon is available, run it and note any violations
+
+4. Coverage and tooling
+   - List which stories were tested and whether story list coverage matches components under test
+   - Test responsive viewports (e.g. mobile/tablet) if viewport addon or toolbar is available
+   - Document story-only issues (e.g. missing stories, broken controls, docs gaps)
+
+Output: Include Storybook findings in the UX testing report under "Storybook Findings" (stories tested, story-only issues, recommendations).
+```
+
+**Storybook checklist:**
+
+- [ ] Story list coverage: Confirm stories exist for components under test; note any missing or outdated stories
+- [ ] Controls/args: Change key args (e.g. loading, error, empty) and verify component updates; note broken or missing controls
+- [ ] Docs tab: Open Docs for each tested story; confirm docs render and match component API/usage
+- [ ] Accessibility addon: If the a11y addon is enabled, run checks and document violations or false positives
+- [ ] Responsive viewports: Test at least one small viewport (e.g. 375px) and one large viewport; note layout or interaction issues
 
 ---
 
@@ -333,6 +383,11 @@ const memory = performance.memory
 - Forms filled: [list]
 - Issues found: [list]
 
+### Storybook Findings (if applicable)
+- Stories tested: [list story names or paths]
+- Story-only issues: [e.g. missing stories, broken controls, docs tab issues, a11y addon results]
+- Viewport/responsive notes: [if tested]
+
 ### Technical Analysis
 - Console logs: console-logs/[component-name]-logs.txt
 - Network calls: network-requests/[component-name]-requests.json
@@ -370,6 +425,12 @@ For each component, document:
    - List all issues
    - Prioritize by severity
    - Provide recommendations
+
+5. **Storybook Findings** (if Storybook was tested)
+   - Which stories were tested (names or paths)
+   - Story-only issues (e.g. missing stories, broken controls, Docs tab problems, accessibility addon results)
+   - Viewport/responsive findings
+   - Recommendations for story coverage or addons
 
 ---
 

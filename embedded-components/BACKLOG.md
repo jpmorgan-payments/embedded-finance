@@ -1,9 +1,11 @@
 # Embedded Components - Development Backlog
 
-**Last Updated:** January 27, 2026  
+**Last Updated:** February 19, 2026  
 **Status:** Living Document - Updated as work progresses  
-**Source:** UX Testing Report (2025-12-02, 2025-12-09), Development Roadmap, Recent PRs  
-**Reference:** Deployed showcase https://embedded-finance-dev.com/sellsense-demo (onboarding, linked-accounts, recipients, transactions, accounts, make-payment)
+**Source:** UX Testing Report (2025-12-02, 2025-12-09, 2026-01-14, 2026-02-19), Development Roadmap, Recent PRs  
+**Reference:** Deployed showcase https://embedded-finance-dev.com/sellsense-demo (onboarding, linked-accounts, recipients, transactions, accounts, make-payment, **client-details**); Storybook https://storybook.embedded-finance-dev.com/
+
+**Re-tested:** February 19, 2026 — Each open item (Priority 1–5, BL-601, BL-723) was re-verified by **code inspection** (embedded-components and app/client-next-ts). All 7 showcase components were **browser-loaded**; UI-visible issues (e.g. filter labels, pagination, Dialog) were confirmed via code (i18n, component TSX). Full one-by-one in-browser click-through for every BL item was not done. See **`docs/ux-testing/2026-02-19/BACKLOG_VERIFICATION.md`** for item-level verdicts and evidence. Only **open** items are listed; completed/fixed items are not retained.
 
 **Note on Tracking IDs:** This backlog uses a hierarchical format (BL-001-1, BL-001-1a, etc.) for detailed task breakdown. New items from 2025-12-09 testing use simple sequential IDs (BL-600+). Future backlog updates may migrate to simpler format for consistency.
 
@@ -54,6 +56,8 @@
 - BL-070: Tooltips & help text
 - BL-080: Responsive design improvements
 - BL-404: Theme 0 enhancements (Pagination, details attribute mapping, PAYIN/PAYOUT derivation)
+- BL-601: Dialog Description (TransactionDetailsSheet)
+- BL-723: Form fields missing id/name (toolbar filter Selects)
 
 **Accounts:**
 
@@ -73,6 +77,11 @@
 - BL-070: Tooltips & help text
 - BL-080: Responsive design improvements
 - BL-310: Header/title consistency
+
+**ClientDetails (showcase fullscreen as of 2026-02-19):**
+
+- New in showcase; fullscreen URL: `?component=client-details&theme=Empty`
+- Pending: Initial UX audit (layout, tooltips, a11y, loading/error states); align with BL-070, BL-310, BL-320 as applicable
 
 **All Components:**
 
@@ -917,7 +926,7 @@ Substantial progress has been made. Re-assessment against latest source and depl
 1. **Check Status First:** Review item status (🔴 Critical, 🟠 High, etc.) before starting work
 2. **Update Status:** Mark items as 🚧 In Progress when starting
 3. **Reference Sources:** Check UX Testing Report and Development Roadmap for context
-4. **When complete:** Remove the item from the backlog (do not retain completed items in this document)
+4. **When complete:** **Remove** the item from the backlog. This document keeps **only currently open** items; do not retain completed/fixed items.
 
 ### For Product/Design
 
@@ -969,23 +978,18 @@ Substantial progress has been made. Re-assessment against latest source and depl
 
 ---
 
-#### BL-603: MSW Initialization Errors 🟡 — Re-assessed Jan 2026
+#### BL-603: MSW Initialization Errors 🟡 — Same as BL-200-1
 
 **Source:** UX Testing Report 2025-12-09  
 **Components:** All (MSW initialization)  
 **Priority:** Medium  
-**Status:** 📋 Planned
+**Status:** 📋 Planned — **Resolve via BL-200-1** (single fix for duplicate party creation).
 
-**Re-assessed (Jan 2026):** Same as BL-200-1 (duplicate party creation). Resolve in one place; keep one tracking id.
+**Issue:** Duplicate party creation during MSW init (parties 2200000111–2200000113; client 0030000134 vs 0030000132). Same root cause as BL-200-1.
 
-**Issue:** Duplicate party creation during MSW init: "Failed to create a 'party' entity: an entity with the same primary key already exists" (parties 2200000111–2200000113). Client 0030000134 creates parties that already exist from 0030000132.
+**Actions:** See **BL-200-1** and **BL-200-2**. No separate work; close BL-603 when BL-200-1 is done.
 
-**Actions:**
-
-- [ ] **BL-603-1:** Fix duplicate party creation in MSW handlers/seed (e.g. check existing before create, or single client seed)
-- [ ] **BL-603-2:** Reduce console verbosity in production/dev as in BL-200
-
-**Tracking:** BL-603 (duplicate of BL-200-1 for same MSW issue)
+**Tracking:** BL-603 (alias of BL-200-1)
 
 ---
 
@@ -995,10 +999,36 @@ Substantial progress has been made. Re-assessment against latest source and depl
 
 ### BL-700+: New Findings from January 14, 2026 Testing
 
-_(Open items only.)_
+#### BL-723: Transactions Form Fields Missing id/name 🟡 — Open
+
+**Source:** UX Testing Report 2026-01-14  
+**Component:** TransactionsDisplay (TransactionsTableToolbar)  
+**Priority:** Medium  
+**Status:** 📋 Planned
+
+**Issue:** Two form field elements (status and type filter Selects) lack `id`/`name` attributes, affecting accessibility (WCAG 2.1 AA). The counterpart filter Input has `id="transactions-filter-counterpart"` and `name="transactions-filter-counterpart"`; the two Select components do not.
+
+**Actions:**
+
+- [ ] **BL-723-1:** Add `id` and `name` (or `aria-label` where appropriate) to the status filter Select/SelectTrigger in TransactionsTableToolbar
+- [ ] **BL-723-2:** Add `id` and `name` (or `aria-label`) to the type filter Select/SelectTrigger
+
+**Tracking:** BL-723
+
+---
+
+### 2026-02-19 Full Re-Test (All 7 Components + Backlog Re-Verification)
+
+- **Session:** Full re-test of **all core components** and **backlog re-verification**. TESTING_PROMPT updated to include Onboarding and Client Details (7 components). Storybook and all 7 showcase URLs verified via browser automation.
+- **Showcase components tested:** Onboarding, Linked Accounts, Recipients, Make Payment, Transactions, Accounts, **Client Details**. All loaded successfully.
+- **Storybook:** https://storybook.embedded-finance-dev.com/ — confirmed live.
+- **Backlog re-test:** Each open item (P1–P5, BL-601, BL-723) re-tested by **code inspection**; all 7 components **browser-loaded**. Item-level verdicts and evidence: **`docs/ux-testing/2026-02-19/BACKLOG_VERIFICATION.md`**. All re-tested items remain OPEN; no fixed items removed. Summary: BL-050-1 (formatNumberToCurrency no NaN guard), BL-060 (filter labels inconsistent), BL-061 (pagination formats differ), BL-601 (TransactionDetailsSheet no DialogDescription), BL-723 (toolbar Selects missing id/name), plus all other P1–P5 items verified open via code.
+- **BL-723** added to backlog (form fields missing id/name in Transactions). **BL-603** consolidated with BL-200-1 (single fix).
+- **Report:** `embedded-components/docs/ux-testing/2026-02-19/UX_TESTING_REPORT.md`
+- **Action:** Future full UX runs should test all 7 components per prompt; remove items from this backlog when fixed.
 
 ---
 
 **Document Maintainers:** Development Team  
 **Review Frequency:** Weekly during active development, bi-weekly during maintenance  
-**Last Major Update:** January 27, 2026 (full re-assessment of open backlog items)
+**Last Major Update:** February 19, 2026 (full backlog re-test; only open items retained; BL-723 added; BL-603 consolidated with BL-200-1)
