@@ -4,8 +4,8 @@ import { Link } from '@tanstack/react-router';
 
 export function LandingHeader() {
   return (
-    <header className="sticky top-0 z-50 bg-jpm-white shadow-sm relative">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
+    <header className="relative sticky top-0 z-50 bg-jpm-white shadow-sm">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between sm:h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
@@ -103,7 +103,7 @@ export function LandingHeader() {
         </div>
       </div>
       {/* Vibrant gradient accent line at bottom of header */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-[rgb(226,110,0)] via-[rgb(177,121,207)] to-[rgb(26,123,153)] z-10" />
+      <div className="absolute bottom-0 left-0 right-0 z-10 h-1 bg-gradient-to-r from-[rgb(226,110,0)] via-[rgb(177,121,207)] to-[rgb(26,123,153)]" />
     </header>
   );
 }

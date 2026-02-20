@@ -1,6 +1,7 @@
 {
-  "include": ["**/*.ts", "**/*.tsx", "src/msw/db.js", "src/msw/handlers.js"],
+  "include": ["**/*.ts", "**/*.tsx", "**/*.d.ts"],
   "compilerOptions": {
+    "allowJs": true,
     "target": "ES2022",
     "jsx": "react-jsx",
     "module": "ESNext",
@@ -22,7 +23,12 @@
     "noUncheckedSideEffectImports": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@ef-api/smbdo-schemas": ["../../embedded-components/src/api/generated/smbdo.schemas.ts"],
+      "@ef-api/ef-v1-schemas": ["../../embedded-components/src/api/generated/ef-v1.schemas.ts"],
+      "@ef-api/ep-recipients-schemas": ["../../embedded-components/src/api/generated/ep-recipients.schemas.ts"],
+      "@ef-api/ep-transactions-schemas": ["../../embedded-components/src/api/generated/ep-transactions.schemas.ts"],
+      "@ef-api/ep-accounts-schemas": ["../../embedded-components/src/api/generated/ep-accounts.schemas.ts"]
     }
   }
 }

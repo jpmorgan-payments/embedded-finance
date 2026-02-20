@@ -50,7 +50,8 @@ function mergeRefs<T>(
   return (instance: T | null) => {
     refs.forEach((ref) => {
       if (typeof ref === 'function') ref(instance);
-      else if (ref != null) (ref as React.MutableRefObject<T | null>).current = instance;
+      else if (ref != null)
+        (ref as React.MutableRefObject<T | null>).current = instance;
     });
   };
 }
@@ -154,7 +155,9 @@ const SelectContent = React.forwardRef<
           position
             ? {
                 ...(position.top !== undefined && { top: position.top }),
-                ...(position.bottom !== undefined && { bottom: position.bottom }),
+                ...(position.bottom !== undefined && {
+                  bottom: position.bottom,
+                }),
                 left: position.left,
                 width: position.width,
               }

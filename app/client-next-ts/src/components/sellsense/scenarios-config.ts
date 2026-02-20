@@ -191,13 +191,11 @@ export function getClientStatusOverrideForScenario(
   scenarioDisplayName: string | null | undefined
 ): 'APPROVED' | undefined {
   if (!scenarioDisplayName) return undefined;
-  return (
-    (SCENARIOS_WITH_APPROVED_CLIENT as readonly string[]).includes(
-      scenarioDisplayName
-    )
-      ? 'APPROVED'
-      : undefined
-  );
+  return (SCENARIOS_WITH_APPROVED_CLIENT as readonly string[]).includes(
+    scenarioDisplayName
+  )
+    ? 'APPROVED'
+    : undefined;
 }
 
 // Utility functions

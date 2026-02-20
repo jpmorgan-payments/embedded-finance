@@ -183,46 +183,74 @@ const TOKEN_LABELS: Record<string, string> = {
 
 // Plain-English tooltips for each design token (what the token changes in the UI)
 const TOKEN_TOOLTIPS: Record<string, string> = {
-  contentFontFamily: 'Sets the primary font used for body text throughout the experience.',
+  contentFontFamily:
+    'Sets the primary font used for body text throughout the experience.',
   contentPrimaryForeground:
     'Controls the main body text color for readability on your background.',
   textHeadingFontFamily: 'Sets the font used for headings and titles (H1–H6).',
-  actionableFontFamily: 'Sets the font used for all buttons and interactive controls.',
+  actionableFontFamily:
+    'Sets the font used for all buttons and interactive controls.',
   actionableFontWeight: 'Controls how bold button text looks by default.',
   actionableFontSize: 'Adjusts the size of text inside buttons.',
-  actionableLineHeight: 'Adjusts vertical spacing around button text for readability.',
-  actionableTextTransform: 'Controls whether button labels appear in UPPERCASE, Capitalized, or normal case.',
-  actionableLetterSpacing: 'Fine-tunes the spacing between letters in button labels.',
-  actionableAccentedBoldFontWeight: 'Controls how bold the text is on primary call-to-action buttons.',
-  actionableSubtleFontWeight: 'Controls how bold the text is on secondary buttons.',
+  actionableLineHeight:
+    'Adjusts vertical spacing around button text for readability.',
+  actionableTextTransform:
+    'Controls whether button labels appear in UPPERCASE, Capitalized, or normal case.',
+  actionableLetterSpacing:
+    'Fine-tunes the spacing between letters in button labels.',
+  actionableAccentedBoldFontWeight:
+    'Controls how bold the text is on primary call-to-action buttons.',
+  actionableSubtleFontWeight:
+    'Controls how bold the text is on secondary buttons.',
 
-  containerPrimaryBackground: 'Sets the main page background color across the experience.',
-  containerCardBackground: 'Controls the background color of cards, panels, and content blocks.',
-  containerPrimaryForeground: 'Sets the default text color on primary surfaces and cards.',
-  containerSecondaryBackground: 'Background color for muted or secondary sections.',
+  containerPrimaryBackground:
+    'Sets the main page background color across the experience.',
+  containerCardBackground:
+    'Controls the background color of cards, panels, and content blocks.',
+  containerPrimaryForeground:
+    'Sets the default text color on primary surfaces and cards.',
+  containerSecondaryBackground:
+    'Background color for muted or secondary sections.',
   containerSecondaryForeground: 'Text color on muted or secondary surfaces.',
-  overlayableBackground: 'Background color for overlays like dialogs, popovers, and flyouts.',
+  overlayableBackground:
+    'Background color for overlays like dialogs, popovers, and flyouts.',
   overlayableForeground: 'Text color inside overlays and popovers.',
-  overlayableZIndex: 'Controls how far overlays sit above other content (stacking order).',
-  accentBackground: 'General accent background for highlighted chips, tags, or subtle accents.',
-  contentAccentForeground: 'Text color for accent elements like links, highlights, or key figures.',
+  overlayableZIndex:
+    'Controls how far overlays sit above other content (stacking order).',
+  accentBackground:
+    'General accent background for highlighted chips, tags, or subtle accents.',
+  contentAccentForeground:
+    'Text color for accent elements like links, highlights, or key figures.',
 
-  actionableAccentedBoldBackground: 'Main background color for primary call-to-action buttons.',
-  actionableAccentedBoldBackgroundHover: 'Background when hovering over primary buttons.',
-  actionableAccentedBoldBackgroundActive: 'Background for primary buttons while pressed.',
-  actionableAccentedBoldForeground: 'Text and icon color on primary call-to-action buttons.',
-  actionableAccentedBoldForegroundHover: 'Text and icon color on primary buttons when hovered.',
-  actionableAccentedBoldForegroundActive: 'Text and icon color on primary buttons while pressed.',
-  actionableAccentedBoldBorderWidth: 'Border thickness for primary call-to-action buttons.',
-  actionableBorderRadius: 'Rounds the corners of all buttons (from sharp to pill-shaped).',
-  actionableShiftOnActive: 'How much buttons visually “press down” when clicked.',
+  actionableAccentedBoldBackground:
+    'Main background color for primary call-to-action buttons.',
+  actionableAccentedBoldBackgroundHover:
+    'Background when hovering over primary buttons.',
+  actionableAccentedBoldBackgroundActive:
+    'Background for primary buttons while pressed.',
+  actionableAccentedBoldForeground:
+    'Text and icon color on primary call-to-action buttons.',
+  actionableAccentedBoldForegroundHover:
+    'Text and icon color on primary buttons when hovered.',
+  actionableAccentedBoldForegroundActive:
+    'Text and icon color on primary buttons while pressed.',
+  actionableAccentedBoldBorderWidth:
+    'Border thickness for primary call-to-action buttons.',
+  actionableBorderRadius:
+    'Rounds the corners of all buttons (from sharp to pill-shaped).',
+  actionableShiftOnActive:
+    'How much buttons visually “press down” when clicked.',
 
-  actionableSubtleBackground: 'Background color for secondary, low-emphasis buttons.',
+  actionableSubtleBackground:
+    'Background color for secondary, low-emphasis buttons.',
   actionableSubtleBackgroundHover: 'Background for secondary buttons on hover.',
-  actionableSubtleBackgroundActive: 'Background for secondary buttons while pressed.',
+  actionableSubtleBackgroundActive:
+    'Background for secondary buttons while pressed.',
   actionableSubtleForeground: 'Text and icon color for secondary buttons.',
-  actionableSubtleForegroundHover: 'Text and icon color for secondary buttons on hover.',
-  actionableSubtleForegroundActive: 'Text and icon color for secondary buttons while pressed.',
+  actionableSubtleForegroundHover:
+    'Text and icon color for secondary buttons on hover.',
+  actionableSubtleForegroundActive:
+    'Text and icon color for secondary buttons while pressed.',
   actionableSubtleBorderWidth: 'Border thickness for secondary buttons.',
   // Removed duplicate key: actionableSubtleFontWeight (already defined above)
 
@@ -234,46 +262,69 @@ const TOKEN_TOOLTIPS: Record<string, string> = {
   editableLabelLineHeight: 'Vertical spacing for multi-line form labels.',
   editableLabelForeground: 'Text color for form labels.',
 
-  separableBorderColor: 'Default border color for cards, dividers, and outlined elements.',
-  separableBorderRadius: 'Base corner radius applied to most components and surfaces.',
-  spacingUnit: 'Base spacing unit that drives padding and gaps across the layout.',
+  separableBorderColor:
+    'Default border color for cards, dividers, and outlined elements.',
+  separableBorderRadius:
+    'Base corner radius applied to most components and surfaces.',
+  spacingUnit:
+    'Base spacing unit that drives padding and gaps across the layout.',
 
-  focusedRingColor: 'Color of the focus ring when tabbing to buttons, links, and inputs.',
+  focusedRingColor:
+    'Color of the focus ring when tabbing to buttons, links, and inputs.',
 
-  actionableNegativeBoldBackground: 'Background color for destructive or “danger” buttons (e.g. Delete).',
-  actionableNegativeBoldBackgroundHover: 'Background for destructive buttons on hover.',
-  actionableNegativeBoldBackgroundActive: 'Background for destructive buttons while pressed.',
-  actionableNegativeBoldForeground: 'Text and icon color on destructive buttons.',
-  actionableNegativeBoldForegroundHover: 'Text and icon color on destructive buttons when hovered.',
-  actionableNegativeBoldForegroundActive: 'Text and icon color on destructive buttons while pressed.',
-  actionableNegativeBoldBorderWidth: 'Border thickness for destructive buttons.',
-  actionableNegativeBoldFontWeight: 'How bold the text appears on destructive buttons.',
+  actionableNegativeBoldBackground:
+    'Background color for destructive or “danger” buttons (e.g. Delete).',
+  actionableNegativeBoldBackgroundHover:
+    'Background for destructive buttons on hover.',
+  actionableNegativeBoldBackgroundActive:
+    'Background for destructive buttons while pressed.',
+  actionableNegativeBoldForeground:
+    'Text and icon color on destructive buttons.',
+  actionableNegativeBoldForegroundHover:
+    'Text and icon color on destructive buttons when hovered.',
+  actionableNegativeBoldForegroundActive:
+    'Text and icon color on destructive buttons while pressed.',
+  actionableNegativeBoldBorderWidth:
+    'Border thickness for destructive buttons.',
+  actionableNegativeBoldFontWeight:
+    'How bold the text appears on destructive buttons.',
 
-  sentimentNegativeAccentBackground: 'Accent background for negative states (e.g. critical alerts).',
+  sentimentNegativeAccentBackground:
+    'Accent background for negative states (e.g. critical alerts).',
   sentimentCautionForeground: 'Text color for caution or warning messages.',
-  sentimentCautionAccentBackground: 'Background accent for warning or “be careful” banners.',
-  sentimentPositiveForeground: 'Text color for success messages and positive states.',
-  sentimentPositiveAccentBackground: 'Accent background for success toasts, badges, or highlights.',
+  sentimentCautionAccentBackground:
+    'Background accent for warning or “be careful” banners.',
+  sentimentPositiveForeground:
+    'Text color for success messages and positive states.',
+  sentimentPositiveAccentBackground:
+    'Accent background for success toasts, badges, or highlights.',
   statusInfoForeground: 'Text color for neutral “information” status messages.',
-  statusInfoAccentBackground: 'Accent background for informational banners and callouts.',
-  statusErrorForegroundInformative: 'Text color for error messages in informational components.',
-  statusErrorBackground: 'Background color for error surfaces (e.g. error banners).',
-  statusSuccessForeground: 'Text color for success status messages and confirmations.',
-  statusSuccessAccentBackground: 'Accent background for success banners, badges, and confirmations.',
+  statusInfoAccentBackground:
+    'Accent background for informational banners and callouts.',
+  statusErrorForegroundInformative:
+    'Text color for error messages in informational components.',
+  statusErrorBackground:
+    'Background color for error surfaces (e.g. error banners).',
+  statusSuccessForeground:
+    'Text color for success status messages and confirmations.',
+  statusSuccessAccentBackground:
+    'Accent background for success banners, badges, and confirmations.',
   statusWarningForeground: 'Text color for warning status messages.',
-  statusWarningAccentBackground: 'Accent background for warning banners and inline warnings.',
-  navigableBackground: 'Background color for navigation areas (e.g. sidebars, nav rails).',
+  statusWarningAccentBackground:
+    'Accent background for warning banners and inline warnings.',
+  navigableBackground:
+    'Background color for navigation areas (e.g. sidebars, nav rails).',
   navigableForeground: 'Default text and icon color inside navigation areas.',
-  navigableAccentBackground: 'Background for the active or highlighted navigation item.',
-  navigableAccentForeground: 'Text and icon color for active or highlighted nav items.',
-  accentMetricBackground: 'Accent background for key metrics and KPI tiles in dashboards.',
+  navigableAccentBackground:
+    'Background for the active or highlighted navigation item.',
+  navigableAccentForeground:
+    'Text and icon color for active or highlighted nav items.',
+  accentMetricBackground:
+    'Accent background for key metrics and KPI tiles in dashboards.',
 };
 
 // Placeholders and optional hint text for simple input controls (format expectations)
-const INPUT_FORMAT: Record<
-  string,
-  { placeholder: string; hint?: string }
-> = {
+const INPUT_FORMAT: Record<string, { placeholder: string; hint?: string }> = {
   // Radius (pixels or number)
   actionableBorderRadius: {
     placeholder: 'e.g. 4 or 0.25rem',
@@ -1154,7 +1205,7 @@ export function ThemeCustomizationDrawer({
             />
             {contrastBadge}
           </div>
-          {(contrastBadge && relevantPairs.length > 0) && (
+          {contrastBadge && relevantPairs.length > 0 && (
             <div className="ml-14 text-xs text-gray-500">
               {relevantPairs[0].label}
             </div>
@@ -1893,7 +1944,7 @@ export function ThemeCustomizationDrawer({
                                           <Info className="h-3.5 w-3.5" />
                                         </button>
                                         <span
-                                          className="pointer-events-none absolute left-0 top-full z-50 mt-1 hidden min-w-[18rem] max-w-[28rem] whitespace-normal rounded-md border border-gray-200 bg-gray-900 px-3 py-2.5 text-left text-sm font-normal leading-snug text-white shadow-lg group-hover:block group-focus-within:block"
+                                          className="pointer-events-none absolute left-0 top-full z-50 mt-1 hidden min-w-[18rem] max-w-[28rem] whitespace-normal rounded-md border border-gray-200 bg-gray-900 px-3 py-2.5 text-left text-sm font-normal leading-snug text-white shadow-lg group-focus-within:block group-hover:block"
                                           role="tooltip"
                                         >
                                           {tooltipText}

@@ -20,9 +20,11 @@ import { useSearch } from '@tanstack/react-router';
 
 import { DatabaseResetUtils } from '@/lib/database-reset-utils';
 
+import { Button } from '../ui/button';
 import { AutomationTrigger } from './automation';
 import {
   AVAILABLE_COMPONENTS,
+  getClientIdForScenario,
   getGridDimensions,
   getHeaderDescriptionForScenario,
   getHeaderTitleForScenario,
@@ -32,12 +34,10 @@ import {
   type ComponentConfig,
   type ComponentName,
 } from './scenarios-config';
-import { getClientIdForScenario } from './scenarios-config';
 import { createFullscreenUrl, EmbeddedComponentCard } from './shared';
 import { useThemeStyles } from './theme-utils';
 import { useSellSenseThemes } from './use-sellsense-themes';
 import type { ThemeOption } from './use-sellsense-themes';
-import { Button } from '../ui/button';
 
 interface ComponentInfo {
   title: string;
@@ -104,8 +104,7 @@ export function WalletOverview({
 
   // Apply scenario default viewModes on scenario change (user can still toggle via card tooltip)
   useEffect(() => {
-    const components =
-      getVisibleComponentsForScenario(currentScenario) || [];
+    const components = getVisibleComponentsForScenario(currentScenario) || [];
     components.forEach((c: ComponentConfig) => {
       if (c.component === AVAILABLE_COMPONENTS.LINKED_ACCOUNTS && c.viewMode)
         setLinkedAccountViewMode(c.viewMode);
@@ -320,23 +319,17 @@ export function WalletOverview({
       componentName: 'ClientDetails',
       componentDescription:
         'A comprehensive widget for displaying client details and information.',
-      componentFeatures: [
-        'View client details and information',
-      ],
+      componentFeatures: ['View client details and information'],
       component: scenarioClientId ? (
         <ClientDetails clientId={scenarioClientId} />
       ) : (
-        <div
-          className={`rounded-lg border p-6 ${themeStyles.getCardStyles()}`}
-        >
+        <div className={`rounded-lg border p-6 ${themeStyles.getCardStyles()}`}>
           <h2
             className={`mb-4 text-xl font-semibold ${themeStyles.getHeaderTextStyles()}`}
           >
             Client Details
           </h2>
-          <div
-            className={`py-4 text-sm ${themeStyles.getHeaderLabelStyles()}`}
-          >
+          <div className={`py-4 text-sm ${themeStyles.getHeaderLabelStyles()}`}>
             Client details are not available for this scenario.
           </div>
         </div>
@@ -467,7 +460,8 @@ export function WalletOverview({
     componentName: string,
     componentConfig?: { fullWidth?: boolean }
   ) =>
-    componentConfig?.fullWidth ?? DEFAULT_FULL_WIDTH_COMPONENTS.includes(componentName);
+    componentConfig?.fullWidth ??
+    DEFAULT_FULL_WIDTH_COMPONENTS.includes(componentName);
 
   // Helper function to render components in grid layout
   const renderGridLayout = () => {

@@ -1,5 +1,12 @@
-// Mock linked accounts data for LinkedAccountWidget component
-export const mockLinkedAccounts = {
+import type { Recipient, RecipientStatus } from '@ef-api/ep-recipients-schemas';
+
+/** Mock linked accounts (LINKED_ACCOUNT recipients). */
+export const mockLinkedAccounts: {
+  page: number;
+  limit: number;
+  total_items: number;
+  recipients: Recipient[];
+} = {
   page: 0,
   limit: 10,
   total_items: 3,
@@ -53,7 +60,7 @@ export const mockLinkedAccounts = {
 export const mockActiveLinkedAccounts = {
   ...mockLinkedAccounts,
   recipients: mockLinkedAccounts.recipients.filter(
-    (account: { status: string }) => account.status === 'ACTIVE'
+    (account) => account.status === 'ACTIVE'
   ),
   total_items: 1,
 };
@@ -61,7 +68,7 @@ export const mockActiveLinkedAccounts = {
 export const mockMicrodepositLinkedAccounts = {
   ...mockLinkedAccounts,
   recipients: mockLinkedAccounts.recipients.filter(
-    (account: { status: string }) =>
+    (account) =>
       account.status === 'MICRODEPOSITS_INITIATED' ||
       account.status === 'READY_FOR_VALIDATION'
   ),
@@ -200,7 +207,7 @@ export const getLinkedAccountById = (id: string) => {
 };
 
 // Function to update linked account status
-export const updateLinkedAccountStatus = (id: string, status: string) => {
+export const updateLinkedAccountStatus = (id: string, status: RecipientStatus) => {
   const account = getLinkedAccountById(id);
   if (account) {
     account.status = status;

@@ -11,7 +11,7 @@ import {
 
 export function Footer() {
   return (
-    <footer className="bg-jpm-gray-900 pt-12 pb-8 text-jpm-white sm:pt-16 sm:pb-10">
+    <footer className="bg-jpm-gray-900 pb-8 pt-12 text-jpm-white sm:pb-10 sm:pt-16">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="md:col-span-2">

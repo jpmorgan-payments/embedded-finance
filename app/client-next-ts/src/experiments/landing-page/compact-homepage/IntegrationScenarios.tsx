@@ -49,22 +49,26 @@ export function IntegrationScenarios() {
             onMouseLeave={() => setHoveredId(null)}
           >
             <div
-              className={`relative overflow-hidden rounded-page-md border-2 border-sp-border bg-white p-3.5 transition-all duration-200 min-h-[4rem] ${
+              className={`relative min-h-[4rem] overflow-hidden rounded-page-md border-2 border-sp-border bg-white p-3.5 transition-all duration-200 ${
                 hoveredId === group.id
                   ? '-translate-y-1 transform border-sp-brand shadow-lg ring-2 ring-sp-brand/20'
-                  : 'shadow-sm hover:shadow-md hover:border-sp-brand/50'
+                  : 'shadow-sm hover:border-sp-brand/50 hover:shadow-md'
               }`}
             >
-              <div className="flex items-center gap-3 h-full">
+              <div className="flex h-full items-center gap-3">
                 <div className="flex-shrink-0">
-                  <div className={`flex h-9 w-9 items-center justify-center rounded-page-sm ${group.iconBg} text-sp-brand shadow-sm transition-all duration-200 ${
-                    hoveredId === group.id ? 'scale-110 ring-2 ring-sp-brand/30' : ''
-                  }`}>
+                  <div
+                    className={`flex h-9 w-9 items-center justify-center rounded-page-sm ${group.iconBg} text-sp-brand shadow-sm transition-all duration-200 ${
+                      hoveredId === group.id
+                        ? 'scale-110 ring-2 ring-sp-brand/30'
+                        : ''
+                    }`}
+                  >
                     {group.icon}
                   </div>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-sm font-semibold text-jpm-gray-900 leading-tight">
+                  <div className="text-sm font-semibold leading-tight text-jpm-gray-900">
                     {group.title}
                   </div>
                 </div>

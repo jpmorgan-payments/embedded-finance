@@ -39,7 +39,7 @@
     "lodash": "^4.17.21",
     "lucide-react": "^0.476.0",
     "mermaid": "^10.9.5",
-    "msw": "^2.7.5",
+    "msw": "^2.12.10",
     "papaparse": "^5.5.3",
     "prism-react-renderer": "^2.4.1",
     "react": "^18.2.0",
