@@ -1,4 +1,11 @@
-export const mockAccounts = {
+import type {
+  AccountBalanceDto,
+  AccountBalanceResponse,
+  AccountResponse,
+} from '@ef-api/ep-accounts-schemas';
+
+/** OAS-aligned account list (e.g. for ListAccountsResponse.items). */
+export const mockAccounts: { items: AccountResponse[] } = {
   items: [
     {
       id: 'acc-001',
@@ -26,13 +33,12 @@ export const mockAccounts = {
         routingInformation: [{ type: 'ABA', value: '123456789' }],
       },
     },
-  ],
+    ],
 };
 
-// Scenario-based account initialization
-export const mockActiveAccounts = {
+// Scenario-based account initialization (OAS AccountResponse[])
+export const mockActiveAccounts: { items: AccountResponse[] } = {
   items: [
-    // Only acc-001 for ACTIVE scenario (similar to linked accounts only)
     {
       id: 'acc-001',
       clientId: '0030000131',
@@ -49,10 +55,8 @@ export const mockActiveAccounts = {
   ],
 };
 
-export const mockActiveWithRecipientsAccounts = {
+export const mockActiveWithRecipientsAccounts: { items: AccountResponse[] } = {
   items: [
-    // Both accounts for ACTIVE_WITH_RECIPIENTS scenario
-
     {
       id: 'acc-002',
       clientId: '0030000131',
@@ -69,26 +73,29 @@ export const mockActiveWithRecipientsAccounts = {
   ],
 };
 
-export const mockAccountBalance = {
-  id: 'bal-001', // Unique balance record ID
-  accountId: 'acc-001', // Foreign key reference to account
+/** OAS AccountBalanceResponse + accountId for DB linkage. */
+type AccountBalanceWithAccountId = AccountBalanceResponse & { accountId: string };
+
+export const mockAccountBalance: AccountBalanceWithAccountId = {
+  id: 'bal-001',
+  accountId: 'acc-001',
   date: '2023-10-28',
   currency: 'USD',
   balanceTypes: [
     { typeCode: 'ITAV', amount: 5558.42 },
     { typeCode: 'ITBD', amount: 5758.42 },
-  ],
+  ] as AccountBalanceDto[],
 };
 
-export const mockAccountBalance2 = {
-  id: 'bal-002', // Unique balance record ID
-  accountId: 'acc-002', // Foreign key reference to account
+export const mockAccountBalance2: AccountBalanceWithAccountId = {
+  id: 'bal-002',
+  accountId: 'acc-002',
   date: '2023-10-28',
   currency: 'USD',
   balanceTypes: [
     { typeCode: 'ITAV', amount: 1234.56 },
     { typeCode: 'ITBD', amount: 1345.67 },
-  ],
+  ] as AccountBalanceDto[],
 };
 
 // Scenario-based balance initialization

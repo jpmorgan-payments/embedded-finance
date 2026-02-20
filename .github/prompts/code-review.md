@@ -66,7 +66,7 @@ Provide specific, actionable feedback with file paths and line numbers where app
 
 **In VS Code with GitHub Copilot:**
 ```
-@workspace review the current changes using .github/copilot/prompts/code-review.md
+@workspace review the current changes using .github/prompts/code-review.md
 ```
 
 **Or simply:**
@@ -76,5 +76,5 @@ Please review my code changes following the code review checklist
 
 ## Related Files
 
-- `.github/copilot/skills/code-quality-workflow/SKILL.md` - Automated quality checks
+- `.github/skills/code-quality-workflow/SKILL.md` - Automated quality checks
 - `embedded-components/ARCHITECTURE.md` - Architecture patterns for components

@@ -115,7 +115,7 @@ Provide a summary of all fixes made, including:
 
 **In VS Code with GitHub Copilot:**
 ```
-@workspace run tests and fix failures following .github/copilot/prompts/run-tests-and-fix.md
+@workspace run tests and fix failures following .github/prompts/run-tests-and-fix.md
 ```
 
 **Or simply:**
@@ -125,5 +125,5 @@ Please run all tests and fix any failures
 
 ## Related Files
 
-- `.github/copilot/skills/test-and-fix-workflow/SKILL.md` - Automated testing workflow
-- `.github/copilot/skills/code-quality-workflow/SKILL.md` - Quality checks
+- `.github/skills/test-and-fix-workflow/SKILL.md` - Automated testing workflow
+- `.github/skills/code-quality-workflow/SKILL.md` - Quality checks

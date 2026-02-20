@@ -23,8 +23,10 @@ const navigationCards = [
     icon: <Play className="h-6 w-6" />,
     link: '/demos',
     count: 3,
-    accentColor: 'bg-gradient-to-br from-[rgb(26,123,153)]/15 to-[rgb(26,123,153)]/5',
-    iconBg: 'bg-gradient-to-br from-[rgb(26,123,153)]/20 to-[rgb(26,123,153)]/10',
+    accentColor:
+      'bg-gradient-to-br from-[rgb(26,123,153)]/15 to-[rgb(26,123,153)]/5',
+    iconBg:
+      'bg-gradient-to-br from-[rgb(26,123,153)]/20 to-[rgb(26,123,153)]/10',
     borderGradient: 'from-[rgb(26,123,153)]',
   },
   {
@@ -35,8 +37,10 @@ const navigationCards = [
     icon: <Box className="h-6 w-6" />,
     link: '/components',
     count: 6,
-    accentColor: 'bg-gradient-to-br from-[rgb(177,121,207)]/15 to-[rgb(177,121,207)]/5',
-    iconBg: 'bg-gradient-to-br from-[rgb(177,121,207)]/20 to-[rgb(177,121,207)]/10',
+    accentColor:
+      'bg-gradient-to-br from-[rgb(177,121,207)]/15 to-[rgb(177,121,207)]/5',
+    iconBg:
+      'bg-gradient-to-br from-[rgb(177,121,207)]/20 to-[rgb(177,121,207)]/10',
     borderGradient: 'from-[rgb(177,121,207)]',
   },
   {
@@ -47,7 +51,8 @@ const navigationCards = [
     icon: <BookOpen className="h-6 w-6" />,
     link: '/stories',
     count: 3,
-    accentColor: 'bg-gradient-to-br from-[rgb(226,110,0)]/15 to-[rgb(226,110,0)]/5',
+    accentColor:
+      'bg-gradient-to-br from-[rgb(226,110,0)]/15 to-[rgb(226,110,0)]/5',
     iconBg: 'bg-gradient-to-br from-[rgb(226,110,0)]/20 to-[rgb(226,110,0)]/10',
     borderGradient: 'from-[rgb(226,110,0)]',
   },
@@ -59,9 +64,12 @@ const navigationCards = [
     icon: <Wrench className="h-6 w-6" />,
     link: '/utils',
     count: 4,
-    accentColor: 'bg-gradient-to-br from-[rgb(26,123,153)]/10 via-[rgb(177,121,207)]/10 to-[rgb(226,110,0)]/10',
-    iconBg: 'bg-gradient-to-br from-[rgb(26,123,153)]/15 via-[rgb(177,121,207)]/15 to-[rgb(226,110,0)]/15',
-    borderGradient: 'from-[rgb(26,123,153)] via-[rgb(177,121,207)] to-[rgb(226,110,0)]',
+    accentColor:
+      'bg-gradient-to-br from-[rgb(26,123,153)]/10 via-[rgb(177,121,207)]/10 to-[rgb(226,110,0)]/10',
+    iconBg:
+      'bg-gradient-to-br from-[rgb(26,123,153)]/15 via-[rgb(177,121,207)]/15 to-[rgb(226,110,0)]/15',
+    borderGradient:
+      'from-[rgb(26,123,153)] via-[rgb(177,121,207)] to-[rgb(226,110,0)]',
   },
 ] as const;
 
@@ -120,7 +128,7 @@ export function CompactHomepage() {
       </section>
 
       {/* Navigation Cards Grid */}
-      <section className="pt-10 pb-10">
+      <section className="pb-10 pt-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-8 text-center">
             <h2 className="mb-2 text-3xl font-bold text-jpm-gray-900 sm:text-4xl">
@@ -142,14 +150,16 @@ export function CompactHomepage() {
                 onMouseLeave={() => setHoveredCardId(null)}
               >
                 <Card
-                  className={`relative h-full min-h-[11rem] cursor-pointer overflow-hidden rounded-page-md border-2 border-sp-border bg-jpm-white transition-all duration-200 flex flex-col ${
+                  className={`relative flex h-full min-h-[11rem] cursor-pointer flex-col overflow-hidden rounded-page-md border-2 border-sp-border bg-jpm-white transition-all duration-200 ${
                     hoveredCardId === card.id
                       ? '-translate-y-1 transform border-sp-brand shadow-lg ring-2 ring-sp-brand/20'
-                      : 'shadow-sm hover:shadow-md hover:border-sp-brand/50'
+                      : 'shadow-sm hover:border-sp-brand/50 hover:shadow-md'
                   }`}
                 >
-                  <CardHeader className={`border-b-2 border-sp-border ${card.accentColor} p-4 flex-shrink-0`}>
-                    <div className="flex items-center justify-between mb-2">
+                  <CardHeader
+                    className={`border-b-2 border-sp-border ${card.accentColor} flex-shrink-0 p-4`}
+                  >
+                    <div className="mb-2 flex items-center justify-between">
                       <div
                         className={`flex h-12 w-12 items-center justify-center rounded-page-sm ${card.iconBg} text-sp-brand shadow-sm transition-all duration-200 ${
                           hoveredCardId === card.id
@@ -163,12 +173,12 @@ export function CompactHomepage() {
                         {card.count}
                       </span>
                     </div>
-                    <CardTitle className="text-base font-bold text-jpm-gray-900 leading-tight">
+                    <CardTitle className="text-base font-bold leading-tight text-jpm-gray-900">
                       {card.title}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-4 flex-1 flex flex-col">
-                    <p className="text-sm leading-relaxed text-jpm-gray flex-1">
+                  <CardContent className="flex flex-1 flex-col p-4">
+                    <p className="flex-1 text-sm leading-relaxed text-jpm-gray">
                       {card.description}
                     </p>
                   </CardContent>

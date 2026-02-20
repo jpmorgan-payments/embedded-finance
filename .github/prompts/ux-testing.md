@@ -257,7 +257,7 @@ Reference files:
 
 **In VS Code with GitHub Copilot:**
 ```
-@workspace conduct UX testing following .github/copilot/prompts/ux-testing.md
+@workspace conduct UX testing following .github/prompts/ux-testing.md
 ```
 
 **Or simply:**
@@ -269,4 +269,4 @@ Please run comprehensive UX testing and update the backlog
 
 - `embedded-components/BACKLOG.md` - Component backlog
 - `embedded-components/docs/ux-testing/` - Previous testing reports
-- `.github/copilot/skills/component-testing/SKILL.md` - Testing patterns
+- `.github/skills/component-testing/SKILL.md` - Testing patterns

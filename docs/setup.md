@@ -7,6 +7,22 @@ From repository root:
 yarn install
 ```
 
+### Cursor IDE (optional)
+
+So Cursor uses the same agent skills and prompts as GitHub Copilot, create a local junction (or symlink) pointing `.cursor` to `.github` (e.g. from repo root):
+
+**Windows (PowerShell, run as needed after clone):**
+```powershell
+cmd /c mklink /J ".cursor" ".github"
+```
+
+**macOS/Linux:**
+```bash
+ln -s .github .cursor
+```
+
+`.cursor` is in `.gitignore`, so this is local only and not committed.
+
 For embedded-components package:
 ```powershell
 cd embedded-components

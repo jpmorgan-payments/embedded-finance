@@ -154,7 +154,7 @@ Reference existing documentation:
 
 **In VS Code with GitHub Copilot:**
 ```
-@workspace create a roadmap analysis following .github/copilot/prompts/roadmap-analysis.md
+@workspace create a roadmap analysis following .github/prompts/roadmap-analysis.md
 ```
 
 **Or simply:**
@@ -166,4 +166,4 @@ Please analyze the codebase and create a feature roadmap
 
 - `embedded-components/BACKLOG.md` - Current backlog items
 - `app/client-next-ts/PRD.md` - Product requirements
-- `.github/copilot/skills/embedded-banking-architecture/SKILL.md` - Architecture patterns
+- `.github/skills/embedded-banking-architecture/SKILL.md` - Architecture patterns

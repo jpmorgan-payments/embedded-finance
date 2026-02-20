@@ -30,13 +30,13 @@ import { KycOnboarding } from './kyc-onboarding';
 import { LoadingSkeleton } from './loading-skeleton';
 import { PayoutSettings } from './payout-settings';
 import {
+  getClientIdForScenario,
   getResetDbScenario,
   getScenarioByKey,
   getScenarioDisplayNames,
   getScenarioKeyByDisplayName,
   hasResetDbScenario,
 } from './scenarios-config';
-import { getClientIdForScenario } from './scenarios-config';
 import { SettingsDrawer } from './settings-drawer';
 import { Sidebar } from './sidebar';
 import { useThemeStyles } from './theme-utils';
@@ -120,7 +120,10 @@ export function DashboardLayout() {
   const [hasProcessedInitialLoad, setHasProcessedInitialLoad] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const mainContentRef = useRef<HTMLElement | null>(null);
-  const pendingScrollRestoreRef = useRef<{ scrollTop: number; scrollLeft: number } | null>(null);
+  const pendingScrollRestoreRef = useRef<{
+    scrollTop: number;
+    scrollLeft: number;
+  } | null>(null);
 
   // Initialize customThemeVariables from URL if present
   const getInitialCustomThemeVariables = (): EBThemeVariables => {

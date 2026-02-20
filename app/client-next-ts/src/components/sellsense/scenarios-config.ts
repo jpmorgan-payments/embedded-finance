@@ -31,10 +31,17 @@ export interface ComponentPosition {
   y: number; // Column number (0-based)
 }
 
+// Optional display options per component (e.g. viewMode for LinkedAccountWidget)
+export type ViewModeOption = 'cards' | 'compact-cards' | 'table';
+
 // Component configuration with position
 export interface ComponentConfig {
   component: ComponentName;
   position: ComponentPosition;
+  /** When true, component spans full row on lg screens (e.g. LinkedAccountWidget) */
+  fullWidth?: boolean;
+  /** Default viewMode for components that support it (e.g. LinkedAccountWidget) */
+  viewMode?: ViewModeOption;
 }
 
 // Scenario configuration with display names and metadata
@@ -132,24 +139,27 @@ export const SCENARIOS_CONFIG = {
     resetDbScenario: 'active-with-recipients' as const, // Optional: triggers DB reset with recipients scenario
     visibleComponents: [
       {
+        component: AVAILABLE_COMPONENTS.CLIENT_DETAILS,
+        position: { x: 0, y: 0 },
+        fullWidth: false, // Share first row with Accounts
+      },
+      {
         component: AVAILABLE_COMPONENTS.ACCOUNTS,
-        position: { x: 0, y: 0 }, // Top right
+        position: { x: 0, y: 1 },
       },
       {
         component: AVAILABLE_COMPONENTS.LINKED_ACCOUNTS,
-        position: { x: 0, y: 1 }, // Bottom left
-      },
-      {
-        component: AVAILABLE_COMPONENTS.TRANSACTIONS,
-        position: { x: 1, y: 0 }, // Bottom left
+        position: { x: 1, y: 0 },
+        fullWidth: true,
+        viewMode: 'table',
       },
       {
         component: AVAILABLE_COMPONENTS.RECIPIENTS,
-        position: { x: 2, y: 0 }, // Bottom left
+        position: { x: 2, y: 0 },
       },
       {
-        component: AVAILABLE_COMPONENTS.CLIENT_DETAILS,
-        position: { x: 3, y: 0 }, // Top left
+        component: AVAILABLE_COMPONENTS.TRANSACTIONS,
+        position: { x: 3, y: 0 },
       },
     ] as ComponentConfig[],
     headerTitle: 'Payments DDA Account',
@@ -167,6 +177,26 @@ export const SCENARIO_ORDER: ScenarioKey[] = [
   SCENARIO_KEYS.ACTIVE_SELLER_LIMITED_DDA,
   SCENARIO_KEYS.ACTIVE_SELLER_LIMITED_DDA_PAYMENTS,
 ];
+
+/** Display names for scenarios that should get client status APPROVED in mocks (last 3 active scenarios). */
+export const SCENARIOS_WITH_APPROVED_CLIENT = SCENARIO_ORDER.slice(-3).map(
+  (key) => SCENARIOS_CONFIG[key].displayName
+);
+
+/**
+ * Returns client status override for mock API when scenario is provided (e.g. via X-Scenario header).
+ * Only the last 3 scenarios (Fresh Start, Limited DDA, Payments DDA) return APPROVED; others use DB as-is.
+ */
+export function getClientStatusOverrideForScenario(
+  scenarioDisplayName: string | null | undefined
+): 'APPROVED' | undefined {
+  if (!scenarioDisplayName) return undefined;
+  return (SCENARIOS_WITH_APPROVED_CLIENT as readonly string[]).includes(
+    scenarioDisplayName
+  )
+    ? 'APPROVED'
+    : undefined;
+}
 
 // Utility functions
 export const getScenarioByKey = (key: ScenarioKey) => {

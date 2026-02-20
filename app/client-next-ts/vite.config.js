@@ -24,6 +24,27 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
+      // OAS-generated types from embedded-components (for MSW handlers and type-safe mocks)
+      '@ef-api/smbdo-schemas': resolve(
+        __dirname,
+        '../../embedded-components/src/api/generated/smbdo.schemas.ts'
+      ),
+      '@ef-api/ef-v1-schemas': resolve(
+        __dirname,
+        '../../embedded-components/src/api/generated/ef-v1.schemas.ts'
+      ),
+      '@ef-api/ep-recipients-schemas': resolve(
+        __dirname,
+        '../../embedded-components/src/api/generated/ep-recipients.schemas.ts'
+      ),
+      '@ef-api/ep-transactions-schemas': resolve(
+        __dirname,
+        '../../embedded-components/src/api/generated/ep-transactions.schemas.ts'
+      ),
+      '@ef-api/ep-accounts-schemas': resolve(
+        __dirname,
+        '../../embedded-components/src/api/generated/ep-accounts.schemas.ts'
+      ),
     },
   },
 });

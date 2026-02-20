@@ -45,7 +45,7 @@ This is a monorepo with two main active packages and utility packages:
 
 ### Shared Across All Packages
 - **Architecture patterns**: `embedded-components/ARCHITECTURE.md` (applies to component library only)
-- **Agent Skills**: `.github/copilot/skills/` (cross-package guidance)
+- **Agent Skills**: `.github/skills/` (cross-package guidance)
 - **Code quality workflow**: Test-fix-verify for all code changes
 - **PowerShell**: Use `;` not `&&` for command chaining
 - **Git conventions**: Lowercase conventional commits
@@ -784,11 +784,11 @@ Remember to maintain consistency with existing codebase patterns and follow the 
 ### Primary Resources
 
 - **Architecture patterns**: `embedded-components/ARCHITECTURE.md` - **Source of truth for architecture**
-- **Agent Skills**: `.github/copilot/skills/` - **Comprehensive, automated guidance**
+- **Agent Skills**: `.github/skills/` - **Comprehensive, automated guidance**
 
 ### Agent Skills (VS Code Copilot)
 
-The `.github/copilot/skills/` directory contains discoverable skills that GitHub Copilot automatically uses:
+The `.github/skills/` directory contains discoverable skills that GitHub Copilot automatically uses:
 
 **Tier 1 - Critical Core:**
 - `embedded-banking-architecture/` - Component structure and organization
@@ -802,7 +802,7 @@ The `.github/copilot/skills/` directory contains discoverable skills that GitHub
 - `windows-powershell/` - PowerShell commands (NEVER use `&&`)
 - `test-and-fix-workflow/` - Automated testing workflow
 
-See `.github/copilot/skills/README.md` for complete documentation.
+See `.github/skills/README.md` for complete documentation.
 
 ### How Skills Work
 

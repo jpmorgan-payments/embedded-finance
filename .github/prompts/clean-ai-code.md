@@ -127,7 +127,7 @@ Keep the summary concise - focus on the impact, not every detail.
 
 **In VS Code with GitHub Copilot:**
 ```
-@workspace clean up AI code patterns following .github/copilot/prompts/clean-ai-code.md
+@workspace clean up AI code patterns following .github/prompts/clean-ai-code.md
 ```
 
 **Or simply:**
@@ -139,4 +139,4 @@ Please review and clean up any AI-generated code inconsistencies
 
 - `embedded-components/ARCHITECTURE.md` - Architecture patterns to follow
 - `.github/copilot-instructions.md` - Project conventions
-- `.github/copilot/skills/react-patterns/SKILL.md` - React patterns
+- `.github/skills/react-patterns/SKILL.md` - React patterns

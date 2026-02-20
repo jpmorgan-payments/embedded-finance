@@ -1,15 +1,36 @@
+/**
+ * MSW stateful data layer using @mswjs/data (v0.16.x factory API).
+ *
+ * Best practices:
+ * - One factory, one db instance; all models use primaryKey(String) for id.
+ * - Seed via initializeDb() / resetDb(scenario); handlers read/write through db.*.
+ * - Entity shapes align with OAS (`@ef-api/*-schemas`).
+ * - Use deleteMany({}) to clear a model; update via findFirst + update.
+ */
 import { factory, primaryKey } from '@mswjs/data';
 import merge from 'lodash/merge';
 
-import { efClientQuestionsMock, efDocumentRequestDetailsList } from '../mocks';
+import type {
+  AccountBalanceDto,
+  AccountBalanceDtoTypeCode,
+  AccountBalanceResponse,
+  AccountResponse,
+} from '@ef-api/ep-accounts-schemas';
+import type { Recipient } from '@ef-api/ep-recipients-schemas';
+import type { TransactionsSearchResponseV2 } from '@ef-api/ep-transactions-schemas';
+import type {
+  ClientResponseOutstanding,
+  ClientStatus,
+  DocumentRequestResponse,
+  PartyResponse,
+} from '@ef-api/smbdo-schemas';
+
+import { efDocumentRequestDetailsList } from '../mocks';
 import {
   mockAccountBalance,
   mockAccountBalance2,
-  mockAccounts,
   mockActiveAccounts,
-  mockActiveBalances,
   mockActiveWithRecipientsAccounts,
-  mockActiveWithRecipientsBalances,
 } from '../mocks/accounts.mock';
 import {
   LLCExistingClient,
@@ -20,26 +41,123 @@ import { mockLinkedAccounts } from '../mocks/linkedAccounts.mock';
 import { mockRecipientsResponse } from '../mocks/recipients.mock';
 import { mockTransactionsResponse } from '../mocks/transactions.mock';
 
-// Magic values configuration
-export const MAGIC_VALUES = {
+// --- Entity types (OAS-aligned) ---
+
+export interface DbClient {
+  id: string;
+  status?: ClientStatus;
+  partyId?: string;
+  parties?: string[];
+  products?: string[] | unknown[];
+  outstanding?: ClientResponseOutstanding;
+  questionResponses?: unknown[];
+  attestations?: unknown[];
+  results?: Record<string, unknown>;
+  createdAt?: string;
+}
+
+export type DbParty = PartyResponse & Record<string, unknown>;
+export type DbDocumentRequest = DocumentRequestResponse & Record<string, unknown>;
+export type DbRecipient = Recipient;
+export type DbAccount = AccountResponse;
+/** OAS AccountBalanceResponse + DB-only fields (accountId, updatedAt). */
+export type DbAccountBalance = AccountBalanceResponse & {
+  accountId?: string;
+  updatedAt?: string;
+};
+export type DbTransaction = TransactionsSearchResponseV2;
+
+/** Options for id-based findFirst/delete (e.g. { where: { id: { equals: 'x' } } }). */
+type WhereIdOpts = { where: { id: { equals: string } } };
+type WhereClientId = { where: { clientId: { equals: string } } };
+
+/** documentRequest.update first argument (where + data). */
+export type DocumentRequestUpdateOpts = {
+  where: { id: { equals: string } };
+  data: Partial<DbDocumentRequest> & Record<string, unknown>;
+};
+
+/** recipient.update first argument (where + data). */
+export type RecipientUpdateOpts = {
+  where: { id: { equals: string } };
+  data: Partial<DbRecipient> & Record<string, unknown>;
+};
+
+export interface Db {
+  client: {
+    findFirst: (opts: WhereIdOpts) => DbClient | null;
+    findMany: (opts: WhereClientId) => DbClient[];
+    getAll: () => DbClient[];
+    create: (data: (Partial<DbClient> & { id: string }) | Record<string, unknown>) => DbClient;
+    update: (opts: { where: { id: { equals: string } }; data: Partial<DbClient> | Record<string, unknown> }) => DbClient;
+    deleteMany: (opts: object) => void;
+    delete: (opts: WhereIdOpts) => void;
+  };
+  party: {
+    findFirst: (opts: WhereIdOpts) => DbParty | null;
+    getAll: () => DbParty[];
+    create: (data: (Partial<DbParty> & { id: string }) | Record<string, unknown>) => DbParty;
+    update: (opts: { where: { id: { equals: string } }; data: Partial<DbParty> | Record<string, unknown> }) => DbParty;
+    delete: (opts: WhereIdOpts) => void;
+    deleteMany: (opts: object) => void;
+  };
+  documentRequest: {
+    findFirst: (opts: WhereIdOpts) => DbDocumentRequest | null;
+    findMany: (opts: WhereClientId) => DbDocumentRequest[];
+    getAll: () => DbDocumentRequest[];
+    update: (opts: DocumentRequestUpdateOpts) => DbDocumentRequest;
+    create: (data: (Partial<DbDocumentRequest> & { id: string }) | Record<string, unknown>) => DbDocumentRequest;
+    deleteMany: (opts: object) => void;
+  };
+  recipient: {
+    findFirst: (opts: WhereIdOpts) => DbRecipient | null;
+    getAll: () => DbRecipient[];
+    create: (data: (Partial<DbRecipient> & { id: string }) | Record<string, unknown>) => DbRecipient;
+    update: (opts: RecipientUpdateOpts) => DbRecipient;
+    deleteMany: (opts: object) => void;
+  };
+  account: {
+    findFirst: (opts: { where: Record<string, unknown> }) => DbAccount | null;
+    getAll: () => DbAccount[];
+    create: (data: (Partial<DbAccount> & { id: string }) | Record<string, unknown>) => DbAccount;
+    deleteMany: (opts: object) => void;
+  };
+  accountBalance: {
+    findFirst: (opts: { where: { accountId: { equals: string } } }) => DbAccountBalance | null;
+    getAll: () => DbAccountBalance[];
+    create: (data: (Partial<DbAccountBalance> & { id: string }) | Record<string, unknown>) => DbAccountBalance;
+    update: (opts: { where: { accountId: { equals: string } }; data: Partial<DbAccountBalance> }) => DbAccountBalance;
+    deleteMany: (opts: object) => void;
+  };
+  transaction: {
+    findFirst: (opts: WhereIdOpts) => DbTransaction | null;
+    getAll: () => DbTransaction[];
+    create: (data: (Partial<DbTransaction> & { id: string }) | Record<string, unknown>) => DbTransaction;
+    update: (opts: { where: { id: { equals: string } }; data: Partial<DbTransaction> | Record<string, unknown> }) => DbTransaction;
+    deleteMany: (opts: object) => void;
+  };
+}
+
+// --- Constants ---
+
+export const MAGIC_VALUES: Record<string, string> = {
   INFORMATION_REQUESTED: '111111111',
   REVIEW_IN_PROGRESS: '222222222',
   REJECTED: '333333333',
   APPROVED: '444444444',
 };
 
-// Database initialization scenarios
-export const DB_SCENARIOS = {
-  ACTIVE: 'active', // Only linked accounts, no regular recipients
-  ACTIVE_WITH_RECIPIENTS: 'active-with-recipients', // Current behavior (default)
-  EMPTY: 'empty', // Empty recipients/transactions, LIMITED_DDA with zero balance
+export const DB_SCENARIOS: Record<string, string> = {
+  ACTIVE: 'active',
+  ACTIVE_WITH_RECIPIENTS: 'active-with-recipients',
+  EMPTY: 'empty',
 };
 
-// Default scenario
 export const DEFAULT_SCENARIO = DB_SCENARIOS.ACTIVE_WITH_RECIPIENTS;
 
-// Create the database with our models
-export const db = factory({
+// --- Factory ---
+
+export const db: Db = factory({
   client: {
     id: primaryKey(String),
     status: String,
@@ -91,7 +209,7 @@ export const db = factory({
   },
   recipient: {
     id: primaryKey(String),
-    type: String, // 'RECIPIENT' or 'LINKED_ACCOUNT'
+    type: String,
     status: String,
     clientId: String,
     partyDetails: Object,
@@ -99,30 +217,28 @@ export const db = factory({
     createdAt: String,
     updatedAt: String,
   },
-  // NEW: Account model for managing accounts
   account: {
     id: primaryKey(String),
     clientId: String,
     label: String,
-    state: String, // 'OPEN', 'CLOSED', 'FROZEN'
-    category: String, // 'LIMITED_DDA', 'LIMITED_DDA_PAYMENTS', etc.
+    state: String,
+    category: String,
     paymentRoutingInformation: Object,
     createdAt: String,
     updatedAt: String,
   },
-  // NEW: Account balance model for tracking balances
   accountBalance: {
     id: primaryKey(String),
     accountId: String,
     date: String,
     currency: String,
-    balanceTypes: Array, // Array of { typeCode: String, amount: Number }
+    balanceTypes: Array,
     updatedAt: String,
   },
   transaction: {
     id: primaryKey(String),
-    type: String, // 'ACH', 'WIRE', 'RTP'
-    status: String, // 'COMPLETED', 'PENDING', 'FAILED'
+    type: String,
+    status: String,
     amount: Number,
     currency: String,
     paymentDate: String,
@@ -136,14 +252,15 @@ export const db = factory({
     description: String,
     createdAt: String,
   },
-});
+}) as unknown as Db;
 
-// NEW: Function to update account balance when transaction is processed
+// --- Helpers ---
+
 export function updateAccountBalance(
-  accountId,
-  amount,
-  transactionType = 'CREDIT'
-) {
+  accountId: string,
+  amount: number,
+  transactionType: 'CREDIT' | 'DEBIT' = 'CREDIT'
+): DbAccountBalance | null {
   const balance = db.accountBalance.findFirst({
     where: { accountId: { equals: accountId } },
   });
@@ -153,19 +270,17 @@ export function updateAccountBalance(
     return null;
   }
 
-  // Update the balance based on transaction type
-  const updatedBalanceTypes = balance.balanceTypes.map((balanceType) => {
-    let newAmount = balanceType.amount;
-
+  const balanceTypes: AccountBalanceDto[] = Array.isArray(balance.balanceTypes) ? balance.balanceTypes : [];
+  const updatedBalanceTypes: AccountBalanceDto[] = balanceTypes.map((balanceType) => {
+    let newAmount = balanceType.amount ?? 0;
     if (transactionType === 'CREDIT') {
       newAmount += amount;
     } else if (transactionType === 'DEBIT') {
       newAmount -= amount;
     }
-
     return {
-      ...balanceType,
-      amount: Math.max(0, newAmount), // Prevent negative balances
+      typeCode: (balanceType.typeCode ?? 'ITAV') as AccountBalanceDtoTypeCode,
+      amount: Math.max(0, newAmount),
     };
   });
 
@@ -182,59 +297,47 @@ export function updateAccountBalance(
   return updatedBalance;
 }
 
-// NEW: Function to process transaction and update balances
-export function processTransaction(transactionData) {
-  const { creditorAccountId, debtorAccountId, amount, type, status } =
-    transactionData;
+export function processTransaction(transactionData: DbTransaction): void {
+  const { creditorAccountId, debtorAccountId, amount, status } = transactionData;
 
-  // Only update balances for completed transactions
   if (status === 'COMPLETED') {
-    console.log(`Processing completed transaction: ${type} for $${amount}`);
-
-    // Update creditor account (money coming in)
+    const amt = typeof amount === 'number' ? amount : 0;
+    console.log(`Processing completed transaction for $${amt}`);
     if (creditorAccountId) {
-      updateAccountBalance(creditorAccountId, amount, 'CREDIT');
+      updateAccountBalance(creditorAccountId, amt, 'CREDIT');
     }
-
-    // Update debtor account (money going out)
     if (debtorAccountId) {
-      updateAccountBalance(debtorAccountId, amount, 'DEBIT');
+      updateAccountBalance(debtorAccountId, amt, 'DEBIT');
     }
   }
 }
 
-// NEW: Function to create transaction with balance updates
-export function createTransactionWithBalanceUpdate(transactionData) {
-  // Generate a unique transaction ID
+export function createTransactionWithBalanceUpdate(
+  transactionData: Record<string, unknown>
+): DbTransaction {
   const transactionId = `txn-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-  // Look up recipient data if recipientId is provided
-  let creditorAccountId = transactionData.creditorAccountId || 'acc-001';
-  let creditorName = transactionData.creditorName || 'SellSense Marketplace';
+  let creditorAccountId = (transactionData.creditorAccountId as string) || 'acc-001';
+  let creditorName = (transactionData.creditorName as string) || 'SellSense Marketplace';
 
   if (transactionData.recipientId) {
     const recipient = db.recipient.findFirst({
-      where: { id: { equals: transactionData.recipientId } },
+      where: { id: { equals: transactionData.recipientId as string } },
     });
 
     if (recipient) {
-      // Use recipient's account information for creditor details
-      if (recipient.account && recipient.account.number) {
-        // Find account by account number
+      if (recipient.account?.number) {
         const account = db.account.findFirst({
           where: {
             paymentRoutingInformation: {
               accountNumber: { equals: recipient.account.number },
             },
-          },
+          } as Record<string, unknown>,
         });
-
         if (account) {
           creditorAccountId = account.id;
         }
       }
-
-      // Use recipient's party details for creditor name
       if (recipient.partyDetails) {
         if (
           recipient.partyDetails.type === 'ORGANIZATION' &&
@@ -244,57 +347,50 @@ export function createTransactionWithBalanceUpdate(transactionData) {
         } else if (recipient.partyDetails.type === 'INDIVIDUAL') {
           const firstName = recipient.partyDetails.firstName || '';
           const lastName = recipient.partyDetails.lastName || '';
-          creditorName =
-            `${firstName} ${lastName}`.trim() || 'Individual Recipient';
+          creditorName = `${firstName} ${lastName}`.trim() || 'Individual Recipient';
         }
       }
     }
   }
 
-  // Look up debtor account data if debtorAccountId is provided
-  let debtorName = transactionData.debtorName || 'Mock Customer';
-
+  let debtorName = (transactionData.debtorName as string) || 'Mock Customer';
   if (transactionData.debtorAccountId) {
     const debtorAccount = db.account.findFirst({
-      where: { id: { equals: transactionData.debtorAccountId } },
+      where: { id: { equals: transactionData.debtorAccountId as string } },
     });
-
-    if (debtorAccount) {
-      // Use account label as debtor name if available
-      if (debtorAccount.label) {
-        debtorName = debtorAccount.label;
-      }
+    if (debtorAccount?.label) {
+      debtorName = debtorAccount.label;
     }
   }
 
-  const newTransaction = {
+  const newTransaction: Record<string, unknown> = {
     id: transactionId,
     type: transactionData.type || 'ACH',
     status: transactionData.status || 'COMPLETED',
     amount: transactionData.amount || 0,
     currency: transactionData.currency || 'USD',
     paymentDate:
-      transactionData.paymentDate || new Date().toISOString().slice(0, 10),
+      (transactionData.paymentDate as string) || new Date().toISOString().slice(0, 10),
     effectiveDate:
-      transactionData.effectiveDate || new Date().toISOString().slice(0, 10),
-    creditorAccountId: creditorAccountId,
-    debtorAccountId: transactionData.debtorAccountId || 'acc-002',
-    creditorName: creditorName,
-    debtorName: debtorName,
-    postingVersion: transactionData.postingVersion || 1,
+      (transactionData.effectiveDate as string) || new Date().toISOString().slice(0, 10),
+    creditorAccountId,
+    debtorAccountId: (transactionData.debtorAccountId as string) || 'acc-002',
+    creditorName,
+    debtorName,
+    postingVersion: (transactionData.postingVersion as number) ?? 1,
     reference:
-      transactionData.reference ||
-      transactionData.transactionReferenceId ||
+      (transactionData.reference as string) ||
+      (transactionData.transactionReferenceId as string) ||
       `Sale #${Math.floor(Math.random() * 100000)}`,
     description:
-      transactionData.description || transactionData.memo || 'New transaction',
+      (transactionData.description as string) ||
+      (transactionData.memo as string) ||
+      'New transaction',
     createdAt: new Date().toISOString(),
   };
 
-  // Create the transaction in the database
-  const createdTransaction = db.transaction.create(newTransaction);
+  const createdTransaction = db.transaction.create(newTransaction as Partial<DbTransaction> & { id: string });
 
-  // Process balance updates if transaction is completed
   if (createdTransaction.status === 'COMPLETED') {
     processTransaction(createdTransaction);
   }
@@ -305,8 +401,10 @@ export function createTransactionWithBalanceUpdate(transactionData) {
   return createdTransaction;
 }
 
-// NEW: Function to update transaction status and process balance changes
-export function updateTransactionStatus(transactionId, newStatus) {
+export function updateTransactionStatus(
+  transactionId: string,
+  newStatus: string
+): DbTransaction {
   const transaction = db.transaction.findFirst({
     where: { id: { equals: transactionId } },
   });
@@ -324,16 +422,14 @@ export function updateTransactionStatus(transactionId, newStatus) {
     },
   });
 
-  // Handle balance updates based on status change
   if (oldStatus !== 'COMPLETED' && newStatus === 'COMPLETED') {
-    // Transaction just completed - update balances
     processTransaction(updatedTransaction);
   } else if (oldStatus === 'COMPLETED' && newStatus !== 'COMPLETED') {
-    // Transaction was completed but is now not completed - reverse balance changes
+    const amt = typeof updatedTransaction.amount === 'number' ? updatedTransaction.amount : 0;
     processTransaction({
       ...updatedTransaction,
-      amount: -updatedTransaction.amount, // Reverse the amount
-    });
+      amount: -amt,
+    } as DbTransaction);
   }
 
   console.log(
@@ -344,24 +440,26 @@ export function updateTransactionStatus(transactionId, newStatus) {
   return updatedTransaction;
 }
 
-// Helper function to handle document request upsert
-export function upsertDocumentRequest(id, data) {
+export function upsertDocumentRequest(
+  id: string,
+  data: Partial<DbDocumentRequest>
+): DbDocumentRequest {
   const existingRequest = db.documentRequest.findFirst({
     where: { id: { equals: id } },
   });
 
-  const documentData = {
+  const documentData: Record<string, unknown> = {
     ...data,
-    createdAt: data.createdAt || new Date().toISOString(),
-    requirements: data.requirements || [],
-    outstanding: data.outstanding || {
+    createdAt: (data.createdAt as string) || new Date().toISOString(),
+    requirements: (data.requirements as unknown[]) || [],
+    outstanding: (data.outstanding as object) || {
       documentTypes: [],
       requirements: [],
     },
-    validForDays: data.validForDays || 30,
+    validForDays: (data.validForDays as number) ?? 30,
   };
 
-  let result;
+  let result: DbDocumentRequest;
   if (existingRequest) {
     result = db.documentRequest.update({
       where: { id: { equals: id } },
@@ -371,23 +469,38 @@ export function upsertDocumentRequest(id, data) {
     result = db.documentRequest.create({
       ...documentData,
       id,
-    });
+    } as Partial<DbDocumentRequest> & { id: string });
   }
 
   logDbState('Document Request Upsert');
   return result;
 }
 
-// Predefined clients data
-const predefinedClients = {
-  '0030000131': SoleProprietorExistingClient,
-  '0030000132': LLCExistingClient,
-  '0030000133': LLCExistingClientOutstandingDocuments,
-  '0030000134': { ...LLCExistingClient, status: 'REVIEW_IN_PROGRESS' },
+// --- Predefined data ---
+
+interface PredefinedClientShape {
+  parties?: DbParty[];
+  partyId?: string;
+  outstanding?: ClientResponseOutstanding;
+  questionResponses?: unknown[];
+  attestations?: unknown[];
+  products?: string[];
+  results?: Record<string, unknown>;
+  status?: string;
+  createdAt?: string;
+  [key: string]: unknown;
+}
+
+const predefinedClients: Record<string, PredefinedClientShape> = {
+  '0030000131': SoleProprietorExistingClient as PredefinedClientShape,
+  '0030000132': LLCExistingClient as PredefinedClientShape,
+  '0030000133': LLCExistingClientOutstandingDocuments as PredefinedClientShape,
+  '0030000134': { ...LLCExistingClient, status: 'REVIEW_IN_PROGRESS' } as PredefinedClientShape,
 };
 
-// Utility function to log entire database state
-export function logDbState(operation = 'Current State') {
+// --- Logging ---
+
+export function logDbState(operation = 'Current State'): void {
   const clients = db.client.getAll();
   const parties = db.party.getAll();
   const documentRequests = db.documentRequest.getAll();
@@ -407,26 +520,21 @@ export function logDbState(operation = 'Current State') {
   console.log('=====================================');
 }
 
-// Initialize with predefined mocks
-export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
+// --- Initialize ---
+
+export function initializeDb(force = false, scenario = DEFAULT_SCENARIO): boolean {
   try {
-    // Validate scenario parameter
     const validScenarios = Object.values(DB_SCENARIOS);
     if (!validScenarios.includes(scenario)) {
-      console.warn(
-        `Invalid scenario: ${scenario}. Using default: ${DEFAULT_SCENARIO}`
-      );
+      console.warn(`Invalid scenario: ${scenario}. Using default: ${DEFAULT_SCENARIO}`);
       scenario = DEFAULT_SCENARIO;
     }
 
-    // Only clear if forced or no clients exist
     const existingClients = db.client.getAll();
     if (force || existingClients.length === 0) {
       console.log('=== Starting Database Initialization ===');
       console.log('Scenario:', scenario);
-      console.log('Predefined Clients Data:', predefinedClients);
 
-      // Clear existing data
       db.client.deleteMany({});
       db.party.deleteMany({});
       db.documentRequest.deleteMany({});
@@ -435,61 +543,52 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
       db.accountBalance.deleteMany({});
       db.transaction.deleteMany({});
 
-      // Add predefined clients and their parties
       Object.entries(predefinedClients).forEach(([clientId, clientData]) => {
         try {
           console.log(`\nInitializing Client ${clientId}:`, clientData);
 
-          // First create all parties from the client data
           const parties = clientData.parties || [];
           const timestamp = new Date().toISOString();
 
           console.log('\nCreating Parties:');
           parties.forEach((party) => {
             if (party.id) {
-              // Check if the party already exists
               const existingParty = db.party.findFirst({
-                where: { id: { equals: party.id } },
+                where: { id: { equals: party.id as string } },
               });
 
               const newParty = {
                 ...party,
-                status: party.status || 'ACTIVE',
+                status: (party.status as string) || 'ACTIVE',
                 active: party.active !== undefined ? party.active : true,
-                createdAt: party.createdAt || timestamp,
-                preferences: party.preferences || { defaultLanguage: 'en-US' },
-                profileStatus: party.profileStatus || 'COMPLETE',
-                access: party.access || [],
-                validationResponse: party.validationResponse || [],
+                createdAt: (party.createdAt as string) || timestamp,
+                preferences: (party.preferences as object) || { defaultLanguage: 'en-US' },
+                profileStatus: (party.profileStatus as string) || 'COMPLETE',
+                access: (party.access as unknown[]) || [],
+                validationResponse: (party.validationResponse as unknown[]) || [],
               };
-              console.log(`\nParty ${party.id}:`, newParty);
 
               try {
                 if (existingParty) {
-                  // Party already exists - update it instead of creating
                   db.party.update({
-                    where: { id: { equals: party.id } },
+                    where: { id: { equals: party.id as string } },
                     data: newParty,
                   });
                 } else {
-                  // Party doesn't exist - create it
-                  db.party.create(newParty);
+                  db.party.create(newParty as Partial<DbParty> & { id: string });
                 }
               } catch (error) {
-                // Silently handle duplicate key errors (parties can be shared between clients)
                 if (
                   error instanceof Error &&
                   error.message.includes('already exists')
                 ) {
-                  // Try to update instead
                   try {
                     db.party.update({
-                      where: { id: { equals: party.id } },
+                      where: { id: { equals: party.id as string } },
                       data: newParty,
                     });
                   } catch (updateError) {
                     console.error('Error updating party:', updateError);
-                    // Ignore update errors for shared parties
                   }
                 } else {
                   console.error('Error creating party:', error);
@@ -498,61 +597,54 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
             }
           });
 
-          // Then create the client with proper schema
           const newClient = {
             ...clientData,
             id: clientId,
-            createdAt: clientData.createdAt || timestamp,
-            partyId: clientData.partyId || parties[0]?.id,
+            createdAt: (clientData.createdAt as string) || timestamp,
+            partyId: (clientData.partyId as string) || (parties[0] as { id?: string } | undefined)?.id,
             outstanding: {
-              documentRequestIds:
-                clientData.outstanding?.documentRequestIds || [],
-              questionIds: clientData.outstanding?.questionIds || [],
-              attestationDocumentIds:
-                clientData.outstanding?.attestationDocumentIds || [],
-              partyIds: clientData.outstanding?.partyIds || [],
-              partyRoles: clientData.outstanding?.partyRoles || [],
+              documentRequestIds: (clientData.outstanding?.documentRequestIds as string[]) || [],
+              questionIds: (clientData.outstanding?.questionIds as string[]) || [],
+              attestationDocumentIds: (clientData.outstanding?.attestationDocumentIds as string[]) || [],
+              partyIds: (clientData.outstanding?.partyIds as string[]) || [],
+              partyRoles: (clientData.outstanding?.partyRoles as string[]) || [],
             },
             questionResponses: clientData.questionResponses || [],
             attestations: clientData.attestations || [],
-            parties: parties.map((p) => p.id) || [],
-            products: clientData.products || [],
-            results: clientData.results || {
+            parties: parties.map((p) => (p as { id?: string }).id).filter(Boolean) as string[],
+            products: (clientData.products as string[]) || [],
+            results: (clientData.results as Record<string, unknown>) || {
               customerIdentityStatus: 'NOT_STARTED',
             },
           };
-          console.log(`\nCreating Client:`, newClient);
-          db.client.create(newClient);
 
-          // If client status is INFORMATION_REQUESTED, create document requests
+          db.client.create(newClient as Partial<DbClient> & { id: string });
+
           if (clientData.status === 'INFORMATION_REQUESTED') {
-            // Find individual parties
             const individualParties = parties.filter(
-              (p) => p.partyType === 'INDIVIDUAL'
+              (p) => (p as { partyType?: string }).partyType === 'INDIVIDUAL'
             );
 
-            // Create document requests for individual parties
             for (const indParty of individualParties) {
               const indDocRequest = efDocumentRequestDetailsList.find(
-                (req) => req.id === '68430'
+                (req: { id?: string }) => req.id === '68430'
               );
               const generatedDocRequestId = Math.floor(
                 10000 + Math.random() * 90000
-              ).toString(); // 5 digit number
+              ).toString();
               try {
                 upsertDocumentRequest(generatedDocRequestId, {
                   ...indDocRequest,
                   id: generatedDocRequestId,
                   clientId,
-                  partyId: indParty.id,
+                  partyId: (indParty as { id?: string }).id,
                   createdAt: timestamp,
-                });
+                } as Partial<DbDocumentRequest>);
 
-                // Update party with validation response
                 const updatedParty = {
                   ...indParty,
                   validationResponse: [
-                    ...(indParty.validationResponse || []),
+                    ...((indParty.validationResponse as unknown[]) || []),
                     {
                       validationStatus: 'NEEDS_INFO',
                       validationType: 'ENTITY_VALIDATION',
@@ -561,38 +653,33 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
                   ],
                 };
 
-                // Update the party
-                db.party.delete({
-                  where: { id: { equals: indParty.id } },
-                });
-                db.party.create(updatedParty);
+                db.party.delete({ where: { id: { equals: (indParty as { id: string }).id } } });
+                db.party.create(updatedParty as Partial<DbParty> & { id: string });
               } catch (error) {
                 console.error('Error creating document request:', error);
               }
             }
 
-            // Create document request for organization if exists
             const orgParty = parties.find(
-              (p) => p.partyType === 'ORGANIZATION'
+              (p) => (p as { partyType?: string }).partyType === 'ORGANIZATION'
             );
             if (orgParty) {
               const orgDocRequest = efDocumentRequestDetailsList.find(
-                (req) => req.id === '68803'
+                (req: { id?: string }) => req.id === '68803'
               );
               const generatedDocRequestId = Math.floor(
                 10000 + Math.random() * 90000
-              ).toString(); // 5 digit number
+              ).toString();
               try {
                 upsertDocumentRequest(generatedDocRequestId, {
                   ...orgDocRequest,
                   id: generatedDocRequestId,
                   clientId,
-                  partyId: orgParty.id,
+                  partyId: (orgParty as { id?: string }).id,
                   createdAt: timestamp,
-                });
+                } as Partial<DbDocumentRequest>);
 
-                // Add the generated ID to client's outstanding block
-                newClient.outstanding.documentRequestIds.push(
+                (newClient.outstanding as { documentRequestIds: string[] }).documentRequestIds.push(
                   generatedDocRequestId
                 );
               } catch (error) {
@@ -605,29 +692,19 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
         }
       });
 
-      // Initialize recipients based on scenario
+      // Recipients
       console.log('\n=== Initializing Recipients ===');
-      console.log('Scenario:', scenario);
 
-      let recipientsToInitialize = [];
-
+      let recipientsToInitialize: DbRecipient[] = [];
       if (scenario === DB_SCENARIOS.ACTIVE) {
-        // Only linked accounts, no regular recipients
-        recipientsToInitialize = mockLinkedAccounts.recipients;
-        console.log('Active scenario: Initializing only linked accounts');
+        recipientsToInitialize = mockLinkedAccounts.recipients ?? [];
       } else if (scenario === DB_SCENARIOS.EMPTY) {
-        // Empty scenario: no recipients at all
         recipientsToInitialize = [];
-        console.log('Empty scenario: Initializing no recipients');
       } else {
-        // Default: both regular recipients and linked accounts
         recipientsToInitialize = [
-          ...mockRecipientsResponse.recipients,
-          ...mockLinkedAccounts.recipients,
+          ...(mockRecipientsResponse.recipients ?? []),
+          ...(mockLinkedAccounts.recipients ?? []),
         ];
-        console.log(
-          'Active with recipients scenario: Initializing all recipients'
-        );
       }
 
       recipientsToInitialize.forEach((recipient) => {
@@ -637,33 +714,20 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
             createdAt: recipient.createdAt || new Date().toISOString(),
             updatedAt: recipient.updatedAt || new Date().toISOString(),
           };
-          console.log(`Creating recipient ${recipient.id}:`, newRecipient);
-          db.recipient.create(newRecipient);
+          db.recipient.create(newRecipient as Partial<DbRecipient> & { id: string });
         } catch (error) {
           console.error('Error creating recipient:', error);
         }
       });
 
-      // Initialize accounts based on scenario
+      // Accounts
       console.log('\n=== Initializing Accounts ===');
-      console.log('Scenario:', scenario);
 
-      let accountsToInitialize = [];
-
-      if (scenario === DB_SCENARIOS.ACTIVE) {
-        // Only acc-001 for ACTIVE scenario
+      let accountsToInitialize: DbAccount[] = [];
+      if (scenario === DB_SCENARIOS.ACTIVE || scenario === DB_SCENARIOS.EMPTY) {
         accountsToInitialize = mockActiveAccounts.items;
-        console.log('Active scenario: Initializing only acc-001');
-      } else if (scenario === DB_SCENARIOS.EMPTY) {
-        // Empty scenario: only acc-001 (LIMITED_DDA) with zero balance
-        accountsToInitialize = mockActiveAccounts.items;
-        console.log('Empty scenario: Initializing only acc-001 (LIMITED_DDA)');
       } else {
-        // Default: both accounts for ACTIVE_WITH_RECIPIENTS scenario
         accountsToInitialize = mockActiveWithRecipientsAccounts.items;
-        console.log(
-          'Active with recipients scenario: Initializing both accounts (acc-001 and acc-002)'
-        );
       }
 
       accountsToInitialize.forEach((account) => {
@@ -673,65 +737,47 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
             createdAt: account.createdAt || new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           };
-          console.log(`Creating account ${account.id}:`, newAccount);
-          db.account.create(newAccount);
+          db.account.create(newAccount as Partial<DbAccount> & { id: string });
         } catch (error) {
           console.error('Error creating account:', error);
         }
       });
 
-      // Initialize account balances from mock data
+      // Balances
       console.log('\n=== Initializing Account Balances ===');
 
-      let balancesToInitialize = [];
-
+      let balancesToInitialize: (DbAccountBalance & { accountId: string })[] = [];
       if (scenario === DB_SCENARIOS.EMPTY) {
-        // Empty scenario: only acc-001 with zero balance
-        const emptyBalance = {
-          ...mockAccountBalance,
-          balanceTypes: [
-            { typeCode: 'ITAV', amount: 0 },
-            { typeCode: 'ITBD', amount: 0 },
-          ],
-          updatedAt: new Date().toISOString(),
-        };
-        balancesToInitialize = [emptyBalance];
-        console.log('Empty scenario: Initializing acc-001 with zero balance');
+        balancesToInitialize = [
+          {
+            ...mockAccountBalance,
+            balanceTypes: [
+              { typeCode: 'ITAV' as AccountBalanceDtoTypeCode, amount: 0 },
+              { typeCode: 'ITBD' as AccountBalanceDtoTypeCode, amount: 0 },
+            ],
+            updatedAt: new Date().toISOString(),
+          },
+        ];
       } else {
-        // Default: both balances for other scenarios
         balancesToInitialize = [
           { ...mockAccountBalance, updatedAt: new Date().toISOString() },
           { ...mockAccountBalance2, updatedAt: new Date().toISOString() },
         ];
-        console.log('Default scenario: Initializing both account balances');
       }
 
       balancesToInitialize.forEach((balance) => {
         try {
-          console.log(
-            `Creating balance for account ${balance.accountId}:`,
-            balance
-          );
-          db.accountBalance.create(balance);
+          db.accountBalance.create(balance as Partial<DbAccountBalance> & { id: string });
         } catch (error) {
           console.error('Error creating account balance:', error);
         }
       });
 
-      // Initialize transactions from mock data
+      // Transactions
       console.log('\n=== Initializing Transactions ===');
 
-      let transactionsToInitialize = [];
-
-      if (scenario === DB_SCENARIOS.EMPTY) {
-        // Empty scenario: no transactions
-        transactionsToInitialize = [];
-        console.log('Empty scenario: Initializing no transactions');
-      } else {
-        // Default: all transactions for other scenarios
-        transactionsToInitialize = mockTransactionsResponse.items;
-        console.log('Default scenario: Initializing all transactions');
-      }
+      const transactionsToInitialize =
+        scenario === DB_SCENARIOS.EMPTY ? [] : (mockTransactionsResponse.items ?? []);
 
       transactionsToInitialize.forEach((transaction) => {
         try {
@@ -739,11 +785,7 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
             ...transaction,
             createdAt: new Date().toISOString(),
           };
-          console.log(
-            `Creating transaction ${transaction.id}:`,
-            newTransaction
-          );
-          db.transaction.create(newTransaction);
+          db.transaction.create(newTransaction as Partial<DbTransaction> & { id: string });
         } catch (error) {
           console.error('Error creating transaction:', error);
         }
@@ -760,15 +802,16 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO) {
   }
 }
 
-// Utility function to check magic values and update client state
-export function handleMagicValues(clientId, verificationData = {}) {
+export function handleMagicValues(
+  clientId: string,
+  verificationData: Record<string, unknown> = {}
+): Record<string, unknown> | null {
   const client = db.client.findFirst({
     where: { id: { equals: clientId } },
   });
 
   if (!client) return null;
 
-  // Get the party to check tax ID
   const rootParty = client.parties?.[0]
     ? db.party.findFirst({
         where: { id: { equals: client.parties[0] } },
@@ -777,68 +820,57 @@ export function handleMagicValues(clientId, verificationData = {}) {
 
   if (!rootParty) return null;
 
-  const taxId =
-    rootParty.organizationDetails?.organizationIds?.find(
-      (id) => id.idType === 'EIN'
-    )?.value ||
-    rootParty.individualDetails?.individualIds?.find(
-      (id) => id.idType === 'SSN'
-    )?.value;
+  const rootPartyObj = rootParty as Record<string, unknown>;
+  const orgDetails = rootPartyObj.organizationDetails as { organizationIds?: Array<{ idType?: string; value?: string }> } | undefined;
+  const indDetails = rootPartyObj.individualDetails as { individualIds?: Array<{ idType?: string; value?: string }> } | undefined;
 
-  let updatedClient = { ...client };
+  const taxId =
+    orgDetails?.organizationIds?.find((id) => id.idType === 'EIN')?.value ||
+    indDetails?.individualIds?.find((id) => id.idType === 'SSN')?.value;
+
+  let updatedClient: Record<string, unknown> = { ...client };
 
   switch (taxId) {
-    case MAGIC_VALUES.INFORMATION_REQUESTED:
-      // Initialize the updated client with base changes
+    case MAGIC_VALUES.INFORMATION_REQUESTED: {
       updatedClient = merge({}, updatedClient, {
         status: 'INFORMATION_REQUESTED',
-        outstanding: {
-          documentRequestIds: [],
-        },
+        outstanding: { documentRequestIds: [] },
       });
+      const outstanding = updatedClient.outstanding as { documentRequestIds: string[] };
 
-      // Handle organization document requests
-      if (rootParty.partyType === 'ORGANIZATION') {
+      if ((rootParty as { partyType?: string }).partyType === 'ORGANIZATION') {
         const generatedDocRequestId = Math.floor(
           10000 + Math.random() * 90000
         ).toString();
-        updatedClient.outstanding.documentRequestIds.push(
-          generatedDocRequestId
-        );
-
-        // Create or update organization document request using the mock data
+        outstanding.documentRequestIds.push(generatedDocRequestId);
         const orgDocRequest = efDocumentRequestDetailsList.find(
-          (req) => req.id === '68803'
+          (req: { id?: string }) => req.id === '68803'
         );
         upsertDocumentRequest(generatedDocRequestId, {
           ...orgDocRequest,
           id: generatedDocRequestId,
           clientId,
-          partyId: client.partyId,
+          partyId: client.partyId as string,
           createdAt: new Date().toISOString(),
-        });
+        } as Partial<DbDocumentRequest>);
       }
 
-      // Handle individual document requests and validation response
-      const individualParties = client.parties
+      const individualParties = (client.parties as string[] || [])
         .map((partyId) =>
           db.party.findFirst({ where: { id: { equals: partyId } } })
         )
-        .filter((party) => party && party.partyType === 'INDIVIDUAL');
+        .filter((party): party is DbParty => party != null && (party as { partyType?: string }).partyType === 'INDIVIDUAL');
 
       for (const indParty of individualParties) {
         const generatedDocRequestId = Math.floor(
           10000 + Math.random() * 90000
         ).toString();
-        updatedClient.outstanding.documentRequestIds.push(
-          generatedDocRequestId
-        );
+        outstanding.documentRequestIds.push(generatedDocRequestId);
 
-        // Update the party with validation response
         const updatedParty = {
           ...indParty,
           validationResponse: [
-            ...(indParty.validationResponse || []),
+            ...((indParty.validationResponse as unknown[]) || []),
             {
               validationStatus: 'NEEDS_INFO',
               validationType: 'ENTITY_VALIDATION',
@@ -847,77 +879,63 @@ export function handleMagicValues(clientId, verificationData = {}) {
           ],
         };
 
-        // Update the party in the database
-        db.party.delete({
-          where: { id: { equals: indParty.id } },
-        });
-        db.party.create(updatedParty);
+        db.party.delete({ where: { id: { equals: (indParty.id as string) ?? '' } } });
+        db.party.create(updatedParty as Partial<DbParty> & { id: string });
 
-        // Create or update individual document request using the mock data
         const indDocRequest = efDocumentRequestDetailsList.find(
-          (req) => req.id === '68430'
+          (req: { id?: string }) => req.id === '68430'
         );
         upsertDocumentRequest(generatedDocRequestId, {
           ...indDocRequest,
           id: generatedDocRequestId,
           clientId,
-          partyId: indParty.id,
+          partyId: indParty.id as string,
           createdAt: new Date().toISOString(),
-        });
+        } as Partial<DbDocumentRequest>);
       }
       break;
-
+    }
     case MAGIC_VALUES.REVIEW_IN_PROGRESS:
-      updatedClient = merge({}, updatedClient, {
-        status: 'REVIEW_IN_PROGRESS',
-      });
+      updatedClient = merge({}, updatedClient, { status: 'REVIEW_IN_PROGRESS' });
       break;
-
     case MAGIC_VALUES.REJECTED:
       updatedClient = merge({}, updatedClient, {
         status: 'REJECTED',
-        results: {
-          customerIdentityStatus: 'REJECTED',
-        },
+        results: { customerIdentityStatus: 'REJECTED' },
       });
       break;
-
     case MAGIC_VALUES.APPROVED:
       updatedClient = merge({}, updatedClient, {
         status: 'APPROVED',
-        results: {
-          customerIdentityStatus: 'APPROVED',
-        },
+        results: { customerIdentityStatus: 'APPROVED' },
       });
       break;
-
     default:
-      updatedClient = merge({}, updatedClient, {
-        status: 'REVIEW_IN_PROGRESS',
-      });
+      updatedClient = merge({}, updatedClient, { status: 'REVIEW_IN_PROGRESS' });
       break;
   }
 
-  // Update the client
-  const updated = db.client.update({
+  db.client.update({
     where: { id: { equals: clientId } },
     data: updatedClient,
   });
 
   logDbState('Client Verification Update');
 
-  // Return verification response according to SMBDO schema
   return {
     acceptedAt: new Date().toISOString(),
-    consumerDevice: verificationData.consumerDevice || {
+    consumerDevice: (verificationData.consumerDevice as object) || {
       ipAddress: '',
       sessionId: '',
     },
   };
 }
 
-// Utility function to reset the database
-export function resetDb(scenario = DEFAULT_SCENARIO) {
+export function resetDb(scenario = DEFAULT_SCENARIO): {
+  success: boolean;
+  message: string;
+  scenario: string;
+} {
   const success = initializeDb(true, scenario);
   logDbState('Database Reset');
   return {
@@ -929,11 +947,21 @@ export function resetDb(scenario = DEFAULT_SCENARIO) {
   };
 }
 
-// Initialize the database when this module loads
 initializeDb(false, DEFAULT_SCENARIO);
 
-// Export a function to get database status
-export function getDbStatus() {
+export function getDbStatus(): {
+  clientCount: number;
+  partyCount: number;
+  documentRequestCount: number;
+  recipientCount: number;
+  accountCount: number;
+  accountBalanceCount: number;
+  transactionCount: number;
+  clients: string[];
+  recipients: string[];
+  accounts: string[];
+  transactions: string[];
+} {
   const clients = db.client.getAll();
   const parties = db.party.getAll();
   const documentRequests = db.documentRequest.getAll();
@@ -954,6 +982,6 @@ export function getDbStatus() {
     clients: clients.map((c) => c.id),
     recipients: recipients.map((r) => r.id),
     accounts: accounts.map((a) => a.id),
-    transactions: transactions.map((t) => t.id),
+    transactions: transactions.map((t) => (t as { id?: string }).id ?? ''),
   };
 }

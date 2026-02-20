@@ -1,5 +1,7 @@
-// Mock recipients data for Recipients component
-export const mockRecipientsResponse = {
+import type { ListRecipientsResponse, Recipient } from '@ef-api/ep-recipients-schemas';
+
+// Mock recipients data for Recipients component (OAS ListRecipientsResponse)
+export const mockRecipientsResponse: ListRecipientsResponse = {
   recipients: [
     {
       id: 'recipient-001',
@@ -157,7 +159,7 @@ export const mockEmptyRecipientsResponse = {
 };
 
 // Mock recipients with different statuses
-export const mockActiveRecipients = mockRecipientsResponse.recipients.filter(
+export const mockActiveRecipients = (mockRecipientsResponse.recipients ?? []).filter(
   (r) => r.status === 'ACTIVE'
 );
 
@@ -177,7 +179,9 @@ export const mockVerificationFailure = {
 };
 
 // Function to create mock recipient
-export const createMockRecipient = (overrides: Partial<any> = {}): any => {
+export const createMockRecipient = (
+  overrides: Partial<Recipient> = {}
+): Recipient => {
   return {
     id: `recipient-${Date.now()}`,
     type: 'RECIPIENT',
@@ -221,10 +225,10 @@ export const createMockRecipient = (overrides: Partial<any> = {}): any => {
 
 // Function to create paginated recipients response
 export const createMockRecipientsResponse = (
-  recipients: any[] = mockRecipientsResponse.recipients,
+  recipients: Recipient[] = mockRecipientsResponse.recipients ?? [],
   page: number = 0,
   limit: number = 25
-): any => {
+): ListRecipientsResponse => {
   // Use 0-based page index (OAS-aligned)
   const startIndex = page * limit;
   const endIndex = startIndex + limit;

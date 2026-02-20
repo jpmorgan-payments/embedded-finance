@@ -69,7 +69,7 @@ Skill names must follow these rules:
 
 To create a new skill:
 
-1. Create a directory: `.github/copilot/skills/skill-name/`
+1. Create a directory: `.github/skills/skill-name/`
 2. Create `SKILL.md` with frontmatter:
 
 ```markdown
@@ -96,7 +96,7 @@ Instructions and examples...
 3. Validate (optional):
 
 ```powershell
-skills-ref validate .github/copilot/skills/skill-name
+skills-ref validate .github/skills/skill-name
 ```
 
 ## Best Practices
@@ -125,7 +125,7 @@ For architectural decisions, always refer to:
 
 1. **`embedded-components/ARCHITECTURE.md`** - Primary architecture reference
 2. **`AGENTS.md`** - Repository-wide guidelines
-3. **Skills in `.github/copilot/skills/`** - Specific patterns and workflows
+3. **Skills in `.github/skills/`** - Specific patterns and workflows
 4. **Package `.cursorrules`** - Package-specific quick reference
 
 ## Validation
@@ -137,7 +137,7 @@ To validate all skills:
 npm install -g @agentskills/skills-ref
 
 # Validate all skills
-skills-ref validate .github/copilot/skills
+skills-ref validate .github/skills
 ```
 
 ## Contributing

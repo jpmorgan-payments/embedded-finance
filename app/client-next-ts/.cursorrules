@@ -11,7 +11,7 @@
 1. **`README.md`** - Complete setup and development guide
 2. **`PRD.md`** - Product requirements and vision
 3. **`../../.github/copilot-instructions.md`** - General implementation patterns
-4. **`../../.github/copilot/skills/`** - Task-specific agent skills
+4. **`../../.github/skills/`** - Task-specific agent skills
 5. **`../../AGENTS.md`** - Repository-wide instructions
 
 ## Project Overview

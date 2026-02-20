@@ -9,9 +9,11 @@ import { Mermaid } from '@/components/mermaid';
 type AnchorProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & ExtraProps;
 type HeadingProps = React.HTMLAttributes<HTMLHeadingElement> & ExtraProps;
 type PreProps = React.HTMLAttributes<HTMLPreElement> & ExtraProps;
-type CodeProps = React.HTMLAttributes<HTMLElement> & ExtraProps & { inline?: boolean };
+type CodeProps = React.HTMLAttributes<HTMLElement> &
+  ExtraProps & { inline?: boolean };
 type TableProps = React.HTMLAttributes<HTMLTableElement> & ExtraProps;
-type TableSectionProps = React.HTMLAttributes<HTMLTableSectionElement> & ExtraProps;
+type TableSectionProps = React.HTMLAttributes<HTMLTableSectionElement> &
+  ExtraProps;
 type TableRowProps = React.HTMLAttributes<HTMLTableRowElement> & ExtraProps;
 type TableCellProps = React.TdHTMLAttributes<HTMLTableCellElement> & ExtraProps;
 type OlProps = React.OlHTMLAttributes<HTMLOListElement> & ExtraProps;
@@ -20,7 +22,9 @@ type LiProps = React.LiHTMLAttributes<HTMLLIElement> & ExtraProps;
 
 const MERMAID_MARKER = 'data-render-mermaid';
 
-function isMermaidBlock(child: unknown): child is ReactElement<{ [MERMAID_MARKER]: true }> {
+function isMermaidBlock(
+  child: unknown
+): child is ReactElement<{ [MERMAID_MARKER]: true }> {
   return (
     isValidElement(child) &&
     (child.props as { [MERMAID_MARKER]?: boolean })[MERMAID_MARKER] === true
@@ -79,7 +83,8 @@ export function RichMarkdownViewer({
         if (!cancelled) setMarkdown(text);
       })
       .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
+        if (!cancelled)
+          setError(err instanceof Error ? err.message : String(err));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -94,44 +99,50 @@ export function RichMarkdownViewer({
       h1: (props: HeadingProps) => (
         <h1
           {...props}
-          className={`mt-10 mb-4 text-page-hero font-semibold text-jpm-gray-900 first:mt-0 ${props.className ?? ''}`.trim()}
+          className={`mb-4 mt-10 text-page-hero font-semibold text-jpm-gray-900 first:mt-0 ${props.className ?? ''}`.trim()}
         />
       ),
       h2: (props: HeadingProps) => (
         <h2
           {...props}
-          className={`mt-8 mb-4 text-page-h2 font-semibold text-jpm-gray-900 scroll-mt-6 ${props.className ?? ''}`.trim()}
+          className={`mb-4 mt-8 scroll-mt-6 text-page-h2 font-semibold text-jpm-gray-900 ${props.className ?? ''}`.trim()}
         />
       ),
       h3: (props: HeadingProps) => (
         <h3
           {...props}
-          className={`mt-6 mb-3 text-page-h3 font-semibold text-jpm-gray-900 scroll-mt-6 ${props.className ?? ''}`.trim()}
+          className={`mb-3 mt-6 scroll-mt-6 text-page-h3 font-semibold text-jpm-gray-900 ${props.className ?? ''}`.trim()}
         />
       ),
       h4: (props: HeadingProps) => (
         <h4
           {...props}
-          className={`mt-5 mb-2 text-page-h4 font-semibold text-jpm-gray-900 scroll-mt-6 ${props.className ?? ''}`.trim()}
+          className={`mb-2 mt-5 scroll-mt-6 text-page-h4 font-semibold text-jpm-gray-900 ${props.className ?? ''}`.trim()}
         />
       ),
       h5: (props: HeadingProps) => (
         <h5
           {...props}
-          className={`mt-4 mb-2 text-page-h4 font-semibold text-jpm-gray-900 ${props.className ?? ''}`.trim()}
+          className={`mb-2 mt-4 text-page-h4 font-semibold text-jpm-gray-900 ${props.className ?? ''}`.trim()}
         />
       ),
       h6: (props: HeadingProps) => (
         <h6
           {...props}
-          className={`mt-4 mb-1 text-page-body font-semibold text-jpm-gray-900 ${props.className ?? ''}`.trim()}
+          className={`mb-1 mt-4 text-page-body font-semibold text-jpm-gray-900 ${props.className ?? ''}`.trim()}
         />
       ),
       ul: (props: UlProps) => (
-        <ul {...props} className="my-5 list-disc space-y-1.5 pl-6 text-jpm-gray [&>li]:leading-relaxed" />
+        <ul
+          {...props}
+          className="my-5 list-disc space-y-1.5 pl-6 text-jpm-gray [&>li]:leading-relaxed"
+        />
       ),
       ol: (props: OlProps) => (
-        <ol {...props} className="my-5 list-decimal space-y-1.5 pl-6 text-jpm-gray [&>li]:leading-relaxed" />
+        <ol
+          {...props}
+          className="my-5 list-decimal space-y-1.5 pl-6 text-jpm-gray [&>li]:leading-relaxed"
+        />
       ),
       li: (props: LiProps) => <li {...props} className="pl-1 text-jpm-gray" />,
       a: (props: AnchorProps) => {
@@ -149,18 +160,38 @@ export function RichMarkdownViewer({
       },
       table: (props: TableProps) => (
         <div className="my-6 overflow-x-auto rounded border border-sp-border">
-          <table {...props} className="min-w-full border-collapse text-jpm-gray" />
+          <table
+            {...props}
+            className="min-w-full border-collapse text-jpm-gray"
+          />
         </div>
       ),
-      thead: (props: TableSectionProps) => <thead {...props} className="bg-jpm-gray-100" />,
+      thead: (props: TableSectionProps) => (
+        <thead {...props} className="bg-jpm-gray-100" />
+      ),
       tbody: (props: TableSectionProps) => <tbody {...props} />,
-      tr: (props: TableRowProps) => <tr {...props} className="border-b border-sp-border last:border-b-0" />,
-      th: (props: TableCellProps) => <th {...props} className="px-4 py-3 text-left text-sm font-semibold text-jpm-gray-900" />,
-      td: (props: TableCellProps) => <td {...props} className="px-4 py-3 text-sm text-jpm-gray" />,
+      tr: (props: TableRowProps) => (
+        <tr {...props} className="border-b border-sp-border last:border-b-0" />
+      ),
+      th: (props: TableCellProps) => (
+        <th
+          {...props}
+          className="px-4 py-3 text-left text-sm font-semibold text-jpm-gray-900"
+        />
+      ),
+      td: (props: TableCellProps) => (
+        <td {...props} className="px-4 py-3 text-sm text-jpm-gray" />
+      ),
       pre: (props: PreProps) => {
-        const child = Array.isArray(props.children) ? props.children[0] : props.children;
+        const child = Array.isArray(props.children)
+          ? props.children[0]
+          : props.children;
         if (isMermaidBlock(child)) return child;
-        return <pre className="my-5 overflow-x-auto rounded border border-sp-border bg-jpm-gray-100 px-4 py-3 font-mono text-sm text-jpm-gray-900">{props.children}</pre>;
+        return (
+          <pre className="my-5 overflow-x-auto rounded border border-sp-border bg-jpm-gray-100 px-4 py-3 font-mono text-sm text-jpm-gray-900">
+            {props.children}
+          </pre>
+        );
       },
       code: (props: CodeProps) => {
         const { inline, className: codeClassName, children, ...rest } = props;
@@ -177,14 +208,24 @@ export function RichMarkdownViewer({
         const isMermaid = /\blanguage-mermaid\b/.test(codeClassName ?? '');
         if (isMermaid) {
           return (
-            <div {...{ [MERMAID_MARKER]: true }} className="my-6 overflow-x-auto [&_svg]:max-w-full">
+            <div
+              {...{ [MERMAID_MARKER]: true }}
+              className="my-6 overflow-x-auto [&_svg]:max-w-full"
+            >
               <Mermaid className="w-full overflow-hidden [&_svg]:h-auto [&_svg]:w-full">
                 {String(children).replace(/\n$/, '')}
               </Mermaid>
             </div>
           );
         }
-        return <code className="block overflow-x-auto whitespace-pre bg-transparent px-0 py-0 font-mono text-sm text-jpm-gray-900" {...rest}>{children}</code>;
+        return (
+          <code
+            className="block overflow-x-auto whitespace-pre bg-transparent px-0 py-0 font-mono text-sm text-jpm-gray-900"
+            {...rest}
+          >
+            {children}
+          </code>
+        );
       },
     }),
     []
@@ -235,7 +276,9 @@ export function RichMarkdownViewer({
   }
 
   const body =
-    skipTopHeading && markdown ? markdown.replace(/^\s*# [^\n]+\n?/, '') : markdown;
+    skipTopHeading && markdown
+      ? markdown.replace(/^\s*# [^\n]+\n?/, '')
+      : markdown;
 
   return (
     <div className={className}>

@@ -1,22 +1,32 @@
+import type {
+  AccountBalanceResponse,
+  AccountResponse,
+  ListAccountsResponse,
+} from '@ef-api/ep-accounts-schemas';
+import type {
+  ListRecipientsResponse,
+  MicrodepositAmounts,
+  Recipient,
+  RecipientRequest,
+  RecipientType,
+} from '@ef-api/ep-recipients-schemas';
+import type {
+  ListTransactionsSearchResponseV2,
+  ListTransactionsV2Params,
+  PostTransactionRequestV2,
+  TransactionGetResponseV2,
+  TransactionsSearchResponseV2,
+} from '@ef-api/ep-transactions-schemas';
+import type {
+  ClientStatus,
+  CreateClientRequestSmbdo,
+  DocumentRequestStatus,
+} from '@ef-api/smbdo-schemas';
 import merge from 'lodash/merge';
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse, type RequestHandler } from 'msw';
 
-import {
-  createMockLinkedAccountsResponse,
-  createMockTransactionsResponse,
-  efClientQuestionsMock,
-  efDocumentClientDetail,
-  mockEmptyLinkedAccounts,
-  mockEmptyTransactionsResponse,
-  mockLinkedAccounts,
-  mockRecipientsResponse,
-  mockTransactionsResponse,
-} from '../mocks';
-import {
-  mockAccountBalance,
-  mockAccountBalance2,
-  mockAccounts,
-} from '../mocks/accounts.mock';
+import { getClientStatusOverrideForScenario } from '../components/sellsense/scenarios-config';
+import { efClientQuestionsMock, efDocumentClientDetail } from '../mocks';
 import {
   createTransactionWithBalanceUpdate,
   db,
@@ -25,13 +35,33 @@ import {
   handleMagicValues,
   logDbState,
   resetDb,
-  updateAccountBalance,
-  updateTransactionStatus,
 } from './db';
 
-export const createHandlers = (apiUrl) => [
+/** Path params for routes with :clientId */
+type ClientIdParams = { clientId: string };
+/** Path params for routes with :partyId */
+type PartyIdParams = { partyId: string };
+/** Path params for routes with :documentRequestId */
+type DocumentRequestIdParams = { documentRequestId: string };
+/** Path params for routes with :recipientId */
+type RecipientIdParams = { recipientId: string };
+/** Path params for routes with :accountId */
+type AccountIdParams = { accountId: string };
+/** Path params for routes with :id */
+type IdParams = { id: string };
+
+/** Shape of client.outstanding used in PATCH client and document-request submit */
+interface ClientOutstanding {
+  documentRequestIds?: string[];
+  questionIds?: string[];
+  attestationDocumentIds?: string[];
+  partyIds?: string[];
+  partyRoles?: string[];
+}
+
+export const createHandlers = (apiUrl: string): RequestHandler[] => [
   http.get(`${apiUrl}/ef/do/v1/clients/:clientId`, (req) => {
-    const { clientId } = req.params;
+    const { clientId } = req.params as ClientIdParams;
     const client = db.client.findFirst({
       where: { id: { equals: clientId } },
     });
@@ -40,16 +70,30 @@ export const createHandlers = (apiUrl) => [
       return new HttpResponse(null, { status: 404 });
     }
 
+    const scenarioDisplayName = req.request.headers.get('X-Scenario');
+    const statusOverride = getClientStatusOverrideForScenario(
+      scenarioDisplayName
+    ) as ClientStatus | undefined;
+
     // Expand party references to full party objects
     const expandedClient = {
       ...client,
+      ...(statusOverride && { status: statusOverride }),
       // Map party IDs to full party objects
-      parties: client.parties
-        .map((partyId) => {
+      parties: (client.parties as string[])
+        .map((partyId: string) => {
           const party = db.party.findFirst({
             where: { id: { equals: partyId } },
           });
-          return party || null;
+          return party
+            ? {
+                ...party,
+                ...(statusOverride &&
+                  party.id === client.partyId && {
+                    profileStatus: statusOverride,
+                  }),
+              }
+            : null;
         })
         .filter(Boolean), // Remove any null entries if party not found
     };
@@ -65,16 +109,19 @@ export const createHandlers = (apiUrl) => [
   }),
 
   http.post(`${apiUrl}/ef/do/v1/clients`, async ({ request }) => {
-    const data = await request.json();
+    const data = (await request.json()) as CreateClientRequestSmbdo | null;
     // Generate client ID starting with '00' followed by 8 random digits
     const newClientId =
       '00' + Math.floor(10000000 + Math.random() * 90000000).toString();
     const timestamp = new Date().toISOString();
 
     // First create the parties if any
-    const partyIds = [];
-    if (data.parties && Array.isArray(data.parties)) {
-      for (const partyData of data.parties) {
+    const partyIds: string[] = [];
+    if (data?.parties && Array.isArray(data.parties)) {
+      for (const partyData of data.parties as unknown as Record<
+        string,
+        unknown
+      >[]) {
         // Generate party ID starting with '2' followed by 9 random digits
         const newPartyId =
           '2' + Math.floor(100000000 + Math.random() * 900000000).toString();
@@ -83,10 +130,12 @@ export const createHandlers = (apiUrl) => [
           ...partyData,
           createdAt: timestamp,
           active: true,
-          preferences: partyData.preferences || { defaultLanguage: 'en-US' },
-          profileStatus: partyData.profileStatus || 'COMPLETE',
-          access: partyData.access || [],
-          validationResponse: partyData.validationResponse || [],
+          preferences: (partyData.preferences as object) || {
+            defaultLanguage: 'en-US',
+          },
+          profileStatus: (partyData.profileStatus as string) || 'COMPLETE',
+          access: (partyData.access as unknown[]) || [],
+          validationResponse: (partyData.validationResponse as unknown[]) || [],
         };
         db.party.create(newParty);
         partyIds.push(newPartyId);
@@ -98,9 +147,11 @@ export const createHandlers = (apiUrl) => [
       id: newClientId,
       status: 'NEW',
       createdAt: timestamp,
-      partyId: partyIds[0] || null, // Set first party as primary if exists
+      partyId: partyIds[0] ?? undefined, // Set first party as primary if exists
       parties: partyIds,
-      products: data?.products || ['EMBEDDED_PAYMENTS'],
+      products: (data?.products as string[] | undefined) ?? [
+        'EMBEDDED_PAYMENTS',
+      ],
       outstanding: {
         documentRequestIds: [''],
         questionIds: ['30005', '30158'],
@@ -113,8 +164,8 @@ export const createHandlers = (apiUrl) => [
     // Return response with expanded parties
     const expandedClient = {
       ...client,
-      parties: client.parties
-        .map((partyId) => {
+      parties: (client.parties as string[])
+        .map((partyId: string) => {
           const party = db.party.findFirst({
             where: { id: { equals: partyId } },
           });
@@ -133,8 +184,8 @@ export const createHandlers = (apiUrl) => [
   http.post(
     `${apiUrl}/ef/do/v1/clients/:clientId`,
     async ({ request, params }) => {
-      const { clientId } = params;
-      const data = await request.json();
+      const { clientId } = params as ClientIdParams;
+      const data = (await request.json()) as Record<string, unknown> | null;
 
       // Find the existing client
       const existingClient = db.client.findFirst({
@@ -145,21 +196,27 @@ export const createHandlers = (apiUrl) => [
         return new HttpResponse(null, { status: 404 });
       }
 
-      // Start with existing client data
-      let updatedClient = { ...existingClient };
+      type ClientUpdateState = Record<string, unknown> & {
+        outstanding?: ClientOutstanding;
+        parties?: string[];
+        products?: unknown[];
+        questionResponses?: unknown[];
+        attestations?: unknown[];
+      };
 
-      // Ensure outstanding object exists
-      updatedClient.outstanding = updatedClient.outstanding || {
+      let updatedClient: ClientUpdateState = { ...existingClient };
+
+      updatedClient.outstanding = (updatedClient.outstanding || {
         documentRequestIds: [],
         questionIds: [],
         attestationDocumentIds: [],
         partyIds: [],
         partyRoles: [],
-      };
+      }) as ClientOutstanding;
 
       // Handle adding new parties if present
-      if (data.addParties && Array.isArray(data.addParties)) {
-        for (const partyData of data.addParties) {
+      if (data?.addParties && Array.isArray(data.addParties)) {
+        for (const partyData of data.addParties as Record<string, unknown>[]) {
           // Generate a new party ID if not provided
           const newPartyId =
             '2' + Math.floor(100000000 + Math.random() * 900000000).toString();
@@ -179,30 +236,35 @@ export const createHandlers = (apiUrl) => [
           // Create the party in the database
           db.party.create(newParty);
 
-          // Add the new party to the client's parties array
           updatedClient.parties = [
-            ...(updatedClient.parties || []),
+            ...(updatedClient.parties ?? []),
             newPartyId,
           ];
         }
       }
 
       // Handle adding new products if present
-      if (data.addProducts) {
+      if (data?.addProducts) {
         updatedClient.products = [
-          ...(updatedClient.products || []),
-          ...data.addProducts,
+          ...((updatedClient.products ?? []) as unknown[]),
+          ...(data.addProducts as string[]),
         ];
       }
 
       // Handle question responses if present
-      if (data.questionResponses) {
+      if (data?.questionResponses && Array.isArray(data.questionResponses)) {
+        const questionResponses = data.questionResponses as Array<{
+          questionId: string;
+          [key: string]: unknown;
+        }>;
         // Get existing responses without the ones we're updating
         const existingResponses = (
-          updatedClient.questionResponses || []
+          (updatedClient.questionResponses ?? []) as Array<{
+            questionId: string;
+          }>
         ).filter(
-          (existing) =>
-            !data.questionResponses.some(
+          (existing: { questionId: string }) =>
+            !questionResponses.some(
               (incoming) => incoming.questionId === existing.questionId
             )
         );
@@ -210,74 +272,75 @@ export const createHandlers = (apiUrl) => [
         // Combine existing responses (minus the updated ones) with new responses
         updatedClient.questionResponses = [
           ...existingResponses,
-          ...data.questionResponses,
+          ...questionResponses,
         ];
 
-        // Ensure outstanding object exists
-        updatedClient.outstanding = updatedClient.outstanding || {
+        updatedClient.outstanding = (updatedClient.outstanding || {
           documentRequestIds: [],
           questionIds: [],
           attestationDocumentIds: [],
           partyIds: [],
           partyRoles: [],
-        };
+        }) as ClientOutstanding;
 
-        // Remove answered question IDs from outstanding
-        const answeredQuestionIds = data.questionResponses.map(
+        const answeredQuestionIds = questionResponses.map(
           (response) => response.questionId
         );
-        updatedClient.outstanding.questionIds = (
-          updatedClient.outstanding.questionIds || []
-        ).filter((id) => !answeredQuestionIds.includes(id));
+        const questionIds = updatedClient.outstanding.questionIds ?? [];
+        updatedClient.outstanding.questionIds = questionIds.filter(
+          (id: string) => !answeredQuestionIds.includes(id)
+        );
       }
 
       // Handle adding new attestations if present
-      if (data.addAttestations) {
-        // Add new attestations
+      if (data?.addAttestations && Array.isArray(data.addAttestations)) {
+        const addAttestations = data.addAttestations as Array<{
+          documentId: string;
+          [key: string]: unknown;
+        }>;
         updatedClient.attestations = [
-          ...(updatedClient.attestations || []),
-          ...data.addAttestations,
+          ...((updatedClient.attestations ?? []) as unknown[]),
+          ...addAttestations,
         ];
 
-        // Ensure outstanding object exists
-        updatedClient.outstanding = updatedClient.outstanding || {
+        updatedClient.outstanding = (updatedClient.outstanding || {
           documentRequestIds: [],
           questionIds: [],
           attestationDocumentIds: [],
           partyIds: [],
           partyRoles: [],
-        };
+        }) as ClientOutstanding;
 
-        // Remove attested document IDs from outstanding
-        const attestedDocumentIds = data.addAttestations.map(
+        const attestedDocumentIds = addAttestations.map(
           (attestation) => attestation.documentId
         );
         updatedClient.outstanding.attestationDocumentIds = (
-          updatedClient.outstanding.attestationDocumentIds || []
-        ).filter((id) => !attestedDocumentIds.includes(id));
+          updatedClient.outstanding.attestationDocumentIds ?? []
+        ).filter((id: string) => !attestedDocumentIds.includes(id));
       }
 
       // Handle removing attestations if present
-      if (data.removeAttestations) {
-        const attestationIdsToRemove = data.removeAttestations.map(
+      if (data?.removeAttestations && Array.isArray(data.removeAttestations)) {
+        const removeAttestations = data.removeAttestations as Array<{
+          documentId: string;
+        }>;
+        const attestationIdsToRemove = removeAttestations.map(
           (a) => a.documentId
         );
-        updatedClient.attestations = (updatedClient.attestations || []).filter(
-          (a) => !attestationIdsToRemove.includes(a.documentId)
-        );
+        updatedClient.attestations = (
+          (updatedClient.attestations ?? []) as Array<{ documentId: string }>
+        ).filter((a) => !attestationIdsToRemove.includes(a.documentId));
 
-        // Ensure outstanding object exists
-        updatedClient.outstanding = updatedClient.outstanding || {
+        updatedClient.outstanding = (updatedClient.outstanding || {
           documentRequestIds: [],
           questionIds: [],
           attestationDocumentIds: [],
           partyIds: [],
           partyRoles: [],
-        };
+        }) as ClientOutstanding;
 
-        // Add removed attestation IDs back to outstanding
         updatedClient.outstanding.attestationDocumentIds = [
-          ...(updatedClient.outstanding.attestationDocumentIds || []),
+          ...(updatedClient.outstanding.attestationDocumentIds ?? []),
           ...attestationIdsToRemove,
         ];
       }
@@ -291,8 +354,8 @@ export const createHandlers = (apiUrl) => [
       // Expand parties before returning
       const expandedClient = {
         ...client,
-        parties: client.parties
-          .map((partyId) => {
+        parties: (client.parties as string[])
+          .map((partyId: string) => {
             const party = db.party.findFirst({
               where: { id: { equals: partyId } },
             });
@@ -311,8 +374,8 @@ export const createHandlers = (apiUrl) => [
   http.post(
     `${apiUrl}/ef/do/v1/parties/:partyId`,
     async ({ request, params }) => {
-      const { partyId } = params;
-      const data = await request.json();
+      const { partyId } = params as PartyIdParams;
+      const data = (await request.json()) as Record<string, unknown> | null;
 
       // Check if party exists first
       const existingParty = db.party.findFirst({
@@ -329,8 +392,10 @@ export const createHandlers = (apiUrl) => [
       });
 
       // Use lodash merge for deep merging, but handle roles separately
-      const { roles: newRoles, ...restData } = data;
-      const { roles: existingRoles, ...restExisting } = existingParty;
+      const dataObj = data as Record<string, unknown>;
+      const { roles: newRoles, ...restData } = dataObj;
+      const existingPartyObj = existingParty as Record<string, unknown>;
+      const { roles: existingRoles, ...restExisting } = existingPartyObj;
 
       // Merge everything except roles
       const mergedData = merge({}, restExisting, restData);
@@ -345,7 +410,7 @@ export const createHandlers = (apiUrl) => [
       const updatedParty = db.party.create({
         ...finalData,
         id: partyId, // Ensure we keep the same ID
-      });
+      } as Record<string, unknown>);
 
       logDbState('Party Update');
       return HttpResponse.json(updatedParty);
@@ -386,7 +451,6 @@ export const createHandlers = (apiUrl) => [
   http.get(`${apiUrl}/ef/do/v1/document-requests`, (req) => {
     const url = new URL(req.request.url);
     const clientId = url.searchParams.get('clientId');
-    const includeRelatedParty = url.searchParams.get('includeRelatedParty');
 
     if (!clientId) {
       return new HttpResponse(null, {
@@ -403,7 +467,7 @@ export const createHandlers = (apiUrl) => [
   }),
 
   http.get(`${apiUrl}/ef/do/v1/document-requests/:documentRequestId`, (req) => {
-    const { documentRequestId } = req.params;
+    const { documentRequestId } = req.params as DocumentRequestIdParams;
     const documentRequest = db.documentRequest.findFirst({
       where: { id: { equals: documentRequestId } },
     });
@@ -416,18 +480,18 @@ export const createHandlers = (apiUrl) => [
   }),
 
   http.post(`${apiUrl}/ef/do/v1/documents`, async ({ request }) => {
-    const data = await request.json();
+    const data = (await request.json()) as Record<string, unknown> | null;
     const documentId = Math.random().toString(36).substring(7);
 
     // Create a mock document response
     const documentResponse = {
       id: documentId,
       status: 'ACTIVE',
-      documentType: data.documentType,
-      fileName: data.fileName,
-      mimeType: data.mimeType,
+      documentType: data?.documentType,
+      fileName: data?.fileName,
+      mimeType: data?.mimeType,
       createdAt: new Date().toISOString(),
-      metadata: data.metadata || {},
+      metadata: (data?.metadata as object) || {},
     };
 
     return HttpResponse.json(documentResponse, { status: 201 });
@@ -436,7 +500,7 @@ export const createHandlers = (apiUrl) => [
   http.post(
     `${apiUrl}/ef/do/v1/document-requests/:documentRequestId/submit`,
     async ({ params }) => {
-      const { documentRequestId } = params;
+      const { documentRequestId } = params as DocumentRequestIdParams;
 
       // Find the document request
       const documentRequest = db.documentRequest.findFirst({
@@ -452,52 +516,59 @@ export const createHandlers = (apiUrl) => [
         where: { id: { equals: documentRequestId } },
         data: {
           ...documentRequest,
-          status: 'SUBMITTED',
+          status: 'SUBMITTED' as DocumentRequestStatus,
         },
       });
 
       // Find the associated client
       const client = db.client.findFirst({
-        where: { id: { equals: documentRequest.clientId } },
+        where: { id: { equals: documentRequest.clientId as string } },
       });
 
       if (client) {
-        // Remove document request ID from client's outstanding block
-        const updatedClient = {
+        const prevOutstanding = (client.outstanding || {}) as ClientOutstanding;
+        const updatedClient: Record<string, unknown> & {
+          outstanding: ClientOutstanding;
+          parties?: string[];
+          status?: string;
+        } = {
           ...client,
           outstanding: {
-            ...client.outstanding,
+            ...prevOutstanding,
             documentRequestIds: (
-              client.outstanding?.documentRequestIds || []
-            ).filter((id) => id !== documentRequestId),
+              prevOutstanding.documentRequestIds || []
+            ).filter((id: string) => id !== documentRequestId),
           },
         };
 
-        // Check if there are any remaining document requests
         const hasOutstandingDocRequests =
-          updatedClient.outstanding.documentRequestIds.length > 0;
+          (updatedClient.outstanding.documentRequestIds?.length ?? 0) > 0;
 
-        // Check if there are any parties with outstanding validation
-        const parties = updatedClient.parties
-          .map((partyId) =>
+        const partyIds = (updatedClient.parties || []) as string[];
+        const parties = partyIds
+          .map((partyId: string) =>
             db.party.findFirst({ where: { id: { equals: partyId } } })
           )
-          .filter(Boolean);
+          .filter((p): p is NonNullable<typeof p> => p != null);
 
-        const hasPartyValidationPending = parties.some((party) =>
-          (party.validationResponse || []).some(
-            (validation) => validation.validationStatus === 'NEEDS_INFO'
-          )
+        const hasPartyValidationPending = parties.some(
+          (party: Record<string, unknown>) =>
+            (
+              (party.validationResponse as Array<{
+                validationStatus?: string;
+              }>) || []
+            ).some(
+              (validation: { validationStatus?: string }) =>
+                validation.validationStatus === 'NEEDS_INFO'
+            )
         );
 
-        // If no outstanding requests and no pending validations, update client status
         if (!hasOutstandingDocRequests && !hasPartyValidationPending) {
           updatedClient.status = 'REVIEW_IN_PROGRESS';
         }
 
-        // Update client
         db.client.update({
-          where: { id: { equals: client.id } },
+          where: { id: { equals: (client.id as string) ?? '' } },
           data: updatedClient,
         });
       }
@@ -505,25 +576,34 @@ export const createHandlers = (apiUrl) => [
       // If associated with a party, update party's validation response
       if (documentRequest.partyId) {
         const party = db.party.findFirst({
-          where: { id: { equals: documentRequest.partyId } },
+          where: { id: { equals: documentRequest.partyId as string } },
         });
 
         if (party) {
+          const partyVal = party as Record<string, unknown>;
+          const validationResponse = (partyVal.validationResponse ||
+            []) as Array<{
+            documentRequestIds: string[];
+            [key: string]: unknown;
+          }>;
           const updatedParty = {
             ...party,
-            validationResponse: (party.validationResponse || [])
-              .map((validation) => ({
+            validationResponse: validationResponse
+              .map((validation: { documentRequestIds: string[] }) => ({
                 ...validation,
                 documentRequestIds: validation.documentRequestIds.filter(
-                  (id) => id !== documentRequestId
+                  (id: string) => id !== documentRequestId
                 ),
               }))
-              .filter((validation) => validation.documentRequestIds.length > 0),
+              .filter(
+                (validation: { documentRequestIds: string[] }) =>
+                  validation.documentRequestIds.length > 0
+              ),
           };
 
           // Update party
           db.party.delete({
-            where: { id: { equals: party.id } },
+            where: { id: { equals: party.id as string } },
           });
           db.party.create(updatedParty);
         }
@@ -540,8 +620,8 @@ export const createHandlers = (apiUrl) => [
 
   http.post(`${apiUrl}/ef/do/v1/_reset`, async ({ request }) => {
     try {
-      const body = await request.json();
-      const scenario = body?.scenario || DEFAULT_SCENARIO;
+      const body = (await request.json()) as { scenario?: string } | null;
+      const scenario = body?.scenario ?? DEFAULT_SCENARIO;
 
       return HttpResponse.json(resetDb(scenario));
     } catch (error) {
@@ -552,11 +632,13 @@ export const createHandlers = (apiUrl) => [
 
   http.get(`${apiUrl}/ef/do/v1/_status`, () => {
     const status = getDbStatus();
-    const recipients = db.recipient.getAll();
+    const recipients = db.recipient.getAll() as Array<{ type?: string }>;
     const linkedAccounts = recipients.filter(
-      (r) => r.type === 'LINKED_ACCOUNT'
+      (r: { type?: string }) => r.type === 'LINKED_ACCOUNT'
     );
-    const regularRecipients = recipients.filter((r) => r.type === 'RECIPIENT');
+    const regularRecipients = recipients.filter(
+      (r: { type?: string }) => r.type === 'RECIPIENT'
+    );
 
     // Determine current scenario based on data
     let currentScenario;
@@ -605,10 +687,10 @@ export const createHandlers = (apiUrl) => [
   http.post(
     `${apiUrl}/ef/do/v1/clients/:clientId/verifications`,
     async ({ request, params }) => {
-      const { clientId } = params;
-      const data = await request.json();
+      const { clientId } = params as ClientIdParams;
+      const data = (await request.json()) as Record<string, unknown> | null;
 
-      const verificationResponse = handleMagicValues(clientId, data);
+      const verificationResponse = handleMagicValues(clientId, data ?? {});
       if (!verificationResponse) {
         return new HttpResponse(null, { status: 404 });
       }
@@ -622,7 +704,8 @@ export const createHandlers = (apiUrl) => [
     `${apiUrl}/api/onboarding/session-transfer`,
     async ({ request }) => {
       // Simulate reading a payload (e.g., { userId: '123' })
-      const { userId } = await request.json();
+      const body = (await request.json()) as { userId?: string } | null;
+      const userId = body?.userId;
       // Return a mock JWT token
       return HttpResponse.json(
         {
@@ -653,7 +736,7 @@ export const createHandlers = (apiUrl) => [
 
   // EF Linked Account Creation
   http.post(`${apiUrl}/ef/do/v1/recipients`, async ({ request }) => {
-    const data = await request.json();
+    const data = (await request.json()) as RecipientRequest | null;
     console.log('Creating EF recipient:', data);
 
     // Generate a unique recipient ID
@@ -661,21 +744,23 @@ export const createHandlers = (apiUrl) => [
       'c0712fc9-b7d5-4ee2-81bb-' + Math.random().toString(36).substring(2, 15);
     const timestamp = new Date().toISOString();
 
-    // Determine initial status based on recipient type
-    let initialStatus = data.status || 'ACTIVE';
-    if (data.type === 'LINKED_ACCOUNT' || data.type === undefined) {
-      // Linked accounts should start in microdeposit check state
+    // Determine initial status based on recipient type (status is not on RecipientRequest OAS; used for mock)
+    const recipientType: RecipientType = (data?.type ??
+      'LINKED_ACCOUNT') as RecipientType;
+    let initialStatus =
+      (data as unknown as { status?: string })?.status ?? 'ACTIVE';
+    if (recipientType === 'LINKED_ACCOUNT') {
       initialStatus = 'READY_FOR_VALIDATION';
     }
 
-    // Create the recipient in the database
+    // Create the recipient in the database (DB shape extends API shape)
     const newRecipient = {
       id: recipientId,
-      type: data.type || 'LINKED_ACCOUNT',
+      type: recipientType,
       status: initialStatus,
-      clientId: data.clientId || 'client-001',
-      partyDetails: data.partyDetails,
-      account: data.account,
+      clientId: data?.clientId ?? 'client-001',
+      partyDetails: data?.partyDetails,
+      account: data?.account,
       createdAt: timestamp,
       updatedAt: timestamp,
     };
@@ -695,7 +780,10 @@ export const createHandlers = (apiUrl) => [
     } catch (error) {
       console.error('Error creating EF recipient:', error);
       return HttpResponse.json(
-        { error: 'Failed to create recipient', message: error.message },
+        {
+          error: 'Failed to create recipient',
+          message: error instanceof Error ? error.message : String(error),
+        },
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -705,8 +793,8 @@ export const createHandlers = (apiUrl) => [
   http.post(
     `${apiUrl}/ef/do/v1/recipients/:recipientId/verify-microdeposit`,
     async ({ params, request }) => {
-      const { recipientId } = params;
-      const data = await request.json();
+      const { recipientId } = params as RecipientIdParams;
+      const data = (await request.json()) as MicrodepositAmounts | null;
 
       console.log('Verifying microdeposit for recipient:', recipientId, data);
 
@@ -723,7 +811,10 @@ export const createHandlers = (apiUrl) => [
       }
 
       // Mock verification logic - in real app this would validate the amounts
-      const isValid = data.amounts && data.amounts.length === 2;
+      const isValid =
+        data?.amounts &&
+        Array.isArray(data.amounts) &&
+        data.amounts.length === 2;
 
       if (isValid) {
         // Update recipient status in database
@@ -772,7 +863,7 @@ export const createHandlers = (apiUrl) => [
 
   // EF Get specific recipient
   http.get(`${apiUrl}/ef/do/v1/recipients/:recipientId`, ({ params }) => {
-    const { recipientId } = params;
+    const { recipientId } = params as RecipientIdParams;
 
     console.log('Getting recipient:', recipientId);
 
@@ -789,7 +880,7 @@ export const createHandlers = (apiUrl) => [
     }
 
     console.log('Found recipient:', recipient);
-    return HttpResponse.json(recipient, {
+    return HttpResponse.json(recipient as unknown as Recipient, {
       headers: {
         'Content-Type': 'application/json',
       },
@@ -807,9 +898,23 @@ export const createHandlers = (apiUrl) => [
     const accountId = url.searchParams.get('accountId');
     const status = url.searchParams.get('status');
     const type = url.searchParams.get('type');
+    // Query params (OAS ListTransactionsV2Params has no page/limit; we use them for mock pagination)
+    const queryParams: Partial<ListTransactionsV2Params> & {
+      page?: number;
+      limit?: number;
+    } = {
+      page: pageParam ? parseInt(pageParam, 10) : undefined,
+      limit: limitParam ? parseInt(limitParam, 10) : undefined,
+      accountId: accountId ?? undefined,
+      status: status
+        ? ([status] as ListTransactionsV2Params['status'])
+        : undefined,
+      type: type ? ([type] as ListTransactionsV2Params['type']) : undefined,
+    };
 
     // Get all transactions from database with safety check
-    let filteredTransactions = db.transaction.getAll() || [];
+    let filteredTransactions: TransactionsSearchResponseV2[] =
+      (db.transaction.getAll() as TransactionsSearchResponseV2[]) || [];
 
     // Filter transactions based on query parameters
     if (accountId) {
@@ -839,12 +944,13 @@ export const createHandlers = (apiUrl) => [
     // Handle optional pagination - if no page/limit provided, return all transactions
     if (!pageParam && !limitParam) {
       console.log('No pagination params, returning all transactions');
-      const response = {
+      const response: ListTransactionsSearchResponseV2 = {
         items: filteredTransactions || [],
-        page: 1,
-        limit: filteredTransactions.length,
-        total_items: filteredTransactions.length,
-        total_pages: 1,
+        metadata: {
+          page: 1,
+          limit: filteredTransactions.length,
+          total_items: filteredTransactions.length,
+        },
       };
       return HttpResponse.json(response, {
         headers: { 'Content-Type': 'application/json' },
@@ -855,13 +961,11 @@ export const createHandlers = (apiUrl) => [
     const page = parseInt(pageParam || '1', 10);
     const limit = parseInt(limitParam || '10', 10);
 
-    console.log('Transactions API call params:', {
-      page,
-      limit,
-      accountId,
-      status,
-      type,
-    });
+    console.log(
+      'Transactions API call params:',
+      { page, limit, accountId, status, type },
+      queryParams
+    );
 
     // Manual pagination since we're using database
     const startIndex = (page - 1) * limit;
@@ -871,12 +975,13 @@ export const createHandlers = (apiUrl) => [
       endIndex
     );
 
-    const response = {
+    const response: ListTransactionsSearchResponseV2 = {
       items: paginatedTransactions || [],
-      page,
-      limit,
-      total_items: filteredTransactions.length,
-      total_pages: Math.ceil(filteredTransactions.length / limit),
+      metadata: {
+        page,
+        limit,
+        total_items: filteredTransactions.length,
+      },
     };
 
     console.log('Transactions response:', response);
@@ -887,12 +992,14 @@ export const createHandlers = (apiUrl) => [
 
   // Add handler for GET /ef/do/v1/transactions/:id using the mock
   http.get(`${apiUrl}/ef/do/v1/transactions/:id`, ({ params }) => {
-    const { id } = params;
+    const { id } = params as IdParams;
     const transaction = db.transaction.findFirst({
       where: { id: { equals: id } },
     });
     if (transaction) {
-      return HttpResponse.json(transaction, { status: 200 });
+      return HttpResponse.json(transaction as TransactionGetResponseV2, {
+        status: 200,
+      });
     }
     return HttpResponse.json(
       { error: 'Transaction not found' },
@@ -902,11 +1009,13 @@ export const createHandlers = (apiUrl) => [
 
   // Create new transaction with balance updates
   http.post(`${apiUrl}/ef/do/v1/transactions`, async ({ request }) => {
-    const data = await request.json();
+    const data = (await request.json()) as PostTransactionRequestV2 | null;
     console.log('Creating new transaction with balance updates:', data);
 
     try {
-      const createdTransaction = createTransactionWithBalanceUpdate(data);
+      const createdTransaction = createTransactionWithBalanceUpdate(
+        data as unknown as Record<string, unknown>
+      );
       console.log(
         'Created transaction with balance updates:',
         createdTransaction
@@ -919,7 +1028,10 @@ export const createHandlers = (apiUrl) => [
     } catch (error) {
       console.error('Error creating transaction:', error);
       return HttpResponse.json(
-        { error: 'Failed to create transaction', message: error.message },
+        {
+          error: 'Failed to create transaction',
+          message: error instanceof Error ? error.message : String(error),
+        },
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -933,7 +1045,6 @@ export const createHandlers = (apiUrl) => [
     const limitParam = url.searchParams.get('limit');
     const type = url.searchParams.get('type');
     const status = url.searchParams.get('status');
-
     console.log('Recipients API call params:', {
       type,
       status,
@@ -942,7 +1053,7 @@ export const createHandlers = (apiUrl) => [
     });
 
     // Get all recipients from database
-    let filteredRecipients = db.recipient.getAll();
+    let filteredRecipients = db.recipient.getAll() as unknown as Recipient[];
 
     // Filter by type if specified
     if (type) {
@@ -965,11 +1076,8 @@ export const createHandlers = (apiUrl) => [
     // OAS spec: page is 0-based, default to 0 if not provided
     if (!pageParam && !limitParam) {
       console.log('No pagination params, returning all recipients');
-      const response = {
+      const response: ListRecipientsResponse = {
         recipients: filteredRecipients,
-        page: 0,
-        limit: filteredRecipients.length,
-        total_items: filteredRecipients.length,
         metadata: {
           page: 0,
           limit: filteredRecipients.length,
@@ -990,11 +1098,8 @@ export const createHandlers = (apiUrl) => [
     const endIndex = startIndex + limit;
     const paginatedRecipients = filteredRecipients.slice(startIndex, endIndex);
 
-    const response = {
+    const response: ListRecipientsResponse = {
       recipients: paginatedRecipients,
-      page,
-      limit,
-      total_items: filteredRecipients.length,
       metadata: {
         page,
         limit,
@@ -1010,21 +1115,24 @@ export const createHandlers = (apiUrl) => [
 
   // MakePayment Component Handlers - Updated to use database
   http.get(`${apiUrl}/ef/do/v1/accounts`, () => {
-    const accounts = db.account.getAll();
+    const accounts = db.account.getAll() as unknown as AccountResponse[];
     console.log('Retrieved accounts from database:', accounts.length);
 
-    return HttpResponse.json(
-      {
-        items: accounts,
+    const response: ListAccountsResponse = {
+      items: accounts,
+      metadata: {
+        page: 1,
+        limit: accounts.length,
+        total_items: accounts.length,
       },
-      {
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    };
+    return HttpResponse.json(response, {
+      headers: { 'Content-Type': 'application/json' },
+    });
   }),
 
   http.get(`${apiUrl}/ef/do/v1/accounts/:accountId/balances`, ({ params }) => {
-    const { accountId } = params;
+    const { accountId } = params as AccountIdParams;
 
     const balance = db.accountBalance.findFirst({
       where: { accountId: { equals: accountId } },
@@ -1032,7 +1140,7 @@ export const createHandlers = (apiUrl) => [
 
     if (balance) {
       console.log(`Retrieved balance for account ${accountId}:`, balance);
-      return HttpResponse.json(balance, {
+      return HttpResponse.json(balance as unknown as AccountBalanceResponse, {
         headers: { 'Content-Type': 'application/json' },
       });
     }
@@ -1047,16 +1155,16 @@ export const createHandlers = (apiUrl) => [
     const type = url.searchParams.get('type');
 
     // Get payment recipients from database (not linked accounts)
-    let filteredRecipients = db.recipient
-      .getAll()
-      .filter((r) => r.type === 'RECIPIENT');
+    let filteredRecipients = (
+      db.recipient.getAll() as unknown as Recipient[]
+    ).filter((r) => r.type === 'RECIPIENT');
 
     if (type) {
       filteredRecipients = filteredRecipients.filter((r) => r.type === type);
     }
 
     console.log('Payment recipients from database:', filteredRecipients.length);
-    return HttpResponse.json(filteredRecipients, {
+    return HttpResponse.json(filteredRecipients as unknown as Recipient[], {
       headers: { 'Content-Type': 'application/json' },
     });
   }),

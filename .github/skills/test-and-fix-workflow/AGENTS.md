@@ -424,6 +424,6 @@ yarn test
 
 ## References
 
-- See `.github/copilot/skills/code-quality-workflow/` for quality gates
-- See `.github/copilot/skills/component-testing/` for testing patterns
-- See `.github/copilot/prompts/run-tests-and-fix.md` for detailed prompt
+- See `.github/skills/code-quality-workflow/` for quality gates
+- See `.github/skills/component-testing/` for testing patterns
+- See `.github/prompts/run-tests-and-fix.md` for detailed prompt

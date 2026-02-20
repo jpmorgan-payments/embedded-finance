@@ -14,7 +14,7 @@ Comprehensive code review checklist covering functionality, quality, security, a
 
 **Usage:**
 ```
-@workspace review my changes following .github/copilot/prompts/code-review.md
+@workspace review my changes following .github/prompts/code-review.md
 ```
 
 ---
@@ -29,7 +29,7 @@ Run the full test suite and systematically fix any failures.
 
 **Usage:**
 ```
-@workspace run tests and fix failures using .github/copilot/prompts/run-tests-and-fix.md
+@workspace run tests and fix failures using .github/prompts/run-tests-and-fix.md
 ```
 
 ---
@@ -44,7 +44,7 @@ Analyze the codebase and generate a feature roadmap with Mermaid diagrams.
 
 **Usage:**
 ```
-@workspace create a roadmap analysis following .github/copilot/prompts/roadmap-analysis.md
+@workspace create a roadmap analysis following .github/prompts/roadmap-analysis.md
 ```
 
 ---
@@ -59,7 +59,7 @@ Remove AI-generated code patterns that are inconsistent with project style.
 
 **Usage:**
 ```
-@workspace clean up AI code patterns using .github/copilot/prompts/clean-ai-code.md
+@workspace clean up AI code patterns using .github/prompts/clean-ai-code.md
 ```
 
 ---
@@ -74,8 +74,14 @@ Comprehensive UX testing, code inspection, and backlog updates.
 
 **Usage:**
 ```
-@workspace conduct UX testing following .github/copilot/prompts/ux-testing.md
+@workspace conduct UX testing following .github/prompts/ux-testing.md
 ```
+
+---
+
+### Other prompts
+
+Feature-specific prompts (e.g. `plan-addBusinessEntityOwner.prompt.md`) may also live in this directory. Reference them by path when needed.
 
 ---
 
@@ -83,7 +89,7 @@ Comprehensive UX testing, code inspection, and backlog updates.
 
 ### Method 1: Direct Reference (Recommended)
 ```
-@workspace [task description] following .github/copilot/prompts/[prompt-name].md
+@workspace [task description] following .github/prompts/[prompt-name].md
 ```
 
 ### Method 2: Copy-Paste
@@ -162,7 +168,7 @@ Links to relevant documentation.
 ## Integration with Other Tools
 
 These prompts work alongside:
-- **Agent Skills** (`.github/copilot/skills/`) - Automatic task-based activation
+- **Agent Skills** (`.github/skills/`) - Automatic task-based activation
 - **Copilot Instructions** (`.github/copilot-instructions.md`) - General project context
 - **Package Configs** (`*/.cursorrules`) - Package-specific quick reference
 
@@ -184,5 +190,5 @@ Open a PR with your proposed changes to the prompt files.
 ---
 
 **Format**: GitHub Copilot Custom Prompts  
-**Updated**: December 24, 2025  
-**Compatible**: VS Code with GitHub Copilot
+**Updated**: February 2026  
+**Compatible**: VS Code with GitHub Copilot, Cursor (via `.cursor` → `.github`)
