@@ -1928,7 +1928,6 @@ export function ThemeCustomizationDrawer({
                     </div>
                   )}
                 </div>
-
                 <Accordion type="single" collapsible className="w-full">
                   {Object.entries(TOKEN_GROUPS).map(([groupKey, group]) => {
                     const Icon = group.icon;
