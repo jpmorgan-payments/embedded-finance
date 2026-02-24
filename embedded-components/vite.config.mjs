@@ -67,6 +67,17 @@ export default defineConfig(({ mode }) => {
             'react-dom': 'ReactDOM',
           },
         },
+        onLog(level, log, handler) {
+          // Suppress sourcemap warnings from transformed files (e.g. from dts, react plugin).
+          // These are informational and don't affect the build output.
+          if (
+            log.cause &&
+            log.cause.message === `Can't resolve original location of error.`
+          ) {
+            return;
+          }
+          handler(level, log);
+        },
       },
     },
     define: {
