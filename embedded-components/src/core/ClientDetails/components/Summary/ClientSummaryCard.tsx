@@ -251,7 +251,7 @@ export function ClientSummaryCard({
           {badge}
         </div>
         {subtitle && (
-          <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground eb-duration-300 eb-animate-in eb-fade-in">
+          <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
             {subtitle}
           </div>
         )}
@@ -334,8 +334,8 @@ export function ClientSummaryCard({
           </div>
 
           {/* Business Identity */}
-          <div className="eb-min-w-0 eb-flex-1 eb-duration-300 eb-animate-in eb-fade-in">
-            <div className="eb-flex eb-flex-wrap eb-items-start eb-gap-2">
+          <div className="eb-min-w-0 eb-flex-1">
+            <div className="eb-flex eb-flex-wrap eb-items-start eb-gap-2 eb-duration-300 eb-animate-in eb-fade-in">
               <h2 className="eb-text-xl eb-font-bold eb-leading-tight eb-tracking-tight eb-text-foreground @sm:eb-text-2xl">
                 {org.name}
               </h2>
@@ -367,7 +367,7 @@ export function ClientSummaryCard({
             </div>
 
             {org.dbaName && (
-              <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
+              <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground eb-duration-300 eb-animate-in eb-fade-in">
                 {t('client-details:labels.doingBusinessAs')}{' '}
                 <span className="eb-font-medium eb-text-foreground">
                   &ldquo;{org.dbaName}&rdquo;
@@ -376,7 +376,7 @@ export function ClientSummaryCard({
             )}
 
             {/* Quick Info Pills */}
-            <div className="eb-mt-3 eb-flex eb-flex-wrap eb-gap-2">
+            <div className="eb-mt-3 eb-flex eb-flex-wrap eb-gap-2 eb-duration-300 eb-animate-in eb-fade-in">
               {translatedOrgType && (
                 <span className="eb-inline-flex eb-items-center eb-gap-1 eb-rounded-md eb-bg-background/80 eb-px-2 eb-py-1 eb-text-xs eb-text-muted-foreground eb-shadow-sm eb-ring-1 eb-ring-border/50">
                   <Building2 className="eb-h-3 eb-w-3" aria-hidden="true" />
@@ -406,104 +406,108 @@ export function ClientSummaryCard({
       <div className="eb-divide-y eb-divide-border eb-border-t eb-border-border">
         {/* Business Details Section */}
         {sections.includes('identity') && (
-          <SectionRow
-            section="identity"
-            icon={FileText}
-            iconClassName="eb-text-slate-600 dark:eb-text-slate-400"
-            iconBgClassName="eb-bg-slate-100 dark:eb-bg-slate-800"
-            title={t('client-details:sections.businessDetails')}
-            subtitle={
-              <div className="eb-flex eb-flex-wrap eb-items-center eb-gap-x-3 eb-gap-y-1">
-                {org.industry && (
-                  <span className="eb-inline-flex eb-items-center eb-gap-1">
-                    <Briefcase
-                      className="eb-h-3 eb-w-3 eb-text-muted-foreground/70"
-                      aria-hidden="true"
-                    />
-                    <span className="eb-capitalize">
-                      {org.industry.toLowerCase().replace(/_/g, ' ')}
+          <div className="eb-duration-300 eb-animate-in eb-fade-in">
+            <SectionRow
+              section="identity"
+              icon={FileText}
+              iconClassName="eb-text-slate-600 dark:eb-text-slate-400"
+              iconBgClassName="eb-bg-slate-100 dark:eb-bg-slate-800"
+              title={t('client-details:sections.businessDetails')}
+              subtitle={
+                <div className="eb-flex eb-flex-wrap eb-items-center eb-gap-x-3 eb-gap-y-1">
+                  {org.industry && (
+                    <span className="eb-inline-flex eb-items-center eb-gap-1">
+                      <Briefcase
+                        className="eb-h-3 eb-w-3 eb-text-muted-foreground/70"
+                        aria-hidden="true"
+                      />
+                      <span className="eb-capitalize">
+                        {org.industry.toLowerCase().replace(/_/g, ' ')}
+                      </span>
                     </span>
-                  </span>
-                )}
-                {org.ein && (
-                  <span className="eb-inline-flex eb-items-center eb-gap-1">
-                    <Hash
-                      className="eb-h-3 eb-w-3 eb-text-muted-foreground/70"
-                      aria-hidden="true"
-                    />
-                    <span>EIN **-***{org.ein.slice(-4)}</span>
-                  </span>
-                )}
-                {!org.industry && !org.ein && (
-                  <span>{t('client-details:labels.addressContactInfo')}</span>
-                )}
-              </div>
-            }
-          />
+                  )}
+                  {org.ein && (
+                    <span className="eb-inline-flex eb-items-center eb-gap-1">
+                      <Hash
+                        className="eb-h-3 eb-w-3 eb-text-muted-foreground/70"
+                        aria-hidden="true"
+                      />
+                      <span>EIN **-***{org.ein.slice(-4)}</span>
+                    </span>
+                  )}
+                  {!org.industry && !org.ein && (
+                    <span>{t('client-details:labels.addressContactInfo')}</span>
+                  )}
+                </div>
+              }
+            />
+          </div>
         )}
 
         {/* People Section - Enhanced with avatars */}
         {sections.includes('ownership') && (
-          <SectionRow
-            section="ownership"
-            icon={people.length > 1 ? Users : User}
-            iconClassName="eb-text-slate-600 dark:eb-text-slate-400"
-            iconBgClassName="eb-bg-slate-100 dark:eb-bg-slate-800"
-            title={t('client-details:sections.people')}
-            badge={
-              people.length > 0 ? (
-                <span className="eb-rounded-full eb-bg-slate-100 eb-px-2 eb-py-0.5 eb-text-xs eb-font-semibold eb-text-slate-700 dark:eb-bg-slate-800 dark:eb-text-slate-300">
-                  {people.length}
-                </span>
-              ) : null
-            }
-            subtitle={
-              people.length > 0 ? (
-                <div className="eb-mt-2 eb-flex eb-flex-wrap eb-gap-2">
-                  {people.map((person) => (
-                    <div
-                      key={person.id}
-                      className="eb-flex eb-items-center eb-gap-2 eb-rounded-lg eb-bg-muted/50 eb-px-2.5 eb-py-1.5 eb-ring-1 eb-ring-border/30"
-                    >
-                      {/* Mini avatar */}
+          <div className="eb-duration-300 eb-animate-in eb-fade-in">
+            <SectionRow
+              section="ownership"
+              icon={people.length > 1 ? Users : User}
+              iconClassName="eb-text-slate-600 dark:eb-text-slate-400"
+              iconBgClassName="eb-bg-slate-100 dark:eb-bg-slate-800"
+              title={t('client-details:sections.people')}
+              badge={
+                people.length > 0 ? (
+                  <span className="eb-rounded-full eb-bg-slate-100 eb-px-2 eb-py-0.5 eb-text-xs eb-font-semibold eb-text-slate-700 dark:eb-bg-slate-800 dark:eb-text-slate-300">
+                    {people.length}
+                  </span>
+                ) : null
+              }
+              subtitle={
+                people.length > 0 ? (
+                  <div className="eb-mt-2 eb-flex eb-flex-wrap eb-gap-2">
+                    {people.map((person) => (
                       <div
-                        className={cn(
-                          'eb-flex eb-h-6 eb-w-6 eb-items-center eb-justify-center eb-rounded-full eb-text-xs eb-font-semibold',
-                          person.isController
-                            ? 'eb-bg-slate-200 eb-text-slate-700 dark:eb-bg-slate-700 dark:eb-text-slate-200'
-                            : 'eb-bg-slate-100 eb-text-slate-600 dark:eb-bg-slate-800 dark:eb-text-slate-400'
-                        )}
+                        key={person.id}
+                        className="eb-flex eb-items-center eb-gap-2 eb-rounded-lg eb-bg-muted/50 eb-px-2.5 eb-py-1.5 eb-ring-1 eb-ring-border/30"
                       >
-                        {person.name
-                          .split(' ')
-                          .map((n) => n[0])
-                          .join('')
-                          .slice(0, 2)
-                          .toUpperCase()}
+                        {/* Mini avatar */}
+                        <div
+                          className={cn(
+                            'eb-flex eb-h-6 eb-w-6 eb-items-center eb-justify-center eb-rounded-full eb-text-xs eb-font-semibold',
+                            person.isController
+                              ? 'eb-bg-slate-200 eb-text-slate-700 dark:eb-bg-slate-700 dark:eb-text-slate-200'
+                              : 'eb-bg-slate-100 eb-text-slate-600 dark:eb-bg-slate-800 dark:eb-text-slate-400'
+                          )}
+                        >
+                          {person.name
+                            .split(' ')
+                            .map((n) => n[0])
+                            .join('')
+                            .slice(0, 2)
+                            .toUpperCase()}
+                        </div>
+                        <div className="eb-flex eb-flex-col eb-leading-none">
+                          <span className="eb-text-xs eb-font-medium eb-text-foreground">
+                            {person.name}
+                          </span>
+                          <span className="eb-text-[10px] eb-text-muted-foreground">
+                            {person.isController &&
+                            person.roles.includes('Beneficial Owner')
+                              ? t('client-details:labels.controllerAndOwner')
+                              : person.isController
+                                ? t('client-details:labels.controller')
+                                : t('client-details:labels.owner')}
+                          </span>
+                        </div>
                       </div>
-                      <div className="eb-flex eb-flex-col eb-leading-none">
-                        <span className="eb-text-xs eb-font-medium eb-text-foreground">
-                          {person.name}
-                        </span>
-                        <span className="eb-text-[10px] eb-text-muted-foreground">
-                          {person.isController &&
-                          person.roles.includes('Beneficial Owner')
-                            ? t('client-details:labels.controllerAndOwner')
-                            : person.isController
-                              ? t('client-details:labels.controller')
-                              : t('client-details:labels.owner')}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <span className="eb-italic">
-                  {t('client-details:labels.noOwnershipInfo')}
-                </span>
-              )
-            }
-          />
+                    ))}
+                  </div>
+                ) : (
+                  <span className="eb-italic">
+                    {t('client-details:labels.noOwnershipInfo')}
+                  </span>
+                )
+              }
+            />
+          </div>
         )}
       </div>
 
