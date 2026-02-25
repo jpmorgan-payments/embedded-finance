@@ -70,7 +70,6 @@ export const SummaryAllSections: Story = {
       'accounts',
       'activity',
     ],
-    enableDrillDown: true,
   },
 };
 
@@ -83,7 +82,6 @@ export const SummaryWithActions: Story = {
   name: 'Summary - With Actions',
   args: {
     viewMode: 'summary',
-    enableDrillDown: true,
   },
   render: (args) => (
     <div className="eb-max-w-2xl">
@@ -106,15 +104,15 @@ export const SummaryWithActions: Story = {
 };
 
 /**
- * **Summary - No Drill-Down**
+ * **Summary - External Navigation**
  *
- * Read-only mode where sections display info but aren't clickable.
+ * Use onSectionClick callback for custom navigation instead of built-in drill-down.
  */
-export const SummaryReadOnly: Story = {
-  name: 'Summary - Read Only',
+export const SummaryExternalNavigation: Story = {
+  name: 'Summary - External Navigation',
   args: {
     viewMode: 'summary',
-    enableDrillDown: false,
+    onSectionClick: (section) => console.log('Navigate to:', section),
   },
 };
 

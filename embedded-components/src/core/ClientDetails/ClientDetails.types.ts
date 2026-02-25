@@ -34,9 +34,7 @@ export interface ClientDetailsProps {
   className?: string;
   /** Which sections to show (summary mode only) */
   sections?: ClientSection[];
-  /** Enable drill-down sheets when clicking sections (summary mode only) */
-  enableDrillDown?: boolean;
-  /** Callback when a section is clicked (summary mode only) */
+  /** Callback when a section is clicked (summary mode only). If not provided, uses built-in dialog drill-down. */
   onSectionClick?: (section: ClientSection) => void;
   /** Custom actions to show in footer (summary mode only) */
   actions?: React.ReactNode;

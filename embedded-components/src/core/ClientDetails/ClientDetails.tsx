@@ -30,7 +30,6 @@ export function ClientDetails({
   viewMode = CLIENT_DETAILS_DEFAULT_VIEW_MODE,
   className,
   sections = DEFAULT_SECTIONS,
-  enableDrillDown = true,
   onSectionClick,
   actions,
 }: ClientDetailsProps) {
@@ -162,19 +161,15 @@ export function ClientDetails({
 
   // Summary view mode - compact card with built-in Dialog drill-down
   if (viewMode === 'summary') {
-    // Priority: external handler > built-in dialog > not clickable
-    // When onSectionClick is provided, use it (external navigation)
-    // When enableDrillDown is true and no external handler, use built-in dialog
-    const useExternalHandler = !!onSectionClick;
-    const useBuiltInDialog = enableDrillDown && !onSectionClick;
-
+    // When onSectionClick is provided, use external navigation
+    // Otherwise, use built-in dialog drill-down
     return (
       <ClientSummaryCard
         client={client}
         clientId={clientId}
-        onSectionClick={useExternalHandler ? onSectionClick : undefined}
+        onSectionClick={onSectionClick}
         sections={sections}
-        sectionInfos={useBuiltInDialog ? sectionInfos : undefined}
+        sectionInfos={onSectionClick ? undefined : sectionInfos}
         actions={actions}
         className={cn('eb-component', className)}
       />

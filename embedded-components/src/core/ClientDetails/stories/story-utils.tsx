@@ -226,7 +226,6 @@ export const commonArgs = {
   clientId: '0030000133',
   viewMode: 'summary' as const,
   title: 'Client details',
-  enableDrillDown: true,
 };
 
 /**
@@ -256,15 +255,6 @@ export const commonArgTypes = {
     table: {
       category: 'Display',
       defaultValue: { summary: 'Client details' },
-    },
-  },
-  enableDrillDown: {
-    control: { type: 'boolean' as const },
-    description:
-      'Enable drill-down sheets when clicking sections (summary mode)',
-    table: {
-      category: 'Behavior',
-      defaultValue: { summary: 'true' },
     },
   },
   sections: {

@@ -244,7 +244,7 @@ describe('ClientDetails', () => {
         )
       );
 
-      renderComponent({ viewMode: 'summary', enableDrillDown: true });
+      renderComponent({ viewMode: 'summary' });
 
       await waitFor(() => {
         expect(screen.getByText('Business Details')).toBeInTheDocument();
