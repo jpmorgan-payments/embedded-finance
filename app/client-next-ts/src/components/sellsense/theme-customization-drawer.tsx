@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 import {
   AlertTriangle,
@@ -778,29 +778,29 @@ export function ThemeCustomizationDrawer({
 
   // Get current base theme from URL or current theme
   const getCurrentBaseTheme = (): ThemeOption => {
-    console.log('getCurrentBaseTheme called with:', {
-      currentTheme,
-      customThemeData,
-      hasBaseTheme: customThemeData.baseTheme,
-      customThemeDataKeys: Object.keys(customThemeData),
-      customThemeDataString: JSON.stringify(customThemeData, null, 2),
-    });
-
     if (currentTheme === 'Custom' && Object.keys(customThemeData).length > 0) {
       if (customThemeData.baseTheme) {
-        const baseTheme = customThemeData.baseTheme;
-        console.log('Returning base theme from customThemeData:', baseTheme);
-        return baseTheme;
+        return customThemeData.baseTheme;
       }
-      console.log('No baseTheme in customThemeData, defaulting to SellSense');
       return 'SellSense'; // Default for legacy
     }
-    // If current theme is not 'Custom', use it directly
-    // If no theme is defined in URL, default to 'SellSense'
-    const result = currentTheme || 'SellSense';
-    console.log('Returning current theme or default:', result);
-    return result;
+    return currentTheme || 'SellSense';
   };
+
+  // Merged theme (base + custom tokens) — recalculates on every theme token change so a11y/contrast stay in sync.
+  // Use a full fallback theme (SellSense) so minimal bases like Empty still have all tokens for contrast checks.
+  const mergedTheme = useMemo(() => {
+    const base = getCurrentBaseTheme();
+    const fallback = getThemeVariables('SellSense');
+    const baseVariables = pickSemanticTokens({
+      ...fallback,
+      ...getThemeVariables(base),
+    });
+    return pickSemanticTokens({
+      ...baseVariables,
+      ...customTheme,
+    });
+  }, [customTheme, currentTheme, customThemeData, getThemeVariables]);
 
   // Get changed variables only
   const getChangedVariables = useCallback((): EBThemeVariables => {
@@ -820,7 +820,7 @@ export function ThemeCustomizationDrawer({
     });
 
     return changed as EBThemeVariables;
-  }, [customTheme, getCurrentBaseTheme, getThemeVariables]);
+  }, [customTheme, currentTheme, customThemeData, getThemeVariables]);
 
   // Download theme as JSON file
   const downloadThemeAsJson = useCallback(() => {
@@ -846,7 +846,10 @@ export function ThemeCustomizationDrawer({
     }
   }, [customTheme, exportChangedOnly, getChangedVariables]);
 
-  // Initialize custom theme from current theme
+  // Sync custom theme from props only when drawer opens or base theme changes.
+  // We intentionally omit customThemeData from deps so that token edits in the drawer
+  // are not overwritten when the parent updates customThemeData after onThemeChange.
+  // That way mergedTheme (and a11y/contrast) stays in sync with the user's edits.
   useEffect(() => {
     if (isOpen) {
       const customData = getCustomThemeData();
@@ -856,12 +859,10 @@ export function ThemeCustomizationDrawer({
         )
       );
     }
-  }, [isOpen, currentTheme, customThemeData, getThemeVariables]);
+  }, [isOpen, currentTheme, getThemeVariables]);
 
   // Handle base theme selection
   const handleBaseThemeChange = (theme: ThemeOption) => {
-    console.log('handleBaseThemeChange called with theme:', theme);
-
     const currentBaseTheme = getCurrentBaseTheme();
     const currentBaseVariables = pickSemanticTokens(
       getThemeVariables(currentBaseTheme)
@@ -911,13 +912,6 @@ export function ThemeCustomizationDrawer({
       getThemeVariables(currentBaseTheme)
     );
 
-    console.log('handleTokenChange called with:', {
-      token,
-      value,
-      currentBaseTheme,
-      baseVariables: Object.keys(baseVariables).length,
-    });
-
     // Create updated theme by merging base variables with custom changes
     const updatedTheme = pickSemanticTokens({
       ...baseVariables,
@@ -934,16 +928,12 @@ export function ThemeCustomizationDrawer({
     });
 
     if (hasChanges) {
-      // Create custom theme data with base theme information
       const customThemeData: CustomThemeData = {
         baseTheme: currentBaseTheme,
         variables: updatedTheme,
       };
-      console.log('Saving custom theme with base theme:', currentBaseTheme);
       onThemeChange('Custom', customThemeData as any);
     } else {
-      // No changes, revert to base theme
-      console.log('No changes, reverting to base theme:', currentBaseTheme);
       onThemeChange(currentBaseTheme, {});
     }
   };
@@ -1047,11 +1037,7 @@ export function ThemeCustomizationDrawer({
         variables: importedTheme,
       };
 
-      // Apply the theme immediately
       onThemeChange('Custom', customThemeData as any);
-
-      // Show success feedback
-      console.log('Theme imported successfully from clipboard');
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -1465,13 +1451,9 @@ export function ThemeCustomizationDrawer({
                 <div className="flex-1">
                   <Select
                     value={getCurrentBaseTheme()}
-                    onValueChange={(value) => {
-                      console.log(
-                        'Dropdown onValueChange called with value:',
-                        value
-                      );
-                      handleBaseThemeChange(value as ThemeOption);
-                    }}
+                    onValueChange={(value) =>
+                      handleBaseThemeChange(value as ThemeOption)
+                    }
                   >
                     <SelectTrigger className="w-full border-gray-300 bg-white text-gray-900">
                       <SelectValue />
@@ -1591,17 +1573,7 @@ export function ThemeCustomizationDrawer({
                 {/* Accessibility Check Section - Moved to Top */}
                 <div className="mb-6 border-b border-gray-200 pb-6">
                   {(() => {
-                    // Get merged theme (base + custom) for accurate checks
-                    const currentBaseTheme = getCurrentBaseTheme();
-                    const baseVariables = pickSemanticTokens(
-                      getThemeVariables(currentBaseTheme)
-                    );
-                    const mergedTheme = pickSemanticTokens({
-                      ...baseVariables,
-                      ...customTheme,
-                    });
-
-                    // Calculate summary stats for collapsed view
+                    // Use mergedTheme (recalculated on each token change) for accurate a11y/contrast
                     const colorPairs = getValidColorPairs(mergedTheme);
                     const contrastResults = colorPairs.map((pair) => ({
                       ...pair,
@@ -1685,15 +1657,6 @@ export function ThemeCustomizationDrawer({
                     <div id="a11y-check-details" className="mt-4 space-y-4">
                       {/* A11y Checks Summary */}
                       {(() => {
-                        // Get merged theme (base + custom) for accurate checks
-                        const currentBaseTheme = getCurrentBaseTheme();
-                        const baseVariables = pickSemanticTokens(
-                          getThemeVariables(currentBaseTheme)
-                        );
-                        const mergedTheme = pickSemanticTokens({
-                          ...baseVariables,
-                          ...customTheme,
-                        });
                         const a11ySummary = runA11yChecks(mergedTheme);
                         return (
                           <div className="space-y-3">
@@ -1769,15 +1732,6 @@ export function ThemeCustomizationDrawer({
 
                       {/* Contrast Checker */}
                       {(() => {
-                        // Get merged theme (base + custom) for accurate checks
-                        const currentBaseTheme = getCurrentBaseTheme();
-                        const baseVariables = pickSemanticTokens(
-                          getThemeVariables(currentBaseTheme)
-                        );
-                        const mergedTheme = pickSemanticTokens({
-                          ...baseVariables,
-                          ...customTheme,
-                        });
                         const colorPairs = getValidColorPairs(mergedTheme);
                         const contrastResults = colorPairs.map((pair) => {
                           return {
