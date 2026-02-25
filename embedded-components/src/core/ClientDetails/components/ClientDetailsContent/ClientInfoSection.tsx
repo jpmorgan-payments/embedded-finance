@@ -1,6 +1,5 @@
-import { useTranslation } from 'react-i18next';
-
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
+import { useTranslationWithTokens } from '@/components/i18n';
 
 import { formatDateTime } from '../../utils/formatClientFacing';
 import { DetailRow } from '../DetailRow/DetailRow';
@@ -11,7 +10,7 @@ interface ClientInfoSectionProps {
 }
 
 export function ClientInfoSection({ client, title }: ClientInfoSectionProps) {
-  const { t, i18n } = useTranslation('client-details');
+  const { t, i18n } = useTranslationWithTokens('client-details');
   const locale =
     i18n.resolvedLanguage
       ?.replace('_', '-')

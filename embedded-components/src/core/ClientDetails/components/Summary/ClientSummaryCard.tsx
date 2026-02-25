@@ -87,7 +87,7 @@ function getOrganizationDetails(client: ClientResponse) {
   ].filter(Boolean);
 
   return {
-    name: orgDetails?.organizationName ?? 'Unknown Organization',
+    name: orgDetails?.organizationName,
     dbaName: orgDetails?.dbaName,
     organizationType: orgDetails?.organizationType,
     location: [address?.city, address?.state].filter(Boolean).join(', '),
@@ -112,7 +112,7 @@ function getIndividualParties(client: ClientResponse) {
 
   const people: Array<{
     id: string;
-    name: string;
+    name?: string;
     title?: string;
     titleDescription?: string;
     email?: string;
@@ -125,8 +125,9 @@ function getIndividualParties(client: ClientResponse) {
     people.push({
       id: controller.id ?? 'controller',
       name: details
-        ? `${details.firstName ?? ''} ${details.lastName ?? ''}`.trim()
-        : 'Unknown',
+        ? `${details.firstName ?? ''} ${details.lastName ?? ''}`.trim() ||
+          undefined
+        : undefined,
       title: details?.jobTitle,
       titleDescription: details?.jobTitleDescription,
       email: controller.email,
@@ -147,8 +148,9 @@ function getIndividualParties(client: ClientResponse) {
       people.push({
         id: owner.id ?? `owner-${idx}`,
         name: details
-          ? `${details.firstName ?? ''} ${details.lastName ?? ''}`.trim()
-          : 'Unknown',
+          ? `${details.firstName ?? ''} ${details.lastName ?? ''}`.trim() ||
+            undefined
+          : undefined,
         title: details?.jobTitle,
         titleDescription: details?.jobTitleDescription,
         email: owner.email,
@@ -337,7 +339,7 @@ export function ClientSummaryCard({
           <div className="eb-min-w-0 eb-flex-1">
             <div className="eb-flex eb-flex-wrap eb-items-start eb-gap-2 eb-duration-300 eb-animate-in eb-fade-in">
               <h2 className="eb-text-xl eb-font-bold eb-leading-tight eb-tracking-tight eb-text-foreground @sm:eb-text-2xl">
-                {org.name}
+                {org.name ?? t('client-details:labels.unknownOrganization')}
               </h2>
               {/* Status Badge - Premium pill style */}
               <span
@@ -392,7 +394,7 @@ export function ClientSummaryCard({
               {org.yearOfFormation && (
                 <span className="eb-inline-flex eb-items-center eb-gap-1 eb-rounded-md eb-bg-background/80 eb-px-2 eb-py-1 eb-text-xs eb-text-muted-foreground eb-shadow-sm eb-ring-1 eb-ring-border/50">
                   <Calendar className="eb-h-3 eb-w-3" aria-hidden="true" />
-                  Est. {org.yearOfFormation}
+                  {t('client-details:labels.established')} {org.yearOfFormation}
                 </span>
               )}
             </div>
@@ -478,23 +480,38 @@ export function ClientSummaryCard({
                           )}
                         >
                           {person.name
-                            .split(' ')
-                            .map((n) => n[0])
-                            .join('')
-                            .slice(0, 2)
-                            .toUpperCase()}
+                            ? person.name
+                                .split(' ')
+                                .map((n: string) => n[0])
+                                .join('')
+                                .slice(0, 2)
+                                .toUpperCase()
+                            : '?'}
                         </div>
                         <div className="eb-flex eb-flex-col eb-leading-none">
                           <span className="eb-text-xs eb-font-medium eb-text-foreground">
-                            {person.name}
+                            {person.name ??
+                              t('client-details:labels.unknownPerson')}
                           </span>
                           <span className="eb-text-[10px] eb-text-muted-foreground">
-                            {person.isController &&
-                            person.roles.includes('Beneficial Owner')
-                              ? t('client-details:labels.controllerAndOwner')
-                              : person.isController
-                                ? t('client-details:labels.controller')
-                                : t('client-details:labels.owner')}
+                            {(() => {
+                              const roles: React.ReactNode[] = [];
+                              if (person.isController) {
+                                roles.push(
+                                  t('client-details:roles.CONTROLLER')
+                                );
+                              }
+                              if (person.roles.includes('Beneficial Owner')) {
+                                roles.push(
+                                  t('client-details:roles.BENEFICIAL_OWNER')
+                                );
+                              }
+                              return roles.reduce<React.ReactNode[]>(
+                                (acc, role, i) =>
+                                  i === 0 ? [role] : [...acc, ' & ', role],
+                                []
+                              );
+                            })()}
                           </span>
                         </div>
                       </div>

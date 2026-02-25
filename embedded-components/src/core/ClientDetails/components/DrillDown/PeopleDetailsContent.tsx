@@ -12,7 +12,6 @@ import {
   PhoneIcon,
   UserIcon,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import type {
@@ -21,6 +20,7 @@ import type {
 } from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { useTranslationWithTokens } from '@/components/i18n';
 
 import { formatSSN } from '../../utils/formatClientFacing';
 import {
@@ -34,7 +34,8 @@ interface PeopleDetailsContentProps {
 
 // Helper Components (matching BusinessDetailsContent pattern)
 interface SectionProps {
-  title: string;
+  /** Either a title string or content to display as the section heading */
+  title: React.ReactNode;
   icon?: React.ReactNode;
   children: React.ReactNode;
 }
@@ -50,13 +51,19 @@ const Section: React.FC<SectionProps> = ({ title, icon, children }) => (
 );
 
 interface DetailRowProps {
-  label: string;
+  /** Label ID - used to derive label from t(`peopleLabels.${labelId}`) */
+  labelId: string;
   value: React.ReactNode;
   small?: boolean;
 }
 
-const DetailRow: React.FC<DetailRowProps> = ({ label, value, small }) => {
+const DetailRow: React.FC<DetailRowProps> = ({ labelId, value, small }) => {
+  const { t } = useTranslationWithTokens('client-details');
   if (!value) return null;
+  // Type assertion needed for dynamic keys
+  const translatedLabel = t(
+    `peopleLabels.${labelId}` as 'peopleLabels.jobTitle'
+  );
   return (
     <div className="eb-flex eb-items-center eb-justify-between">
       <span
@@ -65,7 +72,7 @@ const DetailRow: React.FC<DetailRowProps> = ({ label, value, small }) => {
           'eb-text-sm': !small,
         })}
       >
-        {label}
+        {translatedLabel}
       </span>
       <span
         className={cn('eb-text-right eb-font-medium', {
@@ -82,16 +89,11 @@ const DetailRow: React.FC<DetailRowProps> = ({ label, value, small }) => {
 interface MaskedValueProps {
   value: string;
   maskedValue: string;
-  showLabel: string;
-  hideLabel: string;
 }
 
-const MaskedValue: React.FC<MaskedValueProps> = ({
-  value,
-  maskedValue,
-  showLabel,
-  hideLabel,
-}) => {
+/** Masked value display with show/hide toggle. Uses i18n internally for aria-labels. */
+const MaskedValue: React.FC<MaskedValueProps> = ({ value, maskedValue }) => {
+  const { tString } = useTranslationWithTokens('client-details');
   const [isVisible, setIsVisible] = useState(false);
 
   return (
@@ -104,7 +106,11 @@ const MaskedValue: React.FC<MaskedValueProps> = ({
         size="icon"
         className="eb-h-6 eb-w-6"
         onClick={() => setIsVisible(!isVisible)}
-        aria-label={isVisible ? hideLabel : showLabel}
+        aria-label={
+          isVisible
+            ? tString('maskedValue.hideValue')
+            : tString('maskedValue.showValue')
+        }
       >
         {isVisible ? (
           <EyeOffIcon className="eb-h-3.5 eb-w-3.5" />
@@ -118,11 +124,12 @@ const MaskedValue: React.FC<MaskedValueProps> = ({
 
 interface PersonDetailsProps {
   party: PartyResponse;
-  roleLabel: string;
-  t: ReturnType<typeof useTranslation>['t'];
+  /** The role label to display - can be a translated ReactNode */
+  roleLabel: React.ReactNode;
 }
 
-function PersonDetails({ party, roleLabel, t }: PersonDetailsProps) {
+function PersonDetails({ party, roleLabel }: PersonDetailsProps) {
+  const { t, tString } = useTranslationWithTokens('client-details');
   const individual = party.individualDetails;
   const address = individual?.addresses?.[0];
   const phone = individual?.phone;
@@ -151,7 +158,7 @@ function PersonDetails({ party, roleLabel, t }: PersonDetailsProps) {
 
   return (
     <Section
-      title={displayName || roleLabel}
+      title={displayName || tString('labels.unknownPerson')}
       icon={<UserIcon className="eb-h-4 eb-w-4" />}
     >
       <div className="eb-space-y-3">
@@ -160,26 +167,18 @@ function PersonDetails({ party, roleLabel, t }: PersonDetailsProps) {
 
         {/* Basic Information */}
         {individual?.jobTitle && (
-          <DetailRow
-            label={t('client-details:peopleLabels.jobTitle')}
-            value={individual.jobTitle}
-          />
+          <DetailRow labelId="jobTitle" value={individual.jobTitle} />
         )}
         {individual?.birthDate && (
-          <DetailRow
-            label={t('client-details:peopleLabels.birthDate')}
-            value={individual.birthDate}
-          />
+          <DetailRow labelId="birthDate" value={individual.birthDate} />
         )}
         {ssn?.value && (
           <DetailRow
-            label={t('client-details:peopleLabels.ssn')}
+            labelId="ssn"
             value={
               <MaskedValue
                 value={formatSSN(ssn.value) || ssn.value}
                 maskedValue={`***-**-${ssn.value.slice(-4)}`}
-                showLabel={t('client-details:maskedValue.showValue')}
-                hideLabel={t('client-details:maskedValue.hideValue')}
               />
             }
           />
@@ -273,7 +272,7 @@ function getConsolidatedPeople(client: ClientResponse): ConsolidatedPerson[] {
 }
 
 export function PeopleDetailsContent({ client }: PeopleDetailsContentProps) {
-  const { t } = useTranslation('client-details');
+  const { t } = useTranslationWithTokens('client-details');
   const people = getConsolidatedPeople(client);
 
   if (people.length === 0) {
@@ -287,19 +286,25 @@ export function PeopleDetailsContent({ client }: PeopleDetailsContentProps) {
   return (
     <div className="eb-space-y-5">
       {people.map((person, index) => {
-        // Format role label using i18n tokens
-        const roleLabel = person.roles
-          .map((role) => {
-            if (role === 'Controller') return t('roles.CONTROLLER');
-            if (role === 'Beneficial Owner') return t('roles.BENEFICIAL_OWNER');
-            return role;
-          })
-          .join(' & ');
+        // Build role label by combining individual role tokens
+        const roles: React.ReactNode[] = [];
+        if (person.roles.includes('Controller')) {
+          roles.push(t('roles.CONTROLLER'));
+        }
+        if (person.roles.includes('Beneficial Owner')) {
+          roles.push(t('roles.BENEFICIAL_OWNER'));
+        }
+
+        // Join with ' & ' separator, handling ReactNodes properly
+        const roleLabel = roles.reduce<React.ReactNode[]>(
+          (acc, role, i) => (i === 0 ? [role] : [...acc, ' & ', role]),
+          []
+        );
 
         return (
           <div key={person.party.id || `person-${index}`}>
             {index > 0 && <Separator className="eb-mb-5" />}
-            <PersonDetails party={person.party} roleLabel={roleLabel} t={t} />
+            <PersonDetails party={person.party} roleLabel={roleLabel} />
           </div>
         );
       })}

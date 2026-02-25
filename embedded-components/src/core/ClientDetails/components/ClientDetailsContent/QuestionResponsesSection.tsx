@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { useSmbdoListQuestions } from '@/api/generated/smbdo';
@@ -7,29 +6,29 @@ import type {
   ClientQuestionResponse,
   ClientResponse,
 } from '@/api/generated/smbdo.schemas';
+import { useTranslationWithTokens } from '@/components/i18n';
 import { Skeleton } from '@/components/ui';
 
 import { formatQuestionResponseValue } from '../../utils/formatClientFacing';
 
 interface QuestionResponsesSectionProps {
   client: ClientResponse;
-  title?: string;
+  /** When true, renders the section title from t('sections.questionResponses') */
+  showTitle?: boolean;
 }
 
 export function QuestionResponsesSection({
   client,
-  title,
+  showTitle = false,
 }: QuestionResponsesSectionProps) {
-  const { t, i18n } = useTranslation('client-details');
+  const { t, tString, i18n } = useTranslationWithTokens('client-details');
   const locale =
     i18n.resolvedLanguage
       ?.replace('_', '-')
       .replace('US', '-US')
       .replace('CA', '-CA') || 'en-US';
 
-  const questionLabelUnavailable = t('labels.questionTextUnavailable', {
-    defaultValue: 'Question text unavailable',
-  });
+  const questionLabelUnavailable = tString('labels.questionTextUnavailable');
 
   const questionResponses = client.questionResponses ?? [];
   const questionIds = useMemo(
@@ -56,21 +55,19 @@ export function QuestionResponsesSection({
   return (
     <section
       className="eb-w-full"
-      aria-labelledby={title ? 'client-details-questions' : undefined}
+      aria-labelledby={showTitle ? 'client-details-questions' : undefined}
     >
-      {title ? (
+      {showTitle && (
         <h2
           id="client-details-questions"
           className="eb-mb-3 eb-text-sm eb-font-semibold eb-tracking-tight eb-text-foreground @md:eb-text-base"
         >
-          {title}
+          {t('sections.questionResponses')}
         </h2>
-      ) : null}
+      )}
       {questionResponses.length === 0 ? (
         <p className="eb-py-2 eb-text-sm eb-text-muted-foreground">
-          {t('labels.noQuestionResponses', {
-            defaultValue: 'No question responses.',
-          })}
+          {t('labels.noQuestionResponses')}
         </p>
       ) : showLoading ? (
         <dl className="eb-divide-y eb-divide-border/60">

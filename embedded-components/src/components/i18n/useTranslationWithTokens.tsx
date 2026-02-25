@@ -13,7 +13,7 @@ type TranslationResult = string | ReactNode;
  * Returns a wrapped translation function that annotates output with token IDs.
  *
  * When `showTokenIds` is enabled:
- * - Returns a <span data-content-token="namespace:key">translated text</span>
+ * - Returns a <span data-content-token="namespace.key">translated text</span>
  *
  * When disabled:
  * - Returns the plain translated string (normal behavior)
@@ -55,7 +55,7 @@ export function useTranslationWithTokens<N extends ValidNamespace>(
       return translated;
     }
 
-    // Build full token ID (namespace:key)
+    // Build full token ID (namespace.key)
     const keyStr = String(key);
     const namespace =
       (options as any)?.ns ?? (keyStr.includes(':') ? undefined : primaryNs);

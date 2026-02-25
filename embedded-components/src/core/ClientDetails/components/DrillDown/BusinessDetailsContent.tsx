@@ -16,7 +16,6 @@ import {
   MapPinIcon,
   PhoneIcon,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
@@ -27,6 +26,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { Separator } from '@/components/ui/separator';
+import { useTranslationWithTokens } from '@/components/i18n';
 
 import { formatDateTime, formatEIN } from '../../utils/formatClientFacing';
 import { getOrganizationParty } from '../../utils/partyGrouping';
@@ -38,35 +38,45 @@ interface BusinessDetailsContentProps {
 
 // Helper Components (matching RecipientDetailsDialog pattern)
 interface SectionProps {
-  title: string;
+  /** Section ID - used to derive title from t(`sections.${sectionId}`) */
+  sectionId: string;
   icon?: React.ReactNode;
   children: React.ReactNode;
 }
 
-const Section: React.FC<SectionProps> = ({ title, icon, children }) => (
-  <div className="eb-space-y-3">
-    <h3 className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-semibold eb-text-foreground">
-      {icon}
-      {title}
-    </h3>
-    {children}
-  </div>
-);
+const Section: React.FC<SectionProps> = ({ sectionId, icon, children }) => {
+  const { t } = useTranslationWithTokens('client-details');
+  // Type assertion needed for dynamic keys - sectionId must match a valid key in sections.*
+  const translatedTitle = t(`sections.${sectionId}` as 'sections.organization');
+  return (
+    <div className="eb-space-y-3">
+      <h3 className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-semibold eb-text-foreground">
+        {icon}
+        {translatedTitle}
+      </h3>
+      {children}
+    </div>
+  );
+};
 
 interface CollapsibleSectionProps {
-  title: string;
+  /** Section ID - used to derive title from t(`sections.${sectionId}`) */
+  sectionId: string;
   icon?: React.ReactNode;
   children: React.ReactNode;
   defaultOpen?: boolean;
 }
 
 const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
-  title,
+  sectionId,
   icon,
   children,
   defaultOpen = false,
 }) => {
+  const { t } = useTranslationWithTokens('client-details');
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  // Type assertion needed for dynamic keys
+  const translatedTitle = t(`sections.${sectionId}` as 'sections.organization');
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -77,7 +87,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
         >
           <h3 className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-semibold eb-text-foreground">
             {icon}
-            {title}
+            {translatedTitle}
           </h3>
           <ChevronDownIcon
             className={cn(
@@ -96,13 +106,17 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
 };
 
 interface DetailRowProps {
-  label: string;
+  /** Label ID - used to derive label from t(`labels.${labelId}`) */
+  labelId: string;
   value: React.ReactNode;
   small?: boolean;
 }
 
-const DetailRow: React.FC<DetailRowProps> = ({ label, value, small }) => {
+const DetailRow: React.FC<DetailRowProps> = ({ labelId, value, small }) => {
+  const { t } = useTranslationWithTokens('client-details');
   if (!value) return null;
+  // Type assertion needed for dynamic keys
+  const translatedLabel = t(`labels.${labelId}` as 'labels.businessName');
   return (
     <div className="eb-flex eb-items-center eb-justify-between">
       <span
@@ -111,7 +125,7 @@ const DetailRow: React.FC<DetailRowProps> = ({ label, value, small }) => {
           'eb-text-sm': !small,
         })}
       >
-        {label}
+        {translatedLabel}
       </span>
       <span
         className={cn('eb-text-right eb-font-medium', {
@@ -128,16 +142,11 @@ const DetailRow: React.FC<DetailRowProps> = ({ label, value, small }) => {
 interface MaskedValueProps {
   value: string;
   maskedValue: string;
-  showLabel: string;
-  hideLabel: string;
 }
 
-const MaskedValue: React.FC<MaskedValueProps> = ({
-  value,
-  maskedValue,
-  showLabel,
-  hideLabel,
-}) => {
+/** Masked value display with show/hide toggle. Uses i18n internally for aria-labels. */
+const MaskedValue: React.FC<MaskedValueProps> = ({ value, maskedValue }) => {
+  const { tString } = useTranslationWithTokens('client-details');
   const [isVisible, setIsVisible] = useState(false);
 
   return (
@@ -150,7 +159,11 @@ const MaskedValue: React.FC<MaskedValueProps> = ({
         size="icon"
         className="eb-h-6 eb-w-6"
         onClick={() => setIsVisible(!isVisible)}
-        aria-label={isVisible ? hideLabel : showLabel}
+        aria-label={
+          isVisible
+            ? tString('maskedValue.hideValue')
+            : tString('maskedValue.showValue')
+        }
       >
         {isVisible ? (
           <EyeOffIcon className="eb-h-3.5 eb-w-3.5" />
@@ -165,7 +178,10 @@ const MaskedValue: React.FC<MaskedValueProps> = ({
 export function BusinessDetailsContent({
   client,
 }: BusinessDetailsContentProps) {
-  const { t, i18n } = useTranslation(['client-details', 'onboarding-overview']);
+  const { t, i18n } = useTranslationWithTokens([
+    'client-details',
+    'onboarding-overview',
+  ]);
   const locale =
     i18n.resolvedLanguage
       ?.replace('_', '-')
@@ -278,8 +294,6 @@ export function BusinessDetailsContent({
                 <MaskedValue
                   value={formatEIN(ein.value) || ein.value}
                   maskedValue={`**-***${ein.value.slice(-4)}`}
-                  showLabel={t('client-details:maskedValue.showValue')}
-                  hideLabel={t('client-details:maskedValue.hideValue')}
                 />
               </dd>
             </div>
@@ -324,13 +338,15 @@ export function BusinessDetailsContent({
         addressLines) && (
         <>
           <Separator />
-          <Section title={t('client-details:sections.contactInformation')}>
+          <Section sectionId="contactInformation">
             <div className="eb-grid eb-gap-x-8 eb-gap-y-3 @sm:eb-grid-cols-2">
               {org?.email && (
                 <div className="eb-flex eb-items-center eb-gap-2">
                   <MailIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
                   <div>
-                    <dt className="eb-sr-only">Email</dt>
+                    <dt className="eb-sr-only">
+                      {t('client-details:srOnly.email')}
+                    </dt>
                     <dd>
                       <a
                         href={`mailto:${org.email}`}
@@ -346,7 +362,9 @@ export function BusinessDetailsContent({
                 <div className="eb-flex eb-items-center eb-gap-2">
                   <PhoneIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
                   <div>
-                    <dt className="eb-sr-only">Phone</dt>
+                    <dt className="eb-sr-only">
+                      {t('client-details:srOnly.phone')}
+                    </dt>
                     <dd className="eb-text-sm">
                       {phone.countryCode} {phone.phoneNumber}
                     </dd>
@@ -357,7 +375,9 @@ export function BusinessDetailsContent({
                 <div className="eb-flex eb-items-center eb-gap-2">
                   <GlobeIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
                   <div>
-                    <dt className="eb-sr-only">Website</dt>
+                    <dt className="eb-sr-only">
+                      {t('client-details:srOnly.website')}
+                    </dt>
                     <dd>
                       <a
                         href={orgDetails.website}
@@ -375,7 +395,9 @@ export function BusinessDetailsContent({
                 <div className="eb-flex eb-gap-2 @sm:eb-col-span-2">
                   <MapPinIcon className="eb-mt-0.5 eb-h-4 eb-w-4 eb-shrink-0 eb-text-muted-foreground" />
                   <div>
-                    <dt className="eb-sr-only">Address</dt>
+                    <dt className="eb-sr-only">
+                      {t('client-details:srOnly.address')}
+                    </dt>
                     <dd className="eb-text-sm">
                       {addressLines.map((line, idx) => (
                         <div key={idx}>{line}</div>
@@ -393,22 +415,19 @@ export function BusinessDetailsContent({
       {hasQuestionResponses && (
         <>
           <Separator />
-          <QuestionResponsesSection
-            client={client}
-            title={t('client-details:sections.questionResponses')}
-          />
+          <QuestionResponsesSection client={client} showTitle />
         </>
       )}
 
       {/* Account & Application Status */}
       <Separator />
       <Section
-        title={t('client-details:sections.accountStatus')}
+        sectionId="accountStatus"
         icon={<ClipboardCheckIcon className="eb-h-4 eb-w-4" />}
       >
         <div className="eb-space-y-3">
           <DetailRow
-            label={t('client-details:labels.products')}
+            labelId="products"
             value={
               client.products?.length
                 ? client.products
@@ -420,7 +439,7 @@ export function BusinessDetailsContent({
             }
           />
           <DetailRow
-            label={t('client-details:labels.applicationStatus')}
+            labelId="applicationStatus"
             value={
               client.status
                 ? t(`client-details:applicationStatuses.${client.status}`, {
@@ -431,7 +450,7 @@ export function BusinessDetailsContent({
           />
           {results && (
             <DetailRow
-              label={t('client-details:labels.identityVerification')}
+              labelId="identityVerification"
               value={
                 results.customerIdentityStatus
                   ? t(
@@ -448,18 +467,18 @@ export function BusinessDetailsContent({
       {/* Technical Details - Collapsible */}
       <Separator />
       <CollapsibleSection
-        title={t('client-details:sections.technicalDetails')}
+        sectionId="technicalDetails"
         icon={<CalendarIcon className="eb-h-4 eb-w-4" />}
         defaultOpen={false}
       >
         <div className="eb-space-y-2">
           <DetailRow
-            label={t('client-details:labels.clientId')}
+            labelId="clientId"
             value={<span className="eb-font-mono eb-text-xs">{client.id}</span>}
             small
           />
           <DetailRow
-            label={t('client-details:labels.created')}
+            labelId="created"
             value={formatDateTime(client.createdAt, locale)}
             small
           />

@@ -32,17 +32,17 @@ function SectionContent({
 }) {
   switch (type) {
     case 'client-info':
-      return <ClientInfoSection client={client} title="" />;
+      return <ClientInfoSection client={client} />;
     case 'organization':
-      return <OrganizationSection client={client} title="" />;
+      return <OrganizationSection client={client} />;
     case 'controller':
-      return <ControllerSection client={client} title="" />;
+      return <ControllerSection client={client} />;
     case 'beneficial-owners':
-      return <BeneficialOwnersSection client={client} title="" />;
+      return <BeneficialOwnersSection client={client} />;
     case 'question-responses':
-      return <QuestionResponsesSection client={client} title="" />;
+      return <QuestionResponsesSection client={client} />;
     case 'results':
-      return <ResultsSection client={client} title="" />;
+      return <ResultsSection client={client} />;
     default:
       return null;
   }

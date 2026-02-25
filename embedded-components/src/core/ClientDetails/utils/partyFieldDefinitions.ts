@@ -6,7 +6,8 @@
 import { formatJobTitleDisplay } from './formatClientFacing';
 
 export interface PartyFieldConfig {
-  label: string;
+  /** Label ID - used to derive label from t(`partyLabels.${labelId}`) */
+  labelId: string;
   path: string;
   transform?: (value: unknown) => string | string[] | undefined;
 }
@@ -55,28 +56,35 @@ const formatIds = (value: unknown): string[] | undefined => {
 
 /** Organization fields: identity → business → formation → contact → regulatory */
 export const organizationFieldDefinitions: PartyFieldConfig[] = [
-  { label: 'Organization name', path: 'organizationDetails.organizationName' },
-  { label: 'Organization type', path: 'organizationDetails.organizationType' },
-  { label: 'DBA name', path: 'organizationDetails.dbaName' },
-  { label: 'Description', path: 'organizationDetails.organizationDescription' },
-  { label: 'Industry category', path: 'organizationDetails.industryCategory' },
-  { label: 'Industry type', path: 'organizationDetails.industryType' },
+  { labelId: 'organizationName', path: 'organizationDetails.organizationName' },
+  { labelId: 'organizationType', path: 'organizationDetails.organizationType' },
+  { labelId: 'dbaName', path: 'organizationDetails.dbaName' },
   {
-    label: 'Country of formation',
+    labelId: 'description',
+    path: 'organizationDetails.organizationDescription',
+  },
+  { labelId: 'industryCategory', path: 'organizationDetails.industryCategory' },
+  { labelId: 'industryType', path: 'organizationDetails.industryType' },
+  {
+    labelId: 'countryOfFormation',
     path: 'organizationDetails.countryOfFormation',
   },
-  { label: 'Year of formation', path: 'organizationDetails.yearOfFormation' },
-  { label: 'Jurisdiction', path: 'organizationDetails.jurisdiction' },
-  { label: 'Email', path: 'email' },
-  { label: 'Phone', path: 'organizationDetails.phone', transform: formatPhone },
-  { label: 'Website', path: 'organizationDetails.website' },
+  { labelId: 'yearOfFormation', path: 'organizationDetails.yearOfFormation' },
+  { labelId: 'jurisdiction', path: 'organizationDetails.jurisdiction' },
+  { labelId: 'email', path: 'email' },
   {
-    label: 'Addresses',
+    labelId: 'phone',
+    path: 'organizationDetails.phone',
+    transform: formatPhone,
+  },
+  { labelId: 'website', path: 'organizationDetails.website' },
+  {
+    labelId: 'addresses',
     path: 'organizationDetails.addresses',
     transform: formatAddresses,
   },
   {
-    label: 'Organization IDs',
+    labelId: 'organizationIds',
     path: 'organizationDetails.organizationIds',
     transform: formatIds,
   },
@@ -85,41 +93,40 @@ export const organizationFieldDefinitions: PartyFieldConfig[] = [
 /** Individual fields: job → name → personal → ownership → contact → IDs */
 export const individualFieldDefinitions: PartyFieldConfig[] = [
   {
-    label: 'Job title',
+    labelId: 'jobTitle',
     path: 'individualDetails',
     transform: (v) =>
       formatJobTitleDisplay(
         v as { jobTitle?: string; jobTitleDescription?: string }
       ),
   },
-  { label: 'First name', path: 'individualDetails.firstName' },
-  { label: 'Middle name', path: 'individualDetails.middleName' },
-  { label: 'Last name', path: 'individualDetails.lastName' },
-  { label: 'Name suffix', path: 'individualDetails.nameSuffix' },
-  { label: 'Birth date', path: 'individualDetails.birthDate' },
+  { labelId: 'firstName', path: 'individualDetails.firstName' },
+  { labelId: 'middleName', path: 'individualDetails.middleName' },
+  { labelId: 'lastName', path: 'individualDetails.lastName' },
+  { labelId: 'nameSuffix', path: 'individualDetails.nameSuffix' },
+  { labelId: 'birthDate', path: 'individualDetails.birthDate' },
   {
-    label: 'Country of residence',
+    labelId: 'countryOfResidence',
     path: 'individualDetails.countryOfResidence',
   },
   {
-    label: 'Country of citizenship',
+    labelId: 'countryOfCitizenship',
     path: 'individualDetails.countryOfCitizenship',
   },
-  { label: 'Nature of ownership', path: 'individualDetails.natureOfOwnership' },
+  { labelId: 'natureOfOwnership', path: 'individualDetails.natureOfOwnership' },
   {
-    label: 'Sole owner',
+    labelId: 'soleOwner',
     path: 'individualDetails.soleOwner',
-    transform: (v) => (v === true ? 'Yes' : v === false ? 'No' : undefined),
   },
-  { label: 'Email', path: 'email' },
-  { label: 'Phone', path: 'individualDetails.phone', transform: formatPhone },
+  { labelId: 'email', path: 'email' },
+  { labelId: 'phone', path: 'individualDetails.phone', transform: formatPhone },
   {
-    label: 'Addresses',
+    labelId: 'addresses',
     path: 'individualDetails.addresses',
     transform: formatAddresses,
   },
   {
-    label: 'Individual IDs',
+    labelId: 'individualIds',
     path: 'individualDetails.individualIds',
     transform: formatIds,
   },

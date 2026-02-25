@@ -53,7 +53,22 @@
     "noOwnershipInfo": "No ownership info on file",
     "controllerAndOwner": "(Controller & Owner)",
     "controller": "(Controller)",
-    "owner": "(Owner)"
+    "owner": "(Owner)",
+    "email": "Email",
+    "phone": "Phone",
+    "website": "Website",
+    "address": "Address",
+    "established": "Est.",
+    "unknownOrganization": "Unknown Organization",
+    "unknownPerson": "Unknown",
+    "noQuestionResponses": "No question responses on file.",
+    "questionTextUnavailable": "Question text unavailable"
+  },
+  "srOnly": {
+    "email": "Email",
+    "phone": "Phone",
+    "website": "Website",
+    "address": "Address"
   },
   "maskedValue": {
     "showValue": "Show value",
@@ -129,6 +144,33 @@
   "booleanValues": {
     "true": "Yes",
     "false": "No"
+  },
+  "partyLabels": {
+    "organizationName": "Organization Name",
+    "organizationType": "Organization Type",
+    "dbaName": "DBA Name",
+    "description": "Description",
+    "industryCategory": "Industry Category",
+    "industryType": "Industry Type",
+    "countryOfFormation": "Country of Formation",
+    "yearOfFormation": "Year of Formation",
+    "jurisdiction": "Jurisdiction",
+    "email": "Email",
+    "phone": "Phone",
+    "website": "Website",
+    "addresses": "Addresses",
+    "organizationIds": "Organization IDs",
+    "jobTitle": "Job Title",
+    "firstName": "First Name",
+    "middleName": "Middle Name",
+    "lastName": "Last Name",
+    "nameSuffix": "Name Suffix",
+    "birthDate": "Birth Date",
+    "countryOfResidence": "Country of Residence",
+    "countryOfCitizenship": "Country of Citizenship",
+    "natureOfOwnership": "Nature of Ownership",
+    "soleOwner": "Sole Owner",
+    "individualIds": "Individual IDs"
   },
   "emptyValue": "—"
 }
