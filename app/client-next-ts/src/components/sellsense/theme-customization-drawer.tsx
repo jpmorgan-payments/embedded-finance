@@ -1,13 +1,10 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 import {
-  AlertTriangle,
   Brush,
   Check,
-  ChevronDown,
-  ChevronUp,
   Clipboard,
   Copy,
   Download,
@@ -28,15 +25,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -48,12 +37,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { runA11yChecks } from '@/lib/a11y-checks';
-import { calculateContrast } from '@/lib/color-contrast';
-
 import { AiPromptDialog } from './ai-prompt-dialog';
-import { ContrastChecker } from './contrast-checker';
 import { getValidColorPairs } from './theme-color-pairs';
+import { ThemeA11yPanel } from './theme-a11y-panel';
 import type { ThemeOption } from './use-sellsense-themes';
 import { useSellSenseThemes } from './use-sellsense-themes';
 
@@ -710,6 +696,7 @@ const SALT_DS_URLS: Record<string, string | undefined> = {
 // Available themes for the dropdown
 const AVAILABLE_THEMES: ThemeOption[] = [
   'Empty',
+  'Empty+',
   'Default Blue',
   'Salt Theme',
   'Create Commerce',
@@ -780,12 +767,7 @@ export function ThemeCustomizationDrawer({
   const [isUrlCopied, setIsUrlCopied] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [exportChangedOnly, setExportChangedOnly] = useState(false);
-  const [isA11yExpanded, setIsA11yExpanded] = useState(false);
-  const [contrastFilter, setContrastFilter] = useState<
-    'all' | 'failing' | 'aa-only'
-  >('all');
   const [isAiPromptDialogOpen, setIsAiPromptDialogOpen] = useState(false);
-  const [isWarningDialogOpen, setIsWarningDialogOpen] = useState(false);
 
   // Helper function to determine min/max values based on token context
   const getNumberConstraints = (token: string) => {
@@ -810,29 +792,29 @@ export function ThemeCustomizationDrawer({
 
   // Get current base theme from URL or current theme
   const getCurrentBaseTheme = (): ThemeOption => {
-    console.log('getCurrentBaseTheme called with:', {
-      currentTheme,
-      customThemeData,
-      hasBaseTheme: customThemeData.baseTheme,
-      customThemeDataKeys: Object.keys(customThemeData),
-      customThemeDataString: JSON.stringify(customThemeData, null, 2),
-    });
-
     if (currentTheme === 'Custom' && Object.keys(customThemeData).length > 0) {
       if (customThemeData.baseTheme) {
-        const baseTheme = customThemeData.baseTheme;
-        console.log('Returning base theme from customThemeData:', baseTheme);
-        return baseTheme;
+        return customThemeData.baseTheme;
       }
-      console.log('No baseTheme in customThemeData, defaulting to SellSense');
       return 'SellSense'; // Default for legacy
     }
-    // If current theme is not 'Custom', use it directly
-    // If no theme is defined in URL, default to 'SellSense'
-    const result = currentTheme || 'SellSense';
-    console.log('Returning current theme or default:', result);
-    return result;
+    return currentTheme || 'SellSense';
   };
+
+  // Merged theme (base + custom tokens) — recalculates on every theme token change so a11y/contrast stay in sync.
+  // Use a full fallback theme (SellSense) so minimal bases like Empty still have all tokens for contrast checks.
+  const mergedTheme = useMemo(() => {
+    const base = getCurrentBaseTheme();
+    const fallback = getThemeVariables('SellSense');
+    const baseVariables = pickSemanticTokens({
+      ...fallback,
+      ...getThemeVariables(base),
+    });
+    return pickSemanticTokens({
+      ...baseVariables,
+      ...customTheme,
+    });
+  }, [customTheme, currentTheme, customThemeData, getThemeVariables]);
 
   // Get changed variables only
   const getChangedVariables = useCallback((): EBThemeVariables => {
@@ -852,7 +834,7 @@ export function ThemeCustomizationDrawer({
     });
 
     return changed as EBThemeVariables;
-  }, [customTheme, getCurrentBaseTheme, getThemeVariables]);
+  }, [customTheme, currentTheme, customThemeData, getThemeVariables]);
 
   // Download theme as JSON file
   const downloadThemeAsJson = useCallback(() => {
@@ -878,7 +860,10 @@ export function ThemeCustomizationDrawer({
     }
   }, [customTheme, exportChangedOnly, getChangedVariables]);
 
-  // Initialize custom theme from current theme
+  // Sync custom theme from props only when drawer opens or base theme changes.
+  // We intentionally omit customThemeData from deps so that token edits in the drawer
+  // are not overwritten when the parent updates customThemeData after onThemeChange.
+  // That way mergedTheme (and a11y/contrast) stays in sync with the user's edits.
   useEffect(() => {
     if (isOpen) {
       const customData = getCustomThemeData();
@@ -888,12 +873,10 @@ export function ThemeCustomizationDrawer({
         )
       );
     }
-  }, [isOpen, currentTheme, customThemeData, getThemeVariables]);
+  }, [isOpen, currentTheme, getThemeVariables]);
 
   // Handle base theme selection
   const handleBaseThemeChange = (theme: ThemeOption) => {
-    console.log('handleBaseThemeChange called with theme:', theme);
-
     const currentBaseTheme = getCurrentBaseTheme();
     const currentBaseVariables = pickSemanticTokens(
       getThemeVariables(currentBaseTheme)
@@ -943,13 +926,6 @@ export function ThemeCustomizationDrawer({
       getThemeVariables(currentBaseTheme)
     );
 
-    console.log('handleTokenChange called with:', {
-      token,
-      value,
-      currentBaseTheme,
-      baseVariables: Object.keys(baseVariables).length,
-    });
-
     // Create updated theme by merging base variables with custom changes
     const updatedTheme = pickSemanticTokens({
       ...baseVariables,
@@ -966,16 +942,12 @@ export function ThemeCustomizationDrawer({
     });
 
     if (hasChanges) {
-      // Create custom theme data with base theme information
       const customThemeData: CustomThemeData = {
         baseTheme: currentBaseTheme,
         variables: updatedTheme,
       };
-      console.log('Saving custom theme with base theme:', currentBaseTheme);
       onThemeChange('Custom', customThemeData as any);
     } else {
-      // No changes, revert to base theme
-      console.log('No changes, reverting to base theme:', currentBaseTheme);
       onThemeChange(currentBaseTheme, {});
     }
   };
@@ -1079,11 +1051,7 @@ export function ThemeCustomizationDrawer({
         variables: importedTheme,
       };
 
-      // Apply the theme immediately
       onThemeChange('Custom', customThemeData as any);
-
-      // Show success feedback
-      console.log('Theme imported successfully from clipboard');
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -1181,42 +1149,8 @@ export function ThemeCustomizationDrawer({
       // Find the best contrast result for this color
       let contrastBadge: React.ReactNode = null;
       if (relevantPairs.length > 0) {
-        const pair = relevantPairs[0];
-        const fgValue =
-          pair.foreground === token
-            ? String(value || '')
-            : String(customTheme[pair.foreground] || '');
-        const bgValue =
-          pair.background === token
-            ? String(value || '')
-            : String(customTheme[pair.background] || '');
-
-        if (fgValue && bgValue) {
-          const contrastResult = calculateContrast(fgValue, bgValue);
-          if (contrastResult) {
-            const standard = pair.textSize === 'large' ? 'large' : 'normal';
-            const passesAA = contrastResult.passes.AA[standard];
-            const passesAAA = contrastResult.passes.AAA[standard];
-
-            contrastBadge = (
-              <div className="flex items-center gap-1">
-                {passesAAA ? (
-                  <Badge className="border-0 bg-green-100 px-1.5 py-0 text-xs text-green-800">
-                    ✓ {contrastResult.ratio.toFixed(1)}:1
-                  </Badge>
-                ) : passesAA ? (
-                  <Badge className="border-0 bg-amber-100 px-1.5 py-0 text-xs text-amber-800">
-                    ⚠ {contrastResult.ratio.toFixed(1)}:1
-                  </Badge>
-                ) : (
-                  <Badge className="border-0 bg-red-100 px-1.5 py-0 text-xs text-red-800">
-                    ✗ {contrastResult.ratio.toFixed(1)}:1
-                  </Badge>
-                )}
-              </div>
-            );
-          }
-        }
+        // Detailed contrast is surfaced in the top-level panel;
+        // we only attach a simple presence badge here if desired in the future.
       }
 
       return (
@@ -1497,13 +1431,9 @@ export function ThemeCustomizationDrawer({
                 <div className="flex-1">
                   <Select
                     value={getCurrentBaseTheme()}
-                    onValueChange={(value) => {
-                      console.log(
-                        'Dropdown onValueChange called with value:',
-                        value
-                      );
-                      handleBaseThemeChange(value as ThemeOption);
-                    }}
+                    onValueChange={(value) =>
+                      handleBaseThemeChange(value as ThemeOption)
+                    }
                   >
                     <SelectTrigger className="w-full border-gray-300 bg-white text-gray-900">
                       <SelectValue />
@@ -1620,314 +1550,9 @@ export function ThemeCustomizationDrawer({
           <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full">
               <div className="px-6 pb-48">
-                {/* Accessibility Check Section - Moved to Top */}
-                <div className="mb-6 border-b border-gray-200 pb-6">
-                  {(() => {
-                    // Get merged theme (base + custom) for accurate checks
-                    const currentBaseTheme = getCurrentBaseTheme();
-                    const baseVariables = pickSemanticTokens(
-                      getThemeVariables(currentBaseTheme)
-                    );
-                    const mergedTheme = pickSemanticTokens({
-                      ...baseVariables,
-                      ...customTheme,
-                    });
+                {/* Accessibility Check Section - extracted into dedicated panel */}
+                <ThemeA11yPanel mergedTheme={mergedTheme} />
 
-                    // Calculate summary stats for collapsed view
-                    const colorPairs = getValidColorPairs(mergedTheme);
-                    const contrastResults = colorPairs.map((pair) => ({
-                      ...pair,
-                      result: calculateContrast(
-                        pair.foregroundValue,
-                        pair.backgroundValue
-                      ),
-                    }));
-                    const failingContrast = contrastResults.filter(
-                      (p) => !p.result || p.result.level === 'Fail'
-                    ).length;
-                    const a11ySummary = runA11yChecks(mergedTheme);
-                    const totalIssues = failingContrast + a11ySummary.failing;
-                    const hasIssues = totalIssues > 0;
-
-                    return (
-                      <button
-                        type="button"
-                        onClick={() => setIsA11yExpanded(!isA11yExpanded)}
-                        className={`flex w-full items-center justify-between rounded-lg p-2.5 transition-colors ${
-                          hasIssues
-                            ? 'border border-red-200 bg-red-50 hover:bg-red-100'
-                            : 'border border-gray-200 bg-gray-50 hover:bg-gray-100'
-                        }`}
-                        aria-expanded={isA11yExpanded}
-                        aria-controls="a11y-check-details"
-                      >
-                        <div className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setIsWarningDialogOpen(true);
-                            }}
-                            className="flex items-center gap-1.5 text-xs font-medium text-amber-600 transition-colors hover:text-amber-700"
-                            title="View warning about using generated theme JSON"
-                            aria-label="View warning about using generated theme JSON"
-                          >
-                            <AlertTriangle className="h-3.5 w-3.5" />
-                            <span>Warning: Use at Your Own Risk</span>
-                          </button>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-gray-500">
-                              Experimental:
-                            </span>
-                            <span className="text-xs font-normal text-gray-900">
-                              Accessibility Check
-                            </span>
-                          </div>
-                          {!isA11yExpanded && (
-                            <span
-                              className={`text-xs ${
-                                hasIssues
-                                  ? 'font-medium text-red-700'
-                                  : 'text-gray-600'
-                              }`}
-                            >
-                              {hasIssues
-                                ? `⚠ ${totalIssues} issue${totalIssues !== 1 ? 's' : ''} found`
-                                : '✓ All checks passing'}
-                            </span>
-                          )}
-                        </div>
-                        <div className="ml-2 flex flex-shrink-0 items-center gap-2">
-                          {!isA11yExpanded && hasIssues && (
-                            <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
-                              {totalIssues}
-                            </span>
-                          )}
-                          {isA11yExpanded ? (
-                            <ChevronUp className="h-4 w-4 text-gray-600" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4 text-gray-600" />
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })()}
-
-                  {isA11yExpanded && (
-                    <div id="a11y-check-details" className="mt-4 space-y-4">
-                      {/* A11y Checks Summary */}
-                      {(() => {
-                        // Get merged theme (base + custom) for accurate checks
-                        const currentBaseTheme = getCurrentBaseTheme();
-                        const baseVariables = pickSemanticTokens(
-                          getThemeVariables(currentBaseTheme)
-                        );
-                        const mergedTheme = pickSemanticTokens({
-                          ...baseVariables,
-                          ...customTheme,
-                        });
-                        const a11ySummary = runA11yChecks(mergedTheme);
-                        return (
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-3">
-                              <div className="flex items-center gap-4">
-                                <div className="text-sm">
-                                  <span className="font-medium text-gray-900">
-                                    Overall Status:
-                                  </span>{' '}
-                                  {a11ySummary.failing > 0 ? (
-                                    <span className="text-red-600">
-                                      ⚠ {a11ySummary.failing} issues
-                                    </span>
-                                  ) : a11ySummary.warnings > 0 ? (
-                                    <span className="text-amber-600">
-                                      ⚠ {a11ySummary.warnings} warnings
-                                    </span>
-                                  ) : (
-                                    <span className="text-green-600">
-                                      ✓ All checks passing
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="text-xs text-gray-600">
-                                {a11ySummary.passing} pass,{' '}
-                                {a11ySummary.warnings} warnings,{' '}
-                                {a11ySummary.failing} fail
-                              </div>
-                            </div>
-
-                            {/* A11y Check Results */}
-                            <div className="space-y-2">
-                              {a11ySummary.checks.map((check) => (
-                                <div
-                                  key={check.id}
-                                  className={`rounded-lg border p-3 ${
-                                    check.status === 'pass'
-                                      ? 'border-green-200 bg-green-50'
-                                      : check.status === 'warning'
-                                        ? 'border-amber-200 bg-amber-50'
-                                        : 'border-red-200 bg-red-50'
-                                  }`}
-                                >
-                                  <div className="flex items-start gap-2">
-                                    {check.status === 'pass' ? (
-                                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />
-                                    ) : check.status === 'warning' ? (
-                                      <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
-                                    ) : (
-                                      <X className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600" />
-                                    )}
-                                    <div className="min-w-0 flex-1">
-                                      <div className="text-sm font-medium text-gray-900">
-                                        {check.label}
-                                      </div>
-                                      <div className="mt-1 text-xs text-gray-700">
-                                        {check.message}
-                                      </div>
-                                      {check.recommendation && (
-                                        <div className="mt-2 text-xs italic text-gray-600">
-                                          💡 {check.recommendation}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })()}
-
-                      {/* Contrast Checker */}
-                      {(() => {
-                        // Get merged theme (base + custom) for accurate checks
-                        const currentBaseTheme = getCurrentBaseTheme();
-                        const baseVariables = pickSemanticTokens(
-                          getThemeVariables(currentBaseTheme)
-                        );
-                        const mergedTheme = pickSemanticTokens({
-                          ...baseVariables,
-                          ...customTheme,
-                        });
-                        const colorPairs = getValidColorPairs(mergedTheme);
-                        const contrastResults = colorPairs.map((pair) => {
-                          return {
-                            ...pair,
-                            result: calculateContrast(
-                              pair.foregroundValue,
-                              pair.backgroundValue
-                            ),
-                          };
-                        });
-
-                        const failingPairs = contrastResults.filter(
-                          (p) => !p.result || p.result.level === 'Fail'
-                        );
-                        const aaOnlyPairs = contrastResults.filter(
-                          (p) =>
-                            p.result &&
-                            p.result.level === 'AA' &&
-                            p.result.passes.AAA.normal === false
-                        );
-
-                        const filteredPairs =
-                          contrastFilter === 'failing'
-                            ? failingPairs
-                            : contrastFilter === 'aa-only'
-                              ? aaOnlyPairs
-                              : contrastResults;
-
-                        const aaPassing = contrastResults.filter(
-                          (p) => p.result && p.result.passes.AA.normal
-                        ).length;
-                        const aaaPassing = contrastResults.filter(
-                          (p) => p.result && p.result.passes.AAA.normal
-                        ).length;
-
-                        return (
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-900">
-                                  Color Contrast
-                                </h4>
-                                <p className="mt-1 text-xs text-gray-600">
-                                  WCAG 2.1 Level AA (4.5:1) and AAA (7:1)
-                                  compliance
-                                </p>
-                              </div>
-                              <div className="text-xs text-gray-600">
-                                {aaPassing}/{colorPairs.length} pass AA,{' '}
-                                {aaaPassing}/{colorPairs.length} pass AAA
-                              </div>
-                            </div>
-
-                            {/* Filter Buttons */}
-                            <div className="flex gap-2">
-                              <Button
-                                variant={
-                                  contrastFilter === 'all'
-                                    ? 'default'
-                                    : 'outline'
-                                }
-                                size="sm"
-                                onClick={() => setContrastFilter('all')}
-                                className="text-xs"
-                              >
-                                All ({colorPairs.length})
-                              </Button>
-                              <Button
-                                variant={
-                                  contrastFilter === 'failing'
-                                    ? 'default'
-                                    : 'outline'
-                                }
-                                size="sm"
-                                onClick={() => setContrastFilter('failing')}
-                                className="text-xs"
-                              >
-                                Failing ({failingPairs.length})
-                              </Button>
-                              <Button
-                                variant={
-                                  contrastFilter === 'aa-only'
-                                    ? 'default'
-                                    : 'outline'
-                                }
-                                size="sm"
-                                onClick={() => setContrastFilter('aa-only')}
-                                className="text-xs"
-                              >
-                                AA Only ({aaOnlyPairs.length})
-                              </Button>
-                            </div>
-
-                            {/* Contrast Results */}
-                            <div className="max-h-96 space-y-3 overflow-y-auto">
-                              {filteredPairs.length === 0 ? (
-                                <div className="rounded-lg bg-gray-50 p-4 text-center text-sm text-gray-500">
-                                  No color pairs found matching the filter
-                                </div>
-                              ) : (
-                                filteredPairs.map((pair) => (
-                                  <ContrastChecker
-                                    key={`${pair.background}-${pair.foreground}`}
-                                    foreground={pair.foregroundValue}
-                                    background={pair.backgroundValue}
-                                    label={pair.label}
-                                    textSize={pair.textSize}
-                                    showRatio={true}
-                                  />
-                                ))
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  )}
-                </div>
                 <Accordion type="single" collapsible className="w-full">
                   {Object.entries(TOKEN_GROUPS).map(([groupKey, group]) => {
                     const Icon = group.icon;
@@ -2021,68 +1646,6 @@ export function ThemeCustomizationDrawer({
         isOpen={isAiPromptDialogOpen}
         onClose={() => setIsAiPromptDialogOpen(false)}
       />
-
-      {/* Warning Dialog */}
-      <Dialog open={isWarningDialogOpen} onOpenChange={setIsWarningDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-600" />
-              ⚠️ Warning: Use Generated Theme JSON at Your Own Risk
-            </DialogTitle>
-            <DialogDescription>
-              Important information about using theme data generated from this
-              tool
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-              <p className="mb-3">
-                The theme JSON and instructions provided in this tool (including
-                AI-generated, manually customized, or imported themes) are
-                intended for reference and experimentation purposes only. The
-                maintainers of this tool do not assume any responsibility for
-                any issues, damages, or losses that may arise from the use of
-                generated theme data.
-              </p>
-              <p className="mb-2 font-medium">
-                By using this tool, you acknowledge that:
-              </p>
-              <ul className="mb-3 ml-2 list-inside list-disc space-y-2">
-                <li>
-                  Generated theme JSON (whether AI-generated, manually created,
-                  or imported) may contain errors, inaccuracies, or incomplete
-                  design tokens
-                </li>
-                <li>
-                  The extracted or customized tokens may not accurately
-                  represent the intended design system or may not be suitable
-                  for your specific use case
-                </li>
-                <li>
-                  There are no guarantees regarding the accuracy, completeness,
-                  or suitability of any generated theme JSON for any particular
-                  purpose
-                </li>
-                <li>
-                  You should validate and test all imported or generated theme
-                  data before using it in production
-                </li>
-                <li>
-                  You are solely responsible for reviewing, validating, and any
-                  consequences resulting from the use of generated theme JSON in
-                  your projects
-                </li>
-              </ul>
-              <p className="font-medium">
-                Please proceed with caution and ensure you understand the
-                implications of using generated theme data. Always validate the
-                results and test thoroughly before deploying to production.
-              </p>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
