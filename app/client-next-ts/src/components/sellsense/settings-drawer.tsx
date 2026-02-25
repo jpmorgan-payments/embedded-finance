@@ -147,6 +147,7 @@ export function SettingsDrawer({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Empty">Empty (Defaults)</SelectItem>
+                <SelectItem value="Empty+">Empty+ (A11y)</SelectItem>
                 <SelectItem value="Default Blue">Default Blue</SelectItem>
                 <SelectItem value="SellSense">SellSense</SelectItem>
                 <SelectItem value="Salt Theme">Salt Theme</SelectItem>

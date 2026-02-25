@@ -55,6 +55,21 @@ describe('useSellSenseThemes hook', () => {
     expect(themeVars).toEqual({ focusedRingColor: '#0060f0' });
   });
 
+  it('should return minimal a11y-fix subset for Empty+ theme', () => {
+    const { result } = renderHook(() => useSellSenseThemes());
+
+    const themeVars = result.current.getThemeVariables('Empty+');
+    expect(themeVars).toMatchObject({
+      focusedRingColor: '#0060f0',
+      actionableFontSize: '1rem',
+      spacingUnit: '0.5rem',
+      actionableSubtleBackgroundActive: '#cbd5e1',
+      actionableSubtleForegroundActive: '#1e3a8a',
+      sentimentNegativeAccentBackground: '#b91c1c',
+    });
+    expect(Object.keys(themeVars)).toHaveLength(6);
+  });
+
   it('should map theme options correctly', () => {
     const { result } = renderHook(() => useSellSenseThemes());
 

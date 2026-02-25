@@ -9,6 +9,7 @@ export type ThemeOption =
   | 'SellSense'
   | 'PayFicient'
   | 'Empty'
+  | 'Empty+'
   | 'Custom';
 
 export const useSellSenseThemes = () => {
@@ -22,8 +23,22 @@ export const useSellSenseThemes = () => {
           return customVariables || {};
 
         case 'Empty':
-          // Empty theme - minimal tokens so component defaults show; include focus ring for a11y
+          // Only tokens that differ from embedded-components defaultTheme (see defaultTheme.ts).
+          // Single override: visible focus ring for a11y (default light is hsl(240 10% 3.9%)).
           return { focusedRingColor: '#0060f0' };
+
+        case 'Empty+':
+          // Only tokens that differ from embedded-components defaultTheme (see defaultTheme.ts).
+          // A11y deltas: larger actionable font (default 0.875rem), spacing (default 0.25rem),
+          // secondary-button active contrast, error-message contrast.
+          return {
+            focusedRingColor: '#0060f0',
+            actionableFontSize: '1rem',
+            spacingUnit: '0.5rem',
+            actionableSubtleBackgroundActive: '#cbd5e1',
+            actionableSubtleForegroundActive: '#1e3a8a',
+            sentimentNegativeAccentBackground: '#b91c1c',
+          };
 
         case 'Default Blue':
           return {

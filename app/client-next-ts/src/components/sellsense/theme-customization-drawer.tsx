@@ -678,6 +678,7 @@ const TOKEN_GROUPS = {
 // Available themes for the dropdown
 const AVAILABLE_THEMES: ThemeOption[] = [
   'Empty',
+  'Empty+',
   'Default Blue',
   'Salt Theme',
   'Create Commerce',
