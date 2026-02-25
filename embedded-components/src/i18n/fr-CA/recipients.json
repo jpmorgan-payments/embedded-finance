@@ -129,6 +129,59 @@
     "cancel": "Annuler",
     "confirm": "Désactiver"
   },
+  "forms": {
+    "linkAccount": {
+      "title": "Ajouter un bénéficiaire",
+      "titleSuccessByStatus": {
+        "ACTIVE": "Bénéficiaire ajouté avec succès",
+        "PENDING": "Création du bénéficiaire en cours",
+        "MICRODEPOSITS_INITIATED": "Bénéficiaire ajouté - Vérification en attente",
+        "READY_FOR_VALIDATION": "Bénéficiaire ajouté - Vérification prête",
+        "REJECTED": "Échec de la création du bénéficiaire",
+        "INACTIVE": "Bénéficiaire désactivé"
+      },
+      "description": "Entrez les détails du compte bancaire du bénéficiaire.",
+      "descriptionSuccess": "Votre bénéficiaire a été ajouté et est prêt à être utilisé.",
+      "error": {
+        "title": "Impossible d'ajouter le bénéficiaire"
+      },
+      "certify": {
+        "label": "J'autorise la vérification des informations du compte bancaire",
+        "validation": {
+          "required": "Vous devez autoriser la vérification pour continuer"
+        }
+      }
+    },
+    "editAccount": {
+      "title": "Modifier le bénéficiaire",
+      "titleSuccessByStatus": {
+        "ACTIVE": "Bénéficiaire mis à jour avec succès",
+        "PENDING": "Traitement de la mise à jour du bénéficiaire",
+        "MICRODEPOSITS_INITIATED": "Bénéficiaire mis à jour - Vérification en attente",
+        "READY_FOR_VALIDATION": "Bénéficiaire mis à jour - Vérification prête",
+        "REJECTED": "Échec de la mise à jour du bénéficiaire",
+        "INACTIVE": "Bénéficiaire désactivé"
+      },
+      "description": "Mettre à jour les informations du compte bancaire et les méthodes de paiement du bénéficiaire.",
+      "descriptionSuccess": "Votre bénéficiaire a été mis à jour avec succès.",
+      "error": {
+        "title": "Impossible de mettre à jour le bénéficiaire"
+      }
+    },
+    "removeAccount": {
+      "title": "Supprimer le bénéficiaire",
+      "titleSuccess": "Bénéficiaire supprimé",
+      "description": "Êtes-vous sûr de vouloir supprimer <strong>{{name}}</strong> de vos bénéficiaires?",
+      "descriptionSuccess": "<strong>{{name}}</strong> a été supprimé avec succès de vos bénéficiaires.",
+      "cancel": "Annuler",
+      "confirm": "Supprimer le bénéficiaire",
+      "removing": "Suppression...",
+      "close": "Fermer",
+      "error": {
+        "title": "Impossible de supprimer le bénéficiaire"
+      }
+    }
+  },
   "status": {
     "active": "Actif",
     "inactive": "Inactif",

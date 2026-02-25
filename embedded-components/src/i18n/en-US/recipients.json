@@ -86,6 +86,8 @@
       "titleSuccessByStatus": {
         "ACTIVE": "Recipient Added Successfully",
         "PENDING": "Recipient Creation In Progress",
+        "MICRODEPOSITS_INITIATED": "Recipient Added - Verification Pending",
+        "READY_FOR_VALIDATION": "Recipient Added - Verification Ready",
         "REJECTED": "Recipient Creation Failed",
         "INACTIVE": "Recipient Deactivated"
       },
@@ -106,6 +108,8 @@
       "titleSuccessByStatus": {
         "ACTIVE": "Recipient Updated Successfully",
         "PENDING": "Recipient Update Processing",
+        "MICRODEPOSITS_INITIATED": "Recipient Updated - Verification Pending",
+        "READY_FOR_VALIDATION": "Recipient Updated - Verification Ready",
         "REJECTED": "Recipient Update Failed",
         "INACTIVE": "Recipient Deactivated"
       },

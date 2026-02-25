@@ -77,6 +77,7 @@
         "MICRODEPOSITS_INITIATED": "Verification Process Started",
         "ACTIVE": "Account Successfully Linked",
         "PENDING": "Account Linking In Progress",
+        "READY_FOR_VALIDATION": "Verification Ready",
         "REJECTED": "Account Linking Failed",
         "INACTIVE": "Account Link Deactivated"
       },
@@ -98,6 +99,7 @@
         "MICRODEPOSITS_INITIATED": "Account Updated - Verification Pending",
         "ACTIVE": "Account Updated Successfully",
         "PENDING": "Account Update Processing",
+        "READY_FOR_VALIDATION": "Account Updated - Verification Ready",
         "REJECTED": "Account Update Failed",
         "INACTIVE": "Account Link Deactivated"
       },

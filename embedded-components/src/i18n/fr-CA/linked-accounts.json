@@ -83,6 +83,7 @@
         "MICRODEPOSITS_INITIATED": "Processus de vérification commencé",
         "ACTIVE": "Compte lié avec succès",
         "PENDING": "Liaison de compte en cours",
+        "READY_FOR_VALIDATION": "Vérification prête",
         "REJECTED": "Échec de la liaison du compte",
         "INACTIVE": "Lien de compte désactivé"
       },
@@ -207,6 +208,7 @@
         "MICRODEPOSITS_INITIATED": "Compte mis à jour - Vérification en attente",
         "ACTIVE": "Compte mis à jour avec succès",
         "PENDING": "Traitement de la mise à jour du compte",
+        "READY_FOR_VALIDATION": "Compte mis à jour - Vérification prête",
         "REJECTED": "Échec de la mise à jour du compte",
         "INACTIVE": "Lien de compte désactivé"
       },
