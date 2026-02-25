@@ -8,6 +8,7 @@ import {
   Clipboard,
   Copy,
   Download,
+  ExternalLink,
   Info,
   Layout,
   Palette,
@@ -659,6 +660,37 @@ const TOKEN_GROUPS = {
     icon: Palette,
     tokens: ['accentBackground', 'accentMetricBackground'],
   },
+};
+
+// Salt Design System info page URLs for each token group
+// See full list: https://www.saltdesignsystem.com/salt/themes/design-tokens
+const SALT_DS_URLS: Record<string, string | undefined> = {
+  actionable:
+    'https://www.saltdesignsystem.com/salt/themes/design-tokens/actionable-characteristic',
+  category:
+    'https://www.saltdesignsystem.com/salt/themes/design-tokens/category-characteristic',
+  container:
+    'https://www.saltdesignsystem.com/salt/themes/design-tokens/container-characteristic',
+  content:
+    'https://www.saltdesignsystem.com/salt/themes/design-tokens/content-characteristic',
+  editable:
+    'https://www.saltdesignsystem.com/salt/themes/design-tokens/editable-characteristic',
+  focused: undefined,
+  navigable:
+    'https://www.saltdesignsystem.com/salt/themes/design-tokens/navigable-characteristic',
+  overlayable:
+    'https://www.saltdesignsystem.com/salt/themes/design-tokens/overlayable-characteristic',
+  selectable:
+    'https://www.saltdesignsystem.com/salt/themes/design-tokens/selectable-characteristic',
+  sentiment:
+    'https://www.saltdesignsystem.com/salt/themes/design-tokens/sentiment-characteristic',
+  separable:
+    'https://www.saltdesignsystem.com/salt/themes/design-tokens/separable-characteristic',
+  status:
+    'https://www.saltdesignsystem.com/salt/themes/design-tokens/status-characteristic',
+  target: undefined,
+  text: undefined,
+  accent: undefined,
 };
 
 // Available themes for the dropdown
@@ -1524,11 +1556,25 @@ export function ThemeCustomizationDrawer({
                 <Accordion type="single" collapsible className="w-full">
                   {Object.entries(TOKEN_GROUPS).map(([groupKey, group]) => {
                     const Icon = group.icon;
+                    const saltUrl = SALT_DS_URLS[groupKey];
                     return (
                       <AccordionItem key={groupKey} value={groupKey}>
                         <AccordionTrigger className="flex items-center gap-2 text-sm font-medium text-gray-900">
                           <Icon className="h-4 w-4 text-gray-700" />
                           {group.title}
+                          {saltUrl && (
+                            <a
+                              href={saltUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-1 inline-flex items-center rounded p-0.5 text-gray-400 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                              title={`Salt DS: ${group.title} characteristic`}
+                              aria-label={`Open Salt Design System ${group.title} characteristic documentation`}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </a>
+                          )}
                           <span className="ml-auto text-xs text-gray-500">
                             ({group.tokens.length})
                           </span>
