@@ -380,19 +380,19 @@ export function ClientSummaryCard({
             {/* Quick Info Pills */}
             <div className="eb-mt-3 eb-flex eb-flex-wrap eb-gap-2 eb-duration-300 eb-animate-in eb-fade-in">
               {translatedOrgType && (
-                <span className="eb-inline-flex eb-items-center eb-gap-1 eb-rounded-md eb-bg-background/80 eb-px-2 eb-py-1 eb-text-xs eb-text-muted-foreground eb-shadow-sm eb-ring-1 eb-ring-border/50">
+                <span className="eb-inline-flex eb-items-center eb-gap-1 eb-rounded-md eb-bg-primary/10 eb-px-2 eb-py-1 eb-text-xs eb-text-foreground/80 eb-shadow-sm eb-ring-1 eb-ring-primary/20">
                   <Building2 className="eb-h-3 eb-w-3" aria-hidden="true" />
                   {translatedOrgType}
                 </span>
               )}
               {org.location && (
-                <span className="eb-inline-flex eb-items-center eb-gap-1 eb-rounded-md eb-bg-background/80 eb-px-2 eb-py-1 eb-text-xs eb-text-muted-foreground eb-shadow-sm eb-ring-1 eb-ring-border/50">
+                <span className="eb-inline-flex eb-items-center eb-gap-1 eb-rounded-md eb-bg-primary/10 eb-px-2 eb-py-1 eb-text-xs eb-text-foreground/80 eb-shadow-sm eb-ring-1 eb-ring-primary/20">
                   <MapPin className="eb-h-3 eb-w-3" aria-hidden="true" />
                   {org.location}
                 </span>
               )}
               {org.yearOfFormation && (
-                <span className="eb-inline-flex eb-items-center eb-gap-1 eb-rounded-md eb-bg-background/80 eb-px-2 eb-py-1 eb-text-xs eb-text-muted-foreground eb-shadow-sm eb-ring-1 eb-ring-border/50">
+                <span className="eb-inline-flex eb-items-center eb-gap-1 eb-rounded-md eb-bg-primary/10 eb-px-2 eb-py-1 eb-text-xs eb-text-foreground/80 eb-shadow-sm eb-ring-1 eb-ring-primary/20">
                   <Calendar className="eb-h-3 eb-w-3" aria-hidden="true" />
                   {t('client-details:labels.established')} {org.yearOfFormation}
                 </span>

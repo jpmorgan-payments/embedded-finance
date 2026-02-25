@@ -31,6 +31,9 @@ export const ClientDetailsSkeleton = ({
  * Skeleton for summary view mode - generic loading skeleton
  */
 const SummarySkeleton = ({ className }: { className?: string }) => {
+  // Custom skeleton class for header area - uses primary color for better contrast
+  const headerSkeletonClass = 'eb-bg-primary/10';
+
   return (
     <div
       className={cn(
@@ -55,16 +58,41 @@ const SummarySkeleton = ({ className }: { className?: string }) => {
           <div className="eb-min-w-0 eb-flex-1">
             <div className="eb-flex eb-flex-wrap eb-items-start eb-gap-2">
               {/* Title */}
-              <Skeleton className="eb-h-6 eb-w-48 @sm:eb-h-7 @sm:eb-w-56" />
+              <Skeleton
+                className={cn(
+                  'eb-h-6 eb-w-48 @sm:eb-h-7 @sm:eb-w-56',
+                  headerSkeletonClass
+                )}
+              />
               {/* Badge */}
-              <Skeleton className="eb-h-6 eb-w-16 eb-rounded-full" />
+              <Skeleton
+                className={cn(
+                  'eb-h-6 eb-w-16 eb-rounded-full',
+                  headerSkeletonClass
+                )}
+              />
             </div>
             {/* Subtitle */}
-            <Skeleton className="eb-mt-1 eb-h-5 eb-w-36 @sm:eb-w-44" />
+            <Skeleton
+              className={cn(
+                'eb-mt-1 eb-h-5 eb-w-36 @sm:eb-w-44',
+                headerSkeletonClass
+              )}
+            />
             {/* Info pills */}
             <div className="eb-mt-3 eb-flex eb-flex-wrap eb-gap-2">
-              <Skeleton className="eb-h-7 eb-w-24 eb-rounded-md" />
-              <Skeleton className="eb-h-7 eb-w-28 eb-rounded-md" />
+              <Skeleton
+                className={cn(
+                  'eb-h-7 eb-w-24 eb-rounded-md',
+                  headerSkeletonClass
+                )}
+              />
+              <Skeleton
+                className={cn(
+                  'eb-h-7 eb-w-28 eb-rounded-md',
+                  headerSkeletonClass
+                )}
+              />
             </div>
           </div>
         </div>
