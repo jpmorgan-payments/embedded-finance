@@ -41,10 +41,6 @@ interface ClientSummaryCardProps {
   client: ClientResponse;
   /** Client ID for fetching related data (required for drill-down) */
   clientId: string;
-  /** External navigation handler - disables built-in dialog drill-down */
-  onSectionClick?: (section: ClientSection) => void;
-  /** Which sections to display */
-  sections?: ClientSection[];
   /** Section info for navigation (used by SectionDialog) */
   sectionInfos?: SectionInfo[];
   /** Custom actions to render in the footer */
@@ -163,13 +159,9 @@ function getIndividualParties(client: ClientResponse) {
   return people;
 }
 
-const DEFAULT_SECTIONS: ClientSection[] = ['identity', 'ownership'];
-
 export function ClientSummaryCard({
   client,
   clientId,
-  onSectionClick,
-  sections = DEFAULT_SECTIONS,
   sectionInfos,
   actions,
   className,
@@ -185,13 +177,8 @@ export function ClientSummaryCard({
 
   const statusType = getStatusType(client.status);
 
-  // Determine click behavior:
-  // - External handler: use onSectionClick callback
-  // - Built-in dialog: use SectionDialog (requires sectionInfos)
-  // - Neither: not clickable
-  const useExternalHandler = !!onSectionClick;
-  const useBuiltInDialog = !onSectionClick && !!sectionInfos;
-  const isClickable = useExternalHandler || useBuiltInDialog;
+  // Built-in dialog drill-down when sectionInfos is provided
+  const isClickable = !!sectionInfos;
 
   const translatedOrgType = org.organizationType
     ? t(`onboarding-overview:organizationTypes.${org.organizationType}`, {
@@ -289,8 +276,8 @@ export function ClientSummaryCard({
         : 'eb-cursor-default'
     );
 
-    // Use built-in Dialog when no external handler
-    if (useBuiltInDialog) {
+    // Use built-in Dialog for drill-down
+    if (isClickable) {
       return (
         <SectionDialog
           client={client}
@@ -305,16 +292,11 @@ export function ClientSummaryCard({
       );
     }
 
-    // External handler - use simple button
+    // Non-clickable row
     return (
-      <button
-        type="button"
-        onClick={() => onSectionClick?.(section)}
-        disabled={!isClickable}
-        className={rowClassName}
-      >
+      <div className={rowClassName}>
         <SectionRowContent {...contentProps} />
-      </button>
+      </div>
     );
   };
 
@@ -403,51 +385,49 @@ export function ClientSummaryCard({
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════
-          SECTIONS - Modern card-style clickable sections
+          SECTIONS - Modern card-style clickable sections (data-driven)
           ═══════════════════════════════════════════════════════════════ */}
       <div className="eb-divide-y eb-divide-border eb-border-t eb-border-border">
-        {/* Business Details Section */}
-        {sections.includes('identity') && (
-          <div className="eb-duration-300 eb-animate-in eb-fade-in">
-            <SectionRow
-              section="identity"
-              icon={FileText}
-              iconClassName="eb-text-slate-600 dark:eb-text-slate-400"
-              iconBgClassName="eb-bg-slate-100 dark:eb-bg-slate-800"
-              title={t('client-details:sections.businessDetails')}
-              subtitle={
-                <div className="eb-flex eb-flex-wrap eb-items-center eb-gap-x-3 eb-gap-y-1">
-                  {org.industry && (
-                    <span className="eb-inline-flex eb-items-center eb-gap-1">
-                      <Briefcase
-                        className="eb-h-3 eb-w-3 eb-text-muted-foreground/70"
-                        aria-hidden="true"
-                      />
-                      <span className="eb-capitalize">
-                        {org.industry.toLowerCase().replace(/_/g, ' ')}
-                      </span>
+        {/* Business Details Section - always show for a client */}
+        <div className="eb-duration-300 eb-animate-in eb-fade-in">
+          <SectionRow
+            section="identity"
+            icon={FileText}
+            iconClassName="eb-text-slate-600 dark:eb-text-slate-400"
+            iconBgClassName="eb-bg-slate-100 dark:eb-bg-slate-800"
+            title={t('client-details:sections.businessDetails')}
+            subtitle={
+              <div className="eb-flex eb-flex-wrap eb-items-center eb-gap-x-3 eb-gap-y-1">
+                {org.industry && (
+                  <span className="eb-inline-flex eb-items-center eb-gap-1">
+                    <Briefcase
+                      className="eb-h-3 eb-w-3 eb-text-muted-foreground/70"
+                      aria-hidden="true"
+                    />
+                    <span className="eb-capitalize">
+                      {org.industry.toLowerCase().replace(/_/g, ' ')}
                     </span>
-                  )}
-                  {org.ein && (
-                    <span className="eb-inline-flex eb-items-center eb-gap-1">
-                      <Hash
-                        className="eb-h-3 eb-w-3 eb-text-muted-foreground/70"
-                        aria-hidden="true"
-                      />
-                      <span>EIN **-***{org.ein.slice(-4)}</span>
-                    </span>
-                  )}
-                  {!org.industry && !org.ein && (
-                    <span>{t('client-details:labels.addressContactInfo')}</span>
-                  )}
-                </div>
-              }
-            />
-          </div>
-        )}
+                  </span>
+                )}
+                {org.ein && (
+                  <span className="eb-inline-flex eb-items-center eb-gap-1">
+                    <Hash
+                      className="eb-h-3 eb-w-3 eb-text-muted-foreground/70"
+                      aria-hidden="true"
+                    />
+                    <span>EIN **-***{org.ein.slice(-4)}</span>
+                  </span>
+                )}
+                {!org.industry && !org.ein && (
+                  <span>{t('client-details:labels.addressContactInfo')}</span>
+                )}
+              </div>
+            }
+          />
+        </div>
 
-        {/* People Section - Enhanced with avatars */}
-        {sections.includes('ownership') && (
+        {/* People Section - show if people data exists */}
+        {people.length > 0 && (
           <div className="eb-duration-300 eb-animate-in eb-fade-in">
             <SectionRow
               section="ownership"

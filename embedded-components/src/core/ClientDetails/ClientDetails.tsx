@@ -10,7 +10,7 @@ import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { useTranslationWithTokens } from '@/components/i18n';
 
 import { CLIENT_DETAILS_DEFAULT_VIEW_MODE } from './ClientDetails.constants';
-import type { ClientDetailsProps, ClientSection } from './ClientDetails.types';
+import type { ClientDetailsProps } from './ClientDetails.types';
 import { AccordionView } from './components/AccordionView/AccordionView';
 import { CardsView } from './components/CardsView/CardsView';
 import { ClientDetailsSkeleton } from './components/ClientDetailsSkeleton';
@@ -23,14 +23,10 @@ import {
   getOrganizationParty,
 } from './utils/partyGrouping';
 
-const DEFAULT_SECTIONS: ClientSection[] = ['identity', 'ownership'];
-
 export function ClientDetails({
   clientId,
   viewMode = CLIENT_DETAILS_DEFAULT_VIEW_MODE,
   className,
-  sections = DEFAULT_SECTIONS,
-  onSectionClick,
   actions,
 }: ClientDetailsProps) {
   const { t } = useTranslationWithTokens('client-details');
@@ -45,6 +41,7 @@ export function ClientDetails({
   });
 
   // Build section info for navigation - uses t() with template literals for dynamic keys
+  // Sections are data-driven: only include sections that have relevant data
   const sectionInfos = useMemo(() => {
     if (!client) return [];
 
@@ -56,27 +53,34 @@ export function ClientDetails({
     const pendingQuestions = client.outstanding?.questionIds?.length ?? 0;
     const totalPending = pendingDocs + pendingQuestions;
 
-    const allSections: SectionInfo[] = [
-      {
-        id: 'identity',
-        icon: getSectionIcon('identity'),
-        description: org?.organizationDetails?.organizationName,
-        status: org ? 'complete' : 'pending',
-      },
-      {
+    const sections: SectionInfo[] = [];
+
+    // Identity section - always show for a client (business details always exist)
+    sections.push({
+      id: 'identity',
+      icon: getSectionIcon('identity'),
+      description: org?.organizationDetails?.organizationName,
+      status: org ? 'complete' : 'pending',
+    });
+
+    // Verification section - show if KYC status exists
+    if (kycStatus) {
+      sections.push({
         id: 'verification',
         icon: getSectionIcon('verification'),
-        description: kycStatus
-          ? kycStatus.replace(/_/g, ' ').toLowerCase()
-          : undefined,
+        description: kycStatus.replace(/_/g, ' ').toLowerCase(),
         status:
           kycStatus === 'APPROVED'
             ? 'complete'
             : kycStatus === 'INFORMATION_REQUESTED'
               ? 'warning'
               : 'pending',
-      },
-      {
+      });
+    }
+
+    // Ownership section - show if there are beneficial owners or controller
+    if (beneficialOwners.length > 0 || controller) {
+      sections.push({
         id: 'ownership',
         icon: getSectionIcon('ownership'),
         badge:
@@ -88,37 +92,28 @@ export function ClientDetails({
               count: beneficialOwners.length,
             })
           : undefined,
-        status:
-          beneficialOwners.length > 0 || controller ? 'complete' : 'pending',
-      },
-      {
+        status: 'complete',
+      });
+    }
+
+    // Compliance section - show if there are pending items or question responses
+    if (totalPending > 0 || (client.questionResponses?.length ?? 0) > 0) {
+      sections.push({
         id: 'compliance',
         icon: getSectionIcon('compliance'),
         badge:
           totalPending > 0
             ? t('sectionDescriptions.pending', { count: totalPending })
             : undefined,
-        status:
-          totalPending > 0
-            ? 'warning'
-            : client.questionResponses?.length
-              ? 'complete'
-              : 'pending',
-      },
-      {
-        id: 'accounts',
-        icon: getSectionIcon('accounts'),
-        description: t('sectionDescriptions.viewAccounts'),
-      },
-      {
-        id: 'activity',
-        icon: getSectionIcon('activity'),
-        description: t('sectionDescriptions.viewTransactions'),
-      },
-    ];
+        status: totalPending > 0 ? 'warning' : 'complete',
+      });
+    }
 
-    return allSections.filter((s) => sections.includes(s.id));
-  }, [client, sections, t]);
+    // Note: accounts and activity sections are intentionally excluded
+    // as they require additional API calls and are future enhancements
+
+    return sections;
+  }, [client, t]);
 
   if (!clientId) {
     return (
@@ -161,15 +156,11 @@ export function ClientDetails({
 
   // Summary view mode - compact card with built-in Dialog drill-down
   if (viewMode === 'summary') {
-    // When onSectionClick is provided, use external navigation
-    // Otherwise, use built-in dialog drill-down
     return (
       <ClientSummaryCard
         client={client}
         clientId={clientId}
-        onSectionClick={onSectionClick}
-        sections={sections}
-        sectionInfos={onSectionClick ? undefined : sectionInfos}
+        sectionInfos={sectionInfos}
         actions={actions}
         className={cn('eb-component', className)}
       />

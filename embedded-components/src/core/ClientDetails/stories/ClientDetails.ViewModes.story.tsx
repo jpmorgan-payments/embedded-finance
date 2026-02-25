@@ -54,26 +54,6 @@ type Story = StoryObj<ClientDetailsStoryArgs>;
 // =============================================================================
 
 /**
- * **Summary - All Sections**
- *
- * Display all available sections including accounts and activity placeholders.
- */
-export const SummaryAllSections: Story = {
-  name: 'Summary - All Sections',
-  args: {
-    viewMode: 'summary',
-    sections: [
-      'identity',
-      'verification',
-      'ownership',
-      'compliance',
-      'accounts',
-      'activity',
-    ],
-  },
-};
-
-/**
  * **Summary - With Custom Actions**
  *
  * Add action buttons in the card footer for common operations.
@@ -101,19 +81,6 @@ export const SummaryWithActions: Story = {
       />
     </div>
   ),
-};
-
-/**
- * **Summary - External Navigation**
- *
- * Use onSectionClick callback for custom navigation instead of built-in drill-down.
- */
-export const SummaryExternalNavigation: Story = {
-  name: 'Summary - External Navigation',
-  args: {
-    viewMode: 'summary',
-    onSectionClick: (section) => console.log('Navigate to:', section),
-  },
 };
 
 // =============================================================================

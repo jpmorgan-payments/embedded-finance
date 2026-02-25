@@ -257,29 +257,4 @@ export const commonArgTypes = {
       defaultValue: { summary: 'Client details' },
     },
   },
-  sections: {
-    control: { type: 'check' as const },
-    options: [
-      'identity',
-      'verification',
-      'ownership',
-      'compliance',
-      'accounts',
-      'activity',
-    ],
-    description: 'Which sections to display (summary mode)',
-    table: {
-      category: 'Display',
-    },
-  },
-
-  // === Callbacks ===
-  onSectionClick: {
-    control: { disable: true },
-    description: 'Callback when a section is clicked (overrides drill-down)',
-    table: {
-      category: 'Callbacks',
-      type: { summary: '(section: ClientSection) => void' },
-    },
-  },
 };

@@ -32,10 +32,6 @@ export interface ClientDetailsProps {
   viewMode?: ClientDetailsViewMode;
   /** Optional CSS class for the root container */
   className?: string;
-  /** Which sections to show (summary mode only) */
-  sections?: ClientSection[];
-  /** Callback when a section is clicked (summary mode only). If not provided, uses built-in dialog drill-down. */
-  onSectionClick?: (section: ClientSection) => void;
   /** Custom actions to show in footer (summary mode only) */
   actions?: React.ReactNode;
 }
