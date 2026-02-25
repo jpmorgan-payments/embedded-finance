@@ -200,16 +200,16 @@
     "rowsPerPage": "Rows per page",
     "pageInfo": "Page {{current}} of {{total}}",
     "pageInfoMobile": "{{current}} / {{total}}",
-    "goToFirstPage": {
+    "goToFirst": {
       "srOnly": "Go to first page"
     },
-    "goToPreviousPage": {
+    "goToPrevious": {
       "srOnly": "Go to previous page"
     },
-    "goToNextPage": {
+    "goToNext": {
       "srOnly": "Go to next page"
     },
-    "goToLastPage": {
+    "goToLast": {
       "srOnly": "Go to last page"
     }
   },

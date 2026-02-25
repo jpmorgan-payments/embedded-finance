@@ -3,8 +3,6 @@
  * Following the RecipientDetailsDialog pattern from RecipientsWidget
  */
 
-import { useTranslation } from 'react-i18next';
-
 import { cn } from '@/lib/utils';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 import {
@@ -15,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { useTranslationWithTokens } from '@/components/i18n';
 
 import { Accounts } from '../../../Accounts';
 import { TransactionsDisplay } from '../../../TransactionsDisplay';
@@ -84,10 +83,7 @@ export function SectionDialog({
   children,
   className,
 }: SectionDialogProps) {
-  const { t } = useTranslation('client-details');
-  const title = t(`dialogTitles.${section}`);
-  const description = t(`dialogDescriptions.${section}`);
-  const showNavigation = sections && sections.length > 1 && onNavigate;
+  const { t } = useTranslationWithTokens('client-details');
 
   return (
     <Dialog>
@@ -98,10 +94,10 @@ export function SectionDialog({
         {/* Header - matching RecipientDetailsDialog pattern */}
         <DialogHeader className="eb-shrink-0 eb-border-b eb-p-6 eb-py-4">
           <DialogTitle className="eb-break-words eb-text-left eb-font-header eb-text-xl eb-leading-tight">
-            {title}
+            {t(`dialogTitles.${section}` as const)}
           </DialogTitle>
           <DialogDescription className="eb-mt-1 eb-text-left">
-            {description}
+            {t(`dialogDescriptions.${section}` as const)}
           </DialogDescription>
         </DialogHeader>
 
@@ -115,7 +111,7 @@ export function SectionDialog({
         </div>
 
         {/* Navigation footer */}
-        {showNavigation && (
+        {sections && sections.length > 1 && onNavigate && (
           <div className="eb-shrink-0 eb-border-t eb-bg-muted/30 eb-px-6 eb-py-3">
             <SectionNavigation
               sections={sections}

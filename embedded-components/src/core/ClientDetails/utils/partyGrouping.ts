@@ -44,7 +44,6 @@ export function getBeneficialOwnerParties(
 
 export interface ClientDetailsSectionGroup {
   id: string;
-  label: string;
   type:
     | 'client-info'
     | 'organization'
@@ -55,17 +54,22 @@ export interface ClientDetailsSectionGroup {
   hasContent: boolean;
 }
 
-// Mapping from section type to i18n key
-const SECTION_I18N_KEYS: Record<ClientDetailsSectionGroup['type'], string> = {
+// Mapping from section type to i18n key - exported for use in components
+// The values match keys in client-details.json under "sections"
+export const SECTION_I18N_KEYS = {
   'client-info': 'clientInfo',
   organization: 'organization',
   controller: 'controller',
   'beneficial-owners': 'beneficialOwners',
   'question-responses': 'questionResponses',
   results: 'verificationResults',
-};
+} as const satisfies Record<ClientDetailsSectionGroup['type'], string>;
 
-// Fallback labels (used when no translation function provided)
+// Type for the i18n key values
+export type SectionI18nKey =
+  (typeof SECTION_I18N_KEYS)[ClientDetailsSectionGroup['type']];
+
+// Fallback labels (used when translation not available - for debugging)
 const SECTION_LABELS: Record<ClientDetailsSectionGroup['type'], string> = {
   'client-info': 'Client information',
   organization: 'Organization',
@@ -74,19 +78,6 @@ const SECTION_LABELS: Record<ClientDetailsSectionGroup['type'], string> = {
   'question-responses': 'Question responses',
   results: 'Verification results',
 };
-
-/**
- * Get the label for a section type, using translation if available.
- */
-function getSectionLabel(
-  type: ClientDetailsSectionGroup['type'],
-  t?: (key: string) => string
-): string {
-  if (t) {
-    return t(`client-details:sections.${SECTION_I18N_KEYS[type]}`);
-  }
-  return SECTION_LABELS[type];
-}
 
 /**
  * Section order follows business sense:
@@ -98,11 +89,9 @@ function getSectionLabel(
  * 6. Question responses – operational/regulatory answers
  *
  * @param client - The client response data
- * @param t - Optional translation function for i18n support
  */
 export function getClientDetailsSections(
-  client: ClientResponse,
-  t?: (key: string) => string
+  client: ClientResponse
 ): ClientDetailsSectionGroup[] {
   const org = getOrganizationParty(client);
   const controller = getControllerParty(client);
@@ -112,37 +101,31 @@ export function getClientDetailsSections(
   const sections: ClientDetailsSectionGroup[] = [
     {
       id: 'client-info',
-      label: getSectionLabel('client-info', t),
       type: 'client-info',
       hasContent: true,
     },
     {
       id: 'results',
-      label: getSectionLabel('results', t),
       type: 'results',
       hasContent: hasResults,
     },
     {
       id: 'organization',
-      label: getSectionLabel('organization', t),
       type: 'organization',
       hasContent: !!org,
     },
     {
       id: 'controller',
-      label: getSectionLabel('controller', t),
       type: 'controller',
       hasContent: !!controller,
     },
     {
       id: 'beneficial-owners',
-      label: getSectionLabel('beneficial-owners', t),
       type: 'beneficial-owners',
       hasContent: beneficialOwners.length > 0,
     },
     {
       id: 'question-responses',
-      label: getSectionLabel('question-responses', t),
       type: 'question-responses',
       hasContent: true,
     },

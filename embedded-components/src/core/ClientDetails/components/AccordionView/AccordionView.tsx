@@ -13,8 +13,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { useTranslationWithTokens } from '@/components/i18n';
 
-import { getClientDetailsSections } from '../../utils/partyGrouping';
+import {
+  getClientDetailsSections,
+  SECTION_I18N_KEYS,
+} from '../../utils/partyGrouping';
 import { BeneficialOwnersSection } from '../ClientDetailsContent/BeneficialOwnersSection';
 import { ClientInfoSection } from '../ClientDetailsContent/ClientInfoSection';
 import { ControllerSection } from '../ClientDetailsContent/ControllerSection';
@@ -52,6 +56,7 @@ function SectionContent({
 }
 
 export function AccordionView({ client }: AccordionViewProps) {
+  const { t } = useTranslationWithTokens('client-details');
   const sections = getClientDetailsSections(client);
 
   return (
@@ -62,7 +67,7 @@ export function AccordionView({ client }: AccordionViewProps) {
       defaultValue={sections[0]?.id}
     >
       <div className="eb-space-y-1">
-        {sections.map(({ id, label, type }) => (
+        {sections.map(({ id, type }) => (
           <AccordionItem
             key={id}
             value={id}
@@ -83,7 +88,7 @@ export function AccordionView({ client }: AccordionViewProps) {
                   className="eb-h-4 eb-w-4 eb-shrink-0 eb-transition-transform eb-duration-200 data-[state=open]:eb-rotate-180"
                   aria-hidden
                 />
-                {label}
+                {t(`sections.${SECTION_I18N_KEYS[type]}` as const)}
               </span>
             </AccordionTrigger>
             <AccordionContent className="eb-px-4 eb-pb-4 eb-pt-0 @md:eb-px-5">

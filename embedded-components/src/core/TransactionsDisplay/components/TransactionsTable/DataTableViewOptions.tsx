@@ -63,12 +63,12 @@ export function DataTableViewOptions<TData>({
           className="eb-ml-auto eb-hidden eb-h-8 lg:eb-flex"
         >
           <Settings2 className="eb-mr-2 eb-h-4 eb-w-4" />
-          {t('viewOptions.button', { defaultValue: 'Columns' })}
+          {t('columnToggle.button', { defaultValue: 'Columns' })}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="eb-w-auto eb-min-w-[200px]">
         <DropdownMenuLabel>
-          {t('viewOptions.label', { defaultValue: 'Toggle columns' })}
+          {t('columnToggle.label', { defaultValue: 'Toggle columns' })}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {table

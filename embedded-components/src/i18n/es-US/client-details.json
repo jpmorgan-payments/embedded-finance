@@ -1,4 +1,25 @@
 {
+  "title": "Detalles del cliente",
+  "errors": {
+    "clientIdRequired": "Se requiere el ID del cliente.",
+    "loadFailed": "Error al cargar los detalles del cliente."
+  },
+  "sectionLabels": {
+    "identity": "Identidad y Organización",
+    "verification": "Verificación",
+    "ownership": "Propiedad",
+    "compliance": "Cumplimiento",
+    "accounts": "Cuentas",
+    "activity": "Actividad Reciente"
+  },
+  "sectionDescriptions": {
+    "viewAccounts": "Ver cuentas vinculadas",
+    "viewTransactions": "Ver transacciones",
+    "controllerWithOwners": "Controlador + {{count}} beneficiario final",
+    "controllerWithOwners_other": "Controlador + {{count}} beneficiarios finales",
+    "pending": "{{count}} pendiente",
+    "pending_other": "{{count}} pendientes"
+  },
   "sections": {
     "businessInformation": "Información del Negocio",
     "contactInformation": "Información de Contacto",

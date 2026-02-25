@@ -74,16 +74,16 @@
     "rowsPerPage": "Lignes par page",
     "pageInfo": "Page {{current}} sur {{total}}",
     "pageInfoMobile": "{{current}} / {{total}}",
-    "goToFirstPage": {
+    "goToFirst": {
       "srOnly": "Aller à la première page"
     },
-    "goToPreviousPage": {
+    "goToPrevious": {
       "srOnly": "Aller à la page précédente"
     },
-    "goToNextPage": {
+    "goToNext": {
       "srOnly": "Aller à la page suivante"
     },
-    "goToLastPage": {
+    "goToLast": {
       "srOnly": "Aller à la dernière page"
     }
   },

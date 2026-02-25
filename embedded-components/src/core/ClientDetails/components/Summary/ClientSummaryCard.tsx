@@ -23,11 +23,11 @@ import {
   User,
   Users,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 import { Card } from '@/components/ui/card';
+import { useTranslationWithTokens } from '@/components/i18n';
 
 import {
   getBeneficialOwnerParties,
@@ -172,7 +172,7 @@ export function ClientSummaryCard({
   actions,
   className,
 }: ClientSummaryCardProps) {
-  const { t } = useTranslation([
+  const { t } = useTranslationWithTokens([
     'client-details',
     'onboarding-old',
     'onboarding-overview',
@@ -215,7 +215,7 @@ export function ClientSummaryCard({
     icon: React.ComponentType<{ className?: string }>;
     iconClassName: string;
     iconBgClassName: string;
-    title: string;
+    title: React.ReactNode;
     subtitle?: React.ReactNode;
     badge?: React.ReactNode;
     children?: React.ReactNode;
@@ -275,7 +275,7 @@ export function ClientSummaryCard({
     icon: React.ComponentType<{ className?: string }>;
     iconClassName: string;
     iconBgClassName: string;
-    title: string;
+    title: React.ReactNode;
     subtitle?: React.ReactNode;
     badge?: React.ReactNode;
     children?: React.ReactNode;

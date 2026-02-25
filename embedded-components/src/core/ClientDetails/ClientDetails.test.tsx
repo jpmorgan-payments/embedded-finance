@@ -108,10 +108,10 @@ describe('ClientDetails', () => {
         )
       );
 
-      renderComponent({ title: 'My client', viewMode: 'accordion' });
+      renderComponent({ viewMode: 'accordion' });
 
       await waitFor(() => {
-        expect(screen.getByText('My client')).toBeInTheDocument();
+        expect(screen.getByText('Client Details')).toBeInTheDocument();
       });
     });
 

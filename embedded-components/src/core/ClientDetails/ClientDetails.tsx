@@ -7,7 +7,7 @@ import { useMemo } from 'react';
 
 import { cn } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import type { ClientResponse } from '@/api/generated/smbdo.schemas';
+import { useTranslationWithTokens } from '@/components/i18n';
 
 import { CLIENT_DETAILS_DEFAULT_VIEW_MODE } from './ClientDetails.constants';
 import type { ClientDetailsProps, ClientSection } from './ClientDetails.types';
@@ -23,99 +23,19 @@ import {
   getOrganizationParty,
 } from './utils/partyGrouping';
 
-const DEFAULT_TITLE = 'Client details';
-
 const DEFAULT_SECTIONS: ClientSection[] = ['identity', 'ownership'];
-
-function buildSectionInfos(
-  client: ClientResponse,
-  enabledSections: ClientSection[]
-): SectionInfo[] {
-  const org = getOrganizationParty(client);
-  const controller = getControllerParty(client);
-  const beneficialOwners = getBeneficialOwnerParties(client);
-  const kycStatus = client.results?.customerIdentityStatus;
-  const pendingDocs = client.outstanding?.documentRequestIds?.length ?? 0;
-  const pendingQuestions = client.outstanding?.questionIds?.length ?? 0;
-
-  const allSections: SectionInfo[] = [
-    {
-      id: 'identity',
-      label: 'Identity & Organization',
-      icon: getSectionIcon('identity'),
-      description: org?.organizationDetails?.organizationName,
-      status: org ? 'complete' : 'pending',
-    },
-    {
-      id: 'verification',
-      label: 'Verification',
-      icon: getSectionIcon('verification'),
-      description: kycStatus
-        ? kycStatus.replace(/_/g, ' ').toLowerCase()
-        : undefined,
-      status:
-        kycStatus === 'APPROVED'
-          ? 'complete'
-          : kycStatus === 'INFORMATION_REQUESTED'
-            ? 'warning'
-            : 'pending',
-    },
-    {
-      id: 'ownership',
-      label: 'Ownership',
-      icon: getSectionIcon('ownership'),
-      badge:
-        beneficialOwners.length > 0
-          ? `${beneficialOwners.length + (controller ? 1 : 0)}`
-          : undefined,
-      description: controller
-        ? `Controller + ${beneficialOwners.length} beneficial owner${beneficialOwners.length !== 1 ? 's' : ''}`
-        : undefined,
-      status:
-        beneficialOwners.length > 0 || controller ? 'complete' : 'pending',
-    },
-    {
-      id: 'compliance',
-      label: 'Compliance',
-      icon: getSectionIcon('compliance'),
-      badge:
-        pendingDocs + pendingQuestions > 0
-          ? `${pendingDocs + pendingQuestions} pending`
-          : undefined,
-      status:
-        pendingDocs + pendingQuestions > 0
-          ? 'warning'
-          : client.questionResponses?.length
-            ? 'complete'
-            : 'pending',
-    },
-    {
-      id: 'accounts',
-      label: 'Accounts',
-      icon: getSectionIcon('accounts'),
-      description: 'View linked accounts',
-    },
-    {
-      id: 'activity',
-      label: 'Recent Activity',
-      icon: getSectionIcon('activity'),
-      description: 'View transactions',
-    },
-  ];
-
-  return allSections.filter((s) => enabledSections.includes(s.id));
-}
 
 export function ClientDetails({
   clientId,
   viewMode = CLIENT_DETAILS_DEFAULT_VIEW_MODE,
-  title = DEFAULT_TITLE,
   className,
   sections = DEFAULT_SECTIONS,
   enableDrillDown = true,
   onSectionClick,
   actions,
 }: ClientDetailsProps) {
+  const { t } = useTranslationWithTokens('client-details');
+
   const {
     data: client,
     isLoading,
@@ -125,11 +45,81 @@ export function ClientDetails({
     query: { enabled: !!clientId },
   });
 
-  // Build section info for navigation
-  const sectionInfos = useMemo(
-    () => (client ? buildSectionInfos(client, sections) : []),
-    [client, sections]
-  );
+  // Build section info for navigation - uses t() with template literals for dynamic keys
+  const sectionInfos = useMemo(() => {
+    if (!client) return [];
+
+    const org = getOrganizationParty(client);
+    const controller = getControllerParty(client);
+    const beneficialOwners = getBeneficialOwnerParties(client);
+    const kycStatus = client.results?.customerIdentityStatus;
+    const pendingDocs = client.outstanding?.documentRequestIds?.length ?? 0;
+    const pendingQuestions = client.outstanding?.questionIds?.length ?? 0;
+    const totalPending = pendingDocs + pendingQuestions;
+
+    const allSections: SectionInfo[] = [
+      {
+        id: 'identity',
+        icon: getSectionIcon('identity'),
+        description: org?.organizationDetails?.organizationName,
+        status: org ? 'complete' : 'pending',
+      },
+      {
+        id: 'verification',
+        icon: getSectionIcon('verification'),
+        description: kycStatus
+          ? kycStatus.replace(/_/g, ' ').toLowerCase()
+          : undefined,
+        status:
+          kycStatus === 'APPROVED'
+            ? 'complete'
+            : kycStatus === 'INFORMATION_REQUESTED'
+              ? 'warning'
+              : 'pending',
+      },
+      {
+        id: 'ownership',
+        icon: getSectionIcon('ownership'),
+        badge:
+          beneficialOwners.length > 0
+            ? `${beneficialOwners.length + (controller ? 1 : 0)}`
+            : undefined,
+        description: controller
+          ? t('sectionDescriptions.controllerWithOwners', {
+              count: beneficialOwners.length,
+            })
+          : undefined,
+        status:
+          beneficialOwners.length > 0 || controller ? 'complete' : 'pending',
+      },
+      {
+        id: 'compliance',
+        icon: getSectionIcon('compliance'),
+        badge:
+          totalPending > 0
+            ? t('sectionDescriptions.pending', { count: totalPending })
+            : undefined,
+        status:
+          totalPending > 0
+            ? 'warning'
+            : client.questionResponses?.length
+              ? 'complete'
+              : 'pending',
+      },
+      {
+        id: 'accounts',
+        icon: getSectionIcon('accounts'),
+        description: t('sectionDescriptions.viewAccounts'),
+      },
+      {
+        id: 'activity',
+        icon: getSectionIcon('activity'),
+        description: t('sectionDescriptions.viewTransactions'),
+      },
+    ];
+
+    return allSections.filter((s) => sections.includes(s.id));
+  }, [client, sections, t]);
 
   if (!clientId) {
     return (
@@ -139,7 +129,7 @@ export function ClientDetails({
           className
         )}
       >
-        Client ID is required.
+        {t('errors.clientIdRequired')}
       </div>
     );
   }
@@ -157,7 +147,7 @@ export function ClientDetails({
     const message =
       error && typeof error === 'object' && 'message' in error
         ? String((error as { message?: string }).message)
-        : 'Failed to load client details.';
+        : t('errors.loadFailed');
     return (
       <div
         className={cn(
@@ -201,7 +191,7 @@ export function ClientDetails({
     >
       <header className="eb-flex eb-min-h-[48px] eb-items-center eb-border-b eb-border-border eb-px-4 eb-py-3 @md:eb-px-6">
         <h1 className="eb-text-base eb-font-semibold eb-tracking-tight">
-          {title}
+          {t('title')}
         </h1>
       </header>
       <div className="eb-flex eb-flex-1 eb-flex-col eb-overflow-y-auto eb-p-4 @md:eb-px-6 @md:eb-py-5">

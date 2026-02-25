@@ -1,4 +1,24 @@
 {
+  "title": "Détails du client",
+  "errors": {
+    "clientIdRequired": "L'identifiant du client est requis.",
+    "loadFailed": "Échec du chargement des détails du client."
+  },
+  "sectionLabels": {
+    "identity": "Identité et organisation",
+    "verification": "Vérification",
+    "ownership": "Propriété",
+    "compliance": "Conformité",
+    "accounts": "Comptes",
+    "activity": "Activité récente"
+  },
+  "sectionDescriptions": {
+    "viewAccounts": "Voir les comptes liés",
+    "viewTransactions": "Voir les transactions",
+    "controllerWithOwners": "Contrôleur + {{count}} bénéficiaire effectif",
+    "controllerWithOwners_other": "Contrôleur + {{count}} bénéficiaires effectifs",
+    "pending": "{{count}} en attente"
+  },
   "sections": {
     "businessInformation": "Informations sur l'entreprise",
     "contactInformation": "Coordonnées",

@@ -95,7 +95,7 @@
       "srOnly": "Go to last page"
     }
   },
-  "viewOptions": {
+  "columnToggle": {
     "button": "Columns",
     "label": "Toggle columns"
   },
@@ -141,4 +141,3 @@
     "transactionFallback": "Transaction"
   }
 }
-

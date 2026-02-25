@@ -4,6 +4,7 @@
  */
 
 import { cn } from '@/lib/utils';
+import { useTranslationWithTokens } from '@/components/i18n';
 
 import type { ClientSection, SectionInfo } from '../Summary/SectionList';
 
@@ -20,6 +21,8 @@ export function SectionNavigation({
   onNavigate,
   className,
 }: SectionNavigationProps) {
+  const { t } = useTranslationWithTokens('client-details');
+
   if (sections.length <= 1) return null;
 
   return (
@@ -47,7 +50,7 @@ export function SectionNavigation({
             aria-current={isActive ? 'true' : undefined}
           >
             <Icon className="eb-h-4 eb-w-4" aria-hidden="true" />
-            <span>{section.label}</span>
+            <span>{t(`sectionLabels.${section.id}`)}</span>
           </button>
         );
       })}

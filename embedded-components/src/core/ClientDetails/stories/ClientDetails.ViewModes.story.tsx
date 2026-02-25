@@ -131,7 +131,6 @@ export const SummaryReadOnly: Story = {
 export const AccordionView: Story = {
   args: {
     viewMode: 'accordion',
-    title: 'Client Details',
   },
 };
 
@@ -143,6 +142,5 @@ export const AccordionView: Story = {
 export const CardsView: Story = {
   args: {
     viewMode: 'cards',
-    title: 'Client Details',
   },
 };
