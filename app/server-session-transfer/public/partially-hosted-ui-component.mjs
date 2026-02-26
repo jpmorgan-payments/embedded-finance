@@ -42,8 +42,13 @@ const REFRESH_DELAY_MS = 100;
  * @enum {string}
  */
 export const ExperienceType = {
+  HOSTED_ONBOARDING_UI: 'HOSTED_ONBOARDING_UI',
   HOSTED_DOC_UPLOAD_ONBOARDING_UI: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
-  // Add more experience types as they become available
+  HOSTED_RECIPIENTS_UI: 'HOSTED_RECIPIENTS_UI',
+  HOSTED_LINKED_ACCOUNTS_UI: 'HOSTED_LINKED_ACCOUNTS_UI',
+  HOSTED_TRANSACTIONS_UI: 'HOSTED_TRANSACTIONS_UI',
+  HOSTED_ACCOUNTS_UI: 'HOSTED_ACCOUNTS_UI',
+  HOSTED_MAKE_PAYMENT_UI: 'HOSTED_MAKE_PAYMENT_UI',
 };
 
 /**
@@ -94,7 +99,7 @@ function encodeJsonParam(obj) {
  * Build the complete iframe URL with all parameters
  * 
  * URL structure:
- * {baseUrl}/onboarding?token={jwt}&experienceType={type}&themeTokens={encoded}&contentTokens={encoded}
+ * {baseUrl}/onboarding?token={jwt}&hostedExperienceType={type}&themeTokens={encoded}&contentTokens={encoded}
  * 
  * @param {object} config - Configuration object
  * @param {string} config.baseUrl - Base URL for the hosted UI
@@ -117,7 +122,7 @@ function buildIframeUrl(config) {
   // Build query parameters
   const params = new URLSearchParams({
     token: sessionToken,
-    experienceType: experienceType,
+    hostedExperienceType: experienceType,
   });
 
   // Add optional themeTokens parameter (JSON encoded)

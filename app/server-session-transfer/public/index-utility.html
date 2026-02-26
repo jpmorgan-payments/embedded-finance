@@ -267,6 +267,19 @@
                         required
                     />
                 </div>
+
+                <div class="form-group">
+                    <label for="experienceType" class="label">Experience Type</label>
+                    <select id="experienceType" name="experienceType" class="input">
+                        <option value="HOSTED_ONBOARDING_UI">Onboarding</option>
+                        <option value="HOSTED_DOC_UPLOAD_ONBOARDING_UI">Document Upload Onboarding</option>
+                        <option value="HOSTED_RECIPIENTS_UI">Recipients</option>
+                        <option value="HOSTED_LINKED_ACCOUNTS_UI">Linked Accounts</option>
+                        <option value="HOSTED_TRANSACTIONS_UI">Transactions</option>
+                        <option value="HOSTED_ACCOUNTS_UI">Accounts</option>
+                        <option value="HOSTED_MAKE_PAYMENT_UI">Make Payment</option>
+                    </select>
+                </div>
                 
                 <button type="submit" id="submitButton" class="button">
                     🚀 Create Embedded Session
@@ -317,6 +330,7 @@
             e.preventDefault();
             
             const clientId = document.getElementById('clientId').value;
+            const experienceType = document.getElementById('experienceType').value;
             const submitButton = document.getElementById('submitButton');
             const loading = document.getElementById('loading');
             const errorMessage = document.getElementById('errorMessage');
@@ -360,7 +374,7 @@
                     onboardingUI = new PartiallyHostedUIComponent({
                         sessionToken: sessionData.sessionToken,
                         baseUrl: sessionData.baseUrl,
-                        experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
+                        experienceType: experienceType,
                         theme: {
                             colorScheme: 'light',
                             variables: {

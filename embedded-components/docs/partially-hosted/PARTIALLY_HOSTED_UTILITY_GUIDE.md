@@ -19,6 +19,22 @@ A lightweight, framework-agnostic JavaScript utility library for embedding JPMor
 - ✅ **TypeScript Ready** - JSDoc comments for IDE autocomplete
 - ✅ **Multiple Formats** - ES Module (.mjs) and UMD (.js) builds
 
+## Supported Experience Types
+
+The `experienceType` parameter controls which hosted UI is rendered inside the iframe:
+
+| Experience Type | Description |
+|----------------|-------------|
+| `HOSTED_ONBOARDING_UI` | Full onboarding flow for new clients |
+| `HOSTED_DOC_UPLOAD_ONBOARDING_UI` | Document upload step of the onboarding process |
+| `HOSTED_RECIPIENTS_UI` | Manage payment recipients |
+| `HOSTED_LINKED_ACCOUNTS_UI` | View and manage linked accounts |
+| `HOSTED_TRANSACTIONS_UI` | View transaction history |
+| `HOSTED_ACCOUNTS_UI` | View account details and balances |
+| `HOSTED_MAKE_PAYMENT_UI` | Initiate a payment |
+
+> **Default:** If no `experienceType` is specified, the default is `HOSTED_DOC_UPLOAD_ONBOARDING_UI`.
+
 ## Installation
 
 ### Option 1: ES Module (Recommended)
@@ -109,7 +125,7 @@ new PartiallyHostedUIComponent(config)
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `config.sessionToken` | `string` | ✅ Yes | JWT session token from your backend |
-| `config.experienceType` | `string` | ❌ No | Type of experience (default: `'HOSTED_DOC_UPLOAD_ONBOARDING_UI'`) |
+| `config.experienceType` | `string` | ❌ No | Type of experience (see [Supported Experience Types](#supported-experience-types)). Default: `'HOSTED_DOC_UPLOAD_ONBOARDING_UI'` |
 | `config.baseUrl` | `string` | ❌ No | Base URL for hosted UI (default: production URL) |
 | `config.theme` | `object` | ❌ No | Theme configuration object |
 | `config.contentTokens` | `object` | ❌ No | Content localization tokens |
