@@ -92,6 +92,57 @@ async function createEmbeddedSession(clientId) {
 }
 
 /**
+ * Create a client using JPMorgan's onboarding API
+ * 
+ * This is the prerequisite step before session transfer. A client must exist
+ * in JPMorgan's system before an embedded UI session can be created.
+ * 
+ * @param {object} params - Client creation parameters
+ * @param {string} params.organizationName - Name of the organization
+ * @param {string} params.organizationType - Type of organization (e.g., LIMITED_LIABILITY_COMPANY)
+ * @returns {Promise<Object>} Client data including the new client ID
+ */
+async function createClient({ organizationName, organizationType }) {
+  try {
+    const httpsAgent = createHttpsAgent();
+
+    const requestData = {
+      parties: [
+        {
+          partyType: 'ORGANIZATION',
+          roles: ['CLIENT'],
+          organizationDetails: {
+            organizationType,
+            organizationName,
+            countryOfFormation: 'US',
+          },
+        },
+      ],
+      products: ['EMBEDDED_PAYMENTS'],
+    };
+
+    console.log('Making API call to create client:', organizationName);
+
+    const response = await axios.post(
+      `${process.env.API_BASE_URL}/onboarding/v1/clients`,
+      requestData,
+      {
+        httpsAgent,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    console.log('Client created successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating client:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+/**
  * Route: GET /
  * Serves the main HTML form where users can enter their client ID
  * Uses INDEX_FILE environment variable to determine which HTML file to serve
@@ -101,6 +152,46 @@ async function createEmbeddedSession(clientId) {
 app.get('/', (req, res) => {
   const indexFile = process.env.INDEX_FILE || 'index.html';
   res.sendFile(path.join(__dirname, 'public', indexFile));
+});
+
+/**
+ * Route: POST /clients
+ * Creates a new client with a minimal payload
+ * This is the prerequisite step before creating an embedded UI session
+ */
+app.post('/clients', async (req, res) => {
+  try {
+    const { organizationName, organizationType } = req.body;
+
+    if (!organizationName || organizationName.trim() === '') {
+      return res.status(400).json({
+        error: 'Organization name is required',
+      });
+    }
+
+    if (!organizationType || organizationType.trim() === '') {
+      return res.status(400).json({
+        error: 'Organization type is required',
+      });
+    }
+
+    const clientData = await createClient({
+      organizationName: organizationName.trim(),
+      organizationType: organizationType.trim(),
+    });
+
+    res.json({
+      success: true,
+      clientId: clientData.id,
+      clientStatus: clientData.status,
+      clientData,
+    });
+  } catch (error) {
+    console.error('Error in /clients:', error.message);
+    res.status(500).json({
+      error: 'Failed to create client. Please check your certificate configuration.',
+    });
+  }
 });
 
 /**

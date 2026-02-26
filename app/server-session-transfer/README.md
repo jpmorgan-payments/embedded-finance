@@ -93,12 +93,37 @@ Both methods serve on `http://localhost:3000` - the server uses the `INDEX_FILE`
 
 **Test the demo:**
 - Enter a client ID (e.g., `3100002010`)
+- Or use the **Create a New Client** section to create one first (the Client ID will be auto-filled)
+- Select an experience type
 - Click "Create Embedded Session"
 - The iframe will open with the JPMorgan onboarding experience
 
 ## 🔧 How It Works
 
-### 1. API Call Structure
+### 1. Client Creation (Optional)
+
+If you don't already have a Client ID, you can create one with a minimal payload. The demo UI includes an expandable section for this. The server calls:
+
+```javascript
+const requestData = {
+  parties: [
+    {
+      partyType: 'ORGANIZATION',
+      roles: ['CLIENT'],
+      organizationDetails: {
+        organizationType: 'LIMITED_LIABILITY_COMPANY', // from form
+        organizationName: 'Acme Corp',                 // from form
+        countryOfFormation: 'US'
+      }
+    }
+  ],
+  products: ['EMBEDDED_PAYMENTS']
+};
+```
+
+The response returns a Client ID that is auto-filled into the session form.
+
+### 2. API Call Structure
 
 The server makes a POST request to JPMorgan's sessions endpoint:
 
@@ -112,7 +137,7 @@ const requestData = {
 };
 ```
 
-### 2. Certificate Authentication
+### 3. Certificate Authentication
 
 The server uses your p12 certificate for secure authentication:
 
@@ -124,7 +149,7 @@ const httpsAgent = new https.Agent({
 });
 ```
 
-### 3. Session Response
+### 4. Session Response
 
 JPMorgan returns a session object:
 
@@ -141,7 +166,7 @@ JPMorgan returns a session object:
 }
 ```
 
-### 4. Iframe Integration
+### 5. Iframe Integration
 
 The token and experience type are appended to the URL as query parameters:
 
@@ -395,6 +420,12 @@ server-session-transfer/
 ### `GET /`
 - Serves the main HTML form
 - Users can enter their client ID
+
+### `POST /clients`
+- Creates a new client with a minimal payload (optional prerequisite step)
+- **Body**: `{ "organizationName": "Acme Corp", "organizationType": "LIMITED_LIABILITY_COMPANY" }`
+- **Response**: `{ "success": true, "clientId": "3100002010", "clientStatus": "...", "clientData": {...} }`
+- **Authentication**: Server-side p12 certificate
 
 ### `POST /sessions`
 - Creates a new embedded UI session (matches JPMorgan API pattern)
