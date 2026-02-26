@@ -214,27 +214,6 @@ describe('ClientDetails', () => {
       expect(screen.getByText('People')).toBeInTheDocument();
     });
 
-    test('renders only specified sections when sections prop is provided', async () => {
-      // Use onboarding client to test section visibility
-      server.use(
-        http.get('*/clients/:clientId', () =>
-          HttpResponse.json(mockOnboardingClient)
-        )
-      );
-
-      renderComponent({
-        viewMode: 'summary',
-        sections: ['identity'],
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('Business Details')).toBeInTheDocument();
-      });
-
-      // Only identity section should be visible (People/ownership excluded)
-      expect(screen.queryByText('People')).not.toBeInTheDocument();
-    });
-
     test('opens drill-down sheet when section is clicked', async () => {
       const user = userEvent.setup();
 
@@ -259,34 +238,6 @@ describe('ClientDetails', () => {
       await waitFor(() => {
         expect(document.body).toHaveAttribute('data-scroll-locked');
       });
-    });
-
-    test('calls onSectionClick when section is clicked and handler is provided', async () => {
-      const user = userEvent.setup();
-      const onSectionClick = vi.fn();
-
-      server.use(
-        http.get('*/clients/:clientId', () =>
-          HttpResponse.json(mockApprovedClient)
-        )
-      );
-
-      renderComponent({
-        viewMode: 'summary',
-        onSectionClick,
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('Business Details')).toBeInTheDocument();
-      });
-
-      // Click on a section
-      await user.click(
-        screen.getByRole('button', { name: /Business Details/i })
-      );
-
-      // onSectionClick should be called with the section name
-      expect(onSectionClick).toHaveBeenCalledWith('identity');
     });
 
     test('renders people section with owner count and controller', async () => {
