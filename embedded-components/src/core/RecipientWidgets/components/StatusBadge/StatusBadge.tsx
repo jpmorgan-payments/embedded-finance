@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import {
   AlertCircleIcon,
   AlertTriangleIcon,
@@ -6,7 +7,6 @@ import {
   ClockIcon,
   XCircleIcon,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { RecipientStatus } from '@/api/generated/ep-recipients.schemas';
@@ -54,7 +54,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   showIcon = true,
   className,
 }) => {
-  const { t } = useTranslation('linked-accounts');
+  const { t } = useTranslationWithTokens('linked-accounts');
 
   return (
     <Badge

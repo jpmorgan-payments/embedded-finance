@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { ChevronDownIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { IndividualIdentityIdType } from '@/api/generated/smbdo.schemas';
@@ -20,7 +20,10 @@ import { useFormUtils } from '@/core/OnboardingFlow/utils/formUtils';
 import { useIndividualIdentityFormSchema } from './IndividualIdentityForm.schema';
 
 export const IndividualIdentityForm: FormStepComponent = () => {
-  const { t } = useTranslation(['onboarding-overview', 'onboarding-old']);
+  const { t } = useTranslationWithTokens([
+    'onboarding-overview',
+    'onboarding-old',
+  ]);
   const form =
     useFormContext<
       z.input<ReturnType<typeof useIndividualIdentityFormSchema>>

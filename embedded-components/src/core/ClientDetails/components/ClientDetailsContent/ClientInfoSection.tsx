@@ -1,5 +1,6 @@
+import { useTranslationWithTokens } from '@/hooks';
+
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
-import { useTranslationWithTokens } from '@/components/i18n';
 
 import { formatDateTime } from '../../utils/formatClientFacing';
 import { DetailRow } from '../DetailRow/DetailRow';

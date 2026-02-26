@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   ArrowRightIcon,
@@ -11,7 +12,6 @@ import {
   UsersIcon,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { Trans, useTranslation } from 'react-i18next';
 
 import {
   getSmbdoGetClientQueryKey,
@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
+import { TransWithTokens } from '@/components/i18n';
 import { LearnMorePopoverTrigger } from '@/components/LearnMorePopover';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { AlertDialog, Badge, Card, CardTitle } from '@/components/ui';
@@ -56,7 +57,7 @@ export const OwnersSectionScreen = () => {
     onPostPartySettled: onPostPartyResponse,
     organizationType,
   } = useOnboardingContext();
-  const { t } = useTranslation(['onboarding-overview', 'common']);
+  const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
   const queryClient = useQueryClient();
 
   const controllerParty = clientData?.parties?.find(
@@ -323,8 +324,8 @@ export const OwnersSectionScreen = () => {
               </LearnMorePopoverTrigger>
             </div>
             <p>
-              <Trans
-                t={t}
+              <TransWithTokens
+                ns="onboarding-overview"
                 i18nKey="screens.owners.infoAlert.pleaseAddAllOwners"
               />
             </p>
@@ -474,10 +475,10 @@ export const OwnersSectionScreen = () => {
                           {t('screens.owners.removeOwnerDialog.title')}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                          <Trans
-                            t={t}
+                          <TransWithTokens
+                            ns="onboarding-overview"
                             i18nKey="screens.owners.removeOwnerDialog.description"
-                            tOptions={{
+                            values={{
                               owner: getPartyName(owner),
                             }}
                           />

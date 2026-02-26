@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslationWithTokens } from '@/hooks';
 
 import { useLocale } from '@/lib/hooks';
 import { Badge } from '@/components/ui/badge';
@@ -41,7 +41,7 @@ interface TransactionCardProps {
  * Clicking the card opens the transaction details modal.
  */
 export const TransactionCard: FC<TransactionCardProps> = ({ transaction }) => {
-  const { t } = useTranslation(['transactions', 'common']);
+  const { t } = useTranslationWithTokens(['transactions', 'common']);
   const locale = useLocale();
   const transactionId = transaction.id ?? '';
 

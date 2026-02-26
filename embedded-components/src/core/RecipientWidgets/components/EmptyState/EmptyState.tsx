@@ -1,6 +1,6 @@
 import React from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { LandmarkIcon, PlusCircleIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import type { HeadingLevel } from '@/lib/types/headingLevel.types';
 import { getHeadingTag } from '@/lib/types/headingLevel.types';
@@ -46,7 +46,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   i18nNamespace = 'linked-accounts',
   headingLevel = 3,
 }) => {
-  const { t } = useTranslation(i18nNamespace);
+  const { t } = useTranslationWithTokens(i18nNamespace);
   const Heading = getHeadingTag(headingLevel);
 
   return (

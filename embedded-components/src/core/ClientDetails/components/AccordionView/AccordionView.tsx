@@ -3,6 +3,7 @@
  * Sections: Client information, Verification results, Organization, Controller, Beneficial owners, Question responses.
  */
 
+import { useTranslationWithTokens } from '@/hooks';
 import { ChevronDown } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -13,7 +14,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { useTranslationWithTokens } from '@/components/i18n';
 
 import {
   getClientDetailsSections,

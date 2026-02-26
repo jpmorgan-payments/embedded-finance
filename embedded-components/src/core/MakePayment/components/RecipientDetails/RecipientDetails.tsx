@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslationWithTokens } from '@/hooks';
 
 import type { Recipient } from '../../types';
 import { maskAccount, renderRecipientName } from '../../utils';
@@ -11,7 +11,7 @@ interface RecipientDetailsProps {
 export const RecipientDetails: React.FC<RecipientDetailsProps> = ({
   selectedRecipient,
 }) => {
-  const { t } = useTranslation(['make-payment']);
+  const { t } = useTranslationWithTokens(['make-payment']);
 
   if (!selectedRecipient) return null;
 

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
@@ -14,7 +14,7 @@ import { useGetFieldContentToken } from '@/core/OnboardingFlow/utils/formUtils';
 import { useContactDetailsFormSchema } from './ContactDetailsForm.schema';
 
 export const ContactDetailsForm: FormStepComponent = () => {
-  const { t } = useTranslation('onboarding-overview');
+  const { t } = useTranslationWithTokens('onboarding-overview');
   const getIndividualAddressContentToken =
     useGetFieldContentToken('individualAddress');
 

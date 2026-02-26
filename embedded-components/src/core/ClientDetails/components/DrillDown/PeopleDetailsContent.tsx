@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import {
   EyeIcon,
   EyeOffIcon,
@@ -20,7 +21,6 @@ import type {
 } from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { useTranslationWithTokens } from '@/components/i18n';
 
 import { formatSSN } from '../../utils/formatClientFacing';
 import {

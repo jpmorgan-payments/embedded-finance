@@ -3,6 +3,8 @@
  * Following the RecipientDetailsDialog pattern from RecipientsWidget
  */
 
+import { useTranslationWithTokens } from '@/hooks';
+
 import { cn } from '@/lib/utils';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 import {
@@ -13,7 +15,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { useTranslationWithTokens } from '@/components/i18n';
 
 import { Accounts } from '../../../Accounts';
 import { TransactionsDisplay } from '../../../TransactionsDisplay';

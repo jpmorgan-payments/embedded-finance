@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import {
   AlertCircleIcon,
   BellIcon,
@@ -104,7 +104,7 @@ export const ClientOnboardingStateView: React.FC<
 
   useClientStatusMonitor(clientId, handleStatusChange);
 
-  const statusMessages: Record<ClientStatus, string> = {
+  const statusMessages: Record<ClientStatus, ReactNode> = {
     NEW: t('clientOnboardingStatus.statusMessages.NEW'),
     REVIEW_IN_PROGRESS: t(
       'clientOnboardingStatus.statusMessages.REVIEW_IN_PROGRESS'

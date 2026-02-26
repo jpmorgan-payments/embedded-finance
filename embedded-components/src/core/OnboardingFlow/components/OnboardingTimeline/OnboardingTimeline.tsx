@@ -17,15 +17,16 @@ export interface TimelineStep {
 
 export interface TimelineSection {
   id: ScreenId;
-  title: string;
-  description?: string;
+  title: React.ReactNode;
+  description?: React.ReactNode;
   status: TimelineItemStatus;
   steps: TimelineStep[];
 }
 
-export interface OnboardingTimelineProps extends React.ComponentProps<'div'> {
-  title?: string;
-  description?: string;
+export interface OnboardingTimelineProps
+  extends Omit<React.ComponentProps<'div'>, 'title'> {
+  title?: React.ReactNode;
+  description?: React.ReactNode;
   sections: TimelineSection[];
   currentSectionId?: string;
   currentStepId?: string;

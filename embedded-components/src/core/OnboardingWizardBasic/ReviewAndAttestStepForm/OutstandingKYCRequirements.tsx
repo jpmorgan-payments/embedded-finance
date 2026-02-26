@@ -39,7 +39,7 @@ const OutstandingKYCRequirements = ({
   clientData: ClientResponse;
   isAttestationInfoIncluded?: boolean;
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('onboarding-old');
   const outstanding = clientData?.outstanding;
   const questionIds = outstanding?.questionIds;
 
@@ -60,21 +60,21 @@ const OutstandingKYCRequirements = ({
         <AlertTriangle className="eb-h-5 eb-w-5 eb-text-yellow-500" />
         <div className="eb-flex eb-flex-col">
           <AlertTitle className="eb-font-semibold eb-text-yellow-800">
-            {t('onboarding:outstandingKYC.title')}
+            {t('outstandingKYC.title')}
           </AlertTitle>
           <AlertDescription className="eb-text-yellow-800">
-            <p>{t('onboarding:outstandingKYC.description')}</p>
+            <p>{t('outstandingKYC.description')}</p>
 
             {!!outstanding?.attestationDocumentIds?.length &&
               !!isAttestationInfoIncluded && (
                 <div className="eb-mt-2">
                   <h4 className="eb-font-semibold">
-                    {t('onboarding:outstandingKYC.sections.attestations')}
+                    {t('outstandingKYC.sections.attestations')}
                   </h4>
                   <ul className="eb-list-inside eb-list-disc">
                     {outstanding.attestationDocumentIds.map((id) => (
                       <li key={id}>
-                        {t('onboarding:outstandingKYC.attestationId')}: {id}
+                        {t('outstandingKYC.attestationId')}: {id}
                       </li>
                     ))}
                   </ul>
@@ -84,12 +84,12 @@ const OutstandingKYCRequirements = ({
             {!!outstanding?.documentRequestIds?.length && (
               <div className="eb-mt-2">
                 <h4 className="eb-font-semibold">
-                  {t('onboarding:outstandingKYC.sections.documents')}
+                  {t('outstandingKYC.sections.documents')}
                 </h4>
                 <ul className="eb-list-inside eb-list-disc">
                   {outstanding.documentRequestIds.map((id) => (
                     <li key={id}>
-                      {t('onboarding:outstandingKYC.documentId')}: {id}
+                      {t('outstandingKYC.documentId')}: {id}
                     </li>
                   ))}
                 </ul>
@@ -99,7 +99,7 @@ const OutstandingKYCRequirements = ({
             {!!outstanding?.questionIds?.length && (
               <div className="eb-mt-2">
                 <h4 className="eb-font-semibold">
-                  {t('onboarding:outstandingKYC.sections.questions')}
+                  {t('outstandingKYC.sections.questions')}
                 </h4>
                 <ul className="eb-list-inside eb-list-disc">
                   {outstanding.questionIds.map((id) => {
@@ -127,12 +127,12 @@ const OutstandingKYCRequirements = ({
             {!!outstanding?.partyRoles?.length && (
               <div className="eb-mt-2">
                 <h4 className="eb-font-semibold">
-                  {t('onboarding:outstandingKYC.sections.parties')}
+                  {t('outstandingKYC.sections.parties')}
                 </h4>
                 <ul className="eb-list-inside eb-list-disc">
                   {outstanding.partyRoles.map((role) => (
                     <li key={role}>
-                      {t('onboarding:outstandingKYC.partyRole')}: {role}
+                      {t('outstandingKYC.partyRole')}: {role}
                     </li>
                   ))}
                 </ul>

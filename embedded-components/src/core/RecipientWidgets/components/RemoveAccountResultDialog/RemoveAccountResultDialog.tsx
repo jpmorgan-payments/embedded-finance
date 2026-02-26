@@ -1,6 +1,7 @@
 import { FC } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { CheckCircle2 } from 'lucide-react';
-import { Trans, useTranslation } from 'react-i18next';
+import { Trans } from 'react-i18next';
 
 import { getRecipientDisplayName } from '@/lib/recipientHelpers';
 import { Recipient } from '@/api/generated/ep-recipients.schemas';
@@ -50,7 +51,7 @@ export const RemoveAccountResultDialog: FC<RemoveAccountResultDialogProps> = ({
   recipient,
   i18nNamespace = 'linked-accounts',
 }) => {
-  const { t } = useTranslation(i18nNamespace);
+  const { t } = useTranslationWithTokens(i18nNamespace);
   const displayName = recipient ? getRecipientDisplayName(recipient) : '';
 
   return (

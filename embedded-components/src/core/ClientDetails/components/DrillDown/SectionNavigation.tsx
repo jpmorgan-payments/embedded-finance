@@ -3,8 +3,9 @@
  * Optimized for 2 sections with pill-style tabs
  */
 
+import { useTranslationWithTokens } from '@/hooks';
+
 import { cn } from '@/lib/utils';
-import { useTranslationWithTokens } from '@/components/i18n';
 
 import type { ClientSection, SectionInfo } from '../Summary/SectionList';
 

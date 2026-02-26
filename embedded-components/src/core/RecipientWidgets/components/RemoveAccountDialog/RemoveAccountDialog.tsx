@@ -1,6 +1,7 @@
 import { FC, ReactNode, useState } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { AlertTriangleIcon, Loader2Icon } from 'lucide-react';
-import { Trans, useTranslation } from 'react-i18next';
+import { Trans } from 'react-i18next';
 
 import { getRecipientDisplayName } from '@/lib/recipientHelpers';
 import { useAmendRecipient } from '@/api/generated/ep-recipients';
@@ -50,7 +51,7 @@ export const RemoveAccountDialogTrigger: FC<
   onRemoveSuccess,
   i18nNamespace = 'linked-accounts',
 }) => {
-  const { t } = useTranslation(i18nNamespace);
+  const { t } = useTranslationWithTokens(i18nNamespace);
   const [isDialogOpen, setDialogOpen] = useState(false);
 
   const {

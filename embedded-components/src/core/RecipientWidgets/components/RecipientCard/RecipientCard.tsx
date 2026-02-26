@@ -1,4 +1,5 @@
 import React from 'react';
+import { TranslationResult, useTranslationWithTokens } from '@/hooks';
 import {
   ArrowRightIcon,
   ClipboardListIcon,
@@ -7,7 +8,6 @@ import {
   PlusIcon,
   TrashIcon,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import {
   canMakePayment,
@@ -130,7 +130,7 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
   recipientType = 'LINKED_ACCOUNT',
   headingLevel = 3,
 }) => {
-  const { t } = useTranslation(i18nNamespace);
+  const { t, tString } = useTranslationWithTokens(i18nNamespace);
 
   const isActive = recipient.status === 'ACTIVE';
   const displayName = getRecipientDisplayName(recipient);
@@ -147,7 +147,7 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
       : undefined;
 
   // Generate button label based on missing methods
-  const getAddRoutingButtonLabel = (): string => {
+  const getAddRoutingButtonLabel = (): TranslationResult => {
     if (missingPaymentMethods.length === 0) return '';
     if (missingPaymentMethods.length === 2) return t('actions.addWireRtp');
     return t(
@@ -339,7 +339,7 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
         variant="ghost"
         size={compact ? 'icon' : 'sm'}
         className={compact ? 'eb-h-8 eb-w-8' : ''}
-        aria-label={t('actions.moreActions', { name: displayName })}
+        aria-label={tString('actions.moreActions', { name: displayName })}
       >
         <MoreVerticalIcon
           className={compact ? 'eb-h-4 eb-w-4' : 'eb-ml-2 eb-h-4 eb-w-4'}
@@ -432,7 +432,9 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
                       'eb-hidden @sm:eb-inline-flex @lg:eb-hidden',
                       compact ? 'eb-h-8 eb-w-8' : ''
                     )}
-                    aria-label={t('actions.moreActions', { name: displayName })}
+                    aria-label={tString('actions.moreActions', {
+                      name: displayName,
+                    })}
                   >
                     <MoreVerticalIcon
                       className={
@@ -458,7 +460,9 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
                       '@sm:eb-hidden @lg:eb-inline-flex',
                       compact ? 'eb-h-8 eb-w-8' : ''
                     )}
-                    aria-label={t('actions.moreActions', { name: displayName })}
+                    aria-label={tString('actions.moreActions', {
+                      name: displayName,
+                    })}
                   >
                     <MoreVerticalIcon
                       className={

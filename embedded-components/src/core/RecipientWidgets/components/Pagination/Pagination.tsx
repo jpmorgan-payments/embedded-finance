@@ -1,11 +1,11 @@
 import * as React from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronsLeftIcon,
   ChevronsRightIcon,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -77,7 +77,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   className,
   variant = 'default',
 }) => {
-  const { t } = useTranslation('linked-accounts');
+  const { t, tString } = useTranslationWithTokens('linked-accounts');
 
   const from = pageIndex * pageSize + 1;
   const to = Math.min((pageIndex + 1) * pageSize, totalCount);
@@ -147,7 +147,7 @@ export const Pagination: React.FC<PaginationProps> = ({
             className="eb-hidden eb-h-8 eb-w-8 lg:eb-flex"
             onClick={() => onPageChange(0)}
             disabled={!canPreviousPage}
-            aria-label={t('table.firstPage', {
+            aria-label={tString('table.firstPage', {
               defaultValue: 'Go to first page',
             })}
           >
@@ -159,7 +159,7 @@ export const Pagination: React.FC<PaginationProps> = ({
             className="eb-h-8 eb-w-8"
             onClick={() => onPageChange(pageIndex - 1)}
             disabled={!canPreviousPage}
-            aria-label={t('table.previousPage', {
+            aria-label={tString('table.previousPage', {
               defaultValue: 'Go to previous page',
             })}
           >
@@ -171,7 +171,7 @@ export const Pagination: React.FC<PaginationProps> = ({
             className="eb-h-8 eb-w-8"
             onClick={() => onPageChange(pageIndex + 1)}
             disabled={!canNextPage}
-            aria-label={t('table.nextPage', {
+            aria-label={tString('table.nextPage', {
               defaultValue: 'Go to next page',
             })}
           >
@@ -183,7 +183,7 @@ export const Pagination: React.FC<PaginationProps> = ({
             className="eb-hidden eb-h-8 eb-w-8 lg:eb-flex"
             onClick={() => onPageChange(pageCount - 1)}
             disabled={!canNextPage}
-            aria-label={t('table.lastPage', {
+            aria-label={tString('table.lastPage', {
               defaultValue: 'Go to last page',
             })}
           >

@@ -1,6 +1,6 @@
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { AlertTriangleIcon, InfoIcon, XCircleIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { ErrorType } from '@/api/axios-instance';
@@ -26,7 +26,7 @@ export interface FriendlyErrorAlertProps {
   /**
    * Custom title to display for unknown errors (passed to ServerErrorAlert)
    */
-  customTitle?: string;
+  customTitle?: ReactNode;
 
   /**
    * Whether to show technical details for unknown errors (passed to ServerErrorAlert)
@@ -85,7 +85,7 @@ const KnownErrorAlert: FC<{
   className?: string;
   i18nNamespace: 'recipients' | 'linked-accounts';
 }> = ({ interceptedError, className, i18nNamespace }) => {
-  const { t } = useTranslation(i18nNamespace);
+  const { t } = useTranslationWithTokens(i18nNamespace);
   // Type assertion to avoid TypeScript overload issues with dynamic keys
   const translate = t as (key: string) => string;
   const { config, context } = interceptedError;

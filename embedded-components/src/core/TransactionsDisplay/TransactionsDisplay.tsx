@@ -1,4 +1,5 @@
 import React, { forwardRef, useImperativeHandle, useState } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import {
   ColumnFiltersState,
   getCoreRowModel,
@@ -9,12 +10,11 @@ import {
   useReactTable,
   VisibilityState,
 } from '@tanstack/react-table';
-import { useTranslation } from 'react-i18next';
 
 import { useLocale } from '@/lib/hooks';
 import { cn } from '@/lib/utils';
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
-import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 
@@ -44,7 +44,7 @@ export const TransactionsDisplay = forwardRef<
     },
     ref
   ) => {
-    const { t } = useTranslation(['transactions']);
+    const { t } = useTranslationWithTokens(['transactions']);
     const locale = useLocale();
     const { filteredAccountIds } = useAccountsData();
 

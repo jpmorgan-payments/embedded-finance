@@ -3,9 +3,10 @@
  * Information-dense layout with minimal spacing
  */
 
+import { useTranslationWithTokens } from '@/hooks';
+
 import { _get, cn, isValueEmpty } from '@/lib/utils';
 import type { PartyResponse } from '@/api/generated/smbdo.schemas';
-import { useTranslationWithTokens } from '@/components/i18n';
 
 import { getPartyDisplayName } from '../../utils/getPartyDisplayName';
 import {

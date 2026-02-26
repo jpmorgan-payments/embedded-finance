@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 
 import { cn } from '@/lib/utils';
 import { useSmbdoListQuestions } from '@/api/generated/smbdo';
@@ -6,7 +7,6 @@ import type {
   ClientQuestionResponse,
   ClientResponse,
 } from '@/api/generated/smbdo.schemas';
-import { useTranslationWithTokens } from '@/components/i18n';
 import { Skeleton } from '@/components/ui';
 
 import { formatQuestionResponseValue } from '../../utils/formatClientFacing';

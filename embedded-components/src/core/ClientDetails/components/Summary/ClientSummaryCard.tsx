@@ -12,6 +12,7 @@
  */
 
 import { useMemo } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import {
   Briefcase,
   Building2,
@@ -27,7 +28,6 @@ import {
 import { cn } from '@/lib/utils';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 import { Card } from '@/components/ui/card';
-import { useTranslationWithTokens } from '@/components/i18n';
 
 import {
   getBeneficialOwnerParties,

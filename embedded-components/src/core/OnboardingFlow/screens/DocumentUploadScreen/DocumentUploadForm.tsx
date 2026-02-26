@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { useForm, useWatch } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import {
@@ -30,7 +30,7 @@ import { UploadedDocument } from './documentUploadUtils';
  * Component for uploading documents for a specific party
  */
 export const DocumentUploadForm = () => {
-  const { t } = useTranslation(['onboarding-overview']);
+  const { t } = useTranslationWithTokens(['onboarding-overview']);
   const { clientData, docUploadMaxFileSizeBytes = 2 * 1024 * 1024 } =
     useOnboardingContext();
   const queryClient = useQueryClient();

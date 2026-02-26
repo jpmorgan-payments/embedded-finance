@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import {
   Building2,
   Calendar,
@@ -8,7 +9,6 @@ import {
   User,
 } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -33,7 +33,7 @@ export const ReviewPanel: React.FC<ReviewPanelProps> = ({
   accountsStatus,
   paymentMethods = [],
 }) => {
-  const { t } = useTranslation(['make-payment']);
+  const { t } = useTranslationWithTokens(['make-payment']);
   const form = useFormContext<PaymentFormData>();
 
   const today = useMemo(() => new Date(), []);

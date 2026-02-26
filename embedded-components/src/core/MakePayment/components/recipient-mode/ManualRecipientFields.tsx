@@ -1,6 +1,6 @@
 import React from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -22,7 +22,7 @@ import {
 import type { PaymentFormData } from '../../types';
 
 export const ManualRecipientFields: React.FC = () => {
-  const { t } = useTranslation(['make-payment']);
+  const { t } = useTranslationWithTokens(['make-payment']);
   const form = useFormContext<PaymentFormData>();
   const partyType = form.watch('partyType') || 'INDIVIDUAL';
   const method = form.watch('method');

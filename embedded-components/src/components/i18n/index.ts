@@ -1,2 +1,1 @@
-export { ContentToken, type ContentTokenProps } from './ContentToken';
-export { useTranslationWithTokens } from './useTranslationWithTokens';
+export { TransWithTokens } from './TransWithTokens';

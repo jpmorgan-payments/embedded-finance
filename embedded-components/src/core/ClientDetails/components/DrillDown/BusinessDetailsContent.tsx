@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import {
   Building2Icon,
   CalendarIcon,
@@ -26,7 +27,6 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { Separator } from '@/components/ui/separator';
-import { useTranslationWithTokens } from '@/components/i18n';
 
 import { formatDateTime, formatEIN } from '../../utils/formatClientFacing';
 import { getOrganizationParty } from '../../utils/partyGrouping';

@@ -4,10 +4,10 @@
  */
 
 import { useMemo } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 
 import { cn } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import { useTranslationWithTokens } from '@/components/i18n';
 
 import { CLIENT_DETAILS_DEFAULT_VIEW_MODE } from './ClientDetails.constants';
 import type { ClientDetailsProps } from './ClientDetails.types';

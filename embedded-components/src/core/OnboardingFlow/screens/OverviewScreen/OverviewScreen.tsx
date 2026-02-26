@@ -1,3 +1,4 @@
+import { useTranslationWithTokens } from '@/hooks';
 import {
   AlertCircleIcon,
   AlertTriangleIcon,
@@ -12,7 +13,6 @@ import {
   PencilIcon,
   XIcon,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -55,7 +55,7 @@ export const OverviewScreen = () => {
     currentScreenId
   );
 
-  const { t } = useTranslation(['onboarding-overview', 'common']);
+  const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
 
   // TODO:
   const kycCompleted =

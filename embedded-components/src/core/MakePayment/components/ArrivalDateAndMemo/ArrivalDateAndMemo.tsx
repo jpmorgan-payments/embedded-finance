@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import {
   FormControl,
@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label';
 import type { PaymentFormData } from '../../types';
 
 export const ArrivalDateAndMemo: React.FC = () => {
-  const { t } = useTranslation(['make-payment']);
+  const { t } = useTranslationWithTokens(['make-payment']);
   const form = useFormContext<PaymentFormData>();
   const today = useMemo(() => new Date(), []);
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { Check, ChevronsUpDown, X } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { AccountResponse } from '@/api/generated/ep-accounts.schemas';
@@ -49,7 +49,7 @@ export const RecipientSelector: React.FC<RecipientSelectorProps> = ({
   recipientDisabledMap,
   allRecipients,
 }) => {
-  const { t } = useTranslation(['make-payment']);
+  const { t, tString } = useTranslationWithTokens(['make-payment']);
   const form = useFormContext<PaymentFormData>();
   const [open, setOpen] = useState(false);
 
@@ -190,7 +190,7 @@ export const RecipientSelector: React.FC<RecipientSelectorProps> = ({
                 <PopoverContent className="eb-w-[--radix-popover-trigger-width] eb-p-0">
                   <Command>
                     <CommandInput
-                      placeholder={t('fields.to.placeholder', {
+                      placeholder={tString('fields.to.placeholder', {
                         defaultValue: 'Search recipient...',
                       })}
                       className="eb-h-9"

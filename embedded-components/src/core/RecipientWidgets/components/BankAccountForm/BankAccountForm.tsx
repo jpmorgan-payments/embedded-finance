@@ -1,4 +1,5 @@
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC, ReactNode, useEffect, useMemo, useState } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   ArrowLeftIcon,
@@ -15,7 +16,6 @@ import {
   ZapIcon,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import {
   RecipientContactContactType,
@@ -74,7 +74,7 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
   configs,
   allowMultiple,
 }) => {
-  const { t } = useTranslation('bank-account-form');
+  const { t, tString } = useTranslationWithTokens('bank-account-form');
   const handleToggle = (type: RoutingInformationTransactionType) => {
     const config = configs[type];
 
@@ -167,7 +167,7 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
                     variant="ghost"
                     size="icon"
                     className="eb-h-8 eb-w-8 eb-shrink-0 eb-text-muted-foreground hover:eb-text-foreground"
-                    aria-label={t('paymentMethods.infoButtonAriaLabel', {
+                    aria-label={tString('paymentMethods.infoButtonAriaLabel', {
                       method: config.label,
                     })}
                   >
@@ -195,30 +195,31 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
 
 /**
  * Helper function to get the payment methods that require a specific field
+ * Returns payment type codes (ACH, WIRE, RTP) for use with translation keys
  */
 const getRequiredPaymentMethods = (
   fieldType: 'address' | 'email' | 'phone',
   paymentTypes: RoutingInformationTransactionType[],
   configs: BankAccountFormProps['config']['paymentMethods']['configs']
-): string[] => {
-  const methods: string[] = [];
+): RoutingInformationTransactionType[] => {
+  const methods: RoutingInformationTransactionType[] = [];
 
   paymentTypes.forEach((type) => {
     const methodConfig = configs[type];
     if (!methodConfig?.enabled) return;
 
     if (fieldType === 'address' && methodConfig.requiredFields.address) {
-      methods.push(methodConfig.shortLabel);
+      methods.push(type);
     } else if (
       fieldType === 'email' &&
       methodConfig.requiredFields.contacts?.includes('EMAIL')
     ) {
-      methods.push(methodConfig.shortLabel);
+      methods.push(type);
     } else if (
       fieldType === 'phone' &&
       methodConfig.requiredFields.contacts?.includes('PHONE')
     ) {
-      methods.push(methodConfig.shortLabel);
+      methods.push(type);
     }
   });
 
@@ -227,21 +228,28 @@ const getRequiredPaymentMethods = (
 
 /**
  * Hook to format "Required for X" message with proper grammar using translations
+ * Returns ReactNode since the message is displayed as visible text in badges
  */
-const useFormatRequiredMessage = () => {
-  const { t } = useTranslation('bank-account-form');
+const useFormatRequiredMessage = (
+  configs: BankAccountFormProps['config']['paymentMethods']['configs']
+) => {
+  const { t } = useTranslationWithTokens('bank-account-form');
 
-  return (methods: string[]): string | null => {
+  return (methods: RoutingInformationTransactionType[]): ReactNode | null => {
     if (methods.length === 0) return null;
+    // Get shortLabels as strings for display
+    const labels = methods.map((type) => configs[type]?.shortLabel ?? type);
     if (methods.length === 1) {
-      return t('requiredFor.single', { method: methods[0] });
+      return t('requiredFor.single', { method: labels[0] });
     }
     if (methods.length === 2) {
-      return t('requiredFor.double', { first: methods[0], second: methods[1] });
+      return t('requiredFor.double', { first: labels[0], second: labels[1] });
     }
+    // For 3+ methods, join all but last with commas
+    const allButLast = labels.slice(0, -1);
     return t('requiredFor.multiple', {
-      list: methods.slice(0, -1).join(', '),
-      last: methods[methods.length - 1],
+      list: allButLast,
+      last: labels[labels.length - 1],
     });
   };
 };
@@ -270,7 +278,7 @@ interface IndividualReadonlyFieldProps {
 const IndividualReadonlyField: FC<IndividualReadonlyFieldProps> = ({
   individual,
 }) => {
-  const { t } = useTranslation('bank-account-form');
+  const { t } = useTranslationWithTokens('bank-account-form');
   return (
     <FormItem>
       <FormLabel>{t('individualSelector.accountHolder')}</FormLabel>
@@ -313,7 +321,7 @@ const IndividualSelector: FC<IndividualSelectorProps> = ({
   selectedLastName,
   onSelect,
 }) => {
-  const { t } = useTranslation('bank-account-form');
+  const { t } = useTranslationWithTokens('bank-account-form');
   const selectedIndividual = individuals.find(
     (party) =>
       party.firstName === selectedFirstName &&
@@ -387,7 +395,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
   control,
   disabled = false,
 }) => {
-  const { t } = useTranslation('bank-account-form');
+  const { t, tString } = useTranslationWithTokens('bank-account-form');
   // Only show checkbox if there are multiple payment methods
   const showCheckbox = paymentMethods.length > 1;
 
@@ -411,7 +419,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
               <Input
                 {...field}
                 type="text"
-                placeholder={t('routingNumbers.placeholder')}
+                placeholder={tString('routingNumbers.placeholder')}
                 maxLength={9}
                 disabled={disabled}
               />
@@ -465,7 +473,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
                 <Input
                   {...field}
                   type="text"
-                  placeholder={t('routingNumbers.placeholder')}
+                  placeholder={tString('routingNumbers.placeholder')}
                   maxLength={9}
                   disabled={disabled}
                 />
@@ -495,7 +503,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
                       <Input
                         {...field}
                         type="text"
-                        placeholder={t('routingNumbers.placeholder')}
+                        placeholder={tString('routingNumbers.placeholder')}
                         maxLength={9}
                         disabled={disabled}
                       />
@@ -532,7 +540,7 @@ const ContactFields: FC<ContactFieldsProps> = ({
   configs,
   disabled = false,
 }) => {
-  const { t } = useTranslation('bank-account-form');
+  const { t, tString } = useTranslationWithTokens('bank-account-form');
   const handleContactChange = (
     type: RecipientContactContactType,
     contactValue: string,
@@ -576,7 +584,7 @@ const ContactFields: FC<ContactFieldsProps> = ({
   }
 
   // Get conditional requirement reasons
-  const formatRequiredMessage = useFormatRequiredMessage();
+  const formatRequiredMessage = useFormatRequiredMessage(configs);
   const emailMethods = showEmail
     ? getRequiredPaymentMethods('email', paymentTypes, configs)
     : [];
@@ -608,7 +616,7 @@ const ContactFields: FC<ContactFieldsProps> = ({
                 type="email"
                 value={getContactValue('EMAIL')}
                 onChange={(e) => handleContactChange('EMAIL', e.target.value)}
-                placeholder={t('contacts.email.placeholder')}
+                placeholder={tString('contacts.email.placeholder')}
                 disabled={disabled}
               />
             </FormControl>
@@ -634,7 +642,7 @@ const ContactFields: FC<ContactFieldsProps> = ({
                 type="tel"
                 value={getContactValue('PHONE')}
                 onChange={(e) => handleContactChange('PHONE', e.target.value)}
-                placeholder={t('contacts.phone.placeholder')}
+                placeholder={tString('contacts.phone.placeholder')}
                 disabled={disabled}
               />
             </FormControl>
@@ -666,8 +674,10 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   initialPaymentTypes: initialPaymentTypesProp,
   initialStep = 1,
 }) => {
-  const { t } = useTranslation('bank-account-form');
-  const formatRequiredMessage = useFormatRequiredMessage();
+  const { t, tString } = useTranslationWithTokens('bank-account-form');
+  const formatRequiredMessage = useFormatRequiredMessage(
+    config.paymentMethods.configs
+  );
   // Start on step 2 if skipStepOne is true OR initialStep is 2
   const [currentStep, setCurrentStep] = useState<1 | 2>(
     skipStepOne ? 2 : initialStep
@@ -1329,7 +1339,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                             effectiveConfig.content.fieldLabels?.firstName ||
                             t('fields.firstName.label')
                           }
-                          placeholder={t('fields.firstName.placeholder')}
+                          placeholder={tString('fields.firstName.placeholder')}
                           required
                           readonly={effectiveConfig.readonlyFields?.firstName}
                           disabled={isLoading}
@@ -1343,7 +1353,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                             effectiveConfig.content.fieldLabels?.lastName ||
                             t('fields.lastName.label')
                           }
-                          placeholder={t('fields.lastName.placeholder')}
+                          placeholder={tString('fields.lastName.placeholder')}
                           required
                           readonly={effectiveConfig.readonlyFields?.lastName}
                           disabled={isLoading}
@@ -1371,7 +1381,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                         effectiveConfig.content.fieldLabels?.businessName ||
                         t('fields.businessName.label')
                       }
-                      placeholder={t('fields.businessName.placeholder')}
+                      placeholder={tString('fields.businessName.placeholder')}
                       required
                       readonly={effectiveConfig.readonlyFields?.businessName}
                       disabled={isLoading}
@@ -1390,7 +1400,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                       effectiveConfig.content.fieldLabels?.accountNumber ||
                       t('fields.accountNumber.label')
                     }
-                    placeholder={t('fields.accountNumber.placeholder')}
+                    placeholder={tString('fields.accountNumber.placeholder')}
                     required
                     readonly={effectiveConfig.readonlyFields?.accountNumber}
                     disabled={isLoading}
@@ -1403,7 +1413,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                       effectiveConfig.content.fieldLabels?.bankAccountType ||
                       t('fields.accountType.label')
                     }
-                    placeholder={t('fields.accountType.placeholder')}
+                    placeholder={tString('fields.accountType.placeholder')}
                     required
                     readonly={effectiveConfig.readonlyFields?.bankAccountType}
                     disabled={isLoading}
@@ -1475,7 +1485,9 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                                 ?.primaryAddressLine ||
                               t('address.streetAddress.label')
                             }
-                            placeholder={t('address.streetAddress.placeholder')}
+                            placeholder={tString(
+                              'address.streetAddress.placeholder'
+                            )}
                             required
                             disabled={isLoading}
                           />
@@ -1489,7 +1501,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                                   ?.secondaryAddressLine ||
                                 t('address.addressLine2.label')
                               }
-                              placeholder={t(
+                              placeholder={tString(
                                 'address.addressLine2.placeholder'
                               )}
                               disabled={isLoading}
@@ -1503,7 +1515,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                                   ?.tertiaryAddressLine ||
                                 t('address.addressLine3.label')
                               }
-                              placeholder={t(
+                              placeholder={tString(
                                 'address.addressLine3.placeholder'
                               )}
                               disabled={isLoading}
@@ -1515,7 +1527,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                               name="address.city"
                               type="text"
                               label={t('address.city.label')}
-                              placeholder={t('address.city.placeholder')}
+                              placeholder={tString('address.city.placeholder')}
                               required
                               className="md:eb-col-span-1"
                               disabled={isLoading}
@@ -1525,7 +1537,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                               name="address.state"
                               type={useStateTextField ? 'text' : 'us-state'}
                               label={t('address.state.label')}
-                              placeholder={t('address.state.placeholder')}
+                              placeholder={tString('address.state.placeholder')}
                               required
                               inputProps={
                                 useStateTextField
@@ -1539,7 +1551,9 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                               name="address.postalCode"
                               type="text"
                               label={t('address.postalCode.label')}
-                              placeholder={t('address.postalCode.placeholder')}
+                              placeholder={tString(
+                                'address.postalCode.placeholder'
+                              )}
                               required
                               inputProps={{ maxLength: 10 }}
                               disabled={isLoading}

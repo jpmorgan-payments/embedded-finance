@@ -18,11 +18,13 @@ export interface PaymentMethodConfig {
   /** Whether this payment method is enabled */
   enabled: boolean;
   /** Display label for the payment method */
-  label: string;
+  label: ReactNode;
+  /** Plain string label for use in validation messages */
+  labelString: string;
   /** Short label for compact display (e.g., badges, routing number labels) */
-  shortLabel: string;
+  shortLabel: ReactNode;
   /** Description text */
-  description: string;
+  description: ReactNode;
   /** Whether this payment method can be deselected (for linked accounts, ACH is locked) */
   locked?: boolean;
   /** Required fields when this payment method is selected */
@@ -40,45 +42,45 @@ export interface PaymentMethodConfig {
     errorMessage: string;
   };
   /** Helper text to show for this payment method */
-  helperText?: string;
+  helperText?: ReactNode;
 }
 
 /**
  * Content/text configuration for customizing labels and messages
  */
 export interface BankAccountFormContent {
-  submitButtonText: string;
+  submitButtonText: ReactNode;
   /** Cancel button text */
-  cancelButtonText?: string;
+  cancelButtonText?: ReactNode;
   /** Loading message */
-  loadingMessage?: string;
+  loadingMessage?: ReactNode;
   /** Section titles */
   sections?: {
-    accountHolderType?: string;
-    accountHolderInfo?: string;
-    bankAccountDetails?: string;
-    paymentMethods?: string;
-    addressInfo?: string;
-    contactInfo?: string;
+    accountHolderType?: ReactNode;
+    accountHolderInfo?: ReactNode;
+    bankAccountDetails?: ReactNode;
+    paymentMethods?: ReactNode;
+    addressInfo?: ReactNode;
+    contactInfo?: ReactNode;
   };
   /** Field labels (override defaults) */
   fieldLabels?: {
-    accountType?: string;
-    firstName?: string;
-    lastName?: string;
-    businessName?: string;
-    routingNumber?: string;
-    accountNumber?: string;
-    bankAccountType?: string;
-    primaryAddressLine?: string;
-    secondaryAddressLine?: string;
-    tertiaryAddressLine?: string;
-    city?: string;
-    state?: string;
-    postalCode?: string;
+    accountType?: ReactNode;
+    firstName?: ReactNode;
+    lastName?: ReactNode;
+    businessName?: ReactNode;
+    routingNumber?: ReactNode;
+    accountNumber?: ReactNode;
+    bankAccountType?: ReactNode;
+    primaryAddressLine?: ReactNode;
+    secondaryAddressLine?: ReactNode;
+    tertiaryAddressLine?: ReactNode;
+    city?: ReactNode;
+    state?: ReactNode;
+    postalCode?: ReactNode;
   };
   /** Certification text */
-  certificationText?: string;
+  certificationText?: ReactNode;
 }
 
 /**

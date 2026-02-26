@@ -3,11 +3,12 @@
  * Renders Organization, Controller, and Beneficial owners with business labels only (no internal IDs).
  */
 
+import { useTranslationWithTokens } from '@/hooks';
+
 import type {
   ClientResponse,
   PartyResponse,
 } from '@/api/generated/smbdo.schemas';
-import { useTranslationWithTokens } from '@/components/i18n';
 
 import {
   getBeneficialOwnerParties,

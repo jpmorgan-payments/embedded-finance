@@ -3,6 +3,7 @@
  */
 
 import type { ReactNode } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import {
   Building2,
   CheckCircle2,
@@ -14,7 +15,6 @@ import {
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { useTranslationWithTokens } from '@/components/i18n';
 
 export type ClientSection =
   | 'identity'

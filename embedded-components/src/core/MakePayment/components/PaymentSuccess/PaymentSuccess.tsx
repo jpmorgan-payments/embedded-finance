@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import {
   Building2,
   Calendar,
@@ -7,7 +8,6 @@ import {
   FileText,
   User,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,7 +32,7 @@ export const PaymentSuccess: React.FC<PaymentSuccessProps> = ({
   accounts,
   formData,
 }) => {
-  const { t } = useTranslation(['make-payment']);
+  const { t } = useTranslationWithTokens(['make-payment']);
 
   const today = useMemo(() => new Date(), []);
 

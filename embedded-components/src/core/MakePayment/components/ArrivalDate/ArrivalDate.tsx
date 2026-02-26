@@ -1,11 +1,11 @@
 import React, { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslationWithTokens } from '@/hooks';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export const ArrivalDate: React.FC = () => {
-  const { t } = useTranslation(['make-payment']);
+  const { t } = useTranslationWithTokens(['make-payment']);
   const today = useMemo(() => new Date(), []);
 
   return (

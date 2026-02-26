@@ -1,5 +1,5 @@
+import { useTranslationWithTokens } from '@/hooks';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
@@ -16,7 +16,7 @@ import {
 } from './PersonalDetailsForm.schema';
 
 export const PersonalDetailsForm: FormStepComponent = () => {
-  const { t } = useTranslation('onboarding-overview');
+  const { t } = useTranslationWithTokens('onboarding-overview');
   const _schema = usePersonalDetailsFormSchema();
   const form = useFormContext<z.input<typeof _schema>>();
 

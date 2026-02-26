@@ -7,7 +7,11 @@ import { useContentTokens } from '@/core/EBComponentsProvider';
 /** Valid namespace keys from default resources */
 type ValidNamespace = keyof (typeof defaultResources)['enUS'];
 
-type TranslationResult = string | ReactNode;
+/**
+ * Translation result type that excludes null/undefined.
+ * This ensures the return type is always renderable content.
+ */
+export type TranslationResult = string | Exclude<ReactNode, null | undefined>;
 
 /**
  * Returns a wrapped translation function that annotates output with token IDs.
@@ -72,11 +76,11 @@ export function useTranslationWithTokens<N extends ValidNamespace>(
    * Translate a key, always returning a plain string (no annotation).
    * Use this when the result must be a string (e.g., for title attributes).
    */
-  function tString(...args: Parameters<TFunc>): string {
+  const tString = (...args: Parameters<TFunc>): string => {
     const [key, options] = args;
     // Use any cast to work around complex TFunction overload types
     return (originalT as any)(key, options);
-  }
+  };
 
   return { t, tString, i18n, ready };
 }

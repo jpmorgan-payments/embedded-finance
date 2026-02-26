@@ -1,6 +1,6 @@
+import { useTranslationWithTokens } from '@/hooks';
 import { Table } from '@tanstack/react-table';
 import { Settings2 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -52,7 +52,7 @@ const getColumnTranslationKey = (columnId: string): string => {
 export function DataTableViewOptions<TData>({
   table,
 }: DataTableViewOptionsProps<TData>) {
-  const { t } = useTranslation(['transactions']);
+  const { t } = useTranslationWithTokens(['transactions']);
 
   return (
     <DropdownMenu>

@@ -165,7 +165,7 @@ export type FlowSessionData = {
 export type StepperStepProps = {
   handleNext: () => void;
   handlePrev: () => void;
-  getPrevButtonLabel: () => string | null;
-  getNextButtonLabel: () => string | null;
+  getPrevButtonLabel: () => React.ReactNode | null;
+  getNextButtonLabel: () => React.ReactNode | null;
   prevButtonDisabled?: boolean;
 };

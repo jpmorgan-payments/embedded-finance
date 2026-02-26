@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import {
   ControllerProps,
@@ -6,7 +7,6 @@ import {
   FieldValues,
   useFormContext,
 } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { PhoneInput } from '@/components/ui/phone-input';
@@ -76,7 +76,7 @@ interface BaseProps<
   type?: FieldType;
   label?: string | React.ReactNode;
   placeholder?: string;
-  description?: string;
+  description?: string | React.ReactNode;
   tooltip?: string | React.ReactNode;
   required?: boolean;
   readonly?: boolean;
@@ -100,9 +100,9 @@ interface SelectOrRadioGroupProps<
 > extends BaseProps<TFieldValues, TName> {
   type: 'select' | 'radio-group' | 'radio-group-blocks' | 'combobox';
   options: Array<{
-    label: React.ReactNode | string;
+    label: React.ReactNode;
     value: string;
-    description?: string;
+    description?: React.ReactNode;
     disabled?: boolean;
   }>;
 }
@@ -147,7 +147,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   const form = useFormContext();
   const { getFieldRule } = useFormUtils();
 
-  const { t } = useTranslation([
+  const { t, tString } = useTranslationWithTokens([
     'onboarding-old',
     'onboarding-overview',
     'common',
@@ -205,7 +205,33 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
     );
   };
 
-  const fieldPlaceholder = placeholder ?? getContentToken('placeholder');
+  // String version for HTML attributes like placeholder that require string type
+  const getContentTokenString = (id: FieldContentTokenKey) => {
+    const key = `fields.${tName}.${id}`;
+    const oldContentTokenKey = `onboarding-old:${key}`;
+    const contentTokenOverride = fieldRule.contentTokenOverrides?.[id];
+    if (typeof contentTokenOverride === 'string') {
+      return contentTokenOverride;
+    }
+    return tString(
+      [
+        `onboarding-overview:${key}.${fieldRule.contentTokenOverrideKey}`,
+        `onboarding-overview:${key}.default`,
+        `onboarding-overview:${key}`,
+        oldContentTokenKey, // TO REMOVE
+        'common:noTokenFallback',
+      ] as unknown as TemplateStringsArray,
+      {
+        number,
+        key,
+      }
+    );
+  };
+
+  const fieldPlaceholder =
+    typeof placeholder === 'string'
+      ? placeholder
+      : getContentTokenString('placeholder');
 
   const fieldLabel = (
     <>

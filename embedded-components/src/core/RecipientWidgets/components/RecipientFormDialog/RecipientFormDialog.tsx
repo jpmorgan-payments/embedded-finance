@@ -1,5 +1,5 @@
 import { FC, ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
+import { TranslationResult, useTranslationWithTokens } from '@/hooks';
 
 import { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
@@ -116,7 +116,7 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
   recipientType,
   i18nNamespace,
 }) => {
-  const { t } = useTranslation(i18nNamespace);
+  const { t } = useTranslationWithTokens(i18nNamespace);
   const clientId = useClientId();
   const { interceptorReady } = useInterceptorStatus();
 
@@ -180,7 +180,7 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
   const translationKey = mode === 'create' ? 'linkAccount' : 'editAccount';
 
   // Get title based on status
-  const getTitle = (): string => {
+  const getTitle = (): TranslationResult => {
     if (status === 'success') {
       if (responseData?.status) {
         const statusKey =

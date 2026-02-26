@@ -3,9 +3,10 @@
  * One card per section: Client information, Verification results, Organization, Controller, Beneficial owners, Question responses.
  */
 
+import { useTranslationWithTokens } from '@/hooks';
+
 import { cn } from '@/lib/utils';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
-import { useTranslationWithTokens } from '@/components/i18n';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 
 import {
