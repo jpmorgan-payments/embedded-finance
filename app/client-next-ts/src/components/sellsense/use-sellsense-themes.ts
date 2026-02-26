@@ -9,6 +9,7 @@ export type ThemeOption =
   | 'SellSense'
   | 'PayFicient'
   | 'Empty'
+  | 'Empty+'
   | 'Custom';
 
 export const useSellSenseThemes = () => {
@@ -22,8 +23,55 @@ export const useSellSenseThemes = () => {
           return customVariables || {};
 
         case 'Empty':
-          // Empty theme - minimal tokens so component defaults show; include focus ring for a11y
+          // Only tokens that differ from embedded-components defaultTheme (see defaultTheme.ts).
+          // Single override: visible focus ring for a11y (default light is hsl(240 10% 3.9%)).
           return { focusedRingColor: '#0060f0' };
+
+        case 'Empty+':
+          // Only tokens that differ from embedded-components defaultTheme (see defaultTheme.ts).
+          // No spacingUnit change (keeps default padding). A11y: 1rem actionable font + WCAG AA contrast for all button/status pairs.
+          return {
+            focusedRingColor: '#0060f0',
+            actionableFontSize: '1rem',
+            // Primary button (AA)
+            actionableAccentedBoldBackground: '#0047ab',
+            actionableAccentedBoldBackgroundHover: '#003d96',
+            actionableAccentedBoldBackgroundActive: '#003380',
+            actionableAccentedBoldForeground: '#ffffff',
+            actionableAccentedBoldForegroundHover: '#ffffff',
+            actionableAccentedBoldForegroundActive: '#ffffff',
+            // Secondary button (AA)
+            actionableSubtleBackground: '#e2e8f0',
+            actionableSubtleBackgroundHover: '#cbd5e1',
+            actionableSubtleBackgroundActive: '#cbd5e1',
+            actionableSubtleForeground: '#1e3a8a',
+            actionableSubtleForegroundHover: '#1e3a8a',
+            actionableSubtleForegroundActive: '#1e3a8a',
+            // Destructive button (AA)
+            actionableNegativeBoldBackground: '#b91c1c',
+            actionableNegativeBoldBackgroundHover: '#991b1b',
+            actionableNegativeBoldBackgroundActive: '#7f1d1d',
+            actionableNegativeBoldForeground: '#ffffff',
+            actionableNegativeBoldForegroundHover: '#ffffff',
+            actionableNegativeBoldForegroundActive: '#ffffff',
+            // Error message (AA)
+            sentimentNegativeAccentBackground: '#b91c1c',
+            statusErrorBackground: '#fef2f2',
+            statusErrorForegroundInformative: '#991b1b',
+            // Success (AA)
+            sentimentPositiveForeground: '#047857',
+            sentimentPositiveAccentBackground: '#d1fae5',
+            statusSuccessForeground: '#047857',
+            statusSuccessAccentBackground: '#d1fae5',
+            // Warning (AA)
+            sentimentCautionForeground: '#b45309',
+            sentimentCautionAccentBackground: '#fef3c7',
+            statusWarningForeground: '#b45309',
+            statusWarningAccentBackground: '#fef3c7',
+            // Info (AA)
+            statusInfoForeground: '#0369a1',
+            statusInfoAccentBackground: '#e0f2fe',
+          };
 
         case 'Default Blue':
           return {

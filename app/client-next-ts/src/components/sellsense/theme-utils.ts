@@ -43,6 +43,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getHeaderStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'bg-gray-50 border-gray-200'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return 'bg-white border-slate-200'; // backgroundColor: '#ffffff', borderColor: '#e2e8f0'
@@ -61,6 +62,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getHeaderLabelStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'text-gray-600'; // Neutral styling for showing component defaults
         case 'Default Blue':
         case 'Salt Theme':
@@ -76,6 +78,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getHeaderSelectStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'bg-white border-gray-300 text-gray-900'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return 'bg-white border-gray-300 text-slate-800'; // inputColor: '#ffffff', inputBorderColor: '#d1d5db', foregroundColor: '#1e293b'
@@ -93,6 +96,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getHeaderButtonStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return 'text-[#0060f0] hover:text-[#0a4386] hover:bg-transparent'; // primaryColor: '#0060f0', primaryHoverColor: '#0a4386', secondaryColor: '#00000000'
@@ -111,6 +115,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getHeaderSettingsButtonStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-gray-300'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return 'border-slate-200 bg-white hover:bg-slate-100 hover:border-slate-300'; // borderColor: '#e2e8f0', backgroundColor: '#ffffff'
@@ -129,6 +134,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getHeaderTextStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'text-gray-900'; // Neutral styling for showing component defaults
         case 'Default Blue':
         case 'Salt Theme':
@@ -144,6 +150,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getHeaderCompanyTextStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'text-gray-500'; // Neutral styling for showing component defaults
         case 'Default Blue':
         case 'Salt Theme':
@@ -161,6 +168,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getSidebarStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'bg-gray-50 border-gray-200'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return 'bg-white border-slate-200'; // backgroundColor: '#ffffff', borderColor: '#e2e8f0'
@@ -181,6 +189,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
       if (selected) {
         switch (theme) {
           case 'Empty':
+          case 'Empty+':
             return 'text-gray-900 font-semibold bg-gray-200 border-l-4 border-gray-600'; // Neutral styling for showing component defaults
           case 'Default Blue':
             return 'text-[#0060f0] font-semibold bg-slate-100 border-l-4 border-[#0060f0]'; // primaryColor: '#0060f0', accentColor: '#f1f5f9'
@@ -198,6 +207,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
       } else {
         switch (theme) {
           case 'Empty':
+          case 'Empty+':
             return 'text-gray-600 font-normal border-l-4 border-transparent hover:bg-gray-200 hover:text-gray-900'; // Neutral styling for showing component defaults
           case 'Default Blue':
             return 'text-slate-800 font-normal border-l-4 border-transparent hover:bg-slate-100 hover:text-[#0060f0]'; // foregroundColor: '#1e293b', accentColor: '#f1f5f9', primaryColor: '#0060f0'
@@ -218,6 +228,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getSidebarLabelStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'text-gray-500'; // Neutral styling for showing component defaults
         case 'Default Blue':
         case 'Salt Theme':
@@ -234,6 +245,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getSidebarTextStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'text-gray-700'; // Neutral styling for showing component defaults
         case 'Default Blue':
         case 'Salt Theme':
@@ -251,6 +263,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getCardStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'bg-white border-gray-300'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return 'h-fit bg-white border-slate-200'; // popoverColor: '#ffffff', borderColor: '#e2e8f0'
@@ -270,6 +283,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getContentAreaStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'bg-white border-gray-300'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return ' bg-white border-slate-200'; // backgroundColor: '#ffffff', borderColor: '#e2e8f0'
@@ -289,6 +303,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getIconStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return 'text-[#0060f0] hover:text-[#0a4386] hover:bg-transparent'; // primaryColor: '#0060f0', primaryHoverColor: '#0a4386', secondaryColor: '#00000000'
@@ -309,6 +324,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getTagStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'bg-gray-100 text-gray-700 border-gray-300'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return 'bg-slate-50 text-[#0060f0] border-slate-200'; // accentColor: '#f1f5f9', primaryColor: '#0060f0', borderColor: '#e2e8f0'
@@ -329,6 +345,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getDialogStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'bg-white text-gray-900 border-gray-300'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return 'bg-white text-slate-800 border-slate-200'; // backgroundColor: '#ffffff', foregroundColor: '#1e293b', borderColor: '#e2e8f0'
@@ -349,6 +366,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getModalStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'bg-white text-gray-900 border-gray-300'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return 'bg-white text-slate-800 border-slate-200'; // backgroundColor: '#ffffff', foregroundColor: '#1e293b', borderColor: '#e2e8f0'
@@ -369,6 +387,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getLogoPath: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return ''; // No logo for empty theme - shows component defaults
         case 'PayFicient':
           return '/payficientlogo.svg';
@@ -387,6 +406,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getLogoAlt: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return ''; // No alt text for empty theme
         case 'PayFicient':
           return 'PayFicient Logo'; // Alt text for PayFicient placeholder
@@ -403,6 +423,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getLogoStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'hidden'; // Hide logo completely for empty theme
         case 'PayFicient':
           return 'mt-5 h-[80px] w-auto max-w-[300px] object-contain'; // Even larger sizing for PayFicient logo
@@ -422,6 +443,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
       if (active) {
         switch (theme) {
           case 'Empty':
+          case 'Empty+':
             return 'bg-gray-600 text-white font-medium'; // Neutral styling for showing component defaults
           case 'Default Blue':
             return 'bg-[#0060f0] text-white font-medium'; // primaryColor: '#0060f0'
@@ -439,6 +461,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
       } else {
         switch (theme) {
           case 'Empty':
+          case 'Empty+':
             return 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'; // Neutral styling for showing component defaults
           case 'Default Blue':
             return 'text-[#0060f0] hover:text-[#0a4386] hover:bg-transparent'; // primaryColor: '#0060f0', primaryHoverColor: '#0a4386'
@@ -460,6 +483,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getAlertStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'bg-amber-50 border-2 border-amber-200 shadow-lg'; // Neutral but prominent styling
         case 'Default Blue':
           return 'bg-amber-50 border-2 border-amber-300 shadow-lg'; // Prominent amber warning
@@ -479,6 +503,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getAlertTextStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'text-amber-900 font-medium'; // High contrast text
         case 'Default Blue':
         case 'Salt Theme':
@@ -495,6 +520,7 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getAlertButtonStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'bg-amber-600 text-white hover:bg-amber-700 font-medium'; // Prominent button
         case 'Default Blue':
         case 'Salt Theme':
