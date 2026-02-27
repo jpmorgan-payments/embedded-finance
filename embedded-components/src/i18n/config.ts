@@ -7,8 +7,7 @@ import en_zod from 'zod-i18n-map/locales/en/zod.json';
 import es_zod from 'zod-i18n-map/locales/es/zod.json';
 import fr_zod from 'zod-i18n-map/locales/fr/zod.json';
 
-import type { EBConfig } from '@/core/EBComponentsProvider/config.types';
-
+import type { EBConfig } from '../core/EBComponentsProvider/config.types';
 import enUS_accounts from './en-US/accounts.json';
 import enUS_bankAccountForm from './en-US/bank-account-form.json';
 import enUS_clientDetails from './en-US/client-details.json';
