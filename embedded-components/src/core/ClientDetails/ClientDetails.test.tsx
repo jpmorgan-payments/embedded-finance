@@ -67,8 +67,13 @@ describe('ClientDetails', () => {
         expect(screen.getByText('Client details')).toBeInTheDocument();
       });
 
-      expect(screen.getByText('Client information')).toBeInTheDocument();
-      expect(screen.getByText('Organization')).toBeInTheDocument();
+      // Client information appears in accordion header and section title
+      expect(
+        screen.getAllByText('Client information').length
+      ).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Organization').length).toBeGreaterThanOrEqual(
+        1
+      );
       expect(screen.getAllByText('Controller').length).toBeGreaterThanOrEqual(
         1
       );
@@ -90,8 +95,13 @@ describe('ClientDetails', () => {
         expect(screen.getByText('Client details')).toBeInTheDocument();
       });
 
-      expect(screen.getByText('Client information')).toBeInTheDocument();
-      expect(screen.getByText('Organization')).toBeInTheDocument();
+      // Client information appears in card header and section title
+      expect(
+        screen.getAllByText('Client information').length
+      ).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Organization').length).toBeGreaterThanOrEqual(
+        1
+      );
       expect(screen.getAllByText('Controller').length).toBeGreaterThanOrEqual(
         1
       );
@@ -111,7 +121,8 @@ describe('ClientDetails', () => {
       renderComponent({ viewMode: 'accordion' });
 
       await waitFor(() => {
-        expect(screen.getByText('Client Details')).toBeInTheDocument();
+        // Note: "Client details" is lowercase as per i18n translation
+        expect(screen.getByText('Client details')).toBeInTheDocument();
       });
     });
 
