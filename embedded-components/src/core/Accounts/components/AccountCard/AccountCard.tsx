@@ -128,7 +128,13 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
       setTimeout(() => setCopiedField(null), 2000);
     };
 
-    // Get translated category label
+    // Get translated category label - string version for interpolation, ReactNode for visible text
+    const categoryLabelString = tString(
+      `accounts:categories.${account.category}`,
+      {
+        defaultValue: account.category?.replace(/_/g, ' ') || account.category,
+      }
+    );
     const categoryLabel = t(`accounts:categories.${account.category}`, {
       defaultValue: account.category?.replace(/_/g, ' ') || account.category,
     });
@@ -136,9 +142,17 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
     // Get last 4 digits of account number for display name (following BaseRecipientWidget pattern)
     const lastFourDigits =
       account.paymentRoutingInformation?.accountNumber?.slice(-4) || '';
-    const displayName = lastFourDigits
-      ? `${categoryLabel} (...${lastFourDigits})`
-      : categoryLabel;
+    // Use string version for aria-label contexts, ReactNode version for visible text
+    const displayNameString = lastFourDigits
+      ? `${categoryLabelString} (...${lastFourDigits})`
+      : categoryLabelString;
+    const displayName = lastFourDigits ? (
+      <>
+        {categoryLabel} (...{lastFourDigits})
+      </>
+    ) : (
+      categoryLabel
+    );
 
     // Mask account number: show last 4 digits with asterisks
     const maskedAccountNumber = account.paymentRoutingInformation?.accountNumber
@@ -200,7 +214,7 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
             className
           )}
           role="article"
-          aria-label={`Account: ${displayName}`}
+          aria-label={`Account: ${displayNameString}`}
         >
           <CardContent className="eb-flex eb-items-center eb-gap-3 eb-p-3 @sm:eb-px-4 @md:eb-px-5">
             {/* Main icon - consistent LandmarkIcon for all accounts */}
@@ -336,7 +350,7 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
           className
         )}
         role="article"
-        aria-label={`Account: ${displayName}`}
+        aria-label={`Account: ${displayNameString}`}
       >
         <CardContent className="eb-flex eb-flex-col eb-p-0">
           {/* Header Section */}
