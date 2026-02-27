@@ -13,6 +13,24 @@ This demo implements JPMorgan's recommended session transfer approach for embedd
 
 **Integration Pattern**: Partially Hosted - your backend handles authentication, JPMorgan handles the UI experience.
 
+## 🎯 Supported Experience Types
+
+The demo supports multiple hosted experience types, selectable from a dropdown in the UI:
+
+| Experience Type | Description |
+|----------------|-------------|
+| `HOSTED_ONBOARDING_UI` | Full onboarding flow for new clients |
+| `HOSTED_DOC_UPLOAD_ONBOARDING_UI` | Document upload step of the onboarding process |
+| `HOSTED_RECIPIENTS_UI` | Manage payment recipients |
+| `HOSTED_LINKED_ACCOUNTS_UI` | View and manage linked accounts |
+| `HOSTED_TRANSACTIONS_UI` | View transaction history |
+| `HOSTED_ACCOUNTS_UI` | View account details and balances |
+| `HOSTED_MAKE_PAYMENT_UI` | Initiate a payment |
+
+Each experience type renders a different embedded UI within the iframe targeting the specified Client ID.
+
+> **Default:** If no experience type is specified, the default is `HOSTED_DOC_UPLOAD_ONBOARDING_UI`.
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -75,12 +93,37 @@ Both methods serve on `http://localhost:3000` - the server uses the `INDEX_FILE`
 
 **Test the demo:**
 - Enter a client ID (e.g., `3100002010`)
+- Or use the **Create a New Client** section to create one first (the Client ID will be auto-filled)
+- Select an experience type
 - Click "Create Embedded Session"
 - The iframe will open with the JPMorgan onboarding experience
 
 ## 🔧 How It Works
 
-### 1. API Call Structure
+### 1. Client Creation (Optional)
+
+If you don't already have a Client ID, you can create one with a minimal payload. The demo UI includes an expandable section for this. The server calls:
+
+```javascript
+const requestData = {
+  parties: [
+    {
+      partyType: 'ORGANIZATION',
+      roles: ['CLIENT'],
+      organizationDetails: {
+        organizationType: 'LIMITED_LIABILITY_COMPANY', // from form
+        organizationName: 'Acme Corp',                 // from form
+        countryOfFormation: 'US'
+      }
+    }
+  ],
+  products: ['EMBEDDED_PAYMENTS']
+};
+```
+
+The response returns a Client ID that is auto-filled into the session form.
+
+### 2. API Call Structure
 
 The server makes a POST request to JPMorgan's sessions endpoint:
 
@@ -94,7 +137,7 @@ const requestData = {
 };
 ```
 
-### 2. Certificate Authentication
+### 3. Certificate Authentication
 
 The server uses your p12 certificate for secure authentication:
 
@@ -106,7 +149,7 @@ const httpsAgent = new https.Agent({
 });
 ```
 
-### 3. Session Response
+### 4. Session Response
 
 JPMorgan returns a session object:
 
@@ -123,12 +166,12 @@ JPMorgan returns a session object:
 }
 ```
 
-### 4. Iframe Integration
+### 5. Iframe Integration
 
-The token is appended to the URL as a query parameter:
+The token and experience type are appended to the URL as query parameters:
 
 ```javascript
-const iframeUrl = `${sessionData.url}?token=${sessionData.token}`;
+const iframeUrl = `${sessionData.url}?token=${sessionData.token}&hostedExperienceType=${experienceType}`;
 ```
 
 ## 🎯 Implementation Methods Comparison
@@ -143,7 +186,10 @@ This demo provides two implementation approaches for embedding the JPMorgan onbo
 ```javascript
 // Manual iframe creation and URL construction
 const iframeUrl = `${sessionData.url}?token=${sessionData.token}`;
-const embedResponse = await fetch(`/embed?url=${encodeURIComponent(iframeUrl)}`);
+const encodedTheme = encodeURIComponent(JSON.stringify(themeConfig));
+const experienceType = document.getElementById('experienceType').value;
+const iframeUrlWithTheme = `${iframeUrl}&themeTokens=${encodedTheme}&hostedExperienceType=${encodeURIComponent(experienceType)}`;
+const embedResponse = await fetch(`/embed?url=${encodeURIComponent(iframeUrlWithTheme)}`);
 const embedData = await embedResponse.json();
 showIframe(embedData.html);
 
@@ -171,7 +217,8 @@ const themeConfig = {
 
 // Encode and append theme to iframe URL
 const encodedTheme = encodeURIComponent(JSON.stringify(themeConfig));
-const iframeUrlWithTheme = `${sessionData.url}?token=${sessionData.token}&themeTokens=${encodedTheme}`;
+const experienceType = 'HOSTED_ONBOARDING_UI'; // or any supported experience type
+const iframeUrlWithTheme = `${sessionData.url}?token=${sessionData.token}&themeTokens=${encodedTheme}&hostedExperienceType=${encodeURIComponent(experienceType)}`;
 ```
 
 For a complete list of available design tokens, refer to the [Embedded Components README](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming).
@@ -205,7 +252,7 @@ import PartiallyHostedUIComponent from './partially-hosted-ui-component.mjs';
 const onboardingUI = new PartiallyHostedUIComponent({
   sessionToken: sessionData.sessionToken,
   baseUrl: sessionData.baseUrl,
-  experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
+  experienceType: 'HOSTED_ONBOARDING_UI', // or any supported experience type
   theme: {
     colorScheme: 'light',
     variables: {
@@ -328,7 +375,7 @@ In `index-utility.html`, theme is configured declaratively:
 const onboardingUI = new PartiallyHostedUIComponent({
   sessionToken: sessionData.sessionToken,
   baseUrl: sessionData.baseUrl,
-  experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
+  experienceType: 'HOSTED_ONBOARDING_UI', // or any supported experience type
   theme: {
     colorScheme: 'light',
     variables: {
@@ -373,6 +420,12 @@ server-session-transfer/
 ### `GET /`
 - Serves the main HTML form
 - Users can enter their client ID
+
+### `POST /clients`
+- Creates a new client with a minimal payload (optional prerequisite step)
+- **Body**: `{ "organizationName": "Acme Corp", "organizationType": "LIMITED_LIABILITY_COMPANY" }`
+- **Response**: `{ "success": true, "clientId": "3100002010", "clientStatus": "...", "clientData": {...} }`
+- **Authentication**: Server-side p12 certificate
 
 ### `POST /sessions`
 - Creates a new embedded UI session (matches JPMorgan API pattern)

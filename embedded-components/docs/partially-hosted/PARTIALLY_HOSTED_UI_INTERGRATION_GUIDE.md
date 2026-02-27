@@ -36,6 +36,22 @@ The Hosted Onboarding UI requires a **Client ID** before a session can be initia
 - **API** — Call `POST /clients` with a minimal payload (`products`, `partyType`, `roles`, and organization name). The response returns the Client ID. See the [Onboard a Client](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client) documentation for details.
 - **Batch upload** — For bulk provisioning or migrations, the J.P. Morgan Operations team can create clients from a CSV file. Contact your account representative for the upload format and process.
 
+## Supported Experience Types
+
+The `experienceType` parameter controls which hosted UI is rendered inside the iframe:
+
+| Experience Type | Description |
+|----------------|-------------|
+| `HOSTED_ONBOARDING_UI` | Full onboarding flow for new clients |
+| `HOSTED_DOC_UPLOAD_ONBOARDING_UI` | Document upload step of the onboarding process |
+| `HOSTED_RECIPIENTS_UI` | Manage payment recipients |
+| `HOSTED_LINKED_ACCOUNTS_UI` | View and manage linked accounts |
+| `HOSTED_TRANSACTIONS_UI` | View transaction history |
+| `HOSTED_ACCOUNTS_UI` | View account details and balances |
+| `HOSTED_MAKE_PAYMENT_UI` | Initiate a payment |
+
+> **Default:** If no `experienceType` is specified, the default is `HOSTED_DOC_UPLOAD_ONBOARDING_UI`.
+
 ## 1. Integration Overview
 
 The integration involves the following key steps:
@@ -346,7 +362,7 @@ onboardingUI.subscribe((event) => {
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `sessionToken` | `string` | Yes | JWT token from session transfer API |
-| `experienceType` | `string` | No | Type of hosted experience (default: `'HOSTED_DOC_UPLOAD_ONBOARDING_UI'`) |
+| `experienceType` | `string` | No | Type of hosted experience (see [Supported Experience Types](#supported-experience-types)). Default: `'HOSTED_DOC_UPLOAD_ONBOARDING_UI'` |
 | `theme` | `object` | No | Theme customization object (see [Embedded Components Theme Docs](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming)) |
 | `contentTokens` | `object` | No | Content localization tokens (see [Embedded Components Content Tokens](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#content-tokens)) |
 | `iframeAttributes` | `object` | No | Additional iframe attributes (e.g., `{ allowfullscreen: true }`) |
@@ -467,7 +483,7 @@ function encodeJsonParam(obj) {
   return encodeURIComponent(JSON.stringify(obj));
 }
 
-// URL structure: {baseUrl}/onboarding?token={jwt}&experienceType={type}&theme={encoded}&contentTokens={encoded}
+// URL structure: {baseUrl}/onboarding?token={jwt}&hostedExperienceType={type}&theme={encoded}&contentTokens={encoded}
 const url = `${baseUrl}/onboarding?token=${token}&theme=${encodeJsonParam(theme)}&contentTokens=${encodeJsonParam(tokens)}`;
 ```
 

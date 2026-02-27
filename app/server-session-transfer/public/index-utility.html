@@ -217,6 +217,50 @@
             width: 100%;
         }
 
+         .collapsible-toggle {
+             display: flex;
+             align-items: center;
+             justify-content: space-between;
+             width: 100%;
+             padding: 0.75rem 1rem;
+             background-color: hsl(var(--secondary));
+             color: hsl(var(--secondary-foreground));
+             border: 1px solid hsl(var(--border));
+             border-radius: var(--radius);
+             font-size: 0.875rem;
+             font-weight: 500;
+             cursor: pointer;
+             transition: background-color 0.2s;
+         }
+
+         .collapsible-toggle:hover {
+             background-color: hsl(var(--accent));
+         }
+
+         .collapsible-toggle .arrow {
+             transition: transform 0.2s;
+         }
+
+         .collapsible-toggle.open .arrow {
+             transform: rotate(180deg);
+         }
+
+         .collapsible-content {
+             overflow: hidden;
+             max-height: 0;
+             transition: max-height 0.3s ease-out;
+         }
+
+         .collapsible-content.open {
+             max-height: 500px;
+         }
+
+         .divider {
+             border: none;
+             border-top: 1px solid hsl(var(--border));
+             margin: 1.5rem 0;
+         }
+
         .scroll-target {
             scroll-margin-top: 2rem;
         }
@@ -255,6 +299,59 @@
                 </p>
             </div>
 
+            <!-- Optional: Create Client Section -->
+            <div class="mt-4">
+                <button type="button" class="collapsible-toggle" id="createClientToggle" onclick="toggleCreateClient()">
+                    <span>➕ Optional: Create a New Client</span>
+                    <span class="arrow">▼</span>
+                </button>
+                <div class="collapsible-content" id="createClientSection">
+                    <div class="card" style="margin-top: 0.5rem; margin-bottom: 0;">
+                        <p class="text-sm" style="color: hsl(var(--muted-foreground)); margin-bottom: 1rem;">
+                            Create a new client with a minimal payload. The returned Client ID will be auto-filled in the session form below.
+                        </p>
+                        <form id="createClientForm" class="space-y-4">
+                            <div class="form-group">
+                                <label for="organizationName" class="label">Organization Name</label>
+                                <input
+                                    type="text"
+                                    id="organizationName"
+                                    name="organizationName"
+                                    class="input"
+                                    placeholder="e.g., Acme Corporation"
+                                    required
+                                />
+                            </div>
+                            <div class="form-group">
+                                <label for="organizationType" class="label">Organization Type</label>
+                                <select id="organizationType" name="organizationType" class="input">
+                                    <option value="LIMITED_LIABILITY_COMPANY">Limited Liability Company (LLC)</option>
+                                    <option value="SOLE_PROPRIETORSHIP">Sole Proprietorship</option>
+                                    <option value="C_CORPORATION">C Corporation</option>
+                                    <option value="S_CORPORATION">S Corporation</option>
+                                    <option value="LIMITED_LIABILITY_PARTNERSHIP">Limited Liability Partnership</option>
+                                    <option value="LIMITED_PARTNERSHIP">Limited Partnership</option>
+                                    <option value="GENERAL_PARTNERSHIP">General Partnership</option>
+                                    <option value="NON_PROFIT_CORPORATION">Non-Profit Corporation</option>
+                                    <option value="GOVERNMENT_ENTITY">Government Entity</option>
+                                    <option value="UNINCORPORATED_ASSOCIATION">Unincorporated Association</option>
+                                </select>
+                            </div>
+                            <button type="submit" id="createClientButton" class="button" style="background-color: hsl(var(--secondary-foreground));">
+                                📋 Create Client
+                            </button>
+                            <div class="alert alert-info hidden" id="createClientLoading">
+                                <p class="text-sm">⏳ Creating client... Please wait.</p>
+                            </div>
+                            <div class="alert alert-error hidden" id="createClientError"></div>
+                            <div class="alert alert-success hidden" id="createClientSuccess"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="divider">
+
             <form id="sessionForm" class="space-y-4 mt-4">
                 <div class="form-group">
                     <label for="clientId" class="label">Client ID</label>
@@ -266,6 +363,19 @@
                         placeholder="Enter your client ID (e.g., 3100002010)"
                         required
                     />
+                </div>
+
+                <div class="form-group">
+                    <label for="experienceType" class="label">Experience Type</label>
+                    <select id="experienceType" name="experienceType" class="input">
+                        <option value="HOSTED_ONBOARDING_UI">Onboarding</option>
+                        <option value="HOSTED_DOC_UPLOAD_ONBOARDING_UI">Document Upload Onboarding</option>
+                        <option value="HOSTED_RECIPIENTS_UI">Recipients</option>
+                        <option value="HOSTED_LINKED_ACCOUNTS_UI">Linked Accounts</option>
+                        <option value="HOSTED_TRANSACTIONS_UI">Transactions</option>
+                        <option value="HOSTED_ACCOUNTS_UI">Accounts</option>
+                        <option value="HOSTED_MAKE_PAYMENT_UI">Make Payment</option>
+                    </select>
                 </div>
                 
                 <button type="submit" id="submitButton" class="button">
@@ -292,6 +402,63 @@
         </div>
     </div>
 
+    <script>
+        function toggleCreateClient() {
+            const section = document.getElementById('createClientSection');
+            const toggle = document.getElementById('createClientToggle');
+            section.classList.toggle('open');
+            toggle.classList.toggle('open');
+        }
+
+        document.getElementById('createClientForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const organizationName = document.getElementById('organizationName').value;
+            const organizationType = document.getElementById('organizationType').value;
+            const createBtn = document.getElementById('createClientButton');
+            const loading = document.getElementById('createClientLoading');
+            const errorEl = document.getElementById('createClientError');
+            const successEl = document.getElementById('createClientSuccess');
+
+            errorEl.classList.add('hidden');
+            successEl.classList.add('hidden');
+            createBtn.disabled = true;
+            loading.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/clients', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ organizationName, organizationType })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    successEl.innerHTML = `
+                        <strong>\u2705 Client Created!</strong><br>
+                        <span class="text-sm">Client ID: <strong>${data.clientId}</strong> (auto-filled below)</span>
+                    `;
+                    successEl.classList.remove('hidden');
+
+                    // Auto-fill the Client ID field
+                    document.getElementById('clientId').value = data.clientId;
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                errorEl.innerHTML = `
+                    <strong>\u274c Error Creating Client</strong><br>
+                    <span class="text-sm">${error.message}</span>
+                `;
+                errorEl.classList.remove('hidden');
+            } finally {
+                createBtn.disabled = false;
+                loading.classList.add('hidden');
+            }
+        });
+    </script>
+
     <script type="module">
         import PartiallyHostedUIComponent from './partially-hosted-ui-component.mjs';
 
@@ -317,6 +484,7 @@
             e.preventDefault();
             
             const clientId = document.getElementById('clientId').value;
+            const experienceType = document.getElementById('experienceType').value;
             const submitButton = document.getElementById('submitButton');
             const loading = document.getElementById('loading');
             const errorMessage = document.getElementById('errorMessage');
@@ -360,7 +528,7 @@
                     onboardingUI = new PartiallyHostedUIComponent({
                         sessionToken: sessionData.sessionToken,
                         baseUrl: sessionData.baseUrl,
-                        experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
+                        experienceType: experienceType,
                         theme: {
                             colorScheme: 'light',
                             variables: {
