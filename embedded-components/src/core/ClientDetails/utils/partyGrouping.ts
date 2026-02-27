@@ -69,16 +69,6 @@ export const SECTION_I18N_KEYS = {
 export type SectionI18nKey =
   (typeof SECTION_I18N_KEYS)[ClientDetailsSectionGroup['type']];
 
-// Fallback labels (used when translation not available - for debugging)
-const SECTION_LABELS: Record<ClientDetailsSectionGroup['type'], string> = {
-  'client-info': 'Client information',
-  organization: 'Organization',
-  controller: 'Controller',
-  'beneficial-owners': 'Beneficial owners',
-  'question-responses': 'Question responses',
-  results: 'Verification results',
-};
-
 /**
  * Section order follows business sense:
  * 1. Client information – application summary (status, products, created)

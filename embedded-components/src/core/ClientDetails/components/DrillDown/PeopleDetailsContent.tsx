@@ -129,7 +129,7 @@ interface PersonDetailsProps {
 }
 
 function PersonDetails({ party, roleLabel }: PersonDetailsProps) {
-  const { t, tString } = useTranslationWithTokens('client-details');
+  const { tString } = useTranslationWithTokens('client-details');
   const individual = party.individualDetails;
   const address = individual?.addresses?.[0];
   const phone = individual?.phone;
