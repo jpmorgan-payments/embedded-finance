@@ -3,6 +3,7 @@ description:
 globs:
 alwaysApply: false
 ---
+
 # SellSense Demo Architecture Patterns
 
 ## Project Overview
@@ -16,6 +17,7 @@ The `client-next-ts` project is a showcase application demonstrating embedded fi
 **Main Route**: [sellsense-demo.tsx](mdc:src/routes/sellsense-demo.tsx)
 
 **Pattern**: Use Zod schemas for type-safe URL parameter validation
+
 ```typescript
 const sellsenseDemoSearchSchema = z.object({
   scenario: z.enum(['New Seller - Onboarding', 'Active Seller - Fresh Start', ...]).optional(),
@@ -31,6 +33,7 @@ export const Route = createFileRoute('/sellsense-demo')({
 ```
 
 **Rules**:
+
 - Always use `Route.useSearch()` instead of manual URLSearchParams
 - Define comprehensive Zod schemas for all search parameters
 - Provide meaningful defaults for optional parameters
@@ -41,11 +44,14 @@ export const Route = createFileRoute('/sellsense-demo')({
 **Implementation**: [dashboard-layout.tsx](mdc:src/components/sellsense/dashboard-layout.tsx)
 
 **Pattern**: Bidirectional sync between component state and URL parameters
+
 ```typescript
 const search = Route.useSearch();
 const navigate = Route.useNavigate();
 
-const [scenario, setScenario] = useState(search.scenario || 'New Seller - Onboarding');
+const [scenario, setScenario] = useState(
+  search.scenario || 'New Seller - Onboarding'
+);
 
 useEffect(() => {
   const newSearch = { ...search, scenario, theme, contentTone, view };
@@ -54,6 +60,7 @@ useEffect(() => {
 ```
 
 **Rules**:
+
 - Sync ALL user-configurable state with URL parameters
 - Initialize state from URL parameters on component mount
 - Update URL immediately when state changes (replace: true)
@@ -65,11 +72,12 @@ useEffect(() => {
 **Config**: [tailwind.config.js](mdc:tailwind.config.js)
 
 **Pattern**: Comprehensive CSS custom properties with latest design tokens
+
 ```typescript
 const { themeVariables } = useSellsenseThemes(theme);
 
 return (
-  <div 
+  <div
     style={themeVariables}
     className="border-[var(--border)] bg-[var(--background)]"
   >
@@ -81,6 +89,7 @@ return (
 ```
 
 **New v0.6.13 Enhancements**:
+
 - **Enhanced Outline Button Support**: Transparent secondary buttons with proper border styling
 - **Improved State Management**: Separate hover/active colors for all button variants
 - **Modern Typography**: Better font weight and sizing controls
@@ -88,6 +97,7 @@ return (
 - **Better Dark Mode**: Improved contrast and color harmony in dark themes
 
 **Key Design Token Updates**:
+
 ```typescript
 // Enhanced secondary button pattern (v0.6.13)
 secondaryColor: 'transparent', // Modern transparent background
@@ -106,6 +116,7 @@ primaryActiveColor: '#4338ca', // Dedicated active state
 ```
 
 **Rules**:
+
 - Use `useSellsenseThemes()` hook for all theme-dependent styling
 - Apply CSS custom properties via `style` prop for dynamic theming
 - Follow v0.6.13 design token hierarchy: colors, typography, spacing, borders
@@ -118,6 +129,7 @@ primaryActiveColor: '#4338ca', // Dedicated active state
 **Implementation**: [kyc-onboarding.tsx](mdc:src/components/sellsense/kyc-onboarding.tsx)
 
 **Pattern**: Support both demo mode and fullscreen component mode
+
 ```typescript
 const { fullscreen } = Route.useSearch();
 
@@ -136,6 +148,7 @@ return (
 ```
 
 **Rules**:
+
 - Always check for fullscreen mode in component wrappers
 - Hide ALL SellSense UI (navigation, controls, chrome) in fullscreen
 - Preserve component functionality in both modes
@@ -146,12 +159,14 @@ return (
 **Pattern**: Visual wrapper with controls and metadata
 
 **Elements**:
+
 - Card border with theme-specific styling
 - Control icons (Maximize2, Info) with hover states
 - ComponentTechDetailsDialog with package information
 - Fullscreen functionality opening in new window
 
 **Rules**:
+
 - Wrap embedded components with visual card styling
 - Position control icons consistently (absolute top-2 right-2)
 - Apply theme-aware hover states to controls
@@ -162,16 +177,19 @@ return (
 **Implementation**: [sidebar.tsx](mdc:src/components/sellsense/sidebar.tsx)
 
 **Pattern**: Adaptive navigation based on user scenario
+
 ```typescript
 const isOnboardingScenario = scenario?.includes('Onboarding');
 const menuItems = isOnboardingScenario ? onboardingMenu : fullSidebarMenu;
 ```
 
 **Menu Structures**:
+
 - **Onboarding**: Only "Onboarding" menu item
 - **Active Seller**: Full menu (Wallet, Transactions, Banks, Performance, Analytics, etc.)
 
 **Rules**:
+
 - Show contextually relevant navigation items
 - Include scenario indicator showing current flow
 - Apply consistent theming across all menu states
@@ -180,6 +198,7 @@ const menuItems = isOnboardingScenario ? onboardingMenu : fullSidebarMenu;
 ## Theme Development Guidelines (v0.6.13)
 
 ### Enhanced Theme Structure
+
 All themes now support comprehensive design tokens including:
 
 ```typescript
@@ -188,7 +207,7 @@ interface EnhancedThemeVariables {
   fontFamily?: string;
   headerFontFamily?: string;
   buttonFontFamily?: string;
-  
+
   // Enhanced Button System
   buttonFontWeight?: string;
   buttonFontSize?: string;
@@ -196,17 +215,17 @@ interface EnhancedThemeVariables {
   buttonTextTransform?: string;
   buttonLetterSpacing?: string;
   shiftButtonOnActive?: boolean;
-  
+
   // Button Variant Weights
   primaryButtonFontWeight?: string;
   secondaryButtonFontWeight?: string;
   destructiveButtonFontWeight?: string;
-  
+
   // Border Control
   primaryBorderWidth?: string;
   secondaryBorderWidth?: string;
   destructiveBorderWidth?: string;
-  
+
   // Enhanced Color States
   primaryColor?: string;
   primaryHoverColor?: string;
@@ -214,7 +233,7 @@ interface EnhancedThemeVariables {
   primaryForegroundColor?: string;
   primaryForegroundHoverColor?: string;
   primaryForegroundActiveColor?: string;
-  
+
   // Modern Secondary Button Support
   secondaryColor?: string; // Often 'transparent'
   secondaryHoverColor?: string; // Subtle tints
@@ -222,7 +241,7 @@ interface EnhancedThemeVariables {
   secondaryForegroundColor?: string;
   secondaryForegroundHoverColor?: string;
   secondaryForegroundActiveColor?: string;
-  
+
   // Layout and Effects
   spacingUnit?: string;
   zIndexOverlay?: number;
@@ -248,6 +267,7 @@ interface EnhancedThemeVariables {
 ## File Organization
 
 ### Route Structure
+
 ```
 src/routes/
 ├── __root.tsx           # Conditional layout based on route
@@ -257,6 +277,7 @@ src/routes/
 ```
 
 ### SellSense Components
+
 ```
 src/components/sellsense/
 ├── dashboard-layout.tsx       # Main orchestrator with URL state sync
@@ -272,6 +293,7 @@ src/components/sellsense/
 ## Development Workflow
 
 ### Adding New Themes
+
 1. Add theme option to `ThemeOption` type in [use-sellsense-themes.ts](mdc:src/components/sellsense/use-sellsense-themes.ts)
 2. Define comprehensive design tokens following v0.6.13 pattern
 3. Include all button variants and states
@@ -279,7 +301,9 @@ src/components/sellsense/
 5. Test across all scenarios and components
 
 ### Theme Migration (v0.6.13)
+
 When updating themes:
+
 1. **Add button variant weights**: `primaryButtonFontWeight`, etc.
 2. **Update secondary buttons**: Use `transparent` background with borders
 3. **Add hover/active states**: For all interactive elements
@@ -287,12 +311,14 @@ When updating themes:
 5. **Test outline buttons**: Ensure proper border styling
 
 ### Adding New Scenarios
+
 1. Add scenario to [sellsense-scenarios.ts](mdc:src/components/sellsense/sellsense-scenarios.ts)
 2. Map to appropriate client ID and onboarding data
 3. Update Zod schema in route file
 4. Test navigation and state persistence
 
 ### Adding New Views
+
 1. Create component in `src/components/sellsense/`
 2. Add to view enum in route schema
 3. Update sidebar navigation logic
@@ -301,12 +327,14 @@ When updating themes:
 ## Testing Patterns
 
 ### URL Parameter Validation
+
 - Test schema validation with invalid parameters
 - Verify fallbacks to default values
 - Test URL sharing and bookmark functionality
 - Validate parameter persistence across navigation
 
 ### Theme System Testing (v0.6.13)
+
 - Test all theme variants across components
 - Verify CSS custom property application
 - Test hover/active states for all button variants
@@ -315,6 +343,7 @@ When updating themes:
 - Validate theme switching without reload
 
 ### Demo Mode Testing
+
 - Test both demo and fullscreen modes
 - Verify control functionality (maximize, info dialog)
 - Test theme switching without reload
@@ -323,6 +352,7 @@ When updating themes:
 ## Integration with Embedded Components
 
 ### Component Wrapping Pattern
+
 ```typescript
 // Wrap embedded components for demo visualization
 <EBComponentsProvider apiBaseUrl="/" headers={{}} contentTokens={{ name: "enUS" }}>
@@ -337,6 +367,7 @@ When updating themes:
 ```
 
 ### MSW Integration
+
 - Use [handlers.js](mdc:src/msw/handlers.js) for API mocking
 - Implement realistic data persistence
 - Support magic values for different test scenarios
@@ -345,18 +376,21 @@ When updating themes:
 ## Best Practices
 
 ### State Management
+
 - Keep all demo configuration in URL parameters
 - Use proper TypeScript types for all state
 - Implement validation at route level with Zod
 - Provide meaningful defaults and fallbacks
 
 ### Performance
+
 - Use React.lazy for route-level code splitting
 - Implement proper loading states
 - Minimize unnecessary re-renders with proper dependencies
 - Optimize bundle size impact
 
 ### Accessibility
+
 - Ensure keyboard navigation works across all modes
 - Maintain proper color contrast in all themes (v0.6.13)
 - Implement proper ARIA attributes

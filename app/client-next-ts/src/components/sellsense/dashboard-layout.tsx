@@ -112,6 +112,9 @@ export function DashboardLayout() {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isContentTokenEditorOpen, setIsContentTokenEditorOpen] =
     useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<
+    'enUS' | 'frCA' | 'esUS'
+  >('enUS');
   const [contentTokens, setContentTokens] = useState<EBConfig['contentTokens']>(
     {
       name: 'enUS',
@@ -513,7 +516,8 @@ export function DashboardLayout() {
                     'Content-Type': 'application/json',
                   }}
                   contentTokens={{
-                    name: 'enUS',
+                    ...contentTokens,
+                    name: selectedLanguage,
                   }}
                 >
                   <RecipientsWidget mode="list" viewMode="table" />
@@ -535,7 +539,8 @@ export function DashboardLayout() {
                     'Content-Type': 'application/json',
                   }}
                   contentTokens={{
-                    name: 'enUS',
+                    ...contentTokens,
+                    name: selectedLanguage,
                   }}
                 >
                   <TransactionsDisplay accountIds={['0030000131']} />
@@ -557,7 +562,8 @@ export function DashboardLayout() {
                     'Content-Type': 'application/json',
                   }}
                   contentTokens={{
-                    name: 'enUS',
+                    ...contentTokens,
+                    name: selectedLanguage,
                   }}
                 >
                   <Accounts
@@ -582,7 +588,8 @@ export function DashboardLayout() {
                     'Content-Type': 'application/json',
                   }}
                   contentTokens={{
-                    name: 'enUS',
+                    ...contentTokens,
+                    name: selectedLanguage,
                   }}
                 >
                   <PaymentFlow trigger={<Button>Make Payment</Button>} />
@@ -604,7 +611,8 @@ export function DashboardLayout() {
                     'Content-Type': 'application/json',
                   }}
                   contentTokens={{
-                    name: 'enUS',
+                    ...contentTokens,
+                    name: selectedLanguage,
                   }}
                 >
                   <LinkedAccountWidget
@@ -630,7 +638,8 @@ export function DashboardLayout() {
                     'Content-Type': 'application/json',
                   }}
                   contentTokens={{
-                    name: 'enUS',
+                    ...contentTokens,
+                    name: selectedLanguage,
                   }}
                 >
                   <ClientDetails clientId={fullscreenClientId} />
@@ -800,7 +809,20 @@ export function DashboardLayout() {
       <ContentTokenEditorDrawer
         isOpen={isContentTokenEditorOpen}
         onClose={() => setIsContentTokenEditorOpen(false)}
-        onContentTokensChange={setContentTokens}
+        onContentTokensChange={(tokens) => {
+          setContentTokens(tokens);
+        }}
+        selectedLanguage={selectedLanguage}
+        onLanguageChange={(lang) => {
+          const typedLang = lang as 'enUS' | 'frCA' | 'esUS';
+          setSelectedLanguage(typedLang);
+          // Update contentTokens.name when language changes
+          setContentTokens((prev) => ({
+            ...prev,
+            name: typedLang,
+          }));
+        }}
+        topOffset={showMswAlert ? 'calc(4rem + 9.5rem)' : '4rem'}
       />
     </div>
   );
