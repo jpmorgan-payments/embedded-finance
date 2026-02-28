@@ -1,4 +1,4 @@
-import { defaultResources } from '@/i18n/config';
+import { defaultResources } from '../../i18n/config';
 import { DefaultOptions } from '@tanstack/react-query';
 import { DeepPartial } from 'react-hook-form';
 

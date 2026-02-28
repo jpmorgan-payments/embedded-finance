@@ -1,6 +1,6 @@
 {
   "name": "@jpmorgan-payments/embedded-finance-components",
-  "version": "0.11.15",
+  "version": "0.11.16",
   "license": "Apache-2.0",
   "type": "module",
   "description": "Embedded Finance Components",
@@ -25,7 +25,8 @@
   ],
   "files": [
     "dist",
-    "src/i18n"
+    "src/i18n",
+    "src/core/EBComponentsProvider/config.types.ts"
   ],
   "main": "./dist/umd/ef-components.js",
   "module": "./dist/esm/ef-components.js",
