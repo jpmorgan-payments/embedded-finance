@@ -1,6 +1,6 @@
 import { FC, ReactElement } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { AlertTriangle, CheckIcon, InfoIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import {
   ClientResponseOutstanding,
@@ -38,7 +38,7 @@ export const StatusMessages: FC<StatusMessagesProps> = ({
   hasDocumentRequests,
   clientOutstanding,
 }): ReactElement | undefined => {
-  const { t } = useTranslation(['onboarding-overview']);
+  const { t } = useTranslationWithTokens(['onboarding-overview']);
   // If client data is still loading
   if (clientGetStatus === 'pending') {
     return undefined; // FormLoadingState will be shown by the parent component

@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next';
+import { useTranslationWithTokens } from '@/hooks';
 
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 
@@ -11,7 +11,7 @@ interface ClientInfoSectionProps {
 }
 
 export function ClientInfoSection({ client, title }: ClientInfoSectionProps) {
-  const { t, i18n } = useTranslation('client-details');
+  const { t, i18n } = useTranslationWithTokens('client-details');
   const locale =
     i18n.resolvedLanguage
       ?.replace('_', '-')

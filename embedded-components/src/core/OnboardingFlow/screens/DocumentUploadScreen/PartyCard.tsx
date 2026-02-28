@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import {
   AlertTriangle,
   CheckCircle2Icon,
@@ -8,7 +9,6 @@ import {
   FileIcon,
   UploadIcon,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { useSmbdoGetAllDocumentDetails } from '@/api/generated/smbdo';
 import {
@@ -58,7 +58,7 @@ export const PartyCard: FC<PartyCardProps> = ({
   docRequest,
   onUploadClick,
 }) => {
-  const { t } = useTranslation(['onboarding-overview']);
+  const { t } = useTranslationWithTokens(['onboarding-overview']);
   // Helper function to format timestamp to readable date
   const formatUploadTime = (timestamp: string): string => {
     if (!timestamp) return '';

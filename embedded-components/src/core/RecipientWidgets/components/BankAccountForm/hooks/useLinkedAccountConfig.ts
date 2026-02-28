@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next';
+import { useTranslationWithTokens } from '@/hooks';
 
 import type { BankAccountFormConfig } from '../BankAccountForm.types';
 import { useDefaultPaymentMethodConfigs } from './useDefaultPaymentMethodConfigs';
@@ -10,7 +10,7 @@ import { useDefaultPaymentMethodConfigs } from './useDefaultPaymentMethodConfigs
  * The configuration will be properly translated based on the current locale.
  */
 export const useLinkedAccountConfig = (): BankAccountFormConfig => {
-  const { t } = useTranslation('bank-account-form');
+  const { t } = useTranslationWithTokens('bank-account-form');
   const defaultConfigs = useDefaultPaymentMethodConfigs();
 
   return {

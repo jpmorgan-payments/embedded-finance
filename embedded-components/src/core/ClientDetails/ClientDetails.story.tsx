@@ -75,6 +75,5 @@ type Story = StoryObj<ClientDetailsStoryArgs>;
 export const Default: Story = {
   args: {
     viewMode: 'summary',
-    enableDrillDown: true,
   },
 };

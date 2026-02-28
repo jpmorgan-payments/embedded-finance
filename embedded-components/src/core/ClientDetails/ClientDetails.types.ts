@@ -30,16 +30,8 @@ export interface ClientDetailsProps {
   clientId: string;
   /** Display mode: summary, accordion or cards */
   viewMode?: ClientDetailsViewMode;
-  /** Optional title for the section (not used in summary mode) */
-  title?: string;
   /** Optional CSS class for the root container */
   className?: string;
-  /** Which sections to show (summary mode only) */
-  sections?: ClientSection[];
-  /** Enable drill-down sheets when clicking sections (summary mode only) */
-  enableDrillDown?: boolean;
-  /** Callback when a section is clicked (summary mode only) */
-  onSectionClick?: (section: ClientSection) => void;
   /** Custom actions to show in footer (summary mode only) */
   actions?: React.ReactNode;
 }

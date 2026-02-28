@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 import { AlertCircleIcon, RefreshCwIcon } from 'lucide-react';
 
 import { ErrorType } from '@/api/axios-instance';
@@ -6,7 +6,7 @@ import { ApiError } from '@/api/generated/smbdo.schemas';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 
-const defaultErrorMessage: Record<string, string> = {
+const defaultErrorMessage: Record<string, ReactNode> = {
   '400': 'Please check the information you entered and try again.',
   '401': 'Please log in and try again.',
   '500': 'An unexpected error occurred. Please try again later.',
@@ -15,7 +15,7 @@ const defaultErrorMessage: Record<string, string> = {
 
 type ServerErrorAlertProps = {
   error: ErrorType<ApiError> | null;
-  customErrorMessage?: string | Record<string, string>;
+  customErrorMessage?: ReactNode | Record<string, ReactNode>;
   tryAgainAction?: () => void;
   className?: string;
 };
@@ -28,22 +28,34 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
   if (error) {
     const httpStatus =
       error.response?.data?.httpStatus?.toString() ?? error.status?.toString();
+
+    // Get the error message based on type
+    const getErrorMessage = (): ReactNode => {
+      if (typeof customErrorMessage === 'string') {
+        return customErrorMessage;
+      }
+      if (
+        typeof customErrorMessage === 'object' &&
+        customErrorMessage !== null &&
+        !('400' in customErrorMessage) &&
+        !('default' in customErrorMessage)
+      ) {
+        return customErrorMessage as ReactNode;
+      }
+      const customRecord = customErrorMessage as Record<string, ReactNode>;
+      if (httpStatus && customRecord[httpStatus]) {
+        return customRecord[httpStatus];
+      }
+      return customRecord?.default ?? 'An unexpected error occurred.';
+    };
+
     return (
       <Alert variant="destructive" className={className}>
         <AlertCircleIcon className="eb-h-4 eb-w-4" />
         <AlertTitle>
           {error?.response?.data?.title ?? error?.message}
         </AlertTitle>
-        <AlertDescription>
-          {typeof customErrorMessage === 'string' && customErrorMessage}
-
-          {typeof customErrorMessage === 'object' &&
-            (((httpStatus &&
-              httpStatus in customErrorMessage &&
-              customErrorMessage[httpStatus]) ||
-              customErrorMessage.default) ??
-              'An unexpected error occurred.')}
-        </AlertDescription>
+        <AlertDescription>{getErrorMessage()}</AlertDescription>
         {tryAgainAction && (
           <AlertDescription className="eb-mt-4">
             <Button size="sm" onClick={tryAgainAction}>

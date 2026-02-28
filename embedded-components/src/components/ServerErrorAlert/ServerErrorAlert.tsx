@@ -1,11 +1,11 @@
-import { FC, useState } from 'react';
+import { FC, ReactNode, useState } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import {
   AlertCircleIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   RefreshCwIcon,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { ErrorType } from '@/api/axios-instance';
@@ -13,7 +13,7 @@ import { ApiError } from '@/api/generated/smbdo.schemas';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 
-const defaultErrorMessage: Record<string, string> = {
+const defaultErrorMessage: Record<string, ReactNode> = {
   '400': 'Please check the information you entered and try again.',
   '401': 'Please log in and try again.',
   '500': 'An unexpected error occurred. Please try again later.',
@@ -23,8 +23,8 @@ const defaultErrorMessage: Record<string, string> = {
 
 type ServerErrorAlertProps = {
   error: ErrorType<ApiError> | null;
-  customTitle?: string;
-  customErrorMessage?: string | Record<string, string>;
+  customTitle?: ReactNode;
+  customErrorMessage?: ReactNode | Record<string, ReactNode>;
   tryAgainAction?: () => void;
   className?: string;
   showDetails?: boolean;
@@ -128,7 +128,7 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
   tryAgainAction,
   showDetails = false,
 }) => {
-  const { t } = useTranslation(['common']);
+  const { t } = useTranslationWithTokens(['common']);
   // Type assertion to avoid TypeScript overload issues
   const tCommon = t as (key: string, options?: any) => string;
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
@@ -147,10 +147,16 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
     error.response?.data?.context?.[0]?.message;
 
   // Determine the error message to display
-  const getErrorMessage = () => {
-    // If a custom string is provided, use it
-    if (typeof customErrorMessage === 'string') {
-      return customErrorMessage;
+  const getErrorMessage = (): ReactNode => {
+    // If a custom string/ReactNode is provided directly, use it
+    if (
+      typeof customErrorMessage === 'string' ||
+      (typeof customErrorMessage === 'object' &&
+        customErrorMessage !== null &&
+        !('400' in customErrorMessage) &&
+        !('default' in customErrorMessage))
+    ) {
+      return customErrorMessage as ReactNode;
     }
 
     // Prefer the API message when available (e.g., "ABA routing number 533100000 not found")
@@ -159,11 +165,12 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
     }
 
     // Fall back to status-based messages
-    if (typeof customErrorMessage === 'object' && httpStatus) {
+    const customRecord = customErrorMessage as Record<string, ReactNode>;
+    if (httpStatus && customRecord) {
       return (
-        customErrorMessage[httpStatus] ||
+        customRecord[httpStatus] ||
         defaultErrorMessage[httpStatus] ||
-        customErrorMessage.default ||
+        customRecord.default ||
         defaultErrorMessage.default
       );
     }

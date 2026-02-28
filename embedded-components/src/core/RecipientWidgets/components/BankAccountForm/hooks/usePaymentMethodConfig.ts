@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next';
+import { useTranslationWithTokens } from '@/hooks';
 
 import { RoutingInformationTransactionType } from '@/api/generated/ep-recipients.schemas';
 
@@ -10,11 +10,12 @@ import type { PaymentMethodConfig } from '../BankAccountForm.types';
 export const usePaymentMethodConfig = (
   type: RoutingInformationTransactionType
 ): PaymentMethodConfig => {
-  const { t } = useTranslation('bank-account-form');
+  const { t, tString } = useTranslationWithTokens('bank-account-form');
 
   return {
     enabled: true,
     label: t(`paymentMethods.${type}.label`),
+    labelString: tString(`paymentMethods.${type}.label`),
     shortLabel: t(`paymentMethods.${type}.shortLabel`),
     description: t(`paymentMethods.${type}.description`),
     requiredFields: {
@@ -27,7 +28,7 @@ export const usePaymentMethodConfig = (
     routingValidation: {
       length: 9,
       pattern: /^\d{9}$/,
-      errorMessage: t(`paymentMethods.${type}.routingError`),
+      errorMessage: tString(`paymentMethods.${type}.routingError`),
     },
     helperText: t(`paymentMethods.${type}.helperText`),
   };

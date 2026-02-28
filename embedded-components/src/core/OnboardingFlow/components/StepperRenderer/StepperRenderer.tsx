@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { defineStepper } from '@stepperize/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2Icon, MenuIcon } from 'lucide-react';
 import { useFormState } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import {
@@ -57,7 +57,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   getDefaultPartyRequestBody,
 }) => {
   const { clientData, organizationType } = useOnboardingContext();
-  const { t } = useTranslation('onboarding-overview');
+  const { t } = useTranslationWithTokens('onboarding-overview');
 
   const {
     currentScreenId,

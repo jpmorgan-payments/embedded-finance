@@ -1,21 +1,30 @@
 /**
  * DetailRow - Renders a single label/value row (ReviewSection-style).
  */
+import type { ReactNode } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 
 interface DetailRowProps {
-  label: string;
-  value: string | string[] | boolean | undefined;
-}
-
-function formatValue(value: string | string[] | boolean | undefined): string {
-  if (value === undefined || value === null) return '';
-  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
-  if (Array.isArray(value)) return value.join(', ');
-  return String(value);
+  /** Label - can be a translated ReactNode from t() */
+  label: ReactNode;
+  /** Value - can be a string, boolean, array, or ReactNode */
+  value: ReactNode | string[] | boolean | undefined;
 }
 
 export function DetailRow({ label, value }: DetailRowProps) {
-  const display = formatValue(value);
+  const { t } = useTranslationWithTokens('client-details');
+
+  if (value === undefined || value === null || value === '') return null;
+
+  let display: ReactNode;
+  if (typeof value === 'boolean') {
+    display = value ? t('booleanValues.true') : t('booleanValues.false');
+  } else if (Array.isArray(value)) {
+    display = value.join(', ');
+  } else {
+    display = String(value);
+  }
+
   if (!display) return null;
 
   return (

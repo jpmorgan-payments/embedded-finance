@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import {
   AlertCircleIcon,
   CheckCircle2Icon,
@@ -6,7 +7,6 @@ import {
   InfoIcon,
   XCircleIcon,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { RecipientStatus } from '@/api/generated/ep-recipients.schemas';
@@ -74,7 +74,7 @@ export const StatusAlert: React.FC<StatusAlertProps> = ({
   className,
   action,
 }) => {
-  const { t } = useTranslation('linked-accounts');
+  const { t } = useTranslationWithTokens('linked-accounts');
   const { variant, icon: Icon, iconClass } = getAlertConfig(status);
   const defaultDescription = t(`status.messages.${status}`);
 

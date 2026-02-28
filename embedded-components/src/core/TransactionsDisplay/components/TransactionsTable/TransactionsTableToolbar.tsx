@@ -1,6 +1,6 @@
+import { useTranslationWithTokens } from '@/hooks';
 import { Table } from '@tanstack/react-table';
 import { X } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import {
   PaymentTypeResponse,
@@ -38,7 +38,7 @@ interface TransactionsTableToolbarProps<TData> {
 export function TransactionsTableToolbar<TData>({
   table,
 }: TransactionsTableToolbarProps<TData>) {
-  const { t } = useTranslation(['transactions']);
+  const { t, tString } = useTranslationWithTokens(['transactions']);
   const isFiltered = table.getState().columnFilters.length > 0;
 
   // Get unique status values from data
@@ -130,7 +130,7 @@ export function TransactionsTableToolbar<TData>({
         <Input
           id="transactions-filter-counterpart"
           name="transactions-filter-counterpart"
-          placeholder={t('filters.counterpart.placeholder', {
+          placeholder={tString('filters.counterpart.placeholder', {
             defaultValue: 'Filter counterpart...',
           })}
           value={counterpartFilter ?? ''}
@@ -146,7 +146,7 @@ export function TransactionsTableToolbar<TData>({
         <Input
           id="transactions-filter-reference-id"
           name="transactions-filter-reference-id"
-          placeholder={t('filters.referenceId.placeholder', {
+          placeholder={tString('filters.referenceId.placeholder', {
             defaultValue: 'Filter reference ID...',
           })}
           value={referenceFilter ?? ''}

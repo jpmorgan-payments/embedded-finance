@@ -3,7 +3,7 @@
  * Information-dense layout with minimal spacing
  */
 
-import { useTranslation } from 'react-i18next';
+import { useTranslationWithTokens } from '@/hooks';
 
 import { _get, cn, isValueEmpty } from '@/lib/utils';
 import type { PartyResponse } from '@/api/generated/smbdo.schemas';
@@ -13,45 +13,58 @@ import {
   individualFieldDefinitions,
   organizationFieldDefinitions,
 } from '../../utils/partyFieldDefinitions';
-import type { PartyFieldConfig } from '../../utils/partyFieldDefinitions';
 
 interface PartyDetailsBlockProps {
   party: PartyResponse;
   heading?: string;
-  subheading?: string;
+  /** Subheading - can be a translated ReactNode */
+  subheading?: React.ReactNode;
   compact?: boolean;
 }
 
-function renderFields(party: PartyResponse, fields: PartyFieldConfig[]) {
-  const rows: React.ReactNode[] = [];
+interface FieldRowProps {
+  labelId: string;
+  path: string;
+  party: PartyResponse;
+  transform?: (value: unknown) => string | string[] | undefined;
+}
 
-  fields.forEach(({ label, path, transform }) => {
-    const raw = _get(party, path);
-    if (isValueEmpty(raw)) return;
-    const value = transform ? transform(raw) : raw;
-    if (
-      value === undefined ||
-      value === '' ||
-      (Array.isArray(value) && value.length === 0)
-    )
-      return;
+/** Single field row with i18n label */
+function FieldRow({ labelId, path, party, transform }: FieldRowProps) {
+  const { t } = useTranslationWithTokens('client-details');
+  const raw = _get(party, path);
+  if (isValueEmpty(raw)) return null;
 
-    const display = Array.isArray(value) ? value.join(', ') : String(value);
+  let value = transform ? transform(raw) : raw;
 
-    rows.push(
-      <div
-        key={path}
-        className="eb-flex eb-justify-between eb-gap-2 eb-py-0.5 eb-text-xs"
-      >
-        <span className="eb-shrink-0 eb-text-muted-foreground">{label}</span>
-        <span className="eb-truncate eb-text-right eb-text-foreground">
-          {display}
-        </span>
-      </div>
-    );
-  });
+  // Handle boolean values with i18n
+  if (typeof value === 'boolean') {
+    value = value
+      ? t('booleanValues.true' as 'booleanValues.true')
+      : t('booleanValues.false' as 'booleanValues.false');
+  }
 
-  return rows;
+  if (
+    value === undefined ||
+    value === '' ||
+    (Array.isArray(value) && value.length === 0)
+  )
+    return null;
+
+  const display = Array.isArray(value) ? value.join(', ') : String(value);
+  // Type assertion needed for dynamic keys
+  const translatedLabel = t(`partyLabels.${labelId}` as 'partyLabels.email');
+
+  return (
+    <div className="eb-flex eb-justify-between eb-gap-2 eb-py-0.5 eb-text-xs">
+      <span className="eb-shrink-0 eb-text-muted-foreground">
+        {translatedLabel}
+      </span>
+      <span className="eb-truncate eb-text-right eb-text-foreground">
+        {display}
+      </span>
+    </div>
+  );
 }
 
 export function PartyDetailsBlock({
@@ -60,7 +73,7 @@ export function PartyDetailsBlock({
   subheading,
   compact = false,
 }: PartyDetailsBlockProps) {
-  const { t } = useTranslation('client-details');
+  const { t } = useTranslationWithTokens('client-details');
   const isOrg = party.partyType === 'ORGANIZATION';
   const fields = isOrg
     ? organizationFieldDefinitions
@@ -69,7 +82,9 @@ export function PartyDetailsBlock({
 
   // Format role labels using i18n
   const roleLabel = party.roles?.length
-    ? party.roles.map((r) => t(`roles.${r}`, { defaultValue: r })).join(', ')
+    ? party.roles
+        .map((r) => t(`roles.${r}` as 'roles.CONTROLLER', { defaultValue: r }))
+        .join(', ')
     : undefined;
 
   return (
@@ -91,7 +106,17 @@ export function PartyDetailsBlock({
           )}
         </div>
       </div>
-      <div className="eb-space-y-0">{renderFields(party, fields)}</div>
+      <div className="eb-space-y-0">
+        {fields.map((field) => (
+          <FieldRow
+            key={field.path}
+            labelId={field.labelId}
+            path={field.path}
+            party={party}
+            transform={field.transform}
+          />
+        ))}
+      </div>
     </div>
   );
 }

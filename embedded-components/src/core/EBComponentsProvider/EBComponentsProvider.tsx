@@ -259,12 +259,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
 export const useContentTokens = () => {
   const context = useContext(ContentTokensContext);
 
-  if (context === undefined) {
-    throw new Error(
-      'useContentTokens must be used within a ContentTokensProvider'
-    );
-  }
-
+  // Return undefined if used outside provider (allows optional usage)
   return context;
 };
 

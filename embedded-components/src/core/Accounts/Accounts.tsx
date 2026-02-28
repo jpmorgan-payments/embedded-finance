@@ -6,8 +6,8 @@ import {
   useMemo,
   useRef,
 } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { Landmark } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { getChildHeadingLevel } from '@/lib/types/headingLevel.types';
 import { cn } from '@/lib/utils';
@@ -36,7 +36,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
     },
     ref
   ) => {
-    const { t } = useTranslation(['accounts', 'common']);
+    const { t } = useTranslationWithTokens(['accounts', 'common']);
     const { interceptorReady } = useInterceptorStatus();
 
     // Calculate child heading level (for h3 elements like empty state)

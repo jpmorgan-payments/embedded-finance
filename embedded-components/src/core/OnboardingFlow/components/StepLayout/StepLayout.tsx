@@ -1,12 +1,12 @@
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 import { Loader2Icon } from 'lucide-react';
 
 type StepLayoutProps = {
-  title: string;
+  title: ReactNode;
   headerElement?: JSX.Element;
   showSpinner?: boolean;
-  subTitle?: string | JSX.Element;
-  description?: string;
+  subTitle?: ReactNode;
+  description?: ReactNode;
   children?: React.ReactNode;
 };
 

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import {
   ColumnFiltersState,
   flexRender,
@@ -19,7 +20,6 @@ import {
   PencilIcon,
   TrashIcon,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import {
   canMakePayment,
@@ -175,7 +175,7 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
   // Get config for recipient type
   const config = getRecipientTypeConfig(recipientType);
   const userJourneys = getUserJourneys(config.eventPrefix);
-  const { t } = useTranslation(config.i18nNamespace);
+  const { t, tString } = useTranslationWithTokens(config.i18nNamespace);
 
   // Destructure pagination state from parent
   const { pagination, totalCount, pageCount, isLoading } = paginationState;
@@ -370,7 +370,7 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
                 variant="ghost"
                 size="icon"
                 className="eb-h-8 eb-w-8 @2xl:eb-hidden"
-                aria-label={t('actions.moreActions', {
+                aria-label={tString('actions.moreActions', {
                   defaultValue: 'More actions for {{name}}',
                   name: displayName,
                 })}
@@ -391,7 +391,7 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
                 variant="ghost"
                 size="icon"
                 className="eb-hidden eb-h-8 eb-w-8 @2xl:eb-flex"
-                aria-label={t('actions.moreActions', {
+                aria-label={tString('actions.moreActions', {
                   defaultValue: 'More actions for {{name}}',
                   name: displayName,
                 })}
@@ -579,7 +579,7 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
                 className="eb-hidden eb-h-8 eb-w-8 lg:eb-flex"
                 onClick={() => table.setPageIndex(0)}
                 disabled={!table.getCanPreviousPage()}
-                aria-label={t('table.firstPage', {
+                aria-label={tString('table.firstPage', {
                   defaultValue: 'Go to first page',
                 })}
               >
@@ -591,7 +591,7 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
                 className="eb-h-8 eb-w-8"
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
-                aria-label={t('table.previousPage', {
+                aria-label={tString('table.previousPage', {
                   defaultValue: 'Go to previous page',
                 })}
               >
@@ -603,7 +603,7 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
                 className="eb-h-8 eb-w-8"
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
-                aria-label={t('table.nextPage', {
+                aria-label={tString('table.nextPage', {
                   defaultValue: 'Go to next page',
                 })}
               >
@@ -615,7 +615,7 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
                 className="eb-hidden eb-h-8 eb-w-8 lg:eb-flex"
                 onClick={() => table.setPageIndex(table.getPageCount() - 1)}
                 disabled={!table.getCanNextPage()}
-                aria-label={t('table.lastPage', {
+                aria-label={tString('table.lastPage', {
                   defaultValue: 'Go to last page',
                 })}
               >

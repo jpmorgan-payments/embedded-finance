@@ -1,4 +1,5 @@
 import { forwardRef, useImperativeHandle, useState } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import {
   CheckCircle2Icon,
   ClockIcon,
@@ -10,7 +11,6 @@ import {
   LandmarkIcon,
   XCircleIcon,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { useLocale } from '@/lib/hooks';
 import type { HeadingLevel } from '@/lib/types/headingLevel.types';
@@ -92,9 +92,9 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
     },
     ref
   ) => {
-    const { t } = useTranslation(['accounts', 'common']);
+    const { t, tString } = useTranslationWithTokens(['accounts', 'common']);
     const locale = useLocale();
-    const naText = t('common:na', { defaultValue: 'N/A' });
+    const naTextString = tString('common:na', { defaultValue: 'N/A' });
 
     // Get the heading tag for this card (e.g., 'h3')
     const Heading = getHeadingTag(headingLevel);
@@ -128,7 +128,13 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
       setTimeout(() => setCopiedField(null), 2000);
     };
 
-    // Get translated category label
+    // Get translated category label - string version for interpolation, ReactNode for visible text
+    const categoryLabelString = tString(
+      `accounts:categories.${account.category}`,
+      {
+        defaultValue: account.category?.replace(/_/g, ' ') || account.category,
+      }
+    );
     const categoryLabel = t(`accounts:categories.${account.category}`, {
       defaultValue: account.category?.replace(/_/g, ' ') || account.category,
     });
@@ -136,17 +142,25 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
     // Get last 4 digits of account number for display name (following BaseRecipientWidget pattern)
     const lastFourDigits =
       account.paymentRoutingInformation?.accountNumber?.slice(-4) || '';
-    const displayName = lastFourDigits
-      ? `${categoryLabel} (...${lastFourDigits})`
-      : categoryLabel;
+    // Use string version for aria-label contexts, ReactNode version for visible text
+    const displayNameString = lastFourDigits
+      ? `${categoryLabelString} (...${lastFourDigits})`
+      : categoryLabelString;
+    const displayName = lastFourDigits ? (
+      <>
+        {categoryLabel} (...{lastFourDigits})
+      </>
+    ) : (
+      categoryLabel
+    );
 
     // Mask account number: show last 4 digits with asterisks
     const maskedAccountNumber = account.paymentRoutingInformation?.accountNumber
       ? `****${account.paymentRoutingInformation.accountNumber.slice(-4)}`
-      : naText;
+      : naTextString;
 
     const fullAccountNumber =
-      account.paymentRoutingInformation?.accountNumber || naText;
+      account.paymentRoutingInformation?.accountNumber || naTextString;
 
     // Get routing number from API data (ABA type is used for ACH routing)
     const abaRoutingNumber =
@@ -200,7 +214,7 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
             className
           )}
           role="article"
-          aria-label={`Account: ${displayName}`}
+          aria-label={`Account: ${displayNameString}`}
         >
           <CardContent className="eb-flex eb-items-center eb-gap-3 eb-p-3 @sm:eb-px-4 @md:eb-px-5">
             {/* Main icon - consistent LandmarkIcon for all accounts */}
@@ -270,8 +284,8 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                     className="eb-h-auto eb-shrink-0 eb-p-0"
                     aria-label={
                       showSensitiveInfo
-                        ? t('accounts:card.hideDetails')
-                        : t('accounts:card.showDetails')
+                        ? tString('accounts:card.hideDetails')
+                        : tString('accounts:card.showDetails')
                     }
                     aria-pressed={showSensitiveInfo}
                   >
@@ -336,7 +350,7 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
           className
         )}
         role="article"
-        aria-label={`Account: ${displayName}`}
+        aria-label={`Account: ${displayNameString}`}
       >
         <CardContent className="eb-flex eb-flex-col eb-p-0">
           {/* Header Section */}
@@ -397,8 +411,8 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                     className="eb-h-auto eb-shrink-0 eb-p-0"
                     aria-label={
                       showSensitiveInfo
-                        ? t('accounts:card.hideDetails')
-                        : t('accounts:card.showDetails')
+                        ? tString('accounts:card.hideDetails')
+                        : tString('accounts:card.showDetails')
                     }
                     aria-pressed={showSensitiveInfo}
                   >
@@ -414,7 +428,7 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                   <CopyButton
                     value={fullAccountNumber}
                     fieldName="accountNumber"
-                    label={t('accounts:card.copyAccountNumber', {
+                    label={tString('accounts:card.copyAccountNumber', {
                       defaultValue: 'Copy account number',
                     })}
                   />
@@ -436,7 +450,7 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                     <CopyButton
                       value={abaRoutingNumber}
                       fieldName="achRouting"
-                      label={t('accounts:card.copyAchRouting', {
+                      label={tString('accounts:card.copyAchRouting', {
                         defaultValue: 'Copy ACH routing number',
                       })}
                     />
@@ -483,7 +497,7 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                               variant="ghost"
                               size="icon"
                               className="eb-h-6 eb-w-6 eb-shrink-0 eb-text-muted-foreground hover:eb-text-foreground"
-                              aria-label={t(
+                              aria-label={tString(
                                 'accounts:card.balanceTypeInfoAriaLabel',
                                 {
                                   type: t(

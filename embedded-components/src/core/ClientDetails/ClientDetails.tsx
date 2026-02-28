@@ -4,13 +4,13 @@
  */
 
 import { useMemo } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 
 import { cn } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 import { CLIENT_DETAILS_DEFAULT_VIEW_MODE } from './ClientDetails.constants';
-import type { ClientDetailsProps, ClientSection } from './ClientDetails.types';
+import type { ClientDetailsProps } from './ClientDetails.types';
 import { AccordionView } from './components/AccordionView/AccordionView';
 import { CardsView } from './components/CardsView/CardsView';
 import { ClientDetailsSkeleton } from './components/ClientDetailsSkeleton';
@@ -23,99 +23,14 @@ import {
   getOrganizationParty,
 } from './utils/partyGrouping';
 
-const DEFAULT_TITLE = 'Client details';
-
-const DEFAULT_SECTIONS: ClientSection[] = ['identity', 'ownership'];
-
-function buildSectionInfos(
-  client: ClientResponse,
-  enabledSections: ClientSection[]
-): SectionInfo[] {
-  const org = getOrganizationParty(client);
-  const controller = getControllerParty(client);
-  const beneficialOwners = getBeneficialOwnerParties(client);
-  const kycStatus = client.results?.customerIdentityStatus;
-  const pendingDocs = client.outstanding?.documentRequestIds?.length ?? 0;
-  const pendingQuestions = client.outstanding?.questionIds?.length ?? 0;
-
-  const allSections: SectionInfo[] = [
-    {
-      id: 'identity',
-      label: 'Identity & Organization',
-      icon: getSectionIcon('identity'),
-      description: org?.organizationDetails?.organizationName,
-      status: org ? 'complete' : 'pending',
-    },
-    {
-      id: 'verification',
-      label: 'Verification',
-      icon: getSectionIcon('verification'),
-      description: kycStatus
-        ? kycStatus.replace(/_/g, ' ').toLowerCase()
-        : undefined,
-      status:
-        kycStatus === 'APPROVED'
-          ? 'complete'
-          : kycStatus === 'INFORMATION_REQUESTED'
-            ? 'warning'
-            : 'pending',
-    },
-    {
-      id: 'ownership',
-      label: 'Ownership',
-      icon: getSectionIcon('ownership'),
-      badge:
-        beneficialOwners.length > 0
-          ? `${beneficialOwners.length + (controller ? 1 : 0)}`
-          : undefined,
-      description: controller
-        ? `Controller + ${beneficialOwners.length} beneficial owner${beneficialOwners.length !== 1 ? 's' : ''}`
-        : undefined,
-      status:
-        beneficialOwners.length > 0 || controller ? 'complete' : 'pending',
-    },
-    {
-      id: 'compliance',
-      label: 'Compliance',
-      icon: getSectionIcon('compliance'),
-      badge:
-        pendingDocs + pendingQuestions > 0
-          ? `${pendingDocs + pendingQuestions} pending`
-          : undefined,
-      status:
-        pendingDocs + pendingQuestions > 0
-          ? 'warning'
-          : client.questionResponses?.length
-            ? 'complete'
-            : 'pending',
-    },
-    {
-      id: 'accounts',
-      label: 'Accounts',
-      icon: getSectionIcon('accounts'),
-      description: 'View linked accounts',
-    },
-    {
-      id: 'activity',
-      label: 'Recent Activity',
-      icon: getSectionIcon('activity'),
-      description: 'View transactions',
-    },
-  ];
-
-  return allSections.filter((s) => enabledSections.includes(s.id));
-}
-
 export function ClientDetails({
   clientId,
   viewMode = CLIENT_DETAILS_DEFAULT_VIEW_MODE,
-  title = DEFAULT_TITLE,
   className,
-  sections = DEFAULT_SECTIONS,
-  enableDrillDown = true,
-  onSectionClick,
   actions,
 }: ClientDetailsProps) {
+  const { t } = useTranslationWithTokens('client-details');
+
   const {
     data: client,
     isLoading,
@@ -125,11 +40,80 @@ export function ClientDetails({
     query: { enabled: !!clientId },
   });
 
-  // Build section info for navigation
-  const sectionInfos = useMemo(
-    () => (client ? buildSectionInfos(client, sections) : []),
-    [client, sections]
-  );
+  // Build section info for navigation - uses t() with template literals for dynamic keys
+  // Sections are data-driven: only include sections that have relevant data
+  const sectionInfos = useMemo(() => {
+    if (!client) return [];
+
+    const org = getOrganizationParty(client);
+    const controller = getControllerParty(client);
+    const beneficialOwners = getBeneficialOwnerParties(client);
+    const kycStatus = client.results?.customerIdentityStatus;
+    const pendingDocs = client.outstanding?.documentRequestIds?.length ?? 0;
+    const pendingQuestions = client.outstanding?.questionIds?.length ?? 0;
+    const totalPending = pendingDocs + pendingQuestions;
+
+    const sections: SectionInfo[] = [];
+
+    // Identity section - always show for a client (business details always exist)
+    sections.push({
+      id: 'identity',
+      icon: getSectionIcon('identity'),
+      description: org?.organizationDetails?.organizationName,
+      status: org ? 'complete' : 'pending',
+    });
+
+    // Verification section - show if KYC status exists
+    if (kycStatus) {
+      sections.push({
+        id: 'verification',
+        icon: getSectionIcon('verification'),
+        description: kycStatus.replace(/_/g, ' ').toLowerCase(),
+        status:
+          kycStatus === 'APPROVED'
+            ? 'complete'
+            : kycStatus === 'INFORMATION_REQUESTED'
+              ? 'warning'
+              : 'pending',
+      });
+    }
+
+    // Ownership section - show if there are beneficial owners or controller
+    if (beneficialOwners.length > 0 || controller) {
+      sections.push({
+        id: 'ownership',
+        icon: getSectionIcon('ownership'),
+        badge:
+          beneficialOwners.length > 0
+            ? `${beneficialOwners.length + (controller ? 1 : 0)}`
+            : undefined,
+        description: controller
+          ? t('sectionDescriptions.controllerWithOwners', {
+              count: beneficialOwners.length,
+            })
+          : undefined,
+        status: 'complete',
+      });
+    }
+
+    // Compliance section - show if there are pending items or question responses
+    if (totalPending > 0 || (client.questionResponses?.length ?? 0) > 0) {
+      sections.push({
+        id: 'compliance',
+        icon: getSectionIcon('compliance'),
+        badge:
+          totalPending > 0
+            ? t('sectionDescriptions.pending', { count: totalPending })
+            : undefined,
+        status: totalPending > 0 ? 'warning' : 'complete',
+      });
+    }
+
+    // Note: accounts and activity sections are intentionally excluded
+    // as they require additional API calls and are future enhancements
+
+    return sections;
+  }, [client, t]);
 
   if (!clientId) {
     return (
@@ -139,7 +123,7 @@ export function ClientDetails({
           className
         )}
       >
-        Client ID is required.
+        {t('errors.clientIdRequired')}
       </div>
     );
   }
@@ -157,7 +141,7 @@ export function ClientDetails({
     const message =
       error && typeof error === 'object' && 'message' in error
         ? String((error as { message?: string }).message)
-        : 'Failed to load client details.';
+        : t('errors.loadFailed');
     return (
       <div
         className={cn(
@@ -172,19 +156,11 @@ export function ClientDetails({
 
   // Summary view mode - compact card with built-in Dialog drill-down
   if (viewMode === 'summary') {
-    // Priority: external handler > built-in dialog > not clickable
-    // When onSectionClick is provided, use it (external navigation)
-    // When enableDrillDown is true and no external handler, use built-in dialog
-    const useExternalHandler = !!onSectionClick;
-    const useBuiltInDialog = enableDrillDown && !onSectionClick;
-
     return (
       <ClientSummaryCard
         client={client}
         clientId={clientId}
-        onSectionClick={useExternalHandler ? onSectionClick : undefined}
-        sections={sections}
-        sectionInfos={useBuiltInDialog ? sectionInfos : undefined}
+        sectionInfos={sectionInfos}
         actions={actions}
         className={cn('eb-component', className)}
       />
@@ -201,7 +177,7 @@ export function ClientDetails({
     >
       <header className="eb-flex eb-min-h-[48px] eb-items-center eb-border-b eb-border-border eb-px-4 eb-py-3 @md:eb-px-6">
         <h1 className="eb-text-base eb-font-semibold eb-tracking-tight">
-          {title}
+          {t('title')}
         </h1>
       </header>
       <div className="eb-flex eb-flex-1 eb-flex-col eb-overflow-y-auto eb-p-4 @md:eb-px-6 @md:eb-py-5">

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import {
@@ -10,7 +11,6 @@ import {
   Loader2Icon,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 
@@ -57,7 +57,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
   const { clientData, onPostClientSettled } = useOnboardingContext();
   const { updateSessionData } = useFlowContext();
 
-  const { t } = useTranslation('onboarding-old');
+  const { t } = useTranslationWithTokens('onboarding-old');
 
   const form = useForm({
     defaultValues: {

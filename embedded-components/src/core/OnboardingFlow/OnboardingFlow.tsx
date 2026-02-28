@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
@@ -72,7 +72,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const organizationType =
     existingOrgParty?.organizationDetails?.organizationType;
 
-  const { t } = useTranslation(['onboarding-overview']);
+  const { t } = useTranslationWithTokens(['onboarding-overview']);
 
   // Prevent the user from leaving the page
   useEffect(() => {
@@ -163,7 +163,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
 // Memoize the FlowRenderer component to ensure consistent hook order
 const FlowRenderer: React.FC = React.memo(() => {
-  const { t } = useTranslation(['onboarding-overview']);
+  const { t } = useTranslationWithTokens(['onboarding-overview']);
   const {
     clientData,
     organizationType,

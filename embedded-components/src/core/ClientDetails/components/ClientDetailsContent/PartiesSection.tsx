@@ -3,7 +3,7 @@
  * Renders Organization, Controller, and Beneficial owners with business labels only (no internal IDs).
  */
 
-import { useTranslation } from 'react-i18next';
+import { useTranslationWithTokens } from '@/hooks';
 
 import type {
   ClientResponse,
@@ -29,7 +29,7 @@ function PartyBlockWithRole({
   itemKey,
 }: {
   party: PartyResponse;
-  roleLabel: string;
+  roleLabel: React.ReactNode;
   compact?: boolean;
   itemKey: string;
 }) {
@@ -44,7 +44,7 @@ function PartyBlockWithRole({
 }
 
 export function PartiesSection({ client, title }: PartiesSectionProps) {
-  const { t } = useTranslation('client-details');
+  const { t } = useTranslationWithTokens('client-details');
 
   const sectionTitle = title ?? t('sections.people');
   const organizationLabel = t('sections.organization');

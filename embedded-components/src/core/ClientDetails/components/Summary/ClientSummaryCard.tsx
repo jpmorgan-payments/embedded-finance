@@ -12,6 +12,7 @@
  */
 
 import { useMemo } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import {
   Briefcase,
   Building2,
@@ -23,7 +24,6 @@ import {
   User,
   Users,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
@@ -41,10 +41,6 @@ interface ClientSummaryCardProps {
   client: ClientResponse;
   /** Client ID for fetching related data (required for drill-down) */
   clientId: string;
-  /** External navigation handler - disables built-in dialog drill-down */
-  onSectionClick?: (section: ClientSection) => void;
-  /** Which sections to display */
-  sections?: ClientSection[];
   /** Section info for navigation (used by SectionDialog) */
   sectionInfos?: SectionInfo[];
   /** Custom actions to render in the footer */
@@ -87,7 +83,7 @@ function getOrganizationDetails(client: ClientResponse) {
   ].filter(Boolean);
 
   return {
-    name: orgDetails?.organizationName ?? 'Unknown Organization',
+    name: orgDetails?.organizationName,
     dbaName: orgDetails?.dbaName,
     organizationType: orgDetails?.organizationType,
     location: [address?.city, address?.state].filter(Boolean).join(', '),
@@ -112,7 +108,7 @@ function getIndividualParties(client: ClientResponse) {
 
   const people: Array<{
     id: string;
-    name: string;
+    name?: string;
     title?: string;
     titleDescription?: string;
     email?: string;
@@ -125,8 +121,9 @@ function getIndividualParties(client: ClientResponse) {
     people.push({
       id: controller.id ?? 'controller',
       name: details
-        ? `${details.firstName ?? ''} ${details.lastName ?? ''}`.trim()
-        : 'Unknown',
+        ? `${details.firstName ?? ''} ${details.lastName ?? ''}`.trim() ||
+          undefined
+        : undefined,
       title: details?.jobTitle,
       titleDescription: details?.jobTitleDescription,
       email: controller.email,
@@ -147,8 +144,9 @@ function getIndividualParties(client: ClientResponse) {
       people.push({
         id: owner.id ?? `owner-${idx}`,
         name: details
-          ? `${details.firstName ?? ''} ${details.lastName ?? ''}`.trim()
-          : 'Unknown',
+          ? `${details.firstName ?? ''} ${details.lastName ?? ''}`.trim() ||
+            undefined
+          : undefined,
         title: details?.jobTitle,
         titleDescription: details?.jobTitleDescription,
         email: owner.email,
@@ -161,18 +159,14 @@ function getIndividualParties(client: ClientResponse) {
   return people;
 }
 
-const DEFAULT_SECTIONS: ClientSection[] = ['identity', 'ownership'];
-
 export function ClientSummaryCard({
   client,
   clientId,
-  onSectionClick,
-  sections = DEFAULT_SECTIONS,
   sectionInfos,
   actions,
   className,
 }: ClientSummaryCardProps) {
-  const { t } = useTranslation([
+  const { t } = useTranslationWithTokens([
     'client-details',
     'onboarding-old',
     'onboarding-overview',
@@ -183,13 +177,8 @@ export function ClientSummaryCard({
 
   const statusType = getStatusType(client.status);
 
-  // Determine click behavior:
-  // - External handler: use onSectionClick callback
-  // - Built-in dialog: use SectionDialog (requires sectionInfos)
-  // - Neither: not clickable
-  const useExternalHandler = !!onSectionClick;
-  const useBuiltInDialog = !onSectionClick && !!sectionInfos;
-  const isClickable = useExternalHandler || useBuiltInDialog;
+  // Built-in dialog drill-down when sectionInfos is provided
+  const isClickable = !!sectionInfos;
 
   const translatedOrgType = org.organizationType
     ? t(`onboarding-overview:organizationTypes.${org.organizationType}`, {
@@ -215,7 +204,7 @@ export function ClientSummaryCard({
     icon: React.ComponentType<{ className?: string }>;
     iconClassName: string;
     iconBgClassName: string;
-    title: string;
+    title: React.ReactNode;
     subtitle?: React.ReactNode;
     badge?: React.ReactNode;
     children?: React.ReactNode;
@@ -251,7 +240,7 @@ export function ClientSummaryCard({
           {badge}
         </div>
         {subtitle && (
-          <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground eb-duration-300 eb-animate-in eb-fade-in">
+          <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
             {subtitle}
           </div>
         )}
@@ -275,7 +264,7 @@ export function ClientSummaryCard({
     icon: React.ComponentType<{ className?: string }>;
     iconClassName: string;
     iconBgClassName: string;
-    title: string;
+    title: React.ReactNode;
     subtitle?: React.ReactNode;
     badge?: React.ReactNode;
     children?: React.ReactNode;
@@ -287,8 +276,8 @@ export function ClientSummaryCard({
         : 'eb-cursor-default'
     );
 
-    // Use built-in Dialog when no external handler
-    if (useBuiltInDialog) {
+    // Use built-in Dialog for drill-down
+    if (isClickable) {
       return (
         <SectionDialog
           client={client}
@@ -303,16 +292,11 @@ export function ClientSummaryCard({
       );
     }
 
-    // External handler - use simple button
+    // Non-clickable row
     return (
-      <button
-        type="button"
-        onClick={() => onSectionClick?.(section)}
-        disabled={!isClickable}
-        className={rowClassName}
-      >
+      <div className={rowClassName}>
         <SectionRowContent {...contentProps} />
-      </button>
+      </div>
     );
   };
 
@@ -334,10 +318,10 @@ export function ClientSummaryCard({
           </div>
 
           {/* Business Identity */}
-          <div className="eb-min-w-0 eb-flex-1 eb-duration-300 eb-animate-in eb-fade-in">
-            <div className="eb-flex eb-flex-wrap eb-items-start eb-gap-2">
+          <div className="eb-min-w-0 eb-flex-1">
+            <div className="eb-flex eb-flex-wrap eb-items-start eb-gap-2 eb-duration-300 eb-animate-in eb-fade-in">
               <h2 className="eb-text-xl eb-font-bold eb-leading-tight eb-tracking-tight eb-text-foreground @sm:eb-text-2xl">
-                {org.name}
+                {org.name ?? t('client-details:labels.unknownOrganization')}
               </h2>
               {/* Status Badge - Premium pill style */}
               <span
@@ -367,7 +351,7 @@ export function ClientSummaryCard({
             </div>
 
             {org.dbaName && (
-              <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
+              <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground eb-duration-300 eb-animate-in eb-fade-in">
                 {t('client-details:labels.doingBusinessAs')}{' '}
                 <span className="eb-font-medium eb-text-foreground">
                   &ldquo;{org.dbaName}&rdquo;
@@ -376,23 +360,23 @@ export function ClientSummaryCard({
             )}
 
             {/* Quick Info Pills */}
-            <div className="eb-mt-3 eb-flex eb-flex-wrap eb-gap-2">
+            <div className="eb-mt-3 eb-flex eb-flex-wrap eb-gap-2 eb-duration-300 eb-animate-in eb-fade-in">
               {translatedOrgType && (
-                <span className="eb-inline-flex eb-items-center eb-gap-1 eb-rounded-md eb-bg-background/80 eb-px-2 eb-py-1 eb-text-xs eb-text-muted-foreground eb-shadow-sm eb-ring-1 eb-ring-border/50">
+                <span className="eb-inline-flex eb-items-center eb-gap-1 eb-rounded-md eb-bg-primary/10 eb-px-2 eb-py-1 eb-text-xs eb-text-foreground/80 eb-shadow-sm eb-ring-1 eb-ring-primary/20">
                   <Building2 className="eb-h-3 eb-w-3" aria-hidden="true" />
                   {translatedOrgType}
                 </span>
               )}
               {org.location && (
-                <span className="eb-inline-flex eb-items-center eb-gap-1 eb-rounded-md eb-bg-background/80 eb-px-2 eb-py-1 eb-text-xs eb-text-muted-foreground eb-shadow-sm eb-ring-1 eb-ring-border/50">
+                <span className="eb-inline-flex eb-items-center eb-gap-1 eb-rounded-md eb-bg-primary/10 eb-px-2 eb-py-1 eb-text-xs eb-text-foreground/80 eb-shadow-sm eb-ring-1 eb-ring-primary/20">
                   <MapPin className="eb-h-3 eb-w-3" aria-hidden="true" />
                   {org.location}
                 </span>
               )}
               {org.yearOfFormation && (
-                <span className="eb-inline-flex eb-items-center eb-gap-1 eb-rounded-md eb-bg-background/80 eb-px-2 eb-py-1 eb-text-xs eb-text-muted-foreground eb-shadow-sm eb-ring-1 eb-ring-border/50">
+                <span className="eb-inline-flex eb-items-center eb-gap-1 eb-rounded-md eb-bg-primary/10 eb-px-2 eb-py-1 eb-text-xs eb-text-foreground/80 eb-shadow-sm eb-ring-1 eb-ring-primary/20">
                   <Calendar className="eb-h-3 eb-w-3" aria-hidden="true" />
-                  Est. {org.yearOfFormation}
+                  {t('client-details:labels.established')} {org.yearOfFormation}
                 </span>
               )}
             </div>
@@ -401,11 +385,11 @@ export function ClientSummaryCard({
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════
-          SECTIONS - Modern card-style clickable sections
+          SECTIONS - Modern card-style clickable sections (data-driven)
           ═══════════════════════════════════════════════════════════════ */}
       <div className="eb-divide-y eb-divide-border eb-border-t eb-border-border">
-        {/* Business Details Section */}
-        {sections.includes('identity') && (
+        {/* Business Details Section - always show for a client */}
+        <div className="eb-duration-300 eb-animate-in eb-fade-in">
           <SectionRow
             section="identity"
             icon={FileText}
@@ -440,70 +424,87 @@ export function ClientSummaryCard({
               </div>
             }
           />
-        )}
+        </div>
 
-        {/* People Section - Enhanced with avatars */}
-        {sections.includes('ownership') && (
-          <SectionRow
-            section="ownership"
-            icon={people.length > 1 ? Users : User}
-            iconClassName="eb-text-slate-600 dark:eb-text-slate-400"
-            iconBgClassName="eb-bg-slate-100 dark:eb-bg-slate-800"
-            title={t('client-details:sections.people')}
-            badge={
-              people.length > 0 ? (
-                <span className="eb-rounded-full eb-bg-slate-100 eb-px-2 eb-py-0.5 eb-text-xs eb-font-semibold eb-text-slate-700 dark:eb-bg-slate-800 dark:eb-text-slate-300">
-                  {people.length}
-                </span>
-              ) : null
-            }
-            subtitle={
-              people.length > 0 ? (
-                <div className="eb-mt-2 eb-flex eb-flex-wrap eb-gap-2">
-                  {people.map((person) => (
-                    <div
-                      key={person.id}
-                      className="eb-flex eb-items-center eb-gap-2 eb-rounded-lg eb-bg-muted/50 eb-px-2.5 eb-py-1.5 eb-ring-1 eb-ring-border/30"
-                    >
-                      {/* Mini avatar */}
+        {/* People Section - show if people data exists */}
+        {people.length > 0 && (
+          <div className="eb-duration-300 eb-animate-in eb-fade-in">
+            <SectionRow
+              section="ownership"
+              icon={people.length > 1 ? Users : User}
+              iconClassName="eb-text-slate-600 dark:eb-text-slate-400"
+              iconBgClassName="eb-bg-slate-100 dark:eb-bg-slate-800"
+              title={t('client-details:sections.people')}
+              badge={
+                people.length > 0 ? (
+                  <span className="eb-rounded-full eb-bg-slate-100 eb-px-2 eb-py-0.5 eb-text-xs eb-font-semibold eb-text-slate-700 dark:eb-bg-slate-800 dark:eb-text-slate-300">
+                    {people.length}
+                  </span>
+                ) : null
+              }
+              subtitle={
+                people.length > 0 ? (
+                  <div className="eb-mt-2 eb-flex eb-flex-wrap eb-gap-2">
+                    {people.map((person) => (
                       <div
-                        className={cn(
-                          'eb-flex eb-h-6 eb-w-6 eb-items-center eb-justify-center eb-rounded-full eb-text-xs eb-font-semibold',
-                          person.isController
-                            ? 'eb-bg-slate-200 eb-text-slate-700 dark:eb-bg-slate-700 dark:eb-text-slate-200'
-                            : 'eb-bg-slate-100 eb-text-slate-600 dark:eb-bg-slate-800 dark:eb-text-slate-400'
-                        )}
+                        key={person.id}
+                        className="eb-flex eb-items-center eb-gap-2 eb-rounded-lg eb-bg-muted/50 eb-px-2.5 eb-py-1.5 eb-ring-1 eb-ring-border/30"
                       >
-                        {person.name
-                          .split(' ')
-                          .map((n) => n[0])
-                          .join('')
-                          .slice(0, 2)
-                          .toUpperCase()}
+                        {/* Mini avatar */}
+                        <div
+                          className={cn(
+                            'eb-flex eb-h-6 eb-w-6 eb-items-center eb-justify-center eb-rounded-full eb-text-xs eb-font-semibold',
+                            person.isController
+                              ? 'eb-bg-slate-200 eb-text-slate-700 dark:eb-bg-slate-700 dark:eb-text-slate-200'
+                              : 'eb-bg-slate-100 eb-text-slate-600 dark:eb-bg-slate-800 dark:eb-text-slate-400'
+                          )}
+                        >
+                          {person.name
+                            ? person.name
+                                .split(' ')
+                                .map((n: string) => n[0])
+                                .join('')
+                                .slice(0, 2)
+                                .toUpperCase()
+                            : '?'}
+                        </div>
+                        <div className="eb-flex eb-flex-col eb-leading-none">
+                          <span className="eb-text-xs eb-font-medium eb-text-foreground">
+                            {person.name ??
+                              t('client-details:labels.unknownPerson')}
+                          </span>
+                          <span className="eb-text-[10px] eb-text-muted-foreground">
+                            {(() => {
+                              const roles: React.ReactNode[] = [];
+                              if (person.isController) {
+                                roles.push(
+                                  t('client-details:roles.CONTROLLER')
+                                );
+                              }
+                              if (person.roles.includes('Beneficial Owner')) {
+                                roles.push(
+                                  t('client-details:roles.BENEFICIAL_OWNER')
+                                );
+                              }
+                              return roles.reduce<React.ReactNode[]>(
+                                (acc, role, i) =>
+                                  i === 0 ? [role] : [...acc, ' & ', role],
+                                []
+                              );
+                            })()}
+                          </span>
+                        </div>
                       </div>
-                      <div className="eb-flex eb-flex-col eb-leading-none">
-                        <span className="eb-text-xs eb-font-medium eb-text-foreground">
-                          {person.name}
-                        </span>
-                        <span className="eb-text-[10px] eb-text-muted-foreground">
-                          {person.isController &&
-                          person.roles.includes('Beneficial Owner')
-                            ? t('client-details:labels.controllerAndOwner')
-                            : person.isController
-                              ? t('client-details:labels.controller')
-                              : t('client-details:labels.owner')}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <span className="eb-italic">
-                  {t('client-details:labels.noOwnershipInfo')}
-                </span>
-              )
-            }
-          />
+                    ))}
+                  </div>
+                ) : (
+                  <span className="eb-italic">
+                    {t('client-details:labels.noOwnershipInfo')}
+                  </span>
+                )
+              }
+            />
+          </div>
         )}
       </div>
 

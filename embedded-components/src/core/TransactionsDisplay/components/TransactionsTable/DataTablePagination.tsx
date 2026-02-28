@@ -1,3 +1,4 @@
+import { useTranslationWithTokens } from '@/hooks';
 import { Table } from '@tanstack/react-table';
 import {
   ChevronLeft,
@@ -5,7 +6,6 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -32,7 +32,7 @@ interface DataTablePaginationProps<TData> {
 export function DataTablePagination<TData>({
   table,
 }: DataTablePaginationProps<TData>) {
-  const { t } = useTranslation(['transactions']);
+  const { t, tString } = useTranslationWithTokens(['transactions']);
 
   return (
     <div className="eb-flex eb-items-center eb-justify-between eb-px-2">
@@ -95,7 +95,7 @@ export function DataTablePagination<TData>({
             className="eb-hidden eb-h-8 eb-w-8 lg:eb-flex"
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
-            aria-label={t('pagination.goToFirst.srOnly', {
+            aria-label={tString('pagination.goToFirst.srOnly', {
               defaultValue: 'Go to first page',
             })}
           >
@@ -107,7 +107,7 @@ export function DataTablePagination<TData>({
             className="eb-h-8 eb-w-8"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
-            aria-label={t('pagination.goToPrevious.srOnly', {
+            aria-label={tString('pagination.goToPrevious.srOnly', {
               defaultValue: 'Go to previous page',
             })}
           >
@@ -119,7 +119,7 @@ export function DataTablePagination<TData>({
             className="eb-h-8 eb-w-8"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
-            aria-label={t('pagination.goToNext.srOnly', {
+            aria-label={tString('pagination.goToNext.srOnly', {
               defaultValue: 'Go to next page',
             })}
           >
@@ -131,7 +131,7 @@ export function DataTablePagination<TData>({
             className="eb-hidden eb-h-8 eb-w-8 lg:eb-flex"
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}
-            aria-label={t('pagination.goToLast.srOnly', {
+            aria-label={tString('pagination.goToLast.srOnly', {
               defaultValue: 'Go to last page',
             })}
           >

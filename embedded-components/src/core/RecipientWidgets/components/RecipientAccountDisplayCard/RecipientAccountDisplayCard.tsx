@@ -1,4 +1,5 @@
 import React, { ReactNode, useState } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import {
   AlertCircleIcon,
   BuildingIcon,
@@ -9,7 +10,6 @@ import {
   EyeOffIcon,
   UserIcon,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import {
   getAccountHolderType,
@@ -44,8 +44,8 @@ export interface RecipientAccountDisplayCardProps {
   /** Optional status alert content */
   statusAlert?: ReactNode;
 
-  /** Optional status message (string only, for inline display) */
-  statusMessage?: string;
+  /** Optional status message (for inline display) */
+  statusMessage?: ReactNode;
 
   /** Optional actions footer content */
   actionsContent?: ReactNode;
@@ -103,7 +103,7 @@ export const RecipientAccountDisplayCard: React.FC<
   compact = false,
   headingLevel = 3,
 }) => {
-  const { t } = useTranslation('linked-accounts');
+  const { t } = useTranslationWithTokens('linked-accounts');
   const [showFullAccount, setShowFullAccount] = useState(false);
   const [showDetailedPaymentMethods, setShowDetailedPaymentMethods] =
     useState(false);

@@ -1,7 +1,7 @@
 import React from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { X } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -51,7 +51,7 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
   refetchBalance,
   accountDisabledMap,
 }) => {
-  const { t } = useTranslation(['make-payment']);
+  const { t, tString } = useTranslationWithTokens(['make-payment']);
   const form = useFormContext<PaymentFormData>();
 
   // Check if there's only one account available
@@ -114,7 +114,7 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
                     <FormControl>
                       <SelectTrigger
                         data-user-event="payment_account_selected"
-                        aria-label={t('fields.from.label', {
+                        aria-label={tString('fields.from.label', {
                           defaultValue: 'Which account are you paying from?',
                         })}
                         className={cn(field.value && 'eb-pr-8')}

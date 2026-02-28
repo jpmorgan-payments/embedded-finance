@@ -1,5 +1,5 @@
+import { useTranslationWithTokens } from '@/hooks';
 import { AlertTriangleIcon, PencilIcon, TriangleAlertIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { PartyResponse } from '@/api/generated/smbdo.schemas';
 import { AlertTitle } from '@/components/ui/alert';
@@ -28,7 +28,7 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
   partyData,
   onEditClick,
 }) => {
-  const { t } = useTranslation([
+  const { t } = useTranslationWithTokens([
     'onboarding-overview',
     'onboarding-old',
     'common',

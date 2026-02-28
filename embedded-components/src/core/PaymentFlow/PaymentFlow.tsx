@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { useQueries } from '@tanstack/react-query';
 import {
   AlertCircle,
@@ -14,7 +15,6 @@ import {
   Save,
   User,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 
 import { cn } from '@/lib/utils';
@@ -508,7 +508,7 @@ function MainTransferView({
     setValidationErrors,
     isSubmitting,
   } = useFlowContext();
-  const { t } = useTranslation('accounts');
+  const { t } = useTranslationWithTokens('accounts');
 
   // Helper to get translated category label
   const getCategoryLabel = useCallback(

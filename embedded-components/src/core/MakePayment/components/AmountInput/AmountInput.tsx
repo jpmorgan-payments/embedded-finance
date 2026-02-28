@@ -1,6 +1,6 @@
 import React from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import {
   FormControl,
@@ -38,7 +38,7 @@ export const AmountInput: React.FC<AmountInputProps> = ({
   totalAmount,
   availableBalance,
 }) => {
-  const { t } = useTranslation(['make-payment']);
+  const { t } = useTranslationWithTokens(['make-payment']);
   const form = useFormContext<PaymentFormData>();
 
   const amount = Number.parseFloat(form.watch('amount') || '0');

@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import {
   AlertCircle,
   ArrowRight,
@@ -17,7 +18,6 @@ import {
   Wallet,
   X,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -57,7 +57,7 @@ export function ReviewPanel({
   // Get live form data from context
   const { formData, isComplete, currentView, setValidationErrors } =
     useFlowContext();
-  const { t } = useTranslation('accounts');
+  const { t } = useTranslationWithTokens('accounts');
 
   // Track if validation has been attempted (to show error state)
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);

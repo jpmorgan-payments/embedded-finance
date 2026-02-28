@@ -1,5 +1,5 @@
-import { FC } from 'react';
-import { useTranslation } from 'react-i18next';
+import { FC, ReactNode } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 
 import {
   DocumentRequestResponse,
@@ -13,7 +13,7 @@ interface DocumentRequestsSectionProps {
   /**
    * Title of the section
    */
-  title: string;
+  title: ReactNode;
   /**
    * Document requests to display
    */
@@ -37,7 +37,7 @@ export const DocumentRequestsSection: FC<DocumentRequestsSectionProps> = ({
   clientData,
   onDocRequestSelect,
 }) => {
-  const { t } = useTranslation(['onboarding-overview']);
+  const { t } = useTranslationWithTokens(['onboarding-overview']);
 
   if (!clientData?.parties) return null;
 

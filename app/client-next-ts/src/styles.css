@@ -66,3 +66,128 @@
     transform: translateY(0);
   }
 }
+
+/* Content Token Editor - Hover highlighting for data-content-token spans in edit mode */
+/* Override eb-contents (display: contents) so the element renders as a box for styling */
+body.content-token-edit-mode [data-content-token] {
+  display: inline !important; /* Override display: contents from eb-contents class */
+  cursor: pointer !important;
+  position: relative;
+  z-index: 45; /* Above the overlay (z-40) but below the drawer (z-50) */
+  border-radius: 3px;
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  outline: 2px dashed rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
+  padding: 1px 2px;
+}
+
+body.content-token-edit-mode [data-content-token]:hover,
+body.content-token-edit-mode [data-content-token].content-token-hover {
+  background-color: rgba(59, 130, 246, 0.25) !important;
+  outline: 2px solid rgba(59, 130, 246, 0.8);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+}
+
+body.content-token-edit-mode [data-content-token]:active {
+  background-color: rgba(59, 130, 246, 0.35) !important;
+  outline: 2px solid rgba(59, 130, 246, 1);
+  outline-offset: 2px;
+}
+
+/* Highlight when token is focused from the drawer - same as hover styling */
+body.content-token-edit-mode [data-content-token].content-token-drawer-focus {
+  background-color: rgba(59, 130, 246, 0.25) !important;
+  outline: 2px solid rgba(59, 130, 246, 0.8);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+}
+
+/* CSS-based annotation badges using ::after pseudo-element */
+/* Override eb-truncate to prevent clipping of annotations */
+body.show-annotations .eb-truncate {
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+body.show-annotations [data-annotation-number] {
+  position: relative;
+  display: inline !important; /* Override display: contents from eb-contents class so position works */
+}
+
+body.show-annotations [data-annotation-number]::after {
+  content: attr(data-annotation-number);
+  position: absolute;
+  right: 0;
+  top: 0;
+  transform: translate(50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.25rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: white;
+  background-color: var(--annotation-color, #6b7280);
+  border: 1.5px solid white;
+  border-radius: 9999px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  z-index: 60;
+  white-space: nowrap;
+}
+
+/* Show duplicate indicator instead when element has data-annotation-duplicate */
+body.show-annotations [data-annotation-duplicate]::after {
+  content: attr(data-annotation-duplicate);
+}
+
+/* Scale up annotation badge on hover */
+body.show-annotations [data-annotation-number]:hover::after,
+body.show-annotations [data-annotation-number].content-token-hover::after {
+  transform: translate(50%, -50%) scale(1.1);
+  transition: transform 0.15s ease;
+}
+
+/* Constrain Radix dialog overlays when content token editor drawer is open */
+body.content-token-drawer-open {
+  --drawer-width: 600px;
+  /* Override Radix's scroll lock when drawer is open */
+  overflow: auto !important;
+}
+
+/* Dialog overlay should not cover the drawer - disable pointer events so clicks don't close dialog */
+body.content-token-drawer-open [data-state='open'].fixed.inset-0,
+body.content-token-drawer-open [data-radix-dialog-overlay],
+body.content-token-drawer-open .eb-fixed.eb-inset-0[data-state='open'] {
+  clip-path: inset(0 var(--drawer-width, 600px) 0 0) !important;
+  pointer-events: none !important;
+}
+
+/* Dialog content should still receive pointer events */
+body.content-token-drawer-open [role='dialog'][data-state='open'] {
+  /* Offset left position to center in remaining viewport space */
+  left: calc(50% - (var(--drawer-width, 600px) / 2)) !important;
+  pointer-events: auto !important;
+}
+
+/* Content token drawer should be above everything and fully interactive */
+[data-content-token-drawer] {
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+  /* Ensure scroll works */
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+}
+
+/* Make inputs in drawer always focusable */
+[data-content-token-drawer] input,
+[data-content-token-drawer] textarea,
+[data-content-token-drawer] select,
+[data-content-token-drawer] button,
+[data-content-token-drawer] [role='combobox'],
+[data-content-token-drawer] [tabindex] {
+  pointer-events: auto !important;
+}

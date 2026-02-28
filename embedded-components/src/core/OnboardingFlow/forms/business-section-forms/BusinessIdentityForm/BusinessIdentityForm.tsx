@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { InfoIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { AlertDescription } from '@/components/ui/alert';
@@ -19,7 +19,7 @@ import {
 } from './BusinessIdentityForm.schema';
 
 export const BusinessIdentityForm: FormStepComponent = () => {
-  const { t } = useTranslation(['onboarding-overview']);
+  const { t } = useTranslationWithTokens(['onboarding-overview']);
 
   const { clientData } = useOnboardingContext();
 

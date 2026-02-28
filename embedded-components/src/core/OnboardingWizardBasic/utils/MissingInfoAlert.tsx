@@ -1,11 +1,4 @@
-import {
-  JSXElementConstructor,
-  Key,
-  ReactElement,
-  ReactNode,
-  ReactPortal,
-  useState,
-} from 'react';
+import { ReactNode, useState } from 'react';
 import { ChevronDown, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -27,7 +20,7 @@ import {
 const renderParty = (
   party: PartyResponse,
   fields: Array<{
-    label: string;
+    label: ReactNode;
     path: string;
     transformFunc?: (value: any) => string | string[] | undefined;
   }>
@@ -71,12 +64,17 @@ export const MissingInfoAlert = ({
   clientData: ClientResponse;
 }) => {
   const [isDismissed, setIsDismissed] = useState(false);
-  const { t } = useTranslation();
+  const { t } = useTranslation('onboarding-old');
   const { data: questionsDetails } = useSmbdoListQuestions({
     questionIds: clientData?.questionResponses
       ?.map((r) => r.questionId)
       .join(','),
   });
+
+  // Simple string translation wrapper for partyFields functions
+  // Uses type assertion to bypass strict key typing for dynamic keys
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const translateString = (key: string): string => t(key as any);
 
   const getMissingFields = () => {
     const missing: string[] = [];
@@ -156,14 +154,14 @@ export const MissingInfoAlert = ({
       {/* Business Summary Section */}
       <div className="eb-mb-4 eb-p-2">
         <div className="eb-mb-2 eb-font-medium">
-          {t('onboarding:missingInfoAlert.businessSummary')}
+          {t('missingInfoAlert.businessSummary')}
         </div>
         <dl className="eb-ml-2 eb-space-y-2">
           {/* Legal Business Name */}
           {organizationParty?.organizationDetails?.organizationName && (
             <div className="eb-flex eb-flex-col eb-border-b eb-border-dotted eb-border-gray-300 sm:eb-flex-row sm:eb-justify-between">
               <dt className="eb-w-full eb-font-medium sm:eb-w-1/3">
-                {t('onboarding:missingInfoAlert.legalBusinessName')}:
+                {t('missingInfoAlert.legalBusinessName')}:
               </dt>
               <dd className="eb-w-full eb-break-words sm:eb-w-2/3 sm:eb-pl-4">
                 {organizationParty.organizationDetails.organizationName}
@@ -175,11 +173,11 @@ export const MissingInfoAlert = ({
           {organizationParty?.organizationDetails?.organizationType && (
             <div className="eb-flex eb-flex-col eb-border-b eb-border-dotted eb-border-gray-300 sm:eb-flex-row sm:eb-justify-between">
               <dt className="eb-w-full eb-font-medium sm:eb-w-1/3">
-                {t('onboarding:missingInfoAlert.businessType')}:
+                {t('missingInfoAlert.businessType')}:
               </dt>
               <dd className="eb-w-full eb-break-words sm:eb-w-2/3 sm:eb-pl-4">
                 {t(
-                  `onboarding:organizationTypes.${organizationParty.organizationDetails.organizationType}`
+                  `organizationTypes.${organizationParty.organizationDetails.organizationType}`
                 )}
               </dd>
             </div>
@@ -189,19 +187,22 @@ export const MissingInfoAlert = ({
           {clientData?.products && clientData.products.length > 0 && (
             <div className="eb-flex eb-flex-col eb-border-b eb-border-dotted eb-border-gray-300 sm:eb-flex-row sm:eb-justify-between">
               <dt className="eb-w-full eb-font-medium sm:eb-w-1/3">
-                {t('onboarding:missingInfoAlert.product')}:
+                {t('missingInfoAlert.product')}:
               </dt>
               <dd className="eb-w-full eb-break-words sm:eb-w-2/3 sm:eb-pl-4">
-                {clientData.products
-                  .map((product) => t(`onboarding:clientProducts.${product}`))
-                  .join(', ')}
+                {clientData.products.map((product, idx) => (
+                  <span key={product}>
+                    {idx > 0 && ', '}
+                    {t(`clientProducts.${product}`)}
+                  </span>
+                ))}
               </dd>
             </div>
           )}
         </dl>
       </div>
       <div className="eb-mb-2 eb-font-medium">
-        {t('onboarding:missingInfoAlert.title')}:
+        {t('missingInfoAlert.title')}:
       </div>
 
       <div className="eb-ml-2 eb-space-y-2">
@@ -230,37 +231,26 @@ export const MissingInfoAlert = ({
                 {party?.partyType && (
                   <span>
                     (
-                    {party?.roles
-                      ?.map((role) => t(`onboarding:partyRoles.${role}`))
-                      .join(', ')}
+                    {party?.roles?.map((role, idx) => (
+                      <span key={role}>
+                        {idx > 0 && ', '}
+                        {t(`partyRoles.${role}`)}
+                      </span>
+                    ))}
                     )
                   </span>
                 )}
                 :
               </div>
               <div className="eb-flex eb-flex-wrap eb-gap-2">
-                {partyMissingFields.map(
-                  (
-                    field:
-                      | string
-                      | number
-                      | boolean
-                      | ReactElement<any, string | JSXElementConstructor<any>>
-                      | Iterable<ReactNode>
-                      | ReactPortal
-                      | Iterable<ReactNode>
-                      | null
-                      | undefined,
-                    index: Key | null | undefined
-                  ) => (
-                    <span
-                      key={index}
-                      className="eb-rounded-full eb-bg-blue-100 eb-px-2 eb-py-1 eb-text-xs eb-font-medium eb-text-blue-800"
-                    >
-                      {t(`onboarding:fields.${field}.label`)}
-                    </span>
-                  )
-                )}
+                {partyMissingFields.map((field: string, index: number) => (
+                  <span
+                    key={index}
+                    className="eb-rounded-full eb-bg-blue-100 eb-px-2 eb-py-1 eb-text-xs eb-font-medium eb-text-blue-800"
+                  >
+                    {translateString(`fields.${field}.label`)}
+                  </span>
+                ))}
               </div>
             </div>
           );
@@ -271,7 +261,7 @@ export const MissingInfoAlert = ({
           {/* eslint-disable-next-line tailwindcss/no-custom-classname */}
           <ChevronDown className="eb-group-data-[state=open]:rotate-180 eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-transition-transform" />
           <div className="eb-flex-1 eb-text-xs">
-            {t('onboarding:missingInfoAlert.clientProfileInfo')}:
+            {t('missingInfoAlert.clientProfileInfo')}:
           </div>
         </CollapsibleTrigger>
 
@@ -280,15 +270,15 @@ export const MissingInfoAlert = ({
             <div className="eb-w-xl eb-px-4">
               {clientData?.parties?.map((party) =>
                 party?.partyType === 'ORGANIZATION'
-                  ? renderParty(party, organizationFields(t))
-                  : renderParty(party, individualFields(t))
+                  ? renderParty(party, organizationFields(translateString))
+                  : renderParty(party, individualFields(translateString))
               )}
             </div>
 
             {!!clientData?.questionResponses?.length && (
               <div className="eb-w-xl eb-px-4">
                 <div className="eb-mb-2 eb-font-medium">
-                  {t('onboarding:missingInfoAlert.questionsResponses')}
+                  {t('missingInfoAlert.questionsResponses')}
                 </div>
                 {clientData?.questionResponses?.map((questionResponse) => (
                   <>
@@ -303,7 +293,7 @@ export const MissingInfoAlert = ({
                             }
                           </dt>
                           <dd className="">
-                            <b>{t('onboarding:missingInfoAlert.response')}:</b>{' '}
+                            <b>{t('missingInfoAlert.response')}:</b>{' '}
                             {questionResponse?.values?.join(', ')}
                           </dd>
                         </dl>

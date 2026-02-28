@@ -2,6 +2,8 @@
  * SectionList - Navigable list of client detail sections
  */
 
+import type { ReactNode } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import {
   Building2,
   CheckCircle2,
@@ -24,10 +26,9 @@ export type ClientSection =
 
 export interface SectionInfo {
   id: ClientSection;
-  label: string;
   icon: React.ComponentType<{ className?: string }>;
-  description?: string;
-  badge?: string;
+  description?: ReactNode;
+  badge?: ReactNode;
   status?: 'complete' | 'pending' | 'warning' | 'error';
   disabled?: boolean;
 }
@@ -66,6 +67,8 @@ export function SectionList({
   onSectionClick,
   className,
 }: SectionListProps) {
+  const { t } = useTranslationWithTokens('client-details');
+
   if (sections.length === 0) return null;
 
   return (
@@ -103,7 +106,7 @@ export function SectionList({
             <div className="eb-min-w-0 eb-flex-1">
               <div className="eb-flex eb-items-center eb-gap-2">
                 <span className="eb-text-sm eb-font-medium eb-text-foreground">
-                  {section.label}
+                  {t(`sectionLabels.${section.id}`)}
                 </span>
                 {section.badge && (
                   <span className="eb-rounded-full eb-bg-muted eb-px-2 eb-py-0.5 eb-text-xs eb-text-muted-foreground">

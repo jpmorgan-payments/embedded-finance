@@ -1,9 +1,10 @@
 import { FC, ReactNode, useState } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertCircle, Loader2Icon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { Trans, useTranslation } from 'react-i18next';
+import { Trans } from 'react-i18next';
 
 import { getRecipientDisplayName } from '@/lib/recipientHelpers';
 import {
@@ -56,7 +57,7 @@ export const MicrodepositsFormDialogTrigger: FC<
   onOpenChange,
   onVerificationSettled,
 }) => {
-  const { t } = useTranslation('linked-accounts');
+  const { t, tString } = useTranslationWithTokens('linked-accounts');
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
   const isDialogOpen = isControlled ? controlledOpen : uncontrolledOpen;
@@ -240,7 +241,9 @@ export const MicrodepositsFormDialogTrigger: FC<
                       name="amount1"
                       type="number"
                       label={t('forms.microdeposits.amount1.label')}
-                      placeholder={t('forms.microdeposits.amount1.placeholder')}
+                      placeholder={tString(
+                        'forms.microdeposits.amount1.placeholder'
+                      )}
                       prefix="$"
                       required
                       disabled={isVerifyPending}
@@ -255,7 +258,9 @@ export const MicrodepositsFormDialogTrigger: FC<
                       name="amount2"
                       type="number"
                       label={t('forms.microdeposits.amount2.label')}
-                      placeholder={t('forms.microdeposits.amount2.placeholder')}
+                      placeholder={tString(
+                        'forms.microdeposits.amount2.placeholder'
+                      )}
                       prefix="$"
                       required
                       disabled={isVerifyPending}

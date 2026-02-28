@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { useQueryClient } from '@tanstack/react-query';
 import { PaginationState } from '@tanstack/react-table';
 import { useVirtualizer, VirtualItem } from '@tanstack/react-virtual';
 import { ChevronDownIcon, PlusIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { getRecipientDisplayName } from '@/lib/recipientHelpers';
 import type { HeadingLevelProps } from '@/lib/types/headingLevel.types';
@@ -212,7 +212,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   // Component State
   // ============================================================================
 
-  const { t } = useTranslation(config.i18nNamespace);
+  const { t, tString } = useTranslationWithTokens(config.i18nNamespace);
   const [showResultDialog, setShowResultDialog] = useState(false);
   const [resultVariant, setResultVariant] = useState<
     'success' | 'maxAttemptsExceeded'
@@ -851,7 +851,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                               onClick={loadMore}
                               disabled={isLoadingMore}
                               className="eb-group eb-w-full eb-bg-muted eb-py-2 eb-text-center eb-transition-colors hover:eb-bg-muted/60 disabled:eb-opacity-50"
-                              aria-label={t('showMoreWithCount', {
+                              aria-label={tString('showMoreWithCount', {
                                 defaultValue:
                                   'Show {{count}} more account_other',
                                 count: nextLoadCount,

@@ -54,27 +54,6 @@ type Story = StoryObj<ClientDetailsStoryArgs>;
 // =============================================================================
 
 /**
- * **Summary - All Sections**
- *
- * Display all available sections including accounts and activity placeholders.
- */
-export const SummaryAllSections: Story = {
-  name: 'Summary - All Sections',
-  args: {
-    viewMode: 'summary',
-    sections: [
-      'identity',
-      'verification',
-      'ownership',
-      'compliance',
-      'accounts',
-      'activity',
-    ],
-    enableDrillDown: true,
-  },
-};
-
-/**
  * **Summary - With Custom Actions**
  *
  * Add action buttons in the card footer for common operations.
@@ -83,7 +62,6 @@ export const SummaryWithActions: Story = {
   name: 'Summary - With Actions',
   args: {
     viewMode: 'summary',
-    enableDrillDown: true,
   },
   render: (args) => (
     <div className="eb-max-w-2xl">
@@ -105,19 +83,6 @@ export const SummaryWithActions: Story = {
   ),
 };
 
-/**
- * **Summary - No Drill-Down**
- *
- * Read-only mode where sections display info but aren't clickable.
- */
-export const SummaryReadOnly: Story = {
-  name: 'Summary - Read Only',
-  args: {
-    viewMode: 'summary',
-    enableDrillDown: false,
-  },
-};
-
 // =============================================================================
 // ACCORDION & CARDS VIEWS
 // =============================================================================
@@ -131,7 +96,6 @@ export const SummaryReadOnly: Story = {
 export const AccordionView: Story = {
   args: {
     viewMode: 'accordion',
-    title: 'Client Details',
   },
 };
 
@@ -143,6 +107,5 @@ export const AccordionView: Story = {
 export const CardsView: Story = {
   args: {
     viewMode: 'cards',
-    title: 'Client Details',
   },
 };

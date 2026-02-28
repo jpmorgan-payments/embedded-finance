@@ -147,7 +147,7 @@ function useMediaQuery(query: string) {
 
 type StepItem = {
   id?: string;
-  label?: string;
+  label?: React.ReactNode;
   description?: string;
   icon?: IconType;
   optional?: boolean;

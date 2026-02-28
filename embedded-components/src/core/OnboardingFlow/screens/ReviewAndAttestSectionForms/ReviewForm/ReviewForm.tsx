@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   AlertTriangle,
@@ -11,7 +12,6 @@ import {
   UsersIcon,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
@@ -62,7 +62,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   getNextButtonLabel,
 }) => {
   const { clientData } = useOnboardingContext();
-  const { t } = useTranslation(['onboarding-old', 'common']);
+  const { t } = useTranslationWithTokens(['onboarding-old', 'common']);
 
   const {
     sections,

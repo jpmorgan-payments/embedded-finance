@@ -1,3 +1,4 @@
+import { useTranslationWithTokens } from '@/hooks';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import {
   FieldArray,
@@ -8,7 +9,6 @@ import {
   useFieldArray,
   UseFieldArrayProps,
 } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -43,7 +43,7 @@ interface RenderItemProps<
 > extends BaseRenderProps<TFieldValues, TFieldArrayName> {
   field: FieldArrayWithId<TFieldValues, TFieldArrayName, 'id'>;
   index: number;
-  itemLabel: string;
+  itemLabel: React.ReactNode;
   disabled: boolean;
   renderRemoveButton: (props?: ButtonProps) => React.ReactNode;
 }
@@ -98,7 +98,7 @@ export function OnboardingArrayField<
     currentScreenId
   );
 
-  const { t } = useTranslation(['onboarding-old', 'common']);
+  const { t, tString } = useTranslationWithTokens(['onboarding-old', 'common']);
 
   let fieldRule: OptionalDefaults<ArrayFieldRule<FieldValue<TFieldValues>>> =
     {};
@@ -147,6 +147,17 @@ export function OnboardingArrayField<
     );
   };
 
+  const getContentTokenString = (id: string, number?: number) => {
+    const key = `fields.${nameNoIndex}.${id}`;
+    return tString(
+      [key, 'common:noTokenFallback'] as unknown as TemplateStringsArray,
+      {
+        number,
+        key,
+      }
+    );
+  };
+
   const getItemLabel = (index: number) =>
     fieldRule.maxItems === 1 && fields.length === 1
       ? getContentToken('itemLabel')
@@ -173,7 +184,7 @@ export function OnboardingArrayField<
           fieldInteraction === 'disabled' ||
           fields.length <= (fieldRule.minItems ?? 0)
         }
-        aria-label={getContentToken('removeLabel', index)}
+        aria-label={getContentTokenString('removeLabel', index)}
       >
         {buttonProps?.children ?? (
           <>

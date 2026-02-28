@@ -195,5 +195,56 @@
       "individualRecipient": "Individual Recipient",
       "businessRecipient": "Business Recipient"
     }
+  },
+  "filters": {
+    "searchPlaceholder": "Search accounts...",
+    "type": {
+      "label": "Type",
+      "all": "All Types",
+      "linkedAccount": "Linked Account"
+    },
+    "status": {
+      "label": "Status",
+      "all": "All Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "microdepositsInitiated": "Microdeposits Initiated",
+      "readyForValidation": "Ready for Validation",
+      "rejected": "Rejected"
+    },
+    "clearFilters": "Clear Filters"
+  },
+  "columns": {
+    "name": "Name",
+    "type": "Type",
+    "status": "Status",
+    "accountNumber": "Account Number",
+    "accountType": "Account Type",
+    "routingNumber": "Routing Number",
+    "createdAt": "Created",
+    "updatedAt": "Updated",
+    "actions": "Actions"
+  },
+  "columnToggle": {
+    "button": "Columns",
+    "label": "Toggle columns"
+  },
+  "pagination": {
+    "rowsTotal": "{{count}} row(s) total",
+    "rowsPerPage": "Rows per page",
+    "pageInfo": "Page {{current}} of {{total}}",
+    "pageInfoMobile": "{{current}} / {{total}}",
+    "goToFirst": {
+      "srOnly": "Go to first page"
+    },
+    "goToPrevious": {
+      "srOnly": "Go to previous page"
+    },
+    "goToNext": {
+      "srOnly": "Go to next page"
+    },
+    "goToLast": {
+      "srOnly": "Go to last page"
+    }
   }
 }

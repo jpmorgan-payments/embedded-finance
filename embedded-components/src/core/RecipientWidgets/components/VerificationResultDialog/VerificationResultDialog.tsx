@@ -1,6 +1,7 @@
 import { FC } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
-import { Trans, useTranslation } from 'react-i18next';
+import { Trans } from 'react-i18next';
 
 import { getRecipientDisplayName } from '@/lib/recipientHelpers';
 import { cn } from '@/lib/utils';
@@ -77,7 +78,7 @@ export const VerificationResultDialog: FC<VerificationResultDialogProps> = ({
   recipient,
   variant,
 }) => {
-  const { t } = useTranslation('linked-accounts');
+  const { t } = useTranslationWithTokens('linked-accounts');
   const displayName = recipient ? getRecipientDisplayName(recipient) : '';
 
   const config = VARIANT_CONFIG[variant];

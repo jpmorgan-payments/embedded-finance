@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next';
+import { useTranslationWithTokens } from '@/hooks';
 
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 
@@ -14,7 +14,7 @@ interface ResultsSectionProps {
  * (e.g. APPROVED, NOT_STARTED, REVIEW_IN_PROGRESS, INFORMATION_REQUESTED).
  */
 export function ResultsSection({ client, title }: ResultsSectionProps) {
-  const { t } = useTranslation('client-details');
+  const { t } = useTranslationWithTokens('client-details');
   const { results } = client;
   if (!results) return null;
 

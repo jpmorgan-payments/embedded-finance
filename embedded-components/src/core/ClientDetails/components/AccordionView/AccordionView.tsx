@@ -3,6 +3,7 @@
  * Sections: Client information, Verification results, Organization, Controller, Beneficial owners, Question responses.
  */
 
+import { useTranslationWithTokens } from '@/hooks';
 import { ChevronDown } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -14,7 +15,10 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 
-import { getClientDetailsSections } from '../../utils/partyGrouping';
+import {
+  getClientDetailsSections,
+  SECTION_I18N_KEYS,
+} from '../../utils/partyGrouping';
 import { BeneficialOwnersSection } from '../ClientDetailsContent/BeneficialOwnersSection';
 import { ClientInfoSection } from '../ClientDetailsContent/ClientInfoSection';
 import { ControllerSection } from '../ClientDetailsContent/ControllerSection';
@@ -35,23 +39,24 @@ function SectionContent({
 }) {
   switch (type) {
     case 'client-info':
-      return <ClientInfoSection client={client} title="" />;
+      return <ClientInfoSection client={client} />;
     case 'organization':
-      return <OrganizationSection client={client} title="" />;
+      return <OrganizationSection client={client} />;
     case 'controller':
-      return <ControllerSection client={client} title="" />;
+      return <ControllerSection client={client} />;
     case 'beneficial-owners':
-      return <BeneficialOwnersSection client={client} title="" />;
+      return <BeneficialOwnersSection client={client} />;
     case 'question-responses':
-      return <QuestionResponsesSection client={client} title="" />;
+      return <QuestionResponsesSection client={client} />;
     case 'results':
-      return <ResultsSection client={client} title="" />;
+      return <ResultsSection client={client} />;
     default:
       return null;
   }
 }
 
 export function AccordionView({ client }: AccordionViewProps) {
+  const { t } = useTranslationWithTokens('client-details');
   const sections = getClientDetailsSections(client);
 
   return (
@@ -62,7 +67,7 @@ export function AccordionView({ client }: AccordionViewProps) {
       defaultValue={sections[0]?.id}
     >
       <div className="eb-space-y-1">
-        {sections.map(({ id, label, type }) => (
+        {sections.map(({ id, type }) => (
           <AccordionItem
             key={id}
             value={id}
@@ -83,7 +88,7 @@ export function AccordionView({ client }: AccordionViewProps) {
                   className="eb-h-4 eb-w-4 eb-shrink-0 eb-transition-transform eb-duration-200 data-[state=open]:eb-rotate-180"
                   aria-hidden
                 />
-                {label}
+                {t(`sections.${SECTION_I18N_KEYS[type]}` as const)}
               </span>
             </AccordionTrigger>
             <AccordionContent className="eb-px-4 eb-pb-4 eb-pt-0 @md:eb-px-5">

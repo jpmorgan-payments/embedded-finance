@@ -1,6 +1,6 @@
 import { FC, useEffect, useRef } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
 
 import {
   getSmbdoGetClientQueryKey,
@@ -19,7 +19,7 @@ import { StatusMessages } from './StatusMessages';
  * Component for document upload screen in the onboarding process
  */
 export const DocumentUploadScreen: FC = () => {
-  const { t } = useTranslation(['onboarding-overview']);
+  const { t } = useTranslationWithTokens(['onboarding-overview']);
   const { clientData, clientGetStatus, docUploadOnlyMode } =
     useOnboardingContext();
   const { goTo } = useFlowContext();

@@ -1,6 +1,6 @@
 import React from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
@@ -15,7 +15,7 @@ interface RecipientModeToggleProps {
 export const RecipientModeToggle: React.FC<RecipientModeToggleProps> = ({
   onModeChange,
 }) => {
-  const { t } = useTranslation(['make-payment']);
+  const { t } = useTranslationWithTokens(['make-payment']);
   const form = useFormContext<PaymentFormData>();
 
   const handleModeChange = (newMode: 'existing' | 'manual') => {

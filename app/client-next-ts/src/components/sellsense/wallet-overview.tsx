@@ -388,6 +388,7 @@ export function WalletOverview({
         ...baseContentTokens.tokens,
         ...componentContentTokens.tokens,
       },
+      showTokenIds: true,
     };
 
     const isWidgetWithToggles =

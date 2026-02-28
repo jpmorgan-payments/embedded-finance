@@ -56,7 +56,7 @@ const isOutstandingEmpty = (
 };
 
 export const ReviewAndAttestStepForm = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['onboarding-old', 'common']);
   // Get QueryClient from the context
   const queryClient = useQueryClient();
 
@@ -251,7 +251,7 @@ export const ReviewAndAttestStepForm = () => {
               <span className="eb-text-gray-600">
                 (
                 {party?.roles
-                  ?.map((role) => t(`onboarding:partyRoles.${role}`))
+                  ?.map((role) => t(`partyRoles.${role}`))
                   .join(', ')}
                 )
               </span>
@@ -267,7 +267,7 @@ export const ReviewAndAttestStepForm = () => {
             className="eb-flex eb-items-center eb-gap-2"
           >
             <EditIcon className="eb-h-4 eb-w-4" />
-            {t('onboarding:edit')}
+            {t('edit')}
           </Button>
         </div>
         <div className="eb-py-4">
@@ -330,12 +330,12 @@ export const ReviewAndAttestStepForm = () => {
     <>
       <Stack className="eb-mx-auto eb-w-full eb-max-w-full eb-text-sm md:eb-max-w-3xl lg:eb-max-w-4xl">
         <Title as="h2" className="eb-mb-4">
-          {t('onboarding:stepLabels.reviewAndAttest')}
+          {t('stepLabels.reviewAndAttest')}
         </Title>
 
         {isClientDataLoading ? (
           <div className="eb-mb-4 eb-bg-gray-50 eb-p-4 eb-text-gray-600">
-            {t('onboarding:reviewAndAttest.loading')}
+            {t('reviewAndAttest.loading')}
           </div>
         ) : (
           <>
@@ -345,25 +345,29 @@ export const ReviewAndAttestStepForm = () => {
 
             {isOutstandingEmpty(clientData?.outstanding) && clientData && (
               <div className="eb-mb-4 eb-bg-green-100 eb-p-4 eb-text-green-800">
-                {t('onboarding:reviewAndAttest.allRequirementsComplete')}
+                {t('reviewAndAttest.allRequirementsComplete')}
               </div>
             )}
           </>
         )}
 
         <div className="eb-w-xl eb-px-4">
-          {clientData?.parties?.map((party) =>
-            party?.partyType === 'ORGANIZATION'
-              ? renderParty(party, organizationFields(t))
-              : renderParty(party, individualFields(t))
-          )}
+          {clientData?.parties?.map((party) => {
+            // Simple string translation wrapper for partyFields functions
+            // Uses type assertion to bypass strict key typing for dynamic keys
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const translateString = (key: string): string => t(key as any);
+            return party?.partyType === 'ORGANIZATION'
+              ? renderParty(party, organizationFields(translateString))
+              : renderParty(party, individualFields(translateString));
+          })}
         </div>
 
         {!!clientData?.questionResponses?.length && (
           <div className="eb-w-xl eb-px-4">
             <div className="eb-mb-4 eb-flex eb-items-center eb-justify-between">
               <h2 className="eb-mb-4 eb-text-xl eb-font-bold">
-                {t('onboarding:reviewAndAttest.questionResponses')}
+                {t('reviewAndAttest.questionResponses')}
               </h2>
               <Button
                 variant="outline"
@@ -374,7 +378,7 @@ export const ReviewAndAttestStepForm = () => {
                 }}
               >
                 <EditIcon className="eb-h-4 eb-w-4" />
-                {t('onboarding:edit')}
+                {t('edit')}
               </Button>
             </div>
             {clientData?.questionResponses?.map((questionResponse) => (
@@ -391,7 +395,7 @@ export const ReviewAndAttestStepForm = () => {
                           }
                         </dt>
                         <dd className="">
-                          <b>{t('onboarding:reviewAndAttest.response')}:</b>{' '}
+                          <b>{t('reviewAndAttest.response')}:</b>{' '}
                           {questionResponse?.values?.join(', ')}
                         </dd>
                       </dl>
@@ -405,10 +409,10 @@ export const ReviewAndAttestStepForm = () => {
 
         <div className="eb-mt-8 eb-border-t eb-pt-4">
           <Title as="h3" className="eb-mb-4">
-            {t('onboarding:reviewAndAttest.termsAndConditions.title')}
+            {t('reviewAndAttest.termsAndConditions.title')}
           </Title>
           <p className="eb-mb-4">
-            {t('onboarding:reviewAndAttest.termsAndConditions.description')}
+            {t('reviewAndAttest.termsAndConditions.description')}
           </p>
 
           <div className="eb-space-y-6">
@@ -423,9 +427,7 @@ export const ReviewAndAttestStepForm = () => {
                 htmlFor="dataAccuracy"
                 className="eb-text-sm eb-leading-normal sm:eb-leading-none"
               >
-                {t(
-                  'onboarding:reviewAndAttest.termsAndConditions.dataAccuracyCheckbox'
-                )}
+                {t('reviewAndAttest.termsAndConditions.dataAccuracyCheckbox')}
               </Label>
             </div>
 
@@ -441,9 +443,7 @@ export const ReviewAndAttestStepForm = () => {
                 htmlFor="termsAndConditions"
                 className="eb-text-sm eb-leading-normal"
               >
-                {t(
-                  'onboarding:reviewAndAttest.termsAndConditions.termsCheckbox'
-                )}
+                {t('reviewAndAttest.termsAndConditions.termsCheckbox')}
                 <div className="eb-mt-2 eb-flex eb-flex-col eb-gap-2">
                   {documentQueries.map((query, index) => (
                     <div key={index}>
@@ -466,7 +466,7 @@ export const ReviewAndAttestStepForm = () => {
                           )}
                           {query.data?.id && loadingDocuments[query.data.id]
                             ? t(
-                                'onboarding:reviewAndAttest.termsAndConditions.downloading'
+                                'reviewAndAttest.termsAndConditions.downloading'
                               )
                             : query.data?.documentType}
                         </span>
@@ -477,7 +477,7 @@ export const ReviewAndAttestStepForm = () => {
                 {!allDocumentsOpened && (
                   <p className="eb-mt-2 eb-text-sm eb-font-semibold eb-text-red-600">
                     {t(
-                      'onboarding:reviewAndAttest.termsAndConditions.openDocumentsWarning'
+                      'reviewAndAttest.termsAndConditions.openDocumentsWarning'
                     )}
                   </p>
                 )}
@@ -500,12 +500,10 @@ export const ReviewAndAttestStepForm = () => {
             >
               <span className="eb-block eb-max-w-[200px] eb-truncate sm:eb-max-w-none">
                 {!canSubmit
-                  ? t(
-                      'onboarding:reviewAndAttest.termsAndConditions.submitDisabled'
-                    )
+                  ? t('reviewAndAttest.termsAndConditions.submitDisabled')
                   : !isOutstandingEmpty(clientData?.outstanding)
                     ? t(
-                        'onboarding:reviewAndAttest.termsAndConditions.outstandingItemsWarning'
+                        'reviewAndAttest.termsAndConditions.outstandingItemsWarning'
                       )
                     : t('common:submit')}
               </span>

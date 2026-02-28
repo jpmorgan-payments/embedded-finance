@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, type ReactNode } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import {
   BuildingIcon,
   CalendarIcon,
@@ -13,7 +14,6 @@ import {
   PhoneIcon,
   UserIcon,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import {
   getMaskedAccountNumber,
@@ -53,7 +53,7 @@ export const RecipientDetailsDialog: React.FC<RecipientDetailsDialogProps> = ({
   recipient,
   children,
 }) => {
-  const { t } = useTranslation('linked-accounts');
+  const { t, tString } = useTranslationWithTokens('linked-accounts');
   const [showFullAccount, setShowFullAccount] = useState(false);
 
   const maskedAccount = getMaskedAccountNumber(recipient);
@@ -134,10 +134,10 @@ export const RecipientDetailsDialog: React.FC<RecipientDetailsDialogProps> = ({
               role="img"
               aria-label={
                 isIndividual
-                  ? t('accountDetails.individual', {
+                  ? tString('accountDetails.individual', {
                       defaultValue: 'Individual',
                     })
-                  : t('accountDetails.business', {
+                  : tString('accountDetails.business', {
                       defaultValue: 'Business',
                     })
               }
@@ -203,8 +203,8 @@ export const RecipientDetailsDialog: React.FC<RecipientDetailsDialogProps> = ({
                         onClick={() => setShowFullAccount(!showFullAccount)}
                         aria-label={
                           showFullAccount
-                            ? t('accountDetails.hideAccountNumber')
-                            : t('accountDetails.showAccountNumber')
+                            ? tString('accountDetails.hideAccountNumber')
+                            : tString('accountDetails.showAccountNumber')
                         }
                       >
                         {showFullAccount ? (
@@ -506,7 +506,7 @@ export const RecipientDetailsDialog: React.FC<RecipientDetailsDialogProps> = ({
 
 // Helper Components
 interface SectionProps {
-  title: string;
+  title: ReactNode;
   icon?: React.ReactNode;
   children: React.ReactNode;
 }
@@ -522,7 +522,7 @@ const Section: React.FC<SectionProps> = ({ title, icon, children }) => (
 );
 
 interface CollapsibleSectionProps {
-  title: string;
+  title: ReactNode;
   icon?: React.ReactNode;
   children: React.ReactNode;
   defaultOpen?: boolean;
@@ -564,7 +564,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
 };
 
 interface DetailRowProps {
-  label: string;
+  label: ReactNode;
   value: React.ReactNode;
   small?: boolean;
 }

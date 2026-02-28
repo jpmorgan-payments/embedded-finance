@@ -1,7 +1,7 @@
 import React from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { ArrowRightLeftIcon, BanknoteIcon, ZapIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import {
@@ -29,7 +29,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   fee,
   accountsStatus,
 }) => {
-  const { t } = useTranslation(['make-payment']);
+  const { t } = useTranslationWithTokens(['make-payment']);
   const form = useFormContext<PaymentFormData>();
 
   // Get icon for payment method type (matching LinkedAccountWidget/BankAccountForm)

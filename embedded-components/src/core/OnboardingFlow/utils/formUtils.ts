@@ -1,3 +1,4 @@
+import { useTranslationWithTokens } from '@/hooks';
 import { defaultResources, i18n } from '@/i18n/config';
 import { objectEntries, objectKeys } from '@/utils/objectEntries';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,7 +10,6 @@ import {
   UseFormProps,
   UseFormReturn,
 } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -870,7 +870,7 @@ export type ValidationMessageKeysFor<
 export const useGetFieldContentToken = (
   fieldName: FieldPath<OnboardingFormValuesSubmit>
 ) => {
-  const { t } = useTranslation([
+  const { tString } = useTranslationWithTokens([
     'onboarding-old',
     'onboarding-overview',
     'common',
@@ -888,20 +888,20 @@ export const useGetFieldContentToken = (
   const getFieldContentToken = (key: FieldContentTokenKey): string => {
     const oldContentTokenKey = `onboarding-old:${key}`;
     const contentTokenOverride = fieldRule.contentTokenOverrides?.[key];
-    return (
-      contentTokenOverride ??
-      t(
-        [
-          `onboarding-overview:fields.${fieldName}.${key}.${fieldRule.contentTokenOverrideKey}`,
-          `onboarding-overview:fields.${fieldName}.${key}.default`,
-          `onboarding-overview:fields.${fieldName}.${key}`,
-          oldContentTokenKey, // TO REMOVE
-          'common:noTokenFallback',
-        ] as unknown as TemplateStringsArray,
-        {
-          key,
-        }
-      )
+    if (typeof contentTokenOverride === 'string') {
+      return contentTokenOverride;
+    }
+    return tString(
+      [
+        `onboarding-overview:fields.${fieldName}.${key}.${fieldRule.contentTokenOverrideKey}`,
+        `onboarding-overview:fields.${fieldName}.${key}.default`,
+        `onboarding-overview:fields.${fieldName}.${key}`,
+        oldContentTokenKey, // TO REMOVE
+        'common:noTokenFallback',
+      ] as unknown as TemplateStringsArray,
+      {
+        key,
+      }
     );
   };
 

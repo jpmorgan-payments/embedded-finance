@@ -226,7 +226,6 @@ export const commonArgs = {
   clientId: '0030000133',
   viewMode: 'summary' as const,
   title: 'Client details',
-  enableDrillDown: true,
 };
 
 /**
@@ -256,40 +255,6 @@ export const commonArgTypes = {
     table: {
       category: 'Display',
       defaultValue: { summary: 'Client details' },
-    },
-  },
-  enableDrillDown: {
-    control: { type: 'boolean' as const },
-    description:
-      'Enable drill-down sheets when clicking sections (summary mode)',
-    table: {
-      category: 'Behavior',
-      defaultValue: { summary: 'true' },
-    },
-  },
-  sections: {
-    control: { type: 'check' as const },
-    options: [
-      'identity',
-      'verification',
-      'ownership',
-      'compliance',
-      'accounts',
-      'activity',
-    ],
-    description: 'Which sections to display (summary mode)',
-    table: {
-      category: 'Display',
-    },
-  },
-
-  // === Callbacks ===
-  onSectionClick: {
-    control: { disable: true },
-    description: 'Callback when a section is clicked (overrides drill-down)',
-    table: {
-      category: 'Callbacks',
-      type: { summary: '(section: ClientSection) => void' },
     },
   },
 };

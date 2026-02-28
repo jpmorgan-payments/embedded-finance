@@ -1,3 +1,4 @@
+import { useTranslationWithTokens } from '@/hooks';
 import {
   AlertTriangleIcon,
   ExternalLinkIcon,
@@ -5,7 +6,6 @@ import {
   SparklesIcon,
 } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { AlertDescription } from '@/components/ui/alert';
@@ -17,7 +17,7 @@ import { useIndustryFormSchema } from './IndustryForm.schema';
 import { useIndustrySuggestions } from './useIndustrySuggestions';
 
 export const IndustryForm: FormStepComponent = () => {
-  const { t } = useTranslation('onboarding-overview');
+  const { t } = useTranslationWithTokens('onboarding-overview');
   const form =
     useFormContext<z.input<ReturnType<typeof useIndustryFormSchema>>>();
 

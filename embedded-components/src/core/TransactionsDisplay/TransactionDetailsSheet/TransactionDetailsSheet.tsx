@@ -1,6 +1,6 @@
-import { FC, useState } from 'react';
+import { FC, ReactNode, useState } from 'react';
+import { useTranslationWithTokens } from '@/hooks';
 import { CopyIcon } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { useLocale } from '@/lib/hooks';
 import { useGetTransactionV2 } from '@/api/generated/ep-transactions';
@@ -31,7 +31,7 @@ export type TransactionDetailsDialogTriggerProps = {
 export const TransactionDetailsDialogTrigger: FC<
   TransactionDetailsDialogTriggerProps
 > = ({ children, transactionId }) => {
-  const { t } = useTranslation(['transactions', 'common']);
+  const { t } = useTranslationWithTokens(['transactions', 'common']);
   const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [hideEmpty, setHideEmpty] = useState(true);
@@ -51,9 +51,9 @@ export const TransactionDetailsDialogTrigger: FC<
 
   // Helper function to render a field conditionally
   const renderField = (
-    label: string,
+    label: ReactNode,
     value: any,
-    formatter?: (val: any) => string
+    formatter?: (val: any) => ReactNode
   ) => {
     const isEmpty = !hasValue(value);
     if (hideEmpty && isEmpty) return null;

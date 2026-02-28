@@ -227,7 +227,7 @@ export function createBankAccountFormSchema(
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: v('routingNumbers.validation.required', {
-              method: methodConfig.label,
+              method: methodConfig.labelString,
             }),
             path:
               routingEntryIndex >= 0
@@ -368,7 +368,7 @@ export function createBankAccountFormSchema(
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: v('paymentMethods.validation.lockedRequired', {
-            method: methodConfig.label,
+            method: methodConfig.labelString,
           }),
           path: ['paymentTypes'],
         });

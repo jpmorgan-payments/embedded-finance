@@ -66,7 +66,7 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   showLinkedAccountPanel = false,
   ...props
 }) => {
-  const { tokens: globalContentTokens = {} } = useContentTokens();
+  const { tokens: globalContentTokens = {} } = useContentTokens() ?? {};
 
   useEffect(() => {
     loadContentTokens(i18n.language, 'onboarding', [

@@ -737,8 +737,17 @@ export type EBConfig = {
   headers?: Record<string, string>;
   reactQueryDefaultOptions?: DefaultOptions;
   contentTokens?: {
+    /** Locale name to use for translations */
     name?: keyof typeof defaultResources;
+    /** Custom token overrides per namespace */
     tokens?: DeepPartial<(typeof defaultResources)['enUS']>;
+    /**
+     * Enable token ID visibility for development/debugging.
+     * When true, displays data-content-token attributes on translated text
+     * for easy discovery of token IDs during customization.
+     * @default false
+     */
+    showTokenIds?: boolean;
   };
   queryParams?: Record<string, string>;
   clientId?: string;

@@ -83,7 +83,6 @@ export const LoadingAccordion: Story = {
   },
   args: {
     viewMode: 'accordion',
-    title: 'Client Details',
   },
 };
 
@@ -101,7 +100,6 @@ export const LoadingCards: Story = {
   },
   args: {
     viewMode: 'cards',
-    title: 'Client Details',
   },
 };
 

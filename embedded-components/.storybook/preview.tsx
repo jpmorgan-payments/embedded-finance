@@ -231,6 +231,11 @@ export interface BaseStoryArgs {
   contentTokensPreset?: keyof typeof defaultResources;
   /** Custom content tokens object (only used when contentTokensPreset is 'custom') */
   contentTokens?: Record<string, any>;
+  /**
+   * Show content token IDs for easy discovery during customization.
+   * When enabled, hovering over translated text shows the token ID.
+   */
+  showTokenIds?: boolean;
   /** Client ID for API requests */
   clientId?: string;
   /** React Query default options (e.g., to disable retries) */
@@ -246,8 +251,12 @@ const withEBComponentsProvider: Decorator<BaseStoryArgs> = (Story, context) => {
 
   // Resolve theme from args (with proper typing)
   const theme = resolveTheme(args.themePreset, args.theme);
-  const contentTokens = args.contentTokens ?? {
+  const contentTokens = {
+    ...(args.contentTokens ?? {
+      tokens: {},
+    }),
     name: args.contentTokensPreset ?? 'enUS',
+    showTokenIds: args.showTokenIds ?? true,
   };
 
   return (
@@ -262,7 +271,7 @@ const withEBComponentsProvider: Decorator<BaseStoryArgs> = (Story, context) => {
         }}
         headers={args.headers}
         theme={theme}
-        contentTokens={contentTokens as any}
+        contentTokens={contentTokens}
         clientId={args.clientId ?? ''}
         reactQueryDefaultOptions={args.reactQueryDefaultOptions}
       >
@@ -297,6 +306,7 @@ const preview: Preview = {
     apiBaseUrl: '/',
     themePreset: 'Salt',
     contentTokensPreset: 'enUS',
+    showTokenIds: true,
   },
 
   // Args enhancer to override defaults for specific story names
@@ -374,6 +384,15 @@ const preview: Preview = {
         category: 'Provider',
       },
       if: { arg: 'contentTokensPreset', eq: 'custom' },
+    },
+    showTokenIds: {
+      control: { type: 'boolean' },
+      description:
+        'Show content token IDs on hover. Enable this to discover token IDs for customization.',
+      table: {
+        category: 'Provider',
+        defaultValue: { summary: 'true' },
+      },
     },
   },
 
