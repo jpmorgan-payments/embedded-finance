@@ -9,6 +9,7 @@ import {
   X,
 } from 'lucide-react';
 
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -16,7 +17,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { runA11yChecks } from '@/lib/a11y-checks';
 import { calculateContrast } from '@/lib/color-contrast';
 
@@ -301,7 +301,8 @@ export function ThemeA11yPanel({ mergedTheme }: ThemeA11yPanelProps) {
               Accessibility checks in this panel
             </DialogTitle>
             <DialogDescription>
-              How we evaluate your theme for basic accessibility and color contrast.
+              How we evaluate your theme for basic accessibility and color
+              contrast.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 text-sm text-gray-800">
@@ -316,14 +317,19 @@ export function ThemeA11yPanel({ mergedTheme }: ThemeA11yPanelProps) {
                 </code>
                 , including:
               </p>
-              <ul className="mt-1 ml-4 list-disc text-xs text-gray-700">
-                <li>Actionable font size vs. 14px/16px readability thresholds.</li>
+              <ul className="ml-4 mt-1 list-disc text-xs text-gray-700">
+                <li>
+                  Actionable font size vs. 14px/16px readability thresholds.
+                </li>
                 <li>Form label font size for minimum legibility.</li>
                 <li>Touch target spacing based on your spacing unit.</li>
-                <li>Extremely large border radius that can reduce control clarity.</li>
+                <li>
+                  Extremely large border radius that can reduce control clarity.
+                </li>
               </ul>
               <p className="mt-1 text-xs text-gray-600">
-                These checks are opinionated guidance, not a complete WCAG audit.
+                These checks are opinionated guidance, not a complete WCAG
+                audit.
               </p>
             </div>
             <div>
@@ -331,23 +337,24 @@ export function ThemeA11yPanel({ mergedTheme }: ThemeA11yPanelProps) {
                 2. Color contrast checks
               </h4>
               <p className="text-xs text-gray-700">
-                We compute contrast ratios for a curated set of semantic color pairs
-                (e.g. primary button, secondary button, status messages) using the{' '}
-                WCAG 2.1 formula:
+                We compute contrast ratios for a curated set of semantic color
+                pairs (e.g. primary button, secondary button, status messages)
+                using the WCAG 2.1 formula:
               </p>
-              <ul className="mt-1 ml-4 list-disc text-xs text-gray-700">
+              <ul className="ml-4 mt-1 list-disc text-xs text-gray-700">
                 <li>AA normal text: 4.5:1, large text: 3:1.</li>
                 <li>AAA normal text: 7:1, large text: 4.5:1.</li>
                 <li>
-                  Filters let you focus on <span className="font-medium">Failing</span>{' '}
-                  pairs or <span className="font-medium">AA Only</span> (passes AA but
+                  Filters let you focus on{' '}
+                  <span className="font-medium">Failing</span> pairs or{' '}
+                  <span className="font-medium">AA Only</span> (passes AA but
                   not AAA).
                 </li>
               </ul>
               <p className="mt-1 text-xs text-gray-600">
-                The pairs come from theme tokens (like semantic button/status colors),
-                so real screens should still be validated with an end-to-end a11y audit
-                for your product.
+                The pairs come from theme tokens (like semantic button/status
+                colors), so real screens should still be validated with an
+                end-to-end a11y audit for your product.
               </p>
             </div>
           </div>
@@ -363,40 +370,43 @@ export function ThemeA11yPanel({ mergedTheme }: ThemeA11yPanelProps) {
               ⚠️ Warning: Use Generated Theme JSON at Your Own Risk
             </DialogTitle>
             <DialogDescription>
-              Important information about using theme data generated from this tool
+              Important information about using theme data generated from this
+              tool
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
               <p className="mb-3">
                 The theme JSON and instructions provided in this tool (including
-                AI-generated, manually customized, or imported themes) are intended for
-                reference and experimentation purposes only. The maintainers of this
-                tool do not assume any responsibility for any issues, damages, or
-                losses that may arise from the use of generated theme data.
+                AI-generated, manually customized, or imported themes) are
+                intended for reference and experimentation purposes only. The
+                maintainers of this tool do not assume any responsibility for
+                any issues, damages, or losses that may arise from the use of
+                generated theme data.
               </p>
               <p className="mb-2 font-medium">
                 By using this tool, you acknowledge that:
               </p>
               <ul className="mb-3 ml-2 list-inside list-disc space-y-2">
                 <li>
-                  Generated theme JSON (whether AI-generated, manually created, or
-                  imported) may contain errors, inaccuracies, or incomplete design
-                  tokens
+                  Generated theme JSON (whether AI-generated, manually created,
+                  or imported) may contain errors, inaccuracies, or incomplete
+                  design tokens
                 </li>
                 <li>
-                  The extracted or customized tokens may not accurately represent the
-                  intended design system or may not be suitable for production use
-                  without additional validation and hardening
+                  The extracted or customized tokens may not accurately
+                  represent the intended design system or may not be suitable
+                  for production use without additional validation and hardening
                 </li>
                 <li>
-                  You are responsible for reviewing, validating, and testing any theme
-                  data before deploying it to production
+                  You are responsible for reviewing, validating, and testing any
+                  theme data before deploying it to production
                 </li>
               </ul>
               <p className="text-xs text-amber-800">
-                Always run your own accessibility, design, and engineering reviews
-                before adopting the generated tokens in a production system.
+                Always run your own accessibility, design, and engineering
+                reviews before adopting the generated tokens in a production
+                system.
               </p>
             </div>
           </div>
@@ -405,4 +415,3 @@ export function ThemeA11yPanel({ mergedTheme }: ThemeA11yPanelProps) {
     </>
   );
 }
-

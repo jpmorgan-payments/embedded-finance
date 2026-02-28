@@ -33,7 +33,7 @@ export const mockAccounts: { items: AccountResponse[] } = {
         routingInformation: [{ type: 'ABA', value: '123456789' }],
       },
     },
-    ],
+  ],
 };
 
 // Scenario-based account initialization (OAS AccountResponse[])
@@ -74,7 +74,9 @@ export const mockActiveWithRecipientsAccounts: { items: AccountResponse[] } = {
 };
 
 /** OAS AccountBalanceResponse + accountId for DB linkage. */
-type AccountBalanceWithAccountId = AccountBalanceResponse & { accountId: string };
+type AccountBalanceWithAccountId = AccountBalanceResponse & {
+  accountId: string;
+};
 
 export const mockAccountBalance: AccountBalanceWithAccountId = {
   id: 'bal-001',

@@ -1,6 +1,5 @@
-import { DefaultOptions } from '@tanstack/react-query';
-
 import type { EBContentTokens } from '@/i18n/content-tokens.types';
+import { DefaultOptions } from '@tanstack/react-query';
 
 export type EBColorScheme = 'dark' | 'light' | 'system';
 
