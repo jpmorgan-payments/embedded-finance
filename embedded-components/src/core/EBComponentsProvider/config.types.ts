@@ -1,6 +1,7 @@
-import { defaultResources } from '../../i18n/config';
 import { DefaultOptions } from '@tanstack/react-query';
 import { DeepPartial } from 'react-hook-form';
+
+import { defaultResources } from '../../i18n/config';
 
 export type EBColorScheme = 'dark' | 'light' | 'system';
 
