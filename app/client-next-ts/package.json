@@ -19,7 +19,7 @@
     "e2e:recipients": "playwright test tests/e2e/recipients-widget.spec.ts"
   },
   "dependencies": {
-    "@jpmorgan-payments/embedded-finance-components": "^0.11.12",
+    "@jpmorgan-payments/embedded-finance-components": "^0.11.16",
     "@mswjs/data": "^0.16.2",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-dialog": "^1.1.14",
@@ -29,6 +29,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-switch": "^1.2.5",
     "@radix-ui/react-tabs": "^1.1.12",
+    "@tanstack/react-query": "^5.90.21",
     "@tanstack/react-router": "^1.114.3",
     "@tanstack/react-router-devtools": "^1.114.3",
     "@tanstack/router-plugin": "^1.114.3",
