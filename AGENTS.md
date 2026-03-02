@@ -49,7 +49,7 @@ Before generating component code, review the architecture document for:
 ## Package-Specific Instructions
 
 - **embedded-components**: See `embedded-components/AGENTS.md` for package-specific details
-- **app/client-next-ts**: See `app/client-next-ts/.cursorrules` for app configuration
+- **app/client-next-ts**: See `app/client-next-ts/AGENTS.md` for app-specific patterns (Tailwind prefix rules, drawer pattern, MSW override architecture, `@visual-json/react` integration)
   - **Current showcase website**: Modern React application demonstrating embedded finance components
   - **Technology**: Vite, React 18, TypeScript, TanStack Router, Tailwind CSS, MSW
   - **Main demo**: SellSense marketplace demo at `/sellsense-demo` route

@@ -7,9 +7,6 @@
  * - Entity shapes align with OAS (`@ef-api/*-schemas`).
  * - Use deleteMany({}) to clear a model; update via findFirst + update.
  */
-import { factory, primaryKey } from '@mswjs/data';
-import merge from 'lodash/merge';
-
 import type {
   AccountBalanceDto,
   AccountBalanceDtoTypeCode,
@@ -24,6 +21,8 @@ import type {
   DocumentRequestResponse,
   PartyResponse,
 } from '@ef-api/smbdo-schemas';
+import { factory, primaryKey } from '@mswjs/data';
+import merge from 'lodash/merge';
 
 import { efDocumentRequestDetailsList } from '../mocks';
 import {
@@ -57,7 +56,8 @@ export interface DbClient {
 }
 
 export type DbParty = PartyResponse & Record<string, unknown>;
-export type DbDocumentRequest = DocumentRequestResponse & Record<string, unknown>;
+export type DbDocumentRequest = DocumentRequestResponse &
+  Record<string, unknown>;
 export type DbRecipient = Recipient;
 export type DbAccount = AccountResponse;
 /** OAS AccountBalanceResponse + DB-only fields (accountId, updatedAt). */
@@ -88,16 +88,26 @@ export interface Db {
     findFirst: (opts: WhereIdOpts) => DbClient | null;
     findMany: (opts: WhereClientId) => DbClient[];
     getAll: () => DbClient[];
-    create: (data: (Partial<DbClient> & { id: string }) | Record<string, unknown>) => DbClient;
-    update: (opts: { where: { id: { equals: string } }; data: Partial<DbClient> | Record<string, unknown> }) => DbClient;
+    create: (
+      data: (Partial<DbClient> & { id: string }) | Record<string, unknown>
+    ) => DbClient;
+    update: (opts: {
+      where: { id: { equals: string } };
+      data: Partial<DbClient> | Record<string, unknown>;
+    }) => DbClient;
     deleteMany: (opts: object) => void;
     delete: (opts: WhereIdOpts) => void;
   };
   party: {
     findFirst: (opts: WhereIdOpts) => DbParty | null;
     getAll: () => DbParty[];
-    create: (data: (Partial<DbParty> & { id: string }) | Record<string, unknown>) => DbParty;
-    update: (opts: { where: { id: { equals: string } }; data: Partial<DbParty> | Record<string, unknown> }) => DbParty;
+    create: (
+      data: (Partial<DbParty> & { id: string }) | Record<string, unknown>
+    ) => DbParty;
+    update: (opts: {
+      where: { id: { equals: string } };
+      data: Partial<DbParty> | Record<string, unknown>;
+    }) => DbParty;
     delete: (opts: WhereIdOpts) => void;
     deleteMany: (opts: object) => void;
   };
@@ -106,34 +116,56 @@ export interface Db {
     findMany: (opts: WhereClientId) => DbDocumentRequest[];
     getAll: () => DbDocumentRequest[];
     update: (opts: DocumentRequestUpdateOpts) => DbDocumentRequest;
-    create: (data: (Partial<DbDocumentRequest> & { id: string }) | Record<string, unknown>) => DbDocumentRequest;
+    create: (
+      data:
+        | (Partial<DbDocumentRequest> & { id: string })
+        | Record<string, unknown>
+    ) => DbDocumentRequest;
     deleteMany: (opts: object) => void;
   };
   recipient: {
     findFirst: (opts: WhereIdOpts) => DbRecipient | null;
     getAll: () => DbRecipient[];
-    create: (data: (Partial<DbRecipient> & { id: string }) | Record<string, unknown>) => DbRecipient;
+    create: (
+      data: (Partial<DbRecipient> & { id: string }) | Record<string, unknown>
+    ) => DbRecipient;
     update: (opts: RecipientUpdateOpts) => DbRecipient;
     deleteMany: (opts: object) => void;
   };
   account: {
     findFirst: (opts: { where: Record<string, unknown> }) => DbAccount | null;
     getAll: () => DbAccount[];
-    create: (data: (Partial<DbAccount> & { id: string }) | Record<string, unknown>) => DbAccount;
+    create: (
+      data: (Partial<DbAccount> & { id: string }) | Record<string, unknown>
+    ) => DbAccount;
     deleteMany: (opts: object) => void;
   };
   accountBalance: {
-    findFirst: (opts: { where: { accountId: { equals: string } } }) => DbAccountBalance | null;
+    findFirst: (opts: {
+      where: { accountId: { equals: string } };
+    }) => DbAccountBalance | null;
     getAll: () => DbAccountBalance[];
-    create: (data: (Partial<DbAccountBalance> & { id: string }) | Record<string, unknown>) => DbAccountBalance;
-    update: (opts: { where: { accountId: { equals: string } }; data: Partial<DbAccountBalance> }) => DbAccountBalance;
+    create: (
+      data:
+        | (Partial<DbAccountBalance> & { id: string })
+        | Record<string, unknown>
+    ) => DbAccountBalance;
+    update: (opts: {
+      where: { accountId: { equals: string } };
+      data: Partial<DbAccountBalance>;
+    }) => DbAccountBalance;
     deleteMany: (opts: object) => void;
   };
   transaction: {
     findFirst: (opts: WhereIdOpts) => DbTransaction | null;
     getAll: () => DbTransaction[];
-    create: (data: (Partial<DbTransaction> & { id: string }) | Record<string, unknown>) => DbTransaction;
-    update: (opts: { where: { id: { equals: string } }; data: Partial<DbTransaction> | Record<string, unknown> }) => DbTransaction;
+    create: (
+      data: (Partial<DbTransaction> & { id: string }) | Record<string, unknown>
+    ) => DbTransaction;
+    update: (opts: {
+      where: { id: { equals: string } };
+      data: Partial<DbTransaction> | Record<string, unknown>;
+    }) => DbTransaction;
     deleteMany: (opts: object) => void;
   };
 }
@@ -270,19 +302,23 @@ export function updateAccountBalance(
     return null;
   }
 
-  const balanceTypes: AccountBalanceDto[] = Array.isArray(balance.balanceTypes) ? balance.balanceTypes : [];
-  const updatedBalanceTypes: AccountBalanceDto[] = balanceTypes.map((balanceType) => {
-    let newAmount = balanceType.amount ?? 0;
-    if (transactionType === 'CREDIT') {
-      newAmount += amount;
-    } else if (transactionType === 'DEBIT') {
-      newAmount -= amount;
+  const balanceTypes: AccountBalanceDto[] = Array.isArray(balance.balanceTypes)
+    ? balance.balanceTypes
+    : [];
+  const updatedBalanceTypes: AccountBalanceDto[] = balanceTypes.map(
+    (balanceType) => {
+      let newAmount = balanceType.amount ?? 0;
+      if (transactionType === 'CREDIT') {
+        newAmount += amount;
+      } else if (transactionType === 'DEBIT') {
+        newAmount -= amount;
+      }
+      return {
+        typeCode: (balanceType.typeCode ?? 'ITAV') as AccountBalanceDtoTypeCode,
+        amount: Math.max(0, newAmount),
+      };
     }
-    return {
-      typeCode: (balanceType.typeCode ?? 'ITAV') as AccountBalanceDtoTypeCode,
-      amount: Math.max(0, newAmount),
-    };
-  });
+  );
 
   const updatedBalance = db.accountBalance.update({
     where: { accountId: { equals: accountId } },
@@ -298,7 +334,8 @@ export function updateAccountBalance(
 }
 
 export function processTransaction(transactionData: DbTransaction): void {
-  const { creditorAccountId, debtorAccountId, amount, status } = transactionData;
+  const { creditorAccountId, debtorAccountId, amount, status } =
+    transactionData;
 
   if (status === 'COMPLETED') {
     const amt = typeof amount === 'number' ? amount : 0;
@@ -317,8 +354,10 @@ export function createTransactionWithBalanceUpdate(
 ): DbTransaction {
   const transactionId = `txn-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-  let creditorAccountId = (transactionData.creditorAccountId as string) || 'acc-001';
-  let creditorName = (transactionData.creditorName as string) || 'SellSense Marketplace';
+  let creditorAccountId =
+    (transactionData.creditorAccountId as string) || 'acc-001';
+  let creditorName =
+    (transactionData.creditorName as string) || 'SellSense Marketplace';
 
   if (transactionData.recipientId) {
     const recipient = db.recipient.findFirst({
@@ -347,7 +386,8 @@ export function createTransactionWithBalanceUpdate(
         } else if (recipient.partyDetails.type === 'INDIVIDUAL') {
           const firstName = recipient.partyDetails.firstName || '';
           const lastName = recipient.partyDetails.lastName || '';
-          creditorName = `${firstName} ${lastName}`.trim() || 'Individual Recipient';
+          creditorName =
+            `${firstName} ${lastName}`.trim() || 'Individual Recipient';
         }
       }
     }
@@ -370,9 +410,11 @@ export function createTransactionWithBalanceUpdate(
     amount: transactionData.amount || 0,
     currency: transactionData.currency || 'USD',
     paymentDate:
-      (transactionData.paymentDate as string) || new Date().toISOString().slice(0, 10),
+      (transactionData.paymentDate as string) ||
+      new Date().toISOString().slice(0, 10),
     effectiveDate:
-      (transactionData.effectiveDate as string) || new Date().toISOString().slice(0, 10),
+      (transactionData.effectiveDate as string) ||
+      new Date().toISOString().slice(0, 10),
     creditorAccountId,
     debtorAccountId: (transactionData.debtorAccountId as string) || 'acc-002',
     creditorName,
@@ -389,7 +431,9 @@ export function createTransactionWithBalanceUpdate(
     createdAt: new Date().toISOString(),
   };
 
-  const createdTransaction = db.transaction.create(newTransaction as Partial<DbTransaction> & { id: string });
+  const createdTransaction = db.transaction.create(
+    newTransaction as Partial<DbTransaction> & { id: string }
+  );
 
   if (createdTransaction.status === 'COMPLETED') {
     processTransaction(createdTransaction);
@@ -425,7 +469,10 @@ export function updateTransactionStatus(
   if (oldStatus !== 'COMPLETED' && newStatus === 'COMPLETED') {
     processTransaction(updatedTransaction);
   } else if (oldStatus === 'COMPLETED' && newStatus !== 'COMPLETED') {
-    const amt = typeof updatedTransaction.amount === 'number' ? updatedTransaction.amount : 0;
+    const amt =
+      typeof updatedTransaction.amount === 'number'
+        ? updatedTransaction.amount
+        : 0;
     processTransaction({
       ...updatedTransaction,
       amount: -amt,
@@ -495,7 +542,10 @@ const predefinedClients: Record<string, PredefinedClientShape> = {
   '0030000131': SoleProprietorExistingClient as PredefinedClientShape,
   '0030000132': LLCExistingClient as PredefinedClientShape,
   '0030000133': LLCExistingClientOutstandingDocuments as PredefinedClientShape,
-  '0030000134': { ...LLCExistingClient, status: 'REVIEW_IN_PROGRESS' } as PredefinedClientShape,
+  '0030000134': {
+    ...LLCExistingClient,
+    status: 'REVIEW_IN_PROGRESS',
+  } as PredefinedClientShape,
 };
 
 // --- Logging ---
@@ -522,11 +572,16 @@ export function logDbState(operation = 'Current State'): void {
 
 // --- Initialize ---
 
-export function initializeDb(force = false, scenario = DEFAULT_SCENARIO): boolean {
+export function initializeDb(
+  force = false,
+  scenario = DEFAULT_SCENARIO
+): boolean {
   try {
     const validScenarios = Object.values(DB_SCENARIOS);
     if (!validScenarios.includes(scenario)) {
-      console.warn(`Invalid scenario: ${scenario}. Using default: ${DEFAULT_SCENARIO}`);
+      console.warn(
+        `Invalid scenario: ${scenario}. Using default: ${DEFAULT_SCENARIO}`
+      );
       scenario = DEFAULT_SCENARIO;
     }
 
@@ -562,10 +617,13 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO): boolea
                 status: (party.status as string) || 'ACTIVE',
                 active: party.active !== undefined ? party.active : true,
                 createdAt: (party.createdAt as string) || timestamp,
-                preferences: (party.preferences as object) || { defaultLanguage: 'en-US' },
+                preferences: (party.preferences as object) || {
+                  defaultLanguage: 'en-US',
+                },
                 profileStatus: (party.profileStatus as string) || 'COMPLETE',
                 access: (party.access as unknown[]) || [],
-                validationResponse: (party.validationResponse as unknown[]) || [],
+                validationResponse:
+                  (party.validationResponse as unknown[]) || [],
               };
 
               try {
@@ -575,7 +633,9 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO): boolea
                     data: newParty,
                   });
                 } else {
-                  db.party.create(newParty as Partial<DbParty> & { id: string });
+                  db.party.create(
+                    newParty as Partial<DbParty> & { id: string }
+                  );
                 }
               } catch (error) {
                 if (
@@ -601,17 +661,26 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO): boolea
             ...clientData,
             id: clientId,
             createdAt: (clientData.createdAt as string) || timestamp,
-            partyId: (clientData.partyId as string) || (parties[0] as { id?: string } | undefined)?.id,
+            partyId:
+              (clientData.partyId as string) ||
+              (parties[0] as { id?: string } | undefined)?.id,
             outstanding: {
-              documentRequestIds: (clientData.outstanding?.documentRequestIds as string[]) || [],
-              questionIds: (clientData.outstanding?.questionIds as string[]) || [],
-              attestationDocumentIds: (clientData.outstanding?.attestationDocumentIds as string[]) || [],
+              documentRequestIds:
+                (clientData.outstanding?.documentRequestIds as string[]) || [],
+              questionIds:
+                (clientData.outstanding?.questionIds as string[]) || [],
+              attestationDocumentIds:
+                (clientData.outstanding?.attestationDocumentIds as string[]) ||
+                [],
               partyIds: (clientData.outstanding?.partyIds as string[]) || [],
-              partyRoles: (clientData.outstanding?.partyRoles as string[]) || [],
+              partyRoles:
+                (clientData.outstanding?.partyRoles as string[]) || [],
             },
             questionResponses: clientData.questionResponses || [],
             attestations: clientData.attestations || [],
-            parties: parties.map((p) => (p as { id?: string }).id).filter(Boolean) as string[],
+            parties: parties
+              .map((p) => (p as { id?: string }).id)
+              .filter(Boolean) as string[],
             products: (clientData.products as string[]) || [],
             results: (clientData.results as Record<string, unknown>) || {
               customerIdentityStatus: 'NOT_STARTED',
@@ -653,8 +722,12 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO): boolea
                   ],
                 };
 
-                db.party.delete({ where: { id: { equals: (indParty as { id: string }).id } } });
-                db.party.create(updatedParty as Partial<DbParty> & { id: string });
+                db.party.delete({
+                  where: { id: { equals: (indParty as { id: string }).id } },
+                });
+                db.party.create(
+                  updatedParty as Partial<DbParty> & { id: string }
+                );
               } catch (error) {
                 console.error('Error creating document request:', error);
               }
@@ -679,9 +752,9 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO): boolea
                   createdAt: timestamp,
                 } as Partial<DbDocumentRequest>);
 
-                (newClient.outstanding as { documentRequestIds: string[] }).documentRequestIds.push(
-                  generatedDocRequestId
-                );
+                (
+                  newClient.outstanding as { documentRequestIds: string[] }
+                ).documentRequestIds.push(generatedDocRequestId);
               } catch (error) {
                 console.error('Error creating document request:', error);
               }
@@ -714,7 +787,9 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO): boolea
             createdAt: recipient.createdAt || new Date().toISOString(),
             updatedAt: recipient.updatedAt || new Date().toISOString(),
           };
-          db.recipient.create(newRecipient as Partial<DbRecipient> & { id: string });
+          db.recipient.create(
+            newRecipient as Partial<DbRecipient> & { id: string }
+          );
         } catch (error) {
           console.error('Error creating recipient:', error);
         }
@@ -746,7 +821,8 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO): boolea
       // Balances
       console.log('\n=== Initializing Account Balances ===');
 
-      let balancesToInitialize: (DbAccountBalance & { accountId: string })[] = [];
+      let balancesToInitialize: (DbAccountBalance & { accountId: string })[] =
+        [];
       if (scenario === DB_SCENARIOS.EMPTY) {
         balancesToInitialize = [
           {
@@ -767,7 +843,9 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO): boolea
 
       balancesToInitialize.forEach((balance) => {
         try {
-          db.accountBalance.create(balance as Partial<DbAccountBalance> & { id: string });
+          db.accountBalance.create(
+            balance as Partial<DbAccountBalance> & { id: string }
+          );
         } catch (error) {
           console.error('Error creating account balance:', error);
         }
@@ -777,7 +855,9 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO): boolea
       console.log('\n=== Initializing Transactions ===');
 
       const transactionsToInitialize =
-        scenario === DB_SCENARIOS.EMPTY ? [] : (mockTransactionsResponse.items ?? []);
+        scenario === DB_SCENARIOS.EMPTY
+          ? []
+          : (mockTransactionsResponse.items ?? []);
 
       transactionsToInitialize.forEach((transaction) => {
         try {
@@ -785,7 +865,9 @@ export function initializeDb(force = false, scenario = DEFAULT_SCENARIO): boolea
             ...transaction,
             createdAt: new Date().toISOString(),
           };
-          db.transaction.create(newTransaction as Partial<DbTransaction> & { id: string });
+          db.transaction.create(
+            newTransaction as Partial<DbTransaction> & { id: string }
+          );
         } catch (error) {
           console.error('Error creating transaction:', error);
         }
@@ -821,8 +903,12 @@ export function handleMagicValues(
   if (!rootParty) return null;
 
   const rootPartyObj = rootParty as Record<string, unknown>;
-  const orgDetails = rootPartyObj.organizationDetails as { organizationIds?: Array<{ idType?: string; value?: string }> } | undefined;
-  const indDetails = rootPartyObj.individualDetails as { individualIds?: Array<{ idType?: string; value?: string }> } | undefined;
+  const orgDetails = rootPartyObj.organizationDetails as
+    | { organizationIds?: Array<{ idType?: string; value?: string }> }
+    | undefined;
+  const indDetails = rootPartyObj.individualDetails as
+    | { individualIds?: Array<{ idType?: string; value?: string }> }
+    | undefined;
 
   const taxId =
     orgDetails?.organizationIds?.find((id) => id.idType === 'EIN')?.value ||
@@ -836,7 +922,9 @@ export function handleMagicValues(
         status: 'INFORMATION_REQUESTED',
         outstanding: { documentRequestIds: [] },
       });
-      const outstanding = updatedClient.outstanding as { documentRequestIds: string[] };
+      const outstanding = updatedClient.outstanding as {
+        documentRequestIds: string[];
+      };
 
       if ((rootParty as { partyType?: string }).partyType === 'ORGANIZATION') {
         const generatedDocRequestId = Math.floor(
@@ -855,11 +943,15 @@ export function handleMagicValues(
         } as Partial<DbDocumentRequest>);
       }
 
-      const individualParties = (client.parties as string[] || [])
+      const individualParties = ((client.parties as string[]) || [])
         .map((partyId) =>
           db.party.findFirst({ where: { id: { equals: partyId } } })
         )
-        .filter((party): party is DbParty => party != null && (party as { partyType?: string }).partyType === 'INDIVIDUAL');
+        .filter(
+          (party): party is DbParty =>
+            party != null &&
+            (party as { partyType?: string }).partyType === 'INDIVIDUAL'
+        );
 
       for (const indParty of individualParties) {
         const generatedDocRequestId = Math.floor(
@@ -879,7 +971,9 @@ export function handleMagicValues(
           ],
         };
 
-        db.party.delete({ where: { id: { equals: (indParty.id as string) ?? '' } } });
+        db.party.delete({
+          where: { id: { equals: (indParty.id as string) ?? '' } },
+        });
         db.party.create(updatedParty as Partial<DbParty> & { id: string });
 
         const indDocRequest = efDocumentRequestDetailsList.find(
@@ -896,7 +990,9 @@ export function handleMagicValues(
       break;
     }
     case MAGIC_VALUES.REVIEW_IN_PROGRESS:
-      updatedClient = merge({}, updatedClient, { status: 'REVIEW_IN_PROGRESS' });
+      updatedClient = merge({}, updatedClient, {
+        status: 'REVIEW_IN_PROGRESS',
+      });
       break;
     case MAGIC_VALUES.REJECTED:
       updatedClient = merge({}, updatedClient, {
@@ -911,7 +1007,9 @@ export function handleMagicValues(
       });
       break;
     default:
-      updatedClient = merge({}, updatedClient, { status: 'REVIEW_IN_PROGRESS' });
+      updatedClient = merge({}, updatedClient, {
+        status: 'REVIEW_IN_PROGRESS',
+      });
       break;
   }
 
@@ -929,6 +1027,204 @@ export function handleMagicValues(
       sessionId: '',
     },
   };
+}
+
+/**
+ * Apply mock API overrides into the DB so handlers read/write normal mutable state.
+ * Overrides are response-shaped JSON (e.g. { items }, { recipients }); we replace
+ * the corresponding entities so "initial" state is the override and behaviour stays mutable.
+ */
+export function applyOverridesToDb(overrides: Record<string, unknown>): void {
+  if (Object.keys(overrides).length === 0) return;
+
+  const key = (k: string) => overrides[k];
+
+  // GET /ef/do/v1/accounts → { items: AccountResponse[] }
+  const accountsPayload = key('GET /ef/do/v1/accounts') as
+    | { items?: unknown[] }
+    | undefined;
+  if (accountsPayload?.items && Array.isArray(accountsPayload.items) && accountsPayload.items.length > 0) {
+    db.account.deleteMany({});
+    accountsPayload.items.forEach((account) => {
+      const rec = account as Record<string, unknown> & { id?: string };
+      if (rec.id) db.account.create(rec as Partial<DbAccount> & { id: string });
+    });
+  }
+
+  // GET /ef/do/v1/recipients → { recipients: Recipient[] }
+  const recipientsPayload = key('GET /ef/do/v1/recipients') as
+    | { recipients?: unknown[] }
+    | undefined;
+  if (
+    recipientsPayload?.recipients &&
+    Array.isArray(recipientsPayload.recipients) &&
+    recipientsPayload.recipients.length > 0
+  ) {
+    db.recipient.deleteMany({});
+    recipientsPayload.recipients.forEach((recipient) => {
+      const rec = recipient as Record<string, unknown> & { id?: string };
+      if (rec.id)
+        db.recipient.create(rec as Partial<DbRecipient> & { id: string });
+    });
+  }
+
+  // GET /ef/do/v1/transactions → { items: Transaction[], metadata }
+  const transactionsPayload = key('GET /ef/do/v1/transactions') as
+    | { items?: unknown[] }
+    | undefined;
+  if (transactionsPayload?.items && Array.isArray(transactionsPayload.items) && transactionsPayload.items.length > 0) {
+    db.transaction.deleteMany({});
+    transactionsPayload.items.forEach((transaction) => {
+      const rec = transaction as Record<string, unknown> & { id?: string };
+      if (rec.id)
+        db.transaction.create(rec as Partial<DbTransaction> & { id: string });
+    });
+  }
+
+  // GET /ef/do/v1/document-requests → { documentRequests: DocumentRequest[] }
+  const docRequestsPayload = key('GET /ef/do/v1/document-requests') as
+    | { documentRequests?: unknown[] }
+    | undefined;
+  if (
+    docRequestsPayload?.documentRequests &&
+    Array.isArray(docRequestsPayload.documentRequests)
+  ) {
+    db.documentRequest.deleteMany({});
+    docRequestsPayload.documentRequests.forEach((dr) => {
+      const rec = dr as Record<string, unknown> & { id?: string };
+      if (rec.id)
+        db.documentRequest.create(
+          rec as Partial<DbDocumentRequest> & { id: string }
+        );
+    });
+  }
+
+  // GET /ef/do/v1/clients/:clientId → client with parties[] (expanded)
+  const clientKeys = Object.keys(overrides).filter((k) =>
+    k.startsWith('GET /ef/do/v1/clients/')
+  );
+  for (const k of clientKeys) {
+    const clientPayload = overrides[k] as Record<string, unknown> & {
+      id?: string;
+      parties?: unknown[];
+    };
+    if (!clientPayload?.id) continue;
+    const parties = clientPayload.parties as
+      | Record<string, unknown>[]
+      | undefined;
+    if (Array.isArray(parties)) {
+      parties.forEach((p) => {
+        const party = p as Record<string, unknown> & { id?: string };
+        if (party.id) {
+          // Delete then recreate to guarantee deep nested objects (e.g. organizationDetails)
+          // are fully replaced — @mswjs/data Object fields are shallow-replaced on update,
+          // which can leave stale nested keys if the incoming object has a different shape.
+          const existing = db.party.findFirst({
+            where: { id: { equals: party.id } },
+          });
+          if (existing)
+            db.party.delete({ where: { id: { equals: party.id } } });
+          db.party.create(party as Partial<DbParty> & { id: string });
+        }
+      });
+    }
+    const { parties: _p, ...clientData } = clientPayload;
+    const existing = db.client.findFirst({
+      where: { id: { equals: clientPayload.id } },
+    });
+    if (existing)
+      db.client.update({
+        where: { id: { equals: clientPayload.id } },
+        data: {
+          ...clientData,
+          parties:
+            (clientPayload.parties as { id: string }[])?.map((x) => x.id) ??
+            existing.parties,
+        },
+      });
+    else
+      db.client.create({
+        ...clientData,
+        id: clientPayload.id,
+        parties:
+          (clientPayload.parties as { id: string }[])?.map((x) => x.id) ?? [],
+      } as Partial<DbClient> & { id: string });
+  }
+
+  // GET /ef/do/v1/accounts/:accountId/balances → single balance
+  const balanceKeys = Object.keys(overrides).filter(
+    (k) => k.includes('/accounts/') && k.includes('/balances')
+  );
+  for (const k of balanceKeys) {
+    const balancePayload = overrides[k] as Record<string, unknown> & {
+      accountId?: string;
+      id?: string;
+    };
+    if (!balancePayload) continue;
+    const accountId =
+      balancePayload.accountId ??
+      (balancePayload as { account?: { id?: string } }).account?.id;
+    if (!accountId) continue;
+    const existing = db.accountBalance.findFirst({
+      where: { accountId: { equals: accountId } },
+    });
+    const withId = {
+      ...balancePayload,
+      id: balancePayload.id ?? `bal-${accountId}`,
+      accountId,
+    };
+    if (existing)
+      db.accountBalance.update({
+        where: { accountId: { equals: accountId } },
+        data: balancePayload as Partial<DbAccountBalance>,
+      });
+    else
+      db.accountBalance.create(
+        withId as Partial<DbAccountBalance> & { id: string }
+      );
+  }
+
+  // GET /ef/do/v1/recipients/:recipientId → single recipient
+  const recipientByIdKeys = Object.keys(overrides).filter(
+    (k) =>
+      k.startsWith('GET /ef/do/v1/recipients/') &&
+      k !== 'GET /ef/do/v1/recipients'
+  );
+  for (const k of recipientByIdKeys) {
+    const rec = overrides[k] as Record<string, unknown> & { id?: string };
+    if (!rec?.id) continue;
+    const existing = db.recipient.findFirst({
+      where: { id: { equals: rec.id } },
+    });
+    if (existing)
+      db.recipient.update({
+        where: { id: { equals: rec.id } },
+        data: rec as Partial<DbRecipient>,
+      });
+    else db.recipient.create(rec as Partial<DbRecipient> & { id: string });
+  }
+
+  // GET /ef/do/v1/transactions/:id → single transaction
+  const transactionByIdKeys = Object.keys(overrides).filter(
+    (k) =>
+      k.startsWith('GET /ef/do/v1/transactions/') &&
+      k !== 'GET /ef/do/v1/transactions'
+  );
+  for (const k of transactionByIdKeys) {
+    const rec = overrides[k] as Record<string, unknown> & { id?: string };
+    if (!rec?.id) continue;
+    const existing = db.transaction.findFirst({
+      where: { id: { equals: rec.id } },
+    });
+    if (existing)
+      db.transaction.update({
+        where: { id: { equals: rec.id } },
+        data: rec as Partial<DbTransaction>,
+      });
+    else db.transaction.create(rec as Partial<DbTransaction> & { id: string });
+  }
+
+  logDbState('Apply Overrides');
 }
 
 export function resetDb(scenario = DEFAULT_SCENARIO): {

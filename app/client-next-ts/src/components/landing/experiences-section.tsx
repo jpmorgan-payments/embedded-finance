@@ -11,6 +11,7 @@ import {
   Play,
   Receipt,
   UserCheck,
+  UserCircle,
   Users,
   Zap,
 } from 'lucide-react';
@@ -89,7 +90,7 @@ export function ExperiencesSection() {
       description:
         'Add, view, edit, and manage third-party payment recipients with dynamic validation, multi-method support (ACH, WIRE, RTP), and secure, accessible workflows.',
       icon: <UserCheck className="h-5 w-5" />,
-      status: 'in progress',
+      status: 'testing',
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#5-recipients',
       demoUrl:
@@ -116,7 +117,7 @@ export function ExperiencesSection() {
       description:
         'Initiate ACH, Wire, and RTP payments from Embedded Banking accounts to external recipients and linked accounts.',
       icon: <Zap className="h-5 w-5" />,
-      status: 'in progress',
+      status: 'testing',
       demoUrl:
         '/sellsense-demo?fullscreen=true&component=make-payment&theme=Empty',
       githubUrl:
@@ -139,7 +140,7 @@ export function ExperiencesSection() {
       description:
         'View, filter, and manage transaction records with detailed insights and comprehensive reporting capabilities for better financial oversight.',
       icon: <Receipt className="h-5 w-5" />,
-      status: 'coming soon',
+      status: 'testing',
       demoUrl:
         '/sellsense-demo?fullscreen=true&component=transactions&theme=Empty',
       githubUrl:
@@ -163,7 +164,7 @@ export function ExperiencesSection() {
       description:
         'View Embedded Finance accounts with detailed insights and balances for better financial oversight.',
       icon: <Building2 className="h-5 w-5" />,
-      status: 'coming soon',
+      status: 'testing',
       demoUrl: '/sellsense-demo?fullscreen=true&component=accounts&theme=Empty',
       githubUrl:
         'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/Accounts',
@@ -178,6 +179,30 @@ export function ExperiencesSection() {
         'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/Accounts/ACCOUNTS_REQUIREMENTS.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-account',
+    },
+    {
+      id: 'client-details',
+      title: 'Client Details',
+      description:
+        'View comprehensive client information for fully onboarded clients: identity, ownership, verification status, and organization details with summary, accordion, and cards view modes.',
+      icon: <UserCircle className="h-5 w-5" />,
+      status: 'in progress',
+      demoUrl:
+        '/sellsense-demo?fullscreen=true&component=client-details&theme=Empty',
+      githubUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/ClientDetails',
+      steps: [
+        'View client identity, verification, and ownership information',
+        'Switch between summary, accordion, and cards view modes',
+        'Drill down into sections for detailed information',
+        'Display status indicators and organization details',
+      ],
+      npmUrl:
+        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components',
+      recipeUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/ClientDetails/stories/Docs.mdx',
+      docsUrl:
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client',
     },
   ];
 

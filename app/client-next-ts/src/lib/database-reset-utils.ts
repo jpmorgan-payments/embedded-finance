@@ -1,3 +1,5 @@
+import { getOverrides } from './mock-overrides-storage';
+
 // Database reset utilities for triggering component refetch
 export const DatabaseResetUtils = {
   // Emulate browser tab switch events to trigger component refetch
@@ -56,13 +58,15 @@ export const DatabaseResetUtils = {
     setIsLoading(true);
 
     try {
-      // Call the MSW reset endpoint
+      // Call the MSW reset endpoint — include any saved overrides so they are applied
+      // atomically with the DB seed (no separate sync call needed).
+      const overrides = getOverrides();
       const response = await fetch('/ef/do/v1/_reset', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ scenario }),
+        body: JSON.stringify({ scenario, overrides }),
       });
 
       const data = await response.json();

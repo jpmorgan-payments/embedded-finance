@@ -544,6 +544,75 @@ function AccountsSection() {
           },
         ],
       },
+      'client-details': {
+        title: 'ClientDetails Component',
+        description:
+          'Display comprehensive client information for fully onboarded clients with summary, accordion, and cards view modes.',
+        code: `import {
+  EBComponentsProvider,
+  ClientDetails,
+} from '@jpmorgan-payments/embedded-finance-components';
+
+function ClientDetailsSection() {
+  return (
+    <EBComponentsProvider
+      apiBaseUrl="https://your-api-base-url.com"
+      headers={{
+        'token': 'idp-jwt-token',
+      }}
+      theme={{
+        variables: {
+          primaryColor: '#2563eb',
+          backgroundColor: '#ffffff',
+        },
+      }}
+      contentTokens={{
+        name: 'enUS',
+        messages: {
+          loading: 'Loading client details...',
+        },
+      }}
+    >
+      <ClientDetails
+        clientId="your-client-id"
+        viewMode="summary"
+      />
+    </EBComponentsProvider>
+  );
+}`,
+        steps: [
+          {
+            id: 'provider',
+            title: 'Provider Configuration',
+            description: 'Core provider setup with API base URL',
+            lineRange: [8, 9],
+          },
+          {
+            id: 'headers',
+            title: 'Authentication & Headers',
+            description: 'JWT token for authentication',
+            lineRange: [10, 12],
+          },
+          {
+            id: 'theme',
+            title: 'Theme Configuration',
+            description: 'Design tokens for component styling',
+            lineRange: [13, 18],
+          },
+          {
+            id: 'contentTokens',
+            title: 'Content Tokens',
+            description: 'Messages and labels',
+            lineRange: [19, 25],
+          },
+          {
+            id: 'component',
+            title: 'Component Props',
+            description: 'clientId and viewMode (summary | accordion | cards)',
+            lineRange: [27, 30],
+          },
+        ],
+      },
     };
 
     return (

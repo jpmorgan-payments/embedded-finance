@@ -1,6 +1,5 @@
-import { defaultResources } from '@/i18n/config';
+import type { EBContentTokens } from '@/i18n/content-tokens.types';
 import { DefaultOptions } from '@tanstack/react-query';
-import { DeepPartial } from 'react-hook-form';
 
 export type EBColorScheme = 'dark' | 'light' | 'system';
 
@@ -736,19 +735,7 @@ export type EBConfig = {
   theme?: EBTheme;
   headers?: Record<string, string>;
   reactQueryDefaultOptions?: DefaultOptions;
-  contentTokens?: {
-    /** Locale name to use for translations */
-    name?: keyof typeof defaultResources;
-    /** Custom token overrides per namespace */
-    tokens?: DeepPartial<(typeof defaultResources)['enUS']>;
-    /**
-     * Enable token ID visibility for development/debugging.
-     * When true, displays data-content-token attributes on translated text
-     * for easy discovery of token IDs during customization.
-     * @default false
-     */
-    showTokenIds?: boolean;
-  };
+  contentTokens?: EBContentTokens;
   queryParams?: Record<string, string>;
   clientId?: string;
 };

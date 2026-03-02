@@ -19,6 +19,7 @@ import { useNavigate, useSearch } from '@tanstack/react-router';
 
 import { usePingService } from '@/hooks/use-ping-service';
 import { DatabaseResetUtils } from '@/lib/database-reset-utils';
+import { getOverrideKeys } from '@/lib/mock-overrides-storage';
 
 import { Button } from '../ui/button';
 import { ContentTokenEditorDrawer } from './content-token-editor-drawer';
@@ -28,6 +29,7 @@ import { Header } from './header';
 import { InfoModal } from './info-modal';
 import { KycOnboarding } from './kyc-onboarding';
 import { LoadingSkeleton } from './loading-skeleton';
+import { MockApiEditorDrawer } from './mock-api-editor-drawer';
 import { PayoutSettings } from './payout-settings';
 import {
   getClientIdForScenario,
@@ -112,6 +114,8 @@ export function DashboardLayout() {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isContentTokenEditorOpen, setIsContentTokenEditorOpen] =
     useState(false);
+  const [isMockApiEditorOpen, setIsMockApiEditorOpen] = useState(false);
+  const [mockOverrideCount, setMockOverrideCount] = useState(0);
   const [selectedLanguage, setSelectedLanguage] = useState<
     'enUS' | 'frCA' | 'esUS'
   >('enUS');
@@ -359,6 +363,13 @@ export function DashboardLayout() {
       }, 300);
     }
   }, [searchParams.fullscreen]);
+
+  // Initialise the override badge count.
+  // Overrides are applied to the MSW DB automatically inside resetDatabaseForScenario
+  // (which bundles overrides into every _reset call), so no separate sync is needed here.
+  useEffect(() => {
+    setMockOverrideCount(getOverrideKeys().length);
+  }, []);
 
   // Effects
   // Handle initial load with URL parameters
@@ -625,7 +636,8 @@ export function DashboardLayout() {
             </div>
           </div>
         );
-      case 'client-details':
+      case 'client-details': {
+        const clientDetailsViewMode = searchParams.viewMode ?? 'summary';
         return (
           <div className="h-screen p-6">
             <div className="mx-auto max-w-4xl">
@@ -642,12 +654,16 @@ export function DashboardLayout() {
                     name: selectedLanguage,
                   }}
                 >
-                  <ClientDetails clientId={fullscreenClientId} />
+                  <ClientDetails
+                    clientId={fullscreenClientId}
+                    viewMode={clientDetailsViewMode}
+                  />
                 </EBComponentsProvider>
               </div>
             </div>
           </div>
         );
+      }
       default:
         return (
           <div className="flex h-screen items-center justify-center text-gray-500">
@@ -749,6 +765,9 @@ export function DashboardLayout() {
         customThemeData={customThemeData}
         isContentTokenEditorOpen={isContentTokenEditorOpen}
         setIsContentTokenEditorOpen={setIsContentTokenEditorOpen}
+        isMockApiEditorOpen={isMockApiEditorOpen}
+        setIsMockApiEditorOpen={setIsMockApiEditorOpen}
+        mockOverrideCount={mockOverrideCount}
       />
 
       {/* Mobile-first responsive layout */}
@@ -823,6 +842,14 @@ export function DashboardLayout() {
           }));
         }}
         topOffset={showMswAlert ? 'calc(4rem + 9.5rem)' : '4rem'}
+      />
+
+      {/* Mock API Editor Drawer */}
+      <MockApiEditorDrawer
+        isOpen={isMockApiEditorOpen}
+        onClose={() => setIsMockApiEditorOpen(false)}
+        clientScenario={clientScenario}
+        onOverridesChange={() => setMockOverrideCount(getOverrideKeys().length)}
       />
     </div>
   );

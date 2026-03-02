@@ -36,7 +36,7 @@ const navigationCards = [
       'Pre-built React components for embedded banking workflows with API integration.',
     icon: <Box className="h-6 w-6" />,
     link: '/components',
-    count: 6,
+    count: 7,
     accentColor:
       'bg-gradient-to-br from-[rgb(177,121,207)]/15 to-[rgb(177,121,207)]/5',
     iconBg:
