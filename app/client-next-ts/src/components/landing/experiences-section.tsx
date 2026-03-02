@@ -42,7 +42,7 @@ export function ExperiencesSection() {
       description:
         'Complete client verification with incremental information collection, due diligence questions, and document requests for seamless onboarding.',
       icon: <Users className="h-5 w-5" />,
-      status: 'testing',
+      status: 'available',
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#2-onboardingflow',
       demoUrl:

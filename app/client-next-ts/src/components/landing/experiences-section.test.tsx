@@ -21,10 +21,12 @@ describe('ExperiencesSection', () => {
     expect(demoButtons.length).toBe(7);
   });
 
-  it('renders all six original components with Testing status', () => {
+  it('renders correct status badges for experiences', () => {
     render(<ExperiencesSection />);
     const testingBadges = screen.getAllByText('Testing');
-    expect(testingBadges.length).toBeGreaterThanOrEqual(6);
+    // Five experiences are in Testing, one (Onboarding) is Available, and Client Details is In Progress
+    expect(testingBadges.length).toBe(5);
+    expect(screen.getByText('Available')).toBeInTheDocument();
   });
 
   it('renders Client Details as the seventh card with correct title and description', () => {

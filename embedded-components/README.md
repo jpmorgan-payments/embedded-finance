@@ -146,6 +146,7 @@ The library currently provides the following components:
 | OnboardingWizardBasic| Legacy onboarding wizard                               | Deprecated   |
 | OnboardingFlow       | Modern onboarding experience                           | Stable       |
 | Accounts             | Account management and display                         | In Testing   |
+| ClientDetails        | Detailed client information (identity, ownership, KYC) | In Testing   |
 | LinkedAccountWidget  | External bank account linking with microdeposits       | Stable       |
 | RecipientsWidget     | Payment recipient management (NEW)                     | Stable       |
 | MakePayment          | Payment processing interface                           | In Testing   |
