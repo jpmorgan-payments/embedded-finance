@@ -214,18 +214,36 @@ export function ExperiencesSection() {
             <h2 className="mb-4 text-center text-page-h2 text-jpm-gray-900">
               Explore Embedded Business Components
             </h2>
-            <p className="mx-auto mb-8 max-w-3xl text-center text-page-body text-jpm-gray">
+            <p className="mx-auto max-w-3xl text-center text-page-body text-jpm-gray">
               Pre-built workflows and implementation patterns for common
-              embedded finance use cases.{' '}
+              embedded finance use cases. You can integrate these as fully
+              embedded React components or use a partially hosted pattern where
+              JPMorgan hosts the UI experience.
+            </p>
+            <div className="mx-auto mb-8 mt-4 flex max-w-3xl flex-wrap items-center justify-center gap-3">
               <a
                 href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="whitespace-nowrap text-sp-brand underline hover:text-sp-brand-700"
+                className="inline-flex items-center rounded-full border border-sp-border bg-white px-3 py-1 text-xs font-semibold text-sp-brand shadow-sm transition-colors hover:bg-sp-accent hover:text-sp-brand-700"
               >
                 View full documentation →
               </a>
-            </p>
+              <a
+                href="/partially-hosted-demo"
+                className="inline-flex items-center rounded-full border border-sp-border bg-white px-3 py-1 text-xs font-semibold text-sp-brand shadow-sm transition-colors hover:bg-sp-accent hover:text-sp-brand-700"
+              >
+                View partially hosted demo →
+              </a>
+              <a
+                href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center rounded-full border border-sp-border bg-white px-3 py-1 text-xs font-semibold text-sp-brand shadow-sm transition-colors hover:bg-sp-accent hover:text-sp-brand-700"
+              >
+                Partially hosted integration guide →
+              </a>
+            </div>
 
             {/* Grid Layout */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
