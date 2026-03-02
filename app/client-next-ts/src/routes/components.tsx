@@ -19,7 +19,7 @@ function ComponentsPage() {
     <div className="min-h-screen bg-jpm-white">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Breadcrumb Navigation */}
-        <div className="mb-8">
+        <div className="mb-6">
           <Link
             to="/"
             className="mb-4 inline-flex items-center text-page-small font-medium text-sp-brand hover:text-sp-brand-700"
@@ -32,7 +32,9 @@ function ComponentsPage() {
           </h1>
           <p className="mt-2 max-w-3xl text-page-body text-jpm-gray">
             Pre-built workflows and implementation patterns for common embedded
-            finance use cases.
+            finance use cases that you can integrate as fully embedded React
+            components or via a partially hosted pattern where JPMorgan hosts
+            the UI experience.
           </p>
         </div>
 

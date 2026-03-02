@@ -5,6 +5,7 @@ import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-compo
 import {
   Brush,
   ChevronDown,
+  Database,
   Info,
   Languages,
   Menu,
@@ -54,6 +55,9 @@ interface HeaderProps {
   customThemeData?: any; // Full custom theme data with baseTheme
   isContentTokenEditorOpen: boolean;
   setIsContentTokenEditorOpen: (open: boolean) => void;
+  isMockApiEditorOpen: boolean;
+  setIsMockApiEditorOpen: (open: boolean) => void;
+  mockOverrideCount: number;
 }
 
 export function Header({
@@ -72,6 +76,9 @@ export function Header({
   customThemeData = {},
   isContentTokenEditorOpen,
   setIsContentTokenEditorOpen,
+  isMockApiEditorOpen,
+  setIsMockApiEditorOpen,
+  mockOverrideCount,
 }: HeaderProps) {
   const themeStyles = useThemeStyles(themeForDisplay);
   const [isThemeDrawerOpen, setIsThemeDrawerOpen] = useState(false);
@@ -276,6 +283,27 @@ export function Header({
             title="Edit content tokens"
           >
             <Languages className="h-4 w-4 lg:h-5 lg:w-5" />
+          </Button>
+
+          {/* Mock API Editor button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`relative h-8 w-8 rounded-full p-1 ${
+              isMockApiEditorOpen ? 'bg-gray-100 bg-opacity-20' : ''
+            } ${themeStyles.getHeaderButtonStyles()}`}
+            onClick={() => setIsMockApiEditorOpen(!isMockApiEditorOpen)}
+            title="Edit mock API responses"
+          >
+            <Database className="h-4 w-4 lg:h-5 lg:w-5" />
+            {mockOverrideCount > 0 && (
+              <span
+                className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-medium text-white"
+                aria-label={`${mockOverrideCount} overrides`}
+              >
+                {mockOverrideCount > 9 ? '9+' : mockOverrideCount}
+              </span>
+            )}
           </Button>
 
           {/* Settings button */}

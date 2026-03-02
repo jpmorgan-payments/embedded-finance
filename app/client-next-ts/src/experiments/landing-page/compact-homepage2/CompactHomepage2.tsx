@@ -30,7 +30,7 @@ import { IntegrationScenarios2 } from './IntegrationScenarios2';
 
 // Quick stats for developer confidence
 const quickStats = [
-  { label: 'Components', value: '6+' },
+  { label: 'Components', value: '7+' },
   { label: 'Demos', value: '3' },
   { label: 'TypeScript', value: '100%' },
 ] as const;
@@ -59,7 +59,7 @@ const navigationCards = [
       'Components for client onboarding, linked bank accounts, payment initiation, and transaction display. Includes API integration and error handling.',
     icon: <Box className="h-6 w-6" />,
     link: '/components',
-    count: 6,
+    count: 7,
     featured: false,
   },
   {

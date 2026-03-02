@@ -37,9 +37,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+
 import { AiPromptDialog } from './ai-prompt-dialog';
-import { getValidColorPairs } from './theme-color-pairs';
 import { ThemeA11yPanel } from './theme-a11y-panel';
+import { getValidColorPairs } from './theme-color-pairs';
 import type { ThemeOption } from './use-sellsense-themes';
 import { useSellSenseThemes } from './use-sellsense-themes';
 

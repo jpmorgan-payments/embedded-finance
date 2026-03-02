@@ -49,6 +49,7 @@ const sellsenseDemoSearchSchema = z.object({
     .optional(),
   fullscreen: z.boolean().optional(),
   component: z.string().optional(),
+  viewMode: z.enum(['summary', 'accordion', 'cards']).optional(),
 });
 
 export const Route = createFileRoute('/sellsense-demo')({

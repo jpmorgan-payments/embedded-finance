@@ -40,8 +40,9 @@ This is a **TanStack Router showcase application** that demonstrates JPMorgan Ch
 1. **Theming**: Multiple built-in themes (Default Blue, Salt, SellSense, PayFicient)
 2. **Tone Variants**: Content tokens for "Standard" vs "Industry-specific" voice
 3. **Mock APIs**: Stateful client-side mocking via MSW (no backend)
-4. **Component Showcase**: Demonstrates embedded-components library usage
-5. **Scenario-based**: Different marketplace/use-case demonstrations
+4. **Mock API Editor** (SellSense): Side panel to edit mock JSON for API endpoints (visual-json); overrides persist in localStorage and sync to MSW; badge and Reset all CTA
+5. **Component Showcase**: Demonstrates embedded-components library usage
+6. **Scenario-based**: Different marketplace/use-case demonstrations
 
 ## ⚡ Quick Commands
 

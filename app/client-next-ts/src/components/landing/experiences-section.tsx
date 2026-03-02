@@ -11,6 +11,7 @@ import {
   Play,
   Receipt,
   UserCheck,
+  UserCircle,
   Users,
   Zap,
 } from 'lucide-react';
@@ -41,7 +42,7 @@ export function ExperiencesSection() {
       description:
         'Complete client verification with incremental information collection, due diligence questions, and document requests for seamless onboarding.',
       icon: <Users className="h-5 w-5" />,
-      status: 'testing',
+      status: 'available',
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#2-onboardingflow',
       demoUrl:
@@ -89,7 +90,7 @@ export function ExperiencesSection() {
       description:
         'Add, view, edit, and manage third-party payment recipients with dynamic validation, multi-method support (ACH, WIRE, RTP), and secure, accessible workflows.',
       icon: <UserCheck className="h-5 w-5" />,
-      status: 'in progress',
+      status: 'testing',
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#5-recipients',
       demoUrl:
@@ -116,7 +117,7 @@ export function ExperiencesSection() {
       description:
         'Initiate ACH, Wire, and RTP payments from Embedded Banking accounts to external recipients and linked accounts.',
       icon: <Zap className="h-5 w-5" />,
-      status: 'in progress',
+      status: 'testing',
       demoUrl:
         '/sellsense-demo?fullscreen=true&component=make-payment&theme=Empty',
       githubUrl:
@@ -139,7 +140,7 @@ export function ExperiencesSection() {
       description:
         'View, filter, and manage transaction records with detailed insights and comprehensive reporting capabilities for better financial oversight.',
       icon: <Receipt className="h-5 w-5" />,
-      status: 'coming soon',
+      status: 'testing',
       demoUrl:
         '/sellsense-demo?fullscreen=true&component=transactions&theme=Empty',
       githubUrl:
@@ -163,7 +164,7 @@ export function ExperiencesSection() {
       description:
         'View Embedded Finance accounts with detailed insights and balances for better financial oversight.',
       icon: <Building2 className="h-5 w-5" />,
-      status: 'coming soon',
+      status: 'testing',
       demoUrl: '/sellsense-demo?fullscreen=true&component=accounts&theme=Empty',
       githubUrl:
         'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/Accounts',
@@ -179,28 +180,61 @@ export function ExperiencesSection() {
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-account',
     },
+    {
+      id: 'client-details',
+      title: 'Client Details',
+      description:
+        'View comprehensive client information for fully onboarded clients: identity, ownership, verification status, and organization details with summary, accordion, and cards view modes.',
+      icon: <UserCircle className="h-5 w-5" />,
+      status: 'in progress',
+      demoUrl:
+        '/sellsense-demo?fullscreen=true&component=client-details&theme=Empty',
+      githubUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/ClientDetails',
+      steps: [
+        'View client identity, verification, and ownership information',
+        'Switch between summary, accordion, and cards view modes',
+        'Drill down into sections for detailed information',
+        'Display status indicators and organization details',
+      ],
+      npmUrl:
+        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components',
+      recipeUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/ClientDetails/stories/Docs.mdx',
+      docsUrl:
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client',
+    },
   ];
 
   return (
     <>
-      <section id="embedded-components" className="bg-jpm-white py-8">
+      <section id="embedded-components" className="bg-jpm-white pt-4 pb-8">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-6xl">
-            <h2 className="mb-4 text-center text-page-h2 text-jpm-gray-900">
-              Explore Embedded Business Components
-            </h2>
-            <p className="mx-auto mb-8 max-w-3xl text-center text-page-body text-jpm-gray">
-              Pre-built workflows and implementation patterns for common
-              embedded finance use cases.{' '}
+            <div className="mx-auto mb-8 flex max-w-3xl flex-wrap items-center justify-center gap-2.5">
               <a
                 href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="whitespace-nowrap text-sp-brand underline hover:text-sp-brand-700"
+                className="inline-flex items-center rounded-full border border-sp-border bg-white px-3 py-1 text-xs font-semibold text-sp-brand shadow-sm transition-colors hover:bg-sp-accent hover:text-sp-brand-700"
               >
                 View full documentation →
               </a>
-            </p>
+              <a
+                href="/partially-hosted-demo"
+                className="inline-flex items-center rounded-full border border-sp-border bg-white px-3 py-1 text-xs font-semibold text-sp-brand shadow-sm transition-colors hover:bg-sp-accent hover:text-sp-brand-700"
+              >
+                View partially hosted demo →
+              </a>
+              <a
+                href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center rounded-full border border-sp-border bg-white px-3 py-1 text-xs font-semibold text-sp-brand shadow-sm transition-colors hover:bg-sp-accent hover:text-sp-brand-700"
+              >
+                Partially hosted integration guide →
+              </a>
+            </div>
 
             {/* Grid Layout */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">

@@ -207,7 +207,10 @@ export const getLinkedAccountById = (id: string) => {
 };
 
 // Function to update linked account status
-export const updateLinkedAccountStatus = (id: string, status: RecipientStatus) => {
+export const updateLinkedAccountStatus = (
+  id: string,
+  status: RecipientStatus
+) => {
   const account = getLinkedAccountById(id);
   if (account) {
     account.status = status;

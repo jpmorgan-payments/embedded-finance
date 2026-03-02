@@ -1,4 +1,7 @@
-import type { ListRecipientsResponse, Recipient } from '@ef-api/ep-recipients-schemas';
+import type {
+  ListRecipientsResponse,
+  Recipient,
+} from '@ef-api/ep-recipients-schemas';
 
 // Mock recipients data for Recipients component (OAS ListRecipientsResponse)
 export const mockRecipientsResponse: ListRecipientsResponse = {
@@ -159,9 +162,9 @@ export const mockEmptyRecipientsResponse = {
 };
 
 // Mock recipients with different statuses
-export const mockActiveRecipients = (mockRecipientsResponse.recipients ?? []).filter(
-  (r) => r.status === 'ACTIVE'
-);
+export const mockActiveRecipients = (
+  mockRecipientsResponse.recipients ?? []
+).filter((r) => r.status === 'ACTIVE');
 
 // Mock verification responses
 export const mockVerificationSuccess = {
