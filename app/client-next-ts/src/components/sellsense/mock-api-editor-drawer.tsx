@@ -1,15 +1,17 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Database, RotateCcw, Save, Upload, X } from 'lucide-react';
+import { Database, Download, RotateCcw, Save, Upload, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { DatabaseResetUtils } from '@/lib/database-reset-utils';
 import {
   clearOverrides,
   getOverrideKeys,
+  getOverrides,
   reinitWithOverrides,
   removeOverride,
+  replaceOverrides,
   setOverride,
 } from '@/lib/mock-overrides-storage';
 
@@ -66,6 +68,7 @@ export function MockApiEditorDrawer({
     getOverrideKeys()
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const scenarioFileInputRef = useRef<HTMLInputElement>(null);
 
   // Keep overrideKeys in sync with localStorage whenever the drawer opens
   useEffect(() => {
@@ -208,6 +211,142 @@ export function MockApiEditorDrawer({
     fileInputRef.current?.click();
   }, []);
 
+  const handleScenarioDownload = useCallback(() => {
+    try {
+      const payload = {
+        version: 1,
+        meta: {
+          clientScenario,
+          dbScenario: getDbScenario(),
+        },
+        overrides: getOverrides(),
+      };
+
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {
+        type: 'application/json',
+      });
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const safeClientName = clientScenario
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      a.href = url;
+      a.download = `sellsense-mocks-${safeClientName || 'scenario'}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      // Swallow export errors — this is a convenience feature and should not
+      // break the editor if something goes wrong.
+    }
+  }, [clientScenario, getDbScenario]);
+
+  const handleScenarioUploadClick = useCallback(() => {
+    setUploadError(null);
+    scenarioFileInputRef.current?.click();
+  }, []);
+
+  const handleScenarioFileChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      e.target.value = '';
+
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text) as unknown;
+
+        let overridesFromFile: JsonValue | null = null;
+        let dbScenarioFromFile: string | undefined;
+
+        if (
+          parsed &&
+          typeof parsed === 'object' &&
+          !Array.isArray(parsed) &&
+          'meta' in (parsed as Record<string, unknown>)
+        ) {
+          const meta = (parsed as { meta?: unknown }).meta;
+          if (
+            meta &&
+            typeof meta === 'object' &&
+            !Array.isArray(meta) &&
+            'dbScenario' in (meta as Record<string, unknown>)
+          ) {
+            const candidate = (meta as { dbScenario?: unknown }).dbScenario;
+            if (typeof candidate === 'string') {
+              dbScenarioFromFile = candidate;
+            }
+          }
+        }
+
+        if (
+          parsed &&
+          typeof parsed === 'object' &&
+          !Array.isArray(parsed) &&
+          'overrides' in (parsed as Record<string, unknown>)
+        ) {
+          const candidate = (parsed as { overrides: unknown }).overrides;
+          if (
+            candidate &&
+            typeof candidate === 'object' &&
+            !Array.isArray(candidate)
+          ) {
+            overridesFromFile = candidate as JsonValue;
+          }
+        }
+
+        if (overridesFromFile === null) {
+          if (
+            parsed &&
+            typeof parsed === 'object' &&
+            !Array.isArray(parsed)
+          ) {
+            overridesFromFile = parsed as JsonValue;
+          }
+        }
+
+        if (
+          !overridesFromFile ||
+          typeof overridesFromFile !== 'object' ||
+          Array.isArray(overridesFromFile)
+        ) {
+          setUploadError(
+            'Invalid mock scenario JSON — expected an object of overrides.'
+          );
+          return;
+        }
+
+        replaceOverrides(
+          overridesFromFile as unknown as Record<string, unknown>
+        );
+        setOverrideKeys(getOverrideKeys());
+        onOverridesChange?.();
+
+        const scenarioToUse = dbScenarioFromFile ?? getDbScenario();
+        await reinitWithOverrides(scenarioToUse);
+        DatabaseResetUtils.emulateTabSwitch();
+
+        if (selectedEndpoint) {
+          await loadCurrentResponse(selectedEndpoint);
+        }
+
+        setUploadError(null);
+      } catch {
+        setUploadError('Invalid JSON — check the file and try again.');
+      }
+    },
+    [
+      getDbScenario,
+      loadCurrentResponse,
+      onOverridesChange,
+      selectedEndpoint,
+      setOverrideKeys,
+    ]
+  );
+
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -281,6 +420,31 @@ export function MockApiEditorDrawer({
             )}
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleScenarioDownload}
+              className="h-7 gap-1.5 border-gray-300 px-2.5 text-xs text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+            >
+              <Download className="h-3 w-3" />
+              Download mocks
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleScenarioUploadClick}
+              className="h-7 gap-1.5 border-gray-300 px-2.5 text-xs text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+            >
+              <Upload className="h-3 w-3" />
+              Upload mocks
+            </Button>
+            <input
+              ref={scenarioFileInputRef}
+              type="file"
+              accept=".json,application/json"
+              className="hidden"
+              onChange={handleScenarioFileChange}
+            />
             {overridesCount > 0 && (
               <Button
                 variant="outline"

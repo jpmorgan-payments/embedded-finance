@@ -69,6 +69,32 @@ export function getOverrideKeys(): string[] {
 }
 
 /**
+ * Replace all current overrides with the provided map.
+ *
+ * This is used when importing a saved "mock scenario" JSON file. The incoming
+ * value is treated as the full source of truth — any keys not present in the
+ * provided map are removed from localStorage.
+ */
+export function replaceOverrides(next: MockOverridesMap): void {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  if (typeof next !== 'object' || next === null || Array.isArray(next)) {
+    window.localStorage.removeItem(STORAGE_KEY);
+    return;
+  }
+
+  const map: MockOverridesMap = { ...next };
+
+  // Never persist deprecated keys that are no longer supported by the editor.
+  DEPRECATED_OVERRIDE_KEYS.forEach((k) => {
+    if (k in map) {
+      delete map[k];
+    }
+  });
+
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+}
+
+/**
  * Get a single override by key.
  */
 export function getOverride(overrideKey: string): unknown | undefined {
