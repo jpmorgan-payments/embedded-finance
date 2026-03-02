@@ -5,13 +5,16 @@ import { describe, expect, it } from 'vitest';
 import { ExperiencesSection } from './experiences-section';
 
 describe('ExperiencesSection', () => {
-  it('renders section heading and description', () => {
+  it('renders integration helper chips', () => {
     render(<ExperiencesSection />);
     expect(
-      screen.getByRole('heading', { name: /explore embedded business components/i })
+      screen.getByText(/view full documentation/i)
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/pre-built workflows and implementation patterns/i)
+      screen.getByText(/view partially hosted demo/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/partially hosted integration guide/i)
     ).toBeInTheDocument();
   });
 

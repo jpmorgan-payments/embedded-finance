@@ -208,19 +208,10 @@ export function ExperiencesSection() {
 
   return (
     <>
-      <section id="embedded-components" className="bg-jpm-white py-8">
+      <section id="embedded-components" className="bg-jpm-white pt-4 pb-8">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-6xl">
-            <h2 className="mb-4 text-center text-page-h2 text-jpm-gray-900">
-              Explore Embedded Business Components
-            </h2>
-            <p className="mx-auto max-w-3xl text-center text-page-body text-jpm-gray">
-              Pre-built workflows and implementation patterns for common
-              embedded finance use cases. You can integrate these as fully
-              embedded React components or use a partially hosted pattern where
-              JPMorgan hosts the UI experience.
-            </p>
-            <div className="mx-auto mb-8 mt-4 flex max-w-3xl flex-wrap items-center justify-center gap-3">
+            <div className="mx-auto mb-8 flex max-w-3xl flex-wrap items-center justify-center gap-2.5">
               <a
                 href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md"
                 target="_blank"
