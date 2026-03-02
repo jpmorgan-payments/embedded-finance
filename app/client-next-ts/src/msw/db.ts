@@ -1029,6 +1029,204 @@ export function handleMagicValues(
   };
 }
 
+/**
+ * Apply mock API overrides into the DB so handlers read/write normal mutable state.
+ * Overrides are response-shaped JSON (e.g. { items }, { recipients }); we replace
+ * the corresponding entities so "initial" state is the override and behaviour stays mutable.
+ */
+export function applyOverridesToDb(overrides: Record<string, unknown>): void {
+  if (Object.keys(overrides).length === 0) return;
+
+  const key = (k: string) => overrides[k];
+
+  // GET /ef/do/v1/accounts → { items: AccountResponse[] }
+  const accountsPayload = key('GET /ef/do/v1/accounts') as
+    | { items?: unknown[] }
+    | undefined;
+  if (accountsPayload?.items && Array.isArray(accountsPayload.items) && accountsPayload.items.length > 0) {
+    db.account.deleteMany({});
+    accountsPayload.items.forEach((account) => {
+      const rec = account as Record<string, unknown> & { id?: string };
+      if (rec.id) db.account.create(rec as Partial<DbAccount> & { id: string });
+    });
+  }
+
+  // GET /ef/do/v1/recipients → { recipients: Recipient[] }
+  const recipientsPayload = key('GET /ef/do/v1/recipients') as
+    | { recipients?: unknown[] }
+    | undefined;
+  if (
+    recipientsPayload?.recipients &&
+    Array.isArray(recipientsPayload.recipients) &&
+    recipientsPayload.recipients.length > 0
+  ) {
+    db.recipient.deleteMany({});
+    recipientsPayload.recipients.forEach((recipient) => {
+      const rec = recipient as Record<string, unknown> & { id?: string };
+      if (rec.id)
+        db.recipient.create(rec as Partial<DbRecipient> & { id: string });
+    });
+  }
+
+  // GET /ef/do/v1/transactions → { items: Transaction[], metadata }
+  const transactionsPayload = key('GET /ef/do/v1/transactions') as
+    | { items?: unknown[] }
+    | undefined;
+  if (transactionsPayload?.items && Array.isArray(transactionsPayload.items) && transactionsPayload.items.length > 0) {
+    db.transaction.deleteMany({});
+    transactionsPayload.items.forEach((transaction) => {
+      const rec = transaction as Record<string, unknown> & { id?: string };
+      if (rec.id)
+        db.transaction.create(rec as Partial<DbTransaction> & { id: string });
+    });
+  }
+
+  // GET /ef/do/v1/document-requests → { documentRequests: DocumentRequest[] }
+  const docRequestsPayload = key('GET /ef/do/v1/document-requests') as
+    | { documentRequests?: unknown[] }
+    | undefined;
+  if (
+    docRequestsPayload?.documentRequests &&
+    Array.isArray(docRequestsPayload.documentRequests)
+  ) {
+    db.documentRequest.deleteMany({});
+    docRequestsPayload.documentRequests.forEach((dr) => {
+      const rec = dr as Record<string, unknown> & { id?: string };
+      if (rec.id)
+        db.documentRequest.create(
+          rec as Partial<DbDocumentRequest> & { id: string }
+        );
+    });
+  }
+
+  // GET /ef/do/v1/clients/:clientId → client with parties[] (expanded)
+  const clientKeys = Object.keys(overrides).filter((k) =>
+    k.startsWith('GET /ef/do/v1/clients/')
+  );
+  for (const k of clientKeys) {
+    const clientPayload = overrides[k] as Record<string, unknown> & {
+      id?: string;
+      parties?: unknown[];
+    };
+    if (!clientPayload?.id) continue;
+    const parties = clientPayload.parties as
+      | Record<string, unknown>[]
+      | undefined;
+    if (Array.isArray(parties)) {
+      parties.forEach((p) => {
+        const party = p as Record<string, unknown> & { id?: string };
+        if (party.id) {
+          // Delete then recreate to guarantee deep nested objects (e.g. organizationDetails)
+          // are fully replaced — @mswjs/data Object fields are shallow-replaced on update,
+          // which can leave stale nested keys if the incoming object has a different shape.
+          const existing = db.party.findFirst({
+            where: { id: { equals: party.id } },
+          });
+          if (existing)
+            db.party.delete({ where: { id: { equals: party.id } } });
+          db.party.create(party as Partial<DbParty> & { id: string });
+        }
+      });
+    }
+    const { parties: _p, ...clientData } = clientPayload;
+    const existing = db.client.findFirst({
+      where: { id: { equals: clientPayload.id } },
+    });
+    if (existing)
+      db.client.update({
+        where: { id: { equals: clientPayload.id } },
+        data: {
+          ...clientData,
+          parties:
+            (clientPayload.parties as { id: string }[])?.map((x) => x.id) ??
+            existing.parties,
+        },
+      });
+    else
+      db.client.create({
+        ...clientData,
+        id: clientPayload.id,
+        parties:
+          (clientPayload.parties as { id: string }[])?.map((x) => x.id) ?? [],
+      } as Partial<DbClient> & { id: string });
+  }
+
+  // GET /ef/do/v1/accounts/:accountId/balances → single balance
+  const balanceKeys = Object.keys(overrides).filter(
+    (k) => k.includes('/accounts/') && k.includes('/balances')
+  );
+  for (const k of balanceKeys) {
+    const balancePayload = overrides[k] as Record<string, unknown> & {
+      accountId?: string;
+      id?: string;
+    };
+    if (!balancePayload) continue;
+    const accountId =
+      balancePayload.accountId ??
+      (balancePayload as { account?: { id?: string } }).account?.id;
+    if (!accountId) continue;
+    const existing = db.accountBalance.findFirst({
+      where: { accountId: { equals: accountId } },
+    });
+    const withId = {
+      ...balancePayload,
+      id: balancePayload.id ?? `bal-${accountId}`,
+      accountId,
+    };
+    if (existing)
+      db.accountBalance.update({
+        where: { accountId: { equals: accountId } },
+        data: balancePayload as Partial<DbAccountBalance>,
+      });
+    else
+      db.accountBalance.create(
+        withId as Partial<DbAccountBalance> & { id: string }
+      );
+  }
+
+  // GET /ef/do/v1/recipients/:recipientId → single recipient
+  const recipientByIdKeys = Object.keys(overrides).filter(
+    (k) =>
+      k.startsWith('GET /ef/do/v1/recipients/') &&
+      k !== 'GET /ef/do/v1/recipients'
+  );
+  for (const k of recipientByIdKeys) {
+    const rec = overrides[k] as Record<string, unknown> & { id?: string };
+    if (!rec?.id) continue;
+    const existing = db.recipient.findFirst({
+      where: { id: { equals: rec.id } },
+    });
+    if (existing)
+      db.recipient.update({
+        where: { id: { equals: rec.id } },
+        data: rec as Partial<DbRecipient>,
+      });
+    else db.recipient.create(rec as Partial<DbRecipient> & { id: string });
+  }
+
+  // GET /ef/do/v1/transactions/:id → single transaction
+  const transactionByIdKeys = Object.keys(overrides).filter(
+    (k) =>
+      k.startsWith('GET /ef/do/v1/transactions/') &&
+      k !== 'GET /ef/do/v1/transactions'
+  );
+  for (const k of transactionByIdKeys) {
+    const rec = overrides[k] as Record<string, unknown> & { id?: string };
+    if (!rec?.id) continue;
+    const existing = db.transaction.findFirst({
+      where: { id: { equals: rec.id } },
+    });
+    if (existing)
+      db.transaction.update({
+        where: { id: { equals: rec.id } },
+        data: rec as Partial<DbTransaction>,
+      });
+    else db.transaction.create(rec as Partial<DbTransaction> & { id: string });
+  }
+
+  logDbState('Apply Overrides');
+}
+
 export function resetDb(scenario = DEFAULT_SCENARIO): {
   success: boolean;
   message: string;

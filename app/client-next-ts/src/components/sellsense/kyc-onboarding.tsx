@@ -56,6 +56,16 @@ export function KycOnboarding({
     customThemeVariables
   );
 
+  // Merge content tokens with showTokenIds (same pattern as wallet-overview)
+  const baseContentTokens = contentTokens || {
+    name: 'enUS' as const,
+    tokens: {} as Record<string, unknown>,
+  };
+  const contentTokensWithIds = {
+    ...baseContentTokens,
+    showTokenIds: true,
+  };
+
   const handleFullScreen = () => {
     const fullscreenUrl = createFullscreenUrl(
       'OnboardingFlow',
@@ -114,7 +124,7 @@ export function KycOnboarding({
       headers={{
         'Content-Type': 'application/json',
       }}
-      contentTokens={contentTokens || { name: 'enUS' }}
+      contentTokens={contentTokensWithIds}
     >
       <OnboardingFlow
         initialClientId={clientId}

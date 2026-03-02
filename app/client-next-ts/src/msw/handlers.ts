@@ -28,6 +28,7 @@ import { http, HttpResponse, type RequestHandler } from 'msw';
 import { getClientStatusOverrideForScenario } from '../components/sellsense/scenarios-config';
 import { efClientQuestionsMock, efDocumentClientDetail } from '../mocks';
 import {
+  applyOverridesToDb,
   createTransactionWithBalanceUpdate,
   db,
   DEFAULT_SCENARIO,
@@ -620,12 +621,17 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
 
   http.post(`${apiUrl}/ef/do/v1/_reset`, async ({ request }) => {
     try {
-      const body = (await request.json()) as { scenario?: string } | null;
+      const body = (await request.json()) as {
+        scenario?: string;
+        overrides?: Record<string, unknown>;
+      } | null;
       const scenario = body?.scenario ?? DEFAULT_SCENARIO;
-
-      return HttpResponse.json(resetDb(scenario));
+      const result = resetDb(scenario);
+      if (body?.overrides && Object.keys(body.overrides).length > 0) {
+        applyOverridesToDb(body.overrides);
+      }
+      return HttpResponse.json(result);
     } catch (error) {
-      // If no body or invalid JSON, use default scenario
       return HttpResponse.json(resetDb(DEFAULT_SCENARIO));
     }
   }),
@@ -862,8 +868,8 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
   ),
 
   // EF Get specific recipient
-  http.get(`${apiUrl}/ef/do/v1/recipients/:recipientId`, ({ params }) => {
-    const { recipientId } = params as RecipientIdParams;
+  http.get(`${apiUrl}/ef/do/v1/recipients/:recipientId`, (req) => {
+    const { recipientId } = req.params as RecipientIdParams;
 
     console.log('Getting recipient:', recipientId);
 
@@ -890,7 +896,8 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
   // --- Embedded Components Handlers ---
 
   // TransactionsDisplay Component Handlers
-  http.get(`${apiUrl}/ef/do/v1/transactions`, ({ request }) => {
+  http.get(`${apiUrl}/ef/do/v1/transactions`, (req) => {
+    const { request } = req;
     console.log('Transactions API call:', request.url);
     const url = new URL(request.url);
     const pageParam = url.searchParams.get('page');
@@ -991,8 +998,8 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
   }),
 
   // Add handler for GET /ef/do/v1/transactions/:id using the mock
-  http.get(`${apiUrl}/ef/do/v1/transactions/:id`, ({ params }) => {
-    const { id } = params as IdParams;
+  http.get(`${apiUrl}/ef/do/v1/transactions/:id`, (req) => {
+    const { id } = req.params as IdParams;
     const transaction = db.transaction.findFirst({
       where: { id: { equals: id } },
     });
@@ -1038,7 +1045,8 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
   }),
 
   // Recipients Component Handlers
-  http.get(`${apiUrl}/ef/do/v1/recipients`, ({ request }) => {
+  http.get(`${apiUrl}/ef/do/v1/recipients`, (req) => {
+    const { request } = req;
     console.log('Recipients API call:', request.url);
     const url = new URL(request.url);
     const pageParam = url.searchParams.get('page');
@@ -1131,8 +1139,8 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     });
   }),
 
-  http.get(`${apiUrl}/ef/do/v1/accounts/:accountId/balances`, ({ params }) => {
-    const { accountId } = params as AccountIdParams;
+  http.get(`${apiUrl}/ef/do/v1/accounts/:accountId/balances`, (req) => {
+    const { accountId } = req.params as AccountIdParams;
 
     const balance = db.accountBalance.findFirst({
       where: { accountId: { equals: accountId } },
@@ -1150,8 +1158,8 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     return new HttpResponse(null, { status: 404 });
   }),
 
-  http.get(`${apiUrl}/ef/do/v1/payment-recipients`, ({ request }) => {
-    const url = new URL(request.url);
+  http.get(`${apiUrl}/ef/do/v1/payment-recipients`, (req) => {
+    const url = new URL(req.request.url);
     const type = url.searchParams.get('type');
 
     // Get payment recipients from database (not linked accounts)
