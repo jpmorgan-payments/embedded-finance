@@ -636,7 +636,8 @@ export function DashboardLayout() {
             </div>
           </div>
         );
-      case 'client-details':
+      case 'client-details': {
+        const clientDetailsViewMode = searchParams.viewMode ?? 'summary';
         return (
           <div className="h-screen p-6">
             <div className="mx-auto max-w-4xl">
@@ -653,12 +654,16 @@ export function DashboardLayout() {
                     name: selectedLanguage,
                   }}
                 >
-                  <ClientDetails clientId={fullscreenClientId} />
+                  <ClientDetails
+                    clientId={fullscreenClientId}
+                    viewMode={clientDetailsViewMode}
+                  />
                 </EBComponentsProvider>
               </div>
             </div>
           </div>
         );
+      }
       default:
         return (
           <div className="flex h-screen items-center justify-center text-gray-500">
