@@ -412,7 +412,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
           <FormItem>
             <FormLabel>
               {t('routingNumbers.singleMethodLabel', {
-                method: config.shortLabel,
+                method: config.shortLabelString,
               })}
             </FormLabel>
             <FormControl>
@@ -465,7 +465,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
               <FormLabel>
                 {t('routingNumbers.combinedMethodLabel', {
                   methods: paymentMethods
-                    .map((method) => configs[method].shortLabel)
+                    .map((method) => configs[method].shortLabelString)
                     .join(' / '),
                 })}
               </FormLabel>
@@ -496,7 +496,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
                   <FormItem>
                     <FormLabel>
                       {t('routingNumbers.singleMethodLabel', {
-                        method: config.shortLabel,
+                        method: config.shortLabelString,
                       })}
                     </FormLabel>
                     <FormControl>

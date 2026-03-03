@@ -23,6 +23,8 @@ export interface PaymentMethodConfig {
   labelString: string;
   /** Short label for compact display (e.g., badges, routing number labels) */
   shortLabel: ReactNode;
+  /** Plain string short label for use in interpolation */
+  shortLabelString: string;
   /** Description text */
   description: ReactNode;
   /** Whether this payment method can be deselected (for linked accounts, ACH is locked) */
