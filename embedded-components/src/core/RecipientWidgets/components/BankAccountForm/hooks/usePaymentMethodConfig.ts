@@ -23,7 +23,7 @@ export const usePaymentMethodConfig = (
       routingNumber: true,
       bankAccountType: true,
       address: type === 'WIRE',
-      contacts: type === 'RTP' ? ['EMAIL'] : [],
+      contacts: [],
     },
     routingValidation: {
       length: 9,
