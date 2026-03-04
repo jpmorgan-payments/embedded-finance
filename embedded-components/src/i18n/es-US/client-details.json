@@ -2,7 +2,18 @@
   "title": "Detalles del cliente",
   "errors": {
     "clientIdRequired": "Se requiere el ID del cliente.",
-    "loadFailed": "Error al cargar los detalles del cliente."
+    "loadFailed": "Error al cargar los detalles del cliente.",
+    "unableToLoad": "No se puede cargar el cliente",
+    "loadFailedDescription": "Encontramos un problema al obtener los detalles del cliente.",
+    "loadFailedDefault": "Error al cargar los detalles del cliente. Por favor, inténtelo de nuevo.",
+    "badRequest": "Solicitud no válida. Por favor, verifique sus parámetros e inténtelo de nuevo.",
+    "unauthorized": "No está autorizado para ver este cliente. Por favor, inicie sesión e inténtelo de nuevo.",
+    "forbidden": "No tiene permiso para ver este cliente.",
+    "notFound": "No se pudo encontrar el cliente solicitado.",
+    "serverError": "Se produjo un error inesperado del servidor. Por favor, inténtelo de nuevo más tarde.",
+    "tryAgain": "Intentar de nuevo",
+    "showDetails": "Mostrar detalles",
+    "hideDetails": "Ocultar detalles"
   },
   "sectionLabels": {
     "identity": "Identidad y Organización",

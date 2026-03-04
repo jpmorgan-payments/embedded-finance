@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui';
 
@@ -9,6 +10,8 @@ import { Card, CardContent } from '@/components/ui';
 export interface AccountCardSkeletonProps {
   /** Use compact display mode with reduced padding and smaller elements */
   compact?: boolean;
+  /** Hide border and shadow for single account layout */
+  hideBorder?: boolean;
 }
 
 /**
@@ -18,6 +21,7 @@ export interface AccountCardSkeletonProps {
  */
 export const AccountCardSkeleton: React.FC<AccountCardSkeletonProps> = ({
   compact = false,
+  hideBorder = false,
 }) => {
   if (compact) {
     return (
@@ -54,7 +58,9 @@ export const AccountCardSkeleton: React.FC<AccountCardSkeletonProps> = ({
 
   return (
     <Card
-      className="eb-overflow-hidden"
+      className={cn('eb-overflow-hidden', {
+        'eb-border-0 eb-shadow-none': hideBorder,
+      })}
       role="article"
       aria-busy="true"
       aria-label="Loading account"

@@ -2,7 +2,18 @@
   "title": "Client details",
   "errors": {
     "clientIdRequired": "Client ID is required.",
-    "loadFailed": "Failed to load client details."
+    "loadFailed": "Failed to load client details.",
+    "unableToLoad": "Unable to load client",
+    "loadFailedDescription": "We encountered an issue while fetching the client details.",
+    "loadFailedDefault": "Failed to load client details. Please try again.",
+    "badRequest": "Invalid request. Please check your parameters and try again.",
+    "unauthorized": "You are not authorized to view this client. Please log in and try again.",
+    "forbidden": "You do not have permission to view this client.",
+    "notFound": "The requested client could not be found.",
+    "serverError": "An unexpected server error occurred. Please try again later.",
+    "tryAgain": "Try again",
+    "showDetails": "Show details",
+    "hideDetails": "Hide details"
   },
   "sectionLabels": {
     "identity": "Identity & Organization",

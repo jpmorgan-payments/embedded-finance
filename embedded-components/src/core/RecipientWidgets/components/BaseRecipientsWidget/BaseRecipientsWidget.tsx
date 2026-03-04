@@ -3,7 +3,14 @@ import { useTranslationWithTokens } from '@/i18n';
 import { useQueryClient } from '@tanstack/react-query';
 import { PaginationState } from '@tanstack/react-table';
 import { useVirtualizer, VirtualItem } from '@tanstack/react-virtual';
-import { ChevronDownIcon, PlusIcon } from 'lucide-react';
+import {
+  AlertCircle,
+  ChevronDown,
+  ChevronDownIcon,
+  ChevronUp,
+  PlusIcon,
+  RefreshCw,
+} from 'lucide-react';
 
 import { getRecipientDisplayName } from '@/lib/recipientHelpers';
 import type { HeadingLevelProps } from '@/lib/types/headingLevel.types';
@@ -11,6 +18,7 @@ import { getChildHeadingLevel } from '@/lib/types/headingLevel.types';
 import type { UserTrackingProps } from '@/lib/types/userTracking.types';
 import { cn } from '@/lib/utils';
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
+import type { ErrorType } from '@/api/axios-instance';
 import {
   MicrodepositVerificationResponse,
   Recipient,
@@ -21,7 +29,7 @@ import type {
   TransactionResponseV2,
 } from '@/api/generated/ep-transactions.schemas';
 import { Button } from '@/components/ui/button';
-import { ServerErrorAlert } from '@/components/ServerErrorAlert';
+import { useServerError } from '@/components/ServerErrorAlert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { PaymentFlow } from '@/core/PaymentFlow';
 import type { PaymentMethod } from '@/core/PaymentFlow/PaymentFlow.types';
@@ -214,6 +222,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
 
   const { t, tString } = useTranslationWithTokens(config.i18nNamespace);
   const [showResultDialog, setShowResultDialog] = useState(false);
+  const [showErrorDetails, setShowErrorDetails] = useState(false);
   const [resultVariant, setResultVariant] = useState<
     'success' | 'maxAttemptsExceeded'
   >('success');
@@ -307,6 +316,15 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
         totalCount: loadMoreData.totalCount,
         nextLoadCount: loadMoreData.nextLoadCount,
       };
+
+  // Parse error for custom display
+  const errorInfo = useServerError(
+    recipientsError as unknown as ErrorType<ApiError> | null
+  );
+  const errorMessage = errorInfo?.getErrorMessage({
+    '400': t('errors.loading.400'),
+    default: t('errors.loading.default'),
+  });
 
   // Setup virtualizer for scrollable mode
   const rowVirtualizer = useVirtualizer({
@@ -623,20 +641,105 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
           {/* Error state */}
           {isError && (
             <div
-              className={cn({
+              className={cn('eb-py-6', {
                 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': scrollable || isCompact,
               })}
             >
-              <ServerErrorAlert
-                customTitle={t('errors.loading.title')}
-                customErrorMessage={{
-                  default: t('errors.loading.default'),
-                  400: t('errors.loading.400'),
-                }}
-                error={recipientsError as any}
-                tryAgainAction={refetch}
-                showDetails
-              />
+              <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-2 eb-text-center">
+                <div className="eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
+                  <AlertCircle className="eb-h-6 eb-w-6 eb-text-destructive" />
+                </div>
+                <div className="eb-space-y-1">
+                  <h3 className="eb-text-sm eb-font-semibold eb-text-foreground">
+                    {t('errors.loading.title')}
+                  </h3>
+                  <p className="eb-max-w-xs eb-text-xs eb-text-muted-foreground">
+                    {errorMessage}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetch()}
+                  className="eb-mt-2"
+                >
+                  <RefreshCw className="eb-mr-2 eb-h-4 eb-w-4" />
+                  {t('errors.tryAgain', { defaultValue: 'Try again' })}
+                </Button>
+
+                {/* Expandable details */}
+                {errorInfo?.hasDetails && (
+                  <div className="eb-mt-2 eb-w-full eb-max-w-sm">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowErrorDetails(!showErrorDetails)}
+                      className="eb-text-xs eb-text-muted-foreground"
+                    >
+                      {showErrorDetails ? (
+                        <ChevronUp className="eb-mr-1 eb-h-3 eb-w-3" />
+                      ) : (
+                        <ChevronDown className="eb-mr-1 eb-h-3 eb-w-3" />
+                      )}
+                      {showErrorDetails
+                        ? t('errors.hideDetails', {
+                            defaultValue: 'Hide details',
+                          })
+                        : t('errors.showDetails', {
+                            defaultValue: 'Show details',
+                          })}
+                    </Button>
+
+                    {showErrorDetails && (
+                      <div className="eb-mt-2 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-3 eb-text-left eb-text-xs">
+                        {errorInfo.httpStatus && (
+                          <div className="eb-mb-2">
+                            <span className="eb-font-medium">Status:</span>{' '}
+                            {errorInfo.httpStatus}
+                            {errorInfo.title && ` - ${errorInfo.title}`}
+                          </div>
+                        )}
+                        {errorInfo.reasons.length > 0 && (
+                          <div className="eb-mb-2">
+                            <span className="eb-font-medium">Reasons:</span>
+                            <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
+                              {errorInfo.reasons.map(
+                                (reason: any, i: number) => (
+                                  <li key={i}>
+                                    {reason.field && (
+                                      <span className="eb-font-medium">
+                                        {reason.field}:{' '}
+                                      </span>
+                                    )}
+                                    {reason.message || reason}
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                        {errorInfo.context.length > 0 && (
+                          <div>
+                            <span className="eb-font-medium">Context:</span>
+                            <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
+                              {errorInfo.context.map((ctx: any, i: number) => (
+                                <li key={i}>
+                                  {ctx.field && (
+                                    <span className="eb-font-medium">
+                                      {ctx.field}:{' '}
+                                    </span>
+                                  )}
+                                  {ctx.message}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

@@ -2,7 +2,18 @@
   "title": "Détails du client",
   "errors": {
     "clientIdRequired": "L'identifiant du client est requis.",
-    "loadFailed": "Échec du chargement des détails du client."
+    "loadFailed": "Échec du chargement des détails du client.",
+    "unableToLoad": "Impossible de charger le client",
+    "loadFailedDescription": "Nous avons rencontré un problème lors de la récupération des détails du client.",
+    "loadFailedDefault": "Échec du chargement des détails du client. Veuillez réessayer.",
+    "badRequest": "Demande invalide. Veuillez vérifier vos paramètres et réessayer.",
+    "unauthorized": "Vous n'êtes pas autorisé à voir ce client. Veuillez vous connecter et réessayer.",
+    "forbidden": "Vous n'avez pas la permission de voir ce client.",
+    "notFound": "Le client demandé n'a pas pu être trouvé.",
+    "serverError": "Une erreur de serveur inattendue s'est produite. Veuillez réessayer plus tard.",
+    "tryAgain": "Réessayer",
+    "showDetails": "Afficher les détails",
+    "hideDetails": "Masquer les détails"
   },
   "sectionLabels": {
     "identity": "Identité et organisation",
