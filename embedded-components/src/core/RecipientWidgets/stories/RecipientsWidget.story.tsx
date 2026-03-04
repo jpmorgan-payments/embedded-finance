@@ -16,6 +16,7 @@ import {
   commonArgTypes,
   createRecipientHandlers,
   seedRecipientData,
+  toRecipientStatus,
 } from './story-utils';
 
 const meta = {
@@ -69,8 +70,7 @@ export const Default: Story = {
           linkedAccountListMock.recipients?.map((r) => ({
             ...r,
             type: 'RECIPIENT',
-            status:
-              r.status === 'MICRODEPOSITS_INITIATED' ? 'ACTIVE' : r.status,
+            status: toRecipientStatus(r.status),
           })) ?? [],
       });
     },
