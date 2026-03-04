@@ -3,7 +3,7 @@
  * Optimized for 2 sections with pill-style tabs
  */
 
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 
 import { cn } from '@/lib/utils';
 

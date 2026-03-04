@@ -1,5 +1,5 @@
 import { FC, ReactElement } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import { AlertTriangle, CheckIcon, InfoIcon } from 'lucide-react';
 
 import {

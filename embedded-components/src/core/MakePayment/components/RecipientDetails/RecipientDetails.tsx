@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 
 import type { Recipient } from '../../types';
 import { maskAccount, renderRecipientName } from '../../utils';

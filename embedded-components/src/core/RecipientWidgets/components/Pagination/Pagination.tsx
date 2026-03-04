@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,

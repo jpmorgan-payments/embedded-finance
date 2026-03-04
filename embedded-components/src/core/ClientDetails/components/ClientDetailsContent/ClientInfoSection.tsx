@@ -1,4 +1,4 @@
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import { LandmarkIcon, PlusCircleIcon } from 'lucide-react';
 
 import type { HeadingLevel } from '@/lib/types/headingLevel.types';

@@ -1,5 +1,5 @@
 import { FC, ReactNode } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import { AlertTriangleIcon, InfoIcon, XCircleIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';

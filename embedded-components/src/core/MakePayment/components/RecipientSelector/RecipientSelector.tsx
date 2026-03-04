@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import { Check, ChevronsUpDown, X } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 

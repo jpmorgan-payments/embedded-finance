@@ -2,7 +2,7 @@
  * DetailRow - Renders a single label/value row (ReviewSection-style).
  */
 import type { ReactNode } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 
 interface DetailRowProps {
   /** Label - can be a translated ReactNode from t() */

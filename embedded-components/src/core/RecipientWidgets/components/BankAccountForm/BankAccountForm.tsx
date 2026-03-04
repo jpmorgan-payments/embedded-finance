@@ -1,5 +1,5 @@
 import { FC, ReactNode, useEffect, useMemo, useState } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   ArrowLeftIcon,

@@ -12,7 +12,7 @@
  */
 
 import { useMemo } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import {
   Briefcase,
   Building2,

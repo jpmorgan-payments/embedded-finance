@@ -3,7 +3,7 @@
  * Sections: Client information, Verification results, Organization, Controller, Beneficial owners, Question responses.
  */
 
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import { ChevronDown } from 'lucide-react';
 
 import { cn } from '@/lib/utils';

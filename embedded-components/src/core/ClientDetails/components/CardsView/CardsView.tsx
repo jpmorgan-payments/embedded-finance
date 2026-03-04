@@ -3,7 +3,7 @@
  * One card per section: Client information, Verification results, Organization, Controller, Beneficial owners, Question responses.
  */
 
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 
 import { cn } from '@/lib/utils';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';

@@ -1,4 +1,4 @@
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 
 import { RoutingInformationTransactionType } from '@/api/generated/ep-recipients.schemas';
 

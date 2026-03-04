@@ -1,5 +1,5 @@
 import { FC, ReactNode, useState } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import { CopyIcon } from 'lucide-react';
 
 import { useLocale } from '@/lib/hooks';

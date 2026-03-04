@@ -6,7 +6,7 @@ import {
   useMemo,
   useRef,
 } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import { Landmark } from 'lucide-react';
 
 import { getChildHeadingLevel } from '@/lib/types/headingLevel.types';

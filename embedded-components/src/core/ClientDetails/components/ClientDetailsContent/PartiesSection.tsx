@@ -3,7 +3,7 @@
  * Renders Organization, Controller, and Beneficial owners with business labels only (no internal IDs).
  */
 
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 
 import type {
   ClientResponse,

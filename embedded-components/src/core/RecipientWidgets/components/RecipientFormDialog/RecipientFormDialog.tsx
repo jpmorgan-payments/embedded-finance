@@ -1,5 +1,5 @@
 import { FC, ReactNode } from 'react';
-import { TranslationResult, useTranslationWithTokens } from '@/hooks';
+import { TranslationResult, useTranslationWithTokens } from '@/i18n';
 
 import { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import { useFormContext } from 'react-hook-form';
 
 import {
