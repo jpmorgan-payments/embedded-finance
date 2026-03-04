@@ -17,13 +17,14 @@ export const usePaymentMethodConfig = (
     label: t(`paymentMethods.${type}.label`),
     labelString: tString(`paymentMethods.${type}.label`),
     shortLabel: t(`paymentMethods.${type}.shortLabel`),
+    shortLabelString: tString(`paymentMethods.${type}.shortLabel`),
     description: t(`paymentMethods.${type}.description`),
     requiredFields: {
       accountNumber: true,
       routingNumber: true,
       bankAccountType: true,
       address: type === 'WIRE',
-      contacts: type === 'RTP' ? ['EMAIL'] : [],
+      contacts: [],
     },
     routingValidation: {
       length: 9,

@@ -1,5 +1,6 @@
 import i18n, { createInstance } from 'i18next';
 import { cloneDeep } from 'lodash';
+import type { DeepPartial } from 'react-hook-form';
 import { initReactI18next } from 'react-i18next';
 import { z } from 'zod';
 import { zodI18nMap } from 'zod-i18n-map';
@@ -7,7 +8,6 @@ import en_zod from 'zod-i18n-map/locales/en/zod.json';
 import es_zod from 'zod-i18n-map/locales/es/zod.json';
 import fr_zod from 'zod-i18n-map/locales/fr/zod.json';
 
-import type { EBContentTokens } from './content-tokens.types';
 import enUS_accounts from './en-US/accounts.json';
 import enUS_bankAccountForm from './en-US/bank-account-form.json';
 import enUS_clientDetails from './en-US/client-details.json';
@@ -80,6 +80,24 @@ export const defaultResources = {
     transactions: esUS_transactions,
     zod: es_zod,
   },
+};
+
+/**
+ * Content token configuration for customizing translations and enabling
+ * token ID visibility in development/debugging contexts.
+ */
+export type EBContentTokens = {
+  /** Locale name to use for translations */
+  name?: keyof typeof defaultResources;
+  /** Custom token overrides per namespace */
+  tokens?: DeepPartial<(typeof defaultResources)['enUS']>;
+  /**
+   * Enable token ID visibility for development/debugging.
+   * When true, displays data-content-token attributes on translated text
+   * for easy discovery of token IDs during customization.
+   * @default false
+   */
+  showTokenIds?: boolean;
 };
 
 export const resources = cloneDeep(defaultResources);

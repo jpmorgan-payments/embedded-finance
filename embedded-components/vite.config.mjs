@@ -1,10 +1,10 @@
 import { resolve } from 'node:path';
 import react from '@vitejs/plugin-react';
+import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import { libInjectCss } from 'vite-plugin-lib-inject-css';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig(({ mode }) => {
   const isAnalyze = mode === 'analyze';
@@ -54,8 +54,10 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      // Library consumers handle their own transpilation; skip unnecessary syntax lowering.
-      target: 'esnext',
+      // Use es2020 for compatibility with webpack-based consumers.
+      // 'esnext' emits native private class fields (#field) which older webpack
+      // versions can't re-bundle correctly, causing "Super constructor null" errors.
+      target: 'es2020',
       lib: {
         entry: [resolve(__dirname, 'src/index.tsx')],
         name: 'ef-components',
