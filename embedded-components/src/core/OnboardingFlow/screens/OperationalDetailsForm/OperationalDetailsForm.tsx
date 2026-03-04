@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo } from 'react';
+import { Fragment, useCallback, useEffect, useMemo } from 'react';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
@@ -43,6 +43,34 @@ import {
   DATE_QUESTION_IDS,
   MONEY_INPUT_QUESTION_IDS,
 } from './OperationalDetailsForm.schema';
+
+/**
+ * Extract question ID from API error message.
+ * Matches patterns like "question with ID [30002]" or similar.
+ */
+const extractQuestionIdFromMessage = (message: string): string | null => {
+  const match = message.match(/\[(\d+)\]/);
+  return match ? match[1] : null;
+};
+
+/**
+ * Format API error message to be more user-friendly.
+ * Extracts the actionable part from verbose server messages.
+ */
+const formatErrorMessage = (message: string): string => {
+  // Extract the hint in brackets at the end of the message, e.g., "[Please use a 2-letter ISO country code.]"
+  const hintMatch = message.match(/\[([^\]]+)\]\.?$/);
+  if (hintMatch) {
+    return hintMatch[1];
+  }
+
+  // If no hint found, try to simplify the message
+  if (message.includes('is not supported')) {
+    return 'The value entered is not supported. Please select a valid option.';
+  }
+
+  return message;
+};
 
 export const OperationalDetailsForm = () => {
   const queryClient = useQueryClient();
@@ -401,6 +429,66 @@ export const OperationalDetailsForm = () => {
     resolver: zodResolver(dynamicSchema),
     defaultValues,
   });
+
+  /**
+   * Parse API error context and set field-level errors on the form.
+   * Extracts question IDs from error messages and maps them to form fields.
+   * Returns the first field name with an error for focusing.
+   */
+  const setFieldErrorsFromApiError = useCallback(
+    (error: typeof updateClientError): string | null => {
+      if (!error) return null;
+
+      const context = error.response?.data?.context;
+      if (!context || !Array.isArray(context)) return null;
+
+      const questions = questionsData?.questions ?? [];
+      let firstErrorField: string | null = null;
+
+      context.forEach(
+        (item: { code?: string; field?: string; message?: string }) => {
+          if (!item.message) return;
+
+          const questionId = extractQuestionIdFromMessage(item.message);
+          if (!questionId) return;
+
+          // Verify this question exists in our form
+          const questionExists = questions.some((q) => q.id === questionId);
+          if (!questionExists) return;
+
+          const fieldName = `question_${questionId}`;
+          const userFriendlyMessage = formatErrorMessage(item.message);
+
+          form.setError(fieldName, {
+            type: 'server',
+            message: userFriendlyMessage,
+          });
+
+          // Track the first error field for focusing
+          if (!firstErrorField) {
+            firstErrorField = fieldName;
+          }
+        }
+      );
+
+      return firstErrorField;
+    },
+    [form, questionsData?.questions]
+  );
+
+  // Handle API errors by setting field-level errors and focusing the first invalid field
+  useEffect(() => {
+    if (updateClientError && updateClientStatus === 'error') {
+      const firstErrorField = setFieldErrorsFromApiError(updateClientError);
+
+      // Focus the first field with an error after a short delay to ensure DOM is updated
+      if (firstErrorField) {
+        setTimeout(() => {
+          form.setFocus(firstErrorField);
+        }, 100);
+      }
+    }
+  }, [updateClientError, updateClientStatus, setFieldErrorsFromApiError, form]);
 
   const isQuestionVisible = (question: QuestionResponse) => {
     if (!question.parentQuestionId) return true;
