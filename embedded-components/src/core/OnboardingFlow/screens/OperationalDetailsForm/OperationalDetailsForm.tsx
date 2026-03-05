@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
@@ -73,6 +74,7 @@ const formatErrorMessage = (message: string): string => {
 };
 
 export const OperationalDetailsForm = () => {
+  const { t, tString } = useTranslationWithTokens(['onboarding-old', 'common']);
   const queryClient = useQueryClient();
   const { clientData } = useOnboardingContext();
 
@@ -256,13 +258,17 @@ export const OperationalDetailsForm = () => {
                       <FormControl>
                         <RadioGroupItem value="true" />
                       </FormControl>
-                      <FormLabel className="eb-font-normal">Yes</FormLabel>
+                      <FormLabel className="eb-font-normal">
+                        {t('common:yes', 'Yes')}
+                      </FormLabel>
                     </FormItem>
                     <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
                       <FormControl>
                         <RadioGroupItem value="false" />
                       </FormControl>
-                      <FormLabel className="eb-font-normal">No</FormLabel>
+                      <FormLabel className="eb-font-normal">
+                        {t('common:no', 'No')}
+                      </FormLabel>
                     </FormItem>
                   </RadioGroup>
                 </FormControl>
@@ -337,7 +343,12 @@ export const OperationalDetailsForm = () => {
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select an option" />
+                        <SelectValue
+                          placeholder={tString(
+                            'operationalDetails.selectPlaceholder',
+                            'Select an option'
+                          )}
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -546,7 +557,10 @@ export const OperationalDetailsForm = () => {
     if (!questionsData) {
       return (
         <div className="eb-text-muted-foreground">
-          There are no additional questions. You may proceed to the next step.
+          {t(
+            'operationalDetails.noQuestions',
+            'There are no additional questions. You may proceed to the next step.'
+          )}
         </div>
       );
     }
@@ -584,25 +598,35 @@ export const OperationalDetailsForm = () => {
     questionsFetchStatus === 'pending' || updateClientStatus === 'pending';
 
   if (questionsFetchStatus === 'pending') {
-    return <FormLoadingState message="Loading questions..." />;
+    return (
+      <FormLoadingState
+        message={tString(
+          'operationalDetails.loadingQuestions',
+          'Loading questions...'
+        )}
+      />
+    );
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="eb-space-y-6">
         <StepLayout
-          title="Operational details"
+          title={tString('operationalDetails.title', 'Operational details')}
           headerElement={
             <Button
               variant="outline"
               size="sm"
               onClick={() => goTo('overview')}
             >
-              Overview
+              {t('common:overview', 'Overview')}
               <MenuIcon />
             </Button>
           }
-          description="Please answer these additional questions to help us understand your business operations."
+          description={tString(
+            'operationalDetails.description',
+            'Please answer these additional questions to help us understand your business operations.'
+          )}
         >
           <div className="eb-mt-6 eb-flex-auto eb-space-y-6">
             {renderQuestions()}
@@ -620,8 +644,14 @@ export const OperationalDetailsForm = () => {
                 <Loader2Icon className="eb-animate-spin" />
               )}
               {reviewMode
-                ? 'Save and return to review'
-                : 'Save and continue to review'}
+                ? t(
+                    'operationalDetails.saveAndReturn',
+                    'Save and return to review'
+                  )
+                : t(
+                    'operationalDetails.saveAndContinue',
+                    'Save and continue to review'
+                  )}
             </Button>
           </div>
         </StepLayout>

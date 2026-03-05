@@ -22,17 +22,25 @@ import enUS_validation from './en-US/validation.json';
 import esUS_accounts from './es-US/accounts.json';
 import esUS_bankAccountForm from './es-US/bank-account-form.json';
 import esUS_clientDetails from './es-US/client-details.json';
+import esUS_common from './es-US/common.json';
+import esUS_linkedAccounts from './es-US/linked-accounts.json';
+import esUS_makePayment from './es-US/make-payment.json';
+import esUS_onboardingOverview from './es-US/onboarding-overview.json';
+import esUS_onboarding from './es-US/onboarding.json';
 import esUS_recipients from './es-US/recipients.json';
 import esUS_transactions from './es-US/transactions.json';
+import esUS_validation from './es-US/validation.json';
 import frCA_accounts from './fr-CA/accounts.json';
 import frCA_bankAccountForm from './fr-CA/bank-account-form.json';
 import frCA_clientDetails from './fr-CA/client-details.json';
 import frCA_common from './fr-CA/common.json';
 import frCA_linkedAccounts from './fr-CA/linked-accounts.json';
 import frCA_makePayment from './fr-CA/make-payment.json';
+import frCA_onboardingOverview from './fr-CA/onboarding-overview.json';
 import frCA_onboarding from './fr-CA/onboarding.json';
 import frCA_recipients from './fr-CA/recipients.json';
 import frCA_transactions from './fr-CA/transactions.json';
+import frCA_validation from './fr-CA/validation.json';
 
 export const defaultResources = {
   enUS: {
@@ -53,9 +61,9 @@ export const defaultResources = {
   frCA: {
     locale: 'fr-CA',
     common: frCA_common,
-    validation: enUS_validation,
+    validation: frCA_validation,
     'onboarding-old': frCA_onboarding,
-    'onboarding-overview': enUS_onboardingOverview,
+    'onboarding-overview': frCA_onboardingOverview,
     'make-payment': frCA_makePayment,
     'linked-accounts': frCA_linkedAccounts,
     'bank-account-form': frCA_bankAccountForm,
@@ -67,12 +75,12 @@ export const defaultResources = {
   },
   esUS: {
     locale: 'es-US',
-    common: enUS_common, // Using English common for now, can be translated later
-    validation: enUS_validation, // Using English validation for now
-    'onboarding-old': enUS_onboarding, // Using English onboarding for now
-    'onboarding-overview': enUS_onboardingOverview, // Using English onboarding-overview for now
-    'make-payment': enUS_makePayment, // Using English make-payment for now
-    'linked-accounts': enUS_linkedAccounts, // Using English linked-accounts for now
+    common: esUS_common,
+    validation: esUS_validation,
+    'onboarding-old': esUS_onboarding,
+    'onboarding-overview': esUS_onboardingOverview,
+    'make-payment': esUS_makePayment,
+    'linked-accounts': esUS_linkedAccounts,
     'bank-account-form': esUS_bankAccountForm,
     'client-details': esUS_clientDetails,
     accounts: esUS_accounts,

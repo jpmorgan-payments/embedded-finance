@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { ArrowLeft, Loader2, Save, UserX } from 'lucide-react';
 
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
@@ -215,18 +216,21 @@ export function BankAccountFormWrapper({
   });
 
   // Build customized config
+  const { t, tString } = useTranslationWithTokens(['make-payment']);
   const config: BankAccountFormConfig = useMemo(() => {
     const baseConfig =
       formType === 'linked-account' ? linkedAccountConfig : recipientConfig;
     const isLinkedAccount = formType === 'linked-account';
 
     // Determine button text
-    let submitButtonText = isLinkedAccount ? 'Link Account' : 'Add Recipient';
+    let submitButtonText = isLinkedAccount
+      ? tString('bankAccountForm.linkAccountButton', 'Link Account')
+      : tString('bankAccountForm.addRecipientButton', 'Add Recipient');
     if (isEditing) {
-      submitButtonText = 'Continue';
+      submitButtonText = tString('bankAccountForm.continueButton', 'Continue');
     } else if (!isLinkedAccount && onSubmitWithoutSave) {
       // When one-time option is available, use "Continue" to go to confirmation
-      submitButtonText = 'Continue';
+      submitButtonText = tString('bankAccountForm.continueButton', 'Continue');
     }
 
     // For recipients, filter available payment methods if specified
@@ -245,7 +249,7 @@ export function BankAccountFormWrapper({
         content: {
           ...baseConfig.content,
           submitButtonText,
-          cancelButtonText: 'Cancel',
+          cancelButtonText: tString('bankAccountForm.cancelButton', 'Cancel'),
         },
       };
     }
@@ -255,7 +259,7 @@ export function BankAccountFormWrapper({
       content: {
         ...baseConfig.content,
         submitButtonText,
-        cancelButtonText: 'Cancel',
+        cancelButtonText: tString('bankAccountForm.cancelButton', 'Cancel'),
       },
     };
   }, [
@@ -265,6 +269,7 @@ export function BankAccountFormWrapper({
     availablePaymentMethods,
     isEditing,
     onSubmitWithoutSave,
+    tString,
   ]);
 
   /**
@@ -405,13 +410,15 @@ export function BankAccountFormWrapper({
       <div className="eb-flex eb-flex-col eb-gap-4">
         {/* Header */}
         <div className="eb-px-1">
-          <h2 className="eb-text-lg eb-font-semibold">Save Recipient?</h2>
+          <h2 className="eb-text-lg eb-font-semibold">
+            {t('bankAccountForm.saveRecipientTitle', 'Save Recipient?')}
+          </h2>
           <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
-            Would you like to save{' '}
-            <span className="eb-font-medium eb-text-foreground">
-              {getPendingDisplayName()}
-            </span>{' '}
-            for future payments?
+            {t(
+              'bankAccountForm.saveRecipientDescription',
+              'Would you like to save {{recipientName}} for future payments?',
+              { recipientName: getPendingDisplayName() }
+            )}
           </p>
         </div>
 
@@ -447,9 +454,14 @@ export function BankAccountFormWrapper({
               <Save className="eb-h-5 eb-w-5 eb-text-primary" />
             )}
             <div className="eb-text-left">
-              <div className="eb-font-medium">Save & Continue</div>
+              <div className="eb-font-medium">
+                {t('bankAccountForm.saveAndContinue', 'Save & Continue')}
+              </div>
               <div className="eb-text-xs eb-font-normal eb-text-muted-foreground">
-                Add to your recipients for easy access
+                {t(
+                  'bankAccountForm.saveDescription',
+                  'Add to your recipients for easy access'
+                )}
               </div>
             </div>
           </Button>
@@ -462,9 +474,14 @@ export function BankAccountFormWrapper({
           >
             <UserX className="eb-h-5 eb-w-5 eb-text-muted-foreground" />
             <div className="eb-text-left">
-              <div className="eb-font-medium">Use Once</div>
+              <div className="eb-font-medium">
+                {t('bankAccountForm.useOnce', 'Use Once')}
+              </div>
               <div className="eb-text-xs eb-font-normal eb-text-muted-foreground">
-                For this payment only
+                {t(
+                  'bankAccountForm.useOnceDescription',
+                  'For this payment only'
+                )}
               </div>
             </div>
           </Button>
@@ -478,7 +495,7 @@ export function BankAccountFormWrapper({
           className="eb-flex eb-items-center eb-gap-1 eb-text-sm eb-text-primary hover:eb-underline disabled:eb-opacity-50"
         >
           <ArrowLeft className="eb-h-3.5 eb-w-3.5" />
-          Edit recipient details
+          {t('bankAccountForm.editRecipientDetails', 'Edit recipient details')}
         </button>
       </div>
     );
@@ -491,17 +508,26 @@ export function BankAccountFormWrapper({
       <div className="eb-px-1">
         <h2 className="eb-text-lg eb-font-semibold">
           {formType === 'linked-account'
-            ? 'Link My Account'
+            ? t('bankAccountForm.linkMyAccountTitle', 'Link My Account')
             : isEditing
-              ? 'Edit Recipient'
-              : 'Add Recipient'}
+              ? t('bankAccountForm.editRecipientTitle', 'Edit Recipient')
+              : t('bankAccountForm.addRecipientTitle', 'Add Recipient')}
         </h2>
         <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
           {formType === 'linked-account'
-            ? 'Connect your account from another bank for transfers.'
+            ? t(
+                'bankAccountForm.linkMyAccountDescription',
+                'Connect your account from another bank for transfers.'
+              )
             : isEditing
-              ? 'Update the recipient details below.'
-              : 'Add a new person or business to send payments to.'}
+              ? t(
+                  'bankAccountForm.editRecipientDescription',
+                  'Update the recipient details below.'
+                )
+              : t(
+                  'bankAccountForm.addRecipientDescription',
+                  'Add a new person or business to send payments to.'
+                )}
         </p>
         {/* Switch option link */}
         {formType === 'linked-account' && onSwitchToRecipient && (
@@ -510,7 +536,10 @@ export function BankAccountFormWrapper({
             onClick={onSwitchToRecipient}
             className="eb-mt-2 eb-text-sm eb-text-primary eb-underline-offset-4 hover:eb-underline"
           >
-            Or add an external recipient instead
+            {t(
+              'bankAccountForm.switchToRecipient',
+              'Or add an external recipient instead'
+            )}
           </button>
         )}
         {formType === 'recipient' && onSwitchToLinkedAccount && !isEditing && (
@@ -519,7 +548,10 @@ export function BankAccountFormWrapper({
             onClick={onSwitchToLinkedAccount}
             className="eb-mt-2 eb-text-sm eb-text-primary eb-underline-offset-4 hover:eb-underline"
           >
-            Or link my account instead
+            {t(
+              'bankAccountForm.switchToLinkedAccount',
+              'Or link my account instead'
+            )}
           </button>
         )}
       </div>

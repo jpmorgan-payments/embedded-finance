@@ -1,29 +1,8 @@
 'use client';
 
 import React from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { Building2, Link2 } from 'lucide-react';
-
-interface PayeeTypeOption {
-  type: 'link-account' | 'add-recipient';
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-}
-
-const PAYEE_TYPE_OPTIONS: PayeeTypeOption[] = [
-  {
-    type: 'link-account',
-    title: 'Link My Account',
-    description: 'Transfer to another account you own at a different bank',
-    icon: <Link2 className="eb-h-6 eb-w-6 eb-text-primary" />,
-  },
-  {
-    type: 'add-recipient',
-    title: 'Add a Recipient',
-    description: 'Send money to someone else (person or business)',
-    icon: <Building2 className="eb-h-6 eb-w-6 eb-text-primary" />,
-  },
-];
 
 interface PayeeTypeSelectorProps {
   onSelect: (type: 'link-account' | 'add-recipient') => void;
@@ -38,14 +17,39 @@ export function PayeeTypeSelector({
   onSelect,
   onCancel,
 }: PayeeTypeSelectorProps) {
+  const { t } = useTranslationWithTokens(['make-payment']);
+
+  const payeeTypeOptions = [
+    {
+      type: 'link-account' as const,
+      title: t('payeeType.linkAccountTitle', 'Link My Account'),
+      description: t(
+        'payeeType.linkAccountDescription',
+        'Transfer to another account you own at a different bank'
+      ),
+      icon: <Link2 className="eb-h-6 eb-w-6 eb-text-primary" />,
+    },
+    {
+      type: 'add-recipient' as const,
+      title: t('payeeType.addRecipientTitle', 'Add a Recipient'),
+      description: t(
+        'payeeType.addRecipientDescription',
+        'Send money to someone else (person or business)'
+      ),
+      icon: <Building2 className="eb-h-6 eb-w-6 eb-text-primary" />,
+    },
+  ];
+
   return (
     <div className="eb-space-y-6">
       <div>
-        <h2 className="eb-text-lg eb-font-semibold">What type of payee?</h2>
+        <h2 className="eb-text-lg eb-font-semibold">
+          {t('payeeType.title', 'What type of payee?')}
+        </h2>
       </div>
 
       <div className="eb-space-y-3">
-        {PAYEE_TYPE_OPTIONS.map((option) => (
+        {payeeTypeOptions.map((option) => (
           <button
             key={option.type}
             type="button"
@@ -83,7 +87,7 @@ export function PayeeTypeSelector({
         onClick={onCancel}
         className="eb-w-full eb-text-center eb-text-sm eb-text-muted-foreground hover:eb-text-foreground"
       >
-        Cancel
+        {t('payeeType.cancelButton', 'Cancel')}
       </button>
     </div>
   );

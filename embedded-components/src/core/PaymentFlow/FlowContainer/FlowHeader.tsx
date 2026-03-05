@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { ArrowLeft } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -19,10 +20,13 @@ interface FlowHeaderProps {
  * Displays the header with back button (when in sub-view) and title
  */
 export function FlowHeader({ title, className }: FlowHeaderProps) {
+  const { tString } = useTranslationWithTokens(['make-payment']);
   const { currentView, canGoBack, popView } = useFlowContext();
 
   const displayTitle =
-    title ?? FLOW_VIEW_TITLES[currentView] ?? 'Transfer Funds';
+    title ??
+    FLOW_VIEW_TITLES[currentView] ??
+    tString('flowHeader.defaultTitle', 'Transfer Funds');
 
   return (
     <header
@@ -39,7 +43,10 @@ export function FlowHeader({ title, className }: FlowHeaderProps) {
             size="sm"
             onClick={popView}
             className="eb--ml-2 eb-h-8 eb-w-8 eb-p-0"
-            aria-label="Go back to previous screen"
+            aria-label={tString(
+              'flowHeader.backButtonAriaLabel',
+              'Go back to previous screen'
+            )}
           >
             <ArrowLeft className="eb-h-4 eb-w-4" aria-hidden="true" />
           </Button>

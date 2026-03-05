@@ -183,5 +183,17 @@
     "soleOwner": "Sole Owner",
     "individualIds": "Individual IDs"
   },
-  "emptyValue": "—"
+  "emptyValue": "—",
+  "statusBadge": {
+    "approved": "Approved",
+    "active": "Active",
+    "new": "New",
+    "inReview": "In Review",
+    "infoRequested": "Info Requested",
+    "declined": "Declined",
+    "suspended": "Suspended",
+    "terminated": "Terminated",
+    "notStarted": "Not Started",
+    "unknown": "Unknown"
+  }
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Banknote, Building2, Zap } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -99,6 +100,8 @@ export function AddRecipientForm({
   onCancel,
   isSubmitting = false,
 }: AddRecipientFormProps) {
+  const { t, tString } = useTranslationWithTokens(['make-payment']);
+
   const form = useForm<AddRecipientFormData>({
     resolver: zodResolver(addRecipientSchema),
     defaultValues: {
@@ -136,7 +139,9 @@ export function AddRecipientForm({
         {preSelectedPaymentMethod && (
           <div className="eb-rounded-lg eb-border eb-bg-muted/30 eb-p-3">
             <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm">
-              <span className="eb-text-muted-foreground">Payment Method:</span>
+              <span className="eb-text-muted-foreground">
+                {t('addRecipient.paymentMethodLabel', 'Payment Method:')}
+              </span>
               <span className="eb-font-medium">
                 {
                   availablePaymentMethods.find(
@@ -153,7 +158,7 @@ export function AddRecipientForm({
                   // Allow changing - would need to expose this
                 }}
               >
-                Change
+                {t('addRecipient.changeButton', 'Change')}
               </Button>
             </div>
           </div>
@@ -165,7 +170,9 @@ export function AddRecipientForm({
           name="recipientType"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Recipient Type</FormLabel>
+              <FormLabel>
+                {t('addRecipient.recipientTypeLabel', 'Recipient Type')}
+              </FormLabel>
               <div className="eb-flex eb-gap-3">
                 <Button
                   type="button"
@@ -173,7 +180,7 @@ export function AddRecipientForm({
                   className="eb-flex-1"
                   onClick={() => field.onChange('INDIVIDUAL')}
                 >
-                  Individual
+                  {t('addRecipient.individual', 'Individual')}
                 </Button>
                 <Button
                   type="button"
@@ -181,7 +188,7 @@ export function AddRecipientForm({
                   className="eb-flex-1"
                   onClick={() => field.onChange('BUSINESS')}
                 >
-                  Business
+                  {t('addRecipient.business', 'Business')}
                 </Button>
               </div>
             </FormItem>
@@ -196,9 +203,17 @@ export function AddRecipientForm({
               name="firstName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>First Name *</FormLabel>
+                  <FormLabel>
+                    {t('addRecipient.firstNameLabel', 'First Name *')}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="John" {...field} />
+                    <Input
+                      placeholder={tString(
+                        'addRecipient.firstNamePlaceholder',
+                        'John'
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -209,9 +224,17 @@ export function AddRecipientForm({
               name="lastName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Last Name *</FormLabel>
+                  <FormLabel>
+                    {t('addRecipient.lastNameLabel', 'Last Name *')}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="Doe" {...field} />
+                    <Input
+                      placeholder={tString(
+                        'addRecipient.lastNamePlaceholder',
+                        'Doe'
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -224,9 +247,17 @@ export function AddRecipientForm({
             name="businessName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Business Name *</FormLabel>
+                <FormLabel>
+                  {t('addRecipient.businessNameLabel', 'Business Name *')}
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="Acme Corp" {...field} />
+                  <Input
+                    placeholder={tString(
+                      'addRecipient.businessNamePlaceholder',
+                      'Acme Corp'
+                    )}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -236,16 +267,26 @@ export function AddRecipientForm({
 
         {/* Bank Account Details */}
         <div className="eb-space-y-4">
-          <h3 className="eb-font-medium">Bank Account</h3>
+          <h3 className="eb-font-medium">
+            {t('addRecipient.bankAccountSection', 'Bank Account')}
+          </h3>
 
           <FormField
             control={form.control}
             name="bankName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Bank Name *</FormLabel>
+                <FormLabel>
+                  {t('addRecipient.bankNameLabel', 'Bank Name *')}
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="Chase Bank" {...field} />
+                  <Input
+                    placeholder={tString(
+                      'addRecipient.bankNamePlaceholder',
+                      'Chase Bank'
+                    )}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -258,9 +299,17 @@ export function AddRecipientForm({
               name="accountNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Account Number *</FormLabel>
+                  <FormLabel>
+                    {t('addRecipient.accountNumberLabel', 'Account Number *')}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="123456789" {...field} />
+                    <Input
+                      placeholder={tString(
+                        'addRecipient.accountNumberPlaceholder',
+                        '123456789'
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -271,9 +320,18 @@ export function AddRecipientForm({
               name="routingNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Routing Number *</FormLabel>
+                  <FormLabel>
+                    {t('addRecipient.routingNumberLabel', 'Routing Number *')}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="021000021" maxLength={9} {...field} />
+                    <Input
+                      placeholder={tString(
+                        'addRecipient.routingNumberPlaceholder',
+                        '021000021'
+                      )}
+                      maxLength={9}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -286,10 +344,17 @@ export function AddRecipientForm({
         {!preSelectedPaymentMethod && (
           <div className="eb-space-y-4">
             <div>
-              <h3 className="eb-font-medium">Enable Payment Methods</h3>
+              <h3 className="eb-font-medium">
+                {t(
+                  'addRecipient.enablePaymentMethodsTitle',
+                  'Enable Payment Methods'
+                )}
+              </h3>
               <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
-                Select which payment methods to enable. You can enable more
-                methods later.
+                {t(
+                  'addRecipient.enablePaymentMethodsDescription',
+                  'Select which payment methods to enable. You can enable more methods later.'
+                )}
               </p>
             </div>
 
@@ -341,13 +406,18 @@ export function AddRecipientForm({
                                 </span>
                                 {isACH && (
                                   <span className="eb-text-xs eb-text-muted-foreground">
-                                    (always included)
+                                    {t(
+                                      'addRecipient.alwaysIncluded',
+                                      '(always included)'
+                                    )}
                                   </span>
                                 )}
                               </div>
                               {method.fee !== undefined && method.fee > 0 && (
                                 <div className="eb-mt-0.5 eb-text-sm eb-text-muted-foreground">
-                                  ${method.fee} fee
+                                  {t('addRecipient.feeLabel', '{{fee}} fee', {
+                                    fee: `$${method.fee}`,
+                                  })}
                                 </div>
                               )}
                             </div>
@@ -361,10 +431,18 @@ export function AddRecipientForm({
                                 name="beneficiaryAddress"
                                 render={({ field: addressField }) => (
                                   <FormItem>
-                                    <FormLabel>Beneficiary Address *</FormLabel>
+                                    <FormLabel>
+                                      {t(
+                                        'addRecipient.beneficiaryAddressLabel',
+                                        'Beneficiary Address *'
+                                      )}
+                                    </FormLabel>
                                     <FormControl>
                                       <Input
-                                        placeholder="123 Main St"
+                                        placeholder={tString(
+                                          'addRecipient.addressPlaceholder',
+                                          '123 Main St'
+                                        )}
                                         {...addressField}
                                       />
                                     </FormControl>
@@ -379,10 +457,15 @@ export function AddRecipientForm({
                                   name="beneficiaryCity"
                                   render={({ field: cityField }) => (
                                     <FormItem>
-                                      <FormLabel>City *</FormLabel>
+                                      <FormLabel>
+                                        {t('addRecipient.cityLabel', 'City *')}
+                                      </FormLabel>
                                       <FormControl>
                                         <Input
-                                          placeholder="New York"
+                                          placeholder={tString(
+                                            'addRecipient.cityPlaceholder',
+                                            'New York'
+                                          )}
                                           {...cityField}
                                         />
                                       </FormControl>
@@ -395,10 +478,18 @@ export function AddRecipientForm({
                                   name="beneficiaryState"
                                   render={({ field: stateField }) => (
                                     <FormItem>
-                                      <FormLabel>State *</FormLabel>
+                                      <FormLabel>
+                                        {t(
+                                          'addRecipient.stateLabel',
+                                          'State *'
+                                        )}
+                                      </FormLabel>
                                       <FormControl>
                                         <Input
-                                          placeholder="NY"
+                                          placeholder={tString(
+                                            'addRecipient.statePlaceholder',
+                                            'NY'
+                                          )}
                                           maxLength={2}
                                           {...stateField}
                                         />
@@ -412,10 +503,15 @@ export function AddRecipientForm({
                                   name="beneficiaryZip"
                                   render={({ field: zipField }) => (
                                     <FormItem>
-                                      <FormLabel>ZIP *</FormLabel>
+                                      <FormLabel>
+                                        {t('addRecipient.zipLabel', 'ZIP *')}
+                                      </FormLabel>
                                       <FormControl>
                                         <Input
-                                          placeholder="10001"
+                                          placeholder={tString(
+                                            'addRecipient.zipPlaceholder',
+                                            '10001'
+                                          )}
                                           {...zipField}
                                         />
                                       </FormControl>
@@ -430,10 +526,18 @@ export function AddRecipientForm({
                                 name="bankAddress"
                                 render={({ field: bankAddrField }) => (
                                   <FormItem>
-                                    <FormLabel>Bank Address *</FormLabel>
+                                    <FormLabel>
+                                      {t(
+                                        'addRecipient.bankAddressLabel',
+                                        'Bank Address *'
+                                      )}
+                                    </FormLabel>
                                     <FormControl>
                                       <Input
-                                        placeholder="270 Park Avenue, New York, NY"
+                                        placeholder={tString(
+                                          'addRecipient.bankAddressPlaceholder',
+                                          '270 Park Avenue, New York, NY'
+                                        )}
                                         {...bankAddrField}
                                       />
                                     </FormControl>
@@ -448,11 +552,17 @@ export function AddRecipientForm({
                                 render={({ field: swiftField }) => (
                                   <FormItem>
                                     <FormLabel>
-                                      SWIFT/BIC Code (Optional)
+                                      {t(
+                                        'addRecipient.swiftBicLabel',
+                                        'SWIFT/BIC Code (Optional)'
+                                      )}
                                     </FormLabel>
                                     <FormControl>
                                       <Input
-                                        placeholder="CHASUS33"
+                                        placeholder={tString(
+                                          'addRecipient.swiftBicPlaceholder',
+                                          'CHASUS33'
+                                        )}
                                         {...swiftField}
                                       />
                                     </FormControl>
@@ -476,16 +586,29 @@ export function AddRecipientForm({
         {/* Wire Fields (when pre-selected) */}
         {preSelectedPaymentMethod === 'WIRE' && (
           <div className="eb-space-y-4">
-            <h3 className="eb-font-medium">Wire Transfer Details</h3>
+            <h3 className="eb-font-medium">
+              {t('addRecipient.wireTransferDetails', 'Wire Transfer Details')}
+            </h3>
 
             <FormField
               control={form.control}
               name="beneficiaryAddress"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Beneficiary Address *</FormLabel>
+                  <FormLabel>
+                    {t(
+                      'addRecipient.beneficiaryAddressLabel',
+                      'Beneficiary Address *'
+                    )}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="123 Main St" {...field} />
+                    <Input
+                      placeholder={tString(
+                        'addRecipient.addressPlaceholder',
+                        '123 Main St'
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -498,9 +621,17 @@ export function AddRecipientForm({
                 name="beneficiaryCity"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>City *</FormLabel>
+                    <FormLabel>
+                      {t('addRecipient.cityLabel', 'City *')}
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="New York" {...field} />
+                      <Input
+                        placeholder={tString(
+                          'addRecipient.cityPlaceholder',
+                          'New York'
+                        )}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -511,9 +642,18 @@ export function AddRecipientForm({
                 name="beneficiaryState"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>State *</FormLabel>
+                    <FormLabel>
+                      {t('addRecipient.stateLabel', 'State *')}
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="NY" maxLength={2} {...field} />
+                      <Input
+                        placeholder={tString(
+                          'addRecipient.statePlaceholder',
+                          'NY'
+                        )}
+                        maxLength={2}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -524,9 +664,15 @@ export function AddRecipientForm({
                 name="beneficiaryZip"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>ZIP *</FormLabel>
+                    <FormLabel>{t('addRecipient.zipLabel', 'ZIP *')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="10001" {...field} />
+                      <Input
+                        placeholder={tString(
+                          'addRecipient.zipPlaceholder',
+                          '10001'
+                        )}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -539,10 +685,15 @@ export function AddRecipientForm({
               name="bankAddress"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Bank Address *</FormLabel>
+                  <FormLabel>
+                    {t('addRecipient.bankAddressLabel', 'Bank Address *')}
+                  </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="270 Park Avenue, New York, NY"
+                      placeholder={tString(
+                        'addRecipient.bankAddressPlaceholder',
+                        '270 Park Avenue, New York, NY'
+                      )}
                       {...field}
                     />
                   </FormControl>
@@ -561,10 +712,12 @@ export function AddRecipientForm({
             onClick={onCancel}
             className="eb-flex-1"
           >
-            Cancel
+            {t('addRecipient.cancelButton', 'Cancel')}
           </Button>
           <Button type="submit" disabled={isSubmitting} className="eb-flex-1">
-            {isSubmitting ? 'Saving...' : 'Save & Continue'}
+            {isSubmitting
+              ? t('addRecipient.savingButton', 'Saving...')
+              : t('addRecipient.saveButton', 'Save & Continue')}
           </Button>
         </div>
       </form>

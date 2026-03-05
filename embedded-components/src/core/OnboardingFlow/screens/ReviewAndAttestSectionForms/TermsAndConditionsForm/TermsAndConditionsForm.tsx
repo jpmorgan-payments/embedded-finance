@@ -259,8 +259,10 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
             <Alert variant="destructive" noTitle>
               <AlertCircleIcon className="eb-h-4 eb-w-4" />
               <AlertDescription>
-                Please open the document links and confirm that you have read
-                and agree to all documents.
+                {t(
+                  'reviewAndAttest.termsAndConditions.openDocumentsAlert',
+                  'Please open the document links and confirm that you have read and agree to all documents.'
+                )}
               </AlertDescription>
             </Alert>
           )}
@@ -289,7 +291,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
                         {query?.isFetching ||
                         loadingDocuments[id] ||
                         !query?.data
-                          ? 'Loading...'
+                          ? t('common:loading', 'Loading...')
                           : query?.data?.documentType}
                       </p>
                       <ExternalLinkIcon className="eb-text-[#12647E]" />
@@ -304,12 +306,20 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
                   </Button>
                   {query?.data?.id && documentErrors[query?.data.id] && (
                     <div className="eb-ml-1 eb-text-sm eb-text-destructive">
-                      Failed to download document: {documentErrors[id]}
+                      {t(
+                        'reviewAndAttest.termsAndConditions.failedToDownload',
+                        'Failed to download document:'
+                      )}{' '}
+                      {documentErrors[id]}
                     </div>
                   )}
                   {!query && documentErrors[id] && (
                     <div className="eb-ml-1 eb-text-sm eb-text-destructive">
-                      Failed to fetch document details: {documentErrors[id]}
+                      {t(
+                        'reviewAndAttest.termsAndConditions.failedToFetchDetails',
+                        'Failed to fetch document details:'
+                      )}{' '}
+                      {documentErrors[id]}
                     </div>
                   )}
                 </div>
@@ -317,7 +327,12 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
             })}
           </div>
           <div className="eb-space-y-1">
-            <p className="eb-text-sm eb-font-medium">Document attestation</p>
+            <p className="eb-text-sm eb-font-medium">
+              {t(
+                'reviewAndAttest.termsAndConditions.documentAttestation',
+                'Document attestation'
+              )}
+            </p>
             <FormField
               control={form.control}
               name="attested"
@@ -333,8 +348,10 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
                       />
                     </FormControl>
                     <FormLabel className="eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
-                      I have read and agree to all of the documents listed on
-                      this page
+                      {t(
+                        'reviewAndAttest.termsAndConditions.agreeToDocuments',
+                        'I have read and agree to all of the documents listed on this page'
+                      )}
                     </FormLabel>
                   </div>
                   <FormMessage />
@@ -346,8 +363,10 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
             <Alert variant="informative" noTitle>
               <InfoIcon className="eb-h-4 eb-w-4" />
               <AlertDescription>
-                You must open and review all documents before selecting the
-                checkbox
+                {t(
+                  'reviewAndAttest.termsAndConditions.mustReviewDocuments',
+                  'You must open and review all documents before selecting the checkbox'
+                )}
               </AlertDescription>
             </Alert>
           )}

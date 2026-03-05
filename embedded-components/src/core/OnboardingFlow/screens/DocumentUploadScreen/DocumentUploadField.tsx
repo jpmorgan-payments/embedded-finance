@@ -1,4 +1,5 @@
 import { FC, useEffect, useState } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { Control, useWatch } from 'react-hook-form';
 
 import { compressImage } from '@/lib/utils';
@@ -73,6 +74,8 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
   maxFileSizeBytes,
   isOnlyFieldShown = false,
 }) => {
+  const { t, tString } = useTranslationWithTokens(['onboarding-overview']);
+
   // Camera detection state
   const [enableCameraCapture, setEnableCameraCapture] =
     useState<boolean>(false);
@@ -161,7 +164,9 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
     <div>
       {!isOnlyFieldShown && (
         <h3 className="eb-mb-3 eb-font-header eb-text-lg eb-font-medium">
-          Document {uploadIndex + 1}
+          {t('documentUpload.documentNumber', 'Document {{number}}', {
+            number: uploadIndex + 1,
+          })}
         </h3>
       )}
       {/* Document Type Selection */}
@@ -174,10 +179,10 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
               asterisk={!isOptional}
               className="eb-text-sm eb-font-medium eb-text-gray-700"
             >
-              Select Document Type
+              {t('documentUpload.selectDocumentType', 'Select Document Type')}
               {isOptional && (
                 <span className="eb-ml-2 eb-text-xs eb-font-normal eb-text-gray-500">
-                  (Optional)
+                  {t('documentUpload.optional', '(Optional)')}
                 </span>
               )}
             </FormLabel>
@@ -188,7 +193,12 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
                 disabled={isReadOnly}
               >
                 <SelectTrigger className="eb-w-full">
-                  <SelectValue placeholder="Select a document type" />
+                  <SelectValue
+                    placeholder={tString(
+                      'documentUpload.selectPlaceholder',
+                      'Select a document type'
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {availableDocTypes.map((docType) => (
@@ -214,10 +224,10 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
               asterisk={!isOptional}
               className="eb-text-sm eb-font-medium eb-text-gray-700"
             >
-              Upload Document
+              {t('documentUpload.uploadDocument', 'Upload Document')}
               {isOptional && (
                 <span className="eb-ml-2 eb-text-xs eb-font-normal eb-text-gray-500">
-                  (Optional)
+                  {t('documentUpload.optional', '(Optional)')}
                 </span>
               )}
             </FormLabel>

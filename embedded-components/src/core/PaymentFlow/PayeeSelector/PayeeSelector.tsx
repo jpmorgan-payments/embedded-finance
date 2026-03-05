@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import {
   AlertCircle,
   AlertTriangle,
@@ -75,13 +76,23 @@ export function PayeeSelector({
   isLoadingMoreLinkedAccounts = false,
   totalLinkedAccounts: _totalLinkedAccounts,
   recipientsRestricted = false,
-  recipientsRestrictedMessage = 'This account type cannot send payments to external recipients. Please select a linked account instead.',
+  recipientsRestrictedMessage,
   showRestrictionWarning = false,
   recipientsError = false,
   linkedAccountsError = false,
   onRetryRecipients,
   onRetryLinkedAccounts,
 }: PayeeSelectorFullProps) {
+  const { t, tString } = useTranslationWithTokens(['make-payment']);
+
+  // Get default message from translations
+  const defaultRestrictionMessage = tString(
+    'payeeSelector.recipientsRestrictedDefaultMessage',
+    'This account type cannot send payments to external recipients. Please select a linked account instead.'
+  );
+  const restrictionMessage =
+    recipientsRestrictedMessage ?? defaultRestrictionMessage;
+
   // Default to linked-accounts tab when recipients are restricted
   const [activeTab, setActiveTab] = useState<'recipients' | 'linked-accounts'>(
     recipientsRestricted ? 'linked-accounts' : 'recipients'
@@ -251,10 +262,16 @@ export function PayeeSelector({
           </div>
           <div className="eb-space-y-1">
             <p className="eb-text-sm eb-font-medium eb-text-foreground">
-              Unable to load recipients
+              {t(
+                'payeeSelector.unableToLoadRecipients',
+                'Unable to load recipients'
+              )}
             </p>
             <p className="eb-text-xs eb-text-muted-foreground">
-              We couldn&apos;t load your recipients. Please try again.
+              {t(
+                'payeeSelector.loadRecipientsError',
+                "We couldn't load your recipients. Please try again."
+              )}
             </p>
           </div>
           {onRetryRecipients && (
@@ -265,7 +282,7 @@ export function PayeeSelector({
               className="eb-mt-1"
             >
               <RefreshCw className="eb-mr-2 eb-h-3 eb-w-3" />
-              Retry
+              {t('payeeSelector.retryButton', 'Retry')}
             </Button>
           )}
         </div>
@@ -278,6 +295,7 @@ export function PayeeSelector({
           type="recipients"
           hasSearch={!!searchQuery.trim()}
           searchQuery={searchQuery}
+          t={t}
         />
       ) : (
         <ScrollArea
@@ -303,7 +321,7 @@ export function PayeeSelector({
               <div className="eb-flex eb-items-center eb-justify-center eb-py-3">
                 <span className="eb-flex eb-items-center eb-gap-1.5 eb-text-xs eb-text-muted-foreground">
                   <Loader2 className="eb-h-3 eb-w-3 eb-animate-spin" />
-                  Searching...
+                  {t('payeeSelector.searchingStatus', 'Searching...')}
                 </span>
               </div>
             )}
@@ -317,7 +335,7 @@ export function PayeeSelector({
                 {isLoadingMoreRecipients && (
                   <span className="eb-flex eb-items-center eb-gap-1.5 eb-text-xs eb-text-muted-foreground">
                     <Loader2 className="eb-h-3 eb-w-3 eb-animate-spin" />
-                    Loading more...
+                    {t('payeeSelector.loadingMoreStatus', 'Loading more...')}
                   </span>
                 )}
               </div>
@@ -328,7 +346,7 @@ export function PayeeSelector({
 
       {/* Add New - footer button */}
       <AddNewPayeeButton
-        label="Add New Recipient"
+        label={tString('payeeSelector.addNewRecipient', 'Add New Recipient')}
         onClick={handleAddRecipient}
       />
     </>
@@ -343,10 +361,16 @@ export function PayeeSelector({
           </div>
           <div className="eb-space-y-1">
             <p className="eb-text-sm eb-font-medium eb-text-foreground">
-              Unable to load linked accounts
+              {t(
+                'payeeSelector.unableToLoadLinkedAccounts',
+                'Unable to load linked accounts'
+              )}
             </p>
             <p className="eb-text-xs eb-text-muted-foreground">
-              We couldn&apos;t load your linked accounts. Please try again.
+              {t(
+                'payeeSelector.loadLinkedAccountsError',
+                "We couldn't load your linked accounts. Please try again."
+              )}
             </p>
           </div>
           {onRetryLinkedAccounts && (
@@ -357,7 +381,7 @@ export function PayeeSelector({
               className="eb-mt-1"
             >
               <RefreshCw className="eb-mr-2 eb-h-3 eb-w-3" />
-              Retry
+              {t('payeeSelector.retryButton', 'Retry')}
             </Button>
           )}
         </div>
@@ -370,6 +394,7 @@ export function PayeeSelector({
           type="linked-accounts"
           hasSearch={!!searchQuery.trim()}
           searchQuery={searchQuery}
+          t={t}
         />
       ) : (
         <ScrollArea
@@ -395,7 +420,7 @@ export function PayeeSelector({
               <div className="eb-flex eb-items-center eb-justify-center eb-py-3">
                 <span className="eb-flex eb-items-center eb-gap-1.5 eb-text-xs eb-text-muted-foreground">
                   <Loader2 className="eb-h-3 eb-w-3 eb-animate-spin" />
-                  Searching...
+                  {t('payeeSelector.searchingStatus', 'Searching...')}
                 </span>
               </div>
             )}
@@ -409,7 +434,7 @@ export function PayeeSelector({
                 {isLoadingMoreLinkedAccounts && (
                   <span className="eb-flex eb-items-center eb-gap-1.5 eb-text-xs eb-text-muted-foreground">
                     <Loader2 className="eb-h-3 eb-w-3 eb-animate-spin" />
-                    Loading more...
+                    {t('payeeSelector.loadingMoreStatus', 'Loading more...')}
                   </span>
                 )}
               </div>
@@ -419,7 +444,10 @@ export function PayeeSelector({
       )}
 
       {/* Add New - footer button */}
-      <AddNewPayeeButton label="Link New Account" onClick={handleLinkAccount} />
+      <AddNewPayeeButton
+        label={tString('payeeSelector.linkNewAccount', 'Link New Account')}
+        onClick={handleLinkAccount}
+      />
     </>
   );
 
@@ -436,9 +464,13 @@ export function PayeeSelector({
             aria-hidden="true"
           />
           <div className="eb-text-amber-800">
-            <span className="eb-font-medium">Recipient cleared.</span> The
-            selected account type can only send payments to linked accounts.
-            Please select a linked account below.
+            <span className="eb-font-medium">
+              {t('payeeSelector.recipientClearedTitle', 'Recipient cleared.')}
+            </span>{' '}
+            {t(
+              'payeeSelector.recipientClearedMessage',
+              'The selected account type can only send payments to linked accounts. Please select a linked account below.'
+            )}
           </div>
         </div>
       )}
@@ -452,7 +484,10 @@ export function PayeeSelector({
       >
         <TabsList
           className="eb-h-auto eb-w-full eb-flex-col @md:eb-h-9 @md:eb-flex-row"
-          aria-label="Payee type selection"
+          aria-label={tString(
+            'payeeSelector.tabsAriaLabel',
+            'Payee type selection'
+          )}
         >
           <TabsTrigger
             value="recipients"
@@ -472,7 +507,9 @@ export function PayeeSelector({
                 aria-hidden="true"
               />
             )}
-            Recipients ({recipients.length})
+            {t('payeeSelector.recipientsTab', 'Recipients ({{count}})', {
+              count: recipients.length,
+            })}
           </TabsTrigger>
           <TabsTrigger
             value="linked-accounts"
@@ -482,7 +519,11 @@ export function PayeeSelector({
               className="eb-h-3.5 eb-w-3.5 eb-shrink-0"
               aria-hidden="true"
             />
-            Linked Accounts ({linkedAccounts.length})
+            {t(
+              'payeeSelector.linkedAccountsTab',
+              'Linked Accounts ({{count}})',
+              { count: linkedAccounts.length }
+            )}
           </TabsTrigger>
         </TabsList>
 
@@ -501,16 +542,28 @@ export function PayeeSelector({
                 <Input
                   placeholder={
                     activeTab === 'recipients'
-                      ? 'Search recipients...'
-                      : 'Search linked accounts...'
+                      ? tString(
+                          'payeeSelector.searchRecipientsPlaceholder',
+                          'Search recipients...'
+                        )
+                      : tString(
+                          'payeeSelector.searchLinkedAccountsPlaceholder',
+                          'Search linked accounts...'
+                        )
                   }
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="eb-h-9 eb-rounded-none eb-border-0 eb-bg-transparent eb-pl-8 eb-text-sm focus-visible:eb-ring-0 focus-visible:eb-ring-offset-0"
                   aria-label={
                     activeTab === 'recipients'
-                      ? 'Search recipients'
-                      : 'Search linked accounts'
+                      ? tString(
+                          'payeeSelector.searchRecipientsAriaLabel',
+                          'Search recipients'
+                        )
+                      : tString(
+                          'payeeSelector.searchLinkedAccountsAriaLabel',
+                          'Search linked accounts'
+                        )
                   }
                 />
               </div>
@@ -519,7 +572,7 @@ export function PayeeSelector({
           {/* List content */}
           <TabsContent value="recipients" className="eb-mt-0">
             {recipientsRestricted ? (
-              <RestrictionMessage message={recipientsRestrictedMessage} />
+              <RestrictionMessage message={restrictionMessage} t={t} />
             ) : (
               recipientsContent
             )}
@@ -534,11 +587,23 @@ export function PayeeSelector({
   );
 }
 
+type TranslationFn = (
+  key: string,
+  fallback: string,
+  options?: Record<string, unknown>
+) => React.ReactNode;
+
 /**
  * RestrictionMessage component
  * Shows a message when recipients are restricted due to account type
  */
-function RestrictionMessage({ message }: { message: string }) {
+function RestrictionMessage({
+  message,
+  t,
+}: {
+  message: string;
+  t: TranslationFn;
+}) {
   return (
     <div
       role="status"
@@ -552,7 +617,7 @@ function RestrictionMessage({ message }: { message: string }) {
         />
       </div>
       <div className="eb-font-medium eb-text-foreground">
-        Recipients Not Available
+        {t('payeeSelector.recipientsNotAvailable', 'Recipients Not Available')}
       </div>
       <div className="eb-mt-1 eb-max-w-[280px] eb-text-sm eb-text-muted-foreground">
         {message}
@@ -565,9 +630,10 @@ interface EmptyStateProps {
   type: 'recipients' | 'linked-accounts';
   hasSearch: boolean;
   searchQuery: string;
+  t: TranslationFn;
 }
 
-function EmptyState({ type, hasSearch, searchQuery }: EmptyStateProps) {
+function EmptyState({ type, hasSearch, searchQuery, t }: EmptyStateProps) {
   const Icon = type === 'recipients' ? User : Link;
 
   if (hasSearch) {
@@ -578,8 +644,17 @@ function EmptyState({ type, hasSearch, searchQuery }: EmptyStateProps) {
         className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-py-8 eb-text-center"
       >
         <div className="eb-text-sm eb-text-muted-foreground">
-          No {type === 'recipients' ? 'recipients' : 'accounts'} match &ldquo;
-          {searchQuery}&rdquo;
+          {type === 'recipients'
+            ? t(
+                'payeeSelector.noRecipientsMatch',
+                'No recipients match "{{query}}"',
+                { query: searchQuery }
+              )
+            : t(
+                'payeeSelector.noAccountsMatch',
+                'No accounts match "{{query}}"',
+                { query: searchQuery }
+              )}
         </div>
       </div>
     );
@@ -595,12 +670,20 @@ function EmptyState({ type, hasSearch, searchQuery }: EmptyStateProps) {
         <Icon className="eb-h-6 eb-w-6 eb-text-primary" aria-hidden="true" />
       </div>
       <div className="eb-font-medium">
-        {type === 'recipients' ? 'No recipients yet' : 'No linked accounts'}
+        {type === 'recipients'
+          ? t('payeeSelector.noRecipientsYet', 'No recipients yet')
+          : t('payeeSelector.noLinkedAccounts', 'No linked accounts')}
       </div>
       <div className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
         {type === 'recipients'
-          ? 'Add a recipient to send money to people or businesses.'
-          : 'Link your bank accounts for transfer of funds.'}
+          ? t(
+              'payeeSelector.addRecipientHint',
+              'Add a recipient to send money to people or businesses.'
+            )
+          : t(
+              'payeeSelector.linkAccountHint',
+              'Link your bank accounts for transfer of funds.'
+            )}
       </div>
     </div>
   );
