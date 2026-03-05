@@ -3,11 +3,14 @@
  * from GET /clients/:id. Supports summary, accordion and cards view modes.
  */
 
-import { useMemo } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useMemo, useState } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
+import { AlertCircle, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
+import { useServerError } from '@/components/ServerErrorAlert';
+import { Button } from '@/components/ui';
 
 import { CLIENT_DETAILS_DEFAULT_VIEW_MODE } from './ClientDetails.constants';
 import type { ClientDetailsProps } from './ClientDetails.types';
@@ -30,15 +33,20 @@ export function ClientDetails({
   actions,
 }: ClientDetailsProps) {
   const { t } = useTranslationWithTokens('client-details');
+  const [showErrorDetails, setShowErrorDetails] = useState(false);
 
   const {
     data: client,
     isLoading,
     isError,
     error,
+    refetch,
   } = useSmbdoGetClient(clientId, {
     query: { enabled: !!clientId },
   });
+
+  // Parse error for custom rendering
+  const errorInfo = useServerError(error);
 
   // Build section info for navigation - uses t() with template literals for dynamic keys
   // Sections are data-driven: only include sections that have relevant data
@@ -138,18 +146,216 @@ export function ClientDetails({
   }
 
   if (isError || !client) {
-    const message =
-      error && typeof error === 'object' && 'message' in error
-        ? String((error as { message?: string }).message)
-        : t('errors.loadFailed');
+    // Custom error content using useServerError hook
+    const errorMessage = errorInfo?.getErrorMessage({
+      '400': t('errors.badRequest'),
+      '401': t('errors.unauthorized'),
+      '403': t('errors.forbidden'),
+      '404': t('errors.notFound'),
+      '500': t('errors.serverError'),
+      default: t('errors.loadFailedDefault'),
+    });
+
+    // Simple, unified error state for summary view
+    if (viewMode === 'summary') {
+      return (
+        <div
+          className={cn(
+            'eb-component eb-w-full eb-overflow-hidden eb-rounded-lg eb-border eb-border-border eb-bg-card eb-shadow-sm eb-@container',
+            className
+          )}
+        >
+          <div className="eb-flex eb-flex-col eb-items-center eb-px-6 eb-py-10 eb-text-center">
+            <div className="eb-mb-4 eb-flex eb-h-14 eb-w-14 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
+              <AlertCircle className="eb-h-7 eb-w-7 eb-text-destructive" />
+            </div>
+            <h3 className="eb-text-lg eb-font-semibold eb-text-foreground">
+              {t('errors.unableToLoad')}
+            </h3>
+            <p className="eb-mt-2 eb-max-w-xs eb-text-sm eb-text-muted-foreground">
+              {errorMessage}
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              className="eb-mt-5"
+            >
+              <RefreshCw className="eb-mr-2 eb-h-4 eb-w-4" />
+              {t('errors.tryAgain')}
+            </Button>
+
+            {/* Expandable details */}
+            {errorInfo?.hasDetails && (
+              <div className="eb-mt-4 eb-w-full eb-max-w-sm">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowErrorDetails(!showErrorDetails)}
+                  className="eb-text-xs eb-text-muted-foreground"
+                >
+                  {showErrorDetails ? (
+                    <ChevronUp className="eb-mr-1 eb-h-3 eb-w-3" />
+                  ) : (
+                    <ChevronDown className="eb-mr-1 eb-h-3 eb-w-3" />
+                  )}
+                  {showErrorDetails
+                    ? t('errors.hideDetails')
+                    : t('errors.showDetails')}
+                </Button>
+
+                {showErrorDetails && (
+                  <div className="eb-mt-2 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-3 eb-text-left eb-text-xs">
+                    {errorInfo.httpStatus && (
+                      <div className="eb-mb-2">
+                        <span className="eb-font-medium">Status:</span>{' '}
+                        {errorInfo.httpStatus}
+                        {errorInfo.title && ` - ${errorInfo.title}`}
+                      </div>
+                    )}
+                    {errorInfo.reasons.length > 0 && (
+                      <div className="eb-mb-2">
+                        <span className="eb-font-medium">Reasons:</span>
+                        <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
+                          {errorInfo.reasons.map((reason: any, i: number) => (
+                            <li key={i}>
+                              {reason.field && (
+                                <span className="eb-font-medium">
+                                  {reason.field}:{' '}
+                                </span>
+                              )}
+                              {reason.message || reason}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {errorInfo.context.length > 0 && (
+                      <div>
+                        <span className="eb-font-medium">Context:</span>
+                        <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
+                          {errorInfo.context.map((ctx: any, i: number) => (
+                            <li key={i}>
+                              {ctx.field && (
+                                <span className="eb-font-medium">
+                                  {ctx.field}:{' '}
+                                </span>
+                              )}
+                              {ctx.message}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Accordion and Cards view modes - simple centered error
     return (
       <div
         className={cn(
-          'eb-component eb-w-full eb-rounded-lg eb-border eb-border-destructive/50 eb-bg-destructive/10 eb-p-4 eb-text-sm eb-text-destructive',
+          'eb-component eb-flex eb-w-full eb-max-w-full eb-flex-col',
           className
         )}
       >
-        {message}
+        <header className="eb-flex eb-min-h-[48px] eb-items-center eb-border-b eb-border-border eb-px-4 eb-py-3 @md:eb-px-6">
+          <h1 className="eb-text-base eb-font-semibold eb-tracking-tight">
+            {t('title')}
+          </h1>
+        </header>
+        <div className="eb-flex eb-flex-1 eb-flex-col eb-items-center eb-justify-center eb-px-4 eb-py-12 eb-text-center @md:eb-px-6">
+          <div className="eb-mb-4 eb-flex eb-h-14 eb-w-14 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
+            <AlertCircle className="eb-h-7 eb-w-7 eb-text-destructive" />
+          </div>
+          <h3 className="eb-text-lg eb-font-semibold eb-text-foreground">
+            {t('errors.unableToLoad')}
+          </h3>
+          <p className="eb-mt-2 eb-max-w-xs eb-text-sm eb-text-muted-foreground">
+            {errorMessage}
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            className="eb-mt-5"
+          >
+            <RefreshCw className="eb-mr-2 eb-h-4 eb-w-4" />
+            {t('errors.tryAgain')}
+          </Button>
+
+          {/* Expandable details */}
+          {errorInfo?.hasDetails && (
+            <div className="eb-mt-4 eb-w-full eb-max-w-sm">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowErrorDetails(!showErrorDetails)}
+                className="eb-text-xs eb-text-muted-foreground"
+              >
+                {showErrorDetails ? (
+                  <ChevronUp className="eb-mr-1 eb-h-3 eb-w-3" />
+                ) : (
+                  <ChevronDown className="eb-mr-1 eb-h-3 eb-w-3" />
+                )}
+                {showErrorDetails
+                  ? t('errors.hideDetails')
+                  : t('errors.showDetails')}
+              </Button>
+
+              {showErrorDetails && (
+                <div className="eb-mt-2 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-3 eb-text-left eb-text-xs">
+                  {errorInfo.httpStatus && (
+                    <div className="eb-mb-2">
+                      <span className="eb-font-medium">Status:</span>{' '}
+                      {errorInfo.httpStatus}
+                      {errorInfo.title && ` - ${errorInfo.title}`}
+                    </div>
+                  )}
+                  {errorInfo.reasons.length > 0 && (
+                    <div className="eb-mb-2">
+                      <span className="eb-font-medium">Reasons:</span>
+                      <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
+                        {errorInfo.reasons.map((reason: any, i: number) => (
+                          <li key={i}>
+                            {reason.field && (
+                              <span className="eb-font-medium">
+                                {reason.field}:{' '}
+                              </span>
+                            )}
+                            {reason.message || reason}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {errorInfo.context.length > 0 && (
+                    <div>
+                      <span className="eb-font-medium">Context:</span>
+                      <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
+                        {errorInfo.context.map((ctx: any, i: number) => (
+                          <li key={i}>
+                            {ctx.field && (
+                              <span className="eb-font-medium">
+                                {ctx.field}:{' '}
+                              </span>
+                            )}
+                            {ctx.message}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     );
   }

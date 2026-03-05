@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import { useQueries } from '@tanstack/react-query';
 import {
   AlertCircle,
@@ -508,7 +508,7 @@ function MainTransferView({
     setValidationErrors,
     isSubmitting,
   } = useFlowContext();
-  const { t } = useTranslationWithTokens('accounts');
+  const { t, tString } = useTranslationWithTokens(['make-payment']);
 
   // Helper to get translated category label
   const getCategoryLabel = useCallback(
@@ -870,7 +870,7 @@ function MainTransferView({
       {/* FROM ACCOUNT Section - Now first */}
       <StepSection
         stepNumber={1}
-        title="From"
+        title={tString('stepSection.fromAccount', 'From')}
         isComplete={hasAccount}
         isActive={activeStep === PANEL_IDS.FROM_ACCOUNT}
         hasError={hasPanelError(PANEL_IDS.FROM_ACCOUNT)}
@@ -1008,7 +1008,7 @@ function MainTransferView({
       {/* TO PAYEE Section - Now second */}
       <StepSection
         stepNumber={2}
-        title="To"
+        title={tString('stepSection.toPayee', 'To')}
         isComplete={hasPayee && !!selectedPayee}
         isActive={activeStep === PANEL_IDS.PAYEE}
         hasError={hasPanelError(PANEL_IDS.PAYEE)}
@@ -1021,7 +1021,9 @@ function MainTransferView({
         onHeaderClick={() => setActiveStep(PANEL_IDS.PAYEE)}
         onCollapse={handleCollapse}
         disabledReason={
-          !hasAccount && !selectedPayee ? 'Select account first' : undefined
+          !hasAccount && !selectedPayee
+            ? tString('stepSection.selectAccountFirst', 'Select account first')
+            : undefined
         }
         disabled={isSubmitting}
         sectionRef={payeeSectionRef}
@@ -1045,7 +1047,10 @@ function MainTransferView({
                       {formData.unsavedRecipient.accountNumber.slice(-4)}
                     </div>
                     <div className="eb-mt-1 eb-text-xs eb-text-muted-foreground">
-                      One-time recipient (not saved)
+                      {t(
+                        'unsavedRecipient.notSaved',
+                        'One-time recipient (not saved)'
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1058,7 +1063,10 @@ function MainTransferView({
                     <AlertCircle className="eb-h-4 eb-w-4 eb-shrink-0" />
                     <span>
                       {(saveUnsavedRecipientError as any)?.message ||
-                        'Failed to save recipient. Please try again.'}
+                        tString(
+                          'unsavedRecipient.saveError',
+                          'Failed to save recipient. Please try again.'
+                        )}
                     </span>
                   </div>
                 )}
@@ -1072,7 +1080,7 @@ function MainTransferView({
                     disabled={isSavingUnsavedRecipient}
                   >
                     <Pencil className="eb-h-3.5 eb-w-3.5" />
-                    Edit
+                    {t('unsavedRecipient.editButton', 'Edit')}
                   </Button>
                   <Button
                     type="button"
@@ -1087,7 +1095,9 @@ function MainTransferView({
                     ) : (
                       <Save className="eb-h-3.5 eb-w-3.5" />
                     )}
-                    {isSavingUnsavedRecipient ? 'Saving...' : 'Save'}
+                    {isSavingUnsavedRecipient
+                      ? t('unsavedRecipient.savingButton', 'Saving...')
+                      : t('unsavedRecipient.saveButton', 'Save')}
                   </Button>
                 </div>
               </div>
@@ -1098,7 +1108,10 @@ function MainTransferView({
               onClick={onClearUnsavedRecipient}
               className="eb-text-sm eb-text-primary hover:eb-underline"
             >
-              Choose a different recipient
+              {t(
+                'unsavedRecipient.chooseDifferent',
+                'Choose a different recipient'
+              )}
             </button>
           </div>
         ) : (
@@ -1132,14 +1145,18 @@ function MainTransferView({
       {/* PAYMENT METHOD Section - Now third/last */}
       <StepSection
         stepNumber={3}
-        title="Payment Method"
+        title={tString('stepSection.paymentMethod', 'Payment Method')}
         isComplete={hasPaymentMethod}
         isActive={activeStep === PANEL_IDS.PAYMENT_METHOD}
         hasError={hasPanelError(PANEL_IDS.PAYMENT_METHOD)}
         summary={selectedMethod?.name}
         onHeaderClick={() => setActiveStep(PANEL_IDS.PAYMENT_METHOD)}
         onCollapse={handleCollapse}
-        disabledReason={!hasPayee ? 'Select payee first' : undefined}
+        disabledReason={
+          !hasPayee
+            ? tString('stepSection.selectPayeeFirst', 'Select payee first')
+            : undefined
+        }
         isLast
         disabled={isSubmitting}
         sectionRef={paymentMethodSectionRef}
@@ -1149,7 +1166,10 @@ function MainTransferView({
           <div className="eb-flex eb-items-center eb-gap-2 eb-py-3 eb-text-sm eb-text-muted-foreground">
             <Loader2 className="eb-h-4 eb-w-4 eb-animate-spin" />
             <span>
-              Loading recipient details to show available payment methods...
+              {t(
+                'paymentMethod.loadingRecipientDetails',
+                'Loading recipient details to show available payment methods...'
+              )}
             </span>
           </div>
         ) : (
@@ -1176,10 +1196,10 @@ function MainTransferView({
               hasPanelError(PANEL_IDS.AMOUNT) && 'eb-text-destructive'
             )}
           >
-            Amount
+            {t('amountSection.amountLabel', 'Amount')}
             {hasPanelError(PANEL_IDS.AMOUNT) && (
               <span className="eb-ml-1 eb-text-xs eb-font-normal">
-                (Required)
+                {t('amountSection.required', '(Required)')}
               </span>
             )}
           </label>
@@ -1252,14 +1272,17 @@ function MainTransferView({
             htmlFor="memo"
             className="eb-mb-1.5 eb-block eb-text-sm eb-font-medium"
           >
-            Memo{' '}
+            {t('amountSection.memoLabel', 'Memo')}{' '}
             <span className="eb-font-normal eb-text-muted-foreground">
-              (optional)
+              {t('amountSection.optional', '(optional)')}
             </span>
           </label>
           <Textarea
             id="memo"
-            placeholder="Add a note..."
+            placeholder={tString(
+              'amountSection.memoPlaceholder',
+              'Add a note...'
+            )}
             value={formData.memo ?? ''}
             onChange={(e) => onMemoChange(e.target.value)}
             rows={2}

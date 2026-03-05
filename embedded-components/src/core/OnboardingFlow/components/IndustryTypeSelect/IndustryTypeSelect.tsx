@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { ControllerRenderProps } from 'react-hook-form';
 import { VariableSizeList as List } from 'react-window';
@@ -38,6 +39,7 @@ export const IndustryTypeSelect = ({
   placeholder,
   onChange,
 }: IndustryTypeSelectProps) => {
+  const { tString } = useTranslationWithTokens(['onboarding-old']);
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { onBlur: _onBlur, ...fieldWithoutBlur } = field;
@@ -225,7 +227,8 @@ export const IndustryTypeSelect = ({
                   </span>
                 </div>
               ) : (
-                (placeholder ?? 'Select industry type')
+                (placeholder ??
+                tString('industrySelect.placeholder', 'Select industry type'))
               )}
               <ChevronsUpDown className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
             </Button>
@@ -238,14 +241,22 @@ export const IndustryTypeSelect = ({
         >
           <Command shouldFilter={false}>
             <CommandInput
-              placeholder={placeholder ?? 'Search industry type...'}
+              placeholder={
+                placeholder ??
+                tString(
+                  'industrySelect.searchPlaceholder',
+                  'Search industry type...'
+                )
+              }
               className="eb-h-9"
               value={searchQuery}
               onValueChange={setSearchQuery}
               autoFocus
             />
             <CommandList className="eb-max-h-[300px]">
-              <CommandEmpty>No results found</CommandEmpty>
+              <CommandEmpty>
+                {tString('industrySelect.noResults', 'No results found')}
+              </CommandEmpty>
               <div className="eb-relative" style={{ height: 300 }}>
                 {/* Only render the list when needed - use internalOpen to maintain during animations */}
                 {internalOpen && (

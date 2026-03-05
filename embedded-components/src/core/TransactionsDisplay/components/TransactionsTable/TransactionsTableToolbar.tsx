@@ -1,4 +1,4 @@
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import { Table } from '@tanstack/react-table';
 import { X } from 'lucide-react';
 

@@ -1,4 +1,5 @@
-import { Fragment, useEffect, useMemo } from 'react';
+import { Fragment, useCallback, useEffect, useMemo } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
@@ -44,7 +45,36 @@ import {
   MONEY_INPUT_QUESTION_IDS,
 } from './OperationalDetailsForm.schema';
 
+/**
+ * Extract question ID from API error message.
+ * Matches patterns like "question with ID [30002]" or similar.
+ */
+const extractQuestionIdFromMessage = (message: string): string | null => {
+  const match = message.match(/\[(\d+)\]/);
+  return match ? match[1] : null;
+};
+
+/**
+ * Format API error message to be more user-friendly.
+ * Extracts the actionable part from verbose server messages.
+ */
+const formatErrorMessage = (message: string): string => {
+  // Extract the hint in brackets at the end of the message, e.g., "[Please use a 2-letter ISO country code.]"
+  const hintMatch = message.match(/\[([^\]]+)\]\.?$/);
+  if (hintMatch) {
+    return hintMatch[1];
+  }
+
+  // If no hint found, try to simplify the message
+  if (message.includes('is not supported')) {
+    return 'The value entered is not supported. Please select a valid option.';
+  }
+
+  return message;
+};
+
 export const OperationalDetailsForm = () => {
+  const { t, tString } = useTranslationWithTokens(['onboarding-old', 'common']);
   const queryClient = useQueryClient();
   const { clientData } = useOnboardingContext();
 
@@ -228,13 +258,17 @@ export const OperationalDetailsForm = () => {
                       <FormControl>
                         <RadioGroupItem value="true" />
                       </FormControl>
-                      <FormLabel className="eb-font-normal">Yes</FormLabel>
+                      <FormLabel className="eb-font-normal">
+                        {t('common:yes', 'Yes')}
+                      </FormLabel>
                     </FormItem>
                     <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
                       <FormControl>
                         <RadioGroupItem value="false" />
                       </FormControl>
-                      <FormLabel className="eb-font-normal">No</FormLabel>
+                      <FormLabel className="eb-font-normal">
+                        {t('common:no', 'No')}
+                      </FormLabel>
                     </FormItem>
                   </RadioGroup>
                 </FormControl>
@@ -309,7 +343,12 @@ export const OperationalDetailsForm = () => {
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select an option" />
+                        <SelectValue
+                          placeholder={tString(
+                            'operationalDetails.selectPlaceholder',
+                            'Select an option'
+                          )}
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -402,6 +441,66 @@ export const OperationalDetailsForm = () => {
     defaultValues,
   });
 
+  /**
+   * Parse API error context and set field-level errors on the form.
+   * Extracts question IDs from error messages and maps them to form fields.
+   * Returns the first field name with an error for focusing.
+   */
+  const setFieldErrorsFromApiError = useCallback(
+    (error: typeof updateClientError): string | null => {
+      if (!error) return null;
+
+      const context = error.response?.data?.context;
+      if (!context || !Array.isArray(context)) return null;
+
+      const questions = questionsData?.questions ?? [];
+      let firstErrorField: string | null = null;
+
+      context.forEach(
+        (item: { code?: string; field?: string; message?: string }) => {
+          if (!item.message) return;
+
+          const questionId = extractQuestionIdFromMessage(item.message);
+          if (!questionId) return;
+
+          // Verify this question exists in our form
+          const questionExists = questions.some((q) => q.id === questionId);
+          if (!questionExists) return;
+
+          const fieldName = `question_${questionId}`;
+          const userFriendlyMessage = formatErrorMessage(item.message);
+
+          form.setError(fieldName, {
+            type: 'server',
+            message: userFriendlyMessage,
+          });
+
+          // Track the first error field for focusing
+          if (!firstErrorField) {
+            firstErrorField = fieldName;
+          }
+        }
+      );
+
+      return firstErrorField;
+    },
+    [form, questionsData?.questions]
+  );
+
+  // Handle API errors by setting field-level errors and focusing the first invalid field
+  useEffect(() => {
+    if (updateClientError && updateClientStatus === 'error') {
+      const firstErrorField = setFieldErrorsFromApiError(updateClientError);
+
+      // Focus the first field with an error after a short delay to ensure DOM is updated
+      if (firstErrorField) {
+        setTimeout(() => {
+          form.setFocus(firstErrorField);
+        }, 100);
+      }
+    }
+  }, [updateClientError, updateClientStatus, setFieldErrorsFromApiError, form]);
+
   const isQuestionVisible = (question: QuestionResponse) => {
     if (!question.parentQuestionId) return true;
 
@@ -458,7 +557,10 @@ export const OperationalDetailsForm = () => {
     if (!questionsData) {
       return (
         <div className="eb-text-muted-foreground">
-          There are no additional questions. You may proceed to the next step.
+          {t(
+            'operationalDetails.noQuestions',
+            'There are no additional questions. You may proceed to the next step.'
+          )}
         </div>
       );
     }
@@ -496,25 +598,35 @@ export const OperationalDetailsForm = () => {
     questionsFetchStatus === 'pending' || updateClientStatus === 'pending';
 
   if (questionsFetchStatus === 'pending') {
-    return <FormLoadingState message="Loading questions..." />;
+    return (
+      <FormLoadingState
+        message={tString(
+          'operationalDetails.loadingQuestions',
+          'Loading questions...'
+        )}
+      />
+    );
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="eb-space-y-6">
         <StepLayout
-          title="Operational details"
+          title={tString('operationalDetails.title', 'Operational details')}
           headerElement={
             <Button
               variant="outline"
               size="sm"
               onClick={() => goTo('overview')}
             >
-              Overview
+              {t('common:overview', 'Overview')}
               <MenuIcon />
             </Button>
           }
-          description="Please answer these additional questions to help us understand your business operations."
+          description={tString(
+            'operationalDetails.description',
+            'Please answer these additional questions to help us understand your business operations.'
+          )}
         >
           <div className="eb-mt-6 eb-flex-auto eb-space-y-6">
             {renderQuestions()}
@@ -532,8 +644,14 @@ export const OperationalDetailsForm = () => {
                 <Loader2Icon className="eb-animate-spin" />
               )}
               {reviewMode
-                ? 'Save and return to review'
-                : 'Save and continue to review'}
+                ? t(
+                    'operationalDetails.saveAndReturn',
+                    'Save and return to review'
+                  )
+                : t(
+                    'operationalDetails.saveAndContinue',
+                    'Save and continue to review'
+                  )}
             </Button>
           </div>
         </StepLayout>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import * as LucideIcons from 'lucide-react';
 import { FormProvider } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid';

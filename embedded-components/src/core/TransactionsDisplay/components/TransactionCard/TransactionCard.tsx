@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 
 import { useLocale } from '@/lib/hooks';
 import { Badge } from '@/components/ui/badge';

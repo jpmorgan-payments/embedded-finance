@@ -78,6 +78,7 @@
     }
   },
   "pagination": {
+    "showing": "Showing {{from}} to {{to}} of {{total}}",
     "rowsTotal": "{{count}} row(s) total",
     "rowsPerPage": "Rows per page",
     "pageInfo": "Page {{current}} of {{total}}",

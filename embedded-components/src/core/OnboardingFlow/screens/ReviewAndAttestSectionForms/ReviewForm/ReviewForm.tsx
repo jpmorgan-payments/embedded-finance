@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   AlertTriangle,
@@ -196,17 +196,23 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
           <Alert variant="informative" noTitle>
             <InfoIcon className="eb-h-4 eb-w-4" />
             <AlertDescription>
-              Your application is not submitted yet. Review your data and
-              continue to finish.
+              {t(
+                'reviewAndAttest.notSubmittedYet',
+                'Your application is not submitted yet. Review your data and continue to finish.'
+              )}
             </AlertDescription>
           </Alert>
           {isMissingDetails && shouldDisplayAlert && (
             <Alert variant="warning">
               <AlertTriangle className="eb-h-4 eb-w-4" />
-              <AlertTitle>There is a problem</AlertTitle>
+              <AlertTitle>
+                {t('reviewAndAttest.thereIsAProblem', 'There is a problem')}
+              </AlertTitle>
               <AlertDescription>
-                Please provide missing details before finishing your
-                application.
+                {t(
+                  'reviewAndAttest.provideMissingDetails',
+                  'Please provide missing details before finishing your application.'
+                )}
               </AlertDescription>
             </Alert>
           )}
@@ -262,7 +268,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                       <Card className="eb-mt-6 eb-p-4">
                         <div className="eb-flex eb-items-start eb-justify-between">
                           <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
-                            Owners
+                            {t('reviewAndAttest.owners', 'Owners')}
                           </h2>
                           {isSectionCompleted ? (
                             <Button
@@ -273,7 +279,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                               onClick={goToOwners}
                             >
                               <PencilIcon />
-                              Change
+                              {t('common:change', 'Change')}
                             </Button>
                           ) : (
                             <Button
@@ -284,7 +290,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                               onClick={goToOwners}
                             >
                               <PencilIcon />
-                              Add
+                              {t('common:add', 'Add')}
                             </Button>
                           )}
                         </div>
@@ -296,7 +302,10 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                                   <UsersIcon className="eb-size-4 eb-fill-white eb-stroke-white" />
                                 </div>
                                 <p className="eb-text-sm">
-                                  No stakeholders added yet.
+                                  {t(
+                                    'reviewAndAttest.noStakeholders',
+                                    'No stakeholders added yet.'
+                                  )}
                                 </p>
                               </div>
                             </Card>
@@ -323,14 +332,17 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                                     variant="outline"
                                     className="eb-border-transparent eb-bg-[#EDF4FF] eb-text-[#355FA1]"
                                   >
-                                    Owner
+                                    {t('reviewAndAttest.owner', 'Owner')}
                                   </Badge>
                                   {owner.roles?.includes('CONTROLLER') && (
                                     <Badge
                                       variant="outline"
                                       className="eb-border-transparent eb-bg-[#FFEBD9] eb-text-[#8F521F]"
                                     >
-                                      Controller
+                                      {t(
+                                        'reviewAndAttest.controller',
+                                        'Controller'
+                                      )}
                                     </Badge>
                                   )}
                                 </div>
@@ -338,8 +350,10 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                               {owner.id &&
                                 !ownersValidation[owner.id].allStepsValid && (
                                   <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
-                                    {'\u24d8'} This individual is missing some
-                                    details.
+                                    {t(
+                                      'reviewAndAttest.individualMissingDetails',
+                                      '\u24d8 This individual is missing some details.'
+                                    )}
                                   </p>
                                 )}
                             </Card>
@@ -352,7 +366,10 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                       <Card className="eb-mt-6 eb-space-y-3 eb-rounded-lg eb-border eb-p-4">
                         <div className="eb-flex eb-items-start eb-justify-between">
                           <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
-                            Operational details
+                            {t(
+                              'reviewAndAttest.operationalDetails',
+                              'Operational details'
+                            )}
                           </h2>
                           <Button
                             variant="ghost"
@@ -364,7 +381,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                             }}
                           >
                             <PencilIcon />
-                            Change
+                            {t('common:change', 'Change')}
                           </Button>
                         </div>
                         {questionsDetails?.questions?.map((question) => {
@@ -397,7 +414,10 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                                 <div className="eb-flex eb-items-center eb-gap-1 eb-text-warning">
                                   <TriangleAlertIcon className="eb-size-4" />
                                   <p className="eb-italic">
-                                    This field is missing
+                                    {t(
+                                      'reviewAndAttest.fieldIsMissing',
+                                      'This field is missing'
+                                    )}
                                   </p>
                                 </div>
                               </div>
@@ -450,12 +470,17 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                         <div className="eb-ml-auto eb-mr-2 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-normal eb-text-muted-foreground">
                           {isSectionCompleted ? (
                             <>
-                              <p>Complete</p>
+                              <p>{t('reviewAndAttest.complete', 'Complete')}</p>
                               <CheckIcon className="eb-size-4 eb-text-success" />
                             </>
                           ) : (
                             <>
-                              <p>Missing details</p>
+                              <p>
+                                {t(
+                                  'reviewAndAttest.missingDetails',
+                                  'Missing details'
+                                )}
+                              </p>
                               <AlertTriangleIcon className="eb-size-4 eb-text-warning" />
                             </>
                           )}
@@ -471,7 +496,10 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
           </div>
           <div className="eb-space-y-2">
             <p className="eb-text-sm eb-font-medium">
-              Data accuracy attestation
+              {t(
+                'reviewAndAttest.dataAccuracyAttestation',
+                'Data accuracy attestation'
+              )}
             </p>
             <FormField
               control={form.control}
@@ -487,8 +515,10 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                       />
                     </FormControl>
                     <FormLabel className="eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
-                      The data I am providing is true, accurate and complete to
-                      the best of my knowledge.
+                      {t(
+                        'reviewAndAttest.dataAccuracyCheckbox',
+                        'The data I am providing is true, accurate and complete to the best of my knowledge.'
+                      )}
                     </FormLabel>
                   </div>
                   <FormMessage />

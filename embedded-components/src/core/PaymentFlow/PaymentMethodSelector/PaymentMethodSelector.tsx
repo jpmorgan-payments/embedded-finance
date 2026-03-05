@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { Banknote, Building2, Zap } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -46,6 +47,11 @@ interface PaymentMethodOptionProps {
   isLinkedAccount: boolean;
   onSelect: () => void;
   onEnable: () => void;
+  t: (
+    key: string,
+    fallback: string,
+    options?: Record<string, unknown>
+  ) => React.ReactNode;
 }
 
 /**
@@ -59,6 +65,7 @@ function PaymentMethodOption({
   isLinkedAccount,
   onSelect,
   onEnable,
+  t,
 }: PaymentMethodOptionProps) {
   const Icon = getPaymentMethodIcon(method.id);
 
@@ -77,8 +84,15 @@ function PaymentMethodOption({
             {method.name}
           </div>
           <div className="eb-text-xs eb-text-muted-foreground">
-            Not enabled for this{' '}
-            {isLinkedAccount ? 'linked account' : 'recipient'}
+            {isLinkedAccount
+              ? t(
+                  'paymentMethod.notEnabledLinkedAccount',
+                  'Not enabled for this linked account'
+                )
+              : t(
+                  'paymentMethod.notEnabledRecipient',
+                  'Not enabled for this recipient'
+                )}
           </div>
         </div>
 
@@ -88,7 +102,7 @@ function PaymentMethodOption({
           className="eb-h-auto eb-shrink-0 eb-px-2 eb-py-1 eb-text-xs eb-text-primary"
           onClick={onEnable}
         >
-          Enable
+          {t('paymentMethod.enableButton', 'Enable')}
         </Button>
       </div>
     );
@@ -134,11 +148,13 @@ export function PaymentMethodSelector({
   onEnableMethod,
   disabled = false,
 }: PaymentMethodSelectorProps) {
+  const { t } = useTranslationWithTokens(['make-payment']);
+
   if (disabled || !payee) {
     // Disabled state - no payee selected (subtle text only)
     return (
       <div className="eb-py-2 eb-text-center eb-text-sm eb-text-muted-foreground">
-        Select a payee first
+        {t('paymentMethod.selectPayeeFirst', 'Select a payee first')}
       </div>
     );
   }
@@ -161,6 +177,7 @@ export function PaymentMethodSelector({
               isLinkedAccount={isLinkedAccount}
               onSelect={() => onSelect(method.id)}
               onEnable={() => onEnableMethod(method.id)}
+              t={t}
             />
           </React.Fragment>
         );

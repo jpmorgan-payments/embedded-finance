@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import {
   ControllerProps,

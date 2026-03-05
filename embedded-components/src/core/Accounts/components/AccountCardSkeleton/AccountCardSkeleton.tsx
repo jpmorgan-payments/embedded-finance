@@ -1,5 +1,7 @@
 import React from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 
+import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui';
 
@@ -9,6 +11,8 @@ import { Card, CardContent } from '@/components/ui';
 export interface AccountCardSkeletonProps {
   /** Use compact display mode with reduced padding and smaller elements */
   compact?: boolean;
+  /** Hide border and shadow for single account layout */
+  hideBorder?: boolean;
 }
 
 /**
@@ -18,14 +22,18 @@ export interface AccountCardSkeletonProps {
  */
 export const AccountCardSkeleton: React.FC<AccountCardSkeletonProps> = ({
   compact = false,
+  hideBorder = false,
 }) => {
+  const { tString } = useTranslationWithTokens('accounts');
+  const loadingLabel = tString('skeleton.loadingAccount', 'Loading account');
+
   if (compact) {
     return (
       <Card
         className="eb-rounded-none eb-border-x-0 eb-border-t-0 eb-shadow-none"
         role="article"
         aria-busy="true"
-        aria-label="Loading account"
+        aria-label={loadingLabel}
       >
         <CardContent className="eb-flex eb-items-center eb-gap-3 eb-p-3 @sm:eb-px-4 @md:eb-px-5">
           {/* Icon placeholder */}
@@ -54,10 +62,12 @@ export const AccountCardSkeleton: React.FC<AccountCardSkeletonProps> = ({
 
   return (
     <Card
-      className="eb-overflow-hidden"
+      className={cn('eb-overflow-hidden', {
+        'eb-border-0 eb-shadow-none': hideBorder,
+      })}
       role="article"
       aria-busy="true"
-      aria-label="Loading account"
+      aria-label={loadingLabel}
     >
       <CardContent className="eb-flex eb-flex-col eb-p-0">
         {/* Header Section */}

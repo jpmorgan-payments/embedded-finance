@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -52,6 +53,8 @@ export function EnablePaymentMethodForm({
   onCancel,
   isSubmitting = false,
 }: EnablePaymentMethodFormProps) {
+  const { t, tString } = useTranslationWithTokens(['make-payment']);
+
   const form = useForm<EnablePaymentMethodFormData>({
     resolver: zodResolver(enablePaymentMethodSchema),
     defaultValues: {
@@ -76,10 +79,19 @@ export function EnablePaymentMethodForm({
     <div className="eb-space-y-6">
       <div>
         <h2 className="eb-text-lg eb-font-semibold">
-          Enable {paymentMethod.name}
+          {t('enablePaymentMethod.title', 'Enable {{methodName}}', {
+            methodName: paymentMethod.name,
+          })}
         </h2>
         <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
-          Enable {paymentMethod.name.toLowerCase()} for {payee.name}
+          {t(
+            'enablePaymentMethod.description',
+            'Enable {{methodName}} for {{payeeName}}',
+            {
+              methodName: paymentMethod.name.toLowerCase(),
+              payeeName: payee.name,
+            }
+          )}
         </p>
       </div>
 
@@ -87,15 +99,19 @@ export function EnablePaymentMethodForm({
       <Card>
         <CardContent className="eb-p-4">
           <div className="eb-text-sm eb-text-muted-foreground">
-            Payee Information
+            {t('enablePaymentMethod.payeeInfoTitle', 'Payee Information')}
           </div>
           <div className="eb-mt-2 eb-space-y-1">
             <div className="eb-flex eb-justify-between">
-              <span className="eb-text-muted-foreground">Name</span>
+              <span className="eb-text-muted-foreground">
+                {t('enablePaymentMethod.nameLabel', 'Name')}
+              </span>
               <span className="eb-font-medium">{payee.name}</span>
             </div>
             <div className="eb-flex eb-justify-between">
-              <span className="eb-text-muted-foreground">Account</span>
+              <span className="eb-text-muted-foreground">
+                {t('enablePaymentMethod.accountLabel', 'Account')}
+              </span>
               <span>{maskedAccount}</span>
             </div>
           </div>
@@ -106,10 +122,17 @@ export function EnablePaymentMethodForm({
       <Form {...form}>
         <form onSubmit={handleSubmit} className="eb-space-y-4">
           <div>
-            <h3 className="eb-font-medium">{paymentMethod.name} Details</h3>
+            <h3 className="eb-font-medium">
+              {t('enablePaymentMethod.detailsTitle', '{{methodName}} Details', {
+                methodName: paymentMethod.name,
+              })}
+            </h3>
             <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
-              Please confirm or provide the following information to enable{' '}
-              {paymentMethod.name.toLowerCase()}.
+              {t(
+                'enablePaymentMethod.detailsDescription',
+                'Please confirm or provide the following information to enable {{methodName}}.',
+                { methodName: paymentMethod.name.toLowerCase() }
+              )}
             </p>
           </div>
 
@@ -118,9 +141,20 @@ export function EnablePaymentMethodForm({
             name="beneficiaryAddress"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Beneficiary Address *</FormLabel>
+                <FormLabel>
+                  {t(
+                    'enablePaymentMethod.beneficiaryAddressLabel',
+                    'Beneficiary Address *'
+                  )}
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="123 Main St" {...field} />
+                  <Input
+                    placeholder={tString(
+                      'enablePaymentMethod.addressPlaceholder',
+                      '123 Main St'
+                    )}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -133,9 +167,17 @@ export function EnablePaymentMethodForm({
               name="beneficiaryCity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>City *</FormLabel>
+                  <FormLabel>
+                    {t('enablePaymentMethod.cityLabel', 'City *')}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="New York" {...field} />
+                    <Input
+                      placeholder={tString(
+                        'enablePaymentMethod.cityPlaceholder',
+                        'New York'
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -146,9 +188,18 @@ export function EnablePaymentMethodForm({
               name="beneficiaryState"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>State *</FormLabel>
+                  <FormLabel>
+                    {t('enablePaymentMethod.stateLabel', 'State *')}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="NY" maxLength={2} {...field} />
+                    <Input
+                      placeholder={tString(
+                        'enablePaymentMethod.statePlaceholder',
+                        'NY'
+                      )}
+                      maxLength={2}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -159,9 +210,17 @@ export function EnablePaymentMethodForm({
               name="beneficiaryZip"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>ZIP *</FormLabel>
+                  <FormLabel>
+                    {t('enablePaymentMethod.zipLabel', 'ZIP *')}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="10001" {...field} />
+                    <Input
+                      placeholder={tString(
+                        'enablePaymentMethod.zipPlaceholder',
+                        '10001'
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -174,10 +233,15 @@ export function EnablePaymentMethodForm({
             name="bankAddress"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Bank Address *</FormLabel>
+                <FormLabel>
+                  {t('enablePaymentMethod.bankAddressLabel', 'Bank Address *')}
+                </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="270 Park Avenue, New York, NY"
+                    placeholder={tString(
+                      'enablePaymentMethod.bankAddressPlaceholder',
+                      '270 Park Avenue, New York, NY'
+                    )}
                     {...field}
                   />
                 </FormControl>
@@ -191,9 +255,20 @@ export function EnablePaymentMethodForm({
             name="swiftBic"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>SWIFT/BIC Code (Optional)</FormLabel>
+                <FormLabel>
+                  {t(
+                    'enablePaymentMethod.swiftBicLabel',
+                    'SWIFT/BIC Code (Optional)'
+                  )}
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="CHASUS33" {...field} />
+                  <Input
+                    placeholder={tString(
+                      'enablePaymentMethod.swiftBicPlaceholder',
+                      'CHASUS33'
+                    )}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -208,10 +283,12 @@ export function EnablePaymentMethodForm({
               onClick={onCancel}
               className="eb-flex-1"
             >
-              Cancel
+              {t('enablePaymentMethod.cancelButton', 'Cancel')}
             </Button>
             <Button type="submit" disabled={isSubmitting} className="eb-flex-1">
-              {isSubmitting ? 'Enabling...' : 'Enable & Continue'}
+              {isSubmitting
+                ? t('enablePaymentMethod.enablingButton', 'Enabling...')
+                : t('enablePaymentMethod.enableButton', 'Enable & Continue')}
             </Button>
           </div>
         </form>

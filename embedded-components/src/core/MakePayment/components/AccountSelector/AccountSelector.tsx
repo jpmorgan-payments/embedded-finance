@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import { X } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 

@@ -1,21 +1,28 @@
-import type { ComponentProps } from 'react';
 import {
   forwardRef,
   useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
 } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
-import { Landmark } from 'lucide-react';
+import { useTranslationWithTokens } from '@/i18n';
+import {
+  AlertCircle,
+  ChevronDown,
+  ChevronUp,
+  Landmark,
+  RefreshCw,
+} from 'lucide-react';
 
 import { getChildHeadingLevel } from '@/lib/types/headingLevel.types';
 import { cn } from '@/lib/utils';
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import { useGetAccounts } from '@/api/generated/ep-accounts';
 import type { AccountResponse } from '@/api/generated/ep-accounts.schemas';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ServerErrorAlert } from '@/components/ServerErrorAlert';
+import { useServerError } from '@/components/ServerErrorAlert';
 
 import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
 import { ACCOUNTS_USER_JOURNEYS } from './Accounts.constants';
@@ -44,6 +51,9 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
     // Get the tag for child headings (e.g., 'h3' when main heading is 'h2')
     const ChildHeading = `h${childHeadingLevel}` as const;
 
+    // State for error details expansion
+    const [showErrorDetails, setShowErrorDetails] = useState(false);
+
     const { data, isLoading, isError, error, refetch } = useGetAccounts(
       clientId ? { clientId } : undefined,
       {
@@ -52,6 +62,17 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
         },
       }
     );
+
+    // Parse error for custom display
+    const errorInfo = useServerError(error);
+    const errorMessage = errorInfo?.getErrorMessage({
+      '400': t('accounts:error.badRequest', {
+        defaultValue: 'Invalid request. Please check your parameters.',
+      }),
+      default: t('accounts:error.loadFailed', {
+        defaultValue: 'Failed to load accounts. Please try again.',
+      }),
+    });
 
     const filteredAccounts = useMemo(() => {
       if (!data?.items) return [];
@@ -129,37 +150,115 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
           <CardContent
             className={cn(
               'eb-space-y-4 eb-transition-all eb-duration-300 eb-ease-in-out',
-              isSingleAccount ? 'eb-p-0' : 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4'
+              isSingleAccount || isLoading || !interceptorReady
+                ? 'eb-p-0'
+                : 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4'
             )}
           >
             {/* Loading state with skeleton */}
             {(isLoading || !interceptorReady) && (
-              <div className="eb-grid eb-grid-cols-1 eb-gap-3">
-                <AccountCardSkeleton />
-              </div>
+              <AccountCardSkeleton hideBorder />
             )}
 
             {/* Error state */}
             {isError && (
-              <ServerErrorAlert
-                customTitle={t('accounts:error.title', {
-                  defaultValue: 'Unable to load accounts',
-                })}
-                customErrorMessage={{
-                  default: t('accounts:error.loadFailed', {
-                    defaultValue: 'Failed to load accounts. Please try again.',
-                  }),
-                  400: t('accounts:error.badRequest', {
-                    defaultValue:
-                      'Invalid request. Please check your parameters.',
-                  }),
-                }}
-                error={
-                  error as ComponentProps<typeof ServerErrorAlert>['error']
-                }
-                tryAgainAction={refetch}
-                showDetails
-              />
+              <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-2 eb-py-6 eb-text-center">
+                <div className="eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
+                  <AlertCircle className="eb-h-6 eb-w-6 eb-text-destructive" />
+                </div>
+                <div className="eb-space-y-1">
+                  <ChildHeading className="eb-text-sm eb-font-semibold eb-text-foreground">
+                    {t('accounts:error.title', {
+                      defaultValue: 'Unable to load accounts',
+                    })}
+                  </ChildHeading>
+                  <p className="eb-max-w-xs eb-text-xs eb-text-muted-foreground">
+                    {errorMessage}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetch()}
+                  className="eb-mt-2"
+                >
+                  <RefreshCw className="eb-mr-2 eb-h-4 eb-w-4" />
+                  {t('common:tryAgain', { defaultValue: 'Try again' })}
+                </Button>
+
+                {/* Expandable details */}
+                {errorInfo?.hasDetails && (
+                  <div className="eb-mt-2 eb-w-full eb-max-w-sm">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowErrorDetails(!showErrorDetails)}
+                      className="eb-text-xs eb-text-muted-foreground"
+                    >
+                      {showErrorDetails ? (
+                        <ChevronUp className="eb-mr-1 eb-h-3 eb-w-3" />
+                      ) : (
+                        <ChevronDown className="eb-mr-1 eb-h-3 eb-w-3" />
+                      )}
+                      {showErrorDetails
+                        ? t('common:hideDetails', {
+                            defaultValue: 'Hide details',
+                          })
+                        : t('common:showDetails', {
+                            defaultValue: 'Show details',
+                          })}
+                    </Button>
+
+                    {showErrorDetails && (
+                      <div className="eb-mt-2 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-3 eb-text-left eb-text-xs">
+                        {errorInfo.httpStatus && (
+                          <div className="eb-mb-2">
+                            <span className="eb-font-medium">Status:</span>{' '}
+                            {errorInfo.httpStatus}
+                            {errorInfo.title && ` - ${errorInfo.title}`}
+                          </div>
+                        )}
+                        {errorInfo.reasons.length > 0 && (
+                          <div className="eb-mb-2">
+                            <span className="eb-font-medium">Reasons:</span>
+                            <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
+                              {errorInfo.reasons.map(
+                                (reason: any, i: number) => (
+                                  <li key={i}>
+                                    {reason.field && (
+                                      <span className="eb-font-medium">
+                                        {reason.field}:{' '}
+                                      </span>
+                                    )}
+                                    {reason.message || reason}
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                        {errorInfo.context.length > 0 && (
+                          <div>
+                            <span className="eb-font-medium">Context:</span>
+                            <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
+                              {errorInfo.context.map((ctx: any, i: number) => (
+                                <li key={i}>
+                                  {ctx.field && (
+                                    <span className="eb-font-medium">
+                                      {ctx.field}:{' '}
+                                    </span>
+                                  )}
+                                  {ctx.message}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Empty state */}

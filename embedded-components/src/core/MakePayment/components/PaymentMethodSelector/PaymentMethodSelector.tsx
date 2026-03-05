@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import { ArrowRightLeftIcon, BanknoteIcon, ZapIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 

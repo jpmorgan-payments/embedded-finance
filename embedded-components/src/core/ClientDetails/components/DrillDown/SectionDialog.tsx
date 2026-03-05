@@ -3,7 +3,7 @@
  * Following the RecipientDetailsDialog pattern from RecipientsWidget
  */
 
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 
 import { cn } from '@/lib/utils';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';

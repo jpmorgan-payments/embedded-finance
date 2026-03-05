@@ -139,12 +139,18 @@ describe('ClientDetails', () => {
       renderComponent({ clientId: 'nonexistent-client' });
 
       await waitFor(() => {
-        expect(
-          screen.getByText(
-            /Failed to load client details|Request failed with status code 404/i
-          )
-        ).toBeInTheDocument();
+        expect(screen.getByText(/Unable to load client/i)).toBeInTheDocument();
       });
+
+      // Check for the error description
+      expect(
+        screen.getByText(/The requested client could not be found/i)
+      ).toBeInTheDocument();
+
+      // Check for the retry button
+      expect(
+        screen.getByRole('button', { name: /Try again/i })
+      ).toBeInTheDocument();
     });
   });
 

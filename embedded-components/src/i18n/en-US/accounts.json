@@ -48,5 +48,8 @@
     "ITBD": "Current Balance",
     "ITAV_description": "Funds you can use now, including pending credits and minus holds.",
     "ITBD_description": "Balance from settled transactions; may not reflect pending activity."
+  },
+  "skeleton": {
+    "loadingAccount": "Loading account"
   }
 }

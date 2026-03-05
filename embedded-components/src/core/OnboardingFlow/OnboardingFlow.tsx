@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 
 import { cn } from '@/lib/utils';

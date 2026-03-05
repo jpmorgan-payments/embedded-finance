@@ -39,6 +39,30 @@ import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 // ============================================================================
 
 /**
+ * Statuses that are only valid for LINKED_ACCOUNT type and should be converted
+ * to ACTIVE when using RECIPIENT type.
+ */
+const LINKED_ACCOUNT_ONLY_STATUSES: RecipientStatus[] = [
+  'MICRODEPOSITS_INITIATED',
+  'READY_FOR_VALIDATION',
+];
+
+/**
+ * Converts a linked account status to a valid recipient status.
+ * Microdeposit-related statuses are converted to ACTIVE since
+ * RECIPIENT type doesn't support microdeposit verification.
+ *
+ * @param status - The original status (possibly linked-account-specific)
+ * @returns A valid status for RECIPIENT type
+ */
+export const toRecipientStatus = (
+  status: RecipientStatus | undefined
+): RecipientStatus => {
+  if (!status) return 'ACTIVE';
+  return LINKED_ACCOUNT_ONLY_STATUSES.includes(status) ? 'ACTIVE' : status;
+};
+
+/**
  * Configuration options for MSW handler creation and database seeding
  */
 export interface RecipientHandlerOptions {
@@ -470,17 +494,32 @@ export const createRecipientHandlers = (
     }),
 
     // GET /recipients - List all active recipients
-    http.get('/recipients', async (): Promise<Response> => {
+    http.get('/recipients', async ({ request }): Promise<Response> => {
       await sleep(delay);
 
+      const url = new URL(request.url);
+      const typeFilter = url.searchParams.get('type');
+
       const allRecipients = db.recipient.getAll();
-      const activeRecipients = allRecipients.filter(
+      let activeRecipients = allRecipients.filter(
         (r) => r.status !== 'INACTIVE' && r.status !== 'REJECTED'
       );
 
+      // Filter by recipient type if specified
+      if (typeFilter) {
+        activeRecipients = activeRecipients.filter(
+          (r) => r.type === typeFilter
+        );
+      }
+
       debugLog('GET /recipients', {
         total: activeRecipients.length,
-        statuses: activeRecipients.map((r) => ({ id: r.id, status: r.status })),
+        typeFilter,
+        statuses: activeRecipients.map((r) => ({
+          id: r.id,
+          status: r.status,
+          type: r.type,
+        })),
       });
 
       const response: ListRecipientsResponse = {
@@ -557,7 +596,7 @@ export const createRecipientHandlers = (
 
       const newRecipient = db.recipient.create({
         id: `recipient-${Date.now()}`,
-        type: 'LINKED_ACCOUNT',
+        type: recipientType,
         status: createStatus,
         clientId: body?.clientId ?? 'mock-client-id',
         partyDetails: {

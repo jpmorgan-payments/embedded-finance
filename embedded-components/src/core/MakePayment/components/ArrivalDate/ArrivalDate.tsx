@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

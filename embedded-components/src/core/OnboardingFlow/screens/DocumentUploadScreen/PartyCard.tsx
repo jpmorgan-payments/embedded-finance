@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import {
   AlertTriangle,
   CheckCircle2Icon,

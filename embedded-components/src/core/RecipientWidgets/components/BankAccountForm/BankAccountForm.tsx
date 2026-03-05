@@ -1,5 +1,5 @@
 import { FC, ReactNode, useEffect, useMemo, useState } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   ArrowLeftIcon,
@@ -152,9 +152,7 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
                 {isLocked && (
                   <span className="eb-inline-flex eb-items-center eb-gap-1 eb-self-start eb-rounded-full eb-bg-informative-accent eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-informative sm:eb-px-2.5 sm:eb-py-1">
                     <LockIcon className="eb-h-3 eb-w-3 eb-shrink-0" />
-                    <span className="eb-whitespace-nowrap">
-                      {t('paymentMethods.requiredForLinkedAccount')}
-                    </span>
+                    <span>{t('paymentMethods.requiredForLinkedAccount')}</span>
                   </span>
                 )}
               </div>

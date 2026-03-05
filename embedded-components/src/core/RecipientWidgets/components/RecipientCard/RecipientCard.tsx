@@ -1,5 +1,5 @@
 import React from 'react';
-import { TranslationResult, useTranslationWithTokens } from '@/hooks';
+import { TranslationResult, useTranslationWithTokens } from '@/i18n';
 import {
   ArrowRightIcon,
   ClipboardListIcon,

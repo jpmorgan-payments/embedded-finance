@@ -16,6 +16,7 @@ import {
   commonArgs,
   createRecipientHandlers,
   seedRecipientData,
+  toRecipientStatus,
 } from './story-utils';
 
 const meta = {
@@ -74,8 +75,7 @@ export const BasicTracking: Story = {
           linkedAccountListMock.recipients?.map((r) => ({
             ...r,
             type: 'RECIPIENT',
-            status:
-              r.status === 'MICRODEPOSITS_INITIATED' ? 'ACTIVE' : r.status,
+            status: toRecipientStatus(r.status),
           })) ?? [],
       });
     },
@@ -135,8 +135,7 @@ export const DynatraceIntegration: Story = {
           linkedAccountListMock.recipients?.map((r) => ({
             ...r,
             type: 'RECIPIENT',
-            status:
-              r.status === 'MICRODEPOSITS_INITIATED' ? 'ACTIVE' : r.status,
+            status: toRecipientStatus(r.status),
           })) ?? [],
       });
     },
@@ -188,8 +187,7 @@ export const DatadogIntegration: Story = {
           linkedAccountListMock.recipients?.map((r) => ({
             ...r,
             type: 'RECIPIENT',
-            status:
-              r.status === 'MICRODEPOSITS_INITIATED' ? 'ACTIVE' : r.status,
+            status: toRecipientStatus(r.status),
           })) ?? [],
       });
     },
@@ -232,8 +230,7 @@ export const CustomMetadataEnrichment: Story = {
           linkedAccountListMock.recipients?.map((r) => ({
             ...r,
             type: 'RECIPIENT',
-            status:
-              r.status === 'MICRODEPOSITS_INITIATED' ? 'ACTIVE' : r.status,
+            status: toRecipientStatus(r.status),
           })) ?? [],
       });
     },
@@ -273,8 +270,7 @@ export const ErrorTracking: Story = {
           linkedAccountListMock.recipients?.map((r) => ({
             ...r,
             type: 'RECIPIENT',
-            status:
-              r.status === 'MICRODEPOSITS_INITIATED' ? 'ACTIVE' : r.status,
+            status: toRecipientStatus(r.status),
           })) ?? [],
       });
     },

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -45,6 +46,8 @@ export function LinkAccountForm({
   onConnectWithPlaid,
   isSubmitting = false,
 }: LinkAccountFormProps) {
+  const { t, tString } = useTranslationWithTokens(['make-payment']);
+
   const form = useForm<LinkAccountFormData>({
     resolver: zodResolver(linkAccountSchema),
     defaultValues: {
@@ -59,10 +62,14 @@ export function LinkAccountForm({
   return (
     <div className="eb-space-y-6">
       <div>
-        <h2 className="eb-text-lg eb-font-semibold">Link My Account</h2>
+        <h2 className="eb-text-lg eb-font-semibold">
+          {t('linkAccount.title', 'Link My Account')}
+        </h2>
         <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
-          Connect your account from another bank. Linked accounts use ACH
-          transfers.
+          {t(
+            'linkAccount.description',
+            'Connect your account from another bank. Linked accounts use ACH transfers.'
+          )}
         </p>
       </div>
 
@@ -79,9 +86,14 @@ export function LinkAccountForm({
               <Link2 className="eb-h-5 eb-w-5 eb-text-primary" />
             </div>
             <div className="eb-text-left">
-              <div className="eb-font-medium">Connect with Plaid</div>
+              <div className="eb-font-medium">
+                {t('linkAccount.connectWithPlaid', 'Connect with Plaid')}
+              </div>
               <div className="eb-text-sm eb-text-muted-foreground">
-                Securely link using your bank login
+                {t(
+                  'linkAccount.connectWithPlaidDescription',
+                  'Securely link using your bank login'
+                )}
               </div>
             </div>
           </Button>
@@ -92,7 +104,7 @@ export function LinkAccountForm({
             </div>
             <div className="eb-relative eb-flex eb-justify-center eb-text-xs eb-uppercase">
               <span className="eb-bg-background eb-px-2 eb-text-muted-foreground">
-                Or enter details manually
+                {t('linkAccount.orEnterManually', 'Or enter details manually')}
               </span>
             </div>
           </div>
@@ -107,9 +119,17 @@ export function LinkAccountForm({
             name="nickname"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Account Nickname *</FormLabel>
+                <FormLabel>
+                  {t('linkAccount.nicknameLabel', 'Account Nickname *')}
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., My Chase Savings" {...field} />
+                  <Input
+                    placeholder={tString(
+                      'linkAccount.nicknamePlaceholder',
+                      'e.g., My Chase Savings'
+                    )}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -121,9 +141,17 @@ export function LinkAccountForm({
             name="accountNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Account Number *</FormLabel>
+                <FormLabel>
+                  {t('linkAccount.accountNumberLabel', 'Account Number *')}
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="123456789" {...field} />
+                  <Input
+                    placeholder={tString(
+                      'linkAccount.accountNumberPlaceholder',
+                      '123456789'
+                    )}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -135,9 +163,18 @@ export function LinkAccountForm({
             name="routingNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Routing Number *</FormLabel>
+                <FormLabel>
+                  {t('linkAccount.routingNumberLabel', 'Routing Number *')}
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="021000021" maxLength={9} {...field} />
+                  <Input
+                    placeholder={tString(
+                      'linkAccount.routingNumberPlaceholder',
+                      '021000021'
+                    )}
+                    maxLength={9}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -152,10 +189,12 @@ export function LinkAccountForm({
               onClick={onCancel}
               className="eb-flex-1"
             >
-              Cancel
+              {t('linkAccount.cancelButton', 'Cancel')}
             </Button>
             <Button type="submit" disabled={isSubmitting} className="eb-flex-1">
-              {isSubmitting ? 'Linking...' : 'Link Account'}
+              {isSubmitting
+                ? t('linkAccount.linkingButton', 'Linking...')
+                : t('linkAccount.linkButton', 'Link Account')}
             </Button>
           </div>
         </form>

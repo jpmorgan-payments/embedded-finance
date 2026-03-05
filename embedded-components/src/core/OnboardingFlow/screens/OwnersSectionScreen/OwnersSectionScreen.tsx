@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { TransWithTokens, useTranslationWithTokens } from '@/i18n';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   ArrowRightIcon,
@@ -31,7 +31,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
-import { TransWithTokens } from '@/components/i18n';
 import { LearnMorePopoverTrigger } from '@/components/LearnMorePopover';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { AlertDialog, Badge, Card, CardTitle } from '@/components/ui';

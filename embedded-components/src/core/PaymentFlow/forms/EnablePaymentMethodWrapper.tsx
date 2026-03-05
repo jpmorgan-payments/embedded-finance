@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 
 import { useGetRecipient } from '@/api/generated/ep-recipients';
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
@@ -132,6 +133,7 @@ export function EnablePaymentMethodWrapper({
   }, [isUnsaved, unsavedRecipient, recipient]);
 
   // Build customized config for enabling the payment method
+  const { t, tString } = useTranslationWithTokens(['make-payment']);
   const config: BankAccountFormConfig = useMemo(() => {
     const baseConfig = isLinkedAccount ? linkedAccountConfig : recipientConfig;
 
@@ -164,8 +166,12 @@ export function EnablePaymentMethodWrapper({
       },
       content: {
         ...baseConfig.content,
-        submitButtonText: `Enable ${paymentMethod.name}`,
-        cancelButtonText: 'Cancel',
+        submitButtonText: tString(
+          'enablePaymentMethod.enableButton',
+          'Enable {{methodName}}',
+          { methodName: paymentMethod.name }
+        ),
+        cancelButtonText: tString('enablePaymentMethod.cancelButton', 'Cancel'),
       },
     };
   }, [
@@ -174,6 +180,7 @@ export function EnablePaymentMethodWrapper({
     recipientConfig,
     paymentMethod,
     payee.enabledPaymentMethods,
+    tString,
   ]);
 
   // Compute initial payment types - must include both existing and new methods
@@ -318,10 +325,19 @@ export function EnablePaymentMethodWrapper({
       {/* Header */}
       <div className="eb-px-1">
         <h2 className="eb-text-lg eb-font-semibold">
-          Enable {paymentMethod.name}
+          {t('enablePaymentMethod.title', 'Enable {{methodName}}', {
+            methodName: paymentMethod.name,
+          })}
         </h2>
         <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
-          Add {paymentMethod.name.toLowerCase()} capability for {payee.name}
+          {t(
+            'enablePaymentMethod.description',
+            'Add {{methodName}} capability for {{payeeName}}',
+            {
+              methodName: paymentMethod.name.toLowerCase(),
+              payeeName: payee.name,
+            }
+          )}
         </p>
       </div>
 

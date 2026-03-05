@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import {
   AlertCircle,
   ArrowRight,
@@ -57,7 +57,7 @@ export function ReviewPanel({
   // Get live form data from context
   const { formData, isComplete, currentView, setValidationErrors } =
     useFlowContext();
-  const { t } = useTranslationWithTokens('accounts');
+  const { t, tString } = useTranslationWithTokens(['make-payment']);
 
   // Track if validation has been attempted (to show error state)
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
@@ -271,7 +271,7 @@ export function ReviewPanel({
     // If we have a payeeId but no selectedPayee, payees might still be loading
     if (formData.payeeId && isPayeesLoading) {
       return {
-        name: 'Loading recipient...',
+        name: tString('reviewPanel.loadingRecipient', 'Loading recipient...'),
         lastFour: null,
         isPlaceholder: false,
         isLoading: true,
@@ -279,7 +279,7 @@ export function ReviewPanel({
     }
     if (isAddingLinkedAccount) {
       return {
-        name: 'New Linked Account',
+        name: tString('reviewPanel.newLinkedAccount', 'New Linked Account'),
         lastFour: null,
         isPlaceholder: false,
         isNew: true,
@@ -288,7 +288,7 @@ export function ReviewPanel({
     }
     if (isAddingRecipient) {
       return {
-        name: 'New Recipient',
+        name: tString('reviewPanel.newRecipient', 'New Recipient'),
         lastFour: null,
         isPlaceholder: false,
         isNew: true,
@@ -296,13 +296,17 @@ export function ReviewPanel({
     }
     if (isAddingNewPayee) {
       return {
-        name: 'Adding...',
+        name: tString('reviewPanel.adding', 'Adding...'),
         lastFour: null,
         isPlaceholder: false,
         isNew: true,
       };
     }
-    return { name: 'Select recipient', lastFour: null, isPlaceholder: true };
+    return {
+      name: tString('reviewPanel.selectRecipient', 'Select recipient'),
+      lastFour: null,
+      isPlaceholder: true,
+    };
   };
 
   const toInfo = getToDisplay();
@@ -316,7 +320,7 @@ export function ReviewPanel({
     <div className="eb-flex eb-h-full eb-flex-col">
       {/* Header */}
       <div className="eb-mb-5 eb-text-base eb-font-semibold">
-        Payment Summary
+        {t('reviewPanel.title', 'Payment Summary')}
       </div>
 
       <div className="eb-flex eb-flex-1 eb-flex-col eb-justify-between">
@@ -329,7 +333,9 @@ export function ReviewPanel({
                 <Wallet className="eb-h-4 eb-w-4 eb-text-primary" />
               </div>
               <div className="eb-min-w-0 eb-flex-1">
-                <div className="eb-text-xs eb-text-muted-foreground">From</div>
+                <div className="eb-text-xs eb-text-muted-foreground">
+                  {t('reviewPanel.fromLabel', 'From')}
+                </div>
                 {isLoading && formData.fromAccountId ? (
                   // Show skeleton when loading with initial account data
                   <div className="eb-space-y-1">
@@ -349,20 +355,26 @@ export function ReviewPanel({
                     </div>
                     {isBalanceLoading ? (
                       <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
-                        Loading balance...
+                        {t('reviewPanel.loadingBalance', 'Loading balance...')}
                       </div>
                     ) : hasBalanceError ? (
                       <div className="eb-mt-0.5 eb-text-xs eb-text-destructive">
-                        Balance unavailable
+                        {t(
+                          'reviewPanel.balanceUnavailable',
+                          'Balance unavailable'
+                        )}
                       </div>
                     ) : currentBalance !== undefined ? (
                       <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
-                        {formatCurrency(currentBalance)} available
+                        {formatCurrency(currentBalance)}{' '}
+                        {t('reviewPanel.available', 'available')}
                       </div>
                     ) : null}
                   </>
                 ) : (
-                  <div className="eb-text-muted-foreground">Select account</div>
+                  <div className="eb-text-muted-foreground">
+                    {t('reviewPanel.selectAccount', 'Select account')}
+                  </div>
                 )}
               </div>
             </div>
@@ -380,7 +392,9 @@ export function ReviewPanel({
                 <RecipientIcon className="eb-h-4 eb-w-4 eb-text-primary" />
               </div>
               <div className="eb-min-w-0 eb-flex-1">
-                <div className="eb-text-xs eb-text-muted-foreground">To</div>
+                <div className="eb-text-xs eb-text-muted-foreground">
+                  {t('reviewPanel.toLabel', 'To')}
+                </div>
                 {isLoading && formData.payeeId ? (
                   // Show skeleton when loading with initial payee data
                   <div className="eb-space-y-1">
@@ -415,11 +429,23 @@ export function ReviewPanel({
                       <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
                         {toInfo.isLinkedAccount
                           ? toInfo.isBusiness
-                            ? 'Linked business account'
-                            : 'Linked individual account'
+                            ? t(
+                                'reviewPanel.linkedBusinessAccount',
+                                'Linked business account'
+                              )
+                            : t(
+                                'reviewPanel.linkedIndividualAccount',
+                                'Linked individual account'
+                              )
                           : toInfo.isBusiness
-                            ? 'Business recipient'
-                            : 'Individual recipient'}
+                            ? t(
+                                'reviewPanel.businessRecipient',
+                                'Business recipient'
+                              )
+                            : t(
+                                'reviewPanel.individualRecipient',
+                                'Individual recipient'
+                              )}
                       </div>
                     )}
                   </>
@@ -434,7 +460,7 @@ export function ReviewPanel({
             {showFees && (
               <div className="eb-flex eb-items-center eb-justify-between">
                 <span className="eb-text-sm eb-text-muted-foreground">
-                  Amount
+                  {t('reviewPanel.amountLabel', 'Amount')}
                 </span>
                 <div className="eb-text-right">
                   {amount > 0 ? (
@@ -453,7 +479,7 @@ export function ReviewPanel({
             {/* Payment Method */}
             <div className="eb-flex eb-items-center eb-justify-between">
               <span className="eb-text-sm eb-text-muted-foreground">
-                Method
+                {t('reviewPanel.methodLabel', 'Method')}
               </span>
               <div className="eb-text-right eb-text-sm">
                 {selectedMethod ? (
@@ -467,7 +493,9 @@ export function ReviewPanel({
             {/* Fee - only shown when showFees is enabled */}
             {showFees && (
               <div className="eb-flex eb-items-center eb-justify-between eb-text-sm">
-                <span className="eb-text-muted-foreground">Fee</span>
+                <span className="eb-text-muted-foreground">
+                  {t('reviewPanel.feeLabel', 'Fee')}
+                </span>
                 <span>{selectedMethod ? formatCurrency(fee) : '—'}</span>
               </div>
             )}
@@ -476,7 +504,7 @@ export function ReviewPanel({
             {formData.memo && (
               <div className="eb-flex eb-items-start eb-justify-between eb-gap-4">
                 <span className="eb-shrink-0 eb-text-sm eb-text-muted-foreground">
-                  Memo
+                  {t('reviewPanel.memoLabel', 'Memo')}
                 </span>
                 <span className="eb-text-right eb-text-sm eb-text-muted-foreground">
                   {formData.memo}
@@ -491,7 +519,9 @@ export function ReviewPanel({
               {/* Total (or Amount when no fees are shown) */}
               <div className="eb-flex eb-items-center eb-justify-between">
                 <span className="eb-font-medium">
-                  {showFees ? 'Total' : 'Amount'}
+                  {showFees
+                    ? t('reviewPanel.totalLabel', 'Total')
+                    : t('reviewPanel.amountLabel', 'Amount')}
                 </span>
                 <span
                   className={cn(
@@ -508,7 +538,9 @@ export function ReviewPanel({
                 <div className="eb-flex eb-items-center eb-justify-between eb-rounded-md eb-bg-muted/50 eb-px-3 eb-py-2">
                   <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
                     <TrendingDown className="eb-h-4 eb-w-4" />
-                    <span>Remaining balance</span>
+                    <span>
+                      {t('reviewPanel.remainingBalance', 'Remaining balance')}
+                    </span>
                   </div>
                   <Skeleton className="eb-h-4 eb-w-16 eb-bg-muted-foreground/20" />
                 </div>
@@ -516,7 +548,9 @@ export function ReviewPanel({
                 <div className="eb-flex eb-items-center eb-justify-between eb-rounded-md eb-bg-muted/50 eb-px-3 eb-py-2">
                   <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
                     <TrendingDown className="eb-h-4 eb-w-4" />
-                    <span>Remaining balance</span>
+                    <span>
+                      {t('reviewPanel.remainingBalance', 'Remaining balance')}
+                    </span>
                   </div>
                   <span
                     className={cn(
@@ -554,7 +588,10 @@ export function ReviewPanel({
                   type="button"
                   onClick={onDismissError}
                   className="eb-shrink-0 eb-rounded eb-p-0.5 eb-text-muted-foreground eb-transition-colors hover:eb-bg-muted hover:eb-text-foreground"
-                  aria-label="Dismiss error"
+                  aria-label={tString(
+                    'reviewPanel.dismissError',
+                    'Dismiss error'
+                  )}
                 >
                   <X className="eb-h-3.5 eb-w-3.5" />
                 </button>
@@ -577,10 +614,10 @@ export function ReviewPanel({
             {isSubmitting ? (
               <>
                 <Loader2 className="eb-mr-2 eb-h-4 eb-w-4 eb-animate-spin" />
-                Processing...
+                {t('reviewPanel.processing', 'Processing...')}
               </>
             ) : (
-              'Confirm payment'
+              t('reviewPanel.confirmPayment', 'Confirm payment')
             )}
           </Button>
         </div>

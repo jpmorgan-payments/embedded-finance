@@ -1,4 +1,4 @@
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import { AlertTriangleIcon, PencilIcon, TriangleAlertIcon } from 'lucide-react';
 
 import { PartyResponse } from '@/api/generated/smbdo.schemas';

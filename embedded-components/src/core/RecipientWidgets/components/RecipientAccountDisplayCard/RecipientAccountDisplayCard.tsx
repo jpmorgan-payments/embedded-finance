@@ -1,5 +1,5 @@
 import React, { ReactNode, useState } from 'react';
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 import {
   AlertCircleIcon,
   BuildingIcon,

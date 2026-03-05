@@ -3,7 +3,7 @@
  * Information-dense layout with minimal spacing
  */
 
-import { useTranslationWithTokens } from '@/hooks';
+import { useTranslationWithTokens } from '@/i18n';
 
 import { _get, cn, isValueEmpty } from '@/lib/utils';
 import type { PartyResponse } from '@/api/generated/smbdo.schemas';
