@@ -116,7 +116,19 @@ export const formatQuestionResponse = (response: ClientQuestionResponse) => {
 export const clientHasOutstandingDocRequests = (
   clientData: ClientResponse | undefined
 ): boolean => {
-  return (clientData?.outstanding.documentRequestIds?.length ?? 0) > 0;
+  // Check top-level outstanding document request IDs
+  const hasTopLevelDocRequests =
+    (clientData?.outstanding?.documentRequestIds?.length ?? 0) > 0;
+
+  // Check for document request IDs in party validation responses
+  const hasPartyDocRequests =
+    clientData?.parties?.some((party) =>
+      party.validationResponse?.some(
+        (validation) => (validation.documentRequestIds?.length ?? 0) > 0
+      )
+    ) ?? false;
+
+  return hasTopLevelDocRequests || hasPartyDocRequests;
 };
 
 export const convertClientToSoleProprietorship = (

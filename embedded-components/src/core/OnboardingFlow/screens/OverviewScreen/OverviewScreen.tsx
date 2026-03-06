@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Button,
@@ -28,10 +29,7 @@ import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
-import {
-  clientHasOutstandingDocRequests,
-  getPartyByAssociatedPartyFilters,
-} from '@/core/OnboardingFlow/utils/dataUtils';
+import { getPartyByAssociatedPartyFilters } from '@/core/OnboardingFlow/utils/dataUtils';
 
 import { getFlowProgress } from '../../utils/flowUtils';
 
@@ -67,7 +65,25 @@ export const OverviewScreen = () => {
 
   const organizationTypeText = t(`organizationTypes.${organizationType!}`);
 
-  const docRequestsClosed = !clientHasOutstandingDocRequests(clientData);
+  // Fetch document requests to check for outstanding requests
+  const { data: documentRequestListResponse } = useSmbdoListDocumentRequests(
+    {
+      clientId: clientData?.id,
+      // @ts-expect-error - API expects this parameter
+      includeRelatedParty: true,
+    },
+    {
+      query: {
+        enabled: !!clientData?.id, // Only fetch if clientData is available
+      },
+    }
+  );
+
+  const documentRequests = documentRequestListResponse?.documentRequests;
+  const hasOutstandingDocRequests = documentRequests?.some(
+    (docRequest) => docRequest.status === 'ACTIVE'
+  );
+  const docRequestsClosed = !hasOutstandingDocRequests;
 
   return (
     <StepLayout
