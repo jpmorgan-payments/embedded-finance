@@ -16,7 +16,7 @@ This document describes test cases created to guide Sandbox testing of Embedded 
 Before testing, ensure the following prerequisites are met:
 
 - Access to the Sandbox environment (see [Base URLs](#base-urls) below).
-- Configure mTLS certificate that is used for current CAT environment testing via the Open Banking Gateway.
+- TLS and Digital certificates have been uploaded and are active for the Embedded Payments and Digital Onboarding APIs in the Payments Developer Portal - Client Testing environment.
 - Magic values, such as `"externalId"` mentioned in the scenarios below, must be preliminarily set up by the corresponding J.P. Morgan implementation team.
 
 ### Sandbox Base URLs
@@ -349,22 +349,7 @@ Verify the flow when KYC is declined.
 
 1. Use `POST /clients` to create a client with standard party information (no special `externalId`).
 
-2. Once the client is created, verify the state is `NEW`. Answer the outstanding questions. To trigger the decline, use **one** of the following approaches:
-
-   - **Option A — Sanctioned country question:** Answer question **30158** (about operations/services in sanctioned countries) as `"yes"`:
-
-     ```json
-     {
-       "questionResponses": [
-         {
-           "questionId": "30158",
-           "values": ["yes"]
-         }
-       ]
-     }
-     ```
-
-   - **Option B — Sanctioned country address:** Set the address country of a party to `"IR"` (Iran) and state to `"16"`.
+2. Once the client is created, verify the state is `NEW`. Answer the outstanding questions in a way that triggers the decline outcome. Refer to the Sandbox-specific decline triggers provided by your J.P. Morgan implementation team.
 
 3. Trigger the verification process:
 
