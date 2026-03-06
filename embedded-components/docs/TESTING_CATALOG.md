@@ -62,9 +62,7 @@ Use the following `"externalId"` values on a party in the `POST /clients` reques
 |--------------------|----------|
 | `"kycApproved"` | Client is approved after verification is triggered |
 | `"kycDocRequest"` | Triggers a document request during the KYC process (`INFORMATION_REQUESTED` state) |
-| _(omit or use any other value)_ | Standard flow — use other mechanisms (e.g., sanctioned country question) to trigger decline |
-
-**Alternative decline trigger:** Set the address country of a party to `"IR"` and state to `"16"` to trigger a `DECLINED` outcome.
+| _(omit or use any other value)_ | Standard flow — see [Scenario 6: Simulate KYC Decline](#scenario-6-simulate-kyc-decline) for details |
 
 ### Sample Client Data
 
@@ -395,7 +393,27 @@ Verify creating a Limited DDA Payments account and retrieving account details.
 
 ---
 
-## Guide 3: Link an External Bank Account
+## Guide 3: Close an Account
+
+> **Portal Guide:** [Embedded Payments – Close an Account](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/close-account)
+
+**Prerequisite:** Client must be in `APPROVED` state with an active account that has a zero balance.
+
+### Scenario 8: Close a Client Account
+
+**Objective:**
+Verify closing a client account and confirming the account status is updated.
+
+**Steps:**
+
+1. Ensure the client account balance is zero (transfer or withdraw any remaining funds).
+2. Request to close the client account.
+3. Verify the account status transitions to `CLOSED`.
+4. Confirm that no further transactions can be initiated on the closed account.
+
+---
+
+## Guide 4: Link an External Bank Account
 
 > **Portal Guide:** [Embedded Payments – Link a Bank Account](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/link-a-bank-account)
 
@@ -416,7 +434,7 @@ Verify creating a Limited DDA Payments account and retrieving account details.
 |---------------|---------------|------|-----------|
 | 3990388854 | 122199983 | Individual | Jamie Cooper |
 
-### Scenario 8: Link, Verify, and Remove an External Bank Account
+### Scenario 9: Link, Verify, and Remove an External Bank Account
 
 **Objective:**
 Verify the full lifecycle of linking an external bank account via ACH.
@@ -430,13 +448,13 @@ Verify the full lifecycle of linking an external bank account via ACH.
 
 ---
 
-## Guide 4: Receive Funds & Payout Funds
+## Guide 5: Receive Funds & Payout Funds
 
 > **Portal Guide:** [Embedded Payments – Make a Payment](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/make-a-payment)
 
 **Prerequisite:** Client must be in `APPROVED` state with an active account and linked account.
 
-### Scenario 9: Receive and Payout Funds
+### Scenario 10: Receive and Payout Funds
 
 **Objective:**
 Verify receiving funds and making payouts through multiple payment rails.
@@ -453,13 +471,13 @@ Verify receiving funds and making payouts through multiple payment rails.
 
 ---
 
-## Guide 5: Manage and Display Transactions
+## Guide 6: Manage and Display Transactions
 
 > **Portal Guide:** [Embedded Payments – Display Transactions](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/display-transactions)
 
 **Prerequisite:** Client must have an active account with transaction history.
 
-### Scenario 10: Query and Filter Transactions
+### Scenario 11: Query and Filter Transactions
 
 **Objective:**
 Verify transaction querying, filtering, and balance display capabilities.
@@ -477,11 +495,11 @@ Verify transaction querying, filtering, and balance display capabilities.
 
 ---
 
-## Guide 6: Manage Notifications (Webhooks)
+## Guide 7: Manage Notifications (Webhooks)
 
 > **Portal Guide:** [Embedded Payments – Manage Notifications](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/manage-notifications)
 
-### Scenario 11: Webhook Subscription Lifecycle
+### Scenario 12: Webhook Subscription Lifecycle
 
 **Objective:**
 Verify creating, updating, retrieving, and confirming webhook subscriptions.
@@ -496,13 +514,13 @@ Verify creating, updating, retrieving, and confirming webhook subscriptions.
 
 ---
 
-## Guide 7: Initiate Direct Debits
+## Guide 8: Initiate Direct Debits
 
 > **Portal Guide:** [Embedded Payments – Make a Payment (Direct Debits)](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/make-a-payment)
 
 **Prerequisite:** Client must have an active account and a verified linked account.
 
-### Scenario 12: Initiate a Direct Debit
+### Scenario 13: Initiate a Direct Debit
 
 **Objective:**
 Verify initiating a direct debit to pull funds from a linked account.
@@ -513,11 +531,11 @@ Verify initiating a direct debit to pull funds from a linked account.
 
 ---
 
-## Guide 8: Managing Negative Balances & Alerts
+## Guide 9: Managing Negative Balances & Alerts
 
 > **Portal Guide:** [Embedded Payments – Manage Negative Balances](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/manage-negative-balances)
 
-### Scenario 13: Negative Balances
+### Scenario 14: Negative Balances
 
 **Objective:**
 Verify automated money movement handling for negative balances.
@@ -526,7 +544,7 @@ Verify automated money movement handling for negative balances.
 
 1. Search automated money movements that address negative balances for the client account.
 
-### Scenario 14: Alerts for Negative Balances and Program Limits
+### Scenario 15: Alerts for Negative Balances and Program Limits
 
 **Objective:**
 Verify that the platform receives the correct alert notifications.
