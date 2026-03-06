@@ -16,7 +16,7 @@ This document describes test cases created to guide Sandbox testing of Embedded 
 Before testing, ensure the following prerequisites are met:
 
 - Access to the Sandbox environment (see [Base URLs](#base-urls) below).
-- Configure mTLS certificate that is used for current CAT environment testing via the Open Banking Gateway.
+- TLS and Digital certificates have been uploaded and are active for the Embedded Payments and Digital Onboarding APIs in the Payments Developer Portal - Client Testing environment.
 - Magic values, such as `"externalId"` mentioned in the scenarios below, must be preliminarily set up by the corresponding J.P. Morgan implementation team.
 
 ### Sandbox Base URLs
