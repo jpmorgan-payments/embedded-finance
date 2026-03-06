@@ -349,22 +349,7 @@ Verify the flow when KYC is declined.
 
 1. Use `POST /clients` to create a client with standard party information (no special `externalId`).
 
-2. Once the client is created, verify the state is `NEW`. Answer the outstanding questions. To trigger the decline, use **one** of the following approaches:
-
-   - **Option A — Sanctioned country question:** Answer question **30158** (about operations/services in sanctioned countries) as `"yes"`:
-
-     ```json
-     {
-       "questionResponses": [
-         {
-           "questionId": "30158",
-           "values": ["yes"]
-         }
-       ]
-     }
-     ```
-
-   - **Option B — Sanctioned country address:** Set the address country of a party to `"IR"` (Iran) and state to `"16"`.
+2. Once the client is created, verify the state is `NEW`. Answer the outstanding questions in a way that triggers the decline outcome. Refer to the Sandbox-specific decline triggers provided by your J.P. Morgan implementation team.
 
 3. Trigger the verification process:
 
