@@ -28,16 +28,14 @@ export const StepLayout: FC<StepLayoutProps> = ({
         subTitle
       )}
 
-      <div className="eb-flex eb-items-center eb-gap-3">
-        <div className="eb-flex eb-items-center eb-justify-between eb-gap-2">
-          <h1 className="eb-w-full eb-font-header eb-text-3xl eb-font-medium">
-            {title}
-          </h1>
-          {headerElement || null}
+      <div className="eb-flex eb-w-full eb-items-center eb-justify-between eb-gap-3">
+        <div className="eb-flex eb-items-center eb-gap-2">
+          <h1 className="eb-font-header eb-text-3xl eb-font-medium">{title}</h1>
+          {showSpinner && (
+            <Loader2Icon className="eb-animate-spin eb-stroke-primary" />
+          )}
         </div>
-        {showSpinner && (
-          <Loader2Icon className="eb-animate-spin eb-stroke-primary" />
-        )}
+        {headerElement || null}
       </div>
 
       {description && (

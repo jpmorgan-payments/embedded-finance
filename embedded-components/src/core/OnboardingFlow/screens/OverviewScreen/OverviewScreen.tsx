@@ -36,8 +36,12 @@ import {
 import { getFlowProgress } from '../../utils/flowUtils';
 
 export const OverviewScreen = () => {
-  const { organizationType, clientData, hideLinkAccountSection } =
-    useOnboardingContext();
+  const {
+    organizationType,
+    clientData,
+    hideLinkAccountSection,
+    showDownloadChecklist,
+  } = useOnboardingContext();
   const {
     currentScreenId,
     sections,
@@ -69,9 +73,11 @@ export const OverviewScreen = () => {
     <StepLayout
       title={t('screens.overview.title')}
       headerElement={
-        <Button variant="outline" size="sm">
-          <DownloadIcon /> {t('screens.overview.downloadChecklist')}
-        </Button>
+        showDownloadChecklist ? (
+          <Button variant="outline" size="sm">
+            <DownloadIcon /> {t('screens.overview.downloadChecklist')}
+          </Button>
+        ) : undefined
       }
       subTitle={
         !sessionData.hideOverviewInfoAlert && clientData?.status === 'NEW' ? (

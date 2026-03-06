@@ -37,6 +37,8 @@ export type OnboardingConfigUsedInContext = {
   docUploadMaxFileSizeBytes?: number;
   hideLinkAccountSection?: boolean;
   enableSidebar?: boolean;
+  /** Whether to show the "Download Checklist" button on the Overview screen. Defaults to false. */
+  showDownloadChecklist?: boolean;
 };
 
 export type OnboardingFlowProps = OnboardingConfigDefault &
