@@ -120,7 +120,7 @@ export const clientHasOutstandingDocRequests = (
   const hasTopLevelDocRequests =
     (clientData?.outstanding?.documentRequestIds?.length ?? 0) > 0;
 
-  // Check for document request IDs in party validation responses
+  // Check for document request IDs in party validation responses (also outstanding)
   const hasPartyDocRequests =
     clientData?.parties?.some((party) =>
       party.validationResponse?.some(

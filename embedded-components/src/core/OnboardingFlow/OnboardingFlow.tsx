@@ -337,7 +337,12 @@ const FlowRenderer: React.FC = React.memo(() => {
               {
                 id: 'gateway',
                 title: t('onboarding-overview:flowRenderer.businessType'),
-                status: organizationType ? 'completed' : 'not_started',
+                status:
+                  organizationType && clientData?.status !== 'NEW'
+                    ? 'completed_disabled'
+                    : organizationType
+                      ? 'completed'
+                      : 'not_started',
                 steps: [],
               },
               ...sections.map((section) => ({

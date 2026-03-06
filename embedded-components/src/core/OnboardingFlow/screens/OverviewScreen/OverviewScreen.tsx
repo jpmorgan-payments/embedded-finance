@@ -80,6 +80,7 @@ export const OverviewScreen = () => {
   );
 
   const documentRequests = documentRequestListResponse?.documentRequests;
+  const hasAnyDocumentRequests = (documentRequests?.length ?? 0) > 0;
   const hasOutstandingDocRequests = documentRequests?.some(
     (docRequest) => docRequest.status === 'ACTIVE'
   );
@@ -147,7 +148,8 @@ export const OverviewScreen = () => {
               )}
 
             {clientData?.status === 'REVIEW_IN_PROGRESS' &&
-              docRequestsClosed && (
+              docRequestsClosed &&
+              hasAnyDocumentRequests && (
                 <Alert variant="informative" density="sm" className="eb-mb-6">
                   <Clock9Icon className="eb-size-4" />
                   <AlertTitle>
@@ -158,6 +160,24 @@ export const OverviewScreen = () => {
                   <AlertDescription>
                     {t(
                       'screens.overview.verifyBusinessSection.documentsReceived.description'
+                    )}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+            {clientData?.status === 'REVIEW_IN_PROGRESS' &&
+              docRequestsClosed &&
+              !hasAnyDocumentRequests && (
+                <Alert variant="informative" density="sm" className="eb-mb-6">
+                  <Clock9Icon className="eb-size-4" />
+                  <AlertTitle>
+                    {t(
+                      'screens.overview.verifyBusinessSection.applicationSubmitted.title'
+                    )}
+                  </AlertTitle>
+                  <AlertDescription>
+                    {t(
+                      'screens.overview.verifyBusinessSection.applicationSubmitted.description'
                     )}
                   </AlertDescription>
                 </Alert>
@@ -269,7 +289,10 @@ export const OverviewScreen = () => {
                   section.stepperConfig?.associatedPartyFilters
                 );
 
-                if (sectionStatus === 'hidden') {
+                if (
+                  sectionStatus === 'hidden' ||
+                  sectionStatus === 'completed_disabled'
+                ) {
                   return null;
                 }
 
@@ -319,8 +342,7 @@ export const OverviewScreen = () => {
                         </div>
 
                         <div className="eb-flex [&_svg]:eb-size-4">
-                          {(sectionStatus === 'completed' ||
-                            sectionStatus === 'completed_disabled') && (
+                          {sectionStatus === 'completed' && (
                             <>
                               <CheckCircle2Icon className="eb-stroke-success" />
                               <span className="eb-sr-only">Completed</span>
@@ -369,9 +391,7 @@ export const OverviewScreen = () => {
                               : 'default'
                           }
                           size="sm"
-                          className={cn('eb-mt-3', {
-                            'eb-hidden': sectionStatus === 'completed_disabled',
-                          })}
+                          className="eb-mt-3"
                           disabled={sectionDisabled}
                           data-testid={`${section.id}-button`}
                           aria-label={

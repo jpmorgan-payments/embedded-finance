@@ -165,12 +165,16 @@
       "verifyBusinessSection": {
         "title": "Verify your business",
         "reviewInProgress": {
-          "title": "Great work!",
-          "description": "Please hang tight while we verify your details. This should only take a moment."
+          "title": "Application submitted",
+          "description": "Thank you for your submission. We’re reviewing your information and will let you know if we need any additional details or documentation."
         },
         "documentsReceived": {
           "title": "We have your documents",
-          "description": "Please hang tight if you can while we verify your documents."
+          "description": "Thank you for your submission. We’re reviewing your information and will let you know if we need any additional details or documentation."
+        },
+        "applicationSubmitted": {
+          "title": "Application submitted",
+          "description": "Thank you for your submission. We’re reviewing your information and will let you know if we need any additional details or documentation."
         },
         "informationRequested": {
           "description": "We're having trouble verifying your business. Please provide supporting documentation."
