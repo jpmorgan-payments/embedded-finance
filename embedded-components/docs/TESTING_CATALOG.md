@@ -74,6 +74,9 @@ Use the following sample data for client account owners / controllers when testi
 | 2 | Neverland Books and Coffee | Organization (LLC) |
 | 3 | Monica's Cupcakes | Sole Proprietorship |
 
+> [!TIP]
+> If you are using a hosted or partially hosted solution, ensure you run through test cases across **multiple browsers, devices, and version types** to verify that functionality meets responsiveness and rendering expectations.
+
 ---
 
 ## Guide 1: Onboard Clients
