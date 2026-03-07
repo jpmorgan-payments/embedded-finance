@@ -148,7 +148,7 @@ const sectionScreens: SectionScreenConfig[] = [
         stepValidationMap
       ) => {
         if (sessionData.mockedKycCompleted) {
-          return 'hidden';
+          return 'completed_disabled';
         }
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
@@ -156,7 +156,7 @@ const sectionScreens: SectionScreenConfig[] = [
           clientData?.status === 'APPROVED' ||
           clientData?.status === 'DECLINED'
         ) {
-          return 'hidden';
+          return 'completed_disabled';
         }
 
         if (
@@ -267,7 +267,7 @@ const sectionScreens: SectionScreenConfig[] = [
         stepValidationMap
       ) => {
         if (sessionData.mockedKycCompleted) {
-          return 'hidden';
+          return 'completed_disabled';
         }
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
@@ -275,7 +275,7 @@ const sectionScreens: SectionScreenConfig[] = [
           clientData?.status === 'APPROVED' ||
           clientData?.status === 'DECLINED'
         ) {
-          return 'hidden';
+          return 'completed_disabled';
         }
 
         if (
@@ -389,7 +389,7 @@ const sectionScreens: SectionScreenConfig[] = [
         });
 
         if (sessionData.mockedKycCompleted) {
-          return 'hidden';
+          return 'completed_disabled';
         }
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
@@ -397,14 +397,14 @@ const sectionScreens: SectionScreenConfig[] = [
           clientData?.status === 'APPROVED' ||
           clientData?.status === 'DECLINED'
         ) {
-          return 'hidden';
+          return 'completed_disabled';
         }
 
         if (
           !getOrganizationParty(clientData)?.organizationDetails
             ?.organizationType
         ) {
-          return 'hidden';
+          return 'on_hold';
         }
 
         if (!allOwnersValid) {
@@ -440,7 +440,7 @@ const sectionScreens: SectionScreenConfig[] = [
         const sectionCompleted =
           clientData?.outstanding?.questionIds?.length === 0;
         if (sessionData.mockedKycCompleted) {
-          return 'hidden';
+          return 'completed_disabled';
         }
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
@@ -448,7 +448,7 @@ const sectionScreens: SectionScreenConfig[] = [
           clientData?.status === 'APPROVED' ||
           clientData?.status === 'DECLINED'
         ) {
-          return 'hidden';
+          return 'completed_disabled';
         }
 
         if (
@@ -474,7 +474,7 @@ const sectionScreens: SectionScreenConfig[] = [
       icon: FileIcon,
       statusResolver: (sessionData, clientData) => {
         if (sessionData.mockedKycCompleted) {
-          return 'hidden';
+          return 'completed_disabled';
         }
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
@@ -482,7 +482,7 @@ const sectionScreens: SectionScreenConfig[] = [
           clientData?.status === 'APPROVED' ||
           clientData?.status === 'DECLINED'
         ) {
-          return 'hidden';
+          return 'completed_disabled';
         }
 
         if (
@@ -545,13 +545,12 @@ const sectionScreens: SectionScreenConfig[] = [
         ) {
           return 'not_started';
         }
+
+        // Hide during REVIEW_IN_PROGRESS since we can't determine doc request history from clientData.
+        // The OverviewScreen shows the appropriate alert ("We have your documents" vs "Application submitted")
+        // using useSmbdoListDocumentRequests which has the actual document request data.
         if (
-          clientData?.status === 'REVIEW_IN_PROGRESS' &&
-          !hasOutstandingDocRequests
-        ) {
-          return 'completed_disabled';
-        }
-        if (
+          clientData?.status === 'REVIEW_IN_PROGRESS' ||
           clientData?.status === 'APPROVED' ||
           clientData?.status === 'DECLINED'
         ) {
@@ -564,7 +563,7 @@ const sectionScreens: SectionScreenConfig[] = [
         ) {
           return 'on_hold';
         }
-        return 'completed_disabled';
+        return 'on_hold';
       },
     },
     Component: DocumentUploadScreen,

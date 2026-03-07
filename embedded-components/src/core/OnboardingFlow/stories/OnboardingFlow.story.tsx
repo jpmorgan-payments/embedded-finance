@@ -86,6 +86,13 @@ const meta: Meta<OnboardingFlowStoryArgs> = {
       },
       description: 'Enable sidebar navigation with onboarding timeline',
     },
+    showDownloadChecklist: {
+      control: {
+        type: 'boolean',
+      },
+      description:
+        'Show the "Download checklist" button in the overview screen header',
+    },
   },
 };
 
@@ -144,3 +151,18 @@ SellSenseTheme.args = {
   themePreset: 'SellSense',
 };
 SellSenseTheme.tags = ['@sellsense', '@theme'];
+
+export const WithDownloadChecklist = Template.bind({});
+WithDownloadChecklist.storyName = 'With Download Checklist';
+WithDownloadChecklist.args = {
+  ...Default.args,
+  showDownloadChecklist: true,
+};
+WithDownloadChecklist.parameters = {
+  docs: {
+    description: {
+      story:
+        'OnboardingFlow with the "Download checklist" button visible in the overview screen header.',
+    },
+  },
+};

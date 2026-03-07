@@ -172,6 +172,10 @@
           "title": "We have your documents",
           "description": "Please hang tight if you can while we verify your documents."
         },
+        "applicationSubmitted": {
+          "title": "Application submitted",
+          "description": "Please hang tight while we review your application. This process typically takes 1-2 business days."
+        },
         "informationRequested": {
           "description": "We're having trouble verifying your business. Please provide supporting documentation."
         },

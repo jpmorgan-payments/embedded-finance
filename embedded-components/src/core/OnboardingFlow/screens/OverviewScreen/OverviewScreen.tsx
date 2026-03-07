@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Button,
@@ -28,16 +29,17 @@ import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
-import {
-  clientHasOutstandingDocRequests,
-  getPartyByAssociatedPartyFilters,
-} from '@/core/OnboardingFlow/utils/dataUtils';
+import { getPartyByAssociatedPartyFilters } from '@/core/OnboardingFlow/utils/dataUtils';
 
 import { getFlowProgress } from '../../utils/flowUtils';
 
 export const OverviewScreen = () => {
-  const { organizationType, clientData, hideLinkAccountSection } =
-    useOnboardingContext();
+  const {
+    organizationType,
+    clientData,
+    hideLinkAccountSection,
+    showDownloadChecklist,
+  } = useOnboardingContext();
   const {
     currentScreenId,
     sections,
@@ -63,15 +65,36 @@ export const OverviewScreen = () => {
 
   const organizationTypeText = t(`organizationTypes.${organizationType!}`);
 
-  const docRequestsClosed = !clientHasOutstandingDocRequests(clientData);
+  // Fetch document requests to check for outstanding requests
+  const { data: documentRequestListResponse } = useSmbdoListDocumentRequests(
+    {
+      clientId: clientData?.id,
+      // @ts-expect-error - API expects this parameter
+      includeRelatedParty: true,
+    },
+    {
+      query: {
+        enabled: !!clientData?.id, // Only fetch if clientData is available
+      },
+    }
+  );
+
+  const documentRequests = documentRequestListResponse?.documentRequests;
+  const hasAnyDocumentRequests = (documentRequests?.length ?? 0) > 0;
+  const hasOutstandingDocRequests = documentRequests?.some(
+    (docRequest) => docRequest.status === 'ACTIVE'
+  );
+  const docRequestsClosed = !hasOutstandingDocRequests;
 
   return (
     <StepLayout
       title={t('screens.overview.title')}
       headerElement={
-        <Button variant="outline" size="sm">
-          <DownloadIcon /> {t('screens.overview.downloadChecklist')}
-        </Button>
+        showDownloadChecklist ? (
+          <Button variant="outline" size="sm">
+            <DownloadIcon /> {t('screens.overview.downloadChecklist')}
+          </Button>
+        ) : undefined
       }
       subTitle={
         !sessionData.hideOverviewInfoAlert && clientData?.status === 'NEW' ? (
@@ -125,7 +148,8 @@ export const OverviewScreen = () => {
               )}
 
             {clientData?.status === 'REVIEW_IN_PROGRESS' &&
-              docRequestsClosed && (
+              docRequestsClosed &&
+              hasAnyDocumentRequests && (
                 <Alert variant="informative" density="sm" className="eb-mb-6">
                   <Clock9Icon className="eb-size-4" />
                   <AlertTitle>
@@ -136,6 +160,24 @@ export const OverviewScreen = () => {
                   <AlertDescription>
                     {t(
                       'screens.overview.verifyBusinessSection.documentsReceived.description'
+                    )}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+            {clientData?.status === 'REVIEW_IN_PROGRESS' &&
+              docRequestsClosed &&
+              !hasAnyDocumentRequests && (
+                <Alert variant="informative" density="sm" className="eb-mb-6">
+                  <Clock9Icon className="eb-size-4" />
+                  <AlertTitle>
+                    {t(
+                      'screens.overview.verifyBusinessSection.applicationSubmitted.title'
+                    )}
+                  </AlertTitle>
+                  <AlertDescription>
+                    {t(
+                      'screens.overview.verifyBusinessSection.applicationSubmitted.description'
                     )}
                   </AlertDescription>
                 </Alert>
@@ -247,7 +289,10 @@ export const OverviewScreen = () => {
                   section.stepperConfig?.associatedPartyFilters
                 );
 
-                if (sectionStatus === 'hidden') {
+                if (
+                  sectionStatus === 'hidden' ||
+                  sectionStatus === 'completed_disabled'
+                ) {
                   return null;
                 }
 
@@ -297,8 +342,7 @@ export const OverviewScreen = () => {
                         </div>
 
                         <div className="eb-flex [&_svg]:eb-size-4">
-                          {(sectionStatus === 'completed' ||
-                            sectionStatus === 'completed_disabled') && (
+                          {sectionStatus === 'completed' && (
                             <>
                               <CheckCircle2Icon className="eb-stroke-success" />
                               <span className="eb-sr-only">Completed</span>
@@ -347,9 +391,7 @@ export const OverviewScreen = () => {
                               : 'default'
                           }
                           size="sm"
-                          className={cn('eb-mt-3', {
-                            'eb-hidden': sectionStatus === 'completed_disabled',
-                          })}
+                          className="eb-mt-3"
                           disabled={sectionDisabled}
                           data-testid={`${section.id}-button`}
                           aria-label={
