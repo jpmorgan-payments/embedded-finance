@@ -39,3 +39,4 @@ app/client/src/generated-api-models
 
 #VSCode extension
 .VSCodeCounter
+.claude/settings.local.json
