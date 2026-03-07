@@ -36,4 +36,4 @@ You help with **React 18 patterns, hooks, state, forms, and performance** in the
 
 ## Reference
 
-Full guidance: `.github/skills/react-patterns/` and `.github/copilot-instructions.md`.
+Full guidance: `.github/skills/react-patterns/AGENTS.md`.

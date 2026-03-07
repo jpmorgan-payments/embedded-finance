@@ -418,6 +418,5 @@ test('displays formatted currency in Canadian dollars', () => {
 
 ## References
 
-- See `.github/copilot-instructions.md` for i18n patterns
 - i18next documentation: https://www.i18next.com/
 - Intl API: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl

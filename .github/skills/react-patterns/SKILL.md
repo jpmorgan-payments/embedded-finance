@@ -414,7 +414,7 @@ export class ErrorBoundary extends Component<Props, State> {
 Always use ServerErrorAlert for API errors:
 
 ```typescript
-import { ServerErrorAlert } from "@/core/OnboardingFlow/components/ServerErrorAlert";
+import { ServerErrorAlert } from "@/components/ServerErrorAlert";
 
 <ServerErrorAlert
   error={apiError}
@@ -426,6 +426,16 @@ import { ServerErrorAlert } from "@/core/OnboardingFlow/components/ServerErrorAl
   }}
   tryAgainAction={() => refetch()}
 />
+```
+
+For custom error rendering without the alert UI, use `useServerError`:
+
+```typescript
+import { useServerError } from "@/components/ServerErrorAlert";
+
+const errorInfo = useServerError(error);
+// errorInfo?.httpStatus, title, apiMessage, reasons, context, hasDetails
+// errorInfo?.getErrorMessage({ "404": "Not found", default: "Error" })
 ```
 
 ## Context Patterns

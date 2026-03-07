@@ -384,7 +384,7 @@ export class ErrorBoundary extends Component<Props, State> {
 Always use ServerErrorAlert for API errors:
 
 ```typescript
-import { ServerErrorAlert } from "@/core/OnboardingFlow/components/ServerErrorAlert";
+import { ServerErrorAlert } from "@/components/ServerErrorAlert";
 
 <ServerErrorAlert
   error={apiError}
@@ -396,6 +396,19 @@ import { ServerErrorAlert } from "@/core/OnboardingFlow/components/ServerErrorAl
   }}
   tryAgainAction={() => refetch()}
 />
+```
+
+For custom error rendering, use the `useServerError` hook (exported from the same path):
+
+```typescript
+import { useServerError } from "@/components/ServerErrorAlert";
+
+const errorInfo = useServerError(error);
+if (errorInfo) {
+  // errorInfo.httpStatus, errorInfo.title, errorInfo.apiMessage
+  // errorInfo.reasons, errorInfo.context, errorInfo.hasDetails
+  // errorInfo.getErrorMessage({ "404": "Not found", default: "Error" })
+}
 ```
 
 ## Context Patterns
@@ -444,17 +457,40 @@ export function useTheme() {
 7. **Component composition** - Build complex UI from simple components
 8. **Error boundaries** - Wrap components that might throw
 
+## Accessibility
+
+- Include ARIA attributes, ensure keyboard navigation, maintain proper contrast ratios.
+
+```typescript
+<button
+  aria-label="Action description"
+  role="button"
+  tabIndex={0}
+>
+```
+
+## Documentation
+
+JSDoc template for all exported components and hooks:
+
+```typescript
+/**
+ * Component description
+ * @param {ComponentNameProps} props - The component props
+ * @returns {JSX.Element} The rendered component
+ */
+```
+
 ## Anti-Patterns to Avoid
 
-❌ Using class components (use functional components)  
-❌ Missing dependencies in useEffect  
-❌ Not memoizing expensive computations  
-❌ Prop drilling (use context or composition)  
-❌ Mutating state directly  
-❌ Using any type  
-❌ Not handling loading/error states  
+❌ Using class components (use functional components)
+❌ Missing dependencies in useEffect
+❌ Not memoizing expensive computations
+❌ Prop drilling (use context or composition)
+❌ Mutating state directly
+❌ Using any type
+❌ Not handling loading/error states
 
 ## References
 
 - See `embedded-components/ARCHITECTURE.md` for file structure
-- See `.github/copilot-instructions.md` for complete React patterns
