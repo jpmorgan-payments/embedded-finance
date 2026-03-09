@@ -972,11 +972,11 @@
     "Indirect": "Indirect"
   },
   "documentRequest": {
-    "resetForm": "Reset form"
+    "resetForm": "Restablecer formulario"
   },
   "requirementStep": {
-    "stepLabel": "Step {{step}}",
-    "completedDocumentsProvided": "Completed - Documents provided:",
-    "optional": "Optional"
+    "stepLabel": "Paso {{step}}",
+    "completedDocumentsProvided": "Completado - Documentos proporcionados:",
+    "optional": "Opcional"
   }
 }

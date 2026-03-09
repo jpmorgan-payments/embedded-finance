@@ -175,15 +175,14 @@ export const RequirementStep: FC<RequirementStepProps> = ({
         <AccordionTrigger className="eb-py-2">
           <ChevronDownIcon className="eb-ml-2 eb-size-4 eb-shrink-0 eb-transition-transform eb-duration-200" />
           <span className="eb-ml-2 eb-text-nowrap eb-text-sm eb-font-semibold">
-            {t('requirementStep.stepLabel', 'Step {{step}}', {
+            {t('onboarding-overview:requirementStep.stepLabel', {
               step: requirementIndex + 1,
             })}
           </span>
           {isPastRequirement ? (
             <span className="eb-ml-2 eb-text-sm eb-font-normal eb-text-muted-foreground">
               {t(
-                'requirementStep.completedDocumentsProvided',
-                'Completed - Documents provided:'
+                'onboarding-overview:requirementStep.completedDocumentsProvided'
               )}
               <span className="eb-ml-1 eb-inline-flex eb-flex-wrap eb-gap-1">
                 {displayedDocTypes.map((docType) => (
@@ -200,7 +199,7 @@ export const RequirementStep: FC<RequirementStepProps> = ({
             <span className="eb-ml-2 eb-font-normal eb-text-gray-600">
               {requirement.minRequired === 0 && (
                 <span className="eb-ml-2 eb-inline-flex eb-items-center eb-rounded-full eb-bg-gray-100 eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-gray-500">
-                  {t('requirementStep.optional', 'Optional')}
+                  {t('onboarding-overview:requirementStep.optional')}
                 </span>
               )}
             </span>
