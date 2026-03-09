@@ -342,8 +342,13 @@ export const DocumentUploadForm = () => {
         // Upload each document individually (files are already compressed if applicable)
         for (const { documentType, file } of documentUploads) {
           const documentData = {
-            documentRequestId,
             documentType,
+            metadata: [
+              {
+                key: 'DOCUMENT_REQUEST_ID',
+                value: documentRequestId,
+              },
+            ],
           };
 
           await uploadDocumentMutation.mutateAsync({
