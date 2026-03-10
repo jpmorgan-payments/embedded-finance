@@ -52,7 +52,6 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 
-import { defaultTheme as EmbeddedDefaultTheme } from '../../../../../embedded-components/src/core/EBComponentsProvider/defaultTheme';
 import { AiPromptDialog } from './ai-prompt-dialog';
 import { JsonEditorContainer, type JsonValue } from './json-editor-container';
 import { ThemeA11yPanel } from './theme-a11y-panel';
@@ -737,6 +736,60 @@ const pickSemanticTokens = (
     return acc;
   }, {} as EBThemeVariables);
 
+// Snapshot of semantic token defaults from embedded-components defaultTheme.
+// Kept app-local so the Vite app does not import embedded-components source files.
+const EMBEDDED_COMPONENTS_DEFAULT_VARIABLES: EBThemeVariables = {
+  contentFontFamily: 'Geist',
+  textHeadingFontFamily: 'Geist',
+  separableBorderRadius: '0.375rem',
+  spacingUnit: '0.25rem',
+  overlayableZIndex: 100,
+  actionableFontWeight: '500',
+  actionableFontSize: '0.875rem',
+  actionableLineHeight: '1.25rem',
+  actionableTextTransform: 'none',
+  actionableLetterSpacing: '0em',
+  actionableShiftOnActive: true,
+  actionableAccentedBoldBorderWidth: '0rem',
+  actionableSubtleBorderWidth: '0rem',
+  actionableNegativeBoldBorderWidth: '0rem',
+  editableLabelFontSize: '0.875rem',
+  editableLabelLineHeight: '1.25rem',
+  editableLabelFontWeight: '500',
+  containerPrimaryBackground: 'hsl(0 0% 100%)',
+  contentPrimaryForeground: 'hsl(240 10% 3.9%)',
+  containerCardBackground: 'hsl(0 0% 100%)',
+  containerPrimaryForeground: 'hsl(240 10% 3.9%)',
+  containerSecondaryBackground: 'hsl(240 4.8% 95.9%)',
+  containerSecondaryForeground: 'hsl(240 3.8% 40%)',
+  editableLabelForeground: 'hsl(240 10% 3.9%)',
+  editableBackground: 'hsl(0 0% 100%)',
+  editableBorderColor: 'hsl(240 5.9% 90%)',
+  overlayableBackground: 'hsl(0 0% 100%)',
+  overlayableForeground: 'hsl(240 10% 3.9%)',
+  actionableAccentedBoldBackground: '#155C93',
+  actionableAccentedBoldForeground: 'hsl(0 0% 98%)',
+  actionableSubtleBackground: 'hsl(240 4.8% 95.9%)',
+  actionableSubtleForeground: 'hsl(240 5.9% 10%)',
+  accentBackground: 'hsl(240 4.8% 95.9%)',
+  contentAccentForeground: 'hsl(240 5.9% 10%)',
+  actionableNegativeBoldBackground: 'hsl(0 84.2% 60.2%)',
+  actionableNegativeBoldForeground: 'hsl(0 0% 98%)',
+  sentimentNegativeAccentBackground: '#FFECEA',
+  sentimentPositiveForeground: '#00875D',
+  sentimentPositiveAccentBackground: '#EAF5F2',
+  sentimentCautionForeground: '#C75300',
+  sentimentCautionAccentBackground: '#FFECD9',
+  statusInfoForeground: '#0078CF',
+  statusInfoAccentBackground: '#EAF6FF',
+  separableBorderColor: 'hsl(240 5.9% 90%)',
+  focusedRingColor: 'hsl(240 10% 3.9%)',
+  navigableBackground: 'hsl(0 0% 98%)',
+  navigableForeground: 'hsl(240 5.3% 26.1%)',
+  navigableAccentBackground: 'hsl(240 4.8% 95.9%)',
+  navigableAccentForeground: 'hsl(240 5.9% 10%)',
+};
+
 export function ThemeCustomizationDrawer({
   isOpen,
   onClose,
@@ -847,11 +900,7 @@ export function ThemeCustomizationDrawer({
 
   // Embedded-components default theme semantic variables (library defaults)
   const embeddedDefaultVariables = useMemo(
-    () =>
-      pickSemanticTokens({
-        ...(EmbeddedDefaultTheme.variables as EBThemeVariables),
-        ...(EmbeddedDefaultTheme.light as EBThemeVariables),
-      }),
+    () => EMBEDDED_COMPONENTS_DEFAULT_VARIABLES,
     []
   );
 
