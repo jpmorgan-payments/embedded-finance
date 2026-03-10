@@ -57,7 +57,7 @@ const loadTranslations = async () => {
 
 - **en-US**: English (United States) - Complete translations
 - **fr-CA**: French (Canada) - Complete translations
-- **es-US**: Spanish (United States) - Partial translations (accounts, recipients, transactions)
+- **es-US**: Spanish (United States) - Complete translations
 
 ## Available Namespaces
 

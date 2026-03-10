@@ -26,6 +26,46 @@ All commands run from this directory (`embedded-components/`):
 
 **For large changes:** run `yarn format`, then `yarn typecheck`, then `yarn build`, then `yarn test` before committing.
 
+## Storybook Stories
+
+Only for `embedded-components`. Generate stories as:
+
+```typescript
+import type { Meta, StoryObj } from "@storybook/react";
+
+const meta: Meta<typeof ComponentName> = {
+  component: ComponentName,
+  tags: ["autodocs"],
+};
+
+export default meta;
+type Story = StoryObj<typeof ComponentName>;
+
+export const Default: Story = {
+  args: {
+    // Props
+  },
+};
+```
+
+## Provider Setup
+
+Always wrap components with `EBComponentsProvider`:
+
+```typescript
+<EBComponentsProvider
+  apiBaseUrl="https://api-url"
+  theme={{
+    colorScheme: "light",
+    variables: {
+      // Theme variables
+    },
+  }}
+>
+  {/* Components */}
+</EBComponentsProvider>
+```
+
 ## Documentation
 
 For detailed guidelines, see root-level documentation:

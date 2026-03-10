@@ -1,11 +1,13 @@
 # Embedded Components - Development Backlog
 
-**Last Updated:** February 19, 2026  
+**Last Updated:** March 6, 2026  
 **Status:** Living Document - Updated as work progresses  
-**Source:** UX Testing Report (2025-12-02, 2025-12-09, 2026-01-14, 2026-02-19), Development Roadmap, Recent PRs  
+**Source:** UX Testing Report (2025-12-02, 2025-12-09, 2026-01-14, 2026-02-19, 2026-03-06), Development Roadmap, Recent PRs  
 **Reference:** Deployed showcase https://embedded-finance-dev.com/sellsense-demo (onboarding, linked-accounts, recipients, transactions, accounts, make-payment, **client-details**); Storybook https://storybook.embedded-finance-dev.com/
 
 **Re-tested:** February 19, 2026 — Each open item (Priority 1–5, BL-601, BL-723) was re-verified by **code inspection** (embedded-components and app/client-next-ts). All 7 showcase components were **browser-loaded**; UI-visible issues (e.g. filter labels, pagination, Dialog) were confirmed via code (i18n, component TSX). Full one-by-one in-browser click-through for every BL item was not done. See **`docs/ux-testing/2026-02-19/BACKLOG_VERIFICATION.md`** for item-level verdicts and evidence. Only **open** items are listed; completed/fixed items are not retained.
+
+**Updated:** March 6, 2026 — Git analysis of 60+ commits (Feb 22 – Mar 6, 2026) and full browser UX testing session across all 7 components. Key changes this cycle: ClientDetails error/loading states, content tokens architecture, i18n expansion (es-US/fr-CA), ServerErrorAlert pattern, Mock API Editor enhancements, Empty+ a11y theme, session transfer multi-experience support. See **`docs/ux-testing/2026-03-06/`** for browser test results. New items: BL-800+.
 
 **Note on Tracking IDs:** This backlog uses a hierarchical format (BL-001-1, BL-001-1a, etc.) for detailed task breakdown. New items from 2025-12-09 testing use simple sequential IDs (BL-600+). Future backlog updates may migrate to simpler format for consistency.
 
@@ -78,10 +80,12 @@
 - BL-080: Responsive design improvements
 - BL-310: Header/title consistency
 
-**ClientDetails (showcase fullscreen as of 2026-02-19):**
+**ClientDetails (fully available as of 2026-03-04):**
 
-- New in showcase; fullscreen URL: `?component=client-details&theme=Empty`
-- Pending: Initial UX audit (layout, tooltips, a11y, loading/error states); align with BL-070, BL-310, BL-320 as applicable
+- Fullscreen URL: `?component=client-details&theme=Empty`
+- Status updated to 'available' in showcase (Mar 2026)
+- **Implemented:** error/loading states (ServerErrorAlert + useServerError hook), skeleton, content tokens (all 3 locales), improved styling
+- Pending UX audit items: BL-810 (full UX audit), BL-070 (tooltips), BL-310 (header/title), BL-601-2 (dialog descriptions)
 
 **All Components:**
 
@@ -578,6 +582,7 @@ Substantial progress has been made. Re-assessment against latest source and depl
 
 - [ ] **BL-400-1:** Add support for new entity types (publicly traded companies, government entities, non-profit entities)
 - [ ] **BL-400-2:** Refine owner/controller flows
+- **March 2026 Progress:** Server error handling added to `OperationalDetailsForm` (additional questions step) — uses `ServerErrorAlert` + `useServerError` pattern. Remaining onboarding forms still need the same treatment (see BL-800).
 
 #### LinkedAccountWidget [BL-401]
 
@@ -587,7 +592,7 @@ Substantial progress has been made. Re-assessment against latest source and depl
 
 #### Recipients [BL-402]
 
-- [ ] **BL-402-1:** Conditional attributes per payment method (ACH/RTP/WIRE)
+- [ ] **BL-402-1:** Conditional attributes per payment method (ACH/RTP/WIRE) — **Partial progress Mar 2026:** email removed as required field for RTP (`usePaymentMethodConfig.ts`); payment method content token display fix; further work needed for WIRE-specific fields and ACH-only validations
 - [ ] **BL-402-2:** Edit flows parity + masking
 - [ ] **BL-402-3:** Recipient duplicate detection UX
 
@@ -641,7 +646,15 @@ Substantial progress has been made. Re-assessment against latest source and depl
 **Status:** 🚧 In Progress  
 **Tracking ID:** BL-420
 
-- [ ] **BL-420-1:** Extract content tokens
+**March 2026 Progress:**
+- ✅ Content token architecture established: `ContentToken.tsx`, `useTranslationWithTokens.tsx`, new `EBContentTokens` type in `EBComponentsProvider`. Architecture documented in `docs/CONTENT_TOKENS_ARCHITECTURE.md`.
+- ✅ i18n circular dependency removed; i18n files reorganized (moved `TransWithTokens`, `useTranslationWithTokens` to `src/i18n/`)
+- ✅ es-US locale files added/expanded: onboarding, onboarding-overview, make-payment, linked-accounts, validation, common
+- ✅ fr-CA locale files added/expanded: onboarding, onboarding-overview, validation
+- ✅ All components updated to use new translation function (single pass)
+- ✅ Content token coverage significantly expanded: onboarding, make-payment/PaymentFlow, client-details, accounts, transactions, linked-accounts
+
+- [ ] **BL-420-1:** ~~Extract content tokens~~ → **Done** for most components. Remaining: verify complete coverage for TransactionsDisplay (see BL-802), and ensure Storybook preview reflects `contentTokens` prop.
 - [ ] **BL-420-2:** Wire `react-i18next` + `zod-i18n-map`
 - [ ] **BL-420-3:** Expand design tokens for full theming/private labeling
 - [ ] **BL-420-4:** Ensure runtime overrides via `EBComponentsProvider`
@@ -900,22 +913,206 @@ Substantial progress has been made. Re-assessment against latest source and depl
 
 ---
 
+---
+
+## 🆕 New Items from March 2026 Git Analysis & Testing
+
+### BL-800+: Findings from Feb 22 – Mar 6, 2026 Development Cycle
+
+---
+
+#### BL-800: ServerErrorAlert Pattern — Extension to Remaining Components 🟠
+
+**Source:** Git analysis (Mar 4, 2026 — `improve error and loading states`)  
+**Components Affected:** MakePayment/PaymentFlow, TransactionsDisplay, OnboardingFlow (remaining forms), LinkedAccountWidget  
+**Priority:** High  
+**Status:** 📋 Planned
+
+**Background:** A `ServerErrorAlert` component and `useServerError` hook were introduced and applied to `Accounts`, `ClientDetails`, and `BaseRecipientsWidget`. The pattern provides consistent server-error display with retry support and i18n-ready messages. Other components still use ad-hoc error patterns or show no error state.
+
+**Actions:**
+
+- [ ] **BL-800-1:** Apply `ServerErrorAlert` + `useServerError` pattern to `MakePayment`/`PaymentFlow` (all API calls: payment submit, recipient fetch, fee fetch)
+- [ ] **BL-800-2:** Apply pattern to `TransactionsDisplay` (transaction list fetch, detail fetch)
+- [ ] **BL-800-3:** Apply pattern to remaining `OnboardingFlow` forms (beyond `OperationalDetailsForm`)
+- [ ] **BL-800-4:** Apply pattern to `LinkedAccountWidget` (bank account create/verify/remove calls)
+- [ ] **BL-800-5:** Document `ServerErrorAlert` + `useServerError` in component implementation docs and create a Storybook story for the error state pattern
+
+---
+
+#### BL-801: Content Token Coverage Audit 🟡
+
+**Source:** Git analysis (Feb 25 – Mar 5, 2026 — content token expansion commits)  
+**Components Affected:** All  
+**Priority:** Medium  
+**Status:** 📋 Planned
+
+**Background:** Content tokens were restructured with a formal architecture (`CONTENT_TOKENS_ARCHITECTURE.md`). Significant coverage was added to `ClientDetails`, `MakePayment/PaymentFlow`, `OnboardingFlow`, `Accounts`, `LinkedAccounts`, and `TransactionsDisplay`. However, coverage may be incomplete for edge-case strings, error messages, and some sub-components.
+
+**Actions:**
+
+- [ ] **BL-801-1:** Audit all i18n strings across components for content token completeness — identify strings still hardcoded that should be overridable via `contentTokens`
+- [ ] **BL-801-2:** Verify `AccountCardSkeleton` content tokens (updated Mar 5 but were changed twice — confirm stable)
+- [ ] **BL-801-3:** Ensure `StatusBadge` content token changes (Mar 5) don't break existing status label customization
+- [ ] **BL-801-4:** Add Storybook stories demonstrating content token override for each component (see BL-420-1 remaining work)
+- [ ] **BL-801-5:** Verify `EBContentTokens` type is exported and documented in component API docs
+
+---
+
+#### BL-802: i18n Locale Completion — es-US and fr-CA 🟡
+
+**Source:** Git analysis (Feb 25 – Mar 5, 2026 — i18n expansion)  
+**Components Affected:** All  
+**Priority:** Medium  
+**Status:** 📋 Planned
+
+**Background:** Major i18n expansion in this cycle: es-US and fr-CA locale files were added for `onboarding`, `onboarding-overview`, `validation`, `make-payment`, `linked-accounts`, and `common`. However, coverage may still be incomplete for some components.
+
+**Actions:**
+
+- [ ] **BL-802-1:** Audit which i18n namespaces still lack complete es-US translations (check: `transactions.json`, `accounts.json`, `recipients.json` for es-US)
+- [ ] **BL-802-2:** Audit fr-CA coverage — currently `onboarding`, `onboarding-overview`, `validation` added; check `make-payment`, `linked-accounts`, `transactions`, `accounts`, `client-details` for fr-CA
+- [ ] **BL-802-3:** Verify no keys fall back to en-US in the es-US locale for the components now partially translated
+- [ ] **BL-802-4:** Add a locale-switch story/control in Storybook to visually verify translated states (see BL-420)
+- [ ] **BL-802-5:** Wire `zod-i18n-map` for validation messages in es-US/fr-CA so form errors are also translated (BL-420-2)
+
+---
+
+#### BL-803: Mock API Editor — Scenario Management UX 🟢
+
+**Source:** Git analysis (Mar 1–2, 2026 — MockApiEditorDrawer enhancements)  
+**Components Affected:** app/client-next-ts (showcase)  
+**Priority:** Low  
+**Status:** 📋 Planned
+
+**Background:** The `MockApiEditorDrawer` in the showcase now supports scenario upload/download (`replaceOverrides` utility), `@visual-json/react` JSON editor, and `mock-overrides-storage`. This significantly improves QA and demo workflow.
+
+**Actions:**
+
+- [ ] **BL-803-1:** Document the mock scenario file format and upload/download workflow in `app/client-next-ts/AGENTS.md` or `MSW_SETUP.md`
+- [ ] **BL-803-2:** Add a set of pre-built test scenario files (e.g. `error-state.json`, `empty-state.json`, `pending-payments.json`) as fixtures in the repo
+- [ ] **BL-803-3:** Validate `replaceOverrides` behavior when uploaded JSON has unknown endpoints (should fail gracefully with validation)
+- [ ] **BL-803-4:** Test the JSON editor in multiple browsers; confirm `@visual-json/react` renders correctly on mobile viewports
+
+---
+
+#### BL-804: Empty+ Theme — A11y Audit and Documentation 🟡
+
+**Source:** Git analysis (Feb 25, 2026 — `feat: add 'Empty+' theme option`)  
+**Components Affected:** app/client-next-ts (showcase)  
+**Priority:** Medium  
+**Status:** 📋 Planned
+
+**Background:** An `Empty+` theme variant with enhanced accessibility features (higher contrast, improved focus indicators) was added to the showcase alongside a `ThemeA11yPanel` component that provides accessibility guidance within the `ThemeCustomizationDrawer`. Related Salt Design System token URLs were added for reference.
+
+**Actions:**
+
+- [ ] **BL-804-1:** Run automated a11y audit (axe) on the `Empty+` theme across all 7 components; confirm it passes WCAG 2.1 AA
+- [ ] **BL-804-2:** Compare `Empty+` contrast ratios against base `Empty` theme using the new `ThemeA11yPanel` — document pass/fail per token group
+- [ ] **BL-804-3:** Decide whether `Empty+` should graduate to the `embedded-components` library as a built-in accessible theme or remain showcase-only
+- [ ] **BL-804-4:** Document `ThemeA11yPanel` usage and the Salt Design System token references in `embedded-components/docs/`
+- [ ] **BL-804-5:** Add `BL-470-4` (axe automated tests) as a prerequisite tracker; coordinate a11y test suite with `Empty+` theme as the baseline
+
+---
+
+#### BL-805: Session Transfer — Client Creation & Multi-Experience Support 🟡
+
+**Source:** Git analysis (Feb 26, 2026 — `feat: implement client creation feature` and `feat: add support for multiple experience types`)  
+**Components Affected:** app/server-session-transfer  
+**Priority:** Medium  
+**Status:** 📋 Planned
+
+**Background:** The session transfer demo app now supports client creation via API integration and handles multiple experience types (onboarding, linked-accounts, make-payment, etc.) in both `index.html` and `index-utility.html`. Documentation was also expanded.
+
+**Actions:**
+
+- [ ] **BL-805-1:** Test the new `index-utility.html` client creation flow end-to-end in the server-session-transfer demo (verify OAuth2 flow, client provisioning, and redirect to onboarding)
+- [ ] **BL-805-2:** Test `index.html` with each experience type (onboarding, linked-accounts, make-payment) to confirm session handoff and component initialization
+- [ ] **BL-805-3:** Verify error handling in `server.js` for failed client creation (network errors, 4xx/5xx from JPMC API)
+- [ ] **BL-805-4:** Update `embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md` to reflect the new multi-experience patterns
+
+---
+
+#### BL-810: ClientDetails — Initial UX Audit 🟠
+
+**Source:** Git analysis + browser testing (Mar 2026)  
+**Components Affected:** ClientDetails  
+**Priority:** High  
+**Status:** 📋 Planned
+
+**Background:** `ClientDetails` is now fully available in the showcase (status changed from 'testing' to 'available' Mar 2). Error/loading/skeleton states were implemented (Mar 4). The component still needs a systematic UX audit now that it's production-ready.
+
+**Actions:**
+
+- [ ] **BL-810-1:** Audit layout in all view modes: `accordion` view, `cards` view, drilldown dialogs — verify visual hierarchy and spacing
+- [ ] **BL-810-2:** Test all interactive elements: expand/collapse sections, drilldown navigation, section dialogs, party detail panels
+- [ ] **BL-810-3:** Verify loading skeleton matches real content layout (no layout shift when data loads)
+- [ ] **BL-810-4:** Verify error state display and retry behavior using `ServerErrorAlert`
+- [ ] **BL-810-5:** Audit tooltips and `aria-label` coverage for icon-only actions (align with BL-070)
+- [ ] **BL-810-6:** Add `DialogDescription` to all `SectionDialog` instances (align with BL-601-2)
+- [ ] **BL-810-7:** Test responsive behavior on mobile/tablet viewports (cards view vs accordion view breakpoints)
+- [ ] **BL-810-8:** Verify content token overrides work end-to-end via `EBComponentsProvider` contentTokens prop
+
+---
+
+#### BL-812: Transactions — "View Details" Button Click Target Size 🟢
+
+**Source:** Browser testing 2026-03-06  
+**Component:** TransactionsDisplay (TransactionsTable rows)  
+**Priority:** Low  
+**Status:** 📋 Needs verification
+
+**Issue:** During browser automation, the "View details" row button was intercepted. May indicate click target smaller than WCAG 2.5.5 minimum (44×44px), or automation scroll-to-view artifact. Needs manual verification.
+
+**Actions:**
+
+- [ ] **BL-812-1:** Measure "View details" button click target size in TransactionsTable rows; verify meets 44×44px (WCAG 2.5.5 AAA) or 24×24px (AA)
+- [ ] **BL-812-2:** Ensure the button is scrolled into viewport before interaction in E2E tests
+- [ ] **BL-812-3:** Consider making the entire row clickable for improved discoverability
+
+---
+
+#### BL-811: Onboarding — Server Error Handling Completeness 🟡
+
+**Source:** Git analysis (Mar 4, 2026 — `onboarding-flow: add server error handling for additional questions`)  
+**Components Affected:** OnboardingFlow (OperationalDetailsForm + remaining forms)  
+**Priority:** Medium  
+**Status:** 📋 Planned
+
+**Background:** Server error handling was added to `OperationalDetailsForm` (the "additional questions" step). Other onboarding forms may still lack server error display.
+
+**Actions:**
+
+- [ ] **BL-811-1:** Audit all onboarding form steps for server error handling coverage — identify forms that lack `ServerErrorAlert` or equivalent
+- [ ] **BL-811-2:** Test `OperationalDetailsForm` server error state in the showcase using MSW error scenario (or Mock API Editor)
+- [ ] **BL-811-3:** Ensure all `OnboardingFlow` API calls display user-friendly errors, not silent failures or unhandled promise rejections
+
+---
+
 ## 📊 Backlog Statistics
 
-**Total Items:** ~200+  
+**Total Items:** ~215+  
 **Critical Priority:** Design system (re-assessed), Make Payment form UX, data quality  
-**High Priority:** Filter/label/tooltips/responsive, Accounts enhancements  
-**Medium Priority:** Status badge, date formatting, menu/dialog, timeline  
-**Low Priority:** Performance optimization  
+**High Priority:** Filter/label/tooltips/responsive, Accounts enhancements, ServerErrorAlert extension (BL-800), ClientDetails UX audit (BL-810)  
+**Medium Priority:** Status badge, date formatting, menu/dialog, timeline, i18n locale completion (BL-802), Empty+ a11y (BL-804), session transfer (BL-805), onboarding error handling (BL-811)  
+**Low Priority:** Performance optimization, Mock API Editor scenario mgmt (BL-803)  
 **Tech Debt:** ESLint v9, Tailwind v4, TypeScript, Vite/Vitest, React/UI libraries, Orval, other dependencies
 
 **In Progress:**
 
 - Theme 0: Functional Enhancements
 - Theme 1: Security & Validation
-- Theme 2: i18n & Design Tokens
+- Theme 2: i18n & Design Tokens (**significant progress** this cycle)
 - Theme 3: Functional Testing (CAT)
-- Theme 7: A11y & UX Testing (mitigation in progress)
+- Theme 7: A11y & UX Testing (mitigation in progress, Empty+ theme added)
+
+**Recently Resolved (Mar 2026 — removed from backlog):**
+
+- Recipients: email not required for RTP (was a product correctness bug — fixed `usePaymentMethodConfig.ts`)
+- Linked Accounts: text wrapping in BankAccountForm (layout bug — fixed)
+- Accounts: name display bug in AccountCard (fixed `AccountCard.tsx`)
+- i18n circular dependency in config (fixed — relative import)
+- ClientDetails test failures after component refactor (fixed)
 
 ---
 
@@ -1029,6 +1226,26 @@ Substantial progress has been made. Re-assessment against latest source and depl
 
 ---
 
+### 2026-03-06 Git Analysis + Full Browser Re-Test (All 7 Components)
+
+- **Session:** Git analysis of ~60 commits (Feb 22 – Mar 6, 2026) and full browser UX testing of all 7 components.
+- **Git analysis findings:** Major development activity this cycle: ClientDetails stabilized (error/loading states, content tokens, skeleton — now 'available'), i18n expansion (es-US/fr-CA for 6+ namespaces), ServerErrorAlert pattern introduced, content tokens architecture formalized (`CONTENT_TOKENS_ARCHITECTURE.md`), Mock API Editor enhancements (`@visual-json/react`, upload/download), Empty+ a11y theme added to showcase, session transfer multi-experience support.
+- **Browser test results (all 7 components loaded):**
+  - ✅ Onboarding: Radio selection, Get Started flow, multi-step form — working
+  - ✅ Client Details: Expandable sections, EIN masking/reveal, drawer content — working. No regressions from content token restructure.
+  - ✅ Accounts: Show/hide account details, copy buttons, balance info — working. Name display fix confirmed.
+  - ⚠️ Transactions: All filters and table present; "View details" button click intercepted in automation (new **BL-812** — low priority). Filter label casing inconsistency **BL-060** confirmed in UI.
+  - ✅ Make Payment: "Make Payment" CTA opens modal; 3-step flow, recipient tabs, payment summary — working.
+  - ✅ Linked Accounts: Table, account number reveal, action buttons — working. Text wrapping fix confirmed.
+  - ✅ Recipients: Table, account number reveal, action buttons — working. RTP email fix verified via config review.
+- **Bugs fixed this cycle (removed from backlog):** Recipients email not required for RTP, Linked Accounts text wrapping, Accounts name display bug, i18n circular dependency.
+- **New backlog items added:** BL-800 (ServerErrorAlert extension), BL-801 (content token audit), BL-802 (i18n locale completion), BL-803 (Mock API Editor), BL-804 (Empty+ a11y), BL-805 (session transfer), BL-810 (ClientDetails UX audit), BL-811 (onboarding server error completeness), BL-812 (transactions view details click target).
+- **Backlog items re-verified open:** BL-060 (filter casing), BL-601 (DialogDescription), BL-723 (Select id/name), BL-040 (modal a11y — not fully tested).
+- **Report:** `embedded-components/docs/ux-testing/2026-03-06/UX_TESTING_REPORT.md`
+- **Action:** Prioritize BL-800 (ServerErrorAlert extension) and BL-810 (ClientDetails UX audit) as high-impact items; address BL-802 (i18n gaps) in parallel with BL-420 roadmap work.
+
+---
+
 **Document Maintainers:** Development Team  
 **Review Frequency:** Weekly during active development, bi-weekly during maintenance  
-**Last Major Update:** February 19, 2026 (full backlog re-test; only open items retained; BL-723 added; BL-603 consolidated with BL-200-1)
+**Last Major Update:** March 6, 2026 (git analysis of Feb 22–Mar 6 commits + full browser UX re-test; BL-800–BL-811 added; fixed items removed; i18n and ClientDetails progress noted)

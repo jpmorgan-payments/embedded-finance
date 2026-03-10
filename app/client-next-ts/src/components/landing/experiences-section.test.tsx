@@ -7,12 +7,8 @@ import { ExperiencesSection } from './experiences-section';
 describe('ExperiencesSection', () => {
   it('renders integration helper chips', () => {
     render(<ExperiencesSection />);
-    expect(
-      screen.getByText(/view full documentation/i)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/view partially hosted demo/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/view full documentation/i)).toBeInTheDocument();
+    expect(screen.getByText(/view partially hosted demo/i)).toBeInTheDocument();
     expect(
       screen.getByText(/partially hosted integration guide/i)
     ).toBeInTheDocument();
@@ -36,7 +32,9 @@ describe('ExperiencesSection', () => {
     render(<ExperiencesSection />);
     expect(screen.getByText('Client Details')).toBeInTheDocument();
     expect(
-      screen.getByText(/view comprehensive client information for fully onboarded clients/i)
+      screen.getByText(
+        /view comprehensive client information for fully onboarded clients/i
+      )
     ).toBeInTheDocument();
   });
 
@@ -49,7 +47,9 @@ describe('ExperiencesSection', () => {
     await user.click(onboardingButton);
     const dialog = screen.getByRole('dialog');
     expect(dialog).toBeInTheDocument();
-    expect(within(dialog).getByText(/onboardingflow component/i)).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(/onboardingflow component/i)
+    ).toBeInTheDocument();
   });
 
   it('opens Client Details code example when Client Details title is clicked', async () => {
@@ -61,7 +61,9 @@ describe('ExperiencesSection', () => {
     await user.click(clientDetailsButton);
     const dialog = screen.getByRole('dialog');
     expect(dialog).toBeInTheDocument();
-    expect(within(dialog).getByText(/clientdetails component/i)).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(/clientdetails component/i)
+    ).toBeInTheDocument();
   });
 
   it('each card has demo and github links', () => {
