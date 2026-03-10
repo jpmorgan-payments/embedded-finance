@@ -26,6 +26,7 @@ import {
   getScenarioKeyByDisplayName,
   SCENARIOS_CONFIG,
 } from './scenarios-config';
+import { JsonEditorContainer as SharedJsonEditorContainer } from './json-editor-container';
 
 type JsonValue =
   | string
@@ -609,15 +610,8 @@ export function MockApiEditorDrawer({
 }
 
 /**
- * Uncontrolled JSON editor container.
- *
- * Uses `defaultValue` (not `value`) so the editor manages its own internal state
- * and is never reset mid-edit by a parent re-render. To load a new document,
- * change the `key` prop — this causes React to unmount and remount the container
- * with a fresh `defaultValue`.
- *
- * `onValueChange` is called on every edit so callers can capture the latest value
- * in a ref without depending on React state flush timing.
+ * Thin wrapper around the shared JsonEditorContainer so the rest of this file
+ * can keep using the same component name and JsonValue type alias.
  */
 function JsonEditorContainer({
   initialValue,
@@ -626,99 +620,10 @@ function JsonEditorContainer({
   initialValue: JsonValue;
   onValueChange: (v: JsonValue) => void;
 }) {
-  const [JsonEditor, setJsonEditor] = useState<React.ComponentType<{
-    defaultValue?: JsonValue;
-    onChange: (v: JsonValue) => void;
-    height?: string;
-    className?: string;
-    style?: React.CSSProperties;
-  }> | null>(null);
-  const [loadError, setLoadError] = useState(false);
-  const [textareaContent, setTextareaContent] = useState(() =>
-    JSON.stringify(initialValue, null, 2)
-  );
-
-  useEffect(() => {
-    import('@visual-json/react')
-      .then((mod) => {
-        setJsonEditor(
-          () =>
-            mod.JsonEditor as React.ComponentType<{
-              defaultValue?: JsonValue;
-              onChange: (v: JsonValue) => void;
-              height?: string;
-              className?: string;
-              style?: React.CSSProperties;
-            }>
-        );
-      })
-      .catch(() => setLoadError(true));
-  }, []);
-
-  if (loadError) {
-    return (
-      <div className="absolute inset-0 flex flex-col">
-        <div className="flex-shrink-0 border-b border-gray-200 bg-amber-50 px-4 py-2">
-          <p className="text-xs text-amber-700">
-            Visual editor unavailable — editing raw JSON below
-          </p>
-        </div>
-        <textarea
-          className="min-h-0 flex-1 resize-none bg-white p-4 font-mono text-xs leading-relaxed text-gray-900 outline-none"
-          value={textareaContent}
-          onChange={(e) => {
-            setTextareaContent(e.target.value);
-            try {
-              const next = JSON.parse(e.target.value) as JsonValue;
-              onValueChange(next);
-            } catch {
-              // leave ref unchanged until valid JSON
-            }
-          }}
-          spellCheck={false}
-        />
-      </div>
-    );
-  }
-
-  if (!JsonEditor) {
-    return (
-      <div className="absolute inset-0 flex items-center justify-center">
-        <p className="text-sm text-gray-500">Loading editor…</p>
-      </div>
-    );
-  }
-
   return (
-    <JsonEditor
-      defaultValue={initialValue}
-      onChange={onValueChange}
-      height="100%"
-      className="absolute inset-0"
-      style={{
-        ['--vj-bg' as string]: '#ffffff',
-        ['--vj-bg-panel' as string]: '#f9fafb',
-        ['--vj-bg-hover' as string]: '#f3f4f6',
-        ['--vj-bg-selected' as string]: '#dbeafe',
-        ['--vj-bg-selected-muted' as string]: '#eff6ff',
-        ['--vj-bg-match' as string]: '#fef9c3',
-        ['--vj-bg-match-active' as string]: '#fde68a',
-        ['--vj-border' as string]: '#e5e7eb',
-        ['--vj-border-subtle' as string]: '#f3f4f6',
-        ['--vj-text' as string]: '#111827',
-        ['--vj-text-muted' as string]: '#6b7280',
-        ['--vj-text-dim' as string]: '#9ca3af',
-        ['--vj-text-dimmer' as string]: '#d1d5db',
-        ['--vj-string' as string]: '#0369a1',
-        ['--vj-number' as string]: '#047857',
-        ['--vj-boolean' as string]: '#7c3aed',
-        ['--vj-accent' as string]: '#2563eb',
-        ['--vj-accent-muted' as string]: '#dbeafe',
-        ['--vj-input-bg' as string]: '#ffffff',
-        ['--vj-input-border' as string]: '#d1d5db',
-        ['--vj-error' as string]: '#dc2626',
-        ['--vj-font' as string]: "'ui-monospace', 'Cascadia Code', monospace",
-      }}
+    <SharedJsonEditorContainer
+      initialValue={initialValue}
+      onValueChange={onValueChange}
     />
   );
 }

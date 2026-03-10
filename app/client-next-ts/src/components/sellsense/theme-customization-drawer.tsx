@@ -1,12 +1,19 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 import {
   Brush,
   Check,
   Clipboard,
   Copy,
+  Code,
   Download,
   ExternalLink,
   Info,
@@ -37,12 +44,21 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 import { AiPromptDialog } from './ai-prompt-dialog';
 import { ThemeA11yPanel } from './theme-a11y-panel';
 import { getValidColorPairs } from './theme-color-pairs';
 import type { ThemeOption } from './use-sellsense-themes';
 import { useSellSenseThemes } from './use-sellsense-themes';
+import { JsonEditorContainer, type JsonValue } from './json-editor-container';
+import { defaultTheme as EmbeddedDefaultTheme } from '../../../../../embedded-components/src/core/EBComponentsProvider/defaultTheme';
 
 interface ThemeCustomizationDrawerProps {
   isOpen: boolean;
@@ -769,6 +785,12 @@ export function ThemeCustomizationDrawer({
   const [isImporting, setIsImporting] = useState(false);
   const [exportChangedOnly, setExportChangedOnly] = useState(false);
   const [isAiPromptDialogOpen, setIsAiPromptDialogOpen] = useState(false);
+  const [isJsonExplorerOpen, setIsJsonExplorerOpen] = useState(false);
+
+  // JSON overrides editor state (diff-only vs base theme)
+  const [overridesJson, setOverridesJson] = useState<EBThemeVariables>({});
+  const latestOverridesRef = useRef<EBThemeVariables | null>(null);
+  const [jsonEditorVersion, setJsonEditorVersion] = useState(0);
 
   // Helper function to determine min/max values based on token context
   const getNumberConstraints = (token: string) => {
@@ -792,7 +814,7 @@ export function ThemeCustomizationDrawer({
   };
 
   // Get current base theme from URL or current theme
-  const getCurrentBaseTheme = (): ThemeOption => {
+  const getCurrentBaseTheme = useCallback((): ThemeOption => {
     if (currentTheme === 'Custom' && Object.keys(customThemeData).length > 0) {
       if (customThemeData.baseTheme) {
         return customThemeData.baseTheme;
@@ -800,7 +822,7 @@ export function ThemeCustomizationDrawer({
       return 'SellSense'; // Default for legacy
     }
     return currentTheme || 'SellSense';
-  };
+  }, [currentTheme, customThemeData]);
 
   // Merged theme (base + custom tokens) — recalculates on every theme token change so a11y/contrast stay in sync.
   // Use a full fallback theme (SellSense) so minimal bases like Empty still have all tokens for contrast checks.
@@ -815,12 +837,28 @@ export function ThemeCustomizationDrawer({
       ...baseVariables,
       ...customTheme,
     });
-  }, [customTheme, currentTheme, customThemeData, getThemeVariables]);
+  }, [customTheme, getCurrentBaseTheme, getThemeVariables]);
+
+  // Base theme semantic variables (no overrides)
+  const baseVariables = useMemo(
+    () => pickSemanticTokens(getThemeVariables(getCurrentBaseTheme())),
+    [getCurrentBaseTheme, getThemeVariables]
+  );
+
+  // Embedded-components default theme semantic variables (library defaults)
+  const embeddedDefaultVariables = useMemo(
+    () =>
+      pickSemanticTokens({
+        ...(EmbeddedDefaultTheme.variables as EBThemeVariables),
+        ...(EmbeddedDefaultTheme.light as EBThemeVariables),
+      }),
+    []
+  );
 
   // Get changed variables only
   const getChangedVariables = useCallback((): EBThemeVariables => {
     const currentBaseTheme = getCurrentBaseTheme();
-    const baseVariables = pickSemanticTokens(
+    const baseVariablesForDiff = pickSemanticTokens(
       getThemeVariables(currentBaseTheme)
     );
 
@@ -828,14 +866,35 @@ export function ThemeCustomizationDrawer({
     Object.keys(customTheme).forEach((key) => {
       const typedKey = key as keyof EBThemeVariables;
       const customValue = customTheme[typedKey];
-      const baseValue = baseVariables[typedKey];
+      const baseValue = baseVariablesForDiff[typedKey];
       if (customValue !== baseValue && customValue !== undefined) {
         changed[key] = customValue as string | number | boolean;
       }
     });
 
     return changed as EBThemeVariables;
-  }, [customTheme, currentTheme, customThemeData, getThemeVariables]);
+  }, [customTheme, getCurrentBaseTheme, getThemeVariables]);
+
+  // Derived override info
+  const changedVariables = useMemo(
+    () => getChangedVariables(),
+    [getChangedVariables]
+  );
+  const overridesCount = useMemo(
+    () => Object.keys(changedVariables).length,
+    [changedVariables]
+  );
+  const changedKeys = useMemo(
+    () => new Set(Object.keys(changedVariables)),
+    [changedVariables]
+  );
+
+  // Keep overrides JSON editor in sync with current diffs
+  useEffect(() => {
+    latestOverridesRef.current = changedVariables;
+    setOverridesJson(changedVariables);
+    setJsonEditorVersion((v) => v + 1);
+  }, [changedVariables]);
 
   // Download theme as JSON file
   const downloadThemeAsJson = useCallback(() => {
@@ -952,6 +1011,52 @@ export function ThemeCustomizationDrawer({
       onThemeChange(currentBaseTheme, {});
     }
   };
+
+  // Allow editing overrides via JSON diff editor
+  const handleOverridesJsonChange = useCallback(
+    (next: JsonValue) => {
+      if (!next || typeof next !== 'object' || Array.isArray(next)) {
+        return;
+      }
+
+      const currentBaseTheme = getCurrentBaseTheme();
+      const baseVars = pickSemanticTokens(getThemeVariables(currentBaseTheme));
+
+      // Sanitize into known semantic keys
+      const incoming = pickSemanticTokens(next as EBThemeVariables);
+
+      // Keep only true diffs vs base
+      const diff: EBThemeVariables = {};
+      Object.keys(incoming).forEach((key) => {
+        const typedKey = key as keyof EBThemeVariables;
+        const val = incoming[typedKey];
+        if (val !== undefined && val !== baseVars[typedKey]) {
+          (diff as any)[typedKey] = val;
+        }
+      });
+
+      const updatedTheme = pickSemanticTokens({
+        ...baseVars,
+        ...diff,
+      });
+
+      setCustomTheme(updatedTheme);
+      setOverridesJson(diff);
+      latestOverridesRef.current = diff;
+
+      const hasChanges = Object.keys(diff).length > 0;
+      if (hasChanges) {
+        const customThemeData: CustomThemeData = {
+          baseTheme: currentBaseTheme,
+          variables: updatedTheme,
+        };
+        onThemeChange('Custom', customThemeData as any);
+      } else {
+        onThemeChange(currentBaseTheme, {});
+      }
+    },
+    [getCurrentBaseTheme, getThemeVariables, onThemeChange]
+  );
 
   // Copy theme to clipboard
   const copyThemeToClipboard = useCallback(async () => {
@@ -1373,6 +1478,11 @@ export function ThemeCustomizationDrawer({
             <h2 className="text-base font-semibold text-gray-900">
               Customize Theme
             </h2>
+            {overridesCount > 0 && (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                {overridesCount} overridden
+              </span>
+            )}
           </div>
           <Button
             variant="ghost"
@@ -1475,39 +1585,8 @@ export function ThemeCustomizationDrawer({
               </Label>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-2">
-              <Button
-                variant={isCopied ? 'default' : 'outline'}
-                size="sm"
-                onClick={copyThemeToClipboard}
-                className={`flex flex-1 items-center gap-2 transition-all duration-200 ${
-                  isCopied
-                    ? ''
-                    : 'border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                }`}
-                disabled={isCopied}
-              >
-                {isCopied ? (
-                  <Check className="h-4 w-4" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
-                {isCopied
-                  ? 'Copied!'
-                  : exportChangedOnly
-                    ? 'Copy Changed JSON'
-                    : 'Copy Theme JSON'}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={downloadThemeAsJson}
-                className="flex items-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                title="Download theme as JSON file"
-              >
-                <Download className="h-4 w-4" />
-              </Button>
+            {/* Actions: share URL, JSON explorer, import */}
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 variant={isUrlCopied ? 'default' : 'outline'}
                 size="sm"
@@ -1526,15 +1605,20 @@ export function ThemeCustomizationDrawer({
                 )}
                 {isUrlCopied ? 'Copied!' : 'Share URL'}
               </Button>
-            </div>
-
-            {/* Import Button */}
-            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1.5 border-gray-300 px-2.5 text-xs text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                onClick={() => setIsJsonExplorerOpen(true)}
+              >
+                <Code className="h-3 w-3" />
+                JSON explorer
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={importThemeFromClipboard}
-                className="flex w-full items-center gap-2 border-gray-300 text-gray-700 transition-all duration-200 hover:bg-gray-50 hover:text-gray-900"
+                className="flex h-8 items-center gap-2 border-gray-300 px-2.5 text-xs text-gray-700 transition-all duration-200 hover:bg-gray-50 hover:text-gray-900"
                 disabled={isImporting}
               >
                 {isImporting ? (
@@ -1542,13 +1626,13 @@ export function ThemeCustomizationDrawer({
                 ) : (
                   <Clipboard className="h-4 w-4" />
                 )}
-                {isImporting ? 'Importing...' : 'Import from Clipboard'}
+                {isImporting ? 'Importing...' : 'Import JSON'}
               </Button>
             </div>
           </div>
 
-          {/* Theme Groups */}
-          <div className="flex-1 overflow-hidden">
+          {/* Main content: Form view only */}
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
             <ScrollArea className="h-full">
               <div className="px-6 pb-48">
                 {/* Accessibility Check Section - extracted into dedicated panel */}
@@ -1558,6 +1642,10 @@ export function ThemeCustomizationDrawer({
                   {Object.entries(TOKEN_GROUPS).map(([groupKey, group]) => {
                     const Icon = group.icon;
                     const saltUrl = SALT_DS_URLS[groupKey];
+                    const overriddenInGroup = group.tokens.filter((token) =>
+                      changedKeys.has(token)
+                    ).length;
+
                     return (
                       <AccordionItem key={groupKey} value={groupKey}>
                         <AccordionTrigger className="flex items-center gap-2 text-sm font-medium text-gray-900">
@@ -1577,27 +1665,36 @@ export function ThemeCustomizationDrawer({
                             </a>
                           )}
                           <span className="ml-auto text-xs text-gray-500">
-                            ({group.tokens.length})
+                            {overriddenInGroup > 0
+                              ? `${overriddenInGroup}/${group.tokens.length} overridden`
+                              : `(${group.tokens.length})`}
                           </span>
                         </AccordionTrigger>
                         <AccordionContent>
                           <div className="space-y-4 pt-2">
                             {group.tokens.map((token) => {
-                              // Get the current value from the merged theme (base + custom)
-                              const baseVariables = pickSemanticTokens(
-                                getThemeVariables(getCurrentBaseTheme())
-                              );
                               const value =
-                                customTheme[token as keyof EBThemeVariables] !==
-                                undefined
-                                  ? customTheme[token as keyof EBThemeVariables]
+                                customTheme[
+                                  token as keyof EBThemeVariables
+                                ] !== undefined
+                                  ? customTheme[
+                                      token as keyof EBThemeVariables
+                                    ]
                                   : baseVariables[
                                       token as keyof EBThemeVariables
                                     ];
 
+                              const isOverridden = changedKeys.has(token);
                               const tooltipText = TOKEN_TOOLTIPS[token];
                               return (
-                                <div key={token} className="space-y-2">
+                                <div
+                                  key={token}
+                                  className={`space-y-2 rounded-md ${
+                                    isOverridden
+                                      ? 'border border-amber-200 bg-amber-50/60 px-2 py-1.5'
+                                      : ''
+                                  }`}
+                                >
                                   <div className="flex items-center gap-1.5">
                                     <Label
                                       htmlFor={token}
@@ -1605,6 +1702,12 @@ export function ThemeCustomizationDrawer({
                                     >
                                       {TOKEN_LABELS[token] || token}
                                     </Label>
+                                    {isOverridden && (
+                                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-800">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                                        Overridden
+                                      </span>
+                                    )}
                                     {tooltipText && (
                                       <span className="group relative inline-flex flex-shrink-0">
                                         <button
@@ -1647,6 +1750,137 @@ export function ThemeCustomizationDrawer({
         isOpen={isAiPromptDialogOpen}
         onClose={() => setIsAiPromptDialogOpen(false)}
       />
+
+      {/* JSON explorer modal: 4 side-by-side views */}
+      <Dialog open={isJsonExplorerOpen} onOpenChange={setIsJsonExplorerOpen}>
+        <DialogContent className="max-w-none h-[100vh] w-[100vw] sm:rounded-none">
+          <DialogHeader>
+            <DialogTitle>Theme JSON explorer</DialogTitle>
+            <DialogDescription>
+              Compare the embedded-components default theme, the selected base
+              theme, your overrides, and the final merged theme side by side.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-3 grid h-[calc(100vh-7rem)] grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {/* Embedded default */}
+            <div className="flex min-w-0 flex-1 flex-col rounded border border-gray-200 bg-white">
+              <div className="border-b border-gray-200 px-3 py-2">
+                <p className="text-xs font-medium text-gray-800">
+                  Embedded default
+                </p>
+                <p className="mt-0.5 text-[11px] text-gray-500">
+                  Tokens shipped by embedded-components (defaultTheme).
+                </p>
+              </div>
+              <div className="flex-1 p-2">
+                <JsonEditorContainer
+                  key={`embedded-${jsonEditorVersion}`}
+                  initialValue={embeddedDefaultVariables as JsonValue}
+                  onValueChange={() => {
+                    // read-only
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Base theme */}
+            <div className="flex min-w-0 flex-1 flex-col rounded border border-gray-200 bg-white">
+              <div className="border-b border-gray-200 px-3 py-2">
+                <p className="text-xs font-medium text-gray-800">
+                  Base theme ({getCurrentBaseTheme()})
+                </p>
+                <p className="mt-0.5 text-[11px] text-gray-500">
+                  Semantic tokens for the selected base theme before overrides.
+                </p>
+              </div>
+              <div className="flex-1 p-2">
+                <JsonEditorContainer
+                  key={`base-${jsonEditorVersion}`}
+                  initialValue={baseVariables as JsonValue}
+                  onValueChange={() => {
+                    // read-only
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Overrides (editable) */}
+            <div className="flex min-w-0 flex-1 flex-col rounded border border-gray-200 bg-white">
+              <div className="flex items-center justify-between border-b border-gray-200 px-3 py-2">
+                <div>
+                  <p className="text-xs font-medium text-gray-800">
+                    Overrides JSON
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-gray-500">
+                    Diff-only overrides vs base theme. Edit to change tokens.
+                  </p>
+                </div>
+                <div className="flex gap-1.5">
+                  <Button
+                    variant={isCopied ? 'default' : 'outline'}
+                    size="icon"
+                    onClick={copyThemeToClipboard}
+                    className={`h-7 w-7 border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${
+                      isCopied ? '' : ''
+                    }`}
+                    title={
+                      isCopied
+                        ? 'Copied'
+                        : exportChangedOnly
+                          ? 'Copy changed JSON'
+                          : 'Copy theme JSON'
+                    }
+                    disabled={isCopied}
+                  >
+                    {isCopied ? (
+                      <Check className="h-3 w-3" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={downloadThemeAsJson}
+                    className="h-7 w-7 border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                    title="Download theme as JSON file"
+                  >
+                    <Download className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+              <div className="flex-1 p-2">
+                <JsonEditorContainer
+                  key={`overrides-${jsonEditorVersion}`}
+                  initialValue={(overridesJson || {}) as JsonValue}
+                  onValueChange={handleOverridesJsonChange}
+                />
+              </div>
+            </div>
+
+            {/* Merged effective theme */}
+            <div className="flex min-w-0 flex-1 flex-col rounded border border-gray-200 bg-white">
+              <div className="border-b border-gray-200 px-3 py-2">
+                <p className="text-xs font-medium text-gray-800">
+                  Effective theme
+                </p>
+                <p className="mt-0.5 text-[11px] text-gray-500">
+                  Final semantic tokens after applying base theme and overrides.
+                </p>
+              </div>
+              <div className="flex-1 p-2">
+                <JsonEditorContainer
+                  key={`effective-${jsonEditorVersion}`}
+                  initialValue={mergedTheme as JsonValue}
+                  onValueChange={() => {
+                    // read-only
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
