@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 type JsonValue =
   | string
@@ -34,7 +34,7 @@ export function JsonEditorContainer({
   return (
     <div className="flex h-full min-h-[8rem] flex-col">
       <textarea
-        className="min-h-[6rem] flex-1 w-full resize-none border border-gray-300 bg-white p-4 font-mono text-xs leading-relaxed text-gray-900 outline-none"
+        className="min-h-[6rem] w-full flex-1 resize-none border border-gray-300 bg-white p-4 font-mono text-xs leading-relaxed text-gray-900 outline-none"
         value={textareaContent}
         onChange={(e) => {
           setTextareaContent(e.target.value);
@@ -52,4 +52,3 @@ export function JsonEditorContainer({
 }
 
 export type { JsonValue };
-

@@ -12,8 +12,8 @@ import {
   Brush,
   Check,
   Clipboard,
-  Copy,
   Code,
+  Copy,
   Download,
   ExternalLink,
   Info,
@@ -33,6 +33,13 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -44,21 +51,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 
+import { defaultTheme as EmbeddedDefaultTheme } from '../../../../../embedded-components/src/core/EBComponentsProvider/defaultTheme';
 import { AiPromptDialog } from './ai-prompt-dialog';
+import { JsonEditorContainer, type JsonValue } from './json-editor-container';
 import { ThemeA11yPanel } from './theme-a11y-panel';
 import { getValidColorPairs } from './theme-color-pairs';
 import type { ThemeOption } from './use-sellsense-themes';
 import { useSellSenseThemes } from './use-sellsense-themes';
-import { JsonEditorContainer, type JsonValue } from './json-editor-container';
-import { defaultTheme as EmbeddedDefaultTheme } from '../../../../../embedded-components/src/core/EBComponentsProvider/defaultTheme';
 
 interface ThemeCustomizationDrawerProps {
   isOpen: boolean;
@@ -1632,7 +1632,7 @@ export function ThemeCustomizationDrawer({
           </div>
 
           {/* Main content: Form view only */}
-          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <ScrollArea className="h-full">
               <div className="px-6 pb-48">
                 {/* Accessibility Check Section - extracted into dedicated panel */}
@@ -1674,12 +1674,9 @@ export function ThemeCustomizationDrawer({
                           <div className="space-y-4 pt-2">
                             {group.tokens.map((token) => {
                               const value =
-                                customTheme[
-                                  token as keyof EBThemeVariables
-                                ] !== undefined
-                                  ? customTheme[
-                                      token as keyof EBThemeVariables
-                                    ]
+                                customTheme[token as keyof EBThemeVariables] !==
+                                undefined
+                                  ? customTheme[token as keyof EBThemeVariables]
                                   : baseVariables[
                                       token as keyof EBThemeVariables
                                     ];
@@ -1753,7 +1750,7 @@ export function ThemeCustomizationDrawer({
 
       {/* JSON explorer modal: 4 side-by-side views */}
       <Dialog open={isJsonExplorerOpen} onOpenChange={setIsJsonExplorerOpen}>
-        <DialogContent className="max-w-none h-[100vh] w-[100vw] sm:rounded-none">
+        <DialogContent className="h-[100vh] w-[100vw] max-w-none sm:rounded-none">
           <DialogHeader>
             <DialogTitle>Theme JSON explorer</DialogTitle>
             <DialogDescription>

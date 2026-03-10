@@ -15,6 +15,7 @@ import {
   setOverride,
 } from '@/lib/mock-overrides-storage';
 
+import { JsonEditorContainer as SharedJsonEditorContainer } from './json-editor-container';
 import {
   getFetchUrlForEndpoint,
   getOverrideKey,
@@ -26,7 +27,6 @@ import {
   getScenarioKeyByDisplayName,
   SCENARIOS_CONFIG,
 } from './scenarios-config';
-import { JsonEditorContainer as SharedJsonEditorContainer } from './json-editor-container';
 
 type JsonValue =
   | string
@@ -300,11 +300,7 @@ export function MockApiEditorDrawer({
         }
 
         if (overridesFromFile === null) {
-          if (
-            parsed &&
-            typeof parsed === 'object' &&
-            !Array.isArray(parsed)
-          ) {
+          if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
             overridesFromFile = parsed as JsonValue;
           }
         }
