@@ -168,7 +168,6 @@ export function ClientSummaryCard({
 }: ClientSummaryCardProps) {
   const { t } = useTranslationWithTokens([
     'client-details',
-    'onboarding-old',
     'onboarding-overview',
   ]);
 
@@ -186,10 +185,11 @@ export function ClientSummaryCard({
       })
     : null;
 
-  const translatedStatus = t(
-    `onboarding-old:clientOnboardingStatus.statusLabels.${client.status}`,
-    { defaultValue: client.status.replace(/_/g, ' ') }
-  );
+  const translatedStatus = client.status
+    ? t(`applicationStatuses.${client.status}`, {
+        defaultValue: client.status.replace(/_/g, ' '),
+      })
+    : null;
 
   // Reusable row content component for consistent styling
   const SectionRowContent = ({
