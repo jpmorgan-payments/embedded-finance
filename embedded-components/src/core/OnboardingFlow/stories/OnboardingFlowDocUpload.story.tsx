@@ -72,7 +72,7 @@ export const DocsRequested = SThemeWithMock.bind({});
 DocsRequested.storyName = 'Documents requested';
 DocsRequested.args = {
   ...SThemeWithMock.args,
-  initialClientId: CLIENT_ID,
+  clientId: CLIENT_ID,
   docUploadOnlyMode: true,
 };
 DocsRequested.parameters = {
@@ -106,7 +106,7 @@ DocsRequestedMultipleDocsInRequirement.storyName =
   'Multiple docs required in requirement';
 DocsRequestedMultipleDocsInRequirement.args = {
   ...SThemeWithMock.args,
-  initialClientId: CLIENT_ID,
+  clientId: CLIENT_ID,
   docUploadOnlyMode: true,
 };
 DocsRequestedMultipleDocsInRequirement.parameters = {
@@ -302,7 +302,7 @@ export const NoClientFound = DocsRequested.bind({});
 NoClientFound.storyName = 'No client found';
 NoClientFound.args = {
   ...DocsRequested.args,
-  initialClientId: '',
+  clientId: '',
 };
 NoClientFound.parameters = DocsRequested.parameters;
 

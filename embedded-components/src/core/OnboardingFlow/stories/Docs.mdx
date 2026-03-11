@@ -1,0 +1,151 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+import * as StatesStories from './OnboardingFlow.States.story';
+import * as VariantsStories from './OnboardingFlow.Variants.story';
+
+<Meta title="Core/OnboardingFlow" />
+
+# OnboardingFlow
+
+The **OnboardingFlow** component provides a complete, multi-step onboarding experience for embedded banking applications. It guides users through collecting business information, personal details, and compliance documentation required for KYC/AML verification.
+
+## Features
+
+- **Multi-Step Wizard**: Guided flow with progress tracking
+- **Sidebar Navigation**: Optional timeline sidebar for section navigation
+- **Client State Management**: Handles new, existing, and returning clients
+- **Document Upload**: Integrated document collection with validation
+- **NAICS Recommendations**: AI-powered industry code suggestions
+- **Theme Support**: Customizable theming for white-label deployments
+- **User Event Tracking**: Integration with analytics/RUM systems
+
+## Client States
+
+The component handles different client statuses appropriately:
+
+| Status                    | Description                                       | User Experience                               |
+| ------------------------- | ------------------------------------------------- | --------------------------------------------- |
+| **NEW**                   | Fresh onboarding or existing client with new data | Full onboarding flow with pre-filled data     |
+| **REVIEW_IN_PROGRESS**    | Application submitted and under review            | Status screen showing review is in progress   |
+| **INFORMATION_REQUESTED** | Additional documents or info needed               | Document upload and question response screens |
+| **APPROVED**              | Client fully verified and approved                | Success screen with next steps                |
+| **DECLINED**              | Application was declined                          | Declined status with relevant messaging       |
+
+## Configuration Variants
+
+### Sidebar Navigation
+
+Enable the sidebar for complex onboarding flows:
+
+```tsx
+<OnboardingFlow
+  enableSidebar={true}
+  availableProducts={['EMBEDDED_PAYMENTS']}
+  availableJurisdictions={['US']}
+/>
+```
+
+### Document Upload Mode
+
+For clients needing to upload additional documents (clientId provided via EBComponentsProvider):
+
+```tsx
+<EBComponentsProvider clientId="client-id" apiBaseUrl="/api" headers={{}}>
+  <OnboardingFlow docUploadOnlyMode={true} />
+</EBComponentsProvider>
+```
+
+### Theme Customization
+
+Apply custom theming for white-label deployments:
+
+```tsx
+<OnboardingFlow
+  theme={{
+    colorScheme: 'light',
+    variables: {
+      primaryColor: '#007bff',
+      fontFamily: 'Inter, sans-serif',
+    },
+  }}
+/>
+```
+
+## Usage Examples
+
+### Basic Usage
+
+```tsx
+import { OnboardingFlow } from '@embedded-components/core/OnboardingFlow';
+import { EBComponentsProvider } from '@embedded-components/providers';
+
+// New client onboarding (no clientId)
+<EBComponentsProvider apiBaseUrl="/api" headers={{}}>
+  <OnboardingFlow
+    availableProducts={['EMBEDDED_PAYMENTS']}
+    availableJurisdictions={['US']}
+  />
+</EBComponentsProvider>
+
+// Resume existing client (clientId from provider)
+<EBComponentsProvider clientId="0030000133" apiBaseUrl="/api" headers={{}}>
+  <OnboardingFlow
+    availableProducts={['EMBEDDED_PAYMENTS']}
+    availableJurisdictions={['US']}
+  />
+</EBComponentsProvider>
+```
+
+### With Event Handlers
+
+```tsx
+<OnboardingFlow
+  availableProducts={['EMBEDDED_PAYMENTS']}
+  availableJurisdictions={['US']}
+  onPostClientSettled={(data, error) => {
+    if (data) console.log('Client created:', data.id);
+  }}
+  onPostPartySettled={(data, error) => {
+    if (data) console.log('Party added:', data.id);
+  }}
+  onGetClientSettled={(data, status, error) => {
+    console.log('Client fetch status:', status);
+  }}
+/>
+```
+
+### With User Tracking
+
+```tsx
+<OnboardingFlow
+  availableProducts={['EMBEDDED_PAYMENTS']}
+  availableJurisdictions={['US']}
+  userEventsHandler={(context) => {
+    analytics.track(context.actionName, {
+      ...context.metadata,
+      timestamp: context.timestamp,
+    });
+  }}
+/>
+```
+
+## Props
+
+> **Note**: The client ID is provided via the `EBComponentsProvider` context using the `clientId` prop, not directly to OnboardingFlow.
+
+| Prop                               | Type                 | Default   | Description                                     |
+| ---------------------------------- | -------------------- | --------- | ----------------------------------------------- |
+| `availableProducts`                | `ClientProduct[]`    | Required  | Products available for selection                |
+| `availableJurisdictions`           | `('US' \| 'CA')[]`   | Required  | Available jurisdiction options                  |
+| `availableOrganizationTypes`       | `OrganizationType[]` | All types | Organization types available for selection      |
+| `enableSidebar`                    | `boolean`            | `false`   | Show timeline sidebar navigation                |
+| `showDownloadChecklist`            | `boolean`            | `false`   | Show download checklist button                  |
+| `docUploadOnlyMode`                | `boolean`            | `false`   | Show only document upload screens               |
+| `alertOnExit`                      | `boolean`            | `false`   | Show confirmation when leaving page             |
+| `height`                           | `string`             | `auto`    | Container height (e.g., `'100vh'`)              |
+| `onGetClientSettled`               | `function`           | -         | Callback when client fetch completes            |
+| `onPostClientSettled`              | `function`           | -         | Callback when client creation completes         |
+| `onPostPartySettled`               | `function`           | -         | Callback when party creation completes          |
+| `onPostClientVerificationsSettled` | `function`           | -         | Callback when verification submission completes |
+| `userEventsHandler`                | `function`           | -         | Handler for user journey events                 |
+| `userEventsLifecycle`              | `object`             | -         | Lifecycle hooks for user tracking               |

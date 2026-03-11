@@ -7,7 +7,10 @@ import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
-import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
+import {
+  useClientId,
+  useInterceptorStatus,
+} from '@/core/EBComponentsProvider/EBComponentsProvider';
 import {
   getOrganizationParty,
   getPartyByAssociatedPartyFilters,
@@ -30,7 +33,6 @@ import { OnboardingFlowProps } from './types/onboarding.types';
 import { getFlowProgress } from './utils/flowUtils';
 
 export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
-  initialClientId,
   alertOnExit = false,
   userEventsHandler,
   userEventsLifecycle,
@@ -39,7 +41,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   enableSidebar = false,
   ...props
 }) => {
-  const [clientId, setClientId] = useState(initialClientId ?? '');
+  const providerClientId = useClientId();
+  const [clientId, setClientId] = useState(providerClientId ?? '');
 
   const { interceptorReady } = useInterceptorStatus();
 
@@ -62,10 +65,10 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     }
   }, [clientData, clientGetStatus, clientGetError, onGetClientSettled]);
 
-  // Set clientId when initialClientId prop changes
+  // Set clientId when provider clientId changes
   useEffect(() => {
-    setClientId(initialClientId ?? '');
-  }, [initialClientId]);
+    setClientId(providerClientId ?? '');
+  }, [providerClientId]);
 
   const existingOrgParty = getOrganizationParty(clientData);
 
@@ -131,13 +134,13 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
           }
         )}
         style={{ minHeight: height }}
-        key={initialClientId}
+        key={clientId}
       >
         {/* TODO: replace with actual screens / skeletons */}
         {clientGetError ? (
           <ServerErrorAlert error={clientGetError} />
         ) : clientGetStatus === 'pending' &&
-          initialClientId &&
+          clientId &&
           !props.docUploadOnlyMode ? (
           <FormLoadingState
             message={t('onboarding-overview:fetchingClientData')}

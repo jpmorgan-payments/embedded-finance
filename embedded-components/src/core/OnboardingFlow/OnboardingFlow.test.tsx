@@ -9,7 +9,6 @@ import { OnboardingFlowProps } from '@/core/OnboardingFlow/types/onboarding.type
 // Test component wrapper with all necessary providers
 const renderOnboardingFlow = (props: Partial<OnboardingFlowProps> = {}) => {
   const defaultProps: OnboardingFlowProps = {
-    initialClientId: '',
     availableProducts: ['EMBEDDED_PAYMENTS'],
     availableJurisdictions: ['US'],
     availableOrganizationTypes: [

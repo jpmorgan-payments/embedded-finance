@@ -13,7 +13,6 @@ import {
 export type Jurisdiction = 'US' | 'CA';
 
 export type OnboardingConfigDefault = UserTrackingProps & {
-  initialClientId?: string;
   alertOnExit?: boolean;
   height?: string;
 };
