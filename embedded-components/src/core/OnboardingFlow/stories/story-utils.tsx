@@ -449,6 +449,21 @@ export const commonArgTypes = {
       category: 'Configuration',
     },
   },
+  availableOrganizationTypes: {
+    control: { type: 'check' as const },
+    options: [
+      'SOLE_PROPRIETORSHIP',
+      'LIMITED_LIABILITY_COMPANY',
+      'LIMITED_LIABILITY_PARTNERSHIP',
+      'GENERAL_PARTNERSHIP',
+      'LIMITED_PARTNERSHIP',
+      'C_CORPORATION',
+    ],
+    description: 'Available organization types for selection',
+    table: {
+      category: 'Configuration',
+    },
+  },
   enableSidebar: {
     control: { type: 'boolean' as const },
     description: 'Enable sidebar navigation with onboarding timeline',
@@ -475,12 +490,36 @@ export const commonArgTypes = {
       defaultValue: { summary: 'false' },
     },
   },
+  height: {
+    control: { type: 'text' as const },
+    description: 'Container height (e.g., "100vh", "600px")',
+    table: {
+      category: 'Display',
+      defaultValue: { summary: 'auto' },
+    },
+  },
+  hideLinkAccountSection: {
+    control: { type: 'boolean' as const },
+    description: 'Hide the link bank account section',
+    table: {
+      category: 'Display',
+      defaultValue: { summary: 'false' },
+    },
+  },
   alertOnExit: {
     control: { type: 'boolean' as const },
     description: 'Show confirmation dialog when user tries to leave the page',
     table: {
       category: 'Behavior',
       defaultValue: { summary: 'false' },
+    },
+  },
+  docUploadMaxFileSizeBytes: {
+    control: { type: 'number' as const },
+    description: 'Maximum file size for document uploads in bytes',
+    table: {
+      category: 'Behavior',
+      defaultValue: { summary: '10485760' },
     },
   },
   // Hide callback props from controls
