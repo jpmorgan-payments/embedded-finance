@@ -14,11 +14,9 @@ import {
   commonArgs,
   commonArgsWithCallbacks,
   commonArgTypes,
-  createDocUploadHandlers,
   createOnboardingFlowHandlers,
   DEFAULT_CLIENT_ID,
   defaultHandlers,
-  DOC_UPLOAD_CLIENT_ID,
   mockClientNoIndustry,
   OnboardingFlowTemplate,
 } from './story-utils';
@@ -165,68 +163,6 @@ export const WithDownloadChecklist: Story = {
           'OnboardingFlow with the "Download checklist" button visible in the overview screen header.',
       },
     },
-  },
-};
-
-/**
- * **Document Upload Only Mode**
- *
- * Shows only document upload screens for clients with INFORMATION_REQUESTED status.
- * Used when a client needs to upload additional documents after initial onboarding.
- */
-export const DocumentUploadMode: Story = {
-  name: 'Document Upload Only Mode',
-  parameters: {
-    msw: {
-      handlers: createDocUploadHandlers(),
-    },
-  },
-  args: {
-    ...commonArgs,
-    clientId: DOC_UPLOAD_CLIENT_ID,
-    docUploadOnlyMode: true,
-  },
-};
-
-/**
- * **Document Upload - No Documents**
- *
- * Document upload mode when no documents are requested.
- */
-export const DocumentUploadNoDocuments: Story = {
-  name: 'Document Upload - No Documents',
-  parameters: {
-    msw: {
-      handlers: createDocUploadHandlers({
-        documentRequests: [],
-      }),
-    },
-  },
-  args: {
-    ...commonArgs,
-    clientId: DOC_UPLOAD_CLIENT_ID,
-    docUploadOnlyMode: true,
-  },
-};
-
-/**
- * **Document Upload - Loading**
- *
- * Loading state while fetching document requests.
- */
-export const DocumentUploadLoading: Story = {
-  name: 'Document Upload - Loading',
-  parameters: {
-    msw: {
-      handlers: createDocUploadHandlers({
-        loadingDelay: 60000,
-      }),
-    },
-  },
-  args: {
-    ...commonArgs,
-    clientId: DOC_UPLOAD_CLIENT_ID,
-    docUploadOnlyMode: true,
   },
 };
 
