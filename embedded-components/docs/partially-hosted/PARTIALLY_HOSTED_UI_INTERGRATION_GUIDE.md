@@ -44,11 +44,6 @@ The `experienceType` parameter controls which hosted UI is rendered inside the i
 |----------------|-------------|
 | `HOSTED_ONBOARDING_UI` | Full onboarding flow for new clients |
 | `HOSTED_DOC_UPLOAD_ONBOARDING_UI` | Document upload step of the onboarding process |
-| `HOSTED_RECIPIENTS_UI` | Manage payment recipients |
-| `HOSTED_LINKED_ACCOUNTS_UI` | View and manage linked accounts |
-| `HOSTED_TRANSACTIONS_UI` | View transaction history |
-| `HOSTED_ACCOUNTS_UI` | View account details and balances |
-| `HOSTED_MAKE_PAYMENT_UI` | Initiate a payment |
 
 > **Default:** If no `experienceType` is specified, the default is `HOSTED_DOC_UPLOAD_ONBOARDING_UI`.
 
@@ -138,11 +133,11 @@ backend** to manage session transfer to the hosted Onboarding UI.
   - `404`: The clientId is not found.
   - `422`: The clientId is not valid.
   - `500`: Server error.
-  3. The Onboarding Service's API responds with:
+  1. The Onboarding Service's API responds with:
       - The URL (or components to build the URL) for the hosted Onboarding UI
         with a short-lived JWT token (or similar) to authenticate the user
         session within the iframe.
-  4. Your backend securely returns the necessary information (e.g., the JWT
+  2. Your backend securely returns the necessary information (e.g., the JWT
       token) to your frontend.
 - **Example Response (from the Onboarding Service to your backend):**
 
@@ -487,7 +482,7 @@ function encodeJsonParam(obj) {
 const url = `${baseUrl}/onboarding?token=${token}&theme=${encodeJsonParam(theme)}&contentTokens=${encodeJsonParam(tokens)}`;
 ```
 
-2. **Iframe Security:**
+1. **Iframe Security:**
 
 ```javascript
 // Iframe is created with strict security attributes
@@ -496,7 +491,7 @@ iframe.setAttribute('referrerpolicy', 'no-referrer');
 iframe.setAttribute('title', 'Complete your account onboarding - interactive form');
 ```
 
-3. **Event Communication (Pub/Sub Pattern):**
+1. **Event Communication (Pub/Sub Pattern):**
 
 ```javascript
 // Subscribe to events from the iframe
@@ -509,7 +504,7 @@ const unsubscribe = componentInstance.subscribe((event) => {
 unsubscribe();
 ```
 
-4. **Core API Methods:**
+1. **Core API Methods:**
    - `mount(targetElementId)` - Render iframe to DOM element
    - `unmount()` - Remove iframe and cleanup
    - `subscribe(callback)` - Listen to iframe events (returns unsubscribe function)
