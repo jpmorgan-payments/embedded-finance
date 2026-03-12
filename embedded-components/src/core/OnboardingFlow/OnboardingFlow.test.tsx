@@ -9,7 +9,6 @@ import { OnboardingFlowProps } from '@/core/OnboardingFlow/types/onboarding.type
 // Test component wrapper with all necessary providers
 const renderOnboardingFlow = (props: Partial<OnboardingFlowProps> = {}) => {
   const defaultProps: OnboardingFlowProps = {
-    initialClientId: '',
     availableProducts: ['EMBEDDED_PAYMENTS'],
     availableJurisdictions: ['US'],
     availableOrganizationTypes: [
@@ -667,10 +666,11 @@ describe('OnboardingFlow', () => {
     // Fill out operational details form
     const revenueInput = screen.getByLabelText(/Total annual revenue/i);
     await user.type(revenueInput, '50000');
-    const sanctionedCountriesQuestionRadio = screen.getByRole('radio', {
-      name: /No/i,
-    });
-    await user.click(sanctionedCountriesQuestionRadio);
+    // Select "No" for all visible boolean questions (30026 sanctions, 30088 covered goods, 30095 FinTech)
+    const noRadios = screen.getAllByRole('radio', { name: /^No$/i });
+    for (const radio of noRadios) {
+      await user.click(radio);
+    }
     const operationalDetailsContinueButton = screen.getByRole('button', {
       name: /continue/i,
     });

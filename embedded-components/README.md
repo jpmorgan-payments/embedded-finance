@@ -140,18 +140,18 @@ graph TB
 
 The library currently provides the following components:
 
-| Component            | Description                                            | Status       |
-| -------------------- | ------------------------------------------------------ | ------------ |
-| EBComponentsProvider | Provider wrapper for all embedded components           | Stable       |
-| OnboardingWizardBasic| Legacy onboarding wizard                               | Deprecated   |
-| OnboardingFlow       | Modern onboarding experience                           | Stable       |
-| Accounts             | Account management and display                         | In Testing   |
-| ClientDetails        | Detailed client information (identity, ownership, KYC) | In Testing   |
-| LinkedAccountWidget  | External bank account linking with microdeposits       | Stable       |
-| RecipientsWidget     | Payment recipient management (NEW)                     | Stable       |
-| MakePayment          | Payment processing interface                           | In Testing   |
-| TransactionsDisplay  | Transaction history and display                        | In Testing   |
-| Recipients           | Legacy recipient management                            | **Deprecated** - Use RecipientsWidget |
+| Component             | Description                                            | Status                                |
+| --------------------- | ------------------------------------------------------ | ------------------------------------- |
+| EBComponentsProvider  | Provider wrapper for all embedded components           | Stable                                |
+| OnboardingWizardBasic | Legacy onboarding wizard                               | Deprecated                            |
+| OnboardingFlow        | Modern onboarding experience                           | Stable                                |
+| Accounts              | Account management and display                         | In Testing                            |
+| ClientDetails         | Detailed client information (identity, ownership, KYC) | In Testing                            |
+| LinkedAccountWidget   | External bank account linking with microdeposits       | Stable                                |
+| RecipientsWidget      | Payment recipient management (NEW)                     | Stable                                |
+| MakePayment           | Payment processing interface                           | In Testing                            |
+| TransactionsDisplay   | Transaction history and display                        | In Testing                            |
+| Recipients            | Legacy recipient management                            | **Deprecated** - Use RecipientsWidget |
 
 ### EBComponentsProvider
 
@@ -215,7 +215,6 @@ The `OnboardingWizardBasic` component implements the client onboarding process a
 
 | Prop Name                          | Type                                                                                                                                      | Required | Description                                             |
 | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------- |
-| `initialClientId`                  | `string`                                                                                                                                  | No       | Initial client ID for existing client onboarding        |
 | `onSetClientId`                    | `(clientId: string) => Promise<void>`                                                                                                     | No       | Callback function when client ID is set                 |
 | `onGetClientSettled`               | `(clientData: ClientResponse \| undefined, status: 'success' \| 'pending' \| 'error', error: ErrorType<SchemasApiError> \| null) => void` | No       | Callback function triggered when client data is fetched |
 | `onPostClientSettled`              | `(response?: ClientResponse, error?: ApiError) => void`                                                                                   | No       | Callback function for client creation response          |
@@ -255,10 +254,12 @@ const OnboardingSection = () => {
   };
 
   return (
-    <EBComponentsProvider apiBaseUrl="https://your-api-base-url.com">
+    <EBComponentsProvider
+      apiBaseUrl="https://your-api-base-url.com"
+      clientId={clientId}
+    >
       <OnboardingWizardBasic
         title="Client Onboarding"
-        initialClientId={clientId}
         onPostClientSettled={handlePostClientResponse}
         onPostClientVerificationSettled={handlePostClientVerificationsResponse}
         availableProducts={['EMBEDDED_PAYMENTS']}
@@ -298,7 +299,6 @@ The `OnboardingFlow` component provides a modern, enhanced onboarding experience
 
 | Prop Name                          | Type                                                                                                                                      | Required | Description                                             |
 | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------- |
-| `initialClientId`                  | `string`                                                                                                                                  | No       | Initial client ID for existing client onboarding        |
 | `onGetClientSettled`               | `(clientData: ClientResponse \| undefined, status: 'success' \| 'pending' \| 'error', error: ErrorType<SchemasApiError> \| null) => void` | No       | Callback function triggered when client data is fetched |
 | `onPostClientSettled`              | `(response?: ClientResponse, error?: ApiError) => void`                                                                                   | No       | Callback function for client creation response          |
 | `onPostPartySettled`               | `(response?: PartyResponse, error?: ApiError) => void`                                                                                    | No       | Callback function for party creation response           |
@@ -325,9 +325,11 @@ import {
 
 const OnboardingSection = () => {
   return (
-    <EBComponentsProvider apiBaseUrl="https://your-api-base-url.com">
+    <EBComponentsProvider
+      apiBaseUrl="https://your-api-base-url.com"
+      clientId="your-client-id"
+    >
       <OnboardingFlow
-        initialClientId="your-client-id"
         availableProducts={['EMBEDDED_PAYMENTS']}
         availableJurisdictions={['US']}
         height="100vh"
@@ -518,16 +520,16 @@ The `RecipientsWidget` component enables users to manage payment recipients with
 
 #### Props:
 
-| Prop Name          | Type                                     | Required | Description                                                            |
-| ------------------ | ---------------------------------------- | -------- | ---------------------------------------------------------------------- |
-| `mode`             | `'list' \| 'single'`                     | No       | **list**: Show all recipients. **single**: Show one recipient          |
-| `recipientId`      | `string`                                 | No       | Recipient ID for single mode                                           |
-| `showCreateButton` | `boolean`                                | No       | Show/hide create functionality                                         |
-| `hideActions`      | `boolean`                                | No       | Hide action buttons                                                    |
-| `title`            | `string`                                 | No       | Custom widget title                                                    |
-| `pageSize`         | `number`                                 | No       | Number of recipients per page                                          |
-| `onRecipientAdded` | `(recipient: Recipient) => void`         | No       | Callback when a recipient is added                                     |
-| `onError`          | `(error: Error) => void`                 | No       | Callback when an error occurs                                          |
+| Prop Name          | Type                             | Required | Description                                                   |
+| ------------------ | -------------------------------- | -------- | ------------------------------------------------------------- |
+| `mode`             | `'list' \| 'single'`             | No       | **list**: Show all recipients. **single**: Show one recipient |
+| `recipientId`      | `string`                         | No       | Recipient ID for single mode                                  |
+| `showCreateButton` | `boolean`                        | No       | Show/hide create functionality                                |
+| `hideActions`      | `boolean`                        | No       | Hide action buttons                                           |
+| `title`            | `string`                         | No       | Custom widget title                                           |
+| `pageSize`         | `number`                         | No       | Number of recipients per page                                 |
+| `onRecipientAdded` | `(recipient: Recipient) => void` | No       | Callback when a recipient is added                            |
+| `onError`          | `(error: Error) => void`         | No       | Callback when an error occurs                                 |
 
 #### Usage:
 

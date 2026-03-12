@@ -125,9 +125,9 @@ export function KycOnboarding({
         'Content-Type': 'application/json',
       }}
       contentTokens={contentTokensWithIds}
+      clientId={clientId}
     >
       <OnboardingFlow
-        initialClientId={clientId}
         onPostClientSettled={handlePostClientResponse}
         onPostPartySettled={handlePostPartyResponse}
         onPostClientVerificationsSettled={handlePostClientVerificationsResponse}

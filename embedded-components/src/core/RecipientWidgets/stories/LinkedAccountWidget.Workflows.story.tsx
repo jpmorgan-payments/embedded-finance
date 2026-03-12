@@ -8,7 +8,7 @@
 
 import { linkedAccountReadyForValidationMock } from '@/mocks/efLinkedAccounts.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { userEvent, waitFor, within } from 'storybook/test';
+import { userEvent, waitFor } from 'storybook/test';
 
 import { LinkedAccountWidget } from '../LinkedAccountWidget';
 import {
@@ -58,8 +58,14 @@ type Story = StoryObj<typeof meta>;
  * This is shared across multiple stories to avoid duplication
  */
 const fillLinkAccountForm = async (
-  canvas: ReturnType<typeof within>,
-  step: any
+  canvas: {
+    findByRole: (
+      role: string,
+      options?: { name?: RegExp }
+    ) => Promise<HTMLElement>;
+    findByText: (text: RegExp) => Promise<HTMLElement>;
+  },
+  step: (name: string, fn: () => Promise<void>) => void | Promise<void>
 ) => {
   // Step 1: Click "Link Account" button
   await step('Click Link Account button', async () => {
@@ -279,8 +285,7 @@ export const LinkNewAccount: Story = {
       });
     },
   ],
-  play: async ({ canvasElement, step }) => {
-    const canvas = within(canvasElement);
+  play: async ({ canvas, step }) => {
     await fillLinkAccountForm(canvas, step);
 
     // Verify the success state shows "Verification Process Started"
@@ -320,8 +325,7 @@ export const LinkNewAccountActive: Story = {
       });
     },
   ],
-  play: async ({ canvasElement, step }) => {
-    const canvas = within(canvasElement);
+  play: async ({ canvas, step }) => {
     await fillLinkAccountForm(canvas, step);
 
     // Verify the success state shows "Account Successfully Linked"
@@ -361,8 +365,7 @@ export const LinkNewAccountPending: Story = {
       });
     },
   ],
-  play: async ({ canvasElement, step }) => {
-    const canvas = within(canvasElement);
+  play: async ({ canvas, step }) => {
     await fillLinkAccountForm(canvas, step);
 
     // Verify the success state shows "Account Linking In Progress"
@@ -402,8 +405,7 @@ export const LinkNewAccountRejected: Story = {
       });
     },
   ],
-  play: async ({ canvasElement, step }) => {
-    const canvas = within(canvasElement);
+  play: async ({ canvas, step }) => {
     await fillLinkAccountForm(canvas, step);
 
     // Verify the success state shows "Account Linking Failed"
@@ -443,8 +445,7 @@ export const LinkNewAccountInactive: Story = {
       });
     },
   ],
-  play: async ({ canvasElement, step }) => {
-    const canvas = within(canvasElement);
+  play: async ({ canvas, step }) => {
     await fillLinkAccountForm(canvas, step);
 
     // Verify the success state shows "Account Link Deactivated"
@@ -480,24 +481,29 @@ export const SuccessfulVerification: Story = {
       });
     },
   ],
-  play: async ({ canvasElement, step }) => {
-    const canvas = within(canvasElement);
-
+  play: async ({ canvas, step }) => {
     // Step 1: Verify initial state shows "Action Required"
     await step('Verify initial state', async () => {
-      await delay(INTERACTION_DELAY);
-      await waitFor(async () => {
-        await canvas.findByText(/action required/i);
-      });
+      await waitFor(
+        () => {
+          canvas.getByText(/action required/i);
+        },
+        { timeout: 10000 }
+      );
     });
 
     // Step 2: Click "Verify Account" button
     await step('Click Verify Account button', async () => {
       await delay(INTERACTION_DELAY);
-      const verifyButton = await canvas.findByRole('button', {
-        name: /verify account/i,
-      });
-      await userEvent.click(verifyButton);
+      await waitFor(
+        async () => {
+          const verifyButton = canvas.getByRole('button', {
+            name: /verify account/i,
+          });
+          await userEvent.click(verifyButton);
+        },
+        { timeout: 10000 }
+      );
     });
 
     // Step 3: Enter correct microdeposit amounts
@@ -564,16 +570,18 @@ export const FailedVerification: Story = {
       });
     },
   ],
-  play: async ({ canvasElement, step }) => {
-    const canvas = within(canvasElement);
-
+  play: async ({ canvas, step }) => {
     // Step 1: Click "Verify" button on the account card
     await step('Click Verify button', async () => {
-      const verifyButton = await canvas.findByRole('button', {
-        name: /verify/i,
-      });
-      await delay(INTERACTION_DELAY);
-      await userEvent.click(verifyButton);
+      await waitFor(
+        async () => {
+          const verifyButton = canvas.getByRole('button', {
+            name: /verify account/i,
+          });
+          await userEvent.click(verifyButton);
+        },
+        { timeout: 10000 }
+      );
     });
 
     // Step 2: Wait for microdeposits dialog and fill in incorrect amounts
@@ -650,16 +658,18 @@ export const MaxAttemptsExceeded: Story = {
       );
     },
   ],
-  play: async ({ canvasElement, step }) => {
-    const canvas = within(canvasElement);
-
+  play: async ({ canvas, step }) => {
     // Step 1: Click "Verify" button
     await step('Click Verify button', async () => {
-      const verifyButton = await canvas.findByRole('button', {
-        name: /verify/i,
-      });
-      await delay(INTERACTION_DELAY);
-      await userEvent.click(verifyButton);
+      await waitFor(
+        async () => {
+          const verifyButton = canvas.getByRole('button', {
+            name: /verify account/i,
+          });
+          await userEvent.click(verifyButton);
+        },
+        { timeout: 10000 }
+      );
     });
 
     // Step 2: Enter incorrect amounts
@@ -724,8 +734,14 @@ export const MaxAttemptsExceeded: Story = {
  * This is used to demonstrate the RTP unavailability error scenario.
  */
 const fillLinkAccountFormWithRtp = async (
-  canvas: ReturnType<typeof within>,
-  step: any
+  canvas: {
+    findByRole: (
+      role: string,
+      options?: { name?: RegExp }
+    ) => Promise<HTMLElement>;
+    findByText: (text: RegExp) => Promise<HTMLElement>;
+  },
+  step: (name: string, fn: () => Promise<void>) => void | Promise<void>
 ) => {
   // Step 1: Click "Link Account" button
   await step('Click Link Account button', async () => {
@@ -928,27 +944,7 @@ const fillLinkAccountFormWithRtp = async (
     await userEvent.type(routingInput, '021000021', { delay: 50 });
   });
 
-  // Step 8: Enter email (required for RTP)
-  await step('Enter email address (required for RTP)', async () => {
-    await delay(INTERACTION_DELAY);
-
-    await waitFor(() => {
-      const emailInput = document.querySelector(
-        'input[type="email"]'
-      ) as HTMLInputElement;
-      if (!emailInput) throw new Error('Email input not found');
-      return emailInput;
-    });
-
-    const emailInput = document.querySelector(
-      'input[type="email"]'
-    ) as HTMLInputElement;
-
-    await userEvent.clear(emailInput);
-    await userEvent.type(emailInput, 'test@example.com', { delay: 30 });
-  });
-
-  // Step 9: Check certification checkbox (required for linked accounts)
+  // Step 8: Check certification checkbox (required for linked accounts)
   await step('Accept certification', async () => {
     await delay(INTERACTION_DELAY);
 
@@ -984,7 +980,7 @@ const fillLinkAccountFormWithRtp = async (
     await userEvent.click(certifyCheckbox);
   });
 
-  // Step 10: Submit the form
+  // Step 9: Submit the form
   await step('Submit the form', async () => {
     await delay(INTERACTION_DELAY);
     // Find the submit button - could be "Confirm and Link Account" or similar
@@ -1044,8 +1040,7 @@ not available at the selected financial institution.
       });
     },
   ],
-  play: async ({ canvasElement, step }) => {
-    const canvas = within(canvasElement);
+  play: async ({ canvas, step }) => {
     await fillLinkAccountFormWithRtp(canvas, step);
 
     // Verify the error message appears

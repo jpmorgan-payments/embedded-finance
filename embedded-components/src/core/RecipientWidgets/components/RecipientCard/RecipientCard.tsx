@@ -226,7 +226,7 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
                 variant="default"
                 size="sm"
                 data-user-event={LINKED_ACCOUNT_USER_JOURNEYS.VERIFY_STARTED}
-                aria-label={`${t('actions.verifyAccount')} for ${displayName}`}
+                aria-label={`${tString('actions.verifyAccount')} for ${displayName}`}
               >
                 <span>{t('actions.verifyAccount')}</span>
                 <ArrowRightIcon
@@ -373,7 +373,7 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
                     variant="default"
                     size="sm"
                     className="eb-h-8 eb-shrink-0 eb-text-xs"
-                    aria-label={`${t('actions.verifyAccount')} for ${displayName}`}
+                    aria-label={`${tString('actions.verifyAccount')} for ${displayName}`}
                   >
                     <span>{t('actions.verifyAccount')}</span>
                   </Button>
@@ -400,7 +400,7 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
                 variant="ghost"
                 size="sm"
                 className="eb-h-8 eb-shrink-0 eb-gap-1.5 eb-text-xs @sm:eb-hidden @lg:eb-inline-flex"
-                aria-label={`${t('actions.viewDetails')} for ${displayName}`}
+                aria-label={`${tString('actions.viewDetails')} for ${displayName}`}
               >
                 <ClipboardListIcon
                   className="eb-h-3.5 eb-w-3.5"

@@ -334,7 +334,7 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
                 size="sm"
                 className="eb-h-8 eb-text-xs"
                 data-user-event={userJourneys.VERIFY_STARTED}
-                aria-label={`${t('actions.verifyAccount')} for ${displayName}`}
+                aria-label={`${tString('actions.verifyAccount')} for ${displayName}`}
               >
                 {t('actions.verifyAccount', { defaultValue: 'Verify' })}
               </Button>
@@ -353,7 +353,7 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
                 variant="ghost"
                 size="sm"
                 className="eb-h-8 eb-gap-1 eb-text-xs"
-                aria-label={`${t('actions.viewDetails')} for ${displayName}`}
+                aria-label={`${tString('actions.viewDetails')} for ${displayName}`}
               >
                 <ClipboardListIcon className="eb-h-3.5 eb-w-3.5" />
                 <span className="eb-hidden @3xl:eb-inline">

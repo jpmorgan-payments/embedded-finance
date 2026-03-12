@@ -8,7 +8,7 @@
 
 import { createMockRecipient } from '@/mocks/recipients.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { userEvent, waitFor, within } from 'storybook/test';
+import { userEvent, waitFor } from 'storybook/test';
 
 import { RecipientsWidget } from '../RecipientsWidget/RecipientsWidget';
 import {
@@ -68,8 +68,17 @@ type Story = StoryObj<typeof meta>;
  * This is shared across multiple stories to avoid duplication
  */
 const fillAddRecipientForm = async (
-  canvas: ReturnType<typeof within>,
-  step: any
+  canvas: {
+    findByRole: (
+      role: string,
+      options?: { name?: RegExp }
+    ) => Promise<HTMLElement>;
+    findByText: (text: RegExp) => Promise<HTMLElement>;
+    getByText: (text: RegExp) => HTMLElement;
+    getByRole: (role: string, options?: { name?: RegExp }) => HTMLElement;
+    queryByText: (text: RegExp) => HTMLElement | null;
+  },
+  step: (name: string, fn: () => Promise<void>) => void | Promise<void>
 ) => {
   // Step 1: Click "Add Recipient" button
   await step('Click Add Recipient button', async () => {
@@ -225,9 +234,7 @@ export const AddRecipientWorkflow: Story = {
       });
     },
   ],
-  play: async ({ canvasElement, step }) => {
-    const canvas = within(canvasElement);
-
+  play: async ({ canvas, step }) => {
     try {
       await fillAddRecipientForm(canvas, step);
 
@@ -287,9 +294,7 @@ export const ViewRecipientDetails: Story = {
       });
     },
   ],
-  play: async ({ canvasElement, step }) => {
-    const canvas = within(canvasElement);
-
+  play: async ({ canvas, step }) => {
     await step('Wait for recipient card to appear', async () => {
       await delay(INTERACTION_DELAY);
       await waitFor(
@@ -410,9 +415,7 @@ export const RemoveRecipientWorkflow: Story = {
       });
     },
   ],
-  play: async ({ canvasElement, step }) => {
-    const canvas = within(canvasElement);
-
+  play: async ({ canvas, step }) => {
     await step('Wait for recipient card to appear', async () => {
       await delay(INTERACTION_DELAY);
       await waitFor(
@@ -546,9 +549,7 @@ export const PaginationWorkflow: Story = {
       });
     },
   ],
-  play: async ({ canvasElement, step }) => {
-    const canvas = within(canvasElement);
-
+  play: async ({ canvas, step }) => {
     await step('Wait for first page to load', async () => {
       await delay(INTERACTION_DELAY);
       await waitFor(
@@ -591,8 +592,17 @@ export const PaginationWorkflow: Story = {
  * This is used to demonstrate the RTP unavailability error scenario.
  */
 const fillAddRecipientFormWithRtp = async (
-  canvas: ReturnType<typeof within>,
-  step: any
+  canvas: {
+    findByRole: (
+      role: string,
+      options?: { name?: RegExp }
+    ) => Promise<HTMLElement>;
+    findByText: (text: RegExp) => Promise<HTMLElement>;
+    getByText: (text: RegExp) => HTMLElement;
+    getByRole: (role: string, options?: { name?: RegExp }) => HTMLElement;
+    queryByText: (text: RegExp) => HTMLElement | null;
+  },
+  step: (name: string, fn: () => Promise<void>) => void | Promise<void>
 ) => {
   // Step 1: Click "Add Recipient" button
   await step('Click Add Recipient button', async () => {
@@ -878,8 +888,7 @@ not available at the selected financial institution.
       });
     },
   ],
-  play: async ({ canvasElement, step }) => {
-    const canvas = within(canvasElement);
+  play: async ({ canvas, step }) => {
     await fillAddRecipientFormWithRtp(canvas, step);
 
     // Verify the error message appears

@@ -59,6 +59,12 @@ export function useTranslationWithTokens<N extends ValidNamespace>(
       return translated;
     }
 
+    // If the translated content is empty, return empty string to avoid rendering empty spans
+    // This preserves the behavior of conditional rendering based on empty content
+    if (translated === '' || translated === null || translated === undefined) {
+      return translated ?? '';
+    }
+
     // Build full token ID (namespace.key)
     const keyStr = String(key);
     const namespace =

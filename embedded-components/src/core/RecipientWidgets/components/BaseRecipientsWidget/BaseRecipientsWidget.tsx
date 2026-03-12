@@ -493,7 +493,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
           size="sm"
           className="eb-h-8 eb-text-xs"
           onClick={() => handleOpenPaymentDialog(recipient.id)}
-          aria-label={`${t('actions.makePayment', { defaultValue: 'Pay' })} to ${getRecipientDisplayName(recipient)}`}
+          aria-label={`${tString('actions.makePayment', { defaultValue: 'Pay' })} to ${getRecipientDisplayName(recipient)}`}
         >
           {t('actions.makePayment', { defaultValue: 'Pay' })}
         </Button>
