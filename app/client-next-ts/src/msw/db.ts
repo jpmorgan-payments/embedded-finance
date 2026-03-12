@@ -1043,7 +1043,11 @@ export function applyOverridesToDb(overrides: Record<string, unknown>): void {
   const accountsPayload = key('GET /ef/do/v1/accounts') as
     | { items?: unknown[] }
     | undefined;
-  if (accountsPayload?.items && Array.isArray(accountsPayload.items) && accountsPayload.items.length > 0) {
+  if (
+    accountsPayload?.items &&
+    Array.isArray(accountsPayload.items) &&
+    accountsPayload.items.length > 0
+  ) {
     db.account.deleteMany({});
     accountsPayload.items.forEach((account) => {
       const rec = account as Record<string, unknown> & { id?: string };
@@ -1072,7 +1076,11 @@ export function applyOverridesToDb(overrides: Record<string, unknown>): void {
   const transactionsPayload = key('GET /ef/do/v1/transactions') as
     | { items?: unknown[] }
     | undefined;
-  if (transactionsPayload?.items && Array.isArray(transactionsPayload.items) && transactionsPayload.items.length > 0) {
+  if (
+    transactionsPayload?.items &&
+    Array.isArray(transactionsPayload.items) &&
+    transactionsPayload.items.length > 0
+  ) {
     db.transaction.deleteMany({});
     transactionsPayload.items.forEach((transaction) => {
       const rec = transaction as Record<string, unknown> & { id?: string };

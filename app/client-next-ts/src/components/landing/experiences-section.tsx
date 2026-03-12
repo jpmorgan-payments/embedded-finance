@@ -208,7 +208,7 @@ export function ExperiencesSection() {
 
   return (
     <>
-      <section id="embedded-components" className="bg-jpm-white pt-4 pb-8">
+      <section id="embedded-components" className="bg-jpm-white pb-8 pt-4">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-6xl">
             <div className="mx-auto mb-8 flex max-w-3xl flex-wrap items-center justify-center gap-2.5">

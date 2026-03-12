@@ -51,8 +51,12 @@ Before generating component code, review the architecture document for:
 - **embedded-components**: See `embedded-components/AGENTS.md` for package-specific details
 - **app/client-next-ts**: See `app/client-next-ts/AGENTS.md` for app-specific patterns (Tailwind prefix rules, drawer pattern, MSW override architecture, `@visual-json/react` integration)
   - **Current showcase website**: Modern React application demonstrating embedded finance components
-  - **Technology**: Vite, React 18, TypeScript, TanStack Router, Tailwind CSS, MSW
+  - **Technology**: Vite, React 18, TypeScript, TanStack Router, shadcn/ui, Playwright, MSW
   - **Main demo**: SellSense marketplace demo at `/sellsense-demo` route
+  - **Features**: Multiple theme support (SellSense, PayFicient, etc.), content tokens for tone variants
+  - **Key docs**: `app/client-next-ts/PRD.md` (product requirements), `app/client-next-ts/MSW_SETUP.md` (API mocking setup)
+  - **Note**: This app **consumes** embedded-components. Component development happens in `embedded-components/`.
+  - **Code quality**: `npm test` · `npm run format:check` / `npm run format` · `npm run health-check`
 - **app/client**: Legacy/archived showcase (minimal content, not actively maintained)
 - **app/server**: Express server for proxying requests to J.P. Morgan Sandbox/UAT APIs (sandbox uses OAuth2, UAT uses certificate authentication)
 - **app/server-session-transfer**: Demo application for partially hosted onboarding integration pattern
