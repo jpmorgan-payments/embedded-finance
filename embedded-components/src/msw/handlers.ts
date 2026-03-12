@@ -104,7 +104,15 @@ export const handlers = [
       products: data?.products || ['EMBEDDED_PAYMENTS'],
       outstanding: {
         documentRequestIds: [],
-        questionIds: ['30005', '30158'],
+        questionIds: [
+          '30005',
+          '30026',
+          '30027',
+          '30088',
+          '30089',
+          '30090',
+          '30095',
+        ],
         attestationDocumentIds: ['abcd1c1d-6635-43ff-a8e5-b252926bddef'],
         partyIds: [],
         partyRoles: [],
