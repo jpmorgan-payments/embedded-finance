@@ -21,11 +21,6 @@ The demo supports multiple hosted experience types, selectable from a dropdown i
 |----------------|-------------|
 | `HOSTED_ONBOARDING_UI` | Full onboarding flow for new clients |
 | `HOSTED_DOC_UPLOAD_ONBOARDING_UI` | Document upload step of the onboarding process |
-| `HOSTED_RECIPIENTS_UI` | Manage payment recipients |
-| `HOSTED_LINKED_ACCOUNTS_UI` | View and manage linked accounts |
-| `HOSTED_TRANSACTIONS_UI` | View transaction history |
-| `HOSTED_ACCOUNTS_UI` | View account details and balances |
-| `HOSTED_MAKE_PAYMENT_UI` | Initiate a payment |
 
 Each experience type renders a different embedded UI within the iframe targeting the specified Client ID.
 
