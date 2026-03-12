@@ -103,7 +103,15 @@ function seedMinimalClient(clientId: string) {
     createdAt: timestamp,
     outstanding: {
       documentRequestIds: [],
-      questionIds: ['30005', '30158'], // Questions from efClientQuestionsMock
+      questionIds: [
+        '30005',
+        '30026',
+        '30027',
+        '30088',
+        '30089',
+        '30090',
+        '30095',
+      ], // Questions from efClientQuestionsMock
       attestationDocumentIds: [],
       partyIds: [],
       partyRoles: [],
@@ -1395,8 +1403,10 @@ export const _4_Owners_CompleteSection: Story = {
  * Questions come from the mock API based on outstanding questionIds.
  *
  * Questions answered:
- * - Total Annual Revenue: $10,000 (money input with $ prefix)
- * - Sanctions countries: No (boolean radio buttons)
+ * - 30005: Total Annual Revenue: $10,000 (money input with $ prefix)
+ * - 30026: Sanctions countries: No (boolean radio)
+ * - 30088: Covered goods >$50k: No (boolean radio)
+ * - 30095: Are you a FinTech?: No (boolean radio)
  */
 export const _5_OperationalDetails: Story = {
   name: '5. Operational Details',
@@ -1455,7 +1465,7 @@ export const _5_OperationalDetails: Story = {
       );
     });
 
-    // ---- Question 1: Total Annual Revenue (money input) ----
+    // ---- Question 30005: Total Annual Revenue (money input) ----
 
     await step('Fill Total Annual Revenue: $10,000', async () => {
       await delay(STEP_DELAY / 2);
@@ -1468,13 +1478,35 @@ export const _5_OperationalDetails: Story = {
       });
     });
 
-    // ---- Question 2: Sanctions (boolean radio) ----
+    // ---- Question 30026: Sanctions (boolean radio) ----
 
     await step('Select No for sanctions question', async () => {
       await delay(STEP_DELAY / 2);
       const container = getContainer();
-      const noRadio = container.getByRole('radio', { name: /^No$/i });
-      await userEvent.click(noRadio);
+      // There will be multiple "No" radios, get all radio groups
+      const noRadios = container.getAllByRole('radio', { name: /^No$/i });
+      // First "No" radio corresponds to the sanctions question (30026)
+      await userEvent.click(noRadios[0]);
+    });
+
+    // ---- Question 30088: Covered goods >$50k (boolean radio) ----
+
+    await step('Select No for covered goods question', async () => {
+      await delay(STEP_DELAY / 2);
+      const container = getContainer();
+      const noRadios = container.getAllByRole('radio', { name: /^No$/i });
+      // Second "No" radio corresponds to covered goods question (30088)
+      await userEvent.click(noRadios[1]);
+    });
+
+    // ---- Question 30095: Are you a FinTech? (boolean radio) ----
+
+    await step('Select No for FinTech question', async () => {
+      await delay(STEP_DELAY / 2);
+      const container = getContainer();
+      const noRadios = container.getAllByRole('radio', { name: /^No$/i });
+      // Third "No" radio corresponds to FinTech question (30095)
+      await userEvent.click(noRadios[2]);
     });
 
     await step('Verify answers are filled', async () => {
@@ -1483,9 +1515,11 @@ export const _5_OperationalDetails: Story = {
       // Verify revenue input has value
       const revenueInput = container.getByRole('spinbutton');
       expect(revenueInput).toHaveValue(10000);
-      // Verify No radio is checked
-      const noRadio = container.getByRole('radio', { name: /^No$/i });
-      expect(noRadio).toBeChecked();
+      // Verify all three No radios are checked
+      const noRadios = container.getAllByRole('radio', { name: /^No$/i });
+      expect(noRadios[0]).toBeChecked();
+      expect(noRadios[1]).toBeChecked();
+      expect(noRadios[2]).toBeChecked();
     });
   },
 };

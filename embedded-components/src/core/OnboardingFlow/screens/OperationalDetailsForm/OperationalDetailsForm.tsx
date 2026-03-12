@@ -565,6 +565,26 @@ export const OperationalDetailsForm = () => {
       );
     }
 
+    const renderSubQuestions = (
+      parentId: string | undefined
+    ): React.ReactNode => {
+      if (!parentId) return null;
+      return questionsData?.questions
+        ?.filter((q) => q.parentQuestionId === parentId)
+        .filter(isQuestionVisible)
+        .map((subQuestion) => (
+          <Fragment
+            key={
+              subQuestion.id ??
+              `subquestion-${parentId}-${subQuestion.parentQuestionId}`
+            }
+          >
+            <div className="eb-mb-6">{renderQuestionInput(subQuestion)}</div>
+            {renderSubQuestions(subQuestion.id)}
+          </Fragment>
+        ));
+    };
+
     return questionsData?.questions
       ?.filter(isQuestionParent)
       .filter(isQuestionVisible)
@@ -572,20 +592,7 @@ export const OperationalDetailsForm = () => {
         <Fragment key={question.id ?? `question-${index}`}>
           {index !== 0 && <Separator />}
           <div className="eb-mb-6">{renderQuestionInput(question)}</div>
-          {questionsData?.questions
-            ?.filter((q) => q.parentQuestionId === question.id)
-            .filter(isQuestionVisible)
-            .map((subQuestion) => (
-              <div
-                key={
-                  subQuestion.id ??
-                  `subquestion-${question.id}-${subQuestion.parentQuestionId}`
-                }
-                className="eb-mb-6"
-              >
-                {renderQuestionInput(subQuestion)}
-              </div>
-            ))}
+          {renderSubQuestions(question.id)}
         </Fragment>
       ));
   };
