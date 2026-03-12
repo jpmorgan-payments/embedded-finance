@@ -39,7 +39,7 @@ const DialogContent = React.forwardRef<
       ref={ref}
       className={cn(
         // Base styles
-        'eb-component eb-fixed eb-z-overlay eb-flex eb-flex-col eb-border eb-bg-card eb-shadow-lg eb-duration-200',
+        'eb-component eb-fixed eb-z-overlay eb-flex eb-flex-col eb-border eb-bg-card eb-p-6 eb-shadow-lg eb-duration-200',
         // Responsive styles via viewport media queries (see index.css)
         'eb-dialog-responsive',
         // Animation styles

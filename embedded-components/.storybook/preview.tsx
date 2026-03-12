@@ -305,6 +305,7 @@ const preview: Preview = {
   // Global default args - automatically applied to all stories
   args: {
     apiBaseUrl: '/',
+    clientId: '',
     themePreset: 'Salt',
     contentTokensPreset: 'enUS',
     showTokenIds: true,
@@ -348,6 +349,7 @@ const preview: Preview = {
       description: 'Client ID for API requests',
       table: {
         category: 'Provider',
+        defaultValue: { summary: '' },
       },
     },
     themePreset: {
