@@ -1,5 +1,7 @@
 import { useTranslationWithTokens } from '@/i18n';
 
+import type { HeadingLevel } from '@/lib/types/headingLevel.types';
+import { getHeadingTag } from '@/lib/types/headingLevel.types';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 import { formatDateTime } from '../../utils/formatClientFacing';
@@ -8,9 +10,14 @@ import { DetailRow } from '../DetailRow/DetailRow';
 interface ClientInfoSectionProps {
   client: ClientResponse;
   title?: string;
+  headingLevel?: HeadingLevel;
 }
 
-export function ClientInfoSection({ client, title }: ClientInfoSectionProps) {
+export function ClientInfoSection({
+  client,
+  title,
+  headingLevel = 2,
+}: ClientInfoSectionProps) {
   const { t, i18n } = useTranslationWithTokens('client-details');
   const locale =
     i18n.resolvedLanguage
@@ -19,6 +26,7 @@ export function ClientInfoSection({ client, title }: ClientInfoSectionProps) {
       .replace('CA', '-CA') || 'en-US';
 
   const sectionTitle = title ?? t('sections.clientInfo');
+  const Heading = getHeadingTag(headingLevel);
 
   // Format products using i18n
   const productsDisplay = client.products?.length
@@ -38,12 +46,12 @@ export function ClientInfoSection({ client, title }: ClientInfoSectionProps) {
       aria-labelledby={sectionTitle ? 'client-details-client-info' : undefined}
     >
       {sectionTitle ? (
-        <h2
+        <Heading
           id="client-details-client-info"
           className="eb-mb-3 eb-text-sm eb-font-semibold eb-tracking-tight eb-text-foreground @md:eb-text-base"
         >
           {sectionTitle}
-        </h2>
+        </Heading>
       ) : null}
       <dl className="eb-divide-y eb-divide-border/60">
         <DetailRow

@@ -3,6 +3,8 @@
  * Only public types that consumers need should be exported here.
  */
 
+import type { HeadingLevelProps } from '@/lib/types/headingLevel.types';
+
 /**
  * Sections available for display in ClientDetails
  */
@@ -25,7 +27,7 @@ export type ClientDetailsViewMode = 'summary' | 'accordion' | 'cards';
 /**
  * Props for the ClientDetails component
  */
-export interface ClientDetailsProps {
+export interface ClientDetailsProps extends HeadingLevelProps {
   /** Client ID to fetch and display (GET /clients/:id) */
   clientId: string;
   /** Display mode: summary, accordion or cards */

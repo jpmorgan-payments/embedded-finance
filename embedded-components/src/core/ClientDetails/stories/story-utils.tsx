@@ -226,6 +226,7 @@ export const commonArgs = {
   clientId: '0030000133',
   viewMode: 'summary' as const,
   title: 'Client details',
+  headingLevel: 2 as const,
 };
 
 /**
@@ -255,6 +256,15 @@ export const commonArgTypes = {
     table: {
       category: 'Display',
       defaultValue: { summary: 'Client details' },
+    },
+  },
+  headingLevel: {
+    control: { type: 'select' as const },
+    options: [1, 2, 3, 4, 5, 6],
+    description: 'HTML heading level for the component title (h1–h6)',
+    table: {
+      category: 'Display',
+      defaultValue: { summary: '2' },
     },
   },
 };

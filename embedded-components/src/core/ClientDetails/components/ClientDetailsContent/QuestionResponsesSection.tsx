@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 
+import type { HeadingLevel } from '@/lib/types/headingLevel.types';
+import { getHeadingTag } from '@/lib/types/headingLevel.types';
 import { cn } from '@/lib/utils';
 import { useSmbdoListQuestions } from '@/api/generated/smbdo';
 import type {
@@ -15,11 +17,13 @@ interface QuestionResponsesSectionProps {
   client: ClientResponse;
   /** When true, renders the section title from t('sections.questionResponses') */
   showTitle?: boolean;
+  headingLevel?: HeadingLevel;
 }
 
 export function QuestionResponsesSection({
   client,
   showTitle = false,
+  headingLevel = 2,
 }: QuestionResponsesSectionProps) {
   const { t, tString, i18n } = useTranslationWithTokens('client-details');
   const locale =
@@ -52,18 +56,20 @@ export function QuestionResponsesSection({
   const showLoading =
     questionResponses.length > 0 && !!questionIds && questionsLoading;
 
+  const Heading = getHeadingTag(headingLevel);
+
   return (
     <section
       className="eb-w-full"
       aria-labelledby={showTitle ? 'client-details-questions' : undefined}
     >
       {showTitle && (
-        <h2
+        <Heading
           id="client-details-questions"
           className="eb-mb-3 eb-text-sm eb-font-semibold eb-tracking-tight eb-text-foreground @md:eb-text-base"
         >
           {t('sections.questionResponses')}
-        </h2>
+        </Heading>
       )}
       {questionResponses.length === 0 ? (
         <p className="eb-py-2 eb-text-sm eb-text-muted-foreground">

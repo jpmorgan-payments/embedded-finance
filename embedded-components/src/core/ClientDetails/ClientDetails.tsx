@@ -7,11 +7,16 @@ import { useMemo, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { AlertCircle, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 
+import {
+  getChildHeadingLevel,
+  getHeadingTag,
+} from '@/lib/types/headingLevel.types';
 import { cn } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { useServerError } from '@/components/ServerErrorAlert';
 import { Button } from '@/components/ui';
 
+import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
 import { CLIENT_DETAILS_DEFAULT_VIEW_MODE } from './ClientDetails.constants';
 import type { ClientDetailsProps } from './ClientDetails.types';
 import { AccordionView } from './components/AccordionView/AccordionView';
@@ -29,11 +34,17 @@ import {
 export function ClientDetails({
   clientId,
   viewMode = CLIENT_DETAILS_DEFAULT_VIEW_MODE,
+  headingLevel = 2,
   className,
   actions,
 }: ClientDetailsProps) {
   const { t } = useTranslationWithTokens('client-details');
   const [showErrorDetails, setShowErrorDetails] = useState(false);
+  const { interceptorReady } = useInterceptorStatus();
+
+  const Heading = getHeadingTag(headingLevel);
+  const childHeadingLevel = getChildHeadingLevel(headingLevel);
+  const ChildHeading = getHeadingTag(childHeadingLevel);
 
   const {
     data: client,
@@ -42,7 +53,7 @@ export function ClientDetails({
     error,
     refetch,
   } = useSmbdoGetClient(clientId, {
-    query: { enabled: !!clientId },
+    query: { enabled: !!clientId && interceptorReady },
   });
 
   // Parse error for custom rendering
@@ -169,9 +180,9 @@ export function ClientDetails({
             <div className="eb-mb-4 eb-flex eb-h-14 eb-w-14 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
               <AlertCircle className="eb-h-7 eb-w-7 eb-text-destructive" />
             </div>
-            <h3 className="eb-text-lg eb-font-semibold eb-text-foreground">
+            <ChildHeading className="eb-text-lg eb-font-semibold eb-text-foreground">
               {t('errors.unableToLoad')}
-            </h3>
+            </ChildHeading>
             <p className="eb-mt-2 eb-max-w-xs eb-text-sm eb-text-muted-foreground">
               {errorMessage}
             </p>
@@ -265,17 +276,17 @@ export function ClientDetails({
         )}
       >
         <header className="eb-flex eb-min-h-[48px] eb-items-center eb-border-b eb-border-border eb-px-4 eb-py-3 @md:eb-px-6">
-          <h1 className="eb-text-base eb-font-semibold eb-tracking-tight">
+          <Heading className="eb-text-base eb-font-semibold eb-tracking-tight">
             {t('title')}
-          </h1>
+          </Heading>
         </header>
         <div className="eb-flex eb-flex-1 eb-flex-col eb-items-center eb-justify-center eb-px-4 eb-py-12 eb-text-center @md:eb-px-6">
           <div className="eb-mb-4 eb-flex eb-h-14 eb-w-14 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
             <AlertCircle className="eb-h-7 eb-w-7 eb-text-destructive" />
           </div>
-          <h3 className="eb-text-lg eb-font-semibold eb-text-foreground">
+          <ChildHeading className="eb-text-lg eb-font-semibold eb-text-foreground">
             {t('errors.unableToLoad')}
-          </h3>
+          </ChildHeading>
           <p className="eb-mt-2 eb-max-w-xs eb-text-sm eb-text-muted-foreground">
             {errorMessage}
           </p>
@@ -366,6 +377,7 @@ export function ClientDetails({
       <ClientSummaryCard
         client={client}
         clientId={clientId}
+        headingLevel={headingLevel}
         sectionInfos={sectionInfos}
         actions={actions}
         className={cn('eb-component', className)}
@@ -382,15 +394,15 @@ export function ClientDetails({
       )}
     >
       <header className="eb-flex eb-min-h-[48px] eb-items-center eb-border-b eb-border-border eb-px-4 eb-py-3 @md:eb-px-6">
-        <h1 className="eb-text-base eb-font-semibold eb-tracking-tight">
+        <Heading className="eb-text-base eb-font-semibold eb-tracking-tight">
           {t('title')}
-        </h1>
+        </Heading>
       </header>
       <div className="eb-flex eb-flex-1 eb-flex-col eb-overflow-y-auto eb-p-4 @md:eb-px-6 @md:eb-py-5">
         {viewMode === 'accordion' ? (
-          <AccordionView client={client} />
+          <AccordionView client={client} headingLevel={childHeadingLevel} />
         ) : (
-          <CardsView client={client} />
+          <CardsView client={client} headingLevel={childHeadingLevel} />
         )}
       </div>
     </div>

@@ -1,3 +1,5 @@
+import type { HeadingLevel } from '@/lib/types/headingLevel.types';
+import { getHeadingTag } from '@/lib/types/headingLevel.types';
 import type {
   ClientResponse,
   PartyResponse,
@@ -9,14 +11,18 @@ import { PartyDetailsBlock } from '../PartyDetailsBlock/PartyDetailsBlock';
 interface BeneficialOwnersSectionProps {
   client: ClientResponse;
   title?: string;
+  headingLevel?: HeadingLevel;
 }
 
 export function BeneficialOwnersSection({
   client,
   title = 'Beneficial owners',
+  headingLevel = 2,
 }: BeneficialOwnersSectionProps) {
   const parties = getBeneficialOwnerParties(client);
   if (parties.length === 0) return null;
+
+  const Heading = getHeadingTag(headingLevel);
 
   return (
     <section
@@ -24,12 +30,12 @@ export function BeneficialOwnersSection({
       aria-labelledby={title ? 'client-details-beneficial-owners' : undefined}
     >
       {title ? (
-        <h2
+        <Heading
           id="client-details-beneficial-owners"
           className="eb-mb-3 eb-text-sm eb-font-semibold eb-tracking-tight eb-text-foreground @md:eb-text-base"
         >
           {title}
-        </h2>
+        </Heading>
       ) : null}
       <div className="eb-flex eb-flex-col eb-gap-4 @md:eb-gap-5">
         {parties.map((party: PartyResponse, index: number) => (
