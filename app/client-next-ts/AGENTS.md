@@ -24,6 +24,44 @@ All commands run from this directory (`app/client-next-ts/`):
 - **MSW** (Mock Service Worker) for client-side API mocking
 - **Vitest** + **Playwright** for tests
 
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── ui/           # shadcn/ui reusable components
+│   ├── landing/      # Landing page components
+│   └── sellsense/    # SellSense demo components (main focus)
+├── routes/           # TanStack Router file-based routes
+├── msw/              # Mock Service Worker setup (handlers.ts, db.ts)
+├── lib/              # Utility functions and mock-overrides-storage.ts
+└── styles/           # Global CSS styles
+public/               # Static assets — reference with absolute paths: /sellSense.svg
+```
+
+Key files in `src/components/sellsense/`:
+- `dashboard-layout.tsx` — main orchestrator with URL state sync
+- `use-sellsense-themes.ts` — theme mapping hook
+- `sellsense-scenarios.ts` — scenario-to-client-ID mapping
+- `sidebar.tsx` — context-aware navigation
+- `kyc-onboarding.tsx` — `OnboardingFlow` wrapper
+
+## Code Organization
+
+**File naming**: kebab-case files (`dashboard-layout.tsx`), PascalCase exports (`DashboardLayout`), camelCase hooks (`useSellsenseThemes`).
+
+**Import order**:
+```typescript
+// 1. React and external libraries
+import { Link } from '@tanstack/react-router';
+// 2. Internal components and hooks
+import { DashboardLayout } from '@/components/sellsense/dashboard-layout';
+// 3. Types and utilities
+import { cn } from '@/lib/utils';
+```
+
+Use the `@/` alias for all `src/` imports (configured in `vite.config.ts`).
+
 ## ⚠️ Critical: Tailwind CSS Prefix Rule
 
 **This app uses plain Tailwind classes. Never use the `eb-` prefix here.**
@@ -80,6 +118,79 @@ Key rules:
 - Header title: `text-base font-semibold text-gray-900`
 - Close button: `Button variant="ghost" size="icon"` with `h-7 w-7`
 - Escape key + body scroll lock via `useEffect` (see theme drawer for canonical implementation)
+
+## TanStack Router — Zod Schema Validation
+
+All search parameters are validated with Zod at the route level:
+
+```typescript
+const sellsenseDemoSearchSchema = z.object({
+  scenario: z.enum(['New Seller - Onboarding', 'Active Seller - Fresh Start', ...]).optional(),
+  theme: z.enum(['Empty', 'Default Blue', 'SellSense', 'Salt Theme', 'Create Commerce', 'PayFicient']).optional(),
+  contentTone: z.enum(['Standard', 'Friendly']).optional(),
+  fullscreen: z.boolean().optional(),
+});
+
+export const Route = createFileRoute('/sellsense-demo')({
+  component: SellsenseDemo,
+  validateSearch: sellsenseDemoSearchSchema,
+});
+```
+
+- Always use `Route.useSearch()` — never manual `URLSearchParams`
+- Sync all user-configurable state back to the URL with `navigate({ search: newSearch, replace: true })`
+- **When adding new theme options or enum values**, delete the cached route tree and rebuild:
+  ```powershell
+  Remove-Item src\routeTree.gen.ts
+  npm run build
+  ```
+
+## Theme System
+
+`use-sellsense-themes.ts` maps a `ThemeOption` string to CSS custom property objects consumed by `EBComponentsProvider`.
+
+### Available themes
+
+| Value | Description |
+|---|---|
+| `Empty` | No design tokens — shows component defaults |
+| `Default Blue` | Modern purple/indigo |
+| `SellSense` | Brand orange with teal accents |
+| `Salt Theme` | Professional teal (S&P design system) |
+| `Create Commerce` | Dark slate theme |
+| `PayFicient` | Brand green |
+
+### Adding a new theme
+
+1. Add the value to `ThemeOption` in `use-sellsense-themes.ts`
+2. Define all design tokens (colors, typography, button states, alert colors)
+3. Update the Zod schema in `src/routes/sellsense-demo.tsx`
+4. Add a `<SelectItem>` in `header.tsx`
+5. Delete `src/routeTree.gen.ts` and run `npm run build`
+
+### Fullscreen / demo mode pattern
+
+Components that wrap embedded finance components support both a demo shell and a bare fullscreen mode:
+
+```typescript
+const { fullscreen } = Route.useSearch();
+
+if (fullscreen) {
+  return <OnboardingFlow {...componentProps} />;
+}
+
+return (
+  <div className="relative rounded-lg border" style={themeVariables}>
+    <OnboardingFlow {...componentProps} />
+    <div className="absolute top-2 right-2 flex gap-1">
+      <ControlIcons />
+    </div>
+  </div>
+);
+```
+
+- Hide **all** SellSense chrome (navigation, controls) in fullscreen mode
+- Control icons: `Maximize2` (opens in new window) + `Info` (tech dialog), positioned `absolute top-2 right-2`
 
 ## MSW DB Override Architecture (SellSense)
 
