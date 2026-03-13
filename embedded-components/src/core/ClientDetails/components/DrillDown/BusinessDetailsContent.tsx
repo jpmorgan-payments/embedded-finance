@@ -3,7 +3,7 @@
  * Uses Section/DetailRow pattern with Separator dividers
  */
 
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import {
   Building2Icon,
@@ -430,11 +430,14 @@ export function BusinessDetailsContent({
             labelId="products"
             value={
               client.products?.length
-                ? client.products
-                    .map((p) =>
-                      t(`client-details:products.${p}`, { defaultValue: p })
-                    )
-                    .join(', ')
+                ? client.products.map((p, i) => (
+                    <Fragment key={p}>
+                      {i > 0 && ', '}
+                      {t(`client-details:products.${p}`, {
+                        defaultValue: p,
+                      })}
+                    </Fragment>
+                  ))
                 : t('client-details:emptyValue')
             }
           />

@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 
 import type { HeadingLevel } from '@/lib/types/headingLevel.types';
@@ -28,11 +29,14 @@ export function ClientInfoSection({
   const sectionTitle = title ?? t('sections.clientInfo');
   const Heading = getHeadingTag(headingLevel);
 
-  // Format products using i18n
+  // Format products using i18n — use Fragment interspersion so t() ReactNodes are preserved
   const productsDisplay = client.products?.length
-    ? client.products
-        .map((p) => t(`products.${p}`, { defaultValue: p }))
-        .join(', ')
+    ? client.products.map((p, i) => (
+        <Fragment key={p}>
+          {i > 0 && ', '}
+          {t(`products.${p}`, { defaultValue: p })}
+        </Fragment>
+      ))
     : t('emptyValue');
 
   // Format application status using i18n
