@@ -389,7 +389,7 @@ export const commonArgs: Partial<OnboardingFlowProps> = {
   ],
   alertOnExit: false,
   docUploadOnlyMode: false,
-  enableSidebar: false,
+  hideSidebar: false,
 };
 
 /**
@@ -464,9 +464,9 @@ export const commonArgTypes = {
       category: 'Configuration',
     },
   },
-  enableSidebar: {
+  hideSidebar: {
     control: { type: 'boolean' as const },
-    description: 'Enable sidebar navigation with onboarding timeline',
+    description: 'Hide the sidebar timeline navigation (shown by default)',
     table: {
       category: 'Display',
       defaultValue: { summary: 'false' },
@@ -498,9 +498,9 @@ export const commonArgTypes = {
       defaultValue: { summary: 'auto' },
     },
   },
-  hideLinkAccountSection: {
+  showLinkAccountStep: {
     control: { type: 'boolean' as const },
-    description: 'Hide the link bank account section',
+    description: 'Show the link bank account step in the onboarding flow',
     table: {
       category: 'Display',
       defaultValue: { summary: 'false' },

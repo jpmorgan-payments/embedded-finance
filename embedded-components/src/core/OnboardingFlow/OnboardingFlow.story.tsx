@@ -14,7 +14,7 @@
  *
  * **See Also:**
  * - Client States/* - Different client status scenarios
- * - Variants/* - Configuration and feature variants
+ * - Configuration/* - Configuration and feature variants
  */
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -61,7 +61,7 @@ type Story = StoryObj<OnboardingFlowStoryArgs>;
  *
  * See also:
  * - Client States/* for different client status scenarios
- * - Variants/* for configuration options
+ * - Configuration/* for configuration options
  */
 export const Default: Story = {
   args: {

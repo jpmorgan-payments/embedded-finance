@@ -38,7 +38,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   userEventsLifecycle,
   height,
   onGetClientSettled,
-  enableSidebar = false,
+  hideSidebar = false,
   ...props
 }) => {
   const providerClientId = useClientId();
@@ -120,7 +120,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         clientGetStatus,
         setClientId,
         organizationType,
-        enableSidebar,
+        hideSidebar,
         userEventsHandler,
         userEventsLifecycle,
       }}
@@ -130,7 +130,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         className={cn(
           'eb-component eb-mx-auto eb-flex eb-max-w-screen-sm eb-flex-1 eb-flex-col eb-bg-background eb-p-4 eb-pb-6 eb-font-sans eb-text-foreground eb-antialiased sm:eb-p-10 sm:eb-pb-12',
           {
-            'eb-max-w-screen-lg': enableSidebar,
+            'eb-max-w-screen-lg': !hideSidebar,
           }
         )}
         style={{ minHeight: height }}
@@ -171,7 +171,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     clientData,
     organizationType,
     docUploadOnlyMode,
-    enableSidebar,
+    hideSidebar,
     userEventsHandler,
   } = useOnboardingContext();
   const {
@@ -280,7 +280,7 @@ const FlowRenderer: React.FC = React.memo(() => {
       ref={mainRef}
       key={clientData?.id}
     >
-      {!isMobile && enableSidebar && (
+      {!isMobile && !hideSidebar && (
         <div className="eb-shrink-0">
           <OnboardingTimeline
             className="eb-w-64 eb-rounded-lg eb-border eb-py-2 eb-shadow-sm lg:eb-w-80"

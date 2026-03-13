@@ -37,7 +37,7 @@ export const OverviewScreen = () => {
   const {
     organizationType,
     clientData,
-    hideLinkAccountSection,
+    showLinkAccountStep,
     showDownloadChecklist,
   } = useOnboardingContext();
   const {
@@ -439,7 +439,7 @@ export const OverviewScreen = () => {
             </div>
           </CardContent>
         </Card>
-        {!hideLinkAccountSection && (
+        {showLinkAccountStep && (
           <Card className="eb-mt-6 eb-rounded-md eb-border-none eb-bg-card">
             <CardHeader className="eb-p-3">
               <CardTitle>
