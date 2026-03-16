@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { useGetAllRecipients } from '@/api/generated/ep-recipients';
+import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
@@ -30,6 +32,8 @@ import {
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
 import { getPartyByAssociatedPartyFilters } from '@/core/OnboardingFlow/utils/dataUtils';
+import { RecipientAccountDisplayCard } from '@/core/RecipientWidgets/components/RecipientAccountDisplayCard/RecipientAccountDisplayCard';
+import { StatusAlert } from '@/core/RecipientWidgets/components/StatusAlert/StatusAlert';
 
 import { getFlowProgress } from '../../utils/flowUtils';
 
@@ -85,6 +89,21 @@ export const OverviewScreen = () => {
     (docRequest) => docRequest.status === 'ACTIVE'
   );
   const docRequestsClosed = !hasOutstandingDocRequests;
+
+  // Fetch existing linked accounts to show in overview
+  const { data: recipientsData } = useGetAllRecipients(
+    { type: 'LINKED_ACCOUNT' },
+    {
+      query: {
+        enabled: !!showLinkAccountStep,
+      },
+    }
+  );
+
+  const existingLinkedAccount: Recipient | undefined =
+    recipientsData?.recipients?.find(
+      (r) => r.status !== 'INACTIVE' && r.status !== 'REJECTED'
+    );
 
   return (
     <StepLayout
@@ -450,78 +469,97 @@ export const OverviewScreen = () => {
             </CardHeader>
             <CardContent className="eb-p-3 eb-pt-0">
               <div className="eb-space-y-3">
-                <div>
-                  <p
-                    className={cn(
-                      'eb-mb-3 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium',
-                      {
-                        'eb-text-muted-foreground': !kycCompleted,
-                      }
-                    )}
-                  >
-                    <LockIcon className="eb-size-4" />
-                    {t('screens.overview.bankAccountSection.lockedMessage')}
-                  </p>
-                  <Card
-                    className={cn('eb-rounded-md eb-border eb-bg-card eb-p-3', {
-                      'eb-border-dashed eb-border-muted-foreground':
-                        !kycCompleted,
-                    })}
-                  >
-                    <div className="eb-flex eb-w-full eb-justify-between">
-                      <div className="eb-flex eb-items-center eb-gap-2">
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 12 12"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M5.5 4V3H6.5V4H5.5Z"
-                            fill="#4C5157"
-                            fillOpacity="0.4"
-                          />
-                          <path
-                            fillRule="evenodd"
-                            clipRule="evenodd"
-                            d="M6 0L12 6H10V11H12V12H0V11L2 11V6H0L6 0ZM3 6V11H4V6H3ZM5 6V11H7V6H5ZM8 6V11H9V6H8ZM6 1.41421L9.58579 5H2.41421L6 1.41421Z"
-                            fill="#4C5157"
-                            fillOpacity={kycCompleted ? '1' : '0.8'}
-                          />
-                        </svg>
-                        <h3
-                          className={cn(
-                            'eb-font-header eb-text-lg eb-font-medium',
-                            {
-                              'eb-text-muted-foreground': !kycCompleted,
-                            }
-                          )}
-                        >
-                          {t(
-                            'screens.overview.bankAccountSection.linkAccountTitle'
-                          )}
-                        </h3>
-                      </div>
+                {existingLinkedAccount ? (
+                  <RecipientAccountDisplayCard
+                    recipient={existingLinkedAccount}
+                    statusAlert={
+                      existingLinkedAccount.status &&
+                      existingLinkedAccount.status !== 'ACTIVE' ? (
+                        <StatusAlert status={existingLinkedAccount.status} />
+                      ) : undefined
+                    }
+                    showAccountToggle
+                    showPaymentMethods
+                    allowDetailedPaymentMethods={false}
+                  />
+                ) : (
+                  <div>
+                    <p
+                      className={cn(
+                        'eb-mb-3 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium',
+                        {
+                          'eb-text-muted-foreground': !kycCompleted,
+                        }
+                      )}
+                    >
+                      <LockIcon className="eb-size-4" />
+                      {t('screens.overview.bankAccountSection.lockedMessage')}
+                    </p>
+                    <Card
+                      className={cn(
+                        'eb-rounded-md eb-border eb-bg-card eb-p-3',
+                        {
+                          'eb-border-dashed eb-border-muted-foreground':
+                            !kycCompleted,
+                        }
+                      )}
+                    >
+                      <div className="eb-flex eb-w-full eb-justify-between">
+                        <div className="eb-flex eb-items-center eb-gap-2">
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 12 12"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M5.5 4V3H6.5V4H5.5Z"
+                              fill="#4C5157"
+                              fillOpacity="0.4"
+                            />
+                            <path
+                              fillRule="evenodd"
+                              clipRule="evenodd"
+                              d="M6 0L12 6H10V11H12V12H0V11L2 11V6H0L6 0ZM3 6V11H4V6H3ZM5 6V11H7V6H5ZM8 6V11H9V6H8ZM6 1.41421L9.58579 5H2.41421L6 1.41421Z"
+                              fill="#4C5157"
+                              fillOpacity={kycCompleted ? '1' : '0.8'}
+                            />
+                          </svg>
+                          <h3
+                            className={cn(
+                              'eb-font-header eb-text-lg eb-font-medium',
+                              {
+                                'eb-text-muted-foreground': !kycCompleted,
+                              }
+                            )}
+                          >
+                            {t(
+                              'screens.overview.bankAccountSection.linkAccountTitle'
+                            )}
+                          </h3>
+                        </div>
 
-                      <div className="eb-flex [&_svg]:eb-size-4">
-                        <CircleDashedIcon className="eb-stroke-gray-600" />
-                        <span className="eb-sr-only">Not started</span>
+                        <div className="eb-flex [&_svg]:eb-size-4">
+                          <CircleDashedIcon className="eb-stroke-gray-600" />
+                          <span className="eb-sr-only">Not started</span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="eb-flex eb-justify-end">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="eb-mt-3"
-                        disabled={!kycCompleted}
-                      >
-                        {t('common:start')}
-                        <ChevronRightIcon />
-                      </Button>
-                    </div>
-                  </Card>
-                </div>
+                      <div className="eb-flex eb-justify-end">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="eb-mt-3"
+                          disabled={!kycCompleted}
+                          onClick={() => goTo('link-account')}
+                        >
+                          {t('common:start')}
+                          <ChevronRightIcon />
+                        </Button>
+                      </div>
+                    </Card>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

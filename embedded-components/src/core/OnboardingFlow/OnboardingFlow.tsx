@@ -5,6 +5,7 @@ import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 import { cn } from '@/lib/utils';
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import {
@@ -19,6 +20,7 @@ import {
 import {
   FormLoadingState,
   OnboardingTimeline,
+  TimelineSection,
   TimelineStep,
 } from './components';
 import { StepperRenderer } from './components/StepperRenderer/StepperRenderer';
@@ -172,6 +174,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     organizationType,
     docUploadOnlyMode,
     hideSidebar,
+    showLinkAccountStep,
     userEventsHandler,
   } = useOnboardingContext();
   const {
@@ -196,6 +199,20 @@ const FlowRenderer: React.FC = React.memo(() => {
   );
 
   const isMobile = useIsMobile();
+
+  // Fetch existing linked accounts to determine sidebar status
+  const { data: recipientsData } = useGetAllRecipients(
+    { type: 'LINKED_ACCOUNT' },
+    {
+      query: {
+        enabled: !!showLinkAccountStep,
+      },
+    }
+  );
+
+  const hasExistingLinkedAccount = !!recipientsData?.recipients?.some(
+    (r) => r.status !== 'INACTIVE' && r.status !== 'REJECTED'
+  );
 
   // Scroll to top on step change and track navigation
   const mainRef = useRef<HTMLDivElement>(null);
@@ -369,6 +386,20 @@ const FlowRenderer: React.FC = React.memo(() => {
                     }) as TimelineStep
                 ),
               })),
+              ...(showLinkAccountStep
+                ? ([
+                    {
+                      id: 'link-account',
+                      title: t('onboarding-overview:flowRenderer.linkAccount'),
+                      status: hasExistingLinkedAccount
+                        ? 'completed'
+                        : clientData?.status === 'APPROVED'
+                          ? 'not_started'
+                          : 'on_hold',
+                      steps: [],
+                    },
+                  ] satisfies TimelineSection[])
+                : []),
             ]}
           />
         </div>

@@ -17,6 +17,7 @@ import {
   createOnboardingFlowHandlers,
   DEFAULT_CLIENT_ID,
   defaultHandlers,
+  mockClientApproved,
   mockClientNoIndustry,
   OnboardingFlowTemplate,
 } from './story-utils';
@@ -186,6 +187,36 @@ export const WithLinkAccountStep: Story = {
           'OnboardingFlow with the link bank account step visible in the overview screen.',
       },
     },
+  },
+};
+
+/**
+ * **With Link Account Step (Approved)**
+ *
+ * Shows the "Link Bank Account" step unlocked for an APPROVED client.
+ * Only APPROVED clients can link a bank account — the step appears
+ * as actionable rather than locked/on-hold.
+ */
+export const WithLinkAccountStepApproved: Story = {
+  name: 'With Link Account Step (Approved)',
+  parameters: {
+    msw: {
+      handlers: createOnboardingFlowHandlers({
+        client: mockClientApproved,
+        clientId: DEFAULT_CLIENT_ID,
+      }),
+    },
+    docs: {
+      description: {
+        story:
+          'OnboardingFlow with the link bank account step visible and unlocked for an APPROVED client.',
+      },
+    },
+  },
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    showLinkAccountStep: true,
   },
 };
 

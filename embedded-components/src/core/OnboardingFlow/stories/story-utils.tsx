@@ -8,8 +8,17 @@ import { efClientCorpEBMockNoIndustry } from '@/mocks/efClientCorpEBNoIndustry.m
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
 import { efOrganizationDocumentRequestDetails } from '@/mocks/efOrganizationDocumentRequestDetails.mock';
+import { verifyMicrodeposit } from '@/msw/db';
 import { http, HttpResponse } from 'msw';
 
+import type {
+  ApiError,
+  ListRecipientsResponse,
+  MicrodepositAmounts,
+  MicrodepositVerificationResponse,
+  Recipient,
+  RecipientRequest,
+} from '@/api/generated/ep-recipients.schemas';
 import {
   ClientStatus,
   type ClientResponse,
@@ -87,6 +96,47 @@ export const mockClientNoIndustry: ClientResponse = {
 };
 
 // ============================================================================
+// Linked Account Mocks
+// ============================================================================
+
+/** Mock existing linked account (ACTIVE) */
+export const mockExistingLinkedAccount: Recipient = {
+  id: 'la-existing-001',
+  type: 'LINKED_ACCOUNT',
+  status: 'ACTIVE',
+  clientId: DEFAULT_CLIENT_ID,
+  partyDetails: {
+    type: 'INDIVIDUAL',
+    firstName: 'Alex',
+    lastName: 'James',
+    address: {
+      addressLine1: '451 Rose Garden',
+      city: 'New York City',
+      countryCode: 'US',
+      state: 'NY',
+      postalCode: '10007',
+    },
+    contacts: [
+      { contactType: 'EMAIL', value: 'alex.james@example.com' },
+      { contactType: 'PHONE', countryCode: '+1', value: '5551234567' },
+    ],
+  },
+  account: {
+    number: '12345678901234567',
+    type: 'CHECKING',
+    countryCode: 'US',
+    routingInformation: [
+      {
+        routingCodeType: 'USABA',
+        routingNumber: '154135115',
+        transactionType: 'ACH',
+      },
+    ],
+  },
+  createdAt: '2024-01-15T10:30:00Z',
+};
+
+// ============================================================================
 // Document Request Mocks
 // ============================================================================
 
@@ -125,6 +175,8 @@ export interface OnboardingFlowHandlerOptions {
     error?: boolean;
     errorStatus?: number;
   };
+  /** Existing linked accounts to return from GET /recipients */
+  existingLinkedAccounts?: Recipient[];
 }
 
 // ============================================================================
@@ -233,6 +285,120 @@ export function createOnboardingFlowHandlers(
       );
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // Linked Account / Recipient handlers (for LinkAccountScreen)
+  // ---------------------------------------------------------------------------
+
+  // POST /recipients - Create new linked account
+  baseHandlers.push(
+    http.post('/recipients', async ({ request }) => {
+      await new Promise((r) => {
+        setTimeout(r, delayMs);
+      });
+
+      const body = (await request.json()) as RecipientRequest;
+
+      const newRecipient: Recipient = {
+        id: `recipient-${Date.now()}`,
+        type: 'LINKED_ACCOUNT',
+        status: 'MICRODEPOSITS_INITIATED',
+        clientId: body?.clientId ?? clientId,
+        partyDetails: {
+          type: body?.partyDetails?.type ?? 'INDIVIDUAL',
+          firstName: body?.partyDetails?.firstName,
+          lastName: body?.partyDetails?.lastName,
+          businessName: body?.partyDetails?.businessName,
+          address: body?.partyDetails?.address,
+          contacts: body?.partyDetails?.contacts,
+        },
+        account: {
+          type: body?.account?.type ?? 'CHECKING',
+          number: body?.account?.number ?? '1234567890',
+          routingInformation:
+            body?.account?.routingInformation &&
+            Array.isArray(body.account.routingInformation) &&
+            body.account.routingInformation.length > 0
+              ? body.account.routingInformation
+              : [
+                  {
+                    routingCodeType: 'USABA',
+                    routingNumber:
+                      body?.account?.routingInformation?.[0]?.routingNumber ??
+                      '123456789',
+                    transactionType: 'ACH',
+                  },
+                ],
+          countryCode: body?.account?.countryCode ?? 'US',
+        },
+        createdAt: new Date().toISOString(),
+      };
+
+      return HttpResponse.json(newRecipient, { status: 201 });
+    })
+  );
+
+  // GET /recipients - List linked accounts
+  const existingLinkedAccounts = options.existingLinkedAccounts ?? [];
+  baseHandlers.push(
+    http.get('/recipients', async () => {
+      await new Promise((r) => {
+        setTimeout(r, delayMs);
+      });
+
+      const response: ListRecipientsResponse = {
+        recipients: existingLinkedAccounts,
+        metadata: { total_items: existingLinkedAccounts.length },
+      };
+      return HttpResponse.json(response);
+    })
+  );
+
+  // GET /recipients/:id - Get single linked account
+  baseHandlers.push(
+    http.get('/recipients/:id', async ({ params }) => {
+      await new Promise((r) => {
+        setTimeout(r, delayMs);
+      });
+
+      const error: ApiError = {
+        httpStatus: 404,
+        title: 'Recipient not found',
+        context: [],
+      };
+      return HttpResponse.json(error, { status: 404 });
+    })
+  );
+
+  // POST /recipients/:id/verify-microdeposit - Verify microdeposits
+  baseHandlers.push(
+    http.post(
+      '/recipients/:id/verify-microdeposit',
+      async ({ params, request }) => {
+        await new Promise((r) => {
+          setTimeout(r, delayMs);
+        });
+
+        const { id } = params;
+        const body = (await request.json()) as MicrodepositAmounts;
+        const amounts = body.amounts ?? [];
+
+        const result = verifyMicrodeposit(id as string, amounts);
+
+        if (result.error) {
+          return HttpResponse.json(result.error as ApiError, {
+            status: result.error.httpStatus ?? 400,
+          });
+        }
+
+        const response: MicrodepositVerificationResponse = {
+          status: result.status as MicrodepositVerificationResponse['status'],
+        };
+
+        return HttpResponse.json(response);
+      }
+    )
+  );
 
   return baseHandlers;
 }
