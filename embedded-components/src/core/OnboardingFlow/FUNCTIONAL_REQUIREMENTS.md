@@ -59,7 +59,7 @@ This document describes **all existing behaviours** of the OnboardingFlow compon
 
 ### 3.5 Sidebar / Timeline
 
-- **Visibility**: When enableSidebar is true and viewport is not mobile, show a sidebar (e.g. timeline) with section list and per-section steps. When form is submitting, sidebar interaction may be disabled.
+- **Visibility**: When hideSidebar is false (default) and viewport is not mobile, show a sidebar (e.g. timeline) with section list and per-section steps. When form is submitting, sidebar interaction may be disabled.
 - **Progress**: Section and step status (completed, not_started, on_hold) are derived from session and validation. Timeline reflects current section and step.
 - **Click section**: Navigate to that section; if stepper, go to first invalid step or last step. If already on that section, may move to first invalid step within section.
 - **Click step**: If same section, navigate to that step; if different section, navigate to that section (and optionally that step).
@@ -90,7 +90,7 @@ This document describes **all existing behaviours** of the OnboardingFlow compon
 ### 3.10 Configuration
 
 - **availableProducts, availableJurisdictions, availableOrganizationTypes**: Drive gateway and form options.
-- **docUploadOnlyMode, docUploadMaxFileSizeBytes, hideLinkAccountSection, enableSidebar**: Behaviour toggles and limits as described above.
+- **docUploadOnlyMode, docUploadMaxFileSizeBytes, showLinkAccountStep, hideSidebar**: Behaviour toggles and limits as described above.
 
 ---
 

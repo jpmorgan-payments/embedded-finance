@@ -18,6 +18,7 @@ const renderOnboardingFlow = (props: Partial<OnboardingFlowProps> = {}) => {
     ],
     docUploadOnlyMode: false,
     alertOnExit: false,
+    hideSidebar: true,
     ...props,
   };
 

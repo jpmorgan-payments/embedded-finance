@@ -143,7 +143,10 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
               ...(clientId && isGetRequest ? { clientId } : {}),
             },
             data:
-              !isGetRequest && clientId && config.data
+              !isGetRequest &&
+              clientId &&
+              config.data &&
+              !(config.data instanceof FormData)
                 ? {
                     ...config.data,
                     clientId,

@@ -55,7 +55,8 @@ export type StaticScreenId =
   | 'checklist'
   | 'overview'
   | 'owner-stepper'
-  | 'document-upload-form';
+  | 'document-upload-form'
+  | 'link-account';
 
 export type SectionScreenId =
   | 'personal-section'

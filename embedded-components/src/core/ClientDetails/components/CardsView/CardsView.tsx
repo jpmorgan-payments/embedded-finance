@@ -5,6 +5,7 @@
 
 import { useTranslationWithTokens } from '@/i18n';
 
+import type { HeadingLevel } from '@/lib/types/headingLevel.types';
 import { cn } from '@/lib/utils';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
@@ -22,6 +23,7 @@ import { ResultsSection } from '../ClientDetailsContent/ResultsSection';
 
 interface CardsViewProps {
   client: ClientResponse;
+  headingLevel?: HeadingLevel;
 }
 
 function SectionContent({
@@ -49,7 +51,7 @@ function SectionContent({
   }
 }
 
-export function CardsView({ client }: CardsViewProps) {
+export function CardsView({ client, headingLevel }: CardsViewProps) {
   const { t } = useTranslationWithTokens('client-details');
   const sections = getClientDetailsSections(client);
 
@@ -64,7 +66,10 @@ export function CardsView({ client }: CardsViewProps) {
           )}
         >
           <CardHeader className="eb-border-b eb-border-border eb-px-4 eb-pb-3 eb-pt-4 @md:eb-px-5 @md:eb-pt-5">
-            <CardTitle className="eb-text-base eb-font-semibold eb-tracking-tight @md:eb-text-lg">
+            <CardTitle
+              headingLevel={headingLevel}
+              className="eb-text-base eb-font-semibold eb-tracking-tight @md:eb-text-lg"
+            >
               {t(`sections.${SECTION_I18N_KEYS[type]}` as const)}
             </CardTitle>
           </CardHeader>

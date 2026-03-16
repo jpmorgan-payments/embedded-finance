@@ -3,6 +3,7 @@
  * Information-dense layout with minimal spacing
  */
 
+import { Fragment } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 
 import { _get, cn, isValueEmpty } from '@/lib/utils';
@@ -80,11 +81,14 @@ export function PartyDetailsBlock({
     : individualFieldDefinitions;
   const name = heading ?? getPartyDisplayName(party);
 
-  // Format role labels using i18n
+  // Format role labels using i18n — use Fragment interspersion so t() ReactNodes are preserved
   const roleLabel = party.roles?.length
-    ? party.roles
-        .map((r) => t(`roles.${r}` as 'roles.CONTROLLER', { defaultValue: r }))
-        .join(', ')
+    ? party.roles.map((r, i) => (
+        <Fragment key={r}>
+          {i > 0 && ', '}
+          {t(`roles.${r}`, { defaultValue: r })}
+        </Fragment>
+      ))
     : undefined;
 
   return (

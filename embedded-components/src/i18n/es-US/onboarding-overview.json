@@ -6,7 +6,8 @@
     "unhandledScreenError": "Unhandled screen error"
   },
   "flowRenderer": {
-    "businessType": "Business type"
+    "businessType": "Business type",
+    "linkAccount": "Vincular cuenta bancaria"
   },
   "documentUpload": {
     "title": "Supporting documents",
@@ -195,6 +196,17 @@
         "title": "Link a bank account for payouts",
         "lockedMessage": "Available after business verification",
         "linkAccountTitle": "Link an account"
+      }
+    },
+    "linkAccount": {
+      "title": "Vincular una cuenta bancaria",
+      "description": "Conecte su cuenta bancaria para recibir pagos.",
+      "submitButton": "Vincular cuenta",
+      "errorTitle": "Error al vincular la cuenta",
+      "returnToOverview": "Volver al resumen",
+      "success": {
+        "title": "Cuenta vinculada exitosamente",
+        "description": "Su cuenta bancaria ha sido vinculada para pagos."
       }
     },
     "companyIdentification": {

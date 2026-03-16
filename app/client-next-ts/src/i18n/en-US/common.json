@@ -101,6 +101,19 @@
   "errors": {
     "tryAgain": "Try Again",
     "showDetails": "Show Details",
-    "hideDetails": "Hide Details"
+    "hideDetails": "Hide Details",
+    "status": "Status:",
+    "reasons": "Reasons:",
+    "context": "Context:",
+    "reason": "Reason:",
+    "value": "Value:",
+    "unknownError": "Unknown error",
+    "defaultMessages": {
+      "400": "Please check the information you entered and try again.",
+      "401": "Please log in and try again.",
+      "500": "An unexpected error occurred. Please try again later.",
+      "503": "The service is currently unavailable. Please try again later.",
+      "default": "An unexpected error occurred. Please try again later."
+    }
   }
 }

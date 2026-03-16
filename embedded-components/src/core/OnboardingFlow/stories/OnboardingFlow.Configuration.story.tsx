@@ -1,5 +1,5 @@
 /**
- * OnboardingFlow - Variants
+ * OnboardingFlow - Configuration
  *
  * Different configuration variants and feature combinations.
  */
@@ -17,6 +17,7 @@ import {
   createOnboardingFlowHandlers,
   DEFAULT_CLIENT_ID,
   defaultHandlers,
+  mockClientApproved,
   mockClientNoIndustry,
   OnboardingFlowTemplate,
 } from './story-utils';
@@ -24,7 +25,7 @@ import {
 type OnboardingFlowStoryArgs = OnboardingFlowProps & BaseStoryArgs;
 
 const meta: Meta<OnboardingFlowStoryArgs> = {
-  title: 'Core/OnboardingFlow/Variants',
+  title: 'Core/OnboardingFlow/Configuration',
   component: OnboardingFlowTemplate,
   tags: ['@core', '@onboarding'],
   parameters: {
@@ -50,7 +51,7 @@ type Story = StoryObj<OnboardingFlowStoryArgs>;
 // =============================================================================
 
 /**
- * **With Sidebar**
+ * **With Sidebar (Default)**
  *
  * Shows the timeline sidebar for navigating between onboarding sections.
  *
@@ -61,6 +62,7 @@ type Story = StoryObj<OnboardingFlowStoryArgs>;
  * - Responsive design (hidden on mobile)
  */
 export const WithSidebar: Story = {
+  name: 'With Sidebar (Default)',
   args: {
     ...commonArgs,
     hideSidebar: false,
@@ -68,9 +70,9 @@ export const WithSidebar: Story = {
 };
 
 /**
- * **Without Sidebar (Default)**
+ * **Without Sidebar**
  *
- * Standard onboarding flow without sidebar navigation.
+ * Onboarding flow with sidebar hidden.
  * Linear progression through the flow.
  */
 export const WithoutSidebar: Story = {
@@ -156,6 +158,58 @@ export const WithDownloadChecklist: Story = {
           'OnboardingFlow with the "Download checklist" button visible in the overview screen header.',
       },
     },
+  },
+};
+
+/**
+ * **With Link Account Step**
+ *
+ * Shows the "Link Bank Account" step in the onboarding overview.
+ * By default this step is hidden. Enable it when your integration
+ * requires users to connect a bank account during onboarding.
+ */
+export const WithLinkAccountStep: Story = {
+  args: {
+    ...commonArgs,
+    showLinkAccountStep: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'OnboardingFlow with the link bank account step visible in the overview screen.',
+      },
+    },
+  },
+};
+
+/**
+ * **With Link Account Step (Approved)**
+ *
+ * Shows the "Link Bank Account" step unlocked for an APPROVED client.
+ * Only APPROVED clients can link a bank account — the step appears
+ * as actionable rather than locked/on-hold.
+ */
+export const WithLinkAccountStepApproved: Story = {
+  name: 'With Link Account Step (Approved)',
+  parameters: {
+    msw: {
+      handlers: createOnboardingFlowHandlers({
+        client: mockClientApproved,
+        clientId: DEFAULT_CLIENT_ID,
+      }),
+    },
+    docs: {
+      description: {
+        story:
+          'OnboardingFlow with the link bank account step visible and unlocked for an APPROVED client.',
+      },
+    },
+  },
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    showLinkAccountStep: true,
   },
 };
 

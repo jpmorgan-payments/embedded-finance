@@ -34,8 +34,8 @@ export type OnboardingConfigUsedInContext = {
   availableOrganizationTypes?: Array<OrganizationType>;
   docUploadOnlyMode?: boolean;
   docUploadMaxFileSizeBytes?: number;
-  hideLinkAccountSection?: boolean;
-  enableSidebar?: boolean;
+  showLinkAccountStep?: boolean;
+  hideSidebar?: boolean;
   /** Whether to show the "Download Checklist" button on the Overview screen. Defaults to false. */
   showDownloadChecklist?: boolean;
 };

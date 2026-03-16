@@ -6,7 +6,8 @@
     "unhandledScreenError": "Unhandled screen error"
   },
   "flowRenderer": {
-    "businessType": "Business type"
+    "businessType": "Business type",
+    "linkAccount": "Lier un compte bancaire"
   },
   "documentUpload": {
     "title": "Supporting documents",
@@ -195,6 +196,17 @@
         "title": "Link a bank account for payouts",
         "lockedMessage": "Available after business verification",
         "linkAccountTitle": "Link an account"
+      }
+    },
+    "linkAccount": {
+      "title": "Lier un compte bancaire",
+      "description": "Connectez votre compte bancaire pour recevoir des paiements.",
+      "submitButton": "Lier le compte",
+      "errorTitle": "Échec de la liaison du compte",
+      "returnToOverview": "Retour à l'aperçu",
+      "success": {
+        "title": "Compte lié avec succès",
+        "description": "Votre compte bancaire a été lié pour les paiements."
       }
     },
     "companyIdentification": {
