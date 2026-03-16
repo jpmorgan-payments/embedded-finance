@@ -356,7 +356,7 @@ export function createOnboardingFlowHandlers(
 
   // GET /recipients/:id - Get single linked account
   baseHandlers.push(
-    http.get('/recipients/:id', async ({ params }) => {
+    http.get('/recipients/:id', async ({ params: _params }) => {
       await new Promise((r) => {
         setTimeout(r, delayMs);
       });

@@ -312,7 +312,6 @@ export const NoDocsRequested: Story = {
  * Loading state while fetching document requests (10 second delay).
  */
 export const LoadingState: Story = {
-  name: 'Loading State',
   parameters: {
     msw: {
       handlers: [
@@ -337,7 +336,6 @@ export const LoadingState: Story = {
  * Error state when fetching document requests fails.
  */
 export const ErrorOnGet: Story = {
-  name: 'Error on Get',
   parameters: {
     msw: {
       handlers: [
@@ -359,7 +357,6 @@ export const ErrorOnGet: Story = {
  * State when no clientId is provided.
  */
 export const NoClientFound: Story = {
-  name: 'No Client Found',
   args: {
     clientId: '',
   },

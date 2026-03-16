@@ -61,7 +61,6 @@ type Story = StoryObj<OnboardingFlowStoryArgs>;
  * - Responsive design (hidden on mobile)
  */
 export const WithSidebar: Story = {
-  name: 'With Sidebar',
   args: {
     ...commonArgs,
     hideSidebar: false,
@@ -75,7 +74,6 @@ export const WithSidebar: Story = {
  * Linear progression through the flow.
  */
 export const WithoutSidebar: Story = {
-  name: 'Without Sidebar',
   args: {
     ...commonArgs,
     hideSidebar: true,
@@ -92,7 +90,6 @@ export const WithoutSidebar: Story = {
  * Onboarding flow configured for Merchant Services product.
  */
 export const MerchantServicesOnly: Story = {
-  name: 'Merchant Services Only',
   args: {
     ...commonArgs,
     availableProducts: ['MERCHANT_SERVICES'],
@@ -106,7 +103,6 @@ export const MerchantServicesOnly: Story = {
  * Onboarding flow with both Embedded Payments and Merchant Services.
  */
 export const MultipleProducts: Story = {
-  name: 'Multiple Products',
   args: {
     ...commonArgs,
     availableProducts: ['EMBEDDED_PAYMENTS', 'MERCHANT_SERVICES'],
@@ -120,7 +116,6 @@ export const MultipleProducts: Story = {
  * Onboarding flow for Canadian businesses.
  */
 export const CanadaJurisdiction: Story = {
-  name: 'Canada Jurisdiction',
   args: {
     ...commonArgs,
     availableProducts: ['EMBEDDED_PAYMENTS'],
@@ -134,7 +129,6 @@ export const CanadaJurisdiction: Story = {
  * Onboarding with all available organization types enabled.
  */
 export const AllOrganizationTypes: Story = {
-  name: 'All Organization Types',
   args: {
     ...commonArgs,
     availableOrganizationTypes: ORGANIZATION_TYPE_LIST,
@@ -151,7 +145,6 @@ export const AllOrganizationTypes: Story = {
  * Shows the "Download Checklist" button in the overview screen header.
  */
 export const WithDownloadChecklist: Story = {
-  name: 'With Download Checklist',
   args: {
     ...commonArgs,
     showDownloadChecklist: true,
@@ -348,7 +341,6 @@ export const NAICSAPIError: Story = {
  * Open the browser console to see logged events.
  */
 export const WithUserTracking: Story = {
-  name: 'With User Tracking',
   args: {
     ...commonArgs,
     hideSidebar: false,
