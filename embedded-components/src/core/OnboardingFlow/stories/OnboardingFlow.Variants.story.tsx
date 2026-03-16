@@ -64,7 +64,7 @@ export const WithSidebar: Story = {
   name: 'With Sidebar',
   args: {
     ...commonArgs,
-    enableSidebar: true,
+    hideSidebar: false,
   },
 };
 
@@ -78,7 +78,7 @@ export const WithoutSidebar: Story = {
   name: 'Without Sidebar',
   args: {
     ...commonArgs,
-    enableSidebar: false,
+    hideSidebar: true,
   },
 };
 
@@ -351,7 +351,7 @@ export const WithUserTracking: Story = {
   name: 'With User Tracking',
   args: {
     ...commonArgs,
-    enableSidebar: true,
+    hideSidebar: false,
     // eslint-disable-next-line no-console
     userEventsHandler: (context) => {
       // eslint-disable-next-line no-console
