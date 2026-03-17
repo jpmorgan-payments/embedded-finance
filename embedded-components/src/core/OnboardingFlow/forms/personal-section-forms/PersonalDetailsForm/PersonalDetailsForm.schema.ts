@@ -13,6 +13,10 @@ import {
 export const usePersonalDetailsFormSchema = () => {
   const v = useGetValidationMessage();
   return z.object({
+    countryOfResidence: z
+      .string()
+      .min(1, v('countryOfResidence', 'required'))
+      .length(2, v('countryOfResidence', 'exactlyTwoChars')),
     controllerFirstName: z
       .string()
       .min(1, v('controllerFirstName', 'required'))

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { useFormContext } from 'react-hook-form';
 import { z } from 'zod';
@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
 import {
   COUNTRIES_OF_FORMATION,
-  US_STATE_OPTIONS,
+  getSubdivisionsForCountry,
 } from '@/core/OnboardingFlow/consts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 import { useGetFieldContentToken } from '@/core/OnboardingFlow/utils/formUtils';
@@ -26,9 +26,20 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
 
   const orgAddressCountry = form.watch('organizationAddress.country');
 
+  const orgAddressLabel = (field: string) =>
+    t([
+      `addressLabels.${field}.${orgAddressCountry}`,
+      `addressLabels.${field}.default`,
+    ] as unknown as TemplateStringsArray);
+
+  const isInitialCountryRender = useRef(true);
+
   useEffect(() => {
-    // Clear state when country changes to avoid sending stale US state codes
-    // to a non-US country
+    if (isInitialCountryRender.current) {
+      isInitialCountryRender.current = false;
+      return;
+    }
+    // Clear state when country changes to avoid sending stale codes
     form.setValue('organizationAddress.state', '');
   }, [orgAddressCountry]);
 
@@ -95,14 +106,16 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
             control={form.control}
             name="organizationAddress.city"
             type="text"
+            label={orgAddressLabel('city')}
             required
           />
-          {orgAddressCountry === 'US' ? (
+          {getSubdivisionsForCountry(orgAddressCountry) ? (
             <OnboardingFormField
               control={form.control}
               name="organizationAddress.state"
               type="combobox"
-              options={US_STATE_OPTIONS}
+              options={getSubdivisionsForCountry(orgAddressCountry)!}
+              label={orgAddressLabel('state')}
               required
             />
           ) : (
@@ -110,6 +123,7 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
               control={form.control}
               name="organizationAddress.state"
               type="text"
+              label={orgAddressLabel('state')}
               required
             />
           )}
@@ -117,6 +131,7 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
             control={form.control}
             name="organizationAddress.postalCode"
             type="text"
+            label={orgAddressLabel('postalCode')}
             className="eb-max-w-48"
             required
           />

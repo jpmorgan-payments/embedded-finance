@@ -3,6 +3,7 @@ import { isValidPhoneNumber } from 'react-phone-number-input';
 import { z } from 'zod';
 
 import { PhoneSmbdoPhoneType } from '@/api/generated/smbdo.schemas';
+import { getSubdivisionsForCountry } from '@/core/OnboardingFlow/consts';
 import { useGetValidationMessage } from '@/core/OnboardingFlow/utils/formUtils';
 
 /**
@@ -99,9 +100,6 @@ export const useAddressSchemas = (
     .min(1, v(`${type}.country`, 'required'))
     .length(2, v(`${type}.country`, 'exactlyTwoChars'));
 
-  const US_STATE_REGEX =
-    /^(A[LKSZRAEP]|C[AOT]|D[EC]|FL|GA|HI|I[DLNA]|K[SY]|LA|M[EHDAINSOT]|N[EVHJMYCD]|O[HKR]|P[AW]|RI|S[CD]|T[NX]|UT|V[TA]|W[AVIY])$/;
-
   const AddressSchema = z
     .object({
       addressType: AddressTypeSchema,
@@ -114,16 +112,33 @@ export const useAddressSchemas = (
       country: CountrySchema,
     })
     .superRefine((data, ctx) => {
-      // Apply US-specific validation only when country is US
-      if (data.country === 'US') {
-        if (!US_STATE_REGEX.test(data.state)) {
+      // Validate state against known subdivisions for the selected country
+      const subdivisions = getSubdivisionsForCountry(data.country);
+      if (subdivisions) {
+        const validCodes = subdivisions.map((s) => s.value);
+        if (!validCodes.includes(data.state)) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: v(`${type}.state`, 'invalid'),
             path: ['state'],
           });
         }
+      }
+
+      // Apply US-specific postal code validation
+      if (data.country === 'US') {
         if (!/^\d{5}(-\d{4})?$/.test(data.postalCode)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: v(`${type}.postalCode`, 'invalid'),
+            path: ['postalCode'],
+          });
+        }
+      }
+
+      // Apply CA-specific postal code validation
+      if (data.country === 'CA') {
+        if (!/^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/.test(data.postalCode)) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: v(`${type}.postalCode`, 'invalid'),

@@ -1,4 +1,73 @@
 {
+  "addressLabels": {
+    "city": {
+      "default": "City / Town",
+      "US": "City / Town",
+      "CA": "City",
+      "AU": "City / Suburb",
+      "GB": "Town / City",
+      "DE": "Stadt",
+      "FR": "Ville",
+      "IT": "Città",
+      "ES": "Ciudad",
+      "BR": "City",
+      "MX": "City",
+      "IN": "City / Town",
+      "JP": "City",
+      "KR": "City / District",
+      "CN": "City",
+      "CH": "City",
+      "AR": "City",
+      "ZA": "City / Town",
+      "NZ": "City / Town"
+    },
+    "state": {
+      "default": "State / Province / Region",
+      "US": "State",
+      "CA": "Province",
+      "AU": "State / Territory",
+      "GB": "County",
+      "DE": "Bundesland",
+      "FR": "Region",
+      "IT": "Region",
+      "ES": "Province",
+      "BR": "State",
+      "MX": "State",
+      "IN": "State",
+      "JP": "Prefecture",
+      "KR": "Province / City",
+      "CN": "Province",
+      "CH": "Canton",
+      "AR": "Province",
+      "ZA": "Province",
+      "PL": "Voivodeship",
+      "AT": "State",
+      "NZ": "Region"
+    },
+    "postalCode": {
+      "default": "Postal code",
+      "US": "ZIP code",
+      "AU": "Postcode",
+      "GB": "Postcode",
+      "BR": "CEP",
+      "IN": "PIN code",
+      "NZ": "Postcode"
+    },
+    "placeholder": {
+      "city": {
+        "default": "Enter city / town"
+      },
+      "state": {
+        "default": "Select or enter state / province",
+        "US": "Select state",
+        "CA": "Select province"
+      },
+      "postalCode": {
+        "default": "Enter postal code",
+        "US": "Enter ZIP code"
+      }
+    }
+  },
   "fetchingClientData": "Fetching client data...",
   "welcomeText": "Welcome!",
   "errors": {
@@ -680,8 +749,8 @@
       }
     },
     "individualAddress.city": {
-      "label": "Town/City",
-      "placeholder": "Enter town/city",
+      "label": "Town / City",
+      "placeholder": "Enter Town / City",
       "description": "Locality, Settlement, etc.",
       "tooltip": "",
       "validation": {
@@ -758,8 +827,8 @@
       }
     },
     "organizationAddress.city": {
-      "label": "Town/City",
-      "placeholder": "Enter town/city",
+      "label": "Town / City",
+      "placeholder": "Enter Town / City",
       "description": "Locality, Settlement, etc.",
       "tooltip": "",
       "validation": {

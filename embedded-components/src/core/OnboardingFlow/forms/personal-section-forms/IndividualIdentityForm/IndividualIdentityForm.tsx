@@ -33,8 +33,8 @@ export const IndividualIdentityForm: FormStepComponent = () => {
     >();
   const { getFieldRule } = useFormUtils();
 
-  const countryOfResidence = form.watch('countryOfResidence');
-  const isUS = countryOfResidence === 'US';
+  const issuerCountry = form.watch('controllerIds.0.issuer');
+  const isUS = issuerCountry === 'US';
 
   const US_ID_TYPES: IndividualIdentityIdType[] = ['SSN', 'ITIN'];
   const NON_US_ID_TYPES: IndividualIdentityIdType[] = [
@@ -61,16 +61,6 @@ export const IndividualIdentityForm: FormStepComponent = () => {
 
   const currentIdType = form.watch('controllerIds.0.idType');
   const isSsnOrItin = ['SSN', 'ITIN'].includes(currentIdType);
-
-  // Update issuer to match country of residence
-  useEffect(() => {
-    if (
-      countryOfResidence &&
-      form.watch('controllerIds.0.issuer') !== countryOfResidence
-    ) {
-      form.setValue('controllerIds.0.issuer', countryOfResidence);
-    }
-  }, [countryOfResidence]);
 
   // Reset ID type when switching between US and non-US
   useEffect(() => {
@@ -100,7 +90,7 @@ export const IndividualIdentityForm: FormStepComponent = () => {
       />
       <OnboardingFormField
         control={form.control}
-        name="countryOfResidence"
+        name="controllerIds.0.issuer"
         type="combobox"
         options={COUNTRIES_OF_FORMATION.map((code) => ({
           value: code,
@@ -113,6 +103,7 @@ export const IndividualIdentityForm: FormStepComponent = () => {
             </span>
           ),
         }))}
+        disabled
       />
       {isUS && (
         <OnboardingFormField
@@ -171,6 +162,16 @@ export const IndividualIdentityForm: FormStepComponent = () => {
 
 IndividualIdentityForm.schema = useIndividualIdentityFormSchema;
 IndividualIdentityForm.refineSchemaFn = refineIndividualIdentityFormSchema;
+IndividualIdentityForm.modifyFormValuesBeforeSubmit = (values, partyData) => {
+  const issuer = partyData?.individualDetails?.countryOfResidence ?? 'US';
+  return {
+    ...values,
+    controllerIds: values.controllerIds?.map((id: Record<string, unknown>) => ({
+      ...id,
+      issuer,
+    })),
+  };
+};
 // TODO: add when SSN is valid as an organization ID
 // IndividualIdentityForm.updateAnotherPartyOnSubmit = {
 //   partyFilters: {

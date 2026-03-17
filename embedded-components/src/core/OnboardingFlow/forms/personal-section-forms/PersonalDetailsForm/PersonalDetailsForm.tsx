@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
 import {
+  COUNTRIES_OF_FORMATION,
   JOB_TITLES,
   NATURE_OF_OWNERSHIP_OPTIONS,
 } from '@/core/OnboardingFlow/consts';
@@ -24,6 +25,23 @@ export const PersonalDetailsForm: FormStepComponent = () => {
 
   return (
     <div className="eb-mt-6 eb-space-y-6">
+      <OnboardingFormField
+        control={form.control}
+        name="countryOfResidence"
+        type="combobox"
+        options={COUNTRIES_OF_FORMATION.map((code) => ({
+          value: code,
+          label: (
+            <span>
+              <span className="eb-font-medium">[{code}]</span>{' '}
+              {t([
+                `common:countries.${code}`,
+              ] as unknown as TemplateStringsArray)}
+            </span>
+          ),
+        }))}
+        required
+      />
       <fieldset className="eb-grid eb-gap-y-3">
         <legend className="eb-mb-1.5 eb-text-lg eb-font-medium">
           {t('screens.personalDetails.legalNameHeader')}

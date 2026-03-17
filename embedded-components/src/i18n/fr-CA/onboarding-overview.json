@@ -1,4 +1,42 @@
 {
+  "addressLabels": {
+    "city": {
+      "default": "Ville",
+      "US": "Ville",
+      "CA": "Ville",
+      "AU": "Ville / Banlieue",
+      "GB": "Ville",
+      "FR": "Ville"
+    },
+    "state": {
+      "default": "État / Province / Région",
+      "US": "État",
+      "CA": "Province",
+      "AU": "État / Territoire",
+      "GB": "Comté",
+      "FR": "Région"
+    },
+    "postalCode": {
+      "default": "Code postal",
+      "US": "Code ZIP",
+      "AU": "Code postal",
+      "GB": "Code postal"
+    },
+    "placeholder": {
+      "city": {
+        "default": "Entrez la ville"
+      },
+      "state": {
+        "default": "Sélectionnez ou entrez l'état / la province",
+        "US": "Sélectionnez l'état",
+        "CA": "Sélectionnez la province"
+      },
+      "postalCode": {
+        "default": "Entrez le code postal",
+        "US": "Entrez le code ZIP"
+      }
+    }
+  },
   "fetchingClientData": "Fetching client data...",
   "welcomeText": "Welcome!",
   "errors": {
@@ -689,8 +727,8 @@
       }
     },
     "individualAddress.city": {
-      "label": "Town/City",
-      "placeholder": "Enter town/city",
+      "label": "Town / City",
+      "placeholder": "Enter Town / City",
       "description": "Locality, Settlement, etc.",
       "tooltip": "",
       "validation": {
@@ -767,8 +805,8 @@
       }
     },
     "organizationAddress.city": {
-      "label": "Town/City",
-      "placeholder": "Enter town/city",
+      "label": "Town / City",
+      "placeholder": "Enter Town / City",
       "description": "Locality, Settlement, etc.",
       "tooltip": "",
       "validation": {
