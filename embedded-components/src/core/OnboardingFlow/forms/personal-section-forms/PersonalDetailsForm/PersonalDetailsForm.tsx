@@ -100,10 +100,6 @@ PersonalDetailsForm.modifyFormValuesBeforeSubmit = (
     ...(values.controllerJobTitle === 'Other'
       ? { controllerJobTitleDescription }
       : { controllerJobTitleDescription: undefined }),
-    // Set the country of residence as it is required
-    countryOfResidence: 'US',
-    // To be used when more countries are supported
-    // partyData?.individualDetails?.countryOfResidence ?? 'US',
   };
 };
 PersonalDetailsForm.updateAnotherPartyOnSubmit = {

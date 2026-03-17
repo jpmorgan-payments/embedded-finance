@@ -24,6 +24,14 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
       z.input<ReturnType<typeof useBusinessContactInfoFormSchema>>
     >();
 
+  const orgAddressCountry = form.watch('organizationAddress.country');
+
+  useEffect(() => {
+    // Clear state when country changes to avoid sending stale US state codes
+    // to a non-US country
+    form.setValue('organizationAddress.state', '');
+  }, [orgAddressCountry]);
+
   useEffect(() => {
     if (form.watch('organizationPhone.phoneType') !== 'BUSINESS_PHONE') {
       form.setValue('organizationPhone.phoneType', 'BUSINESS_PHONE');
@@ -89,13 +97,22 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
             type="text"
             required
           />
-          <OnboardingFormField
-            control={form.control}
-            name="organizationAddress.state"
-            type="combobox"
-            options={US_STATE_OPTIONS}
-            required
-          />
+          {orgAddressCountry === 'US' ? (
+            <OnboardingFormField
+              control={form.control}
+              name="organizationAddress.state"
+              type="combobox"
+              options={US_STATE_OPTIONS}
+              required
+            />
+          ) : (
+            <OnboardingFormField
+              control={form.control}
+              name="organizationAddress.state"
+              type="text"
+              required
+            />
+          )}
           <OnboardingFormField
             control={form.control}
             name="organizationAddress.postalCode"

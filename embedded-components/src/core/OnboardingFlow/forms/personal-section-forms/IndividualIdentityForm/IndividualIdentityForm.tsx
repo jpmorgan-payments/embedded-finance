@@ -17,7 +17,10 @@ import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 import { useFormUtils } from '@/core/OnboardingFlow/utils/formUtils';
 
-import { useIndividualIdentityFormSchema } from './IndividualIdentityForm.schema';
+import {
+  refineIndividualIdentityFormSchema,
+  useIndividualIdentityFormSchema,
+} from './IndividualIdentityForm.schema';
 
 export const IndividualIdentityForm: FormStepComponent = () => {
   const { t } = useTranslationWithTokens([
@@ -29,6 +32,19 @@ export const IndividualIdentityForm: FormStepComponent = () => {
       z.input<ReturnType<typeof useIndividualIdentityFormSchema>>
     >();
   const { getFieldRule } = useFormUtils();
+
+  const countryOfResidence = form.watch('countryOfResidence');
+  const isUS = countryOfResidence === 'US';
+
+  const US_ID_TYPES: IndividualIdentityIdType[] = ['SSN', 'ITIN'];
+  const NON_US_ID_TYPES: IndividualIdentityIdType[] = [
+    'PASSPORT',
+    'NATIONAL_ID',
+    'DRIVERS_LICENSE',
+    'SOCIAL_INSURANCE_NUMBER',
+    'OTHER_GOVERNMENT_ID',
+  ];
+  const availableIdTypes = isUS ? US_ID_TYPES : NON_US_ID_TYPES;
 
   const getValueLabel = (idType: IndividualIdentityIdType) => {
     if (!idType) return t(['onboarding-old:idValueLabels.placeholder']);
@@ -44,12 +60,31 @@ export const IndividualIdentityForm: FormStepComponent = () => {
   };
 
   const currentIdType = form.watch('controllerIds.0.idType');
+  const isSsnOrItin = ['SSN', 'ITIN'].includes(currentIdType);
 
+  // Update issuer to match country of residence
   useEffect(() => {
-    if (form.watch('controllerIds.0.issuer') !== 'US') {
-      form.setValue('controllerIds.0.issuer', 'US');
+    if (
+      countryOfResidence &&
+      form.watch('controllerIds.0.issuer') !== countryOfResidence
+    ) {
+      form.setValue('controllerIds.0.issuer', countryOfResidence);
     }
-  }, [form.watch('controllerIds.0.issuer')]);
+  }, [countryOfResidence]);
+
+  // Reset ID type when switching between US and non-US
+  useEffect(() => {
+    const currentType = form.getValues(
+      'controllerIds.0.idType'
+    ) as IndividualIdentityIdType;
+    if (isUS && !US_ID_TYPES.includes(currentType)) {
+      form.setValue('controllerIds.0.idType', 'SSN');
+      form.setValue('controllerIds.0.value', '');
+    } else if (!isUS && US_ID_TYPES.includes(currentType)) {
+      form.setValue('controllerIds.0.idType', 'PASSPORT');
+      form.setValue('controllerIds.0.value', '');
+    }
+  }, [isUS]);
 
   useEffect(() => {
     form.clearErrors('controllerIds.0.value');
@@ -79,63 +114,63 @@ export const IndividualIdentityForm: FormStepComponent = () => {
           ),
         }))}
       />
-      <OnboardingFormField
-        control={form.control}
-        name="solePropSsn"
-        type="text"
-        maskFormat="### - ## - ####"
-        maskChar="_"
-        obfuscateWhenUnfocused
-      />
-      {form.watch('countryOfResidence') === 'US' &&
-        getFieldRule('controllerIds.0.value').fieldRule.display ===
-          'visible' && (
-          <div className="eb-space-y-3">
-            <OnboardingFormField
-              key={currentIdType}
-              control={form.control}
-              name="controllerIds.0.value"
-              type="text"
-              maskFormat="### - ## - ####"
-              maskChar="_"
-              label={getValueLabel(currentIdType)}
-              description={getValueDescription(currentIdType)}
-              obfuscateWhenUnfocused
-            />
+      {isUS && (
+        <OnboardingFormField
+          control={form.control}
+          name="solePropSsn"
+          type="text"
+          maskFormat="### - ## - ####"
+          maskChar="_"
+          obfuscateWhenUnfocused
+        />
+      )}
+      {getFieldRule('controllerIds.0.value').fieldRule.display ===
+        'visible' && (
+        <div className="eb-space-y-3">
+          <OnboardingFormField
+            key={currentIdType}
+            control={form.control}
+            name="controllerIds.0.value"
+            type="text"
+            maskFormat={isSsnOrItin ? '### - ## - ####' : undefined}
+            maskChar={isSsnOrItin ? '_' : undefined}
+            label={getValueLabel(currentIdType)}
+            description={getValueDescription(currentIdType)}
+            obfuscateWhenUnfocused={isSsnOrItin}
+          />
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" type="button" size="sm" className="">
-                  Use a different ID type
-                  <ChevronDownIcon />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="eb-component">
-                {(['SSN', 'ITIN'] as IndividualIdentityIdType[]).map(
-                  (idType) => (
-                    <DropdownMenuItem
-                      key={idType}
-                      disabled={form.watch('controllerIds.0.idType') === idType}
-                      onClick={() => {
-                        form.setValue('controllerIds.0.idType', idType);
-                        form.setValue('controllerIds.0.value', '');
-                      }}
-                    >
-                      <div className="eb-flex eb-items-center eb-gap-2">
-                        {getValueLabel(idType)}
-                      </div>
-                    </DropdownMenuItem>
-                  )
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" type="button" size="sm" className="">
+                Use a different ID type
+                <ChevronDownIcon />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="eb-component">
+              {availableIdTypes.map((idType) => (
+                <DropdownMenuItem
+                  key={idType}
+                  disabled={form.watch('controllerIds.0.idType') === idType}
+                  onClick={() => {
+                    form.setValue('controllerIds.0.idType', idType);
+                    form.setValue('controllerIds.0.value', '');
+                  }}
+                >
+                  <div className="eb-flex eb-items-center eb-gap-2">
+                    {getValueLabel(idType)}
+                  </div>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
     </div>
   );
 };
 
 IndividualIdentityForm.schema = useIndividualIdentityFormSchema;
+IndividualIdentityForm.refineSchemaFn = refineIndividualIdentityFormSchema;
 // TODO: add when SSN is valid as an organization ID
 // IndividualIdentityForm.updateAnotherPartyOnSubmit = {
 //   partyFilters: {

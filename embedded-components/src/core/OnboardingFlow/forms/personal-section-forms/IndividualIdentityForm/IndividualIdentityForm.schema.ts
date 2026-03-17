@@ -177,15 +177,36 @@ export const useIndividualIdentityFormSchema = () => {
     countryOfResidence: z
       .string()
       .min(1, v('countryOfResidence', 'required'))
-      .length(2, v('countryOfResidence', 'exactlyTwoChars'))
-      .refine((val) => val === 'US', v('countryOfResidence', 'onlyUS')),
-    solePropSsn: z
-      .string()
-      .min(1, v('solePropSsn', 'required'))
-      .refine((val) => isValidSsn(val), v('solePropSsn', 'format')),
+      .length(2, v('countryOfResidence', 'exactlyTwoChars')),
+    solePropSsn: z.string(),
     controllerIds: z.array(createControllerIdSchema(v)).refine((ids) => {
       const types = ids?.map((id) => id.idType);
       return new Set(types).size === types?.length;
     }, i18n.t('onboarding-old:fields.controllerIds.validation.uniqueTypes')),
+  });
+};
+
+export const refineIndividualIdentityFormSchema = (
+  schema: z.ZodObject<Record<string, z.ZodType<any>>>
+) => {
+  const v = useGetValidationMessage();
+  return schema.superRefine((data, ctx) => {
+    // Only validate sole prop SSN when the field is present (not hidden by field rules)
+    // and country of residence is US
+    if ('solePropSsn' in data && data.countryOfResidence === 'US') {
+      if (!data.solePropSsn || data.solePropSsn.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: v('solePropSsn', 'required'),
+          path: ['solePropSsn'],
+        });
+      } else if (!isValidSsn(data.solePropSsn)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: v('solePropSsn', 'format'),
+          path: ['solePropSsn'],
+        });
+      }
+    }
   });
 };

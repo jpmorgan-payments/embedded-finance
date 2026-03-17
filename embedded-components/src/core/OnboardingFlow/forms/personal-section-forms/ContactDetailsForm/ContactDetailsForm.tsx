@@ -21,6 +21,14 @@ export const ContactDetailsForm: FormStepComponent = () => {
   const form =
     useFormContext<z.input<ReturnType<typeof useContactDetailsFormSchema>>>();
 
+  const addressCountry = form.watch('individualAddress.country');
+
+  useEffect(() => {
+    // Clear state when country changes to avoid sending stale US state codes
+    // to a non-US country
+    form.setValue('individualAddress.state', '');
+  }, [addressCountry]);
+
   useEffect(() => {
     if (form.watch('controllerPhone.phoneType') !== 'MOBILE_PHONE') {
       form.setValue('controllerPhone.phoneType', 'MOBILE_PHONE');
@@ -82,13 +90,22 @@ export const ContactDetailsForm: FormStepComponent = () => {
           type="text"
           required
         />
-        <OnboardingFormField
-          control={form.control}
-          name="individualAddress.state"
-          type="combobox"
-          options={US_STATE_OPTIONS}
-          required
-        />
+        {addressCountry === 'US' ? (
+          <OnboardingFormField
+            control={form.control}
+            name="individualAddress.state"
+            type="combobox"
+            options={US_STATE_OPTIONS}
+            required
+          />
+        ) : (
+          <OnboardingFormField
+            control={form.control}
+            name="individualAddress.state"
+            type="text"
+            required
+          />
+        )}
         <OnboardingFormField
           control={form.control}
           name="individualAddress.postalCode"

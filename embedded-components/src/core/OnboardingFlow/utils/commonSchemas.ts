@@ -87,40 +87,51 @@ export const useAddressSchemas = (
     .min(1, v(`${type}.city`, 'required'))
     .max(34, v(`${type}.city`, 'maxLength'));
 
-  const StateSchema = z
-    .string()
-    .min(2, v(`${type}.state`, 'required'))
-    .refine(
-      (val) =>
-        /^(A[LKSZRAEP]|C[AOT]|D[EC]|FL|GA|HI|I[DLNA]|K[SY]|LA|M[EHDAINSOT]|N[EVHJMYCD]|O[HKR]|P[AW]|RI|S[CD]|T[NX]|UT|V[TA]|W[AVIY])$/.test(
-          val
-        ),
-      v(`${type}.state`, 'invalid')
-    );
+  const StateSchema = z.string().min(1, v(`${type}.state`, 'required'));
 
   const PostalCodeSchema = z
     .string()
     .min(1, v(`${type}.postalCode`, 'required'))
-    .max(10, v(`${type}.postalCode`, 'maxLength'))
-    .refine((val) => /^\d{5}(-\d{4})?$/.test(val), {
-      message: v(`${type}.postalCode`, 'invalid'),
-    });
+    .max(10, v(`${type}.postalCode`, 'maxLength'));
 
   const CountrySchema = z
     .string()
     .min(1, v(`${type}.country`, 'required'))
     .length(2, v(`${type}.country`, 'exactlyTwoChars'));
 
-  const AddressSchema = z.object({
-    addressType: AddressTypeSchema,
-    primaryAddressLine: PrimaryAddressLineSchema,
-    secondaryAddressLine: SecondaryAddressLineSchema,
-    tertiaryAddressLine: TertiaryAddressLineSchema,
-    city: CitySchema,
-    state: StateSchema,
-    postalCode: PostalCodeSchema,
-    country: CountrySchema,
-  });
+  const US_STATE_REGEX =
+    /^(A[LKSZRAEP]|C[AOT]|D[EC]|FL|GA|HI|I[DLNA]|K[SY]|LA|M[EHDAINSOT]|N[EVHJMYCD]|O[HKR]|P[AW]|RI|S[CD]|T[NX]|UT|V[TA]|W[AVIY])$/;
+
+  const AddressSchema = z
+    .object({
+      addressType: AddressTypeSchema,
+      primaryAddressLine: PrimaryAddressLineSchema,
+      secondaryAddressLine: SecondaryAddressLineSchema,
+      tertiaryAddressLine: TertiaryAddressLineSchema,
+      city: CitySchema,
+      state: StateSchema,
+      postalCode: PostalCodeSchema,
+      country: CountrySchema,
+    })
+    .superRefine((data, ctx) => {
+      // Apply US-specific validation only when country is US
+      if (data.country === 'US') {
+        if (!US_STATE_REGEX.test(data.state)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: v(`${type}.state`, 'invalid'),
+            path: ['state'],
+          });
+        }
+        if (!/^\d{5}(-\d{4})?$/.test(data.postalCode)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: v(`${type}.postalCode`, 'invalid'),
+            path: ['postalCode'],
+          });
+        }
+      }
+    });
 
   return {
     PrimaryAddressLineSchema,

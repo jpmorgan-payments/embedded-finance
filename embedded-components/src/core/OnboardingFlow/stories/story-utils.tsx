@@ -200,7 +200,7 @@ export function createOnboardingFlowHandlers(
 
   const baseHandlers = [
     // Client endpoint
-    http.get(`*/clients/${clientId}`, async () => {
+    http.get(`/clients/${clientId}`, async () => {
       if (delayMs > 0) {
         await new Promise((r) => {
           setTimeout(r, delayMs);

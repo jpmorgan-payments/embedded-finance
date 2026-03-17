@@ -814,7 +814,10 @@ export const partyFieldMap: PartyFieldMap = {
       ].filter((line) => line && line.trim() !== '');
     },
     modifyErrorField: (field) => {
-      const parts = field.split('.');
+      // Strip leading array index (e.g. ".0.state" → ".state")
+      // since addresses is an array in the API but a single object in the form
+      const normalized = field.replace(/^\.\d+/, '');
+      const parts = normalized.split('.');
       const lastPart = parts[parts.length - 1];
       const secondToLastPart = parts[parts.length - 2];
       if (secondToLastPart === 'addressLines' && /^\d+$/.test(lastPart)) {
@@ -838,7 +841,7 @@ export const partyFieldMap: PartyFieldMap = {
         }
       }
 
-      return field;
+      return normalized;
     },
     baseRule: {
       display: 'visible',
@@ -906,7 +909,10 @@ export const partyFieldMap: PartyFieldMap = {
       ].filter((line) => line && line.trim() !== '');
     },
     modifyErrorField: (field) => {
-      const parts = field.split('.');
+      // Strip leading array index (e.g. ".0.state" → ".state")
+      // since addresses is an array in the API but a single object in the form
+      const normalized = field.replace(/^\.\d+/, '');
+      const parts = normalized.split('.');
       const lastPart = parts[parts.length - 1];
       const secondToLastPart = parts[parts.length - 2];
       if (secondToLastPart === 'addressLines' && /^\d+$/.test(lastPart)) {
@@ -930,7 +936,7 @@ export const partyFieldMap: PartyFieldMap = {
         }
       }
 
-      return field;
+      return normalized;
     },
     baseRule: {
       display: 'visible',

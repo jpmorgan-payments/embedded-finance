@@ -308,7 +308,7 @@ export const handlers = [
     });
   }),
 
-  http.post('*/parties/:partyId', async ({ request, params }) => {
+  http.post('/parties/:partyId', async ({ request, params }) => {
     const { partyId } = params;
     const data = await request.json();
 
