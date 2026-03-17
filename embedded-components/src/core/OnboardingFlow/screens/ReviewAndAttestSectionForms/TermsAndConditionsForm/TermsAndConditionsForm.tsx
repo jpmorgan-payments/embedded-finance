@@ -389,6 +389,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
               {getNextButtonLabel()}
             </Button>
             <Button
+              type="button"
               onClick={handlePrev}
               variant="secondary"
               size="lg"

@@ -609,6 +609,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
               {getNextButtonLabel()}
             </Button>
             <Button
+              type="button"
               onClick={handlePrev}
               variant="secondary"
               size="lg"
