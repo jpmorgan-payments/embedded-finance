@@ -317,6 +317,15 @@
       "onHoldText": "We'll let you know if any documents are needed"
     }
   },
+  "additionalQuestions": {
+    "validation": {
+      "dateFormat": "Formato de fecha no válido",
+      "required": "Requerido",
+      "invalidFormat": "Formato no válido",
+      "numberFormat": "Debe ser un número",
+      "maxItems": "No puede exceder {{maxItems}} elementos"
+    }
+  },
   "fields": {
     "controllerFirstName": {
       "label": "First name",
