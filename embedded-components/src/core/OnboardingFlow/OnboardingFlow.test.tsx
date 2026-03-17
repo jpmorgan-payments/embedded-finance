@@ -417,7 +417,7 @@ describe('OnboardingFlow', () => {
     await user.type(phoneInput, '2012345678');
     const addressInput = screen.getByLabelText(/Address line 1/i);
     await user.type(addressInput, '123 Main St');
-    const cityInput = screen.getByLabelText(/Town\/City/i);
+    const cityInput = screen.getByLabelText(/Town \/ City/i);
     await user.type(cityInput, 'Anytown');
     const stateDropdown = screen.getByLabelText(/State/i);
     await user.click(stateDropdown);
@@ -509,7 +509,7 @@ describe('OnboardingFlow', () => {
     await user.type(businessPhoneInput, '2012345678');
     const businessAddressInput = screen.getByLabelText(/Address line 1/i);
     await user.type(businessAddressInput, '456 Business Rd');
-    const businessCityInput = screen.getByLabelText(/Town\/City/i);
+    const businessCityInput = screen.getByLabelText(/Town \/ City/i);
     await user.type(businessCityInput, 'Business City');
     const businessStateDropdown = screen.getByLabelText(/State/i);
     await user.click(businessStateDropdown);
@@ -618,7 +618,7 @@ describe('OnboardingFlow', () => {
     await user.type(ownerPhoneInput, '3012345678');
     const ownerAddressInput = screen.getByLabelText(/Address line 1/i);
     await user.type(ownerAddressInput, '789 Owner St');
-    const ownerCityInput = screen.getByLabelText(/Town\/City/i);
+    const ownerCityInput = screen.getByLabelText(/Town \/ City/i);
     await user.type(ownerCityInput, 'Ownerville');
     const ownerStateDropdown = screen.getByLabelText(/State/i);
     await user.click(ownerStateDropdown);
