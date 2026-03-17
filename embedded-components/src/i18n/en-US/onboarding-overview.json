@@ -6,7 +6,8 @@
     "unhandledScreenError": "Unhandled screen error"
   },
   "flowRenderer": {
-    "businessType": "Business type"
+    "businessType": "Business type",
+    "linkAccount": "Link bank account"
   },
   "documentUpload": {
     "title": "Supporting documents",
@@ -195,6 +196,29 @@
         "title": "Link a bank account for payouts",
         "lockedMessage": "Available after business verification",
         "linkAccountTitle": "Link an account"
+      }
+    },
+    "linkAccount": {
+      "title": "Link a bank account",
+      "description": "Connect your bank account to receive payouts.",
+      "submitButton": "Link Account",
+      "errorTitle": "Failed to link account",
+      "returnToOverview": "Return to overview",
+      "success": {
+        "title": "Account linked successfully",
+        "description": "Your bank account has been linked for payouts."
+      },
+      "errors": {
+        "400": "Please check the information you entered and try again.",
+        "401": "Your session has expired. Please log in and try again.",
+        "409": "This account may already exist. Please check your linked accounts.",
+        "422": "The account information is invalid. Please verify and try again.",
+        "500": "An unexpected error occurred. Please try again later.",
+        "default": "An unexpected error occurred. Please try again."
+      },
+      "existingAccount": {
+        "title": "Your linked bank account",
+        "description": "This bank account is linked for payouts."
       }
     },
     "companyIdentification": {

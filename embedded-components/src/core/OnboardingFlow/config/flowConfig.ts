@@ -21,6 +21,7 @@ import {
 import { DocumentUploadForm } from '@/core/OnboardingFlow/screens/DocumentUploadScreen/DocumentUploadForm';
 import { DocumentUploadScreen } from '@/core/OnboardingFlow/screens/DocumentUploadScreen/DocumentUploadScreen';
 import { GatewayScreen } from '@/core/OnboardingFlow/screens/GatewayScreen/GatewayScreen';
+import { LinkAccountScreen } from '@/core/OnboardingFlow/screens/LinkAccountScreen/LinkAccountScreen';
 import { OperationalDetailsForm } from '@/core/OnboardingFlow/screens/OperationalDetailsForm/OperationalDetailsForm';
 import { OverviewScreen } from '@/core/OnboardingFlow/screens/OverviewScreen/OverviewScreen';
 import { OwnersSectionScreen } from '@/core/OnboardingFlow/screens/OwnersSectionScreen/OwnersSectionScreen';
@@ -116,6 +117,12 @@ const staticScreens: StaticScreenConfig[] = [
     isSection: false,
     type: 'component',
     Component: DocumentUploadForm,
+  },
+  {
+    id: 'link-account',
+    isSection: false,
+    type: 'component',
+    Component: LinkAccountScreen,
   },
 ];
 

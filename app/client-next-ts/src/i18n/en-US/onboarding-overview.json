@@ -6,7 +6,8 @@
     "unhandledScreenError": "Unhandled screen error"
   },
   "flowRenderer": {
-    "businessType": "Business type"
+    "businessType": "Business type",
+    "linkAccount": "Link bank account"
   },
   "documentUpload": {
     "title": "Supporting documents",
@@ -186,6 +187,17 @@
         "title": "Link a bank account for payouts",
         "lockedMessage": "Available after business verification",
         "linkAccountTitle": "Link an account"
+      }
+    },
+    "linkAccount": {
+      "title": "Link a bank account",
+      "description": "Connect your bank account to receive payouts.",
+      "submitButton": "Link Account",
+      "errorTitle": "Failed to link account",
+      "returnToOverview": "Return to overview",
+      "success": {
+        "title": "Account linked successfully",
+        "description": "Your bank account has been linked for payouts."
       }
     },
     "companyIdentification": {

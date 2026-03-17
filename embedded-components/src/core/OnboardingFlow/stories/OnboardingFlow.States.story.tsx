@@ -20,6 +20,7 @@ import {
   mockClientInfoRequested,
   mockClientInReview,
   mockClientNew,
+  mockExistingLinkedAccount,
   OnboardingFlowTemplate,
 } from './story-utils';
 
@@ -156,6 +157,53 @@ export const Approved: Story = {
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
+  },
+};
+
+/**
+ * **Approved with Link Account**
+ *
+ * Client application has been fully approved with the link bank account
+ * step enabled. User sees success status and can proceed to link their
+ * bank account.
+ */
+export const ApprovedWithLinkAccount: Story = {
+  parameters: {
+    msw: {
+      handlers: createOnboardingFlowHandlers({
+        client: mockClientApproved,
+        clientId: DEFAULT_CLIENT_ID,
+      }),
+    },
+  },
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    showLinkAccountStep: true,
+  },
+};
+
+/**
+ * **Approved with Existing Linked Account**
+ *
+ * Client application has been approved and already has a linked bank account.
+ * The link account step is marked as completed in the sidebar, and clicking
+ * into it shows the existing account details instead of the creation form.
+ */
+export const ApprovedWithExistingLinkedAccount: Story = {
+  parameters: {
+    msw: {
+      handlers: createOnboardingFlowHandlers({
+        client: mockClientApproved,
+        clientId: DEFAULT_CLIENT_ID,
+        existingLinkedAccounts: [mockExistingLinkedAccount],
+      }),
+    },
+  },
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    showLinkAccountStep: true,
   },
 };
 

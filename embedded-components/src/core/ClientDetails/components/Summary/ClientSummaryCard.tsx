@@ -25,6 +25,8 @@ import {
   Users,
 } from 'lucide-react';
 
+import type { HeadingLevel } from '@/lib/types/headingLevel.types';
+import { getHeadingTag } from '@/lib/types/headingLevel.types';
 import { cn } from '@/lib/utils';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 import { Card } from '@/components/ui/card';
@@ -41,6 +43,8 @@ interface ClientSummaryCardProps {
   client: ClientResponse;
   /** Client ID for fetching related data (required for drill-down) */
   clientId: string;
+  /** Heading level for the component's main title */
+  headingLevel?: HeadingLevel;
   /** Section info for navigation (used by SectionDialog) */
   sectionInfos?: SectionInfo[];
   /** Custom actions to render in the footer */
@@ -162,6 +166,7 @@ function getIndividualParties(client: ClientResponse) {
 export function ClientSummaryCard({
   client,
   clientId,
+  headingLevel = 2,
   sectionInfos,
   actions,
   className,
@@ -170,6 +175,8 @@ export function ClientSummaryCard({
     'client-details',
     'onboarding-overview',
   ]);
+
+  const Heading = getHeadingTag(headingLevel);
 
   const org = useMemo(() => getOrganizationDetails(client), [client]);
   const people = useMemo(() => getIndividualParties(client), [client]);
@@ -320,9 +327,9 @@ export function ClientSummaryCard({
           {/* Business Identity */}
           <div className="eb-min-w-0 eb-flex-1">
             <div className="eb-flex eb-flex-wrap eb-items-start eb-gap-2 eb-duration-300 eb-animate-in eb-fade-in">
-              <h2 className="eb-text-xl eb-font-bold eb-leading-tight eb-tracking-tight eb-text-foreground @sm:eb-text-2xl">
+              <Heading className="eb-text-xl eb-font-bold eb-leading-tight eb-tracking-tight eb-text-foreground @sm:eb-text-2xl">
                 {org.name ?? t('client-details:labels.unknownOrganization')}
-              </h2>
+              </Heading>
               {/* Status Badge - Premium pill style */}
               <span
                 className={cn(

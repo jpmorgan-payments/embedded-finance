@@ -13,14 +13,6 @@ import { ApiError } from '@/api/generated/smbdo.schemas';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 
-const defaultErrorMessage: Record<string, ReactNode> = {
-  '400': 'Please check the information you entered and try again.',
-  '401': 'Please log in and try again.',
-  '500': 'An unexpected error occurred. Please try again later.',
-  '503': 'The service is currently unavailable. Please try again later.',
-  default: 'An unexpected error occurred. Please try again later.',
-};
-
 type ServerErrorAlertProps = {
   error: ErrorType<ApiError> | null;
   customTitle?: ReactNode;
@@ -34,6 +26,8 @@ type ServerErrorAlertProps = {
  * Renders a single reason item with field, message, reason code, and rejected value
  */
 const ReasonItem: FC<{ reason: any }> = ({ reason }) => {
+  const { t } = useTranslationWithTokens(['common']);
+
   if (typeof reason === 'string') {
     return <>{reason}</>;
   }
@@ -42,18 +36,19 @@ const ReasonItem: FC<{ reason: any }> = ({ reason }) => {
     <>
       {reason.field && <span className="eb-font-semibold">{reason.field}</span>}
       {reason.field && reason.message && ': '}
-      {reason.message || 'Unknown error'}
+      {reason.message || t('errors.unknownError')}
       {(reason.reason || reason.rejectedValue) && (
         <div className="eb-ml-5 eb-text-xs">
           {reason.reason && (
             <span>
-              Reason: <span className="eb-font-mono">{reason.reason}</span>
+              {t('errors.reason')}{' '}
+              <span className="eb-font-mono">{reason.reason}</span>
             </span>
           )}
-          {reason.reason && reason.rejectedValue && ' • '}
+          {reason.reason && reason.rejectedValue && ' \u2022 '}
           {reason.rejectedValue && (
             <span>
-              Value:{' '}
+              {t('errors.value')}{' '}
               <span className="eb-font-mono">
                 &quot;{reason.rejectedValue}&quot;
               </span>
@@ -69,6 +64,8 @@ const ReasonItem: FC<{ reason: any }> = ({ reason }) => {
  * Renders the reasons section with all error reasons
  */
 const ReasonsSection: FC<{ reasons: any[] }> = ({ reasons }) => {
+  const { t } = useTranslationWithTokens(['common']);
+
   if (!reasons || !Array.isArray(reasons) || reasons.length === 0) {
     return null;
   }
@@ -76,7 +73,7 @@ const ReasonsSection: FC<{ reasons: any[] }> = ({ reasons }) => {
   return (
     <div className="eb-grid eb-grid-cols-[auto_1fr] eb-gap-x-3 eb-gap-y-0.5">
       <div className="eb-self-start eb-font-semibold eb-text-red-900">
-        Reasons:
+        {t('errors.reasons')}
       </div>
       <div>
         <ul className="eb-list-inside eb-list-disc eb-space-y-2 eb-text-red-800">
@@ -95,6 +92,8 @@ const ReasonsSection: FC<{ reasons: any[] }> = ({ reasons }) => {
  * Renders the context section with validation context
  */
 const ContextSection: FC<{ context: any[] }> = ({ context }) => {
+  const { t } = useTranslationWithTokens(['common']);
+
   if (!context || !Array.isArray(context) || context.length === 0) {
     return null;
   }
@@ -102,7 +101,7 @@ const ContextSection: FC<{ context: any[] }> = ({ context }) => {
   return (
     <div className="eb-grid eb-grid-cols-[auto_1fr] eb-gap-x-3 eb-gap-y-0.5">
       <div className="eb-self-start eb-font-semibold eb-text-red-900">
-        Context:
+        {t('errors.context')}
       </div>
       <div>
         <ul className="eb-list-inside eb-list-disc eb-space-y-0.5 eb-text-red-800">
@@ -124,13 +123,11 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
   className,
   error,
   customTitle,
-  customErrorMessage = defaultErrorMessage,
+  customErrorMessage,
   tryAgainAction,
   showDetails = false,
 }) => {
   const { t } = useTranslationWithTokens(['common']);
-  // Type assertion to avoid TypeScript overload issues
-  const tCommon = t as (key: string, options?: any) => string;
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
   if (!error) {
@@ -146,17 +143,29 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
     (error.response?.data as any)?.message ||
     error.response?.data?.context?.[0]?.message;
 
+  // Default error messages from i18n content tokens
+  const defaultMessages: Record<string, ReactNode> = {
+    '400': t('errors.defaultMessages.400'),
+    '401': t('errors.defaultMessages.401'),
+    '500': t('errors.defaultMessages.500'),
+    '503': t('errors.defaultMessages.503'),
+    default: t('errors.defaultMessages.default'),
+  };
+
+  // Use provided custom messages or fall back to i18n defaults
+  const effectiveMessages = customErrorMessage ?? defaultMessages;
+
   // Determine the error message to display
   const getErrorMessage = (): ReactNode => {
     // If a custom string/ReactNode is provided directly, use it
     if (
-      typeof customErrorMessage === 'string' ||
-      (typeof customErrorMessage === 'object' &&
-        customErrorMessage !== null &&
-        !('400' in customErrorMessage) &&
-        !('default' in customErrorMessage))
+      typeof effectiveMessages === 'string' ||
+      (typeof effectiveMessages === 'object' &&
+        effectiveMessages !== null &&
+        !('400' in effectiveMessages) &&
+        !('default' in effectiveMessages))
     ) {
-      return customErrorMessage as ReactNode;
+      return effectiveMessages as ReactNode;
     }
 
     // Prefer the API message when available (e.g., "ABA routing number 533100000 not found")
@@ -165,17 +174,17 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
     }
 
     // Fall back to status-based messages
-    const customRecord = customErrorMessage as Record<string, ReactNode>;
-    if (httpStatus && customRecord) {
+    const messageRecord = effectiveMessages as Record<string, ReactNode>;
+    if (httpStatus && messageRecord) {
       return (
-        customRecord[httpStatus] ||
-        defaultErrorMessage[httpStatus] ||
-        customRecord.default ||
-        defaultErrorMessage.default
+        messageRecord[httpStatus] ||
+        defaultMessages[httpStatus] ||
+        messageRecord.default ||
+        defaultMessages.default
       );
     }
 
-    return defaultErrorMessage.default;
+    return defaultMessages.default;
   };
 
   return (
@@ -203,8 +212,8 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
               <ChevronDownIcon className="eb-h-3 eb-w-3" />
             )}
             {isDetailsExpanded
-              ? tCommon('errors.hideDetails', { defaultValue: 'Hide Details' })
-              : tCommon('errors.showDetails', { defaultValue: 'Show Details' })}
+              ? t('errors.hideDetails')
+              : t('errors.showDetails')}
           </Button>
 
           {isDetailsExpanded && (
@@ -212,7 +221,7 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
               {error.response.data.httpStatus && (
                 <div className="eb-grid eb-grid-cols-[auto_1fr] eb-gap-x-3 eb-gap-y-0.5">
                   <div className="eb-font-semibold eb-text-red-900">
-                    Status:
+                    {t('errors.status')}
                   </div>
                   <div className="eb-break-words eb-text-red-800">
                     {error.response.data.httpStatus} {error.response.data.title}
@@ -236,7 +245,7 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
             className="eb-border-red-300 eb-bg-white eb-text-red-900 hover:eb-bg-red-50 hover:eb-text-red-700"
           >
             <RefreshCwIcon className="eb-mr-2 eb-h-4 eb-w-4" />
-            {tCommon('errors.tryAgain', { defaultValue: 'Try Again' })}
+            {t('errors.tryAgain')}
           </Button>
         </AlertDescription>
       )}

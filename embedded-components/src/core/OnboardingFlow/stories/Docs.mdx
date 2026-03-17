@@ -39,7 +39,7 @@ Enable the sidebar for complex onboarding flows:
 
 ```tsx
 <OnboardingFlow
-  enableSidebar={true}
+  hideSidebar={false}
   availableProducts={['EMBEDDED_PAYMENTS']}
   availableJurisdictions={['US']}
 />
@@ -133,19 +133,19 @@ import { EBComponentsProvider } from '@embedded-components/providers';
 
 > **Note**: The client ID is provided via the `EBComponentsProvider` context using the `clientId` prop, not directly to OnboardingFlow.
 
-| Prop                               | Type                 | Default   | Description                                     |
-| ---------------------------------- | -------------------- | --------- | ----------------------------------------------- |
-| `availableProducts`                | `ClientProduct[]`    | Required  | Products available for selection                |
-| `availableJurisdictions`           | `('US' \| 'CA')[]`   | Required  | Available jurisdiction options                  |
-| `availableOrganizationTypes`       | `OrganizationType[]` | All types | Organization types available for selection      |
-| `enableSidebar`                    | `boolean`            | `false`   | Show timeline sidebar navigation                |
-| `showDownloadChecklist`            | `boolean`            | `false`   | Show download checklist button                  |
-| `docUploadOnlyMode`                | `boolean`            | `false`   | Show only document upload screens               |
-| `alertOnExit`                      | `boolean`            | `false`   | Show confirmation when leaving page             |
-| `height`                           | `string`             | `auto`    | Container height (e.g., `'100vh'`)              |
-| `onGetClientSettled`               | `function`           | -         | Callback when client fetch completes            |
-| `onPostClientSettled`              | `function`           | -         | Callback when client creation completes         |
-| `onPostPartySettled`               | `function`           | -         | Callback when party creation completes          |
-| `onPostClientVerificationsSettled` | `function`           | -         | Callback when verification submission completes |
-| `userEventsHandler`                | `function`           | -         | Handler for user journey events                 |
-| `userEventsLifecycle`              | `object`             | -         | Lifecycle hooks for user tracking               |
+| Prop                               | Type                 | Default   | Description                                         |
+| ---------------------------------- | -------------------- | --------- | --------------------------------------------------- |
+| `availableProducts`                | `ClientProduct[]`    | Required  | Products available for selection                    |
+| `availableJurisdictions`           | `('US' \| 'CA')[]`   | Required  | Available jurisdiction options                      |
+| `availableOrganizationTypes`       | `OrganizationType[]` | All types | Organization types available for selection          |
+| `hideSidebar`                      | `boolean`            | `false`   | Hide timeline sidebar navigation (shown by default) |
+| `showDownloadChecklist`            | `boolean`            | `false`   | Show download checklist button                      |
+| `docUploadOnlyMode`                | `boolean`            | `false`   | Show only document upload screens                   |
+| `alertOnExit`                      | `boolean`            | `false`   | Show confirmation when leaving page                 |
+| `height`                           | `string`             | `auto`    | Container height (e.g., `'100vh'`)                  |
+| `onGetClientSettled`               | `function`           | -         | Callback when client fetch completes                |
+| `onPostClientSettled`              | `function`           | -         | Callback when client creation completes             |
+| `onPostPartySettled`               | `function`           | -         | Callback when party creation completes              |
+| `onPostClientVerificationsSettled` | `function`           | -         | Callback when verification submission completes     |
+| `userEventsHandler`                | `function`           | -         | Handler for user journey events                     |
+| `userEventsLifecycle`              | `object`             | -         | Lifecycle hooks for user tracking                   |

@@ -6,6 +6,7 @@
 import { useTranslationWithTokens } from '@/i18n';
 import { ChevronDown } from 'lucide-react';
 
+import type { HeadingLevel } from '@/lib/types/headingLevel.types';
 import { cn } from '@/lib/utils';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 import {
@@ -28,34 +29,43 @@ import { ResultsSection } from '../ClientDetailsContent/ResultsSection';
 
 interface AccordionViewProps {
   client: ClientResponse;
+  headingLevel?: HeadingLevel;
 }
 
 function SectionContent({
   client,
   type,
+  headingLevel,
 }: {
   client: ClientResponse;
   type: string;
+  headingLevel?: HeadingLevel;
 }) {
   switch (type) {
     case 'client-info':
-      return <ClientInfoSection client={client} />;
+      return <ClientInfoSection client={client} headingLevel={headingLevel} />;
     case 'organization':
-      return <OrganizationSection client={client} />;
+      return (
+        <OrganizationSection client={client} headingLevel={headingLevel} />
+      );
     case 'controller':
-      return <ControllerSection client={client} />;
+      return <ControllerSection client={client} headingLevel={headingLevel} />;
     case 'beneficial-owners':
-      return <BeneficialOwnersSection client={client} />;
+      return (
+        <BeneficialOwnersSection client={client} headingLevel={headingLevel} />
+      );
     case 'question-responses':
-      return <QuestionResponsesSection client={client} />;
+      return (
+        <QuestionResponsesSection client={client} headingLevel={headingLevel} />
+      );
     case 'results':
-      return <ResultsSection client={client} />;
+      return <ResultsSection client={client} headingLevel={headingLevel} />;
     default:
       return null;
   }
 }
 
-export function AccordionView({ client }: AccordionViewProps) {
+export function AccordionView({ client, headingLevel }: AccordionViewProps) {
   const { t } = useTranslationWithTokens('client-details');
   const sections = getClientDetailsSections(client);
 
@@ -92,7 +102,11 @@ export function AccordionView({ client }: AccordionViewProps) {
               </span>
             </AccordionTrigger>
             <AccordionContent className="eb-px-4 eb-pb-4 eb-pt-0 @md:eb-px-5">
-              <SectionContent client={client} type={type} />
+              <SectionContent
+                client={client}
+                type={type}
+                headingLevel={headingLevel}
+              />
             </AccordionContent>
           </AccordionItem>
         ))}
