@@ -63,7 +63,7 @@ export const partyFieldMap: PartyFieldMap = {
           'LIMITED_LIABILITY_COMPANY',
           'LIMITED_LIABILITY_PARTNERSHIP',
           'C_CORPORATION',
-          'S_COPORATION',
+          'S_CORPORATION',
           'GENERAL_PARTNERSHIP',
           'LIMITED_PARTNERSHIP',
           'PARTNERSHIP',
@@ -76,9 +76,9 @@ export const partyFieldMap: PartyFieldMap = {
       }
       if (
         [
-          'NON_PROFIT_COPORATION',
+          'NON_PROFIT_CORPORATION',
           'GOVERNMENT_ENTITY',
-          'UNINCORPORATED ASSOCIATION',
+          'UNINCORPORATED_ASSOCIATION',
         ].includes(val)
       ) {
         return {

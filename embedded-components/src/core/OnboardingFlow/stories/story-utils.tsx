@@ -624,6 +624,12 @@ export const commonArgTypes = {
       'GENERAL_PARTNERSHIP',
       'LIMITED_PARTNERSHIP',
       'C_CORPORATION',
+      'S_CORPORATION',
+      'PARTNERSHIP',
+      'PUBLICLY_TRADED_COMPANY',
+      'NON_PROFIT_CORPORATION',
+      'GOVERNMENT_ENTITY',
+      'UNINCORPORATED_ASSOCIATION',
     ],
     description: 'Available organization types for selection',
     table: {
