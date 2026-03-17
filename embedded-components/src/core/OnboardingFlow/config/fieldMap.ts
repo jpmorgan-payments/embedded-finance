@@ -87,7 +87,7 @@ export const partyFieldMap: PartyFieldMap = {
         };
       }
       return {
-        generalOrganizationType: 'OTHER',
+        generalOrganizationType: '',
         specificOrganizationType: val,
       };
     },
