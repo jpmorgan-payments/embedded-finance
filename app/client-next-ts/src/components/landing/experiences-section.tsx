@@ -72,7 +72,7 @@ export function ExperiencesSection() {
       demoUrl:
         '/sellsense-demo?fullscreen=true&component=linked-accounts&theme=Empty',
       githubUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/LinkedAccountWidget',
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/RecipientWidgets/LinkedAccountWidget',
       steps: [
         'Add recipient with account details and party information',
         'Trigger Account Validation Service (AVS) checks',
@@ -80,7 +80,7 @@ export function ExperiencesSection() {
         'Activate linked account for payments',
       ],
       recipeUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/LinkedAccountWidget/LINKED_ACCOUNTS_REQUIREMENTS.md',
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/RecipientWidgets/LINKED_ACCOUNTS_REQUIREMENTS.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-linked-account',
     },
@@ -96,7 +96,7 @@ export function ExperiencesSection() {
       demoUrl:
         '/sellsense-demo?fullscreen=true&component=recipients&theme=Empty',
       githubUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/Recipients',
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/RecipientWidgets',
       steps: [
         'View, search, filter, and sort all saved recipients',
         'Add new recipients with dynamic forms based on selected payment methods',
@@ -107,9 +107,9 @@ export function ExperiencesSection() {
         'Accessible, mobile-responsive design with tooltips and help text',
       ],
       recipeUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/Recipients/RECIPIENTS_REQUIREMENTS.md',
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/RecipientWidgets/RecipientsWidget/README.md',
       docsUrl:
-        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/external-payments',
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/third-party-recipient',
     },
     {
       id: 'payments',
