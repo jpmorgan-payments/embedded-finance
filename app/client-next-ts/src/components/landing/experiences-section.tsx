@@ -96,7 +96,7 @@ export function ExperiencesSection() {
       demoUrl:
         '/sellsense-demo?fullscreen=true&component=recipients&theme=Empty',
       githubUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/RecipientWidgets',
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/RecipientWidgets/RecipientsWidget',
       steps: [
         'View, search, filter, and sort all saved recipients',
         'Add new recipients with dynamic forms based on selected payment methods',
