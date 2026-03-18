@@ -125,7 +125,16 @@ export function DashboardLayout() {
     }
   );
   const [hasProcessedInitialLoad, setHasProcessedInitialLoad] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(
+    // Start loading immediately when fullscreen onboarding needs an empty DB reset
+    // so the component never renders with stale seeded data.
+    !!(
+      searchParams.fullscreen &&
+      searchParams.component === 'onboarding' &&
+      searchParams.theme === 'Empty' &&
+      !searchParams.scenario
+    )
+  );
   const mainContentRef = useRef<HTMLElement | null>(null);
   const pendingScrollRestoreRef = useRef<{
     scrollTop: number;
@@ -191,6 +200,7 @@ export function DashboardLayout() {
         ? 'SellSense'
         : theme;
   const themeStyles = useThemeStyles(themeForDisplay);
+  const { mapThemeOption } = useSellSenseThemes();
   const [contentTone, setContentTone] = useState<ContentTone>(
     searchParams.contentTone || 'Standard'
   );
@@ -355,12 +365,24 @@ export function DashboardLayout() {
     }
   }, [pingQuery.isSuccess]);
 
+  const needsEmptyDbReset =
+    searchParams.fullscreen &&
+    searchParams.component === 'onboarding' &&
+    searchParams.theme === 'Empty' &&
+    !searchParams.scenario;
+
   // MSW readiness check for fullscreen mode - simple delay approach
+  // For onboarding with theme=Empty and no explicit scenario, reset DB to 'empty'
+  // so recipients start clean. Other components keep seeded data.
   useEffect(() => {
     if (searchParams.fullscreen) {
-      setTimeout(() => {
-        DatabaseResetUtils.emulateTabSwitch();
-      }, 300);
+      if (needsEmptyDbReset) {
+        DatabaseResetUtils.resetDatabaseForScenario('empty', setIsLoading);
+      } else {
+        setTimeout(() => {
+          DatabaseResetUtils.emulateTabSwitch();
+        }, 300);
+      }
     }
   }, [searchParams.fullscreen]);
 
@@ -496,8 +518,6 @@ export function DashboardLayout() {
   const renderFullscreenComponent = () => {
     // Use theme from URL params for fullscreen mode, fallback to current theme
     const fullscreenTheme = searchParams.theme || theme;
-
-    const { mapThemeOption } = useSellSenseThemes();
     const themeObject = mapThemeOption(fullscreenTheme);
 
     // Determine clientId for fullscreen components that require it
@@ -674,7 +694,15 @@ export function DashboardLayout() {
   };
 
   // Fullscreen mode - render only the component
+  // Show loading skeleton while DB reset is in progress to avoid stale-data flash
   if (searchParams.fullscreen) {
+    if (isLoading) {
+      return (
+        <div className="flex h-screen items-center justify-center">
+          <LoadingSkeleton theme={theme} />
+        </div>
+      );
+    }
     return <div className="h-screen">{renderFullscreenComponent()}</div>;
   }
 
