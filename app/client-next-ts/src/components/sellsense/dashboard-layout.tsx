@@ -400,11 +400,11 @@ export function DashboardLayout() {
       const scenarioFromUrl = searchParams.scenario as ClientScenario;
       console.log('Processing initial load with scenario:', scenarioFromUrl);
 
-      // Reset database for the scenario from URL
-      DatabaseResetUtils.resetDatabaseForScenario(
-        scenarioFromUrl,
-        setIsLoading
-      );
+      // Use the DB scenario value (e.g. 'empty', 'active') when defined,
+      // otherwise fall back to the display name (handled by resetDb's fallback).
+      const dbScenario =
+        getResetDbScenario(scenarioFromUrl) || scenarioFromUrl;
+      DatabaseResetUtils.resetDatabaseForScenario(dbScenario, setIsLoading);
 
       // Mark as processed to avoid duplicate resets
       setHasProcessedInitialLoad(true);
