@@ -207,6 +207,11 @@ export interface BankAccountFormProps {
    * Useful when enabling a new payment method on an existing recipient.
    */
   initialPaymentTypes?: RoutingInformationTransactionType[];
+  /**
+   * Merged on top of recipient/client-derived defaults (host prefill).
+   * When this object changes, the form is reset to the merged values.
+   */
+  defaultValuesOverride?: Partial<BankAccountFormData>;
 }
 
 /**

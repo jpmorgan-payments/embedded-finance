@@ -207,6 +207,13 @@
       "success": {
         "title": "Compte lié avec succès",
         "description": "Votre compte bancaire a été lié pour les paiements."
+      },
+      "review": {
+        "title": "Vérifiez votre compte bancaire",
+        "description": "Confirmez les informations ci-dessous avant de lier ce compte pour les paiements.",
+        "confirmButton": "Confirmer et lier le compte",
+        "addressHeading": "Adresse du titulaire du compte",
+        "contactsHeading": "Contact"
       }
     },
     "companyIdentification": {

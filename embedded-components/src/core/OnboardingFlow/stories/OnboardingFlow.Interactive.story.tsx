@@ -10,6 +10,8 @@
  * ## Stories:
  *
  * 1. **Gateway Screen** - Select organization type (LLC, Sole Proprietorship)
+ * 1c. **Link account (recipient state machine)** - Approved LLC client, link bank account, MSW transitions aligned with the Linked Account state machine docs
+ * 1d. **Link account (readonly prefill)** - Host-supplied details, review-only UI, confirm to POST /recipients
  * 2. **Personal Section** - Name, identity, contact details, check answers
  * 3. **Business Section** - Business identity, industry, contact info, check answers
  * 4. **Owners Section** - Add beneficial owners (NOT for Sole Proprietorship)
@@ -52,7 +54,8 @@
 import { db, resetDb } from '@/msw/db';
 import { handlers } from '@/msw/handlers';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, userEvent, waitFor, within } from 'storybook/test';
+import { http, HttpResponse } from 'msw';
+import { expect, screen, userEvent, waitFor, within } from 'storybook/test';
 
 import type { BaseStoryArgs } from '../../../../.storybook/preview';
 import type { OnboardingFlowProps } from '../types/onboarding.types';
@@ -60,6 +63,7 @@ import {
   commonArgs,
   commonArgsWithCallbacks,
   commonArgTypes,
+  mockLinkAccountPrefillReadonly,
   OnboardingFlowTemplate,
 } from './story-utils';
 
@@ -131,8 +135,66 @@ const delay = (ms: number): Promise<void> =>
     setTimeout(resolve, ms);
   });
 
-const STEP_DELAY = 200;
-const TYPING_DELAY = 20;
+/** Pause between play steps (ms) — higher = easier to follow in Storybook. */
+const STEP_DELAY = 450;
+/** Keystroke delay for `userEvent.type` (ms). */
+const TYPING_DELAY = 40;
+
+/** Stable recipient id for onboarding link-account demos (MSW db + play fetch). */
+const ONBOARDING_LINK_DEMO_RECIPIENT_ID = 'onboarding-link-demo-recipient';
+
+/**
+ * MSW handler: POST /recipients creates a linked account with a fixed id so the
+ * play function can drive status transitions (Linked Account state machine).
+ */
+const onboardingLinkAccountPostHandler = http.post(
+  '/recipients',
+  async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const timestamp = new Date().toISOString();
+    const newRecipient = {
+      id: ONBOARDING_LINK_DEMO_RECIPIENT_ID,
+      type: (body.type as string) || 'LINKED_ACCOUNT',
+      status: 'MICRODEPOSITS_INITIATED',
+      clientId: body.clientId as string | undefined,
+      partyDetails: body.partyDetails || {},
+      account: body.account || {},
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      verificationAttempts: 0,
+    };
+    db.recipient.create(newRecipient);
+    return HttpResponse.json(newRecipient, { status: 201 });
+  }
+);
+
+async function postRecipientUpdate(
+  recipientId: string,
+  data: Record<string, unknown>
+): Promise<void> {
+  const res = await fetch(`/recipients/${recipientId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    throw new Error(`POST /recipients/${recipientId} failed: ${res.status}`);
+  }
+}
+
+async function postVerifyMicrodeposit(
+  recipientId: string,
+  amounts: [number, number]
+): Promise<void> {
+  const res = await fetch(`/recipients/${recipientId}/verify-microdeposit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amounts }),
+  });
+  if (!res.ok) {
+    throw new Error(`verify-microdeposit failed: ${res.status}`);
+  }
+}
 
 /** Get the main container */
 const getContainer = () =>
@@ -396,6 +458,409 @@ export const _1b_Gateway_SelectSoleProprietorship: Story = {
           expect(heading).toHaveTextContent(/Overview/i);
         },
         { timeout: 10000 }
+      );
+    });
+  },
+};
+
+/**
+ * **1c. Link account: recipient state machine (overview)**
+ *
+ * Uses the same LLC seed data as the Gateway flow (`0030000132` / Neverland Books), but
+ * starts on **Overview** with the client marked **APPROVED** so “Link a bank account” is unlocked.
+ *
+ * MSW matches the [Linked Account state machine](?path=/docs/core-linkedaccountwidget-interactive-workflows-state-machine--docs):
+ *
+ * 1. **POST /recipients** → `MICRODEPOSITS_INITIATED` (fixed id for deterministic transitions)
+ * 2. **POST /recipients/:id** → `READY_FOR_VALIDATION` (simulates “MD Sent”)
+ * 3. **POST /recipients/:id/verify-microdeposit** with `[0.23, 0.47]` → `ACTIVE`
+ */
+export const _1c_LinkAccount_RecipientStateMachine: Story = {
+  name: '1c. Link account: recipient state machine (overview)',
+  args: {
+    ...commonArgs,
+    clientId: '0030000132',
+    showLinkAccountStep: true,
+  },
+  parameters: {
+    msw: {
+      handlers: [onboardingLinkAccountPostHandler, ...handlers],
+    },
+    docs: {
+      description: {
+        story:
+          'Onboarding Overview → Link bank account with MSW-driven recipient statuses. See **Core → LinkedAccountWidget → Interactive Workflows → State Machine** for the full diagram.',
+      },
+    },
+  },
+  loaders: [
+    async () => {
+      resetDb();
+      const client = db.client.findFirst({
+        where: { id: { equals: '0030000132' } },
+      });
+      if (client) {
+        db.client.update({
+          where: { id: { equals: '0030000132' } },
+          data: {
+            ...client,
+            status: 'APPROVED',
+          },
+        });
+      }
+      return {};
+    },
+  ],
+  play: async ({ step }) => {
+    await waitForContainer();
+    const container = getContainer();
+
+    await step('Wait for Overview (approved client)', async () => {
+      await waitForContentLoaded(container);
+      await waitFor(
+        () => {
+          expect(
+            container.getByRole('heading', { level: 1, name: /overview/i })
+          ).toBeInTheDocument();
+        },
+        { timeout: 15000 }
+      );
+    });
+
+    await step('Open Link bank account from overview card', async () => {
+      await delay(STEP_DELAY);
+      const linkHeading = await screen.findByRole('heading', {
+        name: /Link an account/i,
+      });
+      const linkCard =
+        linkHeading.closest('[class*="eb-rounded-md"]') ??
+        linkHeading.parentElement?.parentElement;
+      expect(linkCard).toBeTruthy();
+      const startLink = within(linkCard as HTMLElement).getByRole('button', {
+        name: /^Start$/i,
+      });
+      await userEvent.click(startLink);
+    });
+
+    await step('Continue to account details', async () => {
+      await delay(STEP_DELAY * 2);
+      await waitFor(
+        () => {
+          const btn = Array.from(document.querySelectorAll('button')).find(
+            (b) => b.textContent?.match(/continue to account details/i)
+          );
+          if (!btn) throw new Error('Continue to account details not found');
+          return btn;
+        },
+        { timeout: 15000 }
+      );
+      const continueBtn = Array.from(document.querySelectorAll('button')).find(
+        (b) => b.textContent?.match(/continue to account details/i)
+      ) as HTMLElement;
+      await userEvent.click(continueBtn);
+    });
+
+    await step('Select account holder if multiple parties', async () => {
+      await delay(STEP_DELAY);
+      const combobox = document.querySelector(
+        'button[role="combobox"]'
+      ) as HTMLButtonElement | null;
+      if (combobox) {
+        await userEvent.click(combobox);
+        await delay(200);
+        const firstOption = document.querySelector(
+          '[role="option"]'
+        ) as HTMLElement | null;
+        if (firstOption) {
+          await userEvent.click(firstOption);
+        }
+      }
+    });
+
+    await step('Fill account number and ACH routing', async () => {
+      await delay(STEP_DELAY);
+      await waitFor(
+        () => {
+          const el = document.querySelector(
+            'input[name="accountNumber"]'
+          ) as HTMLInputElement | null;
+          if (!el) throw new Error('Account number input not found');
+        },
+        { timeout: 10000 }
+      );
+      const accountNumberInput = document.querySelector(
+        'input[name="accountNumber"]'
+      ) as HTMLInputElement;
+      await userEvent.clear(accountNumberInput);
+      await userEvent.type(accountNumberInput, '12345678901234567', {
+        delay: TYPING_DELAY,
+      });
+
+      const routingInput = Array.from(
+        document.querySelectorAll('input[type="text"]')
+      ).find((input) =>
+        (input as HTMLInputElement).placeholder
+          ?.toLowerCase()
+          .includes('routing')
+      ) as HTMLInputElement | undefined;
+      if (routingInput) {
+        await userEvent.clear(routingInput);
+        await userEvent.type(routingInput, '021000021', {
+          delay: TYPING_DELAY,
+        });
+      }
+    });
+
+    await step('Accept account certification', async () => {
+      await delay(STEP_DELAY);
+      const certifyByLabel = screen.queryByRole('checkbox', {
+        name: /authorize|certif/i,
+      });
+      if (certifyByLabel) {
+        await userEvent.click(certifyByLabel);
+        return;
+      }
+      const layout = document.querySelector('#embedded-component-layout');
+      const boxes = layout
+        ? Array.from(within(layout as HTMLElement).queryAllByRole('checkbox'))
+        : [];
+      const certify = boxes.find((el) =>
+        (el.textContent || '').toLowerCase().includes('authorize')
+      );
+      if (certify) {
+        await userEvent.click(certify);
+      } else if (boxes.length > 0) {
+        await userEvent.click(boxes[boxes.length - 1]);
+      }
+    });
+
+    await step('Submit Link Account', async () => {
+      await delay(STEP_DELAY);
+      const submitBtn = Array.from(document.querySelectorAll('button')).find(
+        (b) => b.textContent?.match(/^Link Account$/i)
+      ) as HTMLElement | undefined;
+      expect(submitBtn).toBeTruthy();
+      await userEvent.click(submitBtn!);
+    });
+
+    await step('Confirm link success screen', async () => {
+      await delay(STEP_DELAY * 2);
+      await waitFor(
+        () => {
+          expect(
+            screen.getByText(/Account linked successfully/i)
+          ).toBeInTheDocument();
+        },
+        { timeout: 20000 }
+      );
+    });
+
+    await step('Return to overview', async () => {
+      await delay(STEP_DELAY);
+      const back = screen.getByRole('button', {
+        name: /Return to overview/i,
+      });
+      await userEvent.click(back);
+    });
+
+    await step('See microdeposit pending state on overview', async () => {
+      await delay(STEP_DELAY * 2);
+      await waitFor(
+        () => {
+          expect(
+            screen.getByText(
+              /Pending Verification|Microdeposit|verification pending/i
+            )
+          ).toBeInTheDocument();
+        },
+        { timeout: 15000 }
+      );
+    });
+
+    await step(
+      'Transition recipient to READY_FOR_VALIDATION (MD sent)',
+      async () => {
+        await postRecipientUpdate(ONBOARDING_LINK_DEMO_RECIPIENT_ID, {
+          status: 'READY_FOR_VALIDATION',
+        });
+      }
+    );
+
+    await step(
+      'Open Link bank account from sidebar to refresh recipient',
+      async () => {
+        await delay(STEP_DELAY);
+        const timelineLink = screen.getByRole('button', {
+          name: /Link bank account/i,
+        });
+        await userEvent.click(timelineLink);
+      }
+    );
+
+    await step('See action required (ready for validation)', async () => {
+      await delay(STEP_DELAY * 2);
+      await waitFor(
+        () => {
+          expect(screen.getByText(/Action Required/i)).toBeInTheDocument();
+        },
+        { timeout: 15000 }
+      );
+    });
+
+    await step('Complete microdeposit verification → ACTIVE', async () => {
+      await postVerifyMicrodeposit(
+        ONBOARDING_LINK_DEMO_RECIPIENT_ID,
+        [0.23, 0.47]
+      );
+    });
+
+    await step('Re-open link account and see Active state', async () => {
+      await delay(STEP_DELAY);
+      await userEvent.click(
+        screen.getByRole('button', { name: /Link bank account/i })
+      );
+      await delay(STEP_DELAY * 2);
+      await waitFor(
+        () => {
+          expect(screen.getByText(/^Active$/i)).toBeInTheDocument();
+        },
+        { timeout: 15000 }
+      );
+    });
+  },
+};
+
+/**
+ * **1d. Link account: readonly prefill (review + confirm)**
+ *
+ * Demonstrates {@link OnboardingFlowProps.linkAccountStepOptions} with `completionMode: 'readonly'`.
+ * The host passes full `initialValues`; the user sees **Review your bank account** and
+ * **Confirm and link account** (no `BankAccountForm` fields). POST /recipients runs on confirm.
+ */
+export const _1d_LinkAccount_ReadonlyPrefillReview: Story = {
+  name: '1d. Link account: readonly prefill (review + confirm)',
+  args: {
+    ...commonArgs,
+    clientId: '0030000132',
+    showLinkAccountStep: true,
+    linkAccountStepOptions: {
+      completionMode: 'readonly',
+      initialValues: mockLinkAccountPrefillReadonly,
+    },
+  },
+  parameters: {
+    msw: {
+      handlers: [onboardingLinkAccountPostHandler, ...handlers],
+    },
+    docs: {
+      description: {
+        story:
+          "Read-only link step: same MSW create behavior as **1c** (microdeposit pending after confirm). Compare with editable prefill via `completionMode: 'editable'` on `linkAccountStepOptions`.",
+      },
+    },
+  },
+  loaders: [
+    async () => {
+      resetDb();
+      const client = db.client.findFirst({
+        where: { id: { equals: '0030000132' } },
+      });
+      if (client) {
+        db.client.update({
+          where: { id: { equals: '0030000132' } },
+          data: {
+            ...client,
+            status: 'APPROVED',
+          },
+        });
+      }
+      return {};
+    },
+  ],
+  play: async ({ step }) => {
+    await waitForContainer();
+    const container = getContainer();
+
+    await step('Wait for Overview (approved client)', async () => {
+      await waitForContentLoaded(container);
+      await waitFor(
+        () => {
+          expect(
+            container.getByRole('heading', { level: 1, name: /overview/i })
+          ).toBeInTheDocument();
+        },
+        { timeout: 15000 }
+      );
+    });
+
+    await step('Open Link bank account from overview card', async () => {
+      await delay(STEP_DELAY);
+      const linkHeading = await screen.findByRole('heading', {
+        name: /Link an account/i,
+      });
+      const linkCard =
+        linkHeading.closest('[class*="eb-rounded-md"]') ??
+        linkHeading.parentElement?.parentElement;
+      expect(linkCard).toBeTruthy();
+      const startLink = within(linkCard as HTMLElement).getByRole('button', {
+        name: /^Start$/i,
+      });
+      await userEvent.click(startLink);
+    });
+
+    await step('Review-only UI: no multi-step bank form', async () => {
+      await delay(STEP_DELAY * 2);
+      await waitFor(
+        () => {
+          expect(
+            screen.getByRole('heading', {
+              level: 1,
+              name: /Review your bank account/i,
+            })
+          ).toBeInTheDocument();
+        },
+        { timeout: 15000 }
+      );
+      expect(screen.getByText(/Taylor/i)).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /Continue to account details/i })
+      ).not.toBeInTheDocument();
+    });
+
+    await step('Confirm and link account', async () => {
+      await delay(STEP_DELAY);
+      await userEvent.click(
+        screen.getByRole('button', { name: /Confirm and link account/i })
+      );
+    });
+
+    await step('Success: account linked', async () => {
+      await delay(STEP_DELAY * 2);
+      await waitFor(
+        () => {
+          expect(
+            screen.getByText(/Account linked successfully/i)
+          ).toBeInTheDocument();
+        },
+        { timeout: 20000 }
+      );
+    });
+
+    await step('Return to overview — pending verification on card', async () => {
+      await delay(STEP_DELAY);
+      await userEvent.click(
+        screen.getByRole('button', { name: /Return to overview/i })
+      );
+      await delay(STEP_DELAY * 2);
+      await waitFor(
+        () => {
+          expect(
+            screen.getByText(
+              /Pending Verification|Microdeposit|verification pending/i
+            )
+          ).toBeInTheDocument();
+        },
+        { timeout: 15000 }
       );
     });
   },

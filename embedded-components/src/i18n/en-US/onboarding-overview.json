@@ -219,6 +219,13 @@
       "existingAccount": {
         "title": "Your linked bank account",
         "description": "This bank account is linked for payouts."
+      },
+      "review": {
+        "title": "Review your bank account",
+        "description": "Confirm the details below before linking this account for payouts.",
+        "confirmButton": "Confirm and link account",
+        "addressHeading": "Account holder address",
+        "contactsHeading": "Contact"
       }
     },
     "companyIdentification": {

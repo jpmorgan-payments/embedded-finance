@@ -21,6 +21,8 @@ import {
   mockClientInReview,
   mockClientNew,
   mockExistingLinkedAccount,
+  mockLinkAccountPrefillEditable,
+  mockLinkAccountPrefillReadonly,
   OnboardingFlowTemplate,
 } from './story-utils';
 
@@ -180,6 +182,56 @@ export const ApprovedWithLinkAccount: Story = {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
     showLinkAccountStep: true,
+  },
+};
+
+/**
+ * **Approved with link account — editable prefill**
+ *
+ * Host supplies partial bank fields; user completes the form and submits.
+ */
+export const ApprovedWithLinkAccountPrefillEditable: Story = {
+  parameters: {
+    msw: {
+      handlers: createOnboardingFlowHandlers({
+        client: mockClientApproved,
+        clientId: DEFAULT_CLIENT_ID,
+      }),
+    },
+  },
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    showLinkAccountStep: true,
+    linkAccountStepOptions: {
+      completionMode: 'editable',
+      initialValues: mockLinkAccountPrefillEditable,
+    },
+  },
+};
+
+/**
+ * **Approved with link account — review-only prefill**
+ *
+ * Host supplies full details; user confirms to POST the linked account.
+ */
+export const ApprovedWithLinkAccountPrefillReadonly: Story = {
+  parameters: {
+    msw: {
+      handlers: createOnboardingFlowHandlers({
+        client: mockClientApproved,
+        clientId: DEFAULT_CLIENT_ID,
+      }),
+    },
+  },
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    showLinkAccountStep: true,
+    linkAccountStepOptions: {
+      completionMode: 'readonly',
+      initialValues: mockLinkAccountPrefillReadonly,
+    },
   },
 };
 

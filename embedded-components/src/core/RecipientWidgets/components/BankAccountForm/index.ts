@@ -19,7 +19,12 @@ export {
 
 // Utilities
 export { createBankAccountFormSchema } from './BankAccountForm.schema';
-export { transformBankAccountFormToRecipientPayload } from './BankAccountForm.utils';
+export {
+  bankAccountFormDataToDisplayRecipient,
+  mergeBankAccountDefaultValues,
+  PREFILL_DISPLAY_RECIPIENT_ID,
+  transformBankAccountFormToRecipientPayload,
+} from './BankAccountForm.utils';
 export { createCustomConfig } from './utils';
 
 // Types

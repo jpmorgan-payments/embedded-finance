@@ -207,6 +207,13 @@
       "success": {
         "title": "Cuenta vinculada exitosamente",
         "description": "Su cuenta bancaria ha sido vinculada para pagos."
+      },
+      "review": {
+        "title": "Revise su cuenta bancaria",
+        "description": "Confirme los datos a continuación antes de vincular esta cuenta para pagos.",
+        "confirmButton": "Confirmar y vincular cuenta",
+        "addressHeading": "Dirección del titular de la cuenta",
+        "contactsHeading": "Contacto"
       }
     },
     "companyIdentification": {

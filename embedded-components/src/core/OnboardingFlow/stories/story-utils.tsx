@@ -24,9 +24,13 @@ import {
   type ClientResponse,
 } from '@/api/generated/smbdo.schemas';
 import { OnboardingFlow } from '@/core/OnboardingFlow';
+import type { BankAccountFormData } from '@/core/RecipientWidgets/components/BankAccountForm';
 
 import { handlers } from '../../../msw/handlers';
-import type { OnboardingFlowProps } from '../types/onboarding.types';
+import type {
+  LinkAccountInitialValues,
+  OnboardingFlowProps,
+} from '../types/onboarding.types';
 
 // ============================================================================
 // Constants
@@ -134,6 +138,26 @@ export const mockExistingLinkedAccount: Recipient = {
     ],
   },
   createdAt: '2024-01-15T10:30:00Z',
+};
+
+/** Partial prefill for link-account step (`completionMode: 'editable'`). */
+export const mockLinkAccountPrefillEditable: LinkAccountInitialValues = {
+  accountNumber: '98765432109876543',
+  routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+};
+
+/** Full form-shaped payload for link-account review + confirm (`completionMode: 'readonly'`). */
+export const mockLinkAccountPrefillReadonly: BankAccountFormData = {
+  accountType: 'INDIVIDUAL',
+  firstName: 'Taylor',
+  lastName: 'Morgan',
+  businessName: '',
+  routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+  useSameRoutingNumber: true,
+  accountNumber: '12345678901234567',
+  bankAccountType: 'CHECKING',
+  paymentTypes: ['ACH'],
+  certify: true,
 };
 
 // ============================================================================
