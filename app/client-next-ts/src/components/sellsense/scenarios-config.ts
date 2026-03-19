@@ -53,6 +53,7 @@ export const SCENARIOS_CONFIG = {
     clientId: undefined,
     scenarioId: 'scenario5',
     category: 'onboarding' as const,
+    resetDbScenario: 'empty' as const,
     headerTitle: 'Complete Your Business Onboarding',
     headerDescription:
       'Set up your business profile and verify your identity to start accepting payments.',
@@ -64,6 +65,7 @@ export const SCENARIOS_CONFIG = {
     clientId: '0030000133',
     scenarioId: 'scenario3',
     category: 'onboarding' as const,
+    resetDbScenario: 'empty' as const,
     headerTitle: 'Additional Documents Required',
     headerDescription:
       'Please provide the requested documentation to complete your business verification.',
@@ -75,6 +77,7 @@ export const SCENARIOS_CONFIG = {
     clientId: '0030000132',
     scenarioId: 'scenario4',
     category: 'onboarding' as const,
+    resetDbScenario: 'empty' as const,
     headerTitle: 'Almost there - review and complete',
     headerDescription:
       'Seller onboarding data is partially prefilled. Please review and complete the remaining information.',
