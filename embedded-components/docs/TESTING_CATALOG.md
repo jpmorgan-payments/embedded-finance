@@ -438,7 +438,7 @@ Verify the full lifecycle of linking an external bank account via ACH.
 
 ## Guide 5: Receive Funds & Payout Funds
 
-> **Portal Guide:** [Embedded Payments – Make a Payment](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/make-a-payment)
+> **Portal Guide:** [Embedded Payments – Transfer & Payout](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/transfer-payout)
 
 **Prerequisite:** Client must be in `APPROVED` state with an active account and linked account.
 
@@ -456,6 +456,7 @@ Verify receiving funds and making payouts through multiple payment rails.
    - **Wire**
 3. **Make payouts** to your platform's linked account (Treasury). Identify the account ID using the list accounts operation.
 4. **Add a recipient** (client's account) and make payouts to it.
+5. **Strip fees/commissions** to your platform's management account. This may involve moving a percentage of funds from a bulk settlement into the Processing Account or from a client's account via transfer.
 
 ---
 
@@ -504,7 +505,7 @@ Verify creating, updating, retrieving, and confirming webhook subscriptions.
 
 ## Guide 8: Initiate Direct Debits
 
-> **Portal Guide:** [Embedded Payments – Make a Payment (Direct Debits)](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/make-a-payment)
+> **Portal Guide:** [Embedded Payments – Transfer & Payout (Direct Debits)](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/transfer-payout)
 
 **Prerequisite:** Client must have an active account and a verified linked account.
 
