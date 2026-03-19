@@ -402,8 +402,7 @@ export function DashboardLayout() {
 
       // Use the DB scenario value (e.g. 'empty', 'active') when defined,
       // otherwise fall back to the display name (handled by resetDb's fallback).
-      const dbScenario =
-        getResetDbScenario(scenarioFromUrl) || scenarioFromUrl;
+      const dbScenario = getResetDbScenario(scenarioFromUrl) || scenarioFromUrl;
       DatabaseResetUtils.resetDatabaseForScenario(dbScenario, setIsLoading);
 
       // Mark as processed to avoid duplicate resets
