@@ -846,23 +846,26 @@ export const _1d_LinkAccount_ReadonlyPrefillReview: Story = {
       );
     });
 
-    await step('Return to overview — pending verification on card', async () => {
-      await delay(STEP_DELAY);
-      await userEvent.click(
-        screen.getByRole('button', { name: /Return to overview/i })
-      );
-      await delay(STEP_DELAY * 2);
-      await waitFor(
-        () => {
-          expect(
-            screen.getByText(
-              /Pending Verification|Microdeposit|verification pending/i
-            )
-          ).toBeInTheDocument();
-        },
-        { timeout: 15000 }
-      );
-    });
+    await step(
+      'Return to overview — pending verification on card',
+      async () => {
+        await delay(STEP_DELAY);
+        await userEvent.click(
+          screen.getByRole('button', { name: /Return to overview/i })
+        );
+        await delay(STEP_DELAY * 2);
+        await waitFor(
+          () => {
+            expect(
+              screen.getByText(
+                /Pending Verification|Microdeposit|verification pending/i
+              )
+            ).toBeInTheDocument();
+          },
+          { timeout: 15000 }
+        );
+      }
+    );
   },
 };
 
