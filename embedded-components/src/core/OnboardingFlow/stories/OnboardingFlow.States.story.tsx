@@ -23,6 +23,8 @@ import {
   mockExistingLinkedAccount,
   mockLinkAccountPrefillEditable,
   mockLinkAccountPrefillReadonly,
+  mockLinkAccountReviewAcknowledgements,
+  mockLinkAccountReviewAcknowledgementsMultiple,
   OnboardingFlowTemplate,
 } from './story-utils';
 
@@ -234,6 +236,59 @@ export const ApprovedWithLinkAccountPrefillReadonly: Story = {
     },
   },
 };
+
+/**
+ * **Approved with link account — review-only + legal acknowledgements**
+ *
+ * Same as review-only prefill, with optional checkbox agreements above confirm (T&C-style copy).
+ */
+export const ApprovedWithLinkAccountPrefillReadonlyAcknowledgements: Story = {
+  parameters: {
+    msw: {
+      handlers: createOnboardingFlowHandlers({
+        client: mockClientApproved,
+        clientId: DEFAULT_CLIENT_ID,
+      }),
+    },
+  },
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    showLinkAccountStep: true,
+    linkAccountStepOptions: {
+      completionMode: 'readonly',
+      initialValues: mockLinkAccountPrefillReadonly,
+      reviewAcknowledgements: mockLinkAccountReviewAcknowledgements,
+    },
+  },
+};
+
+/**
+ * **Approved with link account — review-only + multiple acknowledgements**
+ *
+ * Two (or more) checkbox rows above confirm; every row must be checked before **Confirm and link account** enables.
+ */
+export const ApprovedWithLinkAccountPrefillReadonlyMultipleAcknowledgements: Story =
+  {
+    parameters: {
+      msw: {
+        handlers: createOnboardingFlowHandlers({
+          client: mockClientApproved,
+          clientId: DEFAULT_CLIENT_ID,
+        }),
+      },
+    },
+    args: {
+      ...commonArgs,
+      clientId: DEFAULT_CLIENT_ID,
+      showLinkAccountStep: true,
+      linkAccountStepOptions: {
+        completionMode: 'readonly',
+        initialValues: mockLinkAccountPrefillReadonly,
+        reviewAcknowledgements: mockLinkAccountReviewAcknowledgementsMultiple,
+      },
+    },
+  };
 
 /**
  * **Approved with Existing Linked Account**

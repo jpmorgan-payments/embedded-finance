@@ -11,7 +11,8 @@
  *
  * 1. **Gateway Screen** - Select organization type (LLC, Sole Proprietorship)
  * 1c. **Link account (recipient state machine)** - Approved LLC client, link bank account, MSW transitions aligned with the Linked Account state machine docs
- * 1d. **Link account (readonly prefill)** - Host-supplied details, review-only UI, confirm to POST /recipients
+ * 1d. **Link account (readonly prefill)** - Host-supplied details, review-only UI, one acknowledgement checkbox, confirm to POST /recipients
+ * 1e. **Link account (readonly + multiple acknowledgements)** - Same as 1d with two checkbox rows before confirm
  * 2. **Personal Section** - Name, identity, contact details, check answers
  * 3. **Business Section** - Business identity, industry, contact info, check answers
  * 4. **Owners Section** - Add beneficial owners (NOT for Sole Proprietorship)
@@ -64,6 +65,8 @@ import {
   commonArgsWithCallbacks,
   commonArgTypes,
   mockLinkAccountPrefillReadonly,
+  mockLinkAccountReviewAcknowledgements,
+  mockLinkAccountReviewAcknowledgementsMultiple,
   OnboardingFlowTemplate,
 } from './story-utils';
 
@@ -736,6 +739,7 @@ export const _1c_LinkAccount_RecipientStateMachine: Story = {
  * Demonstrates {@link OnboardingFlowProps.linkAccountStepOptions} with `completionMode: 'readonly'`.
  * The host passes full `initialValues`; the user sees **Review your bank account** and
  * **Confirm and link account** (no `BankAccountForm` fields). POST /recipients runs on confirm.
+ * Uses a single `reviewAcknowledgements` row (T&C-style). See **1e** for multiple rows.
  */
 export const _1d_LinkAccount_ReadonlyPrefillReview: Story = {
   name: '1d. Link account: readonly prefill (review + confirm)',
@@ -746,6 +750,7 @@ export const _1d_LinkAccount_ReadonlyPrefillReview: Story = {
     linkAccountStepOptions: {
       completionMode: 'readonly',
       initialValues: mockLinkAccountPrefillReadonly,
+      reviewAcknowledgements: mockLinkAccountReviewAcknowledgements,
     },
   },
   parameters: {
@@ -826,6 +831,194 @@ export const _1d_LinkAccount_ReadonlyPrefillReview: Story = {
         screen.queryByRole('button', { name: /Continue to account details/i })
       ).not.toBeInTheDocument();
     });
+
+    await step(
+      'Accept legal acknowledgement (required before confirm)',
+      async () => {
+        await delay(STEP_DELAY);
+        const confirmBtn = screen.getByRole('button', {
+          name: /Confirm and link account/i,
+        });
+        expect(confirmBtn).toBeDisabled();
+        const ack = screen.getByRole('checkbox', {
+          name: /By confirming, you agree/i,
+        });
+        await userEvent.click(ack);
+        await waitFor(() => {
+          expect(confirmBtn).not.toBeDisabled();
+        });
+      }
+    );
+
+    await step('Confirm and link account', async () => {
+      await delay(STEP_DELAY);
+      await userEvent.click(
+        screen.getByRole('button', { name: /Confirm and link account/i })
+      );
+    });
+
+    await step('Success: account linked', async () => {
+      await delay(STEP_DELAY * 2);
+      await waitFor(
+        () => {
+          expect(
+            screen.getByText(/Account linked successfully/i)
+          ).toBeInTheDocument();
+        },
+        { timeout: 20000 }
+      );
+    });
+
+    await step(
+      'Return to overview — pending verification on card',
+      async () => {
+        await delay(STEP_DELAY);
+        await userEvent.click(
+          screen.getByRole('button', { name: /Return to overview/i })
+        );
+        await delay(STEP_DELAY * 2);
+        await waitFor(
+          () => {
+            expect(
+              screen.getByText(
+                /Pending Verification|Microdeposit|verification pending/i
+              )
+            ).toBeInTheDocument();
+          },
+          { timeout: 15000 }
+        );
+      }
+    );
+  },
+};
+
+/**
+ * **1e. Link account: readonly prefill + multiple acknowledgements**
+ *
+ * Same journey as **1d**, but `reviewAcknowledgements` lists two items — confirm stays disabled until both are checked.
+ */
+export const _1e_LinkAccount_ReadonlyPrefillMultipleAcknowledgements: Story = {
+  name: '1e. Link account: readonly + multiple acknowledgements',
+  args: {
+    ...commonArgs,
+    clientId: '0030000132',
+    showLinkAccountStep: true,
+    linkAccountStepOptions: {
+      completionMode: 'readonly',
+      initialValues: mockLinkAccountPrefillReadonly,
+      reviewAcknowledgements: mockLinkAccountReviewAcknowledgementsMultiple,
+    },
+  },
+  parameters: {
+    msw: {
+      handlers: [onboardingLinkAccountPostHandler, ...handlers],
+    },
+    docs: {
+      description: {
+        story:
+          'Demonstrates `linkAccountStepOptions.reviewAcknowledgements` with **more than one** checkbox. See **Client States → Approved with link account — review-only + multiple acknowledgements** for the static story.',
+      },
+    },
+  },
+  loaders: [
+    async () => {
+      resetDb();
+      const client = db.client.findFirst({
+        where: { id: { equals: '0030000132' } },
+      });
+      if (client) {
+        db.client.update({
+          where: { id: { equals: '0030000132' } },
+          data: {
+            ...client,
+            status: 'APPROVED',
+          },
+        });
+      }
+      return {};
+    },
+  ],
+  play: async ({ step }) => {
+    await waitForContainer();
+    const container = getContainer();
+
+    await step('Wait for Overview (approved client)', async () => {
+      await waitForContentLoaded(container);
+      await waitFor(
+        () => {
+          expect(
+            container.getByRole('heading', { level: 1, name: /overview/i })
+          ).toBeInTheDocument();
+        },
+        { timeout: 15000 }
+      );
+    });
+
+    await step('Open Link bank account from overview card', async () => {
+      await delay(STEP_DELAY);
+      const linkHeading = await screen.findByRole('heading', {
+        name: /Link an account/i,
+      });
+      const linkCard =
+        linkHeading.closest('[class*="eb-rounded-md"]') ??
+        linkHeading.parentElement?.parentElement;
+      expect(linkCard).toBeTruthy();
+      const startLink = within(linkCard as HTMLElement).getByRole('button', {
+        name: /^Start$/i,
+      });
+      await userEvent.click(startLink);
+    });
+
+    await step(
+      'Review screen shows two acknowledgement checkboxes',
+      async () => {
+        await delay(STEP_DELAY * 2);
+        await waitFor(
+          () => {
+            expect(
+              screen.getByRole('heading', {
+                level: 1,
+                name: /Review your bank account/i,
+              })
+            ).toBeInTheDocument();
+          },
+          { timeout: 15000 }
+        );
+        expect(
+          screen.getByRole('checkbox', { name: /By confirming, you agree/i })
+        ).toBeInTheDocument();
+        expect(
+          screen.getByRole('checkbox', {
+            name: /I confirm this bank account is owned/i,
+          })
+        ).toBeInTheDocument();
+      }
+    );
+
+    await step(
+      'Accept both acknowledgements (confirm enables only after both)',
+      async () => {
+        await delay(STEP_DELAY);
+        const confirmBtn = screen.getByRole('button', {
+          name: /Confirm and link account/i,
+        });
+        expect(confirmBtn).toBeDisabled();
+
+        await userEvent.click(
+          screen.getByRole('checkbox', { name: /By confirming, you agree/i })
+        );
+        expect(confirmBtn).toBeDisabled();
+
+        await userEvent.click(
+          screen.getByRole('checkbox', {
+            name: /I confirm this bank account is owned/i,
+          })
+        );
+        await waitFor(() => {
+          expect(confirmBtn).not.toBeDisabled();
+        });
+      }
+    );
 
     await step('Confirm and link account', async () => {
       await delay(STEP_DELAY);

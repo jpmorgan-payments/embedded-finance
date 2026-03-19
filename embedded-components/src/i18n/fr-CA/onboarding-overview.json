@@ -213,7 +213,12 @@
         "description": "Confirmez les informations ci-dessous avant de lier ce compte pour les paiements.",
         "confirmButton": "Confirmer et lier le compte",
         "addressHeading": "Adresse du titulaire du compte",
-        "contactsHeading": "Contact"
+        "contactsHeading": "Contact",
+        "acknowledgementsGroupLabel": "Accords requis pour lier ce compte",
+        "acknowledgements": {
+          "termsAndPolicies": "En confirmant, vous acceptez nos <termsLink>Conditions générales</termsLink> et reconnaissez notre <privacyLink>Politique de confidentialité</privacyLink>.",
+          "payoutAccountAttestation": "Je confirme que ce compte bancaire appartient à l’entreprise ou est autorisé pour l’entreprise figurant dans ma demande pour recevoir des paiements."
+        }
       }
     },
     "companyIdentification": {

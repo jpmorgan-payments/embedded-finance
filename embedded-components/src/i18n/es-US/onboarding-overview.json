@@ -213,7 +213,12 @@
         "description": "Confirme los datos a continuación antes de vincular esta cuenta para pagos.",
         "confirmButton": "Confirmar y vincular cuenta",
         "addressHeading": "Dirección del titular de la cuenta",
-        "contactsHeading": "Contacto"
+        "contactsHeading": "Contacto",
+        "acknowledgementsGroupLabel": "Acuerdos necesarios para vincular esta cuenta",
+        "acknowledgements": {
+          "termsAndPolicies": "Al confirmar, acepta nuestros <termsLink>Términos y condiciones</termsLink> y reconoce nuestra <privacyLink>Política de privacidad</privacyLink>.",
+          "payoutAccountAttestation": "Confirmo que esta cuenta bancaria pertenece o está autorizada para el negocio de mi solicitud para recibir pagos."
+        }
       }
     },
     "companyIdentification": {

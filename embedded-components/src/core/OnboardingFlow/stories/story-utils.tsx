@@ -29,6 +29,7 @@ import type { BankAccountFormData } from '@/core/RecipientWidgets/components/Ban
 import { handlers } from '../../../msw/handlers';
 import type {
   LinkAccountInitialValues,
+  LinkAccountReviewAcknowledgement,
   OnboardingFlowProps,
 } from '../types/onboarding.types';
 
@@ -159,6 +160,37 @@ export const mockLinkAccountPrefillReadonly: BankAccountFormData = {
   paymentTypes: ['ACH'],
   certify: true,
 };
+
+/** Single acknowledgement (T&C-style with links). */
+export const mockLinkAccountReviewAcknowledgements: readonly LinkAccountReviewAcknowledgement[] =
+  [
+    {
+      id: 'termsAndPrivacy',
+      labelKey: 'screens.linkAccount.review.acknowledgements.termsAndPolicies',
+      linkHrefs: {
+        termsLink: 'https://example.com/terms',
+        privacyLink: 'https://example.com/privacy',
+      },
+    },
+  ];
+
+/** Multiple acknowledgements — second row is plain attestation (no links). */
+export const mockLinkAccountReviewAcknowledgementsMultiple: readonly LinkAccountReviewAcknowledgement[] =
+  [
+    {
+      id: 'termsAndPrivacy',
+      labelKey: 'screens.linkAccount.review.acknowledgements.termsAndPolicies',
+      linkHrefs: {
+        termsLink: 'https://example.com/terms',
+        privacyLink: 'https://example.com/privacy',
+      },
+    },
+    {
+      id: 'payoutAccountAttestation',
+      labelKey:
+        'screens.linkAccount.review.acknowledgements.payoutAccountAttestation',
+    },
+  ];
 
 // ============================================================================
 // Document Request Mocks

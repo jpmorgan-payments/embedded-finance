@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { useTranslationWithTokens } from '@/i18n';
+import { useEffect, useMemo, useState, type ReactElement } from 'react';
+import { TransWithTokens, useTranslationWithTokens } from '@/i18n';
 import { ArrowLeftIcon, CheckCircle2Icon, Loader2Icon } from 'lucide-react';
 
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
@@ -7,6 +7,7 @@ import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import {
@@ -28,6 +29,34 @@ import {
 import { RecipientAccountDisplayCard } from '@/core/RecipientWidgets/components/RecipientAccountDisplayCard/RecipientAccountDisplayCard';
 import { StatusAlert } from '@/core/RecipientWidgets/components/StatusAlert/StatusAlert';
 import { useRecipientForm } from '@/core/RecipientWidgets/hooks/useRecipientForm';
+
+/** Default English strings for `TransWithTokens` when a host `labelKey` is missing from bundles. */
+const REVIEW_ACK_LABEL_DEFAULTS: Partial<Record<string, string>> = {
+  'screens.linkAccount.review.acknowledgements.termsAndPolicies':
+    'By confirming, you agree to our <termsLink>Terms & Conditions</termsLink> and acknowledge our <privacyLink>Privacy Policy</privacyLink>.',
+  'screens.linkAccount.review.acknowledgements.payoutAccountAttestation':
+    'I confirm this bank account is owned by or authorized for use by the business in my application for receiving payouts.',
+};
+
+function buildAcknowledgementLinkComponents(
+  linkHrefs: Record<string, string> | undefined
+): Record<string, ReactElement> | undefined {
+  if (!linkHrefs || Object.keys(linkHrefs).length === 0) {
+    return undefined;
+  }
+  const out: Record<string, ReactElement> = {};
+  for (const [tag, href] of Object.entries(linkHrefs)) {
+    out[tag] = (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="eb-text-primary eb-underline eb-underline-offset-2 hover:eb-underline"
+      />
+    );
+  }
+  return out;
+}
 
 /** Fallback base merged with host `initialValues` for readonly review + submit. */
 const LINK_ACCOUNT_READONLY_FALLBACK_BASE: BankAccountFormData = {
@@ -52,7 +81,10 @@ const LINK_ACCOUNT_READONLY_FALLBACK_BASE: BankAccountFormData = {
  * the `useRecipientForm` hook.
  */
 export const LinkAccountScreen = () => {
-  const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
+  const { t, tString } = useTranslationWithTokens([
+    'onboarding-overview',
+    'common',
+  ]);
   const { goBack } = useFlowContext();
   const { clientData, linkAccountStepOptions } = useOnboardingContext();
 
@@ -83,6 +115,37 @@ export const LinkAccountScreen = () => {
     );
 
   const [isSuccess, setIsSuccess] = useState(false);
+
+  const reviewAcknowledgements =
+    linkAccountStepOptions?.completionMode === 'readonly'
+      ? linkAccountStepOptions.reviewAcknowledgements
+      : undefined;
+
+  const reviewAckIdsKey = useMemo(
+    () =>
+      reviewAcknowledgements?.length
+        ? reviewAcknowledgements.map((a) => a.id).join('\0')
+        : '',
+    [reviewAcknowledgements]
+  );
+
+  const [acknowledgementChecked, setAcknowledgementChecked] = useState<
+    Record<string, boolean>
+  >({});
+
+  useEffect(() => {
+    if (!reviewAcknowledgements?.length) {
+      setAcknowledgementChecked({});
+      return;
+    }
+    setAcknowledgementChecked(
+      Object.fromEntries(reviewAcknowledgements.map((a) => [a.id, false]))
+    );
+  }, [reviewAckIdsKey]);
+
+  const acknowledgementsComplete =
+    !reviewAcknowledgements?.length ||
+    reviewAcknowledgements.every((a) => acknowledgementChecked[a.id] === true);
 
   // Use the linked-account config hook (same as BankAccountFormWrapper)
   const linkedAccountConfig = useLinkedAccountConfig();
@@ -316,11 +379,57 @@ export const LinkAccountScreen = () => {
               </ul>
             </div>
           ) : null}
+          {reviewAcknowledgements && reviewAcknowledgements.length > 0 ? (
+            <div
+              className="eb-space-y-3 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-4"
+              role="group"
+              aria-label={tString(
+                'screens.linkAccount.review.acknowledgementsGroupLabel',
+                'Agreements required to link this account'
+              )}
+            >
+              {reviewAcknowledgements.map((item) => {
+                const checkboxId = `eb-link-account-ack-${item.id}`;
+                return (
+                  <div
+                    key={item.id}
+                    className="eb-flex eb-items-start eb-gap-2"
+                  >
+                    <Checkbox
+                      id={checkboxId}
+                      className="eb-mt-0.5"
+                      checked={acknowledgementChecked[item.id] === true}
+                      onCheckedChange={(v) =>
+                        setAcknowledgementChecked((prev) => ({
+                          ...prev,
+                          [item.id]: v === true,
+                        }))
+                      }
+                      disabled={status === 'pending'}
+                    />
+                    <label
+                      htmlFor={checkboxId}
+                      className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-relaxed eb-text-foreground"
+                    >
+                      <TransWithTokens
+                        ns="onboarding-overview"
+                        i18nKey={item.labelKey}
+                        defaults={REVIEW_ACK_LABEL_DEFAULTS[item.labelKey]}
+                        components={buildAcknowledgementLinkComponents(
+                          item.linkHrefs
+                        )}
+                      />
+                    </label>
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
           <div className="eb-flex eb-flex-wrap eb-gap-2">
             <Button
               type="button"
               className="eb-inline-flex eb-items-center eb-gap-2"
-              disabled={status === 'pending'}
+              disabled={status === 'pending' || !acknowledgementsComplete}
               onClick={() => submit(readonlyFormData)}
             >
               {status === 'pending' ? (

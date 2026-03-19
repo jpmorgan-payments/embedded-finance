@@ -151,6 +151,113 @@ describe('LinkAccountScreen', () => {
     expect(payload.routingNumbers[0].routingNumber).toBe('021000021');
   });
 
+  test('readonly review acknowledgements block confirm until all checked', async () => {
+    const user = userEvent.setup();
+
+    renderWithProviders(<LinkAccountScreen />, {
+      ...baseOnboardingContext,
+      linkAccountStepOptions: {
+        completionMode: 'readonly',
+        initialValues: {
+          accountType: 'INDIVIDUAL',
+          firstName: 'Taylor',
+          lastName: 'Morgan',
+          routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+          accountNumber: '12345678901234567',
+          bankAccountType: 'CHECKING',
+          paymentTypes: ['ACH'],
+          certify: true,
+        },
+        reviewAcknowledgements: [
+          {
+            id: 'terms',
+            labelKey:
+              'screens.linkAccount.review.acknowledgements.termsAndPolicies',
+            linkHrefs: {
+              termsLink: 'https://example.com/terms',
+              privacyLink: 'https://example.com/privacy',
+            },
+          },
+        ],
+      },
+    });
+
+    expect(
+      await screen.findByRole('heading', { name: /Review your bank account/i })
+    ).toBeInTheDocument();
+
+    const confirmBtn = screen.getByRole('button', {
+      name: /Confirm and link account/i,
+    });
+    expect(confirmBtn).toBeDisabled();
+
+    await user.click(
+      screen.getByRole('checkbox', { name: /By confirming, you agree/i })
+    );
+
+    expect(confirmBtn).not.toBeDisabled();
+
+    await user.click(confirmBtn);
+
+    expect(mockSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  test('readonly review requires every acknowledgement checked when multiple rows', async () => {
+    const user = userEvent.setup();
+
+    renderWithProviders(<LinkAccountScreen />, {
+      ...baseOnboardingContext,
+      linkAccountStepOptions: {
+        completionMode: 'readonly',
+        initialValues: {
+          accountType: 'INDIVIDUAL',
+          firstName: 'Taylor',
+          lastName: 'Morgan',
+          routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+          accountNumber: '12345678901234567',
+          bankAccountType: 'CHECKING',
+          paymentTypes: ['ACH'],
+          certify: true,
+        },
+        reviewAcknowledgements: [
+          {
+            id: 'a',
+            labelKey:
+              'screens.linkAccount.review.acknowledgements.termsAndPolicies',
+            linkHrefs: { termsLink: 'https://example.com/t' },
+          },
+          {
+            id: 'b',
+            labelKey:
+              'screens.linkAccount.review.acknowledgements.payoutAccountAttestation',
+          },
+        ],
+      },
+    });
+
+    await screen.findByRole('heading', { name: /Review your bank account/i });
+
+    const confirmBtn = screen.getByRole('button', {
+      name: /Confirm and link account/i,
+    });
+    expect(confirmBtn).toBeDisabled();
+
+    await user.click(
+      screen.getByRole('checkbox', { name: /By confirming, you agree/i })
+    );
+    expect(confirmBtn).toBeDisabled();
+
+    await user.click(
+      screen.getByRole('checkbox', {
+        name: /I confirm this bank account is owned/i,
+      })
+    );
+    expect(confirmBtn).not.toBeDisabled();
+
+    await user.click(confirmBtn);
+    expect(mockSubmit).toHaveBeenCalledTimes(1);
+  });
+
   test('editable prefill renders bank account form with overridden account number', async () => {
     const user = userEvent.setup();
 

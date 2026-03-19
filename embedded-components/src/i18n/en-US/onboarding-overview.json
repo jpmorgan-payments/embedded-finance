@@ -225,7 +225,12 @@
         "description": "Confirm the details below before linking this account for payouts.",
         "confirmButton": "Confirm and link account",
         "addressHeading": "Account holder address",
-        "contactsHeading": "Contact"
+        "contactsHeading": "Contact",
+        "acknowledgementsGroupLabel": "Agreements required to link this account",
+        "acknowledgements": {
+          "termsAndPolicies": "By confirming, you agree to our <termsLink>Terms & Conditions</termsLink> and acknowledge our <privacyLink>Privacy Policy</privacyLink>.",
+          "payoutAccountAttestation": "I confirm this bank account is owned by or authorized for use by the business in my application for receiving payouts."
+        }
       }
     },
     "companyIdentification": {
