@@ -16,7 +16,6 @@ import type { BaseStoryArgs } from '../../../../../.storybook/preview';
 import type { OnboardingFlowProps } from '../../types/onboarding.types';
 import {
   buildApprovedClientLinkAccountStory,
-  commonArgs,
   commonArgsWithCallbacks,
   commonArgTypes,
   mockExistingLinkedAccount,

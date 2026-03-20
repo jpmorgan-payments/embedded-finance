@@ -54,7 +54,7 @@
 import { db, resetDb } from '@/msw/db';
 import { handlers } from '@/msw/handlers';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, screen, userEvent, waitFor, within } from 'storybook/test';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import type { BaseStoryArgs } from '../../../../.storybook/preview';
 import type { OnboardingFlowProps } from '../types/onboarding.types';
