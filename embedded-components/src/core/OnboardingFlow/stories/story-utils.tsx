@@ -8,7 +8,7 @@ import { efClientCorpEBMockNoIndustry } from '@/mocks/efClientCorpEBNoIndustry.m
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
 import { efOrganizationDocumentRequestDetails } from '@/mocks/efOrganizationDocumentRequestDetails.mock';
-import { verifyMicrodeposit } from '@/msw/db';
+import { db, verifyMicrodeposit } from '@/msw/db';
 import { http, HttpResponse } from 'msw';
 
 import type {
@@ -141,13 +141,34 @@ export const mockExistingLinkedAccount: Recipient = {
   createdAt: '2024-01-15T10:30:00Z',
 };
 
+/** Same party/account as {@link mockExistingLinkedAccount} — **PENDING** (split-profile processing). */
+export const mockExistingLinkedAccountPending: Recipient = {
+  ...mockExistingLinkedAccount,
+  id: 'la-lifecycle-pending',
+  status: 'PENDING',
+};
+
+/** **MICRODEPOSITS_INITIATED** — waiting for deposits to land. */
+export const mockExistingLinkedAccountMicrodepositsInitiated: Recipient = {
+  ...mockExistingLinkedAccount,
+  id: 'la-lifecycle-md-initiated',
+  status: 'MICRODEPOSITS_INITIATED',
+};
+
+/** **READY_FOR_VALIDATION** — user should enter microdeposit amounts. */
+export const mockExistingLinkedAccountReadyForValidation: Recipient = {
+  ...mockExistingLinkedAccount,
+  id: 'la-lifecycle-ready-validation',
+  status: 'READY_FOR_VALIDATION',
+};
+
 /** Partial prefill for link-account step (`completionMode: 'editable'`). */
 export const mockLinkAccountPrefillEditable: LinkAccountInitialValues = {
   accountNumber: '98765432109876543',
   routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
 };
 
-/** Full form-shaped payload for link-account review + confirm (`completionMode: 'readonly'`). */
+/** Full form-shaped payload for link-account `prefillSummary` (or tests). */
 export const mockLinkAccountPrefillReadonly: BankAccountFormData = {
   accountType: 'INDIVIDUAL',
   firstName: 'Taylor',
@@ -161,34 +182,27 @@ export const mockLinkAccountPrefillReadonly: BankAccountFormData = {
   certify: true,
 };
 
-/** Single acknowledgement (T&C-style with links). */
-export const mockLinkAccountReviewAcknowledgements: readonly LinkAccountReviewAcknowledgement[] =
+/** Default three acknowledgements for `completionMode: 'prefillSummary'` demos. */
+export const mockLinkAccountPrefillSummaryAcknowledgementsThree: readonly LinkAccountReviewAcknowledgement[] =
   [
     {
-      id: 'termsAndPrivacy',
-      labelKey: 'screens.linkAccount.review.acknowledgements.termsAndPolicies',
-      linkHrefs: {
-        termsLink: 'https://example.com/terms',
-        privacyLink: 'https://example.com/privacy',
-      },
-    },
-  ];
-
-/** Multiple acknowledgements — second row is plain attestation (no links). */
-export const mockLinkAccountReviewAcknowledgementsMultiple: readonly LinkAccountReviewAcknowledgement[] =
-  [
-    {
-      id: 'termsAndPrivacy',
-      labelKey: 'screens.linkAccount.review.acknowledgements.termsAndPolicies',
-      linkHrefs: {
-        termsLink: 'https://example.com/terms',
-        privacyLink: 'https://example.com/privacy',
-      },
-    },
-    {
-      id: 'payoutAccountAttestation',
+      id: 'businessPurpose',
       labelKey:
-        'screens.linkAccount.review.acknowledgements.payoutAccountAttestation',
+        'screens.linkAccount.prefillSummary.acknowledgements.businessPurpose',
+    },
+    {
+      id: 'verifyAndAccuracy',
+      labelKey:
+        'screens.linkAccount.prefillSummary.acknowledgements.verifyAndAccuracy',
+    },
+    {
+      id: 'debitAndTerms',
+      labelKey:
+        'screens.linkAccount.prefillSummary.acknowledgements.debitAndTerms',
+      linkHrefs: {
+        jpTermsLink: 'https://example.com/jpmorgan-terms',
+        platformAgreementLink: 'https://example.com/platform-program-agreement',
+      },
     },
   ];
 
@@ -240,6 +254,35 @@ export interface OnboardingFlowHandlerOptions {
 // ============================================================================
 
 /**
+ * Seeds {@link db.recipient} from story fixtures so GET /recipients/:id and
+ * POST .../verify-microdeposit match list responses (microdeposit dialog in LinkAccountScreen).
+ */
+function ensureOnboardingLinkedRecipientInDb(recipient: Recipient): void {
+  const existing = db.recipient.findFirst({
+    where: { id: { equals: recipient.id } },
+  });
+  if (existing) return;
+
+  const withAttempts = recipient as Recipient & {
+    verificationAttempts?: number;
+  };
+  const attempts = withAttempts.verificationAttempts ?? 0;
+
+  db.recipient.create({
+    id: recipient.id,
+    type: recipient.type ?? 'LINKED_ACCOUNT',
+    status: recipient.status ?? 'PENDING',
+    clientId: recipient.clientId ?? '',
+    partyDetails: recipient.partyDetails ?? {},
+    account: recipient.account ?? {},
+    createdAt: recipient.createdAt ?? new Date().toISOString(),
+    updatedAt:
+      recipient.updatedAt ?? recipient.createdAt ?? new Date().toISOString(),
+    verificationAttempts: attempts,
+  });
+}
+
+/**
  * Create MSW handlers for OnboardingFlow stories
  */
 export function createOnboardingFlowHandlers(
@@ -252,7 +295,9 @@ export function createOnboardingFlowHandlers(
     status = 200,
     documentRequests,
     naicsRecommendations,
+    existingLinkedAccounts: existingLinkedAccountsOption,
   } = options;
+  const existingLinkedAccounts = existingLinkedAccountsOption ?? [];
 
   const baseHandlers = [
     // Client endpoint
@@ -394,28 +439,54 @@ export function createOnboardingFlowHandlers(
     })
   );
 
-  // GET /recipients - List linked accounts
-  const existingLinkedAccounts = options.existingLinkedAccounts ?? [];
+  // GET /recipients - List linked accounts (db-backed when fixtures seed MSW db)
   baseHandlers.push(
     http.get('/recipients', async () => {
       await new Promise((r) => {
         setTimeout(r, delayMs);
       });
 
+      for (const r of existingLinkedAccounts) {
+        ensureOnboardingLinkedRecipientInDb(r);
+      }
+
+      const fromDb = db.recipient
+        .getAll()
+        .filter((row) => row.type === 'LINKED_ACCOUNT');
+
+      const recipients: Recipient[] =
+        fromDb.length > 0
+          ? (fromDb as unknown as Recipient[])
+          : existingLinkedAccounts;
+
       const response: ListRecipientsResponse = {
-        recipients: existingLinkedAccounts,
-        metadata: { total_items: existingLinkedAccounts.length },
+        recipients,
+        metadata: { total_items: recipients.length },
       };
       return HttpResponse.json(response);
     })
   );
 
-  // GET /recipients/:id - Get single linked account
+  // GET /recipients/:id - Single recipient (for microdeposit dialog)
   baseHandlers.push(
-    http.get('/recipients/:id', async ({ params: _params }) => {
+    http.get('/recipients/:id', async ({ params }) => {
       await new Promise((r) => {
         setTimeout(r, delayMs);
       });
+
+      const id = params.id as string;
+
+      for (const r of existingLinkedAccounts) {
+        ensureOnboardingLinkedRecipientInDb(r);
+      }
+
+      const fromDb = db.recipient.findFirst({
+        where: { id: { equals: id } },
+      });
+
+      if (fromDb) {
+        return HttpResponse.json(fromDb as unknown as Recipient);
+      }
 
       const error: ApiError = {
         httpStatus: 404,
@@ -457,6 +528,37 @@ export function createOnboardingFlowHandlers(
   );
 
   return baseHandlers;
+}
+
+/**
+ * Shared {@link createOnboardingFlowHandlers} + args for approved-client link-account Client States stories.
+ * Avoids repeating MSW setup across approved link-account Client States stories.
+ */
+export function buildApprovedClientLinkAccountStory(options?: {
+  linkAccountStepOptions?: OnboardingFlowProps['linkAccountStepOptions'];
+  /** Merged into {@link createOnboardingFlowHandlers} (e.g. `existingLinkedAccounts`). */
+  handlerOptions?: Omit<OnboardingFlowHandlerOptions, 'client' | 'clientId'>;
+}) {
+  const { linkAccountStepOptions, handlerOptions } = options ?? {};
+  return {
+    parameters: {
+      msw: {
+        handlers: createOnboardingFlowHandlers({
+          client: mockClientApproved,
+          clientId: DEFAULT_CLIENT_ID,
+          ...handlerOptions,
+        }),
+      },
+    },
+    args: {
+      ...commonArgs,
+      clientId: DEFAULT_CLIENT_ID,
+      showLinkAccountStep: true as const,
+      ...(linkAccountStepOptions !== undefined
+        ? { linkAccountStepOptions }
+        : {}),
+    },
+  };
 }
 
 /**

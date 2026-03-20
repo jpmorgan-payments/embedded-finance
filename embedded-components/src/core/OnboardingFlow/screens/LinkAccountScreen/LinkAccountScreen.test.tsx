@@ -4,7 +4,11 @@ import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { useGetAllRecipients } from '@/api/generated/ep-recipients';
+import {
+  useGetAllRecipients,
+  useGetRecipient,
+  useRecipientsVerification,
+} from '@/api/generated/ep-recipients';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import {
@@ -36,6 +40,8 @@ vi.mock(
 
 vi.mock('@/api/generated/ep-recipients', () => ({
   useGetAllRecipients: vi.fn(),
+  useGetRecipient: vi.fn(),
+  useRecipientsVerification: vi.fn(),
 }));
 
 vi.mock('@/api/generated/smbdo', () => ({
@@ -114,15 +120,34 @@ describe('LinkAccountScreen', () => {
       isSuccess: false,
       isError: false,
     } as unknown as ReturnType<typeof useRecipientForm>);
+
+    vi.mocked(useGetRecipient).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: null,
+    } as unknown as ReturnType<typeof useGetRecipient>);
+
+    vi.mocked(useRecipientsVerification).mockReturnValue({
+      mutate: vi.fn(),
+      mutateAsync: vi.fn(),
+      reset: vi.fn(),
+      status: 'idle',
+      data: undefined,
+      error: null,
+      isPending: false,
+      isIdle: true,
+      isSuccess: false,
+      isError: false,
+    } as unknown as ReturnType<typeof useRecipientsVerification>);
   });
 
-  test('readonly prefill shows review UI and submit passes merged form data', async () => {
+  test('prefill summary without acknowledgements enables confirm immediately', async () => {
     const user = userEvent.setup();
 
     renderWithProviders(<LinkAccountScreen />, {
       ...baseOnboardingContext,
       linkAccountStepOptions: {
-        completionMode: 'readonly',
+        completionMode: 'prefillSummary',
         initialValues: {
           accountType: 'INDIVIDUAL',
           firstName: 'Taylor',
@@ -137,27 +162,31 @@ describe('LinkAccountScreen', () => {
     });
 
     expect(
-      await screen.findByRole('heading', { name: /Review your bank account/i })
+      await screen.findByRole('heading', { name: /Link a bank account/i })
     ).toBeInTheDocument();
 
-    await user.click(
-      screen.getByRole('button', { name: /Confirm and link account/i })
-    );
+    const confirmBtn = screen.getByRole('button', {
+      name: /Confirm and link account/i,
+    });
+    expect(confirmBtn).not.toBeDisabled();
+
+    await user.click(confirmBtn);
 
     expect(mockSubmit).toHaveBeenCalledTimes(1);
     const payload = mockSubmit.mock.calls[0][0];
     expect(payload.firstName).toBe('Taylor');
     expect(payload.accountNumber).toBe('12345678901234567');
     expect(payload.routingNumbers[0].routingNumber).toBe('021000021');
+    expect(payload.certify).toBe(true);
   });
 
-  test('readonly review acknowledgements block confirm until all checked', async () => {
+  test('prefill summary shows disabled fields, intro, and submits with certify true', async () => {
     const user = userEvent.setup();
 
     renderWithProviders(<LinkAccountScreen />, {
       ...baseOnboardingContext,
       linkAccountStepOptions: {
-        completionMode: 'readonly',
+        completionMode: 'prefillSummary',
         initialValues: {
           accountType: 'INDIVIDUAL',
           firstName: 'Taylor',
@@ -166,76 +195,35 @@ describe('LinkAccountScreen', () => {
           accountNumber: '12345678901234567',
           bankAccountType: 'CHECKING',
           paymentTypes: ['ACH'],
-          certify: true,
-        },
-        reviewAcknowledgements: [
-          {
-            id: 'terms',
-            labelKey:
-              'screens.linkAccount.review.acknowledgements.termsAndPolicies',
-            linkHrefs: {
-              termsLink: 'https://example.com/terms',
-              privacyLink: 'https://example.com/privacy',
-            },
-          },
-        ],
-      },
-    });
-
-    expect(
-      await screen.findByRole('heading', { name: /Review your bank account/i })
-    ).toBeInTheDocument();
-
-    const confirmBtn = screen.getByRole('button', {
-      name: /Confirm and link account/i,
-    });
-    expect(confirmBtn).toBeDisabled();
-
-    await user.click(
-      screen.getByRole('checkbox', { name: /By confirming, you agree/i })
-    );
-
-    expect(confirmBtn).not.toBeDisabled();
-
-    await user.click(confirmBtn);
-
-    expect(mockSubmit).toHaveBeenCalledTimes(1);
-  });
-
-  test('readonly review requires every acknowledgement checked when multiple rows', async () => {
-    const user = userEvent.setup();
-
-    renderWithProviders(<LinkAccountScreen />, {
-      ...baseOnboardingContext,
-      linkAccountStepOptions: {
-        completionMode: 'readonly',
-        initialValues: {
-          accountType: 'INDIVIDUAL',
-          firstName: 'Taylor',
-          lastName: 'Morgan',
-          routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
-          accountNumber: '12345678901234567',
-          bankAccountType: 'CHECKING',
-          paymentTypes: ['ACH'],
-          certify: true,
+          certify: false,
         },
         reviewAcknowledgements: [
           {
             id: 'a',
             labelKey:
-              'screens.linkAccount.review.acknowledgements.termsAndPolicies',
-            linkHrefs: { termsLink: 'https://example.com/t' },
+              'screens.linkAccount.prefillSummary.acknowledgements.businessPurpose',
           },
           {
             id: 'b',
             labelKey:
-              'screens.linkAccount.review.acknowledgements.payoutAccountAttestation',
+              'screens.linkAccount.prefillSummary.acknowledgements.verifyAndAccuracy',
+          },
+          {
+            id: 'c',
+            labelKey:
+              'screens.linkAccount.prefillSummary.acknowledgements.debitAndTerms',
           },
         ],
+        showAcknowledgementsIntro: true,
       },
     });
 
-    await screen.findByRole('heading', { name: /Review your bank account/i });
+    expect(
+      await screen.findByText(/By electronically linking this account/i)
+    ).toBeInTheDocument();
+
+    expect(screen.getByDisplayValue('021000021')).toBeDisabled();
+    expect(screen.getByDisplayValue('12345678901234567')).toBeDisabled();
 
     const confirmBtn = screen.getByRole('button', {
       name: /Confirm and link account/i,
@@ -243,19 +231,80 @@ describe('LinkAccountScreen', () => {
     expect(confirmBtn).toBeDisabled();
 
     await user.click(
-      screen.getByRole('checkbox', { name: /By confirming, you agree/i })
-    );
-    expect(confirmBtn).toBeDisabled();
-
-    await user.click(
       screen.getByRole('checkbox', {
-        name: /I confirm this bank account is owned/i,
+        name: /primarily for business purposes/i,
       })
     );
-    expect(confirmBtn).not.toBeDisabled();
+    await user.click(
+      screen.getByRole('checkbox', {
+        name: /authorize verification of this linked account/i,
+      })
+    );
+    await user.click(
+      screen.getByRole('checkbox', {
+        name: /JPMorgan Chase Bank/i,
+      })
+    );
 
+    expect(confirmBtn).not.toBeDisabled();
     await user.click(confirmBtn);
-    expect(mockSubmit).toHaveBeenCalledTimes(1);
+
+    expect(mockSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        accountNumber: '12345678901234567',
+        certify: true,
+      })
+    );
+  });
+
+  test('existing READY_FOR_VALIDATION account shows Verify Account for microdeposits', async () => {
+    const readyRecipient = {
+      id: 'la-ready-test-1',
+      type: 'LINKED_ACCOUNT' as const,
+      status: 'READY_FOR_VALIDATION' as const,
+      clientId: 'client-1',
+      partyDetails: {
+        type: 'INDIVIDUAL' as const,
+        firstName: 'Alex',
+        lastName: 'James',
+      },
+      account: {
+        number: '12345678901234567',
+        type: 'CHECKING' as const,
+        countryCode: 'US' as const,
+        routingInformation: [
+          {
+            routingCodeType: 'USABA' as const,
+            routingNumber: '021000021',
+            transactionType: 'ACH' as const,
+          },
+        ],
+      },
+      createdAt: '2024-01-15T10:30:00Z',
+    };
+
+    vi.mocked(useGetAllRecipients).mockReturnValue({
+      data: { recipients: [readyRecipient] },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useGetAllRecipients>);
+
+    vi.mocked(useGetRecipient).mockReturnValue({
+      data: readyRecipient,
+      isLoading: false,
+      error: null,
+    } as unknown as ReturnType<typeof useGetRecipient>);
+
+    renderWithProviders(<LinkAccountScreen />, baseOnboardingContext);
+
+    expect(
+      await screen.findByRole('heading', {
+        name: /Your linked bank account/i,
+      })
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByRole('button', { name: /Verify Account/i })
+    ).toBeInTheDocument();
   });
 
   test('editable prefill renders bank account form with overridden account number', async () => {

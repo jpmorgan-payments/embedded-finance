@@ -18,11 +18,38 @@ The **ClientDetails** component displays comprehensive information for a fully o
 
 ## View Modes
 
-| Mode          | Description                                          | Best For                                     |
-| ------------- | ---------------------------------------------------- | -------------------------------------------- |
-| **Summary**   | Compact card with quick stats and clickable sections | Dashboards, overviews, quick reference       |
-| **Accordion** | Collapsible sections showing full details            | Detailed review, printing, compliance checks |
-| **Cards**     | Grid of cards for each information section           | Visual browsing, side-by-side comparison     |
+<table>
+  <thead>
+    <tr>
+      <th>Mode</th>
+      <th>Description</th>
+      <th>Best For</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <strong>Summary</strong>
+      </td>
+      <td>Compact card with quick stats and clickable sections</td>
+      <td>Dashboards, overviews, quick reference</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Accordion</strong>
+      </td>
+      <td>Collapsible sections showing full details</td>
+      <td>Detailed review, printing, compliance checks</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Cards</strong>
+      </td>
+      <td>Grid of cards for each information section</td>
+      <td>Visual browsing, side-by-side comparison</td>
+    </tr>
+  </tbody>
+</table>
 
 ## Summary Mode
 
@@ -107,26 +134,143 @@ Handle section clicks externally for custom routing:
 
 ## Available Sections
 
-| Section        | Description                                  |
-| -------------- | -------------------------------------------- |
-| `identity`     | Business identity and registration details   |
-| `verification` | KYC/KYB verification status and results      |
-| `ownership`    | Beneficial owners and controllers            |
-| `compliance`   | Compliance questionnaire responses           |
-| `accounts`     | Associated bank accounts (when available)    |
-| `activity`     | Recent transaction activity (when available) |
+<table>
+  <thead>
+    <tr>
+      <th>Section</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>identity</code>
+      </td>
+      <td>Business identity and registration details</td>
+    </tr>
+    <tr>
+      <td>
+        <code>verification</code>
+      </td>
+      <td>KYC/KYB verification status and results</td>
+    </tr>
+    <tr>
+      <td>
+        <code>ownership</code>
+      </td>
+      <td>Beneficial owners and controllers</td>
+    </tr>
+    <tr>
+      <td>
+        <code>compliance</code>
+      </td>
+      <td>Compliance questionnaire responses</td>
+    </tr>
+    <tr>
+      <td>
+        <code>accounts</code>
+      </td>
+      <td>Associated bank accounts (when available)</td>
+    </tr>
+    <tr>
+      <td>
+        <code>activity</code>
+      </td>
+      <td>Recent transaction activity (when available)</td>
+    </tr>
+  </tbody>
+</table>
 
 ## Props
 
-| Prop              | Type                                  | Default            | Description                              |
-| ----------------- | ------------------------------------- | ------------------ | ---------------------------------------- |
-| `clientId`        | `string`                              | Required           | Client ID to fetch                       |
-| `viewMode`        | `'summary' \| 'accordion' \| 'cards'` | `'summary'`        | Display mode                             |
-| `title`           | `string`                              | `'Client details'` | Section title (accordion/cards modes)    |
-| `enableDrillDown` | `boolean`                             | `true`             | Enable drill-down sheets in summary mode |
-| `sections`        | `ClientSection[]`                     | All sections       | Which sections to display                |
-| `onSectionClick`  | `(section) => void`                   | -                  | External navigation handler              |
-| `actions`         | `ReactNode`                           | -                  | Custom action buttons                    |
+<table>
+  <thead>
+    <tr>
+      <th>Prop</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>clientId</code>
+      </td>
+      <td>
+        <code>string</code>
+      </td>
+      <td>Required</td>
+      <td>Client ID to fetch</td>
+    </tr>
+    <tr>
+      <td>
+        <code>viewMode</code>
+      </td>
+      <td>
+        <code>{`'summary' | 'accordion' | 'cards'`}</code>
+      </td>
+      <td>
+        <code>{`'summary'`}</code>
+      </td>
+      <td>Display mode</td>
+    </tr>
+    <tr>
+      <td>
+        <code>title</code>
+      </td>
+      <td>
+        <code>string</code>
+      </td>
+      <td>
+        <code>{`'Client details'`}</code>
+      </td>
+      <td>Section title (accordion/cards modes)</td>
+    </tr>
+    <tr>
+      <td>
+        <code>enableDrillDown</code>
+      </td>
+      <td>
+        <code>boolean</code>
+      </td>
+      <td>
+        <code>true</code>
+      </td>
+      <td>Enable drill-down sheets in summary mode</td>
+    </tr>
+    <tr>
+      <td>
+        <code>sections</code>
+      </td>
+      <td>
+        <code>ClientSection[]</code>
+      </td>
+      <td>All sections</td>
+      <td>Which sections to display</td>
+    </tr>
+    <tr>
+      <td>
+        <code>onSectionClick</code>
+      </td>
+      <td>
+        <code>{`(section) => void`}</code>
+      </td>
+      <td>—</td>
+      <td>External navigation handler</td>
+    </tr>
+    <tr>
+      <td>
+        <code>actions</code>
+      </td>
+      <td>
+        <code>ReactNode</code>
+      </td>
+      <td>—</td>
+      <td>Custom action buttons</td>
+    </tr>
+  </tbody>
+</table>
 
 ## States
 

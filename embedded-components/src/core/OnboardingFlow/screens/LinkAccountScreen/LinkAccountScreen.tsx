@@ -1,13 +1,19 @@
-import { useEffect, useMemo, useState, type ReactElement } from 'react';
-import { TransWithTokens, useTranslationWithTokens } from '@/i18n';
-import { ArrowLeftIcon, CheckCircle2Icon, Loader2Icon } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
+import { ArrowLeftIcon, ArrowRightIcon, CheckCircle2Icon } from 'lucide-react';
 
+import {
+  canVerifyMicrodeposits,
+  getRecipientDisplayName,
+} from '@/lib/recipientHelpers';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
-import type { Recipient } from '@/api/generated/ep-recipients.schemas';
+import type {
+  Recipient,
+  RoutingInformationTransactionType,
+} from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import {
@@ -21,45 +27,20 @@ import {
 } from '@/core/OnboardingFlow/contexts';
 import {
   BankAccountForm,
-  bankAccountFormDataToDisplayRecipient,
   mergeBankAccountDefaultValues,
   useLinkedAccountConfig,
   type BankAccountFormData,
 } from '@/core/RecipientWidgets/components/BankAccountForm';
 import { RecipientAccountDisplayCard } from '@/core/RecipientWidgets/components/RecipientAccountDisplayCard/RecipientAccountDisplayCard';
 import { StatusAlert } from '@/core/RecipientWidgets/components/StatusAlert/StatusAlert';
+import { MicrodepositsFormDialogTrigger } from '@/core/RecipientWidgets/forms/MicrodepositsForm/MicrodepositsForm';
 import { useRecipientForm } from '@/core/RecipientWidgets/hooks/useRecipientForm';
+import { LINKED_ACCOUNT_USER_JOURNEYS } from '@/core/RecipientWidgets/RecipientWidgets.constants';
 
-/** Default English strings for `TransWithTokens` when a host `labelKey` is missing from bundles. */
-const REVIEW_ACK_LABEL_DEFAULTS: Partial<Record<string, string>> = {
-  'screens.linkAccount.review.acknowledgements.termsAndPolicies':
-    'By confirming, you agree to our <termsLink>Terms & Conditions</termsLink> and acknowledge our <privacyLink>Privacy Policy</privacyLink>.',
-  'screens.linkAccount.review.acknowledgements.payoutAccountAttestation':
-    'I confirm this bank account is owned by or authorized for use by the business in my application for receiving payouts.',
-};
+import { LinkAccountPrefillSummaryView } from './LinkAccountPrefillSummaryView';
 
-function buildAcknowledgementLinkComponents(
-  linkHrefs: Record<string, string> | undefined
-): Record<string, ReactElement> | undefined {
-  if (!linkHrefs || Object.keys(linkHrefs).length === 0) {
-    return undefined;
-  }
-  const out: Record<string, ReactElement> = {};
-  for (const [tag, href] of Object.entries(linkHrefs)) {
-    out[tag] = (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="eb-text-primary eb-underline eb-underline-offset-2 hover:eb-underline"
-      />
-    );
-  }
-  return out;
-}
-
-/** Fallback base merged with host `initialValues` for readonly review + submit. */
-const LINK_ACCOUNT_READONLY_FALLBACK_BASE: BankAccountFormData = {
+/** Fallback base merged with host `initialValues` for `prefillSummary`. */
+const LINK_ACCOUNT_PREFILL_MERGE_BASE: BankAccountFormData = {
   accountType: 'INDIVIDUAL',
   firstName: '',
   lastName: '',
@@ -75,15 +56,23 @@ const LINK_ACCOUNT_READONLY_FALLBACK_BASE: BankAccountFormData = {
 /**
  * LinkAccountScreen
  *
- * Screen rendered within the OnboardingFlow when the user clicks "Start"
- * on the link-account section.  It wraps the shared `BankAccountForm`
- * component configured for the LINKED_ACCOUNT use-case and submits via
- * the `useRecipientForm` hook.
+ * Rendered when the user opens the **Link bank account** flow step (sidebar / navigation).
+ * Submits new links via {@link useRecipientForm}.
+ *
+ * **Second onboarding surface for linked accounts:** the **Overview** screen also shows a read-only
+ * bank card + status (and the same **Verify Account** CTA when `READY_FOR_VALIDATION`) without
+ * leaving Overview. This step repeats that existing-account UI and adds **Return to overview**.
+ * Shared building blocks with **LinkedAccountWidget** (`RecipientAccountDisplayCard`,
+ * `StatusAlert`, {@link MicrodepositsFormDialogTrigger}, `linked-accounts` i18n).
+ *
+ * - **`editable`** — `BankAccountForm` (two-step LINKED_ACCOUNT wizard).
+ * - **`prefillSummary`** — `LinkAccountPrefillSummaryView` (disabled fields + optional acknowledgements).
  */
 export const LinkAccountScreen = () => {
   const { t, tString } = useTranslationWithTokens([
     'onboarding-overview',
     'common',
+    'linked-accounts',
   ]);
   const { goBack } = useFlowContext();
   const { clientData, linkAccountStepOptions } = useOnboardingContext();
@@ -116,17 +105,17 @@ export const LinkAccountScreen = () => {
 
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const reviewAcknowledgements =
-    linkAccountStepOptions?.completionMode === 'readonly'
+  const linkAcknowledgementItems =
+    linkAccountStepOptions?.completionMode === 'prefillSummary'
       ? linkAccountStepOptions.reviewAcknowledgements
       : undefined;
 
-  const reviewAckIdsKey = useMemo(
+  const linkAckIdsKey = useMemo(
     () =>
-      reviewAcknowledgements?.length
-        ? reviewAcknowledgements.map((a) => a.id).join('\0')
+      linkAcknowledgementItems?.length
+        ? linkAcknowledgementItems.map((a) => a.id).join('\0')
         : '',
-    [reviewAcknowledgements]
+    [linkAcknowledgementItems]
   );
 
   const [acknowledgementChecked, setAcknowledgementChecked] = useState<
@@ -134,18 +123,20 @@ export const LinkAccountScreen = () => {
   >({});
 
   useEffect(() => {
-    if (!reviewAcknowledgements?.length) {
+    if (!linkAcknowledgementItems?.length) {
       setAcknowledgementChecked({});
       return;
     }
     setAcknowledgementChecked(
-      Object.fromEntries(reviewAcknowledgements.map((a) => [a.id, false]))
+      Object.fromEntries(linkAcknowledgementItems.map((a) => [a.id, false]))
     );
-  }, [reviewAckIdsKey]);
+  }, [linkAckIdsKey]);
 
   const acknowledgementsComplete =
-    !reviewAcknowledgements?.length ||
-    reviewAcknowledgements.every((a) => acknowledgementChecked[a.id] === true);
+    !linkAcknowledgementItems?.length ||
+    linkAcknowledgementItems.every(
+      (a) => acknowledgementChecked[a.id] === true
+    );
 
   // Use the linked-account config hook (same as BankAccountFormWrapper)
   const linkedAccountConfig = useLinkedAccountConfig();
@@ -173,23 +164,34 @@ export const LinkAccountScreen = () => {
     },
   };
 
-  const readonlyFormData = useMemo(() => {
-    if (linkAccountStepOptions?.completionMode !== 'readonly') {
+  const prefillSummaryFormData = useMemo(() => {
+    if (linkAccountStepOptions?.completionMode !== 'prefillSummary') {
       return null;
     }
     return mergeBankAccountDefaultValues(
-      LINK_ACCOUNT_READONLY_FALLBACK_BASE,
+      LINK_ACCOUNT_PREFILL_MERGE_BASE,
       linkAccountStepOptions.initialValues
     );
   }, [linkAccountStepOptions]);
 
-  const readonlyDisplayRecipient = useMemo(
-    () =>
-      readonlyFormData
-        ? bankAccountFormDataToDisplayRecipient(readonlyFormData)
-        : null,
-    [readonlyFormData]
-  );
+  const summaryDisplayedPaymentTypes =
+    useMemo((): RoutingInformationTransactionType[] => {
+      if (
+        !prefillSummaryFormData ||
+        linkAccountStepOptions?.completionMode !== 'prefillSummary'
+      ) {
+        return [];
+      }
+      const explicit = linkAccountStepOptions.summaryDisplayedPaymentTypes;
+      if (explicit?.length) {
+        return [...explicit];
+      }
+      const pt = prefillSummaryFormData.paymentTypes;
+      if (pt?.length) {
+        return [...pt];
+      }
+      return ['ACH'];
+    }, [linkAccountStepOptions, prefillSummaryFormData]);
 
   const handleSubmit = (data: BankAccountFormData) => {
     submit(data);
@@ -255,6 +257,9 @@ export const LinkAccountScreen = () => {
 
   // Existing account state – show the linked account card
   if (existingAccount) {
+    const displayName = getRecipientDisplayName(existingAccount);
+    const showVerifyMicrodeposit = canVerifyMicrodeposits(existingAccount);
+
     return (
       <StepLayout
         title={t(
@@ -271,7 +276,33 @@ export const LinkAccountScreen = () => {
             recipient={existingAccount}
             statusAlert={
               existingAccount.status && existingAccount.status !== 'ACTIVE' ? (
-                <StatusAlert status={existingAccount.status} />
+                <StatusAlert
+                  status={existingAccount.status}
+                  action={
+                    showVerifyMicrodeposit ? (
+                      <MicrodepositsFormDialogTrigger
+                        recipientId={existingAccount.id}
+                      >
+                        <Button
+                          variant="default"
+                          size="sm"
+                          data-user-event={
+                            LINKED_ACCOUNT_USER_JOURNEYS.VERIFY_STARTED
+                          }
+                          aria-label={`${tString('linked-accounts:actions.verifyAccount')} for ${displayName}`}
+                        >
+                          <span>
+                            {t('linked-accounts:actions.verifyAccount')}
+                          </span>
+                          <ArrowRightIcon
+                            className="eb-ml-2 eb-h-4 eb-w-4"
+                            aria-hidden="true"
+                          />
+                        </Button>
+                      </MicrodepositsFormDialogTrigger>
+                    ) : undefined
+                  }
+                />
               ) : undefined
             }
             showAccountToggle
@@ -316,140 +347,59 @@ export const LinkAccountScreen = () => {
     );
   }
 
-  // Host prefill: review-only — confirm submits POST /recipients
-  if (readonlyFormData && readonlyDisplayRecipient) {
+  // Host prefill: single-page read-only bank summary + acknowledgements + submit
+  if (
+    prefillSummaryFormData &&
+    linkAccountStepOptions?.completionMode === 'prefillSummary'
+  ) {
     return (
-      <StepLayout
-        title={t(
-          'screens.linkAccount.review.title',
-          'Review your bank account'
-        )}
+      <LinkAccountPrefillSummaryView
+        title={t('screens.linkAccount.title', 'Link a bank account')}
         description={t(
-          'screens.linkAccount.review.description',
-          'Confirm the details below before linking this account for payouts.'
+          'screens.linkAccount.prefillSummary.description',
+          'Review your bank details and accept the agreements to link this account.'
         )}
-      >
-        <div className="eb-mt-6 eb-space-y-4">
-          {errorAlert}
-          <RecipientAccountDisplayCard
-            recipient={readonlyDisplayRecipient}
-            showAccountToggle
-            showPaymentMethods
-            allowDetailedPaymentMethods={false}
-          />
-          {readonlyFormData.address ? (
-            <div className="eb-text-sm eb-text-muted-foreground">
-              <p className="eb-font-medium eb-text-foreground">
-                {t(
-                  'screens.linkAccount.review.addressHeading',
-                  'Account holder address'
-                )}
-              </p>
-              <p>
-                {[
-                  readonlyFormData.address.addressLine1,
-                  readonlyFormData.address.addressLine2,
-                  readonlyFormData.address.addressLine3,
-                ]
-                  .filter(Boolean)
-                  .join(', ')}
-              </p>
-              <p>
-                {[
-                  readonlyFormData.address.city,
-                  readonlyFormData.address.state,
-                  readonlyFormData.address.postalCode,
-                ]
-                  .filter(Boolean)
-                  .join(', ')}
-              </p>
-            </div>
-          ) : null}
-          {readonlyFormData.contacts && readonlyFormData.contacts.length > 0 ? (
-            <div className="eb-text-sm eb-text-muted-foreground">
-              <p className="eb-font-medium eb-text-foreground">
-                {t('screens.linkAccount.review.contactsHeading', 'Contact')}
-              </p>
-              <ul className="eb-list-inside eb-list-disc eb-space-y-1">
-                {readonlyFormData.contacts.map((c, i) => (
-                  <li key={`${c.contactType}-${i}`}>
-                    {c.contactType}: {c.value}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-          {reviewAcknowledgements && reviewAcknowledgements.length > 0 ? (
-            <div
-              className="eb-space-y-3 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-4"
-              role="group"
-              aria-label={tString(
-                'screens.linkAccount.review.acknowledgementsGroupLabel',
-                'Agreements required to link this account'
-              )}
-            >
-              {reviewAcknowledgements.map((item) => {
-                const checkboxId = `eb-link-account-ack-${item.id}`;
-                return (
-                  <div
-                    key={item.id}
-                    className="eb-flex eb-items-start eb-gap-2"
-                  >
-                    <Checkbox
-                      id={checkboxId}
-                      className="eb-mt-0.5"
-                      checked={acknowledgementChecked[item.id] === true}
-                      onCheckedChange={(v) =>
-                        setAcknowledgementChecked((prev) => ({
-                          ...prev,
-                          [item.id]: v === true,
-                        }))
-                      }
-                      disabled={status === 'pending'}
-                    />
-                    <label
-                      htmlFor={checkboxId}
-                      className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-relaxed eb-text-foreground"
-                    >
-                      <TransWithTokens
-                        ns="onboarding-overview"
-                        i18nKey={item.labelKey}
-                        defaults={REVIEW_ACK_LABEL_DEFAULTS[item.labelKey]}
-                        components={buildAcknowledgementLinkComponents(
-                          item.linkHrefs
-                        )}
-                      />
-                    </label>
-                  </div>
-                );
-              })}
-            </div>
-          ) : null}
-          <div className="eb-flex eb-flex-wrap eb-gap-2">
-            <Button
-              type="button"
-              className="eb-inline-flex eb-items-center eb-gap-2"
-              disabled={status === 'pending' || !acknowledgementsComplete}
-              onClick={() => submit(readonlyFormData)}
-            >
-              {status === 'pending' ? (
-                <Loader2Icon
-                  className="eb-size-4 eb-animate-spin"
-                  aria-hidden
-                />
-              ) : null}
-              {t(
-                'screens.linkAccount.review.confirmButton',
-                'Confirm and link account'
-              )}
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleCancel}>
-              <ArrowLeftIcon className="eb-size-4" />
-              {t('common:cancel', 'Cancel')}
-            </Button>
-          </div>
-        </div>
-      </StepLayout>
+        data={prefillSummaryFormData}
+        displayedPaymentTypes={summaryDisplayedPaymentTypes}
+        bankFormConfig={linkedAccountConfig}
+        acknowledgements={linkAcknowledgementItems}
+        acknowledgementsIntro={
+          linkAcknowledgementItems?.length &&
+          linkAccountStepOptions?.showAcknowledgementsIntro
+            ? t(
+                'screens.linkAccount.prefillSummary.acknowledgementsIntro',
+                'By electronically linking this account, you agree that:'
+              )
+            : undefined
+        }
+        acknowledgementChecked={acknowledgementChecked}
+        onAcknowledgementChange={(id, value) =>
+          setAcknowledgementChecked((prev) => ({ ...prev, [id]: value }))
+        }
+        acknowledgementsComplete={acknowledgementsComplete}
+        onSubmit={() =>
+          submit({
+            ...prefillSummaryFormData,
+            certify: true,
+          })
+        }
+        onCancel={handleCancel}
+        isSubmitting={status === 'pending'}
+        errorAlert={errorAlert}
+        submitLabel={tString(
+          'screens.linkAccount.review.confirmButton',
+          'Confirm and link account'
+        )}
+        cancelLabel={tString('common:cancel', 'Cancel')}
+        groupAriaLabel={tString(
+          'screens.linkAccount.review.acknowledgementsGroupLabel',
+          'Agreements required to link this account'
+        )}
+        accountHolderLabel={tString(
+          'screens.linkAccount.prefillSummary.accountHolderLabel',
+          'Account holder'
+        )}
+      />
     );
   }
 

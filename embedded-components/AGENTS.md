@@ -77,6 +77,8 @@ For detailed guidelines, see root-level documentation:
 - **[Component Implementation](../../docs/component-implementation.md)** - React patterns, hooks, styling
 - **[Architecture Patterns](ARCHITECTURE.md)** - Component structure and organization (source of truth)
 
+**OnboardingFlow — linked bank accounts:** behavior spans **Overview** (`OverviewScreen` bank section) and the **Link bank account** step (`LinkAccountScreen`). Storybook: **Core → OnboardingFlow → Linked account**; maintainer notes: [`src/core/OnboardingFlow/stories/linked-account/README.md`](src/core/OnboardingFlow/stories/linked-account/README.md) and [`src/core/OnboardingFlow/stories/Docs.mdx`](src/core/OnboardingFlow/stories/Docs.mdx).
+
 ## Additional Resources
 
 ### Agent Skills

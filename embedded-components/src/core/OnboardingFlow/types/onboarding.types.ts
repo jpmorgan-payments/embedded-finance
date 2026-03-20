@@ -1,5 +1,6 @@
 import type { UserTrackingProps } from '@/lib/types/userTracking.types';
 import { ErrorType } from '@/api/axios-instance';
+import type { RoutingInformationTransactionType } from '@/api/generated/ep-recipients.schemas';
 import {
   ApiError,
   ClientProduct,
@@ -15,16 +16,20 @@ export type Jurisdiction = 'US' | 'CA';
 
 /**
  * Host-supplied values for the optional link-account step.
- * With `completionMode: 'editable'`, partial data is allowed and the user completes the form.
- * With `completionMode: 'readonly'`, supply a full {@link BankAccountFormData}-compatible payload
- * (including `certify: true` if certification is required) so POST /recipients can succeed on confirm.
+ * With `completionMode: 'editable'`, partial data is allowed and the user completes the two-step form.
+ * With `completionMode: 'prefillSummary'`, supply a full {@link BankAccountFormData}-compatible payload;
+ * the UI shows a read-only summary plus optional `reviewAcknowledgements`.
  */
 export type LinkAccountInitialValues = Partial<BankAccountFormData>;
 
-export type LinkAccountStepCompletionMode = 'editable' | 'readonly';
+/**
+ * - **`editable`** — Full `BankAccountForm` two-step wizard; optional `initialValues` prefill.
+ * - **`prefillSummary`** — Single page via `LinkAccountPrefillSummaryView` (disabled fields + payment strip; shares config/i18n with the form, not the full form tree).
+ */
+export type LinkAccountStepCompletionMode = 'editable' | 'prefillSummary';
 
 /**
- * Checkbox row above **Confirm and link account** in readonly review mode.
+ * Checkbox rows above the link-account confirm CTA (`prefillSummary` layout).
  *
  * - **Copy & rich markup** (including `<termsLink>…</termsLink>`-style tags) live in
  *   `onboarding-overview` JSON so content tokens / locales stay the source of truth.
@@ -43,11 +48,22 @@ export type LinkAccountStepOptions = {
   initialValues: LinkAccountInitialValues;
   completionMode: LinkAccountStepCompletionMode;
   /**
-   * Readonly review only: zero or more extra agreements before confirm.
+   * Zero or more agreements before confirm (`prefillSummary` only).
    * Omitted or `[]` = no supplemental checkboxes. When non-empty, every item must be
-   * checked before **Confirm and link account** is enabled.
+   * checked before the confirm action is enabled.
    */
   reviewAcknowledgements?: readonly LinkAccountReviewAcknowledgement[];
+  /**
+   * When `completionMode` is `prefillSummary`, payment types listed here appear in the read-only
+   * summary strip (labels from `BankAccountForm` config). Defaults to
+   * `initialValues.paymentTypes` when set, otherwise `['ACH']`.
+   */
+  summaryDisplayedPaymentTypes?: readonly RoutingInformationTransactionType[];
+  /**
+   * When `prefillSummary` with `reviewAcknowledgements`, show the lead-in line
+   * (`screens.linkAccount.prefillSummary.acknowledgementsIntro`) above the checkbox group. Default false.
+   */
+  showAcknowledgementsIntro?: boolean;
 };
 
 export type OnboardingConfigDefault = UserTrackingProps & {

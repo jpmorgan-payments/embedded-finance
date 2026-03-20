@@ -2,6 +2,8 @@
  * OnboardingFlow - Client States
  *
  * Stories demonstrating different client statuses and loading/error states.
+ *
+ * Linked-account scenarios live under **Core → OnboardingFlow → Linked account**.
  */
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -20,11 +22,6 @@ import {
   mockClientInfoRequested,
   mockClientInReview,
   mockClientNew,
-  mockExistingLinkedAccount,
-  mockLinkAccountPrefillEditable,
-  mockLinkAccountPrefillReadonly,
-  mockLinkAccountReviewAcknowledgements,
-  mockLinkAccountReviewAcknowledgementsMultiple,
   OnboardingFlowTemplate,
 } from './story-utils';
 
@@ -161,156 +158,6 @@ export const Approved: Story = {
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
-  },
-};
-
-/**
- * **Approved with Link Account**
- *
- * Client application has been fully approved with the link bank account
- * step enabled. User sees success status and can proceed to link their
- * bank account.
- */
-export const ApprovedWithLinkAccount: Story = {
-  parameters: {
-    msw: {
-      handlers: createOnboardingFlowHandlers({
-        client: mockClientApproved,
-        clientId: DEFAULT_CLIENT_ID,
-      }),
-    },
-  },
-  args: {
-    ...commonArgs,
-    clientId: DEFAULT_CLIENT_ID,
-    showLinkAccountStep: true,
-  },
-};
-
-/**
- * **Approved with link account — editable prefill**
- *
- * Host supplies partial bank fields; user completes the form and submits.
- */
-export const ApprovedWithLinkAccountPrefillEditable: Story = {
-  parameters: {
-    msw: {
-      handlers: createOnboardingFlowHandlers({
-        client: mockClientApproved,
-        clientId: DEFAULT_CLIENT_ID,
-      }),
-    },
-  },
-  args: {
-    ...commonArgs,
-    clientId: DEFAULT_CLIENT_ID,
-    showLinkAccountStep: true,
-    linkAccountStepOptions: {
-      completionMode: 'editable',
-      initialValues: mockLinkAccountPrefillEditable,
-    },
-  },
-};
-
-/**
- * **Approved with link account — review-only prefill**
- *
- * Host supplies full details; user confirms to POST the linked account.
- */
-export const ApprovedWithLinkAccountPrefillReadonly: Story = {
-  parameters: {
-    msw: {
-      handlers: createOnboardingFlowHandlers({
-        client: mockClientApproved,
-        clientId: DEFAULT_CLIENT_ID,
-      }),
-    },
-  },
-  args: {
-    ...commonArgs,
-    clientId: DEFAULT_CLIENT_ID,
-    showLinkAccountStep: true,
-    linkAccountStepOptions: {
-      completionMode: 'readonly',
-      initialValues: mockLinkAccountPrefillReadonly,
-    },
-  },
-};
-
-/**
- * **Approved with link account — review-only + legal acknowledgements**
- *
- * Same as review-only prefill, with optional checkbox agreements above confirm (T&C-style copy).
- */
-export const ApprovedWithLinkAccountPrefillReadonlyAcknowledgements: Story = {
-  parameters: {
-    msw: {
-      handlers: createOnboardingFlowHandlers({
-        client: mockClientApproved,
-        clientId: DEFAULT_CLIENT_ID,
-      }),
-    },
-  },
-  args: {
-    ...commonArgs,
-    clientId: DEFAULT_CLIENT_ID,
-    showLinkAccountStep: true,
-    linkAccountStepOptions: {
-      completionMode: 'readonly',
-      initialValues: mockLinkAccountPrefillReadonly,
-      reviewAcknowledgements: mockLinkAccountReviewAcknowledgements,
-    },
-  },
-};
-
-/**
- * **Approved with link account — review-only + multiple acknowledgements**
- *
- * Two (or more) checkbox rows above confirm; every row must be checked before **Confirm and link account** enables.
- */
-export const ApprovedWithLinkAccountPrefillReadonlyMultipleAcknowledgements: Story =
-  {
-    parameters: {
-      msw: {
-        handlers: createOnboardingFlowHandlers({
-          client: mockClientApproved,
-          clientId: DEFAULT_CLIENT_ID,
-        }),
-      },
-    },
-    args: {
-      ...commonArgs,
-      clientId: DEFAULT_CLIENT_ID,
-      showLinkAccountStep: true,
-      linkAccountStepOptions: {
-        completionMode: 'readonly',
-        initialValues: mockLinkAccountPrefillReadonly,
-        reviewAcknowledgements: mockLinkAccountReviewAcknowledgementsMultiple,
-      },
-    },
-  };
-
-/**
- * **Approved with Existing Linked Account**
- *
- * Client application has been approved and already has a linked bank account.
- * The link account step is marked as completed in the sidebar, and clicking
- * into it shows the existing account details instead of the creation form.
- */
-export const ApprovedWithExistingLinkedAccount: Story = {
-  parameters: {
-    msw: {
-      handlers: createOnboardingFlowHandlers({
-        client: mockClientApproved,
-        clientId: DEFAULT_CLIENT_ID,
-        existingLinkedAccounts: [mockExistingLinkedAccount],
-      }),
-    },
-  },
-  args: {
-    ...commonArgs,
-    clientId: DEFAULT_CLIENT_ID,
-    showLinkAccountStep: true,
   },
 };
 
