@@ -146,12 +146,14 @@ export function LinkAccountPrefillSummaryView({
           >
             {accountHolderLabel}
           </Label>
-          <div
+          <Input
             id="eb-prefill-account-holder"
-            className="eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-px-3 eb-py-2 eb-text-sm"
-          >
-            {accountHolderName || '—'}
-          </div>
+            value={accountHolderName || '—'}
+            readOnly
+            disabled
+            className="eb-bg-muted/50"
+            aria-readonly
+          />
         </div>
 
         <div className="eb-grid eb-grid-cols-1 eb-gap-4 md:eb-grid-cols-2">

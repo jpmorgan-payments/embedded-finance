@@ -281,18 +281,67 @@ const IndividualReadonlyField: FC<IndividualReadonlyFieldProps> = ({
   return (
     <FormItem>
       <FormLabel>{t('individualSelector.accountHolder')}</FormLabel>
-      <div className="eb-rounded-md eb-border eb-bg-muted eb-p-3 eb-text-sm">
-        <div className="eb-flex eb-flex-col eb-gap-1">
-          <span className="eb-font-medium">
-            {individual.firstName} {individual.lastName}
-          </span>
-          {individual.roles.length > 0 && (
-            <span className="eb-text-xs">
-              {individual.roles.map(formatRole).join(', ')}
-            </span>
-          )}
-        </div>
-      </div>
+      <Input
+        value={`${individual.firstName} ${individual.lastName}`.trim()}
+        readOnly
+        disabled
+        className="eb-bg-muted/50"
+        aria-readonly
+      />
+      {individual.roles.length > 0 ? (
+        <span className="eb-block eb-text-xs eb-text-muted-foreground">
+          {individual.roles.map(formatRole).join(', ')}
+        </span>
+      ) : null}
+    </FormItem>
+  );
+};
+
+/**
+ * Multiple individuals on the client, but party name fields are locked — match disabled
+ * bank inputs (same as prefill summary / routing fields).
+ */
+interface IndividualPartyLockedFieldProps {
+  individuals: Array<{
+    id: string | undefined;
+    firstName: string;
+    lastName: string;
+    roles: string[];
+  }>;
+  selectedFirstName: string | undefined;
+  selectedLastName: string | undefined;
+}
+
+const IndividualPartyLockedField: FC<IndividualPartyLockedFieldProps> = ({
+  individuals,
+  selectedFirstName,
+  selectedLastName,
+}) => {
+  const { t } = useTranslationWithTokens('bank-account-form');
+  const selected = individuals.find(
+    (p) =>
+      p.firstName === selectedFirstName && p.lastName === selectedLastName
+  );
+  const displayIndividual = selected ?? individuals[0];
+  const displayName = displayIndividual
+    ? `${displayIndividual.firstName} ${displayIndividual.lastName}`.trim()
+    : '';
+
+  return (
+    <FormItem>
+      <FormLabel>{t('individualSelector.accountHolder')}</FormLabel>
+      <Input
+        value={displayName}
+        readOnly
+        disabled
+        className="eb-bg-muted/50"
+        aria-readonly
+      />
+      {displayIndividual?.roles.length ? (
+        <span className="eb-block eb-text-xs eb-text-muted-foreground">
+          {displayIndividual.roles.map(formatRole).join(', ')}
+        </span>
+      ) : null}
     </FormItem>
   );
 };
@@ -1339,6 +1388,13 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                         {individualParties.length === 1 ? (
                           <IndividualReadonlyField
                             individual={individualParties[0]}
+                          />
+                        ) : effectiveConfig.readonlyFields?.firstName &&
+                          effectiveConfig.readonlyFields?.lastName ? (
+                          <IndividualPartyLockedField
+                            individuals={individualParties}
+                            selectedFirstName={form.watch('firstName')}
+                            selectedLastName={form.watch('lastName')}
                           />
                         ) : (
                           <IndividualSelector

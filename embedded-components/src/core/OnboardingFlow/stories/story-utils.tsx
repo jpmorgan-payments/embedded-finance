@@ -8,7 +8,7 @@ import { efClientCorpEBMockNoIndustry } from '@/mocks/efClientCorpEBNoIndustry.m
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
 import { efOrganizationDocumentRequestDetails } from '@/mocks/efOrganizationDocumentRequestDetails.mock';
-import { db, verifyMicrodeposit } from '@/msw/db';
+import { db, resetDb, verifyMicrodeposit } from '@/msw/db';
 import { http, HttpResponse } from 'msw';
 
 import type {
@@ -541,6 +541,16 @@ export function buildApprovedClientLinkAccountStory(options?: {
 }) {
   const { linkAccountStepOptions, handlerOptions } = options ?? {};
   return {
+    /**
+     * Reset MSW db on story selection so linked-account rows from a previous story
+     * (e.g. PENDING) are not reused — {@link ensureOnboardingLinkedRecipientInDb} only inserts.
+     */
+    loaders: [
+      async () => {
+        resetDb();
+        return {};
+      },
+    ],
     parameters: {
       msw: {
         handlers: createOnboardingFlowHandlers({

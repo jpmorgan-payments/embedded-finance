@@ -31,6 +31,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui';
+import { Skeleton } from '@/components/ui/skeleton';
 import { StepLayout } from '@/core/OnboardingFlow/components';
 import {
   useFlowContext,
@@ -103,14 +104,15 @@ export const OverviewScreen = () => {
 
   // Linked accounts (Overview bank section): summary card + status; same Verify CTA as LinkAccountScreen
   // when READY_FOR_VALIDATION. See Docs.mdx / stories/linked-account/README.md.
-  const { data: recipientsData } = useGetAllRecipients(
-    { type: 'LINKED_ACCOUNT' },
-    {
-      query: {
-        enabled: !!showLinkAccountStep,
-      },
-    }
-  );
+  const { data: recipientsData, isLoading: isLoadingLinkedRecipients } =
+    useGetAllRecipients(
+      { type: 'LINKED_ACCOUNT' },
+      {
+        query: {
+          enabled: !!showLinkAccountStep,
+        },
+      }
+    );
 
   const existingLinkedAccount: Recipient | undefined =
     recipientsData?.recipients?.find(
@@ -481,7 +483,12 @@ export const OverviewScreen = () => {
             </CardHeader>
             <CardContent className="eb-p-3 eb-pt-0">
               <div className="eb-space-y-3">
-                {existingLinkedAccount ? (
+                {isLoadingLinkedRecipients ? (
+                  <div className="eb-space-y-3 eb-pt-1">
+                    <Skeleton className="eb-h-5 eb-w-full eb-max-w-xs" />
+                    <Skeleton className="eb-h-28 eb-w-full eb-rounded-md" />
+                  </div>
+                ) : existingLinkedAccount ? (
                   <RecipientAccountDisplayCard
                     recipient={existingLinkedAccount}
                     statusAlert={
