@@ -4,7 +4,6 @@ import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 
 import { cn } from '@/lib/utils';
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
@@ -198,8 +197,6 @@ const FlowRenderer: React.FC = React.memo(() => {
     currentScreenId
   );
 
-  const isMobile = useIsMobile();
-
   // Fetch existing linked accounts to determine sidebar status
   const { data: recipientsData } = useGetAllRecipients(
     { type: 'LINKED_ACCOUNT' },
@@ -293,12 +290,12 @@ const FlowRenderer: React.FC = React.memo(() => {
 
   return (
     <div
-      className="eb-flex eb-flex-1 eb-scroll-mt-44 eb-gap-6 sm:eb-scroll-mt-48"
+      className="eb-flex eb-flex-1 eb-scroll-mt-44 eb-gap-6 eb-@container sm:eb-scroll-mt-48"
       ref={mainRef}
       key={clientData?.id}
     >
-      {!isMobile && !hideSidebar && (
-        <div className="eb-shrink-0">
+      {!hideSidebar && (
+        <div className="eb-hidden eb-shrink-0 @3xl:eb-block">
           <OnboardingTimeline
             className="eb-w-64 eb-rounded-lg eb-border eb-py-2 eb-shadow-sm lg:eb-w-80"
             title={t('onboarding-overview:documentUpload.onboardingProgress')}
