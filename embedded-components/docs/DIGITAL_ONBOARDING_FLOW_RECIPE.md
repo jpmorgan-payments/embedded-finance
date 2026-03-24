@@ -201,7 +201,7 @@ These represent the core data collection areas, displayed on the `OverviewScreen
 ### Session Data
 
 - Managed by `FlowProvider` (`sessionData`, `updateSessionData`).
-- Used for temporary state or flags specific to the current onboarding session that might not be directly part of the `clientData` API response (e.g., `isOwnersSectionDone`, `mockedVerifyingSectionId`, `mockedKycCompleted`).
+- Used for temporary state or flags specific to the current onboarding session that might not be directly part of the `clientData` API response (e.g., `isOwnersSectionDone`, `mockedVerifyingSectionId`).
 - `statusResolver` functions can use `sessionData` alongside `clientData` to determine section status.
 
 ### Context Propagation
