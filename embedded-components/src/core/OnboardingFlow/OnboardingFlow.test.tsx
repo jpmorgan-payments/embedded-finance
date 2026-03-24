@@ -417,13 +417,13 @@ describe('OnboardingFlow', () => {
     await user.type(phoneInput, '2012345678');
     const addressInput = screen.getByLabelText(/Address line 1/i);
     await user.type(addressInput, '123 Main St');
-    const cityInput = screen.getByLabelText(/Town \/ City/i);
+    const cityInput = screen.getByLabelText(/City \/ Town/i);
     await user.type(cityInput, 'Anytown');
     const stateDropdown = screen.getByLabelText(/State/i);
     await user.click(stateDropdown);
     const stateOption = screen.getByRole('option', { name: /New Jersey/i });
     await user.click(stateOption);
-    const zipInput = screen.getByLabelText(/Postal code/i);
+    const zipInput = screen.getByLabelText(/ZIP code/i);
     await user.type(zipInput, '12345');
     // Proceed to next step
     const continueButton3 = screen.getByRole('button', { name: /continue/i });
@@ -509,7 +509,7 @@ describe('OnboardingFlow', () => {
     await user.type(businessPhoneInput, '2012345678');
     const businessAddressInput = screen.getByLabelText(/Address line 1/i);
     await user.type(businessAddressInput, '456 Business Rd');
-    const businessCityInput = screen.getByLabelText(/Town \/ City/i);
+    const businessCityInput = screen.getByLabelText(/City \/ Town/i);
     await user.type(businessCityInput, 'Business City');
     const businessStateDropdown = screen.getByLabelText(/State/i);
     await user.click(businessStateDropdown);
@@ -517,7 +517,7 @@ describe('OnboardingFlow', () => {
       name: /California/i,
     });
     await user.click(businessStateOption);
-    const businessZipInput = screen.getByLabelText(/Postal code/i);
+    const businessZipInput = screen.getByLabelText(/ZIP code/i);
     await user.type(businessZipInput, '67890');
     // Proceed to next step
     const continueButton7 = screen.getByRole('button', { name: /continue/i });
@@ -618,13 +618,13 @@ describe('OnboardingFlow', () => {
     await user.type(ownerPhoneInput, '3012345678');
     const ownerAddressInput = screen.getByLabelText(/Address line 1/i);
     await user.type(ownerAddressInput, '789 Owner St');
-    const ownerCityInput = screen.getByLabelText(/Town \/ City/i);
+    const ownerCityInput = screen.getByLabelText(/City \/ Town/i);
     await user.type(ownerCityInput, 'Ownerville');
     const ownerStateDropdown = screen.getByLabelText(/State/i);
     await user.click(ownerStateDropdown);
     const ownerStateOption = screen.getByRole('option', { name: /Florida/i });
     await user.click(ownerStateOption);
-    const ownerZipInput = screen.getByLabelText(/Postal code/i);
+    const ownerZipInput = screen.getByLabelText(/ZIP code/i);
     await user.type(ownerZipInput, '54321');
     const ownerAddressContinueButton = screen.getByRole('button', {
       name: /continue/i,
@@ -737,8 +737,10 @@ describe('OnboardingFlow', () => {
     );
 
     // Country of Residence should be present and readonly (locked to US for sole prop)
-    // When readonly, the field renders as plain text instead of a combobox
-    expect(screen.getByText(/United States/i)).toBeInTheDocument();
+    // When readonly, the field renders as plain text instead of a combobox.
+    // Multiple elements may contain "United States" (e.g. the field label + jurisdiction info).
+    const usTexts = screen.getAllByText(/United States/i);
+    expect(usTexts.length).toBeGreaterThanOrEqual(1);
   }, 60000);
 
   test('non-US country of residence defaults ID type to ITIN', async () => {
@@ -805,14 +807,15 @@ describe('OnboardingFlow', () => {
       { timeout: 5000 }
     );
 
-    // Change country to Canada
+    // Change country to Canada — click combobox button to open popover
     const countryOfResidenceCombobox = screen.getByRole('combobox', {
       name: /Country of residence/i,
     });
     await user.click(countryOfResidenceCombobox);
-    await user.clear(countryOfResidenceCombobox);
-    await user.type(countryOfResidenceCombobox, 'Canada');
-    const canadaOption = screen.getByRole('option', { name: /Canada/i });
+    // Wait for the popover options to render, then select Canada
+    const canadaOption = await screen.findByRole('option', {
+      name: /Canada/i,
+    });
     await user.click(canadaOption);
 
     // Fill out minimal personal details to proceed
