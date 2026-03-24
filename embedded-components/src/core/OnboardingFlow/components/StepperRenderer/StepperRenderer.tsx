@@ -425,10 +425,12 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
   } else {
     // No controllerIds from saved values or API response — generate a
     // default entry so the identity form starts with the correct issuer.
+    // Non-US residents default to ITIN since Controllers/BOs still need
+    // a US tax ID even when residing abroad.
     const isUS = resolvedCountry === 'US';
     overrideDefaultValues.controllerIds = [
       {
-        idType: isUS ? 'SSN' : 'PASSPORT',
+        idType: isUS ? 'SSN' : 'ITIN',
         issuer: resolvedCountry,
         value: '',
       },

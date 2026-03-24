@@ -686,4 +686,248 @@ describe('OnboardingFlow', () => {
     );
     await user.click(attestCheckbox);
   }, 90000);
+
+  test('sole proprietorship enforces US-only country of residence', async () => {
+    const user = userEvent.setup();
+
+    renderOnboardingFlow();
+
+    // === GATEWAY: Select Sole Proprietorship ===
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Select your general business type/i)
+      ).toBeInTheDocument();
+    });
+
+    const solePropOption = screen.getByRole('radio', {
+      name: /Sole proprietorship/i,
+    });
+    await user.click(solePropOption);
+
+    // Click "Get Started"
+    await waitFor(
+      () => {
+        const getStartedButton = screen.getByRole('button', {
+          name: /get started/i,
+        });
+        expect(getStartedButton).toBeInTheDocument();
+        return user.click(getStartedButton);
+      },
+      { timeout: 10000 }
+    );
+
+    // === OVERVIEW ===
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Overview/i)).toBeInTheDocument();
+      },
+      { timeout: 10000 }
+    );
+
+    // Navigate to Personal Details section
+    const personalDetailsButton = screen.getByTestId('personal-section-button');
+    await user.click(personalDetailsButton);
+
+    // 3a. Personal Details Form
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Your personal details/i)).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+
+    // Country of Residence should be present and disabled (locked to US)
+    const countryOfResidenceInput = screen.getByRole('combobox', {
+      name: /Country of residence/i,
+    });
+    expect(countryOfResidenceInput).toBeDisabled();
+    // The value should be US
+    expect(countryOfResidenceInput).toHaveValue('US');
+  }, 60000);
+
+  test('non-US country of residence defaults ID type to ITIN', async () => {
+    const user = userEvent.setup();
+
+    renderOnboardingFlow();
+
+    // === GATEWAY: Select LLC ===
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Select your general business type/i)
+      ).toBeInTheDocument();
+    });
+
+    const registeredBusinessOption = screen.getByRole('radio', {
+      name: /Registered business/i,
+    });
+    await user.click(registeredBusinessOption);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Select the specific legal structure/i)
+      ).toBeInTheDocument();
+    });
+
+    const legalStructureDropdown = screen.getByLabelText(
+      /Select the specific legal structure/i
+    );
+    await user.click(legalStructureDropdown);
+
+    const llcOption = screen.getByRole('option', {
+      name: /Limited Liability Company \(LLC\)/i,
+    });
+    await user.click(llcOption);
+
+    await waitFor(
+      () => {
+        const getStartedButton = screen.getByRole('button', {
+          name: /get started/i,
+        });
+        expect(getStartedButton).toBeInTheDocument();
+        return user.click(getStartedButton);
+      },
+      { timeout: 10000 }
+    );
+
+    // === OVERVIEW ===
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Overview/i)).toBeInTheDocument();
+      },
+      { timeout: 10000 }
+    );
+
+    // Navigate to Personal Details section
+    const personalDetailsButton = screen.getByTestId('personal-section-button');
+    await user.click(personalDetailsButton);
+
+    // 3a. Personal Details Form — select Canada as country of residence
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Your personal details/i)).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+
+    // Change country to Canada
+    const countryOfResidenceCombobox = screen.getByRole('combobox', {
+      name: /Country of residence/i,
+    });
+    await user.click(countryOfResidenceCombobox);
+    await user.clear(countryOfResidenceCombobox);
+    await user.type(countryOfResidenceCombobox, 'Canada');
+    const canadaOption = screen.getByRole('option', { name: /Canada/i });
+    await user.click(canadaOption);
+
+    // Fill out minimal personal details to proceed
+    const firstNameInput = screen.getByLabelText(/First name/i);
+    await user.type(firstNameInput, 'Alice');
+    const lastNameInput = screen.getByLabelText(/Last name/i);
+    await user.type(lastNameInput, 'Maple');
+    const jobTitleDropdown = screen.getByLabelText(/Job title/i);
+    await user.click(jobTitleDropdown);
+    const jobTitleOption = screen.getByRole('option', { name: /CEO/i });
+    await user.click(jobTitleOption);
+    // Submit personal details
+    const continueButton = screen.getByRole('button', { name: /continue/i });
+    await user.click(continueButton);
+
+    // 3b. Identity Document step — should show ITIN as default
+    await waitFor(() => {
+      expect(screen.getByText(/Your ID details/i)).toBeInTheDocument();
+    });
+
+    // The default ID field should be labeled ITIN
+    expect(
+      screen.getByLabelText(/Individual Taxpayer Identification Number/i)
+    ).toBeInTheDocument();
+  }, 90000);
+
+  test('switching back to US reverts default ID type to SSN', async () => {
+    const user = userEvent.setup();
+
+    renderOnboardingFlow();
+
+    // === GATEWAY: Select LLC ===
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Select your general business type/i)
+      ).toBeInTheDocument();
+    });
+
+    const registeredBusinessOption = screen.getByRole('radio', {
+      name: /Registered business/i,
+    });
+    await user.click(registeredBusinessOption);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Select the specific legal structure/i)
+      ).toBeInTheDocument();
+    });
+
+    const legalStructureDropdown = screen.getByLabelText(
+      /Select the specific legal structure/i
+    );
+    await user.click(legalStructureDropdown);
+
+    const llcOption = screen.getByRole('option', {
+      name: /Limited Liability Company \(LLC\)/i,
+    });
+    await user.click(llcOption);
+
+    await waitFor(
+      () => {
+        const getStartedButton = screen.getByRole('button', {
+          name: /get started/i,
+        });
+        expect(getStartedButton).toBeInTheDocument();
+        return user.click(getStartedButton);
+      },
+      { timeout: 10000 }
+    );
+
+    // === OVERVIEW ===
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Overview/i)).toBeInTheDocument();
+      },
+      { timeout: 10000 }
+    );
+
+    // Navigate to Personal Details section
+    const personalDetailsButton = screen.getByTestId('personal-section-button');
+    await user.click(personalDetailsButton);
+
+    // 3a. Personal Details Form — keep US (default)
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Your personal details/i)).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+
+    // Fill out minimal personal details with US country (default)
+    const firstNameInput = screen.getByLabelText(/First name/i);
+    await user.type(firstNameInput, 'Bob');
+    const lastNameInput = screen.getByLabelText(/Last name/i);
+    await user.type(lastNameInput, 'Smith');
+    const jobTitleDropdown = screen.getByLabelText(/Job title/i);
+    await user.click(jobTitleDropdown);
+    const jobTitleOption = screen.getByRole('option', { name: /CEO/i });
+    await user.click(jobTitleOption);
+    // Submit personal details
+    const continueButton = screen.getByRole('button', { name: /continue/i });
+    await user.click(continueButton);
+
+    // 3b. Identity Document step — should show SSN as default for US resident
+    await waitFor(() => {
+      expect(screen.getByText(/Your ID details/i)).toBeInTheDocument();
+    });
+
+    // The default ID field should be SSN
+    expect(
+      screen.getByLabelText(/Social Security Number/i)
+    ).toBeInTheDocument();
+  }, 90000);
 });

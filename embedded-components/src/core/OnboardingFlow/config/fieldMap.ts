@@ -547,6 +547,17 @@ export const partyFieldMap: PartyFieldMap = {
   countryOfResidence: {
     path: 'individualDetails.countryOfResidence',
     baseRule: { display: 'visible', required: true, defaultValue: 'US' },
+    conditionalRules: [
+      {
+        condition: {
+          entityType: ['SOLE_PROPRIETORSHIP'],
+        },
+        rule: {
+          interaction: 'disabled',
+          defaultValue: 'US',
+        },
+      },
+    ],
     toStringFn: (val) => `${i18n.t(`common:countries.${val}`)} (${val})`,
   },
   controllerFirstName: {

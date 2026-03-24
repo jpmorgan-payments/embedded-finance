@@ -38,6 +38,7 @@ export const IndividualIdentityForm: FormStepComponent = () => {
 
   const US_ID_TYPES: IndividualIdentityIdType[] = ['SSN', 'ITIN'];
   const NON_US_ID_TYPES: IndividualIdentityIdType[] = [
+    'ITIN',
     'PASSPORT',
     'NATIONAL_ID',
     'DRIVERS_LICENSE',
@@ -62,7 +63,11 @@ export const IndividualIdentityForm: FormStepComponent = () => {
   const currentIdType = form.watch('controllerIds.0.idType');
   const isSsnOrItin = ['SSN', 'ITIN'].includes(currentIdType);
 
-  // Reset ID type when switching between US and non-US
+  // Reset ID type when switching between US and non-US.
+  // Non-US defaults to ITIN (Individual Taxpayer Identification Number)
+  // since Controllers/BOs still need a US tax ID even when residing abroad.
+  // Only resets if the current type isn't available in the target list,
+  // so manually-selected shared types (e.g. ITIN) are preserved.
   useEffect(() => {
     const currentType = form.getValues(
       'controllerIds.0.idType'
@@ -70,8 +75,8 @@ export const IndividualIdentityForm: FormStepComponent = () => {
     if (isUS && !US_ID_TYPES.includes(currentType)) {
       form.setValue('controllerIds.0.idType', 'SSN');
       form.setValue('controllerIds.0.value', '');
-    } else if (!isUS && US_ID_TYPES.includes(currentType)) {
-      form.setValue('controllerIds.0.idType', 'PASSPORT');
+    } else if (!isUS && !NON_US_ID_TYPES.includes(currentType)) {
+      form.setValue('controllerIds.0.idType', 'ITIN');
       form.setValue('controllerIds.0.value', '');
     }
   }, [isUS]);
