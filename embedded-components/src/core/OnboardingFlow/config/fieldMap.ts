@@ -311,6 +311,7 @@ export const partyFieldMap: PartyFieldMap = {
         },
         rule: {
           display: 'visible',
+          required: true,
         },
       },
     ],
