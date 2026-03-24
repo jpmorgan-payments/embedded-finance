@@ -476,7 +476,10 @@
     "countryOfResidence": {
       "label": "Country of residence",
       "tooltip": "",
-      "description": "Please select your current country of residence",
+      "description": {
+        "default": "Please select your current country of residence",
+        "soleProp": "As a sole proprietor, your country of residence is set to the United States"
+      },
       "validation": {
         "required": "$t(validation:required)",
         "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})",

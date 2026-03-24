@@ -553,8 +553,9 @@ export const partyFieldMap: PartyFieldMap = {
           entityType: ['SOLE_PROPRIETORSHIP'],
         },
         rule: {
-          interaction: 'disabled',
+          interaction: 'readonly',
           defaultValue: 'US',
+          contentTokenOverrideKey: 'soleProp',
         },
       },
     ],

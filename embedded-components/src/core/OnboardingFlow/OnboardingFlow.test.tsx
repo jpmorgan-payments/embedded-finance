@@ -736,13 +736,9 @@ describe('OnboardingFlow', () => {
       { timeout: 5000 }
     );
 
-    // Country of Residence should be present and disabled (locked to US)
-    const countryOfResidenceInput = screen.getByRole('combobox', {
-      name: /Country of residence/i,
-    });
-    expect(countryOfResidenceInput).toBeDisabled();
-    // The value should be US
-    expect(countryOfResidenceInput).toHaveValue('US');
+    // Country of Residence should be present and readonly (locked to US for sole prop)
+    // When readonly, the field renders as plain text instead of a combobox
+    expect(screen.getByText(/United States/i)).toBeInTheDocument();
   }, 60000);
 
   test('non-US country of residence defaults ID type to ITIN', async () => {
