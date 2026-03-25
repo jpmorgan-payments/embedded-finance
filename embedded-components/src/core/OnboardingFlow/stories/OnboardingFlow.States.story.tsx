@@ -2,6 +2,7 @@
  * OnboardingFlow - Client States
  *
  * Stories demonstrating different client statuses and loading/error states.
+ * Each story seeds the MSW db via `loaders` so all CRUD operations work.
  */
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -22,6 +23,7 @@ import {
   mockClientNew,
   mockExistingLinkedAccount,
   OnboardingFlowTemplate,
+  resetAndSeedClient,
 } from './story-utils';
 
 type OnboardingFlowStoryArgs = OnboardingFlowProps & BaseStoryArgs;
@@ -71,14 +73,7 @@ export const NewNoClientId: Story = {
  * Shows existing data pre-filled in forms.
  */
 export const NewWithClientId: Story = {
-  parameters: {
-    msw: {
-      handlers: createOnboardingFlowHandlers({
-        client: mockClientNew,
-        clientId: DEFAULT_CLIENT_ID,
-      }),
-    },
-  },
+  loaders: [() => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID)],
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
@@ -96,14 +91,7 @@ export const NewWithClientId: Story = {
  * User sees a status screen indicating review is in progress.
  */
 export const ReviewInProgress: Story = {
-  parameters: {
-    msw: {
-      handlers: createOnboardingFlowHandlers({
-        client: mockClientInReview,
-        clientId: DEFAULT_CLIENT_ID,
-      }),
-    },
-  },
+  loaders: [() => resetAndSeedClient(mockClientInReview, DEFAULT_CLIENT_ID)],
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
@@ -121,14 +109,9 @@ export const ReviewInProgress: Story = {
  * User sees outstanding requirements and can upload documents.
  */
 export const InformationRequested: Story = {
-  parameters: {
-    msw: {
-      handlers: createOnboardingFlowHandlers({
-        client: mockClientInfoRequested,
-        clientId: DEFAULT_CLIENT_ID,
-      }),
-    },
-  },
+  loaders: [
+    () => resetAndSeedClient(mockClientInfoRequested, DEFAULT_CLIENT_ID),
+  ],
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
@@ -146,14 +129,7 @@ export const InformationRequested: Story = {
  * User sees success status and next steps.
  */
 export const Approved: Story = {
-  parameters: {
-    msw: {
-      handlers: createOnboardingFlowHandlers({
-        client: mockClientApproved,
-        clientId: DEFAULT_CLIENT_ID,
-      }),
-    },
-  },
+  loaders: [() => resetAndSeedClient(mockClientApproved, DEFAULT_CLIENT_ID)],
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
@@ -168,14 +144,7 @@ export const Approved: Story = {
  * bank account.
  */
 export const ApprovedWithLinkAccount: Story = {
-  parameters: {
-    msw: {
-      handlers: createOnboardingFlowHandlers({
-        client: mockClientApproved,
-        clientId: DEFAULT_CLIENT_ID,
-      }),
-    },
-  },
+  loaders: [() => resetAndSeedClient(mockClientApproved, DEFAULT_CLIENT_ID)],
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
@@ -191,11 +160,10 @@ export const ApprovedWithLinkAccount: Story = {
  * into it shows the existing account details instead of the creation form.
  */
 export const ApprovedWithExistingLinkedAccount: Story = {
+  loaders: [() => resetAndSeedClient(mockClientApproved, DEFAULT_CLIENT_ID)],
   parameters: {
     msw: {
       handlers: createOnboardingFlowHandlers({
-        client: mockClientApproved,
-        clientId: DEFAULT_CLIENT_ID,
         existingLinkedAccounts: [mockExistingLinkedAccount],
       }),
     },
@@ -218,14 +186,7 @@ export const ApprovedWithExistingLinkedAccount: Story = {
  * User sees declined status with relevant messaging.
  */
 export const Declined: Story = {
-  parameters: {
-    msw: {
-      handlers: createOnboardingFlowHandlers({
-        client: mockClientDeclined,
-        clientId: DEFAULT_CLIENT_ID,
-      }),
-    },
-  },
+  loaders: [() => resetAndSeedClient(mockClientDeclined, DEFAULT_CLIENT_ID)],
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,

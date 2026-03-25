@@ -349,6 +349,54 @@ export const handlers = [
     return HttpResponse.json(updatedParty);
   }),
 
+  http.get('/parties/:partyId', ({ params }) => {
+    const { partyId } = params;
+    const party = db.party.findFirst({
+      where: { id: { equals: partyId } },
+    });
+
+    if (!party) {
+      return new HttpResponse(null, { status: 404 });
+    }
+
+    return HttpResponse.json(party);
+  }),
+
+  http.patch('/parties/:partyId', async ({ request, params }) => {
+    const { partyId } = params;
+    const data = await request.json();
+
+    const existingParty = db.party.findFirst({
+      where: { id: { equals: partyId } },
+    });
+
+    if (!existingParty) {
+      return new HttpResponse(null, { status: 404 });
+    }
+
+    db.party.delete({
+      where: { id: { equals: partyId } },
+    });
+
+    const { roles: newRoles, ...restData } = data;
+    const { roles: existingRoles, ...restExisting } = existingParty;
+
+    const mergedData = merge({}, restExisting, restData);
+
+    const finalData = {
+      ...mergedData,
+      roles: newRoles || existingRoles,
+    };
+
+    const updatedParty = db.party.create({
+      ...finalData,
+      id: partyId,
+    });
+
+    logDbState('Party PATCH Update');
+    return HttpResponse.json(updatedParty);
+  }),
+
   http.get('/questions', (req) => {
     const url = new URL(req.request.url);
     const questionIds = url.searchParams.get('questionIds');
