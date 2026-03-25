@@ -21,7 +21,15 @@ import { Toaster } from '@/components/ui/sonner';
 import { EBConfig } from './config.types';
 import { convertThemeToCssString } from './convert-theme-to-css-variables';
 
-const queryClient = new QueryClient();
+// Shared QueryClient — kept as a singleton to preserve cache across renders.
+const queryClient: QueryClient = (() => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const g = globalThis as any;
+  if (g.__EB_QUERY_CLIENT__) return g.__EB_QUERY_CLIENT__ as QueryClient;
+  const client = new QueryClient();
+  g.__EB_QUERY_CLIENT__ = client;
+  return client;
+})();
 
 const ContentTokensContext = createContext<
   EBConfig['contentTokens'] | undefined

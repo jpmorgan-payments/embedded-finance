@@ -156,32 +156,40 @@ function MswStatusIndicator() {
 // MSW Initialization
 // ============================================================================
 
-// Prevents edge cases where the service worker is not ready when the preview is loaded
-const mockWatcher = new Promise<void>((resolve) => {
-  navigator.serviceWorker.addEventListener('message', (event) => {
-    if (event.data.type === 'MOCKING_ENABLED') resolve();
-  });
-});
+// One-time MSW + global listener setup (guarded to run only once).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const g = globalThis as any;
+if (!g.__EB_MSW_INITIALIZED__) {
+  g.__EB_MSW_INITIALIZED__ = true;
 
-// Suppress unhandled promise rejections from MSW service worker
-if (typeof window !== 'undefined') {
-  window.addEventListener('unhandledrejection', (event) => {
-    const error = event.reason;
-    // Suppress MSW deserialization errors
-    if (
-      error?.message?.includes('Cannot read properties of undefined') &&
-      error?.stack?.includes('deserializeRequest')
-    ) {
-      event.preventDefault();
-      return;
-    }
+  // Prevents edge cases where the service worker is not ready when the preview is loaded
+  g.__EB_MOCK_WATCHER__ = new Promise<void>((resolve) => {
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data.type === 'MOCKING_ENABLED') resolve();
+    });
+  });
+
+  // Suppress unhandled promise rejections from MSW service worker
+  if (typeof window !== 'undefined') {
+    window.addEventListener('unhandledrejection', (event) => {
+      const error = event.reason;
+      // Suppress MSW deserialization errors
+      if (
+        error?.message?.includes('Cannot read properties of undefined') &&
+        error?.stack?.includes('deserializeRequest')
+      ) {
+        event.preventDefault();
+        return;
+      }
+    });
+  }
+
+  // Initialize MSW
+  initialize({
+    onUnhandledRequest: 'bypass',
   });
 }
-
-// Initialize MSW
-initialize({
-  onUnhandledRequest: 'bypass',
-});
+const mockWatcher: Promise<void> = g.__EB_MOCK_WATCHER__;
 
 /**
  * Resolves the theme based on themePreset selection.
