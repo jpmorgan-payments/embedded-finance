@@ -202,16 +202,18 @@ export const IndividualIdentityForm: FormStepComponent = () => {
 IndividualIdentityForm.schema = useIndividualIdentityFormSchema;
 IndividualIdentityForm.refineSchemaFn = refineIndividualIdentityFormSchema;
 IndividualIdentityForm.modifyFormValuesBeforeSubmit = (values, partyData) => {
-  const countryOfResidence =
+  const countryFallback =
     partyData?.individualDetails?.countryOfResidence ?? 'US';
   return {
     ...values,
     controllerIds: values.controllerIds?.map((id: Record<string, unknown>) => ({
       ...id,
-      // SSN and ITIN are always US-issued; other ID types use the country of residence
+      // SSN and ITIN are always US-issued; other ID types keep the form's
+      // issuer value (which was seeded from the resolved country in
+      // StepperFormStep).  Fall back to partyData only as a safety net.
       issuer: ['SSN', 'ITIN'].includes(id.idType as string)
         ? 'US'
-        : countryOfResidence,
+        : (id.issuer as string) || countryFallback,
     })),
   };
 };

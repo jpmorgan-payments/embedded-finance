@@ -400,14 +400,15 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
     : {};
 
   // Build overrideDefaultValues from saved context + API response.
-  // Resolve the party's country directly from existingPartyData to ensure
-  // controllerIds.issuer is correct on the very first render of a step.
-  // Fall back to savedFormValues because the React Query cache notification
-  // from the previous step's setQueryData may not have arrived yet, leaving
-  // clientData (and therefore existingPartyData) stale on the first render.
+  // Resolve the party's country so controllerIds.issuer is correct on the
+  // very first render of a step.  savedFormValues is checked FIRST because
+  // it is written synchronously by the previous step's onSubmit, whereas
+  // existingPartyData comes from the React Query cache whose async
+  // invalidation/refetch may not have completed yet — making it stale when
+  // the user just changed countryOfResidence on the prior step.
   const resolvedCountry =
-    existingPartyData?.individualDetails?.countryOfResidence ??
     (savedFormValues?.countryOfResidence as string | undefined) ??
+    existingPartyData?.individualDetails?.countryOfResidence ??
     'US';
   const overrideDefaultValues: Partial<OnboardingFormValuesInitial> = {
     ...savedFormValues,
