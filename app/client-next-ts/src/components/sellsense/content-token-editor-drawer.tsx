@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import type { EBConfig } from '@jpmorgan-payments/embedded-finance-components';
 import { defaultResources } from '@jpmorgan-payments/embedded-finance-components/i18n/config';
 import {
+  Bug,
   Check,
   Copy,
   Eye,
@@ -359,6 +360,7 @@ export function ContentTokenEditorDrawer({
     useState(propSelectedLanguage); // Local state for language
   const [isEditMode, setIsEditMode] = useState(true); // true = click tokens to edit, false = interact with components
   const [showAnnotations, setShowAnnotations] = useState(true); // Toggle annotation overlays
+  const [showDevBadges, setShowDevBadges] = useState(false); // Dev badges (Missing, Hidden, EN, ×N) hidden by default
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importText, setImportText] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
@@ -891,18 +893,25 @@ export function ContentTokenEditorDrawer({
     setTimeout(() => setCopied(false), 2000);
   }, [editedTokens]);
 
-  // Filter tokens by search
+  // Filter tokens by search, then sort off-page tokens to the bottom
   const filteredTokens = useMemo(() => {
-    if (!searchQuery) {
-      return Array.from(matchedTokens.entries());
+    let entries = Array.from(matchedTokens.entries());
+
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      entries = entries.filter(
+        ([key, token]) =>
+          key.toLowerCase().includes(query) ||
+          token.value.toLowerCase().includes(query)
+      );
     }
 
-    const query = searchQuery.toLowerCase();
-    return Array.from(matchedTokens.entries()).filter(
-      ([key, token]) =>
-        key.toLowerCase().includes(query) ||
-        token.value.toLowerCase().includes(query)
-    );
+    // Stable sort: on-page tokens first, off-page tokens last
+    return entries.sort(([, a], [, b]) => {
+      const aOff = a.isOnPage === false ? 1 : 0;
+      const bOff = b.isOnPage === false ? 1 : 0;
+      return aOff - bOff;
+    });
   }, [matchedTokens, searchQuery]);
 
   // Cleanup on drawer close
@@ -987,6 +996,21 @@ export function ContentTokenEditorDrawer({
                 {Object.keys(editedTokens).length} changed
               </span>
             )}
+            <button
+              onClick={() => setShowDevBadges((prev) => !prev)}
+              className={`flex h-5 w-5 items-center justify-center rounded transition-colors ${
+                showDevBadges
+                  ? 'bg-amber-100 text-amber-700'
+                  : 'text-gray-300 hover:bg-gray-100 hover:text-gray-500'
+              }`}
+              title={
+                showDevBadges
+                  ? 'Hide developer badges'
+                  : 'Show developer badges (Missing, Hidden, EN, duplicates)'
+              }
+            >
+              <Bug className="h-3 w-3" />
+            </button>
           </div>
           <Button
             variant="ghost"
@@ -1200,7 +1224,7 @@ export function ContentTokenEditorDrawer({
                             >
                               {key}
                             </span>
-                            {isOffPage && (
+                            {showDevBadges && isOffPage && (
                               <span
                                 className="flex items-center gap-1 rounded bg-gray-200 px-1.5 py-0.5 text-xs text-gray-600"
                                 title="Token is no longer visible on the page (e.g., dialog closed)"
@@ -1208,7 +1232,7 @@ export function ContentTokenEditorDrawer({
                                 🚫 Hidden
                               </span>
                             )}
-                            {isJsonMissing && (
+                            {showDevBadges && isJsonMissing && (
                               <span
                                 className="flex items-center gap-1 rounded bg-red-100 px-1.5 py-0.5 text-xs text-red-700"
                                 title="Token not found in i18n JSON files - showing DOM text"
@@ -1216,7 +1240,7 @@ export function ContentTokenEditorDrawer({
                                 ⚠️ Missing
                               </span>
                             )}
-                            {isFallback && !isJsonMissing && (
+                            {showDevBadges && isFallback && !isJsonMissing && (
                               <span
                                 className="flex items-center gap-1 rounded bg-orange-100 px-1.5 py-0.5 text-xs text-orange-700"
                                 title="Using English default - no translation for this language"
@@ -1225,7 +1249,7 @@ export function ContentTokenEditorDrawer({
                                 EN
                               </span>
                             )}
-                            {isDuplicate && !isOffPage && (
+                            {showDevBadges && isDuplicate && !isOffPage && (
                               <span className="rounded bg-purple-100 px-1.5 py-0.5 text-xs text-purple-700">
                                 ×{token.duplicateCount}
                               </span>
