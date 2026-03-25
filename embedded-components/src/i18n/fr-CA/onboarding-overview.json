@@ -1,4 +1,42 @@
 {
+  "addressLabels": {
+    "city": {
+      "default": "Ville",
+      "US": "Ville",
+      "CA": "Ville",
+      "AU": "Ville / Banlieue",
+      "GB": "Ville",
+      "FR": "Ville"
+    },
+    "state": {
+      "default": "État / Province / Région",
+      "US": "État",
+      "CA": "Province",
+      "AU": "État / Territoire",
+      "GB": "Comté",
+      "FR": "Région"
+    },
+    "postalCode": {
+      "default": "Code postal",
+      "US": "Code ZIP",
+      "AU": "Code postal",
+      "GB": "Code postal"
+    },
+    "placeholder": {
+      "city": {
+        "default": "Entrez la ville"
+      },
+      "state": {
+        "default": "Sélectionnez ou entrez l'état / la province",
+        "US": "Sélectionnez l'état",
+        "CA": "Sélectionnez la province"
+      },
+      "postalCode": {
+        "default": "Entrez le code postal",
+        "US": "Entrez le code ZIP"
+      }
+    }
+  },
   "fetchingClientData": "Fetching client data...",
   "welcomeText": "Welcome!",
   "errors": {
@@ -339,6 +377,15 @@
       "onHoldText": "We'll let you know if any documents are needed"
     }
   },
+  "additionalQuestions": {
+    "validation": {
+      "dateFormat": "Format de date invalide",
+      "required": "Requis",
+      "invalidFormat": "Format invalide",
+      "numberFormat": "Doit être un nombre",
+      "maxItems": "Ne peut pas dépasser {{maxItems}} éléments"
+    }
+  },
   "fields": {
     "controllerFirstName": {
       "label": "First name",
@@ -451,7 +498,10 @@
     "countryOfResidence": {
       "label": "Country of residence",
       "tooltip": "",
-      "description": "Please select your current country of residence",
+      "description": {
+        "default": "Please select your current country of residence",
+        "soleProp": "As a sole proprietor, your country of residence is set to the United States"
+      },
       "validation": {
         "required": "$t(validation:required)",
         "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})",
@@ -470,8 +520,8 @@
     "controllerIds.idType": {
       "label": "ID type",
       "placeholder": "Select ID type",
-      "description": "Type of individual ID",
-      "tooltip": "should match your individual ID type",
+      "description": "Choose the type of government-issued ID you'd like to provide",
+      "tooltip": "",
       "validation": {
         "required": "ID type is required"
       }
@@ -503,7 +553,7 @@
       "label": "Expiry date",
       "placeholder": "YYYY-MM-DD",
       "description": "Date when the individual ID expires",
-      "tooltip": "Date when the individual ID expires",
+      "tooltip": "",
       "validation": {
         "format": "Expiry date must be in 'YYYY-MM-DD' format",
         "invalid": "Invalid date",
@@ -512,10 +562,10 @@
       }
     },
     "controllerIds.issuer": {
-      "label": "Issuer",
+      "label": "Issuing country",
       "placeholder": "Enter issuer",
-      "description": "Organization ID issuer",
-      "tooltip": "should match your business registration documents ID issuer",
+      "description": "Set based on your country of residence",
+      "tooltip": "",
       "validation": {
         "exactlyTwoChars": "Issuer must be a 2-letter country code"
       }
@@ -702,8 +752,8 @@
       }
     },
     "individualAddress.city": {
-      "label": "Town/City",
-      "placeholder": "Enter town/city",
+      "label": "Town / City",
+      "placeholder": "Enter Town / City",
       "description": "Locality, Settlement, etc.",
       "tooltip": "",
       "validation": {
@@ -728,6 +778,8 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 10})",
+        "invalid": "Postal code must be 5 digits or 9 digits (ZIP+4 format)",
         "pattern": "Postal code must be exactly 5 digits"
       }
     },
@@ -780,8 +832,8 @@
       }
     },
     "organizationAddress.city": {
-      "label": "Town/City",
-      "placeholder": "Enter town/city",
+      "label": "Town / City",
+      "placeholder": "Enter Town / City",
       "description": "Locality, Settlement, etc.",
       "tooltip": "",
       "validation": {
@@ -949,9 +1001,9 @@
     "SSN": "E.g. 555-11-0000",
     "ITIN": "E.g. 900-70-0000",
     "NATIONAL_ID": "National ID",
-    "PASSPORT": "Passport",
-    "DRIVERS_LICENSE": "Driver's License",
-    "OTHER_GOVERNMENT_ID": "Other Government ID",
+    "PASSPORT": "Enter your passport number",
+    "DRIVERS_LICENSE": "Enter your driver's license number",
+    "OTHER_GOVERNMENT_ID": "Enter your government-issued ID number",
     "SOCIAL_INSURANCE_NUMBER": "Social Insurance Number (SIN)"
   },
   "organizationTypes": {

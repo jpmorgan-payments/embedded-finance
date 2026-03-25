@@ -36,10 +36,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui';
-import {
-  useFlowContext,
-  useOnboardingContext,
-} from '@/core/OnboardingFlow/contexts';
+import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
 import { StepperStepProps } from '@/core/OnboardingFlow/types/flow.types';
 
 const generateSessionId = () => {
@@ -55,7 +52,6 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
 }) => {
   const queryClient = useQueryClient();
   const { clientData, onPostClientSettled } = useOnboardingContext();
-  const { updateSessionData } = useFlowContext();
 
   const { t } = useTranslationWithTokens('onboarding-old');
 
@@ -196,9 +192,6 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
           { id: clientData.id, data: verificationRequestBody },
           {
             onSuccess: () => {
-              updateSessionData({
-                mockedKycCompleted: true,
-              });
               queryClient.invalidateQueries({
                 queryKey: getSmbdoGetClientQueryKey(clientData.id),
               });
@@ -389,6 +382,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
               {getNextButtonLabel()}
             </Button>
             <Button
+              type="button"
               onClick={handlePrev}
               variant="secondary"
               size="lg"

@@ -37,6 +37,20 @@ describe('ClientDetails', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     server.resetHandlers();
+    // Clean up stale Radix Dialog artifacts from previous tests
+    document
+      .querySelectorAll('[data-radix-portal]')
+      .forEach((el) => el.remove());
+    document.body.style.pointerEvents = '';
+    document.body.removeAttribute('data-scroll-locked');
+  });
+
+  afterEach(() => {
+    document
+      .querySelectorAll('[data-radix-portal]')
+      .forEach((el) => el.remove());
+    document.body.style.pointerEvents = '';
+    document.body.removeAttribute('data-scroll-locked');
   });
 
   describe('Rendering', () => {
@@ -232,7 +246,7 @@ describe('ClientDetails', () => {
     });
 
     test('opens drill-down sheet when section is clicked', async () => {
-      const user = userEvent.setup();
+      const user = userEvent.setup({ pointerEventsCheck: 0 });
 
       server.use(
         http.get('*/clients/:clientId', () =>
@@ -240,7 +254,8 @@ describe('ClientDetails', () => {
         )
       );
 
-      renderComponent({ viewMode: 'summary' });
+      // Use unique clientId to avoid React Query cache pollution from prior tests
+      renderComponent({ viewMode: 'summary', clientId: 'drill-down-test' });
 
       await waitFor(() => {
         expect(screen.getByText('Business Details')).toBeInTheDocument();
@@ -251,9 +266,9 @@ describe('ClientDetails', () => {
         screen.getByRole('button', { name: /Business Details/i })
       );
 
-      // Sheet should open - verify body is locked for scroll (sheet dialog indicator)
+      // Dialog portal should render (outside the aria-hidden container)
       await waitFor(() => {
-        expect(document.body).toHaveAttribute('data-scroll-locked');
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
     });
 

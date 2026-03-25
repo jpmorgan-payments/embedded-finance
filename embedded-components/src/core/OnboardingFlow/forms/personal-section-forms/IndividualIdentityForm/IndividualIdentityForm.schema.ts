@@ -78,15 +78,20 @@ const createControllerIdSchema = (
           v('controllerIds.expiryDate', 'tooFarInFuture')
         )
         .or(z.literal(undefined)),
-      idType: z.enum([
-        'SSN',
-        'ITIN',
-        'NATIONAL_ID',
-        'DRIVERS_LICENSE',
-        'PASSPORT',
-        'SOCIAL_INSURANCE_NUMBER',
-        'OTHER_GOVERNMENT_ID',
-      ]),
+      idType: z
+        .enum([
+          '',
+          'SSN',
+          'ITIN',
+          'NATIONAL_ID',
+          'DRIVERS_LICENSE',
+          'PASSPORT',
+          'SOCIAL_INSURANCE_NUMBER',
+          'OTHER_GOVERNMENT_ID',
+        ])
+        .refine((val) => val !== '', {
+          message: v('controllerIds.idType', 'required'),
+        }),
       issuer: z
         .string()
         .length(2, v('controllerIds.issuer', 'exactlyTwoChars')),
@@ -174,18 +179,36 @@ export const useIndividualIdentityFormSchema = () => {
         },
         v('birthDate', 'tooOld')
       ),
-    countryOfResidence: z
-      .string()
-      .min(1, v('countryOfResidence', 'required'))
-      .length(2, v('countryOfResidence', 'exactlyTwoChars'))
-      .refine((val) => val === 'US', v('countryOfResidence', 'onlyUS')),
-    solePropSsn: z
-      .string()
-      .min(1, v('solePropSsn', 'required'))
-      .refine((val) => isValidSsn(val), v('solePropSsn', 'format')),
+    solePropSsn: z.string(),
     controllerIds: z.array(createControllerIdSchema(v)).refine((ids) => {
       const types = ids?.map((id) => id.idType);
       return new Set(types).size === types?.length;
     }, i18n.t('onboarding-old:fields.controllerIds.validation.uniqueTypes')),
+  });
+};
+
+export const refineIndividualIdentityFormSchema = (
+  schema: z.ZodObject<Record<string, z.ZodType<any>>>
+) => {
+  const v = useGetValidationMessage();
+  return schema.superRefine((data, ctx) => {
+    // Only validate sole prop SSN when the field is present (not hidden by field rules)
+    // and the issuer country is US
+    const issuerCountry = data.controllerIds?.[0]?.issuer;
+    if ('solePropSsn' in data && issuerCountry === 'US') {
+      if (!data.solePropSsn || data.solePropSsn.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: v('solePropSsn', 'required'),
+          path: ['solePropSsn'],
+        });
+      } else if (!isValidSsn(data.solePropSsn)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: v('solePropSsn', 'format'),
+          path: ['solePropSsn'],
+        });
+      }
+    }
   });
 };

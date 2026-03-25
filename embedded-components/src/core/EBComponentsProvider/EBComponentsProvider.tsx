@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ErrorInfo,
 } from 'react';
@@ -20,7 +21,15 @@ import { Toaster } from '@/components/ui/sonner';
 import { EBConfig } from './config.types';
 import { convertThemeToCssString } from './convert-theme-to-css-variables';
 
-const queryClient = new QueryClient();
+// Shared QueryClient — kept as a singleton to preserve cache across renders.
+const queryClient: QueryClient = (() => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const g = globalThis as any;
+  if (g.__EB_QUERY_CLIENT__) return g.__EB_QUERY_CLIENT__ as QueryClient;
+  const client = new QueryClient();
+  g.__EB_QUERY_CLIENT__ = client;
+  return client;
+})();
 
 const ContentTokensContext = createContext<
   EBConfig['contentTokens'] | undefined
@@ -87,8 +96,13 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
   contentTokens = {},
   clientId,
 }) => {
-  const [currentInterceptor, setCurrentInterceptor] = useState(0);
   const [interceptorReady, setInterceptorReady] = useState(false);
+
+  // Keep a ref to the current interceptor ID so cleanup always ejects the
+  // right one, even when the effect re-fires before the previous state
+  // update has been processed.
+  const interceptorIdRef = useRef<number | null>(null);
+  const fileInterceptorIdRef = useRef<number | null>(null);
 
   // Create a provider-scoped i18n instance
   // This prevents global state pollution when multiple providers exist or routes change
@@ -97,105 +111,131 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
     [contentTokens?.name, JSON.stringify(contentTokens?.tokens)]
   );
 
+  // Stable references for objects that are compared by JSON.stringify.
+  // This avoids tearing down / recreating the interceptor when the parent
+  // passes a new object literal with the same content on every render.
+  const headersJson = JSON.stringify(headers);
+  const queryParamsJson = JSON.stringify(queryParams);
+  const apiBaseUrlsJson = JSON.stringify(apiBaseUrls);
+
   // Set default headers and base URL in the axios interceptor
   useEffect(() => {
-    // Remove the previous interceptor
-    if (currentInterceptor) {
-      AXIOS_INSTANCE.interceptors.request.eject(currentInterceptor);
+    // Remove the previous interceptor via the ref (always current)
+    if (interceptorIdRef.current !== null) {
+      AXIOS_INSTANCE.interceptors.request.eject(interceptorIdRef.current);
     }
 
+    // Parse once — the JSON strings are stable across renders with same content
+    const parsedHeaders = JSON.parse(headersJson) as Record<string, string>;
+    const parsedQueryParams = JSON.parse(queryParamsJson) as Record<
+      string,
+      string
+    >;
+
     // Add the new interceptor
-    const ebInterceptor = AXIOS_INSTANCE.interceptors.request.use(
-      (config: any) => {
-        try {
-          // Extract the first path segment from the URL, ignoring query parameters
-          const urlPath =
-            config.url
-              ?.replace(/^\/+/, '') // Remove leading slashes
-              .split('?')[0] // Remove query params first
-              .split('/')[0] || ''; // Then get first segment
+    const id = AXIOS_INSTANCE.interceptors.request.use((config: any) => {
+      try {
+        // Extract the first path segment from the URL, ignoring query parameters
+        const urlPath =
+          config.url
+            ?.replace(/^\/+/, '') // Remove leading slashes
+            .split('?')[0] // Remove query params first
+            .split('/')[0] || ''; // Then get first segment
 
-          // Check if this is a GET request
-          const isGetRequest = config.method?.toUpperCase() === 'GET';
+        // Check if this is a GET request
+        const isGetRequest = config.method?.toUpperCase() === 'GET';
 
-          // Determine the final URL based on base URL transforms or deprecated base URLs
-          let finalBaseURL = apiBaseUrl;
+        // Determine the final URL based on base URL transforms or deprecated base URLs
+        let finalBaseURL = apiBaseUrl;
 
-          // New behavior: apiBaseUrlTransforms transforms the base URL for specific paths
-          if (apiBaseUrlTransforms?.[urlPath]) {
-            finalBaseURL = apiBaseUrlTransforms[urlPath](apiBaseUrl);
-          }
-          // Deprecated behavior: apiBaseUrls overrides the entire base URL
-          else if (apiBaseUrls?.[urlPath]) {
-            finalBaseURL = apiBaseUrls[urlPath];
-          }
-
-          return {
-            ...config,
-            headers: {
-              ...config.headers,
-              ...headers,
-              ...(clientId ? { client_id: clientId } : {}),
-            },
-            params: {
-              ...config.params,
-              ...queryParams,
-              ...(clientId && isGetRequest ? { clientId } : {}),
-            },
-            data:
-              !isGetRequest &&
-              clientId &&
-              config.data &&
-              !(config.data instanceof FormData)
-                ? {
-                    ...config.data,
-                    clientId,
-                  }
-                : config.data,
-            baseURL: finalBaseURL,
-          };
-        } catch (error) {
-          // eslint-disable-next-line no-console
-          console.error('Error processing URL in interceptor:', error);
-          return config; // Return original config if URL processing fails
+        // New behavior: apiBaseUrlTransforms transforms the base URL for specific paths
+        if (apiBaseUrlTransforms?.[urlPath]) {
+          finalBaseURL = apiBaseUrlTransforms[urlPath](apiBaseUrl);
         }
-      }
-    );
+        // Deprecated behavior: apiBaseUrls overrides the entire base URL
+        else if (apiBaseUrls?.[urlPath]) {
+          finalBaseURL = apiBaseUrls[urlPath];
+        }
 
-    // Save the interceptor ID to remove it on unmount
-    setCurrentInterceptor(ebInterceptor);
+        return {
+          ...config,
+          headers: {
+            ...config.headers,
+            ...parsedHeaders,
+            ...(clientId ? { client_id: clientId } : {}),
+          },
+          params: {
+            ...config.params,
+            ...parsedQueryParams,
+            ...(clientId && isGetRequest ? { clientId } : {}),
+          },
+          data:
+            !isGetRequest &&
+            clientId &&
+            config.data &&
+            !(config.data instanceof FormData)
+              ? {
+                  ...config.data,
+                  clientId,
+                }
+              : config.data,
+          baseURL: finalBaseURL,
+        };
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Error processing URL in interceptor:', error);
+        return config; // Return original config if URL processing fails
+      }
+    });
+
+    interceptorIdRef.current = id;
 
     // Mark interceptor as ready
     setInterceptorReady(true);
 
     return () => {
-      AXIOS_INSTANCE.interceptors.request.eject(ebInterceptor);
+      AXIOS_INSTANCE.interceptors.request.eject(id);
+      interceptorIdRef.current = null;
       setInterceptorReady(false);
     };
   }, [
     apiBaseUrl,
     apiBaseUrlTransforms,
-    JSON.stringify(apiBaseUrls),
-    JSON.stringify(headers),
-    JSON.stringify(queryParams),
+    apiBaseUrlsJson,
+    headersJson,
+    queryParamsJson,
     clientId,
   ]);
 
-  // Reset all queries when the interceptor changes
+  // Reset all queries when the interceptor config changes (skip initial mount)
+  const isInitialMount = useRef(true);
   useEffect(() => {
-    if (currentInterceptor) {
-      queryClient.resetQueries();
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
     }
-  }, [currentInterceptor, queryClient]);
+    queryClient.resetQueries();
+  }, [
+    apiBaseUrl,
+    apiBaseUrlTransforms,
+    apiBaseUrlsJson,
+    headersJson,
+    queryParamsJson,
+    clientId,
+  ]);
 
   // Set the default options for react-query
   useEffect(() => {
     queryClient.setDefaultOptions(reactQueryDefaultOptions);
   }, [JSON.stringify(reactQueryDefaultOptions)]);
 
-  // Set the responseType to blob for file downloads
+  // Set the responseType to blob for file downloads.
+  // Only register once and clean up on unmount.
   useEffect(() => {
-    AXIOS_INSTANCE.interceptors.request.use(
+    if (fileInterceptorIdRef.current !== null) {
+      AXIOS_INSTANCE.interceptors.request.eject(fileInterceptorIdRef.current);
+    }
+    const id = AXIOS_INSTANCE.interceptors.request.use(
       (config: any) => {
         if (config.url.includes('/file')) {
           config.responseType = 'blob';
@@ -207,7 +247,13 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
         return Promise.reject(error);
       }
     );
-  }, [AXIOS_INSTANCE]);
+    fileInterceptorIdRef.current = id;
+
+    return () => {
+      AXIOS_INSTANCE.interceptors.request.eject(id);
+      fileInterceptorIdRef.current = null;
+    };
+  }, []);
 
   // Add color scheme class to the root element
   useEffect(() => {

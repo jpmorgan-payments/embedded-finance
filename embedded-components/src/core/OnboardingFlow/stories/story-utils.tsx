@@ -5,19 +5,14 @@
 import React, { useEffect, useState } from 'react';
 import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
 import { efClientCorpEBMockNoIndustry } from '@/mocks/efClientCorpEBNoIndustry.mock';
-import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
 import { efOrganizationDocumentRequestDetails } from '@/mocks/efOrganizationDocumentRequestDetails.mock';
-import { db, resetDb, verifyMicrodeposit } from '@/msw/db';
+import { db, resetDb } from '@/msw/db';
 import { http, HttpResponse } from 'msw';
 
 import type {
-  ApiError,
   ListRecipientsResponse,
-  MicrodepositAmounts,
-  MicrodepositVerificationResponse,
   Recipient,
-  RecipientRequest,
 } from '@/api/generated/ep-recipients.schemas';
 import {
   ClientStatus,
@@ -254,43 +249,72 @@ export interface OnboardingFlowHandlerOptions {
 // ============================================================================
 
 /**
- * Seeds {@link db.recipient} from story fixtures so GET /recipients/:id and
- * POST .../verify-microdeposit match list responses (microdeposit dialog in LinkAccountScreen).
+ * Seed the MSW db with a ClientResponse mock.
+ * Extracts inline party objects, creates them as db records, then creates
+ * the client record with party ID references (matching the db schema).
  */
-function ensureOnboardingLinkedRecipientInDb(recipient: Recipient): void {
-  const existing = db.recipient.findFirst({
-    where: { id: { equals: recipient.id } },
-  });
-  if (existing) return;
+export function seedClientToDb(
+  clientResponse: ClientResponse,
+  clientId: string
+) {
+  const partyIds: string[] = [];
 
-  const withAttempts = recipient as Recipient & {
-    verificationAttempts?: number;
-  };
-  const attempts = withAttempts.verificationAttempts ?? 0;
+  // Seed parties from the inline party objects
+  if (clientResponse.parties && Array.isArray(clientResponse.parties)) {
+    for (const party of clientResponse.parties as Record<string, unknown>[]) {
+      const partyId = party.id as string;
+      if (partyId) {
+        db.party.create(party);
+        partyIds.push(partyId);
+      }
+    }
+  }
 
-  db.recipient.create({
-    id: recipient.id,
-    type: recipient.type ?? 'LINKED_ACCOUNT',
-    status: recipient.status ?? 'PENDING',
-    clientId: recipient.clientId ?? '',
-    partyDetails: recipient.partyDetails ?? {},
-    account: recipient.account ?? {},
-    createdAt: recipient.createdAt ?? new Date().toISOString(),
-    updatedAt:
-      recipient.updatedAt ?? recipient.createdAt ?? new Date().toISOString(),
-    verificationAttempts: attempts,
+  // Create the client with party IDs (not full objects)
+  const { parties: _parties, ...clientWithoutParties } = clientResponse;
+  db.client.create({
+    ...clientWithoutParties,
+    id: clientId,
+    parties: partyIds,
   });
 }
 
 /**
- * Create MSW handlers for OnboardingFlow stories
+ * Reset the MSW db and seed it with a ClientResponse mock.
+ * Intended for use in Storybook `loaders` so each story starts clean.
+ *
+ * We wipe the db tables directly instead of using `resetDb()` because
+ * `resetDb` re-seeds predefined clients whose party IDs may collide
+ * with the story's mock data.
+ */
+export function resetAndSeedClient(
+  clientResponse: ClientResponse,
+  clientId: string
+) {
+  // Wipe all tables without re-seeding predefined data
+  db.client.deleteMany({ where: {} });
+  db.party.deleteMany({ where: {} });
+  db.documentRequest.deleteMany({ where: {} });
+  db.recipient.deleteMany({ where: {} });
+
+  seedClientToDb(clientResponse, clientId);
+}
+
+/**
+ * Create MSW handlers for OnboardingFlow stories.
+ *
+ * Returns the global handlers (which use the MSW db for all CRUD) plus
+ * any story-specific overrides (error states, document requests, etc.).
+ *
+ * **Important:** DB seeding must happen separately in a Storybook `loaders`
+ * callback (not here) because `parameters.msw.handlers` is evaluated at
+ * module load time — before any story renders.
  */
 export function createOnboardingFlowHandlers(
   options: OnboardingFlowHandlerOptions = {}
 ) {
   const {
     delayMs = 200,
-    client = mockClientNew,
     clientId = DEFAULT_CLIENT_ID,
     status = 200,
     documentRequests,
@@ -299,41 +323,48 @@ export function createOnboardingFlowHandlers(
   } = options;
   const existingLinkedAccounts = existingLinkedAccountsOption ?? [];
 
-  const baseHandlers = [
-    // Client endpoint
-    http.get(`*/clients/${clientId}`, async () => {
-      if (delayMs > 0) {
-        await new Promise((r) => {
-          setTimeout(r, delayMs);
-        });
-      }
-      if (status !== 200) {
-        return HttpResponse.json(
-          { title: 'Not found', httpStatus: status },
-          { status }
-        );
-      }
-      return HttpResponse.json(client);
-    }),
+  // Start with the global handlers (which use the db for all CRUD)
+  const storyHandlers = [...handlers];
 
-    // Questions endpoint
-    http.get('/questions', (req) => {
-      const url = new URL(req.request.url);
-      const questionIdsParam = url.searchParams.get('questionIds');
-      const ids = questionIdsParam?.split(',').filter(Boolean) ?? [];
-      const fromMock = efClientQuestionsMock.questions.filter((q) =>
-        ids.includes(q.id)
-      );
-      return HttpResponse.json({
-        metadata: efClientQuestionsMock.metadata,
-        questions: fromMock,
-      });
-    }),
-  ];
+  // For error/loading stories, override the client GET endpoint
+  if (status !== 200 || delayMs > 200) {
+    storyHandlers.unshift(
+      http.get(`/clients/${clientId}`, async () => {
+        if (delayMs > 0) {
+          await new Promise((r) => {
+            setTimeout(r, delayMs);
+          });
+        }
+        if (status !== 200) {
+          return HttpResponse.json(
+            { title: 'Not found', httpStatus: status },
+            { status }
+          );
+        }
+        // Fall through to the global handler by not returning here
+        // (but we seeded the db above, so the global handler will find it)
+        const dbClient = db.client.findFirst({
+          where: { id: { equals: clientId } },
+        });
+        if (!dbClient) {
+          return new HttpResponse(null, { status: 404 });
+        }
+        const expandedClient = {
+          ...dbClient,
+          parties: (dbClient.parties as string[])
+            .map((partyId) =>
+              db.party.findFirst({ where: { id: { equals: partyId } } })
+            )
+            .filter(Boolean),
+        };
+        return HttpResponse.json(expandedClient);
+      })
+    );
+  }
 
   // Add document request handlers if specified
   if (documentRequests) {
-    baseHandlers.push(
+    storyHandlers.unshift(
       http.get('/document-requests', (req) => {
         const url = new URL(req.request.url);
         const reqClientId = url.searchParams.get('clientId');
@@ -351,7 +382,7 @@ export function createOnboardingFlowHandlers(
   // Add NAICS recommendation handlers if specified
   if (naicsRecommendations) {
     if (naicsRecommendations.error) {
-      baseHandlers.push(
+      storyHandlers.unshift(
         http.post('/recommendations', async () => {
           await new Promise((r) => {
             setTimeout(r, delayMs);
@@ -372,7 +403,7 @@ export function createOnboardingFlowHandlers(
         })
       );
     } else {
-      baseHandlers.push(
+      storyHandlers.unshift(
         http.post('/recommendations', async () => {
           await new Promise((r) => {
             setTimeout(r, delayMs);
@@ -387,147 +418,23 @@ export function createOnboardingFlowHandlers(
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Linked Account / Recipient handlers (for LinkAccountScreen)
-  // ---------------------------------------------------------------------------
-
-  // POST /recipients - Create new linked account
-  baseHandlers.push(
-    http.post('/recipients', async ({ request }) => {
-      await new Promise((r) => {
-        setTimeout(r, delayMs);
-      });
-
-      const body = (await request.json()) as RecipientRequest;
-
-      const newRecipient: Recipient = {
-        id: `recipient-${Date.now()}`,
-        type: 'LINKED_ACCOUNT',
-        status: 'MICRODEPOSITS_INITIATED',
-        clientId: body?.clientId ?? clientId,
-        partyDetails: {
-          type: body?.partyDetails?.type ?? 'INDIVIDUAL',
-          firstName: body?.partyDetails?.firstName,
-          lastName: body?.partyDetails?.lastName,
-          businessName: body?.partyDetails?.businessName,
-          address: body?.partyDetails?.address,
-          contacts: body?.partyDetails?.contacts,
-        },
-        account: {
-          type: body?.account?.type ?? 'CHECKING',
-          number: body?.account?.number ?? '1234567890',
-          routingInformation:
-            body?.account?.routingInformation &&
-            Array.isArray(body.account.routingInformation) &&
-            body.account.routingInformation.length > 0
-              ? body.account.routingInformation
-              : [
-                  {
-                    routingCodeType: 'USABA',
-                    routingNumber:
-                      body?.account?.routingInformation?.[0]?.routingNumber ??
-                      '123456789',
-                    transactionType: 'ACH',
-                  },
-                ],
-          countryCode: body?.account?.countryCode ?? 'US',
-        },
-        createdAt: new Date().toISOString(),
-      };
-
-      return HttpResponse.json(newRecipient, { status: 201 });
-    })
-  );
-
-  // GET /recipients - List linked accounts (db-backed when fixtures seed MSW db)
-  baseHandlers.push(
-    http.get('/recipients', async () => {
-      await new Promise((r) => {
-        setTimeout(r, delayMs);
-      });
-
-      for (const r of existingLinkedAccounts) {
-        ensureOnboardingLinkedRecipientInDb(r);
-      }
-
-      const fromDb = db.recipient
-        .getAll()
-        .filter((row) => row.type === 'LINKED_ACCOUNT');
-
-      const recipients: Recipient[] =
-        fromDb.length > 0
-          ? (fromDb as unknown as Recipient[])
-          : existingLinkedAccounts;
-
-      const response: ListRecipientsResponse = {
-        recipients,
-        metadata: { total_items: recipients.length },
-      };
-      return HttpResponse.json(response);
-    })
-  );
-
-  // GET /recipients/:id - Single recipient (for microdeposit dialog)
-  baseHandlers.push(
-    http.get('/recipients/:id', async ({ params }) => {
-      await new Promise((r) => {
-        setTimeout(r, delayMs);
-      });
-
-      const id = params.id as string;
-
-      for (const r of existingLinkedAccounts) {
-        ensureOnboardingLinkedRecipientInDb(r);
-      }
-
-      const fromDb = db.recipient.findFirst({
-        where: { id: { equals: id } },
-      });
-
-      if (fromDb) {
-        return HttpResponse.json(fromDb as unknown as Recipient);
-      }
-
-      const error: ApiError = {
-        httpStatus: 404,
-        title: 'Recipient not found',
-        context: [],
-      };
-      return HttpResponse.json(error, { status: 404 });
-    })
-  );
-
-  // POST /recipients/:id/verify-microdeposit - Verify microdeposits
-  baseHandlers.push(
-    http.post(
-      '/recipients/:id/verify-microdeposit',
-      async ({ params, request }) => {
+  // Override recipient handlers when custom linked accounts are provided
+  if (existingLinkedAccounts.length > 0) {
+    storyHandlers.unshift(
+      http.get('/recipients', async () => {
         await new Promise((r) => {
           setTimeout(r, delayMs);
         });
-
-        const { id } = params;
-        const body = (await request.json()) as MicrodepositAmounts;
-        const amounts = body.amounts ?? [];
-
-        const result = verifyMicrodeposit(id as string, amounts);
-
-        if (result.error) {
-          return HttpResponse.json(result.error as ApiError, {
-            status: result.error.httpStatus ?? 400,
-          });
-        }
-
-        const response: MicrodepositVerificationResponse = {
-          status: result.status as MicrodepositVerificationResponse['status'],
+        const response: ListRecipientsResponse = {
+          recipients: existingLinkedAccounts,
+          metadata: { total_items: existingLinkedAccounts.length },
         };
-
         return HttpResponse.json(response);
-      }
-    )
-  );
+      })
+    );
+  }
 
-  return baseHandlers;
+  return storyHandlers;
 }
 
 /**
@@ -543,7 +450,7 @@ export function buildApprovedClientLinkAccountStory(options?: {
   return {
     /**
      * Reset MSW db on story selection so linked-account rows from a previous story
-     * (e.g. PENDING) are not reused — {@link ensureOnboardingLinkedRecipientInDb} only inserts.
+     * don't carry over between stories.
      */
     loaders: [
       async () => {
@@ -792,6 +699,12 @@ export const commonArgTypes = {
       'GENERAL_PARTNERSHIP',
       'LIMITED_PARTNERSHIP',
       'C_CORPORATION',
+      'S_CORPORATION',
+      'PARTNERSHIP',
+      'PUBLICLY_TRADED_COMPANY',
+      'NON_PROFIT_CORPORATION',
+      'GOVERNMENT_ENTITY',
+      'UNINCORPORATED_ASSOCIATION',
     ],
     description: 'Available organization types for selection',
     table: {

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { useFormContext } from 'react-hook-form';
 import { z } from 'zod';
@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
 import {
   COUNTRIES_OF_FORMATION,
-  US_STATE_OPTIONS,
+  getSubdivisionsForCountry,
 } from '@/core/OnboardingFlow/consts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 import { useGetFieldContentToken } from '@/core/OnboardingFlow/utils/formUtils';
@@ -20,6 +20,24 @@ export const ContactDetailsForm: FormStepComponent = () => {
 
   const form =
     useFormContext<z.input<ReturnType<typeof useContactDetailsFormSchema>>>();
+
+  const addressCountry = form.watch('individualAddress.country');
+  const isInitialCountryRender = useRef(true);
+
+  const addressLabel = (field: string) =>
+    t([
+      `addressLabels.${field}.${addressCountry}`,
+      `addressLabels.${field}.default`,
+    ] as unknown as TemplateStringsArray);
+
+  useEffect(() => {
+    if (isInitialCountryRender.current) {
+      isInitialCountryRender.current = false;
+      return;
+    }
+    // Clear state when country changes to avoid sending stale codes
+    form.setValue('individualAddress.state', '');
+  }, [addressCountry]);
 
   useEffect(() => {
     if (form.watch('controllerPhone.phoneType') !== 'MOBILE_PHONE') {
@@ -80,19 +98,32 @@ export const ContactDetailsForm: FormStepComponent = () => {
           control={form.control}
           name="individualAddress.city"
           type="text"
+          label={addressLabel('city')}
           required
         />
-        <OnboardingFormField
-          control={form.control}
-          name="individualAddress.state"
-          type="combobox"
-          options={US_STATE_OPTIONS}
-          required
-        />
+        {getSubdivisionsForCountry(addressCountry) ? (
+          <OnboardingFormField
+            control={form.control}
+            name="individualAddress.state"
+            type="combobox"
+            options={getSubdivisionsForCountry(addressCountry)!}
+            label={addressLabel('state')}
+            required
+          />
+        ) : (
+          <OnboardingFormField
+            control={form.control}
+            name="individualAddress.state"
+            type="text"
+            label={addressLabel('state')}
+            required
+          />
+        )}
         <OnboardingFormField
           control={form.control}
           name="individualAddress.postalCode"
           type="text"
+          label={addressLabel('postalCode')}
           className="eb-max-w-48"
           required
         />

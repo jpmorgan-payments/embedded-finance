@@ -149,14 +149,11 @@ const sectionScreens: SectionScreenConfig[] = [
         ),
       ],
       statusResolver: (
-        sessionData,
+        _sessionData,
         clientData,
         allStepsValid,
         stepValidationMap
       ) => {
-        if (sessionData.mockedKycCompleted) {
-          return 'completed_disabled';
-        }
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
           clientData?.status === 'REVIEW_IN_PROGRESS' ||
@@ -268,14 +265,11 @@ const sectionScreens: SectionScreenConfig[] = [
         ),
       ],
       statusResolver: (
-        sessionData,
+        _sessionData,
         clientData,
         allStepsValid,
         stepValidationMap
       ) => {
-        if (sessionData.mockedKycCompleted) {
-          return 'completed_disabled';
-        }
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
           clientData?.status === 'REVIEW_IN_PROGRESS' ||
@@ -395,9 +389,6 @@ const sectionScreens: SectionScreenConfig[] = [
           return allStepsValid;
         });
 
-        if (sessionData.mockedKycCompleted) {
-          return 'completed_disabled';
-        }
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
           clientData?.status === 'REVIEW_IN_PROGRESS' ||
@@ -443,12 +434,9 @@ const sectionScreens: SectionScreenConfig[] = [
           'onboarding-overview:screens.additionalQuestionsSection.requirementsList.1'
         ),
       ],
-      statusResolver: (sessionData, clientData) => {
+      statusResolver: (_sessionData, clientData) => {
         const sectionCompleted =
           clientData?.outstanding?.questionIds?.length === 0;
-        if (sessionData.mockedKycCompleted) {
-          return 'completed_disabled';
-        }
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
           clientData?.status === 'REVIEW_IN_PROGRESS' ||
@@ -479,10 +467,7 @@ const sectionScreens: SectionScreenConfig[] = [
     sectionConfig: {
       label: i18n.t('onboarding-overview:screens.reviewAttestSection.label'),
       icon: FileIcon,
-      statusResolver: (sessionData, clientData) => {
-        if (sessionData.mockedKycCompleted) {
-          return 'completed_disabled';
-        }
+      statusResolver: (_sessionData, clientData) => {
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
           clientData?.status === 'REVIEW_IN_PROGRESS' ||

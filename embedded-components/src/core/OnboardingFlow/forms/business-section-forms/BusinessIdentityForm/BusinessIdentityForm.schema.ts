@@ -203,7 +203,7 @@ export const refineBusinessIdentityFormSchema = (
   return schema.superRefine((values, context) => {
     if (
       values.countryOfFormation === 'US' &&
-      values.solePropHasEin !== 'no' &&
+      values.solePropHasEin === 'yes' &&
       !values.organizationIdEin
     ) {
       context.addIssue({

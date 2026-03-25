@@ -24,7 +24,10 @@ import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
-import { OnboardingFormValuesSubmit } from '@/core/OnboardingFlow/types';
+import {
+  OnboardingFormValuesInitial,
+  OnboardingFormValuesSubmit,
+} from '@/core/OnboardingFlow/types';
 import {
   FormStepComponent,
   StepConfig,
@@ -396,6 +399,45 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
     ? convertPartyResponseToFormValues(existingPartyData)
     : {};
 
+  // Build overrideDefaultValues from saved context + API response.
+  // Resolve the party's country so controllerIds.issuer is correct on the
+  // very first render of a step.  savedFormValues is checked FIRST because
+  // it is written synchronously by the previous step's onSubmit, whereas
+  // existingPartyData comes from the React Query cache whose async
+  // invalidation/refetch may not have completed yet — making it stale when
+  // the user just changed countryOfResidence on the prior step.
+  const resolvedCountry =
+    (savedFormValues?.countryOfResidence as string | undefined) ??
+    existingPartyData?.individualDetails?.countryOfResidence ??
+    'US';
+  const overrideDefaultValues: Partial<OnboardingFormValuesInitial> = {
+    ...savedFormValues,
+    ...formValuesFromResponse,
+  };
+  if (overrideDefaultValues.controllerIds?.length) {
+    // Patch existing controllerIds if the issuer doesn't match
+    if (overrideDefaultValues.controllerIds[0]?.issuer !== resolvedCountry) {
+      overrideDefaultValues.controllerIds =
+        overrideDefaultValues.controllerIds.map((id) => ({
+          ...id,
+          issuer: resolvedCountry,
+        }));
+    }
+  } else {
+    // No controllerIds from saved values or API response — generate a
+    // default entry so the identity form starts with the correct issuer.
+    // Non-US residents start with empty idType so the user must
+    // explicitly select from PASSPORT, DRIVERS_LICENSE, or OTHER_GOVERNMENT_ID.
+    const isUS = resolvedCountry === 'US';
+    overrideDefaultValues.controllerIds = [
+      {
+        idType: isUS ? 'SSN' : '',
+        issuer: resolvedCountry,
+        value: '',
+      },
+    ];
+  }
+
   // For adding a new party to the client
   const {
     mutate: updateClient,
@@ -425,7 +467,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
         ? Component.schema()
         : Component.schema,
     refineSchemaFn: Component.refineSchemaFn,
-    overrideDefaultValues: { ...savedFormValues, ...formValuesFromResponse },
+    overrideDefaultValues,
     disabled: isFormSubmitting,
   });
 
@@ -439,6 +481,13 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
         saveFormValue(fieldKey, value);
       }
     });
+
+    // Always persist countryOfResidence so downstream steps can read it
+    // synchronously (the React Query cache notification is async and may
+    // not have arrived by the time the next step mounts).
+    if (values.countryOfResidence) {
+      saveFormValue('countryOfResidence', values.countryOfResidence as string);
+    }
 
     // Perform step-defined transformations on the form values
     const modifiedValues = Component.modifyFormValuesBeforeSubmit
@@ -609,6 +658,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
               {getNextButtonLabel()}
             </Button>
             <Button
+              type="button"
               onClick={handlePrev}
               variant="secondary"
               size="lg"

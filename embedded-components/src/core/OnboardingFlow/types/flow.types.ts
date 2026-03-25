@@ -158,7 +158,6 @@ export type FlowSessionData = {
   isControllerOwnerQuestionAnswered?: boolean;
   isOwnersSectionDone?: boolean;
   mockedVerifyingSectionId?: ScreenId;
-  mockedKycCompleted?: boolean;
   hideGatewayInfoAlert?: boolean;
   hideOverviewInfoAlert?: boolean;
 };

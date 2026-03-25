@@ -75,9 +75,8 @@ export const OverviewScreen = () => {
     'linked-accounts',
   ]);
 
-  // TODO:
-  const kycCompleted =
-    sessionData.mockedKycCompleted || clientData?.status === 'APPROVED';
+  // Bank-account linking is only unlocked once the client is fully APPROVED.
+  const kycCompleted = clientData?.status === 'APPROVED';
 
   const organizationTypeText = t(`organizationTypes.${organizationType!}`);
 

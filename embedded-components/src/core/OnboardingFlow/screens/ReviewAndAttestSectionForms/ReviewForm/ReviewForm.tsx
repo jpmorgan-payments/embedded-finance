@@ -530,6 +530,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
         <div className="eb-mt-6 eb-space-y-6">
           <div className="eb-flex eb-justify-between eb-gap-4">
             <Button
+              type="button"
               onClick={handlePrev}
               variant="secondary"
               size="lg"
