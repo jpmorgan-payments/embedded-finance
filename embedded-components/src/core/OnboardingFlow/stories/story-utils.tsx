@@ -7,7 +7,7 @@ import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
 import { efClientCorpEBMockNoIndustry } from '@/mocks/efClientCorpEBNoIndustry.mock';
 import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
 import { efOrganizationDocumentRequestDetails } from '@/mocks/efOrganizationDocumentRequestDetails.mock';
-import { db, resetDb } from '@/msw/db';
+import { db } from '@/msw/db';
 import { http, HttpResponse } from 'msw';
 
 import type {
@@ -447,14 +447,32 @@ export function buildApprovedClientLinkAccountStory(options?: {
   handlerOptions?: Omit<OnboardingFlowHandlerOptions, 'client' | 'clientId'>;
 }) {
   const { linkAccountStepOptions, handlerOptions } = options ?? {};
+  const existingLinkedAccounts = handlerOptions?.existingLinkedAccounts ?? [];
   return {
     /**
      * Reset MSW db on story selection so linked-account rows from a previous story
-     * don't carry over between stories.
+     * don't carry over between stories.  Seed recipients into the db so the
+     * global handlers (GET /recipients/:id, verify-microdeposit, etc.) find them.
      */
     loaders: [
       async () => {
-        resetDb();
+        resetAndSeedClient(mockClientApproved, DEFAULT_CLIENT_ID);
+        for (const recipient of existingLinkedAccounts) {
+          db.recipient.create({
+            id: recipient.id,
+            type: recipient.type ?? 'LINKED_ACCOUNT',
+            status: recipient.status ?? 'PENDING',
+            clientId: recipient.clientId ?? DEFAULT_CLIENT_ID,
+            partyDetails: recipient.partyDetails ?? {},
+            account: recipient.account ?? {},
+            createdAt: recipient.createdAt ?? new Date().toISOString(),
+            updatedAt:
+              recipient.updatedAt ??
+              recipient.createdAt ??
+              new Date().toISOString(),
+            verificationAttempts: 0,
+          });
+        }
         return {};
       },
     ],
