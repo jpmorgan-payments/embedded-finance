@@ -2,6 +2,8 @@
   "required": "{{fieldName}} is required",
   "format": "Invalid format",
   "pattern": "Invalid format",
+  "exactLength_one": "Must be exactly {{count}} character",
+  "exactLength_other": "Must be exactly {{count}} characters",
   "common": {
     "noSpaces": "No spaces are allowed",
     "invalidChars": "Invalid characters detected",
@@ -27,7 +29,9 @@
     "noLeadingHyphen": "{{fieldName}} cannot begin with a hyphen",
     "noTrailingHyphen": "{{fieldName}} cannot end with a hyphen",
     "noHtml": "{{fieldName}} cannot contain HTML tags",
-    "noUrls": "{{fieldName}} cannot contain URLs"
+    "noUrls": "{{fieldName}} cannot contain URLs",
+    "noSpaces": "{{fieldName}} cannot contain spaces",
+    "pattern": "{{fieldName}} has an invalid format"
   },
   "suffix": {
     "pattern": "{{fieldName}} can only contain letters, periods, and roman numerals"
@@ -111,6 +115,17 @@
     "lessThan": "{{field1}} must be less than {{field2}}",
     "greaterOrEqual": "{{field1}} must be greater than or equal to {{field2}}",
     "lessOrEqual": "{{field1}} must be less than or equal to {{field2}}"
+  },
+  "contact": {
+    "phone": {
+      "format": "Please enter a valid phone number",
+      "pattern": "Please enter a valid phone number (e.g. {{example}})"
+    },
+    "email": {
+      "invalid": "Please enter a valid email address",
+      "maxLength_one": "Email cannot exceed {{count}} character",
+      "maxLength_other": "Email cannot exceed {{count}} characters"
+    }
   },
   "selection": {
     "required": "Please select at least one option"
