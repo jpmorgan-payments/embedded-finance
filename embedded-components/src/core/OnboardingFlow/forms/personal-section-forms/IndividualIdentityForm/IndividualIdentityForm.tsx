@@ -158,6 +158,12 @@ export const IndividualIdentityForm: FormStepComponent = () => {
               label={getValueLabel(currentIdType)}
               description={getValueDescription(currentIdType)}
               obfuscateWhenUnfocused={isSsnOrItin}
+              inputProps={{
+                // Give each ID type a unique DOM name so the browser
+                // keeps separate autocomplete histories per type.
+                // RHF tracks this field via ref, not the DOM name.
+                name: `id-value-${currentIdType?.toLowerCase() || 'none'}`,
+              }}
             />
           )}
 
