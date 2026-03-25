@@ -193,6 +193,40 @@ export function mapPartyApiErrorsToFormErrors(
 }
 
 /**
+ * Sanitizes verbose server error messages into user-friendly text.
+ * Strips technical prefixes like "Field /path/ value must have the expected value."
+ * and cleans up bracket notation for readability.
+ *
+ * This is a stopgap until the backend returns user-friendly messages directly.
+ *
+ * @example
+ * // "Field /individualDetails/addresses[0]/postalCode/ value must have the expected value. The postal code [00000] is invalid for the country [US]."
+ * // → "The postal code 00000 is invalid for the country US."
+ */
+export function sanitizeServerErrorMessage(message: string): string {
+  let sanitized = message;
+
+  // Strip "Field /.../ value must have the expected value. " prefix
+  sanitized = sanitized.replace(
+    /^Field\s+\/[^/]*(?:\/[^/]*)*\/\s+value must have the expected value\.\s*/i,
+    ''
+  );
+
+  // Strip standalone "Field /.../ " path references anywhere in the message
+  sanitized = sanitized.replace(/Field\s+\/[^/]*(?:\/[^/]*)*\/\s*/g, '');
+
+  // Clean up bracket notation: [00000] → 00000, [US] → US
+  sanitized = sanitized.replace(/\[([^\]]+)\]/g, '$1');
+
+  // Capitalize first letter if we stripped a prefix
+  if (sanitized && sanitized !== message) {
+    sanitized = sanitized.charAt(0).toUpperCase() + sanitized.slice(1);
+  }
+
+  return sanitized.trim() || message;
+}
+
+/**
  * Sets API errors into the form state and handles unhandled errors
  * @param form - React Hook Form instance
  * @param apiFormErrors - Array of form errors from API
@@ -209,8 +243,9 @@ export function setApiFormErrors(
     if (formError.field === undefined) {
       unhandledErrorString += `\n${formError.path}: ${formError.message}`;
     } else {
+      const friendlyMessage = sanitizeServerErrorMessage(formError.message);
       form.setError(formError.field, {
-        message: `Server Error: ${formError.message}`,
+        message: `Server Error: ${friendlyMessage}`,
       });
       if (!focused) {
         form.setFocus(formError.field);
@@ -388,6 +423,23 @@ export function convertPartyResponseToFormValues(
       formValues[fieldName as keyof OnboardingFormValuesSubmit] = modifiedValue;
     }
   });
+
+  // When the party has a countryOfResidence but no identity documents yet,
+  // generate a default controllerIds entry with the issuer set to the
+  // party's country so downstream forms start with the correct value.
+  // Non-US residents start with an empty idType so the user must
+  // explicitly select from PASSPORT, DRIVERS_LICENSE, or OTHER_GOVERNMENT_ID.
+  const country = formValues.countryOfResidence as string | undefined;
+  if (country && !formValues.controllerIds?.length) {
+    const isUS = country === 'US';
+    formValues.controllerIds = [
+      {
+        idType: isUS ? 'SSN' : '',
+        issuer: country,
+        value: '',
+      },
+    ];
+  }
 
   return formValues;
 }

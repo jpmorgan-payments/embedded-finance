@@ -129,7 +129,7 @@ i18n.use(initReactI18next).init({
   fallbackLng: 'enUS',
   ns: [
     'common',
-    'onboarding',
+    'onboarding-old',
     'onboarding-overview',
     'make-payment',
     'linked-accounts',

@@ -622,6 +622,7 @@ export const OperationalDetailsForm = () => {
           title={tString('operationalDetails.title', 'Operational details')}
           headerElement={
             <Button
+              type="button"
               variant="outline"
               size="sm"
               onClick={() => goTo('overview')}

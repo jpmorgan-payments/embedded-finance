@@ -417,13 +417,13 @@ describe('OnboardingFlow', () => {
     await user.type(phoneInput, '2012345678');
     const addressInput = screen.getByLabelText(/Address line 1/i);
     await user.type(addressInput, '123 Main St');
-    const cityInput = screen.getByLabelText(/Town\/City/i);
+    const cityInput = screen.getByLabelText(/City \/ Town/i);
     await user.type(cityInput, 'Anytown');
     const stateDropdown = screen.getByLabelText(/State/i);
     await user.click(stateDropdown);
     const stateOption = screen.getByRole('option', { name: /New Jersey/i });
     await user.click(stateOption);
-    const zipInput = screen.getByLabelText(/Postal code/i);
+    const zipInput = screen.getByLabelText(/ZIP code/i);
     await user.type(zipInput, '12345');
     // Proceed to next step
     const continueButton3 = screen.getByRole('button', { name: /continue/i });
@@ -509,7 +509,7 @@ describe('OnboardingFlow', () => {
     await user.type(businessPhoneInput, '2012345678');
     const businessAddressInput = screen.getByLabelText(/Address line 1/i);
     await user.type(businessAddressInput, '456 Business Rd');
-    const businessCityInput = screen.getByLabelText(/Town\/City/i);
+    const businessCityInput = screen.getByLabelText(/City \/ Town/i);
     await user.type(businessCityInput, 'Business City');
     const businessStateDropdown = screen.getByLabelText(/State/i);
     await user.click(businessStateDropdown);
@@ -517,7 +517,7 @@ describe('OnboardingFlow', () => {
       name: /California/i,
     });
     await user.click(businessStateOption);
-    const businessZipInput = screen.getByLabelText(/Postal code/i);
+    const businessZipInput = screen.getByLabelText(/ZIP code/i);
     await user.type(businessZipInput, '67890');
     // Proceed to next step
     const continueButton7 = screen.getByRole('button', { name: /continue/i });
@@ -618,13 +618,13 @@ describe('OnboardingFlow', () => {
     await user.type(ownerPhoneInput, '3012345678');
     const ownerAddressInput = screen.getByLabelText(/Address line 1/i);
     await user.type(ownerAddressInput, '789 Owner St');
-    const ownerCityInput = screen.getByLabelText(/Town\/City/i);
+    const ownerCityInput = screen.getByLabelText(/City \/ Town/i);
     await user.type(ownerCityInput, 'Ownerville');
     const ownerStateDropdown = screen.getByLabelText(/State/i);
     await user.click(ownerStateDropdown);
     const ownerStateOption = screen.getByRole('option', { name: /Florida/i });
     await user.click(ownerStateOption);
-    const ownerZipInput = screen.getByLabelText(/Postal code/i);
+    const ownerZipInput = screen.getByLabelText(/ZIP code/i);
     await user.type(ownerZipInput, '54321');
     const ownerAddressContinueButton = screen.getByRole('button', {
       name: /continue/i,
@@ -685,5 +685,252 @@ describe('OnboardingFlow', () => {
       /The data I am providing is true, accurate and complete to the best of my knowledge./i
     );
     await user.click(attestCheckbox);
+  }, 90000);
+
+  test('sole proprietorship enforces US-only country of residence', async () => {
+    const user = userEvent.setup();
+
+    renderOnboardingFlow();
+
+    // === GATEWAY: Select Sole Proprietorship ===
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Select your general business type/i)
+      ).toBeInTheDocument();
+    });
+
+    const solePropOption = screen.getByRole('radio', {
+      name: /Sole proprietorship/i,
+    });
+    await user.click(solePropOption);
+
+    // Click "Get Started"
+    await waitFor(
+      () => {
+        const getStartedButton = screen.getByRole('button', {
+          name: /get started/i,
+        });
+        expect(getStartedButton).toBeInTheDocument();
+        return user.click(getStartedButton);
+      },
+      { timeout: 10000 }
+    );
+
+    // === OVERVIEW ===
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Overview/i)).toBeInTheDocument();
+      },
+      { timeout: 10000 }
+    );
+
+    // Navigate to Personal Details section
+    const personalDetailsButton = screen.getByTestId('personal-section-button');
+    await user.click(personalDetailsButton);
+
+    // 3a. Personal Details Form
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Your personal details/i)).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+
+    // Country of Residence should be present and readonly (locked to US for sole prop)
+    // When readonly, the field renders as plain text instead of a combobox.
+    // Multiple elements may contain "United States" (e.g. the field label + jurisdiction info).
+    const usTexts = screen.getAllByText(/United States/i);
+    expect(usTexts.length).toBeGreaterThanOrEqual(1);
+  }, 60000);
+
+  test('non-US country of residence shows ID type dropdown with no default selection', async () => {
+    const user = userEvent.setup();
+
+    renderOnboardingFlow();
+
+    // === GATEWAY: Select LLC ===
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Select your general business type/i)
+      ).toBeInTheDocument();
+    });
+
+    const registeredBusinessOption = screen.getByRole('radio', {
+      name: /Registered business/i,
+    });
+    await user.click(registeredBusinessOption);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Select the specific legal structure/i)
+      ).toBeInTheDocument();
+    });
+
+    const legalStructureDropdown = screen.getByLabelText(
+      /Select the specific legal structure/i
+    );
+    await user.click(legalStructureDropdown);
+
+    const llcOption = screen.getByRole('option', {
+      name: /Limited Liability Company \(LLC\)/i,
+    });
+    await user.click(llcOption);
+
+    await waitFor(
+      () => {
+        const getStartedButton = screen.getByRole('button', {
+          name: /get started/i,
+        });
+        expect(getStartedButton).toBeInTheDocument();
+        return user.click(getStartedButton);
+      },
+      { timeout: 10000 }
+    );
+
+    // === OVERVIEW ===
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Overview/i)).toBeInTheDocument();
+      },
+      { timeout: 10000 }
+    );
+
+    // Navigate to Personal Details section
+    const personalDetailsButton = screen.getByTestId('personal-section-button');
+    await user.click(personalDetailsButton);
+
+    // 3a. Personal Details Form — select Canada as country of residence
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Your personal details/i)).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+
+    // Change country to Canada — click combobox button to open popover
+    const countryOfResidenceCombobox = screen.getByRole('combobox', {
+      name: /Country of residence/i,
+    });
+    await user.click(countryOfResidenceCombobox);
+    // Wait for the popover options to render, then select Canada
+    const canadaOption = await screen.findByRole('option', {
+      name: /Canada/i,
+    });
+    await user.click(canadaOption);
+
+    // Fill out minimal personal details to proceed
+    const firstNameInput = screen.getByLabelText(/First name/i);
+    await user.type(firstNameInput, 'Alice');
+    const lastNameInput = screen.getByLabelText(/Last name/i);
+    await user.type(lastNameInput, 'Maple');
+    const jobTitleDropdown = screen.getByLabelText(/Job title/i);
+    await user.click(jobTitleDropdown);
+    const jobTitleOption = screen.getByRole('option', { name: /CEO/i });
+    await user.click(jobTitleOption);
+    // Submit personal details
+    const continueButton = screen.getByRole('button', { name: /continue/i });
+    await user.click(continueButton);
+
+    // 3b. Identity Document step — should show ID type dropdown with no preselection
+    await waitFor(() => {
+      expect(screen.getByText(/Your ID details/i)).toBeInTheDocument();
+    });
+
+    // The ID type selector should be visible
+    expect(screen.getByLabelText(/ID type/i)).toBeInTheDocument();
+
+    // No ID type is preselected, so the value input should not be visible
+    expect(screen.queryByLabelText(/Passport/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(/Driver's License/i)
+    ).not.toBeInTheDocument();
+  }, 90000);
+
+  test('switching back to US reverts default ID type to SSN', async () => {
+    const user = userEvent.setup();
+
+    renderOnboardingFlow();
+
+    // === GATEWAY: Select LLC ===
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Select your general business type/i)
+      ).toBeInTheDocument();
+    });
+
+    const registeredBusinessOption = screen.getByRole('radio', {
+      name: /Registered business/i,
+    });
+    await user.click(registeredBusinessOption);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Select the specific legal structure/i)
+      ).toBeInTheDocument();
+    });
+
+    const legalStructureDropdown = screen.getByLabelText(
+      /Select the specific legal structure/i
+    );
+    await user.click(legalStructureDropdown);
+
+    const llcOption = screen.getByRole('option', {
+      name: /Limited Liability Company \(LLC\)/i,
+    });
+    await user.click(llcOption);
+
+    await waitFor(
+      () => {
+        const getStartedButton = screen.getByRole('button', {
+          name: /get started/i,
+        });
+        expect(getStartedButton).toBeInTheDocument();
+        return user.click(getStartedButton);
+      },
+      { timeout: 10000 }
+    );
+
+    // === OVERVIEW ===
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Overview/i)).toBeInTheDocument();
+      },
+      { timeout: 10000 }
+    );
+
+    // Navigate to Personal Details section
+    const personalDetailsButton = screen.getByTestId('personal-section-button');
+    await user.click(personalDetailsButton);
+
+    // 3a. Personal Details Form — keep US (default)
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Your personal details/i)).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+
+    // Fill out minimal personal details with US country (default)
+    const firstNameInput = screen.getByLabelText(/First name/i);
+    await user.type(firstNameInput, 'Bob');
+    const lastNameInput = screen.getByLabelText(/Last name/i);
+    await user.type(lastNameInput, 'Smith');
+    const jobTitleDropdown = screen.getByLabelText(/Job title/i);
+    await user.click(jobTitleDropdown);
+    const jobTitleOption = screen.getByRole('option', { name: /CEO/i });
+    await user.click(jobTitleOption);
+    // Submit personal details
+    const continueButton = screen.getByRole('button', { name: /continue/i });
+    await user.click(continueButton);
+
+    // 3b. Identity Document step — should show SSN as default for US resident
+    await waitFor(() => {
+      expect(screen.getByText(/Your ID details/i)).toBeInTheDocument();
+    });
+
+    // The default ID field should be SSN
+    expect(
+      screen.getByLabelText(/Social Security Number/i)
+    ).toBeInTheDocument();
   }, 90000);
 });

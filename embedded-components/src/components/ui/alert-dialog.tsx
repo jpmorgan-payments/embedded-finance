@@ -34,7 +34,13 @@ const AlertDialogContent = React.forwardRef<
     <AlertDialogPrimitive.Content
       ref={ref}
       className={cn(
-        'eb-component eb-fixed eb-left-[50%] eb-top-[50%] eb-z-overlay eb-grid eb-w-full eb-max-w-lg eb-translate-x-[-50%] eb-translate-y-[-50%] eb-gap-4 eb-border eb-bg-background eb-p-6 eb-shadow-lg eb-duration-200 data-[state=open]:eb-animate-in data-[state=closed]:eb-animate-out data-[state=closed]:eb-fade-out-0 data-[state=open]:eb-fade-in-0 data-[state=closed]:eb-zoom-out-95 data-[state=open]:eb-zoom-in-95 data-[state=closed]:eb-slide-out-to-left-1/2 data-[state=closed]:eb-slide-out-to-top-[48%] data-[state=open]:eb-slide-in-from-left-1/2 data-[state=open]:eb-slide-in-from-top-[48%] sm:eb-rounded-lg',
+        // Base styles
+        'eb-component eb-fixed eb-z-overlay eb-grid eb-w-full eb-gap-4 eb-border eb-bg-background eb-p-6 eb-shadow-lg eb-duration-200',
+        // Responsive styles via viewport media queries (see index.css)
+        'eb-dialog-responsive',
+        // Animation styles
+        'data-[state=open]:eb-animate-in data-[state=closed]:eb-animate-out data-[state=closed]:eb-fade-out-0 data-[state=open]:eb-fade-in-0 data-[state=closed]:eb-zoom-out-95 data-[state=open]:eb-zoom-in-95',
+        'data-[state=closed]:eb-slide-out-to-left-1/2 data-[state=closed]:eb-slide-out-to-top-[48%] data-[state=open]:eb-slide-in-from-left-1/2 data-[state=open]:eb-slide-in-from-top-[48%]',
         className
       )}
       {...props}

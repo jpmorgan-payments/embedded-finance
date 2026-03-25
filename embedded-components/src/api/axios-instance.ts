@@ -1,6 +1,14 @@
 import Axios, { AxiosError, AxiosRequestConfig } from 'axios';
 
-export const AXIOS_INSTANCE = Axios.create();
+// Shared Axios instance — kept as a singleton so interceptors are never lost.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const g = globalThis as any;
+if (!g.__EB_AXIOS_INSTANCE__) {
+  g.__EB_AXIOS_INSTANCE__ = Axios.create();
+}
+export const AXIOS_INSTANCE = g.__EB_AXIOS_INSTANCE__ as ReturnType<
+  typeof Axios.create
+>;
 
 export const ebInstance = <T>(
   config: AxiosRequestConfig,

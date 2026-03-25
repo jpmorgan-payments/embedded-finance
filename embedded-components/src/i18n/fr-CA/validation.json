@@ -1,7 +1,9 @@
 {
-  "required": "{{fieldName}} is required",
-  "format": "Invalid format",
-  "pattern": "Invalid format",
+  "required": "{{fieldName}} est requis",
+  "format": "Format invalide",
+  "pattern": "Format invalide",
+  "exactLength_one": "Doit contenir exactement {{count}} caractère",
+  "exactLength_other": "Doit contenir exactement {{count}} caractères",
   "common": {
     "noSpaces": "No spaces are allowed",
     "invalidChars": "Invalid characters detected",
@@ -27,7 +29,9 @@
     "noLeadingHyphen": "{{fieldName}} cannot begin with a hyphen",
     "noTrailingHyphen": "{{fieldName}} cannot end with a hyphen",
     "noHtml": "{{fieldName}} cannot contain HTML tags",
-    "noUrls": "{{fieldName}} cannot contain URLs"
+    "noUrls": "{{fieldName}} cannot contain URLs",
+    "noSpaces": "{{fieldName}} ne peut pas contenir d'espaces",
+    "pattern": "{{fieldName}} a un format invalide"
   },
   "suffix": {
     "pattern": "{{fieldName}} can only contain letters, periods, and roman numerals"
@@ -112,7 +116,18 @@
     "greaterOrEqual": "{{field1}} must be greater than or equal to {{field2}}",
     "lessOrEqual": "{{field1}} must be less than or equal to {{field2}}"
   },
+  "contact": {
+    "phone": {
+      "format": "Veuillez entrer un numéro de téléphone valide",
+      "pattern": "Veuillez entrer un numéro de téléphone valide (ex. {{example}})"
+    },
+    "email": {
+      "invalid": "Veuillez entrer une adresse courriel valide",
+      "maxLength_one": "Le courriel ne peut pas dépasser {{count}} caractère",
+      "maxLength_other": "Le courriel ne peut pas dépasser {{count}} caractères"
+    }
+  },
   "selection": {
-    "required": "Please select at least one option"
+    "required": "Veuillez sélectionner au moins une option"
   }
 }

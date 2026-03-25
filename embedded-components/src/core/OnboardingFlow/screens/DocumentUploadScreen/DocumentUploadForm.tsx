@@ -617,6 +617,7 @@ export const DocumentUploadForm = () => {
                     )}
             </Button>
             <Button
+              type="button"
               variant="ghost"
               onClick={() => goTo('upload-documents-section')}
               className="eb-text-primary hover:eb-bg-primary/5 hover:eb-text-primary"
