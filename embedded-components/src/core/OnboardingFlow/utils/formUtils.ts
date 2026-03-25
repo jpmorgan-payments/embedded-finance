@@ -427,14 +427,14 @@ export function convertPartyResponseToFormValues(
   // When the party has a countryOfResidence but no identity documents yet,
   // generate a default controllerIds entry with the issuer set to the
   // party's country so downstream forms start with the correct value.
-  // Non-US residents default to ITIN (Individual Taxpayer Identification
-  // Number) since Controllers/BOs still need a US tax ID.
+  // Non-US residents start with an empty idType so the user must
+  // explicitly select from PASSPORT, DRIVERS_LICENSE, or OTHER_GOVERNMENT_ID.
   const country = formValues.countryOfResidence as string | undefined;
   if (country && !formValues.controllerIds?.length) {
     const isUS = country === 'US';
     formValues.controllerIds = [
       {
-        idType: isUS ? 'SSN' : 'ITIN',
+        idType: isUS ? 'SSN' : '',
         issuer: country,
         value: '',
       },

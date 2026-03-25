@@ -78,15 +78,20 @@ const createControllerIdSchema = (
           v('controllerIds.expiryDate', 'tooFarInFuture')
         )
         .or(z.literal(undefined)),
-      idType: z.enum([
-        'SSN',
-        'ITIN',
-        'NATIONAL_ID',
-        'DRIVERS_LICENSE',
-        'PASSPORT',
-        'SOCIAL_INSURANCE_NUMBER',
-        'OTHER_GOVERNMENT_ID',
-      ]),
+      idType: z
+        .enum([
+          '',
+          'SSN',
+          'ITIN',
+          'NATIONAL_ID',
+          'DRIVERS_LICENSE',
+          'PASSPORT',
+          'SOCIAL_INSURANCE_NUMBER',
+          'OTHER_GOVERNMENT_ID',
+        ])
+        .refine((val) => val !== '', {
+          message: v('controllerIds.idType', 'required'),
+        }),
       issuer: z
         .string()
         .length(2, v('controllerIds.issuer', 'exactlyTwoChars')),

@@ -22,6 +22,9 @@ import {
   useIndividualIdentityFormSchema,
 } from './IndividualIdentityForm.schema';
 
+/** Extends the API type with an empty string to represent "no selection yet". */
+type IdTypeSelection = IndividualIdentityIdType | '';
+
 export const IndividualIdentityForm: FormStepComponent = () => {
   const { t } = useTranslationWithTokens([
     'onboarding-overview',
@@ -36,18 +39,15 @@ export const IndividualIdentityForm: FormStepComponent = () => {
   const issuerCountry = form.watch('controllerIds.0.issuer');
   const isUS = issuerCountry === 'US';
 
-  const US_ID_TYPES: IndividualIdentityIdType[] = ['SSN', 'ITIN'];
-  const NON_US_ID_TYPES: IndividualIdentityIdType[] = [
-    'ITIN',
+  const US_ID_TYPES: readonly IdTypeSelection[] = ['SSN', 'ITIN'] as const;
+  const NON_US_ID_TYPES: readonly IdTypeSelection[] = [
     'PASSPORT',
-    'NATIONAL_ID',
     'DRIVERS_LICENSE',
-    'SOCIAL_INSURANCE_NUMBER',
     'OTHER_GOVERNMENT_ID',
-  ];
+  ] as const;
   const availableIdTypes = isUS ? US_ID_TYPES : NON_US_ID_TYPES;
 
-  const getValueLabel = (idType: IndividualIdentityIdType) => {
+  const getValueLabel = (idType: IdTypeSelection) => {
     if (!idType) return t(['onboarding-old:idValueLabels.placeholder']);
     return t([
       `idValueLabels.${idType}`,
@@ -55,28 +55,32 @@ export const IndividualIdentityForm: FormStepComponent = () => {
     ]);
   };
 
-  const getValueDescription = (idType: IndividualIdentityIdType) => {
+  const getValueDescription = (idType: IdTypeSelection) => {
     if (!idType) return '';
     return t([`idValueDescriptions.${idType}`]);
   };
 
-  const currentIdType = form.watch('controllerIds.0.idType');
-  const isSsnOrItin = ['SSN', 'ITIN'].includes(currentIdType);
+  const currentIdType: IdTypeSelection = form.watch('controllerIds.0.idType');
+  const isSsnOrItin = currentIdType === 'SSN' || currentIdType === 'ITIN';
 
   // Reset ID type when switching between US and non-US.
-  // Non-US defaults to ITIN (Individual Taxpayer Identification Number)
-  // since Controllers/BOs still need a US tax ID even when residing abroad.
+  // Non-US starts with an empty selection so the user must explicitly
+  // choose from PASSPORT, DRIVERS_LICENSE, or OTHER_GOVERNMENT_ID.
   // Only resets if the current type isn't available in the target list,
-  // so manually-selected shared types (e.g. ITIN) are preserved.
+  // so manually-selected shared types are preserved.
   useEffect(() => {
-    const currentType = form.getValues(
+    const currentType: IdTypeSelection = form.getValues(
       'controllerIds.0.idType'
-    ) as IndividualIdentityIdType;
+    );
     if (isUS && !US_ID_TYPES.includes(currentType)) {
       form.setValue('controllerIds.0.idType', 'SSN');
       form.setValue('controllerIds.0.value', '');
-    } else if (!isUS && !NON_US_ID_TYPES.includes(currentType)) {
-      form.setValue('controllerIds.0.idType', 'ITIN');
+    } else if (
+      !isUS &&
+      currentType !== '' &&
+      !NON_US_ID_TYPES.includes(currentType)
+    ) {
+      form.setValue('controllerIds.0.idType', '');
       form.setValue('controllerIds.0.value', '');
     }
   }, [isUS]);
@@ -108,7 +112,7 @@ export const IndividualIdentityForm: FormStepComponent = () => {
             </span>
           ),
         }))}
-        disabled
+        readonly
       />
       {isUS && (
         <OnboardingFormField
@@ -123,42 +127,66 @@ export const IndividualIdentityForm: FormStepComponent = () => {
       {getFieldRule('controllerIds.0.value').fieldRule.display ===
         'visible' && (
         <div className="eb-space-y-3">
-          <OnboardingFormField
-            key={currentIdType}
-            control={form.control}
-            name="controllerIds.0.value"
-            type="text"
-            maskFormat={isSsnOrItin ? '### - ## - ####' : undefined}
-            maskChar={isSsnOrItin ? '_' : undefined}
-            label={getValueLabel(currentIdType)}
-            description={getValueDescription(currentIdType)}
-            obfuscateWhenUnfocused={isSsnOrItin}
-          />
+          {!isUS && (
+            <OnboardingFormField
+              control={form.control}
+              name="controllerIds.0.idType"
+              type="select"
+              label={t([
+                'onboarding-overview:fields.controllerIds.idType.label',
+                'onboarding-old:fields.controllerIds.idType.label',
+              ])}
+              description={t([
+                'onboarding-overview:fields.controllerIds.idType.description',
+              ])}
+              options={NON_US_ID_TYPES.map((idType) => ({
+                value: idType,
+                label: getValueLabel(idType),
+              }))}
+              required
+              disableFieldRuleMapping
+            />
+          )}
+          {(isUS || currentIdType) && (
+            <OnboardingFormField
+              key={currentIdType}
+              control={form.control}
+              name="controllerIds.0.value"
+              type="text"
+              maskFormat={isSsnOrItin ? '### - ## - ####' : undefined}
+              maskChar={isSsnOrItin ? '_' : undefined}
+              label={getValueLabel(currentIdType)}
+              description={getValueDescription(currentIdType)}
+              obfuscateWhenUnfocused={isSsnOrItin}
+            />
+          )}
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" type="button" size="sm" className="">
-                Use a different ID type
-                <ChevronDownIcon />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="eb-component">
-              {availableIdTypes.map((idType) => (
-                <DropdownMenuItem
-                  key={idType}
-                  disabled={form.watch('controllerIds.0.idType') === idType}
-                  onClick={() => {
-                    form.setValue('controllerIds.0.idType', idType);
-                    form.setValue('controllerIds.0.value', '');
-                  }}
-                >
-                  <div className="eb-flex eb-items-center eb-gap-2">
-                    {getValueLabel(idType)}
-                  </div>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {isUS && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" type="button" size="sm" className="">
+                  Use a different ID type
+                  <ChevronDownIcon />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="eb-component">
+                {availableIdTypes.map((idType) => (
+                  <DropdownMenuItem
+                    key={idType}
+                    disabled={form.watch('controllerIds.0.idType') === idType}
+                    onClick={() => {
+                      form.setValue('controllerIds.0.idType', idType);
+                      form.setValue('controllerIds.0.value', '');
+                    }}
+                  >
+                    <div className="eb-flex eb-items-center eb-gap-2">
+                      {getValueLabel(idType)}
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       )}
     </div>
@@ -168,12 +196,16 @@ export const IndividualIdentityForm: FormStepComponent = () => {
 IndividualIdentityForm.schema = useIndividualIdentityFormSchema;
 IndividualIdentityForm.refineSchemaFn = refineIndividualIdentityFormSchema;
 IndividualIdentityForm.modifyFormValuesBeforeSubmit = (values, partyData) => {
-  const issuer = partyData?.individualDetails?.countryOfResidence ?? 'US';
+  const countryOfResidence =
+    partyData?.individualDetails?.countryOfResidence ?? 'US';
   return {
     ...values,
     controllerIds: values.controllerIds?.map((id: Record<string, unknown>) => ({
       ...id,
-      issuer,
+      // SSN and ITIN are always US-issued; other ID types use the country of residence
+      issuer: ['SSN', 'ITIN'].includes(id.idType as string)
+        ? 'US'
+        : countryOfResidence,
     })),
   };
 };

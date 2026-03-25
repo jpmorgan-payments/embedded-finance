@@ -743,7 +743,7 @@ describe('OnboardingFlow', () => {
     expect(usTexts.length).toBeGreaterThanOrEqual(1);
   }, 60000);
 
-  test('non-US country of residence defaults ID type to ITIN', async () => {
+  test('non-US country of residence shows ID type dropdown with no default selection', async () => {
     const user = userEvent.setup();
 
     renderOnboardingFlow();
@@ -831,15 +831,19 @@ describe('OnboardingFlow', () => {
     const continueButton = screen.getByRole('button', { name: /continue/i });
     await user.click(continueButton);
 
-    // 3b. Identity Document step — should show ITIN as default
+    // 3b. Identity Document step — should show ID type dropdown with no preselection
     await waitFor(() => {
       expect(screen.getByText(/Your ID details/i)).toBeInTheDocument();
     });
 
-    // The default ID field should be labeled ITIN
+    // The ID type selector should be visible
+    expect(screen.getByLabelText(/ID type/i)).toBeInTheDocument();
+
+    // No ID type is preselected, so the value input should not be visible
+    expect(screen.queryByLabelText(/Passport/i)).not.toBeInTheDocument();
     expect(
-      screen.getByLabelText(/Individual Taxpayer Identification Number/i)
-    ).toBeInTheDocument();
+      screen.queryByLabelText(/Driver's License/i)
+    ).not.toBeInTheDocument();
   }, 90000);
 
   test('switching back to US reverts default ID type to SSN', async () => {
