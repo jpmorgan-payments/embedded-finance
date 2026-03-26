@@ -333,7 +333,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       >
         {currentStep.stepType === 'form' && (
           <StepperFormStep
-            key={currentStep.id}
+            key={`${currentStep.id}-${existingPartyData?.id ?? 'new'}`}
             currentStepId={currentStep.id}
             Component={currentStep.Component}
             defaultPartyRequestBody={getDefaultPartyRequestBody?.(
