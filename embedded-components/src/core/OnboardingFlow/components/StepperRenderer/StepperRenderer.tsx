@@ -407,21 +407,6 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
     ...formValuesFromResponse,
   };
 
-  // Safety net: when countryOfResidence is known (from savedFormValues or
-  // the API response) but controllerIds is missing/undefined — which can
-  // happen when the React Query cache hasn't propagated the newly-created
-  // party to clientData yet — generate sensible controllerIds defaults so
-  // the identity step renders the correct issuer on its very first mount.
-  const resolvedCountry = overrideDefaultValues.countryOfResidence as
-    | string
-    | undefined;
-  if (resolvedCountry && !overrideDefaultValues.controllerIds?.length) {
-    const isUS = resolvedCountry === 'US';
-    overrideDefaultValues.controllerIds = [
-      { idType: isUS ? 'SSN' : '', issuer: resolvedCountry, value: '' },
-    ];
-  }
-
   // For adding a new party to the client
   const {
     mutate: updateClient,
@@ -540,18 +525,29 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
               onPostPartySettled?.(_data, error?.response?.data);
             },
             onSuccess: () => {
-              // Step 2: build a new party from the submitted form values,
-              // excluding identity documents (the user must re-enter them
-              // for the new country).
+              // Step 2: build a new party from the *entire* existing party,
+              // overlaid with the current form submission (which carries the
+              // new countryOfResidence), but excluding identity documents
+              // (the user must re-enter them for the new country).
+              const fullPartyFormValues =
+                convertPartyResponseToFormValues(existingPartyData);
+
+              // Merge: existing party data as base, current form on top
+              const merged = {
+                ...fullPartyFormValues,
+                ...modifiedValues,
+              };
+
+              // Strip identity-related fields — they're country-specific
+              // (birthDate is kept because it isn't country-specific)
               const {
                 controllerIds: _ids,
                 solePropSsn: _ssn,
-                birthDate: _dob,
                 ...valuesWithoutIds
-              } = modifiedValues;
+              } = merged;
 
               const clientRequestBody = generateClientRequestBody(
-                valuesWithoutIds,
+                valuesWithoutIds as Partial<OnboardingFormValuesSubmit>,
                 0,
                 'addParties',
                 {
@@ -568,7 +564,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
                   onSettled: (data, err) => {
                     onPostClientSettled?.(data, err?.response?.data);
                   },
-                  onSuccess: (response) => {
+                  onSuccess: async (response) => {
                     // Find the newly-created party
                     const oldPartyIds = clientData.parties?.map((p) => p.id);
                     const newParty = response.parties?.find(
@@ -586,9 +582,12 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
                       undefined
                     );
 
+                    // Wait for the query cache to settle so that
+                    // clientData (and therefore existingPartyData)
+                    // reflects the new party before the next step mounts.
                     const queryKey = getSmbdoGetClientQueryKey(clientData.id);
                     queryClient.setQueryData(queryKey, response);
-                    queryClient.invalidateQueries({ queryKey });
+                    await queryClient.invalidateQueries({ queryKey });
                     handleNext();
                   },
                   onError: (err) => {
@@ -636,7 +635,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
             onSettled: (data, error) => {
               onPostPartySettled?.(data, error?.response?.data);
             },
-            onSuccess: (response) => {
+            onSuccess: async (response) => {
               const queryKey = getSmbdoGetClientQueryKey(clientData.id);
 
               // Update client cache with party data
@@ -652,10 +651,12 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
                   }),
                 })
               );
-              queryClient.invalidateQueries({
+              setExistingPartyData(response);
+              // Wait for the query cache to settle so that
+              // clientData reflects the update before the next step mounts.
+              await queryClient.invalidateQueries({
                 queryKey,
               });
-              setExistingPartyData(response);
               handleNext();
             },
             onError: (error) => {
@@ -688,7 +689,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
             onSettled: (data, error) => {
               onPostClientSettled?.(data, error?.response?.data);
             },
-            onSuccess(response) {
+            async onSuccess(response) {
               // Find the newly-created party
               const oldPartyIds = clientData.parties?.map((party) => party.id);
               const newParty = response.parties?.find(
@@ -698,10 +699,11 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
                 setExistingPartyData(newParty);
               }
 
-              // Set query data
+              // Wait for the query cache to settle so that
+              // clientData reflects the new party before the next step mounts.
               const queryKey = getSmbdoGetClientQueryKey(clientData.id);
               queryClient.setQueryData(queryKey, response);
-              queryClient.invalidateQueries({
+              await queryClient.invalidateQueries({
                 queryKey,
               });
 
