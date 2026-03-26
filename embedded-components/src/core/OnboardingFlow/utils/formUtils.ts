@@ -424,21 +424,31 @@ export function convertPartyResponseToFormValues(
     }
   });
 
-  // When the party has a countryOfResidence but no identity documents yet,
-  // generate a default controllerIds entry with the issuer set to the
-  // party's country so downstream forms start with the correct value.
-  // Non-US residents start with an empty idType so the user must
-  // explicitly select from PASSPORT, DRIVERS_LICENSE, or OTHER_GOVERNMENT_ID.
+  // The issuer on controllerIds must always equal the party's
+  // countryOfResidence (SSN/ITIN are always US, but the issuer field
+  // itself should still reflect the country so the UI renders correctly).
+  // We normalise it here — the single API→form conversion point — so
+  // every downstream consumer sees the correct value without extra patches.
   const country = formValues.countryOfResidence as string | undefined;
-  if (country && !formValues.controllerIds?.length) {
-    const isUS = country === 'US';
-    formValues.controllerIds = [
-      {
-        idType: isUS ? 'SSN' : '',
+  if (country) {
+    if (formValues.controllerIds?.length) {
+      formValues.controllerIds = formValues.controllerIds.map((id) => ({
+        ...id,
         issuer: country,
-        value: '',
-      },
-    ];
+      })) as typeof formValues.controllerIds;
+    } else {
+      // No identity documents yet — generate a default entry.
+      // Non-US residents start with an empty idType so the user must
+      // explicitly select from PASSPORT, DRIVERS_LICENSE, or OTHER_GOVERNMENT_ID.
+      const isUS = country === 'US';
+      formValues.controllerIds = [
+        {
+          idType: isUS ? 'SSN' : '',
+          issuer: country,
+          value: '',
+        },
+      ];
+    }
   }
 
   return formValues;

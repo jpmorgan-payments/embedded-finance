@@ -399,42 +399,26 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
     ? convertPartyResponseToFormValues(existingPartyData)
     : {};
 
-  // Build overrideDefaultValues from saved context + API response.
-  // Resolve the party's country so controllerIds.issuer is correct on the
-  // very first render of a step.  savedFormValues is checked FIRST because
-  // it is written synchronously by the previous step's onSubmit, whereas
-  // existingPartyData comes from the React Query cache whose async
-  // invalidation/refetch may not have completed yet — making it stale when
-  // the user just changed countryOfResidence on the prior step.
-  const resolvedCountry =
-    (savedFormValues?.countryOfResidence as string | undefined) ??
-    existingPartyData?.individualDetails?.countryOfResidence ??
-    'US';
+  // formValuesFromResponse already has controllerIds.issuer normalised
+  // to match countryOfResidence (done in convertPartyResponseToFormValues),
+  // so we simply layer saved context underneath the API response.
   const overrideDefaultValues: Partial<OnboardingFormValuesInitial> = {
     ...savedFormValues,
     ...formValuesFromResponse,
   };
-  if (overrideDefaultValues.controllerIds?.length) {
-    // Patch existing controllerIds if the issuer doesn't match
-    if (overrideDefaultValues.controllerIds[0]?.issuer !== resolvedCountry) {
-      overrideDefaultValues.controllerIds =
-        overrideDefaultValues.controllerIds.map((id) => ({
-          ...id,
-          issuer: resolvedCountry,
-        }));
-    }
-  } else {
-    // No controllerIds from saved values or API response — generate a
-    // default entry so the identity form starts with the correct issuer.
-    // Non-US residents start with empty idType so the user must
-    // explicitly select from PASSPORT, DRIVERS_LICENSE, or OTHER_GOVERNMENT_ID.
+
+  // Safety net: when countryOfResidence is known (from savedFormValues or
+  // the API response) but controllerIds is missing/undefined — which can
+  // happen when the React Query cache hasn't propagated the newly-created
+  // party to clientData yet — generate sensible controllerIds defaults so
+  // the identity step renders the correct issuer on its very first mount.
+  const resolvedCountry = overrideDefaultValues.countryOfResidence as
+    | string
+    | undefined;
+  if (resolvedCountry && !overrideDefaultValues.controllerIds?.length) {
     const isUS = resolvedCountry === 'US';
     overrideDefaultValues.controllerIds = [
-      {
-        idType: isUS ? 'SSN' : '',
-        issuer: resolvedCountry,
-        value: '',
-      },
+      { idType: isUS ? 'SSN' : '', issuer: resolvedCountry, value: '' },
     ];
   }
 
@@ -526,7 +510,114 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
 
     // Client data exists - therefore we are adding or updating a party
     if (clientData) {
-      // Updating an existing party
+      // ---------------------------------------------------------------
+      // Country-of-residence change → deactivate + recreate party
+      // ---------------------------------------------------------------
+      // The API requires a fresh party when countryOfResidence changes
+      // because identity documents are country-specific.  We:
+      //   1. PATCH the old party with { active: false }
+      //   2. POST addParties with the old party's data minus IDs
+      //   3. Update editingPartyId to point to the new party
+      const submittedCountry = modifiedValues.countryOfResidence as
+        | string
+        | undefined;
+      const previousCountry =
+        existingPartyData?.individualDetails?.countryOfResidence;
+      const countryChanged =
+        !!submittedCountry &&
+        !!previousCountry &&
+        submittedCountry !== previousCountry;
+
+      if (existingPartyData?.id && countryChanged) {
+        // Step 1: deactivate the old party
+        updateParty(
+          {
+            partyId: existingPartyData.id,
+            data: { active: false },
+          },
+          {
+            onSettled: (_data, error) => {
+              onPostPartySettled?.(_data, error?.response?.data);
+            },
+            onSuccess: () => {
+              // Step 2: build a new party from the submitted form values,
+              // excluding identity documents (the user must re-enter them
+              // for the new country).
+              const {
+                controllerIds: _ids,
+                solePropSsn: _ssn,
+                birthDate: _dob,
+                ...valuesWithoutIds
+              } = modifiedValues;
+
+              const clientRequestBody = generateClientRequestBody(
+                valuesWithoutIds,
+                0,
+                'addParties',
+                {
+                  addParties: [defaultPartyRequestBody ?? {}],
+                }
+              );
+
+              updateClient(
+                {
+                  id: clientData.id,
+                  data: clientRequestBody,
+                },
+                {
+                  onSettled: (data, err) => {
+                    onPostClientSettled?.(data, err?.response?.data);
+                  },
+                  onSuccess: (response) => {
+                    // Find the newly-created party
+                    const oldPartyIds = clientData.parties?.map((p) => p.id);
+                    const newParty = response.parties?.find(
+                      (p) => !oldPartyIds?.includes(p.id)
+                    );
+
+                    if (newParty) {
+                      setExistingPartyData(newParty);
+                    }
+
+                    // Clear saved form values so the identity step
+                    // re-derives defaults from the new party.
+                    saveFormValue(
+                      'controllerIds' as keyof OnboardingFormValuesSubmit,
+                      undefined
+                    );
+
+                    const queryKey = getSmbdoGetClientQueryKey(clientData.id);
+                    queryClient.setQueryData(queryKey, response);
+                    queryClient.invalidateQueries({ queryKey });
+                    handleNext();
+                  },
+                  onError: (err) => {
+                    if (err.response?.data.context) {
+                      const apiFormErrors = mapClientApiErrorsToFormErrors(
+                        err.response.data.context,
+                        0,
+                        'addParties'
+                      );
+                      setApiFormErrors(form, apiFormErrors);
+                    }
+                  },
+                }
+              );
+            },
+            onError: (error) => {
+              if (error.response?.data.context) {
+                const apiFormErrors = mapPartyApiErrorsToFormErrors(
+                  error.response.data.context
+                );
+                setApiFormErrors(form, apiFormErrors);
+              }
+            },
+          }
+        );
+        return; // Exit early — the nested callbacks handle navigation
+      }
+
+      // Updating an existing party (no country change)
       if (existingPartyData && existingPartyData.id) {
         const partyRequestBody = generatePartyRequestBody(modifiedValues, {});
 
