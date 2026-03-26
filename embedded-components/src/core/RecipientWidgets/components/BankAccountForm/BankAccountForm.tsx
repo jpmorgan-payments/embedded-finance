@@ -319,8 +319,7 @@ const IndividualPartyLockedField: FC<IndividualPartyLockedFieldProps> = ({
 }) => {
   const { t } = useTranslationWithTokens('bank-account-form');
   const selected = individuals.find(
-    (p) =>
-      p.firstName === selectedFirstName && p.lastName === selectedLastName
+    (p) => p.firstName === selectedFirstName && p.lastName === selectedLastName
   );
   const displayIndividual = selected ?? individuals[0];
   const displayName = displayIndividual

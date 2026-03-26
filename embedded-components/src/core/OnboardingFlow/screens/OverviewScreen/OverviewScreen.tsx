@@ -24,6 +24,7 @@ import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Button,
   Card,
@@ -31,7 +32,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui';
-import { Skeleton } from '@/components/ui/skeleton';
 import { StepLayout } from '@/core/OnboardingFlow/components';
 import {
   useFlowContext,
