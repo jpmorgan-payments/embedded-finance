@@ -1,4 +1,4 @@
-import { FC, ReactNode, useEffect, useMemo, useState } from 'react';
+import { FC, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -55,6 +55,7 @@ import type {
   BankAccountFormData,
   BankAccountFormProps,
 } from './BankAccountForm.types';
+import { mergeBankAccountDefaultValues } from './BankAccountForm.utils';
 
 /**
  * PaymentMethodSelector - Compact checkbox selector for payment methods
@@ -280,18 +281,66 @@ const IndividualReadonlyField: FC<IndividualReadonlyFieldProps> = ({
   return (
     <FormItem>
       <FormLabel>{t('individualSelector.accountHolder')}</FormLabel>
-      <div className="eb-rounded-md eb-border eb-bg-muted eb-p-3 eb-text-sm">
-        <div className="eb-flex eb-flex-col eb-gap-1">
-          <span className="eb-font-medium">
-            {individual.firstName} {individual.lastName}
-          </span>
-          {individual.roles.length > 0 && (
-            <span className="eb-text-xs">
-              {individual.roles.map(formatRole).join(', ')}
-            </span>
-          )}
-        </div>
-      </div>
+      <Input
+        value={`${individual.firstName} ${individual.lastName}`.trim()}
+        readOnly
+        disabled
+        className="eb-bg-muted/50"
+        aria-readonly
+      />
+      {individual.roles.length > 0 ? (
+        <span className="eb-block eb-text-xs eb-text-muted-foreground">
+          {individual.roles.map(formatRole).join(', ')}
+        </span>
+      ) : null}
+    </FormItem>
+  );
+};
+
+/**
+ * Multiple individuals on the client, but party name fields are locked — match disabled
+ * bank inputs (same as prefill summary / routing fields).
+ */
+interface IndividualPartyLockedFieldProps {
+  individuals: Array<{
+    id: string | undefined;
+    firstName: string;
+    lastName: string;
+    roles: string[];
+  }>;
+  selectedFirstName: string | undefined;
+  selectedLastName: string | undefined;
+}
+
+const IndividualPartyLockedField: FC<IndividualPartyLockedFieldProps> = ({
+  individuals,
+  selectedFirstName,
+  selectedLastName,
+}) => {
+  const { t } = useTranslationWithTokens('bank-account-form');
+  const selected = individuals.find(
+    (p) => p.firstName === selectedFirstName && p.lastName === selectedLastName
+  );
+  const displayIndividual = selected ?? individuals[0];
+  const displayName = displayIndividual
+    ? `${displayIndividual.firstName} ${displayIndividual.lastName}`.trim()
+    : '';
+
+  return (
+    <FormItem>
+      <FormLabel>{t('individualSelector.accountHolder')}</FormLabel>
+      <Input
+        value={displayName}
+        readOnly
+        disabled
+        className="eb-bg-muted/50"
+        aria-readonly
+      />
+      {displayIndividual?.roles.length ? (
+        <span className="eb-block eb-text-xs eb-text-muted-foreground">
+          {displayIndividual.roles.map(formatRole).join(', ')}
+        </span>
+      ) : null}
     </FormItem>
   );
 };
@@ -671,6 +720,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   embedded = false,
   initialPaymentTypes: initialPaymentTypesProp,
   initialStep = 1,
+  defaultValuesOverride,
 }) => {
   const { t, tString } = useTranslationWithTokens('bank-account-form');
   const formatRequiredMessage = useFormatRequiredMessage(
@@ -694,15 +744,6 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
 
     return orgParty?.organizationDetails?.organizationName;
   }, [client]);
-
-  // Helper to sanitize string values from API (handles null, undefined)
-  const sanitizeString = (
-    value: string | null | undefined,
-    defaultValue = ''
-  ): string => {
-    if (value === null || value === undefined) return defaultValue;
-    return value;
-  };
 
   // Extract individual parties from client data for linked account individual selector
   const individualParties = useMemo(() => {
@@ -859,64 +900,56 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
       }));
   }, [recipient]);
 
-  const form = useForm<BankAccountFormData>({
-    mode: 'onBlur',
-    resolver: zodResolver(formSchema),
-    defaultValues: {
+  const baseDefaultValues = useMemo((): BankAccountFormData => {
+    const sanitize = (value: string | null | undefined, defaultValue = '') => {
+      if (value === null || value === undefined) return defaultValue;
+      return value;
+    };
+
+    const useSameRouting =
+      initialRoutingNumbers.length <= 1
+        ? true
+        : initialRoutingNumbers.every(
+            (rn) => rn.routingNumber === initialRoutingNumbers[0]?.routingNumber
+          );
+
+    return {
       accountType:
         recipient?.partyDetails?.type ||
         effectiveConfig.accountHolder.defaultType ||
         undefined,
       firstName:
         recipient?.partyDetails?.firstName ||
-        // Only pre-fill from client data if config allows it
         (effectiveConfig.accountHolder.prefillFromClient &&
         individualParties.length === 1
           ? individualParties[0].firstName
           : ''),
       lastName:
         recipient?.partyDetails?.lastName ||
-        // Only pre-fill from client data if config allows it
         (effectiveConfig.accountHolder.prefillFromClient &&
         individualParties.length === 1
           ? individualParties[0].lastName
           : ''),
       businessName:
         recipient?.partyDetails?.businessName ||
-        // Only pre-fill from client data if config allows it
         (effectiveConfig.accountHolder.prefillFromClient
           ? organizationName
           : '') ||
         '',
       routingNumbers: initialRoutingNumbers,
-      useSameRoutingNumber: (() => {
-        // Calculate if all routing numbers are the same
-        if (initialRoutingNumbers.length <= 1) return true;
-        const firstRouting = initialRoutingNumbers[0]?.routingNumber;
-        return initialRoutingNumbers.every(
-          (rn) => rn.routingNumber === firstRouting
-        );
-      })(),
+      useSameRoutingNumber: useSameRouting,
       accountNumber: recipient?.account?.number || '',
       bankAccountType: (recipient?.account?.type as any) || 'CHECKING',
       paymentTypes: initialPaymentTypes,
       address: recipient?.partyDetails?.address
         ? {
-            addressLine1: sanitizeString(
-              recipient.partyDetails.address.addressLine1
-            ),
-            addressLine2: sanitizeString(
-              recipient.partyDetails.address.addressLine2
-            ),
-            addressLine3: sanitizeString(
-              recipient.partyDetails.address.addressLine3
-            ),
-            city: sanitizeString(recipient.partyDetails.address.city),
-            state: sanitizeString(recipient.partyDetails.address.state),
-            postalCode: sanitizeString(
-              recipient.partyDetails.address.postalCode
-            ),
-            countryCode: (sanitizeString(
+            addressLine1: sanitize(recipient.partyDetails.address.addressLine1),
+            addressLine2: sanitize(recipient.partyDetails.address.addressLine2),
+            addressLine3: sanitize(recipient.partyDetails.address.addressLine3),
+            city: sanitize(recipient.partyDetails.address.city),
+            state: sanitize(recipient.partyDetails.address.state),
+            postalCode: sanitize(recipient.partyDetails.address.postalCode),
+            countryCode: (sanitize(
               recipient.partyDetails.address.countryCode,
               'US'
             ) || 'US') as 'US',
@@ -924,8 +957,49 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
         : undefined,
       contacts: initialContacts,
       certify: false,
-    },
+    } as BankAccountFormData;
+  }, [
+    recipient,
+    effectiveConfig.accountHolder.defaultType,
+    effectiveConfig.accountHolder.prefillFromClient,
+    individualParties,
+    organizationName,
+    initialRoutingNumbers,
+    initialPaymentTypes,
+    initialContacts,
+  ]);
+
+  const mergedDefaultValues = useMemo(
+    () =>
+      mergeBankAccountDefaultValues(baseDefaultValues, defaultValuesOverride),
+    [baseDefaultValues, defaultValuesOverride]
+  );
+
+  const form = useForm<BankAccountFormData>({
+    mode: 'onBlur',
+    resolver: zodResolver(formSchema),
+    defaultValues: mergedDefaultValues,
   });
+
+  const defaultValuesOverrideKey = JSON.stringify(
+    defaultValuesOverride ?? null
+  );
+  const previousOverrideKeyRef = useRef(defaultValuesOverrideKey);
+
+  useEffect(() => {
+    if (defaultValuesOverrideKey === previousOverrideKeyRef.current) {
+      return;
+    }
+    previousOverrideKeyRef.current = defaultValuesOverrideKey;
+    form.reset(
+      mergeBankAccountDefaultValues(baseDefaultValues, defaultValuesOverride)
+    );
+  }, [
+    defaultValuesOverrideKey,
+    baseDefaultValues,
+    defaultValuesOverride,
+    form,
+  ]);
 
   // Watch form values
   const accountType = form.watch('accountType');
@@ -1313,6 +1387,13 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                         {individualParties.length === 1 ? (
                           <IndividualReadonlyField
                             individual={individualParties[0]}
+                          />
+                        ) : effectiveConfig.readonlyFields?.firstName &&
+                          effectiveConfig.readonlyFields?.lastName ? (
+                          <IndividualPartyLockedField
+                            individuals={individualParties}
+                            selectedFirstName={form.watch('firstName')}
+                            selectedLastName={form.watch('lastName')}
                           />
                         ) : (
                           <IndividualSelector

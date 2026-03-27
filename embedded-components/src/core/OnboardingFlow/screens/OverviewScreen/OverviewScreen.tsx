@@ -2,6 +2,7 @@ import { useTranslationWithTokens } from '@/i18n';
 import {
   AlertCircleIcon,
   AlertTriangleIcon,
+  ArrowRightIcon,
   CheckCircle2Icon,
   CheckIcon,
   ChevronRightIcon,
@@ -14,11 +15,16 @@ import {
   XIcon,
 } from 'lucide-react';
 
+import {
+  canVerifyMicrodeposits,
+  getRecipientDisplayName,
+} from '@/lib/recipientHelpers';
 import { cn } from '@/lib/utils';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Button,
   Card,
@@ -34,6 +40,8 @@ import {
 import { getPartyByAssociatedPartyFilters } from '@/core/OnboardingFlow/utils/dataUtils';
 import { RecipientAccountDisplayCard } from '@/core/RecipientWidgets/components/RecipientAccountDisplayCard/RecipientAccountDisplayCard';
 import { StatusAlert } from '@/core/RecipientWidgets/components/StatusAlert/StatusAlert';
+import { MicrodepositsFormDialogTrigger } from '@/core/RecipientWidgets/forms/MicrodepositsForm/MicrodepositsForm';
+import { LINKED_ACCOUNT_USER_JOURNEYS } from '@/core/RecipientWidgets/RecipientWidgets.constants';
 
 import { getFlowProgress } from '../../utils/flowUtils';
 
@@ -61,7 +69,11 @@ export const OverviewScreen = () => {
     currentScreenId
   );
 
-  const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
+  const { t, tString } = useTranslationWithTokens([
+    'onboarding-overview',
+    'common',
+    'linked-accounts',
+  ]);
 
   // Bank-account linking is only unlocked once the client is fully APPROVED.
   const kycCompleted = clientData?.status === 'APPROVED';
@@ -89,15 +101,17 @@ export const OverviewScreen = () => {
   );
   const docRequestsClosed = !hasOutstandingDocRequests;
 
-  // Fetch existing linked accounts to show in overview
-  const { data: recipientsData } = useGetAllRecipients(
-    { type: 'LINKED_ACCOUNT' },
-    {
-      query: {
-        enabled: !!showLinkAccountStep,
-      },
-    }
-  );
+  // Linked accounts (Overview bank section): summary card + status; same Verify CTA as LinkAccountScreen
+  // when READY_FOR_VALIDATION. See Docs.mdx / stories/linked-account/README.md.
+  const { data: recipientsData, isLoading: isLoadingLinkedRecipients } =
+    useGetAllRecipients(
+      { type: 'LINKED_ACCOUNT' },
+      {
+        query: {
+          enabled: !!showLinkAccountStep,
+        },
+      }
+    );
 
   const existingLinkedAccount: Recipient | undefined =
     recipientsData?.recipients?.find(
@@ -468,13 +482,44 @@ export const OverviewScreen = () => {
             </CardHeader>
             <CardContent className="eb-p-3 eb-pt-0">
               <div className="eb-space-y-3">
-                {existingLinkedAccount ? (
+                {isLoadingLinkedRecipients ? (
+                  <div className="eb-space-y-3 eb-pt-1">
+                    <Skeleton className="eb-h-5 eb-w-full eb-max-w-xs" />
+                    <Skeleton className="eb-h-28 eb-w-full eb-rounded-md" />
+                  </div>
+                ) : existingLinkedAccount ? (
                   <RecipientAccountDisplayCard
                     recipient={existingLinkedAccount}
                     statusAlert={
                       existingLinkedAccount.status &&
                       existingLinkedAccount.status !== 'ACTIVE' ? (
-                        <StatusAlert status={existingLinkedAccount.status} />
+                        <StatusAlert
+                          status={existingLinkedAccount.status}
+                          action={
+                            canVerifyMicrodeposits(existingLinkedAccount) ? (
+                              <MicrodepositsFormDialogTrigger
+                                recipientId={existingLinkedAccount.id}
+                              >
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  data-user-event={
+                                    LINKED_ACCOUNT_USER_JOURNEYS.VERIFY_STARTED
+                                  }
+                                  aria-label={`${tString('linked-accounts:actions.verifyAccount')} for ${getRecipientDisplayName(existingLinkedAccount)}`}
+                                >
+                                  <span>
+                                    {t('linked-accounts:actions.verifyAccount')}
+                                  </span>
+                                  <ArrowRightIcon
+                                    className="eb-ml-2 eb-h-4 eb-w-4"
+                                    aria-hidden="true"
+                                  />
+                                </Button>
+                              </MicrodepositsFormDialogTrigger>
+                            ) : undefined
+                          }
+                        />
                       ) : undefined
                     }
                     showAccountToggle

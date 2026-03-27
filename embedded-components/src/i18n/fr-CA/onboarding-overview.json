@@ -245,6 +245,28 @@
       "success": {
         "title": "Compte lié avec succès",
         "description": "Votre compte bancaire a été lié pour les paiements."
+      },
+      "review": {
+        "title": "Vérifiez votre compte bancaire",
+        "description": "Confirmez les informations ci-dessous avant de lier ce compte pour les paiements.",
+        "confirmButton": "Confirmer et lier le compte",
+        "addressHeading": "Adresse du titulaire du compte",
+        "contactsHeading": "Contact",
+        "acknowledgementsGroupLabel": "Accords requis pour lier ce compte",
+        "acknowledgements": {
+          "termsAndPolicies": "En confirmant, vous acceptez nos <termsLink>Conditions générales</termsLink> et reconnaissez notre <privacyLink>Politique de confidentialité</privacyLink>.",
+          "payoutAccountAttestation": "Je confirme que ce compte bancaire appartient à l’entreprise ou est autorisé pour l’entreprise figurant dans ma demande pour recevoir des paiements."
+        }
+      },
+      "prefillSummary": {
+        "description": "Vérifiez les détails bancaires et acceptez les accords pour lier ce compte.",
+        "accountHolderLabel": "Titulaire du compte",
+        "acknowledgementsIntro": "En liant électroniquement ce compte, vous acceptez que :",
+        "acknowledgements": {
+          "businessPurpose": "Je reconnais que le compte lié sert principalement à des fins commerciales et non à des fins de consommation.",
+          "verifyAndAccuracy": "J’autorise la vérification de ce compte lié, y compris la vérification par micro-dépôt si nécessaire. Je certifie que les renseignements fournis sont exacts et correspondent aux détails de mon compte bancaire.",
+          "debitAndTerms": "J’autorise le fournisseur de plateforme et JPMorgan Chase Bank, N.A. à débiter mon ou mes comptes liés pour le financement, le paiement de soldes négatifs ou d’autres frais. J’ai lu et j’accepte les <jpTermsLink>conditions J.P. Morgan</jpTermsLink> et le <platformAgreementLink>contrat de programme du fournisseur de plateforme</platformAgreementLink>."
+        }
       }
     },
     "companyIdentification": {

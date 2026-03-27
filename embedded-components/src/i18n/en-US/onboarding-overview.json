@@ -288,6 +288,28 @@
       "existingAccount": {
         "title": "Your linked bank account",
         "description": "This bank account is linked for payouts."
+      },
+      "review": {
+        "title": "Review your bank account",
+        "description": "Confirm the details below before linking this account for payouts.",
+        "confirmButton": "Confirm and link account",
+        "addressHeading": "Account holder address",
+        "contactsHeading": "Contact",
+        "acknowledgementsGroupLabel": "Agreements required to link this account",
+        "acknowledgements": {
+          "termsAndPolicies": "By confirming, you agree to our <termsLink>Terms & Conditions</termsLink> and acknowledge our <privacyLink>Privacy Policy</privacyLink>.",
+          "payoutAccountAttestation": "I confirm this bank account is owned by or authorized for use by the business in my application for receiving payouts."
+        }
+      },
+      "prefillSummary": {
+        "description": "Review your bank details and accept the agreements to link this account.",
+        "accountHolderLabel": "Account holder",
+        "acknowledgementsIntro": "By electronically linking this account, you agree that:",
+        "acknowledgements": {
+          "businessPurpose": "I acknowledge that the linked account is primarily for business purposes and not for consumer purposes.",
+          "verifyAndAccuracy": "I authorize verification of this linked account, including microdeposit verification if required. I certify that the information provided is accurate and matches my bank account details.",
+          "debitAndTerms": "I authorize the platform provider and JPMorgan Chase Bank, N.A. to debit my linked account or accounts for funding, payment of negative balances, or other fees. I have read and agree to the <jpTermsLink>J.P. Morgan terms</jpTermsLink> and the <platformAgreementLink>platform provider program agreement</platformAgreementLink>."
+        }
       }
     },
     "companyIdentification": {

@@ -11,6 +11,8 @@
  *
  * 1. **Gateway Screen** - Select organization type (LLC, Sole Proprietorship)
  * 2. **Personal Section** - Name, identity, contact details, check answers
+ *
+ * Linked-account interactive flows: **Core → OnboardingFlow → Linked account → Interactive**.
  * 3. **Business Section** - Business identity, industry, contact info, check answers
  * 4. **Owners Section** - Add beneficial owners (NOT for Sole Proprietorship)
  * 5. **Operational Details** - Dynamic questions from API
@@ -131,8 +133,10 @@ const delay = (ms: number): Promise<void> =>
     setTimeout(resolve, ms);
   });
 
-const STEP_DELAY = 200;
-const TYPING_DELAY = 20;
+/** Pause between play steps (ms) — higher = easier to follow in Storybook. */
+const STEP_DELAY = 450;
+/** Keystroke delay for `userEvent.type` (ms). */
+const TYPING_DELAY = 40;
 
 /** Get the main container */
 const getContainer = () =>

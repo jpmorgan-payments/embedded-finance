@@ -244,6 +244,28 @@
       "success": {
         "title": "Cuenta vinculada exitosamente",
         "description": "Su cuenta bancaria ha sido vinculada para pagos."
+      },
+      "review": {
+        "title": "Revise su cuenta bancaria",
+        "description": "Confirme los datos a continuación antes de vincular esta cuenta para pagos.",
+        "confirmButton": "Confirmar y vincular cuenta",
+        "addressHeading": "Dirección del titular de la cuenta",
+        "contactsHeading": "Contacto",
+        "acknowledgementsGroupLabel": "Acuerdos necesarios para vincular esta cuenta",
+        "acknowledgements": {
+          "termsAndPolicies": "Al confirmar, acepta nuestros <termsLink>Términos y condiciones</termsLink> y reconoce nuestra <privacyLink>Política de privacidad</privacyLink>.",
+          "payoutAccountAttestation": "Confirmo que esta cuenta bancaria pertenece o está autorizada para el negocio de mi solicitud para recibir pagos."
+        }
+      },
+      "prefillSummary": {
+        "description": "Revise los datos bancarios y acepte los acuerdos para vincular esta cuenta.",
+        "accountHolderLabel": "Titular de la cuenta",
+        "acknowledgementsIntro": "Al vincular electrónicamente esta cuenta, usted acepta que:",
+        "acknowledgements": {
+          "businessPurpose": "Reconozco que la cuenta vinculada es principalmente para fines comerciales y no para fines de consumo.",
+          "verifyAndAccuracy": "Autorizo la verificación de esta cuenta vinculada, incluida la verificación por microdepósito si es necesario. Certifico que la información proporcionada es precisa y coincide con los datos de mi cuenta bancaria.",
+          "debitAndTerms": "Autorizo al proveedor de la plataforma y a JPMorgan Chase Bank, N.A. a debitar mi cuenta o cuentas vinculadas para financiamiento, pago de saldos negativos u otras tarifas. He leído y acepto los <jpTermsLink>términos de J.P. Morgan</jpTermsLink> y el <platformAgreementLink>acuerdo del programa del proveedor de la plataforma</platformAgreementLink>."
+        }
       }
     },
     "companyIdentification": {

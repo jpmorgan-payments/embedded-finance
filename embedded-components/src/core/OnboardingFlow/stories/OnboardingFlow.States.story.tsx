@@ -2,6 +2,8 @@
  * OnboardingFlow - Client States
  *
  * Stories demonstrating different client statuses and loading/error states.
+ *
+ * Linked-account scenarios live under **Core → OnboardingFlow → Linked account**.
  * Each story seeds the MSW db via `loaders` so all CRUD operations work.
  */
 
@@ -21,7 +23,6 @@ import {
   mockClientInfoRequested,
   mockClientInReview,
   mockClientNew,
-  mockExistingLinkedAccount,
   OnboardingFlowTemplate,
   resetAndSeedClient,
 } from './story-utils';
@@ -133,45 +134,6 @@ export const Approved: Story = {
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
-  },
-};
-
-/**
- * **Approved with Link Account**
- *
- * Client application has been fully approved with the link bank account
- * step enabled. User sees success status and can proceed to link their
- * bank account.
- */
-export const ApprovedWithLinkAccount: Story = {
-  loaders: [() => resetAndSeedClient(mockClientApproved, DEFAULT_CLIENT_ID)],
-  args: {
-    ...commonArgs,
-    clientId: DEFAULT_CLIENT_ID,
-    showLinkAccountStep: true,
-  },
-};
-
-/**
- * **Approved with Existing Linked Account**
- *
- * Client application has been approved and already has a linked bank account.
- * The link account step is marked as completed in the sidebar, and clicking
- * into it shows the existing account details instead of the creation form.
- */
-export const ApprovedWithExistingLinkedAccount: Story = {
-  loaders: [() => resetAndSeedClient(mockClientApproved, DEFAULT_CLIENT_ID)],
-  parameters: {
-    msw: {
-      handlers: createOnboardingFlowHandlers({
-        existingLinkedAccounts: [mockExistingLinkedAccount],
-      }),
-    },
-  },
-  args: {
-    ...commonArgs,
-    clientId: DEFAULT_CLIENT_ID,
-    showLinkAccountStep: true,
   },
 };
 

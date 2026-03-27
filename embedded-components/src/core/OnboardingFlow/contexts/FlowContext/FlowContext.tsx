@@ -208,10 +208,19 @@ export const FlowProvider: React.FC<{
     field: keyof OnboardingFormValuesSubmit,
     value: any
   ) => {
-    setSavedFormValues((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setSavedFormValues((prev) => {
+      // When value is undefined, remove the key entirely so that it
+      // doesn't poison object spreads (e.g. { ...formValues, ...savedFormValues }
+      // in getStepperValidation / overrideDefaultValues).
+      if (value === undefined) {
+        const { [field]: _, ...rest } = prev;
+        return rest;
+      }
+      return {
+        ...prev,
+        [field]: value,
+      };
+    });
   };
 
   return (

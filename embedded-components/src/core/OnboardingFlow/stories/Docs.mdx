@@ -19,17 +19,132 @@ The **OnboardingFlow** component provides a complete, multi-step onboarding expe
 - **Theme Support**: Customizable theming for white-label deployments
 - **User Event Tracking**: Integration with analytics/RUM systems
 
+## Linked account (Storybook)
+
+Stories for the optional bank-link step and recipient lifecycle are grouped under **Core → OnboardingFlow → Linked account** (`stories/linked-account/`):
+
+<table>
+  <thead>
+    <tr>
+      <th>Story file</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <strong>Client States</strong>
+      </td>
+      <td>Static MSW seeds (lifecycle statuses, prefill modes, existing <strong>ACTIVE</strong> account)</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Interactive</strong>
+      </td>
+      <td>Play-driven flows (full link + state machine, prefill summary, microdeposit verify from Overview)</td>
+    </tr>
+  </tbody>
+</table>
+
+### Two places inside OnboardingFlow
+
+Linked bank account behavior appears in **two screens** (same API data, same recipient widgets):
+
+<table>
+  <thead>
+    <tr>
+      <th>Where</th>
+      <th>Component</th>
+      <th>What the user gets</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <strong>Overview</strong>
+      </td>
+      <td>
+        <code>OverviewScreen</code>
+      </td>
+      <td>
+        Bank account section: card + <code>StatusAlert</code>. <strong>Start</strong> if no linked recipient yet.{' '}
+        <strong>Verify Account</strong> (microdeposit dialog) when status is <code>READY_FOR_VALIDATION</code>.
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Link bank account step</strong>
+      </td>
+      <td>
+        <code>LinkAccountScreen</code>
+      </td>
+      <td>
+        <strong>New link:</strong> <code>BankAccountForm</code> or <code>prefillSummary</code> per{' '}
+        <code>linkAccountStepOptions</code>. <strong>Existing recipient:</strong> same card + verify CTA as Overview, plus{' '}
+        <strong>Return to overview</strong>.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+For standalone linked-account management (lists, menus, pay), use **LinkedAccountWidget** — it reuses the same `MicrodepositsFormDialogTrigger`, `RecipientAccountDisplayCard`, and `linked-accounts` strings.
+
+### MSW note
+
+`createOnboardingFlowHandlers` in `stories/story-utils.tsx` seeds `GET /recipients` fixtures into the MSW **db** so `GET /recipients/:id` and microdeposit **verify** work in Storybook (see Interactive story **3**).
+
+Repo reference: `stories/linked-account/README.md`.
+
 ## Client States
 
 The component handles different client statuses appropriately:
 
-| Status                    | Description                                       | User Experience                               |
-| ------------------------- | ------------------------------------------------- | --------------------------------------------- |
-| **NEW**                   | Fresh onboarding or existing client with new data | Full onboarding flow with pre-filled data     |
-| **REVIEW_IN_PROGRESS**    | Application submitted and under review            | Status screen showing review is in progress   |
-| **INFORMATION_REQUESTED** | Additional documents or info needed               | Document upload and question response screens |
-| **APPROVED**              | Client fully verified and approved                | Success screen with next steps                |
-| **DECLINED**              | Application was declined                          | Declined status with relevant messaging       |
+<table>
+  <thead>
+    <tr>
+      <th>Status</th>
+      <th>Description</th>
+      <th>User Experience</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <strong>NEW</strong>
+      </td>
+      <td>Fresh onboarding or existing client with new data</td>
+      <td>Full onboarding flow with pre-filled data</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>REVIEW_IN_PROGRESS</strong>
+      </td>
+      <td>Application submitted and under review</td>
+      <td>Status screen showing review is in progress</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>INFORMATION_REQUESTED</strong>
+      </td>
+      <td>Additional documents or info needed</td>
+      <td>Document upload and question response screens</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>APPROVED</strong>
+      </td>
+      <td>Client fully verified and approved</td>
+      <td>Success screen with next steps</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>DECLINED</strong>
+      </td>
+      <td>Application was declined</td>
+      <td>Declined status with relevant messaging</td>
+    </tr>
+  </tbody>
+</table>
 
 ## Configuration Variants
 
@@ -133,19 +248,167 @@ import { EBComponentsProvider } from '@embedded-components/providers';
 
 > **Note**: The client ID is provided via the `EBComponentsProvider` context using the `clientId` prop, not directly to OnboardingFlow.
 
-| Prop                               | Type                 | Default   | Description                                         |
-| ---------------------------------- | -------------------- | --------- | --------------------------------------------------- |
-| `availableProducts`                | `ClientProduct[]`    | Required  | Products available for selection                    |
-| `availableJurisdictions`           | `('US' \| 'CA')[]`   | Required  | Available jurisdiction options                      |
-| `availableOrganizationTypes`       | `OrganizationType[]` | All types | Organization types available for selection          |
-| `hideSidebar`                      | `boolean`            | `false`   | Hide timeline sidebar navigation (shown by default) |
-| `showDownloadChecklist`            | `boolean`            | `false`   | Show download checklist button                      |
-| `docUploadOnlyMode`                | `boolean`            | `false`   | Show only document upload screens                   |
-| `alertOnExit`                      | `boolean`            | `false`   | Show confirmation when leaving page                 |
-| `height`                           | `string`             | `auto`    | Container height (e.g., `'100vh'`)                  |
-| `onGetClientSettled`               | `function`           | -         | Callback when client fetch completes                |
-| `onPostClientSettled`              | `function`           | -         | Callback when client creation completes             |
-| `onPostPartySettled`               | `function`           | -         | Callback when party creation completes              |
-| `onPostClientVerificationsSettled` | `function`           | -         | Callback when verification submission completes     |
-| `userEventsHandler`                | `function`           | -         | Handler for user journey events                     |
-| `userEventsLifecycle`              | `object`             | -         | Lifecycle hooks for user tracking                   |
+<table>
+  <thead>
+    <tr>
+      <th>Prop</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>availableProducts</code>
+      </td>
+      <td>
+        <code>ClientProduct[]</code>
+      </td>
+      <td>Required</td>
+      <td>Products available for selection</td>
+    </tr>
+    <tr>
+      <td>
+        <code>availableJurisdictions</code>
+      </td>
+      <td>
+        <code>{`('US' | 'CA')[]`}</code>
+      </td>
+      <td>Required</td>
+      <td>Available jurisdiction options</td>
+    </tr>
+    <tr>
+      <td>
+        <code>availableOrganizationTypes</code>
+      </td>
+      <td>
+        <code>OrganizationType[]</code>
+      </td>
+      <td>All types</td>
+      <td>Organization types available for selection</td>
+    </tr>
+    <tr>
+      <td>
+        <code>hideSidebar</code>
+      </td>
+      <td>
+        <code>boolean</code>
+      </td>
+      <td>
+        <code>false</code>
+      </td>
+      <td>Hide timeline sidebar navigation (shown by default)</td>
+    </tr>
+    <tr>
+      <td>
+        <code>showDownloadChecklist</code>
+      </td>
+      <td>
+        <code>boolean</code>
+      </td>
+      <td>
+        <code>false</code>
+      </td>
+      <td>Show download checklist button</td>
+    </tr>
+    <tr>
+      <td>
+        <code>docUploadOnlyMode</code>
+      </td>
+      <td>
+        <code>boolean</code>
+      </td>
+      <td>
+        <code>false</code>
+      </td>
+      <td>Show only document upload screens</td>
+    </tr>
+    <tr>
+      <td>
+        <code>alertOnExit</code>
+      </td>
+      <td>
+        <code>boolean</code>
+      </td>
+      <td>
+        <code>false</code>
+      </td>
+      <td>Show confirmation when leaving page</td>
+    </tr>
+    <tr>
+      <td>
+        <code>height</code>
+      </td>
+      <td>
+        <code>string</code>
+      </td>
+      <td>
+        <code>auto</code>
+      </td>
+      <td>
+        Container height (e.g., <code>{`'100vh'`}</code>)
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>onGetClientSettled</code>
+      </td>
+      <td>
+        <code>function</code>
+      </td>
+      <td>—</td>
+      <td>Callback when client fetch completes</td>
+    </tr>
+    <tr>
+      <td>
+        <code>onPostClientSettled</code>
+      </td>
+      <td>
+        <code>function</code>
+      </td>
+      <td>—</td>
+      <td>Callback when client creation completes</td>
+    </tr>
+    <tr>
+      <td>
+        <code>onPostPartySettled</code>
+      </td>
+      <td>
+        <code>function</code>
+      </td>
+      <td>—</td>
+      <td>Callback when party creation completes</td>
+    </tr>
+    <tr>
+      <td>
+        <code>onPostClientVerificationsSettled</code>
+      </td>
+      <td>
+        <code>function</code>
+      </td>
+      <td>—</td>
+      <td>Callback when verification submission completes</td>
+    </tr>
+    <tr>
+      <td>
+        <code>userEventsHandler</code>
+      </td>
+      <td>
+        <code>function</code>
+      </td>
+      <td>—</td>
+      <td>Handler for user journey events</td>
+    </tr>
+    <tr>
+      <td>
+        <code>userEventsLifecycle</code>
+      </td>
+      <td>
+        <code>object</code>
+      </td>
+      <td>—</td>
+      <td>Lifecycle hooks for user tracking</td>
+    </tr>
+  </tbody>
+</table>
