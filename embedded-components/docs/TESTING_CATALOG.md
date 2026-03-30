@@ -64,16 +64,6 @@ Use the following `"externalId"` values on a party in the `POST /clients` reques
 | `"kycDocRequest"` | Triggers a document request during the KYC process (`INFORMATION_REQUESTED` state) |
 | _(omit or use any other value)_ | Standard flow — see [Scenario 6: Simulate KYC Decline](#scenario-6-simulate-kyc-decline) for details |
 
-### Sample Client Data
-
-Use the following sample data for client account owners / controllers when testing:
-
-| # | Owner Name | Type |
-|---|-----------|------|
-| 1 | Monica Gellar | Individual |
-| 2 | Neverland Books and Coffee | Organization (LLC) |
-| 3 | Monica's Cupcakes | Sole Proprietorship |
-
 > [!TIP]
 > If you are using a hosted or partially hosted solution, ensure you run through test cases across **multiple browsers, devices, and version types** to verify that functionality meets responsiveness and rendering expectations.
 
@@ -347,9 +337,9 @@ Verify the flow when KYC is declined.
 
 **Steps:**
 
-1. Use `POST /clients` to create a client with standard party information (no special `externalId`).
+1. Use `POST /clients` to create a client where one of the parties has an address with `"country": "IR"`. This triggers a KYC decline after verification. Do **not** set a special `externalId` magic value.
 
-2. Once the client is created, verify the state is `NEW`. Answer the outstanding questions in a way that triggers the decline outcome. Refer to the Sandbox-specific decline triggers provided by your J.P. Morgan implementation team.
+2. Once the client is created, verify the state is `NEW`. Complete the outstanding questions and submit attestation.
 
 3. Trigger the verification process:
 
@@ -363,7 +353,7 @@ Verify the flow when KYC is declined.
 
 ## Guide 2: Add an Account to Manage Funds
 
-> **Portal Guide:** [Embedded Payments – Add an Account](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/add-an-account)
+> **Portal Guide:** [Embedded Payments – Add an Account](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-account)
 
 **Prerequisite:** Client must be in `APPROVED` state.
 
@@ -403,7 +393,7 @@ Verify closing a client account and confirming the account status is updated.
 
 ## Guide 4: Link an External Bank Account
 
-> **Portal Guide:** [Embedded Payments – Link a Bank Account](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/link-a-bank-account)
+> **Portal Guide:** [Embedded Payments – Link a Bank Account](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-linked-account)
 
 **Prerequisite:** Client must be in `APPROVED` state with an active account.
 
@@ -462,7 +452,7 @@ Verify receiving funds and making payouts through multiple payment rails.
 
 ## Guide 6: Manage and Display Transactions
 
-> **Portal Guide:** [Embedded Payments – Display Transactions](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/display-transactions)
+> **Portal Guide:** [Embedded Payments – Display Transactions](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/manage-display-transactions-v2)
 
 **Prerequisite:** Client must have an active account with transaction history.
 
@@ -486,7 +476,7 @@ Verify transaction querying, filtering, and balance display capabilities.
 
 ## Guide 7: Manage Notifications (Webhooks)
 
-> **Portal Guide:** [Embedded Payments – Manage Notifications](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/manage-notifications)
+> **Portal Guide:** [Embedded Payments – Manage Notifications](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/notification-subscriptions/how-to/notifications)
 
 ### Scenario 12: Webhook Subscription Lifecycle
 
@@ -522,7 +512,7 @@ Verify initiating a direct debit to pull funds from a linked account.
 
 ## Guide 9: Managing Negative Balances & Alerts
 
-> **Portal Guide:** [Embedded Payments – Manage Negative Balances](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/manage-negative-balances)
+> **Portal Guide:** [Embedded Payments – Manage Negative Balances](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/managing-negative-balances)
 
 ### Scenario 14: Negative Balances
 
