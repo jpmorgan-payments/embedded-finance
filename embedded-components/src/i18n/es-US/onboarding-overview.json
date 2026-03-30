@@ -6,7 +6,23 @@
       "CA": "Ciudad",
       "MX": "Ciudad",
       "ES": "Ciudad",
-      "AR": "Ciudad"
+      "AR": "Ciudad",
+      "CL": "Ciudad",
+      "CO": "Ciudad",
+      "CZ": "Ciudad",
+      "DK": "Ciudad",
+      "FI": "Ciudad",
+      "HU": "Ciudad",
+      "IE": "Ciudad / Pueblo",
+      "IL": "Ciudad",
+      "NL": "Ciudad",
+      "NO": "Ciudad",
+      "PE": "Ciudad",
+      "PT": "Ciudad",
+      "RU": "Ciudad",
+      "SA": "Ciudad",
+      "SE": "Ciudad",
+      "TR": "Ciudad / Distrito"
     },
     "state": {
       "default": "Estado / Provincia / Región",
@@ -14,12 +30,30 @@
       "CA": "Provincia",
       "MX": "Estado",
       "ES": "Provincia",
-      "AR": "Provincia"
+      "AR": "Provincia",
+      "BE": "Provincia",
+      "CL": "Región",
+      "CO": "Departamento",
+      "CZ": "Región",
+      "DK": "Región",
+      "FI": "Región",
+      "HU": "Condado",
+      "IE": "Condado",
+      "IL": "Distrito",
+      "NL": "Provincia",
+      "NO": "Condado",
+      "PE": "Región",
+      "PT": "Distrito",
+      "RU": "Óblast / Krai",
+      "SA": "Región",
+      "SE": "Condado",
+      "TR": "Provincia"
     },
     "postalCode": {
       "default": "Código postal",
       "US": "Código ZIP",
-      "BR": "CEP"
+      "BR": "CEP",
+      "IE": "Eircode"
     },
     "placeholder": {
       "city": {
@@ -28,11 +62,47 @@
       "state": {
         "default": "Seleccione o ingrese el estado / provincia",
         "US": "Seleccione el estado",
-        "CA": "Seleccione la provincia"
+        "CA": "Seleccione la provincia",
+        "BE": "Seleccione la provincia",
+        "CL": "Seleccione la región",
+        "CO": "Seleccione el departamento",
+        "CZ": "Seleccione la región",
+        "DK": "Seleccione la región",
+        "FI": "Seleccione la región",
+        "HU": "Seleccione el condado",
+        "IE": "Seleccione el condado",
+        "IL": "Seleccione el distrito",
+        "NL": "Seleccione la provincia",
+        "NO": "Seleccione el condado",
+        "PE": "Seleccione la región",
+        "PT": "Seleccione el distrito",
+        "RU": "Seleccione el óblast / krai",
+        "SA": "Seleccione la región",
+        "SE": "Seleccione el condado",
+        "TR": "Seleccione la provincia"
       },
       "postalCode": {
         "default": "Ingrese el código postal",
-        "US": "Ingrese el código ZIP"
+        "US": "Ingrese el código ZIP",
+        "IE": "Ingrese el Eircode"
+      }
+    },
+    "description": {
+      "postalCode": {
+        "default": "",
+        "US": "Código ZIP de 5 o 9 dígitos",
+        "CA": "Formato: A1A 1A1",
+        "BR": "CEP de 8 dígitos",
+        "CL": "7 dígitos",
+        "CO": "6 dígitos",
+        "DK": "4 dígitos",
+        "FI": "5 dígitos",
+        "IE": "p. ej., D02 AF30",
+        "NL": "p. ej., 1234 AB",
+        "NO": "4 dígitos",
+        "PT": "p. ej., 1000-001",
+        "SE": "p. ej., 123 45",
+        "TR": "5 dígitos"
       }
     }
   },
@@ -788,6 +858,10 @@
         "invalidFourDigit": "El código postal debe tener exactamente 4 dígitos",
         "invalidFiveDigit": "El código postal debe tener exactamente 5 dígitos",
         "invalidSixDigit": "El código postal debe tener exactamente 6 dígitos",
+        "invalidSevenDigit": "El código postal debe tener exactamente 7 dígitos",
+        "invalidIE": "El Eircode debe tener el formato A65 F4E2 (p. ej., D02 AF30)",
+        "invalidNL": "El código postal debe tener el formato 1234 AB",
+        "invalidPT": "El código postal debe tener el formato XXXX-XXX (p. ej., 1000-001)",
         "pattern": "Postal code must be exactly 5 digits"
       }
     },
@@ -877,6 +951,10 @@
         "invalidFourDigit": "El código postal debe tener exactamente 4 dígitos",
         "invalidFiveDigit": "El código postal debe tener exactamente 5 dígitos",
         "invalidSixDigit": "El código postal debe tener exactamente 6 dígitos",
+        "invalidSevenDigit": "El código postal debe tener exactamente 7 dígitos",
+        "invalidIE": "El Eircode debe tener el formato A65 F4E2 (p. ej., D02 AF30)",
+        "invalidNL": "El código postal debe tener el formato 1234 AB",
+        "invalidPT": "El código postal debe tener el formato XXXX-XXX (p. ej., 1000-001)",
         "pattern": "Postal code must be exactly 5 digits"
       }
     },

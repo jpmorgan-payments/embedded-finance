@@ -14,7 +14,7 @@ import { useGetFieldContentToken } from '@/core/OnboardingFlow/utils/formUtils';
 import { useContactDetailsFormSchema } from './ContactDetailsForm.schema';
 
 export const ContactDetailsForm: FormStepComponent = () => {
-  const { t } = useTranslationWithTokens('onboarding-overview');
+  const { t, tString } = useTranslationWithTokens('onboarding-overview');
   const getIndividualAddressContentToken =
     useGetFieldContentToken('individualAddress');
 
@@ -29,6 +29,18 @@ export const ContactDetailsForm: FormStepComponent = () => {
       `addressLabels.${field}.${addressCountry}`,
       `addressLabels.${field}.default`,
     ] as unknown as TemplateStringsArray);
+
+  const addressPlaceholder = (field: string) =>
+    tString([
+      `addressLabels.placeholder.${field}.${addressCountry}`,
+      `addressLabels.placeholder.${field}.default`,
+    ] as unknown as TemplateStringsArray);
+
+  const addressDescription = (field: string) =>
+    t([
+      `addressLabels.description.${field}.${addressCountry}`,
+      `addressLabels.description.${field}.default`,
+    ] as unknown as TemplateStringsArray) || undefined;
 
   useEffect(() => {
     if (isInitialCountryRender.current) {
@@ -99,6 +111,7 @@ export const ContactDetailsForm: FormStepComponent = () => {
           name="individualAddress.city"
           type="text"
           label={addressLabel('city')}
+          placeholder={addressPlaceholder('city')}
           required
         />
         {getSubdivisionsForCountry(addressCountry) ? (
@@ -108,6 +121,7 @@ export const ContactDetailsForm: FormStepComponent = () => {
             type="combobox"
             options={getSubdivisionsForCountry(addressCountry)!}
             label={addressLabel('state')}
+            placeholder={addressPlaceholder('state')}
             required
           />
         ) : (
@@ -116,6 +130,7 @@ export const ContactDetailsForm: FormStepComponent = () => {
             name="individualAddress.state"
             type="text"
             label={addressLabel('state')}
+            placeholder={addressPlaceholder('state')}
             required
           />
         )}
@@ -124,6 +139,8 @@ export const ContactDetailsForm: FormStepComponent = () => {
           name="individualAddress.postalCode"
           type="text"
           label={addressLabel('postalCode')}
+          placeholder={addressPlaceholder('postalCode')}
+          description={addressDescription('postalCode')}
           className="eb-max-w-48"
           required
         />

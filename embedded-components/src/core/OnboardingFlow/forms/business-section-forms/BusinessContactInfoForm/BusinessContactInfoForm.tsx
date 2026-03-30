@@ -14,7 +14,7 @@ import { useGetFieldContentToken } from '@/core/OnboardingFlow/utils/formUtils';
 import { useBusinessContactInfoFormSchema } from './BusinessContactInfoForm.schema';
 
 export const BusinessContactInfoForm: FormStepComponent = () => {
-  const { t } = useTranslationWithTokens('onboarding-overview');
+  const { t, tString } = useTranslationWithTokens('onboarding-overview');
   const getOrgAddressContentToken = useGetFieldContentToken(
     'organizationAddress'
   );
@@ -31,6 +31,18 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
       `addressLabels.${field}.${orgAddressCountry}`,
       `addressLabels.${field}.default`,
     ] as unknown as TemplateStringsArray);
+
+  const orgAddressPlaceholder = (field: string) =>
+    tString([
+      `addressLabels.placeholder.${field}.${orgAddressCountry}`,
+      `addressLabels.placeholder.${field}.default`,
+    ] as unknown as TemplateStringsArray);
+
+  const orgAddressDescription = (field: string) =>
+    t([
+      `addressLabels.description.${field}.${orgAddressCountry}`,
+      `addressLabels.description.${field}.default`,
+    ] as unknown as TemplateStringsArray) || undefined;
 
   const isInitialCountryRender = useRef(true);
 
@@ -107,6 +119,7 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
             name="organizationAddress.city"
             type="text"
             label={orgAddressLabel('city')}
+            placeholder={orgAddressPlaceholder('city')}
             required
           />
           {getSubdivisionsForCountry(orgAddressCountry) ? (
@@ -116,6 +129,7 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
               type="combobox"
               options={getSubdivisionsForCountry(orgAddressCountry)!}
               label={orgAddressLabel('state')}
+              placeholder={orgAddressPlaceholder('state')}
               required
             />
           ) : (
@@ -124,6 +138,7 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
               name="organizationAddress.state"
               type="text"
               label={orgAddressLabel('state')}
+              placeholder={orgAddressPlaceholder('state')}
               required
             />
           )}
@@ -132,6 +147,8 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
             name="organizationAddress.postalCode"
             type="text"
             label={orgAddressLabel('postalCode')}
+            placeholder={orgAddressPlaceholder('postalCode')}
+            description={orgAddressDescription('postalCode')}
             className="eb-max-w-48"
             required
           />

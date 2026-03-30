@@ -84,6 +84,9 @@ const POSTAL_CODE_FORMATS: Record<
   CH: { regex: /^\d{4}$/, messageKey: 'invalidFourDigit' },
   AT: { regex: /^\d{4}$/, messageKey: 'invalidFourDigit' },
   AR: { regex: /^\d{4}$/, messageKey: 'invalidFourDigit' },
+  DK: { regex: /^\d{4}$/, messageKey: 'invalidFourDigit' },
+  HU: { regex: /^\d{4}$/, messageKey: 'invalidFourDigit' },
+  NO: { regex: /^\d{4}$/, messageKey: 'invalidFourDigit' },
   // 5-digit countries
   DE: { regex: /^\d{5}$/, messageKey: 'invalidFiveDigit' },
   FR: { regex: /^\d{5}$/, messageKey: 'invalidFiveDigit' },
@@ -91,9 +94,29 @@ const POSTAL_CODE_FORMATS: Record<
   ES: { regex: /^\d{5}$/, messageKey: 'invalidFiveDigit' },
   MX: { regex: /^\d{5}$/, messageKey: 'invalidFiveDigit' },
   KR: { regex: /^\d{5}$/, messageKey: 'invalidFiveDigit' },
+  FI: { regex: /^\d{5}$/, messageKey: 'invalidFiveDigit' },
+  PE: { regex: /^\d{5}$/, messageKey: 'invalidFiveDigit' },
+  SA: { regex: /^\d{5}$/, messageKey: 'invalidFiveDigit' },
+  TR: { regex: /^\d{5}$/, messageKey: 'invalidFiveDigit' },
+  // 5-digit with optional space (e.g., "123 45")
+  CZ: { regex: /^\d{3}\s?\d{2}$/, messageKey: 'invalidFiveDigit' },
+  SE: { regex: /^\d{3}\s?\d{2}$/, messageKey: 'invalidFiveDigit' },
   // 6-digit countries
   IN: { regex: /^\d{6}$/, messageKey: 'invalidSixDigit' },
   CN: { regex: /^\d{6}$/, messageKey: 'invalidSixDigit' },
+  CO: { regex: /^\d{6}$/, messageKey: 'invalidSixDigit' },
+  RU: { regex: /^\d{6}$/, messageKey: 'invalidSixDigit' },
+  SG: { regex: /^\d{6}$/, messageKey: 'invalidSixDigit' },
+  // 7-digit countries
+  CL: { regex: /^\d{7}$/, messageKey: 'invalidSevenDigit' },
+  IL: { regex: /^\d{7}$/, messageKey: 'invalidSevenDigit' },
+  // Unique formats
+  IE: {
+    regex: /^[A-Za-z]\d[\dWw]\s?[A-Za-z\d]{4}$/,
+    messageKey: 'invalidIE',
+  },
+  NL: { regex: /^\d{4}\s?[A-Za-z]{2}$/, messageKey: 'invalidNL' },
+  PT: { regex: /^\d{4}-?\d{3}$/, messageKey: 'invalidPT' },
 };
 
 /**
