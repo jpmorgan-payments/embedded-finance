@@ -49,6 +49,10 @@ export const ContactDetailsForm: FormStepComponent = () => {
     }
     // Clear state when country changes to avoid sending stale codes
     form.setValue('individualAddress.state', '');
+    // Revalidate postal code against the new country's format (only if already filled)
+    if (form.getValues('individualAddress.postalCode')) {
+      form.trigger('individualAddress.postalCode');
+    }
   }, [addressCountry]);
 
   useEffect(() => {

@@ -53,6 +53,10 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
     }
     // Clear state when country changes to avoid sending stale codes
     form.setValue('organizationAddress.state', '');
+    // Revalidate postal code against the new country's format (only if already filled)
+    if (form.getValues('organizationAddress.postalCode')) {
+      form.trigger('organizationAddress.postalCode');
+    }
   }, [orgAddressCountry]);
 
   useEffect(() => {
