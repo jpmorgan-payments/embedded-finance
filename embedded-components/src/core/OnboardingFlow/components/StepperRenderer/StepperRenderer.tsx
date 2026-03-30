@@ -392,6 +392,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
     savedFormValues,
     saveFormValue,
     currentScreenId,
+    isFormSubmitting: isFormSubmittingContext,
     setIsFormSubmitting,
   } = useFlowContext();
 
@@ -421,12 +422,22 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
     status: partyUpdateStatus,
   } = useUpdatePartyLegacy();
 
-  const isFormSubmitting =
+  const isMutationPending =
     clientUpdateStatus === 'pending' || partyUpdateStatus === 'pending';
 
+  // Keep the form disabled while async onSuccess callbacks (e.g.
+  // queryClient.invalidateQueries) are still running.  The mutation
+  // status flips to 'success' before those awaits finish, so we
+  // manually hold the submitting flag until handleNext() clears it.
   useEffect(() => {
-    setIsFormSubmitting(isFormSubmitting);
-  }, [isFormSubmitting]);
+    if (isMutationPending) {
+      setIsFormSubmitting(true);
+    }
+  }, [isMutationPending]);
+
+  // Use the context-level flag so the form stays disabled through
+  // both the mutation and the subsequent cache refresh.
+  const isFormSubmitting = isFormSubmittingContext || isMutationPending;
 
   const form = useFormWithFilters({
     clientData,
@@ -450,13 +461,6 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
         saveFormValue(fieldKey, value);
       }
     });
-
-    // Always persist countryOfResidence so downstream steps can read it
-    // synchronously (the React Query cache notification is async and may
-    // not have arrived by the time the next step mounts).
-    if (values.countryOfResidence) {
-      saveFormValue('countryOfResidence', values.countryOfResidence as string);
-    }
 
     // Perform step-defined transformations on the form values
     const modifiedValues = Component.modifyFormValuesBeforeSubmit
@@ -591,6 +595,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
                     handleNext();
                   },
                   onError: (err) => {
+                    setIsFormSubmitting(false);
                     if (err.response?.data.context) {
                       const apiFormErrors = mapClientApiErrorsToFormErrors(
                         err.response.data.context,
@@ -604,6 +609,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
               );
             },
             onError: (error) => {
+              setIsFormSubmitting(false);
               if (error.response?.data.context) {
                 const apiFormErrors = mapPartyApiErrorsToFormErrors(
                   error.response.data.context
@@ -660,6 +666,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
               handleNext();
             },
             onError: (error) => {
+              setIsFormSubmitting(false);
               if (error.response?.data.context) {
                 const apiFormErrors = mapPartyApiErrorsToFormErrors(
                   error.response.data.context
@@ -710,6 +717,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
               handleNext();
             },
             onError: (error) => {
+              setIsFormSubmitting(false);
               if (error.response?.data.context) {
                 const apiFormErrors = mapClientApiErrorsToFormErrors(
                   error.response.data.context,

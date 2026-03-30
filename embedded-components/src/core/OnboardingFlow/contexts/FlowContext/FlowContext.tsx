@@ -159,6 +159,7 @@ export const FlowProvider: React.FC<{
           undefined
       );
     }
+
     setEditingPartyIds((prev) => ({
       ...prev,
       [id]: config?.editingPartyId,
