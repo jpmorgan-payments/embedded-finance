@@ -778,7 +778,16 @@
       "validation": {
         "required": "$t(validation:required)",
         "maxLength": "$t(validation:text.maxLength, {'count': 10})",
-        "invalid": "Postal code must be 5 digits or 9 digits (ZIP+4 format)",
+        "invalid": "Ingrese un código postal válido",
+        "invalidUS": "El código ZIP debe tener 5 o 9 dígitos (formato ZIP+4)",
+        "invalidCA": "El código postal debe tener el formato A1A 1A1",
+        "invalidGB": "El código postal debe tener un formato válido del Reino Unido (p. ej., SW1A 1AA)",
+        "invalidBR": "El CEP debe tener 8 dígitos (p. ej., 01001-000)",
+        "invalidJP": "El código postal debe tener 7 dígitos (p. ej., 123-4567)",
+        "invalidPL": "El código postal debe tener el formato XX-XXX (p. ej., 00-950)",
+        "invalidFourDigit": "El código postal debe tener exactamente 4 dígitos",
+        "invalidFiveDigit": "El código postal debe tener exactamente 5 dígitos",
+        "invalidSixDigit": "El código postal debe tener exactamente 6 dígitos",
         "pattern": "Postal code must be exactly 5 digits"
       }
     },
@@ -858,7 +867,16 @@
       "validation": {
         "required": "$t(validation:required)",
         "maxLength": "$t(validation:text.maxLength, {'count': 10})",
-        "invalid": "Postal code must be 5 digits or 9 digits (ZIP+4 format)",
+        "invalid": "Ingrese un código postal válido",
+        "invalidUS": "El código ZIP debe tener 5 o 9 dígitos (formato ZIP+4)",
+        "invalidCA": "El código postal debe tener el formato A1A 1A1",
+        "invalidGB": "El código postal debe tener un formato válido del Reino Unido (p. ej., SW1A 1AA)",
+        "invalidBR": "El CEP debe tener 8 dígitos (p. ej., 01001-000)",
+        "invalidJP": "El código postal debe tener 7 dígitos (p. ej., 123-4567)",
+        "invalidPL": "El código postal debe tener el formato XX-XXX (p. ej., 00-950)",
+        "invalidFourDigit": "El código postal debe tener exactamente 4 dígitos",
+        "invalidFiveDigit": "El código postal debe tener exactamente 5 dígitos",
+        "invalidSixDigit": "El código postal debe tener exactamente 6 dígitos",
         "pattern": "Postal code must be exactly 5 digits"
       }
     },

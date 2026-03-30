@@ -56,6 +56,47 @@ export const PhoneSchema = z.object({
 });
 
 /**
+ * Country-specific postal code format definitions.
+ * Maps country codes to their regex pattern and the i18n validation message key.
+ * Countries that share the same digit-length format reuse a common message key.
+ */
+const POSTAL_CODE_FORMATS: Record<
+  string,
+  { regex: RegExp; messageKey: string }
+> = {
+  // Unique formats
+  US: { regex: /^\d{5}(-\d{4})?$/, messageKey: 'invalidUS' },
+  CA: {
+    regex: /^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/,
+    messageKey: 'invalidCA',
+  },
+  GB: {
+    regex: /^[A-Za-z]{1,2}\d[A-Za-z\d]?\s?\d[A-Za-z]{2}$/i,
+    messageKey: 'invalidGB',
+  },
+  BR: { regex: /^\d{5}-?\d{3}$/, messageKey: 'invalidBR' },
+  JP: { regex: /^\d{3}-?\d{4}$/, messageKey: 'invalidJP' },
+  PL: { regex: /^\d{2}-?\d{3}$/, messageKey: 'invalidPL' },
+  // 4-digit countries
+  AU: { regex: /^\d{4}$/, messageKey: 'invalidFourDigit' },
+  NZ: { regex: /^\d{4}$/, messageKey: 'invalidFourDigit' },
+  ZA: { regex: /^\d{4}$/, messageKey: 'invalidFourDigit' },
+  CH: { regex: /^\d{4}$/, messageKey: 'invalidFourDigit' },
+  AT: { regex: /^\d{4}$/, messageKey: 'invalidFourDigit' },
+  AR: { regex: /^\d{4}$/, messageKey: 'invalidFourDigit' },
+  // 5-digit countries
+  DE: { regex: /^\d{5}$/, messageKey: 'invalidFiveDigit' },
+  FR: { regex: /^\d{5}$/, messageKey: 'invalidFiveDigit' },
+  IT: { regex: /^\d{5}$/, messageKey: 'invalidFiveDigit' },
+  ES: { regex: /^\d{5}$/, messageKey: 'invalidFiveDigit' },
+  MX: { regex: /^\d{5}$/, messageKey: 'invalidFiveDigit' },
+  KR: { regex: /^\d{5}$/, messageKey: 'invalidFiveDigit' },
+  // 6-digit countries
+  IN: { regex: /^\d{6}$/, messageKey: 'invalidSixDigit' },
+  CN: { regex: /^\d{6}$/, messageKey: 'invalidSixDigit' },
+};
+
+/**
  * Creates address schemas with customized validation messages
  */
 export const useAddressSchemas = (
@@ -125,26 +166,17 @@ export const useAddressSchemas = (
         }
       }
 
-      // Apply US-specific postal code validation
-      if (data.country === 'US') {
-        if (!/^\d{5}(-\d{4})?$/.test(data.postalCode)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: v(`${type}.postalCode`, 'invalid'),
-            path: ['postalCode'],
-          });
-        }
-      }
-
-      // Apply CA-specific postal code validation
-      if (data.country === 'CA') {
-        if (!/^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/.test(data.postalCode)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: v(`${type}.postalCode`, 'invalid'),
-            path: ['postalCode'],
-          });
-        }
+      // Apply country-specific postal code format validation
+      const postalCodeFormat = POSTAL_CODE_FORMATS[data.country];
+      if (postalCodeFormat && !postalCodeFormat.regex.test(data.postalCode)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: v(
+            `${type}.postalCode`,
+            postalCodeFormat.messageKey as 'invalid'
+          ),
+          path: ['postalCode'],
+        });
       }
     });
 

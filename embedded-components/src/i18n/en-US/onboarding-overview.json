@@ -822,7 +822,16 @@
       "validation": {
         "required": "$t(validation:required)",
         "maxLength": "$t(validation:text.maxLength, {'count': 10})",
-        "invalid": "Postal code must be 5 digits or 9 digits (ZIP+4 format)",
+        "invalid": "Please enter a valid postal code",
+        "invalidUS": "ZIP code must be 5 digits or 9 digits (ZIP+4 format)",
+        "invalidCA": "Postal code must be in A1A 1A1 format",
+        "invalidGB": "Postcode must be a valid UK format (e.g., SW1A 1AA)",
+        "invalidBR": "CEP must be 8 digits (e.g., 01001-000)",
+        "invalidJP": "Postal code must be 7 digits (e.g., 123-4567)",
+        "invalidPL": "Postal code must be in XX-XXX format (e.g., 00-950)",
+        "invalidFourDigit": "Postal code must be exactly 4 digits",
+        "invalidFiveDigit": "Postal code must be exactly 5 digits",
+        "invalidSixDigit": "Postal code must be exactly 6 digits",
         "pattern": "Postal code must be exactly 5 digits"
       }
     },
@@ -902,7 +911,16 @@
       "validation": {
         "required": "$t(validation:required)",
         "maxLength": "$t(validation:text.maxLength, {'count': 10})",
-        "invalid": "Postal code must be 5 digits or 9 digits (ZIP+4 format)",
+        "invalid": "Please enter a valid postal code",
+        "invalidUS": "ZIP code must be 5 digits or 9 digits (ZIP+4 format)",
+        "invalidCA": "Postal code must be in A1A 1A1 format",
+        "invalidGB": "Postcode must be a valid UK format (e.g., SW1A 1AA)",
+        "invalidBR": "CEP must be 8 digits (e.g., 01001-000)",
+        "invalidJP": "Postal code must be 7 digits (e.g., 123-4567)",
+        "invalidPL": "Postal code must be in XX-XXX format (e.g., 00-950)",
+        "invalidFourDigit": "Postal code must be exactly 4 digits",
+        "invalidFiveDigit": "Postal code must be exactly 5 digits",
+        "invalidSixDigit": "Postal code must be exactly 6 digits",
         "pattern": "Postal code must be exactly 5 digits"
       }
     },
