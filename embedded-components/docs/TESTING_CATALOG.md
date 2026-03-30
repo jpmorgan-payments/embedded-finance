@@ -513,22 +513,48 @@ Verify initiating a direct debit to pull funds from a linked account.
 ## Guide 9: Managing Negative Balances & Alerts
 
 > **Portal Guide:** [Embedded Payments – Manage Negative Balances](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/managing-negative-balances)
+>
+> **Note:** These scenarios use the **Accounts V2** endpoints (`GET /v2/accounts/{id}`, `GET /v2/accounts/{id}/balances`).
 
-### Scenario 14: Negative Balances
+### Scenario 14: Negative Balance — Within the Limit
 
 **Objective:**
-Verify automated money movement handling for negative balances.
+Verify that a transaction causing a negative balance **within** the account-level minimum balance limit is completed, and that end-of-day (EOD) automated funding offsets the shortfall.
 
 **Steps:**
 
-1. Search automated money movements that address negative balances for the client account.
+1. Confirm the minimum balance limit for the Processing Account or LDDA — `GET /v2/accounts/{id}`.
+2. Check the current account balance — `GET /v2/accounts/{id}/balances`.
+3. Move funds that exceed the current balance but stay **within** the minimum balance limit:
+   - _Processing Account:_ Transfer funds from the Processing Account to another Limited DDA or Payments DDA account.
+   - _LDDA:_ Transfer funds from the LDDA to the Processing Account.
+4. Confirm the transaction is **completed** and the `TRANSACTION_COMPLETED` webhook is received.
+5. At EOD, confirm the automated funds movement from the Funding Account to the Offset Account is completed.
 
-### Scenario 15: Alerts for Negative Balances and Program Limits
+### Scenario 15: Negative Balance — Over the Limit
 
 **Objective:**
-Verify that the platform receives the correct alert notifications.
+Verify that a transaction that would push the account **beyond** the minimum balance limit is rejected.
 
 **Steps:**
 
-1. Receive notification when account remains in negative balance for 30, 59, or 60 days — expect webhook event type `ACCOUNT_OVERDRAWN`.
-2. Receive notification when approaching or exceeding program-level limits — expect webhook event type `THRESHOLD_LIMIT`.
+1. Confirm the minimum balance limit for the Processing Account or LDDA — `GET /v2/accounts/{id}`.
+2. Check the current account balance — `GET /v2/accounts/{id}/balances`.
+3. Attempt to move funds that would exceed the minimum balance limit:
+   - _Processing Account:_ Transfer funds from the Processing Account to another Limited DDA or Payments DDA account.
+   - _LDDA:_ Transfer funds from the LDDA to the Processing Account.
+4. Confirm the transaction is **rejected** and the `TRANSACTION_FAILED` webhook is received.
+
+### Scenario 16: Threshold Limit Alert
+
+**Objective:**
+Verify that the platform receives a threshold alert when the Processing Account approaches or breaches program-level limits.
+
+**Steps:**
+
+1. Confirm the minimum balance limit for the Processing Account — `GET /v2/accounts/{id}`.
+2. Check the current account balance — `GET /v2/accounts/{id}/balances`.
+3. Move funds equal to approximately 80 % of the minimum balance limit:
+   - Transfer funds from the Processing Account to another Limited DDA or Payments DDA account.
+4. Confirm the transaction is **completed**, the `TRANSACTION_COMPLETED` webhook is received, **and** the `THRESHOLD_LIMIT` webhook is received.
+5. At EOD, confirm the automated funds movement from the Funding Account to the Offset Account is completed.
