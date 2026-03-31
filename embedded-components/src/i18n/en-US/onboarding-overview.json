@@ -522,7 +522,7 @@
         "required": "$t(validation:required)",
         "minLength": "$t(validation:text.minLength, {'count': 2})",
         "maxLength": "$t(validation:text.maxLength, {'count': 30})",
-        "pattern": "$t(validation:text.specialCharsAllowed, {'allowedChars': '( ) _ / @ & + % # ; , . : ' -})",
+        "pattern": "$t(validation:text.namePattern)",
         "noNumbers": "$t(validation:text.noNumbers)",
         "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)",
         "noConsecutiveHyphens": "$t(validation:text.noConsecutiveHyphens)",
@@ -538,7 +538,6 @@
         "maxLength": "$t(validation:text.maxLength, {'count': 30})",
         "pattern": "$t(validation:text.namePattern)",
         "noNumbers": "$t(validation:text.noNumbers)",
-        "noSpecialChars": "$t(validation:text.noSpecialChars, {'allowedChars': 'hyphens and apostrophes'})",
         "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)",
         "noConsecutiveHyphens": "$t(validation:text.noConsecutiveHyphens)",
         "noLeadingHyphen": "$t(validation:text.noLeadingHyphen)",
@@ -555,7 +554,6 @@
         "maxLength": "$t(validation:text.maxLength, {'count': 30})",
         "pattern": "$t(validation:text.namePattern)",
         "noNumbers": "$t(validation:text.noNumbers)",
-        "noSpecialChars": "$t(validation:text.noSpecialChars, {'allowedChars': 'hyphens and apostrophes'})",
         "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)",
         "noConsecutiveHyphens": "$t(validation:text.noConsecutiveHyphens)",
         "noLeadingSpace": "$t(validation:text.noLeadingSpace)",
@@ -727,7 +725,7 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
-        "pattern": "$t(validation:text.specialCharsAllowed, {'allowedChars': '( ) _ \\ / @ & + % # ; , . : ' -})",
+        "pattern": "$t(validation:text.namePattern)",
         "minLength": "$t(validation:text.minLength, {'count': 2})",
         "maxLength": "$t(validation:text.maxLength, {'count': 100})",
         "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)"
@@ -1047,7 +1045,7 @@
       "validation": {
         "required": "$t(validation:required)",
         "maxLength": "$t(validation:text.maxLength)",
-        "pattern": "$t(validation:text.noSpecialChars, {'allowedChars': '()_/&+%@#;,.: -?'})",
+        "pattern": "$t(validation:text.namePattern)",
         "noLeadingSpace": "$t(validation:text.noLeadingSpace)",
         "noTrailingSpace": "$t(validation:text.noTrailingSpace)",
         "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)",

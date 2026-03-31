@@ -2,10 +2,10 @@ import { z } from 'zod';
 
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
 import { useGetValidationMessage } from '@/core/OnboardingFlow/utils/formUtils';
+import { NAME_PATTERN } from '@/core/OnboardingFlow/utils/validationPatterns';
 
 const CURRENT_YEAR = new Date().getFullYear();
-const NAME_PATTERN = /^[a-zA-Z0-9()_\\/@&+%#;,.: '-]*$/;
-const SPECIAL_CHARS_PATTERN = /[()_\\/&+%@#;,.: '-]/;
+const SPECIAL_CHARS_PATTERN = /[()_/@&+%#;,.: '-]/;
 
 // const OrganizationIdSchema = z
 //   .object({
