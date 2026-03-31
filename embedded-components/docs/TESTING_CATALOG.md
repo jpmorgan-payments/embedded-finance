@@ -26,9 +26,13 @@ Before testing, ensure the following prerequisites are met:
 | Onboarding | `https://api-sandbox.payments.jpmorgan.com/onboarding/v1` |
 | Transactions | `https://api-sandbox.payments.jpmorgan.com/embedded/v2` |
 | Accounts | `https://api-sandbox.payments.jpmorgan.com/embedded/v1` |
+| Accounts V2 (Beta) | `https://api-sandbox.payments.jpmorgan.com/embedded/v2` |
 | Recipients | `https://api-sandbox.payments.jpmorgan.com/embedded/v1` |
 | Webhooks | `https://api-sandbox.payments.jpmorgan.com/embedded/v1` |
 | Error Codes | [Embedded Finance Error Code Catalog](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/error-codes#embedded-finance-error-code-catalog) |
+
+> [!NOTE]
+> **Accounts V2 API (Beta):** The Accounts V2 API is currently available in beta. Some clients may begin integration directly with V2 endpoints. For the latest information on V2 availability, features, and migration guidance, see the [Embedded Payments documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments).
 
 ### Client Creation – Minimum Payload
 
@@ -514,7 +518,7 @@ Verify initiating a direct debit to pull funds from a linked account.
 
 > **Portal Guide:** [Embedded Payments – Manage Negative Balances](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/managing-negative-balances)
 >
-> **Note:** These scenarios use the **Accounts V2** endpoints (`GET /v2/accounts/{id}`, `GET /v2/accounts/{id}/balances`).
+> **Note:** These scenarios use the **Accounts V2** endpoints (`GET /v2/accounts/{id}`, `GET /v2/accounts/{id}/balances`). The Accounts V2 API is currently available in beta — see the [Embedded Payments documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments) for details.
 
 ### Scenario 14: Negative Balance — Within the Limit
 
