@@ -669,8 +669,17 @@
         "required": "$t(validation:required)",
         "format": "$t(validation:format)",
         "ssnFormat": "$t(validation:id.ssn)",
+        "ssnLength": "$t(validation:id.ssnLength)",
+        "ssnDigitsOnly": "$t(validation:id.ssnDigitsOnly)",
+        "ssnFirstThree": "$t(validation:id.ssnFirstThree)",
+        "ssn666": "$t(validation:id.ssn666)",
+        "ssnKnownInvalid": "$t(validation:id.ssnKnownInvalid)",
         "itinFormat": "$t(validation:id.itin.format)",
         "itinRestrictedRange": "$t(validation:id.itin.invalidRange)",
+        "itinLength": "$t(validation:id.itin.length)",
+        "itinDigitsOnly": "$t(validation:id.itin.digitsOnly)",
+        "itinStartsWith9": "$t(validation:id.itin.startsWith9)",
+        "itinMiddleDigits": "$t(validation:id.itin.middleDigits)",
         "noSpaces": "$t(validation:text.noSpaces)"
       }
     },

@@ -71,10 +71,19 @@
     "noIp": "No se permiten direcciones IP directas"
   },
   "id": {
-    "ssn": "Please enter a valid Social Security Number (SSN)",
+    "ssn": "Por favor ingrese un número de Seguro Social (SSN) válido",
+    "ssnLength": "El SSN debe tener exactamente 9 dígitos",
+    "ssnDigitsOnly": "El SSN solo debe contener números",
+    "ssnFirstThree": "El SSN no puede comenzar con 9 o 000",
+    "ssn666": "El SSN no puede comenzar con 666",
+    "ssnKnownInvalid": "Este SSN no es válido. Por favor verifique e intente de nuevo",
     "itin": {
-      "format": "Please enter a valid 9-digit ITIN starting with 9",
-      "invalidRange": "Invalid ITIN format in position 2-3"
+      "format": "Por favor ingrese un Número de Identificación Personal del Contribuyente (ITIN) válido",
+      "invalidRange": "Los dígitos 4-5 del ITIN deben estar en el rango 50-65, 70-88, 90-92 o 94-99",
+      "length": "El ITIN debe tener exactamente 9 dígitos",
+      "digitsOnly": "El ITIN solo debe contener números",
+      "startsWith9": "El ITIN debe comenzar con el dígito 9",
+      "middleDigits": "Los dígitos 4-5 del ITIN deben estar en el rango 50-65, 70-88, 90-92 o 94-99"
     }
   },
   "address": {
