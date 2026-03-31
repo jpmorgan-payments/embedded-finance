@@ -1029,14 +1029,13 @@
     "website": {
       "label": "Business website",
       "tooltip": "",
-      "description": "Please provide a URL for your business",
-      "placeholder": "Enter URL",
+      "description": "Must start with https://",
+      "placeholder": "https://www.example.com",
       "fieldName": "Website URL",
       "validation": {
         "format": "$t(validation:url.format, {'example': 'https://www.example.com'})",
         "maxLength": "$t(validation:text.maxLength, {'count': 500})",
         "required": "$t(validation:required)",
-        "httpsRequired": "$t(validation:url.httpsRequired)",
         "noIp": "$t(validation:url.noIp)"
       }
     },

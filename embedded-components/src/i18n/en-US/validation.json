@@ -68,7 +68,7 @@
   },
   "url": {
     "invalid": "Please enter a valid website URL",
-    "format": "Please use a valid URL format (e.g. {{example}})",
+    "format": "URL must start with https:// and be a valid domain (e.g. {{example}})",
     "httpsRequired": "URL must begin with https://",
     "noIp": "Direct IP addresses are not allowed"
   },

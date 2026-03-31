@@ -67,10 +67,10 @@
     "range": "Year must be between {{min}} and {{max}}"
   },
   "url": {
-    "invalid": "Please enter a valid website URL",
-    "format": "Please use a valid URL format (e.g. {{example}})",
-    "httpsRequired": "URL must begin with https://",
-    "noIp": "Direct IP addresses are not allowed"
+    "invalid": "Ingrese una URL de sitio web válida",
+    "format": "La URL debe comenzar con https:// y ser un dominio válido (p. ej. {{example}})",
+    "httpsRequired": "La URL debe comenzar con https://",
+    "noIp": "No se permiten direcciones IP directas"
   },
   "id": {
     "ssn": "Please enter a valid Social Security Number (SSN)",

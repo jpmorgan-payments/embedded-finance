@@ -184,12 +184,17 @@ export const useBusinessIdentityFormSchema = () => {
       ),
     website: z
       .string()
-      .url(v('website', 'format'))
       .max(500, v('website', 'maxLength', 500))
-      .refine((val) => /^https?:\/\//.test(val), v('website', 'httpsRequired'))
       .refine(
         (val) =>
-          !val || !/^https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(val),
+          /^https:\/\/(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}(?::\d{1,5})?(?:[/?#]\S*)?$/.test(
+            val
+          ),
+        v('website', 'format')
+      )
+      .refine(
+        (val) =>
+          !val || !/^https:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(val),
         v('website', 'noIp')
       ),
     websiteNotAvailable: z.boolean(),

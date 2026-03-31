@@ -970,16 +970,15 @@
       "label": "My business doesn't have a website"
     },
     "website": {
-      "label": "Business website",
+      "label": "Site Web de l'entreprise",
       "tooltip": "",
-      "description": "Please provide a URL for your business",
-      "placeholder": "Enter URL",
-      "fieldName": "Website URL",
+      "description": "Doit commencer par https://",
+      "placeholder": "https://www.example.com",
+      "fieldName": "URL du site Web",
       "validation": {
         "format": "$t(validation:url.format, {'example': 'https://www.example.com'})",
         "maxLength": "$t(validation:text.maxLength, {'count': 500})",
         "required": "$t(validation:required)",
-        "httpsRequired": "$t(validation:url.httpsRequired)",
         "noIp": "$t(validation:url.noIp)"
       }
     },
