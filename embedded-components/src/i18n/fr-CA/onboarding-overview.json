@@ -752,8 +752,9 @@
       "tooltip": "Should match your business registration document's ID value",
       "validation": {
         "required": "$t(validation:required)",
-        "maxLength": "$t(validation:text.maxLength)",
-        "format": "EIN may only contain numbers and hyphens"
+        "length": "Le NIE doit contenir exactement 9 chiffres",
+        "digitsOnly": "Le NIE ne peut contenir que des chiffres",
+        "invalidPrefix": "Préfixe NIE invalide"
       }
     },
     "solePropHasEin": {

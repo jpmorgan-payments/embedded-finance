@@ -807,8 +807,9 @@
       "tooltip": "Should match your business registration document's ID value",
       "validation": {
         "required": "$t(validation:required)",
-        "maxLength": "$t(validation:text.maxLength)",
-        "format": "EIN may only contain numbers and hyphens"
+        "length": "EIN must be exactly 9 digits",
+        "digitsOnly": "EIN may only contain numbers",
+        "invalidPrefix": "Invalid EIN prefix"
       }
     },
     "solePropHasEin": {

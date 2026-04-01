@@ -359,6 +359,10 @@ export const partyFieldMap: PartyFieldMap = {
         },
       ];
     },
+    // The API error path includes the array index and property
+    // (e.g. ".0.value"), but organizationIdEin is a flat string field.
+    // Collapse the path so the error attaches to the field itself.
+    modifyErrorField: () => '',
   },
   // organizationIds: {
   //   path: 'organizationDetails.organizationIds',

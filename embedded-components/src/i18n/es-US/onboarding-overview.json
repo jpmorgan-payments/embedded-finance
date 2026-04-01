@@ -752,8 +752,9 @@
       "tooltip": "Should match your business registration document's ID value",
       "validation": {
         "required": "$t(validation:required)",
-        "maxLength": "$t(validation:text.maxLength)",
-        "format": "EIN may only contain numbers and hyphens"
+        "length": "El EIN debe tener exactamente 9 dígitos",
+        "digitsOnly": "El EIN solo puede contener números",
+        "invalidPrefix": "Prefijo de EIN inválido"
       }
     },
     "solePropHasEin": {
