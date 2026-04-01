@@ -1030,7 +1030,7 @@ export const useGetValidationMessage = <
 >(): ((
   field: Field,
   messageKey: ValidationMessageKeysFor<Field>,
-  count?: number
+  countOrParams?: number | Record<string, string>
 ) => string) => {
   const { clientData } = useOnboardingContext();
   const { currentScreenId } = useFlowContext();
@@ -1042,9 +1042,12 @@ export const useGetValidationMessage = <
   const getValidationMessage = (
     field: Field,
     messageKey: ValidationMessageKeysFor<Field>,
-    count?: number
+    countOrParams?: number | Record<string, string>
   ): string => {
     const { fieldRule } = getFieldRule(field);
+
+    const count = typeof countOrParams === 'number' ? countOrParams : undefined;
+    const extraParams = typeof countOrParams === 'object' ? countOrParams : {};
 
     // Build translation key path with validation prefix
     const translationKey = [
@@ -1074,8 +1077,8 @@ export const useGetValidationMessage = <
         }
       );
 
-    // Return translation with optional count parameter for pluralization
-    return i18n.t(translationKey, { fieldName, count });
+    // Return translation with optional count and extra interpolation params
+    return i18n.t(translationKey, { fieldName, count, ...extraParams });
   };
   return getValidationMessage;
 };

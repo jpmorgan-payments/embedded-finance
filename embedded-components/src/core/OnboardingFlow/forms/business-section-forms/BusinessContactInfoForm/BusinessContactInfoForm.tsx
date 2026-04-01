@@ -28,20 +28,20 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
 
   const orgAddressLabel = (field: string) =>
     t([
-      `addressLabels.${field}.${orgAddressCountry}`,
-      `addressLabels.${field}.default`,
+      `addressFields.${field}.label.${orgAddressCountry}`,
+      `addressFields.${field}.label.default`,
     ] as unknown as TemplateStringsArray);
 
   const orgAddressPlaceholder = (field: string) =>
     tString([
-      `addressLabels.placeholder.${field}.${orgAddressCountry}`,
-      `addressLabels.placeholder.${field}.default`,
+      `addressFields.${field}.placeholder.${orgAddressCountry}`,
+      `addressFields.${field}.placeholder.default`,
     ] as unknown as TemplateStringsArray);
 
   const orgAddressDescription = (field: string) =>
     t([
-      `addressLabels.description.${field}.${orgAddressCountry}`,
-      `addressLabels.description.${field}.default`,
+      `addressFields.${field}.description.${orgAddressCountry}`,
+      `addressFields.${field}.description.default`,
     ] as unknown as TemplateStringsArray) || undefined;
 
   const isInitialCountryRender = useRef(true);
@@ -51,12 +51,13 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
       isInitialCountryRender.current = false;
       return;
     }
-    // Clear state when country changes to avoid sending stale codes
+    // Clear state and all address validation when country changes
     form.setValue('organizationAddress.state', '');
-    // Revalidate postal code against the new country's format (only if already filled)
-    if (form.getValues('organizationAddress.postalCode')) {
-      form.trigger('organizationAddress.postalCode');
-    }
+    form.clearErrors([
+      'organizationAddress.city',
+      'organizationAddress.state',
+      'organizationAddress.postalCode',
+    ]);
   }, [orgAddressCountry]);
 
   useEffect(() => {

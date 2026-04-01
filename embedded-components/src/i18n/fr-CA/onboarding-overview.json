@@ -1,66 +1,67 @@
 {
-  "addressLabels": {
+  "addressFields": {
     "city": {
-      "default": "Ville",
-      "US": "Ville",
-      "CA": "Ville",
-      "AU": "Ville / Banlieue",
-      "GB": "Ville",
-      "FR": "Ville",
-      "CL": "Ville",
-      "CO": "Ville",
-      "CZ": "Ville",
-      "DK": "Ville",
-      "FI": "Ville",
-      "HU": "Ville",
-      "IE": "Ville",
-      "IL": "Ville",
-      "NL": "Ville",
-      "NO": "Ville",
-      "PE": "Ville",
-      "PT": "Ville",
-      "RU": "Ville",
-      "SA": "Ville",
-      "SE": "Ville",
-      "TR": "Ville / District"
-    },
-    "state": {
-      "default": "État / Province / Région",
-      "US": "État",
-      "CA": "Province",
-      "AU": "État / Territoire",
-      "GB": "Comté",
-      "FR": "Région",
-      "BE": "Province",
-      "CL": "Région",
-      "CO": "Département",
-      "CZ": "Région",
-      "DK": "Région",
-      "FI": "Région",
-      "HU": "Comté",
-      "IE": "Comté",
-      "IL": "District",
-      "NL": "Province",
-      "NO": "Comté",
-      "PE": "Région",
-      "PT": "District",
-      "RU": "Oblast / Kraï",
-      "SA": "Région",
-      "SE": "Comté",
-      "TR": "Province"
-    },
-    "postalCode": {
-      "default": "Code postal",
-      "US": "Code ZIP",
-      "AU": "Code postal",
-      "GB": "Code postal",
-      "IE": "Eircode"
-    },
-    "placeholder": {
-      "city": {
+      "label": {
+        "default": "Ville",
+        "US": "Ville",
+        "CA": "Ville",
+        "AU": "Ville / Banlieue",
+        "GB": "Ville",
+        "FR": "Ville",
+        "CL": "Ville",
+        "CO": "Ville",
+        "CZ": "Ville",
+        "DK": "Ville",
+        "FI": "Ville",
+        "HU": "Ville",
+        "IE": "Ville",
+        "IL": "Ville",
+        "NL": "Ville",
+        "NO": "Ville",
+        "PE": "Ville",
+        "PT": "Ville",
+        "RU": "Ville",
+        "SA": "Ville",
+        "SE": "Ville",
+        "TR": "Ville / District"
+      },
+      "placeholder": {
         "default": "Entrez la ville"
       },
-      "state": {
+      "description": {
+        "default": ""
+      },
+      "tooltip": {
+        "default": ""
+      }
+    },
+    "state": {
+      "label": {
+        "default": "État / Province / Région",
+        "US": "État",
+        "CA": "Province",
+        "AU": "État / Territoire",
+        "GB": "Comté",
+        "FR": "Région",
+        "BE": "Province",
+        "CL": "Région",
+        "CO": "Département",
+        "CZ": "Région",
+        "DK": "Région",
+        "FI": "Région",
+        "HU": "Comté",
+        "IE": "Comté",
+        "IL": "District",
+        "NL": "Province",
+        "NO": "Comté",
+        "PE": "Région",
+        "PT": "District",
+        "RU": "Oblast / Kraï",
+        "SA": "Région",
+        "SE": "Comté",
+        "TR": "Province"
+      },
+      "placeholder": {
         "default": "Sélectionnez ou entrez l'état / la province",
         "US": "Sélectionnez l'état",
         "CA": "Sélectionnez la province",
@@ -82,14 +83,60 @@
         "SE": "Sélectionnez le comté",
         "TR": "Sélectionnez la province"
       },
-      "postalCode": {
+      "description": {
+        "default": ""
+      },
+      "tooltip": {
+        "default": ""
+      }
+    },
+    "postalCode": {
+      "label": {
+        "default": "Code postal",
+        "US": "Code ZIP",
+        "CA": "Code postal",
+        "AU": "Code postal",
+        "GB": "Code postal",
+        "DE": "Code postal",
+        "FR": "Code postal",
+        "IT": "Code postal",
+        "ES": "Code postal",
+        "BR": "CEP",
+        "MX": "Code postal",
+        "IN": "Code PIN",
+        "JP": "Code postal",
+        "KR": "Code postal",
+        "CN": "Code postal",
+        "CH": "Code postal",
+        "AR": "Code postal",
+        "ZA": "Code postal",
+        "PL": "Code postal",
+        "AT": "Code postal",
+        "NZ": "Code postal",
+        "BE": "Code postal",
+        "CL": "Code postal",
+        "CO": "Code postal",
+        "CZ": "Code postal",
+        "DK": "Code postal",
+        "FI": "Code postal",
+        "HU": "Code postal",
+        "IE": "Eircode",
+        "IL": "Code postal",
+        "NL": "Code postal",
+        "NO": "Code postal",
+        "PE": "Code postal",
+        "PT": "Code postal",
+        "RU": "Code postal",
+        "SA": "Code postal",
+        "SE": "Code postal",
+        "TR": "Code postal"
+      },
+      "placeholder": {
         "default": "Entrez le code postal",
         "US": "Entrez le code ZIP",
         "IE": "Entrez l'Eircode"
-      }
-    },
-    "description": {
-      "postalCode": {
+      },
+      "description": {
         "default": "",
         "US": "Code ZIP à 5 ou 9 chiffres",
         "CA": "Format : A1A 1A1",
@@ -104,6 +151,9 @@
         "PT": "p. ex., 1000-001",
         "SE": "p. ex., 123 45",
         "TR": "5 chiffres"
+      },
+      "tooltip": {
+        "default": ""
       }
     }
   },
@@ -829,32 +879,32 @@
       }
     },
     "individualAddress.city": {
-      "label": "Town / City",
-      "placeholder": "Enter Town / City",
-      "description": "Locality, Settlement, etc.",
-      "tooltip": "",
+      "label": "$t(onboarding-overview:addressFields.city.label.default)",
+      "placeholder": "$t(onboarding-overview:addressFields.city.placeholder.default)",
+      "description": "$t(onboarding-overview:addressFields.city.description.default)",
+      "tooltip": "$t(onboarding-overview:addressFields.city.tooltip.default)",
       "validation": {
-        "required": "$t(validation:required)",
+        "required": "$t(onboarding-overview:addressFields.city.label.{{country}}) est requis(e)",
         "maxLength": "$t(validation:text.maxLength, {'count': 34})"
       }
     },
     "individualAddress.state": {
-      "label": "State",
-      "placeholder": "Select state",
-      "description": "",
-      "tooltip": "",
+      "label": "$t(onboarding-overview:addressFields.state.label.default)",
+      "placeholder": "$t(onboarding-overview:addressFields.state.placeholder.default)",
+      "description": "$t(onboarding-overview:addressFields.state.description.default)",
+      "tooltip": "$t(onboarding-overview:addressFields.state.tooltip.default)",
       "validation": {
-        "required": "$t(validation:required)",
-        "invalid": "Please select a valid state"
+        "required": "$t(onboarding-overview:addressFields.state.label.{{country}}) est requis(e)",
+        "invalid": "Veuillez sélectionner un(e) $t(onboarding-overview:addressFields.state.label.{{country}}) valide"
       }
     },
     "individualAddress.postalCode": {
-      "label": "Postal code",
-      "placeholder": "Enter postal code",
-      "description": "",
-      "tooltip": "",
+      "label": "$t(onboarding-overview:addressFields.postalCode.label.default)",
+      "placeholder": "$t(onboarding-overview:addressFields.postalCode.placeholder.default)",
+      "description": "$t(onboarding-overview:addressFields.postalCode.description.default)",
+      "tooltip": "$t(onboarding-overview:addressFields.postalCode.tooltip.default)",
       "validation": {
-        "required": "$t(validation:required)",
+        "required": "$t(onboarding-overview:addressFields.postalCode.label.{{country}}) est requis",
         "maxLength": "$t(validation:text.maxLength, {'count': 10})",
         "invalid": "Veuillez entrer un code postal valide",
         "invalidUS": "Le code ZIP doit comporter 5 ou 9 chiffres (format ZIP+4)",
@@ -922,32 +972,32 @@
       }
     },
     "organizationAddress.city": {
-      "label": "Town / City",
-      "placeholder": "Enter Town / City",
-      "description": "Locality, Settlement, etc.",
-      "tooltip": "",
+      "label": "$t(onboarding-overview:addressFields.city.label.default)",
+      "placeholder": "$t(onboarding-overview:addressFields.city.placeholder.default)",
+      "description": "$t(onboarding-overview:addressFields.city.description.default)",
+      "tooltip": "$t(onboarding-overview:addressFields.city.tooltip.default)",
       "validation": {
-        "required": "$t(validation:required)",
+        "required": "$t(onboarding-overview:addressFields.city.label.{{country}}) est requis(e)",
         "maxLength": "$t(validation:text.maxLength, {'count': 34})"
       }
     },
     "organizationAddress.state": {
-      "label": "State",
-      "placeholder": "Select state",
-      "description": "",
-      "tooltip": "",
+      "label": "$t(onboarding-overview:addressFields.state.label.default)",
+      "placeholder": "$t(onboarding-overview:addressFields.state.placeholder.default)",
+      "description": "$t(onboarding-overview:addressFields.state.description.default)",
+      "tooltip": "$t(onboarding-overview:addressFields.state.tooltip.default)",
       "validation": {
-        "required": "$t(validation:required)",
-        "invalid": "Please select a valid state"
+        "required": "$t(onboarding-overview:addressFields.state.label.{{country}}) est requis(e)",
+        "invalid": "Veuillez sélectionner un(e) $t(onboarding-overview:addressFields.state.label.{{country}}) valide"
       }
     },
     "organizationAddress.postalCode": {
-      "label": "Postal code",
-      "placeholder": "Enter postal code",
-      "description": "",
-      "tooltip": "",
+      "label": "$t(onboarding-overview:addressFields.postalCode.label.default)",
+      "placeholder": "$t(onboarding-overview:addressFields.postalCode.placeholder.default)",
+      "description": "$t(onboarding-overview:addressFields.postalCode.description.default)",
+      "tooltip": "$t(onboarding-overview:addressFields.postalCode.tooltip.default)",
       "validation": {
-        "required": "$t(validation:required)",
+        "required": "$t(onboarding-overview:addressFields.postalCode.label.{{country}}) est requis",
         "maxLength": "$t(validation:text.maxLength, {'count': 10})",
         "invalid": "Veuillez entrer un code postal valide",
         "invalidUS": "Le code ZIP doit comporter 5 ou 9 chiffres (format ZIP+4)",

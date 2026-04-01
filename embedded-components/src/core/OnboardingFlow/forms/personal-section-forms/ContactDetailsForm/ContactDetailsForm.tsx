@@ -26,20 +26,20 @@ export const ContactDetailsForm: FormStepComponent = () => {
 
   const addressLabel = (field: string) =>
     t([
-      `addressLabels.${field}.${addressCountry}`,
-      `addressLabels.${field}.default`,
+      `addressFields.${field}.label.${addressCountry}`,
+      `addressFields.${field}.label.default`,
     ] as unknown as TemplateStringsArray);
 
   const addressPlaceholder = (field: string) =>
     tString([
-      `addressLabels.placeholder.${field}.${addressCountry}`,
-      `addressLabels.placeholder.${field}.default`,
+      `addressFields.${field}.placeholder.${addressCountry}`,
+      `addressFields.${field}.placeholder.default`,
     ] as unknown as TemplateStringsArray);
 
   const addressDescription = (field: string) =>
     t([
-      `addressLabels.description.${field}.${addressCountry}`,
-      `addressLabels.description.${field}.default`,
+      `addressFields.${field}.description.${addressCountry}`,
+      `addressFields.${field}.description.default`,
     ] as unknown as TemplateStringsArray) || undefined;
 
   useEffect(() => {
@@ -47,12 +47,13 @@ export const ContactDetailsForm: FormStepComponent = () => {
       isInitialCountryRender.current = false;
       return;
     }
-    // Clear state when country changes to avoid sending stale codes
+    // Clear state and all address validation when country changes
     form.setValue('individualAddress.state', '');
-    // Revalidate postal code against the new country's format (only if already filled)
-    if (form.getValues('individualAddress.postalCode')) {
-      form.trigger('individualAddress.postalCode');
-    }
+    form.clearErrors([
+      'individualAddress.city',
+      'individualAddress.state',
+      'individualAddress.postalCode',
+    ]);
   }, [addressCountry]);
 
   useEffect(() => {
