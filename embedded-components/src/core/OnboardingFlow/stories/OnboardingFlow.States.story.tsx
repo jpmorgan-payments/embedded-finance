@@ -108,6 +108,7 @@ export const ReviewInProgress: Story = {
  *
  * Additional documents or information needed from the client.
  * User sees outstanding requirements and can upload documents.
+ * Default `alertOnPreviousStep` is true so Cancel / Return to overview match stepper Back behavior.
  */
 export const InformationRequested: Story = {
   loaders: [
@@ -116,6 +117,7 @@ export const InformationRequested: Story = {
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
+    alertOnPreviousStep: true,
   },
 };
 

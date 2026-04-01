@@ -347,9 +347,9 @@ describe.skip('DocumentUploadScreen', () => {
     });
   });
 
-  test('navigates to overview when return button is clicked', async () => {
-    const goToMock = vi.fn();
-    renderComponent(undefined, undefined, { goTo: goToMock });
+  test('calls goBack with overview fallback when return button is clicked', async () => {
+    const goBackMock = vi.fn();
+    renderComponent(undefined, undefined, { goBack: goBackMock });
 
     await waitFor(() => {
       expect(screen.getByText(/return to overview/i)).toBeInTheDocument();
@@ -358,7 +358,9 @@ describe.skip('DocumentUploadScreen', () => {
     const returnButton = screen.getByText(/return to overview/i);
     await userEvent.click(returnButton);
 
-    expect(goToMock).toHaveBeenCalledWith('overview');
+    expect(goBackMock).toHaveBeenCalledWith({
+      fallbackScreenId: 'overview',
+    });
   });
 
   test('shows review in progress message when client status is REVIEW_IN_PROGRESS', async () => {

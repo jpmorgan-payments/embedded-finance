@@ -35,11 +35,20 @@ type GoToConfig = {
   shortLabelOverride?: string;
 };
 
+/** Extends {@link GoToConfig} with optional fallback when the stack cannot pop (see `goBack`). */
+type GoBackConfig = GoToConfig & {
+  /**
+   * When history has only one screen, navigate here after passing the same leave guard as
+   * popping (e.g. return to overview from doc-upload-only, or cancel upload form to list).
+   */
+  fallbackScreenId?: ScreenId;
+};
+
 const FlowContext = createContext<{
   currentScreenId: ScreenId;
   originScreenId: ScreenId | null;
   goTo: (id: ScreenId, config?: GoToConfig) => void;
-  goBack: (config?: GoToConfig) => void;
+  goBack: (config?: GoBackConfig) => void;
   editingPartyIds: EditingPartyIds;
   updateEditingPartyId: (
     screenId: ScreenId,
@@ -227,10 +236,14 @@ export const FlowProvider: React.FC<{
   const originScreenId =
     history.length > 1 ? history[history.length - 2] : null;
 
-  const goBack = (config?: GoToConfig) => {
+  const goBack = (config?: GoBackConfig) => {
+    const fallbackId = config?.fallbackScreenId;
+    const canPop = history.length > 1;
+    const canNavigate = canPop || !!fallbackId;
+
     if (
       alertOnPreviousStep &&
-      history.length > 1 &&
+      canNavigate &&
       !shouldSuppressOnboardingLeaveWarnings(clientData) &&
       unsavedChangesRef.current &&
       // eslint-disable-next-line no-alert -- optional UX parity with native leave warnings; no modal primitive here
@@ -246,7 +259,12 @@ export const FlowProvider: React.FC<{
     setReviewScreenOpenedSectionId(config?.reviewScreenOpenedSectionId ?? null);
     setInitialStepperStepId(config?.initialStepperStepId ?? null);
     setShortLabelOverride(config?.shortLabelOverride ?? null);
-    setHistory((h) => (h.length > 1 ? h.slice(0, -1) : h));
+
+    if (canPop) {
+      setHistory((h) => h.slice(0, -1));
+    } else if (fallbackId) {
+      goTo(fallbackId, { resetHistory: true });
+    }
   };
 
   const updateSessionData = (updates: Partial<FlowSessionData>) => {
