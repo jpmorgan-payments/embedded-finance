@@ -74,7 +74,7 @@ export const LinkAccountScreen = () => {
     'common',
     'linked-accounts',
   ]);
-  const { goBack } = useFlowContext();
+  const { goBack, setFlowUnsavedChanges } = useFlowContext();
   const { clientData, linkAccountStepOptions } = useOnboardingContext();
 
   const clientId = useClientId();
@@ -173,6 +173,23 @@ export const LinkAccountScreen = () => {
       linkAccountStepOptions.initialValues
     );
   }, [linkAccountStepOptions]);
+
+  useEffect(() => {
+    if (
+      !prefillSummaryFormData ||
+      linkAccountStepOptions?.completionMode !== 'prefillSummary'
+    ) {
+      return undefined;
+    }
+    const dirty = Object.values(acknowledgementChecked).some(Boolean);
+    setFlowUnsavedChanges(dirty);
+    return () => setFlowUnsavedChanges(false);
+  }, [
+    acknowledgementChecked,
+    linkAccountStepOptions?.completionMode,
+    prefillSummaryFormData,
+    setFlowUnsavedChanges,
+  ]);
 
   const summaryDisplayedPaymentTypes =
     useMemo((): RoutingInformationTransactionType[] => {
@@ -422,6 +439,7 @@ export const LinkAccountScreen = () => {
           showCard={false}
           embedded
           alert={errorAlert}
+          onDirtyChange={setFlowUnsavedChanges}
         />
       </div>
     </StepLayout>

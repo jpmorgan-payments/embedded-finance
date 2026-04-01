@@ -1,4 +1,5 @@
 {
+  "leavePageWarning": "You may lose unsaved changes if you leave this page.",
   "fields": {
     "externalId": {
       "label": "External ID",

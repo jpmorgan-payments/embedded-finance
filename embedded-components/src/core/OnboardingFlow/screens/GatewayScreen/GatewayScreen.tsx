@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { useQueryClient } from '@tanstack/react-query';
 import { InfoIcon, Loader2Icon, XIcon } from 'lucide-react';
+import { useFormState } from 'react-hook-form';
 
 import {
   getSmbdoGetClientQueryKey,
@@ -29,6 +30,7 @@ import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
+import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
 import {
   getControllerParty,
   getOrganizationParty,
@@ -90,6 +92,9 @@ export const GatewayScreen = () => {
     schema: GatewayScreenFormSchema,
     defaultValues: {},
   });
+
+  const { isDirty } = useFormState({ control: form.control });
+  useFlowUnsavedChangesSync(isDirty);
 
   const existingOrgParty = getOrganizationParty(clientData);
 

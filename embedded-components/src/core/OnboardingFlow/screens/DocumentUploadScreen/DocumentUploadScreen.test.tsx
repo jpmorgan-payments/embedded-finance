@@ -10,20 +10,15 @@ import {
   PartyResponse,
 } from '@/api/generated/smbdo.schemas';
 import { flowConfig } from '@/core/OnboardingFlow/config';
-import {
-  FlowProvider,
-  OnboardingContext,
-  OnboardingContextType,
-} from '@/core/OnboardingFlow/contexts';
-import * as FlowContextModule from '@/core/OnboardingFlow/contexts/FlowContext';
+import * as FlowContextModule from '@/core/OnboardingFlow/contexts';
+import type { OnboardingContextType } from '@/core/OnboardingFlow/contexts';
 
 import { DocumentUploadScreen } from './DocumentUploadScreen';
 
-// Mock the flow context hook
-vi.mock('@/core/OnboardingFlow/contexts/FlowContext', async () => {
-  const actual = await vi.importActual(
-    '@/core/OnboardingFlow/contexts/FlowContext'
-  );
+// Mock the flow context hook (barrel path must match component imports)
+vi.mock('@/core/OnboardingFlow/contexts', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@/core/OnboardingFlow/contexts')>();
   return {
     ...actual,
     useFlowContext: vi.fn(),
@@ -183,6 +178,8 @@ const mockFlowContext = {
   reviewScreenOpenedSectionId: null,
   initialStepperStepId: null,
   shortLabelOverride: null,
+  unsavedChangesRef: { current: false },
+  setFlowUnsavedChanges: vi.fn(),
 };
 
 // Mock onboarding context
@@ -236,14 +233,14 @@ const renderComponent = (
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <FlowProvider
+      <FlowContextModule.FlowProvider
         initialScreenId="document-upload-form"
         flowConfig={flowConfig}
       >
-        <OnboardingContext.Provider value={onboardingContext}>
+        <FlowContextModule.OnboardingContext.Provider value={onboardingContext}>
           <DocumentUploadScreen />
-        </OnboardingContext.Provider>
-      </FlowProvider>
+        </FlowContextModule.OnboardingContext.Provider>
+      </FlowContextModule.FlowProvider>
     </QueryClientProvider>
   );
 };

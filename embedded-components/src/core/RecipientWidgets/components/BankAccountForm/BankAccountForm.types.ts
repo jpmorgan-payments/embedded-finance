@@ -212,6 +212,10 @@ export interface BankAccountFormProps {
    * When this object changes, the form is reset to the merged values.
    */
   defaultValuesOverride?: Partial<BankAccountFormData>;
+  /**
+   * Fired when react-hook-form `isDirty` changes (e.g. embedded onboarding leave / back guards).
+   */
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 /**

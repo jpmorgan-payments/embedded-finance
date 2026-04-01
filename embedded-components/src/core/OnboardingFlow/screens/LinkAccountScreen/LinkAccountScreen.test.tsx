@@ -22,21 +22,17 @@ import { LinkAccountScreen } from './LinkAccountScreen';
 const mockGoBack = vi.fn();
 const mockSubmit = vi.fn();
 
-vi.mock(
-  '@/core/OnboardingFlow/contexts/FlowContext',
-  async (importOriginal) => {
-    const actual =
-      await importOriginal<
-        typeof import('@/core/OnboardingFlow/contexts/FlowContext')
-      >();
-    return {
-      ...actual,
-      useFlowContext: () => ({
-        goBack: mockGoBack,
-      }),
-    };
-  }
-);
+vi.mock('@/core/OnboardingFlow/contexts', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@/core/OnboardingFlow/contexts')>();
+  return {
+    ...actual,
+    useFlowContext: () => ({
+      goBack: mockGoBack,
+      setFlowUnsavedChanges: vi.fn(),
+    }),
+  };
+});
 
 vi.mock('@/api/generated/ep-recipients', () => ({
   useGetAllRecipients: vi.fn(),

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useFormState, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
@@ -21,6 +21,7 @@ import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
+import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
 import { getPartyName } from '@/core/OnboardingFlow/utils/dataUtils';
 
 import { DocumentRequestCard } from './DocumentRequestCard';
@@ -125,6 +126,9 @@ export const DocumentUploadForm = () => {
     resolver: zodResolver(DocumentUploadSchema),
     mode: 'onChange', // Add this to validate on change
   });
+
+  const { isDirty } = useFormState({ control: form.control });
+  useFlowUnsavedChangesSync(isDirty);
 
   // Add useEffect to trigger validation when form state needs updating
   useEffect(() => {

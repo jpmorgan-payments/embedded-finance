@@ -24,6 +24,7 @@ import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
+import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
 import {
   OnboardingFormValuesInitial,
   OnboardingFormValuesSubmit,
@@ -36,6 +37,7 @@ import {
   StepValidationMap,
 } from '@/core/OnboardingFlow/types/flow.types';
 import { getPartyByAssociatedPartyFilters } from '@/core/OnboardingFlow/utils/dataUtils';
+import { shouldSuppressOnboardingLeaveWarnings } from '@/core/OnboardingFlow/utils/flowLeaveWarnings';
 import { getStepperValidation } from '@/core/OnboardingFlow/utils/flowUtils';
 import {
   convertPartyResponseToFormValues,
@@ -59,8 +61,9 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   steps,
   getDefaultPartyRequestBody,
 }) => {
-  const { clientData, organizationType } = useOnboardingContext();
-  const { t } = useTranslationWithTokens('onboarding-overview');
+  const { clientData, organizationType, alertOnPreviousStep } =
+    useOnboardingContext();
+  const { t, tString } = useTranslationWithTokens('onboarding-overview');
 
   const {
     currentScreenId,
@@ -78,6 +81,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     savedFormValues,
     setCurrentStepperStepIdFallback,
     setIsFormSubmitting,
+    unsavedChangesRef,
   } = useFlowContext();
 
   const editingPartyId = editingPartyIds[currentScreenId];
@@ -211,6 +215,24 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   };
 
   const handlePrev = () => {
+    const willInvokeFlowGoBack =
+      !checkAnswersMode &&
+      !reviewMode &&
+      originScreenId === 'owners-section' &&
+      currentScreenId !== 'review-attest-section' &&
+      (currentStepNumber === 1 || currentStep.stepType === 'check-answers');
+
+    if (
+      alertOnPreviousStep &&
+      !willInvokeFlowGoBack &&
+      !shouldSuppressOnboardingLeaveWarnings(clientData) &&
+      unsavedChangesRef.current &&
+      // eslint-disable-next-line no-alert -- optional UX parity with native leave warnings; no modal primitive here
+      !window.confirm(tString('stepperRenderer.previousStepDataLossWarning'))
+    ) {
+      return;
+    }
+
     if (checkAnswersMode) {
       stepperGoTo(checkAnswersStepId);
       setCurrentStepperStepIdFallback(checkAnswersStepId);
@@ -441,6 +463,8 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
   });
 
   const { isDirty } = useFormState({ control: form.control });
+
+  useFlowUnsavedChangesSync(isDirty);
 
   const onSubmit = form.handleSubmit((values) => {
     Object.entries(values).forEach(([key, value]) => {
