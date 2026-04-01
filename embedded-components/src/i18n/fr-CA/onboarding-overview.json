@@ -45,7 +45,8 @@
   },
   "flowRenderer": {
     "businessType": "Business type",
-    "linkAccount": "Lier un compte bancaire"
+    "linkAccount": "Lier un compte bancaire",
+    "leavePageWarning": "Vous pourriez perdre les modifications non enregistrées si vous quittez cette page."
   },
   "documentUpload": {
     "title": "Supporting documents",
@@ -116,6 +117,7 @@
   "stepperRenderer": {
     "noStepsFound": "No steps found",
     "stepCounter": "Step {{currentStepNumber}} of {{totalSteps}}",
+    "previousStepDataLossWarning": "Si vous revenez en arrière, les renseignements saisis à cette étape pourraient être perdus. Continuer?",
     "buttons": {
       "overviewHeader": "Overview",
       "save": "Save",

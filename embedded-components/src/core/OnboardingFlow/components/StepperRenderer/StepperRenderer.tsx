@@ -59,8 +59,9 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   steps,
   getDefaultPartyRequestBody,
 }) => {
-  const { clientData, organizationType } = useOnboardingContext();
-  const { t } = useTranslationWithTokens('onboarding-overview');
+  const { clientData, organizationType, alertOnPreviousStep } =
+    useOnboardingContext();
+  const { t, tString } = useTranslationWithTokens('onboarding-overview');
 
   const {
     currentScreenId,
@@ -211,6 +212,22 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   };
 
   const handlePrev = () => {
+    const willInvokeFlowGoBack =
+      !checkAnswersMode &&
+      !reviewMode &&
+      originScreenId === 'owners-section' &&
+      currentScreenId !== 'review-attest-section' &&
+      (currentStepNumber === 1 || currentStep.stepType === 'check-answers');
+
+    if (
+      alertOnPreviousStep &&
+      !willInvokeFlowGoBack &&
+      // eslint-disable-next-line no-alert -- optional UX parity with native leave warnings; no modal primitive here
+      !window.confirm(tString('stepperRenderer.previousStepDataLossWarning'))
+    ) {
+      return;
+    }
+
     if (checkAnswersMode) {
       stepperGoTo(checkAnswersStepId);
       setCurrentStepperStepIdFallback(checkAnswersStepId);

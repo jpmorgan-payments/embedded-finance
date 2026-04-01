@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { Stepper } from '@stepperize/react';
 
 import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
@@ -121,7 +122,8 @@ export const FlowProvider: React.FC<{
   >({});
   const [isFormSubmitting, setIsFormSubmitting] = useState<boolean>(false);
 
-  const { organizationType } = useOnboardingContext();
+  const { organizationType, alertOnPreviousStep } = useOnboardingContext();
+  const { tString } = useTranslationWithTokens('onboarding-overview');
 
   // Reset saved form values when organization type changes
   useEffect(() => {
@@ -179,6 +181,14 @@ export const FlowProvider: React.FC<{
     history.length > 1 ? history[history.length - 2] : null;
 
   const goBack = (config?: GoToConfig) => {
+    if (
+      alertOnPreviousStep &&
+      history.length > 1 &&
+      // eslint-disable-next-line no-alert -- optional UX parity with native leave warnings; no modal primitive here
+      !window.confirm(tString('stepperRenderer.previousStepDataLossWarning'))
+    ) {
+      return;
+    }
     setEditingPartyIds((prev) => ({
       ...prev,
       [currentScreenId]: config?.editingPartyId,

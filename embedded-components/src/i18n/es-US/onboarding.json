@@ -1,4 +1,5 @@
 {
+  "leavePageWarning": "Si abandona esta página, podría perder los cambios no guardados.",
   "fields": {
     "externalId": {
       "label": "External ID",

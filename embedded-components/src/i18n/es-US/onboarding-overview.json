@@ -44,7 +44,8 @@
   },
   "flowRenderer": {
     "businessType": "Business type",
-    "linkAccount": "Vincular cuenta bancaria"
+    "linkAccount": "Vincular cuenta bancaria",
+    "leavePageWarning": "Si abandona esta página, podría perder los cambios no guardados."
   },
   "documentUpload": {
     "title": "Supporting documents",
@@ -115,6 +116,7 @@
   "stepperRenderer": {
     "noStepsFound": "No steps found",
     "stepCounter": "Step {{currentStepNumber}} of {{totalSteps}}",
+    "previousStepDataLossWarning": "Si retrocede, la información ingresada en este paso podría perderse. ¿Continuar?",
     "buttons": {
       "overviewHeader": "Overview",
       "save": "Save",

@@ -35,6 +35,7 @@ import { getFlowProgress } from './utils/flowUtils';
 
 export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   alertOnExit = false,
+  alertOnPreviousStep = false,
   userEventsHandler,
   userEventsLifecycle,
   height,
@@ -76,27 +77,31 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const organizationType =
     existingOrgParty?.organizationDetails?.organizationType;
 
-  const { t } = useTranslationWithTokens(['onboarding-overview']);
+  const { t, i18n } = useTranslationWithTokens(['onboarding-overview']);
 
-  // Prevent the user from leaving the page
+  // Prevent the user from leaving the page. Copy comes from onboarding-overview
+  // (host-overridable via EBComponentsProvider contentTokens) and follows the
+  // provider i18n language (contentTokens.name / default enUS).
+  // Note: Most browsers show a generic leave prompt and may not display this string.
   useEffect(() => {
-    const handleBeforeUnload = (event: {
-      preventDefault: () => void;
-      returnValue: boolean;
-    }) => {
-      event.preventDefault();
-      // Included for legacy support, e.g. Chrome/Edge < 119
-      event.returnValue = true;
-    };
-
-    if (alertOnExit) {
-      window.addEventListener('beforeunload', handleBeforeUnload);
+    if (!alertOnExit) {
+      return undefined;
     }
 
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      const message = i18n.t(
+        'onboarding-overview:flowRenderer.leavePageWarning'
+      );
+      event.returnValue = message;
+      return message;
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [alertOnExit]);
+  }, [alertOnExit, i18n, i18n.language]);
 
   // #region User Events
   // Set up automatic event tracking for data-user-event attributes
@@ -117,6 +122,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     <OnboardingContext.Provider
       value={{
         ...props,
+        alertOnPreviousStep,
         clientData,
         clientGetStatus,
         setClientId,

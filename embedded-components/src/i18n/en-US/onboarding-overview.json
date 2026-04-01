@@ -76,7 +76,8 @@
   },
   "flowRenderer": {
     "businessType": "Business type",
-    "linkAccount": "Link bank account"
+    "linkAccount": "Link bank account",
+    "leavePageWarning": "You may lose unsaved changes if you leave this page."
   },
   "documentUpload": {
     "title": "Supporting documents",
@@ -147,6 +148,7 @@
   "stepperRenderer": {
     "noStepsFound": "No steps found",
     "stepCounter": "Step {{currentStepNumber}} of {{totalSteps}}",
+    "previousStepDataLossWarning": "If you go back, any information you entered on this step may be lost. Continue?",
     "buttons": {
       "overviewHeader": "Overview",
       "save": "Save",

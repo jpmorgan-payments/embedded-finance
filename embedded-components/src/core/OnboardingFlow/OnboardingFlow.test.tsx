@@ -687,6 +687,73 @@ describe('OnboardingFlow', () => {
     await user.click(attestCheckbox);
   }, 90000);
 
+  test('alertOnPreviousStep shows confirm when using stepper Previous', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const user = userEvent.setup();
+
+    renderOnboardingFlow({ alertOnPreviousStep: true });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Let's help you get started/i)
+      ).toBeInTheDocument();
+    });
+
+    await user.click(
+      screen.getByRole('radio', { name: /Registered business/i })
+    );
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Select the specific legal structure/i)
+      ).toBeInTheDocument();
+    });
+    await user.click(
+      screen.getByLabelText(/Select the specific legal structure/i)
+    );
+    await user.click(
+      screen.getByRole('option', {
+        name: /Limited Liability Company \(LLC\)/i,
+      })
+    );
+    await waitFor(() => {
+      const getStartedButton = screen.getByRole('button', {
+        name: /get started/i,
+      });
+      expect(getStartedButton).toBeInTheDocument();
+      return user.click(getStartedButton);
+    });
+
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Overview/i)).toBeInTheDocument();
+      },
+      { timeout: 10000 }
+    );
+
+    await user.click(screen.getByTestId('personal-section-button'));
+    await waitFor(() => {
+      expect(screen.getByText(/Your personal details/i)).toBeInTheDocument();
+    });
+    const firstNameInput = screen.getByLabelText(/First name/i);
+    await user.type(firstNameInput, 'John');
+    const lastNameInput = screen.getByLabelText(/Last name/i);
+    await user.type(lastNameInput, 'Doe');
+    const jobTitleDropdown = screen.getByLabelText(/Job title/i);
+    await user.click(jobTitleDropdown);
+    const jobTitleOption = screen.getByRole('option', { name: /CEO/i });
+    await user.click(jobTitleOption);
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Your ID details/i)).toBeInTheDocument();
+    });
+    await user.click(screen.getByRole('button', { name: /previous/i }));
+
+    expect(confirmSpy).toHaveBeenCalledWith(
+      i18n.t('onboarding-overview:stepperRenderer.previousStepDataLossWarning')
+    );
+  }, 60000);
+
   test('sole proprietorship enforces US-only country of residence', async () => {
     const user = userEvent.setup();
 
