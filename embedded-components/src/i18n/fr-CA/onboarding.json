@@ -1,4 +1,5 @@
 {
+  "leavePageWarning": "Vous pourriez perdre les modifications non enregistrées si vous quittez cette page.",
   "fields": {
     "product": {
       "label": "Produit",

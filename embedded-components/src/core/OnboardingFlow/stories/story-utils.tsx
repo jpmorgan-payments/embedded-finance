@@ -647,6 +647,7 @@ export const commonArgs: Partial<OnboardingFlowProps> = {
     'C_CORPORATION',
   ],
   alertOnExit: false,
+  alertOnPreviousStep: false,
   docUploadOnlyMode: false,
   hideSidebar: false,
 };
@@ -774,6 +775,15 @@ export const commonArgTypes = {
   alertOnExit: {
     control: { type: 'boolean' as const },
     description: 'Show confirmation dialog when user tries to leave the page',
+    table: {
+      category: 'Behavior',
+      defaultValue: { summary: 'false' },
+    },
+  },
+  alertOnPreviousStep: {
+    control: { type: 'boolean' as const },
+    description:
+      'Confirm before Previous / Back: warns that data entered on the current step may be lost',
     table: {
       category: 'Behavior',
       defaultValue: { summary: 'false' },

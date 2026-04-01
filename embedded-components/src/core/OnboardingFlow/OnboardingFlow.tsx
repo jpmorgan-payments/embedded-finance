@@ -35,6 +35,7 @@ import { getFlowProgress } from './utils/flowUtils';
 
 export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   alertOnExit = false,
+  alertOnPreviousStep = false,
   userEventsHandler,
   userEventsLifecycle,
   height,
@@ -78,26 +79,6 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
   const { t } = useTranslationWithTokens(['onboarding-overview']);
 
-  // Prevent the user from leaving the page
-  useEffect(() => {
-    const handleBeforeUnload = (event: {
-      preventDefault: () => void;
-      returnValue: boolean;
-    }) => {
-      event.preventDefault();
-      // Included for legacy support, e.g. Chrome/Edge < 119
-      event.returnValue = true;
-    };
-
-    if (alertOnExit) {
-      window.addEventListener('beforeunload', handleBeforeUnload);
-    }
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [alertOnExit]);
-
   // #region User Events
   // Set up automatic event tracking for data-user-event attributes
   useUserEventTracking({
@@ -117,6 +98,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     <OnboardingContext.Provider
       value={{
         ...props,
+        alertOnExit,
+        alertOnPreviousStep,
         clientData,
         clientGetStatus,
         setClientId,

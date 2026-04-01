@@ -66,6 +66,7 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   showLinkedAccountPanel = false,
   ...props
 }) => {
+  const { i18n: onboardingWizardI18n } = useTranslation('onboarding-old');
   const { tokens: globalContentTokens = {} } = useContentTokens() ?? {};
 
   useEffect(() => {
@@ -80,25 +81,24 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
     i18n.language,
   ]);
 
-  // Prevent the user from leaving the page
+  // Same i18n + content-token behavior as OnboardingFlow leave warning (onboarding-old NS).
   useEffect(() => {
-    const handleBeforeUnload = (event: {
-      preventDefault: () => void;
-      returnValue: boolean;
-    }) => {
-      event.preventDefault();
-      // Included for legacy support, e.g. Chrome/Edge < 119
-      event.returnValue = true;
-    };
-
-    if (alertOnExit) {
-      window.addEventListener('beforeunload', handleBeforeUnload);
+    if (!alertOnExit) {
+      return undefined;
     }
 
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      const message = onboardingWizardI18n.t('leavePageWarning');
+      event.returnValue = message;
+      return message;
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [alertOnExit]);
+  }, [alertOnExit, onboardingWizardI18n, onboardingWizardI18n.language]);
 
   const eventAnnotationHandler = useCallback((e: Event) => {
     const target = e.target as HTMLTextAreaElement;

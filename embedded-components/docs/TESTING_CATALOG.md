@@ -26,9 +26,13 @@ Before testing, ensure the following prerequisites are met:
 | Onboarding | `https://api-sandbox.payments.jpmorgan.com/onboarding/v1` |
 | Transactions | `https://api-sandbox.payments.jpmorgan.com/embedded/v2` |
 | Accounts | `https://api-sandbox.payments.jpmorgan.com/embedded/v1` |
+| Accounts V2 (Beta) | `https://api-sandbox.payments.jpmorgan.com/embedded/v2` |
 | Recipients | `https://api-sandbox.payments.jpmorgan.com/embedded/v1` |
 | Webhooks | `https://api-sandbox.payments.jpmorgan.com/embedded/v1` |
 | Error Codes | [Embedded Finance Error Code Catalog](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/error-codes#embedded-finance-error-code-catalog) |
+
+> [!NOTE]
+> **Accounts V2 API (Beta):** The Accounts V2 API is currently available in beta. Some clients may begin integration directly with V2 endpoints. For the latest information on V2 availability, features, and migration guidance, see the [Embedded Payments documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments).
 
 ### Client Creation – Minimum Payload
 
@@ -63,16 +67,6 @@ Use the following `"externalId"` values on a party in the `POST /clients` reques
 | `"kycApproved"` | Client is approved after verification is triggered |
 | `"kycDocRequest"` | Triggers a document request during the KYC process (`INFORMATION_REQUESTED` state) |
 | _(omit or use any other value)_ | Standard flow — see [Scenario 6: Simulate KYC Decline](#scenario-6-simulate-kyc-decline) for details |
-
-### Sample Client Data
-
-Use the following sample data for client account owners / controllers when testing:
-
-| # | Owner Name | Type |
-|---|-----------|------|
-| 1 | Monica Gellar | Individual |
-| 2 | Neverland Books and Coffee | Organization (LLC) |
-| 3 | Monica's Cupcakes | Sole Proprietorship |
 
 > [!TIP]
 > If you are using a hosted or partially hosted solution, ensure you run through test cases across **multiple browsers, devices, and version types** to verify that functionality meets responsiveness and rendering expectations.
@@ -347,9 +341,9 @@ Verify the flow when KYC is declined.
 
 **Steps:**
 
-1. Use `POST /clients` to create a client with standard party information (no special `externalId`).
+1. Use `POST /clients` to create a client where one of the parties has an address with `"country": "IR"`. This triggers a KYC decline after verification. Do **not** set a special `externalId` magic value.
 
-2. Once the client is created, verify the state is `NEW`. Answer the outstanding questions in a way that triggers the decline outcome. Refer to the Sandbox-specific decline triggers provided by your J.P. Morgan implementation team.
+2. Once the client is created, verify the state is `NEW`. Complete the outstanding questions and submit attestation.
 
 3. Trigger the verification process:
 
@@ -363,7 +357,7 @@ Verify the flow when KYC is declined.
 
 ## Guide 2: Add an Account to Manage Funds
 
-> **Portal Guide:** [Embedded Payments – Add an Account](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/add-an-account)
+> **Portal Guide:** [Embedded Payments – Add an Account](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-account)
 
 **Prerequisite:** Client must be in `APPROVED` state.
 
@@ -403,7 +397,7 @@ Verify closing a client account and confirming the account status is updated.
 
 ## Guide 4: Link an External Bank Account
 
-> **Portal Guide:** [Embedded Payments – Link a Bank Account](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/link-a-bank-account)
+> **Portal Guide:** [Embedded Payments – Link a Bank Account](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-linked-account)
 
 **Prerequisite:** Client must be in `APPROVED` state with an active account.
 
@@ -462,7 +456,7 @@ Verify receiving funds and making payouts through multiple payment rails.
 
 ## Guide 6: Manage and Display Transactions
 
-> **Portal Guide:** [Embedded Payments – Display Transactions](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/display-transactions)
+> **Portal Guide:** [Embedded Payments – Display Transactions](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/manage-display-transactions-v2)
 
 **Prerequisite:** Client must have an active account with transaction history.
 
@@ -486,7 +480,7 @@ Verify transaction querying, filtering, and balance display capabilities.
 
 ## Guide 7: Manage Notifications (Webhooks)
 
-> **Portal Guide:** [Embedded Payments – Manage Notifications](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/manage-notifications)
+> **Portal Guide:** [Embedded Payments – Manage Notifications](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/notification-subscriptions/how-to/notifications)
 
 ### Scenario 12: Webhook Subscription Lifecycle
 
@@ -522,23 +516,49 @@ Verify initiating a direct debit to pull funds from a linked account.
 
 ## Guide 9: Managing Negative Balances & Alerts
 
-> **Portal Guide:** [Embedded Payments – Manage Negative Balances](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/manage-negative-balances)
+> **Portal Guide:** [Embedded Payments – Manage Negative Balances](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/managing-negative-balances)
+>
+> **Note:** These scenarios use the **Accounts V2** endpoints (`GET /v2/accounts/{id}`, `GET /v2/accounts/{id}/balances`). The Accounts V2 API is currently available in beta — see the [Embedded Payments documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments) for details.
 
-### Scenario 14: Negative Balances
+### Scenario 14: Negative Balance — Within the Limit
 
 **Objective:**
-Verify automated money movement handling for negative balances.
+Verify that a transaction causing a negative balance **within** the account-level minimum balance limit is completed, and that end-of-day (EOD) automated funding offsets the shortfall.
 
 **Steps:**
 
-1. Search automated money movements that address negative balances for the client account.
+1. Confirm the minimum balance limit for the Processing Account or LDDA — `GET /v2/accounts/{id}`.
+2. Check the current account balance — `GET /v2/accounts/{id}/balances`.
+3. Move funds that exceed the current balance but stay **within** the minimum balance limit:
+   - _Processing Account:_ Transfer funds from the Processing Account to another Limited DDA or Payments DDA account.
+   - _LDDA:_ Transfer funds from the LDDA to the Processing Account.
+4. Confirm the transaction is **completed** and the `TRANSACTION_COMPLETED` webhook is received.
+5. At EOD, confirm the automated funds movement from the Funding Account to the Offset Account is completed.
 
-### Scenario 15: Alerts for Negative Balances and Program Limits
+### Scenario 15: Negative Balance — Over the Limit
 
 **Objective:**
-Verify that the platform receives the correct alert notifications.
+Verify that a transaction that would push the account **beyond** the minimum balance limit is rejected.
 
 **Steps:**
 
-1. Receive notification when account remains in negative balance for 30, 59, or 60 days — expect webhook event type `ACCOUNT_OVERDRAWN`.
-2. Receive notification when approaching or exceeding program-level limits — expect webhook event type `THRESHOLD_LIMIT`.
+1. Confirm the minimum balance limit for the Processing Account or LDDA — `GET /v2/accounts/{id}`.
+2. Check the current account balance — `GET /v2/accounts/{id}/balances`.
+3. Attempt to move funds that would exceed the minimum balance limit:
+   - _Processing Account:_ Transfer funds from the Processing Account to another Limited DDA or Payments DDA account.
+   - _LDDA:_ Transfer funds from the LDDA to the Processing Account.
+4. Confirm the transaction is **rejected** and the `TRANSACTION_FAILED` webhook is received.
+
+### Scenario 16: Threshold Limit Alert
+
+**Objective:**
+Verify that the platform receives a threshold alert when the Processing Account approaches or breaches program-level limits.
+
+**Steps:**
+
+1. Confirm the minimum balance limit for the Processing Account — `GET /v2/accounts/{id}`.
+2. Check the current account balance — `GET /v2/accounts/{id}/balances`.
+3. Move funds equal to approximately 80 % of the minimum balance limit:
+   - Transfer funds from the Processing Account to another Limited DDA or Payments DDA account.
+4. Confirm the transaction is **completed**, the `TRANSACTION_COMPLETED` webhook is received, **and** the `THRESHOLD_LIMIT` webhook is received.
+5. At EOD, confirm the automated funds movement from the Funding Account to the Offset Account is completed.

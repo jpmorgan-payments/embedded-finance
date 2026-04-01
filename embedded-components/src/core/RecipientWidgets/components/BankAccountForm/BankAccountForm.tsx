@@ -15,7 +15,7 @@ import {
   UserIcon,
   ZapIcon,
 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFormState } from 'react-hook-form';
 
 import {
   RecipientContactContactType,
@@ -721,6 +721,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   initialPaymentTypes: initialPaymentTypesProp,
   initialStep = 1,
   defaultValuesOverride,
+  onDirtyChange,
 }) => {
   const { t, tString } = useTranslationWithTokens('bank-account-form');
   const formatRequiredMessage = useFormatRequiredMessage(
@@ -980,6 +981,13 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     resolver: zodResolver(formSchema),
     defaultValues: mergedDefaultValues,
   });
+
+  const { isDirty } = useFormState({ control: form.control });
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+    return () => onDirtyChange?.(false);
+  }, [isDirty, onDirtyChange]);
 
   const defaultValuesOverrideKey = JSON.stringify(
     defaultValuesOverride ?? null

@@ -311,9 +311,17 @@ The `OnboardingFlow` component provides a modern, enhanced onboarding experience
 | `docUploadOnlyMode`                | `boolean`                                                                                                                                 | No       | Whether to show only document upload screens            |
 | `height`                           | `string`                                                                                                                                  | No       | Minimum height for the component container              |
 | `onboardingContentTokens`          | `DeepPartial<typeof defaultResources['enUS']['onboarding']>`                                                                              | No       | Custom content tokens for onboarding                    |
-| `alertOnExit`                      | `boolean`                                                                                                                                 | No       | Whether to show alert when exiting onboarding           |
+| `alertOnExit`                      | `boolean`                                                                                                                                 | No       | Warn before closing/leaving the browser tab when there are unsaved edits (see **Leave and back prompts** below)      |
+| `alertOnPreviousStep`              | `boolean`                                                                                                                                 | No       | Confirm before **Previous** / **Back** inside the flow when there are unsaved edits (see **Leave and back prompts** below) |
 | `userEventsHandler`                | `(context: UserEventContext) => void \| number`                                                                                           | No       | Handler for user events with rich context               |
 | `userEventsLifecycle`              | `UserEventLifecycle`                                                                                                                      | No       | Optional lifecycle handlers for RUM libraries           |
+
+**Leave and back prompts (`alertOnExit`, `alertOnPreviousStep`):**
+
+- **When they run:** Only if the user has **unsaved form changes** (dirty state). If the user has not edited the current screen’s forms, no prompt is shown.
+- **When they are suppressed:** Prompts run only when SMBDO **`ClientStatus`** is **`NEW`** or **`INFORMATION_REQUESTED`** (draft or responding to requests). For any other status from the API schema—**`REVIEW_IN_PROGRESS`**, **`APPROVED`**, **`DECLINED`**, **`SUSPENDED`**, **`TERMINATED`**—prompts are suppressed (read-only / terminal pipeline from a host UX perspective).
+- **`alertOnExit`:** Uses the browser **`beforeunload`** event so the user gets a warning when navigating away from the page or closing the tab. Strings come from the **`onboarding-overview`** namespace (`flowRenderer.leavePageWarning`) and follow **`EBComponentsProvider`** `contentTokens` and locale. Many browsers display a **generic** leave-site message rather than custom copy.
+- **`alertOnPreviousStep`:** Uses a **`window.confirm`** dialog before stepping back within the flow or via flow **Back** (e.g. link-account step). Copy uses **`stepperRenderer.previousStepDataLossWarning`** in **`onboarding-overview`**. Hosts using content-token debug modes should rely on plain-string translations for dialog text (the implementation uses string-only lookups for `confirm`).
 
 #### Usage:
 
@@ -338,6 +346,7 @@ const OnboardingSection = () => {
         }}
         docUploadOnlyMode={false}
         alertOnExit={true}
+        alertOnPreviousStep={true}
       />
     </EBComponentsProvider>
   );
