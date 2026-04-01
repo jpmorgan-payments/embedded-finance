@@ -4,7 +4,7 @@ import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2Icon, MenuIcon } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFormState } from 'react-hook-form';
 import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
@@ -38,6 +38,7 @@ import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
+import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
 
 import {
   createDynamicZodSchema,
@@ -440,6 +441,9 @@ export const OperationalDetailsForm = () => {
     resolver: zodResolver(dynamicSchema),
     defaultValues,
   });
+
+  const { isDirty } = useFormState({ control: form.control });
+  useFlowUnsavedChangesSync(isDirty);
 
   /**
    * Parse API error context and set field-level errors on the form.

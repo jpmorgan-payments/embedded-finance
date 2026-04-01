@@ -1,8 +1,17 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import type { MutableRefObject } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { Stepper } from '@stepperize/react';
 
 import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
+import { shouldSuppressOnboardingLeaveWarnings } from '@/core/OnboardingFlow/utils/flowLeaveWarnings';
 import { OnboardingFormValuesSubmit } from '@/core/OnboardingFlow/types';
 import {
   FlowConfig,
@@ -52,6 +61,8 @@ const FlowContext = createContext<{
   saveFormValue: (field: keyof OnboardingFormValuesSubmit, value: any) => void;
   isFormSubmitting: boolean;
   setIsFormSubmitting: (isSubmitting: boolean) => void;
+  unsavedChangesRef: MutableRefObject<boolean>;
+  setFlowUnsavedChanges: (dirty: boolean) => void;
 }>({
   currentScreenId: 'overview',
   originScreenId: null,
@@ -95,6 +106,10 @@ const FlowContext = createContext<{
   setIsFormSubmitting: () => {
     throw new Error('setIsFormSubmitting() must be used within FlowProvider');
   },
+  unsavedChangesRef: { current: false },
+  setFlowUnsavedChanges: () => {
+    throw new Error('setFlowUnsavedChanges() must be used within FlowProvider');
+  },
 });
 
 export const FlowProvider: React.FC<{
@@ -122,8 +137,19 @@ export const FlowProvider: React.FC<{
   >({});
   const [isFormSubmitting, setIsFormSubmitting] = useState<boolean>(false);
 
-  const { organizationType, alertOnPreviousStep } = useOnboardingContext();
-  const { tString } = useTranslationWithTokens('onboarding-overview');
+  const unsavedChangesRef = useRef(false);
+  // Ref only (no React state): dirty tracking must not re-render FlowProvider or consumers.
+  const setFlowUnsavedChanges = useCallback((dirty: boolean) => {
+    unsavedChangesRef.current = dirty;
+  }, []);
+
+  const {
+    organizationType,
+    alertOnPreviousStep,
+    alertOnExit,
+    clientData,
+  } = useOnboardingContext();
+  const { tString, i18n } = useTranslationWithTokens('onboarding-overview');
 
   // Reset saved form values when organization type changes
   useEffect(() => {
@@ -131,6 +157,31 @@ export const FlowProvider: React.FC<{
       setSavedFormValues({});
     }
   }, [organizationType]);
+
+  useEffect(() => {
+    if (!alertOnExit) {
+      return undefined;
+    }
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (
+        shouldSuppressOnboardingLeaveWarnings(clientData) ||
+        !unsavedChangesRef.current
+      ) {
+        return;
+      }
+      event.preventDefault();
+      const message = i18n.t(
+        'onboarding-overview:flowRenderer.leavePageWarning'
+      );
+      event.returnValue = message;
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [alertOnExit, clientData?.status, i18n, i18n.language]);
 
   const currentScreenId = history[history.length - 1];
 
@@ -184,6 +235,8 @@ export const FlowProvider: React.FC<{
     if (
       alertOnPreviousStep &&
       history.length > 1 &&
+      !shouldSuppressOnboardingLeaveWarnings(clientData) &&
+      unsavedChangesRef.current &&
       // eslint-disable-next-line no-alert -- optional UX parity with native leave warnings; no modal primitive here
       !window.confirm(tString('stepperRenderer.previousStepDataLossWarning'))
     ) {
@@ -258,6 +311,8 @@ export const FlowProvider: React.FC<{
         saveFormValue,
         isFormSubmitting,
         setIsFormSubmitting,
+        unsavedChangesRef,
+        setFlowUnsavedChanges,
       }}
     >
       {children}

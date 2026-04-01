@@ -36,7 +36,9 @@ import {
   StepValidationMap,
 } from '@/core/OnboardingFlow/types/flow.types';
 import { getPartyByAssociatedPartyFilters } from '@/core/OnboardingFlow/utils/dataUtils';
+import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
 import { getStepperValidation } from '@/core/OnboardingFlow/utils/flowUtils';
+import { shouldSuppressOnboardingLeaveWarnings } from '@/core/OnboardingFlow/utils/flowLeaveWarnings';
 import {
   convertPartyResponseToFormValues,
   generateClientRequestBody,
@@ -79,6 +81,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     savedFormValues,
     setCurrentStepperStepIdFallback,
     setIsFormSubmitting,
+    unsavedChangesRef,
   } = useFlowContext();
 
   const editingPartyId = editingPartyIds[currentScreenId];
@@ -222,6 +225,8 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     if (
       alertOnPreviousStep &&
       !willInvokeFlowGoBack &&
+      !shouldSuppressOnboardingLeaveWarnings(clientData) &&
+      unsavedChangesRef.current &&
       // eslint-disable-next-line no-alert -- optional UX parity with native leave warnings; no modal primitive here
       !window.confirm(tString('stepperRenderer.previousStepDataLossWarning'))
     ) {
@@ -458,6 +463,8 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
   });
 
   const { isDirty } = useFormState({ control: form.control });
+
+  useFlowUnsavedChangesSync(isDirty);
 
   const onSubmit = form.handleSubmit((values) => {
     Object.entries(values).forEach(([key, value]) => {

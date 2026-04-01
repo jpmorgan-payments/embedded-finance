@@ -77,31 +77,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const organizationType =
     existingOrgParty?.organizationDetails?.organizationType;
 
-  const { t, i18n } = useTranslationWithTokens(['onboarding-overview']);
-
-  // Prevent the user from leaving the page. Copy comes from onboarding-overview
-  // (host-overridable via EBComponentsProvider contentTokens) and follows the
-  // provider i18n language (contentTokens.name / default enUS).
-  // Note: Most browsers show a generic leave prompt and may not display this string.
-  useEffect(() => {
-    if (!alertOnExit) {
-      return undefined;
-    }
-
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      const message = i18n.t(
-        'onboarding-overview:flowRenderer.leavePageWarning'
-      );
-      event.returnValue = message;
-      return message;
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [alertOnExit, i18n, i18n.language]);
+  const { t } = useTranslationWithTokens(['onboarding-overview']);
 
   // #region User Events
   // Set up automatic event tracking for data-user-event attributes
@@ -122,6 +98,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     <OnboardingContext.Provider
       value={{
         ...props,
+        alertOnExit,
         alertOnPreviousStep,
         clientData,
         clientGetStatus,

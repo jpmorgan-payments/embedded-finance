@@ -11,7 +11,7 @@ import {
   TriangleAlertIcon,
   UsersIcon,
 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFormState } from 'react-hook-form';
 import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
@@ -42,6 +42,7 @@ import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
+import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
 import {
   SectionScreenId,
   StepperStepProps,
@@ -86,6 +87,9 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
       })
     ),
   });
+
+  const { isDirty } = useFormState({ control: form.control });
+  useFlowUnsavedChangesSync(isDirty);
 
   const { sectionStatuses } = getFlowProgress(
     sections,

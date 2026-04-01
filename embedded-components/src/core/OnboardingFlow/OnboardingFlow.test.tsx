@@ -747,6 +747,8 @@ describe('OnboardingFlow', () => {
     await waitFor(() => {
       expect(screen.getByText(/Your ID details/i)).toBeInTheDocument();
     });
+    const ssnInput = screen.getByLabelText(/Social Security Number/i);
+    await user.type(ssnInput, '1');
     await user.click(screen.getByRole('button', { name: /previous/i }));
 
     expect(confirmSpy).toHaveBeenCalledWith(

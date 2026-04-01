@@ -9,6 +9,7 @@ import { OnboardingConfigUsedInContext } from '@/core/OnboardingFlow/types/onboa
 
 export type OnboardingContextType = OnboardingConfigUsedInContext &
   UserTrackingProps & {
+    alertOnExit?: boolean;
     alertOnPreviousStep?: boolean;
     clientData: ClientResponse | undefined;
     clientGetStatus: 'error' | 'success' | 'pending';

@@ -11,7 +11,7 @@ import {
   TrashIcon,
   UsersIcon,
 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFormState } from 'react-hook-form';
 
 import {
   getSmbdoGetClientQueryKey,
@@ -42,6 +42,7 @@ import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
+import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
 import { getPartyName } from '@/core/OnboardingFlow/utils/dataUtils';
 import {
   getFlowProgress,
@@ -98,6 +99,9 @@ export const OwnersSectionScreen = () => {
         : undefined,
     },
   });
+
+  const { isDirty } = useFormState({ control: form.control });
+  useFlowUnsavedChangesSync(isDirty);
 
   const {
     mutate: updateController,

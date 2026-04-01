@@ -10,7 +10,7 @@ import {
   InfoIcon,
   Loader2Icon,
 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFormState } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 
@@ -37,6 +37,7 @@ import {
   FormMessage,
 } from '@/components/ui';
 import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
+import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
 import { StepperStepProps } from '@/core/OnboardingFlow/types/flow.types';
 
 const generateSessionId = () => {
@@ -68,6 +69,9 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
       })
     ),
   });
+
+  const { isDirty } = useFormState({ control: form.control });
+  useFlowUnsavedChangesSync(isDirty);
 
   const { data: IPAddress } = useIPAddress();
 
