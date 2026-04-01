@@ -11,7 +11,6 @@ import { useTranslationWithTokens } from '@/i18n';
 import { Stepper } from '@stepperize/react';
 
 import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
-import { shouldSuppressOnboardingLeaveWarnings } from '@/core/OnboardingFlow/utils/flowLeaveWarnings';
 import { OnboardingFormValuesSubmit } from '@/core/OnboardingFlow/types';
 import {
   FlowConfig,
@@ -22,6 +21,7 @@ import {
   StaticScreenConfig,
   StepConfig,
 } from '@/core/OnboardingFlow/types/flow.types';
+import { shouldSuppressOnboardingLeaveWarnings } from '@/core/OnboardingFlow/utils/flowLeaveWarnings';
 
 type EditingPartyIds = {
   [screenId: string]: string | undefined;
@@ -143,12 +143,8 @@ export const FlowProvider: React.FC<{
     unsavedChangesRef.current = dirty;
   }, []);
 
-  const {
-    organizationType,
-    alertOnPreviousStep,
-    alertOnExit,
-    clientData,
-  } = useOnboardingContext();
+  const { organizationType, alertOnPreviousStep, alertOnExit, clientData } =
+    useOnboardingContext();
   const { tString, i18n } = useTranslationWithTokens('onboarding-overview');
 
   // Reset saved form values when organization type changes

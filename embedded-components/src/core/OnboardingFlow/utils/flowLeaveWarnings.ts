@@ -20,7 +20,6 @@ export function shouldSuppressOnboardingLeaveWarnings(
     return false;
   }
   return (
-    status !== ClientStatus.NEW &&
-    status !== ClientStatus.INFORMATION_REQUESTED
+    status !== ClientStatus.NEW && status !== ClientStatus.INFORMATION_REQUESTED
   );
 }

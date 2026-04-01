@@ -24,6 +24,7 @@ import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
+import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
 import {
   OnboardingFormValuesInitial,
   OnboardingFormValuesSubmit,
@@ -36,9 +37,8 @@ import {
   StepValidationMap,
 } from '@/core/OnboardingFlow/types/flow.types';
 import { getPartyByAssociatedPartyFilters } from '@/core/OnboardingFlow/utils/dataUtils';
-import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
-import { getStepperValidation } from '@/core/OnboardingFlow/utils/flowUtils';
 import { shouldSuppressOnboardingLeaveWarnings } from '@/core/OnboardingFlow/utils/flowLeaveWarnings';
+import { getStepperValidation } from '@/core/OnboardingFlow/utils/flowUtils';
 import {
   convertPartyResponseToFormValues,
   generateClientRequestBody,
