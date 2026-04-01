@@ -45,10 +45,14 @@ Embedded Payments provides webhook notifications for the following event categor
 | `ACCOUNT_CREATED` | New account successfully created | Medium |
 | `ACCOUNT_CLOSED` | Account has been closed | Medium |
 | `ACCOUNT_OVERDRAWN` | Account has negative balance | High |
+| `RECIPIENT_ACCOUNT_VALIDATION` | Subscription event type for all recipient validation events (see granular types below) | Medium |
 | `RECIPIENT_READY_FOR_VALIDATION` | Microdeposits sent, ready for verification | Medium |
 | `RECIPIENT_READY_FOR_VALIDATION_REMINDER` | Validation expires in 3 days | Medium |
 | `RECIPIENT_READY_FOR_VALIDATION_EXPIRED` | Validation window closed | Medium |
+| `RECIPIENT_UPDATED` | Recipient banking info updated after a Notification of Change (NOC) | Medium |
 | `THRESHOLD_LIMIT` | Program-level negative balance limits reached | Critical |
+
+> **Note**: When creating a webhook subscription, use `RECIPIENT_ACCOUNT_VALIDATION` as the `eventType`. The granular event types (`RECIPIENT_READY_FOR_VALIDATION`, `RECIPIENT_READY_FOR_VALIDATION_REMINDER`, `RECIPIENT_READY_FOR_VALIDATION_EXPIRED`) appear in the notification payloads you receive.
 
 ## Personas and UX Patterns
 
@@ -133,6 +137,7 @@ Embedded Payments provides webhook notifications for the following event categor
 | **Ready for validation** | Microdeposits sent | "Check your bank and verify amounts." Provide verification form. |
 | **Validation reminder** | 17 days elapsed, 3 days remaining | Urgent reminder with deadline. Prominent verification CTA. |
 | **Validation expired** | 20 days passed without verification | Expiry notice. Guide to restart process. |
+| **Recipient updated (NOC)** | Recipient banking info auto-corrected after NOC | Confirmation that recipient details were updated. Show old vs new values if available. Prompt to review linked account. |
 
 #### Core UX Principles
 
@@ -247,8 +252,9 @@ Embedded Payments provides webhook notifications for the following event categor
 **Security (OAuth Pattern)**:
 
 - Optional: Use `clientId`, `clientSecret`, `tokenEndpoint` for signed payloads
-- Verify signature using provided `publicKeyText`
+- Verify signature using provided `publicKeyText` (referenced by `publicKeyIdentifier` in notification headers)
 - Monitor `publicKeyExpirationDate` for key rotation
+- Track `publicKeyIdentifier` to correlate signatures with the correct public key
 - Add custom headers via `headerFields` for additional validation
 
 ### Frontend Delivery Options
