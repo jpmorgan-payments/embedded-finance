@@ -14,7 +14,7 @@ import { useGetFieldContentToken } from '@/core/OnboardingFlow/utils/formUtils';
 import { useBusinessContactInfoFormSchema } from './BusinessContactInfoForm.schema';
 
 export const BusinessContactInfoForm: FormStepComponent = () => {
-  const { t } = useTranslationWithTokens('onboarding-overview');
+  const { t, tString } = useTranslationWithTokens('onboarding-overview');
   const getOrgAddressContentToken = useGetFieldContentToken(
     'organizationAddress'
   );
@@ -28,9 +28,21 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
 
   const orgAddressLabel = (field: string) =>
     t([
-      `addressLabels.${field}.${orgAddressCountry}`,
-      `addressLabels.${field}.default`,
+      `addressFields.${field}.label.${orgAddressCountry}`,
+      `addressFields.${field}.label.default`,
     ] as unknown as TemplateStringsArray);
+
+  const orgAddressPlaceholder = (field: string) =>
+    tString([
+      `addressFields.${field}.placeholder.${orgAddressCountry}`,
+      `addressFields.${field}.placeholder.default`,
+    ] as unknown as TemplateStringsArray);
+
+  const orgAddressDescription = (field: string) =>
+    t([
+      `addressFields.${field}.description.${orgAddressCountry}`,
+      `addressFields.${field}.description.default`,
+    ] as unknown as TemplateStringsArray) || undefined;
 
   const isInitialCountryRender = useRef(true);
 
@@ -39,8 +51,13 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
       isInitialCountryRender.current = false;
       return;
     }
-    // Clear state when country changes to avoid sending stale codes
+    // Clear state and all address validation when country changes
     form.setValue('organizationAddress.state', '');
+    form.clearErrors([
+      'organizationAddress.city',
+      'organizationAddress.state',
+      'organizationAddress.postalCode',
+    ]);
   }, [orgAddressCountry]);
 
   useEffect(() => {
@@ -107,6 +124,7 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
             name="organizationAddress.city"
             type="text"
             label={orgAddressLabel('city')}
+            placeholder={orgAddressPlaceholder('city')}
             required
           />
           {getSubdivisionsForCountry(orgAddressCountry) ? (
@@ -116,6 +134,7 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
               type="combobox"
               options={getSubdivisionsForCountry(orgAddressCountry)!}
               label={orgAddressLabel('state')}
+              placeholder={orgAddressPlaceholder('state')}
               required
             />
           ) : (
@@ -124,6 +143,7 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
               name="organizationAddress.state"
               type="text"
               label={orgAddressLabel('state')}
+              placeholder={orgAddressPlaceholder('state')}
               required
             />
           )}
@@ -132,6 +152,8 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
             name="organizationAddress.postalCode"
             type="text"
             label={orgAddressLabel('postalCode')}
+            placeholder={orgAddressPlaceholder('postalCode')}
+            description={orgAddressDescription('postalCode')}
             className="eb-max-w-48"
             required
           />

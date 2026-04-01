@@ -135,26 +135,49 @@ export function mapPartyApiErrorsToFormErrors(
 ): FormError[] {
   const fieldMapKeys = objectKeys(partyFieldMap);
   return errors.reduce((acc, error) => {
-    let remainingPath = '';
-    let modifyErrorField: AnyFieldConfiguration['modifyErrorField'];
+    const errorFieldInDotNotation = error.field?.replace(/\[(\w+)\]/g, '.$1');
 
-    const matchedKey = fieldMapKeys.find((key) => {
+    // Collect ALL matching fieldMap keys for this error path.
+    // Multiple fieldMap entries can share the same API path
+    // (e.g. solePropSsn and controllerIds both map to
+    // individualDetails.individualIds). Emitting errors for all
+    // matches lets form.setError() attach to whichever field is
+    // actually registered in the current form.
+    const matchedEntries: {
+      key: keyof typeof partyFieldMap;
+      remainingPath: string;
+      modifyErrorField?: AnyFieldConfiguration['modifyErrorField'];
+    }[] = [];
+
+    fieldMapKeys.forEach((key) => {
       const path = partyFieldMap[key]?.path;
-      if (path && error.field && error.field.startsWith(`$.${path}`)) {
-        remainingPath = error.field.substring(`$.${path}`.length);
-        modifyErrorField = partyFieldMap[key]?.modifyErrorField;
-        return true;
+      if (path && errorFieldInDotNotation) {
+        if (errorFieldInDotNotation.startsWith(`$.${path}`)) {
+          matchedEntries.push({
+            key,
+            remainingPath: errorFieldInDotNotation.substring(
+              `$.${path}`.length
+            ),
+            modifyErrorField: partyFieldMap[key]?.modifyErrorField,
+          });
+        } else if (errorFieldInDotNotation.startsWith(`$.party.${path}`)) {
+          matchedEntries.push({
+            key,
+            remainingPath: errorFieldInDotNotation.substring(
+              `$.party.${path}`.length
+            ),
+            modifyErrorField: partyFieldMap[key]?.modifyErrorField,
+          });
+        }
       }
-      if (path && error.field && error.field.startsWith(`$.party.${path}`)) {
-        remainingPath = error.field.substring(`$.party.${path}`.length);
-        modifyErrorField = partyFieldMap[key]?.modifyErrorField;
-        return true;
-      }
-      return false;
     });
 
     // Handle edge case where the error field is in the field map but not matched
-    if (!matchedKey && error.field && error.field in partyFieldMap) {
+    if (
+      matchedEntries.length === 0 &&
+      error.field &&
+      error.field in partyFieldMap
+    ) {
       acc.push({
         field: error.field as keyof typeof partyFieldMap,
         message: error.message,
@@ -162,32 +185,56 @@ export function mapPartyApiErrorsToFormErrors(
       });
     }
 
-    // Server error path sometimes does not include the index for array fields,
-    // so we assume it's the first index (0) and add it manually.
-    if (matchedKey && remainingPath) {
-      // Convert remainingPath to dot notation
-      remainingPath = remainingPath.replace(/\[(\w+)\]/g, '.$1');
-      if (modifyErrorField) {
-        remainingPath = modifyErrorField(remainingPath);
+    for (const entry of matchedEntries) {
+      let { remainingPath } = entry;
+
+      // Server error path sometimes does not include the index for array fields,
+      // so we assume it's the first index (0) and add it manually.
+      if (remainingPath) {
+        if (entry.modifyErrorField) {
+          remainingPath = entry.modifyErrorField(remainingPath);
+        }
+        if (remainingPath) {
+          acc.push({
+            field: `${entry.key}${remainingPath}` as FormError['field'],
+            message: error.message,
+            path: error.field,
+          });
+          // TODO: remove this when the server returns the correct path
+          acc.push({
+            field: `${entry.key}.0.${remainingPath}` as FormError['field'],
+            message: error.message,
+            path: error.field,
+          });
+        } else {
+          // modifyErrorField collapsed the path (e.g. solePropSsn)
+          acc.push({
+            field: entry.key as FormError['field'],
+            message: error.message,
+            path: error.field,
+          });
+        }
+      } else {
+        acc.push({
+          field: entry.key as FormError['field'],
+          message: error.message,
+          path: error.field,
+        });
       }
+    }
+
+    // No matches at all — emit as unhandled
+    if (
+      matchedEntries.length === 0 &&
+      !(error.field && error.field in partyFieldMap)
+    ) {
       acc.push({
-        field: `${matchedKey}${remainingPath}`,
-        message: error.message,
-        path: error.field,
-      });
-      // TODO: remove this when the server returns the correct path
-      acc.push({
-        field: `${matchedKey}.0.${remainingPath}`,
-        message: error.message,
-        path: error.field,
-      });
-    } else {
-      acc.push({
-        field: matchedKey ?? undefined,
+        field: undefined,
         message: error.message,
         path: error.field,
       });
     }
+
     return acc;
   }, [] as FormError[]);
 }
@@ -983,7 +1030,7 @@ export const useGetValidationMessage = <
 >(): ((
   field: Field,
   messageKey: ValidationMessageKeysFor<Field>,
-  count?: number
+  countOrParams?: number | Record<string, string>
 ) => string) => {
   const { clientData } = useOnboardingContext();
   const { currentScreenId } = useFlowContext();
@@ -995,9 +1042,12 @@ export const useGetValidationMessage = <
   const getValidationMessage = (
     field: Field,
     messageKey: ValidationMessageKeysFor<Field>,
-    count?: number
+    countOrParams?: number | Record<string, string>
   ): string => {
     const { fieldRule } = getFieldRule(field);
+
+    const count = typeof countOrParams === 'number' ? countOrParams : undefined;
+    const extraParams = typeof countOrParams === 'object' ? countOrParams : {};
 
     // Build translation key path with validation prefix
     const translationKey = [
@@ -1027,8 +1077,8 @@ export const useGetValidationMessage = <
         }
       );
 
-    // Return translation with optional count parameter for pluralization
-    return i18n.t(translationKey, { fieldName, count });
+    // Return translation with optional count and extra interpolation params
+    return i18n.t(translationKey, { fieldName, count, ...extraParams });
   };
   return getValidationMessage;
 };

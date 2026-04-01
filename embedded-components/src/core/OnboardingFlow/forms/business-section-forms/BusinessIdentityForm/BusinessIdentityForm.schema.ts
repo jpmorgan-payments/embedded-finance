@@ -2,10 +2,53 @@ import { z } from 'zod';
 
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
 import { useGetValidationMessage } from '@/core/OnboardingFlow/utils/formUtils';
+import { NAME_PATTERN } from '@/core/OnboardingFlow/utils/validationPatterns';
 
 const CURRENT_YEAR = new Date().getFullYear();
-const NAME_PATTERN = /^[a-zA-Z0-9()_\\/@&+%#;,.: '-]*$/;
-const SPECIAL_CHARS_PATTERN = /[()_\\/&+%@#;,.: '-]/;
+const SPECIAL_CHARS_PATTERN = /[()_/@&+%#;,.: '-]/;
+
+// Invalid EIN prefixes per IRS rules.
+// These two-digit prefixes have never been issued or are reserved.
+const INVALID_EIN_PREFIXES = [
+  '00',
+  '07',
+  '08',
+  '09',
+  '17',
+  '18',
+  '19',
+  '20',
+  '26',
+  '27',
+  '45',
+  '46',
+  '47',
+  '48',
+  '49',
+  '70',
+  '78',
+  '79',
+  '89',
+  '90',
+  '91',
+  '92',
+  '93',
+  '94',
+  '95',
+  '96',
+  '97',
+  '98',
+  '99',
+];
+
+/**
+ * Validates EIN prefix (first two digits).
+ * Returns true if the prefix is valid (not in the invalid list).
+ */
+const isValidEinPrefix = (value: string): boolean => {
+  const prefix = value.slice(0, 2);
+  return !INVALID_EIN_PREFIXES.includes(prefix);
+};
 
 // const OrganizationIdSchema = z
 //   .object({
@@ -174,8 +217,15 @@ export const useBusinessIdentityFormSchema = () => {
     organizationIdEin: z
       .string()
       .min(1, v('organizationIdEin', 'required'))
-      .max(100, v('organizationIdEin', 'maxLength', 100))
-      .refine((val) => /^\d+$/.test(val), v('organizationIdEin', 'format')),
+      .refine((val) => val.length === 9, v('organizationIdEin', 'length'))
+      .refine(
+        (val) => /^\d{9}$/.test(val),
+        v('organizationIdEin', 'digitsOnly')
+      )
+      .refine(
+        (val) => isValidEinPrefix(val),
+        v('organizationIdEin', 'invalidPrefix')
+      ),
     solePropHasEin: z
       .string()
       .refine(
@@ -184,12 +234,17 @@ export const useBusinessIdentityFormSchema = () => {
       ),
     website: z
       .string()
-      .url(v('website', 'format'))
       .max(500, v('website', 'maxLength', 500))
-      .refine((val) => /^https?:\/\//.test(val), v('website', 'httpsRequired'))
       .refine(
         (val) =>
-          !val || !/^https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(val),
+          /^https:\/\/(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}(?::\d{1,5})?(?:[/?#]\S*)?$/.test(
+            val
+          ),
+        v('website', 'format')
+      )
+      .refine(
+        (val) =>
+          !val || !/^https:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(val),
         v('website', 'noIp')
       ),
     websiteNotAvailable: z.boolean(),

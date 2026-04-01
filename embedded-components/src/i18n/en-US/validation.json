@@ -15,8 +15,6 @@
     "maxLength_one": "{{fieldName}} cannot exceed {{count}} character",
     "maxLength_other": "{{fieldName}} cannot exceed {{count}} characters",
     "noNumbers": "{{fieldName}} cannot contain numbers",
-    "noSpecialChars": "{{fieldName}} cannot contain special characters except {{allowedChars}}",
-    "specialCharsAllowed": "{{fieldName}} can only contain letters, numbers, and {{allowedChars}}",
     "noConsecutiveSpaces": "{{fieldName}} cannot contain consecutive spaces",
     "noLeadingSpace": "{{fieldName}} cannot begin with a space",
     "noTrailingSpace": "{{fieldName}} cannot end with a space",
@@ -24,7 +22,7 @@
     "noSpecialCharsAtEnd": "{{fieldName}} cannot end with a special character",
     "exactLength_one": "{{fieldName}} must be exactly {{count}} character",
     "exactLength_other": "{{fieldName}} must be exactly {{count}} characters",
-    "namePattern": "{{fieldName}} can only contain letters, spaces, hyphens, and apostrophes",
+    "namePattern": "{{fieldName}} can only contain letters, numbers, spaces, and ( ) _ / @ & + % # ; , . : ' -",
     "noConsecutiveHyphens": "{{fieldName}} cannot contain consecutive hyphens",
     "noLeadingHyphen": "{{fieldName}} cannot begin with a hyphen",
     "noTrailingHyphen": "{{fieldName}} cannot end with a hyphen",
@@ -68,15 +66,24 @@
   },
   "url": {
     "invalid": "Please enter a valid website URL",
-    "format": "Please use a valid URL format (e.g. {{example}})",
+    "format": "URL must start with https:// and be a valid domain (e.g. {{example}})",
     "httpsRequired": "URL must begin with https://",
     "noIp": "Direct IP addresses are not allowed"
   },
   "id": {
     "ssn": "Please enter a valid Social Security Number (SSN)",
+    "ssnLength": "SSN must be exactly 9 digits",
+    "ssnDigitsOnly": "SSN must contain only numbers",
+    "ssnFirstThree": "SSN cannot start with 9 or 000",
+    "ssn666": "SSN cannot start with 666",
+    "ssnKnownInvalid": "This SSN is not valid. Please double-check and try again",
     "itin": {
-      "format": "Please enter a valid 9-digit ITIN starting with 9",
-      "invalidRange": "Invalid ITIN format in position 2-3"
+      "format": "Please enter a valid Individual Taxpayer Identification Number (ITIN)",
+      "invalidRange": "ITIN digits 4-5 must be in range 50-65, 70-88, 90-92, or 94-99",
+      "length": "ITIN must be exactly 9 digits",
+      "digitsOnly": "ITIN must contain only numbers",
+      "startsWith9": "ITIN must start with the digit 9",
+      "middleDigits": "ITIN digits 4-5 must be in range 50-65, 70-88, 90-92, or 94-99"
     }
   },
   "address": {

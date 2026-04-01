@@ -15,8 +15,6 @@
     "maxLength_one": "{{fieldName}} cannot exceed {{count}} character",
     "maxLength_other": "{{fieldName}} cannot exceed {{count}} characters",
     "noNumbers": "{{fieldName}} cannot contain numbers",
-    "noSpecialChars": "{{fieldName}} cannot contain special characters except {{allowedChars}}",
-    "specialCharsAllowed": "{{fieldName}} can only contain letters, numbers, and {{allowedChars}}",
     "noConsecutiveSpaces": "{{fieldName}} cannot contain consecutive spaces",
     "noLeadingSpace": "{{fieldName}} cannot begin with a space",
     "noTrailingSpace": "{{fieldName}} cannot end with a space",
@@ -24,7 +22,7 @@
     "noSpecialCharsAtEnd": "{{fieldName}} cannot end with a special character",
     "exactLength_one": "{{fieldName}} must be exactly {{count}} character",
     "exactLength_other": "{{fieldName}} must be exactly {{count}} characters",
-    "namePattern": "{{fieldName}} can only contain letters, spaces, hyphens, and apostrophes",
+    "namePattern": "{{fieldName}} solo puede contener letras, números, espacios y ( ) _ / @ & + % # ; , . : ' -",
     "noConsecutiveHyphens": "{{fieldName}} cannot contain consecutive hyphens",
     "noLeadingHyphen": "{{fieldName}} cannot begin with a hyphen",
     "noTrailingHyphen": "{{fieldName}} cannot end with a hyphen",
@@ -67,16 +65,25 @@
     "range": "Year must be between {{min}} and {{max}}"
   },
   "url": {
-    "invalid": "Please enter a valid website URL",
-    "format": "Please use a valid URL format (e.g. {{example}})",
-    "httpsRequired": "URL must begin with https://",
-    "noIp": "Direct IP addresses are not allowed"
+    "invalid": "Ingrese una URL de sitio web válida",
+    "format": "La URL debe comenzar con https:// y ser un dominio válido (p. ej. {{example}})",
+    "httpsRequired": "La URL debe comenzar con https://",
+    "noIp": "No se permiten direcciones IP directas"
   },
   "id": {
-    "ssn": "Please enter a valid Social Security Number (SSN)",
+    "ssn": "Por favor ingrese un número de Seguro Social (SSN) válido",
+    "ssnLength": "El SSN debe tener exactamente 9 dígitos",
+    "ssnDigitsOnly": "El SSN solo debe contener números",
+    "ssnFirstThree": "El SSN no puede comenzar con 9 o 000",
+    "ssn666": "El SSN no puede comenzar con 666",
+    "ssnKnownInvalid": "Este SSN no es válido. Por favor verifique e intente de nuevo",
     "itin": {
-      "format": "Please enter a valid 9-digit ITIN starting with 9",
-      "invalidRange": "Invalid ITIN format in position 2-3"
+      "format": "Por favor ingrese un Número de Identificación Personal del Contribuyente (ITIN) válido",
+      "invalidRange": "Los dígitos 4-5 del ITIN deben estar en el rango 50-65, 70-88, 90-92 o 94-99",
+      "length": "El ITIN debe tener exactamente 9 dígitos",
+      "digitsOnly": "El ITIN solo debe contener números",
+      "startsWith9": "El ITIN debe comenzar con el dígito 9",
+      "middleDigits": "Los dígitos 4-5 del ITIN deben estar en el rango 50-65, 70-88, 90-92 o 94-99"
     }
   },
   "address": {

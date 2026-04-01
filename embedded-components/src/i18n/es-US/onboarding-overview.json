@@ -1,38 +1,159 @@
 {
-  "addressLabels": {
+  "addressFields": {
     "city": {
-      "default": "Ciudad / Pueblo",
-      "US": "Ciudad",
-      "CA": "Ciudad",
-      "MX": "Ciudad",
-      "ES": "Ciudad",
-      "AR": "Ciudad"
-    },
-    "state": {
-      "default": "Estado / Provincia / Región",
-      "US": "Estado",
-      "CA": "Provincia",
-      "MX": "Estado",
-      "ES": "Provincia",
-      "AR": "Provincia"
-    },
-    "postalCode": {
-      "default": "Código postal",
-      "US": "Código ZIP",
-      "BR": "CEP"
-    },
-    "placeholder": {
-      "city": {
+      "label": {
+        "default": "Ciudad / Pueblo",
+        "US": "Ciudad",
+        "CA": "Ciudad",
+        "MX": "Ciudad",
+        "ES": "Ciudad",
+        "AR": "Ciudad",
+        "CL": "Ciudad",
+        "CO": "Ciudad",
+        "CZ": "Ciudad",
+        "DK": "Ciudad",
+        "FI": "Ciudad",
+        "HU": "Ciudad",
+        "IE": "Ciudad / Pueblo",
+        "IL": "Ciudad",
+        "NL": "Ciudad",
+        "NO": "Ciudad",
+        "PE": "Ciudad",
+        "PT": "Ciudad",
+        "RU": "Ciudad",
+        "SA": "Ciudad",
+        "SE": "Ciudad",
+        "TR": "Ciudad / Distrito"
+      },
+      "placeholder": {
         "default": "Ingrese la ciudad"
       },
-      "state": {
+      "description": {
+        "default": ""
+      },
+      "tooltip": {
+        "default": ""
+      }
+    },
+    "state": {
+      "label": {
+        "default": "Estado / Provincia / Región",
+        "US": "Estado",
+        "CA": "Provincia",
+        "MX": "Estado",
+        "ES": "Provincia",
+        "AR": "Provincia",
+        "BE": "Provincia",
+        "CL": "Región",
+        "CO": "Departamento",
+        "CZ": "Región",
+        "DK": "Región",
+        "FI": "Región",
+        "HU": "Condado",
+        "IE": "Condado",
+        "IL": "Distrito",
+        "NL": "Provincia",
+        "NO": "Condado",
+        "PE": "Región",
+        "PT": "Distrito",
+        "RU": "Óblast / Krai",
+        "SA": "Región",
+        "SE": "Condado",
+        "TR": "Provincia"
+      },
+      "placeholder": {
         "default": "Seleccione o ingrese el estado / provincia",
         "US": "Seleccione el estado",
-        "CA": "Seleccione la provincia"
+        "CA": "Seleccione la provincia",
+        "BE": "Seleccione la provincia",
+        "CL": "Seleccione la región",
+        "CO": "Seleccione el departamento",
+        "CZ": "Seleccione la región",
+        "DK": "Seleccione la región",
+        "FI": "Seleccione la región",
+        "HU": "Seleccione el condado",
+        "IE": "Seleccione el condado",
+        "IL": "Seleccione el distrito",
+        "NL": "Seleccione la provincia",
+        "NO": "Seleccione el condado",
+        "PE": "Seleccione la región",
+        "PT": "Seleccione el distrito",
+        "RU": "Seleccione el óblast / krai",
+        "SA": "Seleccione la región",
+        "SE": "Seleccione el condado",
+        "TR": "Seleccione la provincia"
       },
-      "postalCode": {
+      "description": {
+        "default": ""
+      },
+      "tooltip": {
+        "default": ""
+      }
+    },
+    "postalCode": {
+      "label": {
+        "default": "Código postal",
+        "US": "Código ZIP",
+        "CA": "Código postal",
+        "AU": "Código postal",
+        "GB": "Código postal",
+        "DE": "Código postal",
+        "FR": "Código postal",
+        "IT": "Código postal",
+        "ES": "Código postal",
+        "BR": "CEP",
+        "MX": "Código postal",
+        "IN": "Código PIN",
+        "JP": "Código postal",
+        "KR": "Código postal",
+        "CN": "Código postal",
+        "CH": "Código postal",
+        "AR": "Código postal",
+        "ZA": "Código postal",
+        "PL": "Código postal",
+        "AT": "Código postal",
+        "NZ": "Código postal",
+        "BE": "Código postal",
+        "CL": "Código postal",
+        "CO": "Código postal",
+        "CZ": "Código postal",
+        "DK": "Código postal",
+        "FI": "Código postal",
+        "HU": "Código postal",
+        "IE": "Eircode",
+        "IL": "Código postal",
+        "NL": "Código postal",
+        "NO": "Código postal",
+        "PE": "Código postal",
+        "PT": "Código postal",
+        "RU": "Código postal",
+        "SA": "Código postal",
+        "SE": "Código postal",
+        "TR": "Código postal"
+      },
+      "placeholder": {
         "default": "Ingrese el código postal",
-        "US": "Ingrese el código ZIP"
+        "US": "Ingrese el código ZIP",
+        "IE": "Ingrese el Eircode"
+      },
+      "description": {
+        "default": "",
+        "US": "Código ZIP de 5 o 9 dígitos",
+        "CA": "Formato: A1A 1A1",
+        "BR": "CEP de 8 dígitos",
+        "CL": "7 dígitos",
+        "CO": "6 dígitos",
+        "DK": "4 dígitos",
+        "FI": "5 dígitos",
+        "IE": "p. ej., D02 AF30",
+        "NL": "p. ej., 1234 AB",
+        "NO": "4 dígitos",
+        "PT": "p. ej., 1000-001",
+        "SE": "p. ej., 123 45",
+        "TR": "5 dígitos"
+      },
+      "tooltip": {
+        "default": ""
       }
     }
   },
@@ -396,7 +517,7 @@
         "required": "$t(validation:required)",
         "minLength": "$t(validation:text.minLength, {'count': 2})",
         "maxLength": "$t(validation:text.maxLength, {'count': 30})",
-        "pattern": "$t(validation:text.specialCharsAllowed, {'allowedChars': '( ) _ / @ & + % # ; , . : ' -})",
+        "pattern": "$t(validation:text.namePattern)",
         "noNumbers": "$t(validation:text.noNumbers)",
         "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)",
         "noConsecutiveHyphens": "$t(validation:text.noConsecutiveHyphens)",
@@ -412,7 +533,6 @@
         "maxLength": "$t(validation:text.maxLength, {'count': 30})",
         "pattern": "$t(validation:text.namePattern)",
         "noNumbers": "$t(validation:text.noNumbers)",
-        "noSpecialChars": "$t(validation:text.noSpecialChars, {'allowedChars': 'hyphens and apostrophes'})",
         "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)",
         "noConsecutiveHyphens": "$t(validation:text.noConsecutiveHyphens)",
         "noLeadingHyphen": "$t(validation:text.noLeadingHyphen)",
@@ -429,7 +549,6 @@
         "maxLength": "$t(validation:text.maxLength, {'count': 30})",
         "pattern": "$t(validation:text.namePattern)",
         "noNumbers": "$t(validation:text.noNumbers)",
-        "noSpecialChars": "$t(validation:text.noSpecialChars, {'allowedChars': 'hyphens and apostrophes'})",
         "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)",
         "noConsecutiveHyphens": "$t(validation:text.noConsecutiveHyphens)",
         "noLeadingSpace": "$t(validation:text.noLeadingSpace)",
@@ -545,8 +664,17 @@
         "required": "$t(validation:required)",
         "format": "$t(validation:format)",
         "ssnFormat": "$t(validation:id.ssn)",
+        "ssnLength": "$t(validation:id.ssnLength)",
+        "ssnDigitsOnly": "$t(validation:id.ssnDigitsOnly)",
+        "ssnFirstThree": "$t(validation:id.ssnFirstThree)",
+        "ssn666": "$t(validation:id.ssn666)",
+        "ssnKnownInvalid": "$t(validation:id.ssnKnownInvalid)",
         "itinFormat": "$t(validation:id.itin.format)",
         "itinRestrictedRange": "$t(validation:id.itin.invalidRange)",
+        "itinLength": "$t(validation:id.itin.length)",
+        "itinDigitsOnly": "$t(validation:id.itin.digitsOnly)",
+        "itinStartsWith9": "$t(validation:id.itin.startsWith9)",
+        "itinMiddleDigits": "$t(validation:id.itin.middleDigits)",
         "noSpaces": "$t(validation:text.noSpaces)"
       }
     },
@@ -601,7 +729,7 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
-        "pattern": "$t(validation:text.specialCharsAllowed, {'allowedChars': '( ) _ \\ / @ & + % # ; , . : ' -})",
+        "pattern": "$t(validation:text.namePattern)",
         "minLength": "$t(validation:text.minLength, {'count': 2})",
         "maxLength": "$t(validation:text.maxLength, {'count': 100})",
         "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)"
@@ -626,8 +754,9 @@
       "tooltip": "Should match your business registration document's ID value",
       "validation": {
         "required": "$t(validation:required)",
-        "maxLength": "$t(validation:text.maxLength)",
-        "format": "EIN may only contain numbers and hyphens"
+        "length": "El EIN debe tener exactamente 9 dígitos",
+        "digitsOnly": "El EIN solo puede contener números",
+        "invalidPrefix": "Prefijo de EIN inválido"
       }
     },
     "solePropHasEin": {
@@ -753,34 +882,47 @@
       }
     },
     "individualAddress.city": {
-      "label": "Town / City",
-      "placeholder": "Enter Town / City",
-      "description": "Locality, Settlement, etc.",
-      "tooltip": "",
+      "label": "$t(onboarding-overview:addressFields.city.label.default)",
+      "placeholder": "$t(onboarding-overview:addressFields.city.placeholder.default)",
+      "description": "$t(onboarding-overview:addressFields.city.description.default)",
+      "tooltip": "$t(onboarding-overview:addressFields.city.tooltip.default)",
       "validation": {
-        "required": "$t(validation:required)",
+        "required": "$t(onboarding-overview:addressFields.city.label.{{country}}) es requerido(a)",
         "maxLength": "$t(validation:text.maxLength, {'count': 34})"
       }
     },
     "individualAddress.state": {
-      "label": "State",
-      "placeholder": "Select state",
-      "description": "",
-      "tooltip": "",
+      "label": "$t(onboarding-overview:addressFields.state.label.default)",
+      "placeholder": "$t(onboarding-overview:addressFields.state.placeholder.default)",
+      "description": "$t(onboarding-overview:addressFields.state.description.default)",
+      "tooltip": "$t(onboarding-overview:addressFields.state.tooltip.default)",
       "validation": {
-        "required": "$t(validation:required)",
-        "invalid": "Please select a valid state"
+        "required": "$t(onboarding-overview:addressFields.state.label.{{country}}) es requerido(a)",
+        "invalid": "Por favor seleccione un(a) $t(onboarding-overview:addressFields.state.label.{{country}}) válido(a)"
       }
     },
     "individualAddress.postalCode": {
-      "label": "Postal code",
-      "placeholder": "Enter postal code",
-      "description": "",
-      "tooltip": "",
+      "label": "$t(onboarding-overview:addressFields.postalCode.label.default)",
+      "placeholder": "$t(onboarding-overview:addressFields.postalCode.placeholder.default)",
+      "description": "$t(onboarding-overview:addressFields.postalCode.description.default)",
+      "tooltip": "$t(onboarding-overview:addressFields.postalCode.tooltip.default)",
       "validation": {
-        "required": "$t(validation:required)",
+        "required": "$t(onboarding-overview:addressFields.postalCode.label.{{country}}) es requerido",
         "maxLength": "$t(validation:text.maxLength, {'count': 10})",
-        "invalid": "Postal code must be 5 digits or 9 digits (ZIP+4 format)",
+        "invalid": "Ingrese un código postal válido",
+        "invalidUS": "El código ZIP debe tener 5 o 9 dígitos (formato ZIP+4)",
+        "invalidCA": "El código postal debe tener el formato A1A 1A1",
+        "invalidGB": "El código postal debe tener un formato válido del Reino Unido (p. ej., SW1A 1AA)",
+        "invalidBR": "El CEP debe tener 8 dígitos (p. ej., 01001-000)",
+        "invalidJP": "El código postal debe tener 7 dígitos (p. ej., 123-4567)",
+        "invalidPL": "El código postal debe tener el formato XX-XXX (p. ej., 00-950)",
+        "invalidFourDigit": "El código postal debe tener exactamente 4 dígitos",
+        "invalidFiveDigit": "El código postal debe tener exactamente 5 dígitos",
+        "invalidSixDigit": "El código postal debe tener exactamente 6 dígitos",
+        "invalidSevenDigit": "El código postal debe tener exactamente 7 dígitos",
+        "invalidIE": "El Eircode debe tener el formato A65 F4E2 (p. ej., D02 AF30)",
+        "invalidNL": "El código postal debe tener el formato 1234 AB",
+        "invalidPT": "El código postal debe tener el formato XXXX-XXX (p. ej., 1000-001)",
         "pattern": "Postal code must be exactly 5 digits"
       }
     },
@@ -833,34 +975,47 @@
       }
     },
     "organizationAddress.city": {
-      "label": "Town / City",
-      "placeholder": "Enter Town / City",
-      "description": "Locality, Settlement, etc.",
-      "tooltip": "",
+      "label": "$t(onboarding-overview:addressFields.city.label.default)",
+      "placeholder": "$t(onboarding-overview:addressFields.city.placeholder.default)",
+      "description": "$t(onboarding-overview:addressFields.city.description.default)",
+      "tooltip": "$t(onboarding-overview:addressFields.city.tooltip.default)",
       "validation": {
-        "required": "$t(validation:required)",
+        "required": "$t(onboarding-overview:addressFields.city.label.{{country}}) es requerido(a)",
         "maxLength": "$t(validation:text.maxLength, {'count': 34})"
       }
     },
     "organizationAddress.state": {
-      "label": "State",
-      "placeholder": "Select state",
-      "description": "",
-      "tooltip": "",
+      "label": "$t(onboarding-overview:addressFields.state.label.default)",
+      "placeholder": "$t(onboarding-overview:addressFields.state.placeholder.default)",
+      "description": "$t(onboarding-overview:addressFields.state.description.default)",
+      "tooltip": "$t(onboarding-overview:addressFields.state.tooltip.default)",
       "validation": {
-        "required": "$t(validation:required)",
-        "invalid": "Please select a valid state"
+        "required": "$t(onboarding-overview:addressFields.state.label.{{country}}) es requerido(a)",
+        "invalid": "Por favor seleccione un(a) $t(onboarding-overview:addressFields.state.label.{{country}}) válido(a)"
       }
     },
     "organizationAddress.postalCode": {
-      "label": "Postal code",
-      "placeholder": "Enter postal code",
-      "description": "",
-      "tooltip": "",
+      "label": "$t(onboarding-overview:addressFields.postalCode.label.default)",
+      "placeholder": "$t(onboarding-overview:addressFields.postalCode.placeholder.default)",
+      "description": "$t(onboarding-overview:addressFields.postalCode.description.default)",
+      "tooltip": "$t(onboarding-overview:addressFields.postalCode.tooltip.default)",
       "validation": {
-        "required": "$t(validation:required)",
+        "required": "$t(onboarding-overview:addressFields.postalCode.label.{{country}}) es requerido",
         "maxLength": "$t(validation:text.maxLength, {'count': 10})",
-        "invalid": "Postal code must be 5 digits or 9 digits (ZIP+4 format)",
+        "invalid": "Ingrese un código postal válido",
+        "invalidUS": "El código ZIP debe tener 5 o 9 dígitos (formato ZIP+4)",
+        "invalidCA": "El código postal debe tener el formato A1A 1A1",
+        "invalidGB": "El código postal debe tener un formato válido del Reino Unido (p. ej., SW1A 1AA)",
+        "invalidBR": "El CEP debe tener 8 dígitos (p. ej., 01001-000)",
+        "invalidJP": "El código postal debe tener 7 dígitos (p. ej., 123-4567)",
+        "invalidPL": "El código postal debe tener el formato XX-XXX (p. ej., 00-950)",
+        "invalidFourDigit": "El código postal debe tener exactamente 4 dígitos",
+        "invalidFiveDigit": "El código postal debe tener exactamente 5 dígitos",
+        "invalidSixDigit": "El código postal debe tener exactamente 6 dígitos",
+        "invalidSevenDigit": "El código postal debe tener exactamente 7 dígitos",
+        "invalidIE": "El Eircode debe tener el formato A65 F4E2 (p. ej., D02 AF30)",
+        "invalidNL": "El código postal debe tener el formato 1234 AB",
+        "invalidPT": "El código postal debe tener el formato XXXX-XXX (p. ej., 1000-001)",
         "pattern": "Postal code must be exactly 5 digits"
       }
     },
@@ -875,16 +1030,15 @@
       "label": "My business doesn't have a website"
     },
     "website": {
-      "label": "Business website",
+      "label": "Sitio web de la empresa",
       "tooltip": "",
-      "description": "Please provide a URL for your business",
-      "placeholder": "Enter URL",
-      "fieldName": "Website URL",
+      "description": "Debe comenzar con https://",
+      "placeholder": "https://www.example.com",
+      "fieldName": "URL del sitio web",
       "validation": {
         "format": "$t(validation:url.format, {'example': 'https://www.example.com'})",
         "maxLength": "$t(validation:text.maxLength, {'count': 500})",
         "required": "$t(validation:required)",
-        "httpsRequired": "$t(validation:url.httpsRequired)",
         "noIp": "$t(validation:url.noIp)"
       }
     },
@@ -896,7 +1050,7 @@
       "validation": {
         "required": "$t(validation:required)",
         "maxLength": "$t(validation:text.maxLength)",
-        "pattern": "$t(validation:text.noSpecialChars, {'allowedChars': '()_/&+%@#;,.: -?'})",
+        "pattern": "$t(validation:text.namePattern)",
         "noLeadingSpace": "$t(validation:text.noLeadingSpace)",
         "noTrailingSpace": "$t(validation:text.noTrailingSpace)",
         "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)",
