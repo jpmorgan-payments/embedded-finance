@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useTranslationWithTokens } from '@/i18n';
+import { TransWithTokens, useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   AlertTriangle,
@@ -62,8 +62,10 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   getPrevButtonLabel,
   getNextButtonLabel,
 }) => {
-  const { clientData } = useOnboardingContext();
+  const { clientData, disclosureConfig } = useOnboardingContext();
   const { t } = useTranslationWithTokens(['onboarding-old', 'common']);
+
+  const hasDisclosureConfig = !!disclosureConfig?.platformName;
 
   const {
     sections,
@@ -74,17 +76,40 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
     savedFormValues,
   } = useFlowContext();
 
+  const booleanRequired = z.boolean().refine((value) => value === true, {
+    message: String(
+      t(
+        'reviewAndAttest.attestation.mustAgreeToAll',
+        'You must agree to all attestations before proceeding.'
+      )
+    ),
+  });
+
   const form = useForm({
-    defaultValues: {
-      attested: false,
-    },
+    defaultValues: hasDisclosureConfig
+      ? {
+          attested: false,
+          attestAccurateInfo: false,
+          attestAuthorizeSharing: false,
+          attestAgreeToTerms: false,
+        }
+      : {
+          attested: false,
+        },
     resolver: zodResolver(
-      z.object({
-        attested: z.boolean().refine((value) => value === true, {
-          message:
-            'You must attest that the data is true, accurate, and complete.',
-        }),
-      })
+      hasDisclosureConfig
+        ? z.object({
+            attested: z.boolean().optional(),
+            attestAccurateInfo: booleanRequired,
+            attestAuthorizeSharing: booleanRequired,
+            attestAgreeToTerms: booleanRequired,
+          })
+        : z.object({
+            attested: z.boolean().refine((value) => value === true, {
+              message:
+                'You must attest that the data is true, accurate, and complete.',
+            }),
+          })
     ),
   });
 
@@ -498,38 +523,170 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                 })}
             </Accordion>
           </div>
-          <div className="eb-space-y-2">
-            <p className="eb-text-sm eb-font-medium">
-              {t(
-                'reviewAndAttest.dataAccuracyAttestation',
-                'Data accuracy attestation'
-              )}
-            </p>
-            <FormField
-              control={form.control}
-              name="attested"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="eb-flex eb-items-start eb-space-x-3">
-                    <FormControl>
-                      <Checkbox
-                        className="eb-mt-0.5 eb-rounded-sm"
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormLabel className="eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
-                      {t(
-                        'reviewAndAttest.dataAccuracyCheckbox',
-                        'The data I am providing is true, accurate and complete to the best of my knowledge.'
-                      )}
-                    </FormLabel>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+          {hasDisclosureConfig ? (
+            <div className="eb-space-y-3">
+              <p className="eb-text-sm eb-font-medium">
+                {t(
+                  'reviewAndAttest.attestation.heading',
+                  'By electronically submitting this Application, you agree that:'
+                )}
+              </p>
+              <div
+                className="eb-space-y-3 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-4"
+                role="group"
+                aria-label={String(
+                  t(
+                    'reviewAndAttest.dataAccuracyAttestation',
+                    'Data accuracy attestation'
+                  )
+                )}
+              >
+                {/* Checkbox 1: Accurate info & business purposes */}
+                <FormField
+                  control={form.control}
+                  name="attestAccurateInfo"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="eb-flex eb-items-start eb-gap-2">
+                        <FormControl>
+                          <Checkbox
+                            className="eb-mt-0.5"
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-relaxed eb-text-foreground">
+                          {t(
+                            'reviewAndAttest.attestation.accurateInfo',
+                            'All information you have provided is complete and accurate, and you are opening this account solely for business purposes and not for consumer purposes.'
+                          )}
+                        </FormLabel>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Checkbox 2: Authorize sharing & appoint agent */}
+                <FormField
+                  control={form.control}
+                  name="attestAuthorizeSharing"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="eb-flex eb-items-start eb-gap-2">
+                        <FormControl>
+                          <Checkbox
+                            className="eb-mt-0.5"
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-relaxed eb-text-foreground">
+                          {t('reviewAndAttest.attestation.authorizeSharing', {
+                            platformName: disclosureConfig.platformName,
+                            defaultValue:
+                              'You authorize {{platformName}} and JPMorgan Chase Bank, N.A. ("JPMC") to share information to facilitate the opening of your deposit account(s), and appoint {{platformName}} as your agent to act on your behalf regarding your deposit account.',
+                          })}
+                        </FormLabel>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Checkbox 3: Agree to terms (with hyperlinks) */}
+                <FormField
+                  control={form.control}
+                  name="attestAgreeToTerms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="eb-flex eb-items-start eb-gap-2">
+                        <FormControl>
+                          <Checkbox
+                            className="eb-mt-0.5"
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-relaxed eb-text-foreground">
+                          <TransWithTokens
+                            ns="onboarding-old"
+                            i18nKey="reviewAndAttest.attestation.agreeToTerms"
+                            defaults="You have read and agree to the <jpTermsLink>J.P. Morgan Account Terms</jpTermsLink> and the <platformAgreementLink>{{platformAgreementLabel}}</platformAgreementLink>."
+                            values={{
+                              platformAgreementLabel:
+                                disclosureConfig.platformAgreementLabel ??
+                                `${disclosureConfig.platformName}'s Program Agreement`,
+                            }}
+                            components={{
+                              jpTermsLink:
+                                disclosureConfig.jpMorganAccountTermsUrl ? (
+                                  <a
+                                    href={
+                                      disclosureConfig.jpMorganAccountTermsUrl
+                                    }
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="eb-text-primary eb-underline eb-underline-offset-2 hover:eb-underline"
+                                  />
+                                ) : (
+                                  <strong />
+                                ),
+                              platformAgreementLink:
+                                disclosureConfig.platformAgreementUrl ? (
+                                  <a
+                                    href={disclosureConfig.platformAgreementUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="eb-text-primary eb-underline eb-underline-offset-2 hover:eb-underline"
+                                  />
+                                ) : (
+                                  <strong />
+                                ),
+                            }}
+                          />
+                        </FormLabel>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="eb-space-y-2">
+              <p className="eb-text-sm eb-font-medium">
+                {t(
+                  'reviewAndAttest.dataAccuracyAttestation',
+                  'Data accuracy attestation'
+                )}
+              </p>
+              <FormField
+                control={form.control}
+                name="attested"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="eb-flex eb-items-start eb-space-x-3">
+                      <FormControl>
+                        <Checkbox
+                          className="eb-mt-0.5 eb-rounded-sm"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className="eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
+                        {t(
+                          'reviewAndAttest.dataAccuracyCheckbox',
+                          'The data I am providing is true, accurate and complete to the best of my knowledge.'
+                        )}
+                      </FormLabel>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
         </div>
         <div className="eb-mt-6 eb-space-y-6">
           <div className="eb-flex eb-justify-between eb-gap-4">
