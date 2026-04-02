@@ -408,6 +408,17 @@ export const handlers = [
     });
   }),
 
+  /**
+   * List document details (query: clientId, partyId, page, limit).
+   * Party cards call this to show already-uploaded files per request.
+   */
+  http.get('/documents', () => {
+    return HttpResponse.json({
+      metadata: { page: 0, limit: 25, total: 0 },
+      documentDetails: [],
+    });
+  }),
+
   http.get('/documents/:documentId', () => {
     return HttpResponse.json(efDocumentClientDetail);
   }),
@@ -426,6 +437,21 @@ export const handlers = [
         },
       }
     );
+  }),
+
+  http.get('/document-requests', ({ request }) => {
+    const url = new URL(request.url);
+    const clientId = url.searchParams.get('clientId');
+    if (!clientId) {
+      return new HttpResponse(null, {
+        status: 400,
+        statusText: 'Bad Request: Missing clientId parameter',
+      });
+    }
+    const documentRequests = db.documentRequest
+      .getAll()
+      .filter((dr) => dr.clientId === clientId);
+    return HttpResponse.json({ documentRequests });
   }),
 
   http.get('/document-requests/:documentRequestId', (req) => {

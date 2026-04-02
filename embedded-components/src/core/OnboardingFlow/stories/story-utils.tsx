@@ -7,7 +7,7 @@ import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
 import { efClientCorpEBMockNoIndustry } from '@/mocks/efClientCorpEBNoIndustry.mock';
 import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
 import { efOrganizationDocumentRequestDetails } from '@/mocks/efOrganizationDocumentRequestDetails.mock';
-import { db } from '@/msw/db';
+import { db, upsertDocumentRequest } from '@/msw/db';
 import { http, HttpResponse } from 'msw';
 
 import type {
@@ -75,10 +75,8 @@ export const mockClientInfoRequested: ClientResponse = {
     customerIdentityStatus: 'INFORMATION_REQUESTED',
   },
   outstanding: {
-    documentRequestIds: ['doc-1', 'doc-2'],
-    questionIds: ['q-1'],
-    partyIds: [],
-    partyRoles: [],
+    ...efClientCorpEBMock.outstanding,
+    documentRequestIds: ['68803', '68804', '68805'],
   },
 };
 
@@ -287,6 +285,40 @@ export function seedClientToDb(
  * `resetDb` re-seeds predefined clients whose party IDs may collide
  * with the story's mock data.
  */
+/**
+ * Seeds {@link db.documentRequest} rows aligned with {@link efClientCorpEBMock} parties
+ * (org 68803, controller 68804, beneficial owner 68805) for Client States demos.
+ */
+export function seedInformationRequestedDocumentRequests(
+  clientId: string
+): void {
+  const timestamp = new Date().toISOString();
+
+  upsertDocumentRequest('68803', {
+    ...efOrganizationDocumentRequestDetails,
+    id: '68803',
+    clientId,
+    partyId: '2000000111',
+    createdAt: timestamp,
+  });
+
+  upsertDocumentRequest('68804', {
+    ...efDocumentRequestDetails,
+    id: '68804',
+    clientId,
+    partyId: '2000000112',
+    createdAt: timestamp,
+  });
+
+  upsertDocumentRequest('68805', {
+    ...efDocumentRequestDetails,
+    id: '68805',
+    clientId,
+    partyId: '2000000113',
+    createdAt: timestamp,
+  });
+}
+
 export function resetAndSeedClient(
   clientResponse: ClientResponse,
   clientId: string
@@ -298,6 +330,10 @@ export function resetAndSeedClient(
   db.recipient.deleteMany({ where: {} });
 
   seedClientToDb(clientResponse, clientId);
+
+  if (clientResponse.status === ClientStatus.INFORMATION_REQUESTED) {
+    seedInformationRequestedDocumentRequests(clientId);
+  }
 }
 
 /**
