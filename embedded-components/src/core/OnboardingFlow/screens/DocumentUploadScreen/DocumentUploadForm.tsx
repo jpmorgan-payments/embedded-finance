@@ -347,12 +347,13 @@ export const DocumentUploadForm = () => {
         for (const { documentType, file } of documentUploads) {
           const documentData = {
             documentType,
-            metadata: [
-              {
-                key: 'DOCUMENT_REQUEST_ID',
-                value: documentRequestId,
-              },
-            ],
+            documentRequestId,
+            // metadata: [
+            //   {
+            //     key: 'DOCUMENT_REQUEST_ID',
+            //     value: documentRequestId,
+            //   },
+            // ],
           };
 
           await uploadDocumentMutation.mutateAsync({
