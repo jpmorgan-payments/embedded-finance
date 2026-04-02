@@ -66,6 +66,32 @@ export type LinkAccountStepOptions = {
   showAcknowledgementsIntro?: boolean;
 };
 
+/**
+ * Configuration for platform disclosures and attestation language displayed
+ * during onboarding.  All text containing `[Platform Provider]` in the
+ * regulatory requirements is interpolated with {@link platformName}.
+ *
+ * When provided, the component renders:
+ * - A persistent footer disclosure (FDIC / "not a bank" language).
+ * - Enhanced review-step attestation checkboxes (§ 1.2).
+ *
+ * When omitted the component falls back to its legacy single-checkbox
+ * attestation and no footer is shown, preserving backward compatibility.
+ */
+export type OnboardingDisclosureConfig = {
+  /** Display name of the platform provider (replaces `[Platform Provider]`). */
+  platformName: string;
+  /** URL for the J.P. Morgan Account Terms link shown in attestation text. */
+  jpMorganAccountTermsUrl?: string;
+  /** URL for the Platform Provider's Program Agreement link shown in attestation text. */
+  platformAgreementUrl?: string;
+  /**
+   * Custom label for the platform agreement link.
+   * Defaults to `"[platformName]'s Program Agreement"` when omitted.
+   */
+  platformAgreementLabel?: string;
+};
+
 export type OnboardingConfigDefault = UserTrackingProps & {
   alertOnExit?: boolean;
   /**
@@ -102,6 +128,12 @@ export type OnboardingConfigUsedInContext = {
   hideSidebar?: boolean;
   /** Whether to show the "Download Checklist" button on the Overview screen. Defaults to false. */
   showDownloadChecklist?: boolean;
+  /**
+   * Platform disclosure and attestation configuration.
+   * When provided, enables the regulatory footer and enhanced attestation
+   * checkboxes on the review screen.  See {@link OnboardingDisclosureConfig}.
+   */
+  disclosureConfig?: OnboardingDisclosureConfig;
 };
 
 export type OnboardingFlowProps = OnboardingConfigDefault &

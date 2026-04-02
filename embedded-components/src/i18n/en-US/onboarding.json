@@ -1243,6 +1243,17 @@
     "missingDetails": "Missing details",
     "dataAccuracyAttestation": "Data accuracy attestation",
     "dataAccuracyCheckbox": "The data I am providing is true, accurate and complete to the best of my knowledge.",
+    "disclosure": {
+      "footer": "{{platformName}} is not a bank; Banking services provided by JPMorgan Chase Bank, N.A., Member FDIC.",
+      "fdic": "Deposit accounts are insured by the FDIC up to $250,000 per depositor for each account ownership category. Availability of FDIC deposit insurance coverage protects against the failure of JPMorgan Chase Bank, N.A., Member FDIC, and not of {{platformName}}."
+    },
+    "attestation": {
+      "heading": "By electronically submitting this Application, you agree that:",
+      "accurateInfo": "All information you have provided is complete and accurate, and you are opening this account solely for business purposes and not for consumer purposes.",
+      "authorizeSharing": "You authorize {{platformName}} and JPMorgan Chase Bank, N.A. (\"JPMC\") to share information to facilitate the opening of your deposit account(s), and appoint {{platformName}} as your agent to act on your behalf regarding your deposit account.",
+      "agreeToTerms": "You have read and agree to the <jpTermsLink>J.P. Morgan Account Terms</jpTermsLink> and the <platformAgreementLink>{{platformAgreementLabel}}</platformAgreementLink>.",
+      "mustAgreeToAll": "You must agree to all attestations before proceeding."
+    },
     "termsAndConditions": {
       "title": "Terms and Conditions",
       "description": "Please read and attest the below documents by J.P. Morgan to complete the process.",
