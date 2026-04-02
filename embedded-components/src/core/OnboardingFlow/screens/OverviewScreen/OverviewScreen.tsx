@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+
 import { useTranslationWithTokens } from '@/i18n';
 import {
   AlertCircleIcon,
@@ -23,7 +25,7 @@ import { cn } from '@/lib/utils';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Button,
@@ -101,6 +103,29 @@ export const OverviewScreen = () => {
   );
   const docRequestsClosed = !hasOutstandingDocRequests;
 
+  const verifyBusinessSectionTitleKey = useMemo(() => {
+    const status = clientData?.status;
+    if (status === 'NEW' || status === 'INFORMATION_REQUESTED') {
+      return 'screens.overview.verifyBusinessSection.title' as const;
+    }
+    if (status === 'APPROVED') {
+      return 'screens.overview.verifyBusinessSection.approved.title' as const;
+    }
+    if (status === 'DECLINED') {
+      return 'screens.overview.verifyBusinessSection.declined.title' as const;
+    }
+    if (status === 'REVIEW_IN_PROGRESS') {
+      if (!docRequestsClosed) {
+        return 'screens.overview.verifyBusinessSection.reviewInProgress.title' as const;
+      }
+      if (hasAnyDocumentRequests) {
+        return 'screens.overview.verifyBusinessSection.documentsReceived.title' as const;
+      }
+      return 'screens.overview.verifyBusinessSection.applicationSubmitted.title' as const;
+    }
+    return 'screens.overview.verifyBusinessSection.title' as const;
+  }, [clientData?.status, docRequestsClosed, hasAnyDocumentRequests]);
+
   // Linked accounts (Overview bank section): summary card + status; same Verify CTA as LinkAccountScreen
   // when READY_FOR_VALIDATION. See Docs.mdx / stories/linked-account/README.md.
   const { data: recipientsData, isLoading: isLoadingLinkedRecipients } =
@@ -157,20 +182,20 @@ export const OverviewScreen = () => {
           <CardHeader className="eb-p-3">
             <CardTitle>
               <h2 className="eb-font-header eb-text-2xl eb-font-medium">
-                {t('screens.overview.verifyBusinessSection.title')}
+                {t(verifyBusinessSectionTitleKey)}
               </h2>
             </CardTitle>
           </CardHeader>
           <CardContent className="eb-p-3 eb-pt-0">
             {clientData?.status === 'REVIEW_IN_PROGRESS' &&
               !docRequestsClosed && (
-                <Alert variant="informative" density="sm" className="eb-mb-6">
+                <Alert
+                  variant="informative"
+                  density="sm"
+                  className="eb-mb-6"
+                  noTitle
+                >
                   <Clock9Icon className="eb-size-4" />
-                  <AlertTitle>
-                    {t(
-                      'screens.overview.verifyBusinessSection.reviewInProgress.title'
-                    )}
-                  </AlertTitle>
                   <AlertDescription>
                     {t(
                       'screens.overview.verifyBusinessSection.reviewInProgress.description'
@@ -182,13 +207,13 @@ export const OverviewScreen = () => {
             {clientData?.status === 'REVIEW_IN_PROGRESS' &&
               docRequestsClosed &&
               hasAnyDocumentRequests && (
-                <Alert variant="informative" density="sm" className="eb-mb-6">
+                <Alert
+                  variant="informative"
+                  density="sm"
+                  className="eb-mb-6"
+                  noTitle
+                >
                   <Clock9Icon className="eb-size-4" />
-                  <AlertTitle>
-                    {t(
-                      'screens.overview.verifyBusinessSection.documentsReceived.title'
-                    )}
-                  </AlertTitle>
                   <AlertDescription>
                     {t(
                       'screens.overview.verifyBusinessSection.documentsReceived.description'
@@ -200,13 +225,13 @@ export const OverviewScreen = () => {
             {clientData?.status === 'REVIEW_IN_PROGRESS' &&
               docRequestsClosed &&
               !hasAnyDocumentRequests && (
-                <Alert variant="informative" density="sm" className="eb-mb-6">
+                <Alert
+                  variant="informative"
+                  density="sm"
+                  className="eb-mb-6"
+                  noTitle
+                >
                   <Clock9Icon className="eb-size-4" />
-                  <AlertTitle>
-                    {t(
-                      'screens.overview.verifyBusinessSection.applicationSubmitted.title'
-                    )}
-                  </AlertTitle>
                   <AlertDescription>
                     {t(
                       'screens.overview.verifyBusinessSection.applicationSubmitted.description'
@@ -227,11 +252,8 @@ export const OverviewScreen = () => {
             )}
 
             {clientData?.status === 'DECLINED' && (
-              <Alert variant="destructive" density="sm">
+              <Alert variant="destructive" density="sm" noTitle>
                 <AlertCircleIcon className="eb-size-4" />
-                <AlertTitle>
-                  {t('screens.overview.verifyBusinessSection.declined.title')}
-                </AlertTitle>
                 <AlertDescription>
                   {t(
                     'screens.overview.verifyBusinessSection.declined.description'
@@ -241,11 +263,8 @@ export const OverviewScreen = () => {
             )}
 
             {clientData?.status === 'APPROVED' && (
-              <Alert variant="success" density="sm">
+              <Alert variant="success" density="sm" noTitle>
                 <CheckIcon className="eb-size-4" />
-                <AlertTitle>
-                  {t('screens.overview.verifyBusinessSection.approved.title')}
-                </AlertTitle>
                 <AlertDescription>
                   {t(
                     'screens.overview.verifyBusinessSection.approved.description'
