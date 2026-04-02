@@ -78,6 +78,12 @@ export const NewWithClientId: Story = {
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
+
+    disclosureConfig: {
+      platformName: 'SellSense',
+      jpMorganAccountTermsUrl: 'https://example.com/jpmorgan-account-terms',
+      platformAgreementUrl: 'https://example.com/sellsense-program-agreement',
+    },
   },
 };
 
