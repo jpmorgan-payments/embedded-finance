@@ -295,7 +295,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                       <FormControl>
                         <PhoneInput
                           {...field}
-                          countries={['US']}
+                          countries={['US', 'CA']}
                           placeholder="Enter phone number"
                           international={false}
                           defaultCountry="US"
