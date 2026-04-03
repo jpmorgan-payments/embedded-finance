@@ -264,88 +264,6 @@ const formatRole = (role: string): string => {
 };
 
 /**
- * IndividualReadonlyField - Display a single individual in readonly mode
- */
-interface IndividualReadonlyFieldProps {
-  individual: {
-    firstName: string;
-    lastName: string;
-    roles: string[];
-  };
-}
-
-const IndividualReadonlyField: FC<IndividualReadonlyFieldProps> = ({
-  individual,
-}) => {
-  const { t } = useTranslationWithTokens('bank-account-form');
-  return (
-    <FormItem>
-      <FormLabel>{t('individualSelector.accountHolder')}</FormLabel>
-      <Input
-        value={`${individual.firstName} ${individual.lastName}`.trim()}
-        readOnly
-        disabled
-        className="eb-bg-muted/50"
-        aria-readonly
-      />
-      {individual.roles.length > 0 ? (
-        <span className="eb-block eb-text-xs eb-text-muted-foreground">
-          {individual.roles.map(formatRole).join(', ')}
-        </span>
-      ) : null}
-    </FormItem>
-  );
-};
-
-/**
- * Multiple individuals on the client, but party name fields are locked — match disabled
- * bank inputs (same as prefill summary / routing fields).
- */
-interface IndividualPartyLockedFieldProps {
-  individuals: Array<{
-    id: string | undefined;
-    firstName: string;
-    lastName: string;
-    roles: string[];
-  }>;
-  selectedFirstName: string | undefined;
-  selectedLastName: string | undefined;
-}
-
-const IndividualPartyLockedField: FC<IndividualPartyLockedFieldProps> = ({
-  individuals,
-  selectedFirstName,
-  selectedLastName,
-}) => {
-  const { t } = useTranslationWithTokens('bank-account-form');
-  const selected = individuals.find(
-    (p) => p.firstName === selectedFirstName && p.lastName === selectedLastName
-  );
-  const displayIndividual = selected ?? individuals[0];
-  const displayName = displayIndividual
-    ? `${displayIndividual.firstName} ${displayIndividual.lastName}`.trim()
-    : '';
-
-  return (
-    <FormItem>
-      <FormLabel>{t('individualSelector.accountHolder')}</FormLabel>
-      <Input
-        value={displayName}
-        readOnly
-        disabled
-        className="eb-bg-muted/50"
-        aria-readonly
-      />
-      {displayIndividual?.roles.length ? (
-        <span className="eb-block eb-text-xs eb-text-muted-foreground">
-          {displayIndividual.roles.map(formatRole).join(', ')}
-        </span>
-      ) : null}
-    </FormItem>
-  );
-};
-
-/**
  * IndividualSelector - Dropdown selector for multiple individuals
  */
 interface IndividualSelectorProps {
@@ -782,14 +700,6 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     // If organization name exists, make business name readonly
     if (organizationName) {
       modifications.businessName = true;
-    }
-
-    // Only lock firstName/lastName when there is exactly one individual party
-    // (no choice to make). When multiple individuals exist, the user picks
-    // from IndividualSelector, so the fields must remain writable.
-    if (individualParties.length === 1) {
-      modifications.firstName = true;
-      modifications.lastName = true;
     }
 
     // Only return modified config if there are modifications
@@ -1394,29 +1304,16 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                               : t('alerts.individualOnlyAccountsMultiple')}
                           </AlertDescription>
                         </Alert>
-                        {individualParties.length === 1 ? (
-                          <IndividualReadonlyField
-                            individual={individualParties[0]}
-                          />
-                        ) : effectiveConfig.readonlyFields?.firstName &&
-                          effectiveConfig.readonlyFields?.lastName ? (
-                          <IndividualPartyLockedField
-                            individuals={individualParties}
-                            selectedFirstName={form.watch('firstName')}
-                            selectedLastName={form.watch('lastName')}
-                          />
-                        ) : (
-                          <IndividualSelector
-                            control={form.control}
-                            individuals={individualParties}
-                            selectedFirstName={form.watch('firstName')}
-                            selectedLastName={form.watch('lastName')}
-                            onSelect={(individual) => {
-                              form.setValue('firstName', individual.firstName);
-                              form.setValue('lastName', individual.lastName);
-                            }}
-                          />
-                        )}
+                        <IndividualSelector
+                          control={form.control}
+                          individuals={individualParties}
+                          selectedFirstName={form.watch('firstName')}
+                          selectedLastName={form.watch('lastName')}
+                          onSelect={(individual) => {
+                            form.setValue('firstName', individual.firstName);
+                            form.setValue('lastName', individual.lastName);
+                          }}
+                        />
                       </>
                     ) : (
                       <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
