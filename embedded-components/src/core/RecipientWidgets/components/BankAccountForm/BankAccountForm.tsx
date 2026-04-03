@@ -784,8 +784,10 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
       modifications.businessName = true;
     }
 
-    // If individual parties exist, make first name and last name readonly
-    if (individualParties.length > 0) {
+    // Only lock firstName/lastName when there is exactly one individual party
+    // (no choice to make). When multiple individuals exist, the user picks
+    // from IndividualSelector, so the fields must remain writable.
+    if (individualParties.length === 1) {
       modifications.firstName = true;
       modifications.lastName = true;
     }
