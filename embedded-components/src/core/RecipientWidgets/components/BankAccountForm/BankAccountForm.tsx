@@ -236,8 +236,11 @@ const useFormatRequiredMessage = (
 
   return (methods: RoutingInformationTransactionType[]): ReactNode | null => {
     if (methods.length === 0) return null;
-    // Get shortLabels as strings for display
-    const labels = methods.map((type) => configs[type]?.shortLabel ?? type);
+    // Use shortLabelString (plain string) instead of shortLabel (ReactNode)
+    // to avoid [Object object] when interpolated by i18next
+    const labels = methods.map(
+      (type) => configs[type]?.shortLabelString ?? type
+    );
     if (methods.length === 1) {
       return t('requiredFor.single', { method: labels[0] });
     }
