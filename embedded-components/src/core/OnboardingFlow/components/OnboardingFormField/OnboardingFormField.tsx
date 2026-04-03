@@ -296,7 +296,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                         <PhoneInput
                           {...field}
                           countries={['US', 'CA']}
-                          placeholder="Enter phone number"
+                          placeholder={fieldPlaceholder}
                           international={false}
                           defaultCountry="US"
                           data-dtrum-tracking={field.name}
