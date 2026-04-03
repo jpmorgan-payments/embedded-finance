@@ -133,7 +133,7 @@ const ComboboxField = ({
   return (
     <FormItem className={className}>
       {renderLabel()}
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={setOpen} modal>
         <PopoverTrigger asChild>
           <FormControl>
             <Button
