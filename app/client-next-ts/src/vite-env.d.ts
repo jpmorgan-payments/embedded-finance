@@ -5,6 +5,11 @@ declare module '*.yaml?raw' {
   export default content;
 }
 
+declare module '*.md?raw' {
+  const content: string;
+  export default content;
+}
+
 declare module '@visual-json/react' {
   import type { ComponentType } from 'react';
   export const JsonEditor: ComponentType<{

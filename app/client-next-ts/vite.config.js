@@ -24,6 +24,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
+      '@ef-docs': resolve(__dirname, '../../embedded-components/docs'),
       // OAS-generated types from embedded-components (for MSW handlers and type-safe mocks)
       '@ef-api/smbdo-schemas': resolve(
         __dirname,

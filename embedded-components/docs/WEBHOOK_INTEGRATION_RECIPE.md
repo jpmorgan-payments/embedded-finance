@@ -1,36 +1,45 @@
-# Webhook Integration Recipe: Persona-Based UX Guidance
+# Webhook Integration Recipe: UX Guidance
 
-> **Note**: This document provides suggested UI/UX principles and patterns for webhook integration. These are recommendations that should be adapted to your specific platform context, technical architecture, and business requirements. Implementation details will vary based on your technology stack, user base, and operational needs.
+> **Note**: This document provides suggested UI/UX principles and patterns for webhook integration with [Embedded Payments](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments). These are recommendations that should be adapted to your specific platform context, technical architecture, and business requirements. Implementation details will vary based on your technology stack, user base, and operational needs.
+
+### Terminology
+
+| Term | Meaning |
+|------|---------|
+| **Partner platform** (or **your platform**) | **You** — the organization building on Embedded Payments: your backend, operations teams, and internal tools. |
+| **Your clients** | **Your customers** whom you onboard to Embedded Payments (e.g. sellers on your marketplace or businesses using your software). **Client-facing** patterns apply to the experience they see in your app. |
 
 ## Introduction: Webhook vs Pull Integration Patterns
 
 ### Core Concepts
 
-- **Webhooks**: The platform pushes event notifications to your backend. Best for timely, asynchronous updates and lower latency/overhead.
-- **Pull/Polling**: Your backend or frontend periodically queries the platform for current state. Useful as a safety net and for reconciliation.
+- **Webhooks**: J.P. Morgan Embedded Payments pushes event notifications to **your** backend. Best for timely, asynchronous updates and lower latency/overhead.
+- **Pull/Polling**: Your backend or frontend periodically queries Embedded Payments for current state. Useful as a safety net and for reconciliation.
 
 ### Suggested Integration Pattern
 
-One common approach: Backend receives and verifies webhooks, normalizes them, persists events and state snapshots, then exposes them to client applications via real-time channels (SSE, WebSocket, push notifications) with polling fallback. This provides both real-time updates and an authoritative state endpoint for consistency.
+One common approach: Your backend receives and verifies webhooks, normalizes them, persists events and state snapshots, then exposes updates to **your client-facing apps** via real-time channels (SSE, WebSocket, push notifications) with polling fallback. This provides both real-time updates and an authoritative state endpoint for consistency.
 
-> **Note**: Your implementation may vary based on your infrastructure, scale requirements, and client application types (web, mobile, desktop).
+> **Note**: Your implementation may vary based on your infrastructure, scale requirements, and front-end types (web, mobile, desktop).
 
 ## Integration Architecture Overview
 
 ```mermaid
 graph TD
-    A[JPMC APIs] -->|Webhooks / push| B["Platform Backend"]
+    A[Embedded Payments APIs] -->|Webhooks / push| B["Your platform backend"]
     B -->|Polling / pull| A
-    B -->|Server-Sent Events| C[Platform Web]
+    B -->|Server-Sent Events| C[Your client-facing apps]
     B -->|WebSockets| C
     B -->|REST API| C
 ```
 
 ## References
 
-- **Manage notifications**: [JPMC Developer Docs - Manage Notifications](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/notification-subscriptions/how-to/notifications)
-- **Notification payloads and structure**: [JPMC Developer Docs - Notification Payloads](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/notification-subscriptions/how-to/notification-payloads)
-- **Digital onboarding flow and state machine**: [JPMC Developer Docs - Onboard a Client](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client)
+- **Embedded Finance overview**: [J.P. Morgan — Embedded Finance](https://www.jpmorgan.com/payments/solutions/embedded-finance)
+- **Embedded Payments**: [Payments Developer Portal — Embedded Payments](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments)
+- **Manage notifications**: [Manage Notifications](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/notification-subscriptions/how-to/notifications)
+- **Notification payloads and structure**: [Notification Payloads](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/notification-subscriptions/how-to/notification-payloads)
+- **Onboard a client** (flow and state machine): [Onboard a Client](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client)
 
 ## Supported Event Types
 
@@ -50,22 +59,24 @@ Embedded Payments provides webhook notifications for the following event categor
 | `RECIPIENT_READY_FOR_VALIDATION_EXPIRED` | Validation window closed | Medium |
 | `THRESHOLD_LIMIT` | Program-level negative balance limits reached | Critical |
 
-## Personas and UX Patterns
+## UX patterns by audience
 
 > **Note**: The majority of UX principles outlined below are based on [Jakob Nielsen's 10 Usability Heuristics](https://www.nngroup.com/articles/ten-usability-heuristics/) from Nielsen Norman Group.
 
-### 1. C2: End-Customer (Ultimate Client) Onboarding UI
+### 1. Client-facing: Onboarding UI
 
-**Goal**: Help the customer understand their progress, what's needed, and what happens next.
+**Audience**: **Your clients** — the businesses or individuals you onboard through your embedded experience ([onboard your clients](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments) with verification and due diligence handled as described in the product documentation).
+
+**Goal**: Help each client understand their progress, what is needed from them, and what happens next.
 
 #### Onboarding Events & UX Recommendations
 
 | Events                            | Description                                                                              | UX Recommendation                                                                           |
 | --------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | **New**                           | Application received, initial processing                                                 | Show welcome message with estimated timeline. Display progress tracker starting point.      |
-| **Derived: Ready for Submission** | No webhook event. Platform calculates if all info provided but not submitted | Show prominent "Submit for Review" button with clear call-to-action. Once submitted, transitions to Review in Progress. |
+| **Derived: Ready for Submission** | No webhook event. Embedded Payments calculates whether all info is provided but not yet submitted | Show prominent "Submit for Review" button with clear call-to-action. Once submitted, transitions to Review in Progress. |
 | **Review in progress**            | Application under review (triggered after submission)                                              | Show progress indicator with "Under Review" status. Display estimated review time.          |
-| **Information requested**         | Additional documents/info needed from customer                                           | Show action panel with clear list of required items. Provide upload/documentation guidance. |
+| **Information requested**         | Additional documents or information needed from your client                              | Show action panel with clear list of required items. Provide upload/documentation guidance. |
 | **Approved**                      | Application fully approved                                                               | Show success state with next steps. Provide onboarding completion guidance.                 |
 | **Declined**                      | Application declined                                                               | Show clear decline message with reason (if available). Provide guidance on next steps or appeal process if applicable. |
 | **Suspended**                     | Client suspended from product usage                                                               | Display suspension notice with reason. Provide contact information for resolution. Disable restricted features. |
@@ -89,7 +100,7 @@ Embedded Payments provides webhook notifications for the following event categor
 
 #### Backend Webhook Consumption Strategy
 
-> **Note**: This table outlines backend logic for handling webhook events. Your platform should adapt this based on your state management and business rules.
+> **Note**: This table outlines backend logic for handling webhook events on **your platform**. Adapt it based on your state management and business rules.
 
 | Client Status | hasOutstandingInformation | customerIdentityStatus | Backend Action |
 |---------------|---------------------------|------------------------|----------------|
@@ -110,9 +121,11 @@ Embedded Payments provides webhook notifications for the following event categor
 - `customerIdentityStatus`: CIP verification status (identity verification progress)
 - Backend should poll `/clients/{id}` for current state and outstanding information details
 
-### 2. C2: End-Customer Transaction & Account Management UI
+### 2. Client-facing: Transactions and account management
 
-**Goal**: Keep customers informed about payment status, account activities, and required actions.
+**Audience**: **Your clients** using balances, payouts, and payment flows you surface in your product.
+
+**Goal**: Keep your clients informed about payment status, account activity, and any actions they must take.
 
 #### Transaction Events & UX Recommendations
 
@@ -150,9 +163,11 @@ Embedded Payments provides webhook notifications for the following event categor
 - Modal dialogs for critical events
 - Countdown timers for time-sensitive actions
 
-### 3. C1: Platform Operations/Treasury Management UI
+### 3. Partner platform: Operations and treasury
 
-**Goal**: Monitor program health, manage liquidity, respond to operational events.
+**Audience**: **Your platform** — treasury, finance, and operations teams running your Embedded Payments program.
+
+**Goal**: Monitor program health, manage liquidity, and respond to operational events.
 
 #### Program-Level Threshold Events & UX Recommendations
 
@@ -168,18 +183,20 @@ Embedded Payments provides webhook notifications for the following event categor
 - **Program-level visibility**: Dashboard showing aggregate balances
 - **Trend awareness**: Historical charts and patterns
 - **Predictive alerts**: Forecast when limits will be reached
-- **Client segmentation**: Identify high-impact clients
+- **Client segmentation**: Identify high-impact onboarded clients (e.g. by exposure or volume)
 - **Resolution tracking**: Monitor progress toward limit resolution
 
 #### Suggested UI Patterns
 
 - Program health dashboard with utilization gauges
 - Alert/restrict threshold visualizations
-- Client-level drill-down views
+- Onboarded-client drill-down views
 - Trend graphs with threshold lines
-- Actionable client lists sorted by impact
+- Actionable lists of onboarded clients sorted by impact
 
-### 4. C1: Platform Operations/Compliance UI
+### 4. Partner platform: Operations and compliance
+
+**Audience**: **Your platform** — operations and compliance users supporting throughput and oversight.
 
 **Goal**: Ensure throughput, resolve blockers, maintain SLAs, and retain auditability.
 
@@ -188,18 +205,20 @@ Embedded Payments provides webhook notifications for the following event categor
 - **Operational visibility**: Provide a work queue that prioritizes items requiring attention (e.g., information requested, SLA risk).
 - **Traceability**: Every status change is represented on a timeline with provenance and timing.
 - **Control and prioritization**: Filters, sorting, and saved views tailored to operational segments (e.g., high-value, time-in-state).
-- **Health awareness**: Surface ingestion health and latency so ops can distinguish platform delays from business bottlenecks.
+- **Health awareness**: Surface ingestion health and latency so operations staff can distinguish infrastructure delays from business bottlenecks.
 - **Governance**: Respect RBAC, mask sensitive data by default, and provide auditable reveal actions.
 
 #### UI Patterns
 
 - Work queue with status filters, SLA indicators, and assignment controls.
-- Client detail page with a consolidated activity timeline combining webhook-driven events and internal actions.
+- Onboarded-client detail page with a consolidated activity timeline combining webhook-driven events and internal actions.
 - SLA/health widgets showing counts by status, median time in status, and event delay.
 - "Information requested" management surface to track requested items, reminders, and communications.
 - Export/audit views with consistent time normalization and event identifiers.
 
-### 5. C1: Platform Developer/Technical Admin UI
+### 5. Partner platform: Developer and technical administration
+
+**Audience**: **Your platform** — engineers and technical administrators integrating and operating webhooks.
 
 **Goal**: Integrate, observe, and troubleshoot the event flow safely.
 
@@ -225,8 +244,8 @@ Embedded Payments provides webhook notifications for the following event categor
 
 **Response Requirements**:
 
-- Respond with `200 OK` within 3 seconds (JPMC requirement)
-- JPMC retries after 5 minutes if no response
+- Respond with `200 OK` within 3 seconds (Embedded Payments requirement)
+- Retries are attempted after 5 minutes if no response (per product documentation)
 - Maximum 3 retry attempts over 72 hours
 - Process events asynchronously after acknowledging receipt
 
@@ -253,7 +272,7 @@ Embedded Payments provides webhook notifications for the following event categor
 
 ### Frontend Delivery Options
 
-Common approaches for delivering events to client applications:
+Common approaches for delivering updates to **your client-facing** applications:
 
 **Server-Sent Events (SSE)**:
 
@@ -285,10 +304,10 @@ Common approaches for delivering events to client applications:
 
 **Suggested Flow**:
 
-1. Receive webhook from JPMC → Verify signature
+1. Receive webhook from Embedded Payments → Verify signature
 2. Store raw event → Return `200 OK` (< 3 seconds)
 3. Process asynchronously → Update canonical state
-4. Deliver to clients via chosen channel(s)
+4. Deliver to your client-facing apps via chosen channel(s)
 5. Provide REST endpoints for state verification
 
 **Key Considerations**:
