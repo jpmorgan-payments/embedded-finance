@@ -59,14 +59,39 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link
+                  to="/webhook-explorer"
+                  className="inline-flex items-center gap-2 text-page-body text-jpm-gray-300 transition-colors duration-200 hover:text-jpm-white"
+                >
+                  Webhook Explorer
+                  <span className="rounded-full border border-white/30 bg-white/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none text-jpm-white">
+                    Beta
+                  </span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/payments-flow-simulator"
+                  className="inline-flex items-center gap-2 text-page-body text-jpm-gray-300 transition-colors duration-200 hover:text-jpm-white"
+                >
+                  Payments flow simulator
+                  <span className="rounded-full border border-white/30 bg-white/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none text-jpm-white">
+                    Beta
+                  </span>
+                </Link>
+              </li>
+              <li>
                 <Dialog>
                   <DialogTrigger asChild>
                     <a
                       href="#"
-                      className="text-page-body text-jpm-gray-300 transition-colors duration-200 hover:text-jpm-white"
-                      aria-label="Open API Flow Explorer"
+                      className="inline-flex items-center gap-2 text-page-body text-jpm-gray-300 transition-colors duration-200 hover:text-jpm-white"
+                      aria-label="Open API Workflows Explorer"
                     >
-                      API Workflows Explorer (BETA)
+                      API Workflows Explorer
+                      <span className="rounded-full border border-white/30 bg-white/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none text-jpm-white">
+                        Beta
+                      </span>
                     </a>
                   </DialogTrigger>
                   <DialogContent className="h-[85vh] w-[96vw] max-w-[1600px]">
