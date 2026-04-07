@@ -372,7 +372,7 @@ const FlowRenderer: React.FC = React.memo(() => {
                       id: 'link-account',
                       title: t('onboarding-overview:flowRenderer.linkAccount'),
                       status: hasExistingLinkedAccount
-                        ? 'completed'
+                        ? 'completed_disabled'
                         : clientData?.status === 'APPROVED'
                           ? 'not_started'
                           : 'on_hold',
