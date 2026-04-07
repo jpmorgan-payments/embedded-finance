@@ -345,27 +345,46 @@ const FlowRenderer: React.FC = React.memo(() => {
                       : 'not_started',
                 steps: [],
               },
-              ...sections.map((section) => ({
-                ...section,
-                status: sectionStatuses[section.id] || 'not_started',
-                title:
-                  section.sectionConfig.shortLabel ??
-                  section.sectionConfig.label,
-                steps: (section.stepperConfig?.steps ?? []).map(
-                  (step) =>
-                    ({
-                      ...step,
-                      status:
-                        step.id === 'documents'
-                          ? 'on_hold'
-                          : stepValidations[section.id][step.id].isValid
-                            ? 'completed'
-                            : step.stepType === 'check-answers'
+              ...sections.map((section) => {
+                // When a section creates a party (has getDefaultPartyRequestBody),
+                // lock steps beyond the first until the party exists.
+                // Step 1 collects countryOfResidence — required for party creation —
+                // so skipping it would cause the API call to fail.
+                const sectionParty = section.stepperConfig
+                  ?.associatedPartyFilters
+                  ? getPartyByAssociatedPartyFilters(
+                      clientData,
+                      section.stepperConfig.associatedPartyFilters
+                    )
+                  : undefined;
+                const partyRequiredButMissing =
+                  !!section.stepperConfig?.getDefaultPartyRequestBody &&
+                  !sectionParty?.id;
+
+                return {
+                  ...section,
+                  status: sectionStatuses[section.id] || 'not_started',
+                  title:
+                    section.sectionConfig.shortLabel ??
+                    section.sectionConfig.label,
+                  steps: (section.stepperConfig?.steps ?? []).map(
+                    (step, stepIndex) =>
+                      ({
+                        ...step,
+                        status:
+                          step.id === 'documents'
+                            ? 'on_hold'
+                            : stepIndex > 0 && partyRequiredButMissing
                               ? 'on_hold'
-                              : 'not_started',
-                    }) as TimelineStep
-                ),
-              })),
+                              : stepValidations[section.id][step.id].isValid
+                                ? 'completed'
+                                : step.stepType === 'check-answers'
+                                  ? 'on_hold'
+                                  : 'not_started',
+                      }) as TimelineStep
+                  ),
+                };
+              }),
               ...(showLinkAccountStep
                 ? ([
                     {
