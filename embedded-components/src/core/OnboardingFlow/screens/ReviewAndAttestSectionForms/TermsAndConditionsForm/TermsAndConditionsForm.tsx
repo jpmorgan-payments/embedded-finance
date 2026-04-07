@@ -73,7 +73,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
   const { isDirty } = useFormState({ control: form.control });
   useFlowUnsavedChangesSync(isDirty);
 
-  const { data: IPAddress } = useIPAddress();
+  const { data: ipAddress } = useIPAddress();
 
   const [termsDocumentsOpened, setTermsDocumentsOpened] = useState<{
     [key: string]: boolean;
@@ -164,7 +164,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
             attesterFullName: clientData?.parties?.find(
               (party) => party?.partyType === 'INDIVIDUAL'
             )?.individualDetails?.firstName,
-            ipAddress: IPAddress,
+            ipAddress,
             documentId: clientData?.outstanding?.attestationDocumentIds?.[0],
           },
         ],
@@ -172,7 +172,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
 
       const verificationRequestBody = {
         consumerDevice: {
-          ipAddress: IPAddress,
+          ipAddress,
           sessionId: generateSessionId(), // Generate session ID matching the pattern
         },
       };

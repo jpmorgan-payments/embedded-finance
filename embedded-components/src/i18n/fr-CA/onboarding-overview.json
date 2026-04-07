@@ -776,6 +776,7 @@
       "label": "Phone number",
       "phoneNumber": {
         "label": "Phone number",
+        "placeholder": "Entrer le numéro de téléphone",
         "validation": {
           "required": "$t(validation:required)",
           "format": "$t(validation:phone.format)",

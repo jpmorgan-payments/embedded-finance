@@ -36,7 +36,7 @@ export const DocumentUploadForm = () => {
     useOnboardingContext();
   const queryClient = useQueryClient();
 
-  const { goTo, editingPartyIds } = useFlowContext();
+  const { goTo, goBack, editingPartyIds } = useFlowContext();
 
   const docRequestId = editingPartyIds['document-upload-form'];
 
@@ -347,12 +347,13 @@ export const DocumentUploadForm = () => {
         for (const { documentType, file } of documentUploads) {
           const documentData = {
             documentType,
-            metadata: [
-              {
-                key: 'DOCUMENT_REQUEST_ID',
-                value: documentRequestId,
-              },
-            ],
+            documentRequestId,
+            // metadata: [
+            //   {
+            //     key: 'DOCUMENT_REQUEST_ID',
+            //     value: documentRequestId,
+            //   },
+            // ],
           };
 
           await uploadDocumentMutation.mutateAsync({
@@ -623,7 +624,9 @@ export const DocumentUploadForm = () => {
             <Button
               type="button"
               variant="ghost"
-              onClick={() => goTo('upload-documents-section')}
+              onClick={() =>
+                goBack({ fallbackScreenId: 'upload-documents-section' })
+              }
               className="eb-text-primary hover:eb-bg-primary/5 hover:eb-text-primary"
             >
               {t(

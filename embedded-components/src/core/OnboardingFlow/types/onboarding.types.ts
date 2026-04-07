@@ -95,8 +95,9 @@ export type OnboardingDisclosureConfig = {
 export type OnboardingConfigDefault = UserTrackingProps & {
   alertOnExit?: boolean;
   /**
-   * When true, navigating to the previous step or screen (Back / Previous) shows a
-   * confirmation that unsaved entries on the current step may be lost.
+   * When true, navigating to the previous step or screen (Back / Previous), document
+   * upload **Cancel**, or **Return to overview** on the document list screen shows a
+   * confirmation that unsaved entries may be lost.
    */
   alertOnPreviousStep?: boolean;
   height?: string;

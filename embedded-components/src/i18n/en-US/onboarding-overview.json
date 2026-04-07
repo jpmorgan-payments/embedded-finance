@@ -831,6 +831,7 @@
       "label": "Phone number",
       "phoneNumber": {
         "label": "Phone number",
+        "placeholder": "Enter phone number",
         "validation": {
           "required": "$t(validation:required)",
           "format": "$t(validation:phone.format)",
