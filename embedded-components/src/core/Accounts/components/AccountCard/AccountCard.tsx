@@ -28,7 +28,11 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui';
 
-import { formatNumberWithCommas, getAccountStatusVariant } from '../../utils';
+import {
+  formatNumberWithCommas,
+  getAccountStatusVariant,
+  normalizeRoutingInformation,
+} from '../../utils';
 
 /**
  * Ref interface for AccountCard external actions
@@ -162,11 +166,11 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
     const fullAccountNumber =
       account.paymentRoutingInformation?.accountNumber || naTextString;
 
-    // Get routing number from API data (ABA type is used for ACH routing)
-    const abaRoutingNumber =
-      account.paymentRoutingInformation?.routingInformation?.find(
-        (r) => r.type === 'ABA'
-      )?.value || null;
+    // Normalize routing entries — handles both V1 (type/value) and V2
+    // (routingCodeType/routingNumber/transactionType) API response shapes
+    const routingEntries = normalizeRoutingInformation(
+      account.paymentRoutingInformation?.routingInformation
+    );
 
     // Determine status styling
     const isOpen = account.state === 'OPEN';
@@ -435,28 +439,38 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                 </span>
               </div>
 
-              {/* ACH Routing Number (from ABA routing type) - only for payments accounts */}
-              {isPaymentsAccount && abaRoutingNumber && (
-                <div className="eb-flex eb-flex-wrap eb-items-center eb-gap-2">
-                  <span className="eb-shrink-0 eb-text-[10px] eb-uppercase eb-tracking-wider eb-text-muted-foreground">
-                    {t('accounts:card.achRouting', {
-                      defaultValue: 'ACH Routing Number',
-                    })}
-                  </span>
-                  <span className="eb-flex eb-items-center eb-gap-1">
-                    <span className="eb-font-mono eb-text-sm eb-font-medium eb-tracking-wide eb-text-foreground">
-                      {abaRoutingNumber}
-                    </span>
-                    <CopyButton
-                      value={abaRoutingNumber}
-                      fieldName="achRouting"
-                      label={tString('accounts:card.copyAchRouting', {
-                        defaultValue: 'Copy ACH routing number',
-                      })}
-                    />
-                  </span>
-                </div>
-              )}
+              {/* Routing Numbers — dynamically rendered for all entry types */}
+              {isPaymentsAccount &&
+                routingEntries.map((entry) => {
+                  const displayType =
+                    entry.transactionType ?? entry.routingCodeType;
+                  return (
+                    <div
+                      key={displayType}
+                      className="eb-flex eb-flex-wrap eb-items-center eb-gap-2"
+                    >
+                      <span className="eb-shrink-0 eb-text-[10px] eb-uppercase eb-tracking-wider eb-text-muted-foreground">
+                        {t('accounts:card.routingLabel', {
+                          type: displayType,
+                          defaultValue: `${displayType} Routing Number`,
+                        })}
+                      </span>
+                      <span className="eb-flex eb-items-center eb-gap-1">
+                        <span className="eb-font-mono eb-text-sm eb-font-medium eb-tracking-wide eb-text-foreground">
+                          {entry.routingNumber}
+                        </span>
+                        <CopyButton
+                          value={entry.routingNumber}
+                          fieldName={`routing-${displayType}`}
+                          label={tString('accounts:card.copyRoutingLabel', {
+                            type: displayType,
+                            defaultValue: `Copy ${displayType} routing number`,
+                          })}
+                        />
+                      </span>
+                    </div>
+                  );
+                })}
             </div>
           </div>
 

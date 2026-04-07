@@ -130,4 +130,105 @@ describe('AccountCard', () => {
       expect(skeleton).toBeInTheDocument();
     });
   });
+
+  test('renders routing number from V1 API shape for payments accounts', async () => {
+    const paymentsAccount: AccountResponse = {
+      ...mockAccount,
+      category: 'LIMITED_DDA_PAYMENTS',
+    };
+    server.use(
+      http.get('*/accounts/:id/balances', () =>
+        HttpResponse.json({
+          id: 'account1',
+          currency: 'USD',
+          balanceTypes: [],
+        })
+      )
+    );
+
+    renderComponent(paymentsAccount);
+
+    await waitFor(() => {
+      expect(screen.getByText('028000024')).toBeInTheDocument();
+      // V1 ABA entries infer transactionType 'ACH'
+      expect(screen.getByText(/ACH Routing Number/i)).toBeInTheDocument();
+    });
+  });
+
+  test('renders routing number from V2 API shape (routingCodeType/routingNumber/transactionType)', async () => {
+    // Simulate V2-shaped response — at runtime the API may return this shape
+    // even though the TypeScript type still reflects V1
+    const v2Account = {
+      ...mockAccount,
+      category: 'LIMITED_DDA_PAYMENTS',
+      paymentRoutingInformation: {
+        accountNumber: '20000057603919',
+        country: 'US',
+        routingInformation: [
+          {
+            routingCodeType: 'ABA',
+            routingNumber: '065400137',
+            transactionType: 'ACH',
+          },
+        ],
+      },
+    } as unknown as AccountResponse;
+
+    server.use(
+      http.get('*/accounts/:id/balances', () =>
+        HttpResponse.json({
+          id: 'account1',
+          currency: 'USD',
+          balanceTypes: [],
+        })
+      )
+    );
+
+    renderComponent(v2Account);
+
+    await waitFor(() => {
+      expect(screen.getByText('065400137')).toBeInTheDocument();
+      expect(screen.getByText(/ACH Routing Number/i)).toBeInTheDocument();
+    });
+  });
+
+  test('renders multiple routing entries from V2 API shape', async () => {
+    const multiRoutingAccount = {
+      ...mockAccount,
+      category: 'LIMITED_DDA_PAYMENTS',
+      paymentRoutingInformation: {
+        accountNumber: '20000057603919',
+        country: 'US',
+        routingInformation: [
+          {
+            routingCodeType: 'ABA',
+            routingNumber: '065400137',
+            transactionType: 'ACH',
+          },
+          {
+            routingCodeType: 'ABA',
+            routingNumber: '065400137',
+            transactionType: 'WIRE',
+          },
+        ],
+      },
+    } as unknown as AccountResponse;
+
+    server.use(
+      http.get('*/accounts/:id/balances', () =>
+        HttpResponse.json({
+          id: 'account1',
+          currency: 'USD',
+          balanceTypes: [],
+        })
+      )
+    );
+
+    renderComponent(multiRoutingAccount);
+
+    await waitFor(() => {
+      expect(screen.getByText(/ACH Routing Number/i)).toBeInTheDocument();
+      expect(screen.getByText(/WIRE Routing Number/i)).toBeInTheDocument();
+    });
+  });
 });

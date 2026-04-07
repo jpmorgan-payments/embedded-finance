@@ -7,20 +7,21 @@
  */
 export interface PageMetaData {
   /** Page Number.
-   */
+ */
   page?: number;
   /** Number of records per page.
-   */
+ */
   limit?: number;
   /** Total number of items.
-   */
+ */
   total_items?: number;
 }
 
 /**
  * Account State
  */
-export type AccountState = (typeof AccountState)[keyof typeof AccountState];
+export type AccountState = typeof AccountState[keyof typeof AccountState];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const AccountState = {
@@ -32,7 +33,8 @@ export const AccountState = {
 /**
  * Two letter country code based on ISO 3166 standard
  */
-export type CountryCode = (typeof CountryCode)[keyof typeof CountryCode];
+export type CountryCode = typeof CountryCode[keyof typeof CountryCode];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CountryCode = {
@@ -42,7 +44,8 @@ export const CountryCode = {
 /**
  * Routing codes supported (currently only ABA is supported)
  */
-export type RoutingCode = (typeof RoutingCode)[keyof typeof RoutingCode];
+export type RoutingCode = typeof RoutingCode[keyof typeof RoutingCode];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const RoutingCode = {
@@ -69,8 +72,8 @@ export interface PaymentRoutingInformationDto {
 /**
  * Category of account
  */
-export type AccountCategory =
-  (typeof AccountCategory)[keyof typeof AccountCategory];
+export type AccountCategory = typeof AccountCategory[keyof typeof AccountCategory];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const AccountCategory = {
@@ -113,8 +116,8 @@ export interface ListAccountsResponse {
 /**
  * Part of the request which is responsible for the reason
  */
-export type ApiErrorReasonV2Location =
-  (typeof ApiErrorReasonV2Location)[keyof typeof ApiErrorReasonV2Location];
+export type ApiErrorReasonV2Location = typeof ApiErrorReasonV2Location[keyof typeof ApiErrorReasonV2Location];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ApiErrorReasonV2Location = {
@@ -160,8 +163,8 @@ export interface ApiError {
 The `EMBEDDED_DDA` category is included only to support our legacy Embedded Banking (EB) product and should not be used.
 
  */
-export type AccountCategoryReq =
-  (typeof AccountCategoryReq)[keyof typeof AccountCategoryReq];
+export type AccountCategoryReq = typeof AccountCategoryReq[keyof typeof AccountCategoryReq];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const AccountCategoryReq = {
@@ -184,8 +187,8 @@ export interface CreateAccountRequest {
 /**
  * Indicates the current status of the Payment Routing Number (PRN) associated with an account. An "ACTIVE" status allows for both incoming and outgoing transactions, including external transfers. An "INACTIVE" status means that the client cannot receive payments (PAYIns) from external sources into the account, nor can they transfer money out externally. However, internal money movements within linked accounts are still possible. **Important:** An "INACTIVE" PRN status strictly pertains to the PRN's ability to handle external transactions and does not affect the overall status or functionality of the account itself. The account remains active and operational for other purposes.
  */
-export type PaymentRoutingStatus =
-  (typeof PaymentRoutingStatus)[keyof typeof PaymentRoutingStatus];
+export type PaymentRoutingStatus = typeof PaymentRoutingStatus[keyof typeof PaymentRoutingStatus];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PaymentRoutingStatus = {
@@ -208,8 +211,8 @@ export interface PaymentRoutingInformationDtoWithStatus {
 /**
  * Restriction Type
  */
-export type RestrictionType =
-  (typeof RestrictionType)[keyof typeof RestrictionType];
+export type RestrictionType = typeof RestrictionType[keyof typeof RestrictionType];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const RestrictionType = {
@@ -247,8 +250,8 @@ export interface AccountResponseWithStatus {
 /**
  * Balance type: ITAV (interim available balance) or ITBD (interim booked balance)
  */
-export type AccountBalanceDtoTypeCode =
-  (typeof AccountBalanceDtoTypeCode)[keyof typeof AccountBalanceDtoTypeCode];
+export type AccountBalanceDtoTypeCode = typeof AccountBalanceDtoTypeCode[keyof typeof AccountBalanceDtoTypeCode];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const AccountBalanceDtoTypeCode = {
@@ -328,22 +331,23 @@ export type PageSizeParameter = number;
 export type PageNoParameter = number;
 
 export type GetAccountsParams = {
-  /**
-   * Unique Client identifier
-   * @minLength 10
-   * @maxLength 10
-   * @pattern ^\d{10}$
-   */
-  clientId?: ClientIdInQueryParameter;
-  /**
-   * Number of records per page.
-   * @minimum 1
-   * @maximum 25
-   */
-  limit?: PageSizeParameter;
-  /**
-   * Page Number
-   * @minimum 0
-   */
-  page?: PageNoParameter;
+/**
+ * Unique Client identifier
+ * @minLength 10
+ * @maxLength 10
+ * @pattern ^\d{10}$
+ */
+clientId?: ClientIdInQueryParameter;
+/**
+ * Number of records per page.
+ * @minimum 1
+ * @maximum 25
+ */
+limit?: PageSizeParameter;
+/**
+ * Page Number
+ * @minimum 0
+ */
+page?: PageNoParameter;
 };
+
