@@ -914,7 +914,8 @@
       "validation": {
         "required": "$t(validation:required)",
         "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        "pattern": "Address can only contain letters, numbers, and basic punctuation",
+        "poBox": "Post-office boxes (PO Box) and private mail boxes (PMB) are not accepted. Please enter a physical street address."
       }
     },
     "individualAddress.secondaryAddressLine": {
@@ -1003,11 +1004,12 @@
       "label": "Address line 1",
       "placeholder": "Enter address line 1",
       "description": "P.O. box is not accepted",
-      "tooltip": "",
+      "tooltip": "Post-office boxes (PO Box), private mail boxes (PMB), virtual office and registered agent addresses are not allowed. The address must be the principal place of business.",
       "validation": {
         "required": "$t(validation:required)",
         "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        "pattern": "Address can only contain letters, numbers, and basic punctuation",
+        "poBox": "Post-office boxes (PO Box) and private mail boxes (PMB) are not accepted. Please enter a physical street address."
       }
     },
     "organizationAddress.secondaryAddressLine": {

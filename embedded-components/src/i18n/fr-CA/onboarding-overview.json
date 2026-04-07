@@ -852,14 +852,15 @@
       }
     },
     "individualAddress.primaryAddressLine": {
-      "label": "Address line 1",
-      "placeholder": "Enter address line 1",
-      "description": "P.O. box is not accepted",
+      "label": "Ligne d'adresse 1",
+      "placeholder": "Entrez la ligne d'adresse 1",
+      "description": "Les boîtes postales ne sont pas acceptées",
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
         "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        "pattern": "L'adresse ne peut contenir que des lettres, des chiffres et de la ponctuation de base",
+        "poBox": "Les boîtes postales (C.P.) et les boîtes aux lettres privées (PMB) ne sont pas acceptées. Veuillez entrer une adresse physique."
       }
     },
     "individualAddress.secondaryAddressLine": {
@@ -945,14 +946,15 @@
       }
     },
     "organizationAddress.primaryAddressLine": {
-      "label": "Address line 1",
-      "placeholder": "Enter address line 1",
-      "description": "P.O. box is not accepted",
-      "tooltip": "",
+      "label": "Ligne d'adresse 1",
+      "placeholder": "Entrez la ligne d'adresse 1",
+      "description": "Les boîtes postales ne sont pas acceptées",
+      "tooltip": "Les boîtes postales (C.P.), les boîtes aux lettres privées (PMB), les bureaux virtuels et les adresses d'agents enregistrés ne sont pas autorisés. L'adresse doit être le lieu principal d'activité.",
       "validation": {
         "required": "$t(validation:required)",
         "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        "pattern": "L'adresse ne peut contenir que des lettres, des chiffres et de la ponctuation de base",
+        "poBox": "Les boîtes postales (C.P.) et les boîtes aux lettres privées (PMB) ne sont pas acceptées. Veuillez entrer une adresse physique."
       }
     },
     "organizationAddress.secondaryAddressLine": {

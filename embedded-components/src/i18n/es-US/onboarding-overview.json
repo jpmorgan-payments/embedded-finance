@@ -852,14 +852,15 @@
       }
     },
     "individualAddress.primaryAddressLine": {
-      "label": "Address line 1",
-      "placeholder": "Enter address line 1",
-      "description": "P.O. box is not accepted",
+      "label": "Línea de dirección 1",
+      "placeholder": "Ingrese la línea de dirección 1",
+      "description": "No se aceptan apartados postales",
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
         "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        "pattern": "La dirección solo puede contener letras, números y puntuación básica",
+        "poBox": "No se aceptan apartados postales (PO Box) ni buzones privados (PMB). Ingrese una dirección física."
       }
     },
     "individualAddress.secondaryAddressLine": {
@@ -945,14 +946,15 @@
       }
     },
     "organizationAddress.primaryAddressLine": {
-      "label": "Address line 1",
-      "placeholder": "Enter address line 1",
-      "description": "P.O. box is not accepted",
-      "tooltip": "",
+      "label": "Línea de dirección 1",
+      "placeholder": "Ingrese la línea de dirección 1",
+      "description": "No se aceptan apartados postales",
+      "tooltip": "No se permiten apartados postales (PO Box), buzones privados (PMB), oficinas virtuales ni direcciones de agentes registrados. La dirección debe ser el lugar principal de negocios.",
       "validation": {
         "required": "$t(validation:required)",
         "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        "pattern": "La dirección solo puede contener letras, números y puntuación básica",
+        "poBox": "No se aceptan apartados postales (PO Box) ni buzones privados (PMB). Ingrese una dirección física."
       }
     },
     "organizationAddress.secondaryAddressLine": {
