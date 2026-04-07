@@ -382,7 +382,8 @@ export const OwnersSectionScreen = () => {
               form.watch('controllerIsAnOwner') === 'no' &&
               controllerUpdateStatus !== 'pending' && (
                 <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-blue-500">
-                  {`\u24d8 ${t('screens.owners.controllerCannotBeOwnerWarning')}`}
+                  {'\u24d8 '}
+                  {t('screens.owners.controllerCannotBeOwnerWarning')}
                 </p>
               )}
             <div className="eb-mt-2 eb-inline-flex eb-h-4 eb-items-center eb-justify-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
@@ -410,7 +411,8 @@ export const OwnersSectionScreen = () => {
 
           {ownersData.length >= 4 && (
             <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
-              {`\u24d8 ${t('screens.owners.maxOwnersWarning')}`}
+              {'\u24d8 '}
+              {t('screens.owners.maxOwnersWarning')}
             </p>
           )}
 
@@ -519,7 +521,8 @@ export const OwnersSectionScreen = () => {
               </div>
               {owner.id && !ownersValidation[owner.id]?.allStepsValid && (
                 <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
-                  {`\u24d8 ${t('screens.owners.ownerIncompleteWarning')}`}
+                  {'\u24d8 '}
+                  {t('screens.owners.ownerIncompleteWarning')}
                 </p>
               )}
             </Card>
