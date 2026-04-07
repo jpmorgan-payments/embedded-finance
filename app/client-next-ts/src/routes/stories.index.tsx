@@ -9,44 +9,43 @@ export const Route = createFileRoute('/stories/')({
   component: StoriesIndex,
 });
 
-// Latest first (newest at top by date)
+// Latest first.
 const stories = [
   {
-    id: 'webhook-integration-recipe' as const,
-    title: 'Webhook Integration Recipe: Persona-Based UX Guidance',
+    id: 'partially-hosted-onboarding' as const,
+    title: 'Hosted Onboarding UI Integration Guide',
     excerpt:
-      'Suggested UI/UX principles and patterns for webhook integration—recommendations for onboarding, transactions, operations, and developer UIs.',
-    date: '2025-12-15',
+      'Integrate the hosted Onboarding UI into your platform with session transfer, iframe embedding, postMessage, and security guidance. Source: PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md.',
+    date: '2026-03-12',
+    readTime: '25 min read',
+    tags: ['Onboarding', 'Hosted UI', 'Integration'],
+  },
+  {
+    id: 'webhook-integration-recipe' as const,
+    title: 'Webhook Integration Recipe: UX Guidance',
+    excerpt:
+      'Suggested UI/UX principles for webhook integration: event types, client-facing vs partner-platform surfaces, onboarding and operations patterns, and reconciliation. Source: WEBHOOK_INTEGRATION_RECIPE.md.',
+    date: '2026-01-08',
     readTime: '12 min read',
     tags: ['Webhooks', 'Integration', 'UX'],
   },
   {
-    id: 'partially-hosted-onboarding' as const,
-    title: 'Partially Hosted Onboarding Integration',
-    excerpt:
-      'Implement a hybrid onboarding approach where parts of client verification are handled in your app while leveraging embedded components for regulated steps.',
-    date: '2025-06-12',
-    readTime: '6 min read',
-    tags: ['Onboarding', 'Integration', 'Hybrid'],
-  },
-  {
     id: 'important-date-selector-component' as const,
-    title:
-      'Building an Accessible Important Date Selector: A Component Design Case Study',
+    title: 'Important Date Selector Component Recipe',
     excerpt:
-      'Follow-up to our date input challenges: How we designed and built a specialized Important Date Selector component that prioritizes accessibility and user experience.',
-    date: '2024-12-30',
-    readTime: '7 min read',
-    tags: ['Component Design', 'Accessibility', 'React'],
+      'Design guidelines for ImportantDateSelector: problem analysis, accessibility, validation, and implementation notes for embedded finance. Source: IMPORTANT_DATE_SELECTOR_RECIPE.md.',
+    date: '2025-06-12',
+    readTime: '10 min read',
+    tags: ['Components', 'Accessibility', 'Dates'],
   },
   {
     id: 'date-selector-challenges' as const,
-    title: 'Tackling Date Input Challenges: Common User Errors and Solutions',
+    title: 'JavaScript/TypeScript Date Parsing Guide',
     excerpt:
-      "Our team's experience implementing date selectors revealed critical UX issues that impact user experience. Learn from our mistakes and discover better approaches.",
-    date: '2024-12-23',
-    readTime: '5 min read',
-    tags: ['UX', 'Date Input', 'User Experience'],
+      'Common date parsing pitfalls in JS/TS (timezones, ambiguous strings, DST) and reliable patterns for Embedded Finance components. Source: DATE_PARSING_GUIDE.md.',
+    date: '2025-04-28',
+    readTime: '6 min read',
+    tags: ['TypeScript', 'Dates', 'Parsing'],
   },
 ] as const;
 
@@ -59,9 +58,11 @@ function StoriesIndex() {
             Engineering Recipes
           </h1>
           <p className="max-w-2xl text-page-body leading-relaxed text-jpm-gray">
-            Insights from our engineering team on building embedded finance
-            solutions, component design patterns, and user experience lessons
-            learned.
+            Technical guides from{' '}
+            <code className="rounded bg-jpm-gray-100 px-1.5 py-0.5 font-mono text-page-small text-jpm-gray-900">
+              embedded-components/docs
+            </code>
+            .
           </p>
         </div>
 

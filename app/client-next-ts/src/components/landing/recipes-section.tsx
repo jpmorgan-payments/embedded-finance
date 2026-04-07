@@ -1,4 +1,4 @@
-import { Calendar, UserCog } from 'lucide-react';
+import { Calendar, UserCog, Webhook } from 'lucide-react';
 
 import { Link } from '@tanstack/react-router';
 
@@ -8,34 +8,45 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 export function RecipesSection() {
   const recipes = [
     {
-      id: 'date-selector-challenges',
-      title: 'Tackling Date Input Challenges: Common User Errors and Solutions',
+      id: 'webhook-integration-recipe',
+      title: 'Webhook Integration Recipe: UX Guidance',
       excerpt:
-        "Our team's experience implementing date selectors revealed critical UX issues that impact user experience. Learn from our mistakes and discover better approaches.",
-      date: '2024-12-23',
-      readTime: '5 min read',
-      tags: ['UX', 'Date Input', 'User Experience'],
+        'Client-facing and partner-platform UX patterns for webhook events, onboarding status, and operations (WEBHOOK_INTEGRATION_RECIPE.md).',
+      date: '2026-01-08',
+      readTime: '12 min read',
+      tags: ['Webhooks', 'Integration', 'UX'],
+      link: '/stories/webhook-integration-recipe',
+      external: false,
+      icon: <Webhook className="h-5 w-5" />,
+    },
+    {
+      id: 'date-selector-challenges',
+      title: 'JavaScript/TypeScript Date Parsing Guide',
+      excerpt:
+        'Timezone shifts, ambiguous formats, and reliable patterns for date handling in Embedded Finance components (DATE_PARSING_GUIDE.md).',
+      date: '2025-04-28',
+      readTime: '6 min read',
+      tags: ['TypeScript', 'Dates', 'Parsing'],
       link: '/stories/date-selector-challenges',
     },
     {
       id: 'important-date-selector-component',
-      title:
-        'Building an Accessible Important Date Selector: A Component Design Case Study',
+      title: 'Important Date Selector Component Recipe',
       excerpt:
-        'Follow-up to our date input challenges: How we designed and built a specialized Important Date Selector component that prioritizes accessibility and user experience.',
-      date: '2024-12-30',
-      readTime: '7 min read',
-      tags: ['Component Design', 'Accessibility', 'React'],
+        'Design guidelines and accessibility patterns for ImportantDateSelector (IMPORTANT_DATE_SELECTOR_RECIPE.md).',
+      date: '2025-06-12',
+      readTime: '10 min read',
+      tags: ['Components', 'Accessibility', 'Dates'],
       link: '/stories/important-date-selector-component',
     },
     {
       id: 'partially-hosted-onboarding',
-      title: 'Partially Hosted Onboarding Integration',
+      title: 'Hosted Onboarding UI Integration Guide',
       excerpt:
-        'Implement a hybrid onboarding approach where parts of the client verification process are handled by your application while leveraging embedded components.',
-      date: '2024-12-01',
-      readTime: '6 min read',
-      tags: ['Onboarding', 'Integration', 'Hybrid'],
+        'Session transfer, iframe embedding, and security for the hosted onboarding experience (PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md).',
+      date: '2026-03-12',
+      readTime: '25 min read',
+      tags: ['Onboarding', 'Hosted UI', 'Integration'],
       link: '/stories/partially-hosted-onboarding',
       external: false,
       icon: <UserCog className="h-5 w-5" />,

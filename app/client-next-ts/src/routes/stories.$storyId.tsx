@@ -32,30 +32,29 @@ const PartiallyHostedOnboarding = lazy(
 
 // Story metadata (serializable data only)
 const storyMeta = {
+  'partially-hosted-onboarding': {
+    title: 'Hosted Onboarding UI Integration Guide',
+    date: '2026-03-12',
+    readTime: '25 min read',
+    tags: ['Onboarding', 'Hosted UI', 'Integration'],
+  },
   'webhook-integration-recipe': {
-    title: 'Webhook Integration Recipe: Persona-Based UX Guidance',
-    date: '2025-12-15',
+    title: 'Webhook Integration Recipe: UX Guidance',
+    date: '2026-01-08',
     readTime: '12 min read',
     tags: ['Webhooks', 'Integration', 'UX'],
   },
-  'date-selector-challenges': {
-    title: 'Tackling Date Input Challenges: Common User Errors and Solutions',
-    date: '2025-06-03',
-    readTime: '5 min read',
-    tags: ['UX', 'Date Input', 'User Experience'],
-  },
   'important-date-selector-component': {
-    title:
-      'Building an Accessible Important Date Selector: A Component Design Case Study',
-    date: '2025-06-05',
-    readTime: '7 min read',
-    tags: ['Component Design', 'Accessibility', 'React'],
+    title: 'Important Date Selector Component Recipe',
+    date: '2025-06-12',
+    readTime: '10 min read',
+    tags: ['Components', 'Accessibility', 'Dates'],
   },
-  'partially-hosted-onboarding': {
-    title: 'Partially Hosted Onboarding Integration',
-    date: '2024-12-01',
+  'date-selector-challenges': {
+    title: 'JavaScript/TypeScript Date Parsing Guide',
+    date: '2025-04-28',
     readTime: '6 min read',
-    tags: ['Onboarding', 'Integration', 'Hybrid'],
+    tags: ['TypeScript', 'Dates', 'Parsing'],
   },
 } as const;
 
