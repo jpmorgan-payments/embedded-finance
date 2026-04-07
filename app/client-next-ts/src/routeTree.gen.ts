@@ -10,10 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as YearInReviewRouteImport } from './routes/year-in-review'
+import { Route as WebhookExplorerRouteImport } from './routes/webhook-explorer'
 import { Route as UtilsRouteImport } from './routes/utils'
 import { Route as StoriesRouteImport } from './routes/stories'
 import { Route as SolutionsRouteImport } from './routes/solutions'
 import { Route as SellsenseDemoRouteImport } from './routes/sellsense-demo'
+import { Route as PaymentsFlowSimulatorRouteImport } from './routes/payments-flow-simulator'
 import { Route as PartiallyHostedDemoRouteImport } from './routes/partially-hosted-demo'
 import { Route as MswTestRouteImport } from './routes/msw-test'
 import { Route as GithubRouteImport } from './routes/github'
@@ -28,6 +30,11 @@ import { Route as StoriesStoryIdRouteImport } from './routes/stories.$storyId'
 const YearInReviewRoute = YearInReviewRouteImport.update({
   id: '/year-in-review',
   path: '/year-in-review',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WebhookExplorerRoute = WebhookExplorerRouteImport.update({
+  id: '/webhook-explorer',
+  path: '/webhook-explorer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UtilsRoute = UtilsRouteImport.update({
@@ -48,6 +55,11 @@ const SolutionsRoute = SolutionsRouteImport.update({
 const SellsenseDemoRoute = SellsenseDemoRouteImport.update({
   id: '/sellsense-demo',
   path: '/sellsense-demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentsFlowSimulatorRoute = PaymentsFlowSimulatorRouteImport.update({
+  id: '/payments-flow-simulator',
+  path: '/payments-flow-simulator',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PartiallyHostedDemoRoute = PartiallyHostedDemoRouteImport.update({
@@ -110,10 +122,12 @@ export interface FileRoutesByFullPath {
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
   '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
+  '/payments-flow-simulator': typeof PaymentsFlowSimulatorRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/stories': typeof StoriesRouteWithChildren
   '/utils': typeof UtilsRoute
+  '/webhook-explorer': typeof WebhookExplorerRoute
   '/year-in-review': typeof YearInReviewRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
   '/stories/': typeof StoriesIndexRoute
@@ -127,9 +141,11 @@ export interface FileRoutesByTo {
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
   '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
+  '/payments-flow-simulator': typeof PaymentsFlowSimulatorRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/utils': typeof UtilsRoute
+  '/webhook-explorer': typeof WebhookExplorerRoute
   '/year-in-review': typeof YearInReviewRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
   '/stories': typeof StoriesIndexRoute
@@ -144,10 +160,12 @@ export interface FileRoutesById {
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
   '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
+  '/payments-flow-simulator': typeof PaymentsFlowSimulatorRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/stories': typeof StoriesRouteWithChildren
   '/utils': typeof UtilsRoute
+  '/webhook-explorer': typeof WebhookExplorerRoute
   '/year-in-review': typeof YearInReviewRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
   '/stories/': typeof StoriesIndexRoute
@@ -163,10 +181,12 @@ export interface FileRouteTypes {
     | '/github'
     | '/msw-test'
     | '/partially-hosted-demo'
+    | '/payments-flow-simulator'
     | '/sellsense-demo'
     | '/solutions'
     | '/stories'
     | '/utils'
+    | '/webhook-explorer'
     | '/year-in-review'
     | '/stories/$storyId'
     | '/stories/'
@@ -180,9 +200,11 @@ export interface FileRouteTypes {
     | '/github'
     | '/msw-test'
     | '/partially-hosted-demo'
+    | '/payments-flow-simulator'
     | '/sellsense-demo'
     | '/solutions'
     | '/utils'
+    | '/webhook-explorer'
     | '/year-in-review'
     | '/stories/$storyId'
     | '/stories'
@@ -196,10 +218,12 @@ export interface FileRouteTypes {
     | '/github'
     | '/msw-test'
     | '/partially-hosted-demo'
+    | '/payments-flow-simulator'
     | '/sellsense-demo'
     | '/solutions'
     | '/stories'
     | '/utils'
+    | '/webhook-explorer'
     | '/year-in-review'
     | '/stories/$storyId'
     | '/stories/'
@@ -214,10 +238,12 @@ export interface RootRouteChildren {
   GithubRoute: typeof GithubRoute
   MswTestRoute: typeof MswTestRoute
   PartiallyHostedDemoRoute: typeof PartiallyHostedDemoRoute
+  PaymentsFlowSimulatorRoute: typeof PaymentsFlowSimulatorRoute
   SellsenseDemoRoute: typeof SellsenseDemoRoute
   SolutionsRoute: typeof SolutionsRoute
   StoriesRoute: typeof StoriesRouteWithChildren
   UtilsRoute: typeof UtilsRoute
+  WebhookExplorerRoute: typeof WebhookExplorerRoute
   YearInReviewRoute: typeof YearInReviewRoute
 }
 
@@ -228,6 +254,13 @@ declare module '@tanstack/react-router' {
       path: '/year-in-review'
       fullPath: '/year-in-review'
       preLoaderRoute: typeof YearInReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/webhook-explorer': {
+      id: '/webhook-explorer'
+      path: '/webhook-explorer'
+      fullPath: '/webhook-explorer'
+      preLoaderRoute: typeof WebhookExplorerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/utils': {
@@ -256,6 +289,13 @@ declare module '@tanstack/react-router' {
       path: '/sellsense-demo'
       fullPath: '/sellsense-demo'
       preLoaderRoute: typeof SellsenseDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payments-flow-simulator': {
+      id: '/payments-flow-simulator'
+      path: '/payments-flow-simulator'
+      fullPath: '/payments-flow-simulator'
+      preLoaderRoute: typeof PaymentsFlowSimulatorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/partially-hosted-demo': {
@@ -353,10 +393,12 @@ const rootRouteChildren: RootRouteChildren = {
   GithubRoute: GithubRoute,
   MswTestRoute: MswTestRoute,
   PartiallyHostedDemoRoute: PartiallyHostedDemoRoute,
+  PaymentsFlowSimulatorRoute: PaymentsFlowSimulatorRoute,
   SellsenseDemoRoute: SellsenseDemoRoute,
   SolutionsRoute: SolutionsRoute,
   StoriesRoute: StoriesRouteWithChildren,
   UtilsRoute: UtilsRoute,
+  WebhookExplorerRoute: WebhookExplorerRoute,
   YearInReviewRoute: YearInReviewRoute,
 }
 export const routeTree = rootRouteImport
