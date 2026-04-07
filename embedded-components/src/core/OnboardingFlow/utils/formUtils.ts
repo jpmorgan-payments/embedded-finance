@@ -679,6 +679,11 @@ export function getFieldRuleByClientContext(
         interaction: currentFieldRule.interaction,
         defaultValue: currentFieldRule.defaultAppendValue?.[subFieldName],
         ...subFieldRule,
+        // Inherit parent's contentTokenOverrideKey when the sub-field
+        // doesn't define its own, so owner/soleProp overrides propagate.
+        contentTokenOverrideKey:
+          subFieldRule.contentTokenOverrideKey ??
+          currentFieldRule.contentTokenOverrideKey,
       };
     } else {
       // We don't expect more segments if it's not an array config

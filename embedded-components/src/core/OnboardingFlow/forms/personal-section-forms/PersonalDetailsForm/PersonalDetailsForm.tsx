@@ -8,6 +8,7 @@ import {
   JOB_TITLES,
   NATURE_OF_OWNERSHIP_OPTIONS,
 } from '@/core/OnboardingFlow/consts';
+import { useFlowContext } from '@/core/OnboardingFlow/contexts/FlowContext';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 import { getOrganizationParty } from '@/core/OnboardingFlow/utils/dataUtils';
 
@@ -18,10 +19,20 @@ import {
 
 export const PersonalDetailsForm: FormStepComponent = () => {
   const { t } = useTranslationWithTokens('onboarding-overview');
+  const { currentScreenId } = useFlowContext();
   const _schema = usePersonalDetailsFormSchema();
   const form = useFormContext<z.input<typeof _schema>>();
 
   const jobTitle = form.watch('controllerJobTitle');
+
+  const isOwnerContext = currentScreenId === 'owner-stepper';
+
+  const legalNameHeader = isOwnerContext
+    ? t('screens.ownerPersonalDetails.legalNameHeader')
+    : t('screens.personalDetails.legalNameHeader');
+  const legalNameDescription = isOwnerContext
+    ? t('screens.ownerPersonalDetails.legalNameDescription')
+    : t('screens.personalDetails.legalNameDescription');
 
   return (
     <div className="eb-mt-6 eb-space-y-6">
@@ -44,11 +55,9 @@ export const PersonalDetailsForm: FormStepComponent = () => {
       />
       <fieldset className="eb-grid eb-gap-y-3">
         <legend className="eb-mb-1.5 eb-text-lg eb-font-medium">
-          {t('screens.personalDetails.legalNameHeader')}
+          {legalNameHeader}
         </legend>
-        <p className="eb-text-sm">
-          {t('screens.personalDetails.legalNameDescription')}
-        </p>
+        <p className="eb-text-sm">{legalNameDescription}</p>
         <OnboardingFormField
           control={form.control}
           name="controllerFirstName"
