@@ -196,8 +196,8 @@ type CombinedFieldConfigurationFor<
   K extends keyof OnboardingFormValuesInitial,
 > = [T] extends [boolean]
   ? FieldConfigurationGeneric<K, boolean>
-  : T extends readonly unknown[]
-    ? ArrayFieldConfigurationGeneric<K, T>
+  : [T] extends [readonly unknown[]]
+    ? ArrayFieldConfigurationGeneric<K, T & readonly unknown[]>
     : FieldConfigurationGeneric<K, T>;
 
 export type CombinedFieldConfiguration<

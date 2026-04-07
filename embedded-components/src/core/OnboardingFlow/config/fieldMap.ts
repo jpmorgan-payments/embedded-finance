@@ -162,8 +162,12 @@ export const partyFieldMap: PartyFieldMap = {
           screenId: ['owner-stepper'],
         },
         rule: {
-          display: 'visible',
-          required: true,
+          // The API rejects 'Indirect' when the parent party role is CLIENT,
+          // which is always the case in this onboarding flow. Hide the field
+          // and default to 'Direct' so it's sent automatically on submit.
+          display: 'hidden',
+          required: false,
+          defaultValue: 'Direct',
         },
       },
     ],
