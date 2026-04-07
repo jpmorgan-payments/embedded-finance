@@ -15,8 +15,6 @@
     "maxLength_one": "{{fieldName}} cannot exceed {{count}} character",
     "maxLength_other": "{{fieldName}} cannot exceed {{count}} characters",
     "noNumbers": "{{fieldName}} cannot contain numbers",
-    "noSpecialChars": "{{fieldName}} cannot contain special characters except {{allowedChars}}",
-    "specialCharsAllowed": "{{fieldName}} can only contain letters, numbers, and {{allowedChars}}",
     "noConsecutiveSpaces": "{{fieldName}} cannot contain consecutive spaces",
     "noLeadingSpace": "{{fieldName}} cannot begin with a space",
     "noTrailingSpace": "{{fieldName}} cannot end with a space",
@@ -24,7 +22,7 @@
     "noSpecialCharsAtEnd": "{{fieldName}} cannot end with a special character",
     "exactLength_one": "{{fieldName}} must be exactly {{count}} character",
     "exactLength_other": "{{fieldName}} must be exactly {{count}} characters",
-    "namePattern": "{{fieldName}} can only contain letters, spaces, hyphens, and apostrophes",
+    "namePattern": "{{fieldName}} ne peut contenir que des lettres, des chiffres, des espaces et ( ) _ / @ & + % # ; , . : ' -",
     "noConsecutiveHyphens": "{{fieldName}} cannot contain consecutive hyphens",
     "noLeadingHyphen": "{{fieldName}} cannot begin with a hyphen",
     "noTrailingHyphen": "{{fieldName}} cannot end with a hyphen",
@@ -67,16 +65,25 @@
     "range": "Year must be between {{min}} and {{max}}"
   },
   "url": {
-    "invalid": "Please enter a valid website URL",
-    "format": "Please use a valid URL format (e.g. {{example}})",
-    "httpsRequired": "URL must begin with https://",
-    "noIp": "Direct IP addresses are not allowed"
+    "invalid": "Veuillez saisir une URL de site Web valide",
+    "format": "L'URL doit commencer par https:// et être un domaine valide (p. ex. {{example}})",
+    "httpsRequired": "L'URL doit commencer par https://",
+    "noIp": "Les adresses IP directes ne sont pas autorisées"
   },
   "id": {
-    "ssn": "Please enter a valid Social Security Number (SSN)",
+    "ssn": "Veuillez entrer un numéro de sécurité sociale (SSN) valide",
+    "ssnLength": "Le SSN doit contenir exactement 9 chiffres",
+    "ssnDigitsOnly": "Le SSN ne doit contenir que des chiffres",
+    "ssnFirstThree": "Le SSN ne peut pas commencer par 9 ou 000",
+    "ssn666": "Le SSN ne peut pas commencer par 666",
+    "ssnKnownInvalid": "Ce SSN n'est pas valide. Veuillez vérifier et réessayer",
     "itin": {
-      "format": "Please enter a valid 9-digit ITIN starting with 9",
-      "invalidRange": "Invalid ITIN format in position 2-3"
+      "format": "Veuillez entrer un numéro d'identification fiscale individuel (ITIN) valide",
+      "invalidRange": "Les chiffres 4-5 de l'ITIN doivent être dans la plage 50-65, 70-88, 90-92 ou 94-99",
+      "length": "L'ITIN doit contenir exactement 9 chiffres",
+      "digitsOnly": "L'ITIN ne doit contenir que des chiffres",
+      "startsWith9": "L'ITIN doit commencer par le chiffre 9",
+      "middleDigits": "Les chiffres 4-5 de l'ITIN doivent être dans la plage 50-65, 70-88, 90-92 ou 94-99"
     }
   },
   "address": {
