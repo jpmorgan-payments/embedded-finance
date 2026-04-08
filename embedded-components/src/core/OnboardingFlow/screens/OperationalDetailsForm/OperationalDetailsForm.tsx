@@ -3,7 +3,7 @@ import { useTranslationWithTokens } from '@/i18n';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { Loader2Icon, MenuIcon } from 'lucide-react';
+import { ArrowLeftIcon, Loader2Icon } from 'lucide-react';
 import { useForm, useFormState } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -669,15 +669,14 @@ export const OperationalDetailsForm = () => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="eb-space-y-6">
         <StepLayout
           title={tString('operationalDetails.title', 'Operational details')}
-          headerElement={
+          subTitle={
             <Button
-              type="button"
-              variant="outline"
-              size="sm"
+              variant="link"
               onClick={() => goTo('overview')}
+              className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
             >
+              <ArrowLeftIcon className="eb-size-3.5" />
               {t('common:overview', 'Overview')}
-              <MenuIcon />
             </Button>
           }
           description={tString(

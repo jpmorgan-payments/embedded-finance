@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { defineStepper } from '@stepperize/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Loader2Icon, MenuIcon } from 'lucide-react';
+import { ArrowLeftIcon, ChevronRightIcon, Loader2Icon } from 'lucide-react';
 import { useFormState } from 'react-hook-form';
 
 import { cn } from '@/lib/utils';
@@ -327,29 +327,43 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
         description={currentStep.description}
         subTitle={
           !checkAnswersMode && !previouslyCompleted && !reviewMode ? (
-            <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between eb-text-sm">
-              <div>
-                <span className="eb-mr-2 eb-border-r eb-border-r-foreground eb-pr-2">
-                  {shortLabelOverride ??
-                    currentSection?.sectionConfig.shortLabel ??
-                    currentSection?.sectionConfig.label}
-                </span>
-                <span className="eb-font-medium">
-                  {t('stepperRenderer.stepCounter', {
-                    currentStepNumber,
-                    totalSteps: steps.length,
-                  })}
-                </span>
-              </div>
+            <nav className="eb-flex eb-items-center eb-gap-1 eb-text-sm eb-text-muted-foreground">
               <Button
-                variant="outline"
-                size="sm"
+                variant="link"
                 onClick={() => goTo('overview')}
+                className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
               >
+                <ArrowLeftIcon className="eb-size-3.5" />
                 {t('stepperRenderer.buttons.overviewHeader')}
-                <MenuIcon />
               </Button>
-            </div>
+              {originScreenId === 'owners-section' && (
+                <>
+                  <ChevronRightIcon className="eb-size-3.5" />
+                  <Button
+                    variant="link"
+                    onClick={() => goBack()}
+                    className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
+                  >
+                    {currentSection?.sectionConfig.shortLabel ??
+                      currentSection?.sectionConfig.label ??
+                      t('onboarding-overview:screens.ownersSection.label')}
+                  </Button>
+                </>
+              )}
+              <ChevronRightIcon className="eb-size-3.5" />
+              <span className="eb-truncate">
+                {shortLabelOverride ??
+                  currentSection?.sectionConfig.shortLabel ??
+                  currentSection?.sectionConfig.label}
+              </span>
+              <ChevronRightIcon className="eb-size-3.5" />
+              <span className="eb-shrink-0 eb-font-medium eb-text-foreground">
+                {t('stepperRenderer.stepCounter', {
+                  currentStepNumber,
+                  totalSteps: steps.length,
+                })}
+              </span>
+            </nav>
           ) : undefined
         }
       >

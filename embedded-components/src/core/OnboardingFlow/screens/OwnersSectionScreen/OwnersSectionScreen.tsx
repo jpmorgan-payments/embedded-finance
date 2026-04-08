@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { TransWithTokens, useTranslationWithTokens } from '@/i18n';
 import { useQueryClient } from '@tanstack/react-query';
 import {
+  ArrowLeftIcon,
   ArrowRightIcon,
   InfoIcon,
   Loader2Icon,
-  MenuIcon,
   PencilIcon,
   PlusIcon,
   TrashIcon,
@@ -290,10 +290,14 @@ export const OwnersSectionScreen = () => {
   return (
     <StepLayout
       title={t('screens.owners.title')}
-      headerElement={
-        <Button variant="outline" size="sm" onClick={() => goTo('overview')}>
+      subTitle={
+        <Button
+          variant="link"
+          onClick={() => goTo('overview')}
+          className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
+        >
+          <ArrowLeftIcon className="eb-size-3.5" />
           {t('screens.owners.overviewButtonLabel')}
-          <MenuIcon />
         </Button>
       }
       description="Provide information for owners and senior managers for your company. Keep in mind that individual people may have multiple roles."
