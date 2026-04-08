@@ -34,11 +34,13 @@
     "accountNumber": "Account Number",
     "routing": "Routing",
     "achRouting": "ACH Routing Number",
+    "routingLabel": "{{type}} Routing Number",
     "showDetails": "Show account details",
     "hideDetails": "Hide account details",
     "copyAccountNumber": "Copy account number",
     "copyRouting": "Copy routing number",
     "copyAchRouting": "Copy ACH routing number",
+    "copyRoutingLabel": "Copy {{type}} routing number",
     "noBalanceData": "Balance information unavailable",
     "dataAsOf": "As of {{date}}",
     "balanceTypeInfoAriaLabel": "Learn more about {{type}}"

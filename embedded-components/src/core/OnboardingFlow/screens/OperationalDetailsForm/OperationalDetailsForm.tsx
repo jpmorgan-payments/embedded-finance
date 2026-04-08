@@ -105,10 +105,58 @@ export const OperationalDetailsForm = () => {
     questionIds: allQuestionIds.join(','),
   });
 
-  // Prepare default values for the form
+  // Extract sub-question IDs that were not included in the initial fetch
+  const missingSubQuestionIds = useMemo(() => {
+    const fetchedQuestions = questionsData?.questions ?? [];
+    const fetchedIds = new Set(fetchedQuestions.map((q) => q.id));
+    const subIds = new Set<string>();
+
+    fetchedQuestions.forEach((q) => {
+      q.subQuestions?.forEach((sq) => {
+        sq.questionIds?.forEach((id) => {
+          if (!fetchedIds.has(id)) {
+            subIds.add(id);
+          }
+        });
+      });
+    });
+
+    return [...subIds].sort();
+  }, [questionsData]);
+
+  // Fetch any sub-questions that were missing from the initial response
+  const { data: subQuestionsData, status: subQuestionsFetchStatus } =
+    useSmbdoListQuestions(
+      { questionIds: missingSubQuestionIds.join(',') },
+      { query: { enabled: missingSubQuestionIds.length > 0 } }
+    );
+
+  // Merge parent and sub-question data into a single list
+  const allQuestions = useMemo(() => {
+    const primary = questionsData?.questions ?? [];
+    const secondary = subQuestionsData?.questions ?? [];
+    if (secondary.length === 0) return primary;
+
+    const existingIds = new Set(primary.map((q) => q.id));
+    return [...primary, ...secondary.filter((q) => !existingIds.has(q.id))];
+  }, [questionsData, subQuestionsData]);
+
+  // Overall loading: still pending if primary fetch is loading, or if we
+  // know there are missing sub-questions and that fetch hasn't finished yet.
+  const isQuestionsLoading =
+    questionsFetchStatus === 'pending' ||
+    (missingSubQuestionIds.length > 0 && subQuestionsFetchStatus === 'pending');
+
+  // Prepare default values for the form (include sub-question IDs so they get form fields)
+  const allFormQuestionIds = useMemo(() => {
+    const ids = new Set(allQuestionIds);
+    missingSubQuestionIds.forEach((id) => ids.add(id));
+    return [...ids].sort();
+  }, [allQuestionIds, missingSubQuestionIds]);
+
   const defaultValues = useMemo(
     () =>
-      allQuestionIds.reduce(
+      allFormQuestionIds.reduce(
         (acc, id) => {
           const existingResponse = existingQuestionResponses?.find(
             (response) => response.questionId === id
@@ -120,7 +168,7 @@ export const OperationalDetailsForm = () => {
         },
         {} as Record<string, any>
       ),
-    [allQuestionIds, existingQuestionResponses]
+    [allFormQuestionIds, existingQuestionResponses]
   );
 
   const queryKey = getSmbdoGetClientQueryKey(clientData?.id ?? '');
@@ -432,10 +480,9 @@ export const OperationalDetailsForm = () => {
   };
 
   const dynamicSchema = useMemo(() => {
-    const visibleQuestions: QuestionResponse[] = questionsData?.questions ?? [];
-    if (!visibleQuestions) return z.object({});
-    return createDynamicZodSchema(visibleQuestions);
-  }, [questionsData]);
+    if (!allQuestions.length) return z.object({});
+    return createDynamicZodSchema(allQuestions);
+  }, [allQuestions]);
 
   const form = useForm({
     resolver: zodResolver(dynamicSchema),
@@ -457,7 +504,6 @@ export const OperationalDetailsForm = () => {
       const context = error.response?.data?.context;
       if (!context || !Array.isArray(context)) return null;
 
-      const questions = questionsData?.questions ?? [];
       let firstErrorField: string | null = null;
 
       context.forEach(
@@ -468,7 +514,7 @@ export const OperationalDetailsForm = () => {
           if (!questionId) return;
 
           // Verify this question exists in our form
-          const questionExists = questions.some((q) => q.id === questionId);
+          const questionExists = allQuestions.some((q) => q.id === questionId);
           if (!questionExists) return;
 
           const fieldName = `question_${questionId}`;
@@ -488,7 +534,7 @@ export const OperationalDetailsForm = () => {
 
       return firstErrorField;
     },
-    [form, questionsData?.questions]
+    [form, allQuestions]
   );
 
   // Handle API errors by setting field-level errors and focusing the first invalid field
@@ -508,7 +554,7 @@ export const OperationalDetailsForm = () => {
   const isQuestionVisible = (question: QuestionResponse) => {
     if (!question.parentQuestionId) return true;
 
-    const parentQuestion = questionsData?.questions?.find(
+    const parentQuestion = allQuestions.find(
       (q) => q.id === question.parentQuestionId
     );
     if (!parentQuestion) return false;
@@ -558,7 +604,7 @@ export const OperationalDetailsForm = () => {
   };
 
   const renderQuestions = () => {
-    if (!questionsData) {
+    if (!allQuestions.length) {
       return (
         <div className="eb-text-muted-foreground">
           {t(
@@ -573,8 +619,8 @@ export const OperationalDetailsForm = () => {
       parentId: string | undefined
     ): React.ReactNode => {
       if (!parentId) return null;
-      return questionsData?.questions
-        ?.filter((q) => q.parentQuestionId === parentId)
+      return allQuestions
+        .filter((q) => q.parentQuestionId === parentId)
         .filter(isQuestionVisible)
         .map((subQuestion) => (
           <Fragment
@@ -589,8 +635,8 @@ export const OperationalDetailsForm = () => {
         ));
     };
 
-    return questionsData?.questions
-      ?.filter(isQuestionParent)
+    return allQuestions
+      .filter(isQuestionParent)
       .filter(isQuestionVisible)
       .map((question, index) => (
         <Fragment key={question.id ?? `question-${index}`}>
@@ -605,10 +651,9 @@ export const OperationalDetailsForm = () => {
     setIsFormSubmitting(updateClientStatus === 'pending');
   }, [updateClientStatus]);
 
-  const isFormDisabled =
-    questionsFetchStatus === 'pending' || updateClientStatus === 'pending';
+  const isFormDisabled = isQuestionsLoading || updateClientStatus === 'pending';
 
-  if (questionsFetchStatus === 'pending') {
+  if (isQuestionsLoading) {
     return (
       <FormLoadingState
         message={tString(

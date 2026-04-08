@@ -1,0 +1,1794 @@
+openapi: 3.0.1
+info:
+  title: Accounts API
+  version: 2.0.47
+  description: Create, organize and manage accounts.<br />
+  contact:
+    name: JPMC Technical Services Support
+servers:
+  - url: https://api.payments.jpmorgan.com/embedded/v2
+    description: PRODUCTION - MTLS
+  - url: https://api-mock.payments.jpmorgan.com/embedded/v2
+    description: MOCK
+  - url: https://api-sandbox.payments.jpmorgan.com/embedded/v2
+    description: CLIENT TESTING - MTLS
+tags:
+  - name: Accounts
+    description: Create, organize and manage accounts.
+  - name: Account Restrictions
+    description: Add, Remove restrictions on the accounts.
+paths:
+  /accounts:
+    get:
+      summary: List accounts
+      description: Returns a list of accounts for a specific client.
+      operationId: getAccountsListV2
+      parameters:
+        - $ref: '#/components/parameters/clientIdInQuery'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/pageNo'
+      tags:
+        - Accounts
+      responses:
+        '200':
+          description: List of accounts for a specific client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAccountsListResponseV2'
+              examples:
+                GetAccountsListResponseV2:
+                  $ref: '#/components/examples/GetAccountsListResponseV2'
+        '400':
+          $ref: '#/components/responses/400V2'
+        '401':
+          $ref: '#/components/responses/401V2'
+        '403':
+          $ref: '#/components/responses/403V2'
+        '404':
+          $ref: '#/components/responses/404V2'
+        '500':
+          $ref: '#/components/responses/500V2'
+        '503':
+          $ref: '#/components/responses/503V2'
+    post:
+      summary: Create account
+      description: Create an account for a specific client
+      operationId: postAccountsV2
+      parameters:
+        - $ref: '#/components/parameters/configurationIdInHeader'
+        - $ref: '#/components/parameters/requestIdInHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountRequestV2'
+            examples:
+              Create an account of type SUMMARY_ACCOUNT:
+                $ref: '#/components/examples/CreateSummaryAccount'
+              Create an account of type TRANSACTION_ACCOUNT:
+                $ref: '#/components/examples/CreateTransactionAccount'
+              Create an account of type LIMITED_DDA:
+                $ref: '#/components/examples/CreateLimitedDdaAccount'
+              Create an account of type LIMITED_DDA_PAYMENTS:
+                $ref: '#/components/examples/CreateLimitedDdaPaymentsAccount'
+      tags:
+        - Accounts
+      responses:
+        '202':
+          description: Account Request Accepted
+          headers:
+            request-id:
+              $ref: '#/components/headers/requestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateAccountResponseV2'
+              examples:
+                Create an account of type SUMMARY_ACCOUNT:
+                  $ref: '#/components/examples/CreateSummaryAccountRequestResponse'
+                Create an account of type TRANSACTION_ACCOUNT:
+                  $ref: '#/components/examples/CreateTransactionAccountRequestResponse'
+                Create an account of type LIMITED_DDA:
+                  $ref: '#/components/examples/CreateLimitedDdaAccountResponse'
+                Create an account of type LIMITED_DDA_PAYMENTS:
+                  $ref: '#/components/examples/CreateLimitedDdaPaymentsAccountResponse'
+        '400':
+          $ref: '#/components/responses/400V2'
+        '401':
+          $ref: '#/components/responses/401V2'
+        '403':
+          $ref: '#/components/responses/403V2'
+        '404':
+          $ref: '#/components/responses/404V2'
+        '500':
+          $ref: '#/components/responses/500V2'
+        '503':
+          $ref: '#/components/responses/503V2'
+  /accounts/{id}:
+    parameters:
+      - $ref: '#/components/parameters/configurationIdInHeader'
+      - $ref: '#/components/parameters/requestIdInHeader'
+      - $ref: '#/components/parameters/accountIdInPath'
+    get:
+      summary: Get account
+      description: Look up a single account by account ID
+      operationId: getAccountsV2
+      tags:
+        - Accounts
+      responses:
+        '200':
+          description: Account Details
+          headers:
+            request-id:
+              $ref: '#/components/headers/requestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAccountResponseV2'
+              examples:
+                Get an account details (SUMMARY_ACCOUNT):
+                  $ref: '#/components/examples/GetSummaryAccountResponse'
+                Get an account details (TRANSACTION_ACCOUNT):
+                  $ref: '#/components/examples/GetTransactionAccountResponse'
+                Get an account details (PAYIN account):
+                  $ref: '#/components/examples/GetPayinAccountResponse'
+                Get an account details (DEFAULT account):
+                  $ref: '#/components/examples/GetDefaultAccountResponse'
+                Get an account details (MANAGEMENT account):
+                  $ref: '#/components/examples/GetManagementAccountResponse'
+                Get an account details (PROCESSING account):
+                  $ref: '#/components/examples/GetProcessingAccountResponse'
+                Get an account details (PROCESSING_OFFSET account):
+                  $ref: '#/components/examples/GetProcessingOffsetAccountResponse'
+                Get an account details (CLIENT_OFFSET account):
+                  $ref: '#/components/examples/GetClientOffsetAccountResponse'
+                Get an account details (DDA account):
+                  $ref: '#/components/examples/GetDdaAccountResponse'
+                Get an account details (CLIENT_DDA account):
+                  $ref: '#/components/examples/GetClientDdaAccountResponse'
+                Get an account details (LIMITED_DDA account):
+                  $ref: '#/components/examples/GetLimitedDDAAccountResponse'
+                Get closed account details (LIMITED_DDA account):
+                  $ref: '#/components/examples/GetClosedLimitedDDAAccountResponse'
+                Get an account details (LIMITED_DDA_PAYMENTS account):
+                  $ref: '#/components/examples/GetLimitedDdaPaymentsAccountResponse'
+        '400':
+          $ref: '#/components/responses/400V2'
+        '401':
+          $ref: '#/components/responses/401V2'
+        '403':
+          $ref: '#/components/responses/403V2'
+        '404':
+          $ref: '#/components/responses/404V2'
+        '500':
+          $ref: '#/components/responses/500V2'
+        '503':
+          $ref: '#/components/responses/503V2'
+    patch:
+      summary: Manage account
+      description: Manage account
+      operationId: manageAccountsV2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManageAccountRequestV2'
+            examples:
+              Manage an account of type TRANSACTION_ACCOUNT:
+                $ref: '#/components/examples/ManageTransactionAccount'
+      tags:
+        - Accounts
+      responses:
+        '202':
+          description: Account request accepted
+          headers:
+            request-id:
+              $ref: '#/components/headers/requestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManageAccountResponseV2'
+              examples:
+                Manage an account of type TRANSACTION_ACCOUNT:
+                  $ref: '#/components/examples/examples-ManageTransactionAccount'
+        '400':
+          $ref: '#/components/responses/400V2'
+        '401':
+          $ref: '#/components/responses/401V2'
+        '403':
+          $ref: '#/components/responses/403V2'
+        '404':
+          $ref: '#/components/responses/404V2'
+        '500':
+          $ref: '#/components/responses/500V2'
+        '503':
+          $ref: '#/components/responses/503V2'
+  /accounts/{id}/balances:
+    parameters:
+      - $ref: '#/components/parameters/configurationIdInHeader'
+      - $ref: '#/components/parameters/requestIdInHeader'
+      - $ref: '#/components/parameters/accountIdInPath'
+    get:
+      summary: Get an account balance
+      description: Get the balance details for an account
+      operationId: getAccountBalance
+      tags:
+        - Accounts
+      responses:
+        '200':
+          description: Account balance details
+          headers:
+            request-id:
+              $ref: '#/components/headers/requestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountBalanceResponseV2'
+              examples:
+                GetAccountBalanceDetailsTransactionAccount:
+                  $ref: '#/components/examples/GetAccountBalanceDetailsTransactionAccount'
+                GetAccountBalanceDetailsPayin:
+                  $ref: '#/components/examples/GetAccountBalanceDetailsPayin'
+                GetAccountBalanceDetailsDefault:
+                  $ref: '#/components/examples/GetAccountBalanceDetailsDefault'
+                GetAccountBalanceDetailsManagement:
+                  $ref: '#/components/examples/GetAccountBalanceDetailsManagement'
+                GetAccountBalanceDetailsProcessing:
+                  $ref: '#/components/examples/GetAccountBalanceDetailsProcessing'
+                GetAccountBalanceDetailsProcessingOffset:
+                  $ref: '#/components/examples/GetAccountBalanceDetailsProcessingOffset'
+                GetAccountBalanceDetailsClientOffset:
+                  $ref: '#/components/examples/GetAccountBalanceDetailsClientOffset'
+                GetAccountBalanceDetailsLimitedDDA:
+                  $ref: '#/components/examples/GetAccountBalanceDetailsLimitedDDA'
+                GetAccountBalanceDetailsLimitedDDAPayments:
+                  $ref: '#/components/examples/GetAccountBalanceDetailsLimitedDDAPayments'
+        '400':
+          $ref: '#/components/responses/400V2'
+        '401':
+          $ref: '#/components/responses/401V2'
+        '403':
+          $ref: '#/components/responses/403V2'
+        '404':
+          $ref: '#/components/responses/404V2'
+        '500':
+          $ref: '#/components/responses/500V2'
+        '503':
+          $ref: '#/components/responses/503V2'
+  /accounts/{id}/restrictions:
+    parameters:
+      - $ref: '#/components/parameters/configurationIdInHeader'
+      - $ref: '#/components/parameters/requestIdInHeader'
+      - $ref: '#/components/parameters/accountIdInPath'
+    post:
+      summary: Add a new restriction on an account
+      description: Post an account restriction request to add a new restriction on an account.
+      operationId: addAccountRestriction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddAccountRestrictionRequestV2'
+            examples:
+              Add a DIRECT_DEBIT restriction on a LIMITED_DDA_PAYMENTS account:
+                $ref: '#/components/examples/AddDirectDebitRestrictionRequest'
+              Add a DEBITS restriction on a TRANSACTION_ACCOUNT:
+                $ref: '#/components/examples/AddDebitsRestrictionRequest'
+              Add a CREDITS restriction on a TRANSACTION_ACCOUNT:
+                $ref: '#/components/examples/AddCreditsRestrictionRequest'
+              Add a DEBIT_CREDIT restriction on a TRANSACTION_ACCOUNT:
+                $ref: '#/components/examples/AddDebitCreditRestrictionRequest'
+      tags:
+        - Account Restrictions
+      responses:
+        '202':
+          description: Accepted
+          headers:
+            request-id:
+              $ref: '#/components/headers/requestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddAccountRestrictionResponseV2'
+              examples:
+                Add a DIRECT_DEBIT restriction on a LIMITED_DDA_PAYMENTS account:
+                  $ref: '#/components/examples/AddDirectDebitRestrictionResponse'
+                Add a DEBITS restriction on a TRANSACTION_ACCOUNT:
+                  $ref: '#/components/examples/AddDebitsRestrictionResponse'
+                Add a CREDITS restriction on a TRANSACTION_ACCOUNT:
+                  $ref: '#/components/examples/AddCreditsRestrictionResponse'
+                Add a DEBIT_CREDIT restriction on a TRANSACTION_ACCOUNT:
+                  $ref: '#/components/examples/AddDebitCreditRestrictionResponse'
+        '400':
+          $ref: '#/components/responses/400V2'
+        '401':
+          $ref: '#/components/responses/401V2'
+        '403':
+          $ref: '#/components/responses/403V2'
+        '404':
+          $ref: '#/components/responses/404V2'
+        '500':
+          $ref: '#/components/responses/500V2'
+        '503':
+          $ref: '#/components/responses/503V2'
+  /accounts/{id}/restrictions/{restrictionId}:
+    parameters:
+      - $ref: '#/components/parameters/configurationIdInHeader'
+      - $ref: '#/components/parameters/requestIdInHeader'
+      - $ref: '#/components/parameters/accountIdInPath'
+      - $ref: '#/components/parameters/restrictionIdInPath'
+    delete:
+      summary: Remove an account restriction
+      description: Remove the given restriction for an account
+      operationId: removeAccountRestriction
+      tags:
+        - Account Restrictions
+      responses:
+        '202':
+          description: Accepted
+          headers:
+            request-id:
+              $ref: '#/components/headers/requestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemoveAccountRestrictionResponseV2'
+              examples:
+                Remove a DIRECT_DEBIT restriction on a LIMITED_DDA_PAYMENTS account:
+                  $ref: '#/components/examples/RemoveDirectDebitRestrictionResponse'
+                Remove a DEBITS restriction on a TRANSACTION_ACCOUNT:
+                  $ref: '#/components/examples/RemoveDebitsRestrictionResponse'
+                Remove a CREDITS restriction on a TRANSACTION_ACCOUNT:
+                  $ref: '#/components/examples/RemoveCreditsRestrictionResponse'
+                Remove a DEBIT_CREDIT restriction on a TRANSACTION_ACCOUNT:
+                  $ref: '#/components/examples/RemoveDebitCreditRestrictionResponse'
+        '400':
+          $ref: '#/components/responses/400V2'
+        '401':
+          $ref: '#/components/responses/401V2'
+        '403':
+          $ref: '#/components/responses/403V2'
+        '404':
+          $ref: '#/components/responses/404V2'
+        '500':
+          $ref: '#/components/responses/500V2'
+        '503':
+          $ref: '#/components/responses/503V2'
+components:
+  parameters:
+    clientIdInQuery:
+      name: clientId
+      in: query
+      description: Unique Client identifier
+      required: false
+      example: '9000000001'
+      schema:
+        type: string
+        pattern: ^\d{10}$
+        minLength: 10
+        maxLength: 10
+    pageSize:
+      name: limit
+      in: query
+      description: Number of records per page.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 25
+        default: 25
+        format: int32
+      required: false
+    pageNo:
+      name: page
+      in: query
+      description: Page Number
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+        maximum: 1000000
+        format: int32
+      required: false
+    configurationIdInHeader:
+      name: configuration-id
+      in: header
+      description: Unique identifier for the program configuration used for the request.
+      required: false
+      example: 549ccb74-708d-4f6b-ab21-64054abd828d
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 36
+    requestIdInHeader:
+      name: request-id
+      in: header
+      description: Unique identifier for the request. This identifier is specific to this particular request. If the same payload is sent in a new request, a new identifier needs to be provided
+      required: false
+      example: efeacff8-fd2c-4f54-a12e-2a8f90d4d325
+      schema:
+        type: string
+        maxLength: 36
+        minLength: 1
+    accountIdInPath:
+      name: id
+      in: path
+      description: Unique account identifier
+      schema:
+        type: string
+        maxLength: 34
+      required: true
+      example: b316151f575e4c1e9f548f1b40aae462
+    restrictionIdInPath:
+      name: restrictionId
+      in: path
+      description: Unique identifier for the restriction
+      required: true
+      schema:
+        $ref: '#/components/schemas/RestrictionId'
+  schemas:
+    PageMetaData:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 0
+          format: int32
+          example: 1
+          description: |
+            Page Number.
+        limit:
+          type: integer
+          minimum: 0
+          format: int32
+          example: 30
+          description: |
+            Number of records per page.
+        total_items:
+          type: integer
+          minimum: 0
+          format: int32
+          example: 1
+          description: |
+            Total number of items.
+    AccountIdV2:
+      type: string
+      description: The resource Id of your account to use when looking up details of this account or making payments
+      example: dc2eda9084bf40b7a1d8baa8c5e0ea0a
+    ClientIdV2:
+      type: string
+      description: The id of the approved client created via the /clients endpoint
+      example: '0030000132'
+      maxLength: 10
+      minLength: 10
+      pattern: ^\d+$
+    LabelResponseV2:
+      type: string
+      description: Account label
+      example: MAIN
+      pattern: ^[a-zA-Z0-9 _-]+$
+    StateV2:
+      type: string
+      description: |
+        State of the account. Valid values are:
+
+        | Value | Description |
+        |-------|-------------|
+        | `OPEN` | Account is open and operational |
+        | `PENDING_OPEN` | Account opening is pending |
+        | `PENDING_CLOSE` | Account closure is pending |
+        | `CLOSED` | Account is closed |
+      example: OPEN
+      maxLength: 32
+    AccountCategoryResponseV2:
+      type: string
+      example: SUMMARY_ACCOUNT
+      description: |
+        Category of the account. Valid values are:
+
+        | Value | Description |
+        |-------|-------------|
+        | `SUMMARY_ACCOUNT` | Summary account |
+        | `TRANSACTION_ACCOUNT` | Transaction account |
+        | `PAYIN` | Pay-in account |
+        | `DEFAULT` | Default account |
+        | `MANAGEMENT` | Management account |
+        | `PROCESSING` | Processing account |
+        | `PROCESSING_OFFSET` | Processing offset account |
+        | `CLIENT_OFFSET` | Client offset account |
+        | `DDA` | DDA account |
+        | `CLIENT_DDA` | Client DDA account |
+        | `LIMITED_DDA` | Limited DDA account |
+        | `LIMITED_DDA_PAYMENTS` | Limited DDA Payments account |
+    AccountParentIdV2:
+      type: string
+      description: The id of the parent `SUMMARY_ACCOUNT` when creating a `TRANSACTION_ACCOUNT` or `SUMMARY_ACCOUNT`
+      example: dc2eda9084bf40b7a1d8baa8c5e0ea0a
+      maxLength: 32
+      pattern: ^[a-zA-Z0-9]+$
+    RoutingInformationV2:
+      type: object
+      description: Routing information
+      required:
+        - routingCodeType
+        - routingNumber
+      properties:
+        routingCodeType:
+          type: string
+          description: Identifies the type of routing number specified e.g `ABA`
+          example: ABA
+        routingNumber:
+          type: string
+          description: The routing type for the account which identifies a specific bank and branch for fund transfers
+          example: '065400137'
+        transactionType:
+          type: string
+          description: The transaction type associated to this routing number for example `ACH`
+          example: ACH
+    PaymentRoutingInformationV2:
+      type: object
+      description: Payment routing information
+      required:
+        - accountNumber
+        - country
+        - routingInformation
+      properties:
+        accountNumber:
+          type: string
+          description: Account number (PRN)
+          example: '20000113278882'
+        country:
+          type: string
+          description: Two letter country code based on ISO 3166 standard
+          example: US
+          maxLength: 2
+        routingInformation:
+          type: array
+          description: Routing information
+          items:
+            $ref: '#/components/schemas/RoutingInformationV2'
+          minItems: 0
+        status:
+          type: string
+          description: |
+            Indicates the current status of the Payment Routing Number (PRN) associated with an account. Valid values are:
+
+            | Value | Description |
+            |-------|-------------|
+            | `ACTIVE` | Allows for both incoming and outgoing transactions, including external transfers |
+            | `INACTIVE` | The client cannot receive payments (PAYIns) from external sources into the account, nor can they transfer money out externally. However, internal money movements within linked accounts are still possible |
+
+            **Important:** An `INACTIVE` PRN status strictly pertains to the PRN's ability to handle external transactions and does not affect the overall status or functionality of the account itself. The account remains active and operational for other purposes.
+          example: ACTIVE
+    BalanceLimitsV2:
+      type: object
+      description: Balance limits the account is allowed to have
+      properties:
+        minimumBalance:
+          type: string
+          description: The account balance will not be allowed to go below this limit.
+          example: '0'
+          maxLength: 15
+          pattern: '[-.0-9]+'
+        maximumBalance:
+          type: string
+          description: The account balance will not be allowed to go above this limit.
+          example: '1000000'
+          maxLength: 15
+          pattern: '[.0-9]+'
+    CreatedAtV2:
+      type: string
+      description: Date and time the account was created
+      example: '2024-09-19T17:33:42.732Z'
+      format: date-time
+    UpdatedAtV2:
+      type: string
+      description: Date and time the account was last updated
+      example: '2024-09-20T20:33:42.732Z'
+      format: date-time
+    ClosureReasonV2:
+      type: string
+      description: Reason for account closure
+      maxLength: 50
+      minLength: 1
+      example: ELECTIVE
+    AccountRestrictionV2:
+      type: object
+      description: List of restriction properties
+      required:
+        - restrictionId
+        - restrictionType
+        - restrictionReason
+        - restrictionStatus
+      properties:
+        restrictionId:
+          type: string
+          description: Unique identifier for the restriction
+          example: efeacff8-fd2c-4f54-a12e-2a8f90d4d325
+          maxLength: 36
+        restrictionType:
+          type: string
+          description: |
+            The type of restriction to apply to the account. Valid values are:
+
+            | Value | Description |
+            |-------|-------------|
+            | `DEBITS` | Restricts debit transactions |
+            | `CREDITS` | Restricts credit transactions |
+            | `DEBIT_CREDIT` | Restricts both debit and credit transactions |
+            | `DIRECT_DEBIT` | Restricts direct debit transactions |
+          example: DEBITS
+        restrictionReason:
+          type: string
+          description: |
+            Reason for restriction on account. Valid values are:
+
+            | Value | Description |
+            |-------|-------------|
+            | `CLIENT_REQUESTED` | Client requested the restriction |
+            | `COURT_ORDER` | Restriction due to court order |
+            | `FDIC` | Restriction due to FDIC |
+            | `OTHER_RESTRICTION` | Other restriction reason |
+            | `PROBATE` | Restriction due to probate |
+          example: CLIENT_REQUESTED
+        restrictionStatus:
+          type: string
+          description: |
+            Current status of the restriction. Valid values are:
+
+            | Value | Description |
+            |-------|-------------|
+            | `ACTIVE` | Restriction is currently active |
+            | `INACTIVE` | Restriction is inactive |
+            | `IN_REVIEW` | Restriction is under review |
+            | `IN_PLACE` | Restriction is in place |
+            | `CANCELLED` | Restriction has been cancelled |
+            | `REJECTED` | Restriction was rejected |
+            | `REMOVE_IN_REVIEW` | Removal of restriction is under review |
+            | `REMOVED` | Restriction has been removed |
+            | `EXPIRED` | Restriction has expired |
+            | `PENDING` | Restriction is pending |
+          example: ACTIVE
+    RestrictionsV2:
+      type: array
+      description: List of restrictions applied to the account
+      items:
+        $ref: '#/components/schemas/AccountRestrictionV2'
+      minItems: 0
+    GetAccountResponseV2:
+      type: object
+      required:
+        - id
+        - category
+        - state
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          $ref: '#/components/schemas/AccountIdV2'
+        clientId:
+          $ref: '#/components/schemas/ClientIdV2'
+        label:
+          $ref: '#/components/schemas/LabelResponseV2'
+        state:
+          $ref: '#/components/schemas/StateV2'
+        category:
+          $ref: '#/components/schemas/AccountCategoryResponseV2'
+        parentAccountId:
+          $ref: '#/components/schemas/AccountParentIdV2'
+        paymentRoutingInformation:
+          $ref: '#/components/schemas/PaymentRoutingInformationV2'
+        balanceLimits:
+          $ref: '#/components/schemas/BalanceLimitsV2'
+        createdAt:
+          $ref: '#/components/schemas/CreatedAtV2'
+        updatedAt:
+          $ref: '#/components/schemas/UpdatedAtV2'
+        closureReason:
+          $ref: '#/components/schemas/ClosureReasonV2'
+        restrictions:
+          $ref: '#/components/schemas/RestrictionsV2'
+    GetAccountsListResponseV2:
+      type: object
+      required:
+        - metadata
+        - items
+      properties:
+        metadata:
+          $ref: '#/components/schemas/PageMetaData'
+        items:
+          type: array
+          nullable: false
+          description: List of accounts for a specific client
+          items:
+            $ref: '#/components/schemas/GetAccountResponseV2'
+          minItems: 0
+    ApiErrorReasonV2:
+      type: object
+      description: Schema representing detailed reasons for an API error, including code, location, and message.
+      required:
+        - message
+      properties:
+        code:
+          type: string
+          example: '11000'
+          description: Short code that identifies the error - publicly cataloged and documented
+          minLength: 0
+        location:
+          type: string
+          enum:
+            - BODY
+            - QUERY
+            - PATH
+            - HEADER
+          example: BODY
+          description: Part of the request which is responsible for the reason
+        field:
+          type: string
+          description: The location of the property or parameter in error
+          minLength: 0
+        message:
+          type: string
+          example: Client with ID 0031234567 does not exist.
+          description: Message describing the reason. This message can typically be displayed to your platform's users, except in cases specified otherwise
+          minLength: 0
+    ApiErrorV2:
+      type: object
+      description: Schema representing a version 2 API error, including title, HTTP status, and additional context.
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          description: Short humanly-readable title of the error
+          example: BAD_REQUEST
+          minLength: 0
+        httpStatus:
+          type: integer
+          description: HTTP status code
+          minimum: 100
+          format: int32
+          example: 400
+        traceId:
+          type: string
+          description: Internal assigned traced identifier
+          minLength: 0
+        requestId:
+          type: string
+          description: Client provided request identifier
+          minLength: 0
+        context:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiErrorReasonV2'
+          description: Provides additional context and detail on the validation errors
+          minItems: 0
+          maxItems: 100
+    AccountCategoryRequestV2:
+      type: string
+      example: SUMMARY_ACCOUNT
+      description: |
+        Depending on your pathway, the category of the account can be one of the following:
+
+        | Value | Description |
+        |-------|-------------|
+        | `SUMMARY_ACCOUNT` | Summary account type |
+        | `TRANSACTION_ACCOUNT` | Transaction account type |
+        | `LIMITED_DDA` | Limited DDA account type |
+        | `LIMITED_DDA_PAYMENTS` | Limited DDA Payments account type |
+    PaymentRoutingInformationRequestV2:
+      type: object
+      description: Payment routing information request
+      required:
+        - enableAccountNumber
+      properties:
+        enableAccountNumber:
+          type: boolean
+          description: When true, an account number will be associated with the account to allow you to receive funds from external banks directly into the created account.  This is only valid for `TRANSACTION_ACCOUNT`
+          example: true
+    LabelV2:
+      type: string
+      description: The label of the account to be created. Currently, only MAIN is supported and used only when the category is `LIMITED_DDA` or `LIMITED_DDA_PAYMENTS`
+      example: MAIN
+      pattern: ^[A-Z]+$
+    CreateAccountRequestV2:
+      type: object
+      required:
+        - category
+      properties:
+        category:
+          $ref: '#/components/schemas/AccountCategoryRequestV2'
+        parentAccountId:
+          $ref: '#/components/schemas/AccountParentIdV2'
+        state:
+          $ref: '#/components/schemas/StateV2'
+        balanceLimits:
+          $ref: '#/components/schemas/BalanceLimitsV2'
+        paymentRoutingInformation:
+          $ref: '#/components/schemas/PaymentRoutingInformationRequestV2'
+        label:
+          $ref: '#/components/schemas/LabelV2'
+        clientId:
+          $ref: '#/components/schemas/ClientIdV2'
+    CreateAccountResponseV2:
+      type: object
+      required:
+        - id
+        - category
+      properties:
+        id:
+          $ref: '#/components/schemas/AccountIdV2'
+        category:
+          $ref: '#/components/schemas/AccountCategoryRequestV2'
+        parentAccountId:
+          $ref: '#/components/schemas/AccountParentIdV2'
+        state:
+          $ref: '#/components/schemas/StateV2'
+        balanceLimits:
+          $ref: '#/components/schemas/BalanceLimitsV2'
+        paymentRoutingInformation:
+          $ref: '#/components/schemas/PaymentRoutingInformationRequestV2'
+        label:
+          $ref: '#/components/schemas/LabelResponseV2'
+        clientId:
+          $ref: '#/components/schemas/ClientIdV2'
+    ClientRequestedClosureReason:
+      type: string
+      maxLength: 50
+      minLength: 1
+      description: |
+        Reason for account closure. This field is included when an account closure has been requested. Valid values include:
+
+        | Value | Description |
+        |-------|-------------|
+        | `ELECTIVE` | Account closed by choice |
+        | `SUBJECTED_TO_FRAUD` | Account closed due to fraud |
+        | `OVERDRAFT` | Account closed due to overdraft |
+        | `DORMANCY` | Account closed due to dormancy/inactivity |
+        | `OTHER` | Account closed for other reasons |
+
+        **Note:** Not used for closing `TRANSACTION_ACCOUNT` or `SUMMARY_ACCOUNT`
+    ManageAccountRequestV2:
+      type: object
+      properties:
+        state:
+          $ref: '#/components/schemas/StateV2'
+        paymentRoutingInformation:
+          $ref: '#/components/schemas/PaymentRoutingInformationRequestV2'
+        balanceLimits:
+          $ref: '#/components/schemas/BalanceLimitsV2'
+        closureReason:
+          $ref: '#/components/schemas/ClientRequestedClosureReason'
+    ManageAccountResponseV2:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          $ref: '#/components/schemas/AccountIdV2'
+        state:
+          $ref: '#/components/schemas/StateV2'
+        balanceLimits:
+          $ref: '#/components/schemas/BalanceLimitsV2'
+        paymentRoutingInformation:
+          $ref: '#/components/schemas/PaymentRoutingInformationRequestV2'
+        closureReason:
+          $ref: '#/components/schemas/ClientRequestedClosureReason'
+    AccountBalanceDtoV2:
+      type: object
+      required:
+        - type
+        - amount
+      properties:
+        type:
+          type: string
+          description: |
+            Balance Types:
+
+            | Value | Description |
+            |-------|-------------|
+            | `INTERIM_AVAILABLE` | The available balance from the ledger balance that can be paid out or have pre-authorizations holds placed against ledger balance. Available Balance = Ledger Balance - (Pending Debits + Holds) |
+            | `INTERIM_BOOKED` | The actual cash balance on the account |
+            | `INTERIM_EXPECTED` | The most optimistic future balance assuming pending credits are realized and not taking into consideration pending debits or holds. Expected Balance = Ledger Balance + Pending Credits |
+          example: INTERIM_AVAILABLE
+        amount:
+          type: string
+          description: Balance amount
+          example: '100.23'
+    AccountBalanceV2:
+      type: object
+      required:
+        - effectiveDate
+        - currency
+        - balances
+      properties:
+        effectiveDate:
+          description: The branch date when your balance was last updated, presented in ISO date format (yyyy-MM-dd). This could be future dated if transactions occur on non business days.
+          type: string
+          format: date
+          example: '2022-12-31'
+        currency:
+          type: string
+          description: Balance currency
+          example: USD
+        balances:
+          type: array
+          description: List of account balances of type  -Interim available, Interim booked and interim expected
+          items:
+            $ref: '#/components/schemas/AccountBalanceDtoV2'
+          minItems: 1
+    AccountBalanceResponseV2:
+      type: object
+      required:
+        - id
+        - items
+      properties:
+        id:
+          type: string
+          description: Account identifier
+          example: dc2eda9084bf40b7a1d8baa8c5e0ea0ax
+        items:
+          type: array
+          description: List containing account balance details for different balance types
+          items:
+            $ref: '#/components/schemas/AccountBalanceV2'
+          minItems: 1
+    RestrictionType:
+      type: string
+      example: DIRECT_DEBIT
+      description: |
+        The type of restriction to apply to the account:
+
+        | Restriction Type | Description |
+        |------------------|-------------|
+        | `DEBITS` | Restricts debit transactions |
+        | `CREDITS` | Restricts credit transactions |
+        | `DEBIT_CREDIT` | Restricts both debit and credit transactions |
+        | `DIRECT_DEBIT` | Restricts direct debit transactions |
+    AddAccountRestrictionRequestV2:
+      type: object
+      required:
+        - restrictionType
+      properties:
+        restrictionType:
+          $ref: '#/components/schemas/RestrictionType'
+    RestrictionId:
+      type: string
+      nullable: false
+      minLength: 1
+      maxLength: 36
+      description: Unique identifier for the restriction
+      example: 4c89fa2f-f452-4ca3-86cf-851362370357
+    AddAccountRestrictionResponseV2:
+      type: object
+      required:
+        - restrictionId
+        - restrictionType
+      properties:
+        restrictionId:
+          $ref: '#/components/schemas/RestrictionId'
+        restrictionType:
+          $ref: '#/components/schemas/RestrictionType'
+    RemoveAccountRestrictionResponseV2:
+      type: object
+      required:
+        - restrictionId
+      properties:
+        restrictionId:
+          $ref: '#/components/schemas/RestrictionId'
+  examples:
+    GetAccountsListResponseV2:
+      summary: List Accounts
+      description: List Accounts
+      value:
+        metadata:
+          page: 0
+          limit: 25
+          total_items: 8
+        items:
+          - id: 3ad88d43983f4312b1e67615e5aed6dd
+            clientId: '0005199987'
+            label: FUNDING
+            state: OPEN
+            category: DDA
+            paymentRoutingInformation:
+              accountNumber: '10000000123'
+              country: US
+              routingInformation:
+                - routingCodeType: ABA
+                  routingNumber: '028000024'
+            createdAt: '2025-04-14T08:57:21.529997Z'
+            updatedAt: '2025-04-14T08:57:21.434213Z'
+          - id: 1753d04e42514cd8af07032585643ad9
+            clientId: '0005199987'
+            label: PRIMARY_PROCESSING
+            state: OPEN
+            category: PROCESSING
+            paymentRoutingInformation:
+              accountNumber: '10000000001035'
+              country: US
+              routingInformation:
+                - routingCodeType: ABA
+                  routingNumber: '028000024'
+            createdAt: '2025-04-14T08:57:21.434213Z'
+            updatedAt: '2025-04-14T08:57:21.434213Z'
+          - id: b4bc60637efe4ea28fb68727a321dbea
+            clientId: '0005199987'
+            label: PROCESSING_OFFSET
+            state: OPEN
+            category: PROCESSING_OFFSET
+            paymentRoutingInformation:
+              accountNumber: '10000000001035'
+              country: US
+              routingInformation:
+                - routingCodeType: ABA
+                  routingNumber: '028000024'
+            createdAt: '2025-04-14T08:57:21.495392Z'
+            updatedAt: '2025-04-14T08:57:21.434213Z'
+          - id: 5af7ff19b6024604a4b801c805aaaa12
+            clientId: '0005199987'
+            label: TAXES
+            state: OPEN
+            category: MANAGEMENT
+            paymentRoutingInformation:
+              accountNumber: '10000000001035'
+              country: US
+              routingInformation:
+                - routingCodeType: ABA
+                  routingNumber: '028000024'
+            createdAt: '2025-04-14T08:57:21.592681Z'
+            updatedAt: '2025-04-14T08:57:21.434213Z'
+          - id: e627a5350fa3412ba121c4a26fc1b2ff
+            clientId: '0005199987'
+            label: CLIENT_OFFSET
+            state: OPEN
+            category: CLIENT_OFFSET
+            paymentRoutingInformation:
+              accountNumber: '10000000001032'
+              country: US
+              routingInformation:
+                - routingCodeType: ABA
+                  routingNumber: '028000024'
+            createdAt: '2025-04-14T08:57:21.644832Z'
+            updatedAt: '2025-04-14T08:57:21.434213Z'
+          - id: 94ad2e29486d4fe8b78f2c778370f5fe
+            clientId: '0085199987'
+            label: MAIN3919
+            state: OPEN
+            category: LIMITED_DDA
+            paymentRoutingInformation:
+              accountNumber: '20000057603919'
+              country: US
+              routingInformation:
+                - routingCodeType: ABA
+                  routingNumber: '028000024'
+            createdAt: '2025-04-14T08:57:21.792272Z'
+            updatedAt: '2025-04-14T08:57:21.434213Z'
+          - id: aemano765e14741c5a44acc570af517ab
+            clientId: '1000013296'
+            label: MAIN3229
+            state: OPEN
+            category: LIMITED_DDA
+            paymentRoutingInformation:
+              accountNumber: '20000057603229'
+              country: US
+              routingInformation:
+                - routingCodeType: ABA
+                  routingNumber: '028000024'
+            createdAt: '2025-04-14T08:57:21.862978Z'
+            updatedAt: '2025-04-14T08:57:21.434213Z'
+          - id: akrsm765e14741c5a48acc570af517da
+            clientId: '1000012400'
+            label: MAIN3212
+            state: OPEN
+            category: LIMITED_DDA_PAYMENTS
+            paymentRoutingInformation:
+              accountNumber: '20000097603212'
+              country: US
+              routingInformation:
+                - routingCodeType: ABA
+                  routingNumber: '028000024'
+            createdAt: '2025-04-14T08:57:21.913631Z'
+            updatedAt: '2025-04-14T08:57:21.434213Z'
+    CreateSummaryAccount:
+      summary: Create a SUMMARY_ACCOUNT
+      description: Create a SUMMARY_ACCOUNT
+      value:
+        category: SUMMARY_ACCOUNT
+        state: OPEN
+        parentAccountId: 05bd6de816ea4f75a7d7e9d6b3988070
+    CreateTransactionAccount:
+      summary: Create a TRANSACTION_ACCOUNT
+      description: Create a TRANSACTION_ACCOUNT
+      value:
+        category: TRANSACTION_ACCOUNT
+        state: OPEN
+        parentAccountId: 388f673db5574d419637e1ca8a578ad0
+        paymentRoutingInformation:
+          enableAccountNumber: true
+        balanceLimits:
+          minimumBalance: '0.00'
+          maximumBalance: '7600000000.95'
+    CreateLimitedDdaAccount:
+      summary: Create a LIMITED_DDA Account
+      description: Create a LIMITED_DDA account
+      value:
+        clientId: '0035199111'
+        label: MAIN
+        category: LIMITED_DDA
+    CreateLimitedDdaPaymentsAccount:
+      summary: Create a LIMITED_DDA_PAYMENTS Account
+      description: Create a LIMITED_DDA_PAYMENTS account
+      value:
+        clientId: '0035199111'
+        label: MAIN
+        category: LIMITED_DDA_PAYMENTS
+    CreateSummaryAccountRequestResponse:
+      summary: Create a SUMMARY_ACCOUNT Response
+      description: Create a SUMMARY_ACCOUNT Response
+      value:
+        id: b316151f575e4c1e9f548f1b40aae462
+        category: SUMMARY_ACCOUNT
+        state: OPEN
+        parentAccountId: 05bd6de816ea4f75a7d7e9d6b3988070
+    CreateTransactionAccountRequestResponse:
+      summary: Create a TRANSACTION_ACCOUNT Response
+      description: Create a TRANSACTION_ACCOUNT Response
+      value:
+        id: b316151f575e4c1e9f548f1b40aae462
+        category: TRANSACTION_ACCOUNT
+        state: OPEN
+        parentAccountId: 388f673db5574d419637e1ca8a578ad0
+        paymentRoutingInformation:
+          enableAccountNumber: true
+        balanceLimits:
+          minimumBalance: '0.00'
+          maximumBalance: '7600000000.95'
+    CreateLimitedDdaAccountResponse:
+      summary: Create a LIMITED_DDA Account Response
+      description: Create a LIMITED_DDA account Response
+      value:
+        id: 37703e7faefa4f8abd05a0b6d55bddbb
+        clientId: '0035199111'
+        label: MAIN
+        category: LIMITED_DDA
+    CreateLimitedDdaPaymentsAccountResponse:
+      summary: Create a LIMITED_DDA_PAYMENTS Account Response
+      description: Create a LIMITED_DDA_PAYMENTS Account Response
+      value:
+        id: 37703e7faefa4f8abd05a0b6d55bddbb
+        clientId: '0035199111'
+        label: MAIN1234
+        category: LIMITED_DDA_PAYMENTS
+    GetSummaryAccountResponse:
+      summary: Get SUMMARY_ACCOUNT details
+      description: Retrieve SUMMARY_ACCOUNT details
+      value:
+        id: b316151f575e4c1e9f548f1b40aae462
+        category: SUMMARY_ACCOUNT
+        state: OPEN
+        parentAccountId: 2af30efd0d8e4432bc271cb38e9da567
+        createdAt: '2024-09-19T17:33:42.732Z'
+        updatedAt: '2024-10-20T15:08:31.654Z'
+    GetTransactionAccountResponse:
+      summary: Get TRANSACTION_ACCOUNT details
+      description: Retrieve TRANSACTION_ACCOUNT details
+      value:
+        id: b316151f575e4c1e9f548f1b40aae462
+        category: TRANSACTION_ACCOUNT
+        state: OPEN
+        parentAccountId: 2af30efd0d8e4432bc271cb38e9da567
+        paymentRoutingInformation:
+          accountNumber: '20000113278882'
+          country: US
+          routingInformation:
+            - routingCodeType: ABA
+              routingNumber: '065400137'
+              transactionType: ACH
+          status: ACTIVE
+        balanceLimits:
+          minimumBalance: '0.0'
+          maximumBalance: '100000.00'
+        restrictions:
+          - restrictionId: befcda2d-b351-48d2-9e4d-e9ef0a07890d
+            restrictionReason: CLIENT_REQUESTED
+            restrictionType: DEBITS
+            restrictionStatus: ACTIVE
+          - restrictionId: befcda2d-b351-48d2-9e4d-e9ef0a078903
+            restrictionReason: CLIENT_REQUESTED
+            restrictionType: CREDITS
+            restrictionStatus: ACTIVE
+          - restrictionId: befcda2d-b351-48d2-9e4d-e9ef0a078902
+            restrictionReason: CLIENT_REQUESTED
+            restrictionType: CREDIT_DEBIT
+            restrictionStatus: ACTIVE
+        createdAt: '2024-09-19T17:33:42.732Z'
+        updatedAt: '2024-10-20T15:08:31.654Z'
+    GetPayinAccountResponse:
+      summary: Get PAYIN account details
+      description: Retrieve PAYIN account details
+      value:
+        id: PAYIN
+        category: PAYIN
+        state: OPEN
+        parentAccountId: DSA
+        balanceLimits:
+          minimumBalance: '0.0'
+          maximumBalance: '100000.00'
+        createdAt: '2024-09-19T17:33:42.732Z'
+        updatedAt: '2024-10-20T15:08:31.654Z'
+    GetDefaultAccountResponse:
+      summary: Get DEFAULT account details
+      description: Retrieve DEFAULT account details
+      value:
+        id: DEFAULT
+        category: DEFAULT
+        state: OPEN
+        parentAccountId: DSA
+        createdAt: '2024-09-19T17:33:42.732Z'
+        updatedAt: '2024-10-20T15:08:31.654Z'
+    GetManagementAccountResponse:
+      summary: Get MANAGEMENT account details
+      description: Retrieve MANAGEMENT account details
+      value:
+        id: 086fc9ff811446e3bc4b4daf54ed0713
+        clientId: '0001006723'
+        label: TAXES
+        state: OPEN
+        category: MANAGEMENT
+        paymentRoutingInformation:
+          accountNumber: '20000059591585'
+          country: US
+          routingInformation:
+            - routingCodeType: ABA
+              routingNumber: '028000024'
+              transactionType: ACH
+          status: ACTIVE
+        balanceLimits:
+          minimumBalance: '-23400.50'
+          maximumBalance: '99999999999'
+        restrictions:
+          - restrictionId: befcda2d-b351-48d2-9e4d-e9ef0a078902
+            restrictionReason: CLIENT_REQUESTED
+            restrictionType: DIRECT_DEBIT
+            restrictionStatus: ACTIVE
+        createdAt: '2024-09-09T10:50:07.539Z'
+        updatedAt: '2024-10-20T15:08:31.654Z'
+    GetProcessingAccountResponse:
+      summary: Get PROCESSING account details
+      description: Retrieve PROCESSING account details
+      value:
+        id: 33a63083cf58476cb3db9adf797bfde2
+        clientId: '0001006723'
+        label: SECONDARY_PROCESSING
+        state: OPEN
+        category: PROCESSING
+        paymentRoutingInformation:
+          accountNumber: '20000057603919'
+          country: US
+          routingInformation:
+            - routingCodeType: ABA
+              routingNumber: '028000024'
+              transactionType: ACH
+          status: ACTIVE
+        balanceLimits:
+          minimumBalance: '-23900.76'
+          maximumBalance: '99999999999'
+        restrictions:
+          - restrictionId: befcda2d-b351-48d2-9e4d-e9ef0a078902
+            restrictionReason: CLIENT_REQUESTED
+            restrictionType: DIRECT_DEBIT
+            restrictionStatus: ACTIVE
+        createdAt: '2024-08-25T11:59:51.965Z'
+        updatedAt: '2024-10-20T15:08:31.654Z'
+    GetProcessingOffsetAccountResponse:
+      summary: Get PROCESSING_OFFSET account details
+      description: Retrieve PROCESSING_OFFSET account details
+      value:
+        id: af1329630a4b47f8843bc9c08c9e5d42
+        clientId: '6000000134'
+        label: PROCESSING_OFFSET
+        state: PENDING_CLOSE
+        category: PROCESSING_OFFSET
+        paymentRoutingInformation:
+          accountNumber: '20000057603919'
+          country: US
+          routingInformation:
+            - routingCodeType: ABA
+              routingNumber: '028000024'
+              transactionType: ACH
+          status: ACTIVE
+        balanceLimits:
+          minimumBalance: '-23900.76'
+          maximumBalance: '99999999999'
+        restrictions:
+          - restrictionId: befcda2d-b351-48d2-9e4d-e9ef0a078902
+            restrictionReason: CLIENT_REQUESTED
+            restrictionType: DIRECT_DEBIT
+            restrictionStatus: ACTIVE
+        createdAt: '2024-07-25T11:22:29.511Z'
+        updatedAt: '2024-10-20T15:08:31.654Z'
+    GetClientOffsetAccountResponse:
+      summary: Get CLIENT_OFFSET account details
+      description: Retrieve CLIENT_OFFSET account details
+      value:
+        id: aef1e52cb3e944289cc98fb2ab036969
+        clientId: '6000000134'
+        label: CLIENT_OFFSET
+        state: OPEN
+        category: CLIENT_OFFSET
+        paymentRoutingInformation:
+          accountNumber: '2200123256'
+          country: US
+          routingInformation:
+            - routingCodeType: ABA
+              routingNumber: '028000024'
+              transactionType: ACH
+          status: INACTIVE
+        balanceLimits:
+          minimumBalance: '-99999999999'
+          maximumBalance: '99999999999'
+        restrictions:
+          - restrictionId: befcda2d-b351-48d2-9e4d-e9ef0a078902
+            restrictionReason: CLIENT_REQUESTED
+            restrictionType: DIRECT_DEBIT
+            restrictionStatus: ACTIVE
+        createdAt: '2024-06-11T11:43:56.492Z'
+        updatedAt: '2024-10-20T15:08:31.654Z'
+    GetDdaAccountResponse:
+      summary: Get DDA account details
+      description: Retrieve DDA account details
+      value:
+        id: 2c412b55c822401c9c0cb203412f8475
+        clientId: '0001007621'
+        label: FUNDING
+        state: OPEN
+        category: DDA
+        paymentRoutingInformation:
+          accountNumber: '2200123256'
+          country: US
+          routingInformation:
+            - routingCodeType: ABA
+              routingNumber: '028000024'
+              transactionType: ACH
+          status: ACTIVE
+        restrictions:
+          - restrictionId: befcda2d-b351-48d2-9e4d-e9ef0a078902
+            restrictionReason: CLIENT_REQUESTED
+            restrictionType: DIRECT_DEBIT
+            restrictionStatus: ACTIVE
+        createdAt: '2024-08-25T14:32:02.555Z'
+        updatedAt: '2024-10-20T15:08:31.654Z'
+    GetClientDdaAccountResponse:
+      summary: Get CLIENT_DDA account details
+      description: Retrieve CLIENT_DDA account details
+      value:
+        id: a599ed0b4e3c4d5083cdc9906acfced4
+        clientId: '0001010936'
+        label: CMA
+        state: OPEN
+        category: DDA
+        paymentRoutingInformation:
+          accountNumber: '20000059593553'
+          country: US
+          routingInformation:
+            - routingCodeType: ABA
+              routingNumber: '028000024'
+              transactionType: ACH
+          status: ACTIVE
+        balanceLimits:
+          minimumBalance: '-99999999999'
+          maximumBalance: '1300000.50'
+        restrictions:
+          - restrictionId: befcda2d-b351-48d2-9e4d-e9ef0a078902
+            restrictionReason: CLIENT_REQUESTED
+            restrictionType: DIRECT_DEBIT
+            restrictionStatus: ACTIVE
+        createdAt: '2024-09-25T12:14:51.126Z'
+        updatedAt: '2024-10-20T15:08:31.654Z'
+    GetLimitedDDAAccountResponse:
+      summary: Get LIMITED_DDA account details
+      description: Retrieve LIMITED_DDA account details
+      value:
+        id: aef1e52cb3e944289cc98fb2ab036969
+        clientId: '6000000134'
+        label: Main1234
+        state: OPEN
+        category: LIMITED_DDA
+        paymentRoutingInformation:
+          accountNumber: '2200123256'
+          country: US
+          routingInformation:
+            - routingCodeType: ABA
+              routingNumber: '028000024'
+              transactionType: ACH
+          status: INACTIVE
+        balanceLimits:
+          minimumBalance: '-99999999999'
+          maximumBalance: '99999999999'
+        restrictions:
+          - restrictionId: befcda2d-b351-48d2-9e4d-e9ef0a078902
+            restrictionReason: CLIENT_REQUESTED
+            restrictionType: DIRECT_DEBIT
+            restrictionStatus: ACTIVE
+        createdAt: '2024-07-11T11:43:56.492Z'
+        updatedAt: '2024-10-20T15:08:31.654Z'
+    GetClosedLimitedDDAAccountResponse:
+      summary: Get closed LIMITED_DDA account details
+      description: Retrieve closed LIMITED_DDA account details
+      value:
+        id: aef1e52cb3e944289cc98fb2ab036969
+        clientId: '6000000134'
+        label: Main1234
+        state: CLOSED
+        category: LIMITED_DDA
+        paymentRoutingInformation:
+          accountNumber: '2200123256'
+          country: US
+          routingInformation:
+            - routingCodeType: ABA
+              routingNumber: '028000024'
+              transactionType: ACH
+          status: INACTIVE
+        balanceLimits:
+          minimumBalance: '-99999999999'
+          maximumBalance: '99999999999'
+        restrictions:
+          - restrictionId: befcda2d-b351-48d2-9e4d-e9ef0a078902
+            restrictionReason: CLIENT_REQUESTED
+            restrictionType: DIRECT_DEBIT
+            restrictionStatus: ACTIVE
+        createdAt: '2024-04-11T11:43:56.492Z'
+        updatedAt: '2024-10-20T15:08:31.654Z'
+        closureReason: Elective
+    GetLimitedDdaPaymentsAccountResponse:
+      summary: Get LIMITED_DDA_PAYMENTS account details
+      description: Retrieve LIMITED_DDA_PAYMENTS account details
+      value:
+        id: aef1e52cb3e944289cc98fb2ab036969
+        clientId: '6000000134'
+        label: Main1234
+        state: OPEN
+        category: LIMITED_DDA_PAYMENTS
+        paymentRoutingInformation:
+          accountNumber: '2200123256'
+          country: US
+          routingInformation:
+            - routingCodeType: ABA
+              routingNumber: '028000024'
+              transactionType: ACH
+          status: INACTIVE
+        balanceLimits:
+          minimumBalance: '-99999999999'
+          maximumBalance: '99999999999'
+        restrictions:
+          - restrictionId: befcda2d-b351-48d2-9e4d-e9ef0a078902
+            restrictionReason: CLIENT_REQUESTED
+            restrictionType: DIRECT_DEBIT
+            restrictionStatus: ACTIVE
+        createdAt: '2024-05-11T11:43:56.492Z'
+        updatedAt: '2024-10-20T15:08:31.654Z'
+    ManageTransactionAccount:
+      summary: Manage a TRANSACTION_ACCOUNT
+      description: Manage a TRANSACTION_ACCOUNT
+      value:
+        state: OPEN
+        paymentRoutingInformation:
+          enableAccountNumber: true
+        balanceLimits:
+          minimumBalance: '5000'
+          maximumBalance: '550000'
+    examples-ManageTransactionAccount:
+      summary: Return account details for transaction account
+      description: Return account details for transaction account
+      value:
+        id: 40386addf40e4b8a825bc3847d84c260
+        state: OPEN
+        paymentRoutingInformation:
+          enableAccountNumber: true
+        balanceLimits:
+          minimumBalance: '5000'
+          maximumBalance: '550000'
+    GetAccountBalanceDetailsTransactionAccount:
+      summary: Get Account Balance - TRANSACTION_ACCOUNT
+      description: Get Account Balance - TRANSACTION_ACCOUNT
+      value:
+        id: ae86b765e14741c5a44acc570af517ab
+        items:
+          - effectiveDate: '2025-01-02'
+            currency: USD
+            balances:
+              - type: INTERIM_AVAILABLE
+                amount: '245645.65'
+              - type: INTERIM_BOOKED
+                amount: '552145.33'
+              - type: INTERIM_EXPECTED
+                amount: '204023.65'
+    GetAccountBalanceDetailsPayin:
+      summary: Get Account Balance - PAYIN
+      description: Get Account Balance - PAYIN
+      value:
+        id: PAYIN
+        items:
+          - effectiveDate: '2021-05-20'
+            currency: USD
+            balances:
+              - type: INTERIM_AVAILABLE
+                amount: '100'
+              - type: INTERIM_BOOKED
+                amount: '552145.33'
+              - type: INTERIM_EXPECTED
+                amount: '79.8'
+    GetAccountBalanceDetailsDefault:
+      summary: Get Account Balance - DEFAULT
+      description: Get Account Balance - DEFAULT
+      value:
+        id: DEFAULT
+        items:
+          - effectiveDate: '2021-05-20'
+            currency: USD
+            balances:
+              - type: INTERIM_AVAILABLE
+                amount: '4312.23'
+              - type: INTERIM_BOOKED
+                amount: '200.8'
+              - type: INTERIM_EXPECTED
+                amount: '153.79'
+    GetAccountBalanceDetailsManagement:
+      summary: Get Account Balance - MANAGEMENT
+      description: Get Account Balance - MANAGEMENT
+      value:
+        id: ae86b765e14741c5a44acc570af5123c
+        items:
+          - effectiveDate: '2024-04-15'
+            currency: USD
+            balances:
+              - type: INTERIM_AVAILABLE
+                amount: '312.23'
+              - type: INTERIM_BOOKED
+                amount: '100.8'
+              - type: INTERIM_EXPECTED
+                amount: '103.79'
+    GetAccountBalanceDetailsProcessing:
+      summary: Get Account Balance - PROCESSING
+      description: Get Account Balance - PROCESSING
+      value:
+        id: ae86b765e14741c5a44acc8920f517ab
+        items:
+          - effectiveDate: '2021-06-29'
+            currency: USD
+            balances:
+              - type: INTERIM_AVAILABLE
+                amount: '5212.23'
+              - type: INTERIM_BOOKED
+                amount: '400.8'
+              - type: INTERIM_EXPECTED
+                amount: '253.79'
+    GetAccountBalanceDetailsProcessingOffset:
+      summary: Get Account Balance - PROCESSING_OFFSET
+      description: Get Account Balance - PROCESSING_OFFSET
+      value:
+        id: bc23f765e14741c5a44acc570af517ab
+        items:
+          - effectiveDate: '2022-05-21'
+            currency: USD
+            balances:
+              - type: INTERIM_AVAILABLE
+                amount: '3812.23'
+              - type: INTERIM_BOOKED
+                amount: '108.8'
+              - type: INTERIM_EXPECTED
+                amount: '453.79'
+    GetAccountBalanceDetailsClientOffset:
+      summary: Get Account Balance - CLIENT_OFFSET
+      description: Get Account Balance - CLIENT_OFFSET
+      value:
+        id: bc23f765e14741c5a44acc570af634ub
+        items:
+          - effectiveDate: '2023-06-24'
+            currency: USD
+            balances:
+              - type: INTERIM_AVAILABLE
+                amount: '2345.23'
+              - type: INTERIM_BOOKED
+                amount: '205.8'
+              - type: INTERIM_EXPECTED
+                amount: '756.79'
+    GetAccountBalanceDetailsLimitedDDA:
+      summary: Get Account Balance - LIMITED_DDA
+      description: Get Account Balance - LIMITED_DDA
+      value:
+        id: bc23f765e14741c5a44acc570af517ab
+        items:
+          - effectiveDate: '2023-02-13'
+            currency: USD
+            balances:
+              - type: INTERIM_AVAILABLE
+                amount: '1590.23'
+              - type: INTERIM_BOOKED
+                amount: '208.8'
+              - type: INTERIM_EXPECTED
+                amount: '353.79'
+    GetAccountBalanceDetailsLimitedDDAPayments:
+      summary: Get Account Balance - LIMITED_DDA_PAYMENTS
+      description: Get Account Balance - LIMITED_DDA_PAYMENTS
+      value:
+        id: bc23f765e14741c5a44acc570af517ab
+        items:
+          - effectiveDate: '2024-01-11'
+            currency: USD
+            balances:
+              - type: INTERIM_AVAILABLE
+                amount: '2312.23'
+              - type: INTERIM_BOOKED
+                amount: '208.8'
+              - type: INTERIM_EXPECTED
+                amount: '853.79'
+    AddDirectDebitRestrictionRequest:
+      summary: Add a DIRECT_DEBIT restriction on a LIMITED_DDA_PAYMENTS account
+      description: Add a DIRECT_DEBIT restriction on a LIMITED_DDA_PAYMENTS account
+      value:
+        restrictionType: DIRECT_DEBIT
+    AddDebitsRestrictionRequest:
+      summary: Add a DEBITS restriction on a TRANSACTION_ACCOUNT
+      description: Add a DEBITS restriction on a TRANSACTION_ACCOUNT
+      value:
+        restrictionType: DEBITS
+    AddCreditsRestrictionRequest:
+      summary: Add a CREDITS restriction on a TRANSACTION_ACCOUNT
+      description: Add a CREDITS restriction on a TRANSACTION_ACCOUNT
+      value:
+        restrictionType: CREDITS
+    AddDebitCreditRestrictionRequest:
+      summary: Add a DEBIT_CREDIT restriction on a TRANSACTION_ACCOUNT
+      description: Add a DEBIT_CREDIT restriction on a TRANSACTION_ACCOUNT
+      value:
+        restrictionType: DEBIT_CREDIT
+    AddDirectDebitRestrictionResponse:
+      summary: Add a DIRECT_DEBIT restriction on a LIMITED_DDA_PAYMENTS account
+      description: Response for adding a DIRECT_DEBIT restriction on a LIMITED_DDA_PAYMENTS account
+      value:
+        id: 22f51825-9397-4eba-be5e-60ce37dbad97
+        requestId: c548d951-61ad-47eb-ad5e-13809617738d
+        restrictionId: 4c89fa2f-f452-4ca3-86cf-851362370357
+        restrictionType: DIRECT_DEBIT
+    AddDebitsRestrictionResponse:
+      summary: Add a DEBITS restriction on a TRANSACTION_ACCOUNT
+      description: Add a DEBITS restriction on a TRANSACTION_ACCOUNT
+      value:
+        id: 22f51825-9397-4eba-be5e-60ce37dbad97
+        requestId: c548d951-61ad-47eb-ad5e-13809617738d
+        restrictionId: 4c89fa2f-f452-4ca3-86cf-851362370357
+        restrictionType: DEBITS
+    AddCreditsRestrictionResponse:
+      summary: Add a CREDITS restriction on a TRANSACTION_ACCOUNT
+      description: Add a CREDITS restriction on a TRANSACTION_ACCOUNT
+      value:
+        id: 22f51825-9397-4eba-be5e-60ce37dbad97
+        requestId: c548d951-61ad-47eb-ad5e-13809617738d
+        restrictionId: 4c89fa2f-f452-4ca3-86cf-851362370357
+        restrictionType: CREDITS
+    AddDebitCreditRestrictionResponse:
+      summary: Add a DEBIT_CREDIT restriction on a TRANSACTION_ACCOUNT
+      description: Add a DEBIT_CREDIT restriction on a TRANSACTION_ACCOUNT
+      value:
+        id: 22f51825-9397-4eba-be5e-60ce37dbad97
+        requestId: c548d951-61ad-47eb-ad5e-13809617738d
+        restrictionId: 4c89fa2f-f452-4ca3-86cf-851362370357
+        restrictionType: DEBIT_CREDIT
+    RemoveDirectDebitRestrictionResponse:
+      summary: Remove a DIRECT_DEBIT restriction on a LIMITED_DDA_PAYMENTS account
+      description: Response for removing a DIRECT_DEBIT restriction on a LIMITED_DDA_PAYMENTS account
+      value:
+        id: 22f51825-9397-4eba-be5e-60ce37dbad97
+        requestId: c548d951-61ad-47eb-ad5e-13809617738d
+        restrictionId: 4c89fa2f-f452-4ca3-86cf-851362370357
+    RemoveDebitsRestrictionResponse:
+      summary: Remove a DEBITS restriction on a TRANSACTION_ACCOUNT
+      description: Response for removing a DEBITS restriction on a TRANSACTION_ACCOUNT
+      value:
+        id: 22f51825-9397-4eba-be5e-60ce37dbad97
+        requestId: c548d951-61ad-47eb-ad5e-13809617738d
+        restrictionId: 4c89fa2f-f452-4ca3-86cf-851362370357
+    RemoveCreditsRestrictionResponse:
+      summary: Remove a CREDITS restriction on a TRANSACTION_ACCOUNT
+      description: Response for removing a CREDITS restriction on a TRANSACTION_ACCOUNT
+      value:
+        id: 22f51825-9397-4eba-be5e-60ce37dbad97
+        requestId: c548d951-61ad-47eb-ad5e-13809617738d
+        restrictionId: 4c89fa2f-f452-4ca3-86cf-851362370357
+    RemoveDebitCreditRestrictionResponse:
+      summary: Remove a DEBIT_CREDIT restriction on a TRANSACTION_ACCOUNT
+      description: Response for removing a DEBIT_CREDIT restriction on a TRANSACTION_ACCOUNT
+      value:
+        id: 22f51825-9397-4eba-be5e-60ce37dbad97
+        requestId: c548d951-61ad-47eb-ad5e-13809617738d
+        restrictionId: 4c89fa2f-f452-4ca3-86cf-851362370357
+  headers:
+    requestId:
+      description: Unique identifier for the request. This identifier is specific to this particular request. If the same payload is sent in a new request, a new identifier needs to be provided
+      schema:
+        type: string
+      example: efeacff8-fd2c-4f54-a12e-2a8f90d4d325
+  responses:
+    400V2:
+      description: Bad Request
+      headers:
+        request-id:
+          $ref: '#/components/headers/requestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorV2'
+          example:
+            title: Bad Request
+            httpStatus: 400
+    401V2:
+      description: Unauthorized
+      headers:
+        request-id:
+          $ref: '#/components/headers/requestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorV2'
+          example:
+            title: Unauthorized Request
+            httpStatus: 401
+    403V2:
+      description: Forbidden
+      headers:
+        request-id:
+          $ref: '#/components/headers/requestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorV2'
+          example:
+            title: Forbidden
+            httpStatus: 403
+    404V2:
+      description: Not Found
+      headers:
+        request-id:
+          $ref: '#/components/headers/requestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorV2'
+          example:
+            title: Not Found
+            httpStatus: 404
+    500V2:
+      description: Internal Server Error
+      headers:
+        request-id:
+          $ref: '#/components/headers/requestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorV2'
+          example:
+            title: Internal Server Error
+            httpStatus: 500
+    503V2:
+      description: Service Unavailable
+      headers:
+        request-id:
+          $ref: '#/components/headers/requestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorV2'
+          example:
+            title: Service Unavailable
+            httpStatus: 503
+x-jpmc-securityDefinitions:
+  MutualTLS:
+    type: x509
+    description: Mutual TLS authentication using client and server certificates.
+x-jpmc-security:
+  - MutualTLS

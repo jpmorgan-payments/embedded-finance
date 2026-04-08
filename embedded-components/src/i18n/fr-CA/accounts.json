@@ -32,10 +32,12 @@
   "card": {
     "accountNumber": "Numéro de compte",
     "achRouting": "Numéro de routage ACH",
+    "routingLabel": "Numéro de routage {{type}}",
     "showDetails": "Afficher les détails du compte",
     "hideDetails": "Masquer les détails du compte",
     "copyAccountNumber": "Copier le numéro de compte",
     "copyAchRouting": "Copier le numéro de routage ACH",
+    "copyRoutingLabel": "Copier le numéro de routage {{type}}",
     "noBalanceData": "Informations de solde non disponibles",
     "dataAsOf": "Au {{date}}",
     "balanceTypeInfoAriaLabel": "En savoir plus sur {{type}}"

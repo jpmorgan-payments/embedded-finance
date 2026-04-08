@@ -574,13 +574,7 @@ describe('OnboardingFlow', () => {
     await user.click(ownerJobTitleDropdown);
     const ownerJobTitleOption = screen.getByRole('option', { name: /CFO/i });
     await user.click(ownerJobTitleOption);
-    const ownerNatureOfOwnershipDropdown =
-      screen.getByLabelText(/Nature of ownership/i);
-    await user.click(ownerNatureOfOwnershipDropdown);
-    const ownerNatureOfOwnershipOption = screen.getByRole('option', {
-      name: /Indirect/i,
-    });
-    await user.click(ownerNatureOfOwnershipOption);
+    // natureOfOwnership is hidden and defaults to 'Direct' in owner-stepper
     const ownerContinueButton = screen.getByRole('button', {
       name: /continue/i,
     });
@@ -638,7 +632,7 @@ describe('OnboardingFlow', () => {
     expect(screen.getByText('Jane')).toBeInTheDocument();
     expect(screen.getByText('Smith')).toBeInTheDocument();
     expect(screen.getByText('CFO')).toBeInTheDocument();
-    expect(screen.getByText('Indirect')).toBeInTheDocument();
+    // natureOfOwnership is hidden (defaults to 'Direct') in owner-stepper, so not shown in review
     expect(screen.getByText('February 20, 1990')).toBeInTheDocument();
     expect(screen.getByText('XXX-XX-1231')).toBeInTheDocument();
     expect(screen.getByText('jane.smith@example.com')).toBeInTheDocument();

@@ -74,7 +74,7 @@ export const LinkAccountScreen = () => {
     'common',
     'linked-accounts',
   ]);
-  const { goBack, setFlowUnsavedChanges } = useFlowContext();
+  const { goTo, setFlowUnsavedChanges } = useFlowContext();
   const { clientData, linkAccountStepOptions } = useOnboardingContext();
 
   const clientId = useClientId();
@@ -214,9 +214,9 @@ export const LinkAccountScreen = () => {
     submit(data);
   };
 
-  const handleCancel = () => {
+  const handleBack = () => {
     reset();
-    goBack();
+    goTo('overview', { resetHistory: true });
   };
 
   const defaultValuesOverride =
@@ -326,7 +326,7 @@ export const LinkAccountScreen = () => {
             showPaymentMethods
             allowDetailedPaymentMethods={false}
           />
-          <Button variant="outline" size="sm" onClick={() => goBack()}>
+          <Button variant="outline" size="sm" onClick={handleBack}>
             <ArrowLeftIcon className="eb-size-4" />
             {t('screens.linkAccount.returnToOverview', 'Return to overview')}
           </Button>
@@ -355,7 +355,7 @@ export const LinkAccountScreen = () => {
               )}
             </AlertDescription>
           </Alert>
-          <Button variant="outline" size="sm" onClick={() => goBack()}>
+          <Button variant="outline" size="sm" onClick={handleBack}>
             <ArrowLeftIcon className="eb-size-4" />
             {t('screens.linkAccount.returnToOverview', 'Return to overview')}
           </Button>
@@ -400,7 +400,7 @@ export const LinkAccountScreen = () => {
             certify: true,
           })
         }
-        onCancel={handleCancel}
+        onCancel={handleBack}
         isSubmitting={status === 'pending'}
         errorAlert={errorAlert}
         submitLabel={tString(
@@ -434,7 +434,7 @@ export const LinkAccountScreen = () => {
           client={clientResponseData ?? clientData}
           defaultValuesOverride={defaultValuesOverride}
           onSubmit={handleSubmit}
-          onCancel={handleCancel}
+          onCancel={handleBack}
           isLoading={status === 'pending'}
           showCard={false}
           embedded

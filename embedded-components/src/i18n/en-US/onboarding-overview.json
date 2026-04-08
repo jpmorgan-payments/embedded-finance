@@ -310,6 +310,10 @@
       "legalNameHeader": "Legal name",
       "legalNameDescription": "Your full name as recorded with government agencies"
     },
+    "ownerPersonalDetails": {
+      "legalNameHeader": "Legal name",
+      "legalNameDescription": "The owner's full name as recorded with government agencies"
+    },
     "industryForm": {
       "infoAlert": "This is used for regulatory and compliance purposes, so please ensure your selection is accurate.",
       "descriptionTooVague": "Your business description is too vague to suggest relevant industry classifications. Please provide more specific details about your business activities and primary operations.",
@@ -625,7 +629,10 @@
     "controllerJobTitle": {
       "label": "Job title",
       "placeholder": "Select job title",
-      "description": "Your current position in the organization",
+      "description": {
+        "default": "Your current position in the organization",
+        "owner": "The owner's current position in the organization"
+      },
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
@@ -639,7 +646,10 @@
     "controllerJobTitleDescription": {
       "label": "Job title description",
       "placeholder": "Enter job title description",
-      "description": "Brief description of your role and responsibilities",
+      "description": {
+        "default": "Brief description of your role and responsibilities",
+        "owner": "Brief description of the owner's role and responsibilities"
+      },
       "tooltip": "",
       "validation": {
         "maxLength": "$t(validation:text.maxLength, {'count': 50})",
@@ -675,7 +685,8 @@
       "tooltip": "",
       "description": {
         "default": "Please select your current country of residence",
-        "soleProp": "As a sole proprietor, your country of residence is set to the United States"
+        "soleProp": "As a sole proprietor, your country of residence is set to the United States",
+        "owner": "Please select the owner's current country of residence"
       },
       "validation": {
         "required": "$t(validation:required)",
@@ -748,7 +759,10 @@
     "controllerIds.issuer": {
       "label": "Issuing country",
       "placeholder": "Enter issuer",
-      "description": "Set based on your country of residence",
+      "description": {
+        "default": "Set based on your country of residence",
+        "owner": "Set based on the owner's country of residence"
+      },
       "tooltip": "",
       "validation": {
         "exactlyTwoChars": "Issuer must be a 2-letter country code"
@@ -914,7 +928,8 @@
       "validation": {
         "required": "$t(validation:required)",
         "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        "pattern": "Address can only contain letters, numbers, and basic punctuation",
+        "poBox": "Post-office boxes (PO Box) and private mail boxes (PMB) are not accepted. Please enter a physical street address."
       }
     },
     "individualAddress.secondaryAddressLine": {
@@ -1003,11 +1018,12 @@
       "label": "Address line 1",
       "placeholder": "Enter address line 1",
       "description": "P.O. box is not accepted",
-      "tooltip": "",
+      "tooltip": "Post-office boxes (PO Box), private mail boxes (PMB), virtual office and registered agent addresses are not allowed. The address must be the principal place of business.",
       "validation": {
         "required": "$t(validation:required)",
         "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        "pattern": "Address can only contain letters, numbers, and basic punctuation",
+        "poBox": "Post-office boxes (PO Box) and private mail boxes (PMB) are not accepted. Please enter a physical street address."
       }
     },
     "organizationAddress.secondaryAddressLine": {
