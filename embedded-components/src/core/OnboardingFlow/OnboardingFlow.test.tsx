@@ -574,13 +574,7 @@ describe('OnboardingFlow', () => {
     await user.click(ownerJobTitleDropdown);
     const ownerJobTitleOption = screen.getByRole('option', { name: /CFO/i });
     await user.click(ownerJobTitleOption);
-    const ownerNatureOfOwnershipDropdown =
-      screen.getByLabelText(/Nature of ownership/i);
-    await user.click(ownerNatureOfOwnershipDropdown);
-    const ownerNatureOfOwnershipOption = screen.getByRole('option', {
-      name: /Indirect/i,
-    });
-    await user.click(ownerNatureOfOwnershipOption);
+    // natureOfOwnership is hidden and defaults to 'Direct' in owner-stepper
     const ownerContinueButton = screen.getByRole('button', {
       name: /continue/i,
     });
