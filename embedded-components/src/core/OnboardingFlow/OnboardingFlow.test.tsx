@@ -632,7 +632,7 @@ describe('OnboardingFlow', () => {
     expect(screen.getByText('Jane')).toBeInTheDocument();
     expect(screen.getByText('Smith')).toBeInTheDocument();
     expect(screen.getByText('CFO')).toBeInTheDocument();
-    expect(screen.getByText('Indirect')).toBeInTheDocument();
+    // natureOfOwnership is hidden (defaults to 'Direct') in owner-stepper, so not shown in review
     expect(screen.getByText('February 20, 1990')).toBeInTheDocument();
     expect(screen.getByText('XXX-XX-1231')).toBeInTheDocument();
     expect(screen.getByText('jane.smith@example.com')).toBeInTheDocument();
