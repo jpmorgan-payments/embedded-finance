@@ -228,6 +228,12 @@ const FlowRenderer: React.FC = React.memo(() => {
         )
       : undefined;
 
+  // True when the owner stepper is open but no saved party exists yet
+  // (e.g. the user just pressed "Add owner").
+  const isAddingNewOwner =
+    isInOwnerStepper &&
+    !activeOwners.some((o) => o.id === editingPartyIds['owner-stepper']);
+
   const { sectionStatuses, stepValidations } = getFlowProgress(
     sections,
     sessionData,
@@ -305,6 +311,9 @@ const FlowRenderer: React.FC = React.memo(() => {
   }, [sessionData.mockedVerifyingSectionId]);
 
   const screen = flowConfig.screens.find((s) => s.id === currentScreenId);
+  // Include the editing party id so the stepper remounts when switching owners.
+  const editingPartyIdForScreen = editingPartyIds[currentScreenId];
+
   // Memoize the rendered screen to help prevent hook ordering issues
   const renderScreen = useCallback(() => {
     if (!screen) {
@@ -323,11 +332,16 @@ const FlowRenderer: React.FC = React.memo(() => {
     }
 
     if (screen.type === 'stepper') {
-      return <StepperRenderer key={screen.id} {...screen.stepperConfig} />;
+      return (
+        <StepperRenderer
+          key={`${screen.id}-${editingPartyIdForScreen ?? 'new'}`}
+          {...screen.stepperConfig}
+        />
+      );
     }
 
     return <div>{t('onboarding-overview:errors.unhandledScreenError')}</div>;
-  }, [screen, currentScreenId, t]);
+  }, [screen, currentScreenId, editingPartyIdForScreen, t]);
 
   return (
     <div
@@ -342,7 +356,16 @@ const FlowRenderer: React.FC = React.memo(() => {
             title={t('onboarding-overview:documentUpload.onboardingProgress')}
             disableInteraction={isFormSubmitting}
             currentSectionId={sidebarSectionId}
-            currentStepId={currentStepperStepId}
+            currentStepId={
+              isInOwnerStepper
+                ? isAddingNewOwner
+                  ? '__new-owner__'
+                  : editingPartyIds['owner-stepper']
+                : currentStepperStepId
+            }
+            currentSubStepId={
+              isInOwnerStepper ? currentStepperStepId : undefined
+            }
             onSectionClick={(screenId) => {
               const section = sections.find((s) => s.id === screenId);
               if (!section || section.type !== 'stepper') {
@@ -383,16 +406,19 @@ const FlowRenderer: React.FC = React.memo(() => {
               setCurrentStepperStepIdFallback(targetStepId);
             }}
             onStepClick={(sectionId, stepId) => {
-              // Editing an owner: sidebar steps are the owner's form steps
-              if (isInOwnerStepper && sectionId === 'owners-section') {
-                currentStepperGoTo(stepId);
-                return;
-              }
-              // Owners list: clicking an owner name opens their editor
-              if (
-                currentScreenId === 'owners-section' &&
-                sectionId === 'owners-section'
-              ) {
+              // Owners section: clicking an owner name opens their editor
+              if (sectionId === 'owners-section') {
+                // Already editing this exact owner (or new-owner placeholder)
+                if (
+                  isInOwnerStepper &&
+                  (editingPartyIds['owner-stepper'] === stepId ||
+                    (stepId === '__new-owner__' && isAddingNewOwner))
+                ) {
+                  return;
+                }
+                // Ignore clicks on the synthetic "New owner" placeholder
+                if (stepId === '__new-owner__') return;
+
                 const validation = ownerValidations[stepId];
                 const firstInvalidStep = ownerStepperConfig?.steps.find(
                   (step) =>
@@ -414,6 +440,23 @@ const FlowRenderer: React.FC = React.memo(() => {
               }
               // Different section
               goTo(sectionId, { resetHistory: true });
+            }}
+            onSubStepClick={(_sectionId, ownerPartyId, subStepId) => {
+              // Sub-step click within the owner's expanded form steps
+              if (
+                isInOwnerStepper &&
+                (editingPartyIds['owner-stepper'] === ownerPartyId ||
+                  (ownerPartyId === '__new-owner__' && isAddingNewOwner))
+              ) {
+                // Already editing this owner — just jump to the form step
+                currentStepperGoTo(subStepId);
+              } else if (ownerPartyId !== '__new-owner__') {
+                // Navigate to this owner and open the requested step
+                goTo('owner-stepper', {
+                  editingPartyId: ownerPartyId,
+                  initialStepperStepId: subStepId,
+                });
+              }
             }}
             sections={[
               {
@@ -443,58 +486,83 @@ const FlowRenderer: React.FC = React.memo(() => {
                   !!section.stepperConfig?.getDefaultPartyRequestBody &&
                   !sectionParty?.id;
 
-                // Owners section: owner-aware sidebar steps.
+                // Owners section: always show owner names with
+                // form sub-steps expanded under the owner being edited.
                 if (section.id === 'owners-section') {
-                  // Editing a specific owner → show their form steps
-                  if (
-                    isInOwnerStepper &&
-                    ownerStepperConfig &&
-                    ownerStepValidation
-                  ) {
-                    const ownerPartyMissing = !editingOwnerParty?.id;
-                    return {
-                      ...section,
-                      status: sectionStatuses[section.id] || 'not_started',
-                      title:
-                        section.sectionConfig.shortLabel ??
-                        section.sectionConfig.label,
-                      steps: ownerStepperConfig.steps.map(
-                        (step, stepIndex) =>
-                          ({
-                            ...step,
-                            status:
-                              stepIndex > 0 && ownerPartyMissing
-                                ? 'on_hold'
-                                : ownerStepValidation.stepValidationMap[step.id]
-                                      ?.isValid
-                                  ? 'completed'
-                                  : step.stepType === 'check-answers'
-                                    ? 'on_hold'
-                                    : 'not_started',
-                          }) as TimelineStep
-                      ),
-                    };
-                  }
-
-                  // List view → show each active owner by name
                   return {
                     ...section,
                     status: sectionStatuses[section.id] || 'not_started',
                     title:
                       section.sectionConfig.shortLabel ??
                       section.sectionConfig.label,
-                    steps: activeOwners.map((owner) => {
-                      const validation = owner.id
-                        ? ownerValidations[owner.id]
-                        : undefined;
-                      return {
-                        id: owner.id ?? '',
-                        title: getPartyName(owner) || 'Owner',
-                        status: validation?.allStepsValid
-                          ? 'completed'
-                          : 'missing_details',
-                      } as TimelineStep;
-                    }),
+                    steps: [
+                      ...activeOwners.map((owner) => {
+                        const isEditingThisOwner =
+                          isInOwnerStepper &&
+                          owner.id === editingPartyIds['owner-stepper'];
+                        const validation = owner.id
+                          ? ownerValidations[owner.id]
+                          : undefined;
+
+                        return {
+                          id: owner.id ?? '',
+                          title: getPartyName(owner) || 'Owner',
+                          status: validation?.allStepsValid
+                            ? 'completed'
+                            : 'missing_details',
+                          isExpanded: isEditingThisOwner,
+                          subSteps:
+                            isEditingThisOwner &&
+                            ownerStepperConfig &&
+                            ownerStepValidation
+                              ? ownerStepperConfig.steps.map(
+                                  (step, stepIndex) => ({
+                                    id: step.id,
+                                    title: step.title,
+                                    status:
+                                      stepIndex > 0 && !editingOwnerParty?.id
+                                        ? ('on_hold' as const)
+                                        : ownerStepValidation.stepValidationMap[
+                                              step.id
+                                            ]?.isValid
+                                          ? ('completed' as const)
+                                          : step.stepType === 'check-answers'
+                                            ? ('on_hold' as const)
+                                            : ('not_started' as const),
+                                  })
+                                )
+                              : undefined,
+                        } as TimelineStep;
+                      }),
+                      // Synthetic placeholder when adding a brand-new owner
+                      // (party not yet created in the backend).
+                      ...(isAddingNewOwner && ownerStepperConfig
+                        ? [
+                            {
+                              id: '__new-owner__',
+                              title: 'New owner',
+                              status: 'not_started' as const,
+                              isExpanded: true,
+                              subSteps: ownerStepperConfig.steps.map(
+                                (step, stepIndex) => ({
+                                  id: step.id,
+                                  title: step.title,
+                                  status:
+                                    stepIndex > 0
+                                      ? ('on_hold' as const)
+                                      : ownerStepValidation?.stepValidationMap[
+                                            step.id
+                                          ]?.isValid
+                                        ? ('completed' as const)
+                                        : step.stepType === 'check-answers'
+                                          ? ('on_hold' as const)
+                                          : ('not_started' as const),
+                                })
+                              ),
+                            } as TimelineStep,
+                          ]
+                        : []),
+                    ],
                   };
                 }
 

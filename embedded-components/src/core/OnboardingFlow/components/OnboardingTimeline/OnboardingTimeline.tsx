@@ -13,6 +13,10 @@ export interface TimelineStep {
   title: string;
   description?: string;
   status: TimelineItemStatus;
+  /** Nested sub-steps shown inline when the step is expanded (e.g. owner form steps). */
+  subSteps?: TimelineStep[];
+  /** Whether the sub-steps list is currently visible. */
+  isExpanded?: boolean;
 }
 
 export interface TimelineSection {
@@ -32,6 +36,14 @@ export interface OnboardingTimelineProps
   currentStepId?: string;
   onSectionClick?: (sectionId: ScreenId) => void;
   onStepClick?: (sectionId: ScreenId, stepId: string) => void;
+  /** Callback fired when a sub-step inside an expanded step is clicked. */
+  onSubStepClick?: (
+    sectionId: ScreenId,
+    stepId: string,
+    subStepId: string
+  ) => void;
+  /** The ID of the currently active sub-step (e.g. owner form step). */
+  currentSubStepId?: string;
   disableInteraction?: boolean;
 }
 
@@ -46,6 +58,8 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
   currentStepId,
   onSectionClick,
   onStepClick,
+  onSubStepClick,
+  currentSubStepId,
   className,
   disableInteraction = false,
   ...props
@@ -126,6 +140,33 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
     }
   };
 
+  /** Uniform 6px dot indicator for sub-steps. Same size for every state
+   *  so they always align horizontally in the list. */
+  const getSubStepDot = (status: TimelineItemStatus) => {
+    const base = 'eb-size-1.5 eb-shrink-0 eb-rounded-full';
+    switch (status) {
+      case 'completed':
+      case 'completed_disabled':
+        return <span className={cn(base, 'eb-bg-success')} />;
+      case 'current':
+        return <span className={cn(base, 'eb-bg-primary')} />;
+      case 'on_hold':
+        return <span className={cn(base, 'eb-bg-muted-foreground/30')} />;
+      case 'missing_details':
+        return <span className={cn(base, 'eb-bg-warning')} />;
+      case 'not_started':
+      default:
+        return (
+          <span
+            className={cn(
+              base,
+              'eb-border eb-border-muted-foreground/40 eb-bg-transparent'
+            )}
+          />
+        );
+    }
+  };
+
   const getItemStatus = (
     sectionId: string,
     stepId?: string
@@ -181,7 +222,10 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
           const isCurrentSection = currentSectionId === section.id;
           const hasCurrentStep = section.steps.some(
             (step) =>
-              currentSectionId === section.id && currentStepId === step.id
+              (currentSectionId === section.id && currentStepId === step.id) ||
+              // Also consider a step "current" if it has an active sub-step
+              (step.isExpanded &&
+                step.subSteps?.some((ss) => currentSubStepId === ss.id))
           );
           // Only highlight section if it's current AND has no steps OR has no current step
           const shouldHighlightSection =
@@ -370,9 +414,26 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                     const isCurrentStep =
                       currentSectionId === section.id &&
                       currentStepId === step.id;
+                    // When a sub-step is active, soften the parent step highlight
+                    const hasActiveSubStep =
+                      step.isExpanded &&
+                      !!currentSubStepId &&
+                      !!step.subSteps?.some((ss) => ss.id === currentSubStepId);
 
                     return (
-                      <div key={step.id}>
+                      <div key={step.id} className="eb-relative">
+                        {/* When sub-steps are expanded, the gap between this step
+                            icon and the next is too tall for the fixed-height
+                            connecting line. This full-height line bridges it,
+                            aligned with the step icon center (pl-4 + ml-1 + half
+                            of 16px icon = 28px, minus 1px to center the 2px
+                            border). The step icons (z-30) sit on top. */}
+                        {step.isExpanded && step.subSteps?.length ? (
+                          <span
+                            className="eb-pointer-events-none eb-absolute eb-inset-y-0 eb-left-[27px] eb-z-10 eb-border-l-2 eb-border-dotted eb-border-muted-foreground/40"
+                            aria-hidden="true"
+                          />
+                        ) : null}
                         <button
                           type="button"
                           disabled={
@@ -391,6 +452,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                             disableInteraction &&
                               'eb-pointer-events-none eb-cursor-default',
                             isCurrentStep &&
+                              !hasActiveSubStep &&
                               'eb-bg-sidebar-accent eb-font-medium eb-text-sidebar-accent-foreground'
                           )}
                           onClick={(e) => {
@@ -400,8 +462,8 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                             }
                           }}
                         >
-                          {/* Current step vertical line */}
-                          {isCurrentStep && (
+                          {/* Current step vertical line — hidden when a sub-step owns the highlight */}
+                          {isCurrentStep && !hasActiveSubStep && (
                             <div className="eb-absolute eb-inset-y-0 eb-left-0 eb-z-20 eb-w-1 eb-rounded-r eb-bg-primary" />
                           )}
 
@@ -546,7 +608,8 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                               <span
                                 className={cn(
                                   'eb-hyphens-auto eb-break-words eb-leading-5',
-                                  isCurrentStep && 'eb-font-medium'
+                                  (isCurrentStep || hasActiveSubStep) &&
+                                    'eb-font-medium'
                                 )}
                               >
                                 {step.title}
@@ -554,6 +617,77 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                             </div>
                           </div>
                         </button>
+
+                        {/* Sub-steps: clean indented list under expanded step.
+                            pl-[4rem]=64px matches step text start position.
+                            Each row is: [6px dot] [gap-2=8px] [text] — giving
+                            a clear visual nest under the owner name above. */}
+                        {step.isExpanded && step.subSteps?.length ? (
+                          <div className="eb-py-0.5">
+                            {step.subSteps.map((subStep) => {
+                              const resolvedSubStepStatus: TimelineItemStatus =
+                                subStep.status === 'completed' ||
+                                subStep.status === 'completed_disabled'
+                                  ? subStep.status
+                                  : currentSubStepId === subStep.id
+                                    ? 'current'
+                                    : subStep.status;
+                              const isCurrentSub =
+                                currentSubStepId === subStep.id;
+
+                              return (
+                                <button
+                                  key={subStep.id}
+                                  type="button"
+                                  disabled={
+                                    resolvedSubStepStatus === 'on_hold' ||
+                                    resolvedSubStepStatus ===
+                                      'completed_disabled'
+                                  }
+                                  data-user-event={
+                                    ONBOARDING_FLOW_USER_JOURNEYS.SCREEN_NAVIGATION
+                                  }
+                                  data-section-id={section.id}
+                                  data-step-id={step.id}
+                                  data-sub-step-id={subStep.id}
+                                  className={cn(
+                                    'eb-relative eb-flex eb-w-full eb-items-center eb-gap-2 eb-py-1 eb-pl-[4rem] eb-pr-2 eb-text-left eb-outline-none eb-ring-ring eb-transition-colors eb-duration-200 disabled:eb-pointer-events-none disabled:eb-opacity-50',
+                                    !disableInteraction &&
+                                      'eb-cursor-pointer hover:eb-bg-sidebar-accent hover:eb-text-sidebar-accent-foreground focus-visible:eb-ring-2',
+                                    disableInteraction &&
+                                      'eb-pointer-events-none eb-cursor-default',
+                                    isCurrentSub
+                                      ? 'eb-bg-sidebar-accent eb-text-sidebar-accent-foreground'
+                                      : 'eb-text-muted-foreground'
+                                  )}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    if (!disableInteraction) {
+                                      onSubStepClick?.(
+                                        section.id,
+                                        step.id,
+                                        subStep.id
+                                      );
+                                    }
+                                  }}
+                                >
+                                  {isCurrentSub && (
+                                    <div className="eb-absolute eb-inset-y-0 eb-left-0 eb-w-0.5 eb-rounded-r eb-bg-primary" />
+                                  )}
+                                  {getSubStepDot(resolvedSubStepStatus)}
+                                  <span
+                                    className={cn(
+                                      'eb-text-xs eb-leading-5',
+                                      isCurrentSub && 'eb-font-semibold'
+                                    )}
+                                  >
+                                    {subStep.title}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : null}
                       </div>
                     );
                   })}
