@@ -8,7 +8,9 @@ import {
   COUNTRIES_OF_FORMATION,
   getSubdivisionsForCountry,
 } from '@/core/OnboardingFlow/consts';
+import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
+import { getOrganizationParty } from '@/core/OnboardingFlow/utils/dataUtils';
 import { useGetFieldContentToken } from '@/core/OnboardingFlow/utils/formUtils';
 
 import { useContactDetailsFormSchema } from './ContactDetailsForm.schema';
@@ -17,6 +19,12 @@ export const ContactDetailsForm: FormStepComponent = () => {
   const { t, tString } = useTranslationWithTokens('onboarding-overview');
   const getIndividualAddressContentToken =
     useGetFieldContentToken('individualAddress');
+
+  const { clientData } = useOnboardingContext();
+  const orgParty = getOrganizationParty(clientData);
+  const isSoleProp =
+    orgParty?.organizationDetails?.organizationType === 'SOLE_PROPRIETORSHIP';
+  const countryOfFormation = orgParty?.organizationDetails?.countryOfFormation;
 
   const form =
     useFormContext<z.input<ReturnType<typeof useContactDetailsFormSchema>>>();
@@ -93,6 +101,7 @@ export const ContactDetailsForm: FormStepComponent = () => {
               </span>
             ),
           }))}
+          readonly={isSoleProp && !!countryOfFormation}
           required
         />
         <OnboardingFormField
