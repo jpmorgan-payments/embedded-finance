@@ -236,12 +236,14 @@ const FlowRenderer: React.FC = React.memo(() => {
     currentScreenId
   );
 
+  const { interceptorReady } = useInterceptorStatus();
+
   // Fetch existing linked accounts to determine sidebar status
   const { data: recipientsData } = useGetAllRecipients(
     { type: 'LINKED_ACCOUNT' },
     {
       query: {
-        enabled: !!showLinkAccountStep,
+        enabled: interceptorReady && !!showLinkAccountStep,
       },
     }
   );
