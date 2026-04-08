@@ -29,17 +29,16 @@ const queryClient = new QueryClient({
 // Component rendering helper
 const renderComponent = (
   transactionId: string,
-  mockData: any = mockTransactionComplete
+  mockData: any = mockTransactionComplete,
+  options?: { skipMock?: boolean }
 ) => {
-  // Reset MSW handlers before each render
-  server.resetHandlers();
-
-  // Setup explicit API mock handlers
-  server.use(
-    http.get('/transactions/:id', () => {
-      return HttpResponse.json(mockData);
-    })
-  );
+  if (!options?.skipMock) {
+    server.use(
+      http.get('/transactions/:id', () => {
+        return HttpResponse.json(mockData);
+      })
+    );
+  }
 
   return render(
     <EBComponentsProvider
@@ -61,6 +60,7 @@ const renderComponent = (
 describe('TransactionDetailsSheet', () => {
   beforeEach(() => {
     queryClient.clear();
+    server.resetHandlers();
   });
 
   describe('Rendering Tests', () => {
@@ -79,22 +79,27 @@ describe('TransactionDetailsSheet', () => {
       ).toBeInTheDocument();
     });
 
-    test.skip('displays loading state while fetching', async () => {
+    test('displays loading state while fetching', async () => {
+      let release: (value?: unknown) => void;
+      const barrier = new Promise((resolve) => {
+        release = resolve;
+      });
+
       server.use(
         http.get('/transactions/:id', async () => {
-          await new Promise((resolve) => {
-            setTimeout(resolve, 100);
-          });
+          await barrier;
           return HttpResponse.json(mockTransactionComplete);
         })
       );
 
-      renderComponent('txn-001');
+      renderComponent('txn-001', mockTransactionComplete, { skipMock: true });
       await userEvent.click(screen.getByText('View Details'));
 
       expect(
         screen.getByText(/Loading transaction details/i)
       ).toBeInTheDocument();
+
+      release!();
 
       await waitFor(() => {
         expect(
@@ -115,7 +120,7 @@ describe('TransactionDetailsSheet', () => {
       expect(screen.getByText('Completed')).toBeInTheDocument();
     });
 
-    test.skip('closes dialog on close button click', async () => {
+    test('closes dialog on close button click', async () => {
       renderComponent('txn-001');
       await userEvent.click(screen.getByText('View Details'));
 
@@ -123,7 +128,8 @@ describe('TransactionDetailsSheet', () => {
         expect(screen.getByText(/Transaction: txn-001/i)).toBeInTheDocument();
       });
 
-      await userEvent.click(screen.getByRole('button', { name: /close/i }));
+      const closeButtons = screen.getAllByRole('button', { name: /close/i });
+      await userEvent.click(closeButtons[0]);
 
       await waitFor(() => {
         expect(
@@ -266,14 +272,13 @@ describe('TransactionDetailsSheet', () => {
       });
     });
 
-    test.skip('formats dates correctly', async () => {
+    test('formats dates correctly', async () => {
       renderComponent('txn-complete-001');
       await userEvent.click(screen.getByText('View Details'));
 
       await waitFor(() => {
-        // Check for the formatted date - it could be in different formats
-        const dateElement = screen.getByText(/May.*2024/i);
-        expect(dateElement).toBeInTheDocument();
+        const dates = screen.getAllByText(/May 1, 2024/i);
+        expect(dates.length).toBeGreaterThan(0);
       });
     });
 
@@ -326,7 +331,7 @@ describe('TransactionDetailsSheet', () => {
   });
 
   describe('API Integration Tests', () => {
-    test.skip('fetches transaction on dialog open', async () => {
+    test('fetches transaction on dialog open', async () => {
       let requestMade = false;
 
       server.use(
@@ -336,14 +341,12 @@ describe('TransactionDetailsSheet', () => {
         })
       );
 
-      renderComponent('txn-001');
+      renderComponent('txn-001', mockTransactionComplete, { skipMock: true });
 
-      // Request should not be made initially
       expect(requestMade).toBe(false);
 
       await userEvent.click(screen.getByText('View Details'));
 
-      // Wait for the dialog to appear and transaction to load
       await waitFor(
         () => {
           expect(requestMade).toBe(true);
@@ -352,7 +355,7 @@ describe('TransactionDetailsSheet', () => {
       );
     });
 
-    test.skip('renders ServerErrorAlert on API error', async () => {
+    test('renders ServerErrorAlert on API error', async () => {
       server.use(
         http.get('/transactions/:id', () => {
           return HttpResponse.json(
@@ -366,7 +369,7 @@ describe('TransactionDetailsSheet', () => {
         })
       );
 
-      renderComponent('txn-001');
+      renderComponent('txn-001', mockTransactionComplete, { skipMock: true });
       await userEvent.click(screen.getByText('View Details'));
 
       // Wait for dialog to open first

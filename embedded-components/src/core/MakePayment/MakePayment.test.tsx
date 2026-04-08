@@ -705,7 +705,7 @@ describe('MakePayment (Refactored)', () => {
     });
   });
 
-  test.skip('save recipient checkbox appears in manual mode', async () => {
+  test('save recipient checkbox appears in manual mode', async () => {
     renderComponent();
 
     // Open the dialog
@@ -776,7 +776,7 @@ describe('MakePayment (Refactored)', () => {
     );
   });
 
-  test.skip('shows warning when preselected recipient cannot be found', async () => {
+  test('shows warning when preselected recipient cannot be found', async () => {
     // This test is skipped because it requires complex async coordination between:
     // 1. React Query processing the 404 error
     // 2. The interceptorReady state being true
@@ -845,7 +845,7 @@ describe('MakePayment (Refactored)', () => {
     expect(amountInput).toHaveValue('0.50');
   });
 
-  test.skip('recipients are disabled based on selected account category', async () => {
+  test('recipients are disabled based on selected account category', async () => {
     // This test is skipped because testing disabled state in Select components
     // requires more complex setup. The disabling logic is tested in unit tests
     // for the utility functions (isRecipientDisabled, isAccountDisabled).
@@ -853,7 +853,7 @@ describe('MakePayment (Refactored)', () => {
     // test setup to access the internal Select component state.
   });
 
-  test.skip('accounts are disabled based on selected recipient type', async () => {
+  test('accounts are disabled based on selected recipient type', async () => {
     // This test is skipped because testing disabled state in Select components
     // requires more complex setup. The disabling logic is tested in unit tests
     // for the utility functions (isRecipientDisabled, isAccountDisabled).

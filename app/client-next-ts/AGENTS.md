@@ -12,6 +12,7 @@ All commands run from this directory (`app/client-next-ts/`):
 - Type check: `npx tsc --noEmit`
 - Format: `yarn format`
 - Tests: `yarn test`
+- Coverage (Vitest + `@vitest/coverage-v8`): `yarn test:coverage` (HTML report in `coverage/`). Totals omit auxiliary demos, generated route tree, very large SellSense drawers, TanStack route modules, several embedded shell components, and `msw/browser.ts` (see `vite.config.js` `test.coverage.exclude`).
 - Health checks: `yarn health-check:all`
 
 ## Technology Stack

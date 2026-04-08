@@ -384,7 +384,7 @@ describe.skip('DocumentUploadScreen', () => {
     });
   });
 
-  test.skip('shows error message when document request API fails', async () => {
+  test('shows error message when document request API fails', async () => {
     // Clear any cached queries
     queryClient.clear();
     // Ensure query retries are disabled for this test
