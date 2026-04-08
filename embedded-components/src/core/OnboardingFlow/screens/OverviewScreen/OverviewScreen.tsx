@@ -135,8 +135,7 @@ export const OverviewScreen = () => {
       { type: 'LINKED_ACCOUNT' },
       {
         query: {
-          enabled:
-            interceptorReady && !!showLinkAccountStep,
+          enabled: interceptorReady && !!showLinkAccountStep,
         },
       }
     );
