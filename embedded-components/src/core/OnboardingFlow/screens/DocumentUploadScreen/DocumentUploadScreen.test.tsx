@@ -342,15 +342,15 @@ describe('DocumentUploadScreen', () => {
     const goBackMock = vi.fn();
     renderComponent(undefined, undefined, { goBack: goBackMock });
 
-    await waitFor(() => {
-      expect(screen.getByText(/return to overview/i)).toBeInTheDocument();
+    const returnButton = await screen.findByRole('button', {
+      name: /return to overview/i,
     });
-
-    const returnButton = screen.getByText(/return to overview/i);
     await userEvent.click(returnButton);
 
-    expect(goBackMock).toHaveBeenCalledWith({
-      fallbackScreenId: 'overview',
+    await waitFor(() => {
+      expect(goBackMock).toHaveBeenCalledWith({
+        fallbackScreenId: 'overview',
+      });
     });
   });
 
