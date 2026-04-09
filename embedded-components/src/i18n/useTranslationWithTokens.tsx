@@ -49,11 +49,13 @@ export function useTranslationWithTokens<N extends ValidNamespace>(
   /**
    * Translate a key, optionally annotating with token ID.
    * Returns ReactNode when showTokenIds is enabled, string otherwise.
+   *
+   * Must forward all arguments to i18next `t` (e.g. `t(key, defaultValue, options)`
+   * for interpolation). Only passing `(key, options)` drops the third argument and
+   * breaks strings like `Document {{number}}`.
    */
   function t(...args: Parameters<TFunc>): TranslationResult {
-    const [key, options] = args;
-    // Use any cast to work around complex TFunction overload types
-    const translated = (originalT as any)(key, options);
+    const translated = (originalT as any)(...args);
 
     if (!showTokenIds) {
       return translated;
@@ -66,9 +68,19 @@ export function useTranslationWithTokens<N extends ValidNamespace>(
     }
 
     // Build full token ID (namespace.key)
-    const keyStr = String(key);
+    const keyStr = String(args[0]);
+    // Prefer `ns` from the last object arg (covers t(key, opts) and t(key, default, opts))
+    let optionsForNs: Record<string, unknown> | undefined;
+    for (let i = args.length - 1; i >= 1; i -= 1) {
+      const a = args[i];
+      if (typeof a === 'object' && a !== null && !Array.isArray(a)) {
+        optionsForNs = a as Record<string, unknown>;
+        break;
+      }
+    }
     const namespace =
-      (options as any)?.ns ?? (keyStr.includes(':') ? undefined : primaryNs);
+      (optionsForNs as { ns?: string } | undefined)?.ns ??
+      (keyStr.includes(':') ? undefined : primaryNs);
     const tokenId = namespace ? `${namespace}:${keyStr}` : keyStr;
 
     return (
@@ -83,9 +95,7 @@ export function useTranslationWithTokens<N extends ValidNamespace>(
    * Use this when the result must be a string (e.g., for title attributes).
    */
   const tString = (...args: Parameters<TFunc>): string => {
-    const [key, options] = args;
-    // Use any cast to work around complex TFunction overload types
-    return (originalT as any)(key, options);
+    return (originalT as any)(...args);
   };
 
   return { t, tString, i18n, ready };
