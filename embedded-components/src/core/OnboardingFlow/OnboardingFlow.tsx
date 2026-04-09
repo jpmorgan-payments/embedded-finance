@@ -332,12 +332,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     }
 
     if (screen.type === 'stepper') {
-      return (
-        <StepperRenderer
-          key={`${screen.id}-${editingPartyIdForScreen ?? 'new'}`}
-          {...screen.stepperConfig}
-        />
-      );
+      return <StepperRenderer key={screen.id} {...screen.stepperConfig} />;
     }
 
     return <div>{t('onboarding-overview:errors.unhandledScreenError')}</div>;
