@@ -81,7 +81,6 @@ export const NewWithClientId: Story = {
 
     disclosureConfig: {
       platformName: 'SellSense',
-      jpMorganAccountTermsUrl: 'https://example.com/jpmorgan-account-terms',
       platformAgreementUrl: 'https://example.com/sellsense-program-agreement',
     },
   },

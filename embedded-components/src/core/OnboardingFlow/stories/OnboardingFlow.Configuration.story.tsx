@@ -490,8 +490,8 @@ export const WithUserTracking: Story = {
  *   Banking services provided by JPMorgan Chase Bank, N.A., Member FDIC."
  * - The Review step displays three attestation checkboxes instead of the
  *   single "data accuracy" checkbox.
- * - The third checkbox includes hyperlinks to J.P. Morgan Account Terms
- *   and the Platform Provider's Program Agreement.
+ * - The third checkbox includes a link to download the J.P. Morgan Account Terms
+ *   PDF (from the API) and a hyperlink to the Platform Provider's Program Agreement.
  */
 export const WithDisclosureConfig: Story = {
   name: 'With Disclosure Config',
@@ -499,7 +499,6 @@ export const WithDisclosureConfig: Story = {
     ...commonArgs,
     disclosureConfig: {
       platformName: 'SellSense',
-      jpMorganAccountTermsUrl: 'https://example.com/jpmorgan-account-terms',
       platformAgreementUrl: 'https://example.com/sellsense-program-agreement',
     },
   },
@@ -524,9 +523,7 @@ export const WithDisclosureConfigCustomLabel: Story = {
     ...commonArgs,
     disclosureConfig: {
       platformName: 'PayFicient',
-      jpMorganAccountTermsUrl: 'https://example.com/jpmorgan-account-terms',
-      platformAgreementUrl:
-        'https://example.com/payficient-terms-of-service',
+      platformAgreementUrl: 'https://example.com/payficient-terms-of-service',
       platformAgreementLabel: "PayFicient's Terms of Service",
     },
   },
