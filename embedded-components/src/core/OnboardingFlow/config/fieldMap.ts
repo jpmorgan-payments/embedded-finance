@@ -140,6 +140,16 @@ export const partyFieldMap: PartyFieldMap = {
       required: false,
       defaultValue: '',
     },
+    conditionalRules: [
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          contentTokenOverrideKey: 'owner',
+        },
+      },
+    ],
   },
   // ownerEmail: {
   //   path: 'email',
@@ -162,8 +172,12 @@ export const partyFieldMap: PartyFieldMap = {
           screenId: ['owner-stepper'],
         },
         rule: {
-          display: 'visible',
-          required: true,
+          // The API rejects 'Indirect' when the parent party role is CLIENT,
+          // which is always the case in this onboarding flow. Hide the field
+          // and default to 'Direct' so it's sent automatically on submit.
+          display: 'hidden',
+          required: false,
+          defaultValue: 'Direct',
         },
       },
     ],
@@ -540,6 +554,16 @@ export const partyFieldMap: PartyFieldMap = {
       required: true,
       defaultValue: '',
     },
+    conditionalRules: [
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          contentTokenOverrideKey: 'owner',
+        },
+      },
+    ],
     toStringFn: (val) => {
       if (val === undefined) {
         return undefined;
@@ -566,20 +590,58 @@ export const partyFieldMap: PartyFieldMap = {
           contentTokenOverrideKey: 'soleProp',
         },
       },
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          contentTokenOverrideKey: 'owner',
+        },
+      },
     ],
     toStringFn: (val) => `${i18n.t(`common:countries.${val}`)} (${val})`,
   },
   controllerFirstName: {
     path: 'individualDetails.firstName',
     baseRule: { display: 'visible', required: true, defaultValue: '' },
+    conditionalRules: [
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          contentTokenOverrideKey: 'owner',
+        },
+      },
+    ],
   },
   controllerMiddleName: {
     path: 'individualDetails.middleName',
     baseRule: { display: 'visible', required: false, defaultValue: '' },
+    conditionalRules: [
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          contentTokenOverrideKey: 'owner',
+        },
+      },
+    ],
   },
   controllerLastName: {
     path: 'individualDetails.lastName',
     baseRule: { display: 'visible', required: true, defaultValue: '' },
+    conditionalRules: [
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          contentTokenOverrideKey: 'owner',
+        },
+      },
+    ],
   },
   controllerNameSuffix: {
     path: 'individualDetails.nameSuffix',
@@ -591,6 +653,14 @@ export const partyFieldMap: PartyFieldMap = {
           jurisdiction: ['CA'],
         },
         rule: { display: 'hidden' },
+      },
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          contentTokenOverrideKey: 'owner',
+        },
       },
     ],
   },
@@ -647,6 +717,14 @@ export const partyFieldMap: PartyFieldMap = {
           minItems: 0,
           defaultValue: [],
           display: 'hidden',
+        },
+      },
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          contentTokenOverrideKey: 'owner',
         },
       },
     ],
@@ -805,6 +883,14 @@ export const partyFieldMap: PartyFieldMap = {
         },
         rule: { display: 'hidden' },
       },
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          contentTokenOverrideKey: 'owner',
+        },
+      },
     ],
   },
   controllerJobTitleDescription: {
@@ -817,6 +903,14 @@ export const partyFieldMap: PartyFieldMap = {
           jurisdiction: ['CA'],
         },
         rule: { display: 'hidden' },
+      },
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          contentTokenOverrideKey: 'owner',
+        },
       },
     ],
   },

@@ -22,7 +22,7 @@ export const DocumentUploadScreen: FC = () => {
   const { t } = useTranslationWithTokens(['onboarding-overview']);
   const { clientData, clientGetStatus, docUploadOnlyMode } =
     useOnboardingContext();
-  const { goTo, goBack } = useFlowContext();
+  const { goTo } = useFlowContext();
   const queryClient = useQueryClient();
   const prevDocRequestsRef = useRef<string | null>(null);
 
@@ -157,7 +157,7 @@ export const DocumentUploadScreen: FC = () => {
               variant="default"
               size="lg"
               className="eb-w-full eb-text-lg"
-              onClick={() => goBack({ fallbackScreenId: 'overview' })}
+              onClick={() => goTo('overview', { resetHistory: true })}
             >
               {t('onboarding-overview:documentUpload.returnToOverview')}
             </Button>

@@ -33,11 +33,13 @@
     "accountNumber": "Número de cuenta",
     "routing": "Enrutamiento",
     "achRouting": "Número de enrutamiento ACH",
+    "routingLabel": "Número de enrutamiento {{type}}",
     "showDetails": "Mostrar detalles de la cuenta",
     "hideDetails": "Ocultar detalles de la cuenta",
     "copyAccountNumber": "Copiar número de cuenta",
     "copyRouting": "Copiar número de enrutamiento",
     "copyAchRouting": "Copiar número de enrutamiento ACH",
+    "copyRoutingLabel": "Copiar número de enrutamiento {{type}}",
     "noBalanceData": "Información de saldo no disponible",
     "dataAsOf": "Al {{date}}",
     "balanceTypeInfoAriaLabel": "Más información sobre {{type}}"

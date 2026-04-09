@@ -4,6 +4,7 @@
  * Different configuration variants and feature combinations.
  */
 
+import { db } from '@/msw/db';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { ORGANIZATION_TYPE_LIST } from '@/core/OnboardingFlow/consts';
@@ -19,7 +20,9 @@ import {
   defaultHandlers,
   mockClientApproved,
   mockClientNoIndustry,
+  mockExistingLinkedAccount,
   OnboardingFlowTemplate,
+  resetAndSeedClient,
 } from './story-utils';
 
 type OnboardingFlowStoryArgs = OnboardingFlowProps & BaseStoryArgs;
@@ -169,6 +172,12 @@ export const WithDownloadChecklist: Story = {
  * requires users to connect a bank account during onboarding.
  */
 export const WithLinkAccountStep: Story = {
+  loaders: [
+    async () => {
+      db.recipient.deleteMany({ where: {} });
+      return {};
+    },
+  ],
   args: {
     ...commonArgs,
     showLinkAccountStep: true,
@@ -192,6 +201,12 @@ export const WithLinkAccountStep: Story = {
  */
 export const WithLinkAccountStepApproved: Story = {
   name: 'With Link Account Step (Approved)',
+  loaders: [
+    async () => {
+      resetAndSeedClient(mockClientApproved, DEFAULT_CLIENT_ID);
+      return {};
+    },
+  ],
   parameters: {
     msw: {
       handlers: createOnboardingFlowHandlers({
@@ -209,6 +224,40 @@ export const WithLinkAccountStepApproved: Story = {
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
+    showLinkAccountStep: true,
+  },
+};
+
+/**
+ * **With Link Account Step (New + Existing Account)**
+ *
+ * Shows a NEW client that already has an existing linked bank account.
+ * The bank account section on the overview displays the linked account
+ * card even though KYC has not yet been approved.
+ */
+export const WithLinkAccountStepNewExistingAccount: Story = {
+  name: 'With Link Account Step (New + Existing Account)',
+  loaders: [
+    async () => {
+      db.recipient.deleteMany({ where: {} });
+      return {};
+    },
+  ],
+  parameters: {
+    msw: {
+      handlers: createOnboardingFlowHandlers({
+        existingLinkedAccounts: [mockExistingLinkedAccount],
+      }),
+    },
+    docs: {
+      description: {
+        story:
+          'OnboardingFlow with a NEW client that already has an existing linked bank account displayed in the overview.',
+      },
+    },
+  },
+  args: {
+    ...commonArgs,
     showLinkAccountStep: true,
   },
 };

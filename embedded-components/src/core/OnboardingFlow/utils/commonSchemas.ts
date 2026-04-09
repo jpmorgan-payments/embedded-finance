@@ -120,6 +120,19 @@ const POSTAL_CODE_FORMATS: Record<
 };
 
 /**
+ * Regex to detect PO Box, P.O. Box, PMB, and similar non-physical address patterns.
+ *
+ * Matches (case-insensitive):
+ *   - "PO Box", "P.O. Box", "P O Box", "P.O Box"
+ *   - "Post Office Box"
+ *   - "PMB" (Private Mail Box)
+ *
+ * Anchored with word boundaries so it won't false-positive on street names
+ * that happen to contain these letters (e.g. "Pomona Blvd").
+ */
+const PO_BOX_REGEX = /\b(?:p\.?\s*o\.?\s*box|post\s*office\s*box|pmb)\b/i;
+
+/**
  * Creates address schemas with customized validation messages
  */
 export const useAddressSchemas = (
@@ -229,6 +242,19 @@ export const useAddressSchemas = (
             { country: data.country }
           ),
           path: ['postalCode'],
+        });
+      }
+
+      // Reject PO Box / PMB addresses for US addresses
+      if (
+        data.country === 'US' &&
+        data.primaryAddressLine &&
+        PO_BOX_REGEX.test(data.primaryAddressLine)
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: v(`${type}.primaryAddressLine`, 'poBox'),
+          path: ['primaryAddressLine'],
         });
       }
     });
