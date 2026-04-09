@@ -87,12 +87,12 @@ describe('useRecipientForm', () => {
     expect(onSettled).toHaveBeenCalled();
   });
 
-  it.skip('should submit edit form without type field', async () => {
+  it('should submit edit form without type field', async () => {
     let capturedData: any = null;
     let capturedId: string | null = null;
 
     server.use(
-      http.put('/recipients/:id', async ({ request, params }) => {
+      http.post('/recipients/:id', async ({ request, params }) => {
         capturedData = await request.json();
         capturedId = params.id as string;
         return HttpResponse.json({
@@ -206,7 +206,7 @@ describe('useRecipientForm', () => {
 
   it('should handle edit errors', async () => {
     server.use(
-      http.put('/recipients/:id', () => {
+      http.post('/recipients/:id', () => {
         return HttpResponse.json({ message: 'Not found' }, { status: 404 });
       })
     );

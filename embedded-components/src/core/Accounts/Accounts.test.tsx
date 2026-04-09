@@ -13,8 +13,6 @@ import { Accounts } from './Accounts';
 import type { AccountsProps } from './Accounts.types';
 
 const renderComponent = (props: Partial<AccountsProps> = {}) => {
-  server.resetHandlers();
-
   const defaultProps: AccountsProps = {
     allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
     ...props,
@@ -167,8 +165,8 @@ describe('Accounts', () => {
     });
   });
 
-  describe.skip('Error State', () => {
-    test('renders error state with retry button', async () => {
+  describe('Error State', () => {
+    test('renders error state with try again button', async () => {
       // Use wildcard pattern to match any baseURL (stories use this pattern)
       server.use(
         http.get('*/accounts', () => {
@@ -181,20 +179,19 @@ describe('Accounts', () => {
 
       renderComponent();
 
-      // Wait for error alert to appear (similar to TransactionsDisplay test pattern)
       await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument();
+        expect(
+          screen.getByText(/Unable to load accounts/i)
+        ).toBeInTheDocument();
       });
 
-      // Verify error message and retry button
-      expect(screen.getByText(/Failed to load accounts/i)).toBeInTheDocument();
       expect(
-        screen.getByRole('button', { name: /retry/i })
+        screen.getByRole('button', { name: /try again/i })
       ).toBeInTheDocument();
     });
   });
 
-  describe.skip('Status Badges', () => {
+  describe('Status Badges', () => {
     test('displays status badge for account state', async () => {
       const mockAccount: AccountResponse = {
         id: 'account1',
@@ -231,15 +228,15 @@ describe('Accounts', () => {
 
       renderComponent({ allowedCategories: ['LIMITED_DDA'] });
 
-      // Wait for the account card to be rendered - check for category name
-      // This ensures the query ran and account was loaded
       await waitFor(() => {
-        expect(screen.getByText(/Limited DDA/i)).toBeInTheDocument();
+        expect(
+          screen.getByRole('article', { name: /Limited DDA/i })
+        ).toBeInTheDocument();
       });
 
-      // Check for the status badge - should be visible once account is rendered
+      // i18n maps OPEN → "Open" (accounts:status.labels.OPEN)
       await waitFor(() => {
-        expect(screen.getByText('OPEN')).toBeInTheDocument();
+        expect(screen.getByText(/^Open$/i)).toBeInTheDocument();
       });
     });
   });

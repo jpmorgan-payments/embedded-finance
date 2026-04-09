@@ -1,11 +1,9 @@
 import { Jurisdiction } from '@/index';
-import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
-import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock';
-import { efOrganizationDocumentRequestDetails } from '@/mocks/efOrganizationDocumentRequestDetails.mock';
 import { server } from '@/msw/server';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
+import { vi } from 'vitest';
 import { userEvent } from '@test-utils';
 
 import { ClientProduct } from '@/api/generated/smbdo.schemas';
@@ -16,12 +14,25 @@ import {
   ACCEPTED_FILE_TYPES,
   DocumentUploadStepForm,
 } from './DocumentUploadStepForm';
+import {
+  documentUploadStepFormTestClient,
+  documentUploadStepFormTestIndividualDocumentRequest,
+  documentUploadStepFormTestOrganizationDocumentRequest,
+} from './DocumentUploadStepForm.test.mocks';
+
+const { nextStepMock } = vi.hoisted(() => ({
+  nextStepMock: vi.fn(),
+}));
 
 // Mock external dependencies
 vi.mock('@/components/ui/stepper', () => ({
   useStepper: () => ({
-    nextStep: vi.fn(),
+    nextStep: nextStepMock,
+    prevStep: vi.fn(),
     currentStep: 0,
+    activeStep: 0,
+    isLastStep: true,
+    isDisabledStep: false,
   }),
 }));
 
@@ -44,28 +55,64 @@ const mockOnboardingContext = {
   availableProducts: ['EMBEDDED_PAYMENTS' as ClientProduct],
 };
 
-// Component render helper
-const renderComponent = (props = {}) => {
-  server.resetHandlers();
+type DocumentRequestPatch = Record<string, unknown>;
 
+type RenderMswOverrides = {
+  documentRequests?: {
+    '68803'?: DocumentRequestPatch;
+    '68804'?: DocumentRequestPatch;
+    '68805'?: DocumentRequestPatch;
+  };
+  /** When set, replaces the default POST /documents handler */
+  postDocuments?: (info: { request: Request }) => Promise<Response> | Response;
+};
+
+const findFirstCombobox = async () => {
+  await waitFor(() => {
+    expect(screen.getAllByRole('combobox').length).toBeGreaterThan(0);
+  });
+  return screen.getAllByRole('combobox')[0];
+};
+
+const clickPassportOption = async () => {
+  const listbox = await screen.findByRole('listbox');
+  await userEvent.click(
+    within(listbox).getByRole('option', { name: /^Passport$/i })
+  );
+};
+
+// Component render helper
+const renderComponent = (props = {}, mswOverrides?: RenderMswOverrides) => {
   // Setup API mocks
   server.use(
     http.get('/clients/0030000133', () => {
       return HttpResponse.json({
-        ...efClientCorpEBMock,
+        ...documentUploadStepFormTestClient,
         status: 'INFORMATION_REQUESTED',
       });
     }),
     http.get('/document-requests/68803', () => {
-      return HttpResponse.json(efOrganizationDocumentRequestDetails);
+      return HttpResponse.json({
+        ...documentUploadStepFormTestOrganizationDocumentRequest,
+        ...mswOverrides?.documentRequests?.['68803'],
+      });
     }),
     http.get('/document-requests/68804', () => {
-      return HttpResponse.json(efDocumentRequestDetails);
+      return HttpResponse.json({
+        ...documentUploadStepFormTestIndividualDocumentRequest,
+        ...mswOverrides?.documentRequests?.['68804'],
+      });
     }),
     http.get('/document-requests/68805', () => {
-      return HttpResponse.json(efDocumentRequestDetails);
+      return HttpResponse.json({
+        ...documentUploadStepFormTestIndividualDocumentRequest,
+        ...mswOverrides?.documentRequests?.['68805'],
+      });
     }),
-    http.post('/documents', () => {
+    http.post('/documents', async (info) => {
+      if (mswOverrides?.postDocuments) {
+        return mswOverrides.postDocuments(info);
+      }
       return HttpResponse.json({
         requestId: Math.random().toString(36).substring(7),
         traceId: `doc-${Math.random().toString(36).substring(7)}`,
@@ -110,7 +157,9 @@ const renderComponent = (props = {}) => {
 describe('DocumentUploadStepForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    nextStepMock.mockClear();
     queryClient.clear();
+    server.resetHandlers();
   });
 
   describe('Initial Rendering', () => {
@@ -124,7 +173,7 @@ describe('DocumentUploadStepForm', () => {
       ).toBeInTheDocument();
     });
 
-    test.skip('renders party name when available', async () => {
+    test('renders party name when available', async () => {
       renderComponent({ partyFilter: '2000000111' });
 
       expect(
@@ -183,90 +232,81 @@ describe('DocumentUploadStepForm', () => {
     });
   });
 
-  describe.skip('Document Type Selection', () => {
+  describe('Document Type Selection', () => {
     test('shows available document types in dropdown', async () => {
       renderComponent({ partyFilter: '2000000112' });
 
-      const select = await screen.findByRole('combobox');
+      const select = await findFirstCombobox();
       await userEvent.click(select);
 
-      expect(screen.getByText('Passport')).toBeInTheDocument();
-      expect(screen.getByText("Driver's License")).toBeInTheDocument();
+      const listbox = await screen.findByRole('listbox');
+      expect(within(listbox).getByText('Passport')).toBeInTheDocument();
+      expect(within(listbox).getByText('Drivers License')).toBeInTheDocument();
     });
 
     test('updates form state when document type is selected', async () => {
-      renderComponent();
+      renderComponent({ partyFilter: '2000000112' });
 
-      const select = await screen.findByRole('combobox');
+      const select = await findFirstCombobox();
       await userEvent.click(select);
-      await userEvent.click(screen.getByText('Passport'));
+      await clickPassportOption();
 
       expect(select).toHaveTextContent('Passport');
     });
   });
 
-  describe.skip('Document Upload Process', () => {
+  describe('Document Upload Process', () => {
     test('handles successful document upload', async () => {
-      const uploadMock = vi.fn().mockResolvedValue({ success: true });
-      server.use(
-        http.post('/documents', async ({ request }) => {
-          const data = await request.json();
-          uploadMock(data);
-          return HttpResponse.json({
-            requestId: Math.random().toString(36).substring(7),
-            traceId: `doc-${Math.random().toString(36).substring(7)}`,
-          });
-        })
-      );
-
-      renderComponent();
+      renderComponent({ partyFilter: '2000000112' });
 
       // Select document type
-      const select = await screen.findByRole('combobox');
+      const select = await findFirstCombobox();
       await userEvent.click(select);
-      await userEvent.click(screen.getByText('Passport'));
+      await clickPassportOption();
 
       // Upload file
       const dropzone = screen.getByText(/Upload Document/i);
       const input = dropzone.closest('div')?.querySelector('input');
       await userEvent.upload(input as HTMLElement, mockFile);
 
-      // Submit form
+      // Submit form (wizard mode uses common.json "Submit"); MSW POST /documents returns 200 without parsing multipart
       await userEvent.click(
-        screen.getByRole('button', { name: /Upload Documents/i })
+        screen.getByRole('button', { name: /Next|Submit/i })
       );
 
-      expect(uploadMock).toHaveBeenCalled();
-      const uploadedData = uploadMock.mock.calls[0][0];
-      expect(uploadedData.documentType).toBe('PASSPORT');
+      await waitFor(() => {
+        expect(nextStepMock).toHaveBeenCalled();
+      });
+      expect(
+        screen.queryByText(/Error uploading document/i)
+      ).not.toBeInTheDocument();
     });
 
     test('shows error toast on upload failure', async () => {
-      server.use(
-        http.post('/documents', () => {
-          return new HttpResponse(JSON.stringify({ error: 'Upload failed' }), {
-            status: 400,
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
-        })
+      renderComponent(
+        { partyFilter: '2000000112' },
+        {
+          postDocuments: () =>
+            new HttpResponse(JSON.stringify({ error: 'Upload failed' }), {
+              status: 400,
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            }),
+        }
       );
 
-      renderComponent();
-
       // Select document type and upload file
-      const select = await screen.findByRole('combobox');
+      const select = await findFirstCombobox();
       await userEvent.click(select);
-      await userEvent.click(screen.getByText('Passport'));
+      await clickPassportOption();
 
       const dropzone = screen.getByText(/Upload Document/i);
       const input = dropzone.closest('div')?.querySelector('input');
       await userEvent.upload(input as HTMLElement, mockFile);
 
-      // Submit form
       await userEvent.click(
-        screen.getByRole('button', { name: /Upload Documents/i })
+        screen.getByRole('button', { name: /Next|Submit/i })
       );
 
       expect(
@@ -275,45 +315,41 @@ describe('DocumentUploadStepForm', () => {
     });
   });
 
-  describe.skip('Requirement Progress', () => {
+  describe('Requirement Progress', () => {
     test('activates next requirement when current is satisfied', async () => {
-      renderComponent();
+      renderComponent({ partyFilter: '2000000112' });
 
       // Complete first requirement
-      const select = await screen.findByRole('combobox');
+      const select = await findFirstCombobox();
       await userEvent.click(select);
-      await userEvent.click(screen.getByText('Passport'));
+      await clickPassportOption();
 
       const dropzone = screen.getByText(/Upload Document/i);
       const input = dropzone.closest('div')?.querySelector('input');
       await userEvent.upload(input as HTMLElement, mockFile);
 
-      // Submit and verify next requirement is active
       await userEvent.click(
-        screen.getByRole('button', { name: /Upload Documents/i })
+        screen.getByRole('button', { name: /Next|Submit/i })
       );
 
       await waitFor(() => {
-        expect(screen.getByText(/Step 2\./i).closest('div')).not.toHaveClass(
-          'eb-text-gray-400'
-        );
+        const step2 = screen.getByText(/^Step 2\.$/i);
+        expect(
+          step2.closest('h4')?.querySelector('.eb-text-amber-600')
+        ).toBeTruthy();
       });
     });
 
     test('shows completion state when all requirements are met', async () => {
-      renderComponent();
-
-      // Mock all requirements as satisfied
-      server.use(
-        http.get('/document-requests/:id', () => {
-          return HttpResponse.json({
-            ...efDocumentRequestDetails,
-            outstanding: {
-              ...efDocumentRequestDetails.outstanding,
-              requirements: [],
-            },
-          });
-        })
+      renderComponent(
+        { standalone: true },
+        {
+          documentRequests: {
+            '68803': { requirements: [] },
+            '68804': { requirements: [] },
+            '68805': { requirements: [] },
+          },
+        }
       );
 
       await waitFor(() => {
@@ -324,61 +360,59 @@ describe('DocumentUploadStepForm', () => {
     });
   });
 
-  describe.skip('Reset Functionality', () => {
+  describe('Reset Functionality', () => {
     test('resets form state when reset button is clicked', async () => {
       renderComponent({ partyFilter: '2000000112' });
 
       // Setup initial state
-      const select = await screen.findByLabelText(/Select Document Type/i);
+      const select = await findFirstCombobox();
       await userEvent.click(select);
-
-      // Use a more specific selector for the Passport option
-      const passportOption = screen.getByRole('option', { name: /passport/i });
-      await userEvent.click(passportOption);
+      await clickPassportOption();
 
       // Click reset
       await userEvent.click(
         screen.getByRole('button', { name: /Reset form/i })
       );
 
-      // Verify reset
-      expect(select).toHaveTextContent('Select a document type');
       expect(
         await screen.findByText(/Form has been reset/i)
       ).toBeInTheDocument();
+
+      await waitFor(() => {
+        const combobox = screen.getAllByRole('combobox')[0];
+        expect(combobox).toHaveTextContent('Select a document type');
+      });
     });
   });
 
-  describe.skip('Standalone Mode', () => {
+  describe('Standalone Mode', () => {
     test('renders in standalone mode correctly', async () => {
       renderComponent({ standalone: true });
 
       expect(
-        screen.queryByRole('button', { name: /Next/i })
+        screen.queryByRole('button', { name: /^Next$/i })
       ).not.toBeInTheDocument();
-      expect(
-        screen.getByRole('button', { name: /Upload Documents/i })
-      ).toBeInTheDocument();
+      await waitFor(() => {
+        expect(
+          screen.getByRole('button', {
+            name: /Upload Documents|Complete All Required Documents/i,
+          })
+        ).toBeInTheDocument();
+      });
     });
 
     test('calls onComplete callback after successful upload in standalone mode', async () => {
       const onComplete = vi.fn();
-      renderComponent({ standalone: true, onComplete });
 
-      // Setup successful upload
-      server.use(
-        http.post('/documents', () => {
-          return HttpResponse.json({
-            requestId: Math.random().toString(36).substring(7),
-            traceId: `doc-${Math.random().toString(36).substring(7)}`,
-          });
-        })
-      );
+      renderComponent({
+        standalone: true,
+        onComplete,
+        partyFilter: '2000000112',
+      });
 
-      // Complete upload process
-      const select = await screen.findByRole('combobox');
+      const select = await findFirstCombobox();
       await userEvent.click(select);
-      await userEvent.click(screen.getByText('Passport'));
+      await clickPassportOption();
 
       const dropzone = screen.getByText(/Upload Document/i);
       const input = dropzone.closest('div')?.querySelector('input');

@@ -1,6 +1,6 @@
 # Embedded Components - Development Backlog
 
-**Last Updated:** March 6, 2026  
+**Last Updated:** April 8, 2026  
 **Status:** Living Document - Updated as work progresses  
 **Source:** UX Testing Report (2025-12-02, 2025-12-09, 2026-01-14, 2026-02-19, 2026-03-06), Development Roadmap, Recent PRs  
 **Reference:** Deployed showcase https://embedded-finance-dev.com/sellsense-demo (onboarding, linked-accounts, recipients, transactions, accounts, make-payment, **client-details**); Storybook https://storybook.embedded-finance-dev.com/
@@ -109,7 +109,7 @@
 
 - BL-500: Dependency audit & security
 - BL-501: TypeScript & toolchain updates
-- BL-502: Build/test infrastructure (Vite, Vitest)
+- BL-502: Build/test infrastructure (Vite 7.x, Vitest 4.x — see Theme 10 for pinned ranges)
 - BL-503: Orval & API dependencies
 - BL-505: ESLint upgrade to v9
 - BL-506: Tailwind CSS upgrade to v4
@@ -844,13 +844,15 @@ Substantial progress has been made. Re-assessment against latest source and depl
 
 #### Build/Test Infrastructure [BL-502]
 
-- [ ] **BL-502-1:** Upgrade Vite to latest version
-  - [ ] **BL-502-1a:** Update `vite` to latest 6.x (current: 6.4.1)
-  - [ ] **BL-502-1b:** Update `@vitejs/plugin-react` to latest
+**Current (April 2026, `embedded-components/package.json`):** `vite` ^7.3.1, `vitest` ^4.0.18, `@vitest/ui` ^4.0.18, `@vitejs/plugin-react` ^5.1.4. The backlog previously listed Vite 6 / Vitest 2 — those upgrades are **done**; remaining work is **ongoing** minor bumps and CI baselines.
+
+- [ ] **BL-502-1:** Keep Vite on latest compatible 7.x
+  - [ ] **BL-502-1a:** Update `vite` to latest 7.x when safe (current: ^7.3.1)
+  - [ ] **BL-502-1b:** Update `@vitejs/plugin-react` to latest compatible
   - [ ] **BL-502-1c:** Update `vite-plugin-dts` and other Vite plugins
-- [ ] **BL-502-2:** Upgrade Vitest to latest version
-  - [ ] **BL-502-2a:** Update `vitest` to latest 2.x (current: 2.1.9)
-  - [ ] **BL-502-2b:** Update `@vitest/ui` to latest
+- [ ] **BL-502-2:** Keep Vitest on latest compatible 4.x
+  - [ ] **BL-502-2a:** Update `vitest` to latest 4.x (current: ^4.0.18)
+  - [ ] **BL-502-2b:** Update `@vitest/ui` and `@vitest/coverage-v8` to match
   - [ ] **BL-502-2c:** Verify test compatibility after upgrade
 - [ ] **BL-502-3:** Verify Vite/Storybook compatibility after bumps
 - [ ] **BL-502-4:** Adjust configs if needed
@@ -883,10 +885,10 @@ Substantial progress has been made. Re-assessment against latest source and depl
 - [ ] **BL-503-4:** Dependency policy: prioritize security patches
 - [ ] **BL-503-5:** Keep React 18.3 baseline now, React 19 in Theme 4
 - [ ] **BL-503-6:** Track axios/react-query/radix/msw/storybook/vite minors
-- [ ] **BL-503-7:** Package manager: migrate to pnpm (workspaces) for speed and content-addressable store
-- [ ] **BL-503-8:** Update docs/CI to use `pnpm -w` equivalents
+- [ ] **BL-503-7:** Package manager: optional evaluation — **this repo uses Yarn** (`embedded-components` declares `packageManager: yarn@4.12.0`). pnpm migration is **low priority** unless team standardizes on pnpm; if pursued, update docs/CI accordingly
+- [ ] **BL-503-8:** If migrating package managers, update docs/CI (currently Yarn/npm-style scripts per package)
 - [ ] **BL-503-9:** Upgrade Orval to v8 when stable (tech task)
-  - Orval v8 is a breaking change: ESM config (`.mjs` or `type: "module"`), Node 22.18+, default `httpClient` switched from axios to fetch, removed/renamed options. Stay on 7.20.x for now; plan migration once v8 ecosystem and migration path are stable. See [Orval migration guide v8](https://orval.dev/guides/migration-v8).
+  - Orval v8 is a breaking change: ESM config (`.mjs` or `type: "module"`), Node 22.18+, default `httpClient` switched from axios to fetch, removed/renamed options. Current package: **orval ^7.21.0** — stay on 7.x until v8 ecosystem is stable; plan migration per [Orval migration guide v8](https://orval.dev/guides/migration-v8).
 
 #### Other Dependency Updates [BL-508]
 
@@ -1096,7 +1098,7 @@ Substantial progress has been made. Re-assessment against latest source and depl
 **High Priority:** Filter/label/tooltips/responsive, Accounts enhancements, ServerErrorAlert extension (BL-800), ClientDetails UX audit (BL-810)  
 **Medium Priority:** Status badge, date formatting, menu/dialog, timeline, i18n locale completion (BL-802), Empty+ a11y (BL-804), session transfer (BL-805), onboarding error handling (BL-811)  
 **Low Priority:** Performance optimization, Mock API Editor scenario mgmt (BL-803)  
-**Tech Debt:** ESLint v9, Tailwind v4, TypeScript, Vite/Vitest, React/UI libraries, Orval, other dependencies
+**Tech Debt:** ESLint v9, Tailwind v4, TypeScript, Vite 7 / Vitest 4 maintenance, React/UI libraries, Orval 7→8 path, other dependencies
 
 **In Progress:**
 

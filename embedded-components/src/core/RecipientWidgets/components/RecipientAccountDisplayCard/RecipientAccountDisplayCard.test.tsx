@@ -33,7 +33,7 @@ const mockRecipient: Recipient = {
   createdAt: new Date().toISOString(),
 };
 
-describe.skip('RecipientAccountDisplayCard', () => {
+describe('RecipientAccountDisplayCard', () => {
   it('should render recipient name and status', () => {
     render(<RecipientAccountDisplayCard recipient={mockRecipient} />);
 
@@ -50,7 +50,7 @@ describe.skip('RecipientAccountDisplayCard', () => {
   it('should render masked account number by default', () => {
     render(<RecipientAccountDisplayCard recipient={mockRecipient} />);
 
-    expect(screen.getByText(/•••• 5678/i)).toBeInTheDocument();
+    expect(screen.getByText(/\*\*\*\*5678/)).toBeInTheDocument();
   });
 
   it('should toggle account number visibility', async () => {
@@ -58,11 +58,11 @@ describe.skip('RecipientAccountDisplayCard', () => {
     render(<RecipientAccountDisplayCard recipient={mockRecipient} />);
 
     // Initially masked
-    expect(screen.getByText(/•••• 5678/i)).toBeInTheDocument();
+    expect(screen.getByText(/\*\*\*\*5678/)).toBeInTheDocument();
 
     // Click toggle button
     const toggleButton = screen.getByRole('button', {
-      name: /show full account/i,
+      name: /show full account number/i,
     });
     await user.click(toggleButton);
 
@@ -70,11 +70,13 @@ describe.skip('RecipientAccountDisplayCard', () => {
     expect(screen.getByText('12345678')).toBeInTheDocument();
 
     // Click again to hide
-    const hideButton = screen.getByRole('button', { name: /hide account/i });
+    const hideButton = screen.getByRole('button', {
+      name: /hide full account number/i,
+    });
     await user.click(hideButton);
 
     // Should be masked again
-    expect(screen.getByText(/•••• 5678/i)).toBeInTheDocument();
+    expect(screen.getByText(/\*\*\*\*5678/)).toBeInTheDocument();
   });
 
   it('should hide account toggle when showAccountToggle is false', () => {
@@ -86,7 +88,7 @@ describe.skip('RecipientAccountDisplayCard', () => {
     );
 
     expect(
-      screen.queryByRole('button', { name: /show full account/i })
+      screen.queryByRole('button', { name: /show full account number/i })
     ).not.toBeInTheDocument();
   });
 
@@ -113,7 +115,9 @@ describe.skip('RecipientAccountDisplayCard', () => {
     render(<RecipientAccountDisplayCard recipient={mockRecipient} />);
 
     // Click expand button
-    const expandButton = screen.getByRole('button', { name: /view routing/i });
+    const expandButton = screen.getByRole('button', {
+      name: /expand payment methods details/i,
+    });
     await user.click(expandButton);
 
     // Should show routing numbers
