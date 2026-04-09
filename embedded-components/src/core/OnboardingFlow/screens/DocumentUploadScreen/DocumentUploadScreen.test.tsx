@@ -15,15 +15,18 @@ import { OnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingCont
 import { DocumentUploadScreen } from './DocumentUploadScreen';
 
 /**
- * `useFlowContext` is `() => useContext(FlowContext)`. Spying on the module export can be
- * unreliable across bundlers/CI; replacing the module binding guarantees the SUT uses our mocks.
+ * `useFlowContext` is `() => useContext(FlowContext)`.
+ * - `vi.mock` must use the same module id the bundler resolves in CI (relative path + alias).
+ * - Stable `mockGoBack` / `mockGoTo` live in hoisted state so assertions never chase a fresh `vi.fn()`.
  */
 const flowContextTestState = vi.hoisted(() => {
+  const mockGoTo = vi.fn();
+  const mockGoBack = vi.fn();
   const defaults = {
     currentScreenId: 'document-upload',
     originScreenId: 'overview',
-    goTo: vi.fn(),
-    goBack: vi.fn(),
+    goTo: mockGoTo,
+    goBack: mockGoBack,
     editingPartyIds: {},
     updateEditingPartyId: vi.fn(),
     sections: [],
@@ -39,6 +42,8 @@ const flowContextTestState = vi.hoisted(() => {
   let overrides: Record<string, unknown> = {};
 
   return {
+    mockGoTo,
+    mockGoBack,
     reset() {
       overrides = {};
     },
@@ -51,21 +56,27 @@ const flowContextTestState = vi.hoisted(() => {
   };
 });
 
-vi.mock(
-  '@/core/OnboardingFlow/contexts/FlowContext',
-  async (importOriginal) => {
-    const actual =
-      await importOriginal<
-        typeof import('@/core/OnboardingFlow/contexts/FlowContext')
-      >();
-    return {
-      ...actual,
-      useFlowContext: () =>
-        flowContextTestState.getValue() as unknown as ReturnType<
-          typeof actual.useFlowContext
-        >,
-    };
-  }
+async function createFlowContextMock(
+  importOriginal: () => Promise<Record<string, unknown>>
+) {
+  const actual = (await importOriginal()) as {
+    useFlowContext: () => unknown;
+    [key: string]: unknown;
+  };
+  return {
+    ...actual,
+    useFlowContext: () =>
+      flowContextTestState.getValue() as unknown as ReturnType<
+        typeof actual.useFlowContext
+      >,
+  };
+}
+
+vi.mock('../../contexts/FlowContext', (importOriginal) =>
+  createFlowContextMock(importOriginal)
+);
+vi.mock('@/core/OnboardingFlow/contexts/FlowContext', (importOriginal) =>
+  createFlowContextMock(importOriginal)
 );
 
 /** Stable ids for assertions against `goTo(..., { editingPartyId })` (value is document request id). */
@@ -348,20 +359,18 @@ describe('DocumentUploadScreen', () => {
     });
 
     test('return to overview calls goBack with overview fallback', async () => {
-      const goBackMock = vi.fn();
-      renderDocumentUploadScreen({ flow: { goBack: goBackMock } });
+      renderDocumentUploadScreen();
 
       await waitForDocumentListReady();
 
       const returnButton = screen.getByRole('button', {
         name: /return to overview/i,
       });
-      // fireEvent: synchronous DOM click; user-event can miss handlers in some JSDOM/CI setups.
       fireEvent.click(returnButton);
 
       await waitFor(
         () =>
-          expect(goBackMock).toHaveBeenCalledWith({
+          expect(flowContextTestState.mockGoBack).toHaveBeenCalledWith({
             fallbackScreenId: 'overview',
           }),
         { timeout: 5000 }
