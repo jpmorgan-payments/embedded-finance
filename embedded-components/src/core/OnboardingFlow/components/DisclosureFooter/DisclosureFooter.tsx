@@ -6,8 +6,8 @@ import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
  * Persistent disclosure footer required by regulatory guidelines (§ 1.1).
  *
  * Renders:
- * - "[Platform Provider] is not a bank; Banking services provided by
- *    JPMorgan Chase Bank, N.A., Member FDIC."
+ * - "Banking services provided by JPMorgan Chase Bank, N.A.,
+ *    Member FDIC. [Platform Provider] is not a bank."
  *
  * Only visible when the host supplies a `disclosureConfig` with a
  * `platformName`.  All copy is controlled via `onboarding-old` i18n
@@ -33,7 +33,7 @@ export function DisclosureFooter() {
         {t('reviewAndAttest.disclosure.footer', {
           platformName: disclosureConfig.platformName,
           defaultValue:
-            '{{platformName}} is not a bank; Banking services provided by JPMorgan Chase Bank, N.A., Member FDIC.',
+            'Banking services provided by JPMorgan Chase Bank, N.A., Member FDIC. {{platformName}} is not a bank.',
         })}
       </p>
     </footer>
