@@ -17,7 +17,7 @@ import {
   UpdateClientRequestSmbdoAddPartiesItem,
 } from '@/api/generated/smbdo.schemas';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
-import { Button, Form } from '@/components/ui';
+import { Badge, Button, Form } from '@/components/ui';
 import { StepLayout, StepsReviewCards } from '@/core/OnboardingFlow/components';
 import { partyFieldMap } from '@/core/OnboardingFlow/config';
 import {
@@ -36,7 +36,10 @@ import {
   StepperStepProps,
   StepValidationMap,
 } from '@/core/OnboardingFlow/types/flow.types';
-import { getPartyByAssociatedPartyFilters } from '@/core/OnboardingFlow/utils/dataUtils';
+import {
+  getPartyByAssociatedPartyFilters,
+  getPartyName,
+} from '@/core/OnboardingFlow/utils/dataUtils';
 import { shouldSuppressOnboardingLeaveWarnings } from '@/core/OnboardingFlow/utils/flowLeaveWarnings';
 import { getStepperValidation } from '@/core/OnboardingFlow/utils/flowUtils';
 import {
@@ -327,43 +330,74 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
         description={currentStep.description}
         subTitle={
           !checkAnswersMode && !previouslyCompleted && !reviewMode ? (
-            <nav className="eb-flex eb-items-center eb-gap-1 eb-text-sm eb-text-muted-foreground">
-              <Button
-                variant="link"
-                onClick={() => goTo('overview')}
-                className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
-              >
-                <ArrowLeftIcon className="eb-size-3.5" />
-                {t('stepperRenderer.buttons.overviewHeader')}
-              </Button>
+            <div className="eb-flex eb-flex-col">
+              <nav className="eb-flex eb-items-center eb-gap-1 eb-text-sm eb-text-muted-foreground">
+                <Button
+                  variant="link"
+                  onClick={() => goTo('overview')}
+                  className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
+                >
+                  <ArrowLeftIcon className="eb-size-3.5" />
+                  {t('stepperRenderer.buttons.overviewHeader')}
+                </Button>
+                {originScreenId === 'owners-section' && (
+                  <>
+                    <ChevronRightIcon className="eb-size-3.5" />
+                    <Button
+                      variant="link"
+                      onClick={() => goBack()}
+                      className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
+                    >
+                      {currentSection?.sectionConfig.shortLabel ??
+                        currentSection?.sectionConfig.label ??
+                        t(
+                          'onboarding-overview:screens.ownersSection.shortLabel'
+                        ) ??
+                        t('onboarding-overview:screens.ownersSection.label')}
+                    </Button>
+                  </>
+                )}
+                <ChevronRightIcon className="eb-size-3.5" />
+                <span className="eb-truncate">
+                  {shortLabelOverride ??
+                    currentSection?.sectionConfig.shortLabel ??
+                    currentSection?.sectionConfig.label}
+                </span>
+                <ChevronRightIcon className="eb-size-3.5" />
+                <span className="eb-shrink-0 eb-font-medium eb-text-foreground">
+                  {t('stepperRenderer.stepCounter', {
+                    currentStepNumber,
+                    totalSteps: steps.length,
+                  })}
+                </span>
+              </nav>
               {originScreenId === 'owners-section' && (
-                <>
-                  <ChevronRightIcon className="eb-size-3.5" />
-                  <Button
-                    variant="link"
-                    onClick={() => goBack()}
-                    className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
-                  >
-                    {currentSection?.sectionConfig.shortLabel ??
-                      currentSection?.sectionConfig.label ??
-                      t('onboarding-overview:screens.ownersSection.label')}
-                  </Button>
-                </>
+                <div className="eb-mt-4 eb-flex eb-items-center eb-gap-2">
+                  <span className="eb-truncate eb-text-base eb-font-semibold eb-text-foreground">
+                    {getPartyName(existingPartyData) ||
+                      t('stepperRenderer.newOwnerLabel')}
+                  </span>
+                  {existingPartyData?.roles?.includes('BENEFICIAL_OWNER') && (
+                    <Badge
+                      variant="outline"
+                      className="eb-shrink-0 eb-border-transparent eb-bg-[#EDF4FF] eb-text-[#355FA1]"
+                    >
+                      {t('onboarding-overview:screens.owners.badges.owner')}
+                    </Badge>
+                  )}
+                  {existingPartyData?.roles?.includes('CONTROLLER') && (
+                    <Badge
+                      variant="outline"
+                      className="eb-shrink-0 eb-border-transparent eb-bg-[#FFEBD9] eb-text-[#8F521F]"
+                    >
+                      {t(
+                        'onboarding-overview:screens.owners.badges.controller'
+                      )}
+                    </Badge>
+                  )}
+                </div>
               )}
-              <ChevronRightIcon className="eb-size-3.5" />
-              <span className="eb-truncate">
-                {shortLabelOverride ??
-                  currentSection?.sectionConfig.shortLabel ??
-                  currentSection?.sectionConfig.label}
-              </span>
-              <ChevronRightIcon className="eb-size-3.5" />
-              <span className="eb-shrink-0 eb-font-medium eb-text-foreground">
-                {t('stepperRenderer.stepCounter', {
-                  currentStepNumber,
-                  totalSteps: steps.length,
-                })}
-              </span>
-            </nav>
+            </div>
           ) : undefined
         }
       >
