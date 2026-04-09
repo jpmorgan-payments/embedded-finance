@@ -1,38 +1,19 @@
 import { server } from '@/msw/server';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
-import { userEvent } from '@testing-library/user-event';
+import { render, screen, userEvent, waitFor } from '@test-utils';
 import { http, HttpResponse } from 'msw';
 
+import * as smbdoApi from '@/api/generated/smbdo';
 import {
   ClientResponse,
   DocumentRequestResponse,
   PartyResponse,
 } from '@/api/generated/smbdo.schemas';
-import { flowConfig } from '@/core/OnboardingFlow/config';
-import * as FlowContextModule from '@/core/OnboardingFlow/contexts';
+import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import type { OnboardingContextType } from '@/core/OnboardingFlow/contexts';
+import { OnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
+import * as FlowContext from '@/core/OnboardingFlow/contexts/FlowContext';
 
 import { DocumentUploadScreen } from './DocumentUploadScreen';
-
-// Mock the flow context hook (barrel path must match component imports)
-vi.mock('@/core/OnboardingFlow/contexts', async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import('@/core/OnboardingFlow/contexts')>();
-  return {
-    ...actual,
-    useFlowContext: vi.fn(),
-  };
-});
-
-// Setup QueryClient for tests
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-    },
-  },
-});
 
 // Mock data setup
 const mockParties: PartyResponse[] = [
@@ -182,49 +163,41 @@ const mockFlowContext = {
   setFlowUnsavedChanges: vi.fn(),
 };
 
-// Mock onboarding context
-const mockOnboardingContext = {
-  clientData: mockClient,
+// Mock onboarding context (extended via renderComponent)
+const mockOnboardingBase = {
   setClientId: vi.fn(),
-  organizationType: 'LIMITED_LIABILITY_COMPANY',
+  organizationType: 'LIMITED_LIABILITY_COMPANY' as const,
   docUploadOnlyMode: false,
-  onClientChange: vi.fn(),
-  allowSingleStepNavigation: true,
-  enableKybPrefill: false,
+  showLinkAccountStep: false,
+  showDownloadChecklist: false,
 };
+
+let flowContextSpy: ReturnType<typeof vi.spyOn>;
 
 // Component rendering helper
 const renderComponent = (
   clientOverride?: Partial<ClientResponse>,
   documentRequests = mockDocumentRequests,
-  flowContextOverride = {},
-  onboardingContextOverride = {}
+  flowContextOverride: Record<string, unknown> = {},
+  onboardingContextOverride: Partial<OnboardingContextType> = {}
 ) => {
-  // Reset MSW handlers before each render
-  server.resetHandlers();
-
-  // Set default flow context mock
-  (
-    FlowContextModule.useFlowContext as ReturnType<typeof vi.fn>
-  ).mockReturnValue({
+  flowContextSpy.mockReturnValue({
     ...mockFlowContext,
     ...flowContextOverride,
-  });
+  } as unknown as ReturnType<typeof FlowContext.useFlowContext>);
 
   const client = { ...mockClient, ...clientOverride };
   const onboardingContext: OnboardingContextType = {
-    ...mockOnboardingContext,
+    ...mockOnboardingBase,
     clientGetStatus: 'success',
     clientData: client,
-    ...onboardingContextOverride,
     availableJurisdictions: ['US'],
     availableProducts: ['EMBEDDED_PAYMENTS'],
-    organizationType: 'LIMITED_LIABILITY_COMPANY',
+    ...onboardingContextOverride,
   };
 
-  // Setup explicit API mock handlers
   server.use(
-    http.get('*/document-requests*', () => {
+    http.get('/document-requests', () => {
       return HttpResponse.json({
         documentRequests,
       });
@@ -232,24 +205,40 @@ const renderComponent = (
   );
 
   return render(
-    <QueryClientProvider client={queryClient}>
-      <FlowContextModule.FlowProvider
-        initialScreenId="document-upload-form"
-        flowConfig={flowConfig}
-      >
-        <FlowContextModule.OnboardingContext.Provider value={onboardingContext}>
-          <DocumentUploadScreen />
-        </FlowContextModule.OnboardingContext.Provider>
-      </FlowContextModule.FlowProvider>
-    </QueryClientProvider>
+    <EBComponentsProvider
+      apiBaseUrl="/"
+      headers={{}}
+      contentTokens={{ name: 'enUS' }}
+      reactQueryDefaultOptions={{
+        queries: {
+          retry: false,
+        },
+      }}
+    >
+      <OnboardingContext.Provider value={onboardingContext}>
+        <DocumentUploadScreen />
+      </OnboardingContext.Provider>
+    </EBComponentsProvider>
   );
 };
 
-describe.skip('DocumentUploadScreen', () => {
-  // Reset query client between tests
+describe('DocumentUploadScreen', () => {
   beforeEach(() => {
-    queryClient.clear();
     vi.clearAllMocks();
+    server.resetHandlers();
+    const g = globalThis as {
+      __EB_QUERY_CLIENT__?: import('@tanstack/react-query').QueryClient;
+    };
+    g.__EB_QUERY_CLIENT__?.clear();
+    flowContextSpy = vi
+      .spyOn(FlowContext, 'useFlowContext')
+      .mockReturnValue(
+        mockFlowContext as unknown as ReturnType<typeof FlowContext.useFlowContext>
+      );
+  });
+
+  afterEach(() => {
+    flowContextSpy.mockRestore();
   });
 
   test('renders loading state while fetching document requests', async () => {
@@ -385,45 +374,34 @@ describe.skip('DocumentUploadScreen', () => {
   });
 
   test('shows error message when document request API fails', async () => {
-    // Clear any cached queries
-    queryClient.clear();
-    // Ensure query retries are disabled for this test
-    queryClient.setDefaultOptions({
-      queries: {
-        retry: false,
-      },
-    });
-
-    // Mock an explicit error response for document requests
-    server.use(
-      http.get('*/document-requests*', () => {
-        // Return a server error response that React Query will treat as an error
-        return HttpResponse.error();
-      })
-    );
+    const spy = vi
+      .spyOn(smbdoApi, 'useSmbdoListDocumentRequests')
+      .mockReturnValue({
+        data: undefined,
+        status: 'error',
+        error: new Error('List failed'),
+        isPending: false,
+        isError: true,
+        isSuccess: false,
+        queryKey: ['/document-requests'],
+      } as unknown as ReturnType<typeof smbdoApi.useSmbdoListDocumentRequests>);
 
     renderComponent();
 
-    // First check that loading state appears
-    expect(screen.getByText(/loading document requests/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/there was a problem/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/unable to load document requests/i)
+      ).toBeInTheDocument();
+    });
 
-    // Then wait for the error message to appear with a more reasonable timeout
-    await waitFor(
-      () => {
-        const errorTitle = screen.getByText(/there was a problem/i);
-        expect(errorTitle).toBeInTheDocument();
-
-        const errorDescription = screen.getByText(
-          /unable to load document requests/i
-        );
-        expect(errorDescription).toBeInTheDocument();
-      },
-      { timeout: 3000 }
-    );
+    spy.mockRestore();
   });
 
   test('shows error message when no client data is available', async () => {
-    renderComponent(undefined, undefined, undefined, { clientData: null });
+    renderComponent(undefined, undefined, undefined, {
+      clientData: undefined,
+    });
 
     await waitFor(
       () => {

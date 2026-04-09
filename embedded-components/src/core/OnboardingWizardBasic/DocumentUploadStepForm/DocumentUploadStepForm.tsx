@@ -466,6 +466,27 @@ export const DocumentUploadStepForm = ({
 
   const resetForm = () => {
     form.reset();
+    // Field names use dot paths (e.g. "68804.requirement_0_docType"); reset + nested object
+    // alone does not always clear Radix Select + derived state for dynamic fields.
+    documentRequestsQueries.data?.forEach((docRequest) => {
+      const docId = docRequest?.id;
+      if (!docId || !docRequest.requirements?.length) return;
+      docRequest.requirements.forEach((requirement, requirementIndex) => {
+        const numFieldsToShow = requirement.minRequired || 1;
+        for (let i = 0; i < numFieldsToShow; i += 1) {
+          const suffix = i > 0 ? `_${i}` : '';
+          // Radix Select treats '' as cleared; undefined can leave the prior label visible
+          form.setValue(
+            `${docId}.requirement_${requirementIndex}_docType${suffix}`,
+            ''
+          );
+          form.setValue(
+            `${docId}.requirement_${requirementIndex}_files${suffix}`,
+            []
+          );
+        }
+      });
+    });
     setSatisfiedDocTypes([]);
     setRequirementDocTypes({});
 
@@ -810,8 +831,6 @@ export const DocumentUploadStepForm = ({
                               }).map((_, uploadIndex) => {
                                 // Get the current field name to maintain selection state
                                 const docTypeFieldName = `${documentRequest?.id}.requirement_${requirementIndex}_docType${uploadIndex > 0 ? `_${uploadIndex}` : ''}`;
-                                const selectedValue =
-                                  form.watch(docTypeFieldName);
 
                                 return (
                                   <div
@@ -847,9 +866,7 @@ export const DocumentUploadStepForm = ({
                                           <FormControl>
                                             <Select
                                               onValueChange={field.onChange}
-                                              value={
-                                                field.value || selectedValue
-                                              }
+                                              value={field.value ?? ''}
                                             >
                                               <SelectTrigger className="eb-w-full">
                                                 <SelectValue placeholder="Select a document type" />
