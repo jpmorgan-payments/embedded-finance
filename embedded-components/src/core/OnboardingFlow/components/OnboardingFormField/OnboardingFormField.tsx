@@ -614,11 +614,16 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                             if (errorMsg && form) {
                               onChangeProp?.('');
                               field.onChange('');
-                              form.setError(field.name, {
-                                type: 'manual',
-                                message: errorMsg,
-                              });
-                              await form.trigger(field.name);
+                              // Defer setError so it runs after RHF's
+                              // internal validation cycle triggered by
+                              // field.onChange(''), which would otherwise
+                              // overwrite our error with "required".
+                              setTimeout(() => {
+                                form.setError(field.name, {
+                                  type: 'manual',
+                                  message: errorMsg,
+                                });
+                              }, 0);
                             } else if (date) {
                               form?.clearErrors(field.name);
                               onChangeProp?.(date?.toISOString().split('T')[0]);
