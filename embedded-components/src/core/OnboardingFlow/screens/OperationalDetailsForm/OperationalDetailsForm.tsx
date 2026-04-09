@@ -586,11 +586,18 @@ export const OperationalDetailsForm = () => {
 
   const onSubmit = (values: any) => {
     if (clientData?.id) {
-      const questionResponses = Object.entries(values).map(([key, value]) => ({
-        key,
-        questionId: key.replace('question_', ''),
-        values: Array.isArray(value) ? value : [value],
-      }));
+      const questionResponses = Object.entries(values)
+        .filter(([key]) => {
+          const questionId = key.replace('question_', '');
+          const question = allQuestions.find((q) => q.id === questionId);
+          // Only include visible questions in the submission
+          return question ? isQuestionVisible(question) : false;
+        })
+        .map(([key, value]) => ({
+          key,
+          questionId: key.replace('question_', ''),
+          values: Array.isArray(value) ? value : [value],
+        }));
 
       const requestBody = {
         questionResponses,
