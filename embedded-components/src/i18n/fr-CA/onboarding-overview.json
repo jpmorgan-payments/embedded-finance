@@ -1078,7 +1078,7 @@
     },
     "organizationDescription": {
       "label": "Business description",
-      "description": "Please provide a summary of the products and services you offer to consumers. 1,000 characters maximum. Please don't use special characters (e.g. * @ %, etc).",
+      "description": "Please provide a summary of the products and services you offer to consumers. 1,000 characters maximum.",
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
