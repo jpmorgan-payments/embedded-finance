@@ -1,6 +1,6 @@
 import { server } from '@/msw/server';
-import { render, screen, userEvent, waitFor } from '@test-utils';
 import { http, HttpResponse } from 'msw';
+import { render, screen, userEvent, waitFor } from '@test-utils';
 
 import * as smbdoApi from '@/api/generated/smbdo';
 import {
@@ -10,8 +10,8 @@ import {
 } from '@/api/generated/smbdo.schemas';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import type { OnboardingContextType } from '@/core/OnboardingFlow/contexts';
-import { OnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
 import * as FlowContext from '@/core/OnboardingFlow/contexts/FlowContext';
+import { OnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
 
 import { DocumentUploadScreen } from './DocumentUploadScreen';
 
@@ -233,7 +233,9 @@ describe('DocumentUploadScreen', () => {
     flowContextSpy = vi
       .spyOn(FlowContext, 'useFlowContext')
       .mockReturnValue(
-        mockFlowContext as unknown as ReturnType<typeof FlowContext.useFlowContext>
+        mockFlowContext as unknown as ReturnType<
+          typeof FlowContext.useFlowContext
+        >
       );
   });
 
