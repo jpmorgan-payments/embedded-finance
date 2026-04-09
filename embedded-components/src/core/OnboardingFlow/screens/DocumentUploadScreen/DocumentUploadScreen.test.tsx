@@ -1,6 +1,6 @@
 import { server } from '@/msw/server';
 import { http, HttpResponse } from 'msw';
-import { render, screen, userEvent, waitFor } from '@test-utils';
+import { fireEvent, render, screen, userEvent, waitFor } from '@test-utils';
 
 import * as smbdoApi from '@/api/generated/smbdo';
 import {
@@ -243,7 +243,8 @@ describe('DocumentUploadScreen', () => {
   let user: ReturnType<typeof userEvent.setup>;
 
   beforeEach(() => {
-    user = userEvent.setup();
+    // Avoid CI flakiness where user-event skips clicks (pointer target checks).
+    user = userEvent.setup({ pointerEventsCheck: 0 });
     vi.clearAllMocks();
     server.resetHandlers();
     const g = globalThis as {
@@ -330,10 +331,13 @@ describe('DocumentUploadScreen', () => {
       const goBackMock = vi.fn();
       renderDocumentUploadScreen({ flow: { goBack: goBackMock } });
 
-      const returnButton = await screen.findByRole('button', {
+      await waitForDocumentListReady();
+
+      const returnButton = screen.getByRole('button', {
         name: /return to overview/i,
       });
-      await user.click(returnButton);
+      // fireEvent: synchronous DOM click; user-event can miss handlers in some JSDOM/CI setups.
+      fireEvent.click(returnButton);
 
       await waitFor(
         () =>
