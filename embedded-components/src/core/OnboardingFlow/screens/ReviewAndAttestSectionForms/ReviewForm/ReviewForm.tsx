@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { TransWithTokens, useTranslationWithTokens } from '@/i18n';
+import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   AlertTriangle,
@@ -90,8 +90,6 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
       ? {
           attested: false,
           attestAccurateInfo: false,
-          attestAuthorizeSharing: false,
-          attestAgreeToTerms: false,
         }
       : {
           attested: false,
@@ -101,8 +99,6 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
         ? z.object({
             attested: z.boolean().optional(),
             attestAccurateInfo: booleanRequired,
-            attestAuthorizeSharing: booleanRequired,
-            attestAgreeToTerms: booleanRequired,
           })
         : z.object({
             attested: z.boolean().refine((value) => value === true, {
@@ -560,91 +556,6 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                             'reviewAndAttest.attestation.accurateInfo',
                             'All information you have provided is complete and accurate, and you are opening this account solely for business purposes and not for consumer purposes.'
                           )}
-                        </FormLabel>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Checkbox 2: Authorize sharing & appoint agent */}
-                <FormField
-                  control={form.control}
-                  name="attestAuthorizeSharing"
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className="eb-flex eb-items-start eb-gap-2">
-                        <FormControl>
-                          <Checkbox
-                            className="eb-mt-0.5"
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormLabel className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-relaxed eb-text-foreground">
-                          {t('reviewAndAttest.attestation.authorizeSharing', {
-                            platformName: disclosureConfig.platformName,
-                            defaultValue:
-                              'You authorize {{platformName}} and JPMorgan Chase Bank, N.A. ("JPMC") to share information to facilitate the opening of your deposit account(s), and appoint {{platformName}} as your agent to act on your behalf regarding your deposit account.',
-                          })}
-                        </FormLabel>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Checkbox 3: Agree to terms (with hyperlinks) */}
-                <FormField
-                  control={form.control}
-                  name="attestAgreeToTerms"
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className="eb-flex eb-items-start eb-gap-2">
-                        <FormControl>
-                          <Checkbox
-                            className="eb-mt-0.5"
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormLabel className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-relaxed eb-text-foreground">
-                          <TransWithTokens
-                            ns="onboarding-old"
-                            i18nKey="reviewAndAttest.attestation.agreeToTerms"
-                            defaults="You have read and agree to the <jpTermsLink>J.P. Morgan Account Terms</jpTermsLink> and the <platformAgreementLink>{{platformAgreementLabel}}</platformAgreementLink>."
-                            values={{
-                              platformAgreementLabel:
-                                disclosureConfig.platformAgreementLabel ??
-                                `${disclosureConfig.platformName}'s Program Agreement`,
-                            }}
-                            components={{
-                              jpTermsLink:
-                                disclosureConfig.jpMorganAccountTermsUrl ? (
-                                  <a
-                                    href={
-                                      disclosureConfig.jpMorganAccountTermsUrl
-                                    }
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="eb-text-primary eb-underline eb-underline-offset-2 hover:eb-underline"
-                                  />
-                                ) : (
-                                  <strong />
-                                ),
-                              platformAgreementLink:
-                                disclosureConfig.platformAgreementUrl ? (
-                                  <a
-                                    href={disclosureConfig.platformAgreementUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="eb-text-primary eb-underline eb-underline-offset-2 hover:eb-underline"
-                                  />
-                                ) : (
-                                  <strong />
-                                ),
-                            }}
-                          />
                         </FormLabel>
                       </div>
                       <FormMessage />

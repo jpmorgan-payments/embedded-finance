@@ -1244,7 +1244,7 @@
     "dataAccuracyAttestation": "Data accuracy attestation",
     "dataAccuracyCheckbox": "The data I am providing is true, accurate and complete to the best of my knowledge.",
     "disclosure": {
-      "footer": "{{platformName}} is not a bank; Banking services provided by JPMorgan Chase Bank, N.A., Member FDIC.",
+      "footer": "Banking services provided by JPMorgan Chase Bank, N.A., Member FDIC. {{platformName}} is not a bank.",
       "fdic": "Deposit accounts are insured by the FDIC up to $250,000 per depositor for each account ownership category. Availability of FDIC deposit insurance coverage protects against the failure of JPMorgan Chase Bank, N.A., Member FDIC, and not of {{platformName}}."
     },
     "attestation": {

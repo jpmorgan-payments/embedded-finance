@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useTranslationWithTokens } from '@/i18n';
+import { TransWithTokens, useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import {
@@ -52,21 +52,48 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
   getNextButtonLabel,
 }) => {
   const queryClient = useQueryClient();
-  const { clientData, onPostClientSettled } = useOnboardingContext();
+  const { clientData, onPostClientSettled, disclosureConfig } =
+    useOnboardingContext();
 
   const { t } = useTranslationWithTokens('onboarding-old');
 
+  const hasDisclosureConfig = !!disclosureConfig?.platformName;
+
+  const booleanRequired = z.boolean().refine((value) => value === true, {
+    message: String(
+      t(
+        'reviewAndAttest.attestation.mustAgreeToAll',
+        'You must agree to all attestations before proceeding.'
+      )
+    ),
+  });
+
   const form = useForm({
-    defaultValues: {
-      attested: false,
-    },
+    defaultValues: hasDisclosureConfig
+      ? {
+          attested: false,
+          attestAuthorizeSharing: false,
+          attestAgreeToTerms: false,
+        }
+      : {
+          attested: false,
+        },
     resolver: zodResolver(
-      z.object({
-        attested: z.boolean().refine((value) => value === true, {
-          message:
-            'You must agree to all of the documents listed on this page.',
-        }),
-      })
+      hasDisclosureConfig
+        ? z.object({
+            attested: z.boolean().refine((value) => value === true, {
+              message:
+                'You must agree to all of the documents listed on this page.',
+            }),
+            attestAuthorizeSharing: booleanRequired,
+            attestAgreeToTerms: booleanRequired,
+          })
+        : z.object({
+            attested: z.boolean().refine((value) => value === true, {
+              message:
+                'You must agree to all of the documents listed on this page.',
+            }),
+          })
     ),
   });
 
@@ -356,6 +383,113 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
               )}
             />
           </div>
+          {hasDisclosureConfig && (
+            <div className="eb-space-y-3">
+              <p className="eb-text-sm eb-font-medium">
+                {t(
+                  'reviewAndAttest.attestation.heading',
+                  'By electronically submitting this Application, you agree that:'
+                )}
+              </p>
+              <div
+                className="eb-space-y-3 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-4"
+                role="group"
+                aria-label={String(
+                  t(
+                    'reviewAndAttest.termsAndConditions.additionalAttestations',
+                    'Additional attestations'
+                  )
+                )}
+              >
+                {/* Authorize sharing & appoint agent */}
+                <FormField
+                  control={form.control}
+                  name="attestAuthorizeSharing"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="eb-flex eb-items-start eb-gap-2">
+                        <FormControl>
+                          <Checkbox
+                            className="eb-mt-0.5"
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-relaxed eb-text-foreground">
+                          {t('reviewAndAttest.attestation.authorizeSharing', {
+                            platformName: disclosureConfig!.platformName,
+                            defaultValue:
+                              'You authorize {{platformName}} and JPMorgan Chase Bank, N.A. ("JPMC") to share information to facilitate the opening of your deposit account(s), and appoint {{platformName}} as your agent to act on your behalf regarding your deposit account.',
+                          })}
+                        </FormLabel>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Agree to terms (with hyperlinks) */}
+                <FormField
+                  control={form.control}
+                  name="attestAgreeToTerms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="eb-flex eb-items-start eb-gap-2">
+                        <FormControl>
+                          <Checkbox
+                            className="eb-mt-0.5"
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-relaxed eb-text-foreground">
+                          <TransWithTokens
+                            ns="onboarding-old"
+                            i18nKey="reviewAndAttest.attestation.agreeToTerms"
+                            defaults="You have read and agree to the <jpTermsLink>J.P. Morgan Account Terms</jpTermsLink> and the <platformAgreementLink>{{platformAgreementLabel}}</platformAgreementLink>."
+                            values={{
+                              platformAgreementLabel:
+                                disclosureConfig!.platformAgreementLabel ??
+                                `${disclosureConfig!.platformName}'s Program Agreement`,
+                            }}
+                            components={{
+                              jpTermsLink:
+                                documentIds.length > 0 ? (
+                                  <button
+                                    type="button"
+                                    onClick={handleDocumentOpen(
+                                      documentIds[0]
+                                    )}
+                                    disabled={loadingDocuments[documentIds[0]]}
+                                    className="eb-inline eb-cursor-pointer eb-border-none eb-bg-transparent eb-p-0 eb-text-primary eb-underline eb-underline-offset-2 hover:eb-underline"
+                                  />
+                                ) : (
+                                  <strong />
+                                ),
+                              platformAgreementLink:
+                                disclosureConfig!.platformAgreementUrl ? (
+                                  <a
+                                    href={
+                                      disclosureConfig!.platformAgreementUrl
+                                    }
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="eb-text-primary eb-underline eb-underline-offset-2 hover:eb-underline"
+                                  />
+                                ) : (
+                                  <strong />
+                                ),
+                            }}
+                          />
+                        </FormLabel>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          )}
           {!allDocumentsOpened && (
             <Alert variant="informative" noTitle>
               <InfoIcon className="eb-h-4 eb-w-4" />
