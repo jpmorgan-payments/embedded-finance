@@ -10,10 +10,63 @@ import {
 } from '@/api/generated/smbdo.schemas';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import type { OnboardingContextType } from '@/core/OnboardingFlow/contexts';
-import * as FlowContext from '@/core/OnboardingFlow/contexts/FlowContext';
 import { OnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
 
 import { DocumentUploadScreen } from './DocumentUploadScreen';
+
+/**
+ * `useFlowContext` is `() => useContext(FlowContext)`. Spying on the module export can be
+ * unreliable across bundlers/CI; replacing the module binding guarantees the SUT uses our mocks.
+ */
+const flowContextTestState = vi.hoisted(() => {
+  const defaults = {
+    currentScreenId: 'document-upload',
+    originScreenId: 'overview',
+    goTo: vi.fn(),
+    goBack: vi.fn(),
+    editingPartyIds: {},
+    updateEditingPartyId: vi.fn(),
+    sections: [],
+    sessionData: {},
+    updateSessionData: vi.fn(),
+    previouslyCompleted: false,
+    reviewScreenOpenedSectionId: null,
+    initialStepperStepId: null,
+    shortLabelOverride: null,
+    unsavedChangesRef: { current: false },
+    setFlowUnsavedChanges: vi.fn(),
+  };
+  let overrides: Record<string, unknown> = {};
+
+  return {
+    reset() {
+      overrides = {};
+    },
+    setOverrides(patch: Record<string, unknown>) {
+      overrides = { ...patch };
+    },
+    getValue() {
+      return { ...defaults, ...overrides };
+    },
+  };
+});
+
+vi.mock(
+  '@/core/OnboardingFlow/contexts/FlowContext',
+  async (importOriginal) => {
+    const actual =
+      await importOriginal<
+        typeof import('@/core/OnboardingFlow/contexts/FlowContext')
+      >();
+    return {
+      ...actual,
+      useFlowContext: () =>
+        flowContextTestState.getValue() as unknown as ReturnType<
+          typeof actual.useFlowContext
+        >,
+    };
+  }
+);
 
 /** Stable ids for assertions against `goTo(..., { editingPartyId })` (value is document request id). */
 const DOC_REQ = {
@@ -150,24 +203,6 @@ const mockDocumentRequests: DocumentRequestResponse[] = [
   },
 ];
 
-const baseFlowContext = {
-  currentScreenId: 'document-upload',
-  originScreenId: 'overview',
-  goTo: vi.fn(),
-  goBack: vi.fn(),
-  editingPartyIds: {},
-  updateEditingPartyId: vi.fn(),
-  sections: [],
-  sessionData: {},
-  updateSessionData: vi.fn(),
-  previouslyCompleted: false,
-  reviewScreenOpenedSectionId: null,
-  initialStepperStepId: null,
-  shortLabelOverride: null,
-  unsavedChangesRef: { current: false },
-  setFlowUnsavedChanges: vi.fn(),
-};
-
 const baseOnboardingSlice = {
   setClientId: vi.fn(),
   organizationType: 'LIMITED_LIABILITY_COMPANY' as const,
@@ -175,8 +210,6 @@ const baseOnboardingSlice = {
   showLinkAccountStep: false,
   showDownloadChecklist: false,
 };
-
-let flowContextSpy: ReturnType<typeof vi.spyOn>;
 
 function renderDocumentUploadScreen(
   options: {
@@ -193,10 +226,7 @@ function renderDocumentUploadScreen(
     onboarding: onboardingPatch = {},
   } = options;
 
-  flowContextSpy.mockReturnValue({
-    ...baseFlowContext,
-    ...flowPatch,
-  } as unknown as ReturnType<typeof FlowContext.useFlowContext>);
+  flowContextTestState.setOverrides(flowPatch);
 
   const client = { ...mockClient, ...clientPatch };
   const onboardingContext: OnboardingContextType = {
@@ -245,23 +275,13 @@ describe('DocumentUploadScreen', () => {
   beforeEach(() => {
     // Avoid CI flakiness where user-event skips clicks (pointer target checks).
     user = userEvent.setup({ pointerEventsCheck: 0 });
+    flowContextTestState.reset();
     vi.clearAllMocks();
     server.resetHandlers();
     const g = globalThis as {
       __EB_QUERY_CLIENT__?: import('@tanstack/react-query').QueryClient;
     };
     g.__EB_QUERY_CLIENT__?.clear();
-    flowContextSpy = vi
-      .spyOn(FlowContext, 'useFlowContext')
-      .mockReturnValue(
-        baseFlowContext as unknown as ReturnType<
-          typeof FlowContext.useFlowContext
-        >
-      );
-  });
-
-  afterEach(() => {
-    flowContextSpy.mockRestore();
   });
 
   describe('document request list (happy path)', () => {
