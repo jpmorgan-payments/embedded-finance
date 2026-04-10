@@ -62,30 +62,47 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: {
-      '@': resolve(__dirname, './src'),
-      '@ef-docs': resolve(__dirname, '../../embedded-components/docs'),
-      // OAS-generated types from embedded-components (for MSW handlers and type-safe mocks)
-      '@ef-api/smbdo-schemas': resolve(
-        __dirname,
-        '../../embedded-components/src/api/generated/smbdo.schemas.ts'
-      ),
-      '@ef-api/ef-v1-schemas': resolve(
-        __dirname,
-        '../../embedded-components/src/api/generated/ef-v1.schemas.ts'
-      ),
-      '@ef-api/ep-recipients-schemas': resolve(
-        __dirname,
-        '../../embedded-components/src/api/generated/ep-recipients.schemas.ts'
-      ),
-      '@ef-api/ep-transactions-schemas': resolve(
-        __dirname,
-        '../../embedded-components/src/api/generated/ep-transactions.schemas.ts'
-      ),
-      '@ef-api/ep-accounts-schemas': resolve(
-        __dirname,
-        '../../embedded-components/src/api/generated/ep-accounts.schemas.ts'
-      ),
-    },
+    // Library build marks react/react-dom external; ensure one copy with the app (prevents
+    // "Cannot read properties of null (reading 'useState')" from duplicate React in preview/prod).
+    dedupe: ['react', 'react-dom'],
+    alias: [
+      { find: '@', replacement: resolve(__dirname, './src') },
+      { find: '@ef-docs', replacement: resolve(__dirname, '../../embedded-components/docs') },
+      {
+        find: '@ef-api/smbdo-schemas',
+        replacement: resolve(
+          __dirname,
+          '../../embedded-components/src/api/generated/smbdo.schemas.ts',
+        ),
+      },
+      {
+        find: '@ef-api/ef-v1-schemas',
+        replacement: resolve(
+          __dirname,
+          '../../embedded-components/src/api/generated/ef-v1.schemas.ts',
+        ),
+      },
+      {
+        find: '@ef-api/ep-recipients-schemas',
+        replacement: resolve(
+          __dirname,
+          '../../embedded-components/src/api/generated/ep-recipients.schemas.ts',
+        ),
+      },
+      {
+        find: '@ef-api/ep-transactions-schemas',
+        replacement: resolve(
+          __dirname,
+          '../../embedded-components/src/api/generated/ep-transactions.schemas.ts',
+        ),
+      },
+      {
+        find: '@ef-api/ep-accounts-schemas',
+        replacement: resolve(
+          __dirname,
+          '../../embedded-components/src/api/generated/ep-accounts.schemas.ts',
+        ),
+      },
+    ],
   },
 });

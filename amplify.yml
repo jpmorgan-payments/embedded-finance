@@ -11,6 +11,8 @@ applications:
             - node --version
         build:
           commands:
+            # Local dependency: package.json uses file:../../embedded-components — build dist/ before the app.
+            - (cd ../../embedded-components && yarn install && yarn build)
             - npm install
             - npm run build
       artifacts:
