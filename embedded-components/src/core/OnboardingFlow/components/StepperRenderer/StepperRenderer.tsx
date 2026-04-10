@@ -660,10 +660,6 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
                       (p) => !oldPartyIds?.includes(p.id)
                     );
 
-                    if (newParty) {
-                      setExistingPartyData(newParty);
-                    }
-
                     // Clear saved form values so the identity step
                     // re-derives defaults from the new party.
                     saveFormValue(
@@ -671,11 +667,17 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
                       undefined
                     );
 
-                    // Wait for the query cache to settle so that
-                    // clientData (and therefore existingPartyData)
-                    // reflects the new party before the next step mounts.
+                    // Update the cache BEFORE updating the editing party ID
+                    // so that when the sidebar re-renders with the new ID,
+                    // the party already exists in clientData (preventing a
+                    // brief "New owner" flash).
                     const queryKey = getSmbdoGetClientQueryKey(clientData.id);
                     queryClient.setQueryData(queryKey, response);
+
+                    if (newParty) {
+                      setExistingPartyData(newParty);
+                    }
+
                     await queryClient.invalidateQueries({ queryKey });
                     handleNext();
                   },
@@ -785,14 +787,17 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
               const newParty = response.parties?.find(
                 (party) => !oldPartyIds?.includes(party.id)
               );
+
+              // Update the cache BEFORE updating the editing party ID
+              // so that when the sidebar re-renders with the new ID,
+              // the party already exists in clientData.
+              const queryKey = getSmbdoGetClientQueryKey(clientData.id);
+              queryClient.setQueryData(queryKey, response);
+
               if (newParty) {
                 setExistingPartyData(newParty);
               }
 
-              // Wait for the query cache to settle so that
-              // clientData reflects the new party before the next step mounts.
-              const queryKey = getSmbdoGetClientQueryKey(clientData.id);
-              queryClient.setQueryData(queryKey, response);
               await queryClient.invalidateQueries({
                 queryKey,
               });

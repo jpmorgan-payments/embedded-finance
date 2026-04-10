@@ -345,6 +345,181 @@ const FlowRenderer: React.FC = React.memo(() => {
     return <div>{t('onboarding-overview:errors.unhandledScreenError')}</div>;
   }, [screen, currentScreenId, editingPartyIdForScreen, t]);
 
+  // ---------------------------------------------------------------
+  // Freeze the sidebar snapshot while a form mutation is in flight.
+  // This prevents any intermediate data states (deactivated parties,
+  // new parties not yet linked, etc.) from flashing in the sidebar.
+  // ---------------------------------------------------------------
+  const timelineCurrentStepId = isInOwnerStepper
+    ? isAddingNewOwner
+      ? '__new-owner__'
+      : editingPartyIds['owner-stepper']
+    : currentStepperStepId;
+
+  const timelineCurrentSubStepId = isInOwnerStepper
+    ? currentStepperStepId
+    : undefined;
+
+  const timelineSections: TimelineSection[] = [
+    {
+      id: 'gateway',
+      title: t('onboarding-overview:flowRenderer.businessType'),
+      status:
+        organizationType && clientData?.status !== 'NEW'
+          ? 'completed_disabled'
+          : organizationType
+            ? 'completed'
+            : 'not_started',
+      steps: [],
+    },
+    ...sections.map((section) => {
+      // When a section creates a party (has getDefaultPartyRequestBody),
+      // lock steps beyond the first until the party exists.
+      // Step 1 collects countryOfResidence — required for party creation —
+      // so skipping it would cause the API call to fail.
+      const sectionParty = section.stepperConfig?.associatedPartyFilters
+        ? getPartyByAssociatedPartyFilters(
+            clientData,
+            section.stepperConfig.associatedPartyFilters
+          )
+        : undefined;
+      const partyRequiredButMissing =
+        !!section.stepperConfig?.getDefaultPartyRequestBody &&
+        !sectionParty?.id;
+
+      // Owners section: always show owner names with
+      // form sub-steps expanded under the owner being edited.
+      if (section.id === 'owners-section') {
+        return {
+          ...section,
+          status: sectionStatuses[section.id] || 'not_started',
+          title:
+            section.sectionConfig.shortLabel ?? section.sectionConfig.label,
+          steps: [
+            ...activeOwners.map((owner) => {
+              const isEditingThisOwner =
+                isInOwnerStepper &&
+                owner.id === editingPartyIds['owner-stepper'];
+              const validation = owner.id
+                ? ownerValidations[owner.id]
+                : undefined;
+
+              return {
+                id: owner.id ?? '',
+                title: getPartyName(owner) || 'Owner',
+                status: validation?.allStepsValid
+                  ? 'completed'
+                  : 'missing_details',
+                isExpanded: isEditingThisOwner,
+                subSteps:
+                  isEditingThisOwner &&
+                  ownerStepperConfig &&
+                  ownerStepValidation
+                    ? ownerStepperConfig.steps.map((step, stepIndex) => ({
+                        id: step.id,
+                        title: step.title,
+                        status:
+                          stepIndex > 0 && !editingOwnerParty?.id
+                            ? ('on_hold' as const)
+                            : ownerStepValidation.stepValidationMap[step.id]
+                                  ?.isValid
+                              ? ('completed' as const)
+                              : step.stepType === 'check-answers'
+                                ? ('on_hold' as const)
+                                : ('not_started' as const),
+                      }))
+                    : undefined,
+              } as TimelineStep;
+            }),
+            // Synthetic placeholder when adding a brand-new owner
+            // (party not yet created in the backend).
+            ...(isAddingNewOwner && ownerStepperConfig
+              ? [
+                  {
+                    id: '__new-owner__',
+                    title: 'New owner',
+                    status: 'not_started' as const,
+                    isExpanded: true,
+                    subSteps: ownerStepperConfig.steps.map(
+                      (step, stepIndex) => ({
+                        id: step.id,
+                        title: step.title,
+                        status:
+                          stepIndex > 0
+                            ? ('on_hold' as const)
+                            : ownerStepValidation?.stepValidationMap[step.id]
+                                  ?.isValid
+                              ? ('completed' as const)
+                              : step.stepType === 'check-answers'
+                                ? ('on_hold' as const)
+                                : ('not_started' as const),
+                      })
+                    ),
+                  } as TimelineStep,
+                ]
+              : []),
+          ],
+        };
+      }
+
+      return {
+        ...section,
+        status: sectionStatuses[section.id] || 'not_started',
+        title: section.sectionConfig.shortLabel ?? section.sectionConfig.label,
+        steps: (section.stepperConfig?.steps ?? []).map((step, stepIndex) => {
+          // Check if this static step was explicitly
+          // completed and recorded in session data.
+          const isCompletedStaticStep =
+            step.stepType === 'static' &&
+            (sessionData.completedStaticStepIds ?? []).includes(step.id);
+
+          return {
+            ...step,
+            status:
+              stepIndex > 0 && partyRequiredButMissing
+                ? 'on_hold'
+                : stepValidations[section.id][step.id].isValid ||
+                    isCompletedStaticStep
+                  ? 'completed'
+                  : step.stepType === 'check-answers' ||
+                      step.stepType === 'static'
+                    ? 'on_hold'
+                    : 'not_started',
+          } as TimelineStep;
+        }),
+      };
+    }),
+    ...(showLinkAccountStep
+      ? ([
+          {
+            id: 'link-account',
+            title: t('onboarding-overview:flowRenderer.linkAccount'),
+            status: hasExistingLinkedAccount
+              ? 'completed_disabled'
+              : clientData?.status === 'APPROVED'
+                ? 'not_started'
+                : 'on_hold',
+            steps: [],
+          },
+        ] satisfies TimelineSection[])
+      : []),
+  ];
+
+  const frozenSidebarRef = useRef({
+    sectionId: sidebarSectionId,
+    stepId: timelineCurrentStepId,
+    subStepId: timelineCurrentSubStepId,
+    sections: timelineSections,
+  });
+  if (!isFormSubmitting) {
+    frozenSidebarRef.current = {
+      sectionId: sidebarSectionId,
+      stepId: timelineCurrentStepId,
+      subStepId: timelineCurrentSubStepId,
+      sections: timelineSections,
+    };
+  }
+
   return (
     <div
       className="eb-flex eb-flex-1 eb-scroll-mt-44 eb-gap-6 eb-@container sm:eb-scroll-mt-48"
@@ -357,17 +532,9 @@ const FlowRenderer: React.FC = React.memo(() => {
             className="eb-w-64 eb-rounded-lg eb-border eb-py-2 eb-shadow-sm lg:eb-w-80"
             title={t('onboarding-overview:documentUpload.onboardingProgress')}
             disableInteraction={isFormSubmitting}
-            currentSectionId={sidebarSectionId}
-            currentStepId={
-              isInOwnerStepper
-                ? isAddingNewOwner
-                  ? '__new-owner__'
-                  : editingPartyIds['owner-stepper']
-                : currentStepperStepId
-            }
-            currentSubStepId={
-              isInOwnerStepper ? currentStepperStepId : undefined
-            }
+            currentSectionId={frozenSidebarRef.current.sectionId}
+            currentStepId={frozenSidebarRef.current.stepId}
+            currentSubStepId={frozenSidebarRef.current.subStepId}
             onSectionClick={(screenId) => {
               const section = sections.find((s) => s.id === screenId);
               if (!section || section.type !== 'stepper') {
@@ -460,162 +627,7 @@ const FlowRenderer: React.FC = React.memo(() => {
                 });
               }
             }}
-            sections={[
-              {
-                id: 'gateway',
-                title: t('onboarding-overview:flowRenderer.businessType'),
-                status:
-                  organizationType && clientData?.status !== 'NEW'
-                    ? 'completed_disabled'
-                    : organizationType
-                      ? 'completed'
-                      : 'not_started',
-                steps: [],
-              },
-              ...sections.map((section) => {
-                // When a section creates a party (has getDefaultPartyRequestBody),
-                // lock steps beyond the first until the party exists.
-                // Step 1 collects countryOfResidence — required for party creation —
-                // so skipping it would cause the API call to fail.
-                const sectionParty = section.stepperConfig
-                  ?.associatedPartyFilters
-                  ? getPartyByAssociatedPartyFilters(
-                      clientData,
-                      section.stepperConfig.associatedPartyFilters
-                    )
-                  : undefined;
-                const partyRequiredButMissing =
-                  !!section.stepperConfig?.getDefaultPartyRequestBody &&
-                  !sectionParty?.id;
-
-                // Owners section: always show owner names with
-                // form sub-steps expanded under the owner being edited.
-                if (section.id === 'owners-section') {
-                  return {
-                    ...section,
-                    status: sectionStatuses[section.id] || 'not_started',
-                    title:
-                      section.sectionConfig.shortLabel ??
-                      section.sectionConfig.label,
-                    steps: [
-                      ...activeOwners.map((owner) => {
-                        const isEditingThisOwner =
-                          isInOwnerStepper &&
-                          owner.id === editingPartyIds['owner-stepper'];
-                        const validation = owner.id
-                          ? ownerValidations[owner.id]
-                          : undefined;
-
-                        return {
-                          id: owner.id ?? '',
-                          title: getPartyName(owner) || 'Owner',
-                          status: validation?.allStepsValid
-                            ? 'completed'
-                            : 'missing_details',
-                          isExpanded: isEditingThisOwner,
-                          subSteps:
-                            isEditingThisOwner &&
-                            ownerStepperConfig &&
-                            ownerStepValidation
-                              ? ownerStepperConfig.steps.map(
-                                  (step, stepIndex) => ({
-                                    id: step.id,
-                                    title: step.title,
-                                    status:
-                                      stepIndex > 0 && !editingOwnerParty?.id
-                                        ? ('on_hold' as const)
-                                        : ownerStepValidation.stepValidationMap[
-                                              step.id
-                                            ]?.isValid
-                                          ? ('completed' as const)
-                                          : step.stepType === 'check-answers'
-                                            ? ('on_hold' as const)
-                                            : ('not_started' as const),
-                                  })
-                                )
-                              : undefined,
-                        } as TimelineStep;
-                      }),
-                      // Synthetic placeholder when adding a brand-new owner
-                      // (party not yet created in the backend).
-                      ...(isAddingNewOwner && ownerStepperConfig
-                        ? [
-                            {
-                              id: '__new-owner__',
-                              title: 'New owner',
-                              status: 'not_started' as const,
-                              isExpanded: true,
-                              subSteps: ownerStepperConfig.steps.map(
-                                (step, stepIndex) => ({
-                                  id: step.id,
-                                  title: step.title,
-                                  status:
-                                    stepIndex > 0
-                                      ? ('on_hold' as const)
-                                      : ownerStepValidation?.stepValidationMap[
-                                            step.id
-                                          ]?.isValid
-                                        ? ('completed' as const)
-                                        : step.stepType === 'check-answers'
-                                          ? ('on_hold' as const)
-                                          : ('not_started' as const),
-                                })
-                              ),
-                            } as TimelineStep,
-                          ]
-                        : []),
-                    ],
-                  };
-                }
-
-                return {
-                  ...section,
-                  status: sectionStatuses[section.id] || 'not_started',
-                  title:
-                    section.sectionConfig.shortLabel ??
-                    section.sectionConfig.label,
-                  steps: (section.stepperConfig?.steps ?? []).map(
-                    (step, stepIndex) => {
-                      // Check if this static step was explicitly
-                      // completed and recorded in session data.
-                      const isCompletedStaticStep =
-                        step.stepType === 'static' &&
-                        (sessionData.completedStaticStepIds ?? []).includes(
-                          step.id
-                        );
-
-                      return {
-                        ...step,
-                        status:
-                          stepIndex > 0 && partyRequiredButMissing
-                            ? 'on_hold'
-                            : stepValidations[section.id][step.id].isValid ||
-                                isCompletedStaticStep
-                              ? 'completed'
-                              : step.stepType === 'check-answers' ||
-                                  step.stepType === 'static'
-                                ? 'on_hold'
-                                : 'not_started',
-                      } as TimelineStep;
-                    }
-                  ),
-                };
-              }),
-              ...(showLinkAccountStep
-                ? ([
-                    {
-                      id: 'link-account',
-                      title: t('onboarding-overview:flowRenderer.linkAccount'),
-                      status: hasExistingLinkedAccount
-                        ? 'completed_disabled'
-                        : clientData?.status === 'APPROVED'
-                          ? 'not_started'
-                          : 'on_hold',
-                      steps: [],
-                    },
-                  ] satisfies TimelineSection[])
-                : []),
-            ]}
+            sections={frozenSidebarRef.current.sections}
           />
         </div>
       )}
