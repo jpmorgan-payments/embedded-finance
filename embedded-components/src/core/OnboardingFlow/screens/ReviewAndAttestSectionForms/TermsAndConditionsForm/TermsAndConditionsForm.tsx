@@ -81,15 +81,13 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
       hasDisclosureConfig
         ? z.object({
             attested: z.boolean().refine((value) => value === true, {
-              message:
-                'You must agree to the terms before proceeding.',
+              message: 'You must agree to the terms before proceeding.',
             }),
             attestAuthorizeSharing: booleanRequired,
           })
         : z.object({
             attested: z.boolean().refine((value) => value === true, {
-              message:
-                'You must agree to the terms before proceeding.',
+              message: 'You must agree to the terms before proceeding.',
             }),
           })
     ),
@@ -139,9 +137,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
   const [platformAgreementOpened, setPlatformAgreementOpened] = useState(false);
 
   const allLinksOpened =
-    documentIds.every(
-      (id) => termsDocumentsOpened[id] || documentErrors[id]
-    ) &&
+    documentIds.every((id) => termsDocumentsOpened[id] || documentErrors[id]) &&
     (!hasPlatformAgreement || platformAgreementOpened);
 
   const handlePlatformAgreementOpen = () => {
