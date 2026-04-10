@@ -627,7 +627,20 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
                 0,
                 'addParties',
                 {
-                  addParties: [defaultPartyRequestBody ?? {}],
+                  // Carry over the existing party's top-level fields
+                  // (roles, partyType, email) so the recreated party
+                  // preserves them. generateClientRequestBody only maps
+                  // form fields into individualDetails/orgDetails, so
+                  // these must be set explicitly on the base object.
+                  addParties: [
+                    {
+                      partyType: existingPartyData.partyType,
+                      roles: existingPartyData.roles,
+                      ...(existingPartyData.email && {
+                        email: existingPartyData.email,
+                      }),
+                    },
+                  ],
                 }
               );
 
