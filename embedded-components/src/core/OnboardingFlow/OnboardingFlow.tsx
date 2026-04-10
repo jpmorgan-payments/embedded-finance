@@ -23,6 +23,7 @@ import {
   TimelineSection,
   TimelineStep,
 } from './components';
+import { DisclosureFooter } from './components/DisclosureFooter/DisclosureFooter';
 import { StepperRenderer } from './components/StepperRenderer/StepperRenderer';
 import { flowConfig } from './config/flowConfig';
 import { FlowProvider, useFlowContext } from './contexts/FlowContext';
@@ -148,6 +149,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             <FlowRenderer />
           </FlowProvider>
         )}
+        <DisclosureFooter />
       </div>
     </OnboardingContext.Provider>
   );

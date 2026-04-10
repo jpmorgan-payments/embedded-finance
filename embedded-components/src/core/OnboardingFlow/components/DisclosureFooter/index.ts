@@ -1,0 +1,1 @@
+export { DisclosureFooter } from './DisclosureFooter';
