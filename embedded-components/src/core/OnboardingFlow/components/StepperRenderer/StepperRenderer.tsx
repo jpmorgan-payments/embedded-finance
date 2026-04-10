@@ -178,7 +178,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       currentScreenId === 'review-attest-section' &&
       currentStep.id === 'documents'
     ) {
-      goTo('overview');
+      goTo('overview', { resetHistory: true });
     } else {
       goTo(nextSection?.id ?? 'overview', {
         editingPartyId: nextSectionPartyData.id,
@@ -713,10 +713,13 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
             onSettled: (data, error) => {
               onPostPartySettled?.(data, error?.response?.data);
             },
-            onSuccess: async (response) => {
+            onSuccess: (response) => {
               const queryKey = getSmbdoGetClientQueryKey(clientData.id);
 
-              // Update client cache with party data
+              // Update client cache with party data synchronously.
+              // No invalidateQueries needed — setQueryData already has
+              // the correct party data, and a background refetch would
+              // cause a brief flash as it overwrites the optimistic update.
               queryClient.setQueryData(
                 queryKey,
                 (prev: ClientResponse | undefined) => ({
@@ -730,11 +733,6 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
                 })
               );
               setExistingPartyData(response);
-              // Wait for the query cache to settle so that
-              // clientData reflects the update before the next step mounts.
-              await queryClient.invalidateQueries({
-                queryKey,
-              });
               handleNext();
             },
             onError: (error) => {

@@ -625,15 +625,15 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                         {step.isExpanded && step.subSteps?.length ? (
                           <div className="eb-py-0.5">
                             {step.subSteps.map((subStep) => {
+                              const isCurrentSub =
+                                currentSubStepId === subStep.id;
                               const resolvedSubStepStatus: TimelineItemStatus =
                                 subStep.status === 'completed' ||
                                 subStep.status === 'completed_disabled'
                                   ? subStep.status
-                                  : currentSubStepId === subStep.id
+                                  : isCurrentSub
                                     ? 'current'
                                     : subStep.status;
-                              const isCurrentSub =
-                                currentSubStepId === subStep.id;
 
                               return (
                                 <button

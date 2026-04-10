@@ -182,9 +182,16 @@ const FlowRenderer: React.FC = React.memo(() => {
 
   // When viewing a sub-screen (e.g. owner-stepper), highlight its parent
   // section in the sidebar instead of leaving no section highlighted.
+  // Only sub-screens should fall back — top-level screens like overview
+  // should not inherit the previous section.
+  const isSubScreen =
+    currentScreenId === 'owner-stepper' ||
+    currentScreenId === 'document-upload-form';
   const sidebarSectionId = sections.some((s) => s.id === currentScreenId)
     ? currentScreenId
-    : (originScreenId ?? currentScreenId);
+    : isSubScreen
+      ? (originScreenId ?? currentScreenId)
+      : currentScreenId;
 
   // Owner sidebar data — supports the list view (each owner by name)
   // and the edit view (current owner's form steps).
@@ -568,20 +575,29 @@ const FlowRenderer: React.FC = React.memo(() => {
                     section.sectionConfig.shortLabel ??
                     section.sectionConfig.label,
                   steps: (section.stepperConfig?.steps ?? []).map(
-                    (step, stepIndex) =>
-                      ({
+                    (step, stepIndex) => {
+                      // Check if this static step was explicitly
+                      // completed and recorded in session data.
+                      const isCompletedStaticStep =
+                        step.stepType === 'static' &&
+                        (sessionData.completedStaticStepIds ?? []).includes(
+                          step.id
+                        );
+
+                      return {
                         ...step,
                         status:
-                          step.id === 'documents'
+                          stepIndex > 0 && partyRequiredButMissing
                             ? 'on_hold'
-                            : stepIndex > 0 && partyRequiredButMissing
-                              ? 'on_hold'
-                              : stepValidations[section.id][step.id].isValid
-                                ? 'completed'
-                                : step.stepType === 'check-answers'
-                                  ? 'on_hold'
-                                  : 'not_started',
-                      }) as TimelineStep
+                            : stepValidations[section.id][step.id].isValid ||
+                                isCompletedStaticStep
+                              ? 'completed'
+                              : step.stepType === 'check-answers' ||
+                                  step.stepType === 'static'
+                                ? 'on_hold'
+                                : 'not_started',
+                      } as TimelineStep;
+                    }
                   ),
                 };
               }),
