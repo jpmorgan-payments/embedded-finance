@@ -69,6 +69,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
     sections,
     goTo,
     sessionData,
+    updateSessionData,
     reviewScreenOpenedSectionId,
     currentScreenId,
     savedFormValues,
@@ -190,6 +191,12 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
             setShouldDisplayAlert(true);
           } else {
             form.handleSubmit(() => {
+              updateSessionData({
+                completedStaticStepIds: [
+                  ...(sessionData.completedStaticStepIds ?? []),
+                  'review',
+                ],
+              });
               handleNext();
             })(e);
           }

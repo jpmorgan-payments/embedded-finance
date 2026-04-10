@@ -125,7 +125,7 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
   customTitle,
   customErrorMessage,
   tryAgainAction,
-  showDetails = false,
+  showDetails = true,
 }) => {
   const { t } = useTranslationWithTokens(['common']);
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
@@ -137,11 +137,30 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
   const httpStatus =
     error.response?.data?.httpStatus?.toString() ?? error.status?.toString();
 
-  // Get the API message from response if available
-  // Use type assertion since 'message' may exist on the actual API response but not in the typed schema
-  const apiMessage =
-    (error.response?.data as any)?.message ||
-    error.response?.data?.context?.[0]?.message;
+  // Get the most useful API message from the response.
+  // The top-level `message` field is often a generic placeholder like
+  // "Error details not available", while the `context` array carries the
+  // real actionable detail (e.g. "Organization type [PARTNERSHIP] not
+  // allowed"). Prefer context when the top-level message looks generic.
+  const topLevelMessage = (error.response?.data as any)?.message as
+    | string
+    | undefined;
+  const contextMessages = error.response?.data?.context
+    ?.map((c) => c.message)
+    .filter(Boolean);
+  const bestContextMessage =
+    contextMessages && contextMessages.length > 0
+      ? contextMessages.join('; ')
+      : undefined;
+
+  const isGenericMessage =
+    !topLevelMessage ||
+    topLevelMessage === error.response?.data?.title ||
+    /error details not available/i.test(topLevelMessage);
+
+  const apiMessage = isGenericMessage
+    ? (bestContextMessage ?? topLevelMessage)
+    : (topLevelMessage ?? bestContextMessage);
 
   // Default error messages from i18n content tokens
   const defaultMessages: Record<string, ReactNode> = {

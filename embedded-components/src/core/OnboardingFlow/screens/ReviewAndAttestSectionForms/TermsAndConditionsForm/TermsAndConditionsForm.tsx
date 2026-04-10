@@ -36,7 +36,10 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui';
-import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
+import {
+  useFlowContext,
+  useOnboardingContext,
+} from '@/core/OnboardingFlow/contexts';
 import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
 import { StepperStepProps } from '@/core/OnboardingFlow/types/flow.types';
 
@@ -53,6 +56,8 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
 }) => {
   const queryClient = useQueryClient();
   const { clientData, onPostClientSettled } = useOnboardingContext();
+  const { isFormSubmitting: isFormSubmittingContext, setIsFormSubmitting } =
+    useFlowContext();
 
   const { t } = useTranslationWithTokens('onboarding-old');
 
@@ -177,6 +182,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
         },
       };
 
+      setIsFormSubmitting(true);
       try {
         if (clientData?.outstanding?.attestationDocumentIds?.length) {
           await updateClientAsync(
@@ -195,8 +201,12 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
         await initiateKYCAsync(
           { id: clientData.id, data: verificationRequestBody },
           {
-            onSuccess: () => {
-              queryClient.invalidateQueries({
+            onSuccess: async () => {
+              // Wait for the client data to refetch so every section's
+              // statusResolver sees the updated status before we navigate.
+              // This keeps the user on the T&C step with the spinner
+              // instead of briefly flashing stale section states on overview.
+              await queryClient.invalidateQueries({
                 queryKey: getSmbdoGetClientQueryKey(clientData.id),
               });
               handleNext();
@@ -204,6 +214,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
           }
         );
       } catch (error) {
+        setIsFormSubmitting(false);
         console.error('Error completing KYC process:', error);
       }
     }
@@ -233,8 +244,9 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
 
   const [shouldDisplayAlert, setShouldDisplayAlert] = useState(false);
 
-  const isFormSubmitting =
+  const isMutationPending =
     clientUpdateStatus === 'pending' || clientVerificationsStatus === 'pending';
+  const isFormSubmitting = isFormSubmittingContext || isMutationPending;
 
   return (
     <Form {...form}>

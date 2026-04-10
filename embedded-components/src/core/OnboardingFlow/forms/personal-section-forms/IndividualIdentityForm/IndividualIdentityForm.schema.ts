@@ -214,30 +214,59 @@ export const useIndividualIdentityFormSchema = () => {
         v('birthDate', 'format')
       )
       .refine(
-        (val) => !Number.isNaN(new Date(val).getTime()),
+        (val) => {
+          // Verify the date is a real calendar date (e.g. reject Feb 30)
+          // Parse parts from string to avoid UTC vs local timezone issues
+          const [year, month, day] = val.split('-').map(Number);
+          const date = new Date(year, month - 1, day);
+          return (
+            date.getFullYear() === year &&
+            date.getMonth() === month - 1 &&
+            date.getDate() === day
+          );
+        },
         v('birthDate', 'invalid')
       )
       .refine(
         (val) => {
-          const date = new Date(val);
-          return date <= new Date();
+          const [year, month, day] = val.split('-').map(Number);
+          const date = new Date(year, month - 1, day);
+          const now = new Date();
+          now.setHours(23, 59, 59, 999);
+          return date <= now;
         },
         v('birthDate', 'future')
       )
       .refine(
         (val) => {
-          const birthDate = new Date(val);
+          const [year, month, day] = val.split('-').map(Number);
+          const birthDate = new Date(year, month - 1, day);
           const now = new Date();
-          const age = now.getFullYear() - birthDate.getFullYear();
+          let age = now.getFullYear() - birthDate.getFullYear();
+          const monthDiff = now.getMonth() - birthDate.getMonth();
+          if (
+            monthDiff < 0 ||
+            (monthDiff === 0 && now.getDate() < birthDate.getDate())
+          ) {
+            age -= 1;
+          }
           return age >= MIN_AGE;
         },
         v('birthDate', 'tooYoung')
       )
       .refine(
         (val) => {
-          const birthDate = new Date(val);
+          const [year, month, day] = val.split('-').map(Number);
+          const birthDate = new Date(year, month - 1, day);
           const now = new Date();
-          const age = now.getFullYear() - birthDate.getFullYear();
+          let age = now.getFullYear() - birthDate.getFullYear();
+          const monthDiff = now.getMonth() - birthDate.getMonth();
+          if (
+            monthDiff < 0 ||
+            (monthDiff === 0 && now.getDate() < birthDate.getDate())
+          ) {
+            age -= 1;
+          }
           return age <= MAX_AGE;
         },
         v('birthDate', 'tooOld')

@@ -160,6 +160,7 @@ export type FlowSessionData = {
   mockedVerifyingSectionId?: ScreenId;
   hideGatewayInfoAlert?: boolean;
   hideOverviewInfoAlert?: boolean;
+  completedStaticStepIds?: string[];
 };
 
 export type StepperStepProps = {

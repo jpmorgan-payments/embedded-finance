@@ -363,6 +363,9 @@ const sectionScreens: SectionScreenConfig[] = [
     sectionConfig: {
       excludedForOrgTypes: ['SOLE_PROPRIETORSHIP'],
       label: i18n.t('onboarding-overview:screens.ownersSection.label'),
+      shortLabel: i18n.t(
+        'onboarding-overview:screens.ownersSection.shortLabel'
+      ),
       icon: Users2Icon,
       requirementsList: [
         i18n.t('onboarding-overview:screens.ownersSection.requirementsList.0'),

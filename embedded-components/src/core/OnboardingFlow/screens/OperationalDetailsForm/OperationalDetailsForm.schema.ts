@@ -115,7 +115,12 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
       }
     }
 
-    schemaFields[`question_${question.id}`] = valueSchema;
+    // Sub-questions are validated conditionally in the superRefine below,
+    // so mark them as optional at the field level to avoid blocking
+    // validation when the sub-question is hidden.
+    schemaFields[`question_${question.id}`] = isOptional
+      ? valueSchema.optional()
+      : valueSchema;
   });
 
   return z.object(schemaFields).superRefine((values, context) => {

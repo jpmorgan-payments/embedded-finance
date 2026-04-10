@@ -33,6 +33,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui';
+import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
 import { StepLayout } from '@/core/OnboardingFlow/components';
 import {
   useFlowContext,
@@ -76,6 +77,8 @@ export const OverviewScreen = () => {
     'linked-accounts',
   ]);
 
+  const { interceptorReady } = useInterceptorStatus();
+
   // Bank-account linking is only unlocked once the client is fully APPROVED.
   const kycCompleted = clientData?.status === 'APPROVED';
 
@@ -90,7 +93,7 @@ export const OverviewScreen = () => {
     },
     {
       query: {
-        enabled: !!clientData?.id, // Only fetch if clientData is available
+        enabled: interceptorReady && !!clientData?.id,
       },
     }
   );
@@ -132,7 +135,7 @@ export const OverviewScreen = () => {
       { type: 'LINKED_ACCOUNT' },
       {
         query: {
-          enabled: !!showLinkAccountStep,
+          enabled: interceptorReady && !!showLinkAccountStep,
         },
       }
     );
