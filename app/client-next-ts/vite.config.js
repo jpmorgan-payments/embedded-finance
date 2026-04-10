@@ -62,15 +62,10 @@ export default defineConfig({
     },
   },
   resolve: {
+    // Library build marks react/react-dom external; ensure one copy with the app (prevents
+    // "Cannot read properties of null (reading 'useState')" from duplicate React in preview/prod).
+    dedupe: ['react', 'react-dom'],
     alias: [
-      // Bare import only — must not match subpaths like .../i18n/config (package "exports").
-      {
-        find: /^@jpmorgan-payments\/embedded-finance-components$/,
-        replacement: resolve(
-          __dirname,
-          '../../embedded-components/dist/esm/ef-components.js',
-        ),
-      },
       { find: '@', replacement: resolve(__dirname, './src') },
       { find: '@ef-docs', replacement: resolve(__dirname, '../../embedded-components/docs') },
       {

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Info, Maximize2 } from 'lucide-react';
 
-import packageJson from '../../../../package.json';
+import embeddedComponentsPackageJson from '../../../../../../embedded-components/package.json';
 
 interface ComponentTooltipProps {
   componentName: string;
@@ -61,11 +61,7 @@ export function ComponentTooltip({
             </p>
             <p>
               <strong>Version:</strong>{' '}
-              {
-                packageJson.dependencies[
-                  '@jpmorgan-payments/embedded-finance-components'
-                ]
-              }
+              {embeddedComponentsPackageJson.version}
             </p>
             <p>
               <strong>Component:</strong> {componentName}
