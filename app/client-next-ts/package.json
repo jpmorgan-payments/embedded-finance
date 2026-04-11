@@ -41,7 +41,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
-    "lodash": "^4.17.21",
+    "lodash": "^4.18.0",
     "lucide-react": "^0.476.0",
     "mermaid": "^10.9.5",
     "msw": "^2.12.10",
