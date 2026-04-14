@@ -63,7 +63,8 @@ export const PartyCard: FC<PartyCardProps> = ({
   const formatUploadTime = (timestamp: string): string => {
     if (!timestamp) return '';
 
-    const date = new Date(parseInt(timestamp, 10));
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) return timestamp;
     return date.toLocaleDateString(undefined, {
       year: 'numeric',
       month: 'short',
