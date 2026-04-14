@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
@@ -15,7 +15,7 @@ import {
   DocumentTypeSmbdo,
 } from '@/api/generated/smbdo.schemas';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
-import { Badge, Button, Form } from '@/components/ui';
+import { Button, Form } from '@/components/ui';
 import { FormLoadingState, StepLayout } from '@/core/OnboardingFlow/components';
 import {
   useFlowContext,
@@ -540,29 +540,31 @@ export const DocumentUploadForm = () => {
       <form onSubmit={onSubmit} className="eb-flex eb-min-h-full eb-flex-col">
         <StepLayout title={getPartyName(currentPartyData)}>
           <div className="eb-flex-auto eb-space-y-6">
-            <div className="eb-mb-6 eb-mt-1">
-              {currentPartyData?.roles?.includes('CLIENT') && (
-                <Badge variant="subtle" size="lg">
-                  {t(
-                    'onboarding-overview:documentUpload.partyCard.roleLabels.business'
-                  )}
-                </Badge>
-              )}
-              {currentPartyData?.roles?.includes('BENEFICIAL_OWNER') && (
-                <Badge variant="subtle" size="lg">
-                  {t(
-                    'onboarding-overview:documentUpload.partyCard.roleLabels.owner'
-                  )}
-                </Badge>
-              )}
-              {currentPartyData?.roles?.includes('CONTROLLER') && (
-                <Badge variant="subtle" size="lg">
-                  {t(
-                    'onboarding-overview:documentUpload.partyCard.roleLabels.controller'
-                  )}
-                </Badge>
-              )}
-            </div>
+            <p className="eb-mb-6 eb-mt-1 eb-text-sm eb-text-muted-foreground">
+              {(
+                [
+                  currentPartyData?.roles?.includes('CLIENT') &&
+                    t(
+                      'onboarding-overview:documentUpload.partyCard.roleLabels.business'
+                    ),
+                  currentPartyData?.roles?.includes('BENEFICIAL_OWNER') &&
+                    t(
+                      'onboarding-overview:documentUpload.partyCard.roleLabels.owner'
+                    ),
+                  currentPartyData?.roles?.includes('CONTROLLER') &&
+                    t(
+                      'onboarding-overview:documentUpload.partyCard.roleLabels.controller'
+                    ),
+                ] as const
+              )
+                .filter(Boolean)
+                .map((role, index) => (
+                  <Fragment key={index}>
+                    {index > 0 && ' · '}
+                    {role}
+                  </Fragment>
+                ))}
+            </p>
             <div className="eb-space-y-4">
               {activeDocumentRequests?.map((documentRequest) => (
                 <DocumentRequestCard
