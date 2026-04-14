@@ -18,6 +18,7 @@ import {
   DocumentTypeSmbdo,
   PartyResponse,
 } from '@/api/generated/smbdo.schemas';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Badge, Button, Card } from '@/components/ui';
 import { DOCUMENT_TYPE_MAPPING } from '@/core/OnboardingFlow/config';
 import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
@@ -112,7 +113,7 @@ export const PartyCard: FC<PartyCardProps> = ({
 
   const { clientData } = useOnboardingContext();
 
-  const { data: { documentDetails: documentDetailsList } = {} } =
+  const { data: { documentDetails: documentDetailsList } = {}, isLoading } =
     useSmbdoGetAllDocumentDetails({
       clientId: clientData?.id,
       ...(party.roles?.includes('CLIENT') ? {} : { partyId: party.id }),
@@ -205,6 +206,20 @@ export const PartyCard: FC<PartyCardProps> = ({
           </div>
         )}
         <div>
+          {isLoading && (
+            <div className="eb-mt-2 eb-space-y-2">
+              <div className="eb-rounded-md eb-border eb-p-2">
+                <div className="eb-flex eb-items-center eb-gap-2">
+                  <Skeleton className="eb-size-4 eb-rounded" />
+                  <Skeleton className="eb-h-4 eb-w-24" />
+                </div>
+                <div className="eb-ml-6 eb-mt-2 eb-flex eb-items-center eb-gap-2">
+                  <Skeleton className="eb-h-4 eb-w-8 eb-rounded" />
+                  <Skeleton className="eb-h-3 eb-w-36" />
+                </div>
+              </div>
+            </div>
+          )}
           {documentGroups.map((group) => {
             if (group.documents.length === 0) return null;
             return (
@@ -221,37 +236,30 @@ export const PartyCard: FC<PartyCardProps> = ({
                 </div>
 
                 {group.documents.map((docDetail) => {
-                  const fileName = getMetadataValue(
-                    docDetail.metadata,
-                    'UPLOADED_FILE_NAME'
-                  );
                   const uploadTime = getMetadataValue(
                     docDetail.metadata,
                     'UPLOAD_TIME'
                   );
+                  const fileExtension = getMetadataValue(
+                    docDetail.metadata,
+                    'FILE_EXTENSION'
+                  );
 
                   return (
-                    <div key={docDetail.id} className="eb-ml-6 eb-mt-2">
-                      {fileName && (
-                        <div className="eb-flex eb-items-center eb-gap-2">
-                          <span
-                            className="eb-max-w-[200px] eb-truncate eb-text-xs eb-text-muted-foreground"
-                            title={fileName}
-                          >
-                            {fileName}
-                          </span>
-                        </div>
+                    <div
+                      key={docDetail.id}
+                      className="eb-ml-6 eb-mt-2 eb-flex eb-items-center eb-gap-2"
+                    >
+                      {fileExtension && (
+                        <span className="eb-inline-flex eb-items-center eb-rounded eb-bg-muted eb-px-1.5 eb-py-0.5 eb-text-[10px] eb-font-semibold eb-uppercase eb-text-muted-foreground">
+                          {fileExtension}
+                        </span>
                       )}
                       {uploadTime && (
-                        <div className="eb-mt-1 eb-flex eb-items-center eb-gap-2">
-                          <ClockIcon className="eb-size-3 eb-text-muted-foreground" />
-                          <span className="eb-text-xs eb-text-muted-foreground">
-                            {t(
-                              'onboarding-overview:documentUpload.partyCard.uploadedOn'
-                            )}{' '}
-                            {formatUploadTime(uploadTime)}
-                          </span>
-                        </div>
+                        <span className="eb-flex eb-items-center eb-gap-1 eb-text-xs eb-text-muted-foreground">
+                          <ClockIcon className="eb-size-3" />
+                          {formatUploadTime(uploadTime)}
+                        </span>
                       )}
                     </div>
                   );
