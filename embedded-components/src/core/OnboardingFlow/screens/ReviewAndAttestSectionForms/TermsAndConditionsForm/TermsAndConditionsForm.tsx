@@ -55,12 +55,8 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
   getNextButtonLabel,
 }) => {
   const queryClient = useQueryClient();
-  const {
-    clientData,
-    onPostClientSettled,
-    onPostClientSettled,
-    disclosureConfig,
-  } = useOnboardingContext();
+  const { clientData, onPostClientSettled, disclosureConfig } =
+    useOnboardingContext();
   const { isFormSubmitting: isFormSubmittingContext, setIsFormSubmitting } =
     useFlowContext();
 
