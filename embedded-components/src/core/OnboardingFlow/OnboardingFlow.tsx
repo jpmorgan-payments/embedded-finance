@@ -255,10 +255,10 @@ const FlowRenderer: React.FC = React.memo(() => {
 
   // Fetch existing linked accounts to determine sidebar status
   const { data: recipientsData } = useGetAllRecipients(
-    { type: 'LINKED_ACCOUNT' },
+    { type: 'LINKED_ACCOUNT', clientId: clientData?.id },
     {
       query: {
-        enabled: interceptorReady && !!showLinkAccountStep,
+        enabled: interceptorReady && !!showLinkAccountStep && !!clientData?.id,
       },
     }
   );

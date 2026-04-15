@@ -135,10 +135,11 @@ export const OverviewScreen = () => {
   // when READY_FOR_VALIDATION. See Docs.mdx / stories/linked-account/README.md.
   const { data: recipientsData, isLoading: isLoadingLinkedRecipients } =
     useGetAllRecipients(
-      { type: 'LINKED_ACCOUNT' },
+      { type: 'LINKED_ACCOUNT', clientId: clientData?.id },
       {
         query: {
-          enabled: interceptorReady && !!showLinkAccountStep,
+          enabled:
+            interceptorReady && !!showLinkAccountStep && !!clientData?.id,
         },
       }
     );

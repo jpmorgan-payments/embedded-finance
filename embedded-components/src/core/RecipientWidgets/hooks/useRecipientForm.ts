@@ -33,6 +33,13 @@ export interface UseRecipientFormOptions {
    */
   recipientType: SupportedRecipientType;
 
+  /**
+   * Client ID to associate the recipient with.
+   * Required when the provider does not already have a clientId
+   * (e.g. fresh onboarding flow that created a new client).
+   */
+  clientId?: string;
+
   /** Callback when operation succeeds */
   onSuccess?: (recipient?: Recipient) => void;
 
@@ -105,6 +112,7 @@ export function useRecipientForm({
   mode,
   recipientId,
   recipientType,
+  clientId,
   onSuccess,
   onError,
   onSettled,
@@ -156,6 +164,9 @@ export function useRecipientForm({
         data,
         recipientType
       );
+      if (clientId) {
+        createPayload.clientId = clientId;
+      }
       createMutation.mutate({ data: createPayload });
     } else if (mode === 'edit' && recipientId) {
       // Edit: Use UpdateRecipientRequest (no type field, only account/partyDetails)

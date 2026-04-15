@@ -16,10 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
-import {
-  useClientId,
-  useInterceptorStatus,
-} from '@/core/EBComponentsProvider/EBComponentsProvider';
+import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
 import { StepLayout } from '@/core/OnboardingFlow/components';
 import {
   useFlowContext,
@@ -77,8 +74,13 @@ export const LinkAccountScreen = () => {
   const { goTo, setFlowUnsavedChanges } = useFlowContext();
   const { clientData, linkAccountStepOptions } = useOnboardingContext();
 
-  const clientId = useClientId();
   const { interceptorReady } = useInterceptorStatus();
+
+  // Use the clientId from onboarding context (clientData.id) rather than the
+  // provider's clientId.  When no clientId was supplied to EBComponentsProvider
+  // a new client is created after the gateway screen and only the onboarding
+  // context is updated — the provider value stays empty.
+  const clientId = clientData?.id;
 
   // Fetch fresh client data for the form (needed for account-holder prefill)
   const { data: clientResponseData } = useSmbdoGetClient(clientId ?? '', {
@@ -90,10 +92,10 @@ export const LinkAccountScreen = () => {
   // Fetch existing linked accounts
   const { data: recipientsData, isLoading: isLoadingRecipients } =
     useGetAllRecipients(
-      { type: 'LINKED_ACCOUNT' },
+      { type: 'LINKED_ACCOUNT', clientId },
       {
         query: {
-          enabled: interceptorReady,
+          enabled: interceptorReady && !!clientId,
         },
       }
     );
@@ -150,6 +152,7 @@ export const LinkAccountScreen = () => {
   } = useRecipientForm({
     mode: 'create',
     recipientType: 'LINKED_ACCOUNT',
+    clientId,
     onSuccess: () => {
       setIsSuccess(true);
     },
