@@ -20,6 +20,19 @@ import type { ScreenId } from './flow.types';
 export type { LinkAccountReviewAcknowledgement };
 
 /**
+ * Host-defined checkbox rows for **Review & attest → Terms** when replacing the
+ * default attestation UI. Same structural pattern as linked-account acknowledgements
+ * (`id`, `labelKey`, `linkHrefs`) but typed separately to avoid coupling packages.
+ */
+export type ReviewAttestTermsAcknowledgement = {
+  id: string;
+  /** `onboarding-overview` i18n key; optional `<tagName>` links via {@link linkHrefs}. */
+  labelKey: string;
+  /** Maps Trans component names to absolute URLs (same pattern as link-account rows). */
+  linkHrefs?: Record<string, string>;
+};
+
+/**
  * Opens the flow at a specific screen after client data has loaded.
  * Intended for Storybook and tests; ignored when {@link OnboardingConfigUsedInContext.docUploadOnlyMode}
  * is true (entry remains the document-upload section).
@@ -136,6 +149,21 @@ export type OnboardingConfigUsedInContext = {
    * checkboxes on the review screen.  See {@link OnboardingDisclosureConfig}.
    */
   disclosureConfig?: OnboardingDisclosureConfig;
+  /**
+   * **Review & attest → Terms** (`TermsAndConditionsForm`): optional full replacement
+   * of the built-in attestation checkboxes with a host-defined list
+   * ({@link ReviewAttestTermsAcknowledgement} — same pattern as link-account ack rows).
+   *
+   * - Omitted or `[]` — default UI: agree-to-terms checkbox, plus authorize-sharing when
+   *   {@link disclosureConfig} has `platformName` (unchanged legacy behavior).
+   * - Non-empty — only these rows; every item must be checked to submit.
+   */
+  reviewAttestTermsAcknowledgements?: readonly ReviewAttestTermsAcknowledgement[];
+  /**
+   * When {@link reviewAttestTermsAcknowledgements} is non-empty, show
+   * `reviewAndAttest.termsAcknowledgements.intro` above the checkbox group. Default false.
+   */
+  showReviewAttestTermsAcknowledgementsIntro?: boolean;
 };
 
 export type OnboardingFlowProps = OnboardingConfigDefault &

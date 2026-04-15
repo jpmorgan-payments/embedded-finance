@@ -5,6 +5,10 @@
  * `contentTokens.tokens['onboarding-overview'].reviewAndAttest` replace the
  * defaults via provider deep merge. Turn on **showTokenIds** in Storybook
  * controls to inspect token paths on hover.
+ *
+ * The seeded client uses `mockClientNew` so `outstanding.attestationDocumentIds`
+ * matches MSW (`GET /documents/:documentId`) and attestation PDF rows appear
+ * like production.
  */
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -23,14 +27,6 @@ import {
 } from '../story-utils';
 
 type OnboardingFlowStoryArgs = OnboardingFlowProps & BaseStoryArgs;
-
-const mockClientReviewAttestTermsOnly = {
-  ...mockClientNew,
-  outstanding: {
-    ...mockClientNew.outstanding!,
-    attestationDocumentIds: [] as string[],
-  },
-};
 
 const meta: Meta<OnboardingFlowStoryArgs> = {
   title: 'Core/OnboardingFlow/Entry points/Content tokens',
@@ -71,7 +67,7 @@ export const ReviewAttestTermsWithTokenOverrides: Story = {
   name: 'Review & attest — terms (host content tokens)',
   loaders: [
     () =>
-      resetAndSeedClient(mockClientReviewAttestTermsOnly, DEFAULT_CLIENT_ID),
+      resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID),
   ],
   args: {
     ...commonArgs,
@@ -85,6 +81,7 @@ export const ReviewAttestTermsWithTokenOverrides: Story = {
       platformAgreementUrl: 'https://example.com/northwind-partner-program',
       platformAgreementLabel: 'Northwind Partner Program Agreement',
     },
+    contentTokensPreset: 'custom',
     contentTokens: {
       name: 'enUS',
       tokens: {

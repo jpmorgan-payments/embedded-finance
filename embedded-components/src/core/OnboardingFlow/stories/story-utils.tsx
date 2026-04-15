@@ -841,6 +841,8 @@ export const commonArgTypes = {
   userEventsHandler: { table: { disable: true } },
   userEventsLifecycle: { table: { disable: true } },
   flowEntry: { table: { disable: true } },
+  reviewAttestTermsAcknowledgements: { table: { disable: true } },
+  showReviewAttestTermsAcknowledgementsIntro: { table: { disable: true } },
 };
 
 /**
