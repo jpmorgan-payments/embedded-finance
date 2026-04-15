@@ -210,7 +210,7 @@ export const FlowProvider: React.FC<{
 
   const goTo = (id: ScreenId, config?: GoToConfig) => {
     const screen = flowConfig.screens.find((s) => s.id === id);
-    if (screen?.isSection) {
+    if (screen?.type === 'stepper') {
       setCurrentStepperStepIdFallback(
         config?.initialStepperStepId ??
           screen.stepperConfig?.steps[0]?.id ??
@@ -226,7 +226,16 @@ export const FlowProvider: React.FC<{
     setReviewScreenOpenedSectionId(config?.reviewScreenOpenedSectionId ?? null);
     setInitialStepperStepId(config?.initialStepperStepId ?? null);
     setShortLabelOverride(config?.shortLabelOverride ?? null);
-    setHistory((prev) => [...(config?.resetHistory ? [] : prev), id]);
+    setHistory((prev) => {
+      const base = config?.resetHistory ? [] : prev;
+      // Avoid stacking consecutive duplicate entries (e.g. switching between
+      // owners on owner-stepper) so that originScreenId keeps pointing at the
+      // parent section rather than the duplicate sub-screen.
+      if (base.length > 0 && base[base.length - 1] === id) {
+        return base;
+      }
+      return [...base, id];
+    });
   };
 
   const currentStepperGoTo = (stepId: string) => {

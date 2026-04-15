@@ -45,8 +45,8 @@
   },
   "date": {
     "format": "Please use {{format}} format",
-    "invalid": "Please enter a valid date",
-    "future": "Date cannot be in the future",
+    "invalid": "Cette date n'est pas valide. Veuillez vérifier le mois, le jour et l'année.",
+    "future": "La date de naissance ne peut pas être dans le futur",
     "past": "Date must be in the past",
     "range": {
       "day": "Day must be between {{min}} and {{max}}",
@@ -54,8 +54,8 @@
       "year": "Year must be between {{min}} and {{max}}"
     },
     "age": {
-      "tooYoung": "Must be at least {{years}} years old",
-      "tooOld": "Cannot exceed {{years}} years old"
+      "tooYoung": "L'individu doit avoir au moins {{years}} ans",
+      "tooOld": "La date de naissance indique un âge supérieur à {{years}} ans, veuillez vérifier la date saisie"
     }
   },
   "year": {

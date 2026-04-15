@@ -45,8 +45,8 @@
   },
   "date": {
     "format": "Please use {{format}} format",
-    "invalid": "Please enter a valid date",
-    "future": "Date cannot be in the future",
+    "invalid": "This is not a valid calendar date. Please check the month, day, and year.",
+    "future": "Date of birth cannot be in the future",
     "past": "Date must be in the past",
     "range": {
       "day": "Day must be between {{min}} and {{max}}",
@@ -54,8 +54,8 @@
       "year": "Year must be between {{min}} and {{max}}"
     },
     "age": {
-      "tooYoung": "Must be at least {{years}} years old",
-      "tooOld": "Cannot exceed {{years}} years old"
+      "tooYoung": "Individual must be at least {{years}} years old",
+      "tooOld": "Date of birth indicates an age over {{years}}, please verify the date entered"
     }
   },
   "year": {

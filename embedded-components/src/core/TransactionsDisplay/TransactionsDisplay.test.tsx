@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { server } from '@/msw/server';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -5,6 +6,7 @@ import { http, HttpResponse } from 'msw';
 
 import { EBComponentsProvider } from '../EBComponentsProvider';
 import { TransactionsDisplay } from './TransactionsDisplay';
+import type { TransactionsDisplayRef } from './TransactionsDisplay.types';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -131,13 +133,22 @@ describe('TransactionsDisplay', () => {
   });
 
   describe('Refresh functionality', () => {
-    test.skip('renders refresh button', () => {
-      // Refresh button was removed from the UI
-      renderComponent({ accountIds: ['account1'] });
+    test('exposes refresh on ref', () => {
+      const ref = createRef<TransactionsDisplayRef>();
+      render(
+        <EBComponentsProvider
+          apiBaseUrl="/"
+          headers={{}}
+          contentTokens={{ name: 'enUS' }}
+        >
+          <QueryClientProvider client={queryClient}>
+            <TransactionsDisplay ref={ref} accountIds={['account1']} />
+          </QueryClientProvider>
+        </EBComponentsProvider>
+      );
 
-      expect(
-        screen.getByRole('button', { name: /refresh transactions/i })
-      ).toBeInTheDocument();
+      expect(ref.current?.refresh).toBeDefined();
+      expect(typeof ref.current?.refresh).toBe('function');
     });
   });
 

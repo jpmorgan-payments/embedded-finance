@@ -72,10 +72,29 @@ export function useServerError(
 
     const title = error.response?.data?.title ?? error.message;
 
-    // Get the API message from response if available
-    const apiMessage =
-      (error.response?.data as any)?.message ||
-      error.response?.data?.context?.[0]?.message;
+    // Get the most useful API message from the response.
+    // The top-level `message` is often a generic placeholder like
+    // "Error details not available", while `context` carries the real
+    // actionable detail. Prefer context when top-level is generic.
+    const topLevelMessage = (error.response?.data as any)?.message as
+      | string
+      | undefined;
+    const contextMessages = error.response?.data?.context
+      ?.map((c) => c.message)
+      .filter(Boolean);
+    const bestContextMessage =
+      contextMessages && contextMessages.length > 0
+        ? contextMessages.join('; ')
+        : undefined;
+
+    const isGenericMessage =
+      !topLevelMessage ||
+      topLevelMessage === error.response?.data?.title ||
+      /error details not available/i.test(topLevelMessage);
+
+    const apiMessage = isGenericMessage
+      ? (bestContextMessage ?? topLevelMessage)
+      : (topLevelMessage ?? bestContextMessage);
 
     const reasons = (error.response?.data as any)?.reasons || [];
     const context = error.response?.data?.context || [];

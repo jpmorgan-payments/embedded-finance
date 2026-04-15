@@ -8,7 +8,9 @@ import {
   COUNTRIES_OF_FORMATION,
   getSubdivisionsForCountry,
 } from '@/core/OnboardingFlow/consts';
+import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
+import { getOrganizationParty } from '@/core/OnboardingFlow/utils/dataUtils';
 import { useGetFieldContentToken } from '@/core/OnboardingFlow/utils/formUtils';
 
 import { useBusinessContactInfoFormSchema } from './BusinessContactInfoForm.schema';
@@ -18,6 +20,10 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
   const getOrgAddressContentToken = useGetFieldContentToken(
     'organizationAddress'
   );
+
+  const { clientData } = useOnboardingContext();
+  const countryOfFormation =
+    getOrganizationParty(clientData)?.organizationDetails?.countryOfFormation;
 
   const form =
     useFormContext<
@@ -101,6 +107,7 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
                 </span>
               ),
             }))}
+            readonly={!!countryOfFormation}
             required
           />
           <OnboardingFormField

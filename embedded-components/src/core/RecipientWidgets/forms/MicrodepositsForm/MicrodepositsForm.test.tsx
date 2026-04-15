@@ -1,7 +1,7 @@
 import { server } from '@/msw/server';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, userEvent, waitFor } from '@test-utils';
+import { render, screen, userEvent, waitFor, within } from '@test-utils';
 
 import { Recipient } from '@/api/generated/ep-recipients.schemas';
 
@@ -30,7 +30,7 @@ const mockRecipient: Recipient = {
   createdAt: new Date().toISOString(),
 };
 
-describe.skip('MicrodepositsForm', () => {
+describe('MicrodepositsForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     server.resetHandlers();
@@ -121,8 +121,8 @@ describe.skip('MicrodepositsForm', () => {
       expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
 
-    // Try to submit with invalid amounts
-    const submitButton = screen.getByRole('button', { name: /verify/i });
+    const dialog = screen.getByRole('dialog');
+    const submitButton = within(dialog).getByRole('button', { name: 'Submit' });
     await user.click(submitButton);
 
     // Should show validation errors for both fields (appears twice - once per field)
@@ -141,11 +141,8 @@ describe.skip('MicrodepositsForm', () => {
       http.get('/recipients/:id', () => {
         return HttpResponse.json(mockRecipient);
       }),
-      http.post('/recipients/:id/verification', async () => {
-        return HttpResponse.json({
-          ...mockRecipient,
-          status: 'VERIFIED',
-        });
+      http.post('/recipients/:id/verify-microdeposit', async () => {
+        return HttpResponse.json({ status: 'VERIFIED' });
       })
     );
 
@@ -173,12 +170,15 @@ describe.skip('MicrodepositsForm', () => {
     await user.clear(amount2Input);
     await user.type(amount2Input, '0.37');
 
-    // Submit form
-    const submitButton = screen.getByRole('button', { name: /verify/i });
+    const dialog = screen.getByRole('dialog');
+    const submitButton = within(dialog).getByRole('button', { name: 'Submit' });
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(onSettled).toHaveBeenCalled();
+      expect(onSettled).toHaveBeenCalledWith(
+        { status: 'VERIFIED' },
+        expect.anything()
+      );
     });
   });
 
@@ -190,7 +190,7 @@ describe.skip('MicrodepositsForm', () => {
       http.get('/recipients/:id', () => {
         return HttpResponse.json(mockRecipient);
       }),
-      http.post('/recipients/:id/verification', () => {
+      http.post('/recipients/:id/verify-microdeposit', () => {
         return HttpResponse.json(
           { message: 'Invalid amounts' },
           { status: 400 }
@@ -222,13 +222,15 @@ describe.skip('MicrodepositsForm', () => {
     await user.clear(amount2Input);
     await user.type(amount2Input, '0.37');
 
-    // Submit form
-    const submitButton = screen.getByRole('button', { name: /verify/i });
+    const dialog = screen.getByRole('dialog');
+    const submitButton = within(dialog).getByRole('button', { name: 'Submit' });
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(onSettled).toHaveBeenCalled();
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+      expect(screen.getByText(/verification failed/i)).toBeInTheDocument();
     });
+    expect(onSettled).not.toHaveBeenCalled();
   });
 
   it('should support controlled mode', async () => {

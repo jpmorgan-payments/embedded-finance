@@ -8,6 +8,7 @@
     "build": "rimraf dist && tsc && vite build",
     "serve": "vite preview",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "health-check": "node health-check.js",
@@ -19,7 +20,7 @@
     "e2e:recipients": "playwright test tests/e2e/recipients-widget.spec.ts"
   },
   "dependencies": {
-    "@jpmorgan-payments/embedded-finance-components": "^0.11.28",
+    "@jpmorgan-payments/embedded-finance-components": "file:../../embedded-components",
     "@mswjs/data": "^0.16.2",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-dialog": "^1.1.14",
@@ -40,7 +41,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
-    "lodash": "^4.17.21",
+    "lodash": "^4.18.0",
     "lucide-react": "^0.476.0",
     "mermaid": "^10.9.5",
     "msw": "^2.12.10",
@@ -67,6 +68,7 @@
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^5.1.4",
+    "@vitest/coverage-v8": "^3.2.4",
     "autoprefixer": "^10.4.20",
     "jsdom": "^26.0.0",
     "postcss": "^8.4.49",

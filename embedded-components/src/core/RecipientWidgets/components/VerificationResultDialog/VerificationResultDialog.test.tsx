@@ -1,6 +1,5 @@
-import { render, screen } from '@testing-library/react';
-import { userEvent } from '@testing-library/user-event';
 import { describe, expect, test, vi } from 'vitest';
+import { render, screen, userEvent } from '@test-utils';
 
 import { Recipient } from '@/api/generated/ep-recipients.schemas';
 
@@ -30,7 +29,7 @@ const mockRecipient: Recipient = {
   updatedAt: '2024-01-01T00:00:00Z',
 };
 
-describe.skip('VerificationResultDialog', () => {
+describe('VerificationResultDialog', () => {
   describe('success variant', () => {
     test('renders correctly when open', () => {
       render(
@@ -46,11 +45,9 @@ describe.skip('VerificationResultDialog', () => {
         screen.getByText('Account Verified Successfully')
       ).toBeInTheDocument();
       expect(
-        screen.getByText(/John Doe has been successfully verified/i)
+        screen.getByText(/account is now ready for transactions/i)
       ).toBeInTheDocument();
-      expect(
-        screen.getByRole('button', { name: /close/i })
-      ).toBeInTheDocument();
+      expect(screen.getAllByRole('button', { name: /close/i }).length).toBe(2);
     });
 
     test('displays success icon', () => {
@@ -63,8 +60,7 @@ describe.skip('VerificationResultDialog', () => {
         />
       );
 
-      // Check for the success icon by looking for the styled container
-      const iconContainer = document.querySelector('.eb-bg-success\\/10');
+      const iconContainer = document.querySelector('[class*="eb-bg-success"]');
       expect(iconContainer).toBeInTheDocument();
     });
 
@@ -81,8 +77,8 @@ describe.skip('VerificationResultDialog', () => {
         />
       );
 
-      const closeButton = screen.getByRole('button', { name: /close/i });
-      await user.click(closeButton);
+      const [primaryClose] = screen.getAllByRole('button', { name: /close/i });
+      await user.click(primaryClose);
 
       expect(onOpenChange).toHaveBeenCalledWith(false);
     });
@@ -103,11 +99,9 @@ describe.skip('VerificationResultDialog', () => {
         screen.getByText('Account Verification Failed')
       ).toBeInTheDocument();
       expect(
-        screen.getByText(/John Doe has been rejected/i)
+        screen.getByText(/link it again to restart the verification process/i)
       ).toBeInTheDocument();
-      expect(
-        screen.getByRole('button', { name: /close/i })
-      ).toBeInTheDocument();
+      expect(screen.getAllByRole('button', { name: /close/i }).length).toBe(2);
     });
 
     test('displays error icon', () => {
@@ -120,8 +114,9 @@ describe.skip('VerificationResultDialog', () => {
         />
       );
 
-      // Check for the error icon by looking for the styled container
-      const iconContainer = document.querySelector('.eb-bg-destructive\\/10');
+      const iconContainer = document.querySelector(
+        '[class*="eb-bg-destructive"]'
+      );
       expect(iconContainer).toBeInTheDocument();
     });
 
@@ -138,8 +133,8 @@ describe.skip('VerificationResultDialog', () => {
         />
       );
 
-      const closeButton = screen.getByRole('button', { name: /close/i });
-      await user.click(closeButton);
+      const [primaryClose] = screen.getAllByRole('button', { name: /close/i });
+      await user.click(primaryClose);
 
       expect(onOpenChange).toHaveBeenCalledWith(false);
     });

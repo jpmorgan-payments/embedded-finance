@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { defineStepper } from '@stepperize/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Loader2Icon, MenuIcon } from 'lucide-react';
+import { ArrowLeftIcon, ChevronRightIcon, Loader2Icon } from 'lucide-react';
 import { useFormState } from 'react-hook-form';
 
 import { cn } from '@/lib/utils';
@@ -17,7 +17,7 @@ import {
   UpdateClientRequestSmbdoAddPartiesItem,
 } from '@/api/generated/smbdo.schemas';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
-import { Button, Form } from '@/components/ui';
+import { Badge, Button, Form } from '@/components/ui';
 import { StepLayout, StepsReviewCards } from '@/core/OnboardingFlow/components';
 import { partyFieldMap } from '@/core/OnboardingFlow/config';
 import {
@@ -36,7 +36,10 @@ import {
   StepperStepProps,
   StepValidationMap,
 } from '@/core/OnboardingFlow/types/flow.types';
-import { getPartyByAssociatedPartyFilters } from '@/core/OnboardingFlow/utils/dataUtils';
+import {
+  getPartyByAssociatedPartyFilters,
+  getPartyName,
+} from '@/core/OnboardingFlow/utils/dataUtils';
 import { shouldSuppressOnboardingLeaveWarnings } from '@/core/OnboardingFlow/utils/flowLeaveWarnings';
 import { getStepperValidation } from '@/core/OnboardingFlow/utils/flowUtils';
 import {
@@ -175,7 +178,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       currentScreenId === 'review-attest-section' &&
       currentStep.id === 'documents'
     ) {
-      goTo('overview');
+      goTo('overview', { resetHistory: true });
     } else {
       goTo(nextSection?.id ?? 'overview', {
         editingPartyId: nextSectionPartyData.id,
@@ -327,28 +330,73 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
         description={currentStep.description}
         subTitle={
           !checkAnswersMode && !previouslyCompleted && !reviewMode ? (
-            <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between eb-text-sm">
-              <div>
-                <span className="eb-mr-2 eb-border-r eb-border-r-foreground eb-pr-2">
+            <div className="eb-flex eb-flex-col">
+              <nav className="eb-flex eb-items-center eb-gap-1 eb-text-sm eb-text-muted-foreground">
+                <Button
+                  variant="link"
+                  onClick={() => goTo('overview')}
+                  className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
+                >
+                  <ArrowLeftIcon className="eb-size-3.5" />
+                  {t('stepperRenderer.buttons.overviewHeader')}
+                </Button>
+                {originScreenId === 'owners-section' && (
+                  <>
+                    <ChevronRightIcon className="eb-size-3.5" />
+                    <Button
+                      variant="link"
+                      onClick={() => goBack()}
+                      className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
+                    >
+                      {currentSection?.sectionConfig.shortLabel ??
+                        currentSection?.sectionConfig.label ??
+                        t(
+                          'onboarding-overview:screens.ownersSection.shortLabel'
+                        ) ??
+                        t('onboarding-overview:screens.ownersSection.label')}
+                    </Button>
+                  </>
+                )}
+                <ChevronRightIcon className="eb-size-3.5" />
+                <span className="eb-truncate">
                   {shortLabelOverride ??
                     currentSection?.sectionConfig.shortLabel ??
                     currentSection?.sectionConfig.label}
                 </span>
-                <span className="eb-font-medium">
+                <ChevronRightIcon className="eb-size-3.5" />
+                <span className="eb-shrink-0 eb-font-medium eb-text-foreground">
                   {t('stepperRenderer.stepCounter', {
                     currentStepNumber,
                     totalSteps: steps.length,
                   })}
                 </span>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => goTo('overview')}
-              >
-                {t('stepperRenderer.buttons.overviewHeader')}
-                <MenuIcon />
-              </Button>
+              </nav>
+              {originScreenId === 'owners-section' && (
+                <div className="eb-mt-4 eb-flex eb-items-center eb-gap-2">
+                  <span className="eb-truncate eb-text-base eb-font-semibold eb-text-foreground">
+                    {getPartyName(existingPartyData) ||
+                      t('stepperRenderer.newOwnerLabel')}
+                  </span>
+                  {existingPartyData?.roles?.includes('BENEFICIAL_OWNER') && (
+                    <Badge
+                      variant="outline"
+                      className="eb-shrink-0 eb-border-transparent eb-bg-[#EDF4FF] eb-text-[#355FA1]"
+                    >
+                      {t('onboarding-overview:screens.owners.badges.owner')}
+                    </Badge>
+                  )}
+                  {existingPartyData?.roles?.includes('CONTROLLER') && (
+                    <Badge
+                      variant="outline"
+                      className="eb-shrink-0 eb-border-transparent eb-bg-[#FFEBD9] eb-text-[#8F521F]"
+                    >
+                      {t(
+                        'onboarding-overview:screens.owners.badges.controller'
+                      )}
+                    </Badge>
+                  )}
+                </div>
+              )}
             </div>
           ) : undefined
         }
@@ -579,7 +627,20 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
                 0,
                 'addParties',
                 {
-                  addParties: [defaultPartyRequestBody ?? {}],
+                  // Carry over the existing party's top-level fields
+                  // (roles, partyType, email) so the recreated party
+                  // preserves them. generateClientRequestBody only maps
+                  // form fields into individualDetails/orgDetails, so
+                  // these must be set explicitly on the base object.
+                  addParties: [
+                    {
+                      partyType: existingPartyData.partyType,
+                      roles: existingPartyData.roles,
+                      ...(existingPartyData.email && {
+                        email: existingPartyData.email,
+                      }),
+                    },
+                  ],
                 }
               );
 
@@ -599,10 +660,6 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
                       (p) => !oldPartyIds?.includes(p.id)
                     );
 
-                    if (newParty) {
-                      setExistingPartyData(newParty);
-                    }
-
                     // Clear saved form values so the identity step
                     // re-derives defaults from the new party.
                     saveFormValue(
@@ -610,11 +667,17 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
                       undefined
                     );
 
-                    // Wait for the query cache to settle so that
-                    // clientData (and therefore existingPartyData)
-                    // reflects the new party before the next step mounts.
+                    // Update the cache BEFORE updating the editing party ID
+                    // so that when the sidebar re-renders with the new ID,
+                    // the party already exists in clientData (preventing a
+                    // brief "New owner" flash).
                     const queryKey = getSmbdoGetClientQueryKey(clientData.id);
                     queryClient.setQueryData(queryKey, response);
+
+                    if (newParty) {
+                      setExistingPartyData(newParty);
+                    }
+
                     await queryClient.invalidateQueries({ queryKey });
                     handleNext();
                   },
@@ -665,10 +728,13 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
             onSettled: (data, error) => {
               onPostPartySettled?.(data, error?.response?.data);
             },
-            onSuccess: async (response) => {
+            onSuccess: (response) => {
               const queryKey = getSmbdoGetClientQueryKey(clientData.id);
 
-              // Update client cache with party data
+              // Update client cache with party data synchronously.
+              // No invalidateQueries needed — setQueryData already has
+              // the correct party data, and a background refetch would
+              // cause a brief flash as it overwrites the optimistic update.
               queryClient.setQueryData(
                 queryKey,
                 (prev: ClientResponse | undefined) => ({
@@ -682,11 +748,6 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
                 })
               );
               setExistingPartyData(response);
-              // Wait for the query cache to settle so that
-              // clientData reflects the update before the next step mounts.
-              await queryClient.invalidateQueries({
-                queryKey,
-              });
               handleNext();
             },
             onError: (error) => {
@@ -726,14 +787,17 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
               const newParty = response.parties?.find(
                 (party) => !oldPartyIds?.includes(party.id)
               );
+
+              // Update the cache BEFORE updating the editing party ID
+              // so that when the sidebar re-renders with the new ID,
+              // the party already exists in clientData.
+              const queryKey = getSmbdoGetClientQueryKey(clientData.id);
+              queryClient.setQueryData(queryKey, response);
+
               if (newParty) {
                 setExistingPartyData(newParty);
               }
 
-              // Wait for the query cache to settle so that
-              // clientData reflects the new party before the next step mounts.
-              const queryKey = getSmbdoGetClientQueryKey(clientData.id);
-              queryClient.setQueryData(queryKey, response);
               await queryClient.invalidateQueries({
                 queryKey,
               });

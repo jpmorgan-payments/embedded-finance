@@ -108,7 +108,7 @@ export const ImportantDateSelector = forwardRef<
     const [isTouched, setIsTouched] = useState(false);
     const [isPrepopulated, setIsPrepopulated] = useState(!!value);
 
-    const { t } = useTranslationWithTokens('common');
+    const { tString } = useTranslationWithTokens('common');
 
     const updateDate = useCallback(
       (newDay: string, newMonth: string, newYear: string) => {
@@ -116,7 +116,7 @@ export const ImportantDateSelector = forwardRef<
           newDay,
           newMonth,
           newYear,
-          t as (key: string) => string
+          tString as (key: string) => string
         );
 
         setIsValid(newIsValid);
