@@ -300,7 +300,7 @@ const IndividualSelector: FC<IndividualSelectorProps> = ({
     <FormField
       control={control}
       name="firstName"
-      render={() => (
+      render={({ fieldState }) => (
         <FormItem>
           <FormLabel>{t('individualSelector.accountHolder')}</FormLabel>
           <Select
@@ -336,7 +336,11 @@ const IndividualSelector: FC<IndividualSelectorProps> = ({
               ))}
             </SelectContent>
           </Select>
-          <FormMessage />
+          {fieldState.error && (
+            <p className="eb-text-[0.8rem] eb-font-medium eb-text-destructive">
+              {`\u24d8`} {t('individualSelector.validation.required')}
+            </p>
+          )}
         </FormItem>
       )}
     />
@@ -1313,8 +1317,12 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                           selectedFirstName={form.watch('firstName')}
                           selectedLastName={form.watch('lastName')}
                           onSelect={(individual) => {
-                            form.setValue('firstName', individual.firstName);
-                            form.setValue('lastName', individual.lastName);
+                            form.setValue('firstName', individual.firstName, {
+                              shouldValidate: true,
+                            });
+                            form.setValue('lastName', individual.lastName, {
+                              shouldValidate: true,
+                            });
                           }}
                         />
                       </>

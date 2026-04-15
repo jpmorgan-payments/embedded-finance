@@ -45,7 +45,10 @@
   },
   "individualSelector": {
     "accountHolder": "Titular de la cuenta",
-    "placeholder": "Elegir un individuo de su organización"
+    "placeholder": "Elegir un individuo de su organización",
+    "validation": {
+      "required": "Por favor seleccione un titular de cuenta"
+    }
   },
   "routingNumbers": {
     "legend": "Números de ruta",
