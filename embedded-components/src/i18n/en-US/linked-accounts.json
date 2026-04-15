@@ -11,6 +11,11 @@
     "title": "No linked accounts",
     "description": "Link a bank account to start making payments. You can use ACH, wire transfers, or real-time payments."
   },
+  "rejectedAccounts": {
+    "sectionTitle": "Recently Rejected Accounts",
+    "sectionDescription": "The following account(s) were rejected in the last 30 days.",
+    "collapsedSummary": "Most recent: {{name}} — {{date}}"
+  },
   "errors": {
     "loading": {
       "title": "Error loading linked accounts",

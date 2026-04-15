@@ -13,6 +13,8 @@
 import { linkedAccountListMock } from '@/mocks/efLinkedAccounts.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
+import type { Recipient } from '@/api/generated/ep-recipients.schemas';
+
 import { LinkedAccountWidget } from '../LinkedAccountWidget/LinkedAccountWidget';
 import {
   commonArgs,
@@ -254,6 +256,157 @@ export const HideCreateButton: Story = {
   loaders: [
     async () => {
       await seedRecipientData(linkedAccountListMock);
+    },
+  ],
+};
+
+// ============================================================================
+// Rejected Accounts
+// ============================================================================
+
+/**
+ * Helper to create rejected recipient mock data with recent `updatedAt` dates
+ * so they appear within the 30-day window shown by the rejected accounts section.
+ */
+function createRecentRejectedRecipients(): Recipient[] {
+  const now = Date.now();
+  const oneDay = 24 * 60 * 60 * 1000;
+
+  return [
+    {
+      id: 'rejected-001',
+      type: 'LINKED_ACCOUNT',
+      status: 'REJECTED',
+      createdAt: new Date(now - 5 * oneDay).toISOString(),
+      updatedAt: new Date(now - 2 * oneDay).toISOString(),
+      partyDetails: {
+        type: 'INDIVIDUAL',
+        firstName: 'Alex',
+        lastName: 'James',
+        contacts: [{ contactType: 'EMAIL', value: 'alex.james@example.com' }],
+        address: {
+          addressLine1: '451 Rose Garden',
+          city: 'New York City',
+          state: 'NY',
+          postalCode: '10007',
+          countryCode: 'US',
+        },
+      },
+      account: {
+        number: '12345678901234567',
+        type: 'CHECKING',
+        countryCode: 'US',
+        routingInformation: [
+          {
+            routingCodeType: 'USABA',
+            routingNumber: '154135115',
+            transactionType: 'ACH',
+          },
+        ],
+      },
+    },
+    {
+      id: 'rejected-002',
+      type: 'LINKED_ACCOUNT',
+      status: 'REJECTED',
+      createdAt: new Date(now - 10 * oneDay).toISOString(),
+      updatedAt: new Date(now - 7 * oneDay).toISOString(),
+      partyDetails: {
+        type: 'INDIVIDUAL',
+        firstName: 'Maria',
+        lastName: 'Garcia',
+        contacts: [{ contactType: 'EMAIL', value: 'maria.garcia@example.com' }],
+        address: {
+          addressLine1: '789 Oak Avenue',
+          city: 'Los Angeles',
+          state: 'CA',
+          postalCode: '90001',
+          countryCode: 'US',
+        },
+      },
+      account: {
+        number: '98765432109876543',
+        type: 'SAVINGS',
+        countryCode: 'US',
+        routingInformation: [
+          {
+            routingCodeType: 'USABA',
+            routingNumber: '121000248',
+            transactionType: 'ACH',
+          },
+        ],
+      },
+    },
+    {
+      id: 'rejected-003',
+      type: 'LINKED_ACCOUNT',
+      status: 'REJECTED',
+      createdAt: new Date(now - 20 * oneDay).toISOString(),
+      updatedAt: new Date(now - 15 * oneDay).toISOString(),
+      partyDetails: {
+        type: 'ORGANIZATION',
+        businessName: 'Sunset Trading Co.',
+        contacts: [
+          { contactType: 'EMAIL', value: 'accounts@sunsettrading.com' },
+        ],
+        address: {
+          addressLine1: '1200 Commerce St',
+          city: 'Dallas',
+          state: 'TX',
+          postalCode: '75201',
+          countryCode: 'US',
+        },
+      },
+      account: {
+        number: '55566677788899900',
+        type: 'CHECKING',
+        countryCode: 'US',
+        routingInformation: [
+          {
+            routingCodeType: 'USABA',
+            routingNumber: '111000025',
+            transactionType: 'ACH',
+          },
+        ],
+      },
+    },
+  ] as Recipient[];
+}
+
+/**
+ * Shows the optional rejected accounts section below the main list.
+ * Displays accounts rejected in the last 30 days in a collapsible panel.
+ *
+ * **Enable with:** `showRejectedAccounts={true}`
+ *
+ * **Features:**
+ * - Collapsible section (collapsed by default)
+ * - Shows rejection count in a badge
+ * - Inline summary of the most recent rejection when collapsed
+ * - Sorted most-recent-first by `updatedAt`
+ * - Only shows rejections from the last 30 days
+ *
+ * **Try it:**
+ * - Click the "Rejected Accounts" header to expand/collapse
+ * - Notice the badge count and inline summary
+ */
+export const WithRejectedAccounts: Story = {
+  args: {
+    mode: 'list',
+    showRejectedAccounts: true,
+  },
+  loaders: [
+    async () => {
+      // Seed active accounts + rejected accounts together
+      const rejectedRecipients = createRecentRejectedRecipients();
+      const combinedMock = {
+        ...linkedAccountListMock,
+        recipients: [
+          ...(linkedAccountListMock.recipients ?? []),
+          ...rejectedRecipients,
+        ],
+      };
+      await seedRecipientData(combinedMock);
     },
   ],
 };
