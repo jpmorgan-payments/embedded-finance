@@ -274,6 +274,7 @@ The Linked Accounts functionality has the following constraints:
 - **External bank accounts:** Must be verified through microdeposits if not automatically verified
 - **Account status:** Only accounts with ACTIVE status can be used for transactions
 - **Account ownership:** Accounts can be owned by either INDIVIDUAL or ORGANIZATION party types
+- **ACH requirements**: ACH payments do **not** require bank name or bank address — only routing number and account number are needed
 
 ## 2. Target Users
 
@@ -726,3 +727,14 @@ interface AccountTypeFieldConfig {
 - [Update Recipient API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/amendRecipient)
 - [List Recipients API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/getAllRecipients)
 - [Verify Microdeposits API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/recipientsVerification)
+
+---
+
+## Storybook Reference
+
+- **Live stories**: [LinkedAccountWidget — Storybook](https://storybook.embedded-finance-dev.com/?path=/story/core-linkedaccountwidget--default)
+- **Workflow stories**: [LinkedAccountWidget Workflows](https://storybook.embedded-finance-dev.com/?path=/story/core-linkedaccountwidget-workflows--default)
+- **Status stories**: [LinkedAccountWidget Statuses](https://storybook.embedded-finance-dev.com/?path=/story/core-linkedaccountwidget-statuses--default)
+- **Showcase demo**: [Embedded Finance Showcase](https://embedded-finance-dev.com/sellsense-demo)
+
+Storybook stories serve as living documentation and implementation recipes. Each story demonstrates a specific scenario (linking flow, microdeposit verification, status transitions, error states) that maps directly to the functional requirements above.
