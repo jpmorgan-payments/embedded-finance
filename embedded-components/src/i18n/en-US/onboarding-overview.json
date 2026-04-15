@@ -402,7 +402,7 @@
       },
       "bankAccountSection": {
         "title": "Link a bank account for payouts",
-        "lockedMessage": "Available after business verification",
+        "lockedMessage": "Available after your application has been submitted",
         "linkAccountTitle": "Link an account"
       }
     },

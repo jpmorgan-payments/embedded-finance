@@ -79,8 +79,11 @@ export const OverviewScreen = () => {
 
   const { interceptorReady } = useInterceptorStatus();
 
-  // Bank-account linking is only unlocked once the client is fully APPROVED.
-  const kycCompleted = clientData?.status === 'APPROVED';
+  // Bank-account linking is unlocked once the client has been submitted for review.
+  const linkAccountEnabled =
+    clientData?.status === 'APPROVED' ||
+    clientData?.status === 'INFORMATION_REQUESTED' ||
+    clientData?.status === 'REVIEW_IN_PROGRESS';
 
   const organizationTypeText = t(`organizationTypes.${organizationType!}`);
 
@@ -553,7 +556,7 @@ export const OverviewScreen = () => {
                       className={cn(
                         'eb-mb-3 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium',
                         {
-                          'eb-text-muted-foreground': !kycCompleted,
+                          'eb-text-muted-foreground': !linkAccountEnabled,
                         }
                       )}
                     >
@@ -565,7 +568,7 @@ export const OverviewScreen = () => {
                         'eb-rounded-md eb-border eb-bg-card eb-p-3',
                         {
                           'eb-border-dashed eb-border-muted-foreground':
-                            !kycCompleted,
+                            !linkAccountEnabled,
                         }
                       )}
                     >
@@ -588,14 +591,14 @@ export const OverviewScreen = () => {
                               clipRule="evenodd"
                               d="M6 0L12 6H10V11H12V12H0V11L2 11V6H0L6 0ZM3 6V11H4V6H3ZM5 6V11H7V6H5ZM8 6V11H9V6H8ZM6 1.41421L9.58579 5H2.41421L6 1.41421Z"
                               fill="#4C5157"
-                              fillOpacity={kycCompleted ? '1' : '0.8'}
+                              fillOpacity={linkAccountEnabled ? '1' : '0.8'}
                             />
                           </svg>
                           <h3
                             className={cn(
                               'eb-font-header eb-text-lg eb-font-medium',
                               {
-                                'eb-text-muted-foreground': !kycCompleted,
+                                'eb-text-muted-foreground': !linkAccountEnabled,
                               }
                             )}
                           >
@@ -615,7 +618,7 @@ export const OverviewScreen = () => {
                           variant="secondary"
                           size="sm"
                           className="eb-mt-3"
-                          disabled={!kycCompleted}
+                          disabled={!linkAccountEnabled}
                           onClick={() => goTo('link-account')}
                         >
                           {t('common:start')}
