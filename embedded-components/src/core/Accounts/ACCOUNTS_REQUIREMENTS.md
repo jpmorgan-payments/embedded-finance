@@ -6,8 +6,31 @@
 >
 > **API References:**
 >
-> - [List Accounts API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/accounts#/operations/getAccounts)
+> - [List Accounts API (v1)](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/accounts#/operations/getAccounts)
+> - [List Accounts API (v2)](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/accounts#/operations/getAccountsListV2)
 > - [Get Account Balance API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/accounts#/operations/getAccountBalance)
+
+---
+
+## API Version Migration: v1 → v2
+
+> **The Accounts API v2 (`2.0.47`) is available and should be adopted for new development.**
+
+| | v1 (`1.0.23`) | v2 (`2.0.47`) |
+|---|---|---|
+| **OAS file** | `embedded-finance-pub-ep-accounts-1.0.23.yaml` | `embedded-finance-pub-ep-accounts-2.0.47.yaml` |
+| **List accounts** | `getAccounts` | `getAccountsListV2` |
+| **Get account** | — | `getAccountsV2` |
+| **Create account** | — | `postAccountsV2` |
+| **Manage account** | — | `manageAccountsV2` |
+| **Get balance** | `getAccountBalance` | `getAccountBalance` (unchanged) |
+| **Restrictions** | — | `addAccountRestriction` |
+
+**Migration notes:**
+- v2 adds create, manage, and restriction operations not available in v1
+- The balance endpoint is unchanged between versions
+- Generated hooks and types should be regenerated from the v2 OAS
+- Existing `useGetAccounts` usage should migrate to `useGetAccountsListV2`
 
 ---
 
@@ -22,10 +45,12 @@
 
 ### OAS & Code Generation
 
-- **Primary OAS**: `embedded-finance-pub-ep-accounts-1.0.23.yaml`
-- **Generated Hooks**: `useGetAccounts`, `useGetAccountBalance`
+- **Current OAS (v1)**: `embedded-finance-pub-ep-accounts-1.0.23.yaml`
+- **Upcoming OAS (v2)**: `embedded-finance-pub-ep-accounts-2.0.47.yaml` — adopt for new development
+- **Generated Hooks (v1)**: `useGetAccounts`, `useGetAccountBalance`
+- **Generated Hooks (v2)**: `useGetAccountsListV2`, `useGetAccountsV2`, `usePostAccountsV2`, `useManageAccountsV2`, `useGetAccountBalance`
 - **Generated Types**: `AccountResponse`, `AccountBalanceResponse`, `ListAccountsResponse`
-- **API Endpoints**: `/accounts`, `/accounts/{id}/balances`
+- **API Endpoints**: `/accounts`, `/accounts/{id}`, `/accounts/{id}/balances`, `/accounts/{id}/restrictions`
 
 ### Key Technical Design Principles
 
