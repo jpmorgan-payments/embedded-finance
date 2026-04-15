@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
+import type { ClientStatus } from '@/api/generated/smbdo.schemas';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import {
   useClientId,
@@ -164,6 +165,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     docUploadOnlyMode,
     hideSidebar,
     showLinkAccountStep,
+    linkAccountEnabledStatuses,
     userEventsHandler,
   } = useOnboardingContext();
   const {
@@ -252,6 +254,13 @@ const FlowRenderer: React.FC = React.memo(() => {
   );
 
   const { interceptorReady } = useInterceptorStatus();
+
+  // Whether linking is enabled for the current client status.
+  // linkAccountEnabledStatuses takes precedence when provided;
+  // otherwise fall back to the original APPROVED-only check.
+  const linkAccountEnabled = linkAccountEnabledStatuses
+    ? linkAccountEnabledStatuses.includes(clientData?.status as ClientStatus)
+    : clientData?.status === 'APPROVED';
 
   // Fetch existing linked accounts to determine sidebar status
   const { data: recipientsData } = useGetAllRecipients(
@@ -498,7 +507,7 @@ const FlowRenderer: React.FC = React.memo(() => {
             title: t('onboarding-overview:flowRenderer.linkAccount'),
             status: hasExistingLinkedAccount
               ? 'completed_disabled'
-              : clientData?.status === 'APPROVED'
+              : linkAccountEnabled
                 ? 'not_started'
                 : 'on_hold',
             steps: [],

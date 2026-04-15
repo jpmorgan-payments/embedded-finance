@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
+import type { ClientStatus } from '@/api/generated/smbdo.schemas';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -52,6 +53,7 @@ export const OverviewScreen = () => {
     organizationType,
     clientData,
     showLinkAccountStep,
+    linkAccountEnabledStatuses,
     showDownloadChecklist,
   } = useOnboardingContext();
   const {
@@ -79,11 +81,14 @@ export const OverviewScreen = () => {
 
   const { interceptorReady } = useInterceptorStatus();
 
-  // Bank-account linking is unlocked once the client has been submitted for review.
-  const linkAccountEnabled =
-    clientData?.status === 'APPROVED' ||
-    clientData?.status === 'INFORMATION_REQUESTED' ||
-    clientData?.status === 'REVIEW_IN_PROGRESS';
+  // Whether linking is enabled for the current client status.
+  // linkAccountEnabledStatuses takes precedence when provided;
+  // otherwise fall back to the original hardcoded status checks.
+  const linkAccountEnabled = linkAccountEnabledStatuses
+    ? linkAccountEnabledStatuses.includes(clientData?.status as ClientStatus)
+    : clientData?.status === 'APPROVED' ||
+      clientData?.status === 'INFORMATION_REQUESTED' ||
+      clientData?.status === 'REVIEW_IN_PROGRESS';
 
   const organizationTypeText = t(`organizationTypes.${organizationType!}`);
 

@@ -802,10 +802,28 @@ export const commonArgTypes = {
   },
   showLinkAccountStep: {
     control: { type: 'boolean' as const },
-    description: 'Show the link bank account step in the onboarding flow',
+    description:
+      'Show the linked account section. Use alongside `linkAccountEnabledStatuses` to control which statuses allow linking.',
     table: {
       category: 'Display',
       defaultValue: { summary: 'false' },
+    },
+  },
+  linkAccountEnabledStatuses: {
+    control: { type: 'inline-check' as const },
+    options: [
+      'APPROVED',
+      'REVIEW_IN_PROGRESS',
+      'INFORMATION_REQUESTED',
+      'NEW',
+      'DECLINED',
+      'SUSPENDED',
+      'TERMINATED',
+    ],
+    description:
+      'Array of ClientStatus values for which account linking is enabled (Start button unlocked). Section visibility is controlled by `showLinkAccountStep`.',
+    table: {
+      category: 'Display',
     },
   },
   alertOnExit: {
