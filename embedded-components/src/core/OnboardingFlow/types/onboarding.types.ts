@@ -15,7 +15,20 @@ import type {
   LinkAccountReviewAcknowledgement,
 } from '@/core/RecipientWidgets/components/BankAccountForm/BankAccountForm.types';
 
+import type { ScreenId } from './flow.types';
+
 export type { LinkAccountReviewAcknowledgement };
+
+/**
+ * Opens the flow at a specific screen after client data has loaded.
+ * Intended for Storybook and tests; ignored when {@link OnboardingConfigUsedInContext.docUploadOnlyMode}
+ * is true (entry remains the document-upload section).
+ */
+export type OnboardingFlowEntry = {
+  screenId: ScreenId;
+  /** When `screenId` is a stepper section, sets the visible step (e.g. `documents` on review-attest). */
+  stepperStepId?: string;
+};
 
 export type Jurisdiction = 'US' | 'CA';
 
@@ -126,4 +139,6 @@ export type OnboardingConfigUsedInContext = {
 };
 
 export type OnboardingFlowProps = OnboardingConfigDefault &
-  OnboardingConfigUsedInContext;
+  OnboardingConfigUsedInContext & {
+    flowEntry?: OnboardingFlowEntry;
+  };

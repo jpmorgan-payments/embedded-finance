@@ -774,7 +774,12 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
         ...modifications,
       },
     };
-  }, [configWithReviewAcknowledgements, organizationName, individualParties, recipient]);
+  }, [
+    configWithReviewAcknowledgements,
+    organizationName,
+    individualParties,
+    recipient,
+  ]);
 
   // Create dynamic schema based on effective config
   const createSchema = useBankAccountFormSchema();

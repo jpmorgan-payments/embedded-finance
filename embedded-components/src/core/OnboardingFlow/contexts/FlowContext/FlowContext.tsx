@@ -125,7 +125,9 @@ export const FlowProvider: React.FC<{
   children: React.ReactNode;
   initialScreenId: ScreenId;
   flowConfig: FlowConfig;
-}> = ({ children, initialScreenId, flowConfig }) => {
+  /** Seed the active step when landing directly on a stepper section (see {@link OnboardingFlowEntry}). */
+  seedInitialStepperStepId?: string | null;
+}> = ({ children, initialScreenId, flowConfig, seedInitialStepperStepId }) => {
   const [history, setHistory] = useState<ScreenId[]>([initialScreenId]);
   const [editingPartyIds, setEditingPartyIds] = useState<EditingPartyIds>({});
   const [previouslyCompleted, setPreviouslyCompleted] = useState(false);
@@ -133,7 +135,7 @@ export const FlowProvider: React.FC<{
     useState<SectionScreenId | null>(null);
   const [initialStepperStepId, setInitialStepperStepId] = useState<
     string | null
-  >(null);
+  >(() => seedInitialStepperStepId ?? null);
   const [currentStepper, setCurrentStepper] = useState<Stepper<
     StepConfig[]
   > | null>(null);
