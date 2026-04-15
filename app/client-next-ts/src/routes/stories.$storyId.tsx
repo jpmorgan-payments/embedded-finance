@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 // Parameter validation schema
 const storySearchSchema = z.object({
   storyId: z.enum([
+    'core-functional-requirements-index',
     'webhook-integration-recipe',
     'date-selector-challenges',
     'important-date-selector-component',
@@ -17,6 +18,9 @@ const storySearchSchema = z.object({
 });
 
 // Dynamic imports for stories
+const CoreFunctionalRequirementsIndex = lazy(
+  () => import('@/content/stories/core-functional-requirements-index')
+);
 const WebhookIntegrationRecipe = lazy(
   () => import('@/content/stories/webhook-integration-recipe')
 );
@@ -32,6 +36,12 @@ const PartiallyHostedOnboarding = lazy(
 
 // Story metadata (serializable data only)
 const storyMeta = {
+  'core-functional-requirements-index': {
+    title: 'Core functional requirements — cross-reference',
+    date: '2026-04-15',
+    readTime: '5 min read',
+    tags: ['Documentation', 'Requirements', 'Core'],
+  },
   'partially-hosted-onboarding': {
     title: 'Hosted Onboarding UI Integration Guide',
     date: '2026-03-12',
@@ -60,6 +70,7 @@ const storyMeta = {
 
 // Component mapping (separate from serializable data)
 const storyComponents = {
+  'core-functional-requirements-index': CoreFunctionalRequirementsIndex,
   'webhook-integration-recipe': WebhookIntegrationRecipe,
   'date-selector-challenges': DateSelectorChallenges,
   'important-date-selector-component': ImportantDateSelectorComponent,

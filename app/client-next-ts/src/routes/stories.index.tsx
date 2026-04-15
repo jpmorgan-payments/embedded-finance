@@ -12,6 +12,15 @@ export const Route = createFileRoute('/stories/')({
 // Latest first.
 const stories = [
   {
+    id: 'core-functional-requirements-index' as const,
+    title: 'Core functional requirements — cross-reference',
+    excerpt:
+      'Single index of GitHub links to every functional requirements markdown file under embedded-components/src/core for each active core component.',
+    date: '2026-04-15',
+    readTime: '5 min read',
+    tags: ['Documentation', 'Requirements', 'Core'],
+  },
+  {
     id: 'partially-hosted-onboarding' as const,
     title: 'Hosted Onboarding UI Integration Guide',
     excerpt:
