@@ -1293,5 +1293,40 @@
     "stepLabel": "Step {{step}}",
     "completedDocumentsProvided": "Completed - Documents provided:",
     "optional": "Optional"
+  },
+  "reviewAndAttest": {
+    "notSubmittedYet": "Your application is not submitted yet. Review your data and continue to finish.",
+    "thereIsAProblem": "There is a problem",
+    "provideMissingDetails": "Please provide missing details before finishing your application.",
+    "owners": "Owners",
+    "noStakeholders": "No stakeholders added yet.",
+    "owner": "Owner",
+    "controller": "Controller",
+    "individualMissingDetails": "ⓘ This individual is missing some details.",
+    "operationalDetails": "Operational details",
+    "fieldIsMissing": "This field is missing",
+    "response": "Response",
+    "complete": "Complete",
+    "missingDetails": "Missing details",
+    "dataAccuracyAttestation": "Data accuracy attestation",
+    "dataAccuracyCheckbox": "The data I am providing is true, accurate and complete to the best of my knowledge.",
+    "attestation": {
+      "heading": "By electronically submitting this Application, you agree that:",
+      "accurateInfo": "All information you have provided is complete and accurate, and you are opening this account solely for business purposes and not for consumer purposes.",
+      "authorizeSharing": "You authorize {{platformName}} and JPMorgan Chase Bank, N.A. (\"JPMC\") to share information to facilitate the opening of your deposit account(s), and appoint {{platformName}} as your agent to act on your behalf regarding your deposit account.",
+      "mustAgreeToAll": "You must agree to all attestations before proceeding.",
+      "mustAttestAccurate": "You must attest that the data is true, accurate, and complete.",
+      "mustAgreeToTerms": "You must agree to the terms before proceeding."
+    },
+    "termsAndConditions": {
+      "openDocumentsAlert": "Please open the document links and confirm that you have read and agree to all documents.",
+      "downloading": "Downloading...",
+      "failedToDownload": "Failed to download document:",
+      "failedToFetchDetails": "Failed to fetch document details:",
+      "attestations": "Attestations",
+      "agreeToTermsWithPlatform": "You have read and agree to the J.P. Morgan Account Terms and the {{platformAgreementLabel}}.",
+      "agreeToTerms": "You have read and agree to the J.P. Morgan Account Terms.",
+      "mustReviewDocuments": "You must open and review all documents before selecting the checkbox"
+    }
   }
 }

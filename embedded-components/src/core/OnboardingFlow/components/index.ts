@@ -1,3 +1,4 @@
+export * from './DisclosureFooter';
 export * from './FormLoadingState';
 export * from './StepLayout';
 export * from './StepperRenderer';

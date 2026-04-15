@@ -474,3 +474,73 @@ export const WithUserTracking: Story = {
     },
   },
 };
+
+// =============================================================================
+// DISCLOSURE & ATTESTATION VARIANTS
+// =============================================================================
+
+/**
+ * **With Disclosure Config**
+ *
+ * Demonstrates the regulatory disclosure footer and enhanced
+ * attestation checkboxes (§ 1.1 / § 1.2).
+ *
+ * When `disclosureConfig` is provided:
+ * - A persistent footer shows "[Platform Provider] is not a bank;
+ *   Banking services provided by JPMorgan Chase Bank, N.A., Member FDIC."
+ * - The Review step displays three attestation checkboxes instead of the
+ *   single "data accuracy" checkbox.
+ * - The third checkbox includes a link to download the J.P. Morgan Account Terms
+ *   PDF (from the API) and a hyperlink to the Platform Provider's Program Agreement.
+ */
+export const WithDisclosureConfig: Story = {
+  name: 'With Disclosure Config',
+  args: {
+    ...commonArgs,
+    disclosureConfig: {
+      platformName: 'SellSense',
+      platformAgreementUrl: 'https://example.com/sellsense-program-agreement',
+    },
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Shows the regulatory disclosure footer and enhanced review attestation checkboxes. The footer is visible on every screen. Navigate to the Review step to see the three attestation checkboxes with platform-specific language and hyperlinked terms.',
+      },
+    },
+  },
+};
+
+/**
+ * **With Disclosure Config (Custom Agreement Label)**
+ *
+ * Same as above but with a custom label for the platform agreement link.
+ */
+export const WithDisclosureConfigCustomLabel: Story = {
+  name: 'With Disclosure Config (Custom Label)',
+  args: {
+    ...commonArgs,
+    disclosureConfig: {
+      platformName: 'PayFicient',
+      platformAgreementUrl: 'https://example.com/payficient-terms-of-service',
+      platformAgreementLabel: "PayFicient's Terms of Service",
+    },
+  },
+};
+
+/**
+ * **With Disclosure Config (No Links)**
+ *
+ * Disclosure config with only `platformName` — no URLs provided.
+ * Terms references render as bold text instead of hyperlinks.
+ */
+export const WithDisclosureConfigNoLinks: Story = {
+  name: 'With Disclosure Config (No Links)',
+  args: {
+    ...commonArgs,
+    disclosureConfig: {
+      platformName: 'Acme Marketplace',
+    },
+  },
+};
