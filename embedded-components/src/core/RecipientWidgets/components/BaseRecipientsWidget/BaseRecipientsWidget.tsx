@@ -33,6 +33,7 @@ import { useServerError } from '@/components/ServerErrorAlert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { PaymentFlow } from '@/core/PaymentFlow';
 import type { PaymentMethod } from '@/core/PaymentFlow/PaymentFlow.types';
+import type { LinkAccountReviewAcknowledgement } from '@/core/RecipientWidgets/components/BankAccountForm/BankAccountForm.types';
 
 import { useRecipients, useRecipientsTable } from '../../hooks';
 import {
@@ -172,6 +173,14 @@ export interface BaseRecipientsWidgetProps
    * Additional CSS class name(s) for the root Card element.
    */
   className?: string;
+
+  /**
+   * Optional linked-account agreement checkboxes in the create dialog (`LINKED_ACCOUNT` only).
+   * Same items as onboarding `linkAccountStepOptions.reviewAcknowledgements`.
+   */
+  linkAccountReviewAcknowledgements?: readonly LinkAccountReviewAcknowledgement[];
+  /** Show lead-in line above acknowledgements (see onboarding `showAcknowledgementsIntro`). */
+  showLinkAccountAcknowledgementsIntro?: boolean;
 }
 
 /**
@@ -202,6 +211,8 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   className,
   userEventsHandler,
   userEventsLifecycle,
+  linkAccountReviewAcknowledgements,
+  showLinkAccountAcknowledgementsIntro = false,
 }) => {
   // Get configuration for the recipient type
   const config = getRecipientTypeConfig(recipientType);
@@ -530,6 +541,10 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
         onRecipientSettled={handleRecipientSettled}
         recipientType={recipientType}
         i18nNamespace={config.i18nNamespace}
+        linkAccountReviewAcknowledgements={linkAccountReviewAcknowledgements}
+        showLinkAccountAcknowledgementsIntro={
+          showLinkAccountAcknowledgementsIntro
+        }
       />
 
       {/* Lifted Edit Dialog - Rendered at parent level to survive data updates */}

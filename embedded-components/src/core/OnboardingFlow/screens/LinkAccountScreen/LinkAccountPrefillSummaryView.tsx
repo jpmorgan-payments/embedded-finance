@@ -17,10 +17,9 @@ import { StepLayout } from '@/core/OnboardingFlow/components';
 import type {
   BankAccountFormConfig,
   BankAccountFormData,
+  LinkAccountReviewAcknowledgement,
 } from '@/core/RecipientWidgets/components/BankAccountForm/BankAccountForm.types';
-
-import type { LinkAccountReviewAcknowledgement } from '../../types/onboarding.types';
-import { LinkAccountAcknowledgementsGroup } from './linkAccountAcknowledgements';
+import { LinkAccountAcknowledgementsGroup } from '@/core/RecipientWidgets/components/BankAccountForm/linkAccountAcknowledgements';
 
 export type LinkAccountPrefillSummaryViewProps = {
   title: ReactNode;

@@ -10,7 +10,12 @@ import {
   PartyResponse,
   SchemasApiError,
 } from '@/api/generated/smbdo.schemas';
-import type { BankAccountFormData } from '@/core/RecipientWidgets/components/BankAccountForm/BankAccountForm.types';
+import type {
+  BankAccountFormData,
+  LinkAccountReviewAcknowledgement,
+} from '@/core/RecipientWidgets/components/BankAccountForm/BankAccountForm.types';
+
+export type { LinkAccountReviewAcknowledgement };
 
 export type Jurisdiction = 'US' | 'CA';
 
@@ -19,6 +24,7 @@ export type Jurisdiction = 'US' | 'CA';
  * With `completionMode: 'editable'`, partial data is allowed and the user completes the two-step form.
  * With `completionMode: 'prefillSummary'`, supply a full {@link BankAccountFormData}-compatible payload;
  * the UI shows a read-only summary plus optional `reviewAcknowledgements`.
+ * With `completionMode: 'editable'`, the same optional `reviewAcknowledgements` render on step 2 of the bank form.
  */
 export type LinkAccountInitialValues = Partial<BankAccountFormData>;
 
@@ -28,29 +34,13 @@ export type LinkAccountInitialValues = Partial<BankAccountFormData>;
  */
 export type LinkAccountStepCompletionMode = 'editable' | 'prefillSummary';
 
-/**
- * Checkbox rows above the link-account confirm CTA (`prefillSummary` layout).
- *
- * - **Copy & rich markup** (including `<termsLink>…</termsLink>`-style tags) live in
- *   `onboarding-overview` JSON so content tokens / locales stay the source of truth.
- * - **URLs** for those tags are supplied here (`linkHrefs`) so hosts can point to
- *   their own legal pages without hard-coding links in translations.
- */
-export type LinkAccountReviewAcknowledgement = {
-  id: string;
-  /** `onboarding-overview` key, e.g. `screens.linkAccount.review.acknowledgements.termsAndPolicies` */
-  labelKey: string;
-  /** Maps Trans component names to absolute URLs */
-  linkHrefs?: Record<string, string>;
-};
-
 export type LinkAccountStepOptions = {
   initialValues: LinkAccountInitialValues;
   completionMode: LinkAccountStepCompletionMode;
   /**
-   * Zero or more agreements before confirm (`prefillSummary` only).
+   * Zero or more agreements before linking (any `completionMode`).
    * Omitted or `[]` = no supplemental checkboxes. When non-empty, every item must be
-   * checked before the confirm action is enabled.
+   * checked before submit/confirm is enabled.
    */
   reviewAcknowledgements?: readonly LinkAccountReviewAcknowledgement[];
   /**
@@ -60,7 +50,7 @@ export type LinkAccountStepOptions = {
    */
   summaryDisplayedPaymentTypes?: readonly RoutingInformationTransactionType[];
   /**
-   * When `prefillSummary` with `reviewAcknowledgements`, show the lead-in line
+   * When `reviewAcknowledgements` is non-empty, show the lead-in line
    * (`screens.linkAccount.prefillSummary.acknowledgementsIntro`) above the checkbox group. Default false.
    */
   showAcknowledgementsIntro?: boolean;

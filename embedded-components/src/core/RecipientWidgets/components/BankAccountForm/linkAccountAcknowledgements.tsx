@@ -3,7 +3,7 @@ import { TransWithTokens } from '@/i18n';
 
 import { Checkbox } from '@/components/ui/checkbox';
 
-import type { LinkAccountReviewAcknowledgement } from '../../types/onboarding.types';
+import type { LinkAccountReviewAcknowledgement } from './BankAccountForm.types';
 
 /** Default English for `TransWithTokens` when a host `labelKey` is missing from bundles. */
 export const LINK_ACCOUNT_ACK_LABEL_DEFAULTS: Partial<Record<string, string>> =

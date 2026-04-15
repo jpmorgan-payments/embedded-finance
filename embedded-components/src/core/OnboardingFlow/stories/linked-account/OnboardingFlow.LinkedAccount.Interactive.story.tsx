@@ -8,6 +8,7 @@
  * 1. **Link account (recipient state machine)** — Approved client, full link wizard, MSW transitions per
  *    [Linked Account state machine](?path=/docs/core-linkedaccountwidget-interactive-workflows-state-machine--docs)
  * 2. **Link account (prefill summary + three acknowledgements)** — Single-page summary, three checkboxes, POST /recipients
+ * 2b. **Link account (editable + acknowledgements)** — Two-step wizard, agreements on step 2 (same `reviewAcknowledgements` config as prefill summary)
  * 3. **Microdeposit verification (overview)** — `READY_FOR_VALIDATION` on Overview; open dialog, enter **0.23** / **0.47**, submit → **ACTIVE**
  */
 
@@ -27,6 +28,7 @@ import {
   DEFAULT_CLIENT_ID,
   mockClientApproved,
   mockExistingLinkedAccountReadyForValidation,
+  mockLinkAccountPrefillEditable,
   mockLinkAccountPrefillReadonly,
   mockLinkAccountPrefillSummaryAcknowledgementsThree,
   OnboardingFlowTemplate,
@@ -612,6 +614,145 @@ export const _2_LinkAccount_PrefillSummaryThreeAcknowledgements: Story = {
           },
           { timeout: 15000 }
         );
+      }
+    );
+  },
+};
+
+/**
+ * **2b. Link account: editable wizard + review acknowledgements**
+ *
+ * Same `reviewAcknowledgements` (and optional intro) as prefill summary, but with `completionMode: 'editable'`
+ * so the user completes the two-step `BankAccountForm`; agreements appear on step 2 above the certification checkbox.
+ */
+export const _2b_LinkAccount_EditableWithReviewAcknowledgements: Story = {
+  name: '2b. Link account: editable + review acknowledgements',
+  args: {
+    ...commonArgs,
+    clientId: '0030000132',
+    showLinkAccountStep: true,
+    linkAccountStepOptions: {
+      completionMode: 'editable',
+      initialValues: mockLinkAccountPrefillEditable,
+      reviewAcknowledgements:
+        mockLinkAccountPrefillSummaryAcknowledgementsThree,
+      showAcknowledgementsIntro: true,
+    },
+  },
+  parameters: {
+    msw: {
+      handlers: [onboardingLinkAccountPostHandler, ...handlers],
+    },
+    docs: {
+      description: {
+        story:
+          "Demonstrates `reviewAcknowledgements` with `completionMode: 'editable'`: host configures the same checklist as prefill summary, but the user walks through payment methods (step 1) then account details + agreements (step 2).",
+      },
+    },
+  },
+  loaders: [
+    async () => {
+      resetDb();
+      const client = db.client.findFirst({
+        where: { id: { equals: '0030000132' } },
+      });
+      if (client) {
+        db.client.update({
+          where: { id: { equals: '0030000132' } },
+          data: {
+            ...client,
+            status: 'APPROVED',
+          },
+        });
+      }
+      return {};
+    },
+  ],
+  play: async ({ step }) => {
+    await waitForContainer();
+    const container = getContainer();
+
+    await step('Wait for Overview (approved client)', async () => {
+      await waitForContentLoaded(container);
+      await waitFor(
+        () => {
+          expect(
+            container.getByRole('heading', { level: 1, name: /overview/i })
+          ).toBeInTheDocument();
+        },
+        { timeout: 15000 }
+      );
+    });
+
+    await step('Open Link bank account from overview card', async () => {
+      await delay(STEP_DELAY);
+      const linkHeading = await screen.findByRole('heading', {
+        name: /Link an account/i,
+      });
+      const linkCard =
+        linkHeading.closest('[class*="eb-rounded-md"]') ??
+        linkHeading.parentElement?.parentElement;
+      expect(linkCard).toBeTruthy();
+      const startLink = within(linkCard as HTMLElement).getByRole('button', {
+        name: /^Start$/i,
+      });
+      await userEvent.click(startLink);
+    });
+
+    await step('Step 1: continue to account details', async () => {
+      await delay(STEP_DELAY * 2);
+      await waitFor(
+        () => {
+          expect(
+            screen.getByRole('heading', {
+              level: 1,
+              name: /Link a bank account/i,
+            })
+          ).toBeInTheDocument();
+        },
+        { timeout: 15000 }
+      );
+      await userEvent.click(
+        screen.getByRole('button', { name: /Continue to Account Details/i })
+      );
+    });
+
+    await step(
+      'Step 2: review acknowledgements gate submit (no duplicate certification checkbox)',
+      async () => {
+        await delay(STEP_DELAY * 2);
+        expect(
+          screen.getByText(/By electronically linking this account/i)
+        ).toBeInTheDocument();
+
+        const submitBtn = screen.getByRole('button', {
+          name: /^Link Account$/i,
+        });
+        expect(submitBtn).toBeDisabled();
+
+        await userEvent.click(
+          screen.getByRole('checkbox', {
+            name: /primarily for business purposes/i,
+          })
+        );
+        expect(submitBtn).toBeDisabled();
+
+        await userEvent.click(
+          screen.getByRole('checkbox', {
+            name: /authorize verification of this linked account/i,
+          })
+        );
+        expect(submitBtn).toBeDisabled();
+
+        await userEvent.click(
+          screen.getByRole('checkbox', {
+            name: /JPMorgan Chase Bank/i,
+          })
+        );
+
+        await waitFor(() => {
+          expect(submitBtn).not.toBeDisabled();
+        });
       }
     );
   },
