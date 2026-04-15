@@ -32,15 +32,27 @@ export const groupDocumentRequests = (
     p.roles?.includes('CLIENT')
   )?.id;
 
-  const businessDocumentRequests = documentRequests.filter(
-    (docRequest) =>
-      (!docRequest.partyId && docRequest.clientId === clientData.id) ||
-      (docRequest.partyId && docRequest.partyId === clientPartyId)
-  );
+  const businessDocumentRequests = documentRequests
+    .filter(
+      (docRequest) =>
+        (!docRequest.partyId && docRequest.clientId === clientData.id) ||
+        (docRequest.partyId && docRequest.partyId === clientPartyId)
+    )
+    .sort(
+      (a, b) =>
+        new Date(a.createdAt ?? 0).getTime() -
+        new Date(b.createdAt ?? 0).getTime()
+    );
 
-  const individualDocumentRequests = documentRequests.filter(
-    (docRequest) => docRequest.partyId && docRequest.partyId !== clientPartyId
-  );
+  const individualDocumentRequests = documentRequests
+    .filter(
+      (docRequest) => docRequest.partyId && docRequest.partyId !== clientPartyId
+    )
+    .sort(
+      (a, b) =>
+        new Date(a.createdAt ?? 0).getTime() -
+        new Date(b.createdAt ?? 0).getTime()
+    );
 
   return {
     businessDocumentRequests,

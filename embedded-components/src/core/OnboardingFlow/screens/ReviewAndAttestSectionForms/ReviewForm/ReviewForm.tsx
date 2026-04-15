@@ -62,8 +62,13 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   getPrevButtonLabel,
   getNextButtonLabel,
 }) => {
-  const { clientData } = useOnboardingContext();
-  const { t } = useTranslationWithTokens(['onboarding-old', 'common']);
+  const { clientData, disclosureConfig } = useOnboardingContext();
+  const { t, tString } = useTranslationWithTokens([
+    'onboarding-overview',
+    'common',
+  ]);
+
+  const hasDisclosureConfig = !!disclosureConfig?.platformName;
 
   const {
     sections,
@@ -75,17 +80,36 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
     savedFormValues,
   } = useFlowContext();
 
+  const booleanRequired = z.boolean().refine((value) => value === true, {
+    message: tString(
+      'reviewAndAttest.attestation.mustAgreeToAll',
+      'You must agree to all attestations before proceeding.'
+    ),
+  });
+
   const form = useForm({
-    defaultValues: {
-      attested: false,
-    },
+    defaultValues: hasDisclosureConfig
+      ? {
+          attested: false,
+          attestAccurateInfo: false,
+        }
+      : {
+          attested: false,
+        },
     resolver: zodResolver(
-      z.object({
-        attested: z.boolean().refine((value) => value === true, {
-          message:
-            'You must attest that the data is true, accurate, and complete.',
-        }),
-      })
+      hasDisclosureConfig
+        ? z.object({
+            attested: z.boolean().optional(),
+            attestAccurateInfo: booleanRequired,
+          })
+        : z.object({
+            attested: z.boolean().refine((value) => value === true, {
+              message: tString(
+                'reviewAndAttest.attestation.mustAttestAccurate',
+                'You must attest that the data is true, accurate, and complete.'
+              ),
+            }),
+          })
     ),
   });
 
@@ -333,10 +357,15 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                                 </CardTitle>
                                 <p className="eb-text-sm eb-font-medium">
                                   {owner.individualDetails?.jobTitle === 'Other'
-                                    ? `${t('jobTitles.Other')} - ${owner.individualDetails.jobTitleDescription}`
-                                    : t([
+                                    ? `${tString('jobTitles.Other', 'Other')} - ${owner.individualDetails.jobTitleDescription}`
+                                    : t(
                                         `jobTitles.${owner.individualDetails?.jobTitle}`,
-                                      ] as unknown as TemplateStringsArray)}
+                                        {
+                                          defaultValue:
+                                            owner.individualDetails?.jobTitle ??
+                                            '',
+                                        }
+                                      )}
                                 </p>
                                 <div className="eb-flex eb-gap-2 eb-pt-2">
                                   <Badge
@@ -505,38 +534,83 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                 })}
             </Accordion>
           </div>
-          <div className="eb-space-y-2">
-            <p className="eb-text-sm eb-font-medium">
-              {t(
-                'reviewAndAttest.dataAccuracyAttestation',
-                'Data accuracy attestation'
-              )}
-            </p>
-            <FormField
-              control={form.control}
-              name="attested"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="eb-flex eb-items-start eb-space-x-3">
-                    <FormControl>
-                      <Checkbox
-                        className="eb-mt-0.5 eb-rounded-sm"
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormLabel className="eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
-                      {t(
-                        'reviewAndAttest.dataAccuracyCheckbox',
-                        'The data I am providing is true, accurate and complete to the best of my knowledge.'
-                      )}
-                    </FormLabel>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+          {hasDisclosureConfig ? (
+            <div className="eb-space-y-3">
+              <p className="eb-text-sm eb-font-medium">
+                {t(
+                  'reviewAndAttest.attestation.heading',
+                  'By electronically submitting this Application, you agree that:'
+                )}
+              </p>
+              <div
+                className="eb-space-y-3 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-4"
+                role="group"
+                aria-label={tString(
+                  'reviewAndAttest.dataAccuracyAttestation',
+                  'Data accuracy attestation'
+                )}
+              >
+                {/* Checkbox 1: Accurate info & business purposes */}
+                <FormField
+                  control={form.control}
+                  name="attestAccurateInfo"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="eb-flex eb-items-start eb-gap-2">
+                        <FormControl>
+                          <Checkbox
+                            className="eb-mt-0.5"
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-relaxed eb-text-foreground">
+                          {t(
+                            'reviewAndAttest.attestation.accurateInfo',
+                            'All information you have provided is complete and accurate, and you are opening this account solely for business purposes and not for consumer purposes.'
+                          )}
+                        </FormLabel>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="eb-space-y-2">
+              <p className="eb-text-sm eb-font-medium">
+                {t(
+                  'reviewAndAttest.dataAccuracyAttestation',
+                  'Data accuracy attestation'
+                )}
+              </p>
+              <FormField
+                control={form.control}
+                name="attested"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="eb-flex eb-items-start eb-space-x-3">
+                      <FormControl>
+                        <Checkbox
+                          className="eb-mt-0.5 eb-rounded-sm"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className="eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
+                        {t(
+                          'reviewAndAttest.dataAccuracyCheckbox',
+                          'The data I am providing is true, accurate and complete to the best of my knowledge.'
+                        )}
+                      </FormLabel>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
         </div>
         <div className="eb-mt-6 eb-space-y-6">
           <div className="eb-flex eb-justify-between eb-gap-4">
