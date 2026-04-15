@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, Fragment } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import {
   AlertTriangle,
@@ -18,7 +18,8 @@ import {
   DocumentTypeSmbdo,
   PartyResponse,
 } from '@/api/generated/smbdo.schemas';
-import { Badge, Button, Card } from '@/components/ui';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button, Card } from '@/components/ui';
 import { DOCUMENT_TYPE_MAPPING } from '@/core/OnboardingFlow/config';
 import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
 
@@ -63,7 +64,8 @@ export const PartyCard: FC<PartyCardProps> = ({
   const formatUploadTime = (timestamp: string): string => {
     if (!timestamp) return '';
 
-    const date = new Date(parseInt(timestamp, 10));
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) return timestamp;
     return date.toLocaleDateString(undefined, {
       year: 'numeric',
       month: 'short',
@@ -111,7 +113,7 @@ export const PartyCard: FC<PartyCardProps> = ({
 
   const { clientData } = useOnboardingContext();
 
-  const { data: { documentDetails: documentDetailsList } = {} } =
+  const { data: { documentDetails: documentDetailsList } = {}, isLoading } =
     useSmbdoGetAllDocumentDetails({
       clientId: clientData?.id,
       ...(party.roles?.includes('CLIENT') ? {} : { partyId: party.id }),
@@ -126,90 +128,99 @@ export const PartyCard: FC<PartyCardProps> = ({
   const documentGroups = groupDocumentsByType(filteredDocumentDetailsList);
 
   return (
-    <Card className="eb-space-y-6 eb-rounded-lg eb-border eb-p-6 eb-shadow">
-      <div className="eb-space-y-1.5">
-        <div className="eb-flex eb-items-center eb-justify-between">
-          <h3 className="eb-min-w-0 eb-shrink eb-overflow-hidden eb-break-words eb-font-header eb-text-lg eb-font-medium">
+    <Card className="eb-overflow-hidden eb-rounded-lg eb-border eb-shadow-sm">
+      {/* Header */}
+      <div className="eb-flex eb-items-start eb-justify-between eb-gap-3 eb-px-5 eb-py-4">
+        <div className="eb-min-w-0 eb-space-y-0.5">
+          <h3 className="eb-min-w-0 eb-break-words eb-font-header eb-text-base eb-font-semibold eb-leading-tight">
             {getPartyName(party)}
           </h3>
+          <p className="eb-text-sm eb-text-muted-foreground">
+            {(
+              [
+                party.roles?.includes('CLIENT') &&
+                  t(
+                    'onboarding-overview:documentUpload.partyCard.roleLabels.business'
+                  ),
+                party.roles?.includes('BENEFICIAL_OWNER') &&
+                  t(
+                    'onboarding-overview:documentUpload.partyCard.roleLabels.owner'
+                  ),
+                party.roles?.includes('CONTROLLER') &&
+                  t(
+                    'onboarding-overview:documentUpload.partyCard.roleLabels.controller'
+                  ),
+              ] as const
+            )
+              .filter(Boolean)
+              .map((role, index) => (
+                <Fragment key={index}>
+                  {index > 0 && ' · '}
+                  {role}
+                </Fragment>
+              ))}
+          </p>
+        </div>
+        <div className="eb-shrink-0 eb-pt-0.5">
           {docRequest.status === 'ACTIVE' && (
-            <span>
-              <CircleDashedIcon className="eb-size-5 eb-text-muted-foreground" />
-              <span className="eb-sr-only">
-                {t(
-                  'onboarding-overview:documentUpload.partyCard.statusLabels.pending'
-                )}
-              </span>
+            <span className="eb-flex eb-items-center eb-gap-1 eb-text-muted-foreground">
+              <CircleDashedIcon className="eb-size-5" />
             </span>
           )}
           {docRequest.status === 'CLOSED' && (
-            <span>
-              <CheckCircle2Icon className="eb-size-5 eb-stroke-green-700" />
-              <span className="eb-sr-only">
-                {t(
-                  'onboarding-overview:documentUpload.partyCard.statusLabels.completed'
-                )}
-              </span>
+            <span className="eb-flex eb-items-center eb-gap-1 eb-text-green-700">
+              <CheckCircle2Icon className="eb-size-5" />
             </span>
           )}
           {docRequest.status === 'EXPIRED' && (
-            <span>
-              <AlertTriangle className="eb-size-5 eb-stroke-[#C75300]" />
-              <span className="eb-sr-only">
-                {t(
-                  'onboarding-overview:documentUpload.partyCard.statusLabels.expired'
-                )}
-              </span>
+            <span className="eb-flex eb-items-center eb-gap-1 eb-text-[#C75300]">
+              <AlertTriangle className="eb-size-5" />
             </span>
           )}
         </div>
-        <div className="eb-flex eb-gap-2">
-          {party.roles?.includes('CLIENT') && (
-            <Badge variant="subtle" size="lg">
-              {t(
-                'onboarding-overview:documentUpload.partyCard.roleLabels.business'
-              )}
-            </Badge>
-          )}
-          {party.roles?.includes('BENEFICIAL_OWNER') && (
-            <Badge variant="subtle" size="lg">
-              {t(
-                'onboarding-overview:documentUpload.partyCard.roleLabels.owner'
-              )}
-            </Badge>
-          )}
-          {party.roles?.includes('CONTROLLER') && (
-            <Badge variant="subtle" size="lg">
-              {t(
-                'onboarding-overview:documentUpload.partyCard.roleLabels.controller'
-              )}
-            </Badge>
-          )}
-        </div>
       </div>
-      <div>
+
+      {/* Body */}
+      <div className="eb-space-y-4 eb-px-5 eb-py-4">
+        {/* Action / Status */}
         {docRequest.status === 'ACTIVE' ? (
           <Button
             variant="outline"
             className="eb-w-full eb-border-primary eb-text-primary"
             onClick={onUploadClick}
           >
-            <UploadIcon />{' '}
+            <UploadIcon className="eb-size-4" />{' '}
             {t('onboarding-overview:documentUpload.partyCard.uploadDocuments')}
           </Button>
         ) : (
-          <div className="eb-inline-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-green-700">
+          <div className="eb-flex eb-items-center eb-gap-1.5 eb-text-sm eb-text-green-700">
             <CheckIcon className="eb-size-4" />
             {t('onboarding-overview:documentUpload.partyCard.successMessage')}
           </div>
         )}
-        <div>
-          {documentGroups.map((group) => {
+
+        {/* Document list */}
+        {isLoading && (
+          <div className="eb-space-y-2">
+            <div className="eb-rounded-md eb-border eb-border-dashed eb-p-3">
+              <div className="eb-flex eb-items-center eb-gap-2">
+                <Skeleton className="eb-size-4 eb-rounded" />
+                <Skeleton className="eb-h-4 eb-w-28" />
+              </div>
+              <div className="eb-ml-6 eb-mt-3 eb-flex eb-items-center eb-gap-2">
+                <Skeleton className="eb-h-4 eb-w-8 eb-rounded" />
+                <Skeleton className="eb-h-3 eb-w-40" />
+              </div>
+            </div>
+          </div>
+        )}
+        {!isLoading &&
+          documentGroups.map((group) => {
             if (group.documents.length === 0) return null;
             return (
               <div
                 key={group.documentType}
-                className="eb-mt-2 eb-rounded-md eb-border eb-p-2"
+                className="eb-rounded-md eb-border eb-p-3"
               >
                 <div className="eb-flex eb-items-center eb-gap-2">
                   <FileIcon className="eb-size-4 eb-text-muted-foreground" />
@@ -220,37 +231,30 @@ export const PartyCard: FC<PartyCardProps> = ({
                 </div>
 
                 {group.documents.map((docDetail) => {
-                  const fileName = getMetadataValue(
-                    docDetail.metadata,
-                    'UPLOADED_FILE_NAME'
-                  );
                   const uploadTime = getMetadataValue(
                     docDetail.metadata,
                     'UPLOAD_TIME'
                   );
+                  const fileExtension = getMetadataValue(
+                    docDetail.metadata,
+                    'FILE_EXTENSION'
+                  );
 
                   return (
-                    <div key={docDetail.id} className="eb-ml-6 eb-mt-2">
-                      {fileName && (
-                        <div className="eb-flex eb-items-center eb-gap-2">
-                          <span
-                            className="eb-max-w-[200px] eb-truncate eb-text-xs eb-text-muted-foreground"
-                            title={fileName}
-                          >
-                            {fileName}
-                          </span>
-                        </div>
+                    <div
+                      key={docDetail.id}
+                      className="eb-ml-6 eb-mt-2 eb-flex eb-items-center eb-gap-2"
+                    >
+                      {fileExtension && (
+                        <span className="eb-inline-flex eb-items-center eb-rounded eb-bg-muted eb-px-1.5 eb-py-0.5 eb-text-[10px] eb-font-semibold eb-uppercase eb-text-muted-foreground">
+                          {fileExtension}
+                        </span>
                       )}
                       {uploadTime && (
-                        <div className="eb-mt-1 eb-flex eb-items-center eb-gap-2">
-                          <ClockIcon className="eb-size-3 eb-text-muted-foreground" />
-                          <span className="eb-text-xs eb-text-muted-foreground">
-                            {t(
-                              'onboarding-overview:documentUpload.partyCard.uploadedOn'
-                            )}{' '}
-                            {formatUploadTime(uploadTime)}
-                          </span>
-                        </div>
+                        <span className="eb-flex eb-items-center eb-gap-1 eb-text-xs eb-text-muted-foreground">
+                          <ClockIcon className="eb-size-3" />
+                          {formatUploadTime(uploadTime)}
+                        </span>
                       )}
                     </div>
                   );
@@ -258,7 +262,6 @@ export const PartyCard: FC<PartyCardProps> = ({
               </div>
             );
           })}
-        </div>
       </div>
     </Card>
   );
