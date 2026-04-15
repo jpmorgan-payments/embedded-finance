@@ -34,6 +34,17 @@ type PhoneInputProps = Omit<
 const PhoneInput: React.ForwardRefExoticComponent<PhoneInputProps> =
   React.forwardRef<React.ElementRef<typeof RPNInput.default>, PhoneInputProps>(
     ({ className, onChange, value, defaultCountry, ...props }, ref) => {
+      /**
+       * Disable focus-on-country-selection during the initial mount so
+       * the programmatic defaultCountry selection in CountrySelect does
+       * not steal focus or trigger react-hook-form onBlur validation.
+       * After mount, enable it for normal user-initiated country changes.
+       */
+      const [focusOnSelect, setFocusOnSelect] = React.useState(false);
+      React.useEffect(() => {
+        setFocusOnSelect(true);
+      }, []);
+
       return (
         <RPNInput.default
           ref={ref}
@@ -49,6 +60,7 @@ const PhoneInput: React.ForwardRefExoticComponent<PhoneInputProps> =
           inputComponent={InputComponent}
           smartCaret
           defaultCountry={defaultCountry}
+          focusInputOnCountrySelection={focusOnSelect}
           /**
            * Pass defaultCountry to CountrySelect so it can
            * programmatically select the country on initial mount
