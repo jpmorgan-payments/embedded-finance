@@ -65,10 +65,7 @@ type Story = StoryObj<OnboardingFlowStoryArgs>;
  */
 export const ReviewAttestTermsWithTokenOverrides: Story = {
   name: 'Review & attest — terms (host content tokens)',
-  loaders: [
-    () =>
-      resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID),
-  ],
+  loaders: [() => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID)],
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,

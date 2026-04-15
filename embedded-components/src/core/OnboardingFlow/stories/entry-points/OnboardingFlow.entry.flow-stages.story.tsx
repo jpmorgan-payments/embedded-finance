@@ -152,9 +152,7 @@ export const ReviewAttestReview: Story = {
  */
 export const ReviewAttestDocuments: Story = {
   name: 'Review & attest — terms & attestations',
-  loaders: [
-    () => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID),
-  ],
+  loaders: [() => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID)],
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
@@ -176,9 +174,7 @@ export const ReviewAttestDocuments: Story = {
  */
 export const ReviewAttestDocumentsNoDisclosureConfig: Story = {
   name: 'Review & attest — terms & attestations (no disclosureConfig)',
-  loaders: [
-    () => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID),
-  ],
+  loaders: [() => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID)],
   parameters: {
     docs: {
       description: {
@@ -233,10 +229,7 @@ export const ReviewAttestDocumentsHostAcknowledgements: Story = {
   argTypes: {
     ...reviewAttestTermsHostAckControlArgTypes,
   },
-  loaders: [
-    () =>
-      resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID),
-  ],
+  loaders: [() => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID)],
   args: {
     ...reviewAttestTermsHostAckBaseArgs,
   },
@@ -257,10 +250,7 @@ export const ReviewAttestDocumentsHostAckCustomAuthorizeText: Story = {
   argTypes: {
     ...reviewAttestTermsHostAckControlArgTypes,
   },
-  loaders: [
-    () =>
-      resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID),
-  ],
+  loaders: [() => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID)],
   parameters: {
     docs: {
       description: {
@@ -300,10 +290,7 @@ export const ReviewAttestDocumentsHostAckThreeCheckboxes: Story = {
   argTypes: {
     ...reviewAttestTermsHostAckControlArgTypes,
   },
-  loaders: [
-    () =>
-      resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID),
-  ],
+  loaders: [() => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID)],
   parameters: {
     docs: {
       description: {

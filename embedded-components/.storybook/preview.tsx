@@ -262,8 +262,9 @@ const withEBComponentsProvider: Decorator<BaseStoryArgs> = (Story, context) => {
   const preset = args.contentTokensPreset ?? 'enUS';
   const localeKey: keyof typeof defaultResources =
     preset === 'custom'
-      ? ((args.contentTokens?.name as keyof typeof defaultResources | undefined) ??
-        'enUS')
+      ? ((args.contentTokens?.name as
+          | keyof typeof defaultResources
+          | undefined) ?? 'enUS')
       : (preset as keyof typeof defaultResources);
   const contentTokens = {
     ...(args.contentTokens ?? {
