@@ -63,7 +63,10 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   getNextButtonLabel,
 }) => {
   const { clientData, disclosureConfig } = useOnboardingContext();
-  const { t } = useTranslationWithTokens(['onboarding-old', 'common']);
+  const { t, tString } = useTranslationWithTokens([
+    'onboarding-overview',
+    'common',
+  ]);
 
   const hasDisclosureConfig = !!disclosureConfig?.platformName;
 
@@ -78,11 +81,9 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   } = useFlowContext();
 
   const booleanRequired = z.boolean().refine((value) => value === true, {
-    message: String(
-      t(
-        'reviewAndAttest.attestation.mustAgreeToAll',
-        'You must agree to all attestations before proceeding.'
-      )
+    message: tString(
+      'reviewAndAttest.attestation.mustAgreeToAll',
+      'You must agree to all attestations before proceeding.'
     ),
   });
 
@@ -103,8 +104,10 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
           })
         : z.object({
             attested: z.boolean().refine((value) => value === true, {
-              message:
-                'You must attest that the data is true, accurate, and complete.',
+              message: tString(
+                'reviewAndAttest.attestation.mustAttestAccurate',
+                'You must attest that the data is true, accurate, and complete.'
+              ),
             }),
           })
     ),
@@ -354,10 +357,15 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                                 </CardTitle>
                                 <p className="eb-text-sm eb-font-medium">
                                   {owner.individualDetails?.jobTitle === 'Other'
-                                    ? `${t('jobTitles.Other')} - ${owner.individualDetails.jobTitleDescription}`
-                                    : t([
+                                    ? `${tString('jobTitles.Other', 'Other')} - ${owner.individualDetails.jobTitleDescription}`
+                                    : t(
                                         `jobTitles.${owner.individualDetails?.jobTitle}`,
-                                      ] as unknown as TemplateStringsArray)}
+                                        {
+                                          defaultValue:
+                                            owner.individualDetails?.jobTitle ??
+                                            '',
+                                        }
+                                      )}
                                 </p>
                                 <div className="eb-flex eb-gap-2 eb-pt-2">
                                   <Badge
@@ -537,11 +545,9 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
               <div
                 className="eb-space-y-3 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-4"
                 role="group"
-                aria-label={String(
-                  t(
-                    'reviewAndAttest.dataAccuracyAttestation',
-                    'Data accuracy attestation'
-                  )
+                aria-label={tString(
+                  'reviewAndAttest.dataAccuracyAttestation',
+                  'Data accuracy attestation'
                 )}
               >
                 {/* Checkbox 1: Accurate info & business purposes */}

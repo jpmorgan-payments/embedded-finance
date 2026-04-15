@@ -1238,5 +1238,40 @@
     "stepLabel": "Paso {{step}}",
     "completedDocumentsProvided": "Completado - Documentos proporcionados:",
     "optional": "Opcional"
+  },
+  "reviewAndAttest": {
+    "notSubmittedYet": "Su solicitud aún no ha sido enviada. Revise sus datos y continúe para finalizar.",
+    "thereIsAProblem": "Hay un problema",
+    "provideMissingDetails": "Proporcione los detalles faltantes antes de finalizar su solicitud.",
+    "owners": "Propietarios",
+    "noStakeholders": "Aún no se han agregado partes interesadas.",
+    "owner": "Propietario",
+    "controller": "Controlador",
+    "individualMissingDetails": "ⓘ A esta persona le faltan algunos detalles.",
+    "operationalDetails": "Detalles operativos",
+    "fieldIsMissing": "Este campo falta",
+    "response": "Respuesta",
+    "complete": "Completo",
+    "missingDetails": "Detalles faltantes",
+    "dataAccuracyAttestation": "Atestación de exactitud de datos",
+    "dataAccuracyCheckbox": "Los datos que proporciono son verdaderos, precisos y completos según mi leal saber y entender.",
+    "attestation": {
+      "heading": "Al enviar electrónicamente esta solicitud, usted acepta que:",
+      "accurateInfo": "Toda la información que ha proporcionado es completa y precisa, y está abriendo esta cuenta únicamente con fines comerciales y no para fines de consumo.",
+      "authorizeSharing": "Usted autoriza a {{platformName}} y JPMorgan Chase Bank, N.A. (\"JPMC\") a compartir información para facilitar la apertura de su(s) cuenta(s) de depósito, y designa a {{platformName}} como su agente para actuar en su nombre con respecto a su cuenta de depósito.",
+      "mustAgreeToAll": "Debe aceptar todas las atestaciones antes de continuar.",
+      "mustAttestAccurate": "Debe atestar que los datos son verdaderos, precisos y completos.",
+      "mustAgreeToTerms": "Debe aceptar los términos antes de continuar."
+    },
+    "termsAndConditions": {
+      "openDocumentsAlert": "Abra los enlaces de los documentos y confirme que ha leído y acepta todos los documentos.",
+      "downloading": "Descargando...",
+      "failedToDownload": "Error al descargar el documento:",
+      "failedToFetchDetails": "Error al obtener los detalles del documento:",
+      "attestations": "Atestaciones",
+      "agreeToTermsWithPlatform": "Ha leído y acepta los Términos de cuenta de J.P. Morgan y el {{platformAgreementLabel}}.",
+      "agreeToTerms": "Ha leído y acepta los Términos de cuenta de J.P. Morgan.",
+      "mustReviewDocuments": "Debe abrir y revisar todos los documentos antes de seleccionar la casilla"
+    }
   }
 }

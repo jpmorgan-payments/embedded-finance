@@ -1238,5 +1238,40 @@
     "stepLabel": "Étape {{step}}",
     "completedDocumentsProvided": "Terminé - Documents fournis :",
     "optional": "Facultatif"
+  },
+  "reviewAndAttest": {
+    "notSubmittedYet": "Votre demande n'a pas encore été soumise. Vérifiez vos données et continuez pour terminer.",
+    "thereIsAProblem": "Il y a un problème",
+    "provideMissingDetails": "Veuillez fournir les détails manquants avant de terminer votre demande.",
+    "owners": "Propriétaires",
+    "noStakeholders": "Aucune partie prenante ajoutée pour le moment.",
+    "owner": "Propriétaire",
+    "controller": "Dirigeant",
+    "individualMissingDetails": "ⓘ Certains détails de cette personne sont manquants.",
+    "operationalDetails": "Détails opérationnels",
+    "fieldIsMissing": "Ce champ est manquant",
+    "response": "Réponse",
+    "complete": "Terminé",
+    "missingDetails": "Détails manquants",
+    "dataAccuracyAttestation": "Attestation d'exactitude des données",
+    "dataAccuracyCheckbox": "Les données que je fournis sont véridiques, exactes et complètes au meilleur de ma connaissance.",
+    "attestation": {
+      "heading": "En soumettant électroniquement cette demande, vous acceptez que :",
+      "accurateInfo": "Toutes les informations que vous avez fournies sont complètes et exactes, et vous ouvrez ce compte uniquement à des fins commerciales et non à des fins de consommation.",
+      "authorizeSharing": "Vous autorisez {{platformName}} et JPMorgan Chase Bank, N.A. (\"JPMC\") à partager des informations pour faciliter l'ouverture de votre ou vos comptes de dépôt, et désignez {{platformName}} comme votre mandataire pour agir en votre nom concernant votre compte de dépôt.",
+      "mustAgreeToAll": "Vous devez accepter toutes les attestations avant de continuer.",
+      "mustAttestAccurate": "Vous devez attester que les données sont véridiques, exactes et complètes.",
+      "mustAgreeToTerms": "Vous devez accepter les conditions avant de continuer."
+    },
+    "termsAndConditions": {
+      "openDocumentsAlert": "Veuillez ouvrir les liens des documents et confirmer que vous avez lu et accepté tous les documents.",
+      "downloading": "Téléchargement...",
+      "failedToDownload": "Échec du téléchargement du document :",
+      "failedToFetchDetails": "Échec de la récupération des détails du document :",
+      "attestations": "Attestations",
+      "agreeToTermsWithPlatform": "Vous avez lu et acceptez les conditions de compte J.P. Morgan et le {{platformAgreementLabel}}.",
+      "agreeToTerms": "Vous avez lu et acceptez les conditions de compte J.P. Morgan.",
+      "mustReviewDocuments": "Vous devez ouvrir et consulter tous les documents avant de cocher la case"
+    }
   }
 }

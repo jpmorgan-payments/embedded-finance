@@ -60,16 +60,14 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
   const { isFormSubmitting: isFormSubmittingContext, setIsFormSubmitting } =
     useFlowContext();
 
-  const { t } = useTranslationWithTokens('onboarding-old');
+  const { t, tString } = useTranslationWithTokens('onboarding-overview');
 
   const hasDisclosureConfig = !!disclosureConfig?.platformName;
 
   const booleanRequired = z.boolean().refine((value) => value === true, {
-    message: String(
-      t(
-        'reviewAndAttest.attestation.mustAgreeToAll',
-        'You must agree to all attestations before proceeding.'
-      )
+    message: tString(
+      'reviewAndAttest.attestation.mustAgreeToAll',
+      'You must agree to all attestations before proceeding.'
     ),
   });
 
@@ -86,13 +84,19 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
       hasDisclosureConfig
         ? z.object({
             attested: z.boolean().refine((value) => value === true, {
-              message: 'You must agree to the terms before proceeding.',
+              message: tString(
+                'reviewAndAttest.attestation.mustAgreeToTerms',
+                'You must agree to the terms before proceeding.'
+              ),
             }),
             attestAuthorizeSharing: booleanRequired,
           })
         : z.object({
             attested: z.boolean().refine((value) => value === true, {
-              message: 'You must agree to the terms before proceeding.',
+              message: tString(
+                'reviewAndAttest.attestation.mustAgreeToTerms',
+                'You must agree to the terms before proceeding.'
+              ),
             }),
           })
     ),
@@ -409,11 +413,9 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
             <div
               className="eb-space-y-3 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-4"
               role="group"
-              aria-label={String(
-                t(
-                  'reviewAndAttest.termsAndConditions.attestations',
-                  'Attestations'
-                )
+              aria-label={tString(
+                'reviewAndAttest.termsAndConditions.attestations',
+                'Attestations'
               )}
             >
               {/* Agree to terms — gated until all links are opened */}
