@@ -94,7 +94,7 @@ function encodeJsonParam(obj) {
  * Build the complete iframe URL with all parameters
  * 
  * URL structure:
- * {baseUrl}/onboarding?token={jwt}&hostedExperienceType={type}&themeTokens={encoded}&contentTokens={encoded}
+ * {baseUrl}/onboarding?token={jwt}&hostedExperienceType={type}&themeTokens={encoded}&contentTokens={encoded}&componentProperties={encoded}
  * 
  * @param {object} config - Configuration object
  * @param {string} config.baseUrl - Base URL for the hosted UI
@@ -102,6 +102,7 @@ function encodeJsonParam(obj) {
  * @param {string} config.experienceType - Type of experience to load
  * @param {object} [config.theme] - Optional theme configuration
  * @param {object} [config.contentTokens] - Optional content tokens
+ * @param {object} [config.componentProperties] - Optional component properties
  * @returns {string} Complete iframe URL with all parameters
  * @private
  */
@@ -112,6 +113,7 @@ function buildIframeUrl(config) {
     experienceType = DEFAULT_EXPERIENCE_TYPE,
     theme,
     contentTokens,
+    componentProperties,
   } = config;
 
   // Build query parameters
@@ -133,6 +135,14 @@ function buildIframeUrl(config) {
     const encodedTokens = encodeJsonParam(contentTokens);
     if (encodedTokens) {
       params.append('contentTokens', encodedTokens);
+    }
+  }
+
+  // Add optional component properties parameter (JSON encoded)
+  if (componentProperties) {
+    const encodedProps = encodeJsonParam(componentProperties);
+    if (encodedProps) {
+      params.append('componentProperties', encodedProps);
     }
   }
 
@@ -261,6 +271,7 @@ export class PartiallyHostedUIComponent {
    * @param {string} [config.baseUrl] - Base URL for hosted UI
    * @param {object} [config.theme] - Theme configuration object
    * @param {object} [config.contentTokens] - Content localization tokens
+   * @param {object} [config.componentProperties] - Serializable component properties
    * @param {object} [config.iframeAttributes] - Additional iframe attributes
    * @throws {Error} If sessionToken is not provided
    */
@@ -317,6 +328,7 @@ export class PartiallyHostedUIComponent {
       experienceType: this.config.experienceType,
       hasTheme: !!this.config.theme,
       hasContentTokens: !!this.config.contentTokens,
+      hasComponentProperties: !!this.config.componentProperties,
     });
   }
 
