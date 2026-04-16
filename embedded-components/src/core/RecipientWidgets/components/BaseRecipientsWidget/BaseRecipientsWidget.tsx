@@ -738,28 +738,22 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
           </div>
         </CardHeader>
 
-        <CardContent
-          className={cn('eb-transition-all eb-duration-300 eb-ease-in-out', {
-            'eb-space-y-0 eb-p-0': isCompact,
-            'eb-p-0': scrollable,
-            'eb-space-y-4 eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': !(
-              scrollable || isCompact
-            ),
-          })}
-        >
+        <CardContent className="eb-p-0 eb-transition-all eb-duration-300 eb-ease-in-out">
+
           {/* Loading state with skeleton */}
           {isLoading && (
             <>
               {viewMode === 'table' ? (
                 // Table skeleton for table view
-                <div className="eb-p-1">
+                <div className="eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
                   <RecipientsTableViewSkeleton rowCount={pageSize} />
                 </div>
               ) : (
                 // Card skeleton for card views
                 <div
                   className={cn('eb-grid eb-grid-cols-1 eb-gap-3', {
-                    'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': scrollable,
+                    'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4':
+                      scrollable || !isCompact,
                   })}
                 >
                   <RecipientCardSkeleton compact={isCompact} />
@@ -770,11 +764,8 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
 
           {/* Error state */}
           {isError && (
-            <div
-              className={cn('eb-py-6', {
-                'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': scrollable || isCompact,
-              })}
-            >
+            <div className="eb-p-2.5 eb-py-6 @md:eb-p-3 @lg:eb-p-4">
+
               <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-2 eb-text-center">
                 <div className="eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
                   <AlertCircle className="eb-h-6 eb-w-6 eb-text-destructive" />
@@ -875,11 +866,8 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
 
           {/* Empty state */}
           {isSuccess && recipients.length === 0 && (
-            <div
-              className={cn({
-                'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': scrollable || isCompact,
-              })}
-            >
+            <div className="eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
+
               <EmptyState
                 className="eb-animate-fade-in"
                 compact={isCompact}
@@ -904,153 +892,151 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
             </div>
           )}
 
+          {/* Rejected accounts section (last 30 days) — collapsible */}
+          {isSuccess && recentRejectedAccounts.length > 0 && (
+            <div
+              className="eb-overflow-hidden eb-border-b eb-border-destructive/20 eb-bg-destructive/5"
+              role="region"
+              aria-label={tString('rejectedAccounts.sectionTitle', {
+                defaultValue: 'Recently Rejected Accounts',
+              })}
+            >
+              {/* Disclosure toggle */}
+              <button
+                type="button"
+                className="eb-group eb-flex eb-w-full eb-cursor-pointer eb-items-center eb-gap-2.5 eb-px-4 eb-py-3 eb-text-left eb-transition-colors hover:eb-bg-destructive/10 focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-ring focus-visible:eb-ring-offset-1"
+                onClick={() => setRejectedCollapsed((c) => !c)}
+                aria-expanded={!rejectedCollapsed}
+              >
+                <XCircleIcon className="eb-h-4 eb-w-4 eb-shrink-0 eb-text-destructive" />
+                <div className="eb-min-w-0 eb-flex-1">
+                  <div className="eb-flex eb-items-center eb-gap-1.5">
+                    <span className="eb-text-xs eb-font-semibold eb-text-destructive">
+                      {t('rejectedAccounts.sectionTitle', {
+                        defaultValue: 'Recently Rejected Accounts',
+                      })}
+                    </span>
+                    <Badge
+                      variant="destructive"
+                      className="eb-px-1.5 eb-py-0 eb-text-[0.65rem] eb-leading-4"
+                    >
+                      {recentRejectedAccounts.length}
+                    </Badge>
+                  </div>
+                  {/* Collapsed inline summary — most recent rejection */}
+                  {rejectedCollapsed && (
+                    <p className="eb-mt-0.5 eb-truncate eb-text-[0.7rem] eb-text-muted-foreground">
+                      {t('rejectedAccounts.collapsedSummary', {
+                        defaultValue: 'Most recent: {{name}} — {{date}}',
+                        name: getRecipientDisplayName(
+                          recentRejectedAccounts[0]
+                        ),
+                        date: recentRejectedAccounts[0].updatedAt
+                          ? new Date(
+                              recentRejectedAccounts[0].updatedAt
+                            ).toLocaleDateString(locale, {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            })
+                          : '',
+                      })}
+                    </p>
+                  )}
+                </div>
+                <ChevronDown
+                  className={cn(
+                    'eb-h-4 eb-w-4 eb-shrink-0 eb-text-destructive/60 eb-transition-transform eb-duration-200',
+                    !rejectedCollapsed && 'eb-rotate-180'
+                  )}
+                />
+              </button>
+
+              {/* Expanded content */}
+              {!rejectedCollapsed && (
+                <div className="eb-animate-fade-in">
+                  <Separator className="eb-bg-destructive/15" />
+                  <p className="eb-px-4 eb-py-2 eb-text-[0.7rem] eb-text-muted-foreground">
+                    {t('rejectedAccounts.sectionDescription', {
+                      defaultValue:
+                        'The following account(s) were rejected in the last 30 days.',
+                    })}
+                  </p>
+                  <ul className="eb-divide-y eb-divide-destructive/10">
+                    {recentRejectedAccounts.map((rejected) => {
+                      const name = getRecipientDisplayName(rejected);
+                      const rejectedDate = rejected.updatedAt
+                        ? new Date(rejected.updatedAt).toLocaleDateString(
+                            locale,
+                            {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            }
+                          )
+                        : null;
+
+                      return (
+                        <li key={rejected.id} className="eb-px-4 eb-py-2.5">
+                          <div className="eb-flex eb-items-start eb-justify-between eb-gap-3">
+                            <div className="eb-min-w-0">
+                              <p className="eb-truncate eb-text-sm eb-font-medium">
+                                {name}
+                              </p>
+                            </div>
+                            <div className="eb-flex eb-shrink-0 eb-items-center eb-gap-2">
+                              {rejectedDate && (
+                                <span className="eb-text-xs eb-text-muted-foreground">
+                                  {rejectedDate}
+                                </span>
+                              )}
+                              <Badge
+                                variant="destructive"
+                                className="eb-text-xs"
+                              >
+                                {t('status.labels.REJECTED', {
+                                  defaultValue: 'Rejected',
+                                })}
+                              </Badge>
+                            </div>
+                          </div>
+                          <p className="eb-mt-1.5 eb-flex eb-items-start eb-gap-1.5 eb-text-xs eb-text-destructive">
+                            <AlertCircle className="eb-mt-0.5 eb-h-3 eb-w-3 eb-shrink-0" />
+                            <span>
+                              {t('rejectedAccounts.rejectionMessage', {
+                                defaultValue:
+                                  'There was an issue linking this account. Please check the account details or contact support.',
+                              })}
+                            </span>
+                          </p>
+                          <div className="eb-mt-2">
+                            <RecipientDetailsDialog recipient={rejected}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="eb-h-7 eb-text-xs"
+                              >
+                                {t('rejectedAccounts.viewDetails', {
+                                  defaultValue: 'View account details',
+                                })}
+                              </Button>
+                            </RecipientDetailsDialog>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Recipients list */}
           {isSuccess && recipients.length > 0 && (
             <>
-              {/* Rejected accounts section (last 30 days) — collapsible */}
-              {recentRejectedAccounts.length > 0 && (
-                <div
-                  className={cn(
-                    'eb-overflow-hidden eb-border-b eb-border-destructive/20 eb-bg-destructive/5',
-                    { 'eb-px-2.5 @md:eb-px-3 @lg:eb-px-4': !isCompact }
-                  )}
-                  role="region"
-                  aria-label={tString('rejectedAccounts.sectionTitle', {
-                    defaultValue: 'Recently Rejected Accounts',
-                  })}
-                >
-                  {/* Disclosure toggle */}
-                  <button
-                    type="button"
-                    className="eb-group eb-flex eb-w-full eb-cursor-pointer eb-items-center eb-gap-2.5 eb-px-4 eb-py-3 eb-text-left eb-transition-colors hover:eb-bg-destructive/10 focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-ring focus-visible:eb-ring-offset-1"
-                    onClick={() => setRejectedCollapsed((c) => !c)}
-                    aria-expanded={!rejectedCollapsed}
-                  >
-                    <XCircleIcon className="eb-h-4 eb-w-4 eb-shrink-0 eb-text-destructive" />
-                    <div className="eb-min-w-0 eb-flex-1">
-                      <div className="eb-flex eb-items-center eb-gap-1.5">
-                        <span className="eb-text-xs eb-font-semibold eb-text-destructive">
-                          {t('rejectedAccounts.sectionTitle', {
-                            defaultValue: 'Recently Rejected Accounts',
-                          })}
-                        </span>
-                        <Badge
-                          variant="destructive"
-                          className="eb-px-1.5 eb-py-0 eb-text-[0.65rem] eb-leading-4"
-                        >
-                          {recentRejectedAccounts.length}
-                        </Badge>
-                      </div>
-                      {/* Collapsed inline summary — most recent rejection */}
-                      {rejectedCollapsed && (
-                        <p className="eb-mt-0.5 eb-truncate eb-text-[0.7rem] eb-text-muted-foreground">
-                          {t('rejectedAccounts.collapsedSummary', {
-                            defaultValue: 'Most recent: {{name}} — {{date}}',
-                            name: getRecipientDisplayName(
-                              recentRejectedAccounts[0]
-                            ),
-                            date: recentRejectedAccounts[0].updatedAt
-                              ? new Date(
-                                  recentRejectedAccounts[0].updatedAt
-                                ).toLocaleDateString(locale, {
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric',
-                                })
-                              : '',
-                          })}
-                        </p>
-                      )}
-                    </div>
-                    <ChevronDown
-                      className={cn(
-                        'eb-h-4 eb-w-4 eb-shrink-0 eb-text-destructive/60 eb-transition-transform eb-duration-200',
-                        !rejectedCollapsed && 'eb-rotate-180'
-                      )}
-                    />
-                  </button>
-
-                  {/* Expanded content */}
-                  {!rejectedCollapsed && (
-                    <div className="eb-animate-fade-in">
-                      <Separator className="eb-bg-destructive/15" />
-                      <p className="eb-px-4 eb-py-2 eb-text-[0.7rem] eb-text-muted-foreground">
-                        {t('rejectedAccounts.sectionDescription', {
-                          defaultValue:
-                            'The following account(s) were rejected in the last 30 days.',
-                        })}
-                      </p>
-                      <ul className="eb-divide-y eb-divide-destructive/10">
-                        {recentRejectedAccounts.map((rejected) => {
-                          const name = getRecipientDisplayName(rejected);
-                          const rejectedDate = rejected.updatedAt
-                            ? new Date(rejected.updatedAt).toLocaleDateString(
-                                locale,
-                                {
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric',
-                                }
-                              )
-                            : null;
-
-                          return (
-                            <li key={rejected.id} className="eb-px-4 eb-py-2.5">
-                              <div className="eb-flex eb-items-start eb-justify-between eb-gap-3">
-                                <div className="eb-min-w-0">
-                                  <p className="eb-truncate eb-text-sm eb-font-medium">
-                                    {name}
-                                  </p>
-                                </div>
-                                <div className="eb-flex eb-shrink-0 eb-items-center eb-gap-2">
-                                  {rejectedDate && (
-                                    <span className="eb-text-xs eb-text-muted-foreground">
-                                      {rejectedDate}
-                                    </span>
-                                  )}
-                                  <Badge
-                                    variant="destructive"
-                                    className="eb-text-xs"
-                                  >
-                                    {t('status.labels.REJECTED', {
-                                      defaultValue: 'Rejected',
-                                    })}
-                                  </Badge>
-                                </div>
-                              </div>
-                              <p className="eb-mt-1.5 eb-flex eb-items-start eb-gap-1.5 eb-text-xs eb-text-destructive">
-                                <AlertCircle className="eb-mt-0.5 eb-h-3 eb-w-3 eb-shrink-0" />
-                                <span>
-                                  {t('rejectedAccounts.rejectionMessage', {
-                                    defaultValue:
-                                      'There was an issue linking this account. Please check the account details or contact support.',
-                                  })}
-                                </span>
-                              </p>
-                              <div className="eb-mt-2">
-                                <RecipientDetailsDialog recipient={rejected}>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="eb-h-7 eb-text-xs"
-                                  >
-                                    {t('rejectedAccounts.viewDetails', {
-                                      defaultValue: 'View account details',
-                                    })}
-                                  </Button>
-                                </RecipientDetailsDialog>
-                              </div>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
               {viewMode === 'table' ? (
                 // Table view with server-side pagination
-                <div className="eb-p-1">
+                <div className="eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
                   <RecipientsTableView
                     data={recipients}
                     paginationState={{
@@ -1145,7 +1131,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                   <div
                     className={cn('eb-grid eb-grid-cols-1 eb-items-start', {
                       'eb-gap-0': isCompact,
-                      'eb-gap-3': !isCompact,
+                      'eb-gap-3 eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': !isCompact,
                       '@4xl:eb-grid-cols-2':
                         !isCompact && recipients.length > 1,
                     })}
