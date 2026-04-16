@@ -14,7 +14,9 @@
   "rejectedAccounts": {
     "sectionTitle": "Cuentas rechazadas recientemente",
     "sectionDescription": "La(s) siguiente(s) cuenta(s) fueron rechazadas en los últimos 30 días.",
-    "collapsedSummary": "Más reciente: {{name}} — {{date}}"
+    "collapsedSummary": "Más reciente: {{name}} — {{date}}",
+    "rejectionMessage": "Hubo un problema al vincular esta cuenta. Verifique los detalles de la cuenta o comuníquese con soporte.",
+    "viewDetails": "Ver detalles de la cuenta"
   },
   "errors": {
     "loading": {

@@ -14,10 +14,7 @@ import {
 } from 'lucide-react';
 
 import { useLocale } from '@/lib/hooks/useLocale';
-import {
-  getMaskedAccountNumber,
-  getRecipientDisplayName,
-} from '@/lib/recipientHelpers';
+import { getRecipientDisplayName } from '@/lib/recipientHelpers';
 import type { HeadingLevelProps } from '@/lib/types/headingLevel.types';
 import { getChildHeadingLevel } from '@/lib/types/headingLevel.types';
 import type { UserTrackingProps } from '@/lib/types/userTracking.types';
@@ -61,6 +58,7 @@ import { EmptyState } from '../EmptyState/EmptyState';
 import { Pagination } from '../Pagination';
 import { RecipientCard } from '../RecipientCard/RecipientCard';
 import { RecipientCardSkeleton } from '../RecipientCardSkeleton/RecipientCardSkeleton';
+import { RecipientDetailsDialog } from '../RecipientDetailsDialog/RecipientDetailsDialog';
 import { RecipientFormDialog } from '../RecipientFormDialog/RecipientFormDialog';
 import {
   RecipientsTableView,
@@ -928,7 +926,6 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                       <ul className="eb-divide-y eb-divide-destructive/10">
                         {recentRejectedAccounts.map((rejected) => {
                           const name = getRecipientDisplayName(rejected);
-                          const masked = getMaskedAccountNumber(rejected);
                           const rejectedDate = rejected.updatedAt
                             ? new Date(rejected.updatedAt).toLocaleDateString(
                                 locale,
@@ -941,32 +938,50 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                             : null;
 
                           return (
-                            <li
-                              key={rejected.id}
-                              className="eb-flex eb-items-center eb-justify-between eb-gap-3 eb-px-4 eb-py-2.5"
-                            >
-                              <div className="eb-min-w-0">
-                                <p className="eb-truncate eb-text-sm eb-font-medium">
-                                  {name}
-                                </p>
-                                <p className="eb-text-xs eb-text-muted-foreground">
-                                  {masked}
-                                </p>
+                            <li key={rejected.id} className="eb-px-4 eb-py-2.5">
+                              <div className="eb-flex eb-items-start eb-justify-between eb-gap-3">
+                                <div className="eb-min-w-0">
+                                  <p className="eb-truncate eb-text-sm eb-font-medium">
+                                    {name}
+                                  </p>
+                                </div>
+                                <div className="eb-flex eb-shrink-0 eb-items-center eb-gap-2">
+                                  {rejectedDate && (
+                                    <span className="eb-text-xs eb-text-muted-foreground">
+                                      {rejectedDate}
+                                    </span>
+                                  )}
+                                  <Badge
+                                    variant="destructive"
+                                    className="eb-text-xs"
+                                  >
+                                    {t('status.labels.REJECTED', {
+                                      defaultValue: 'Rejected',
+                                    })}
+                                  </Badge>
+                                </div>
                               </div>
-                              <div className="eb-flex eb-shrink-0 eb-items-center eb-gap-2">
-                                {rejectedDate && (
-                                  <span className="eb-text-xs eb-text-muted-foreground">
-                                    {rejectedDate}
-                                  </span>
-                                )}
-                                <Badge
-                                  variant="destructive"
-                                  className="eb-text-xs"
-                                >
-                                  {t('status.labels.REJECTED', {
-                                    defaultValue: 'Rejected',
+                              <p className="eb-mt-1.5 eb-flex eb-items-start eb-gap-1.5 eb-text-xs eb-text-destructive">
+                                <AlertCircle className="eb-mt-0.5 eb-h-3 eb-w-3 eb-shrink-0" />
+                                <span>
+                                  {t('rejectedAccounts.rejectionMessage', {
+                                    defaultValue:
+                                      'There was an issue linking this account. Please check the account details or contact support.',
                                   })}
-                                </Badge>
+                                </span>
+                              </p>
+                              <div className="eb-mt-2">
+                                <RecipientDetailsDialog recipient={rejected}>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="eb-h-7 eb-text-xs"
+                                  >
+                                    {t('rejectedAccounts.viewDetails', {
+                                      defaultValue: 'View account details',
+                                    })}
+                                  </Button>
+                                </RecipientDetailsDialog>
                               </div>
                             </li>
                           );
