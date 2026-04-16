@@ -16,6 +16,11 @@
     "title": "Aucun compte lié",
     "description": "Liez un compte bancaire pour commencer à effectuer des paiements. Vous pouvez utiliser ACH, virements bancaires ou paiements en temps réel."
   },
+  "rejectedAccounts": {
+    "sectionTitle": "Comptes récemment rejetés",
+    "sectionDescription": "Le(s) compte(s) suivant(s) ont été rejetés au cours des 30 derniers jours.",
+    "collapsedSummary": "Plus récent : {{name}} — {{date}}"
+  },
   "errors": {
     "loading": {
       "title": "Erreur lors du chargement des comptes liés",

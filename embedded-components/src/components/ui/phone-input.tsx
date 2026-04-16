@@ -33,15 +33,42 @@ type PhoneInputProps = Omit<
 
 const PhoneInput: React.ForwardRefExoticComponent<PhoneInputProps> =
   React.forwardRef<React.ElementRef<typeof RPNInput.default>, PhoneInputProps>(
-    ({ className, onChange, ...props }, ref) => {
+    ({ className, onChange, value, defaultCountry, ...props }, ref) => {
+      /**
+       * Disable focus-on-country-selection during the initial mount so
+       * the programmatic defaultCountry selection in CountrySelect does
+       * not steal focus or trigger react-hook-form onBlur validation.
+       * After mount, enable it for normal user-initiated country changes.
+       */
+      const [focusOnSelect, setFocusOnSelect] = React.useState(false);
+      React.useEffect(() => {
+        setFocusOnSelect(true);
+      }, []);
+
       return (
         <RPNInput.default
           ref={ref}
+          /**
+           * Spread remaining props first so that explicit overrides
+           * (className, onChange, value) below are not clobbered by
+           * values coming from react-hook-form's `{...field}` spread.
+           */
+          {...props}
           className={cn('eb-flex', className)}
           flagComponent={FlagComponent}
           countrySelectComponent={CountrySelect}
           inputComponent={InputComponent}
           smartCaret
+          defaultCountry={defaultCountry}
+          focusInputOnCountrySelection={focusOnSelect}
+          /**
+           * Pass defaultCountry to CountrySelect so it can
+           * programmatically select the country on initial mount
+           * when the library's internal defaultCountry mechanism
+           * does not apply (e.g. when value is empty string from
+           * react-hook-form).
+           */
+          countrySelectProps={{ defaultCountry }}
           /**
            * Handles the onChange event.
            *
@@ -51,8 +78,15 @@ const PhoneInput: React.ForwardRefExoticComponent<PhoneInputProps> =
            *
            * @param {E164Number | undefined} value - The entered value
            */
-          onChange={(value) => onChange?.(value || ('' as E164Number))}
-          {...props}
+          onChange={(val) => onChange?.(val || ('' as E164Number))}
+          /**
+           * react-phone-number-input expects `value` to be either `undefined`
+           * (empty) or a valid E.164 phone number string. An empty string `""`
+           * is not a recognized empty state and can prevent `defaultCountry`
+           * from being applied correctly. Normalize it to `undefined` so the
+           * library falls back to `defaultCountry` as intended.
+           */
+          value={value || undefined}
         />
       );
     }
@@ -77,6 +111,7 @@ type CountrySelectProps = {
   value: RPNInput.Country;
   onChange: (value: RPNInput.Country) => void;
   options: CountrySelectOption[];
+  defaultCountry?: RPNInput.Country;
 };
 
 const CountrySelect = ({
@@ -84,7 +119,19 @@ const CountrySelect = ({
   value,
   onChange,
   options,
+  defaultCountry,
 }: CountrySelectProps) => {
+  /**
+   * When the library's internal defaultCountry mechanism fails to
+   * pre-select a country (e.g. due to value normalisation timing),
+   * programmatically select the defaultCountry on initial mount.
+   */
+  React.useEffect(() => {
+    if (!value && defaultCountry) {
+      onChange(defaultCountry);
+    }
+  }, []); // Run only on initial mount
+
   const handleSelect = React.useCallback(
     (country: RPNInput.Country) => {
       onChange(country);

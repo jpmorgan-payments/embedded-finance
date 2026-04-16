@@ -157,210 +157,210 @@
       }
     }
   },
-  "fetchingClientData": "Fetching client data...",
-  "welcomeText": "Welcome!",
+  "fetchingClientData": "Chargement des données du client...",
+  "welcomeText": "Bienvenue!",
   "errors": {
-    "unknownScreenId": "Unknown screen id: {{screenId}}",
-    "unhandledScreenError": "Unhandled screen error"
+    "unknownScreenId": "Identifiant d'écran inconnu : {{screenId}}",
+    "unhandledScreenError": "Erreur d'écran non gérée"
   },
   "flowRenderer": {
-    "businessType": "Business type",
+    "businessType": "Type d'entreprise",
     "linkAccount": "Lier un compte bancaire",
     "leavePageWarning": "Vous pourriez perdre les modifications non enregistrées si vous quittez cette page."
   },
   "documentUpload": {
-    "title": "Supporting documents",
-    "onboardingProgress": "Onboarding Progress",
-    "loadingDocumentRequests": "Loading document requests",
-    "businessSectionTitle": "For the business",
-    "ownersSectionTitle": "For owners and key roles",
-    "returnToOverview": "Return to overview",
-    "noDocumentsRequired": "No documents required",
-    "regulatoryRequirementsDescription": "To satisfy regulatory requirements, we need to obtain the following",
+    "title": "Documents justificatifs",
+    "onboardingProgress": "Progression de l'inscription",
+    "loadingDocumentRequests": "Chargement des demandes de documents",
+    "businessSectionTitle": "Pour l'entreprise",
+    "ownersSectionTitle": "Pour les propriétaires et les rôles clés",
+    "returnToOverview": "Retour à l'aperçu",
+    "noDocumentsRequired": "Aucun document requis",
+    "regulatoryRequirementsDescription": "Pour satisfaire aux exigences réglementaires, nous devons obtenir les éléments suivants",
     "documentNumber": "Document {{number}}",
-    "selectDocumentType": "Select Document Type",
-    "optional": "(Optional)",
-    "selectPlaceholder": "Select a document type",
-    "uploadDocument": "Upload Document",
+    "selectDocumentType": "Sélectionner le type de document",
+    "optional": "(Facultatif)",
+    "selectPlaceholder": "Sélectionner un type de document",
+    "uploadDocument": "Téléverser un document",
     "partyCard": {
       "statusLabels": {
-        "pending": "Pending",
-        "completed": "Completed",
-        "expired": "Expired"
+        "pending": "En attente",
+        "completed": "Terminé",
+        "expired": "Expiré"
       },
       "roleLabels": {
-        "business": "Business",
-        "owner": "Owner",
-        "controller": "Controller"
+        "business": "Entreprise",
+        "owner": "Propriétaire",
+        "controller": "Dirigeant"
       },
-      "uploadDocuments": "Upload documents",
-      "successMessage": "Required documents successfully uploaded",
-      "uploadedOn": "Uploaded on"
+      "uploadDocuments": "Téléverser des documents",
+      "successMessage": "Documents requis téléversés avec succès",
+      "uploadedOn": "Téléversé le"
     },
     "documentUploadForm": {
-      "fetchingDocumentRequest": "Fetching document request...",
-      "uploadingDocuments": "Uploading...",
-      "completeAllRequired": "Complete All Required Documents",
-      "uploadDocuments": "Upload Documents",
-      "cancel": "Cancel",
+      "fetchingDocumentRequest": "Chargement de la demande de document...",
+      "uploadingDocuments": "Téléversement...",
+      "completeAllRequired": "Remplir tous les documents requis",
+      "uploadDocuments": "Téléverser les documents",
+      "cancel": "Annuler",
       "errorMessages": {
-        "uploadError": "There was an unexpected error uploading documents. Please try again.",
-        "submitError": "There was an unexpected error submitting document requests. Please try again."
+        "uploadError": "Une erreur inattendue est survenue lors du téléversement des documents. Veuillez réessayer.",
+        "submitError": "Une erreur inattendue est survenue lors de la soumission des demandes de documents. Veuillez réessayer."
       }
     },
     "statusMessages": {
       "reviewInProgress": {
-        "title": "Review in progress",
-        "description": "Your onboarding is currently under review. Please check back later."
+        "title": "Examen en cours",
+        "description": "Votre inscription est en cours d'examen. Veuillez revenir plus tard."
       },
       "approved": {
-        "description": "Your onboarding has been approved. No documents are required."
+        "description": "Votre inscription a été approuvée. Aucun document n'est requis."
       },
       "problemLoadingClient": {
-        "title": "There was a problem",
-        "description": "Unable to load client data. Please try again later."
+        "title": "Un problème est survenu",
+        "description": "Impossible de charger les données du client. Veuillez réessayer plus tard."
       },
       "problemLoadingDocuments": {
-        "title": "There was a problem",
-        "description": "Unable to load document requests. Please try again later."
+        "title": "Un problème est survenu",
+        "description": "Impossible de charger les demandes de documents. Veuillez réessayer plus tard."
       },
       "noDocumentRequests": {
-        "title": "There is a problem",
-        "description": "No document requests found."
+        "title": "Il y a un problème",
+        "description": "Aucune demande de document trouvée."
       },
       "outstandingItems": {
-        "title": "Outstanding items",
-        "description": "Your onboarding has outstanding items that need to be addressed. Please return to the onboarding flow to resolve them."
+        "title": "Éléments en suspens",
+        "description": "Votre inscription comporte des éléments en suspens à traiter. Veuillez retourner au processus d'inscription pour les résoudre."
       }
     }
   },
   "stepperRenderer": {
-    "noStepsFound": "No steps found",
-    "stepCounter": "Step {{currentStepNumber}} of {{totalSteps}}",
+    "noStepsFound": "Aucune étape trouvée",
+    "stepCounter": "Étape {{currentStepNumber}} de {{totalSteps}}",
     "newOwnerLabel": "Nouveau propriétaire",
     "previousStepDataLossWarning": "Si vous revenez en arrière, les renseignements saisis à cette étape pourraient être perdus. Continuer?",
     "buttons": {
-      "overviewHeader": "Overview",
-      "save": "Save",
-      "continue": "Continue",
-      "previous": "Previous",
-      "cancel": "Cancel",
-      "agreeAndFinish": "Agree and finish",
-      "returnToAllOwnersOverview": "Return to all owners overview",
-      "backToAllOwnersOverview": "Back to all owners overview",
-      "returnToOverview": "Return to overview",
-      "continueToNextSection": "Continue to next section",
-      "continueToSection": "Continue to {{sectionLabel}}",
-      "backToSection": "Back to {{sectionLabel}}"
+      "overviewHeader": "Aperçu",
+      "save": "Enregistrer",
+      "continue": "Continuer",
+      "previous": "Précédent",
+      "cancel": "Annuler",
+      "agreeAndFinish": "Accepter et terminer",
+      "returnToAllOwnersOverview": "Retour à l'aperçu de tous les propriétaires",
+      "backToAllOwnersOverview": "Retour à l'aperçu de tous les propriétaires",
+      "returnToOverview": "Retour à l'aperçu",
+      "continueToNextSection": "Continuer à la section suivante",
+      "continueToSection": "Continuer à {{sectionLabel}}",
+      "backToSection": "Retour à {{sectionLabel}}"
     }
   },
   "screens": {
     "gateway": {
-      "title": "Let's help you get started",
-      "description": "Select your business type and we'll explain what information you'll need to complete this application.",
-      "nextButton": "Get Started",
+      "title": "Commençons",
+      "description": "Sélectionnez votre type d'entreprise et nous vous expliquerons les renseignements nécessaires pour compléter cette demande.",
+      "nextButton": "Commencer",
       "infoAlert": {
-        "title": "Is this you?",
-        "description": "To keep your account details safe, we expect that the person completing this application holds primary control over financial and business operations for the business. If this is not you, please don't proceed below."
+        "title": "Est-ce bien vous?",
+        "description": "Pour protéger vos renseignements de compte, nous nous attendons à ce que la personne qui remplit cette demande détienne le contrôle principal des opérations financières et commerciales de l'entreprise. Si ce n'est pas votre cas, veuillez ne pas continuer ci-dessous."
       }
     },
     "personalDetails": {
-      "legalNameHeader": "Legal name",
-      "legalNameDescription": "Your full name as recorded with government agencies"
+      "legalNameHeader": "Nom légal",
+      "legalNameDescription": "Votre nom complet tel qu'enregistré auprès des organismes gouvernementaux"
     },
     "ownerPersonalDetails": {
-      "legalNameHeader": "Legal name",
-      "legalNameDescription": "The owner's full name as recorded with government agencies"
+      "legalNameHeader": "Nom légal",
+      "legalNameDescription": "Le nom complet du propriétaire tel qu'enregistré auprès des organismes gouvernementaux"
     },
     "industryForm": {
-      "infoAlert": "This is used for regulatory and compliance purposes, so please ensure your selection is accurate.",
-      "descriptionTooVague": "Your business description is too vague to suggest relevant industry classifications. Please provide more specific details about your business activities and primary operations.",
-      "viewExamplesOfDescriptions": "View examples of good business descriptions",
-      "recommendationsError": "We couldn't generate industry recommendations right now. Please try again later or proceed by selecting your industry manually.",
+      "infoAlert": "Ceci est utilisé à des fins réglementaires et de conformité, veuillez donc vous assurer que votre sélection est exacte.",
+      "descriptionTooVague": "La description de votre entreprise est trop vague pour suggérer des classifications industrielles pertinentes. Veuillez fournir des détails plus précis sur vos activités commerciales et vos opérations principales.",
+      "viewExamplesOfDescriptions": "Voir des exemples de bonnes descriptions d'entreprise",
+      "recommendationsError": "Nous n'avons pas pu générer de recommandations industrielles pour le moment. Veuillez réessayer plus tard ou procéder en sélectionnant votre industrie manuellement.",
       "tooltip": {
-        "title": "How do I make the right choice?",
-        "pleaseSelect": "Please select the same classification chosen when your business or organization was registered in North America.",
-        "ifSoleProp": "If you are a sole proprietor or your business is registered outside of North America,",
-        "makeBestChoice": "You may not have previously selected a classification. In this case, please make the best choice based on your primary line of business."
+        "title": "Comment faire le bon choix?",
+        "pleaseSelect": "Veuillez sélectionner la même classification choisie lors de l'enregistrement de votre entreprise ou organisme en Amérique du Nord.",
+        "ifSoleProp": "Si vous êtes un travailleur autonome ou si votre entreprise est enregistrée en dehors de l'Amérique du Nord,",
+        "makeBestChoice": "Il est possible que vous n'ayez pas choisi de classification auparavant. Dans ce cas, veuillez faire le meilleur choix en fonction de votre secteur d'activité principal."
       },
-      "suggestButtonLabel": "Suggest",
-      "analyzing": "Analyzing your business description...",
-      "recommendationsHeader": "Recommended industries based on your description:",
-      "recommendationsInfo": "These recommendations are generated by AI based on your business description and may not be perfectly accurate. Please review carefully before selecting."
+      "suggestButtonLabel": "Suggérer",
+      "analyzing": "Analyse de la description de votre entreprise...",
+      "recommendationsHeader": "Industries recommandées selon votre description :",
+      "recommendationsInfo": "Ces recommandations sont générées par l'IA à partir de la description de votre entreprise et peuvent ne pas être parfaitement exactes. Veuillez les examiner attentivement avant de faire votre sélection."
     },
     "owners": {
-      "title": "Owners and key roles",
-      "overviewButtonLabel": "Overview",
+      "title": "Propriétaires et rôles clés",
+      "overviewButtonLabel": "Aperçu",
       "infoAlert": {
-        "header": "For a $t(onboarding-overview:organizationTypes.{{organizationType}})",
-        "title": "Owners",
-        "pleaseAddAllOwners": "Please add <strong>all owners</strong> holding 25% or more of the business"
+        "header": "Pour une $t(onboarding-overview:organizationTypes.{{organizationType}})",
+        "title": "Propriétaires",
+        "pleaseAddAllOwners": "Veuillez ajouter <strong>tous les propriétaires</strong> détenant 25 % ou plus de l'entreprise"
       },
       "tooltip": {
-        "title": "What is an owner?",
-        "description": "An owner is an individual or entity that ultimately owns at least part of a business, established through a chain of ownership or by means of control other than direct control."
+        "title": "Qu'est-ce qu'un propriétaire?",
+        "description": "Un propriétaire est une personne ou une entité qui détient ultimement au moins une partie d'une entreprise, établi par une chaîne de propriété ou par des moyens de contrôle autres que le contrôle direct."
       },
-      "controllerIsOwnerQuestion": "Do you, the controller, own 25% or more of the business?",
-      "controllerCannotBeOwnerWarning": "You cannot set yourself as an owner since you can only add up to 4 beneficial owners.",
-      "makingChanges": "Making changes...",
-      "addOwnerButton": "Add owner",
-      "removeOwnerButton": "Remove",
-      "editOwnerButton": "Edit",
-      "goNowButton": "Go now",
-      "ownerIncompleteWarning": "This individual is missing some details.",
-      "maxOwnersWarning": "You can only add up to 4 beneficial owners.",
-      "noStakeholdersAdded": "No stakeholders added yet.",
+      "controllerIsOwnerQuestion": "Vous, le dirigeant, détenez-vous 25 % ou plus de l'entreprise?",
+      "controllerCannotBeOwnerWarning": "Vous ne pouvez pas vous désigner comme propriétaire puisque vous ne pouvez ajouter que 4 bénéficiaires effectifs au maximum.",
+      "makingChanges": "Modifications en cours...",
+      "addOwnerButton": "Ajouter un propriétaire",
+      "removeOwnerButton": "Supprimer",
+      "editOwnerButton": "Modifier",
+      "goNowButton": "Y aller maintenant",
+      "ownerIncompleteWarning": "Certains détails de cette personne sont manquants.",
+      "maxOwnersWarning": "Vous ne pouvez ajouter que 4 bénéficiaires effectifs au maximum.",
+      "noStakeholdersAdded": "Aucune partie prenante ajoutée pour le moment.",
       "badges": {
-        "controller": "Controller",
-        "owner": "Owner"
+        "controller": "Dirigeant",
+        "owner": "Propriétaire"
       },
       "removeOwnerDialog": {
-        "title": "Remove Owner?",
-        "description": "Are you sure you want to remove <strong>{{owner}}</strong> as an owner?",
-        "confirmButton": "Yes, remove owner",
-        "cancelButton": "No, keep owner"
+        "title": "Supprimer le propriétaire?",
+        "description": "Êtes-vous sûr de vouloir supprimer <strong>{{owner}}</strong> en tant que propriétaire?",
+        "confirmButton": "Oui, supprimer le propriétaire",
+        "cancelButton": "Non, garder le propriétaire"
       },
-      "saveAndReturnToReviewButton": "Save and return to review",
-      "saveAndContinueButton": "Save and continue to operational details"
+      "saveAndReturnToReviewButton": "Enregistrer et retourner à la révision",
+      "saveAndContinueButton": "Enregistrer et continuer aux détails opérationnels"
     },
     "overview": {
-      "title": "Overview",
+      "title": "Aperçu",
       "description": "",
-      "infoAlert": "Your data will be saved as you go.",
-      "downloadChecklist": "Download Checklist",
+      "infoAlert": "Vos données seront enregistrées au fur et à mesure.",
+      "downloadChecklist": "Télécharger la liste de vérification",
       "verifyBusinessSection": {
-        "title": "Verify your business",
+        "title": "Vérifier votre entreprise",
         "reviewInProgress": {
-          "title": "Great work!",
-          "description": "Please hang tight while we verify your details. This should only take a moment."
+          "title": "Excellent travail!",
+          "description": "Veuillez patienter pendant que nous vérifions vos renseignements. Cela ne devrait prendre qu'un moment."
         },
         "documentsReceived": {
-          "title": "We have your documents",
-          "description": "Please hang tight if you can while we verify your documents."
+          "title": "Nous avons vos documents",
+          "description": "Veuillez patienter si possible pendant que nous vérifions vos documents."
         },
         "applicationSubmitted": {
-          "title": "Application submitted",
-          "description": "Please hang tight while we review your application. This process typically takes 1-2 business days."
+          "title": "Demande soumise",
+          "description": "Veuillez patienter pendant que nous examinons votre demande. Ce processus prend généralement 1 à 2 jours ouvrables."
         },
         "informationRequested": {
-          "description": "We're having trouble verifying your business. Please provide supporting documentation."
+          "description": "Nous avons de la difficulté à vérifier votre entreprise. Veuillez fournir des documents justificatifs."
         },
         "declined": {
-          "title": "Application declined",
-          "description": "We're sorry, but we cannot proceed with your application at this time."
+          "title": "Demande refusée",
+          "description": "Nous sommes désolés, mais nous ne pouvons pas procéder avec votre demande pour le moment."
         },
         "approved": {
-          "title": "All set!",
-          "description": "Your business details have been verified"
+          "title": "Tout est prêt!",
+          "description": "Les renseignements de votre entreprise ont été vérifiés"
         },
-        "businessTypeLabel": "Your selected business type",
-        "changeWarning": "If you change this after starting the application, you may lose your saved progress.",
-        "editBusinessType": "Edit"
+        "businessTypeLabel": "Votre type d'entreprise sélectionné",
+        "changeWarning": "Si vous modifiez ceci après avoir commencé la demande, vous pourriez perdre votre progression enregistrée.",
+        "editBusinessType": "Modifier"
       },
       "bankAccountSection": {
-        "title": "Link a bank account for payouts",
-        "lockedMessage": "Available after business verification",
-        "linkAccountTitle": "Link an account"
+        "title": "Lier un compte bancaire pour les paiements",
+        "lockedMessage": "Disponible après la soumission de votre demande",
+        "linkAccountTitle": "Lier un compte"
       }
     },
     "linkAccount": {
@@ -397,112 +397,112 @@
       }
     },
     "companyIdentification": {
-      "useDifferentIdType": "Use a different ID type",
-      "contactPlatformOperator": "If your business is outside of the United States, please contact Platform operator."
+      "useDifferentIdType": "Utiliser un autre type d'identification",
+      "contactPlatformOperator": "Si votre entreprise est à l'extérieur des États-Unis, veuillez contacter l'opérateur de la plateforme."
     },
     "ownerSteps": {
       "personalDetails": {
-        "title": "Personal details",
-        "description": "We collect personal information to verify individuals for security and compliance."
+        "title": "Renseignements personnels",
+        "description": "Nous recueillons des renseignements personnels pour vérifier l'identité des personnes à des fins de sécurité et de conformité."
       },
       "identityDocument": {
-        "title": "Identity document",
-        "description": "We need some additional details to verify individuals for security and compliance."
+        "title": "Document d'identité",
+        "description": "Nous avons besoin de renseignements supplémentaires pour vérifier l'identité des personnes à des fins de sécurité et de conformité."
       },
       "contactDetails": {
-        "title": "Contact details",
-        "description": "We need some additional details to confirm the owner's identity."
+        "title": "Coordonnées",
+        "description": "Nous avons besoin de renseignements supplémentaires pour confirmer l'identité du propriétaire."
       },
       "checkAnswers": {
-        "title": "Check your answers",
-        "description": "Please ensure your answers are accurate and complete anything you may have missed."
+        "title": "Vérifiez vos réponses",
+        "description": "Veuillez vous assurer que vos réponses sont exactes et compléter tout élément manquant."
       }
     },
     "personalSection": {
-      "label": "Your personal details",
-      "shortLabel": "Personal details",
+      "label": "Vos renseignements personnels",
+      "shortLabel": "Renseignements personnels",
       "requirementsList": [
-        "Your name and job title",
-        "Government issued identifier (e.g. social security number)",
-        "Address and contact details"
+        "Votre nom et titre de poste",
+        "Identifiant gouvernemental (p. ex. numéro d'assurance sociale)",
+        "Adresse et coordonnées"
       ],
       "steps": {
         "personalDetails": {
-          "title": "Your personal details",
-          "description": "We collect your personal information as the primary person controlling business operations for the company."
+          "title": "Vos renseignements personnels",
+          "description": "Nous recueillons vos renseignements personnels en tant que personne principale contrôlant les opérations commerciales de l'entreprise."
         },
         "identityDocument": {
-          "title": "Your ID details",
-          "description": "We need some additional details to confirm your identity."
+          "title": "Vos pièces d'identité",
+          "description": "Nous avons besoin de renseignements supplémentaires pour confirmer votre identité."
         },
         "contactDetails": {
-          "title": "Your contact details",
-          "description": "We need some additional details to confirm your identity."
+          "title": "Vos coordonnées",
+          "description": "Nous avons besoin de renseignements supplémentaires pour confirmer votre identité."
         },
         "checkAnswers": {
-          "title": "Check your answers",
-          "description": "Please ensure your answers are accurate and complete anything you may have missed."
+          "title": "Vérifiez vos réponses",
+          "description": "Veuillez vous assurer que vos réponses sont exactes et compléter tout élément manquant."
         }
       }
     },
     "businessSection": {
-      "label": "Business details",
+      "label": "Détails de l'entreprise",
       "requirementsList": [
-        "Industry classification code",
-        "Registration ID details (e.g. employer identification number)",
-        "Location and contact details"
+        "Code de classification industrielle",
+        "Détails du numéro d'enregistrement (p. ex. numéro d'identification de l'employeur)",
+        "Emplacement et coordonnées"
       ],
       "steps": {
         "businessIdentity": {
-          "title": "Business identity",
-          "description": "Please provide details about your business."
+          "title": "Identité de l'entreprise",
+          "description": "Veuillez fournir des renseignements sur votre entreprise."
         },
         "industry": {
-          "title": "Description & industry classification",
-          "description": "Provide a description for your business, then choose a classification that best describes your income-producing lines of business."
+          "title": "Description et classification industrielle",
+          "description": "Fournissez une description de votre entreprise, puis choisissez la classification qui décrit le mieux vos secteurs d'activité générateurs de revenus."
         },
         "contactInfo": {
-          "title": "Contact information",
-          "description": "Please let us know how to get in touch."
+          "title": "Coordonnées",
+          "description": "Veuillez nous indiquer comment vous joindre."
         },
         "checkAnswers": {
-          "title": "Check your answers",
-          "description": "Please ensure your answers are accurate and complete anything you may have missed."
+          "title": "Vérifiez vos réponses",
+          "description": "Veuillez vous assurer que vos réponses sont exactes et compléter tout élément manquant."
         }
       }
     },
     "ownersSection": {
-      "label": "Owners and key roles",
+      "label": "Propriétaires et rôles clés",
       "shortLabel": "Propriétaires",
       "requirementsList": [
-        "Name and job titles for all individuals",
-        "Government issued identifier (e.g. social security number)",
-        "Address and contact details"
+        "Nom et titre de poste de toutes les personnes",
+        "Identifiant gouvernemental (p. ex. numéro d'assurance sociale)",
+        "Adresse et coordonnées"
       ]
     },
     "additionalQuestionsSection": {
-      "label": "Operational details",
+      "label": "Détails opérationnels",
       "requirementsList": [
-        "Total annual revenue",
-        "Additional questions based on your business profile"
+        "Revenu annuel total",
+        "Questions supplémentaires en fonction de votre profil d'entreprise"
       ]
     },
     "reviewAttestSection": {
-      "label": "Review and attest",
+      "label": "Révision et attestation",
       "steps": {
         "review": {
-          "title": "Review your details",
-          "description": "Please ensure your answers are accurate and complete anything you may have missed."
+          "title": "Révisez vos renseignements",
+          "description": "Veuillez vous assurer que vos réponses sont exactes et compléter tout élément manquant."
         },
         "documents": {
-          "title": "Terms and conditions",
-          "description": "Please open and review the following documents from J.P. Morgan to complete the process."
+          "title": "Conditions générales",
+          "description": "Veuillez ouvrir et consulter les documents suivants de J.P. Morgan pour terminer le processus."
         }
       }
     },
     "uploadDocumentsSection": {
-      "label": "Supporting documents",
-      "onHoldText": "We'll let you know if any documents are needed"
+      "label": "Documents justificatifs",
+      "onHoldText": "Nous vous informerons si des documents sont nécessaires"
     }
   },
   "additionalQuestions": {
@@ -516,7 +516,7 @@
   },
   "fields": {
     "controllerFirstName": {
-      "label": "First name",
+      "label": "Prénom",
       "description": "",
       "tooltip": "",
       "validation": {
@@ -532,7 +532,7 @@
       }
     },
     "controllerMiddleName": {
-      "label": "Middle name",
+      "label": "Deuxième prénom",
       "description": "",
       "tooltip": "",
       "validation": {
@@ -546,7 +546,7 @@
       }
     },
     "controllerLastName": {
-      "label": "Last name",
+      "label": "Nom de famille",
       "description": "",
       "tooltip": "",
       "validation": {
@@ -564,21 +564,21 @@
       }
     },
     "controllerNameSuffix": {
-      "label": "Suffix",
-      "description": "(e.g. Jr., Sr. II, etc)",
+      "label": "Suffixe",
+      "description": "(p. ex. Jr., Sr. II, etc.)",
       "tooltip": "",
       "validation": {
         "minLength": "$t(validation:text.minLength, {'count': 1})",
         "maxLength": "$t(validation:text.maxLength, {'count': 5})",
-        "pattern": "Suffix can only contain letters, periods, and roman numerals"
+        "pattern": "Le suffixe ne peut contenir que des lettres, des points et des chiffres romains"
       }
     },
     "controllerJobTitle": {
-      "label": "Job title",
-      "placeholder": "Select job title",
+      "label": "Titre de poste",
+      "placeholder": "Sélectionner le titre de poste",
       "description": {
-        "default": "Your current position in the organization",
-        "owner": "The owner's current position in the organization"
+        "default": "Votre poste actuel dans l'organisation",
+        "owner": "Le poste actuel du propriétaire dans l'organisation"
       },
       "tooltip": "",
       "validation": {
@@ -591,11 +591,11 @@
       }
     },
     "controllerJobTitleDescription": {
-      "label": "Job title description",
-      "placeholder": "Enter job title description",
+      "label": "Description du titre de poste",
+      "placeholder": "Entrer la description du titre de poste",
       "description": {
-        "default": "Brief description of your role and responsibilities",
-        "owner": "Brief description of the owner's role and responsibilities"
+        "default": "Brève description de votre rôle et de vos responsabilités",
+        "owner": "Brève description du rôle et des responsabilités du propriétaire"
       },
       "tooltip": "",
       "validation": {
@@ -603,20 +603,20 @@
         "pattern": "$t(validation:text.pattern)",
         "noHtml": "$t(validation:text.noHtml)",
         "noUrls": "$t(validation:text.noUrls)",
-        "required": "Description is required when job title is Other."
+        "required": "La description est requise lorsque le titre de poste est Autre."
       }
     },
     "natureOfOwnership": {
-      "label": "Nature of ownership",
-      "placeholder": "Select nature of ownership",
-      "description": "How you own or control the organization",
+      "label": "Nature de la propriété",
+      "placeholder": "Sélectionner la nature de la propriété",
+      "description": "Comment vous détenez ou contrôlez l'organisation",
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)"
       }
     },
     "birthDate": {
-      "label": "Date of birth",
+      "label": "Date de naissance",
       "description": "",
       "validation": {
         "required": "$t(validation:required)",
@@ -628,17 +628,17 @@
       }
     },
     "countryOfResidence": {
-      "label": "Country of residence",
+      "label": "Pays de résidence",
       "tooltip": "",
       "description": {
-        "default": "Please select your current country of residence",
-        "soleProp": "As a sole proprietor, your country of residence is set to the United States",
-        "owner": "Please select the owner's current country of residence"
+        "default": "Veuillez sélectionner votre pays de résidence actuel",
+        "soleProp": "En tant que travailleur autonome, votre pays de résidence est fixé aux États-Unis",
+        "owner": "Veuillez sélectionner le pays de résidence actuel du propriétaire"
       },
       "validation": {
         "required": "$t(validation:required)",
         "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})",
-        "onlyUS": "Only US is supported at this time"
+        "onlyUS": "Seuls les États-Unis sont pris en charge pour le moment"
       }
     },
     "solePropSsn": {
@@ -651,27 +651,27 @@
       }
     },
     "controllerIds.idType": {
-      "label": "ID type",
-      "placeholder": "Select ID type",
-      "description": "Choose the type of government-issued ID you'd like to provide",
+      "label": "Type d'identification",
+      "placeholder": "Sélectionner le type d'identification",
+      "description": "Choisissez le type de pièce d'identité gouvernementale que vous souhaitez fournir",
       "tooltip": "",
       "validation": {
-        "required": "ID type is required"
+        "required": "Le type d'identification est requis"
       }
     },
     "controllerIds.description": {
       "label": "Description",
-      "placeholder": "Enter description",
-      "description": "Description of the ID",
-      "tooltip": "should match your business registration documents ID description",
+      "placeholder": "Entrer la description",
+      "description": "Description de la pièce d'identité",
+      "tooltip": "Doit correspondre à la description de la pièce d'identité dans vos documents d'enregistrement d'entreprise",
       "validation": {
-        "maxLength": "Description must be 100 characters or less"
+        "maxLength": "La description doit être de 100 caractères ou moins"
       }
     },
     "controllerIds.value": {
-      "label": "ID value",
-      "placeholder": "Enter ID value",
-      "description": "ID value",
+      "label": "Valeur d'identification",
+      "placeholder": "Entrer la valeur d'identification",
+      "description": "Valeur d'identification",
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
@@ -692,55 +692,55 @@
       }
     },
     "controllerIds.expiryDate": {
-      "label": "Expiry date",
-      "placeholder": "YYYY-MM-DD",
-      "description": "Date when the individual ID expires",
+      "label": "Date d'expiration",
+      "placeholder": "AAAA-MM-JJ",
+      "description": "Date d'expiration de la pièce d'identité individuelle",
       "tooltip": "",
       "validation": {
-        "format": "Expiry date must be in 'YYYY-MM-DD' format",
-        "invalid": "Invalid date",
-        "past": "Expiry date cannot be in the past",
-        "tooFar": "Expiry date cannot be more than 10 years in the future"
+        "format": "La date d'expiration doit être au format 'AAAA-MM-JJ'",
+        "invalid": "Date invalide",
+        "past": "La date d'expiration ne peut pas être dans le passé",
+        "tooFar": "La date d'expiration ne peut pas être à plus de 10 ans dans le futur"
       }
     },
     "controllerIds.issuer": {
-      "label": "Issuing country",
-      "placeholder": "Enter issuer",
+      "label": "Pays émetteur",
+      "placeholder": "Entrer le pays émetteur",
       "description": {
-        "default": "Set based on your country of residence",
-        "owner": "Set based on the owner's country of residence"
+        "default": "Défini en fonction de votre pays de résidence",
+        "owner": "Défini en fonction du pays de résidence du propriétaire"
       },
       "tooltip": "",
       "validation": {
-        "exactlyTwoChars": "Issuer must be a 2-letter country code"
+        "exactlyTwoChars": "Le pays émetteur doit être un code pays de 2 lettres"
       }
     },
     "industry": {
-      "label": "Industry classification",
-      "description": "e.g. \"Boat dealers\" or \"441222\".",
-      "placeholder": "Search by keyword or 6-digit NAICS code",
+      "label": "Classification industrielle",
+      "description": "p. ex. \"Concessionnaires de bateaux\" ou \"441222\".",
+      "placeholder": "Rechercher par mot-clé ou code SCIAN à 6 chiffres",
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)"
       }
     },
     "countryOfFormation": {
-      "label": "Country of registration",
+      "label": "Pays d'enregistrement",
       "description": "",
-      "placeholder": "Select country of formation",
+      "placeholder": "Sélectionner le pays de constitution",
       "tooltip": "",
       "validation": {
-        "exactlyTwoChars": "Country code must be exactly 2 characters",
-        "invalid": "Invalid country code",
-        "usOnly": "Only US is supported at this time"
+        "exactlyTwoChars": "Le code pays doit être exactement de 2 caractères",
+        "invalid": "Code pays invalide",
+        "usOnly": "Seuls les États-Unis sont pris en charge pour le moment"
       }
     },
     "organizationName": {
-      "label": "Legal name of the company",
-      "fieldName": "Business name",
+      "label": "Raison sociale de l'entreprise",
+      "fieldName": "Nom de l'entreprise",
       "description": {
-        "default": "Please enter this exactly as it appears on your business registration documents",
-        "soleProp": "Your sole proprietorship's name is the same as your legal name. Update it in the personal details section."
+        "default": "Veuillez entrer le nom exactement tel qu'il apparaît sur vos documents d'enregistrement d'entreprise",
+        "soleProp": "Le nom de votre entreprise individuelle est le même que votre nom légal. Mettez-le à jour dans la section des renseignements personnels."
       },
       "tooltip": "",
       "validation": {
@@ -752,8 +752,8 @@
       }
     },
     "yearOfFormation": {
-      "label": "Year of formation",
-      "description": "Please enter as YYYY format (e.g. 2001)",
+      "label": "Année de constitution",
+      "description": "Veuillez entrer au format AAAA (p. ex. 2001)",
       "tooltip": "",
       "validation": {
         "format": "$t(validation:year.format)",
@@ -765,9 +765,9 @@
       "label": "$t(onboarding-overview:idValueLabels.EIN)",
       "description": {
         "default": "$t(onboarding-overview:idValueLabels.EIN)",
-        "soleProp": "Update your ID in the personal details section"
+        "soleProp": "Mettez à jour votre identifiant dans la section des renseignements personnels"
       },
-      "tooltip": "Should match your business registration document's ID value",
+      "tooltip": "Doit correspondre à la valeur d'identification de vos documents d'enregistrement d'entreprise",
       "validation": {
         "required": "$t(validation:required)",
         "length": "Le NIE doit contenir exactement 9 chiffres",
@@ -776,22 +776,22 @@
       }
     },
     "solePropHasEin": {
-      "label": "Does your business have an $t(onboarding-overview:idValueLabels.EIN)?",
-      "fieldName": "This field",
+      "label": "Votre entreprise a-t-elle un $t(onboarding-overview:idValueLabels.EIN)?",
+      "fieldName": "Ce champ",
       "description": "",
       "tooltip": "",
       "options": {
-        "yes": "Yes, my business has an EIN",
-        "no": "No, my business does not have an EIN"
+        "yes": "Oui, mon entreprise a un NIE",
+        "no": "Non, mon entreprise n'a pas de NIE"
       },
       "validation": {
         "required": "$t(validation:required)"
       }
     },
     "controllerPhone": {
-      "label": "Phone number",
+      "label": "Numéro de téléphone",
       "phoneNumber": {
-        "label": "Phone number",
+        "label": "Numéro de téléphone",
         "placeholder": "Entrer le numéro de téléphone",
         "validation": {
           "required": "$t(validation:required)",
@@ -807,11 +807,11 @@
     },
     "organizationPhone": {
       "fieldName": {
-        "default": "Company phone number",
-        "soleProp": "Business phone number"
+        "default": "Numéro de téléphone de l'entreprise",
+        "soleProp": "Numéro de téléphone d'affaires"
       },
       "phoneNumber": {
-        "label": "Business phone number",
+        "label": "Numéro de téléphone d'affaires",
         "validation": {
           "required": "$t(validation:required)",
           "format": "$t(validation:contact.phone.format)",
@@ -826,11 +826,11 @@
     },
     "organizationEmail": {
       "label": {
-        "default": "Company email address",
-        "soleProp": "Business email address"
+        "default": "Adresse courriel de l'entreprise",
+        "soleProp": "Adresse courriel d'affaires"
       },
       "description": {
-        "default": "Provide the best email address to contact the business"
+        "default": "Fournissez la meilleure adresse courriel pour contacter l'entreprise"
       },
       "tooltip": "",
       "validation": {
@@ -840,8 +840,8 @@
       }
     },
     "controllerEmail": {
-      "label": "Email",
-      "placeholder": "Enter email",
+      "label": "Courriel",
+      "placeholder": "Entrer le courriel",
       "description": "",
       "tooltip": "",
       "validation": {
@@ -852,19 +852,19 @@
       "group": "contact"
     },
     "individualAddress.sectionTitle": {
-      "default": "Personal address",
-      "owner": "Owner's personal address"
+      "default": "Adresse personnelle",
+      "owner": "Adresse personnelle du propriétaire"
     },
-    "individualAddress.label": "Address",
+    "individualAddress.label": "Adresse",
     "individualAddress.country": {
-      "label": "Country",
-      "placeholder": "Select country",
+      "label": "Pays",
+      "placeholder": "Sélectionner le pays",
       "description": "",
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
         "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})",
-        "onlyUS": "Only US is supported at this time"
+        "onlyUS": "Seuls les États-Unis sont pris en charge pour le moment"
       }
     },
     "individualAddress.primaryAddressLine": {
@@ -880,23 +880,23 @@
       }
     },
     "individualAddress.secondaryAddressLine": {
-      "label": "Address line 2",
-      "placeholder": "Enter address line 2",
-      "description": "Apt, Suite, Unit, Building etc.",
+      "label": "Ligne d'adresse 2",
+      "placeholder": "Entrez la ligne d'adresse 2",
+      "description": "App., suite, unité, immeuble, etc.",
       "tooltip": "",
       "validation": {
         "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        "pattern": "L'adresse ne peut contenir que des lettres, des chiffres et de la ponctuation de base"
       }
     },
     "individualAddress.tertiaryAddressLine": {
-      "label": "Address line 3",
-      "placeholder": "Enter address line 3",
+      "label": "Ligne d'adresse 3",
+      "placeholder": "Entrez la ligne d'adresse 3",
       "description": "",
       "tooltip": "",
       "validation": {
         "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        "pattern": "L'adresse ne peut contenir que des lettres, des chiffres et de la ponctuation de base"
       }
     },
     "individualAddress.city": {
@@ -941,24 +941,24 @@
         "invalidIE": "L'Eircode doit être au format A65 F4E2 (p. ex., D02 AF30)",
         "invalidNL": "Le code postal doit être au format 1234 AB",
         "invalidPT": "Le code postal doit être au format XXXX-XXX (p. ex., 1000-001)",
-        "pattern": "Postal code must be exactly 5 digits"
+        "pattern": "Le code postal doit être exactement de 5 chiffres"
       }
     },
-    "organizationAddress.sectionTitle": "Registered address",
-    "organizationAddress.sectionDescription": "Please provide the address registered to your company with your local authority",
+    "organizationAddress.sectionTitle": "Adresse enregistrée",
+    "organizationAddress.sectionDescription": "Veuillez fournir l'adresse enregistrée de votre entreprise auprès de votre autorité locale",
     "organizationAddress.label": {
-      "default": "Registered address",
-      "soleProp": "Business address"
+      "default": "Adresse enregistrée",
+      "soleProp": "Adresse d'affaires"
     },
     "organizationAddress.country": {
-      "label": "Country",
-      "placeholder": "Select country",
+      "label": "Pays",
+      "placeholder": "Sélectionner le pays",
       "description": "",
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
         "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})",
-        "onlyUS": "Only US is supported at this time"
+        "onlyUS": "Seuls les États-Unis sont pris en charge pour le moment"
       }
     },
     "organizationAddress.primaryAddressLine": {
@@ -974,23 +974,23 @@
       }
     },
     "organizationAddress.secondaryAddressLine": {
-      "label": "Address line 2",
-      "placeholder": "Enter address line 2",
-      "description": "Apt, Suite, Unit, Building etc.",
+      "label": "Ligne d'adresse 2",
+      "placeholder": "Entrez la ligne d'adresse 2",
+      "description": "App., suite, unité, immeuble, etc.",
       "tooltip": "",
       "validation": {
         "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        "pattern": "L'adresse ne peut contenir que des lettres, des chiffres et de la ponctuation de base"
       }
     },
     "organizationAddress.tertiaryAddressLine": {
-      "label": "Address line 3",
-      "placeholder": "Enter address line 3",
+      "label": "Ligne d'adresse 3",
+      "placeholder": "Entrez la ligne d'adresse 3",
       "description": "",
       "tooltip": "",
       "validation": {
         "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        "pattern": "L'adresse ne peut contenir que des lettres, des chiffres et de la ponctuation de base"
       }
     },
     "organizationAddress.city": {
@@ -1035,18 +1035,18 @@
         "invalidIE": "L'Eircode doit être au format A65 F4E2 (p. ex., D02 AF30)",
         "invalidNL": "Le code postal doit être au format 1234 AB",
         "invalidPT": "Le code postal doit être au format XXXX-XXX (p. ex., 1000-001)",
-        "pattern": "Postal code must be exactly 5 digits"
+        "pattern": "Le code postal doit être exactement de 5 chiffres"
       }
     },
     "dbaNameNotAvailable": {
       "description": "",
       "tooltip": "",
-      "label": "Same as legal name of the company"
+      "label": "Même que la raison sociale de l'entreprise"
     },
     "websiteNotAvailable": {
       "description": "",
       "tooltip": "",
-      "label": "My business doesn't have a website"
+      "label": "Mon entreprise n'a pas de site Web"
     },
     "website": {
       "label": "Site Web de l'entreprise",
@@ -1062,8 +1062,8 @@
       }
     },
     "dbaName": {
-      "label": "Doing business as",
-      "fieldName": "DBA name",
+      "label": "Nom commercial",
+      "fieldName": "Nom commercial",
       "description": "",
       "tooltip": "",
       "validation": {
@@ -1077,8 +1077,8 @@
       }
     },
     "organizationDescription": {
-      "label": "Business description",
-      "description": "Please provide a summary of the products and services you offer to consumers. 1,000 characters maximum.",
+      "label": "Description de l'entreprise",
+      "description": "Veuillez fournir un résumé des produits et services que vous offrez aux consommateurs. 1 000 caractères maximum.",
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
@@ -1088,35 +1088,35 @@
         "noUrls": "$t(validation:text.noUrls)"
       },
       "tooltipContent": {
-        "exampleTitle": "Description example",
-        "exampleText": "{Business name} creates sustainable and affordable beauty and hair care products that are vegan and cruelty free. Our top selling products are our organic citrus shampoo and conditioner line as well as our paraben and sulfate free mascara.",
-        "alignmentNote": "Please ensure this aligns with the business classification you have selected.",
-        "visibilityTitle": "Will my customers see this?",
-        "visibilityText": "No. This is used for compliance and regulatory purposes only."
+        "exampleTitle": "Exemple de description",
+        "exampleText": "{Business name} crée des produits de beauté et de soins capillaires durables et abordables, végétaliens et non testés sur les animaux. Nos produits les plus vendus sont notre gamme de shampoing et revitalisant aux agrumes biologiques ainsi que notre mascara sans parabènes et sans sulfates.",
+        "alignmentNote": "Veuillez vous assurer que cela correspond à la classification d'entreprise que vous avez sélectionnée.",
+        "visibilityTitle": "Mes clients verront-ils cela?",
+        "visibilityText": "Non. Ceci est utilisé uniquement à des fins de conformité et de réglementation."
       }
     },
     "organizationTypeHierarchy": {
       "generalOrganizationType": {
-        "label": "Select your general business type",
+        "label": "Sélectionnez votre type d'entreprise général",
         "description": "",
         "tooltip": ""
       },
       "specificOrganizationType": {
         "label": {
-          "REGISTERED_BUSINESS": "Select the specific legal structure",
-          "OTHER": "Select your specific business structure"
+          "REGISTERED_BUSINESS": "Sélectionnez la structure juridique spécifique",
+          "OTHER": "Sélectionnez votre structure d'entreprise spécifique"
         },
         "description": {
-          "REGISTERED_BUSINESS": "E.g. Limited Liability Company (LLC)",
-          "OTHER": "E.g. Non-Profit Corporation"
+          "REGISTERED_BUSINESS": "P. ex. Société à responsabilité limitée (SARL)",
+          "OTHER": "P. ex. Organisme sans but lucratif"
         },
-        "placeholder": "Select or search",
+        "placeholder": "Sélectionner ou rechercher",
         "tooltip": ""
       }
     },
     "organizationPhone.phoneType": {
-      "label": "Organization phone type",
-      "placeholder": "Select phone type",
+      "label": "Type de téléphone de l'organisation",
+      "placeholder": "Sélectionner le type de téléphone",
       "description": "",
       "tooltip": "",
       "validation": {
@@ -1124,8 +1124,8 @@
       }
     },
     "organizationPhone.phoneNumber": {
-      "label": "Organization phone number",
-      "placeholder": "Enter organization phone number",
+      "label": "Numéro de téléphone de l'organisation",
+      "placeholder": "Entrer le numéro de téléphone de l'organisation",
       "description": "",
       "tooltip": "",
       "validation": {
@@ -1134,8 +1134,8 @@
       }
     },
     "controllerPhone.phoneType": {
-      "label": "Controller phone type",
-      "placeholder": "Select phone type",
+      "label": "Type de téléphone du dirigeant",
+      "placeholder": "Sélectionner le type de téléphone",
       "description": "",
       "tooltip": "",
       "validation": {
@@ -1143,8 +1143,8 @@
       }
     },
     "controllerPhone.phoneNumber": {
-      "label": "Controller phone number",
-      "placeholder": "Enter organization phone number",
+      "label": "Numéro de téléphone du dirigeant",
+      "placeholder": "Entrer le numéro de téléphone du dirigeant",
       "description": "",
       "tooltip": "",
       "validation": {
@@ -1154,82 +1154,82 @@
     }
   },
   "idValueLabels": {
-    "placeholder": "Enter ID value",
-    "EIN": "Employer Identification Number (EIN)",
-    "BUSINESS_REGISTRATION_ID": "Business Registration ID",
-    "BUSINESS_NUMBER": "Business Number",
-    "BUSINESS_REGISTRATION_NUMBER": "Business Registration Number",
-    "SSN": "Social security number (SSN)",
-    "ITIN": "Individual Taxpayer Identification Number (ITIN)",
-    "NATIONAL_ID": "National ID",
-    "PASSPORT": "Passport",
-    "DRIVERS_LICENSE": "Driver's License",
-    "OTHER_GOVERNMENT_ID": "Other Government ID",
-    "SOCIAL_INSURANCE_NUMBER": "Social Insurance Number (SIN)"
+    "placeholder": "Entrer la valeur d'identification",
+    "EIN": "Numéro d'identification de l'employeur (NIE)",
+    "BUSINESS_REGISTRATION_ID": "Numéro d'enregistrement d'entreprise",
+    "BUSINESS_NUMBER": "Numéro d'entreprise",
+    "BUSINESS_REGISTRATION_NUMBER": "Numéro d'immatriculation d'entreprise",
+    "SSN": "Numéro de sécurité sociale (SSN)",
+    "ITIN": "Numéro d'identification de contribuable individuel (ITIN)",
+    "NATIONAL_ID": "Carte d'identité nationale",
+    "PASSPORT": "Passeport",
+    "DRIVERS_LICENSE": "Permis de conduire",
+    "OTHER_GOVERNMENT_ID": "Autre pièce d'identité gouvernementale",
+    "SOCIAL_INSURANCE_NUMBER": "Numéro d'assurance sociale (NAS)"
   },
   "idValueDescriptions": {
-    "EIN": "A unique nine-digit number, assigned by the IRS, that identifies your company as a business operating in the United States.",
-    "BUSINESS_REGISTRATION_ID": "A unique ID assigned by the state or province where your business is registered.",
-    "BUSINESS_NUMBER": "A unique number assigned by the Canada Revenue Agency (CRA) to identify your business.",
-    "BUSINESS_REGISTRATION_NUMBER": "A unique number assigned by the state or province where your business is registered.",
-    "SSN": "E.g. 555-11-0000",
-    "ITIN": "E.g. 900-70-0000",
-    "NATIONAL_ID": "National ID",
-    "PASSPORT": "Enter your passport number",
-    "DRIVERS_LICENSE": "Enter your driver's license number",
-    "OTHER_GOVERNMENT_ID": "Enter your government-issued ID number",
-    "SOCIAL_INSURANCE_NUMBER": "Social Insurance Number (SIN)"
+    "EIN": "Un numéro unique de neuf chiffres, attribué par l'IRS, qui identifie votre entreprise en tant qu'entreprise opérant aux États-Unis.",
+    "BUSINESS_REGISTRATION_ID": "Un identifiant unique attribué par l'État ou la province où votre entreprise est enregistrée.",
+    "BUSINESS_NUMBER": "Un numéro unique attribué par l'Agence du revenu du Canada (ARC) pour identifier votre entreprise.",
+    "BUSINESS_REGISTRATION_NUMBER": "Un numéro unique attribué par l'État ou la province où votre entreprise est enregistrée.",
+    "SSN": "P. ex. 555-11-0000",
+    "ITIN": "P. ex. 900-70-0000",
+    "NATIONAL_ID": "Carte d'identité nationale",
+    "PASSPORT": "Entrez votre numéro de passeport",
+    "DRIVERS_LICENSE": "Entrez votre numéro de permis de conduire",
+    "OTHER_GOVERNMENT_ID": "Entrez votre numéro de pièce d'identité gouvernementale",
+    "SOCIAL_INSURANCE_NUMBER": "Numéro d'assurance sociale (NAS)"
   },
   "organizationTypes": {
-    "LIMITED_LIABILITY_COMPANY": "Limited Liability Company (LLC)",
-    "LIMITED_LIABILITY_PARTNERSHIP": "Limited Liability Partnership (LLP)",
-    "GENERAL_PARTNERSHIP": "General Partnership",
-    "LIMITED_PARTNERSHIP": "Limited Partnership",
-    "C_CORPORATION": "C Corporation",
-    "S_CORPORATION": "S Corporation",
-    "PARTNERSHIP": "Partnership",
-    "NON_PROFIT_CORPORATION": "Non-Profit Corporation",
-    "GOVERNMENT_ENTITY": "Government Entity",
-    "SOLE_PROPRIETORSHIP": "Sole Proprietorship",
-    "UNINCORPORATED_ASSOCIATION": "Unincorporated Association",
-    "PUBLICLY_TRADED_COMPANY": "Publicly Traded Company"
+    "LIMITED_LIABILITY_COMPANY": "Société à responsabilité limitée (SARL)",
+    "LIMITED_LIABILITY_PARTNERSHIP": "Société en commandite à responsabilité limitée (SCRL)",
+    "GENERAL_PARTNERSHIP": "Société en nom collectif",
+    "LIMITED_PARTNERSHIP": "Société en commandite",
+    "C_CORPORATION": "Corporation de type C",
+    "S_CORPORATION": "Corporation de type S",
+    "PARTNERSHIP": "Société de personnes",
+    "NON_PROFIT_CORPORATION": "Organisme sans but lucratif",
+    "GOVERNMENT_ENTITY": "Entité gouvernementale",
+    "SOLE_PROPRIETORSHIP": "Entreprise individuelle",
+    "UNINCORPORATED_ASSOCIATION": "Association non constituée en société",
+    "PUBLICLY_TRADED_COMPANY": "Société cotée en bourse"
   },
   "organizationTypeDescriptions": {
-    "LIMITED_LIABILITY_COMPANY": "A company owned by one or more members and managed by one or more managers.",
-    "LIMITED_LIABILITY_PARTNERSHIP": "A partnership where all owners, or limited partners, have limited liability.",
-    "GENERAL_PARTNERSHIP": "A partnership where all owners, or general partners, have unlimited liability.",
-    "LIMITED_PARTNERSHIP": "A partnership between one or more limited partners and a general partner.",
-    "C_CORPORATION": "A company owned by shareholders and managed by a board of directors and other officers.",
-    "S_CORPORATION": "An S Corporation is a corporation that meets the IRS requirements to be taxed under Subchapter S of the Internal Revenue Code.",
-    "PARTNERSHIP": "A Partnership is a business structure in which two or more individuals manage and operate a business in accordance with the terms and objectives set out in a Partnership Deed.",
-    "PUBLICLY_TRADED_COMPANY": "A Publicly Traded Company is a company that has issued securities through an initial public offering (IPO) and is traded on at least one stock exchange or in over-the-counter markets.",
-    "NON_PROFIT_CORPORATION": "A Non-Profit Corporation is a legal entity that is formed for the purpose of serving a public or mutual benefit other than the pursuit or accumulation of profits for owners or investors.",
-    "GOVERNMENT_ENTITY": "A Government Entity is a state, local, or federal organization that has a specific function or authority.",
-    "SOLE_PROPRIETORSHIP": "An unincorporated business where the owner and the business are legally considered the same entity.",
-    "UNINCORPORATED_ASSOCIATION": "An Unincorporated Association is a group of people who come together for a common purpose but do not register as a corporation or limited liability company."
+    "LIMITED_LIABILITY_COMPANY": "Une entreprise détenue par un ou plusieurs membres et gérée par un ou plusieurs gestionnaires.",
+    "LIMITED_LIABILITY_PARTNERSHIP": "Une société de personnes où tous les propriétaires, ou associés commanditaires, ont une responsabilité limitée.",
+    "GENERAL_PARTNERSHIP": "Une société de personnes où tous les propriétaires, ou associés généraux, ont une responsabilité illimitée.",
+    "LIMITED_PARTNERSHIP": "Une société de personnes entre un ou plusieurs associés commanditaires et un associé général.",
+    "C_CORPORATION": "Une entreprise détenue par des actionnaires et gérée par un conseil d'administration et d'autres dirigeants.",
+    "S_CORPORATION": "Une corporation de type S est une corporation qui répond aux exigences de l'IRS pour être imposée en vertu du sous-chapitre S de l'Internal Revenue Code.",
+    "PARTNERSHIP": "Une société de personnes est une structure d'entreprise dans laquelle deux personnes ou plus gèrent et exploitent une entreprise conformément aux termes et objectifs énoncés dans un contrat de société.",
+    "PUBLICLY_TRADED_COMPANY": "Une société cotée en bourse est une entreprise qui a émis des titres par le biais d'un premier appel public à l'épargne (PAPE) et qui est négociée sur au moins une bourse ou sur les marchés hors cote.",
+    "NON_PROFIT_CORPORATION": "Un organisme sans but lucratif est une entité juridique constituée dans le but de servir un bénéfice public ou mutuel autre que la recherche ou l'accumulation de profits pour les propriétaires ou les investisseurs.",
+    "GOVERNMENT_ENTITY": "Une entité gouvernementale est une organisation d'État, locale ou fédérale qui a une fonction ou une autorité spécifique.",
+    "SOLE_PROPRIETORSHIP": "Une entreprise non constituée en société où le propriétaire et l'entreprise sont juridiquement considérés comme la même entité.",
+    "UNINCORPORATED_ASSOCIATION": "Une association non constituée en société est un groupe de personnes qui se réunissent dans un but commun sans s'enregistrer en tant que corporation ou société à responsabilité limitée."
   },
   "generalOrganizationTypes": {
-    "SOLE_PROPRIETORSHIP": "Sole proprietorship",
-    "REGISTERED_BUSINESS": "Registered business",
-    "OTHER": "Other organization"
+    "SOLE_PROPRIETORSHIP": "Entreprise individuelle",
+    "REGISTERED_BUSINESS": "Entreprise enregistrée",
+    "OTHER": "Autre type d'organisation"
   },
   "generalOrganizationTypeDescriptions": {
-    "SOLE_PROPRIETORSHIP": "I'm the sole owner of my business",
-    "REGISTERED_BUSINESS": "I manage a registered business, like a $t(onboarding-overview:organizationTypes.LIMITED_LIABILITY_COMPANY)",
-    "OTHER": "I work in a different organizational, like a non-profit or state-owned entity"
+    "SOLE_PROPRIETORSHIP": "Je suis le seul propriétaire de mon entreprise",
+    "REGISTERED_BUSINESS": "Je gère une entreprise enregistrée, comme une $t(onboarding-overview:organizationTypes.LIMITED_LIABILITY_COMPANY)",
+    "OTHER": "Je travaille dans un autre type d'organisation, comme un organisme sans but lucratif ou une entité d'État"
   },
   "jobTitles": {
-    "CEO": "CEO",
-    "CFO": "CFO",
-    "COO": "COO",
-    "President": "President",
-    "Chairman": "Chairman",
-    "Senior Branch Manager": "Senior Branch Manager",
-    "Other": "Other"
+    "CEO": "PDG",
+    "CFO": "Directeur financier",
+    "COO": "Directeur des opérations",
+    "President": "Président",
+    "Chairman": "Président du conseil",
+    "Senior Branch Manager": "Directeur principal de succursale",
+    "Other": "Autre"
   },
   "natureOfOwnership": {
-    "Direct": "Direct",
-    "Indirect": "Indirect"
+    "Direct": "Directe",
+    "Indirect": "Indirecte"
   },
   "documentRequest": {
     "resetForm": "Réinitialiser le formulaire"

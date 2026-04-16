@@ -5,6 +5,7 @@ import {
   ApiError,
   ClientProduct,
   ClientResponse,
+  ClientStatus,
   ClientVerificationResponse,
   OrganizationType,
   PartyResponse,
@@ -134,7 +135,16 @@ export type OnboardingConfigUsedInContext = {
   availableOrganizationTypes?: Array<OrganizationType>;
   docUploadOnlyMode?: boolean;
   docUploadMaxFileSizeBytes?: number;
+  /** Controls visibility of the linked account section. Use alongside `linkAccountEnabledStatuses` to control which statuses allow linking. */
   showLinkAccountStep?: boolean;
+  /**
+   * Array of ClientStatus values for which the Linked Account step is enabled
+   * (i.e. the user can initiate account linking).
+   * When provided, takes precedence over the default status check.
+   * Visibility of the section is still controlled by `showLinkAccountStep`.
+   * Pass an empty array to disable linking for all statuses.
+   */
+  linkAccountEnabledStatuses?: ClientStatus[];
   /**
    * Pre-populate the link-account step and control whether the user edits fields or only reviews and confirms.
    * Ignored when an active linked account already exists from the recipients API.

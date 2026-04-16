@@ -499,23 +499,35 @@ export const createRecipientHandlers = (
 
       const url = new URL(request.url);
       const typeFilter = url.searchParams.get('type');
+      const statusFilter = url.searchParams.get('status');
 
       const allRecipients = db.recipient.getAll();
-      let activeRecipients = allRecipients.filter(
-        (r) => r.status !== 'INACTIVE' && r.status !== 'REJECTED'
-      );
+      let filteredRecipients: typeof allRecipients;
+
+      if (statusFilter) {
+        // When a specific status is requested, return only that status
+        filteredRecipients = allRecipients.filter(
+          (r) => r.status === statusFilter
+        );
+      } else {
+        // Default: exclude INACTIVE and REJECTED
+        filteredRecipients = allRecipients.filter(
+          (r) => r.status !== 'INACTIVE' && r.status !== 'REJECTED'
+        );
+      }
 
       // Filter by recipient type if specified
       if (typeFilter) {
-        activeRecipients = activeRecipients.filter(
+        filteredRecipients = filteredRecipients.filter(
           (r) => r.type === typeFilter
         );
       }
 
       debugLog('GET /recipients', {
-        total: activeRecipients.length,
+        total: filteredRecipients.length,
         typeFilter,
-        statuses: activeRecipients.map((r) => ({
+        statusFilter,
+        statuses: filteredRecipients.map((r) => ({
           id: r.id,
           status: r.status,
           type: r.type,
@@ -523,9 +535,9 @@ export const createRecipientHandlers = (
       });
 
       const response: ListRecipientsResponse = {
-        recipients: activeRecipients as Recipient[],
+        recipients: filteredRecipients as Recipient[],
         metadata: {
-          total_items: activeRecipients.length,
+          total_items: filteredRecipients.length,
         },
       };
 
@@ -1109,6 +1121,15 @@ export const commonArgTypes = {
   hideCreateButton: {
     control: { type: 'boolean' as const },
     description: 'Hide the "Link New Account" button',
+    table: {
+      category: 'Actions',
+      defaultValue: { summary: 'false' },
+    },
+  },
+  showRejectedAccounts: {
+    control: { type: 'boolean' as const },
+    description:
+      'Show a collapsible section listing recently rejected accounts (last 30 days)',
     table: {
       category: 'Actions',
       defaultValue: { summary: 'false' },

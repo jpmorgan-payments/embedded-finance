@@ -45,7 +45,10 @@
   },
   "individualSelector": {
     "accountHolder": "Account Holder",
-    "placeholder": "Choose an individual from your organization"
+    "placeholder": "Choose an individual from your organization",
+    "validation": {
+      "required": "Please select an account holder"
+    }
   },
   "routingNumbers": {
     "legend": "Routing Numbers",
