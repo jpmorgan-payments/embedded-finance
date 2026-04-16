@@ -163,10 +163,19 @@ JPMorgan returns a session object:
 
 ### 5. Iframe Integration
 
-The token and experience type are appended to the URL as query parameters:
+The token, experience type, and optional customization are appended to the URL as query parameters:
 
 ```javascript
 const iframeUrl = `${sessionData.url}?token=${sessionData.token}&hostedExperienceType=${experienceType}`;
+
+// Optional: append themeTokens, contentTokens, and componentProperties
+const themeTokens = encodeURIComponent(JSON.stringify({ colorScheme: 'light', variables: { ... } }));
+const componentProperties = encodeURIComponent(JSON.stringify({
+  disclosurePlatformName: 'SellSense Marketplace',
+  disclosurePlatformAgreementUrl: 'https://sellsense.example.com/terms-of-service',
+  disclosurePlatformAgreementLabel: 'SellSense Marketplace Terms of Service'
+}));
+const fullUrl = `${iframeUrl}&themeTokens=${themeTokens}&componentProperties=${componentProperties}`;
 ```
 
 ## 🎯 Implementation Methods Comparison
@@ -213,10 +222,15 @@ const themeConfig = {
 // Encode and append theme to iframe URL
 const encodedTheme = encodeURIComponent(JSON.stringify(themeConfig));
 const experienceType = 'HOSTED_ONBOARDING_UI'; // or any supported experience type
-const iframeUrlWithTheme = `${sessionData.url}?token=${sessionData.token}&themeTokens=${encodedTheme}&hostedExperienceType=${encodeURIComponent(experienceType)}`;
+const componentProperties = encodeURIComponent(JSON.stringify({
+  disclosurePlatformName: 'SellSense Marketplace',
+  disclosurePlatformAgreementUrl: 'https://sellsense.example.com/terms-of-service',
+  disclosurePlatformAgreementLabel: 'SellSense Marketplace Terms of Service'
+}));
+const iframeUrlWithTheme = `${sessionData.url}?token=${sessionData.token}&themeTokens=${encodedTheme}&componentProperties=${componentProperties}&hostedExperienceType=${encodeURIComponent(experienceType)}`;
 ```
 
-For a complete list of available design tokens, refer to the [Embedded Components README](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming).
+For a complete list of available design tokens, refer to the [Embedded Components README](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming). For the full list of supported `componentProperties`, see the [Integration Guide](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md#url-parameters-for-onboarding-customization).
 
 **Characteristics:**
 - ✅ **Full Control**: Complete control over iframe creation and lifecycle
@@ -255,7 +269,12 @@ const onboardingUI = new PartiallyHostedUIComponent({
       actionableBorderRadius: '9999px'                 // Button border radius (semantic token)
     }
   },
-  contentTokens: { locale: 'en-US' }
+  contentTokens: { locale: 'en-US' },
+  componentProperties: {
+    disclosurePlatformName: 'SellSense Marketplace',
+    disclosurePlatformAgreementUrl: 'https://sellsense.example.com/terms-of-service',
+    disclosurePlatformAgreementLabel: 'SellSense Marketplace Terms of Service'
+  }
 });
 
 // Subscribe to events
@@ -273,7 +292,7 @@ onboardingUI.mount('onboarding-container');
 - ✅ **Simplified API**: Clean, declarative configuration-based approach
 - ✅ **Built-in Security**: Automatic sandbox attributes and origin validation
 - ✅ **Event System**: Built-in pub/sub pattern for iframe communication
-- ✅ **URL Construction**: Automatic URL building with encoded parameters (theme, contentTokens)
+- ✅ **URL Construction**: Automatic URL building with encoded parameters (theme, contentTokens, componentProperties)
 - ✅ **Lifecycle Management**: Automatic mount/unmount handling
 - ✅ **Type Safety**: JSDoc comments for IDE autocomplete and type hints
 - ⚠️ **Dependency**: Requires the utility library file (~750 lines)
@@ -299,6 +318,7 @@ onboardingUI.mount('onboarding-container');
 | **Event Handling** | Manual postMessage listeners | Built-in pub/sub system |
 | **Theme Support** | Manual URL parameter encoding | Declarative configuration |
 | **Content Tokens** | Manual URL parameter encoding | Declarative configuration |
+| **Component Properties** | Manual URL parameter encoding | Declarative configuration |
 | **Lifecycle Management** | Manual DOM manipulation | Automatic mount/unmount |
 | **Error Handling** | Manual try/catch blocks | Built-in error events |
 | **Debugging** | Console.log statements | Structured event logging |

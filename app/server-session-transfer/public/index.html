@@ -578,10 +578,18 @@
                             actionableBorderRadius: '9999px'
                         }
                     };
+
+                    // Component properties - platform disclosure configuration
+                    const componentProperties = {
+                        disclosurePlatformName: 'SellSense Marketplace',
+                        disclosurePlatformAgreementUrl: 'https://sellsense.example.com/terms-of-service',
+                        disclosurePlatformAgreementLabel: 'SellSense Marketplace Terms of Service'
+                    };
                     
-                    // Encode theme and experience type as URL parameters
+                    // Encode theme, component properties, and experience type as URL parameters
                     const encodedTheme = encodeURIComponent(JSON.stringify(themeConfig));
-                    const iframeUrlWithTheme = `${sessionData.iframeUrl}&themeTokens=${encodedTheme}&hostedExperienceType=${encodeURIComponent(experienceType)}`;
+                    const encodedProps = encodeURIComponent(JSON.stringify(componentProperties));
+                    const iframeUrlWithTheme = `${sessionData.iframeUrl}&themeTokens=${encodedTheme}&componentProperties=${encodedProps}&hostedExperienceType=${encodeURIComponent(experienceType)}`;
                     
                     // Get iframe HTML
                     const embedResponse = await fetch(`/embed?url=${encodeURIComponent(iframeUrlWithTheme)}`);

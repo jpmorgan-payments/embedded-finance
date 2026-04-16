@@ -179,6 +179,11 @@ When the user initiates onboarding on your platform:
     used directly as the iframe's `src` attribute. The token is already embedded in this URL.
     For example: `https://url.jpmorgan.com/t/17465629080405AI41`
 
+    Optionally, you can append URL parameters to customize the onboarding experience
+    (theme, language, component behavior). See
+    [URL Parameters for Onboarding Customization](#url-parameters-for-onboarding-customization)
+    below.
+
 2. **Create and mount the iframe**
 
     - **React Implementation:** In React applications, manage iframe state,
@@ -279,6 +284,66 @@ When the user initiates onboarding on your platform:
       }
     </script>
     ```
+
+### URL Parameters for Onboarding Customization
+
+You can customize the appearance, language, and behavior of the hosted onboarding
+UI by appending optional URL parameters to the iframe `src` URL.
+
+| Parameter | Format | Description |
+|-----------|--------|-------------|
+| `themeTokens` | URL-encoded JSON | Design token overrides (colors, fonts, border radius, etc.) |
+| `contentTokens` | URL-encoded JSON | Language / locale selection (e.g., `enUS`, `frCA`) |
+| `componentProperties` | URL-encoded JSON | Serializable component props (see table below) |
+| `hostedExperienceType` | String | Experience type (`HOSTED_ONBOARDING_UI` or `HOSTED_DOC_UPLOAD_ONBOARDING_UI`) |
+
+**Onboarding Component Properties:**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `alertOnExit` | `boolean` | Show confirmation dialog when leaving |
+| `alertOnPreviousStep` | `boolean` | Show confirmation on back / cancel |
+| `height` | `string` | CSS height value |
+| `hideSidebar` | `boolean` | Hide sidebar navigation |
+| `showDownloadChecklist` | `boolean` | Show download button on Overview step |
+| `disclosurePlatformName` | `string` | Platform name shown in the disclosure step |
+| `disclosurePlatformAgreementUrl` | `string` | URL for the platform agreement link |
+| `disclosurePlatformAgreementLabel` | `string` | Label for the platform agreement link |
+
+**Example — Customizing with disclosure and theme props:**
+
+```javascript
+// 1. Theme customization
+const themeTokens = {
+  colorScheme: 'light',
+  variables: {
+    actionableAccentedBoldBackground: '#FF6600',
+    actionableBorderRadius: '9999px',
+    contentFontFamily: 'Inter, system-ui, sans-serif'
+  }
+};
+
+// 2. Component properties — platform disclosure configuration
+const componentProperties = {
+  disclosurePlatformName: 'SellSense Marketplace',
+  disclosurePlatformAgreementUrl: 'https://sellsense.example.com/terms-of-service',
+  disclosurePlatformAgreementLabel: 'SellSense Marketplace Terms of Service'
+};
+
+// 3. Build the iframe URL
+const baseIframeUrl = sessionData.url; // from session transfer response
+const params = new URLSearchParams({
+  hostedExperienceType: 'HOSTED_ONBOARDING_UI',
+  themeTokens: JSON.stringify(themeTokens),
+  componentProperties: JSON.stringify(componentProperties)
+});
+
+const iframeUrl = `${baseIframeUrl}&${params.toString()}`;
+```
+
+> **Note:** All URL parameter values are validated and sanitized by the hosted
+> UI. Unknown property names and invalid value types are silently ignored and
+> the component falls back to its defaults.
 
 ### 3.3. JavaScript Utility Library for Simplified Integration
 
