@@ -20,7 +20,7 @@ export function Footer({ themeForDisplay }: FooterProps) {
         >
           <p>
             Deposit holding and other banking services are provided to you by
-            J.P. Morgan Chase Bank, N.A., Member FDIC.
+            JPMorgan Chase Bank, N.A., Member FDIC.
           </p>
           <p>
             SellSense administers and services the Account on behalf of the
@@ -38,7 +38,7 @@ export function Footer({ themeForDisplay }: FooterProps) {
             />
           )}
           <p className={`text-xs ${themeStyles.getHeaderLabelStyles()}`}>
-            Powered by J.P.Morgan
+            Powered by J.P. Morgan
           </p>
         </div>
       </div>
