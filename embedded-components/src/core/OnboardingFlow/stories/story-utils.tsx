@@ -824,6 +824,7 @@ export const commonArgTypes = {
       'Array of ClientStatus values for which account linking is enabled (Start button unlocked). Section visibility is controlled by `showLinkAccountStep`.',
     table: {
       category: 'Display',
+      defaultValue: { summary: "['APPROVED']" },
     },
   },
   alertOnExit: {

@@ -1,19 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
-import { ArrowLeftIcon, ArrowRightIcon, CheckCircle2Icon } from 'lucide-react';
 
-import {
-  canVerifyMicrodeposits,
-  getRecipientDisplayName,
-} from '@/lib/recipientHelpers';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import type {
   Recipient,
   RoutingInformationTransactionType,
 } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
@@ -28,11 +21,7 @@ import {
   useLinkedAccountConfig,
   type BankAccountFormData,
 } from '@/core/RecipientWidgets/components/BankAccountForm';
-import { RecipientAccountDisplayCard } from '@/core/RecipientWidgets/components/RecipientAccountDisplayCard/RecipientAccountDisplayCard';
-import { StatusAlert } from '@/core/RecipientWidgets/components/StatusAlert/StatusAlert';
-import { MicrodepositsFormDialogTrigger } from '@/core/RecipientWidgets/forms/MicrodepositsForm/MicrodepositsForm';
 import { useRecipientForm } from '@/core/RecipientWidgets/hooks/useRecipientForm';
-import { LINKED_ACCOUNT_USER_JOURNEYS } from '@/core/RecipientWidgets/RecipientWidgets.constants';
 
 import { LinkAccountPrefillSummaryView } from './LinkAccountPrefillSummaryView';
 
@@ -72,7 +61,7 @@ export const LinkAccountScreen = () => {
     'common',
     'linked-accounts',
   ]);
-  const { goTo, setFlowUnsavedChanges } = useFlowContext();
+  const { goTo, setFlowUnsavedChanges, updateSessionData } = useFlowContext();
   const { clientData, linkAccountStepOptions } = useOnboardingContext();
 
   const { interceptorReady } = useInterceptorStatus();
@@ -105,8 +94,6 @@ export const LinkAccountScreen = () => {
     recipientsData?.recipients?.find(
       (r) => r.status !== 'INACTIVE' && r.status !== 'REJECTED'
     );
-
-  const [isSuccess, setIsSuccess] = useState(false);
 
   const linkAcknowledgementItems =
     linkAccountStepOptions?.reviewAcknowledgements;
@@ -156,7 +143,8 @@ export const LinkAccountScreen = () => {
     recipientType: 'LINKED_ACCOUNT',
     clientId,
     onSuccess: () => {
-      setIsSuccess(true);
+      updateSessionData({ linkAccountJustCreated: true });
+      goTo('overview', { resetHistory: true });
     },
   });
 
@@ -277,93 +265,14 @@ export const LinkAccountScreen = () => {
     );
   }
 
-  // Existing account state – show the linked account card
+  // Existing account — redirect to overview where the account card lives
   if (existingAccount) {
-    const displayName = getRecipientDisplayName(existingAccount);
-    const showVerifyMicrodeposit = canVerifyMicrodeposits(existingAccount);
-
-    return (
-      <StepLayout
-        title={t(
-          'screens.linkAccount.existingAccount.title',
-          'Your linked bank account'
-        )}
-        description={t(
-          'screens.linkAccount.existingAccount.description',
-          'This bank account is linked for payouts.'
-        )}
-      >
-        <div className="eb-mt-6 eb-space-y-4">
-          <RecipientAccountDisplayCard
-            recipient={existingAccount}
-            statusAlert={
-              existingAccount.status && existingAccount.status !== 'ACTIVE' ? (
-                <StatusAlert
-                  status={existingAccount.status}
-                  action={
-                    showVerifyMicrodeposit ? (
-                      <MicrodepositsFormDialogTrigger
-                        recipientId={existingAccount.id}
-                      >
-                        <Button
-                          variant="default"
-                          size="sm"
-                          data-user-event={
-                            LINKED_ACCOUNT_USER_JOURNEYS.VERIFY_STARTED
-                          }
-                          aria-label={`${tString('linked-accounts:actions.verifyAccount')} for ${displayName}`}
-                        >
-                          <span>
-                            {t('linked-accounts:actions.verifyAccount')}
-                          </span>
-                          <ArrowRightIcon
-                            className="eb-ml-2 eb-h-4 eb-w-4"
-                            aria-hidden="true"
-                          />
-                        </Button>
-                      </MicrodepositsFormDialogTrigger>
-                    ) : undefined
-                  }
-                />
-              ) : undefined
-            }
-            showAccountToggle
-            showPaymentMethods
-            allowDetailedPaymentMethods={false}
-          />
-          <Button variant="outline" size="sm" onClick={handleBack}>
-            <ArrowLeftIcon className="eb-size-4" />
-            {t('screens.linkAccount.returnToOverview', 'Return to overview')}
-          </Button>
-        </div>
-      </StepLayout>
-    );
-  }
-
-  // Success state – show confirmation and allow returning to overview
-  if (isSuccess) {
+    // Use setTimeout to avoid state updates during render
+    setTimeout(() => goTo('overview', { resetHistory: true }), 0);
     return (
       <StepLayout title={t('screens.linkAccount.title', 'Link a bank account')}>
         <div className="eb-mt-6 eb-space-y-4">
-          <Alert variant="success" density="sm">
-            <CheckCircle2Icon className="eb-size-4" />
-            <AlertTitle>
-              {t(
-                'screens.linkAccount.success.title',
-                'Account linked successfully'
-              )}
-            </AlertTitle>
-            <AlertDescription>
-              {t(
-                'screens.linkAccount.success.description',
-                'Your bank account has been linked for payouts.'
-              )}
-            </AlertDescription>
-          </Alert>
-          <Button variant="outline" size="sm" onClick={handleBack}>
-            <ArrowLeftIcon className="eb-size-4" />
-            {t('screens.linkAccount.returnToOverview', 'Return to overview')}
-          </Button>
+          <Skeleton className="eb-h-32 eb-w-full eb-rounded-lg" />
         </div>
       </StepLayout>
     );

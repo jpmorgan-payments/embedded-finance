@@ -739,7 +739,6 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
         </CardHeader>
 
         <CardContent className="eb-p-0 eb-transition-all eb-duration-300 eb-ease-in-out">
-
           {/* Loading state with skeleton */}
           {isLoading && (
             <>
@@ -752,8 +751,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                 // Card skeleton for card views
                 <div
                   className={cn('eb-grid eb-grid-cols-1 eb-gap-3', {
-                    'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4':
-                      scrollable || !isCompact,
+                    'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': scrollable || !isCompact,
                   })}
                 >
                   <RecipientCardSkeleton compact={isCompact} />
@@ -765,7 +763,6 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
           {/* Error state */}
           {isError && (
             <div className="eb-p-2.5 eb-py-6 @md:eb-p-3 @lg:eb-p-4">
-
               <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-2 eb-text-center">
                 <div className="eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
                   <AlertCircle className="eb-h-6 eb-w-6 eb-text-destructive" />
@@ -867,7 +864,6 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
           {/* Empty state */}
           {isSuccess && recipients.length === 0 && (
             <div className="eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
-
               <EmptyState
                 className="eb-animate-fade-in"
                 compact={isCompact}
