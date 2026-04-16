@@ -497,6 +497,7 @@ export const WithDisclosureConfig: Story = {
   name: 'With Disclosure Config',
   args: {
     ...commonArgs,
+    showDisclosureFooter: true,
     disclosureConfig: {
       platformName: 'SellSense',
       platformAgreementUrl: 'https://example.com/sellsense-program-agreement',
@@ -521,6 +522,7 @@ export const WithDisclosureConfigCustomLabel: Story = {
   name: 'With Disclosure Config (Custom Label)',
   args: {
     ...commonArgs,
+    showDisclosureFooter: true,
     disclosureConfig: {
       platformName: 'PayFicient',
       platformAgreementUrl: 'https://example.com/payficient-terms-of-service',
@@ -539,6 +541,7 @@ export const WithDisclosureConfigNoLinks: Story = {
   name: 'With Disclosure Config (No Links)',
   args: {
     ...commonArgs,
+    showDisclosureFooter: true,
     disclosureConfig: {
       platformName: 'Acme Marketplace',
     },

@@ -79,6 +79,7 @@ export const NewWithClientId: Story = {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
 
+    showDisclosureFooter: true,
     disclosureConfig: {
       platformName: 'SellSense',
       platformAgreementUrl: 'https://example.com/sellsense-program-agreement',

@@ -137,6 +137,7 @@ export const ReviewAttestReview: Story = {
       screenId: 'review-attest-section',
       stepperStepId: 'review',
     },
+    showDisclosureFooter: true,
     disclosureConfig: {
       platformName: 'Northwind Marketplace',
       platformAgreementUrl: 'https://example.com/northwind-partner-program',
@@ -160,6 +161,7 @@ export const ReviewAttestDocuments: Story = {
       screenId: 'review-attest-section',
       stepperStepId: 'documents',
     },
+    showDisclosureFooter: true,
     disclosureConfig: {
       platformName: 'Northwind Marketplace',
       platformAgreementUrl: 'https://example.com/northwind-partner-program',
@@ -206,6 +208,7 @@ const reviewAttestTermsHostAckBaseArgs = {
     screenId: 'review-attest-section' as const,
     stepperStepId: 'documents' as const,
   },
+  showDisclosureFooter: true,
   disclosureConfig: {
     platformName: 'Northwind Marketplace',
     platformAgreementUrl: 'https://example.com/northwind-partner-program',

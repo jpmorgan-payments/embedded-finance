@@ -827,6 +827,15 @@ export const commonArgTypes = {
       defaultValue: { summary: "['APPROVED']" },
     },
   },
+  showDisclosureFooter: {
+    control: { type: 'boolean' as const },
+    description:
+      'Show the regulatory disclosure footer. Requires `disclosureConfig.platformName` to be set.',
+    table: {
+      category: 'Display',
+      defaultValue: { summary: 'false' },
+    },
+  },
   alertOnExit: {
     control: { type: 'boolean' as const },
     description: 'Show confirmation dialog when user tries to leave the page',
