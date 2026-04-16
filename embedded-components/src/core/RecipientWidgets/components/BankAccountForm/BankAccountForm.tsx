@@ -56,6 +56,7 @@ import type {
   BankAccountFormProps,
 } from './BankAccountForm.types';
 import { mergeBankAccountDefaultValues } from './BankAccountForm.utils';
+import { LinkAccountAcknowledgementsGroup } from './linkAccountAcknowledgements';
 
 /**
  * PaymentMethodSelector - Compact checkbox selector for payment methods
@@ -647,11 +648,52 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   initialStep = 1,
   defaultValuesOverride,
   onDirtyChange,
+  reviewAcknowledgements,
+  acknowledgementsIntro,
+  reviewAcknowledgementsGroupAriaLabel,
 }) => {
   const { t, tString } = useTranslationWithTokens('bank-account-form');
   const formatRequiredMessage = useFormatRequiredMessage(
     config.paymentMethods.configs
   );
+  const effectiveReviewAckGroupAriaLabel =
+    reviewAcknowledgementsGroupAriaLabel ??
+    'Agreements required to link this account';
+
+  const [acknowledgementChecked, setAcknowledgementChecked] = useState<
+    Record<string, boolean>
+  >({});
+
+  const reviewAckIdsKey = useMemo(
+    () =>
+      reviewAcknowledgements?.length
+        ? reviewAcknowledgements.map((a) => a.id).join('\0')
+        : '',
+    [reviewAcknowledgements]
+  );
+
+  useEffect(() => {
+    if (!reviewAcknowledgements?.length) {
+      setAcknowledgementChecked({});
+      return;
+    }
+    setAcknowledgementChecked(
+      Object.fromEntries(reviewAcknowledgements.map((a) => [a.id, false]))
+    );
+  }, [reviewAckIdsKey]);
+
+  const reviewAcknowledgementsComplete =
+    !reviewAcknowledgements?.length ||
+    reviewAcknowledgements.every((a) => acknowledgementChecked[a.id] === true);
+
+  const acknowledgementDirty = useMemo(
+    () =>
+      !!reviewAcknowledgements?.some(
+        (a) => acknowledgementChecked[a.id] === true
+      ),
+    [reviewAcknowledgements, acknowledgementChecked]
+  );
+
   // Start on step 2 if skipStepOne is true OR initialStep is 2
   const [currentStep, setCurrentStep] = useState<1 | 2>(
     skipStepOne ? 2 : initialStep
@@ -691,18 +733,33 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
       }));
   }, [client]);
 
+  /** Custom `reviewAcknowledgements` replace the default certification row (avoid duplicate legal copy). */
+  const configWithReviewAcknowledgements = useMemo(() => {
+    if (!reviewAcknowledgements?.length) {
+      return config;
+    }
+    return {
+      ...config,
+      requiredFields: {
+        ...config.requiredFields,
+        certification: false,
+      },
+    };
+  }, [config, reviewAcknowledgements]);
+
   // Modify config if organization name is available from client data
   const effectiveConfig = useMemo(() => {
+    const base = configWithReviewAcknowledgements;
     // Only apply readonly logic when prefillFromClient is enabled and creating (no recipient yet)
     if (
-      !config.accountHolder.prefillFromClient ||
+      !base.accountHolder.prefillFromClient ||
       recipient?.partyDetails?.businessName ||
       recipient?.partyDetails?.firstName
     ) {
-      return config;
+      return base;
     }
 
-    const modifications: typeof config.readonlyFields = {};
+    const modifications: typeof base.readonlyFields = {};
 
     // If organization name exists, make business name readonly
     if (organizationName) {
@@ -711,17 +768,22 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
 
     // Only return modified config if there are modifications
     if (Object.keys(modifications).length === 0) {
-      return config;
+      return base;
     }
 
     return {
-      ...config,
+      ...base,
       readonlyFields: {
-        ...config.readonlyFields,
+        ...base.readonlyFields,
         ...modifications,
       },
     };
-  }, [config, organizationName, individualParties, recipient]);
+  }, [
+    configWithReviewAcknowledgements,
+    organizationName,
+    individualParties,
+    recipient,
+  ]);
 
   // Create dynamic schema based on effective config
   const createSchema = useBankAccountFormSchema();
@@ -904,9 +966,9 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   const { isDirty } = useFormState({ control: form.control });
 
   useEffect(() => {
-    onDirtyChange?.(isDirty);
+    onDirtyChange?.(isDirty || acknowledgementDirty);
     return () => onDirtyChange?.(false);
-  }, [isDirty, onDirtyChange]);
+  }, [isDirty, acknowledgementDirty, onDirtyChange]);
 
   const defaultValuesOverrideKey = JSON.stringify(
     defaultValuesOverride ?? null
@@ -1582,6 +1644,27 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                   />
                 )}
 
+                {currentStep === 2 &&
+                  reviewAcknowledgements &&
+                  reviewAcknowledgements.length > 0 && (
+                    <>
+                      <Separator />
+                      <LinkAccountAcknowledgementsGroup
+                        items={reviewAcknowledgements}
+                        checked={acknowledgementChecked}
+                        onCheckedChange={(id, value) =>
+                          setAcknowledgementChecked((prev) => ({
+                            ...prev,
+                            [id]: value,
+                          }))
+                        }
+                        disabled={isLoading}
+                        groupAriaLabel={effectiveReviewAckGroupAriaLabel}
+                        intro={acknowledgementsIntro}
+                      />
+                    </>
+                  )}
+
                 {/* Certification */}
                 {effectiveConfig.requiredFields.certification && (
                   <>
@@ -1656,7 +1739,10 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                 </Button>
                 <Button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={
+                    isLoading ||
+                    (currentStep === 2 && !reviewAcknowledgementsComplete)
+                  }
                   className="eb-w-full sm:eb-w-auto sm:eb-min-w-[120px]"
                 >
                   {isLoading && (
@@ -1710,7 +1796,10 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                 </Button>
                 <Button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={
+                    isLoading ||
+                    (currentStep === 2 && !reviewAcknowledgementsComplete)
+                  }
                   className="eb-w-full sm:eb-w-auto sm:eb-min-w-[120px]"
                 >
                   {isLoading && (

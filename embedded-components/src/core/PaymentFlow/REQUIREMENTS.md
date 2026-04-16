@@ -100,6 +100,8 @@ Two separate calls required:
 
 **Pagination**: The recipients endpoint is paginated. Large recipient lists require handling pagination or infinite scroll.
 
+> **Storybook Reference**: [PaymentFlow Inline — Storybook](https://storybook.embedded-finance-dev.com/?path=/story/core-paymentflow-inline--default) | [Showcase demo](https://embedded-finance-dev.com/sellsense-demo). Stories serve as living recipes for each scenario (account selection, recipient filtering, validation, submission).
+
 ### Creating a Transaction
 
 **Endpoint**: `POST /transactions`

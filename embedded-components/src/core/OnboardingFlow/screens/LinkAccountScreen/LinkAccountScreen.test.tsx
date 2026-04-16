@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
@@ -327,5 +327,66 @@ describe('LinkAccountScreen', () => {
 
     const accountInput = await screen.findByLabelText(/account number/i);
     expect(accountInput).toHaveValue('98765432109876543');
+  });
+
+  test('editable mode with reviewAcknowledgements shows agreements on step 2 and gates submit', async () => {
+    const user = userEvent.setup();
+
+    renderWithProviders(<LinkAccountScreen />, {
+      ...baseOnboardingContext,
+      linkAccountStepOptions: {
+        completionMode: 'editable',
+        initialValues: {
+          accountNumber: '98765432109876543',
+          routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+        },
+        reviewAcknowledgements: [
+          {
+            id: 'biz',
+            labelKey:
+              'screens.linkAccount.prefillSummary.acknowledgements.businessPurpose',
+          },
+          {
+            id: 'verify',
+            labelKey:
+              'screens.linkAccount.prefillSummary.acknowledgements.verifyAndAccuracy',
+          },
+        ],
+        showAcknowledgementsIntro: true,
+      },
+    });
+
+    expect(
+      await screen.findByRole('heading', { name: /Link a bank account/i })
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: /Continue to Account Details/i })
+    );
+
+    expect(
+      await screen.findByText(/By electronically linking this account/i)
+    ).toBeInTheDocument();
+
+    const submitBtn = screen.getByRole('button', { name: /^Link Account$/i });
+    await waitFor(() => {
+      expect(submitBtn).toBeDisabled();
+    });
+
+    await user.click(
+      screen.getByRole('checkbox', {
+        name: /primarily for business purposes/i,
+      })
+    );
+    expect(submitBtn).toBeDisabled();
+
+    await user.click(
+      screen.getByRole('checkbox', {
+        name: /authorize verification of this linked account/i,
+      })
+    );
+    await waitFor(() => {
+      expect(submitBtn).not.toBeDisabled();
+    });
   });
 });

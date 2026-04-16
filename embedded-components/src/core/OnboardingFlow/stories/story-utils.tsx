@@ -858,6 +858,9 @@ export const commonArgTypes = {
   onGetClientSettled: { table: { disable: true } },
   userEventsHandler: { table: { disable: true } },
   userEventsLifecycle: { table: { disable: true } },
+  flowEntry: { table: { disable: true } },
+  reviewAttestTermsAcknowledgements: { table: { disable: true } },
+  showReviewAttestTermsAcknowledgementsIntro: { table: { disable: true } },
 };
 
 /**

@@ -419,8 +419,12 @@ export const handlers = [
     });
   }),
 
-  http.get('/documents/:documentId', () => {
-    return HttpResponse.json(efDocumentClientDetail);
+  http.get('/documents/:documentId', ({ params }) => {
+    const { documentId } = params;
+    return HttpResponse.json({
+      ...efDocumentClientDetail,
+      id: String(documentId),
+    });
   }),
 
   http.get('/documents/:documentId/file', () => {

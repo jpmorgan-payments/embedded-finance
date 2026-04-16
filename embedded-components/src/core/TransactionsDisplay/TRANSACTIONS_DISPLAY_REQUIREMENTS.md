@@ -150,10 +150,28 @@
 - **Amount Display**: Formatted currency amounts with PAYIN/PAYOUT indicators
 - **Status Information**: Transaction status with visual indicators
 
+### Field Mapping
+
+| UI Field | API Field | Notes |
+|---|---|---|
+| **Date (scheduled)** | `paymentDate` | The intended/scheduled payment date |
+| **Date (actual)** | `effectiveDate` | The date the payment was actually processed or completed |
+| **Description** | `memo` | Remittance details passed with the payout at submission time |
+| **Amount** | `amount` | Categorized as debit or credit based on direction logic below |
+
+### Pay-In / Pay-Out Determination
+
+Transaction direction is derived from account ID and transaction fields:
+
+- **Pay In (Credit)**: Transaction of type `ACH`, `WIRE`, or `RTP` where `creditorAccountId` matches the DDA account — funds moving into the account.
+- **Pay Out (Debit)**: Transaction of type `ACH`, `WIRE`, or `RTP` where `debtorAccountId` matches the DDA account — funds moving out of the account. For ACH returns, `type = RETURN` and `creditorAccountId` is the account where funds are returning.
+- **Transfers**: `type = TRANSFER` — both `debtorAccountId` (sender) and `creditorAccountId` (receiver) are specified. Platforms may choose not to display these at the end-client level but should track them internally.
+- **Ledger Balance**: Use `ledgerBalance` only when the transaction is in a terminal state (`status = COMPLETED` or `REJECTED`).
+
 ### Filtering & Customization
 
 - **Account Filtering**: Display transactions for specified account ID
-- **PAYIN/PAYOUT Logic**: Determine transaction direction based on account ID
+- **PAYIN/PAYOUT Logic**: Determine transaction direction based on account ID (see Pay-In / Pay-Out Determination above)
 - **Responsive Layout**: Adapt to desktop and mobile views
 
 ### Data Management
@@ -269,3 +287,14 @@ interface TransactionsDisplayRef {
 - Clear visual hierarchy
 - Intuitive transaction information display
 - Consistent with other embedded components
+
+---
+
+## Storybook Reference
+
+- **Live stories**: [TransactionsDisplay — Storybook](https://storybook.embedded-finance-dev.com/?path=/story/core-transactionsdisplay--default)
+- **Error stories**: [TransactionsDisplay Errors](https://storybook.embedded-finance-dev.com/?path=/story/core-transactionsdisplay-errors--default)
+- **Transaction Details**: [TransactionDetailsSheet](https://storybook.embedded-finance-dev.com/?path=/story/core-transactionsdisplay-transactiondetailssheet--default)
+- **Showcase demo**: [Embedded Finance Showcase](https://embedded-finance-dev.com/sellsense-demo)
+
+Storybook stories serve as living documentation and implementation recipes. Each story demonstrates a specific scenario (table vs card layout, PAYIN/PAYOUT indicators, pagination, filtering, error states) that maps directly to the functional requirements above.

@@ -48,6 +48,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   height,
   onGetClientSettled,
   hideSidebar = false,
+  flowEntry,
   ...props
 }) => {
   const providerClientId = useClientId();
@@ -83,6 +84,20 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
   const organizationType =
     existingOrgParty?.organizationDetails?.organizationType;
+
+  const canUseFlowEntry =
+    !!flowEntry && !props.docUploadOnlyMode && !!organizationType;
+
+  const flowProviderInitialScreenId = props.docUploadOnlyMode
+    ? 'upload-documents-section'
+    : canUseFlowEntry
+      ? flowEntry.screenId
+      : organizationType
+        ? 'overview'
+        : 'gateway';
+
+  const flowProviderSeedStepperStepId =
+    canUseFlowEntry && flowEntry.stepperStepId ? flowEntry.stepperStepId : null;
 
   const { t } = useTranslationWithTokens(['onboarding-overview']);
 
@@ -138,14 +153,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
           />
         ) : (
           <FlowProvider
-            initialScreenId={
-              props.docUploadOnlyMode
-                ? 'upload-documents-section'
-                : organizationType
-                  ? 'overview'
-                  : 'gateway'
-            }
+            initialScreenId={flowProviderInitialScreenId}
             flowConfig={flowConfig}
+            seedInitialStepperStepId={flowProviderSeedStepperStepId}
           >
             <FlowRenderer />
           </FlowProvider>

@@ -33,5 +33,6 @@ export type {
   BankAccountFormContent,
   BankAccountFormData,
   BankAccountFormProps,
+  LinkAccountReviewAcknowledgement,
   PaymentMethodConfig,
 } from './BankAccountForm.types';

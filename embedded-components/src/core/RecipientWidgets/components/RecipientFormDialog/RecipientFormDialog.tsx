@@ -28,6 +28,7 @@ import {
   useRecipientConfig,
   useRecipientEditConfig,
   type BankAccountFormData,
+  type LinkAccountReviewAcknowledgement,
 } from '../BankAccountForm';
 import { FriendlyErrorAlert } from '../FriendlyErrorAlert/FriendlyErrorAlert';
 import { RecipientAccountDisplayCard } from '../RecipientAccountDisplayCard/RecipientAccountDisplayCard';
@@ -66,6 +67,14 @@ export interface RecipientFormDialogProps {
    * i18n namespace to use for translations
    */
   i18nNamespace: RecipientI18nNamespace;
+
+  /**
+   * Optional agreement checkboxes when creating a linked account (same behavior as onboarding
+   * `linkAccountStepOptions.reviewAcknowledgements` in `editable` mode).
+   */
+  linkAccountReviewAcknowledgements?: readonly LinkAccountReviewAcknowledgement[];
+  /** Show lead-in copy above the acknowledgement group (`onboarding-overview`). */
+  showLinkAccountAcknowledgementsIntro?: boolean;
 }
 
 /**
@@ -115,8 +124,12 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
   onRecipientSettled,
   recipientType,
   i18nNamespace,
+  linkAccountReviewAcknowledgements,
+  showLinkAccountAcknowledgementsIntro = false,
 }) => {
   const { t } = useTranslationWithTokens(i18nNamespace);
+  const { t: tOnboardingOverview, tString: tOnboardingOverviewString } =
+    useTranslationWithTokens('onboarding-overview');
   const clientId = useClientId();
   const { interceptorReady } = useInterceptorStatus();
 
@@ -241,6 +254,34 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
                   i18nNamespace={i18nNamespace}
                 />
               ) : undefined
+            }
+            reviewAcknowledgements={
+              mode === 'create' &&
+              recipientType === 'LINKED_ACCOUNT' &&
+              linkAccountReviewAcknowledgements
+                ? linkAccountReviewAcknowledgements
+                : undefined
+            }
+            acknowledgementsIntro={
+              mode === 'create' &&
+              recipientType === 'LINKED_ACCOUNT' &&
+              linkAccountReviewAcknowledgements?.length &&
+              showLinkAccountAcknowledgementsIntro
+                ? tOnboardingOverview(
+                    'screens.linkAccount.prefillSummary.acknowledgementsIntro',
+                    'By electronically linking this account, you agree that:'
+                  )
+                : undefined
+            }
+            reviewAcknowledgementsGroupAriaLabel={
+              mode === 'create' &&
+              recipientType === 'LINKED_ACCOUNT' &&
+              linkAccountReviewAcknowledgements?.length
+                ? tOnboardingOverviewString(
+                    'screens.linkAccount.review.acknowledgementsGroupLabel',
+                    'Agreements required to link this account'
+                  )
+                : undefined
             }
           />
         )}

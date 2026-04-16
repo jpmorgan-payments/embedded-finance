@@ -64,6 +64,7 @@ const LINK_ACCOUNT_PREFILL_MERGE_BASE: BankAccountFormData = {
  *
  * - **`editable`** — `BankAccountForm` (two-step LINKED_ACCOUNT wizard).
  * - **`prefillSummary`** — `LinkAccountPrefillSummaryView` (disabled fields + optional acknowledgements).
+ * - **`reviewAcknowledgements`** — optional in any mode; `prefillSummary` uses the summary view, `editable` uses `BankAccountForm` step 2.
  */
 export const LinkAccountScreen = () => {
   const { t, tString } = useTranslationWithTokens([
@@ -108,9 +109,7 @@ export const LinkAccountScreen = () => {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const linkAcknowledgementItems =
-    linkAccountStepOptions?.completionMode === 'prefillSummary'
-      ? linkAccountStepOptions.reviewAcknowledgements
-      : undefined;
+    linkAccountStepOptions?.reviewAcknowledgements;
 
   const linkAckIdsKey = useMemo(
     () =>
@@ -125,14 +124,17 @@ export const LinkAccountScreen = () => {
   >({});
 
   useEffect(() => {
-    if (!linkAcknowledgementItems?.length) {
+    if (
+      linkAccountStepOptions?.completionMode !== 'prefillSummary' ||
+      !linkAcknowledgementItems?.length
+    ) {
       setAcknowledgementChecked({});
       return;
     }
     setAcknowledgementChecked(
       Object.fromEntries(linkAcknowledgementItems.map((a) => [a.id, false]))
     );
-  }, [linkAckIdsKey]);
+  }, [linkAccountStepOptions?.completionMode, linkAckIdsKey]);
 
   const acknowledgementsComplete =
     !linkAcknowledgementItems?.length ||
@@ -443,6 +445,20 @@ export const LinkAccountScreen = () => {
           embedded
           alert={errorAlert}
           onDirtyChange={setFlowUnsavedChanges}
+          reviewAcknowledgements={linkAcknowledgementItems}
+          acknowledgementsIntro={
+            linkAcknowledgementItems?.length &&
+            linkAccountStepOptions?.showAcknowledgementsIntro
+              ? t(
+                  'screens.linkAccount.prefillSummary.acknowledgementsIntro',
+                  'By electronically linking this account, you agree that:'
+                )
+              : undefined
+          }
+          reviewAcknowledgementsGroupAriaLabel={tString(
+            'screens.linkAccount.review.acknowledgementsGroupLabel',
+            'Agreements required to link this account'
+          )}
         />
       </div>
     </StepLayout>

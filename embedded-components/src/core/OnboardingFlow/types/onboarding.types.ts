@@ -11,7 +11,38 @@ import {
   PartyResponse,
   SchemasApiError,
 } from '@/api/generated/smbdo.schemas';
-import type { BankAccountFormData } from '@/core/RecipientWidgets/components/BankAccountForm/BankAccountForm.types';
+import type {
+  BankAccountFormData,
+  LinkAccountReviewAcknowledgement,
+} from '@/core/RecipientWidgets/components/BankAccountForm/BankAccountForm.types';
+
+import type { ScreenId } from './flow.types';
+
+export type { LinkAccountReviewAcknowledgement };
+
+/**
+ * Host-defined checkbox rows for **Review & attest → Terms** when replacing the
+ * default attestation UI. Same structural pattern as linked-account acknowledgements
+ * (`id`, `labelKey`, `linkHrefs`) but typed separately to avoid coupling packages.
+ */
+export type ReviewAttestTermsAcknowledgement = {
+  id: string;
+  /** `onboarding-overview` i18n key; optional `<tagName>` links via {@link linkHrefs}. */
+  labelKey: string;
+  /** Maps Trans component names to absolute URLs (same pattern as link-account rows). */
+  linkHrefs?: Record<string, string>;
+};
+
+/**
+ * Opens the flow at a specific screen after client data has loaded.
+ * Intended for Storybook and tests; ignored when {@link OnboardingConfigUsedInContext.docUploadOnlyMode}
+ * is true (entry remains the document-upload section).
+ */
+export type OnboardingFlowEntry = {
+  screenId: ScreenId;
+  /** When `screenId` is a stepper section, sets the visible step (e.g. `documents` on review-attest). */
+  stepperStepId?: string;
+};
 
 export type Jurisdiction = 'US' | 'CA';
 
@@ -20,6 +51,7 @@ export type Jurisdiction = 'US' | 'CA';
  * With `completionMode: 'editable'`, partial data is allowed and the user completes the two-step form.
  * With `completionMode: 'prefillSummary'`, supply a full {@link BankAccountFormData}-compatible payload;
  * the UI shows a read-only summary plus optional `reviewAcknowledgements`.
+ * With `completionMode: 'editable'`, the same optional `reviewAcknowledgements` render on step 2 of the bank form.
  */
 export type LinkAccountInitialValues = Partial<BankAccountFormData>;
 
@@ -29,29 +61,13 @@ export type LinkAccountInitialValues = Partial<BankAccountFormData>;
  */
 export type LinkAccountStepCompletionMode = 'editable' | 'prefillSummary';
 
-/**
- * Checkbox rows above the link-account confirm CTA (`prefillSummary` layout).
- *
- * - **Copy & rich markup** (including `<termsLink>…</termsLink>`-style tags) live in
- *   `onboarding-overview` JSON so content tokens / locales stay the source of truth.
- * - **URLs** for those tags are supplied here (`linkHrefs`) so hosts can point to
- *   their own legal pages without hard-coding links in translations.
- */
-export type LinkAccountReviewAcknowledgement = {
-  id: string;
-  /** `onboarding-overview` key, e.g. `screens.linkAccount.review.acknowledgements.termsAndPolicies` */
-  labelKey: string;
-  /** Maps Trans component names to absolute URLs */
-  linkHrefs?: Record<string, string>;
-};
-
 export type LinkAccountStepOptions = {
   initialValues: LinkAccountInitialValues;
   completionMode: LinkAccountStepCompletionMode;
   /**
-   * Zero or more agreements before confirm (`prefillSummary` only).
+   * Zero or more agreements before linking (any `completionMode`).
    * Omitted or `[]` = no supplemental checkboxes. When non-empty, every item must be
-   * checked before the confirm action is enabled.
+   * checked before submit/confirm is enabled.
    */
   reviewAcknowledgements?: readonly LinkAccountReviewAcknowledgement[];
   /**
@@ -61,7 +77,7 @@ export type LinkAccountStepOptions = {
    */
   summaryDisplayedPaymentTypes?: readonly RoutingInformationTransactionType[];
   /**
-   * When `prefillSummary` with `reviewAcknowledgements`, show the lead-in line
+   * When `reviewAcknowledgements` is non-empty, show the lead-in line
    * (`screens.linkAccount.prefillSummary.acknowledgementsIntro`) above the checkbox group. Default false.
    */
   showAcknowledgementsIntro?: boolean;
@@ -143,7 +159,24 @@ export type OnboardingConfigUsedInContext = {
    * checkboxes on the review screen.  See {@link OnboardingDisclosureConfig}.
    */
   disclosureConfig?: OnboardingDisclosureConfig;
+  /**
+   * **Review & attest → Terms** (`TermsAndConditionsForm`): optional full replacement
+   * of the built-in attestation checkboxes with a host-defined list
+   * ({@link ReviewAttestTermsAcknowledgement} — same pattern as link-account ack rows).
+   *
+   * - Omitted or `[]` — default UI: agree-to-terms checkbox, plus authorize-sharing when
+   *   {@link disclosureConfig} has `platformName` (unchanged legacy behavior).
+   * - Non-empty — only these rows; every item must be checked to submit.
+   */
+  reviewAttestTermsAcknowledgements?: readonly ReviewAttestTermsAcknowledgement[];
+  /**
+   * When {@link reviewAttestTermsAcknowledgements} is non-empty, show
+   * `reviewAndAttest.termsAcknowledgements.intro` above the checkbox group. Default false.
+   */
+  showReviewAttestTermsAcknowledgementsIntro?: boolean;
 };
 
 export type OnboardingFlowProps = OnboardingConfigDefault &
-  OnboardingConfigUsedInContext;
+  OnboardingConfigUsedInContext & {
+    flowEntry?: OnboardingFlowEntry;
+  };

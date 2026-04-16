@@ -1255,6 +1255,9 @@
     "missingDetails": "Detalles faltantes",
     "dataAccuracyAttestation": "Atestación de exactitud de datos",
     "dataAccuracyCheckbox": "Los datos que proporciono son verdaderos, precisos y completos según mi leal saber y entender.",
+    "termsAcknowledgements": {
+      "intro": "Al enviar electrónicamente esta solicitud, usted acepta que:"
+    },
     "attestation": {
       "heading": "Al enviar electrónicamente esta solicitud, usted acepta que:",
       "accurateInfo": "Toda la información que ha proporcionado es completa y precisa, y está abriendo esta cuenta únicamente con fines comerciales y no para fines de consumo.",
