@@ -21,7 +21,10 @@ import type { UserTrackingProps } from '@/lib/types/userTracking.types';
 import { cn } from '@/lib/utils';
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import type { ErrorType } from '@/api/axios-instance';
-import { useGetAllRecipients } from '@/api/generated/ep-recipients';
+import {
+  getAllRecipients,
+  useGetAllRecipients,
+} from '@/api/generated/ep-recipients';
 import {
   MicrodepositVerificationResponse,
   Recipient,
@@ -366,10 +369,15 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   // Fetch rejected accounts via a separate query.
   // The API supports `status` as a query parameter but the generated
   // `GetAllRecipientsParams` type does not include it yet.
+  // The API limits results to 25 per page, so we fetch the first page
+  // and then fetch remaining pages if total_items exceeds 25.
+  const REJECTED_PAGE_LIMIT = 25;
   const { data: rejectedData } = useGetAllRecipients(
     {
       type: recipientType,
       status: 'REJECTED',
+      limit: REJECTED_PAGE_LIMIT,
+      page: 0,
     } as GetAllRecipientsParams & { status: string },
     {
       query: {
@@ -378,12 +386,61 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
     }
   );
 
+  // Track additional pages of rejected accounts beyond the first 25
+  const [additionalRejected, setAdditionalRejected] = useState<Recipient[]>([]);
+
+  useEffect(() => {
+    if (
+      !rejectedData?.total_items ||
+      !showRejectedAccounts ||
+      rejectedData.total_items <= REJECTED_PAGE_LIMIT
+    ) {
+      setAdditionalRejected([]);
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      return () => {};
+    }
+
+    const totalItems = rejectedData.total_items;
+
+    const totalPages = Math.ceil(totalItems / REJECTED_PAGE_LIMIT);
+    let cancelled = false;
+
+    (async () => {
+      const extraRecipients: Recipient[] = [];
+      for (let page = 1; page < totalPages; page += 1) {
+        if (cancelled) return;
+        try {
+          const response = await getAllRecipients({
+            type: recipientType,
+            status: 'REJECTED',
+            limit: REJECTED_PAGE_LIMIT,
+            page,
+          } as GetAllRecipientsParams & { status: string });
+          if (response?.recipients) {
+            extraRecipients.push(...response.recipients);
+          }
+        } catch {
+          // Silently ignore — partial data is acceptable for this section
+          break;
+        }
+      }
+      if (!cancelled) {
+        setAdditionalRejected(extraRecipients);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [rejectedData?.total_items, showRejectedAccounts, recipientType]);
+
   // Filter to last 30 days and sort most-recent-first
   const recentRejectedAccounts = useMemo(() => {
     if (!showRejectedAccounts || !rejectedData?.recipients) return [];
+    const allRejected = [...rejectedData.recipients, ...additionalRejected];
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    return rejectedData.recipients
+    return allRejected
       .filter((r) => {
         const date = r.updatedAt ? new Date(r.updatedAt) : null;
         return date && date >= thirtyDaysAgo;
@@ -393,7 +450,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
         const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
         return dateB - dateA;
       });
-  }, [rejectedData]);
+  }, [rejectedData, additionalRejected]);
 
   // Setup virtualizer for scrollable mode
   const rowVirtualizer = useVirtualizer({
