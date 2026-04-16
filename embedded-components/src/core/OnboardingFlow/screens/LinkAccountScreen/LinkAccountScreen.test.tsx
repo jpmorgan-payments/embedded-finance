@@ -20,6 +20,7 @@ import { useRecipientForm } from '@/core/RecipientWidgets/hooks/useRecipientForm
 import { LinkAccountScreen } from './LinkAccountScreen';
 
 const mockGoBack = vi.fn();
+const mockGoTo = vi.fn();
 const mockSubmit = vi.fn();
 
 vi.mock('@/core/OnboardingFlow/contexts', async (importOriginal) => {
@@ -29,7 +30,10 @@ vi.mock('@/core/OnboardingFlow/contexts', async (importOriginal) => {
     ...actual,
     useFlowContext: () => ({
       goBack: mockGoBack,
+      goTo: mockGoTo,
       setFlowUnsavedChanges: vi.fn(),
+      sessionData: {},
+      updateSessionData: vi.fn(),
     }),
   };
 });
