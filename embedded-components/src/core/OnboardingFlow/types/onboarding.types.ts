@@ -160,6 +160,15 @@ export type OnboardingConfigUsedInContext = {
    */
   disclosureConfig?: OnboardingDisclosureConfig;
   /**
+   * Show the regulatory disclosure footer at the bottom of the onboarding flow.
+   * The footer content currently requires `disclosureConfig` to be set, but this
+   * prop controls its visibility independently so that `disclosureConfig` can
+   * drive attestation checkboxes without rendering the footer.
+   *
+   * @default false
+   */
+  showDisclosureFooter?: boolean;
+  /**
    * **Review & attest → Terms** (`TermsAndConditionsForm`): optional full replacement
    * of the built-in attestation checkboxes with a host-defined list
    * ({@link ReviewAttestTermsAcknowledgement} — same pattern as link-account ack rows).

@@ -161,6 +161,8 @@ export type FlowSessionData = {
   hideGatewayInfoAlert?: boolean;
   hideOverviewInfoAlert?: boolean;
   completedStaticStepIds?: string[];
+  /** Transient flag set after successfully creating a linked account; cleared when overview dismisses the banner. */
+  linkAccountJustCreated?: boolean;
 };
 
 export type StepperStepProps = {

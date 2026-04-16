@@ -73,6 +73,7 @@ export const ReviewAttestTermsWithTokenOverrides: Story = {
       screenId: 'review-attest-section',
       stepperStepId: 'documents',
     },
+    showDisclosureFooter: true,
     disclosureConfig: {
       platformName: 'Northwind Marketplace',
       platformAgreementUrl: 'https://example.com/northwind-partner-program',

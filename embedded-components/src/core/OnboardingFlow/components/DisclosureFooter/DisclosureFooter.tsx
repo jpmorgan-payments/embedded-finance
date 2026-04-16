@@ -15,11 +15,11 @@ import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
  * JPM Legal.
  */
 export function DisclosureFooter() {
-  const { disclosureConfig } = useOnboardingContext();
+  const { disclosureConfig, showDisclosureFooter } = useOnboardingContext();
 
   const { t } = useTranslationWithTokens('onboarding-old');
 
-  if (!disclosureConfig?.platformName) {
+  if (!showDisclosureFooter || !disclosureConfig?.platformName) {
     return null;
   }
 

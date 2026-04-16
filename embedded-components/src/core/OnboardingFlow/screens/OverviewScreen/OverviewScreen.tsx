@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircleIcon,
   AlertTriangleIcon,
@@ -8,11 +9,13 @@ import {
   CheckIcon,
   ChevronRightIcon,
   CircleDashedIcon,
+  ClipboardListIcon,
   Clock9Icon,
   DownloadIcon,
   InfoIcon,
   LockIcon,
   PencilIcon,
+  TrashIcon,
   XIcon,
 } from 'lucide-react';
 
@@ -42,13 +45,17 @@ import {
 } from '@/core/OnboardingFlow/contexts';
 import { getPartyByAssociatedPartyFilters } from '@/core/OnboardingFlow/utils/dataUtils';
 import { RecipientAccountDisplayCard } from '@/core/RecipientWidgets/components/RecipientAccountDisplayCard/RecipientAccountDisplayCard';
+import { RecipientDetailsDialog } from '@/core/RecipientWidgets/components/RecipientDetailsDialog/RecipientDetailsDialog';
+import { RemoveAccountDialogTrigger } from '@/core/RecipientWidgets/components/RemoveAccountDialog/RemoveAccountDialog';
 import { StatusAlert } from '@/core/RecipientWidgets/components/StatusAlert/StatusAlert';
 import { MicrodepositsFormDialogTrigger } from '@/core/RecipientWidgets/forms/MicrodepositsForm/MicrodepositsForm';
 import { LINKED_ACCOUNT_USER_JOURNEYS } from '@/core/RecipientWidgets/RecipientWidgets.constants';
+import { invalidateRecipientQueries } from '@/core/RecipientWidgets/utils/invalidateRecipientQueries';
 
 import { getFlowProgress } from '../../utils/flowUtils';
 
 export const OverviewScreen = () => {
+  const queryClient = useQueryClient();
   const {
     organizationType,
     clientData,
@@ -518,57 +525,131 @@ export const OverviewScreen = () => {
                     <Skeleton className="eb-h-28 eb-w-full eb-rounded-md" />
                   </div>
                 ) : existingLinkedAccount ? (
-                  <RecipientAccountDisplayCard
-                    recipient={existingLinkedAccount}
-                    statusAlert={
-                      existingLinkedAccount.status &&
-                      existingLinkedAccount.status !== 'ACTIVE' ? (
-                        <StatusAlert
-                          status={existingLinkedAccount.status}
-                          action={
-                            canVerifyMicrodeposits(existingLinkedAccount) ? (
-                              <MicrodepositsFormDialogTrigger
-                                recipientId={existingLinkedAccount.id}
-                              >
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  data-user-event={
-                                    LINKED_ACCOUNT_USER_JOURNEYS.VERIFY_STARTED
-                                  }
-                                  aria-label={`${tString('linked-accounts:actions.verifyAccount')} for ${getRecipientDisplayName(existingLinkedAccount)}`}
+                  <>
+                    {sessionData.linkAccountJustCreated && (
+                      <Alert variant="success" density="sm" className="eb-mb-2">
+                        <CheckCircle2Icon className="eb-size-4" />
+                        <AlertDescription>
+                          {t(
+                            'screens.overview.bankAccountSection.successMessage',
+                            'Your bank account has been linked successfully.'
+                          )}
+                        </AlertDescription>
+                        <button
+                          type="button"
+                          className="eb-absolute eb-right-4 eb-top-3 eb-rounded-sm eb-opacity-70 hover:eb-opacity-100 focus:eb-outline-none focus:eb-ring-2 focus:eb-ring-ring focus:eb-ring-offset-2"
+                          onClick={() => {
+                            updateSessionData({
+                              linkAccountJustCreated: false,
+                            });
+                          }}
+                        >
+                          <XIcon className="eb-size-4" />
+                          <span className="eb-sr-only">Close</span>
+                        </button>
+                      </Alert>
+                    )}
+                    <RecipientAccountDisplayCard
+                      recipient={existingLinkedAccount}
+                      statusAlert={
+                        existingLinkedAccount.status &&
+                        existingLinkedAccount.status !== 'ACTIVE' ? (
+                          <StatusAlert
+                            status={existingLinkedAccount.status}
+                            action={
+                              canVerifyMicrodeposits(existingLinkedAccount) ? (
+                                <MicrodepositsFormDialogTrigger
+                                  recipientId={existingLinkedAccount.id}
                                 >
-                                  <span>
-                                    {t('linked-accounts:actions.verifyAccount')}
-                                  </span>
-                                  <ArrowRightIcon
-                                    className="eb-ml-2 eb-h-4 eb-w-4"
-                                    aria-hidden="true"
-                                  />
-                                </Button>
-                              </MicrodepositsFormDialogTrigger>
-                            ) : undefined
-                          }
-                        />
-                      ) : undefined
-                    }
-                    showAccountToggle
-                    showPaymentMethods
-                    allowDetailedPaymentMethods={false}
-                  />
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    data-user-event={
+                                      LINKED_ACCOUNT_USER_JOURNEYS.VERIFY_STARTED
+                                    }
+                                    aria-label={`${tString('linked-accounts:actions.verifyAccount')} for ${getRecipientDisplayName(existingLinkedAccount)}`}
+                                  >
+                                    <span>
+                                      {t(
+                                        'linked-accounts:actions.verifyAccount'
+                                      )}
+                                    </span>
+                                    <ArrowRightIcon
+                                      className="eb-ml-2 eb-h-4 eb-w-4"
+                                      aria-hidden="true"
+                                    />
+                                  </Button>
+                                </MicrodepositsFormDialogTrigger>
+                              ) : undefined
+                            }
+                          />
+                        ) : undefined
+                      }
+                      showAccountToggle
+                      showPaymentMethods
+                      allowDetailedPaymentMethods={false}
+                      actionsContent={
+                        <div
+                          className="eb-flex eb-items-center eb-gap-2"
+                          role="group"
+                          aria-label="Account actions"
+                        >
+                          <RecipientDetailsDialog
+                            recipient={existingLinkedAccount}
+                          >
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="eb-gap-1.5"
+                              aria-label={`${tString('linked-accounts:actions.viewDetails')} for ${getRecipientDisplayName(existingLinkedAccount)}`}
+                            >
+                              <ClipboardListIcon
+                                className="eb-h-4 eb-w-4"
+                                aria-hidden="true"
+                              />
+                              <span>
+                                {t('linked-accounts:actions.viewDetails')}
+                              </span>
+                            </Button>
+                          </RecipientDetailsDialog>
+                          <RemoveAccountDialogTrigger
+                            recipient={existingLinkedAccount}
+                            i18nNamespace="linked-accounts"
+                            onRemoveSuccess={() => {
+                              invalidateRecipientQueries(
+                                queryClient,
+                                'LINKED_ACCOUNT'
+                              );
+                            }}
+                          >
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="eb-gap-1.5 eb-text-destructive hover:eb-text-destructive"
+                              data-user-event={
+                                LINKED_ACCOUNT_USER_JOURNEYS.REMOVE_STARTED
+                              }
+                              aria-label={`${tString('linked-accounts:actions.remove')} ${getRecipientDisplayName(existingLinkedAccount)}`}
+                            >
+                              <TrashIcon
+                                className="eb-h-4 eb-w-4"
+                                aria-hidden="true"
+                              />
+                              <span>{t('linked-accounts:actions.remove')}</span>
+                            </Button>
+                          </RemoveAccountDialogTrigger>
+                        </div>
+                      }
+                    />
+                  </>
                 ) : (
                   <div>
-                    <p
-                      className={cn(
-                        'eb-mb-3 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium',
-                        {
-                          'eb-text-muted-foreground': !linkAccountEnabled,
-                        }
-                      )}
-                    >
-                      <LockIcon className="eb-size-4" />
-                      {t('screens.overview.bankAccountSection.lockedMessage')}
-                    </p>
+                    {!linkAccountEnabled && (
+                      <p className="eb-mb-3 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium eb-text-muted-foreground">
+                        <LockIcon className="eb-size-4" />
+                        {t('screens.overview.bankAccountSection.lockedMessage')}
+                      </p>
+                    )}
                     <Card
                       className={cn(
                         'eb-rounded-md eb-border eb-bg-card eb-p-3',

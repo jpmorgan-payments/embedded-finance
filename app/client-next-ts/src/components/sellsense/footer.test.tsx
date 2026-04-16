@@ -10,7 +10,7 @@ describe('Footer', () => {
       screen.getByText(/Deposit holding and other banking services/i)
     ).toBeInTheDocument();
     expect(screen.getByText(/SellSense is not a bank/i)).toBeInTheDocument();
-    expect(screen.getByText(/Powered by J\.P\.Morgan/i)).toBeInTheDocument();
+    expect(screen.getByText(/Powered by J\.P\.\s?Morgan/i)).toBeInTheDocument();
   });
 
   it('shows theme logo when path is defined', () => {

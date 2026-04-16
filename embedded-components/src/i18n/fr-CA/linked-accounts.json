@@ -19,7 +19,9 @@
   "rejectedAccounts": {
     "sectionTitle": "Comptes récemment rejetés",
     "sectionDescription": "Le(s) compte(s) suivant(s) ont été rejetés au cours des 30 derniers jours.",
-    "collapsedSummary": "Plus récent : {{name}} — {{date}}"
+    "collapsedSummary": "Plus récent : {{name}} — {{date}}",
+    "rejectionMessage": "Un problème est survenu lors de la liaison de ce compte. Veuillez vérifier les détails du compte ou contacter le support.",
+    "viewDetails": "Voir les détails du compte"
   },
   "errors": {
     "loading": {

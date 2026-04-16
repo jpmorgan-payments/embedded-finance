@@ -14,7 +14,9 @@
   "rejectedAccounts": {
     "sectionTitle": "Recently Rejected Accounts",
     "sectionDescription": "The following account(s) were rejected in the last 30 days.",
-    "collapsedSummary": "Most recent: {{name}} — {{date}}"
+    "collapsedSummary": "Most recent: {{name}} — {{date}}",
+    "rejectionMessage": "There was an issue linking this account. Please check the account details or contact support.",
+    "viewDetails": "View account details"
   },
   "errors": {
     "loading": {
