@@ -2,25 +2,24 @@ import type { ReactElement, ReactNode } from 'react';
 import { TransWithTokens } from '@/i18n';
 
 import { Checkbox } from '@/components/ui/checkbox';
+import type { ReviewAttestTermsAcknowledgement } from '@/core/OnboardingFlow/types/onboarding.types';
 
-import type { LinkAccountReviewAcknowledgement } from '../../types/onboarding.types';
+/**
+ * Fallback English when a host `labelKey` is not in the locale bundle.
+ * Prefer adding strings to `onboarding-overview` JSON.
+ */
+export const TERMS_ATTESTATION_ACK_LABEL_DEFAULTS: Partial<
+  Record<string, string>
+> = {
+  'reviewAndAttest.attestation.authorizeSharing':
+    'You authorize {{platformName}} and JPMorgan Chase Bank, N.A. ("JPMC") to share information to facilitate the opening of your deposit account(s), and appoint {{platformName}} as your agent to act on your behalf regarding your deposit account.',
+  'reviewAndAttest.termsAndConditions.agreeToTerms':
+    'You have read and agree to the J.P. Morgan Account Terms.',
+  'reviewAndAttest.termsAndConditions.agreeToTermsWithPlatform':
+    'You have read and agree to the J.P. Morgan Account Terms and the {{platformAgreementLabel}}.',
+};
 
-/** Default English for `TransWithTokens` when a host `labelKey` is missing from bundles. */
-export const LINK_ACCOUNT_ACK_LABEL_DEFAULTS: Partial<Record<string, string>> =
-  {
-    'screens.linkAccount.review.acknowledgements.termsAndPolicies':
-      'By confirming, you agree to our <termsLink>Terms & Conditions</termsLink> and acknowledge our <privacyLink>Privacy Policy</privacyLink>.',
-    'screens.linkAccount.review.acknowledgements.payoutAccountAttestation':
-      'I confirm this bank account is owned by or authorized for use by the business in my application for receiving payouts.',
-    'screens.linkAccount.prefillSummary.acknowledgements.businessPurpose':
-      'I acknowledge that the linked account is primarily for business purposes and not for consumer purposes.',
-    'screens.linkAccount.prefillSummary.acknowledgements.verifyAndAccuracy':
-      'I authorize verification of this linked account, including microdeposit verification if required. I certify that the information provided is accurate and matches my bank account details.',
-    'screens.linkAccount.prefillSummary.acknowledgements.debitAndTerms':
-      'I authorize the platform provider and JPMorgan Chase Bank, N.A. to debit my linked account or accounts for funding, payment of negative balances, or other fees. I have read and agree to the <jpTermsLink>J.P. Morgan terms</jpTermsLink> and the <platformAgreementLink>platform provider program agreement</platformAgreementLink>.',
-  };
-
-export function buildAcknowledgementLinkComponents(
+function buildAttestationLinkComponents(
   linkHrefs: Record<string, string> | undefined
 ): Record<string, ReactElement> | undefined {
   if (!linkHrefs || Object.keys(linkHrefs).length === 0) {
@@ -40,23 +39,26 @@ export function buildAcknowledgementLinkComponents(
   return out;
 }
 
-type LinkAccountAcknowledgementsGroupProps = {
-  items: readonly LinkAccountReviewAcknowledgement[];
+export type TermsAttestationAcknowledgementsGroupProps = {
+  items: readonly ReviewAttestTermsAcknowledgement[];
   checked: Record<string, boolean>;
   onCheckedChange: (id: string, value: boolean) => void;
   disabled?: boolean;
   groupAriaLabel: string;
   intro?: ReactNode;
+  /** e.g. `platformName`, `platformAgreementLabel` for `{{...}}` in copy */
+  labelInterpolationValues?: Record<string, unknown>;
 };
 
-export function LinkAccountAcknowledgementsGroup({
+export function TermsAttestationAcknowledgementsGroup({
   items,
   checked,
   onCheckedChange,
   disabled = false,
   groupAriaLabel,
   intro,
-}: LinkAccountAcknowledgementsGroupProps) {
+  labelInterpolationValues,
+}: TermsAttestationAcknowledgementsGroupProps) {
   if (!items.length) {
     return null;
   }
@@ -72,7 +74,7 @@ export function LinkAccountAcknowledgementsGroup({
         aria-label={groupAriaLabel}
       >
         {items.map((item) => {
-          const checkboxId = `eb-link-account-ack-${item.id}`;
+          const checkboxId = `eb-terms-attest-ack-${item.id}`;
           return (
             <div key={item.id} className="eb-flex eb-items-start eb-gap-2">
               <Checkbox
@@ -89,10 +91,9 @@ export function LinkAccountAcknowledgementsGroup({
                 <TransWithTokens
                   ns="onboarding-overview"
                   i18nKey={item.labelKey}
-                  defaults={LINK_ACCOUNT_ACK_LABEL_DEFAULTS[item.labelKey]}
-                  components={buildAcknowledgementLinkComponents(
-                    item.linkHrefs
-                  )}
+                  values={labelInterpolationValues}
+                  defaults={TERMS_ATTESTATION_ACK_LABEL_DEFAULTS[item.labelKey]}
+                  components={buildAttestationLinkComponents(item.linkHrefs)}
                 />
               </label>
             </div>

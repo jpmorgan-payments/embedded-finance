@@ -235,8 +235,8 @@ export interface BaseStoryArgs {
   themePreset?: ThemeName | 'custom';
   /** Custom theme object (only used when themePreset is 'custom') */
   theme?: EBTheme;
-  /** Locale/language for content tokens */
-  contentTokensPreset?: keyof typeof defaultResources;
+  /** Locale preset for content tokens, or `custom` to edit `contentTokens` in Controls */
+  contentTokensPreset?: keyof typeof defaultResources | 'custom';
   /** Custom content tokens object (only used when contentTokensPreset is 'custom') */
   contentTokens?: Record<string, any>;
   /**
@@ -259,11 +259,18 @@ const withEBComponentsProvider: Decorator<BaseStoryArgs> = (Story, context) => {
 
   // Resolve theme from args (with proper typing)
   const theme = resolveTheme(args.themePreset, args.theme);
+  const preset = args.contentTokensPreset ?? 'enUS';
+  const localeKey: keyof typeof defaultResources =
+    preset === 'custom'
+      ? ((args.contentTokens?.name as
+          | keyof typeof defaultResources
+          | undefined) ?? 'enUS')
+      : (preset as keyof typeof defaultResources);
   const contentTokens = {
     ...(args.contentTokens ?? {
       tokens: {},
     }),
-    name: args.contentTokensPreset ?? 'enUS',
+    name: localeKey,
     showTokenIds: args.showTokenIds ?? true,
   };
 
@@ -392,7 +399,8 @@ const preview: Preview = {
     },
     contentTokens: {
       control: { type: 'object' },
-      description: 'Content tokens object',
+      description:
+        'Merged into default locale JSON (deep). Shown when **contentTokens preset** is `custom`. Keep `name` (e.g. `enUS`) for the base locale; only `tokens` overrides are required.',
       table: {
         category: 'Provider',
       },

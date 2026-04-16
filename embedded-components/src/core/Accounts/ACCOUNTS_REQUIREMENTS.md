@@ -6,8 +6,31 @@
 >
 > **API References:**
 >
-> - [List Accounts API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/accounts#/operations/getAccounts)
+> - [List Accounts API (v1)](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/accounts#/operations/getAccounts)
+> - [List Accounts API (v2)](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/accounts#/operations/getAccountsListV2)
 > - [Get Account Balance API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/accounts#/operations/getAccountBalance)
+
+---
+
+## API Version Migration: v1 → v2
+
+> **The Accounts API v2 (`2.0.47`) is available and should be adopted for new development.**
+
+| | v1 (`1.0.23`) | v2 (`2.0.47`) |
+|---|---|---|
+| **OAS file** | `embedded-finance-pub-ep-accounts-1.0.23.yaml` | `embedded-finance-pub-ep-accounts-2.0.47.yaml` |
+| **List accounts** | `getAccounts` | `getAccountsListV2` |
+| **Get account** | — | `getAccountsV2` |
+| **Create account** | — | `postAccountsV2` |
+| **Manage account** | — | `manageAccountsV2` |
+| **Get balance** | `getAccountBalance` | `getAccountBalance` (unchanged) |
+| **Restrictions** | — | `addAccountRestriction` |
+
+**Migration notes:**
+- v2 adds create, manage, and restriction operations not available in v1
+- The balance endpoint is unchanged between versions
+- Generated hooks and types should be regenerated from the v2 OAS
+- Existing `useGetAccounts` usage should migrate to `useGetAccountsListV2`
 
 ---
 
@@ -22,10 +45,12 @@
 
 ### OAS & Code Generation
 
-- **Primary OAS**: `embedded-finance-pub-ep-accounts-1.0.23.yaml`
-- **Generated Hooks**: `useGetAccounts`, `useGetAccountBalance`
+- **Current OAS (v1)**: `embedded-finance-pub-ep-accounts-1.0.23.yaml`
+- **Upcoming OAS (v2)**: `embedded-finance-pub-ep-accounts-2.0.47.yaml` — adopt for new development
+- **Generated Hooks (v1)**: `useGetAccounts`, `useGetAccountBalance`
+- **Generated Hooks (v2)**: `useGetAccountsListV2`, `useGetAccountsV2`, `usePostAccountsV2`, `useManageAccountsV2`, `useGetAccountBalance`
 - **Generated Types**: `AccountResponse`, `AccountBalanceResponse`, `ListAccountsResponse`
-- **API Endpoints**: `/accounts`, `/accounts/{id}/balances`
+- **API Endpoints**: `/accounts`, `/accounts/{id}`, `/accounts/{id}/balances`, `/accounts/{id}/restrictions`
 
 ### Key Technical Design Principles
 
@@ -81,8 +106,9 @@
   - Show routing information and balance types
   - Toggle sensitive information visibility
 - **Balance Display Component**
+  - Display both Available Balance (`ITAV`) and Current Balance (`ITBD`) simultaneously
   - Map balance type codes to user-friendly labels
-  - Show info popovers for balance type descriptions
+  - Show info popovers for balance type descriptions (content token driven)
   - Format currency amounts with proper precision
 
 ### Phase 3: Business Logic & Integration
@@ -99,9 +125,12 @@
   > = {
     ITAV: {
       label: 'Available Balance',
-      description: 'Interim available balance',
+      description: 'Funds you can use now, including pending credits and minus holds.',
     },
-    ITBD: { label: 'Booked Balance', description: 'Interim booked balance' },
+    ITBD: {
+      label: 'Current Balance',
+      description: 'Balance from settled transactions; may not reflect pending activity.',
+    },
   };
   ```
 - **Sensitive Data Management**
@@ -146,15 +175,19 @@
 ### Account Display
 
 - **Account Information**: Category, label, state, routing details
-- **Balance Information**: Multiple balance types with descriptions
+- **Balance Information**: Display both **Available Balance** (`INTERIM_AVAILABLE` / `ITAV`) and **Current Balance** (`INTERIM_BOOKED` / `ITBD`) simultaneously. Each balance type must include an info icon with a popover:
+  - **Available Balance**: _"Funds you can use now, including pending credits and minus holds."_
+  - **Current Balance**: _"Balance from settled transactions; may not reflect pending activity."_
 - **Sensitive Data**: Masked account numbers with toggle visibility
-- **Routing Information**: ACH, Wire/RTP routing numbers for payment accounts
+- **Routing Information**: ACH, Wire/RTP routing numbers for payment accounts. ACH payments do **not** require bank name or bank address — only routing number and account number.
+- **Ledger Balance**: When displaying balance context alongside transactions, use `ledgerBalance` only when the transaction is in a terminal state (`status = COMPLETED` or `REJECTED`).
 
 ### Filtering & Customization
 
 - **Category Filtering**: Display only specified account categories
 - **Client Filtering**: Filter by provided client ID
 - **Responsive Layout**: Adapt to single vs multiple accounts
+- **Configurable Account Label**: Support platforms renaming "Funding accounts" to a platform-specific term via content tokens or props. Disclosure and UI verbiage must be customizable without code changes.
 
 ### Data Management
 
@@ -180,6 +213,7 @@
 ### Content Management Integration
 
 - **Localization**: Support content tokens for labels and descriptions
+- **Configurable Labels**: Platform-specific terminology (e.g., account label overrides) must be configurable via content tokens or props without code changes
 - **Theme Integration**: Use design tokens for consistent styling
 
 ---
@@ -198,9 +232,12 @@ const ALLOWED_CATEGORIES = ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'] as const;
 const BALANCE_TYPE_LABELS = {
   ITAV: {
     label: 'Available Balance',
-    description: 'Interim available balance',
+    description: 'Funds you can use now, including pending credits and minus holds.',
   },
-  ITBD: { label: 'Booked Balance', description: 'Interim booked balance' },
+  ITBD: {
+    label: 'Current Balance',
+    description: 'Balance from settled transactions; may not reflect pending activity.',
+  },
 };
 ```
 
@@ -267,3 +304,20 @@ interface AccountsProps {
 - Clear visual hierarchy
 - Intuitive information display
 - Consistent with other embedded components
+
+---
+
+## Scope Boundaries
+
+- **Linked Accounts**: The partially hosted UI does not yet include Linked Accounts. Platforms building ACH pull functionality should follow the "Link External Bank Account" demo at [embedded-finance-dev.com/components](https://embedded-finance-dev.com/components) as reference.
+- **Family Office Onboarding**: Out of scope for the current implementation phase.
+- **Transaction Field Mapping**: Pay-in / pay-out direction logic, date field usage, and description mapping are documented in the [TransactionsDisplay requirements](../TransactionsDisplay/TRANSACTIONS_DISPLAY_REQUIREMENTS.md).
+
+---
+
+## Storybook Reference
+
+- **Live stories**: [Accounts — Storybook](https://storybook.embedded-finance-dev.com/?path=/story/core-accounts--default)
+- **Showcase demo**: [Embedded Finance Showcase](https://embedded-finance-dev.com/sellsense-demo)
+
+Storybook stories serve as living documentation and implementation recipes. Each story demonstrates a specific scenario (loading, error, empty state, multiple accounts, theme variants) that maps directly to the functional requirements above.

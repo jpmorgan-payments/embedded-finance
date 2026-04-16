@@ -104,6 +104,46 @@ export const EmptyState: Story = {
 };
 
 /**
+ * Same optional `reviewAcknowledgements` checklist as onboarding `linkAccountStepOptions` (editable mode):
+ * agreements render on step 2 of the link dialog above the certification checkbox.
+ */
+export const WithReviewAcknowledgements: Story = {
+  args: {
+    mode: 'list',
+    linkAccountReviewAcknowledgements: [
+      {
+        id: 'businessPurpose',
+        labelKey:
+          'screens.linkAccount.prefillSummary.acknowledgements.businessPurpose',
+      },
+      {
+        id: 'verifyAndAccuracy',
+        labelKey:
+          'screens.linkAccount.prefillSummary.acknowledgements.verifyAndAccuracy',
+      },
+      {
+        id: 'debitAndTerms',
+        labelKey:
+          'screens.linkAccount.prefillSummary.acknowledgements.debitAndTerms',
+        linkHrefs: {
+          jpTermsLink: 'https://www.jpmorgan.com',
+          platformAgreementLink: 'https://example.com/platform-agreement',
+        },
+      },
+    ],
+    showLinkAccountAcknowledgementsIntro: true,
+  },
+  loaders: [
+    async () => {
+      await seedRecipientData({
+        ...linkedAccountListMock,
+        recipients: [],
+      });
+    },
+  ],
+};
+
+/**
  * Full cards layout with rich details.
  * Shows accounts as full cards instead of the default compact layout.
  *

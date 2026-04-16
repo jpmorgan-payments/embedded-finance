@@ -12,6 +12,21 @@ import type {
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 /**
+ * Checkbox rows for linked-account agreements (editable wizard, prefill summary, or widget).
+ *
+ * - **Copy** lives in `onboarding-overview` JSON (content tokens / locales).
+ * - **URLs** for `<termsLink>`-style tags are supplied per row (`linkHrefs`) so hosts can
+ *   point to their own legal pages without hard-coding links in translations.
+ */
+export type LinkAccountReviewAcknowledgement = {
+  id: string;
+  /** `onboarding-overview` key, e.g. `screens.linkAccount.prefillSummary.acknowledgements.businessPurpose` */
+  labelKey: string;
+  /** Maps Trans component names to absolute URLs */
+  linkHrefs?: Record<string, string>;
+};
+
+/**
  * Configuration for a single payment method
  */
 export interface PaymentMethodConfig {
@@ -216,6 +231,20 @@ export interface BankAccountFormProps {
    * Fired when react-hook-form `isDirty` changes (e.g. embedded onboarding leave / back guards).
    */
   onDirtyChange?: (dirty: boolean) => void;
+
+  /**
+   * Optional linked-account agreement checkboxes (step 2). When non-empty, each row must be
+   * checked before submit is enabled. Used by onboarding link step and `LinkedAccountWidget`.
+   * When set, the default `config.requiredFields.certification` checkbox is hidden (host copy replaces it).
+   */
+  reviewAcknowledgements?: readonly LinkAccountReviewAcknowledgement[];
+  /** Lead-in line above the acknowledgement group (e.g. from `showAcknowledgementsIntro` + i18n). */
+  acknowledgementsIntro?: ReactNode;
+  /**
+   * Accessible name for the acknowledgement group. Defaults to onboarding copy when omitted
+   * and `reviewAcknowledgements` is non-empty.
+   */
+  reviewAcknowledgementsGroupAriaLabel?: string;
 }
 
 /**

@@ -1,4 +1,4 @@
-import { Calendar, UserCog, Webhook } from 'lucide-react';
+import { Calendar, FileText, UserCog, Webhook } from 'lucide-react';
 
 import { Link } from '@tanstack/react-router';
 
@@ -7,6 +7,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function RecipesSection() {
   const recipes = [
+    {
+      id: 'core-functional-requirements-index',
+      title: 'Core functional requirements — cross-reference',
+      excerpt:
+        'Index of links to all functional requirements markdown files under src/core for each active component.',
+      date: '2026-04-15',
+      readTime: '5 min read',
+      tags: ['Documentation', 'Requirements', 'Core'],
+      link: '/stories/core-functional-requirements-index',
+      external: false,
+      icon: <FileText className="h-5 w-5" />,
+    },
     {
       id: 'webhook-integration-recipe',
       title: 'Webhook Integration Recipe: UX Guidance',

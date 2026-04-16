@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
@@ -43,6 +43,8 @@ import {
 import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
 import { StepperStepProps } from '@/core/OnboardingFlow/types/flow.types';
 
+import { TermsAttestationAcknowledgementsGroup } from './TermsAttestationAcknowledgementsGroup';
+
 const generateSessionId = () => {
   const sessionId = uuidv4();
   return sessionId.replace(/[^a-zA-Z0-9_-]/g, '');
@@ -55,8 +57,13 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
   getNextButtonLabel,
 }) => {
   const queryClient = useQueryClient();
-  const { clientData, onPostClientSettled, disclosureConfig } =
-    useOnboardingContext();
+  const {
+    clientData,
+    onPostClientSettled,
+    disclosureConfig,
+    reviewAttestTermsAcknowledgements,
+    showReviewAttestTermsAcknowledgementsIntro,
+  } = useOnboardingContext();
   const { isFormSubmitting: isFormSubmittingContext, setIsFormSubmitting } =
     useFlowContext();
 
@@ -64,46 +71,101 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
 
   const hasDisclosureConfig = !!disclosureConfig?.platformName;
 
-  const booleanRequired = z.boolean().refine((value) => value === true, {
-    message: tString(
+  const hostAckItems = reviewAttestTermsAcknowledgements ?? [];
+  const useHostAckList = hostAckItems.length > 0;
+
+  const hostAckIdsKey = useMemo(
+    () => hostAckItems.map((a) => a.id).join('\0'),
+    [hostAckItems]
+  );
+
+  const [hostAckChecked, setHostAckChecked] = useState<Record<string, boolean>>(
+    {}
+  );
+
+  useEffect(() => {
+    if (!useHostAckList) {
+      setHostAckChecked({});
+      return;
+    }
+    setHostAckChecked(
+      Object.fromEntries(
+        hostAckIdsKey
+          .split('\0')
+          .filter(Boolean)
+          .map((id) => [id, false])
+      )
+    );
+  }, [useHostAckList, hostAckIdsKey]);
+
+  const hostAckComplete = useMemo(() => {
+    if (!useHostAckList) {
+      return true;
+    }
+    return hostAckItems.every((a) => hostAckChecked[a.id] === true);
+  }, [useHostAckList, hostAckItems, hostAckChecked]);
+
+  const labelInterpolationValues = useMemo(() => {
+    if (!disclosureConfig?.platformName) {
+      return undefined;
+    }
+    return {
+      platformName: disclosureConfig.platformName,
+      platformAgreementLabel:
+        disclosureConfig.platformAgreementLabel ??
+        `${disclosureConfig.platformName}'s Program Agreement`,
+    };
+  }, [disclosureConfig]);
+
+  const formSchema = useMemo(() => {
+    if (useHostAckList) {
+      return z.object({});
+    }
+    const mustAgreeAll = tString(
       'reviewAndAttest.attestation.mustAgreeToAll',
       'You must agree to all attestations before proceeding.'
-    ),
-  });
+    );
+    const mustAgreeTerms = tString(
+      'reviewAndAttest.attestation.mustAgreeToTerms',
+      'You must agree to the terms before proceeding.'
+    );
+    if (hasDisclosureConfig) {
+      return z.object({
+        attested: z.boolean().refine((value) => value === true, {
+          message: mustAgreeTerms,
+        }),
+        attestAuthorizeSharing: z.boolean().refine((value) => value === true, {
+          message: mustAgreeAll,
+        }),
+      });
+    }
+    return z.object({
+      attested: z.boolean().refine((value) => value === true, {
+        message: mustAgreeTerms,
+      }),
+    });
+  }, [useHostAckList, hasDisclosureConfig, tString]);
 
   const form = useForm({
-    defaultValues: hasDisclosureConfig
-      ? {
-          attested: false,
-          attestAuthorizeSharing: false,
-        }
-      : {
-          attested: false,
-        },
-    resolver: zodResolver(
-      hasDisclosureConfig
-        ? z.object({
-            attested: z.boolean().refine((value) => value === true, {
-              message: tString(
-                'reviewAndAttest.attestation.mustAgreeToTerms',
-                'You must agree to the terms before proceeding.'
-              ),
-            }),
-            attestAuthorizeSharing: booleanRequired,
-          })
-        : z.object({
-            attested: z.boolean().refine((value) => value === true, {
-              message: tString(
-                'reviewAndAttest.attestation.mustAgreeToTerms',
-                'You must agree to the terms before proceeding.'
-              ),
-            }),
-          })
-    ),
+    defaultValues: useHostAckList
+      ? {}
+      : hasDisclosureConfig
+        ? {
+            attested: false,
+            attestAuthorizeSharing: false,
+          }
+        : {
+            attested: false,
+          },
+    resolver: zodResolver(formSchema),
   });
 
   const { isDirty } = useFormState({ control: form.control });
-  useFlowUnsavedChangesSync(isDirty);
+  const hostAckDirty = useMemo(
+    () => Object.values(hostAckChecked).some(Boolean),
+    [hostAckChecked]
+  );
+  useFlowUnsavedChangesSync(useHostAckList ? hostAckDirty : isDirty);
 
   const { data: ipAddress } = useIPAddress();
 
@@ -280,6 +342,8 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
   }, [documentQueries.map((query) => query.data?.id).filter(Boolean)]);
 
   const [shouldDisplayAlert, setShouldDisplayAlert] = useState(false);
+  const [shouldDisplayHostAckAlert, setShouldDisplayHostAckAlert] =
+    useState(false);
 
   const isMutationPending =
     clientUpdateStatus === 'pending' || clientVerificationsStatus === 'pending';
@@ -292,11 +356,22 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
           e.preventDefault();
           if (!allLinksOpened) {
             setShouldDisplayAlert(true);
-          } else {
-            form.handleSubmit(() => {
-              onCompleteKYCHandler();
-            })(e);
+            setShouldDisplayHostAckAlert(false);
+            return;
           }
+          if (useHostAckList) {
+            if (!hostAckComplete) {
+              setShouldDisplayHostAckAlert(true);
+              return;
+            }
+            setShouldDisplayHostAckAlert(false);
+            onCompleteKYCHandler();
+            return;
+          }
+          setShouldDisplayHostAckAlert(false);
+          form.handleSubmit(() => {
+            onCompleteKYCHandler();
+          })(e);
         }}
         className="eb-flex eb-flex-auto eb-flex-col"
       >
@@ -308,6 +383,17 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
                 {t(
                   'reviewAndAttest.termsAndConditions.openDocumentsAlert',
                   'Please open the document links and confirm that you have read and agree to all documents.'
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
+          {allLinksOpened && useHostAckList && shouldDisplayHostAckAlert && (
+            <Alert variant="destructive" noTitle>
+              <AlertCircleIcon className="eb-h-4 eb-w-4" />
+              <AlertDescription>
+                {tString(
+                  'reviewAndAttest.attestation.mustAgreeToAll',
+                  'You must agree to all attestations before proceeding.'
                 )}
               </AlertDescription>
             </Alert>
@@ -404,64 +490,50 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
             )}
           </div>
           <div className="eb-space-y-3">
-            <p className="eb-text-sm eb-font-medium">
-              {t(
-                'reviewAndAttest.attestation.heading',
-                'By electronically submitting this Application, you agree that:'
-              )}
-            </p>
-            <div
-              className="eb-space-y-3 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-4"
-              role="group"
-              aria-label={tString(
-                'reviewAndAttest.termsAndConditions.attestations',
-                'Attestations'
-              )}
-            >
-              {/* Agree to terms — gated until all links are opened */}
-              <FormField
-                control={form.control}
-                name="attested"
-                disabled={!allLinksOpened}
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="eb-flex eb-items-start eb-gap-2">
-                      <FormControl>
-                        <Checkbox
-                          className="eb-mt-0.5"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          disabled={field.disabled}
-                        />
-                      </FormControl>
-                      <FormLabel className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-relaxed eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
-                        {hasPlatformAgreement
-                          ? t(
-                              'reviewAndAttest.termsAndConditions.agreeToTermsWithPlatform',
-                              {
-                                platformAgreementLabel:
-                                  disclosureConfig?.platformAgreementLabel ??
-                                  `${disclosureConfig?.platformName}'s Program Agreement`,
-                                defaultValue:
-                                  'You have read and agree to the J.P. Morgan Account Terms and the {{platformAgreementLabel}}.',
-                              }
-                            )
-                          : t(
-                              'reviewAndAttest.termsAndConditions.agreeToTerms',
-                              'You have read and agree to the J.P. Morgan Account Terms.'
-                            )}
-                      </FormLabel>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
+            {!(useHostAckList && showReviewAttestTermsAcknowledgementsIntro) ? (
+              <p className="eb-text-sm eb-font-medium">
+                {t(
+                  'reviewAndAttest.attestation.heading',
+                  'By electronically submitting this Application, you agree that:'
                 )}
+              </p>
+            ) : null}
+            {useHostAckList ? (
+              <TermsAttestationAcknowledgementsGroup
+                items={hostAckItems}
+                checked={hostAckChecked}
+                onCheckedChange={(id, value) => {
+                  setHostAckChecked((prev) => ({ ...prev, [id]: value }));
+                  setShouldDisplayHostAckAlert(false);
+                }}
+                disabled={!allLinksOpened}
+                groupAriaLabel={tString(
+                  'reviewAndAttest.termsAndConditions.attestations',
+                  'Attestations'
+                )}
+                intro={
+                  showReviewAttestTermsAcknowledgementsIntro
+                    ? t(
+                        'reviewAndAttest.termsAcknowledgements.intro',
+                        'By electronically submitting this application, you agree that:'
+                      )
+                    : undefined
+                }
+                labelInterpolationValues={labelInterpolationValues}
               />
-
-              {/* Authorize sharing — only when disclosure config is provided */}
-              {hasDisclosureConfig && (
+            ) : (
+              <div
+                className="eb-space-y-3 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-4"
+                role="group"
+                aria-label={tString(
+                  'reviewAndAttest.termsAndConditions.attestations',
+                  'Attestations'
+                )}
+              >
                 <FormField
                   control={form.control}
-                  name="attestAuthorizeSharing"
+                  name="attested"
+                  disabled={!allLinksOpened}
                   render={({ field }) => (
                     <FormItem>
                       <div className="eb-flex eb-items-start eb-gap-2">
@@ -470,22 +542,61 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
                             className="eb-mt-0.5"
                             checked={field.value}
                             onCheckedChange={field.onChange}
+                            disabled={field.disabled}
                           />
                         </FormControl>
-                        <FormLabel className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-relaxed eb-text-foreground">
-                          {t('reviewAndAttest.attestation.authorizeSharing', {
-                            platformName: disclosureConfig!.platformName,
-                            defaultValue:
-                              'You authorize {{platformName}} and JPMorgan Chase Bank, N.A. ("JPMC") to share information to facilitate the opening of your deposit account(s), and appoint {{platformName}} as your agent to act on your behalf regarding your deposit account.',
-                          })}
+                        <FormLabel className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-relaxed eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
+                          {hasPlatformAgreement
+                            ? t(
+                                'reviewAndAttest.termsAndConditions.agreeToTermsWithPlatform',
+                                {
+                                  platformAgreementLabel:
+                                    disclosureConfig?.platformAgreementLabel ??
+                                    `${disclosureConfig?.platformName}'s Program Agreement`,
+                                  defaultValue:
+                                    'You have read and agree to the J.P. Morgan Account Terms and the {{platformAgreementLabel}}.',
+                                }
+                              )
+                            : t(
+                                'reviewAndAttest.termsAndConditions.agreeToTerms',
+                                'You have read and agree to the J.P. Morgan Account Terms.'
+                              )}
                         </FormLabel>
                       </div>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              )}
-            </div>
+
+                {hasDisclosureConfig && (
+                  <FormField
+                    control={form.control}
+                    name="attestAuthorizeSharing"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="eb-flex eb-items-start eb-gap-2">
+                          <FormControl>
+                            <Checkbox
+                              className="eb-mt-0.5"
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <FormLabel className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-relaxed eb-text-foreground">
+                            {t('reviewAndAttest.attestation.authorizeSharing', {
+                              platformName: disclosureConfig!.platformName,
+                              defaultValue:
+                                'You authorize {{platformName}} and JPMorgan Chase Bank, N.A. ("JPMC") to share information to facilitate the opening of your deposit account(s), and appoint {{platformName}} as your agent to act on your behalf regarding your deposit account.',
+                            })}
+                          </FormLabel>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+            )}
           </div>
           {!allLinksOpened && (
             <Alert variant="informative" noTitle>
@@ -511,7 +622,9 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
               className={cn('eb-w-full eb-text-lg', {
                 'eb-hidden': getNextButtonLabel() === null,
               })}
-              disabled={isFormSubmitting}
+              disabled={
+                isFormSubmitting || (useHostAckList && !hostAckComplete)
+              }
             >
               {isFormSubmitting && <Loader2Icon className="eb-animate-spin" />}
               {getNextButtonLabel()}

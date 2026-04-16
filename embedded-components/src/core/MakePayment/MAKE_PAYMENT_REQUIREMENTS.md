@@ -292,3 +292,14 @@ interface MakePaymentProps {
 - Clear visual hierarchy and error feedback
 - Intuitive payment workflow
 - Consistent with other embedded components
+
+---
+
+## Storybook Reference
+
+- **Live stories**: [MakePayment — Storybook](https://storybook.embedded-finance-dev.com/?path=/story/legacy-makepayment--default)
+- **Showcase demo**: [Embedded Finance Showcase](https://embedded-finance-dev.com/sellsense-demo)
+
+> **Note**: The MakePayment component is under `Legacy/`. For the current payment flow implementation, see the [PaymentFlow requirements](../PaymentFlow/REQUIREMENTS.md) and its [Storybook stories](https://storybook.embedded-finance-dev.com/?path=/story/core-paymentflow-inline--default).
+
+Storybook stories serve as living documentation and implementation recipes. Each story demonstrates a specific scenario (account/recipient combos, payment methods, validation, success/error states) that maps directly to the functional requirements above.

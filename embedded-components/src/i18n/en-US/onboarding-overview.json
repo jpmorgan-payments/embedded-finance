@@ -1310,6 +1310,9 @@
     "missingDetails": "Missing details",
     "dataAccuracyAttestation": "Data accuracy attestation",
     "dataAccuracyCheckbox": "The data I am providing is true, accurate and complete to the best of my knowledge.",
+    "termsAcknowledgements": {
+      "intro": "By electronically submitting this application, you agree that:"
+    },
     "attestation": {
       "heading": "By electronically submitting this Application, you agree that:",
       "accurateInfo": "All information you have provided is complete and accurate, and you are opening this account solely for business purposes and not for consumer purposes.",
