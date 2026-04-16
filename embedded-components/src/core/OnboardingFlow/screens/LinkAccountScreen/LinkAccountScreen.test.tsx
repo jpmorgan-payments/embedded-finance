@@ -296,15 +296,12 @@ describe('LinkAccountScreen', () => {
 
     renderWithProviders(<LinkAccountScreen />, baseOnboardingContext);
 
-    expect(
-      await screen.findByRole('heading', {
-        name: /Your linked bank account/i,
-      })
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByRole('button', { name: /Verify Account/i })
-    ).toBeInTheDocument();
+    // LinkAccountScreen now redirects to overview when an existing account is found
+    await vi.waitFor(() => {
+      expect(mockGoTo).toHaveBeenCalledWith('overview', {
+        resetHistory: true,
+      });
+    });
   });
 
   test('editable prefill renders bank account form with overridden account number', async () => {
