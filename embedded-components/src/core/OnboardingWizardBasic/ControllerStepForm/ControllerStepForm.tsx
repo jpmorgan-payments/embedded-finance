@@ -73,7 +73,7 @@ import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingCon
 import { OnboardingArrayField } from '../OnboardingFormField/OnboardingArrayField';
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
-import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
+import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
 import {
   convertClientResponseToFormValues,
   generateClientRequestBody,

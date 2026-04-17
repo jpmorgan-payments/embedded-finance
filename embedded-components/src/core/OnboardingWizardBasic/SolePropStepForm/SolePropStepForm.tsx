@@ -9,11 +9,11 @@ import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Form } from '@/components/ui/form';
+import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
 
 import { FormActions } from '../FormActions/FormActions';
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
-import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
 import { stateOptions } from '../utils/stateOptions';
 
 export const SolePropStepForm: FC = () => {
