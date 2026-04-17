@@ -46,6 +46,7 @@ import {
 import { getPartyByAssociatedPartyFilters } from '@/core/OnboardingFlow/utils/dataUtils';
 import { RecipientAccountDisplayCard } from '@/core/RecipientWidgets/components/RecipientAccountDisplayCard/RecipientAccountDisplayCard';
 import { RecipientDetailsDialog } from '@/core/RecipientWidgets/components/RecipientDetailsDialog/RecipientDetailsDialog';
+import { RejectedAccountsAccordion } from '@/core/RecipientWidgets/components/RejectedAccountsAccordion/RejectedAccountsAccordion';
 import { RemoveAccountDialogTrigger } from '@/core/RecipientWidgets/components/RemoveAccountDialog/RemoveAccountDialog';
 import { StatusAlert } from '@/core/RecipientWidgets/components/StatusAlert/StatusAlert';
 import { MicrodepositsFormDialogTrigger } from '@/core/RecipientWidgets/forms/MicrodepositsForm/MicrodepositsForm';
@@ -643,7 +644,11 @@ export const OverviewScreen = () => {
                     />
                   </>
                 ) : (
-                  <div>
+                  <div className="eb-space-y-3">
+                    <RejectedAccountsAccordion
+                      recipientType="LINKED_ACCOUNT"
+                      queryParams={{ clientId: clientData?.id }}
+                    />
                     {!linkAccountEnabled && (
                       <p className="eb-mb-3 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium eb-text-muted-foreground">
                         <LockIcon className="eb-size-4" />

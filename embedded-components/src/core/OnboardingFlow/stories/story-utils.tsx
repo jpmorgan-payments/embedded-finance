@@ -155,6 +155,33 @@ export const mockExistingLinkedAccountReadyForValidation: Recipient = {
   status: 'READY_FOR_VALIDATION',
 };
 
+/** **REJECTED** — verification failed or account was rejected. */
+export const mockExistingLinkedAccountRejected: Recipient = {
+  ...mockExistingLinkedAccount,
+  id: 'la-lifecycle-rejected-001',
+  status: 'REJECTED',
+  updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+};
+
+/** Second **REJECTED** account — different name for visual variety. */
+export const mockExistingLinkedAccountRejected2: Recipient = {
+  ...mockExistingLinkedAccount,
+  id: 'la-lifecycle-rejected-002',
+  status: 'REJECTED',
+  partyDetails: {
+    ...mockExistingLinkedAccount.partyDetails,
+    firstName: 'Jordan',
+    lastName: 'Rivera',
+  },
+  account: {
+    number: '98765432101234567',
+    type: 'CHECKING' as const,
+    countryCode: 'US' as const,
+    routingInformation: mockExistingLinkedAccount.account?.routingInformation,
+  },
+  updatedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(), // 12 days ago
+};
+
 /** Partial prefill for link-account step (`completionMode: 'editable'`). */
 export const mockLinkAccountPrefillEditable: LinkAccountInitialValues = {
   accountNumber: '98765432109876543',
@@ -457,13 +484,20 @@ export function createOnboardingFlowHandlers(
   // Override recipient handlers when custom linked accounts are provided
   if (existingLinkedAccounts.length > 0) {
     storyHandlers.unshift(
-      http.get('/recipients', async () => {
+      http.get('/recipients', async ({ request }) => {
         await new Promise((r) => {
           setTimeout(r, delayMs);
         });
+        const url = new URL(request.url);
+        const statusFilter = url.searchParams.get('status');
+        const filtered = statusFilter
+          ? existingLinkedAccounts.filter((r) => r.status === statusFilter)
+          : existingLinkedAccounts.filter(
+              (r) => r.status !== 'INACTIVE' && r.status !== 'REJECTED'
+            );
         const response: ListRecipientsResponse = {
-          recipients: existingLinkedAccounts,
-          metadata: { total_items: existingLinkedAccounts.length },
+          recipients: filtered,
+          metadata: { total_items: filtered.length },
         };
         return HttpResponse.json(response);
       })

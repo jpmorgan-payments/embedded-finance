@@ -67,13 +67,13 @@ import type {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Form } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
+import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
 
 import { FormActions } from '../FormActions/FormActions';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { OnboardingArrayField } from '../OnboardingFormField/OnboardingArrayField';
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
-import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
 import {
   convertClientResponseToFormValues,
   generateClientRequestBody,
