@@ -68,7 +68,11 @@ import {
   useSmbdoUpdateClientLegacy,
   useUpdatePartyLegacy as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
-import { Role } from '@/api/generated/smbdo.schemas';
+import {
+  CreatePartyRequestInline,
+  Role,
+  UpdatePartyRequestInline,
+} from '@/api/generated/smbdo.schemas';
 import {
   Accordion,
   AccordionItem,
@@ -109,6 +113,8 @@ import {
   BeneficialOwnerStepFormSchema,
   refineOwnerStepFormSchema,
 } from './BeneficialOwnerStepForm.schema';
+
+type AddPartyItem = CreatePartyRequestInline & UpdatePartyRequestInline;
 
 export const BeneficialOwnerStepForm = () => {
   const {
@@ -361,7 +367,7 @@ export const BeneficialOwnerStepForm = () => {
               partyType: 'INDIVIDUAL',
               roles: ['BENEFICIAL_OWNER'],
             },
-          ],
+          ] as AddPartyItem[],
         });
         updateClient(
           {

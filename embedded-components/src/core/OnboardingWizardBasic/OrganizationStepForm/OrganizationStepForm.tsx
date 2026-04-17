@@ -60,6 +60,10 @@ import {
   useSmbdoUpdateClientLegacy,
   useUpdatePartyLegacy as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
+import type {
+  CreatePartyRequestInline,
+  UpdatePartyRequestInline,
+} from '@/api/generated/smbdo.schemas';
 import {
   Form,
   FormControl,
@@ -92,6 +96,8 @@ import {
   OrganizationStepFormSchema,
   refineOrganizationStepFormSchema,
 } from './OrganizationStepForm.schema';
+
+type AddPartyItem = CreatePartyRequestInline & UpdatePartyRequestInline;
 
 export const OrganizationStepForm = () => {
   const {
@@ -221,7 +227,7 @@ export const OrganizationStepForm = () => {
                 partyType: 'ORGANIZATION',
                 roles: ['CLIENT'],
               },
-            ],
+            ] as AddPartyItem[],
           }
         );
         updateClient(

@@ -56,15 +56,16 @@ describe('TransactionCard', () => {
       id: 'txn-456',
       type: 'TRANSFER',
       status: 'PENDING',
-      amount: 500,
       currency: 'USD',
+      paymentDate: '2024-01-15',
+      createdAt: '2024-01-15T00:00:00Z',
     };
 
     renderWithProviders(<TransactionCard transaction={minimalTransaction} />);
 
     expect(screen.getByText('TRANSFER')).toBeInTheDocument();
     expect(screen.getByText('Pending')).toBeInTheDocument();
-    // Check that N/A appears (there may be multiple instances)
+    // Amount is missing so N/A should appear
     expect(screen.getAllByText('N/A').length).toBeGreaterThan(0);
   });
 });

@@ -13,8 +13,9 @@ import {
 } from '@/api/generated/smbdo';
 import {
   ClientResponse,
+  CreatePartyRequestInline,
   PartyResponse,
-  UpdateClientRequestSmbdoAddPartiesItem,
+  UpdatePartyRequestInline,
 } from '@/api/generated/smbdo.schemas';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Badge, Button, Form } from '@/components/ui';
@@ -51,6 +52,8 @@ import {
   setApiFormErrors,
   useFormWithFilters,
 } from '@/core/OnboardingFlow/utils/formUtils';
+
+type AddPartyItem = CreatePartyRequestInline & UpdatePartyRequestInline;
 
 type StepperRendererProps = StepperConfig & {
   buttonsOverride?: Array<{
@@ -440,7 +443,7 @@ interface StepperFormStepProps extends StepperStepProps {
   Component: FormStepComponent;
   existingPartyData: PartyResponse | undefined;
   setExistingPartyData: (partyData: PartyResponse | undefined) => void;
-  defaultPartyRequestBody?: Partial<UpdateClientRequestSmbdoAddPartiesItem>;
+  defaultPartyRequestBody?: Partial<CreatePartyRequestInline>;
 }
 
 const StepperFormStep: React.FC<StepperFormStepProps> = ({
@@ -640,7 +643,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
                         email: existingPartyData.email,
                       }),
                     },
-                  ],
+                  ] as AddPartyItem[],
                 }
               );
 

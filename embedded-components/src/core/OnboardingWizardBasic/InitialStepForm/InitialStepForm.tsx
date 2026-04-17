@@ -8,6 +8,10 @@ import {
   useSmbdoUpdateClientLegacy,
   useUpdatePartyLegacy as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
+import type {
+  CreatePartyRequestInline,
+  UpdatePartyRequestInline,
+} from '@/api/generated/smbdo.schemas';
 import {
   Card,
   CardContent,
@@ -35,6 +39,8 @@ import {
 import { ORGANIZATION_TYPE_LIST } from '../utils/organizationTypeList';
 import { InitialStepFormSchema } from './InitialStepForm.schema';
 import { generateRequiredFieldsList } from './requiredFields';
+
+type AddPartyItem = CreatePartyRequestInline & UpdatePartyRequestInline;
 
 export const InitialStepForm = () => {
   const { nextStep } = useStepper();
@@ -180,7 +186,7 @@ export const InitialStepForm = () => {
                 partyType: 'ORGANIZATION',
                 roles: ['CLIENT'],
               },
-            ],
+            ] as AddPartyItem[],
           }
         );
         updateClient(
