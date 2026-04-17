@@ -37,7 +37,10 @@
         "RU": "City",
         "SA": "City",
         "SE": "City",
-        "TR": "City / District"
+        "TR": "City / District",
+        "EC": "City",
+        "HK": "City / District",
+        "SG": "City"
       },
       "placeholder": {
         "default": "Enter city / town",
@@ -90,7 +93,10 @@
         "RU": "Oblast / Krai",
         "SA": "Region",
         "SE": "County",
-        "TR": "Province"
+        "TR": "Province",
+        "EC": "Province",
+        "HK": "District",
+        "SG": "Region"
       },
       "placeholder": {
         "default": "Select or enter state / province",
@@ -116,7 +122,10 @@
         "RU": "Select oblast / krai",
         "SA": "Select region",
         "SE": "Select county",
-        "TR": "Select province"
+        "TR": "Select province",
+        "EC": "Select province",
+        "HK": "Select district",
+        "SG": "Select region"
       },
       "description": {
         "default": ""
@@ -164,7 +173,10 @@
         "RU": "Postal code",
         "SA": "Postal code",
         "SE": "Postal code",
-        "TR": "Postal code"
+        "TR": "Postal code",
+        "EC": "Postal code",
+        "HK": "Postal code",
+        "SG": "Postal code"
       },
       "placeholder": {
         "default": "Enter postal code",
@@ -193,7 +205,9 @@
         "NO": "4 digits",
         "PT": "e.g., 1000-001",
         "SE": "e.g., 123 45",
-        "TR": "5 digits"
+        "TR": "5 digits",
+        "EC": "6 digits",
+        "SG": "6 digits"
       },
       "tooltip": {
         "default": ""

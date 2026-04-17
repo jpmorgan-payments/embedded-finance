@@ -107,6 +107,8 @@ const POSTAL_CODE_FORMATS: Record<
   CO: { regex: /^\d{6}$/, messageKey: 'invalidSixDigit' },
   RU: { regex: /^\d{6}$/, messageKey: 'invalidSixDigit' },
   SG: { regex: /^\d{6}$/, messageKey: 'invalidSixDigit' },
+  // No strict postal code format for HK (optional, no standard format)
+  EC: { regex: /^\d{6}$/, messageKey: 'invalidSixDigit' },
   // 7-digit countries
   CL: { regex: /^\d{7}$/, messageKey: 'invalidSevenDigit' },
   IL: { regex: /^\d{7}$/, messageKey: 'invalidSevenDigit' },
