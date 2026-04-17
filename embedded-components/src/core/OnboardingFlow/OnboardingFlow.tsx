@@ -54,6 +54,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const providerClientId = useClientId();
   const [clientId, setClientId] = useState(providerClientId ?? '');
 
+  // Force sidebar hidden in docUploadOnlyMode
+  const effectiveHideSidebar = hideSidebar || !!props.docUploadOnlyMode;
+
   const { interceptorReady } = useInterceptorStatus();
 
   const {
@@ -126,7 +129,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         clientGetStatus,
         setClientId,
         organizationType,
-        hideSidebar,
+        hideSidebar: effectiveHideSidebar,
         userEventsHandler,
         userEventsLifecycle,
       }}
@@ -136,7 +139,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         className={cn(
           'eb-component eb-mx-auto eb-flex eb-max-w-screen-sm eb-flex-1 eb-flex-col eb-bg-background eb-p-4 eb-pb-6 eb-font-sans eb-text-foreground eb-antialiased sm:eb-p-10 sm:eb-pb-12',
           {
-            'eb-max-w-screen-lg': !hideSidebar,
+            'eb-max-w-screen-lg': !effectiveHideSidebar,
           }
         )}
         style={{ minHeight: height }}
