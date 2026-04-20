@@ -90,6 +90,7 @@
     "vite": {
       "rollup": "npm:@rollup/wasm-node"
     },
-    "@visual-json/core": "^0.2.0"
+    "@visual-json/core": "^0.2.0",
+    "dompurify": "3.4.0"
   }
 }
