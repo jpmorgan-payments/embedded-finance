@@ -417,7 +417,15 @@
       "bankAccountSection": {
         "title": "Link a bank account for payouts",
         "lockedMessage": "Available after your application has been submitted",
-        "linkAccountTitle": "Link an account"
+        "linkAccountTitle": "Link an account",
+        "successAlert": {
+          "ACTIVE": "Your bank account has been verified and is ready for transactions.",
+          "MICRODEPOSITS_INITIATED": "Your bank account details have been submitted. Two small deposits will be sent to your account for verification.",
+          "PENDING": "Your bank account details have been submitted and are being processed.",
+          "READY_FOR_VALIDATION": "Your bank account details have been submitted. Please verify the deposit amounts to complete setup.",
+          "REJECTED": "Your bank account details have been submitted but could not be verified.",
+          "INACTIVE": "Your bank account details have been submitted."
+        }
       }
     },
     "linkAccount": {

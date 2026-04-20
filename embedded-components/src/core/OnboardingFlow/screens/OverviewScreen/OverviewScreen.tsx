@@ -532,8 +532,8 @@ export const OverviewScreen = () => {
                         <CheckCircle2Icon className="eb-size-4" />
                         <AlertDescription>
                           {t(
-                            'screens.overview.bankAccountSection.successMessage',
-                            'Your bank account has been linked successfully.'
+                            `screens.overview.bankAccountSection.successAlert.${existingLinkedAccount.status ?? 'ACTIVE'}`,
+                            'Your bank account details have been submitted successfully.'
                           )}
                         </AlertDescription>
                         <button
