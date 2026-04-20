@@ -124,28 +124,47 @@ export const OperationalDetailsForm = () => {
     return [...subIds].sort();
   }, [questionsData]);
 
-  // Fetch any sub-questions that were missing from the initial response
-  const { data: subQuestionsData, status: subQuestionsFetchStatus } =
-    useSmbdoListQuestions(
-      { questionIds: missingSubQuestionIds.join(',') },
-      { query: { enabled: missingSubQuestionIds.length > 0 } }
-    );
+  // Extract parent question IDs that were not included in the initial fetch
+  const missingParentQuestionIds = useMemo(() => {
+    const fetchedQuestions = questionsData?.questions ?? [];
+    const fetchedIds = new Set(allQuestionIds);
+    const parentIds = fetchedQuestions
+      .map((q) => q.parentQuestionId)
+      .filter((id): id is string => !!id && !fetchedIds.has(id));
+    return [...new Set(parentIds)].sort();
+  }, [questionsData, allQuestionIds]);
+
+  // Fetch any sub-questions or parent questions that were missing from the initial response
+  const missingQuestionIds = useMemo(() => {
+    return [
+      ...new Set([...missingSubQuestionIds, ...missingParentQuestionIds]),
+    ].sort();
+  }, [missingSubQuestionIds, missingParentQuestionIds]);
+
+  const {
+    data: supplementaryQuestionsData,
+    status: supplementaryQuestionsFetchStatus,
+  } = useSmbdoListQuestions(
+    { questionIds: missingQuestionIds.join(',') },
+    { query: { enabled: missingQuestionIds.length > 0 } }
+  );
 
   // Merge parent and sub-question data into a single list
   const allQuestions = useMemo(() => {
     const primary = questionsData?.questions ?? [];
-    const secondary = subQuestionsData?.questions ?? [];
+    const secondary = supplementaryQuestionsData?.questions ?? [];
     if (secondary.length === 0) return primary;
 
     const existingIds = new Set(primary.map((q) => q.id));
     return [...primary, ...secondary.filter((q) => !existingIds.has(q.id))];
-  }, [questionsData, subQuestionsData]);
+  }, [questionsData, supplementaryQuestionsData]);
 
   // Overall loading: still pending if primary fetch is loading, or if we
-  // know there are missing sub-questions and that fetch hasn't finished yet.
+  // know there are missing questions and that fetch hasn't finished yet.
   const isQuestionsLoading =
     questionsFetchStatus === 'pending' ||
-    (missingSubQuestionIds.length > 0 && subQuestionsFetchStatus === 'pending');
+    (missingQuestionIds.length > 0 &&
+      supplementaryQuestionsFetchStatus === 'pending');
 
   // Prepare default values for the form (include sub-question IDs so they get form fields)
   const allFormQuestionIds = useMemo(() => {

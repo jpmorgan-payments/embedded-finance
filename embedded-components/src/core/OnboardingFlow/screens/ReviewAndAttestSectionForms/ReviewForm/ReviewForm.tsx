@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { Fragment, useMemo, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -140,10 +140,36 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
     questionIds: allQuestionIds.join(','),
   });
 
+  // Some questions reference a parentQuestionId that isn't in the original list.
+  // Fetch those missing parents so isQuestionVisible can resolve them.
+  const missingParentIds = useMemo(() => {
+    if (!questionsDetails?.questions) return [];
+    const fetchedIds = new Set(allQuestionIds);
+    const parentIds = questionsDetails.questions
+      .map((q) => q.parentQuestionId)
+      .filter((id): id is string => !!id && !fetchedIds.has(id));
+    return [...new Set(parentIds)];
+  }, [questionsDetails, allQuestionIds]);
+
+  const { data: parentQuestionsDetails } = useSmbdoListQuestions(
+    { questionIds: missingParentIds.join(',') },
+    { query: { enabled: missingParentIds.length > 0 } }
+  );
+
+  // Merge fetched questions with their missing parents into a single list
+  const allQuestionsDetails = useMemo(() => {
+    const base = questionsDetails?.questions ?? [];
+    const parents = parentQuestionsDetails?.questions ?? [];
+    if (parents.length === 0) return questionsDetails;
+    const existingIds = new Set(base.map((q) => q.id));
+    const merged = [...base, ...parents.filter((p) => !existingIds.has(p.id))];
+    return { ...questionsDetails, questions: merged };
+  }, [questionsDetails, parentQuestionsDetails]);
+
   const isQuestionVisible = (question: QuestionResponse) => {
     if (!question.parentQuestionId) return true;
 
-    const parentQuestion = questionsDetails?.questions?.find(
+    const parentQuestion = allQuestionsDetails?.questions?.find(
       (q) => q.id === question.parentQuestionId
     );
     if (!parentQuestion) return false;
@@ -424,66 +450,89 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                             {t('common:change', 'Change')}
                           </Button>
                         </div>
-                        {questionsDetails?.questions?.map((question) => {
-                          if (!isQuestionVisible(question)) return null;
-
-                          const questionText = question.description
-                            ?.split('\n')
-                            .map((line, index) => (
-                              <p
-                                key={index}
-                                className={cn({
-                                  'eb-ml-4': index > 0,
-                                })}
-                              >
-                                {line}
-                              </p>
-                            ));
-
-                          if (
-                            question.id &&
-                            clientData?.outstanding.questionIds?.includes(
-                              question.id
-                            )
-                          ) {
-                            return (
-                              <div className="eb-space-y-0.5" key={question.id}>
-                                <div className="eb-text-sm eb-font-medium">
-                                  {questionText}
-                                </div>
-                                <div className="eb-flex eb-items-center eb-gap-1 eb-text-warning">
-                                  <TriangleAlertIcon className="eb-size-4" />
-                                  <p className="eb-italic">
-                                    {t(
-                                      'reviewAndAttest.fieldIsMissing',
-                                      'This field is missing'
-                                    )}
+                        {allQuestionsDetails?.questions
+                          ?.filter((q) => !q.parentQuestionId)
+                          .filter(isQuestionVisible)
+                          .map((question) => {
+                            const renderQuestionReview = (
+                              q: typeof question
+                            ) => {
+                              const qText = q.description
+                                ?.split('\n')
+                                .map((line, idx) => (
+                                  <p
+                                    key={idx}
+                                    className={cn({
+                                      'eb-ml-4': idx > 0,
+                                    })}
+                                  >
+                                    {line}
                                   </p>
-                                </div>
-                              </div>
-                            );
-                          }
-                          const response = existingQuestionResponses?.find(
-                            (r) => r.questionId === question.id
-                          );
+                                ));
 
-                          return (
-                            <div className="eb-space-y-0.5" key={question.id}>
-                              <div className="eb-text-sm eb-font-medium">
-                                {questionText}
-                              </div>
-                              <div>
-                                <b>{t('reviewAndAttest.response')}:</b>{' '}
-                                {(response &&
-                                  formatQuestionResponse(response)) || (
-                                  <span className="eb-italic eb-text-muted-foreground">
-                                    {t('common:empty')}
-                                  </span>
+                              if (
+                                q.id &&
+                                clientData?.outstanding.questionIds?.includes(
+                                  q.id
+                                )
+                              ) {
+                                return (
+                                  <div className="eb-space-y-0.5" key={q.id}>
+                                    <div className="eb-text-sm eb-font-medium">
+                                      {qText}
+                                    </div>
+                                    <div className="eb-flex eb-items-center eb-gap-1 eb-text-warning">
+                                      <TriangleAlertIcon className="eb-size-4" />
+                                      <p className="eb-italic">
+                                        {t(
+                                          'reviewAndAttest.fieldIsMissing',
+                                          'This field is missing'
+                                        )}
+                                      </p>
+                                    </div>
+                                  </div>
+                                );
+                              }
+
+                              const response = existingQuestionResponses?.find(
+                                (r) => r.questionId === q.id
+                              );
+
+                              return (
+                                <div className="eb-space-y-0.5" key={q.id}>
+                                  <div className="eb-text-sm eb-font-medium">
+                                    {qText}
+                                  </div>
+                                  <div>
+                                    <b>{t('reviewAndAttest.response')}:</b>{' '}
+                                    {(response &&
+                                      formatQuestionResponse(response)) || (
+                                      <span className="eb-italic eb-text-muted-foreground">
+                                        {t('common:empty')}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            };
+
+                            // Collect visible sub-questions for this parent
+                            const subQuestions =
+                              allQuestionsDetails?.questions
+                                ?.filter(
+                                  (q) => q.parentQuestionId === question.id
+                                )
+                                .filter(isQuestionVisible) ?? [];
+
+                            return (
+                              <Fragment key={question.id}>
+                                {renderQuestionReview(question)}
+                                {subQuestions.map((sq) =>
+                                  renderQuestionReview(sq)
                                 )}
-                              </div>
-                            </div>
-                          );
-                        })}
+                              </Fragment>
+                            );
+                          })}
                       </Card>
                     );
                   }
