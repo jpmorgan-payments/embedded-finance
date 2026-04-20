@@ -7333,7 +7333,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:*, dompurify@npm:^3.2.5, dompurify@npm:^3.3.0":
+"dompurify@npm:^3.4.0":
   version: 3.4.0
   resolution: "dompurify@npm:3.4.0"
   dependencies:
