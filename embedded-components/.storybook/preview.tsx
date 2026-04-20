@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { defaultResources } from '@/i18n/config';
 import type { Decorator } from '@storybook/react';
 import { Preview } from '@storybook/react-vite';
-import { DefaultOptions } from '@tanstack/react-query';
+import { DefaultOptions, useQueryClient } from '@tanstack/react-query';
 import { initialize, mswLoader } from 'msw-storybook-addon';
 import { createPortal } from 'react-dom';
 
@@ -251,6 +251,18 @@ export interface BaseStoryArgs {
 }
 
 /**
+ * Clears the React Query cache whenever a new story mounts.
+ * This prevents stale data from leaking between stories.
+ */
+function QueryCacheResetter() {
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    queryClient.clear();
+  }, [queryClient]);
+  return null;
+}
+
+/**
  * Global decorator that wraps all stories with EBComponentsProvider.
  * This allows stories to render components directly without wrapper components.
  */
@@ -293,6 +305,7 @@ const withEBComponentsProvider: Decorator<BaseStoryArgs> = (Story, context) => {
         clientId={args.clientId ?? ''}
         reactQueryDefaultOptions={args.reactQueryDefaultOptions}
       >
+        <QueryCacheResetter />
         <Story />
       </EBComponentsProvider>
     </>

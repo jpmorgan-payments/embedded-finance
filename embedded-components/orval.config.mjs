@@ -1,10 +1,13 @@
-module.exports = {
+import { defineConfig } from 'orval';
+
+export default defineConfig({
   'ef-v1': {
     input: './api-specs/embedded-finance-pub-ef-1.0.8.yaml',
     output: {
       mode: 'split',
       target: './src/api/generated/ef-v1.ts',
       client: 'react-query',
+      httpClient: 'axios',
       override: {
         mutator: {
           path: './src/api/axios-instance.ts',
@@ -19,6 +22,7 @@ module.exports = {
       mode: 'split',
       target: './src/api/generated/ef-v2.ts',
       client: 'react-query',
+      httpClient: 'axios',
       override: {
         mutator: {
           path: './src/api/axios-instance.ts',
@@ -33,6 +37,7 @@ module.exports = {
       mode: 'split',
       target: './src/api/generated/ep-recipients.ts',
       client: 'react-query',
+      httpClient: 'axios',
       override: {
         query: {
           useQuery: true,
@@ -52,6 +57,7 @@ module.exports = {
       mode: 'split',
       target: './src/api/generated/ep-transactions.ts',
       client: 'react-query',
+      httpClient: 'axios',
       override: {
         mutator: {
           path: './src/api/axios-instance.ts',
@@ -66,6 +72,7 @@ module.exports = {
       mode: 'split',
       target: './src/api/generated/ep-accounts.ts',
       client: 'react-query',
+      httpClient: 'axios',
       override: {
         mutator: {
           path: './src/api/axios-instance.ts',
@@ -80,6 +87,7 @@ module.exports = {
       mode: 'split',
       target: './src/api/generated/smbdo.ts',
       client: 'react-query',
+      httpClient: 'axios',
       override: {
         mutator: {
           path: './src/api/axios-instance.ts',
@@ -88,4 +96,4 @@ module.exports = {
       },
     },
   },
-};
+});

@@ -1,6 +1,6 @@
 {
   "name": "@jpmorgan-payments/embedded-finance-components",
-  "version": "0.12.20",
+  "version": "0.13.0",
   "license": "Apache-2.0",
   "type": "module",
   "description": "Embedded Finance Components",
@@ -76,8 +76,8 @@
     "analyze": "vite build --mode analyze",
     "visualize": "vite-bundle-visualizer",
     "__comment_api": "=== API GENERATION ===",
-    "generate-api": "orval --config ./orval.config.cjs && yarn fix-generated-files && yarn prettify-generated-files",
-    "fix-generated-files": "yarn replace '((?:\\s|\\<))(\\d\\S*)Response' '$1N$2Response' ./src/api/generated/*",
+    "generate-api": "orval --config ./orval.config.mjs && yarn fix-generated-files && yarn prettify-generated-files",
+    "fix-generated-files": "yarn replace '((?:\\s|\\<))(?!N)(\\d\\S*)Response' '$1N$2Response' ./src/api/generated/*",
     "prettify-generated-files": "npx prettier --write './src/api/generated/*'",
     "__comment_deprecated": "=== DEPRECATED (use format/test:unit) ===",
     "prettier": "prettier --check \"**/*.{ts,tsx}\"",
@@ -161,6 +161,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/dompurify": "^3.2.0",
     "@types/lodash": "^4.17.20",
+    "@types/node": "^25.6.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@types/react-window": "^1",
@@ -189,7 +190,7 @@
     "mermaid": "^11.12.2",
     "msw": "^2.11.6",
     "msw-storybook-addon": "^2.0.6",
-    "orval": "^7.21.0",
+    "orval": "^8.5.3",
     "postcss": "^8.5.6",
     "postcss-preset-mantine": "1.18.0",
     "postcss-simple-vars": "^7.0.1",
@@ -226,7 +227,8 @@
     "glob": "^10.5.0",
     "tar": "^7.5.11",
     "lodash": "4.18.0",
-    "lodash-es": "4.18.0"
+    "lodash-es": "4.18.0",
+    "vite-plugin-dts/minimatch": "^10.2.3"
   },
   "packageManager": "yarn@4.12.0",
   "publishConfig": {

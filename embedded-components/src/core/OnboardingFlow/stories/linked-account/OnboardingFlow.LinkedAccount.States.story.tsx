@@ -22,6 +22,8 @@ import {
   mockExistingLinkedAccountMicrodepositsInitiated,
   mockExistingLinkedAccountPending,
   mockExistingLinkedAccountReadyForValidation,
+  mockExistingLinkedAccountRejected,
+  mockExistingLinkedAccountRejected2,
   mockLinkAccountPrefillEditable,
   mockLinkAccountPrefillReadonly,
   mockLinkAccountPrefillSummaryAcknowledgementsThree,
@@ -168,5 +170,68 @@ export const ApprovedWithExistingLinkedAccount: Story =
     '**ACTIVE** — verified; no verification alert on the overview card.',
     {
       handlerOptions: { existingLinkedAccounts: [mockExistingLinkedAccount] },
+    }
+  );
+
+// ============================================================================
+// Rejected account scenarios
+// ============================================================================
+
+/**
+ * **Approved — only rejected linked accounts (no active account)**
+ *
+ * The overview bank section shows the "Link an account" Start button
+ * together with a collapsible **Recently Rejected Accounts** accordion
+ * listing the rejected accounts from the last 30 days.
+ */
+export const ApprovedWithOnlyRejectedAccounts: Story =
+  approvedLinkAccountLifecycleStory(
+    '**REJECTED only** — no active/pending account. The rejected-accounts accordion is shown alongside the Start button.',
+    {
+      handlerOptions: {
+        existingLinkedAccounts: [
+          mockExistingLinkedAccountRejected,
+          mockExistingLinkedAccountRejected2,
+        ],
+      },
+    }
+  );
+
+/**
+ * **Approved — active linked account + rejected accounts**
+ *
+ * The overview bank section displays the existing active account card.
+ * The rejected accounts accordion is **not** shown because a non-rejected
+ * linked account exists (the accordion only appears when there are zero
+ * non-rejected accounts).
+ */
+export const ApprovedWithActiveAndRejectedAccounts: Story =
+  approvedLinkAccountLifecycleStory(
+    '**ACTIVE + REJECTED** — active account card shown; rejected accordion hidden because a valid account exists.',
+    {
+      handlerOptions: {
+        existingLinkedAccounts: [
+          mockExistingLinkedAccount,
+          mockExistingLinkedAccountRejected,
+        ],
+      },
+    }
+  );
+
+/**
+ * **Approved — pending linked account + rejected accounts**
+ *
+ * Pending account card visible on the overview; rejected accounts hidden.
+ */
+export const ApprovedWithPendingAndRejectedAccounts: Story =
+  approvedLinkAccountLifecycleStory(
+    '**PENDING + REJECTED** — pending account card shown; rejected accordion hidden.',
+    {
+      handlerOptions: {
+        existingLinkedAccounts: [
+          mockExistingLinkedAccountPending,
+          mockExistingLinkedAccountRejected,
+        ],
+      },
     }
   );

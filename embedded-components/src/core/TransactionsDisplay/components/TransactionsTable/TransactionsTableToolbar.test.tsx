@@ -68,6 +68,10 @@ describe('TransactionsTableToolbar', () => {
       type: 'ACH',
       counterpartName: 'John Doe',
       transactionReferenceId: 'REF-123',
+      amount: 1000,
+      currency: 'USD',
+      paymentDate: '2024-01-15',
+      createdAt: '2024-01-15T00:00:00Z',
     },
     {
       id: 'txn-002',
@@ -75,6 +79,10 @@ describe('TransactionsTableToolbar', () => {
       type: 'WIRE',
       counterpartName: 'Jane Smith',
       transactionReferenceId: 'REF-456',
+      amount: 2000,
+      currency: 'USD',
+      paymentDate: '2024-01-16',
+      createdAt: '2024-01-16T00:00:00Z',
     },
   ];
 

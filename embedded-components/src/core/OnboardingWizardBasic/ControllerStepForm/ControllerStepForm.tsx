@@ -60,16 +60,20 @@ import {
   useSmbdoUpdateClientLegacy,
   useUpdatePartyLegacy as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
+import type {
+  CreatePartyRequestInline,
+  UpdatePartyRequestInline,
+} from '@/api/generated/smbdo.schemas';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Form } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
+import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
 
 import { FormActions } from '../FormActions/FormActions';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { OnboardingArrayField } from '../OnboardingFormField/OnboardingArrayField';
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
 import { ServerErrorAlert } from '../ServerErrorAlert/ServerErrorAlert';
-import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
 import {
   convertClientResponseToFormValues,
   generateClientRequestBody,
@@ -85,6 +89,8 @@ import {
   ControllerStepFormSchema,
   refineControllerStepFormSchema,
 } from './ControllerStepForm.schema';
+
+type AddPartyItem = CreatePartyRequestInline & UpdatePartyRequestInline;
 
 export const ControllerStepForm = () => {
   const {
@@ -209,7 +215,7 @@ export const ControllerStepForm = () => {
                 partyType: 'INDIVIDUAL',
                 roles: ['CONTROLLER'],
               },
-            ],
+            ] as AddPartyItem[],
           }
         );
         updateClient(

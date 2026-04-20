@@ -1010,6 +1010,65 @@ export const COUNTRY_SUBDIVISIONS: Partial<
     { label: 'Yozgat', value: '66' },
     { label: 'Zonguldak', value: '67' },
   ],
+
+  // ── Ecuador ──────────────────────────────────────────────────────
+  EC: [
+    { label: 'Azuay', value: 'A' },
+    { label: 'Bolívar', value: 'B' },
+    { label: 'Cañar', value: 'F' },
+    { label: 'Carchi', value: 'C' },
+    { label: 'Chimborazo', value: 'H' },
+    { label: 'Cotopaxi', value: 'X' },
+    { label: 'El Oro', value: 'O' },
+    { label: 'Esmeraldas', value: 'E' },
+    { label: 'Galápagos', value: 'W' },
+    { label: 'Guayas', value: 'G' },
+    { label: 'Imbabura', value: 'I' },
+    { label: 'Loja', value: 'L' },
+    { label: 'Los Ríos', value: 'R' },
+    { label: 'Manabí', value: 'M' },
+    { label: 'Morona Santiago', value: 'S' },
+    { label: 'Napo', value: 'N' },
+    { label: 'Orellana', value: 'D' },
+    { label: 'Pastaza', value: 'Y' },
+    { label: 'Pichincha', value: 'P' },
+    { label: 'Santa Elena', value: 'SE' },
+    { label: 'Santo Domingo de los Tsáchilas', value: 'SD' },
+    { label: 'Sucumbíos', value: 'U' },
+    { label: 'Tungurahua', value: 'T' },
+    { label: 'Zamora Chinchipe', value: 'Z' },
+  ],
+
+  // ── Hong Kong ────────────────────────────────────────────────────
+  HK: [
+    { label: 'Central and Western', value: 'HCW' },
+    { label: 'Eastern', value: 'HEA' },
+    { label: 'Islands', value: 'NIS' },
+    { label: 'Kowloon City', value: 'KKC' },
+    { label: 'Kwai Tsing', value: 'NKT' },
+    { label: 'Kwun Tong', value: 'KKT' },
+    { label: 'North', value: 'NNO' },
+    { label: 'Sai Kung', value: 'NSK' },
+    { label: 'Sha Tin', value: 'NST' },
+    { label: 'Sham Shui Po', value: 'KSS' },
+    { label: 'Southern', value: 'HSO' },
+    { label: 'Tai Po', value: 'NTP' },
+    { label: 'Tsuen Wan', value: 'NTW' },
+    { label: 'Tuen Mun', value: 'NTM' },
+    { label: 'Wan Chai', value: 'HWC' },
+    { label: 'Wong Tai Sin', value: 'KWT' },
+    { label: 'Yau Tsim Mong', value: 'KYT' },
+    { label: 'Yuen Long', value: 'NYL' },
+  ],
+
+  // ── Singapore ────────────────────────────────────────────────────
+  SG: [
+    { label: 'Central Region', value: 'CR' },
+    { label: 'East Region', value: 'ER' },
+    { label: 'North Region', value: 'NR' },
+    { label: 'North-East Region', value: 'NER' },
+    { label: 'West Region', value: 'WR' },
+  ],
 };
 
 /**

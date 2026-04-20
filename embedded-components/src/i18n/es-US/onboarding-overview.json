@@ -23,7 +23,10 @@
         "RU": "Ciudad",
         "SA": "Ciudad",
         "SE": "Ciudad",
-        "TR": "Ciudad / Distrito"
+        "TR": "Ciudad / Distrito",
+        "EC": "Ciudad",
+        "HK": "Ciudad / Distrito",
+        "SG": "Ciudad"
       },
       "placeholder": {
         "default": "Ingrese la ciudad"
@@ -59,7 +62,10 @@
         "RU": "Óblast / Krai",
         "SA": "Región",
         "SE": "Condado",
-        "TR": "Provincia"
+        "TR": "Provincia",
+        "EC": "Provincia",
+        "HK": "Distrito",
+        "SG": "Región"
       },
       "placeholder": {
         "default": "Seleccione o ingrese el estado / provincia",
@@ -81,7 +87,10 @@
         "RU": "Seleccione el óblast / krai",
         "SA": "Seleccione la región",
         "SE": "Seleccione el condado",
-        "TR": "Seleccione la provincia"
+        "TR": "Seleccione la provincia",
+        "EC": "Seleccione la provincia",
+        "HK": "Seleccione el distrito",
+        "SG": "Seleccione la región"
       },
       "description": {
         "default": ""
@@ -129,7 +138,10 @@
         "RU": "Código postal",
         "SA": "Código postal",
         "SE": "Código postal",
-        "TR": "Código postal"
+        "TR": "Código postal",
+        "EC": "Código postal",
+        "HK": "Código postal",
+        "SG": "Código postal"
       },
       "placeholder": {
         "default": "Ingrese el código postal",
@@ -150,7 +162,9 @@
         "NO": "4 dígitos",
         "PT": "p. ej., 1000-001",
         "SE": "p. ej., 123 45",
-        "TR": "5 dígitos"
+        "TR": "5 dígitos",
+        "EC": "6 dígitos",
+        "SG": "6 dígitos"
       },
       "tooltip": {
         "default": ""
