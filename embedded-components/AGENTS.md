@@ -24,6 +24,8 @@ All commands run from this directory (`embedded-components/`):
 - Linting: `yarn lint`
 - Format code: `yarn format`
 
+**After any `.ts` / `.tsx` edit:** run `yarn format` before committing (or ensure `yarn format:check` passes). Running full `yarn test` also enforces formatting — it runs `format:check` before lint and unit tests.
+
 **For large changes:** run `yarn format`, then `yarn typecheck`, then `yarn build`, then `yarn test` before committing.
 
 ## Storybook Stories
