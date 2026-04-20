@@ -265,9 +265,21 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
         addAttestations: [
           {
             attestationTime: new Date().toISOString(),
-            attesterFullName: clientData?.parties?.find(
-              (party) => party?.partyType === 'INDIVIDUAL'
-            )?.individualDetails?.firstName,
+            attesterFullName: (() => {
+              const controllerParty = clientData?.parties?.find(
+                (party) =>
+                  party?.partyType === 'INDIVIDUAL' &&
+                  party?.roles?.includes('CONTROLLER')
+              );
+              const details = controllerParty?.individualDetails;
+              return [
+                details?.firstName,
+                details?.middleName,
+                details?.lastName,
+              ]
+                .filter(Boolean)
+                .join(' ');
+            })(),
             ipAddress,
             documentId: clientData?.outstanding?.attestationDocumentIds?.[0],
           },
