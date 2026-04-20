@@ -613,7 +613,17 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
           )}
         </div>
         <div className="eb-mt-6 eb-space-y-6">
-          <div className="eb-flex eb-justify-between eb-gap-4">
+          <div className="eb-flex eb-flex-col eb-gap-3">
+            <Button
+              type="submit"
+              variant="default"
+              size="lg"
+              className={cn('eb-w-full eb-text-lg', {
+                'eb-hidden': getNextButtonLabel() === null,
+              })}
+            >
+              {getNextButtonLabel()}
+            </Button>
             <Button
               type="button"
               onClick={handlePrev}
@@ -624,16 +634,6 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
               })}
             >
               {getPrevButtonLabel()}
-            </Button>
-            <Button
-              type="submit"
-              variant="default"
-              size="lg"
-              className={cn('eb-w-full eb-text-lg', {
-                'eb-hidden': getNextButtonLabel() === null,
-              })}
-            >
-              {getNextButtonLabel()}
             </Button>
           </div>
         </div>
