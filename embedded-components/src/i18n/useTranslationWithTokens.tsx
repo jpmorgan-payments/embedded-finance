@@ -68,7 +68,11 @@ export function useTranslationWithTokens<N extends ValidNamespace>(
     }
 
     // Build full token ID (namespace.key)
-    const keyStr = String(args[0]);
+    // When args[0] is an array of fallback keys, use only the first key
+    // so the data-content-token attribute is a single clean key rather
+    // than a comma-joined list of all fallback keys.
+    const rawKey = args[0];
+    const keyStr = String(Array.isArray(rawKey) ? rawKey[0] : rawKey);
     // Prefer `ns` from the last object arg (covers t(key, opts) and t(key, default, opts))
     let optionsForNs: Record<string, unknown> | undefined;
     for (let i = args.length - 1; i >= 1; i -= 1) {
