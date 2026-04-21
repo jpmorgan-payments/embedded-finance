@@ -167,8 +167,16 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
 
   const fieldRequired = required ?? fieldRule.required ?? false;
   const fieldDisplay = fieldRule.display ?? 'visible';
-  const fieldInteraction =
-    readonly || fieldRule.interaction === 'readonly'
+
+  // Check if field has a validation error (used by editableWhenInvalid)
+  const fieldError = form.getFieldState(name)?.error;
+  const isReadonly = readonly || fieldRule.interaction === 'readonly';
+  const shouldOverrideReadonly =
+    isReadonly && fieldRule.editableWhenInvalid === true && fieldError != null;
+
+  const fieldInteraction = shouldOverrideReadonly
+    ? 'enabled'
+    : isReadonly
       ? 'readonly'
       : disabled || fieldRule.interaction === 'disabled'
         ? 'disabled'
@@ -266,6 +274,16 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
         const { onBlur, ...fieldWithoutBlur } = field;
         const [open, setOpen] = useState(false);
 
+        // When the current value doesn't match any available option
+        // (e.g. invalid API data), treat as unset so the user sees
+        // the placeholder and must pick a valid option.
+        const matchedOption = options?.find((opt) => opt.value === field.value);
+        const hasUnmatchedValue =
+          (type === 'combobox' || type === 'select') &&
+          !!field.value &&
+          !!options &&
+          !matchedOption;
+
         return (
           <FormItem className={className}>
             {type !== 'checkbox' && type !== 'checkbox-basic' ? (
@@ -285,7 +303,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
             {fieldInteraction === 'readonly' ? (
               <p className="eb-font-bold">
                 {(options
-                  ? options.find(({ value }) => value === field.value)?.label
+                  ? matchedOption?.label
                   : (valueOverride ?? field.value)) || 'N/A'}
               </p>
             ) : (
@@ -343,10 +361,8 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                               }}
                               {...fieldWithoutBlur}
                             >
-                              {field.value
-                                ? options?.find(
-                                    (option) => option.value === field.value
-                                  )?.label
+                              {field.value && matchedOption
+                                ? matchedOption.label
                                 : fieldPlaceholder}
                               <ChevronsUpDown className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
                             </Button>
@@ -401,7 +417,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                           field.onChange(value);
                           onBlur();
                         }}
-                        value={field.value}
+                        value={hasUnmatchedValue ? '' : field.value}
                         data-dtrum-tracking={field.name}
                       >
                         <FormControl {...fieldWithoutBlur}>

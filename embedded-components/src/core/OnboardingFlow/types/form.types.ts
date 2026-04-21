@@ -80,6 +80,13 @@ export type FieldRule<T = any> = {
   required?: boolean;
   contentTokenOverrideKey?: string;
   contentTokenOverrides?: ContentTokenOverrides;
+  /**
+   * When true and the field is `readonly`, the field will automatically
+   * switch to `enabled` if it has a validation error (e.g. from
+   * invalid API data detected via validateOnMount). This lets the user
+   * correct the value without requiring a separate edit flow.
+   */
+  editableWhenInvalid?: boolean;
   defaultValue: T;
 };
 
@@ -88,6 +95,7 @@ export type ArrayFieldRule<T extends readonly unknown[] = any> = {
   interaction?: FieldInteractionConfig;
   contentTokenOverrideKey?: string;
   contentTokenOverrides?: ContentTokenOverrides;
+  editableWhenInvalid?: boolean;
   minItems?: number;
   requiredItems?: number;
   maxItems?: number;

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { defaultResources, i18n } from '@/i18n/config';
 import { objectEntries, objectKeys } from '@/utils/objectEntries';
@@ -911,6 +912,12 @@ export function useFormWithFilters<
       schema: z.ZodObject<Record<string, z.ZodType<any>>>
     ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>>;
     overrideDefaultValues?: Partial<OnboardingFormValuesInitial>;
+    /**
+     * When true, runs form.trigger() on mount to surface validation
+     * errors from pre-populated API data (e.g. invalid EIN format).
+     * Defaults to true when overrideDefaultValues is provided.
+     */
+    validateOnMount?: boolean;
   }
 ): UseFormReturn<z.input<TSchema>, any, z.output<TSchema>> {
   const { modifyDefaultValues, modifySchema } = useFormUtilsWithClientContext(
@@ -934,6 +941,53 @@ export function useFormWithFilters<
       ...(props.overrideDefaultValues ?? {}),
     },
   });
+
+  // Validate pre-populated fields on mount to surface errors from API data
+  // (e.g. invalid EIN format, mismatched address country). Only validates
+  // fields that already have a non-empty value — empty required fields are
+  // left alone until the user interacts with them.
+  const shouldValidateOnMount =
+    props.validateOnMount ??
+    Object.keys(props.overrideDefaultValues ?? {}).length > 0;
+
+  const hasValidatedOnMount = useRef(false);
+  useEffect(() => {
+    if (shouldValidateOnMount && !hasValidatedOnMount.current) {
+      hasValidatedOnMount.current = true;
+
+      // Collect field paths that have non-empty values
+      const values = form.getValues();
+      const populatedFields: string[] = [];
+
+      const collectPopulated = (obj: Record<string, any>, prefix = '') => {
+        for (const [key, val] of Object.entries(obj)) {
+          const path = prefix ? `${prefix}.${key}` : key;
+          if (Array.isArray(val)) {
+            val.forEach((item, idx) => {
+              if (item != null && typeof item === 'object') {
+                collectPopulated(item, `${path}.${idx}`);
+              } else if (item !== '' && item != null) {
+                populatedFields.push(`${path}.${idx}`);
+              }
+            });
+          } else if (
+            val != null &&
+            typeof val === 'object' &&
+            !Array.isArray(val)
+          ) {
+            collectPopulated(val, path);
+          } else if (val !== '' && val != null) {
+            populatedFields.push(path);
+          }
+        }
+      };
+      collectPopulated(values);
+
+      if (populatedFields.length > 0) {
+        form.trigger(populatedFields as any);
+      }
+    }
+  }, [shouldValidateOnMount, form]);
 
   return form;
 }

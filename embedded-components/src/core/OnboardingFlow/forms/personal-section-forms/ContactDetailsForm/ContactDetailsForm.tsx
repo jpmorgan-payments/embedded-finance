@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, useFormState } from 'react-hook-form';
 import { z } from 'zod';
 
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
@@ -13,7 +13,10 @@ import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 import { getOrganizationParty } from '@/core/OnboardingFlow/utils/dataUtils';
 import { useGetFieldContentToken } from '@/core/OnboardingFlow/utils/formUtils';
 
-import { useContactDetailsFormSchema } from './ContactDetailsForm.schema';
+import {
+  refineContactDetailsFormSchema,
+  useContactDetailsFormSchema,
+} from './ContactDetailsForm.schema';
 
 export const ContactDetailsForm: FormStepComponent = () => {
   const { t, tString } = useTranslationWithTokens('onboarding-overview');
@@ -30,6 +33,8 @@ export const ContactDetailsForm: FormStepComponent = () => {
     useFormContext<z.input<ReturnType<typeof useContactDetailsFormSchema>>>();
 
   const addressCountry = form.watch('individualAddress.country');
+  const { errors } = useFormState({ control: form.control });
+  const addressCountryError = errors?.individualAddress?.country;
   const isInitialCountryRender = useRef(true);
 
   const addressLabel = (field: string) =>
@@ -102,7 +107,7 @@ export const ContactDetailsForm: FormStepComponent = () => {
               </span>
             ),
           }))}
-          readonly={isSoleProp && !!countryOfFormation}
+          readonly={isSoleProp && !!countryOfFormation && !addressCountryError}
           required
         />
         <OnboardingFormField
@@ -165,3 +170,4 @@ export const ContactDetailsForm: FormStepComponent = () => {
 };
 
 ContactDetailsForm.schema = useContactDetailsFormSchema;
+ContactDetailsForm.refineSchemaFn = refineContactDetailsFormSchema;
