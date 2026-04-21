@@ -106,7 +106,12 @@ export interface StandardFormFieldProps<
  */
 interface ComboboxFieldProps {
   field: any;
-  options: Array<{ label: ReactNode; value: string; disabled?: boolean }>;
+  options: Array<{
+    label: ReactNode;
+    value: string;
+    searchValue?: string;
+    disabled?: boolean;
+  }>;
   placeholder: string;
   noOptionsText: string;
   disabled: boolean;
@@ -167,7 +172,7 @@ const ComboboxField = ({
                 {options.map((option) => (
                   <CommandItem
                     key={option.value}
-                    value={`${option.label} ${option.value}`}
+                    value={`${option.searchValue ?? option.label} ${option.value}`}
                     onSelect={() => {
                       field.onChange(
                         option.value === field.value ? '' : option.value

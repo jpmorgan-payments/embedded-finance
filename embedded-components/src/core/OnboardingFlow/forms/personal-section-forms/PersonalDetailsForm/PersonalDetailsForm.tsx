@@ -18,7 +18,7 @@ import {
 } from './PersonalDetailsForm.schema';
 
 export const PersonalDetailsForm: FormStepComponent = () => {
-  const { t } = useTranslationWithTokens('onboarding-overview');
+  const { t, tString } = useTranslationWithTokens('onboarding-overview');
   const { currentScreenId } = useFlowContext();
   const _schema = usePersonalDetailsFormSchema();
   const form = useFormContext<z.input<typeof _schema>>();
@@ -42,6 +42,7 @@ export const PersonalDetailsForm: FormStepComponent = () => {
         type="combobox"
         options={COUNTRIES_OF_FORMATION.map((code) => ({
           value: code,
+          searchValue: `[${code}] ${tString([`common:countries.${code}`] as unknown as TemplateStringsArray)}`,
           label: (
             <span>
               <span className="eb-font-medium">[{code}]</span>{' '}

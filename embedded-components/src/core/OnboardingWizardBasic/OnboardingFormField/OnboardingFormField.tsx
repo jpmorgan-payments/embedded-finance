@@ -104,6 +104,7 @@ interface SelectOrRadioGroupProps<
   options: Array<{
     label: React.ReactNode | string;
     value: string;
+    searchValue?: string;
     description?: string;
   }>;
 }
@@ -345,7 +346,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                                 {options?.map((option) => (
                                   <CommandItem
                                     key={`combobox-option-${option.value}`}
-                                    value={`${option.label} ${option.value}`}
+                                    value={`${option.searchValue ?? option.label} ${option.value}`}
                                     onSelect={() => {
                                       onChangeProp?.(option.value);
                                       field.onChange(
