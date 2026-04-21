@@ -32,7 +32,7 @@ const getAlertConfig = (status: RecipientStatus) => {
   switch (status) {
     case 'ACTIVE':
       return {
-        variant: 'default' as const,
+        variant: 'success' as const,
         icon: CheckCircle2Icon,
         iconClass: 'eb-text-green-600',
       };
@@ -49,11 +49,16 @@ const getAlertConfig = (status: RecipientStatus) => {
         iconClass: 'eb-text-destructive',
       };
     case 'MICRODEPOSITS_INITIATED':
-    case 'PENDING':
       return {
-        variant: 'default' as const,
+        variant: 'informative' as const,
         icon: ClockIcon,
         iconClass: 'eb-text-blue-600',
+      };
+    case 'PENDING':
+      return {
+        variant: 'warning' as const,
+        icon: ClockIcon,
+        iconClass: 'eb-text-warning',
       };
     default:
       return {
