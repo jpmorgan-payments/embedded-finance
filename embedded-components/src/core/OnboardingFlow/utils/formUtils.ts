@@ -955,9 +955,27 @@ export function useFormWithFilters<
     if (shouldValidateOnMount && !hasValidatedOnMount.current) {
       hasValidatedOnMount.current = true;
 
-      // Collect field paths that have non-empty values
+      // Collect field paths that have non-empty values.
+      // For object-typed fields (e.g. phone: {phoneType, phoneNumber}),
+      // only include the object if ALL its leaf values are populated.
+      // This avoids false validation on objects with auto-set defaults
+      // (e.g. phoneType is always set, but phoneNumber may be empty).
       const values = form.getValues();
       const populatedFields: string[] = [];
+
+      const isEffectivelyEmpty = (val: unknown): boolean =>
+        val === '' ||
+        val == null ||
+        // Phone fields with only a country code (e.g. "+1") are empty
+        (typeof val === 'string' && /^\+\d{1,3}$/.test(val.trim()));
+
+      const isFullyPopulated = (obj: Record<string, any>): boolean =>
+        Object.values(obj).every((val) => {
+          if (val != null && typeof val === 'object' && !Array.isArray(val)) {
+            return isFullyPopulated(val);
+          }
+          return !isEffectivelyEmpty(val);
+        });
 
       const collectPopulated = (obj: Record<string, any>, prefix = '') => {
         for (const [key, val] of Object.entries(obj)) {
@@ -965,8 +983,11 @@ export function useFormWithFilters<
           if (Array.isArray(val)) {
             val.forEach((item, idx) => {
               if (item != null && typeof item === 'object') {
-                collectPopulated(item, `${path}.${idx}`);
-              } else if (item !== '' && item != null) {
+                // For array items that are objects, only include if fully populated
+                if (isFullyPopulated(item)) {
+                  collectPopulated(item, `${path}.${idx}`);
+                }
+              } else if (!isEffectivelyEmpty(item)) {
                 populatedFields.push(`${path}.${idx}`);
               }
             });
@@ -975,8 +996,11 @@ export function useFormWithFilters<
             typeof val === 'object' &&
             !Array.isArray(val)
           ) {
-            collectPopulated(val, path);
-          } else if (val !== '' && val != null) {
+            // Only recurse into objects where all leaves are populated
+            if (isFullyPopulated(val)) {
+              collectPopulated(val, path);
+            }
+          } else if (!isEffectivelyEmpty(val)) {
             populatedFields.push(path);
           }
         }
