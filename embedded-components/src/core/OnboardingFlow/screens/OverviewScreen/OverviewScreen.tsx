@@ -176,7 +176,7 @@ export const OverviewScreen = () => {
         !sessionData.hideOverviewInfoAlert && clientData?.status === 'NEW' ? (
           <Alert variant="informative" density="sm" noTitle>
             <InfoIcon className="eb-size-4" />
-            <AlertDescription>
+            <AlertDescription className="eb-pr-6">
               {t('screens.overview.infoAlert')}
             </AlertDescription>
             <button
@@ -528,9 +528,14 @@ export const OverviewScreen = () => {
                 ) : existingLinkedAccount ? (
                   <>
                     {sessionData.linkAccountJustCreated && (
-                      <Alert variant="success" density="sm" className="eb-mb-2">
+                      <Alert
+                        variant="success"
+                        density="sm"
+                        className="eb-mb-2"
+                        noTitle
+                      >
                         <CheckCircle2Icon className="eb-size-4" />
-                        <AlertDescription>
+                        <AlertDescription className="eb-pr-6">
                           {t(
                             `screens.overview.bankAccountSection.successAlert.${existingLinkedAccount.status ?? 'ACTIVE'}`,
                             'Your bank account details have been submitted successfully.'
