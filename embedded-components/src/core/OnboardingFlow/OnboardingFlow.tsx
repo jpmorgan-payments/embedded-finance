@@ -622,7 +622,8 @@ const FlowRenderer: React.FC = React.memo(() => {
                   editingPartyId: stepId,
                   previouslyCompleted: !!validation?.allStepsValid,
                   shortLabelOverride: 'Edit owner',
-                  initialStepperStepId: firstInvalidStep,
+                  initialStepperStepId:
+                    firstInvalidStep ?? ownerStepperConfig?.steps.at(-1)?.id,
                 });
                 return;
               }

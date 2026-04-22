@@ -236,7 +236,7 @@ export const OwnersSectionScreen = () => {
         editingPartyId: beneficialOwnerId,
         previouslyCompleted: ownersValidation[beneficialOwnerId].allStepsValid,
         shortLabelOverride: 'Edit owner',
-        initialStepperStepId: firstInvalidStep,
+        initialStepperStepId: firstInvalidStep ?? ownerSteps.at(-1)?.id,
       });
     } else {
       goTo('owner-stepper', {
