@@ -50,7 +50,7 @@ const PatternInput = React.forwardRef<HTMLInputElement, PatternInputProps>(
       value,
       obfuscateWhenUnfocused = false,
       onFocus,
-      onBlur: _onBlur,
+      onBlur,
       ...props
     },
     ref
@@ -104,6 +104,15 @@ const PatternInput = React.forwardRef<HTMLInputElement, PatternInputProps>(
       [onFocus]
     );
 
+    // Combined blur handler
+    const handleBlur = React.useCallback(
+      (event: React.FocusEvent<HTMLInputElement>) => {
+        setIsFocused(false);
+        onBlur?.(event);
+      },
+      [onBlur]
+    );
+
     // Smart obfuscation: only obfuscate if there was initial data AND user hasn't focused yet
     const shouldObfuscate =
       obfuscateWhenUnfocused && hasInitialData.current && !isFocused;
@@ -120,6 +129,7 @@ const PatternInput = React.forwardRef<HTMLInputElement, PatternInputProps>(
             value={displayValue as string}
             onChange={onChange}
             onFocus={handleFocus}
+            onBlur={handleBlur}
             {...(props as React.ComponentProps<typeof Input>)}
           />
         ) : (
@@ -127,15 +137,14 @@ const PatternInput = React.forwardRef<HTMLInputElement, PatternInputProps>(
             customInput={Input}
             allowEmptyFormatting
             onValueChange={(values) => {
-              if (values?.value) {
-                const syntheticEvent = {
-                  target: {
-                    value: values.value,
-                  },
-                } as React.ChangeEvent<HTMLInputElement>;
-                onChange?.(syntheticEvent);
-              }
+              const syntheticEvent = {
+                target: {
+                  value: values?.value ?? '',
+                },
+              } as React.ChangeEvent<HTMLInputElement>;
+              onChange?.(syntheticEvent);
             }}
+            onBlur={handleBlur}
             value={displayValue}
             getInputRef={refCallback}
             {...props}
