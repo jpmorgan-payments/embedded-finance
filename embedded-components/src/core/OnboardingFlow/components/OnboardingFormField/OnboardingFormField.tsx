@@ -385,12 +385,25 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                                     ta.search = '';
                                   }, 1000);
 
-                                  const match = options.find((opt) => {
-                                    const text = (
+                                  const getSearchText = (
+                                    opt: (typeof options)[number]
+                                  ) =>
+                                    (
                                       opt.searchValue ?? String(opt.label)
                                     ).toLowerCase();
-                                    return text.startsWith(ta.search);
-                                  });
+                                  const match =
+                                    options.find((opt) =>
+                                      getSearchText(opt).startsWith(ta.search)
+                                    ) ??
+                                    options
+                                      .filter((opt) =>
+                                        getSearchText(opt).includes(ta.search)
+                                      )
+                                      .sort(
+                                        (a, b) =>
+                                          getSearchText(a).indexOf(ta.search) -
+                                          getSearchText(b).indexOf(ta.search)
+                                      )[0];
                                   if (match && match.value !== field.value) {
                                     onChangeProp?.(match.value);
                                     field.onChange(match.value);

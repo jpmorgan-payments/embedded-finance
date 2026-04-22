@@ -348,12 +348,33 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                                   typeahead.timer = window.setTimeout(() => {
                                     typeahead.search = '';
                                   }, 1000);
-                                  const match = options.find((opt) => {
-                                    const text = (
+                                  const getSearchText = (
+                                    opt: (typeof options)[number]
+                                  ) =>
+                                    (
                                       opt.searchValue ?? String(opt.label)
                                     ).toLowerCase();
-                                    return text.startsWith(typeahead.search);
-                                  });
+                                  const match =
+                                    options.find((opt) =>
+                                      getSearchText(opt).startsWith(
+                                        typeahead.search
+                                      )
+                                    ) ??
+                                    options
+                                      .filter((opt) =>
+                                        getSearchText(opt).includes(
+                                          typeahead.search
+                                        )
+                                      )
+                                      .sort(
+                                        (a, b) =>
+                                          getSearchText(a).indexOf(
+                                            typeahead.search
+                                          ) -
+                                          getSearchText(b).indexOf(
+                                            typeahead.search
+                                          )
+                                      )[0];
                                   if (match && match.value !== field.value) {
                                     onChangeProp?.(match.value);
                                     field.onChange(match.value);
