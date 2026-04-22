@@ -106,7 +106,7 @@ function createMockClientInvalidEIN(): ClientResponse {
       {
         idType: 'EIN',
         issuer: 'US',
-        value: '12345', // Too short — should be 9 digits
+        value: '914316140', // cannot start with 9
       },
     ];
   }
