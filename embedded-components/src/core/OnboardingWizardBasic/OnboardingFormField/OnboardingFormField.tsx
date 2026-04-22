@@ -347,12 +347,12 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                                   typeahead.search += e.key.toLowerCase();
                                   typeahead.timer = window.setTimeout(() => {
                                     typeahead.search = '';
-                                  }, 500);
+                                  }, 1000);
                                   const match = options.find((opt) => {
                                     const text = (
                                       opt.searchValue ?? String(opt.label)
                                     ).toLowerCase();
-                                    return text.includes(typeahead.search);
+                                    return text.startsWith(typeahead.search);
                                   });
                                   if (match && match.value !== field.value) {
                                     onChangeProp?.(match.value);

@@ -383,13 +383,13 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                                   ta.search += e.key.toLowerCase();
                                   ta.timer = window.setTimeout(() => {
                                     ta.search = '';
-                                  }, 500);
+                                  }, 1000);
 
                                   const match = options.find((opt) => {
                                     const text = (
                                       opt.searchValue ?? String(opt.label)
                                     ).toLowerCase();
-                                    return text.includes(ta.search);
+                                    return text.startsWith(ta.search);
                                   });
                                   if (match && match.value !== field.value) {
                                     onChangeProp?.(match.value);
