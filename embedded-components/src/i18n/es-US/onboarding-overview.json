@@ -459,7 +459,8 @@
         },
         "contactDetails": {
           "title": "Sus datos de contacto",
-          "description": "Necesitamos algunos datos adicionales para confirmar su identidad."
+          "description": "Necesitamos algunos datos adicionales para confirmar su identidad.",
+          "countryMismatchWarning": "El país de la dirección no coincide con el país de residencia ({{country}}). Aún puede enviar, pero verifique que sea correcto."
         },
         "checkAnswers": {
           "title": "Verifique sus respuestas",

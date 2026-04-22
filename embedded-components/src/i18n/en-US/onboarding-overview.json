@@ -514,7 +514,8 @@
         },
         "contactDetails": {
           "title": "Your contact details",
-          "description": "We need some additional details to confirm your identity."
+          "description": "We need some additional details to confirm your identity.",
+          "countryMismatchWarning": "Address country does not match country of residence ({{country}}). You may still submit, but please verify this is correct."
         },
         "checkAnswers": {
           "title": "Check your answers",
