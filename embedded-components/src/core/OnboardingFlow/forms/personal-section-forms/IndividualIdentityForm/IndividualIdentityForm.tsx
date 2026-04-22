@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
+import { useFlowContext } from '@/core/OnboardingFlow/contexts/FlowContext/FlowContext';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 import { useFormUtils } from '@/core/OnboardingFlow/utils/formUtils';
 
@@ -35,6 +36,7 @@ export const IndividualIdentityForm: FormStepComponent = () => {
       z.input<ReturnType<typeof useIndividualIdentityFormSchema>>
     >();
   const { getFieldRule } = useFormUtils();
+  const { isPTCWithUSExchange } = useFlowContext();
 
   const issuerCountry = form.watch('controllerIds.0.issuer');
   const isUS = issuerCountry === 'US';
@@ -114,7 +116,7 @@ export const IndividualIdentityForm: FormStepComponent = () => {
         }))}
         readonly
       />
-      {isUS && (
+      {!isPTCWithUSExchange && isUS && (
         <OnboardingFormField
           control={form.control}
           name="solePropSsn"
@@ -124,7 +126,8 @@ export const IndividualIdentityForm: FormStepComponent = () => {
           obfuscateWhenUnfocused
         />
       )}
-      {getFieldRule('controllerIds.0.value').fieldRule.display ===
+      {!isPTCWithUSExchange &&
+        getFieldRule('controllerIds.0.value').fieldRule.display ===
         'visible' && (
         <div className="eb-space-y-3">
           {!isUS && (

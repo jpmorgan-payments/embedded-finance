@@ -21,6 +21,10 @@ import {
   StaticScreenConfig,
   StepConfig,
 } from '@/core/OnboardingFlow/types/flow.types';
+import {
+  getOrganizationParty,
+  isUSExchangePTC,
+} from '@/core/OnboardingFlow/utils/dataUtils';
 import { shouldSuppressOnboardingLeaveWarnings } from '@/core/OnboardingFlow/utils/flowLeaveWarnings';
 
 type EditingPartyIds = {
@@ -72,6 +76,8 @@ const FlowContext = createContext<{
   setIsFormSubmitting: (isSubmitting: boolean) => void;
   unsavedChangesRef: MutableRefObject<boolean>;
   setFlowUnsavedChanges: (dirty: boolean) => void;
+  /** Whether the current org is a publicly traded company listed on a US exchange. */
+  isPTCWithUSExchange: boolean;
 }>({
   currentScreenId: 'overview',
   originScreenId: null,
@@ -94,6 +100,7 @@ const FlowContext = createContext<{
   previouslyCompleted: false,
   reviewScreenOpenedSectionId: null,
   initialStepperStepId: null,
+  isPTCWithUSExchange: false,
   currentStepperStepId: undefined,
   setCurrentStepperStepIdFallback: () => {
     throw new Error(
@@ -154,8 +161,13 @@ export const FlowProvider: React.FC<{
     unsavedChangesRef.current = dirty;
   }, []);
 
-  const { organizationType, alertOnPreviousStep, alertOnExit, clientData } =
-    useOnboardingContext();
+  const {
+    organizationType,
+    alertOnPreviousStep,
+    alertOnExit,
+    clientData,
+    enablePubliclyTradedCompanies,
+  } = useOnboardingContext();
   const { tString, i18n } = useTranslationWithTokens('onboarding-overview');
 
   // Reset saved form values when organization type changes
@@ -193,12 +205,25 @@ export const FlowProvider: React.FC<{
   const currentScreenId = history[history.length - 1];
 
   const staticScreens = flowConfig.screens.filter((s) => !s.isSection);
+
+  // Derive whether the current org is a US-exchange PTC (owners section excluded)
+  const orgParty = getOrganizationParty(clientData);
+  const isPTCWithUSExchange =
+    enablePubliclyTradedCompanies && isUSExchangePTC(orgParty);
+
   const sections = flowConfig.screens
     .filter((s) => s.isSection)
     .filter(
       (s) =>
         !s.sectionConfig.excludedForOrgTypes?.includes(organizationType ?? '')
-    );
+    )
+    .filter((s) => {
+      // US-exchange PTCs skip the owners section (beneficial owners not required)
+      if (isPTCWithUSExchange && s.id === 'owners-section') {
+        return false;
+      }
+      return true;
+    });
 
   const [currentStepperStepIdFallback, setCurrentStepperStepIdFallback] =
     useState<string | undefined>(undefined);
@@ -339,6 +364,7 @@ export const FlowProvider: React.FC<{
         setIsFormSubmitting,
         unsavedChangesRef,
         setFlowUnsavedChanges,
+        isPTCWithUSExchange: isPTCWithUSExchange ?? false,
       }}
     >
       {children}

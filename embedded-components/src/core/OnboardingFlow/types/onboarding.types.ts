@@ -154,6 +154,20 @@ export type OnboardingConfigUsedInContext = {
   /** Whether to show the "Download Checklist" button on the Overview screen. Defaults to false. */
   showDownloadChecklist?: boolean;
   /**
+   * Enable Publicly Traded Company (PTC) onboarding support.
+   *
+   * When `true`, non-sole-proprietorship entities can declare themselves as
+   * publicly traded or a subsidiary of a PTC. This unlocks:
+   * - A two-step gate question (PTC vs. subsidiary)
+   * - Trading information fields (ticker symbol, stock exchange)
+   * - Conditional section/field visibility based on US vs. non-US exchange:
+   *   - **US exchange (XNYS/XNAS):** beneficial owners skipped, controller gov ID hidden
+   *   - **Non-US exchange:** full collection (beneficial owners, gov ID, FinCEN attestation)
+   *
+   * Defaults to `false`.
+   */
+  enablePubliclyTradedCompanies?: boolean;
+  /**
    * Platform disclosure and attestation configuration.
    * When provided, enables the regulatory footer and enhanced attestation
    * checkboxes on the review screen.  See {@link OnboardingDisclosureConfig}.

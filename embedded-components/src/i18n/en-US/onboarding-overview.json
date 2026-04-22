@@ -537,6 +537,10 @@
         "checkAnswers": {
           "title": "Check your answers",
           "description": "Please ensure your answers are accurate and complete anything you may have missed."
+        },
+        "publiclyTraded": {
+          "title": "Publicly traded information",
+          "description": "If your organization is publicly traded or a subsidiary of a publicly traded company, please provide the trading details."
         }
       }
     },
@@ -1116,6 +1120,66 @@
       "description": "",
       "tooltip": "",
       "label": "My business doesn't have a website"
+    },
+    "isPTCOrSubsidiary": {
+      "label": "Is your organization publicly traded, or a subsidiary of a publicly traded company?",
+      "description": "",
+      "tooltip": "A publicly traded company (PTC) is listed on a stock exchange. A subsidiary of a PTC is an organization where 50% or more of its ownership is held by a PTC."
+    },
+    "isSubsidiary": {
+      "label": "Is your organization the publicly traded company, or a subsidiary?",
+      "description": "If subsidiary, the ticker symbol and exchange should be for the parent publicly traded company.",
+      "tooltip": "",
+      "fieldName": "PTC or subsidiary",
+      "options": {
+        "no": "My organization is publicly traded",
+        "yes": "My organization is a subsidiary of a publicly traded company"
+      }
+    },
+    "tickerSymbol": {
+      "label": "Ticker symbol",
+      "description": "The stock ticker symbol (e.g. AAPL, MSFT). If subsidiary, enter the parent company's ticker.",
+      "tooltip": "",
+      "placeholder": "e.g. AAPL",
+      "fieldName": "Ticker symbol",
+      "validation": {
+        "required": "$t(validation:required)",
+        "pattern": "Ticker symbol must contain only uppercase letters and numbers",
+        "maxLength": "$t(validation:text.maxLength, {'count': 10})"
+      }
+    },
+    "stockExchange": {
+      "label": "Stock exchange",
+      "description": "Select the exchange where the company is traded.",
+      "tooltip": "",
+      "fieldName": "Stock exchange",
+      "options": {
+        "XNYS": "NYSE (New York Stock Exchange)",
+        "XNAS": "NASDAQ",
+        "XLON": "LSE (London Stock Exchange)",
+        "XTSE": "TSX (Toronto Stock Exchange)",
+        "XHKG": "HKEX (Hong Kong Stock Exchange)",
+        "XJPX": "JPX (Japan Exchange Group)",
+        "XASX": "ASX (Australian Securities Exchange)",
+        "XFRA": "FSE (Frankfurt Stock Exchange)",
+        "XPAR": "Euronext Paris",
+        "XAMS": "Euronext Amsterdam",
+        "Other": "Other"
+      },
+      "validation": {
+        "required": "$t(validation:required)"
+      }
+    },
+    "stockExchangeName": {
+      "label": "Stock exchange name",
+      "description": "Please enter the name of the stock exchange.",
+      "tooltip": "",
+      "placeholder": "e.g. Tokyo Stock Exchange",
+      "fieldName": "Stock exchange name",
+      "validation": {
+        "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 100})"
+      }
     },
     "website": {
       "label": "Business website",
