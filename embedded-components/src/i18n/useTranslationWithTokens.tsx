@@ -68,7 +68,17 @@ export function useTranslationWithTokens<N extends ValidNamespace>(
     }
 
     // Build full token ID (namespace.key)
-    const keyStr = String(args[0]);
+    // When args[0] is an array of fallback keys, find the key that
+    // i18next actually resolved to, so the data-content-token attribute
+    // reflects the real translation source rather than always the first key.
+    const rawKey = args[0];
+    let keyStr: string;
+    if (Array.isArray(rawKey)) {
+      const resolved = rawKey.find((k) => i18n.exists(k as string));
+      keyStr = String(resolved ?? rawKey[0]);
+    } else {
+      keyStr = String(rawKey);
+    }
     // Prefer `ns` from the last object arg (covers t(key, opts) and t(key, default, opts))
     let optionsForNs: Record<string, unknown> | undefined;
     for (let i = args.length - 1; i >= 1; i -= 1) {

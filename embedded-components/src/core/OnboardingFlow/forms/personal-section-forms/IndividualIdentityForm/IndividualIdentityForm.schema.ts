@@ -7,13 +7,15 @@ const MIN_AGE = 18;
 const MAX_AGE = 120;
 
 // Helper function to check if the ITIN middle digits (4th-5th) are in a valid range.
-// Per IRS rules, the 4th-5th digits must be 50–65, 70–88, 90–92, or 94–99.
+// Per IRS rules, the 4th-5th digits must be 50–55, 60–65, 70–79, 80–88, 90–92, or 94–99.
 const isValidItinMiddleDigits = (value: string): boolean => {
   const middleDigits = parseInt(value.slice(3, 5), 10);
 
   return (
-    (middleDigits >= 50 && middleDigits <= 65) ||
-    (middleDigits >= 70 && middleDigits <= 88) ||
+    (middleDigits >= 50 && middleDigits <= 55) ||
+    (middleDigits >= 60 && middleDigits <= 65) ||
+    (middleDigits >= 70 && middleDigits <= 79) ||
+    (middleDigits >= 80 && middleDigits <= 88) ||
     (middleDigits >= 90 && middleDigits <= 92) ||
     (middleDigits >= 94 && middleDigits <= 99)
   );
@@ -199,6 +201,18 @@ const createControllerIdSchema = (
       },
       () => ({
         message: v('controllerIds.value', 'itinMiddleDigits'),
+        path: ['value'],
+      })
+    )
+    .refine(
+      (data) => {
+        if (data.idType === 'ITIN') {
+          return data.value !== '987654321';
+        }
+        return true;
+      },
+      () => ({
+        message: v('controllerIds.value', 'itinKnownInvalid'),
         path: ['value'],
       })
     );

@@ -374,7 +374,15 @@
       "bankAccountSection": {
         "title": "Vincular una cuenta bancaria para pagos",
         "lockedMessage": "Disponible después de que se envíe su solicitud",
-        "linkAccountTitle": "Vincular una cuenta"
+        "linkAccountTitle": "Vincular una cuenta",
+        "successAlert": {
+          "ACTIVE": "Su cuenta bancaria ha sido verificada y está lista para transacciones.",
+          "MICRODEPOSITS_INITIATED": "Los datos de su cuenta bancaria han sido enviados. Se enviarán dos pequeños depósitos a su cuenta para verificación.",
+          "PENDING": "Los datos de su cuenta bancaria han sido enviados y se están procesando.",
+          "READY_FOR_VALIDATION": "Los datos de su cuenta bancaria han sido enviados. Verifique los montos de los depósitos para completar la configuración.",
+          "REJECTED": "Los datos de su cuenta bancaria han sido enviados pero no pudieron ser verificados.",
+          "INACTIVE": "Los datos de su cuenta bancaria han sido enviados."
+        }
       }
     },
     "linkAccount": {
@@ -702,6 +710,7 @@
         "itinDigitsOnly": "$t(validation:id.itin.digitsOnly)",
         "itinStartsWith9": "$t(validation:id.itin.startsWith9)",
         "itinMiddleDigits": "$t(validation:id.itin.middleDigits)",
+        "itinKnownInvalid": "$t(validation:id.itin.knownInvalid)",
         "noSpaces": "$t(validation:text.noSpaces)"
       }
     },

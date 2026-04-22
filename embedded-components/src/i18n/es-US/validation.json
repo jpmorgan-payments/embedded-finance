@@ -79,11 +79,12 @@
     "ssnKnownInvalid": "Este SSN no es válido. Por favor verifique e intente de nuevo",
     "itin": {
       "format": "Por favor ingrese un Número de Identificación Personal del Contribuyente (ITIN) válido",
-      "invalidRange": "Los dígitos 4-5 del ITIN deben estar en el rango 50-65, 70-88, 90-92 o 94-99",
+      "invalidRange": "Los dígitos 4-5 del ITIN deben estar en el rango 50-55, 60-65, 70-79, 80-88, 90-92 o 94-99",
       "length": "El ITIN debe tener exactamente 9 dígitos",
       "digitsOnly": "El ITIN solo debe contener números",
       "startsWith9": "El ITIN debe comenzar con el dígito 9",
-      "middleDigits": "Los dígitos 4-5 del ITIN deben estar en el rango 50-65, 70-88, 90-92 o 94-99"
+      "middleDigits": "Los dígitos 4-5 del ITIN deben estar en el rango 50-55, 60-65, 70-79, 80-88, 90-92 o 94-99",
+      "knownInvalid": "Este ITIN no es válido. Por favor verifique y vuelva a ingresarlo."
     }
   },
   "address": {

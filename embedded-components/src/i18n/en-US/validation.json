@@ -79,11 +79,12 @@
     "ssnKnownInvalid": "This SSN is not valid. Please double-check and try again",
     "itin": {
       "format": "Please enter a valid Individual Taxpayer Identification Number (ITIN)",
-      "invalidRange": "ITIN digits 4-5 must be in range 50-65, 70-88, 90-92, or 94-99",
+      "invalidRange": "ITIN digits 4-5 must be in range 50-55, 60-65, 70-79, 80-88, 90-92, or 94-99",
       "length": "ITIN must be exactly 9 digits",
       "digitsOnly": "ITIN must contain only numbers",
       "startsWith9": "ITIN must start with the digit 9",
-      "middleDigits": "ITIN digits 4-5 must be in range 50-65, 70-88, 90-92, or 94-99"
+      "middleDigits": "ITIN digits 4-5 must be in range 50-55, 60-65, 70-79, 80-88, 90-92, or 94-99",
+      "knownInvalid": "This ITIN is not valid. Please check and re-enter."
     }
   },
   "address": {

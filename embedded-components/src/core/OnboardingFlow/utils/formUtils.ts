@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { defaultResources, i18n } from '@/i18n/config';
 import { objectEntries, objectKeys } from '@/utils/objectEntries';
@@ -911,6 +912,12 @@ export function useFormWithFilters<
       schema: z.ZodObject<Record<string, z.ZodType<any>>>
     ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>>;
     overrideDefaultValues?: Partial<OnboardingFormValuesInitial>;
+    /**
+     * When true, runs form.trigger() on mount to surface validation
+     * errors from pre-populated API data (e.g. invalid EIN format).
+     * Defaults to true when overrideDefaultValues is provided.
+     */
+    validateOnMount?: boolean;
   }
 ): UseFormReturn<z.input<TSchema>, any, z.output<TSchema>> {
   const { modifyDefaultValues, modifySchema } = useFormUtilsWithClientContext(
@@ -934,6 +941,77 @@ export function useFormWithFilters<
       ...(props.overrideDefaultValues ?? {}),
     },
   });
+
+  // Validate pre-populated fields on mount to surface errors from API data
+  // (e.g. invalid EIN format, mismatched address country). Only validates
+  // fields that already have a non-empty value — empty required fields are
+  // left alone until the user interacts with them.
+  const shouldValidateOnMount =
+    props.validateOnMount ??
+    Object.keys(props.overrideDefaultValues ?? {}).length > 0;
+
+  const hasValidatedOnMount = useRef(false);
+  useEffect(() => {
+    if (shouldValidateOnMount && !hasValidatedOnMount.current) {
+      hasValidatedOnMount.current = true;
+
+      // Collect field paths that have non-empty values.
+      // For object-typed fields (e.g. phone: {phoneType, phoneNumber}),
+      // only include the object if ALL its leaf values are populated.
+      // This avoids false validation on objects with auto-set defaults
+      // (e.g. phoneType is always set, but phoneNumber may be empty).
+      const values = form.getValues();
+      const populatedFields: string[] = [];
+
+      const isEffectivelyEmpty = (val: unknown): boolean =>
+        val === '' ||
+        val == null ||
+        // Phone fields with only a country code (e.g. "+1") are empty
+        (typeof val === 'string' && /^\+\d{1,3}$/.test(val.trim()));
+
+      const isFullyPopulated = (obj: Record<string, any>): boolean =>
+        Object.values(obj).every((val) => {
+          if (val != null && typeof val === 'object' && !Array.isArray(val)) {
+            return isFullyPopulated(val);
+          }
+          return !isEffectivelyEmpty(val);
+        });
+
+      const collectPopulated = (obj: Record<string, any>, prefix = '') => {
+        for (const [key, val] of Object.entries(obj)) {
+          const path = prefix ? `${prefix}.${key}` : key;
+          if (Array.isArray(val)) {
+            val.forEach((item, idx) => {
+              if (item != null && typeof item === 'object') {
+                // For array items that are objects, only include if fully populated
+                if (isFullyPopulated(item)) {
+                  collectPopulated(item, `${path}.${idx}`);
+                }
+              } else if (!isEffectivelyEmpty(item)) {
+                populatedFields.push(`${path}.${idx}`);
+              }
+            });
+          } else if (
+            val != null &&
+            typeof val === 'object' &&
+            !Array.isArray(val)
+          ) {
+            // Only recurse into objects where all leaves are populated
+            if (isFullyPopulated(val)) {
+              collectPopulated(val, path);
+            }
+          } else if (!isEffectivelyEmpty(val)) {
+            populatedFields.push(path);
+          }
+        }
+      };
+      collectPopulated(values);
+
+      if (populatedFields.length > 0) {
+        form.trigger(populatedFields as any);
+      }
+    }
+  }, [shouldValidateOnMount, form]);
 
   return form;
 }

@@ -374,7 +374,15 @@
       "bankAccountSection": {
         "title": "Lier un compte bancaire pour les paiements",
         "lockedMessage": "Disponible après la soumission de votre demande",
-        "linkAccountTitle": "Lier un compte"
+        "linkAccountTitle": "Lier un compte",
+        "successAlert": {
+          "ACTIVE": "Votre compte bancaire a été vérifié et est prêt pour les transactions.",
+          "MICRODEPOSITS_INITIATED": "Les informations de votre compte bancaire ont été soumises. Deux petits dépôts seront envoyés à votre compte pour vérification.",
+          "PENDING": "Les informations de votre compte bancaire ont été soumises et sont en cours de traitement.",
+          "READY_FOR_VALIDATION": "Les informations de votre compte bancaire ont été soumises. Veuillez vérifier les montants des dépôts pour compléter la configuration.",
+          "REJECTED": "Les informations de votre compte bancaire ont été soumises mais n'ont pas pu être vérifiées.",
+          "INACTIVE": "Les informations de votre compte bancaire ont été soumises."
+        }
       }
     },
     "linkAccount": {
@@ -702,6 +710,7 @@
         "itinDigitsOnly": "$t(validation:id.itin.digitsOnly)",
         "itinStartsWith9": "$t(validation:id.itin.startsWith9)",
         "itinMiddleDigits": "$t(validation:id.itin.middleDigits)",
+        "itinKnownInvalid": "$t(validation:id.itin.knownInvalid)",
         "noSpaces": "$t(validation:text.noSpaces)"
       }
     },
