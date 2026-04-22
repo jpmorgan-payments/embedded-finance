@@ -440,7 +440,10 @@ export function convertClientResponseToFormValues(
       const modifiedValue = config.fromResponseFn
         ? config.fromResponseFn(value)
         : value;
-      formValues[fieldName as keyof OnboardingFormValuesSubmit] = modifiedValue;
+      if (modifiedValue !== undefined) {
+        formValues[fieldName as keyof OnboardingFormValuesSubmit] =
+          modifiedValue;
+      }
     }
   });
 
@@ -468,7 +471,10 @@ export function convertPartyResponseToFormValues(
       const modifiedValue = config.fromResponseFn
         ? config.fromResponseFn(value)
         : value;
-      formValues[fieldName as keyof OnboardingFormValuesSubmit] = modifiedValue;
+      if (modifiedValue !== undefined) {
+        formValues[fieldName as keyof OnboardingFormValuesSubmit] =
+          modifiedValue;
+      }
     }
   });
 
