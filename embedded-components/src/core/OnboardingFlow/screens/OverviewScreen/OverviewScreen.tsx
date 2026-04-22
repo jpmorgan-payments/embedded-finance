@@ -476,7 +476,9 @@ export const OverviewScreen = () => {
                               editingPartyId: existingPartyData.id,
                               previouslyCompleted:
                                 sectionStatus === 'completed',
-                              initialStepperStepId: firstInvalidStep,
+                              initialStepperStepId:
+                                firstInvalidStep ??
+                                section.stepperConfig?.steps.at(-1)?.id,
                             });
                           }}
                         >
