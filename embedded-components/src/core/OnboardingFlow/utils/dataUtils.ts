@@ -73,6 +73,31 @@ export const getControllerParty = (clientData?: ClientResponse) => {
   );
 };
 
+/**
+ * US exchange MIC codes — NYSE and NASDAQ.
+ * Used to determine whether a PTC qualifies for reduced collection
+ * requirements (no beneficial owners, no controller gov ID).
+ */
+const US_EXCHANGE_CODES = new Set(['XNYS', 'XNAS']);
+
+/**
+ * Returns `true` when the organization party has a `publiclyTraded` block
+ * AND the stock exchange is a US exchange (XNYS or XNAS).
+ */
+export const isUSExchangePTC = (orgParty?: PartyResponse): boolean => {
+  const publiclyTraded = orgParty?.organizationDetails?.publiclyTraded;
+  if (!publiclyTraded?.stockExchange) return false;
+  return US_EXCHANGE_CODES.has(publiclyTraded.stockExchange);
+};
+
+/**
+ * Returns `true` when the organization party has a `publiclyTraded` block,
+ * regardless of exchange.
+ */
+export const isPTC = (orgParty?: PartyResponse): boolean => {
+  return !!orgParty?.organizationDetails?.publiclyTraded?.stockExchange;
+};
+
 export const getPartyName = (partyData?: PartyResponse) => {
   if (!partyData) return '';
 

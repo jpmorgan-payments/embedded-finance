@@ -530,6 +530,71 @@ export const partyFieldMap: PartyFieldMap = {
       defaultValue: false,
     },
   },
+
+  // #region Publicly Traded Company (PTC) fields
+  /**
+   * Gate question: Is the organization publicly traded or a subsidiary of a PTC?
+   * This is a UI-only field; the actual API fields are isSubsidiary + publiclyTraded block.
+   */
+  isPTCOrSubsidiary: {
+    excludeFromMapping: true,
+    saveResponseInContext: true,
+    baseRule: {
+      display: 'hidden',
+      required: false,
+      defaultValue: '',
+    },
+  },
+  /**
+   * Is the organization itself the PTC, or is it a subsidiary?
+   * Maps to organizationDetails.isSubsidiary in the API.
+   */
+  isSubsidiary: {
+    path: 'organizationDetails.isSubsidiary',
+    baseRule: {
+      display: 'hidden',
+      required: false,
+      defaultValue: '',
+    },
+    fromResponseFn: (val: boolean) => (val ? 'yes' : 'no'),
+    toRequestFn: (val): boolean => val === 'yes',
+  },
+  /**
+   * Ticker symbol of the publicly traded company.
+   * If subsidiary, this is the parent PTC's ticker.
+   */
+  tickerSymbol: {
+    path: 'organizationDetails.publiclyTraded.tickerSymbol',
+    baseRule: {
+      display: 'hidden',
+      required: false,
+      defaultValue: '',
+    },
+  },
+  /**
+   * Stock exchange where the PTC is traded.
+   * US exchanges: XNYS (NYSE), XNAS (NASDAQ).
+   */
+  stockExchange: {
+    path: 'organizationDetails.publiclyTraded.stockExchange',
+    baseRule: {
+      display: 'hidden',
+      required: false,
+      defaultValue: '',
+    },
+  },
+  /**
+   * Name of the stock exchange when stockExchange is "Other".
+   */
+  stockExchangeName: {
+    path: 'organizationDetails.publiclyTraded.stockExchangeName',
+    baseRule: {
+      display: 'hidden',
+      required: false,
+      defaultValue: '',
+    },
+  },
+  // #endregion PTC
   // secondaryMccList: {
   //   path: 'organizationDetails.secondaryMccList',
   //   baseRule: {
