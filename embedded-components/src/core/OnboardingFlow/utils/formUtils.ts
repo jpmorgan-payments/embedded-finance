@@ -775,8 +775,8 @@ export function modifySchemaByClientContext(
       currentScreenId
     );
 
-    // Skip hidden fields
-    if (fieldRule.display === 'hidden') {
+    // Skip hidden fields (unless they opt in to submission)
+    if (fieldRule.display === 'hidden' && !fieldRule.submitWhenHidden) {
       return;
     }
 
@@ -900,7 +900,7 @@ export function modifyDefaultValuesByClientContext(
       clientContext,
       currentScreenId
     );
-    if (fieldRule.display !== 'hidden') {
+    if (fieldRule.display !== 'hidden' || fieldRule.submitWhenHidden) {
       filteredDefaultValues[key] = value ?? fieldRule.defaultValue ?? '';
     }
   });
