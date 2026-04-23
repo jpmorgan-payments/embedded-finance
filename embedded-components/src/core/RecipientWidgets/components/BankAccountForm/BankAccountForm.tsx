@@ -107,16 +107,25 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
 
   // Get icon for payment method type
   const getPaymentIcon = (type: RoutingInformationTransactionType) => {
+    let icon: React.ReactNode;
     switch (type) {
       case 'ACH':
-        return <BanknoteIcon className="eb-h-4 eb-w-4" />;
+        icon = <BanknoteIcon className="eb-h-4 eb-w-4 eb-text-primary" />;
+        break;
       case 'WIRE':
-        return <ArrowRightLeftIcon className="eb-h-4 eb-w-4" />;
+        icon = <ArrowRightLeftIcon className="eb-h-4 eb-w-4 eb-text-primary" />;
+        break;
       case 'RTP':
-        return <ZapIcon className="eb-h-4 eb-w-4" />;
+        icon = <ZapIcon className="eb-h-4 eb-w-4 eb-text-primary" />;
+        break;
       default:
         return null;
     }
+    return (
+      <div className="eb-flex eb-h-8 eb-w-8 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary/10">
+        {icon}
+      </div>
+    );
   };
 
   return (
@@ -129,7 +138,7 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
         return (
           <div key={type} className="eb-flex eb-items-center eb-gap-2">
             <label
-              className={`eb-flex eb-flex-1 eb-items-start eb-gap-3 eb-rounded-lg eb-border eb-bg-card eb-p-4 eb-transition-all ${
+              className={`eb-flex eb-flex-1 eb-items-center eb-gap-3 eb-rounded-lg eb-border eb-bg-card eb-p-4 eb-transition-all ${
                 isSelected
                   ? 'eb-border-primary eb-bg-primary/5 eb-shadow-sm'
                   : 'eb-border-border hover:eb-border-primary/50 hover:eb-bg-accent/50'
@@ -144,13 +153,12 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
                     handleToggle(type);
                   }
                 }}
-                className="eb-mt-0.5"
               />
-              <div className="eb-mt-0.5 eb-flex eb-items-center eb-gap-2 eb-text-primary">
-                {getPaymentIcon(type)}
-              </div>
+              {getPaymentIcon(type)}
               <div className="eb-flex eb-min-w-0 eb-flex-1 eb-flex-col eb-gap-1 sm:eb-flex-row sm:eb-flex-wrap sm:eb-items-center sm:eb-justify-between sm:eb-gap-2">
-                <span className="eb-font-medium">{config.label}</span>
+                <span className="eb-text-base eb-font-medium">
+                  {config.label}
+                </span>
                 {isLocked && (
                   <span className="eb-inline-flex eb-items-center eb-gap-1 eb-self-start eb-rounded-full eb-bg-informative-accent eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-informative sm:eb-px-2.5 sm:eb-py-1">
                     <LockIcon className="eb-h-3 eb-w-3 eb-shrink-0" />

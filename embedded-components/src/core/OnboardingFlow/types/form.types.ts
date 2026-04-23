@@ -154,7 +154,7 @@ type FieldConfigurationGeneric<
       excludeFromMapping?: false;
       saveResponseInContext?: never;
       path: string;
-      fromResponseFn?: (val: any) => T;
+      fromResponseFn?: (val: any) => T | undefined;
       toRequestFn?: (val: OnboardingFormValuesSubmit[K]) => any;
     } & BaseFieldConfiguration<T, IsSubfield>)
   | ({
@@ -162,7 +162,7 @@ type FieldConfigurationGeneric<
       excludeFromMapping: true;
       saveResponseInContext?: boolean;
       path?: string;
-      fromResponseFn?: (val: any) => T;
+      fromResponseFn?: (val: any) => T | undefined;
       toRequestFn?: never;
     } & BaseFieldConfiguration<T, IsSubfield>);
 

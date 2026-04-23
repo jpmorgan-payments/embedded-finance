@@ -440,7 +440,10 @@ export function convertClientResponseToFormValues(
       const modifiedValue = config.fromResponseFn
         ? config.fromResponseFn(value)
         : value;
-      formValues[fieldName as keyof OnboardingFormValuesSubmit] = modifiedValue;
+      if (modifiedValue !== undefined) {
+        formValues[fieldName as keyof OnboardingFormValuesSubmit] =
+          modifiedValue;
+      }
     }
   });
 
@@ -468,7 +471,10 @@ export function convertPartyResponseToFormValues(
       const modifiedValue = config.fromResponseFn
         ? config.fromResponseFn(value)
         : value;
-      formValues[fieldName as keyof OnboardingFormValuesSubmit] = modifiedValue;
+      if (modifiedValue !== undefined) {
+        formValues[fieldName as keyof OnboardingFormValuesSubmit] =
+          modifiedValue;
+      }
     }
   });
 
@@ -931,15 +937,33 @@ export function useFormWithFilters<
     )
   ) as DefaultValues<z.input<TSchema>>;
 
+  // When the API provides countryOfResidence but no address data,
+  // update the fieldMap's address default so the country field
+  // reflects countryOfResidence instead of the static 'US' fallback.
+  const overrides = props.overrideDefaultValues ?? {};
+  const countryOfResidence = (overrides as Record<string, unknown>)
+    .countryOfResidence as string | undefined;
+  const mergedDefaults: DefaultValues<z.input<TSchema>> = {
+    ...defaultValues,
+    ...overrides,
+  };
+  if (
+    countryOfResidence &&
+    !('individualAddress' in overrides) &&
+    mergedDefaults.individualAddress
+  ) {
+    mergedDefaults.individualAddress = {
+      ...mergedDefaults.individualAddress,
+      country: countryOfResidence,
+    };
+  }
+
   const form = useForm<z.input<TSchema>, any, z.output<TSchema>>({
     mode: 'onBlur',
     reValidateMode: 'onChange',
     ...props,
     resolver: zodResolver(modifySchema(props.schema, props.refineSchemaFn)),
-    defaultValues: {
-      ...defaultValues,
-      ...(props.overrideDefaultValues ?? {}),
-    },
+    defaultValues: mergedDefaults,
   });
 
   // Validate pre-populated fields on mount to surface errors from API data

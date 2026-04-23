@@ -168,13 +168,20 @@ const ComboboxField = ({
                   ta.search += e.key.toLowerCase();
                   ta.timer = window.setTimeout(() => {
                     ta.search = '';
-                  }, 500);
-                  const match = options.find((opt) => {
-                    const text = (
-                      opt.searchValue ?? String(opt.label)
-                    ).toLowerCase();
-                    return text.includes(ta.search);
-                  });
+                  }, 1000);
+                  const getSearchText = (opt: (typeof options)[number]) =>
+                    (opt.searchValue ?? String(opt.label)).toLowerCase();
+                  const match =
+                    options.find((opt) =>
+                      getSearchText(opt).startsWith(ta.search)
+                    ) ??
+                    options
+                      .filter((opt) => getSearchText(opt).includes(ta.search))
+                      .sort(
+                        (a, b) =>
+                          getSearchText(a).indexOf(ta.search) -
+                          getSearchText(b).indexOf(ta.search)
+                      )[0];
                   if (match && match.value !== field.value) {
                     field.onChange(match.value);
                   }

@@ -474,10 +474,13 @@ export const partyFieldMap: PartyFieldMap = {
     },
     toStringFn: (val) =>
       val ? formatPhoneNumberIntl(val.phoneNumber) : undefined,
-    fromResponseFn: (val: PhoneSmbdo) => ({
-      phoneType: val.phoneType!,
-      phoneNumber: `${val.countryCode}${val.phoneNumber}`,
-    }),
+    fromResponseFn: (val: PhoneSmbdo) =>
+      val.phoneNumber
+        ? {
+            phoneType: val.phoneType!,
+            phoneNumber: `${val.countryCode}${val.phoneNumber}`,
+          }
+        : undefined,
     toRequestFn: (val): PhoneSmbdo => {
       const phone = parsePhoneNumber(val.phoneNumber);
       return {
@@ -1330,10 +1333,13 @@ export const partyFieldMap: PartyFieldMap = {
     },
     toStringFn: (val) =>
       val ? formatPhoneNumberIntl(val.phoneNumber) : undefined,
-    fromResponseFn: (val: PhoneSmbdo) => ({
-      phoneType: val.phoneType!,
-      phoneNumber: `${val.countryCode}${val.phoneNumber}`,
-    }),
+    fromResponseFn: (val: PhoneSmbdo) =>
+      val.phoneNumber
+        ? {
+            phoneType: val.phoneType!,
+            phoneNumber: `${val.countryCode}${val.phoneNumber}`,
+          }
+        : undefined,
     toRequestFn: (val): PhoneSmbdo => {
       const phone = parsePhoneNumber(val.phoneNumber);
       return {
