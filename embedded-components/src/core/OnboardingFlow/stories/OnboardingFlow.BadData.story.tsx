@@ -208,6 +208,42 @@ function createMockClientMultipleIssues(): ClientResponse {
   return mock;
 }
 
+/**
+ * Controller has a jobTitle value ("Associate") that is not in the
+ * accepted enum. validateOnMount should surface a validation error on
+ * the Personal Details step.
+ */
+function createMockClientInvalidJobTitle(): ClientResponse {
+  const mock = cloneDeep(mockClientNew);
+  const controller = mock.parties?.find((p) =>
+    (p as any).roles?.includes('CONTROLLER')
+  ) as any;
+
+  if (controller) {
+    controller.individualDetails.jobTitle = 'Associate';
+    controller.individualDetails.jobTitleDescription = '';
+  }
+  return mock;
+}
+
+/**
+ * Controller has jobTitle "COO" (valid enum) with a custom
+ * jobTitleDescription "Top Dog". This is valid data — the story
+ * verifies the form pre-populates both fields correctly.
+ */
+function createMockClientCOOWithDescription(): ClientResponse {
+  const mock = cloneDeep(mockClientNew);
+  const controller = mock.parties?.find((p) =>
+    (p as any).roles?.includes('CONTROLLER')
+  ) as any;
+
+  if (controller) {
+    controller.individualDetails.jobTitle = 'COO';
+    controller.individualDetails.jobTitleDescription = 'Top Dog';
+  }
+  return mock;
+}
+
 // ============================================================================
 // Story Meta
 // ============================================================================
@@ -368,6 +404,55 @@ export const MultipleDataIssues: Story = {
   loaders: [
     () =>
       resetAndSeedClient(createMockClientMultipleIssues(), DEFAULT_CLIENT_ID),
+  ],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+  },
+};
+
+// =============================================================================
+// JOB TITLE SCENARIOS
+// =============================================================================
+
+/**
+ * **Invalid Job Title — "Associate"**
+ *
+ * The API returns `jobTitle: "Associate"` which is not one of the
+ * accepted enum values (CEO, CFO, COO, etc.). `validateOnMount`
+ * should surface a validation error on the **Personal Details** step
+ * so the user can pick a valid title.
+ *
+ * Navigate to the controller's **Personal Details** step.
+ */
+export const InvalidJobTitle: Story = {
+  loaders: [
+    () =>
+      resetAndSeedClient(createMockClientInvalidJobTitle(), DEFAULT_CLIENT_ID),
+  ],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+  },
+};
+
+/**
+ * **COO with Job Title Description**
+ *
+ * The API returns `jobTitle: "COO"` with
+ * `jobTitleDescription: "Top Dog"`. Both values are valid — this
+ * story verifies the form correctly pre-populates the title dropdown
+ * and the free-text description field.
+ *
+ * Navigate to the controller's **Personal Details** step.
+ */
+export const COOWithDescription: Story = {
+  loaders: [
+    () =>
+      resetAndSeedClient(
+        createMockClientCOOWithDescription(),
+        DEFAULT_CLIENT_ID
+      ),
   ],
   args: {
     ...commonArgs,
