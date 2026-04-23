@@ -899,6 +899,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   controllerJobTitleDescription: {
     path: 'individualDetails.jobTitleDescription',
+    isHiddenInReviewFn: (_val, values) => values.controllerJobTitle !== 'Other',
     baseRule: { display: 'visible', required: false, defaultValue: '' },
     conditionalRules: [
       {

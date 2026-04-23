@@ -136,7 +136,10 @@ type BaseFieldConfiguration<T, IsSubField extends boolean = false> = {
     values: Partial<OnboardingFormValuesSubmit>
   ) => string | string[] | undefined;
   generateLabelStringFn?: (val: T) => string | undefined;
-  isHiddenInReviewFn?: (val: T) => boolean;
+  isHiddenInReviewFn?: (
+    val: T,
+    values: Partial<OnboardingFormValuesSubmit>
+  ) => boolean;
 };
 
 type DefaultKeys<Rule> = Extract<
