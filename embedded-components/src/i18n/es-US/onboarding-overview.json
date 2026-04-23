@@ -606,6 +606,7 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
+        "invalidOption": "$t(validation:common.invalidOption)",
         "minLength": "$t(validation:text.minLength, {'count': 2})",
         "maxLength": "$t(validation:text.maxLength, {'count': 50})",
         "pattern": "$t(validation:text.pattern)",
@@ -635,7 +636,8 @@
       "description": "Cómo posee o controla la organización",
       "tooltip": "",
       "validation": {
-        "required": "$t(validation:required)"
+        "required": "$t(validation:required)",
+        "invalidOption": "$t(validation:common.invalidOption)"
       }
     },
     "birthDate": {

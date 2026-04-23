@@ -30,12 +30,16 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
     } else if (itemType) {
       switch (itemType) {
         case 'boolean':
-          valueSchema = z.enum(['true', 'false']);
+          valueSchema = z.enum(['true', 'false'], {
+            message: i18n.t('validation:common.invalidOption'),
+          });
           break;
         case 'string':
           if (itemEnum) {
             if (itemEnum.length > 0) {
-              valueSchema = z.enum([itemEnum[0], ...itemEnum.slice(1)]);
+              valueSchema = z.enum([itemEnum[0], ...itemEnum.slice(1)], {
+                message: i18n.t('validation:common.invalidOption'),
+              });
             } else {
               valueSchema = z.string();
             }
