@@ -176,6 +176,7 @@ export const partyFieldMap: PartyFieldMap = {
           // which is always the case in this onboarding flow. Hide the field
           // and default to 'Direct' so it's sent automatically on submit.
           display: 'hidden',
+          submitWhenHidden: true,
           required: false,
           defaultValue: 'Direct',
         },
@@ -898,6 +899,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   controllerJobTitleDescription: {
     path: 'individualDetails.jobTitleDescription',
+    isHiddenInReviewFn: (_val, values) => values.controllerJobTitle !== 'Other',
     baseRule: { display: 'visible', required: false, defaultValue: '' },
     conditionalRules: [
       {

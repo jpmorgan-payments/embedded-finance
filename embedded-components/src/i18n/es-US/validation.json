@@ -7,7 +7,8 @@
   "common": {
     "noSpaces": "No spaces are allowed",
     "invalidChars": "Invalid characters detected",
-    "selectOption": "Please select an option"
+    "selectOption": "Please select an option",
+    "invalidOption": "El valor actual no es válido. Seleccione una opción de la lista."
   },
   "text": {
     "minLength_one": "{{fieldName}} must be at least {{count}} character",

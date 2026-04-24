@@ -27,15 +27,33 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
             'onboarding-overview:additionalQuestions.validation.dateFormat'
           )
         );
+    } else if (question.id && MONEY_INPUT_QUESTION_IDS.includes(question.id)) {
+      // Money/currency inputs should allow decimals
+      valueSchema = z
+        .string()
+        .min(
+          1,
+          i18n.t('onboarding-overview:additionalQuestions.validation.required')
+        )
+        .refine(
+          (val) => /^\d+(\.\d{1,2})?$/.test(val),
+          i18n.t(
+            'onboarding-overview:additionalQuestions.validation.numberFormat'
+          )
+        );
     } else if (itemType) {
       switch (itemType) {
         case 'boolean':
-          valueSchema = z.enum(['true', 'false']);
+          valueSchema = z.enum(['true', 'false'], {
+            message: i18n.t('validation:common.invalidOption'),
+          });
           break;
         case 'string':
           if (itemEnum) {
             if (itemEnum.length > 0) {
-              valueSchema = z.enum([itemEnum[0], ...itemEnum.slice(1)]);
+              valueSchema = z.enum([itemEnum[0], ...itemEnum.slice(1)], {
+                message: i18n.t('validation:common.invalidOption'),
+              });
             } else {
               valueSchema = z.string();
             }

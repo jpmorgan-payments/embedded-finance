@@ -5,7 +5,9 @@ export const GatewayScreenFormSchema = z.object({
   organizationTypeHierarchy: z.object({
     generalOrganizationType: z
       .union([
-        z.enum(['SOLE_PROPRIETORSHIP', 'REGISTERED_BUSINESS', 'OTHER']),
+        z.enum(['SOLE_PROPRIETORSHIP', 'REGISTERED_BUSINESS', 'OTHER'], {
+          message: i18n.t('validation:common.invalidOption'),
+        }),
         z.literal(''),
       ])
       .refine((val) => val !== '', {
@@ -13,20 +15,25 @@ export const GatewayScreenFormSchema = z.object({
       }),
     specificOrganizationType: z
       .union([
-        z.enum([
-          'LIMITED_LIABILITY_COMPANY',
-          'LIMITED_LIABILITY_PARTNERSHIP',
-          'GENERAL_PARTNERSHIP',
-          'LIMITED_PARTNERSHIP',
-          'C_CORPORATION',
-          'S_CORPORATION',
-          'PARTNERSHIP',
-          'NON_PROFIT_CORPORATION',
-          'GOVERNMENT_ENTITY',
-          'SOLE_PROPRIETORSHIP',
-          'UNINCORPORATED_ASSOCIATION',
-          'PUBLICLY_TRADED_COMPANY',
-        ]),
+        z.enum(
+          [
+            'LIMITED_LIABILITY_COMPANY',
+            'LIMITED_LIABILITY_PARTNERSHIP',
+            'GENERAL_PARTNERSHIP',
+            'LIMITED_PARTNERSHIP',
+            'C_CORPORATION',
+            'S_CORPORATION',
+            'PARTNERSHIP',
+            'NON_PROFIT_CORPORATION',
+            'GOVERNMENT_ENTITY',
+            'SOLE_PROPRIETORSHIP',
+            'UNINCORPORATED_ASSOCIATION',
+            'PUBLICLY_TRADED_COMPANY',
+          ],
+          {
+            message: i18n.t('validation:common.invalidOption'),
+          }
+        ),
         z.literal(''),
       ])
       .refine((val) => val !== '', {

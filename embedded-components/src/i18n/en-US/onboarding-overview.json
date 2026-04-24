@@ -581,6 +581,16 @@
     "uploadDocumentsSection": {
       "label": "Supporting documents",
       "onHoldText": "We'll let you know if any documents are needed"
+    },
+    "operationalDetails": {
+      "title": "Operational details",
+      "description": "Please answer these additional questions to help us understand your business operations.",
+      "selectPlaceholder": "Select an option",
+      "noQuestions": "There are no additional questions. You may proceed to the next step.",
+      "loadingQuestions": "Loading questions...",
+      "saveAndReturn": "Save and return to review",
+      "saveAndContinue": "Save and continue to review",
+      "newQuestionsGenerated": "Based on your responses, a few additional questions are needed. Please complete them to continue."
     }
   },
   "additionalQuestions": {
@@ -661,6 +671,7 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
+        "invalidOption": "$t(validation:common.invalidOption)",
         "minLength": "$t(validation:text.minLength, {'count': 2})",
         "maxLength": "$t(validation:text.maxLength, {'count': 50})",
         "pattern": "$t(validation:text.pattern)",
@@ -690,7 +701,8 @@
       "description": "How you own or control the organization",
       "tooltip": "",
       "validation": {
-        "required": "$t(validation:required)"
+        "required": "$t(validation:required)",
+        "invalidOption": "$t(validation:common.invalidOption)"
       }
     },
     "birthDate": {
@@ -1327,7 +1339,7 @@
     "owner": "Owner",
     "controller": "Controller",
     "individualMissingDetails": "ⓘ This individual is missing some details.",
-    "operationalDetails": "Operational details",
+    "operationalDetailsHeading": "Operational details",
     "fieldIsMissing": "This field is missing",
     "response": "Response",
     "complete": "Complete",

@@ -337,6 +337,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
           <div className="eb-flex eb-flex-col">
             <nav className="eb-flex eb-items-center eb-gap-1 eb-text-sm eb-text-muted-foreground">
               <Button
+                type="button"
                 variant="link"
                 onClick={() => goTo('overview')}
                 className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
@@ -348,6 +349,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
                 <>
                   <ChevronRightIcon className="eb-size-3.5" />
                   <Button
+                    type="button"
                     variant="link"
                     onClick={() => goBack()}
                     className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
