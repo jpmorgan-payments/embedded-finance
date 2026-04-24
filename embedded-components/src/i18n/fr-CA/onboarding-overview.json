@@ -526,6 +526,16 @@
     "uploadDocumentsSection": {
       "label": "Documents justificatifs",
       "onHoldText": "Nous vous informerons si des documents sont nécessaires"
+    },
+    "operationalDetails": {
+      "title": "Détails opérationnels",
+      "description": "Veuillez répondre à ces questions supplémentaires pour nous aider à comprendre les opérations de votre entreprise.",
+      "selectPlaceholder": "Sélectionner une option",
+      "noQuestions": "Il n'y a pas de questions supplémentaires. Vous pouvez passer à l'étape suivante.",
+      "loadingQuestions": "Chargement des questions...",
+      "saveAndReturn": "Enregistrer et revenir à la révision",
+      "saveAndContinue": "Enregistrer et continuer vers la révision",
+      "newQuestionsGenerated": "En fonction de vos réponses, quelques questions supplémentaires sont nécessaires. Veuillez les compléter pour continuer."
     }
   },
   "additionalQuestions": {
@@ -1274,7 +1284,7 @@
     "owner": "Propriétaire",
     "controller": "Dirigeant",
     "individualMissingDetails": "ⓘ Certains détails de cette personne sont manquants.",
-    "operationalDetails": "Détails opérationnels",
+    "operationalDetailsHeading": "Détails opérationnels",
     "fieldIsMissing": "Ce champ est manquant",
     "response": "Réponse",
     "complete": "Terminé",

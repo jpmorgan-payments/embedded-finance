@@ -433,7 +433,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                         <div className="eb-flex eb-items-start eb-justify-between">
                           <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
                             {t(
-                              'reviewAndAttest.operationalDetails',
+                              'reviewAndAttest.operationalDetailsHeading',
                               'Operational details'
                             )}
                           </h2>
