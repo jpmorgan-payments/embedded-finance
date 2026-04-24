@@ -731,6 +731,7 @@ export const OperationalDetailsForm = () => {
           )}
           subTitle={
             <Button
+              type="button"
               variant="link"
               onClick={() => goTo('overview')}
               className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
