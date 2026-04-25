@@ -66,7 +66,12 @@ export const usePersonalDetailsFormSchema = () => {
         v('controllerNameSuffix', 'pattern')
       ),
     controllerJobTitle: z
-      .union([z.enum(JOB_TITLES), z.literal('')])
+      .union([
+        z.enum(JOB_TITLES, {
+          message: v('controllerJobTitle', 'invalidOption'),
+        }),
+        z.literal(''),
+      ])
       .refine((val) => val !== '', {
         message: v('controllerJobTitle', 'required'),
       }),
@@ -86,7 +91,12 @@ export const usePersonalDetailsFormSchema = () => {
         v('controllerJobTitleDescription', 'noUrls')
       ),
     natureOfOwnership: z
-      .union([z.enum(NATURE_OF_OWNERSHIP_OPTIONS), z.literal('')])
+      .union([
+        z.enum(NATURE_OF_OWNERSHIP_OPTIONS, {
+          message: v('natureOfOwnership', 'invalidOption'),
+        }),
+        z.literal(''),
+      ])
       .refine((val) => val !== '', {
         message: v('natureOfOwnership', 'required'),
       }),

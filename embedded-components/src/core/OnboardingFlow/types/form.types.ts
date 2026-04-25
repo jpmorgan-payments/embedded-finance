@@ -87,6 +87,12 @@ export type FieldRule<T = any> = {
    * correct the value without requiring a separate edit flow.
    */
   editableWhenInvalid?: boolean;
+  /**
+   * When true, the field value is included in the form submission
+   * even when `display` is `'hidden'`. The field won't render any
+   * UI but its `defaultValue` will be registered and submitted.
+   */
+  submitWhenHidden?: boolean;
   defaultValue: T;
 };
 
@@ -96,6 +102,7 @@ export type ArrayFieldRule<T extends readonly unknown[] = any> = {
   contentTokenOverrideKey?: string;
   contentTokenOverrides?: ContentTokenOverrides;
   editableWhenInvalid?: boolean;
+  submitWhenHidden?: boolean;
   minItems?: number;
   requiredItems?: number;
   maxItems?: number;
@@ -129,7 +136,10 @@ type BaseFieldConfiguration<T, IsSubField extends boolean = false> = {
     values: Partial<OnboardingFormValuesSubmit>
   ) => string | string[] | undefined;
   generateLabelStringFn?: (val: T) => string | undefined;
-  isHiddenInReviewFn?: (val: T) => boolean;
+  isHiddenInReviewFn?: (
+    val: T,
+    values: Partial<OnboardingFormValuesSubmit>
+  ) => boolean;
 };
 
 type DefaultKeys<Rule> = Extract<

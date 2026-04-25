@@ -1,9 +1,16 @@
-import { Fragment, useCallback, useEffect, useMemo } from 'react';
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeftIcon, Loader2Icon } from 'lucide-react';
+import { ArrowLeftIcon, InfoIcon, Loader2Icon } from 'lucide-react';
 import { useForm, useFormState } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -14,6 +21,7 @@ import {
   useSmbdoUpdateClientLegacy,
 } from '@/api/generated/smbdo';
 import { QuestionResponse } from '@/api/generated/smbdo.schemas';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Form,
   FormControl,
@@ -75,7 +83,10 @@ const formatErrorMessage = (message: string): string => {
 };
 
 export const OperationalDetailsForm = () => {
-  const { t, tString } = useTranslationWithTokens(['onboarding-old', 'common']);
+  const { t, tString } = useTranslationWithTokens([
+    'onboarding-overview',
+    'common',
+  ]);
   const queryClient = useQueryClient();
   const { clientData } = useOnboardingContext();
 
@@ -192,6 +203,9 @@ export const OperationalDetailsForm = () => {
 
   const queryKey = getSmbdoGetClientQueryKey(clientData?.id ?? '');
 
+  const [hasNewQuestions, setHasNewQuestions] = useState(false);
+  const alertRef = useRef<HTMLDivElement>(null);
+
   const {
     mutate: updateClient,
     error: updateClientError,
@@ -204,6 +218,23 @@ export const OperationalDetailsForm = () => {
       onSuccess: (response) => {
         queryClient.setQueryData(queryKey, response);
         setIsFormSubmitting(false);
+
+        // Check if the response has new outstanding questions.
+        // If so, stay on the page so the user can answer them.
+        const newOutstandingQuestionIds =
+          response?.outstanding?.questionIds ?? [];
+        if (newOutstandingQuestionIds.length > 0) {
+          setHasNewQuestions(true);
+          // Scroll alert into view after render
+          setTimeout(() => {
+            alertRef.current?.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start',
+            });
+          }, 100);
+          return;
+        }
+
         if (reviewMode) {
           goTo('review-attest-section', {
             reviewScreenOpenedSectionId: 'additional-questions-section',
@@ -413,7 +444,7 @@ export const OperationalDetailsForm = () => {
                       <SelectTrigger>
                         <SelectValue
                           placeholder={tString(
-                            'operationalDetails.selectPlaceholder',
+                            'screens.operationalDetails.selectPlaceholder',
                             'Select an option'
                           )}
                         />
@@ -634,7 +665,7 @@ export const OperationalDetailsForm = () => {
       return (
         <div className="eb-text-muted-foreground">
           {t(
-            'operationalDetails.noQuestions',
+            'screens.operationalDetails.noQuestions',
             'There are no additional questions. You may proceed to the next step.'
           )}
         </div>
@@ -683,7 +714,7 @@ export const OperationalDetailsForm = () => {
     return (
       <FormLoadingState
         message={tString(
-          'operationalDetails.loadingQuestions',
+          'screens.operationalDetails.loadingQuestions',
           'Loading questions...'
         )}
       />
@@ -694,9 +725,13 @@ export const OperationalDetailsForm = () => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="eb-space-y-6">
         <StepLayout
-          title={tString('operationalDetails.title', 'Operational details')}
+          title={tString(
+            'screens.operationalDetails.title',
+            'Operational details'
+          )}
           subTitle={
             <Button
+              type="button"
               variant="link"
               onClick={() => goTo('overview')}
               className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
@@ -706,9 +741,22 @@ export const OperationalDetailsForm = () => {
             </Button>
           }
           description={tString(
-            'operationalDetails.description',
+            'screens.operationalDetails.description',
             'Please answer these additional questions to help us understand your business operations.'
           )}
+          alert={
+            hasNewQuestions ? (
+              <Alert ref={alertRef} variant="informative" noTitle>
+                <InfoIcon className="eb-h-4 eb-w-4" />
+                <AlertDescription>
+                  {t(
+                    'screens.operationalDetails.newQuestionsGenerated',
+                    'Based on your responses, a few additional questions are needed. Please complete them to continue.'
+                  )}
+                </AlertDescription>
+              </Alert>
+            ) : undefined
+          }
         >
           <div className="eb-mt-6 eb-flex-auto eb-space-y-6">
             {renderQuestions()}
@@ -727,11 +775,11 @@ export const OperationalDetailsForm = () => {
               )}
               {reviewMode
                 ? t(
-                    'operationalDetails.saveAndReturn',
+                    'screens.operationalDetails.saveAndReturn',
                     'Save and return to review'
                   )
                 : t(
-                    'operationalDetails.saveAndContinue',
+                    'screens.operationalDetails.saveAndContinue',
                     'Save and continue to review'
                   )}
             </Button>
