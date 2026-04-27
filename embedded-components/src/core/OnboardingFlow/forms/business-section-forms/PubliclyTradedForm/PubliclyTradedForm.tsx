@@ -71,6 +71,7 @@ export const PubliclyTradedForm: FormStepComponent = () => {
           },
         ]}
         required
+        disableFieldRuleMapping
       />
 
       {isPTCOrSubsidiary === 'yes' && (
@@ -90,6 +91,7 @@ export const PubliclyTradedForm: FormStepComponent = () => {
               },
             ]}
             required
+            disableFieldRuleMapping
           />
 
           <OnboardingFormField
@@ -98,6 +100,7 @@ export const PubliclyTradedForm: FormStepComponent = () => {
             type="text"
             inputProps={{ maxLength: 10 }}
             required
+            disableFieldRuleMapping
           />
 
           <OnboardingFormField
@@ -109,6 +112,7 @@ export const PubliclyTradedForm: FormStepComponent = () => {
               label: t(`fields.stockExchange.options.${code}`),
             }))}
             required
+            disableFieldRuleMapping
           />
 
           {stockExchange === 'Other' && (
@@ -118,6 +122,7 @@ export const PubliclyTradedForm: FormStepComponent = () => {
               type="text"
               inputProps={{ maxLength: 100 }}
               required
+              disableFieldRuleMapping
             />
           )}
         </div>
