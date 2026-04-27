@@ -535,15 +535,21 @@ export const partyFieldMap: PartyFieldMap = {
   /**
    * Gate question: Is the organization publicly traded or a subsidiary of a PTC?
    * This is a UI-only field; the actual API fields are isSubsidiary + publiclyTraded block.
+   * Reads from publiclyTraded to derive the initial yes/no value.
    */
   isPTCOrSubsidiary: {
+    path: 'organizationDetails.publiclyTraded',
     excludeFromMapping: true,
     saveResponseInContext: true,
     baseRule: {
-      display: 'hidden',
+      display: 'visible',
       required: false,
       defaultValue: '',
     },
+    fromResponseFn: (val: Record<string, unknown> | undefined) =>
+      val ? 'yes' : 'no',
+    toStringFn: (val: string) => (val === 'yes' ? 'Yes' : 'No'),
+    isHiddenInReviewFn: (val: string) => !val || val === '' || val === 'no',
   },
   /**
    * Is the organization itself the PTC, or is it a subsidiary?
@@ -552,12 +558,19 @@ export const partyFieldMap: PartyFieldMap = {
   isSubsidiary: {
     path: 'organizationDetails.isSubsidiary',
     baseRule: {
-      display: 'hidden',
+      display: 'visible',
       required: false,
       defaultValue: '',
     },
     fromResponseFn: (val: boolean) => (val ? 'yes' : 'no'),
     toRequestFn: (val): boolean => val === 'yes',
+    toStringFn: (val: string) =>
+      val === 'yes'
+        ? i18n.t('onboarding-overview:fields.isSubsidiary.options.yes')
+        : val === 'no'
+          ? i18n.t('onboarding-overview:fields.isSubsidiary.options.no')
+          : '',
+    isHiddenInReviewFn: (val: string) => !val || val === '',
   },
   /**
    * Ticker symbol of the publicly traded company.
@@ -566,10 +579,11 @@ export const partyFieldMap: PartyFieldMap = {
   tickerSymbol: {
     path: 'organizationDetails.publiclyTraded.tickerSymbol',
     baseRule: {
-      display: 'hidden',
+      display: 'visible',
       required: false,
       defaultValue: '',
     },
+    isHiddenInReviewFn: (val: string) => !val,
   },
   /**
    * Stock exchange where the PTC is traded.
@@ -578,10 +592,17 @@ export const partyFieldMap: PartyFieldMap = {
   stockExchange: {
     path: 'organizationDetails.publiclyTraded.stockExchange',
     baseRule: {
-      display: 'hidden',
+      display: 'visible',
       required: false,
       defaultValue: '',
     },
+    toStringFn: (val: string) =>
+      val
+        ? i18n.t(`onboarding-overview:fields.stockExchange.options.${val}`, {
+            defaultValue: val,
+          })
+        : '',
+    isHiddenInReviewFn: (val: string) => !val,
   },
   /**
    * Name of the stock exchange when stockExchange is "Other".
@@ -589,10 +610,11 @@ export const partyFieldMap: PartyFieldMap = {
   stockExchangeName: {
     path: 'organizationDetails.publiclyTraded.stockExchangeName',
     baseRule: {
-      display: 'hidden',
+      display: 'visible',
       required: false,
       defaultValue: '',
     },
+    isHiddenInReviewFn: (val: string) => !val,
   },
   // #endregion PTC
   // secondaryMccList: {
