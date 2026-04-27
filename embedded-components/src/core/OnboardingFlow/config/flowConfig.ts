@@ -323,6 +323,17 @@ const sectionScreens: SectionScreenConfig[] = [
           Component: BusinessIdentityForm,
         },
         {
+          id: 'publicly-traded',
+          stepType: 'form',
+          title: i18n.t(
+            'onboarding-overview:screens.businessSection.steps.publiclyTraded.title'
+          ),
+          description: i18n.t(
+            'onboarding-overview:screens.businessSection.steps.publiclyTraded.description'
+          ),
+          Component: PubliclyTradedForm,
+        },
+        {
           id: 'industry',
           stepType: 'form',
           title: i18n.t(
@@ -343,17 +354,6 @@ const sectionScreens: SectionScreenConfig[] = [
             'onboarding-overview:screens.businessSection.steps.contactInfo.description'
           ),
           Component: BusinessContactInfoForm,
-        },
-        {
-          id: 'publicly-traded',
-          stepType: 'form',
-          title: i18n.t(
-            'onboarding-overview:screens.businessSection.steps.publiclyTraded.title'
-          ),
-          description: i18n.t(
-            'onboarding-overview:screens.businessSection.steps.publiclyTraded.description'
-          ),
-          Component: PubliclyTradedForm,
         },
         {
           id: 'check-answers',
