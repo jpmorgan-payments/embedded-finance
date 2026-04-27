@@ -223,6 +223,25 @@ export const FlowProvider: React.FC<{
         return false;
       }
       return true;
+    })
+    .map((s) => {
+      // Remove the publicly-traded step when feature flag is off or org is sole proprietorship
+      if (
+        (!enablePubliclyTradedCompanies ||
+          organizationType === 'SOLE_PROPRIETORSHIP') &&
+        s.stepperConfig?.steps
+      ) {
+        return {
+          ...s,
+          stepperConfig: {
+            ...s.stepperConfig,
+            steps: s.stepperConfig.steps.filter(
+              (step) => step.id !== 'publicly-traded'
+            ),
+          },
+        };
+      }
+      return s;
     });
 
   const [currentStepperStepIdFallback, setCurrentStepperStepIdFallback] =
