@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
-import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 
 import { cn } from '@/lib/utils';
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
@@ -110,12 +109,6 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     containerId: 'embedded-component-layout',
     userEventsHandler,
     userEventsLifecycle,
-  });
-
-  useEnableDTRUMTracking({
-    userEmail: 'test@test.com',
-    DOMElementToTrack: 'embedded-component-layout',
-    eventsToTrack: ['click', 'blur'],
   });
   // #endregion
 

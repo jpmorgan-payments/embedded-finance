@@ -1,6 +1,10 @@
 {
   "name": "@jpmorgan-payments/embedded-finance-components",
-  "version": "0.13.10",
+  "version": "0.13.11",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "license": "Apache-2.0",
   "type": "module",
   "description": "Embedded Finance Components",
@@ -109,7 +113,7 @@
     "@tanstack/react-query": "^5.90.5",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.14",
-    "axios": "^1.15.0",
+    "axios": "^1.15.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "1.1.1",
@@ -235,10 +239,6 @@
     "dompurify": "^3.4.0"
   },
   "packageManager": "yarn@4.12.0",
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/jpmorgan-payments/embedded-finance.git",
