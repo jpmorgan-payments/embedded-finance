@@ -217,7 +217,7 @@ These represent the core data collection areas, displayed on the `OverviewScreen
 - **Contextual Data**: Uses `associatedPartyFilters` to ensure steppers operate on the correct data entity (e.g., Controller vs. Business).
 - **Loading/Error States**: Handles API fetch status (`pending`, `error`) gracefully.
 - **Conditional Rendering**: Shows Gateway only when necessary; dynamically determines section statuses.
-- **User Event Tracking**: Includes infrastructure for tracking user interactions (`userEventsHandler`, `useEnableDTRUMTracking`).
+- **User Event Tracking**: Includes infrastructure for tracking user interactions (`userEventsHandler`, `userEventsLifecycle`). Supports Dynatrace, Datadog RUM, and generic analytics via consumer-provided callbacks.
 - **Exit Confirmation**: Optional `alertOnExit` prop prevents accidental data loss.
 - **Scrolling**: Smooth scrolling to the top of the active section/step (`FlowRenderer`).
 

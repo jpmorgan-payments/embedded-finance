@@ -53,11 +53,6 @@ class ResizeObserver {
 
 window.ResizeObserver = ResizeObserver;
 
-window.dtrum = {
-  enterAction: vi.fn(),
-  leaveAction: vi.fn(),
-};
-
 beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());

@@ -1,6 +1,5 @@
 import { FC, useCallback, useEffect, useMemo, useRef } from 'react';
 import { defaultResources, i18n } from '@/i18n/config';
-import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 import { DeepPartial } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -250,12 +249,6 @@ const OnboardingWizardBasicComponent: FC<
     organizationDetailsFromResponse?.jurisdiction,
     organizationDetailsFromResponse?.organizationType,
   ]);
-
-  useEnableDTRUMTracking({
-    userEmail: 'test@test.com',
-    DOMElementToTrack: 'embedded-component-layout',
-    eventsToTrack: ['click', 'blur'],
-  });
 
   const hasMounted = useRef(false);
   const stepRefs = useRef<(HTMLElement | null)[]>([]);
