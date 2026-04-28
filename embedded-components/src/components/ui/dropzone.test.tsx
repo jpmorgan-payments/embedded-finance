@@ -8,25 +8,17 @@ import Dropzone, { sanitizeBlobUrl, type DropzoneProps } from './dropzone';
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Build a fake File with the given properties. */
-const createFile = (
-  name: string,
-  size: number,
-  type: string
-): File => {
+const createFile = (name: string, size: number, type: string): File => {
   const content = new Uint8Array(size);
   return new File([content], name, { type });
 };
 
 const imageFile = () => createFile('photo.png', 4096, 'image/png');
 const pdfFile = () => createFile('doc.pdf', 8192, 'application/pdf');
-const largeFile = () =>
-  createFile('big.png', 6 * 1024 * 1024, 'image/png'); // 6 MB
+const largeFile = () => createFile('big.png', 6 * 1024 * 1024, 'image/png'); // 6 MB
 
 /** Simulate dropping files into the dropzone input. */
-const dropFiles = async (
-  input: HTMLElement,
-  files: File[]
-) => {
+const dropFiles = async (input: HTMLElement, files: File[]) => {
   await act(async () => {
     await userEvent.upload(input, files);
   });
@@ -34,9 +26,7 @@ const dropFiles = async (
 
 const renderDropzone = (props: Partial<DropzoneProps> = {}) => {
   const onChange = vi.fn();
-  const result = render(
-    <Dropzone onChange={onChange} {...props} />
-  );
+  const result = render(<Dropzone onChange={onChange} {...props} />);
   return { ...result, onChange };
 };
 
@@ -315,7 +305,9 @@ describe('Dropzone', () => {
     });
 
     it('does not compress non-compressible files', async () => {
-      const localCompressionFunc = vi.fn(async () => 'data:image/png;base64,abc');
+      const localCompressionFunc = vi.fn(
+        async () => 'data:image/png;base64,abc'
+      );
       renderDropzone({
         compressionFunc: localCompressionFunc,
         compressibleExtensions: ['.png'],
@@ -596,7 +588,9 @@ describe('Dropzone', () => {
 
     it('does not open new tab when URL is not blob:', async () => {
       // Override createObjectURL to return a non-blob URL
-      global.URL.createObjectURL = vi.fn(() => 'data:text/plain;base64,dGVzdA==');
+      global.URL.createObjectURL = vi.fn(
+        () => 'data:text/plain;base64,dGVzdA=='
+      );
 
       renderDropzone({ enableFilePreview: true });
 
@@ -639,9 +633,7 @@ describe('Dropzone', () => {
       const file1 = imageFile();
       const file2 = pdfFile();
 
-      const { rerender } = render(
-        <Dropzone value={[file1]} />
-      );
+      const { rerender } = render(<Dropzone value={[file1]} />);
 
       expect(screen.getByText('photo')).toBeInTheDocument();
 
@@ -657,9 +649,7 @@ describe('Dropzone', () => {
   describe('resetKey', () => {
     it('clears files when resetKey changes', async () => {
       const onChange = vi.fn();
-      const { rerender } = render(
-        <Dropzone onChange={onChange} />
-      );
+      const { rerender } = render(<Dropzone onChange={onChange} />);
 
       // Upload a file first
       const input = document.querySelector(
