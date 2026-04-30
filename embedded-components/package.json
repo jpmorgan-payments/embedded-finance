@@ -52,7 +52,7 @@
   },
   "scripts": {
     "__comment_build": "=== BUILD ===",
-    "build": "rimraf dist && tsc && vite build",
+    "build": "rimraf dist && tsc && cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build",
     "build:analyze": "vite build --mode analyze",
     "__comment_dev": "=== DEVELOPMENT ===",
     "dev": "vite",
