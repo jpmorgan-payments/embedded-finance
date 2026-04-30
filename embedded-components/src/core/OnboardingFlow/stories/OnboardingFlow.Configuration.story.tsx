@@ -1,12 +1,16 @@
 /**
- * OnboardingFlow - Configuration
+ * OnboardingFlow — Configuration & variants
  *
- * Different configuration variants and feature combinations.
+ * Single Storybook group for **product matrix**, **layout**, **navigation guards**,
+ * **doc-upload-only mode**, **locales**, **link-account**, **NAICS**, **disclosure /
+ * review-attest**, and **user tracking**. Former **Variants** duplicate exports were
+ * removed — extend this file only (see `Docs.mdx`).
  */
 
 import { db } from '@/msw/db';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
+import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 import { ORGANIZATION_TYPE_LIST } from '@/core/OnboardingFlow/consts';
 
 import type { BaseStoryArgs } from '../../../../.storybook/preview';
@@ -18,7 +22,10 @@ import {
   createOnboardingFlowHandlers,
   DEFAULT_CLIENT_ID,
   defaultHandlers,
+  DOC_UPLOAD_CLIENT_ID,
   mockClientApproved,
+  mockClientInfoRequested,
+  mockClientNew,
   mockClientNoIndustry,
   mockExistingLinkedAccount,
   OnboardingFlowTemplate,
@@ -27,8 +34,13 @@ import {
 
 type OnboardingFlowStoryArgs = OnboardingFlowProps & BaseStoryArgs;
 
+const mockClientInformationRequestedDocUpload: ClientResponse = {
+  ...mockClientInfoRequested,
+  id: DOC_UPLOAD_CLIENT_ID,
+};
+
 const meta: Meta<OnboardingFlowStoryArgs> = {
-  title: 'Core/OnboardingFlow/Configuration',
+  title: 'Core/OnboardingFlow/Configuration & variants',
   component: OnboardingFlowTemplate,
   tags: ['@core', '@onboarding'],
   parameters: {
@@ -75,8 +87,8 @@ export const WithSidebar: Story = {
 /**
  * **Without Sidebar**
  *
- * Onboarding flow with sidebar hidden.
- * Linear progression through the flow.
+ * Linear progression (`hideSidebar: true`). `story-utils` `commonArgs` defaults to
+ * sidebar visible (`hideSidebar: false`).
  */
 export const WithoutSidebar: Story = {
   args: {
@@ -476,6 +488,130 @@ export const WithUserTracking: Story = {
 };
 
 // =============================================================================
+// NAVIGATION GUARDS & EMBEDDED LAYOUT
+// =============================================================================
+
+/** Browser/tab close guard — verify in a host shell; Storybook cannot cover every navigation path. */
+export const NavigationAlertOnExit: Story = {
+  name: 'Navigation guard — alertOnExit',
+  loaders: [() => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID)],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    alertOnExit: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Sets `alertOnExit` for `beforeunload`-style confirmations when leaving the host page. Exercise tab close / refresh in your embedded app.',
+      },
+    },
+  },
+};
+
+/**
+ * Back / cancel paths — land on Personal mid-flow and use **Back** after editing,
+ * or exercise document-upload cancel when applicable.
+ */
+export const NavigationAlertOnPreviousStep: Story = {
+  name: 'Navigation guard — alertOnPreviousStep',
+  loaders: [() => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID)],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    alertOnPreviousStep: true,
+    flowEntry: {
+      screenId: 'personal-section',
+      stepperStepId: 'identity-document',
+    },
+  },
+};
+
+/** Host iframe / full-viewport embedding — root uses `style={{ minHeight: height }}`. */
+export const EmbeddedShellMinHeight100vh: Story = {
+  name: 'Embedded shell — minHeight 100vh',
+  loaders: [() => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID)],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    height: '100vh',
+  },
+};
+
+// =============================================================================
+// DOC UPLOAD ONLY MODE
+// =============================================================================
+
+export const DocUploadOnlyModeWithChecklist: Story = {
+  name: 'Doc upload only mode + download checklist flag',
+  loaders: [
+    () =>
+      resetAndSeedClient(
+        mockClientInformationRequestedDocUpload,
+        DOC_UPLOAD_CLIENT_ID
+      ),
+  ],
+  args: {
+    ...commonArgs,
+    clientId: DOC_UPLOAD_CLIENT_ID,
+    docUploadOnlyMode: true,
+    showDownloadChecklist: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`docUploadOnlyMode` opens the upload section; hosts often still pass `showDownloadChecklist`. Timeline sidebar stays collapsed/hidden in upload-only mode.',
+      },
+    },
+  },
+};
+
+export const DocUploadMaxFileSizeOneMegabyte: Story = {
+  name: 'Doc upload — max file size 1 MiB',
+  loaders: [
+    () =>
+      resetAndSeedClient(
+        mockClientInformationRequestedDocUpload,
+        DOC_UPLOAD_CLIENT_ID
+      ),
+  ],
+  args: {
+    ...commonArgs,
+    clientId: DOC_UPLOAD_CLIENT_ID,
+    docUploadOnlyMode: true,
+    docUploadMaxFileSizeBytes: 1024 * 1024,
+  },
+};
+
+// =============================================================================
+// LOCALES (PROVIDER CONTENT TOKEN PRESETS)
+// =============================================================================
+
+export const LocaleFrCaOverview: Story = {
+  name: 'Locale — fr-CA (overview)',
+  loaders: [() => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID)],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    flowEntry: { screenId: 'overview' },
+    contentTokensPreset: 'frCA',
+  },
+};
+
+export const LocaleEsUsOverview: Story = {
+  name: 'Locale — es-US (overview)',
+  loaders: [() => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID)],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    flowEntry: { screenId: 'overview' },
+    contentTokensPreset: 'esUS',
+  },
+};
+
+// =============================================================================
 // DISCLOSURE & ATTESTATION VARIANTS
 // =============================================================================
 
@@ -494,7 +630,6 @@ export const WithUserTracking: Story = {
  *   PDF (from the API) and a hyperlink to the Platform Provider's Program Agreement.
  */
 export const WithDisclosureConfig: Story = {
-  name: 'With Disclosure Config',
   args: {
     ...commonArgs,
     showDisclosureFooter: true,

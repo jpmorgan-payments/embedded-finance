@@ -46,6 +46,22 @@ export const mockClientNew: ClientResponse = {
   status: ClientStatus.NEW,
 };
 
+/**
+ * Same as {@link mockClientNew}, but the controller individual party
+ * (`2000000112`) includes `AUTHORIZED_USER` in `roles` (API uppercase enum).
+ */
+export const mockClientNewWithAuthorizedUserParty: ClientResponse = {
+  ...mockClientNew,
+  parties: mockClientNew.parties?.map((party) =>
+    party.partyType === 'INDIVIDUAL' && party.id === '2000000112'
+      ? {
+          ...party,
+          roles: ['AUTHORIZED_USER', 'CONTROLLER'],
+        }
+      : party
+  ),
+};
+
 /** Mock client with APPROVED status */
 export const mockClientApproved: ClientResponse = {
   ...efClientCorpEBMock,

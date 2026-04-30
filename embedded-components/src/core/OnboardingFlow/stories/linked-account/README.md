@@ -20,4 +20,4 @@ Shared MSW helpers: **`../story-utils.tsx`** (`buildApprovedClientLinkAccountSto
 
 ## Docs
 
-OnboardingFlow overview (Storybook MDX): **`../Docs.mdx`** → section _Linked account (Storybook)_.
+OnboardingFlow overview (Storybook MDX): **`../Docs.mdx`** — full **Storybook decomposition** taxonomy plus _Linked account (Storybook)_.

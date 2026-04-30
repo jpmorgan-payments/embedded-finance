@@ -1,23 +1,140 @@
 import { Meta } from '@storybook/addon-docs/blocks';
 
-import * as StatesStories from './OnboardingFlow.States.story';
-import * as VariantsStories from './OnboardingFlow.Variants.story';
-
 <Meta title="Core/OnboardingFlow" />
 
 # OnboardingFlow
 
-The **OnboardingFlow** component provides a complete, multi-step onboarding experience for embedded banking applications. It guides users through collecting business information, personal details, and compliance documentation required for KYC/AML verification.
+**OnboardingFlow** is the primary React experience for **client onboarding (KYC/KYB)** in this library: incremental business and controller collection, due diligence (operational) questions, document requests and attestations, optional **Account Validation Service (AVS)** bank linking with microdeposit verification when needed, and in-flow review—styled with your **`EBComponentsProvider`** theme and content tokens.
+
+This matches the **Client onboarding (KYC / KYB)** card on the library **Introduction** page (sidebar: **Introduction**), including the **Testing** maturity badge. Scenario labels follow the **SellSense** demo (`client-next-ts`): **New Seller - Onboarding**, **Onboarding - Docs Needed**, **Onboarding - Seller with prefilled data**; active seller flows there compose **Accounts**, **LinkedAccountWidget**, **TransactionsDisplay**, **RecipientsWidget**, **PaymentFlow** (**Make Payment** in the shell), and **ClientDetails** (**Linked Bank Account**, **Seller with Limited DDA**, **Seller with Payments DDA**).
+
+Use **Storybook** (sidebar: **Core → OnboardingFlow**) to preview screens and copy before you integrate.
 
 ## Features
 
-- **Multi-Step Wizard**: Guided flow with progress tracking
-- **Sidebar Navigation**: Optional timeline sidebar for section navigation
-- **Client State Management**: Handles new, existing, and returning clients
-- **Document Upload**: Integrated document collection with validation
-- **NAICS Recommendations**: AI-powered industry code suggestions
-- **Theme Support**: Customizable theming for white-label deployments
-- **User Event Tracking**: Integration with analytics/RUM systems
+- **Incremental onboarding**: Create or resume a client; forms save progress through parties and sections
+- **Due diligence & operational questions**: Dynamic questions from your configured API
+- **Documents & attestations**: Fulfill requests, upload files (including **document-only mode** when you only need that slice)
+- **Optional bank linking**: AVS and microdeposit flows inside the journey or via **LinkedAccountWidget**—same capability as the SellSense **Linked Bank Account** scenario on Introduction (**Testing**)
+- **Status-aware UI**: Applicant experience adapts by API status (see **Client States** below and Storybook **Client States**)
+- **Industry (NAICS)**: Hierarchical industry classification and suggestions—the same NAICS capability called out under **Utility Components → Industry Classification** on Introduction (**Available**)
+- **Monitoring-ready**: Hooks for analytics / RUM consistent with **Integration Scenarios** on Introduction
+
+## Storybook guide
+
+Open **Core → OnboardingFlow** in Storybook and pick the area that matches what you want to see:
+
+1. **Start with Client States** when you need to show stakeholders **what applicants see at each status** (new application, under review, more documents needed, approved, declined).
+2. **Use Configuration & variants** to explore **products, regions, sidebar, disclosures, languages, document-only mode, bank-link step, navigation confirmations, and layout height**—the knobs most integrations tune first.
+3. **Try Interactive Workflows** for **guided walkthroughs** of filling sections end-to-end (personal, business, owners, operational questions).
+4. **Use Entry points** when you want to **land on a specific step** (for example overview, a section, review, or upload documents) without clicking through from the start.
+
+### Where to find each topic
+
+<table>
+  <thead>
+    <tr>
+      <th>In Storybook</th>
+      <th>What it helps you understand</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <strong>Client States</strong>
+      </td>
+      <td>
+        How the flow presents for each **application status**, including loading
+        and error shells.
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Configuration & variants</strong>
+      </td>
+      <td>
+        **Products and jurisdictions**, timeline sidebar, download checklist,
+        **leave / unsaved-change** prompts (<code>alertOnExit</code>,{' '}
+        <code>alertOnPreviousStep</code>), **embedded height**, **document-only
+        mode** and file-size limits, **French Canadian and Spanish US** copy
+        presets, optional **link bank account** step, **NAICS** scenarios,
+        **disclosure and review attestations**, and **user-event** logging
+        examples.
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Resilience</strong>
+      </td>
+      <td>
+        How the shell behaves when **loading the applicant fails** (for example
+        a service error)—useful when designing error messaging alongside your
+        host page.
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Interactive Workflows</strong>
+      </td>
+      <td>
+        Automated demos that **fill representative data** through major sections
+        of the journey.
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Bad API Data</strong>
+      </td>
+      <td>
+        How **quirky or inconsistent API data** is corrected or surfaced so
+        applicants can fix fields without getting stuck.
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>DocumentUpload</strong>
+      </td>
+      <td>
+        Document-request experiences in depth: multiple requests, loading, and
+        upload/submit errors.
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Entry points → Flow stages</strong>
+      </td>
+      <td>
+        Jump straight to a **specific screen** using <code>flowEntry</code>
+        —gateway without a client id, overview, personal or business steps,
+        beneficial-owner stepper, owners (including sole prop vs LLC context),
+        operational questions, link bank, upload documents when more information
+        was requested, and review / attest scenarios.
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Entry points → Content tokens</strong>
+      </td>
+      <td>
+        See **host-owned wording** merged in through{' '}
+        <code>EBComponentsProvider</code> <code>contentTokens</code> on the
+        review step.
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Linked account</strong> (<code>LinkedAccountWidget</code>;
+        Client States / Interactive / Enabled Statuses)
+      </td>
+      <td>
+        **Connecting a bank account** during or after onboarding—matches wallet
+        wiring for **Linked Bank Account** in SellSense: lifecycle screens,
+        interactive linking and microdeposit verification, and when linking is
+        allowed by status.
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ## Linked account (Storybook)
 
@@ -35,13 +152,19 @@ Stories for the optional bank-link step and recipient lifecycle are grouped unde
       <td>
         <strong>Client States</strong>
       </td>
-      <td>Static MSW seeds (lifecycle statuses, prefill modes, existing <strong>ACTIVE</strong> account)</td>
+      <td>
+        Static MSW seeds (lifecycle statuses, prefill modes, existing{' '}
+        <strong>ACTIVE</strong> account)
+      </td>
     </tr>
     <tr>
       <td>
         <strong>Interactive</strong>
       </td>
-      <td>Play-driven flows (full link + state machine, prefill summary, microdeposit verify from Overview)</td>
+      <td>
+        Play-driven flows (full link + state machine, prefill summary,
+        microdeposit verify from Overview)
+      </td>
     </tr>
   </tbody>
 </table>
@@ -67,8 +190,10 @@ Linked bank account behavior appears in **two screens** (same API data, same rec
         <code>OverviewScreen</code>
       </td>
       <td>
-        Bank account section: card + <code>StatusAlert</code>. <strong>Start</strong> if no linked recipient yet.{' '}
-        <strong>Verify Account</strong> (microdeposit dialog) when status is <code>READY_FOR_VALIDATION</code>.
+        Bank account section: card + <code>StatusAlert</code>.{' '}
+        <strong>Start</strong> if no linked recipient yet.{' '}
+        <strong>Verify Account</strong> (microdeposit dialog) when status is{' '}
+        <code>READY_FOR_VALIDATION</code>.
       </td>
     </tr>
     <tr>
@@ -79,9 +204,10 @@ Linked bank account behavior appears in **two screens** (same API data, same rec
         <code>LinkAccountScreen</code>
       </td>
       <td>
-        <strong>New link:</strong> <code>BankAccountForm</code> or <code>prefillSummary</code> per{' '}
-        <code>linkAccountStepOptions</code>. <strong>Existing recipient:</strong> same card + verify CTA as Overview, plus{' '}
-        <strong>Return to overview</strong>.
+        <strong>New link:</strong> <code>BankAccountForm</code> or{' '}
+        <code>prefillSummary</code> per <code>linkAccountStepOptions</code>.{' '}
+        <strong>Existing recipient:</strong> same card + verify CTA as Overview,
+        plus <strong>Return to overview</strong>.
       </td>
     </tr>
   </tbody>
@@ -89,15 +215,15 @@ Linked bank account behavior appears in **two screens** (same API data, same rec
 
 For standalone linked-account management (lists, menus, pay), use **LinkedAccountWidget** — it reuses the same `MicrodepositsFormDialogTrigger`, `RecipientAccountDisplayCard`, and `linked-accounts` strings.
 
-### MSW note
+### Storybook demos
 
-`createOnboardingFlowHandlers` in `stories/story-utils.tsx` seeds `GET /recipients` fixtures into the MSW **db** so `GET /recipients/:id` and microdeposit **verify** work in Storybook (see Interactive story **3**).
+Bank linking scenarios in Storybook use **mock banking APIs** so you can try verification and status changes safely without production credentials.
 
-Repo reference: `stories/linked-account/README.md`.
+For engineers extending or debugging linked-account stories, see `stories/linked-account/README.md`.
 
 ## Client States
 
-The component handles different client statuses appropriately:
+The UI focuses on the primary applicant lifecycle below (mirrors what you can preview under **Client States** in Storybook). Status values match the **Embedded Payments** `ClientStatus` model (`types` export from the package).
 
 <table>
   <thead>
@@ -112,8 +238,14 @@ The component handles different client statuses appropriately:
       <td>
         <strong>NEW</strong>
       </td>
-      <td>Fresh onboarding or existing client with new data</td>
-      <td>Full onboarding flow with pre-filled data</td>
+      <td>
+        Fresh onboarding or existing client still completing requirements (may
+        include API prefill)
+      </td>
+      <td>
+        Full onboarding sections—timeline, gateway (when applicable), and tasks
+        until submission
+      </td>
     </tr>
     <tr>
       <td>
@@ -143,10 +275,32 @@ The component handles different client statuses appropriately:
       <td>Application was declined</td>
       <td>Declined status with relevant messaging</td>
     </tr>
+    <tr>
+      <td>
+        <strong>SUSPENDED</strong>
+      </td>
+      <td>Relationship temporarily restricted per bank policy</td>
+      <td>
+        Host-directed experience; onboarding sections are typically unavailable
+        or read-only—coordinate messaging with your backend rules
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>TERMINATED</strong>
+      </td>
+      <td>Relationship ended</td>
+      <td>
+        Host-directed experience; treat similarly to closed accounts for routing
+        and support copy
+      </td>
+    </tr>
   </tbody>
 </table>
 
-## Configuration Variants
+## Integration examples
+
+Common prop combinations you can copy into your app (many have matching examples under **Configuration & variants** in Storybook).
 
 ### Sidebar Navigation
 
@@ -172,10 +326,12 @@ For clients needing to upload additional documents (clientId provided via EBComp
 
 ### Theme Customization
 
-Apply custom theming for white-label deployments:
+Theming is applied on **`EBComponentsProvider`** (same pattern as **Introduction → Quick Start → With Custom Theme**):
 
 ```tsx
-<OnboardingFlow
+<EBComponentsProvider
+  apiBaseUrl="/api"
+  headers={{}}
   theme={{
     colorScheme: 'light',
     variables: {
@@ -183,7 +339,12 @@ Apply custom theming for white-label deployments:
       fontFamily: 'Inter, sans-serif',
     },
   }}
-/>
+>
+  <OnboardingFlow
+    availableProducts={['EMBEDDED_PAYMENTS']}
+    availableJurisdictions={['US']}
+  />
+</EBComponentsProvider>
 ```
 
 ## Usage Examples
@@ -191,8 +352,10 @@ Apply custom theming for white-label deployments:
 ### Basic Usage
 
 ```tsx
-import { OnboardingFlow } from '@embedded-components/core/OnboardingFlow';
-import { EBComponentsProvider } from '@embedded-components/providers';
+import {
+  EBComponentsProvider,
+  OnboardingFlow,
+} from '@jpmorgan-payments/embedded-finance-components';
 
 // New client onboarding (no clientId)
 <EBComponentsProvider apiBaseUrl="/api" headers={{}}>
@@ -335,6 +498,21 @@ import { EBComponentsProvider } from '@embedded-components/providers';
         <code>false</code>
       </td>
       <td>Show confirmation when leaving page</td>
+    </tr>
+    <tr>
+      <td>
+        <code>alertOnPreviousStep</code>
+      </td>
+      <td>
+        <code>boolean</code>
+      </td>
+      <td>
+        <code>false</code>
+      </td>
+      <td>
+        Confirm on Back / previous navigation, document upload Cancel, or Return
+        to overview when unsaved data may be lost
+      </td>
     </tr>
     <tr>
       <td>
