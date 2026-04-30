@@ -80,7 +80,7 @@ Agent Skills provide specialized guidance for specific tasks. **Always reference
    - Use when: Writing tests, setting up mocks, testing API interactions, ensuring coverage
    - See: `.github/skills/component-testing/AGENTS.md` for complete documentation
 
-3. **[code-quality-workflow](.github/skills/code-quality-workflow/)** - Mandatory workflow that must run after ANY code changes. **CRITICAL: Run before every commit.** For large changes, also run build: `yarn format`, `yarn typecheck`, `yarn build`, `yarn test`.
+3. **[code-quality-workflow](.github/skills/code-quality-workflow/)** - Mandatory workflow that must run after ANY code changes. **CRITICAL: Run before every commit.** In **`embedded-components`**, run **`yarn format`**, **`yarn build`**, then **`yarn test`** — **`yarn build`** is required for substantive `.ts`/`.tsx` edits **including tests/mocks**, not only large features. For large changes, use **`yarn format`**, **`yarn typecheck`**, **`yarn build`**, **`yarn test`**.
 
    - Use when: After creating/editing files, before commits, when fixing errors
    - See: `.github/skills/code-quality-workflow/AGENTS.md` for complete documentation

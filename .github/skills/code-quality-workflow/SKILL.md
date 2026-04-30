@@ -27,10 +27,13 @@ Use this workflow:
 **After making ANY code changes, you MUST:**
 
 1. **Format code**: `cd embedded-components; yarn format`
-2. **Run tests**: `cd embedded-components; yarn test`
-3. **For large changes** (new components, refactors, many files): **also run** `yarn typecheck`, `yarn build`, then `yarn test` (e.g. `yarn format; yarn typecheck; yarn build; yarn test`)
+2. **Run build**: `cd embedded-components; yarn build` — required for substantive `.ts`/`.tsx` edits **including tests/mocks** (errors may not appear in Vitest alone).
+3. **Run tests**: `cd embedded-components; yarn test`
 4. **Fix any errors that appear**
 5. **Re-run until all pass**
+
+**Large changes** (new components, refactors, many files): run **`yarn typecheck`** immediately before **`yarn build`** when you want an explicit extra gate:  
+`yarn format; yarn typecheck; yarn build; yarn test`.
 
 ## Quick Reference
 
@@ -62,7 +65,7 @@ yarn lint:fix
 # Check types only
 yarn typecheck
 
-# Full build (always run for large changes)
+# Full package build — run after substantive edits (including tests)
 yarn build
 
 # Run tests only
@@ -72,12 +75,12 @@ yarn test:unit
 yarn test
 ```
 
-**For large changes:** run `yarn format`, then `yarn typecheck`, then `yarn build`, then `yarn test`.
+**Typical sequence:** `yarn format` → **`yarn build`** → **`yarn test`**. For large changes: `yarn format`, **`yarn typecheck`**, **`yarn build`**, **`yarn test`**.
 
 ## Never Commit Code With
 
 - ❌ TypeScript errors
-- ❌ Build failures (for large changes: run `yarn build` first)
+- ❌ Build failures — run **`yarn build`** after edits (including tests)
 - ❌ Formatting errors (Prettier)
 - ❌ Linting errors
 - ❌ Failing tests

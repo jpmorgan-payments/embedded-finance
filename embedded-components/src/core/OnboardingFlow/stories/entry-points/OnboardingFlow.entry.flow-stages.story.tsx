@@ -2,8 +2,10 @@
  * OnboardingFlow — entry points by flow stage (`flowEntry`).
  *
  * Each story opens the flow at a specific screen after the client loads, for Storybook and QA.
+ * Includes gateway (no client id), owner stepper, owners (LLC vs sole prop), and upload-documents.
  */
 
+import { efClientSolPropNew } from '@/mocks/efClientSolPropNew.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import type { BaseStoryArgs } from '../../../../../.storybook/preview';
@@ -14,6 +16,7 @@ import {
   commonArgTypes,
   DEFAULT_CLIENT_ID,
   defaultHandlers,
+  mockClientInfoRequested,
   mockClientNew,
   OnboardingFlowTemplate,
   resetAndSeedClient,
@@ -61,9 +64,17 @@ const meta: Meta<OnboardingFlowStoryArgs> = {
 export default meta;
 type Story = StoryObj<OnboardingFlowStoryArgs>;
 
+/** No `clientId` — flow opens at **Gateway** until the host creates / resumes a client. */
+export const GatewayFreshSession: Story = {
+  name: 'Gateway (no clientId)',
+  args: {
+    ...commonArgs,
+    clientId: '',
+  },
+};
+
 /** Main timeline hub for a client with organization type set. */
 export const Overview: Story = {
-  name: 'Overview',
   loaders: [seededNewClientLoader],
   args: {
     ...commonArgs,
@@ -100,6 +111,20 @@ export const BusinessSectionBusinessIdentity: Story = {
   },
 };
 
+/** Static **owner-stepper** — first beneficial-owner form step (`owner-stepper` screen). */
+export const OwnerStepperPersonalDetails: Story = {
+  name: 'Beneficial owner stepper — personal details',
+  loaders: [seededNewClientLoader],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    flowEntry: {
+      screenId: 'owner-stepper',
+      stepperStepId: 'personal-details',
+    },
+  },
+};
+
 /** Operational / additional questions (single-screen section). */
 export const AdditionalQuestions: Story = {
   name: 'Operational details',
@@ -108,6 +133,30 @@ export const AdditionalQuestions: Story = {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
     flowEntry: { screenId: 'additional-questions-section' },
+  },
+};
+
+/** Owners hub for LLC — sole props use controller-as-owner; section may be excluded from timeline. */
+export const OwnersSectionLLC: Story = {
+  name: 'Owners section (LLC)',
+  loaders: [seededNewClientLoader],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    flowEntry: { screenId: 'owners-section' },
+  },
+};
+
+/** Sole prop seed — beneficial-owner section is excluded for this org type; useful regression for deep-links. */
+export const OwnersSectionSoleProp: Story = {
+  name: 'Owners section (sole prop)',
+  loaders: [
+    () => resetAndSeedClient(efClientSolPropNew, efClientSolPropNew.id),
+  ],
+  args: {
+    ...commonArgs,
+    clientId: efClientSolPropNew.id,
+    flowEntry: { screenId: 'owners-section' },
   },
 };
 
@@ -120,6 +169,19 @@ export const LinkBankAccount: Story = {
     clientId: DEFAULT_CLIENT_ID,
     showLinkAccountStep: true,
     flowEntry: { screenId: 'link-account' },
+  },
+};
+
+/** INFORMATION_REQUESTED + outstanding doc requests — upload section timeline entry. */
+export const UploadDocumentsInformationRequested: Story = {
+  name: 'Upload documents section (information requested)',
+  loaders: [
+    () => resetAndSeedClient(mockClientInfoRequested, DEFAULT_CLIENT_ID),
+  ],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    flowEntry: { screenId: 'upload-documents-section' },
   },
 };
 

@@ -93,3 +93,7 @@ Each journey is tracked with:
 - `timestamp`: Event timestamp (milliseconds since epoch)
 - `element`: The DOM element that triggered the event (if available)
 - `metadata`: Additional context (screenId, stepId, sectionId, etc.)
+
+## Testing
+
+See **[TESTING.md](./TESTING.md)** for the full pyramid (schema tests, Vitest integration, Storybook parity, SellSense Playwright scenarios) and where to add new coverage.

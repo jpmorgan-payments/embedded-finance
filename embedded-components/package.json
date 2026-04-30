@@ -56,7 +56,7 @@
   },
   "scripts": {
     "__comment_build": "=== BUILD ===",
-    "build": "rimraf dist && tsc && vite build",
+    "build": "rimraf dist && tsc && cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build",
     "build:analyze": "vite build --mode analyze",
     "__comment_dev": "=== DEVELOPMENT ===",
     "dev": "vite",
@@ -67,6 +67,7 @@
     "test:unit": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:coverage:onboarding": "vitest run src/core/OnboardingFlow --coverage --coverage.include=src/core/OnboardingFlow/**/*.ts --coverage.include=src/core/OnboardingFlow/**/*.tsx",
     "__comment_quality": "=== CODE QUALITY ===",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.tsx --cache",
@@ -172,8 +173,8 @@
     "@typescript-eslint/eslint-plugin": "^8.49.0",
     "@typescript-eslint/parser": "^8.49.0",
     "@vitejs/plugin-react": "^5.1.4",
-    "@vitest/coverage-v8": "^4.0.18",
-    "@vitest/ui": "^4.0.18",
+    "@vitest/coverage-v8": "^4.1.5",
+    "@vitest/ui": "^4.1.5",
     "autoprefixer": "^10.4.21",
     "baseline-browser-mapping": "^2.10.0",
     "cross-env": "^10.1.0",
@@ -214,7 +215,7 @@
     "vite-plugin-dts": "^4.5.4",
     "vite-plugin-lib-inject-css": "^2.2.2",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.5"
   },
   "peerDependencies": {
     "react": "^18.2.0 || ^19",

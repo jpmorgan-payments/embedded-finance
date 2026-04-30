@@ -14,6 +14,7 @@ All commands run from this directory (`app/client-next-ts/`):
 - Tests: `yarn test`
 - Coverage (Vitest + `@vitest/coverage-v8`): `yarn test:coverage` (HTML report in `coverage/`). Totals omit auxiliary demos, generated route tree, very large SellSense drawers, TanStack route modules, several embedded shell components, and `msw/browser.ts` (see `vite.config.js` `test.coverage.exclude`).
 - Health checks: `yarn health-check:all`
+- Playwright E2E (optional; hit deployed or local demo): `yarn e2e:sellsense-urls`, `yarn e2e:recipients`, `yarn e2e:onboarding` — use `ONBOARDING_E2E_URL` / `RECIPIENTS_E2E_URL` for non-default bases.
 
 ## Technology Stack
 

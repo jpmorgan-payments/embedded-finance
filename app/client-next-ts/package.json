@@ -17,7 +17,8 @@
     "health-check:onboarding": "node health-check.js --scenario=onboarding-docs-needed",
     "health-check:all": "npm run health-check && npm run health-check:linked-bank && npm run health-check:onboarding",
     "e2e:sellsense-urls": "playwright test tests/e2e/sellsense-demo-urls.spec.ts",
-    "e2e:recipients": "playwright test tests/e2e/recipients-widget.spec.ts"
+    "e2e:recipients": "playwright test tests/e2e/recipients-widget.spec.ts",
+    "e2e:onboarding": "playwright test tests/e2e/onboarding-flow.spec.ts"
   },
   "dependencies": {
     "@jpmorgan-payments/embedded-finance-components": "file:../../embedded-components",
@@ -68,7 +69,7 @@
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^5.1.4",
-    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/coverage-v8": "^4.1.5",
     "autoprefixer": "^10.4.20",
     "jsdom": "^26.0.0",
     "postcss": "^8.4.49",
@@ -77,7 +78,7 @@
     "rimraf": "^6.0.1",
     "typescript": "^5.7.2",
     "vite": "^7.3.2",
-    "vitest": "^3.0.5",
+    "vitest": "^4.1.5",
     "web-vitals": "^4.2.4"
   },
   "msw": {
