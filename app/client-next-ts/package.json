@@ -17,7 +17,8 @@
     "health-check:onboarding": "node health-check.js --scenario=onboarding-docs-needed",
     "health-check:all": "npm run health-check && npm run health-check:linked-bank && npm run health-check:onboarding",
     "e2e:sellsense-urls": "playwright test tests/e2e/sellsense-demo-urls.spec.ts",
-    "e2e:recipients": "playwright test tests/e2e/recipients-widget.spec.ts"
+    "e2e:recipients": "playwright test tests/e2e/recipients-widget.spec.ts",
+    "e2e:onboarding": "playwright test tests/e2e/onboarding-flow.spec.ts"
   },
   "dependencies": {
     "@jpmorgan-payments/embedded-finance-components": "file:../../embedded-components",

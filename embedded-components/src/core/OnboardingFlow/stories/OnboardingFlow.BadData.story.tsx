@@ -12,13 +12,19 @@
  *   they carry a validation error.
  */
 
-import { efClientSolPropWithMoreData } from '@/mocks/efClientSolPropWithMoreData.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { cloneDeep } from 'lodash';
-
-import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 import type { BaseStoryArgs } from '../../../../.storybook/preview';
+import {
+  createMockClientCOOWithDescription,
+  createMockClientInvalidEIN,
+  createMockClientInvalidJobTitle,
+  createMockClientInvalidPostalCode,
+  createMockClientInvalidSSN,
+  createMockClientInvalidState,
+  createMockClientMismatchedAddressCountry,
+  createMockClientMultipleIssues,
+} from '../fixtures/badApiClient.fixtures';
 import type { OnboardingFlowProps } from '../types/onboarding.types';
 import {
   commonArgs,
@@ -26,223 +32,11 @@ import {
   commonArgTypes,
   DEFAULT_CLIENT_ID,
   defaultHandlers,
-  mockClientNew,
   OnboardingFlowTemplate,
   resetAndSeedClient,
 } from './story-utils';
 
 type OnboardingFlowStoryArgs = OnboardingFlowProps & BaseStoryArgs;
-
-// ============================================================================
-// Mock Data — Bad / Inconsistent API Responses
-// ============================================================================
-
-/**
- * Sole proprietorship where the controller's address country differs
- * from their countryOfResidence. For sole props the address country is
- * normally readonly (locked to countryOfFormation). The refineSchemaFn
- * on ContactDetailsForm validates that address country === countryOfResidence;
- * when it fails, the readonly field becomes editable so the user can fix it.
- */
-function createMockClientMismatchedAddressCountry(): ClientResponse {
-  const mock = cloneDeep(efClientSolPropWithMoreData);
-  mock.id = DEFAULT_CLIENT_ID;
-  const controller = mock.parties?.find((p) =>
-    (p as any).roles?.includes('CONTROLLER')
-  ) as any;
-
-  if (controller) {
-    // countryOfResidence is US, but address says CA
-    controller.individualDetails.countryOfResidence = 'US';
-    controller.individualDetails.addresses = [
-      {
-        addressType: 'RESIDENTIAL_ADDRESS',
-        addressLines: ['100 King Street West'],
-        city: 'Toronto',
-        state: 'ON',
-        postalCode: 'M5X 1A1',
-        country: 'CA',
-      },
-    ];
-  }
-  return mock;
-}
-
-/**
- * Controller has an invalid EIN-format SSN (too short).
- * validateOnMount should surface the validation error immediately.
- */
-function createMockClientInvalidSSN(): ClientResponse {
-  const mock = cloneDeep(mockClientNew);
-  const controller = mock.parties?.find((p) =>
-    (p as any).roles?.includes('CONTROLLER')
-  ) as any;
-
-  if (controller) {
-    controller.individualDetails.individualIds = [
-      {
-        idType: 'SSN',
-        issuer: 'US',
-        value: '123', // Too short — should be 9 digits
-      },
-    ];
-  }
-  return mock;
-}
-
-/**
- * Organization has an invalid EIN (too short).
- * validateOnMount should surface the validation error on the business
- * identity step.
- */
-function createMockClientInvalidEIN(): ClientResponse {
-  const mock = cloneDeep(mockClientNew);
-  const org = mock.parties?.find(
-    (p) => (p as any).partyType === 'ORGANIZATION'
-  ) as any;
-
-  if (org) {
-    org.organizationDetails.organizationIds = [
-      {
-        idType: 'EIN',
-        issuer: 'US',
-        value: '914316140', // cannot start with 9
-      },
-    ];
-  }
-  return mock;
-}
-
-/**
- * Controller has an invalid postal code format for their country.
- */
-function createMockClientInvalidPostalCode(): ClientResponse {
-  const mock = cloneDeep(mockClientNew);
-  const controller = mock.parties?.find((p) =>
-    (p as any).roles?.includes('CONTROLLER')
-  ) as any;
-
-  if (controller) {
-    controller.individualDetails.addresses = [
-      {
-        addressType: 'RESIDENTIAL_ADDRESS',
-        addressLines: ['2029 Century Park E'],
-        city: 'Los Angeles',
-        state: 'CA',
-        postalCode: 'ABCDE', // Invalid US postal code
-        country: 'US',
-      },
-    ];
-  }
-  return mock;
-}
-
-/**
- * Controller has an address state that doesn't match any valid US subdivision.
- */
-function createMockClientInvalidState(): ClientResponse {
-  const mock = cloneDeep(mockClientNew);
-  const controller = mock.parties?.find((p) =>
-    (p as any).roles?.includes('CONTROLLER')
-  ) as any;
-
-  if (controller) {
-    controller.individualDetails.addresses = [
-      {
-        addressType: 'RESIDENTIAL_ADDRESS',
-        addressLines: ['2029 Century Park E'],
-        city: 'Los Angeles',
-        state: 'ZZ', // Not a valid US state/territory
-        postalCode: '90067',
-        country: 'US',
-      },
-    ];
-  }
-  return mock;
-}
-
-/**
- * Multiple issues at once: mismatched address country, invalid postal code,
- * and invalid SSN.
- */
-function createMockClientMultipleIssues(): ClientResponse {
-  const mock = cloneDeep(mockClientNew);
-  const controller = mock.parties?.find((p) =>
-    (p as any).roles?.includes('CONTROLLER')
-  ) as any;
-  const org = mock.parties?.find(
-    (p) => (p as any).partyType === 'ORGANIZATION'
-  ) as any;
-
-  if (controller) {
-    controller.individualDetails.countryOfResidence = 'US';
-    controller.individualDetails.addresses = [
-      {
-        addressType: 'RESIDENTIAL_ADDRESS',
-        addressLines: ['100 King Street West'],
-        city: 'Toronto',
-        state: 'ON',
-        postalCode: 'M5X 1A1',
-        country: 'CA',
-      },
-    ];
-    controller.individualDetails.individualIds = [
-      {
-        idType: 'SSN',
-        issuer: 'US',
-        value: '123',
-      },
-    ];
-  }
-
-  if (org) {
-    org.organizationDetails.organizationIds = [
-      {
-        idType: 'EIN',
-        issuer: 'US',
-        value: '12',
-      },
-    ];
-  }
-
-  return mock;
-}
-
-/**
- * Controller has a jobTitle value ("Associate") that is not in the
- * accepted enum. validateOnMount should surface a validation error on
- * the Personal Details step.
- */
-function createMockClientInvalidJobTitle(): ClientResponse {
-  const mock = cloneDeep(mockClientNew);
-  const controller = mock.parties?.find((p) =>
-    (p as any).roles?.includes('CONTROLLER')
-  ) as any;
-
-  if (controller) {
-    controller.individualDetails.jobTitle = 'Associate';
-    controller.individualDetails.jobTitleDescription = '';
-  }
-  return mock;
-}
-
-/**
- * Controller has jobTitle "COO" (valid enum) with a custom
- * jobTitleDescription "Top Dog". This is valid data — the story
- * verifies the form pre-populates both fields correctly.
- */
-function createMockClientCOOWithDescription(): ClientResponse {
-  const mock = cloneDeep(mockClientNew);
-  const controller = mock.parties?.find((p) =>
-    (p as any).roles?.includes('CONTROLLER')
-  ) as any;
-
-  if (controller) {
-    controller.individualDetails.jobTitle = 'COO';
-    controller.individualDetails.jobTitleDescription = 'Top Dog';
-  }
-  return mock;
-}
 
 // ============================================================================
 // Story Meta
