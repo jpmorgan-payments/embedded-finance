@@ -12,7 +12,7 @@ jobs:
   # Job: Run health check against appropriate URL
   health-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 18
 
     steps:
       - name: Checkout code
@@ -56,8 +56,8 @@ jobs:
         if: steps.url.outputs.is_pr == 'true'
         run: |
           echo "⏳ Waiting for Amplify PR deployment to complete..."
-          echo "PR deployments are usually faster than main deployments"
-          sleep 120  # 2 minutes for PR deployments
+          echo "PR previews often finish after the workflow starts; allow extra time to reduce flakes."
+          sleep 300  # 5 minutes — Amplify PR builds intermittently exceed 2m
 
       - name: Wait for main deployment (if applicable)
         if: steps.url.outputs.is_pr == 'false'
