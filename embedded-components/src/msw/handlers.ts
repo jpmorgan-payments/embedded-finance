@@ -464,18 +464,57 @@ export const handlers = [
   }),
 
   http.post('/documents', async ({ request }) => {
-    const data = await request.json();
     const documentId = Math.random().toString(36).substring(7);
+    const contentType = request.headers.get('content-type') ?? '';
 
-    // Create a mock document response
+    let documentType: string | undefined;
+    let fileName: string | undefined;
+    let mimeType: string | undefined;
+    let metadata: Record<string, unknown> = {};
+
+    if (contentType.includes('multipart/form-data')) {
+      const fd = await request.formData();
+      const file = fd.get('file');
+      const documentDataRaw = fd.get('documentData');
+      if (typeof documentDataRaw === 'string') {
+        try {
+          const parsed = JSON.parse(documentDataRaw) as {
+            documentType?: string;
+            documentRequestId?: string;
+          };
+          documentType = parsed.documentType;
+          if (parsed.documentRequestId) {
+            metadata = { DOCUMENT_REQUEST_ID: parsed.documentRequestId };
+          }
+        } catch {
+          // ignore malformed JSON in tests / callers
+        }
+      }
+      if (file instanceof File) {
+        fileName = file.name;
+        mimeType = file.type || 'application/octet-stream';
+      }
+    } else {
+      const data = (await request.json()) as {
+        documentType?: string;
+        fileName?: string;
+        mimeType?: string;
+        metadata?: Record<string, unknown>;
+      };
+      documentType = data.documentType;
+      fileName = data.fileName;
+      mimeType = data.mimeType;
+      metadata = data.metadata || {};
+    }
+
     const documentResponse = {
       id: documentId,
       status: 'ACTIVE',
-      documentType: data.documentType,
-      fileName: data.fileName,
-      mimeType: data.mimeType,
+      documentType,
+      fileName,
+      mimeType,
       createdAt: new Date().toISOString(),
-      metadata: data.metadata || {},
+      metadata,
     };
 
     return HttpResponse.json(documentResponse, { status: 201 });
