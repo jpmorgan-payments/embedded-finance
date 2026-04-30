@@ -27,15 +27,18 @@ Mandatory code quality workflow that must run after ANY code changes. This workf
    - Auto-fixes Prettier formatting issues
    - **DO NOT skip this step** - code must be properly formatted
 
-2. **Run tests**: `cd embedded-components; yarn test`
+2. **Run build**: `cd embedded-components; yarn build`
+
+   - Run after substantive `.ts`/`.tsx` edits (**including tests, mocks, and Vitest stubs**). **`yarn build` catches strict typing and declaration issues that `yarn test:unit` alone may not surface.**
+
+3. **Run tests**: `cd embedded-components; yarn test`
 
    - This runs: typecheck → format:check → lint → test:unit
    - **DO NOT skip this step** - tests must pass before proceeding
 
-3. **For large changes** (new components, refactors, many files touched): **also run build, types, and format explicitly:**
+**Typical sequence before committing:** `yarn format` → **`yarn build`** → **`yarn test`**.
 
-   - `cd embedded-components; yarn format; yarn typecheck; yarn build; yarn test`
-   - **DO NOT skip build** - `yarn build` catches compilation/export issues that may not surface the same way in `yarn test`.
+For **large changes** (new components, refactors, many files touched): `yarn format; yarn typecheck; yarn build; yarn test`.
 
 4. **Fix any errors that appear**
 5. **Re-run until all pass**
@@ -149,7 +152,7 @@ yarn lint:fix
 # Check types only
 yarn typecheck
 
-# Full build (always run for large changes)
+# Full package build — run after substantive edits (including tests), before relying on tests alone
 yarn build
 
 # Run tests only
@@ -165,12 +168,12 @@ yarn test ComponentName.test.tsx
 yarn test:watch
 ```
 
-**For large changes:** run `yarn format`, then `yarn typecheck`, then `yarn build`, then `yarn test`.
+**For substantive edits:** run `yarn format`, then **`yarn build`**, then `yarn test`. For large changes, also run **`yarn typecheck`** explicitly before **`yarn build`**.
 
 ## Never Commit Code With
 
 - ❌ TypeScript errors
-- ❌ Build failures (for large changes: run `yarn build` and fix before committing)
+- ❌ Build failures — run **`yarn build`** after edits (including tests) and fix before committing
 - ❌ Formatting errors (Prettier)
 - ❌ Linting errors
 - ❌ Failing tests
@@ -185,14 +188,17 @@ yarn test:watch
 cd embedded-components
 yarn format
 
-# 3. Run full test suite
-yarn test
-
-# 4. For LARGE changes (new components, refactors, many files), also run:
-yarn typecheck
+# 3. Run full build (catches test/mock TS errors not always seen in Vitest alone)
 yarn build
 
-# 5. If errors appear:
+# 4. For large changes, you may run typecheck immediately before build:
+# yarn typecheck
+# yarn build
+
+# 5. Run full test suite (typecheck, format:check, lint, test:unit)
+yarn test
+
+# 6. If errors appear:
 
 # Fix formatting (if not already done)
 yarn format
@@ -206,12 +212,12 @@ yarn lint:fix
 # Fix failing tests
 # (update tests or implementation)
 
-# 6. Re-run: format, typecheck, build (if large), test
-yarn format; yarn typecheck; yarn build; yarn test
+# 7. Re-run: format, build, test (and typecheck when applicable)
+yarn format; yarn build; yarn test
 
-# 7. Repeat until all pass
+# 8. Repeat until all pass
 
-# 8. Commit code
+# 9. Commit code
 git add .
 git commit -m "feat: add new component"
 ```
@@ -228,8 +234,9 @@ git commit -m "feat: add new component"
 Before committing, ensure:
 
 - [ ] `yarn format` has been run (code is formatted)
+- [ ] **`yarn build`** has been run and passes (**including after test-only changes**)
 - [ ] `yarn test` passes (all checks green)
-- [ ] **For large changes:** `yarn typecheck` and `yarn build` have been run and pass
+- [ ] **For large changes:** `yarn typecheck` has been run and passes (optional extra gate before build)
 - [ ] No TypeScript errors
 - [ ] No build failures
 - [ ] No formatting errors
@@ -309,10 +316,10 @@ Some issues require manual intervention:
 
 ## Integration with Other Skills
 
-- After using `embedded-banking-architecture` skill → run tests
-- After using `component-testing` skill → run tests
-- After using `styling-guidelines` skill → run tests
-- After using `react-patterns` skill → run tests
+- After using `embedded-banking-architecture` skill → **`yarn format`**, **`yarn build`**, **`yarn test`**
+- After using `component-testing` skill → **`yarn format`**, **`yarn build`**, **`yarn test`**
+- After using `styling-guidelines` skill → **`yarn format`**, **`yarn build`**, **`yarn test`**
+- After using `react-patterns` skill → **`yarn format`**, **`yarn build`**, **`yarn test`**
 
 ## Time-Saving Tips
 
@@ -320,8 +327,8 @@ Some issues require manual intervention:
 # Run specific test file during development
 yarn test:watch ComponentName.test.tsx
 
-# Fix formatting and linting in one command
-yarn format; yarn lint:fix; yarn test
+# Fix formatting and linting in one command, then build and test
+yarn format; yarn lint:fix; yarn build; yarn test
 
 # Type checking in watch mode (separate terminal)
 yarn typecheck --watch

@@ -20,13 +20,19 @@ All commands run from this directory (`embedded-components/`):
 - Run tests: `yarn test`
 - Run tests in watch mode: `yarn test:watch`
 - Type checking: `yarn typecheck`
-- Build: `yarn build` (**always run for large changes** – new components, refactors, many files)
+- Build: `yarn build` (**run after substantive `.ts`/`.tsx` edits—including tests/mocks**; not only large refactors)
 - Linting: `yarn lint`
 - Format code: `yarn format`
 
-**After any `.ts` / `.tsx` edit:** run `yarn format` before committing (or ensure `yarn format:check` passes). Running full `yarn test` also enforces formatting — it runs `format:check` before lint and unit tests.
+**After any `.ts` / `.tsx` edit:** run **`yarn format`** at the end of the update (before commit).
+
+**Always run `yarn build`** before you consider the task done—not only for large refactors. Test files (`*.test.tsx`, mocks, Vitest stubs) are included in compilation; **`yarn build` catches strict typing errors that Vitest alone may not surface** (for example mismatched mock return types).
+
+Then run **`yarn test`** (full pipeline) or a narrower **`yarn vitest run …`** while iterating.
 
 **For large changes:** run `yarn format`, then `yarn typecheck`, then `yarn build`, then `yarn test` before committing.
+
+Running full `yarn test` also enforces formatting — it runs `format:check` before lint and unit tests.
 
 ## Storybook Stories
 

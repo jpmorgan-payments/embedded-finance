@@ -13,32 +13,46 @@ import type { OnboardingContextType } from '@/core/OnboardingFlow/contexts';
 import { OnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
 import { PartyCard } from '@/core/OnboardingFlow/screens/DocumentUploadScreen/PartyCard';
 
-const partyCardCtx = vi.hoisted(() => ({
-  docHookReturn: {
-    data: undefined as { documentDetails?: unknown[] } | undefined,
+type PartyCardDocHookMock = {
+  data: { documentDetails?: unknown[] } | undefined;
+  isLoading: boolean;
+  isPending: boolean;
+  isError: boolean;
+  error: null;
+  isFetching: boolean;
+  isSuccess: boolean;
+  fetchStatus: 'idle';
+  status: 'pending' | 'success';
+};
+
+const partyCardCtx = vi.hoisted(() => {
+  const docHookReturn: PartyCardDocHookMock = {
+    data: undefined,
     isLoading: true,
     isPending: true,
     isError: false,
     error: null,
     isFetching: false,
     isSuccess: false,
-    fetchStatus: 'idle' as const,
-    status: 'pending' as const,
-  },
-  reset() {
-    partyCardCtx.docHookReturn = {
-      data: undefined,
-      isLoading: true,
-      isPending: true,
-      isError: false,
-      error: null,
-      isFetching: false,
-      isSuccess: false,
-      fetchStatus: 'idle',
-      status: 'pending',
-    };
-  },
-}));
+    fetchStatus: 'idle',
+    status: 'pending',
+  };
+
+  return {
+    docHookReturn,
+    reset() {
+      docHookReturn.data = undefined;
+      docHookReturn.isLoading = true;
+      docHookReturn.isPending = true;
+      docHookReturn.isError = false;
+      docHookReturn.error = null;
+      docHookReturn.isFetching = false;
+      docHookReturn.isSuccess = false;
+      docHookReturn.fetchStatus = 'idle';
+      docHookReturn.status = 'pending';
+    },
+  };
+});
 
 vi.mock('@/api/generated/smbdo', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/api/generated/smbdo')>();
@@ -70,7 +84,7 @@ const mockParty: PartyResponse = {
 const activeDocRequest: DocumentRequestResponse = {
   id: DOC_REQ_ID,
   clientId: 'client-pc',
-  partyId: mockParty.id,
+  partyId: mockParty.id ?? 'party-1',
   status: 'ACTIVE',
   createdAt: '2024-01-01T12:00:00Z',
   requirements: [
@@ -104,7 +118,7 @@ function renderPartyCard(
     clientData: {
       id: 'client-pc',
       status: 'NEW',
-      partyId: mockParty.id,
+      partyId: mockParty.id ?? 'party-1',
       parties: [mockParty],
       products: ['EMBEDDED_PAYMENTS'],
       outstanding: {
@@ -150,7 +164,7 @@ describe('PartyCard', () => {
   });
 
   test('ACTIVE request renders upload control and invokes onUploadClick', async () => {
-    partyCardCtx.docHookReturn = {
+    Object.assign(partyCardCtx.docHookReturn, {
       data: { documentDetails: [] },
       isLoading: false,
       isPending: false,
@@ -160,7 +174,7 @@ describe('PartyCard', () => {
       isSuccess: true,
       fetchStatus: 'idle',
       status: 'success',
-    };
+    });
 
     const { onUploadClick } = renderPartyCard(activeDocRequest);
 
@@ -172,7 +186,7 @@ describe('PartyCard', () => {
   });
 
   test('CLOSED request shows success message instead of upload', async () => {
-    partyCardCtx.docHookReturn = {
+    Object.assign(partyCardCtx.docHookReturn, {
       data: { documentDetails: [] },
       isLoading: false,
       isPending: false,
@@ -182,7 +196,7 @@ describe('PartyCard', () => {
       isSuccess: true,
       fetchStatus: 'idle',
       status: 'success',
-    };
+    });
 
     renderPartyCard(closedDocRequest);
 
@@ -195,7 +209,7 @@ describe('PartyCard', () => {
   });
 
   test('renders document type label and metadata badges when details load', async () => {
-    partyCardCtx.docHookReturn = {
+    Object.assign(partyCardCtx.docHookReturn, {
       data: {
         documentDetails: [
           {
@@ -217,7 +231,7 @@ describe('PartyCard', () => {
       isSuccess: true,
       fetchStatus: 'idle',
       status: 'success',
-    };
+    });
 
     renderPartyCard(activeDocRequest);
 

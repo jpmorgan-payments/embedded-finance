@@ -63,6 +63,7 @@
     "test:unit": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:coverage:onboarding": "vitest run src/core/OnboardingFlow --coverage --coverage.include=src/core/OnboardingFlow/**/*.ts --coverage.include=src/core/OnboardingFlow/**/*.tsx",
     "__comment_quality": "=== CODE QUALITY ===",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.tsx --cache",

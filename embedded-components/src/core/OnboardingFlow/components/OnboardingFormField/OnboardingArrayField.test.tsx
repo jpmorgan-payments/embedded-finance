@@ -183,8 +183,8 @@ describe('OnboardingArrayField', () => {
       modifySchema: vi.fn(),
       modifyDefaultValues: vi.fn(),
       getFieldRule: vi.fn(() => ({
-        ruleType: 'array',
-        fieldRule: { display: 'hidden' },
+        ruleType: 'array' as const,
+        fieldRule: { display: 'hidden' as const },
       })),
       clientContext: stubContext,
     });
@@ -205,7 +205,7 @@ describe('OnboardingArrayField', () => {
       modifySchema: vi.fn(),
       modifyDefaultValues: vi.fn(),
       getFieldRule: vi.fn(() => ({
-        ruleType: 'string',
+        ruleType: 'single' as const,
         fieldRule: {},
       })),
       clientContext: stubContext,

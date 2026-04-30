@@ -14,7 +14,18 @@ yarn format
 - Auto-fixes Prettier formatting issues
 - **DO NOT skip this step** - code must be properly formatted
 
-### 2. Run Tests
+### 2. Run Build (production **and** test `.ts` / `.tsx`)
+
+Run **`yarn build`** after substantive edits—not only for large features. **Include this step when you change tests, mocks, or Vitest stubs:** strict errors in test-only code often appear during **`yarn build`** / declaration emit even when **`yarn test:unit`** passes.
+
+```powershell
+cd embedded-components
+yarn build
+```
+
+- `yarn build` catches compilation and export issues that may not surface the same way in **`yarn test:unit`** alone.
+
+### 3. Run Tests
 
 ```powershell
 cd embedded-components
@@ -28,11 +39,18 @@ This command runs the full quality check pipeline:
 - `lint` - ESLint validation
 - `test:unit` - Unit tests
 
-**DO NOT skip this step** - tests must pass before proceeding
+**DO NOT skip this step** - tests must pass before proceeding.
 
-### 3. For Large Changes: Also Run Build
+**Typical sequence before committing:**
 
-For **large changes** (new components, refactors, many files touched, or changes that affect build output), **always** run build in addition to format, types, and tests:
+```powershell
+cd embedded-components
+yarn format
+yarn build
+yarn test
+```
+
+For **large changes** (new components, refactors, many files touched, or anything affecting exports), include an explicit **`yarn typecheck`** before **`yarn build`** if you want an extra signal:
 
 ```powershell
 cd embedded-components
@@ -41,9 +59,6 @@ yarn typecheck
 yarn build
 yarn test
 ```
-
-- `yarn build` catches compilation and export issues that may not surface the same way in `yarn test`.
-- Run **format** first, then **typecheck**, **build**, and **test** before committing.
 
 ### 4. Fix Any Errors
 
@@ -60,10 +75,11 @@ If errors appear, fix them in this order:
 ```powershell
 cd embedded-components
 yarn format
+yarn build
 yarn test
 ```
 
-For large changes, run all four before committing:
+For large changes:
 
 ```powershell
 yarn format
@@ -77,7 +93,7 @@ Repeat until all checks pass.
 ## Never Commit Code With
 
 - ❌ TypeScript errors
-- ❌ Build failures (for large changes: run `yarn build` and fix before committing)
+- ❌ Build failures — run **`yarn build`** after edits (including tests) and fix before committing
 - ❌ Formatting errors (Prettier)
 - ❌ Linting errors
 - ❌ Failing tests
@@ -90,7 +106,7 @@ If you need to run checks individually:
 cd embedded-components
 yarn format       # Auto-fix formatting
 yarn typecheck    # TypeScript validation only
-yarn build        # Full package build (run for large changes)
+yarn build        # Full package build — run after substantive edits (including tests)
 yarn format:check # Formatting check only
 yarn lint         # Linting only
 yarn test:unit    # Tests only
