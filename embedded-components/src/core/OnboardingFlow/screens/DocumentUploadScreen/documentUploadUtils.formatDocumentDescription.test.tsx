@@ -25,4 +25,18 @@ describe('formatDocumentDescription', () => {
     expect(container.textContent).toContain('Line one');
     expect(container.textContent).toContain('Line two');
   });
+
+  test('renders OR segments without "Acceptable documents are" preamble', () => {
+    const desc = 'Pick one:\nIntro line [OR] Second choice';
+    const { container } = render(<div>{formatDocumentDescription(desc)}</div>);
+    expect(container.textContent).toContain('Intro line');
+    expect(container.textContent).toContain('Second choice');
+  });
+
+  test('renders [AND] clauses as stacked paragraphs', () => {
+    const desc = 'Primary requirement [AND] Secondary requirement';
+    const { container } = render(<div>{formatDocumentDescription(desc)}</div>);
+    expect(container.textContent).toContain('Primary requirement');
+    expect(container.textContent).toContain('Secondary requirement');
+  });
 });

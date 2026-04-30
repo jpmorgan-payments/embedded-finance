@@ -9,10 +9,17 @@ import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 import type { OnboardingContextType } from '@/core/OnboardingFlow/contexts';
 import { OnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
 import { GatewayScreen } from '@/core/OnboardingFlow/screens/GatewayScreen/GatewayScreen';
+import * as onboardingFormUtils from '@/core/OnboardingFlow/utils/formUtils';
 
 const gwCtx = vi.hoisted(() => {
   const postMutate = vi.fn(
-    (_vars: unknown, opts?: { onSuccess?: (r: ClientResponse) => void }) => {
+    (
+      _vars: unknown,
+      opts?: {
+        onSuccess?: (r: ClientResponse) => void;
+        onError?: (err: unknown) => void;
+      }
+    ) => {
       opts?.onSuccess?.({
         id: 'new-client',
         status: 'NEW',
@@ -221,6 +228,183 @@ describe('GatewayScreen (integration)', () => {
 
     expect(gwCtx.postMutate).not.toHaveBeenCalled();
     expect(gwCtx.updatePartyMutate).not.toHaveBeenCalled();
+    expect(gwCtx.updateClientMutate).not.toHaveBeenCalled();
+  });
+
+  test('POST client API error with validation context invokes setApiFormErrors', async () => {
+    const setErrorsSpy = vi
+      .spyOn(onboardingFormUtils, 'setApiFormErrors')
+      .mockImplementation(() => {});
+
+    gwCtx.postMutate.mockImplementationOnce((_vars, opts) => {
+      opts?.onError?.({
+        response: {
+          data: {
+            context: [
+              {
+                field: '$.parties.0.organizationDetails.organizationType',
+                message: 'Organization type invalid',
+              },
+            ],
+          },
+        },
+      } as never);
+    });
+
+    try {
+      renderGateway();
+
+      await screen.findByRole('heading', {
+        name: /let's help you get started/i,
+      });
+
+      await user.click(
+        screen.getByRole('radio', { name: /i'm the sole owner/i })
+      );
+      await user.click(screen.getByRole('button', { name: /get started/i }));
+
+      await waitFor(() => {
+        expect(setErrorsSpy).toHaveBeenCalled();
+      });
+
+      expect(gwCtx.goTo).not.toHaveBeenCalled();
+    } finally {
+      setErrorsSpy.mockRestore();
+    }
+  });
+
+  test('client without an organization party uses updateClient addParties', async () => {
+    gwCtx.updateClientMutate.mockImplementationOnce((_vars, opts) => {
+      opts?.onSuccess?.();
+    });
+
+    const clientWithoutOrgParty: ClientResponse = {
+      id: 'client-no-org-party',
+      status: 'NEW',
+      partyId: 'party-controller',
+      parties: [
+        {
+          id: 'party-controller',
+          active: true,
+          roles: ['CONTROLLER'],
+          partyType: 'INDIVIDUAL',
+          individualDetails: {
+            firstName: 'Taylor',
+            lastName: 'Lee',
+          },
+          status: 'ACTIVE',
+          validationResponse: [],
+        },
+      ],
+      products: ['EMBEDDED_PAYMENTS'],
+      outstanding: {
+        partyIds: [],
+        partyRoles: [],
+        questionIds: [],
+        documentRequestIds: [],
+        attestationDocumentIds: [],
+      },
+    };
+
+    renderGateway({
+      clientData: clientWithoutOrgParty,
+      organizationType: undefined,
+    });
+
+    await screen.findByRole('heading', {
+      name: /let's help you get started/i,
+    });
+
+    await user.click(
+      screen.getByRole('radio', { name: /i'm the sole owner/i })
+    );
+    await user.click(screen.getByRole('button', { name: /get started/i }));
+
+    await waitFor(() => {
+      expect(gwCtx.updateClientMutate).toHaveBeenCalled();
+    });
+
+    expect(gwCtx.postMutate).not.toHaveBeenCalled();
+    expect(gwCtx.updatePartyMutate).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(gwCtx.goTo).toHaveBeenCalledWith('overview');
+    });
+  });
+
+  test('changing LLC to another registered-business subtype calls updateParty', async () => {
+    gwCtx.updatePartyMutate.mockImplementationOnce((_vars, opts) => {
+      opts?.onSuccess?.({
+        id: 'party-org',
+        roles: ['CLIENT'],
+        partyType: 'ORGANIZATION',
+        organizationDetails: {
+          organizationName: 'Acme LLC',
+          organizationType: 'C_CORPORATION',
+          countryOfFormation: 'US',
+          jurisdiction: 'US',
+        },
+        status: 'ACTIVE',
+        validationResponse: [],
+      });
+    });
+
+    const llcClient: ClientResponse = {
+      id: 'client-org-switch',
+      status: 'NEW',
+      partyId: 'party-org',
+      parties: [
+        {
+          id: 'party-org',
+          active: true,
+          roles: ['CLIENT'],
+          partyType: 'ORGANIZATION',
+          organizationDetails: {
+            organizationName: 'Acme LLC',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            countryOfFormation: 'US',
+            jurisdiction: 'US',
+          },
+          status: 'ACTIVE',
+          validationResponse: [],
+        },
+      ],
+      products: ['EMBEDDED_PAYMENTS'],
+      outstanding: {
+        partyIds: [],
+        partyRoles: [],
+        questionIds: [],
+        documentRequestIds: [],
+        attestationDocumentIds: [],
+      },
+    };
+
+    renderGateway({
+      clientData: llcClient,
+      organizationType: 'LIMITED_LIABILITY_COMPANY',
+    });
+
+    const submitBtn = screen.getByRole('button', { name: /get started/i });
+    await waitFor(() => expect(submitBtn).not.toBeDisabled());
+
+    const combo = screen.getByRole('combobox');
+    await user.click(combo);
+
+    const cCorpOption = await screen.findByRole('option', {
+      name: /c corporation/i,
+    });
+    await user.click(cCorpOption);
+
+    await user.click(submitBtn);
+
+    await waitFor(() => {
+      expect(gwCtx.updatePartyMutate).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      expect(gwCtx.goTo).toHaveBeenCalledWith('overview');
+    });
+
+    expect(gwCtx.postMutate).not.toHaveBeenCalled();
     expect(gwCtx.updateClientMutate).not.toHaveBeenCalled();
   });
 });

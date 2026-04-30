@@ -207,4 +207,13 @@ describe('TermsAndConditionsForm', () => {
       expect(termsTestHooks.handleNext).toHaveBeenCalled();
     });
   });
+
+  test('Back invokes handlePrev', async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    renderTermsForm();
+
+    await user.click(screen.getByRole('button', { name: /^back$/i }));
+
+    expect(termsTestHooks.handlePrev).toHaveBeenCalled();
+  });
 });
