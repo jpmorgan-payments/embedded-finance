@@ -6,6 +6,19 @@ import type {
 } from '../types/userTracking.types';
 
 /**
+ * Deduplication window (ms). Calls to trackUserEvent with the same actionName
+ * within this window are treated as duplicates caused by React StrictMode
+ * double-invocation or effect re-triggers and are silently dropped.
+ */
+const DEDUP_WINDOW_MS = 100;
+
+/**
+ * Tracks recent firings of each actionName to suppress duplicates.
+ * Key: actionName, Value: timestamp of last accepted call.
+ */
+const recentActions = new Map<string, number>();
+
+/**
  * Extract journey name from data-user-event attribute
  */
 export function getUserEventName(element: HTMLElement): string | null {
@@ -31,6 +44,32 @@ export function createUserEventContext(
 }
 
 /**
+ * Returns true if the actionName was already fired within the dedup window.
+ * If not a duplicate, records the current timestamp and returns false.
+ */
+function isDuplicateAction(actionName: string): boolean {
+  const now = Date.now();
+  const lastFired = recentActions.get(actionName);
+
+  if (lastFired !== undefined && now - lastFired < DEDUP_WINDOW_MS) {
+    return true;
+  }
+
+  recentActions.set(actionName, now);
+
+  // Lazily prune stale entries to prevent unbounded growth
+  if (recentActions.size > 50) {
+    for (const [key, timestamp] of recentActions) {
+      if (now - timestamp >= DEDUP_WINDOW_MS) {
+        recentActions.delete(key);
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
  * Track a user event programmatically
  */
 export function trackUserEvent({
@@ -49,6 +88,10 @@ export function trackUserEvent({
   userEventsLifecycle?: UserEventLifecycle;
 }): void {
   if (!userEventsHandler) return;
+
+  // Deduplicate: suppress duplicate firings of the same action within a short
+  // window (e.g. React StrictMode double-invocation, effect re-triggers).
+  if (isDuplicateAction(actionName)) return;
 
   try {
     const context = createUserEventContext(
