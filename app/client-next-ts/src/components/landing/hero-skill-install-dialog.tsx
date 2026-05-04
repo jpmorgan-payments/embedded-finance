@@ -82,63 +82,42 @@ export function HeroSkillInstallDialog({
       <DialogContent className="max-w-xl border-sp-border bg-jpm-white sm:rounded-page-md">
         <DialogHeader>
           <DialogTitle className="text-page-h3 text-jpm-gray-900">
-            Embedded Finance components skill
+            Embedded Finance & Solutions skill
           </DialogTitle>
           <DialogDescription className="text-left text-page-body text-jpm-gray">
-            Lightweight guidance for agents working with this library: canonical
-            GitHub markdown links (readme, recipes, onboarding, APIs), showcase
-            entry points at{' '}
-            <span className="font-medium text-sp-brand">
-              embedded-finance-dev.com
-            </span>
-            , and how to browse engineering recipes without hunting the repo.
+            For agents integrating EF&amp;S: backend APIs and webhooks, partially hosted
+            onboarding, OSS recipe and repo links.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3 text-page-small leading-relaxed text-jpm-gray">
-          <p>
-            Skill markdown is hosted at{' '}
-            <a
-              href="/skills/efs-components-best-practices/SKILL.md"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-mono font-medium text-sp-brand underline underline-offset-2 hover:text-sp-brand-700"
+        <div className="rounded-page-md border border-jpm-gray-200 bg-jpm-gray-50 p-3">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <span className="font-medium text-jpm-gray-900">
+              Install the skill
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="shrink-0 rounded-page-md border-sp-brand text-xs font-semibold text-sp-brand hover:bg-sp-accent sm:text-page-small"
+              onClick={() => void handleCopyCommand()}
             >
-              /skills/efs-components-best-practices/SKILL.md
-            </a>
-            . Use your agent vendor&apos;s CLI if the command below does not
-            apply; copying the skill URL works the same way.
-          </p>
-
-          <div className="rounded-page-md border border-jpm-gray-200 bg-jpm-gray-50 p-3">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <span className="font-medium text-jpm-gray-900">
-                Example install (npx skills)
-              </span>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="shrink-0 rounded-page-md border-sp-brand text-xs font-semibold text-sp-brand hover:bg-sp-accent sm:text-page-small"
-                onClick={() => void handleCopyCommand()}
-              >
-                {copied ? (
-                  <>
-                    <Check className="mr-1 h-4 w-4" />
-                    Copied
-                  </>
-                ) : (
-                  <>
-                    <ClipboardCopy className="mr-1 h-4 w-4" />
-                    Copy
-                  </>
-                )}
-              </Button>
-            </div>
-            <pre className="overflow-x-auto whitespace-pre-wrap break-all font-mono text-page-small text-jpm-gray-900">
-              {SKILL_INSTALL_CLI}
-            </pre>
+              {copied ? (
+                <>
+                  <Check className="mr-1 h-4 w-4" />
+                  Copied
+                </>
+              ) : (
+                <>
+                  <ClipboardCopy className="mr-1 h-4 w-4" />
+                  Copy
+                </>
+              )}
+            </Button>
           </div>
+          <pre className="overflow-x-auto whitespace-pre-wrap break-all font-mono text-page-small text-jpm-gray-900">
+            {SKILL_INSTALL_CLI}
+          </pre>
         </div>
       </DialogContent>
     </Dialog>

@@ -1,54 +1,67 @@
 ---
 name: efs-components-best-practices
-description: Canonical links and onboarding for JP Morgan Embedded Finance UI components — GitHub readme, recipes, partially hosted onboarding, webhook UX, Storybook-aligned docs paths, and EBComponentsProvider usage.
+description: EF&S integration links — REST APIs behind partner platforms; partially hosted onboarding; recipes/webhooks; monorepo as WS reference; released embedded UI + provider wiring.
 ---
 
-# Embedded Finance UI components — agent quick reference
+# Embedded Finance & Solutions — agents
 
-Use this skill when integrating or refactoring code that consumes `@jpmorgan-payments/embedded-finance-components` or mirroring repo patterns.
+1. **REST integration** — Embedded Finance REST APIs behind platform backends; honor environment API specs plus lifecycle patterns (onboarding, webhooks, reconciliation) instead of treating UI snippets as sufficient documentation.
 
-## Canonical repository (GitHub)
+2. **Partially hosted UI** — Session transfer, iframe layout, origins, `postMessage`, hardened operational boundaries.
 
-- Repo root: [jpmorgan-payments/embedded-finance](https://github.com/jpmorgan-payments/embedded-finance)
-- Package: `embedded-components/`
-- **Library readme (integration concepts, EBComponentsProvider, props overview):**
-  https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md
-- **Component architecture (mandatory patterns for codegen in this repo):**
-  https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/ARCHITECTURE.md
-- **Core components folder index:**
-  https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/README.md
+3. **Workspace reference** — Use this OSS tree (handlers, mocks, demos, requirement `.md` next to features) without requiring the NPM install path.
 
-## Hosted / partially hosted onboarding
+4. **Released embedded UI** — Only when integrating shipped React surfaces: embedded-components readme (install/export), `EBComponentsProvider`, design/content tokens—that path is narrower than bespoke frontends built only on REST.
 
-- Partially hosted UI integration guide (session transfer, iframe, postMessage, security):
+## Partially hosted
 
-  https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md
+https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md  
 
-- Hosted utility behaviors (partner-side helpers):
+https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UTILITY_GUIDE.md  
 
-  https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UTILITY_GUIDE.md
+## Recipes (`embedded-components/docs/`)
 
-## Engineering recipes (`embedded-components/docs/`)
+Webhook UX:  
 
-- Webhook integration UX recipe:
+https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/WEBHOOK_INTEGRATION_RECIPE.md  
 
-  https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/WEBHOOK_INTEGRATION_RECIPE.md
+Dates:  
 
-- Date parsing guide (timezone / ambiguous strings):
+https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/DATE_PARSING_GUIDE.md  
 
-  https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/DATE_PARSING_GUIDE.md
+Important-date selector constraints:  
 
-- Important Date Selector recipe:
+https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/IMPORTANT_DATE_SELECTOR_RECIPE.md  
 
-  https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/IMPORTANT_DATE_SELECTOR_RECIPE.md
+Onboarding-flow narrative + UX cues:  
 
-- Digital onboarding flow (product-oriented):
+https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/DIGITAL_ONBOARDING_FLOW_RECIPE.md  
 
-  https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/DIGITAL_ONBOARDING_FLOW_RECIPE.md
+## Monorepo
 
-## Operational guidance
+Root:  
 
-1. **Provider:** All embedded UI must sit under `EBComponentsProvider` (see library readme).
-2. **Styling:** In the NPM package repo, Tailwind utilities use the `eb-` prefix inside `embedded-components` only — do not copy that prefix into host apps unless that app is configured for it (the public showcase uses plain Tailwind).
-3. **Types & APIs:** Prefer reading `*.tsx` component props beside each export and `embedded-components/package.json` `"exports"`; functional requirements Markdown files live next to implementations under `embedded-components/src/core/<Component>/` (often `FUNCTIONAL_REQUIREMENTS.md` or component-specific filenames).
-4. **Recipes:** For LLM ingestion, paste the GitHub-rendered Markdown or fetch raw URLs from GitHub (`raw.githubusercontent.com` / bundled copies in showcase stories).
+https://github.com/jpmorgan-payments/embedded-finance  
+
+Readme (`embedded-components/`):  
+
+https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md  
+
+Architecture:  
+
+https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/ARCHITECTURE.md  
+
+`src/core` index:  
+
+https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/README.md  
+
+## Showcase
+
+https://embedded-finance-dev.com/ — demos, `/stories` recipe pages, `/partially-hosted-demo`.
+
+## Embedded UI (when mounting released components)
+
+- Mount under `EBComponentsProvider`; follow readme for tokens and customization.
+- Library sources often use Tailwind utilities with an `eb-` prefix; host apps frequently use unprefixed utilities—don't mix arbitrarily.
+- `package.json` `"exports"` and `FUNCTIONAL_REQUIREMENTS.md` beside each feature under `embedded-components/src/core/` trail props/contracts.
+- For LLM ingestion, prefer bundled showcase recipe text or GitHub-rendered markdown over guessing from partial snippets.

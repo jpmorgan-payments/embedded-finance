@@ -4,9 +4,9 @@
     {
       "name": "efs-components-best-practices",
       "type": "skill-md",
-      "description": "Canonical links and onboarding for JP Morgan Embedded Finance UI components — GitHub readme, recipes, partially hosted onboarding, webhook UX, Storybook-aligned docs paths, and EBComponentsProvider usage.",
+      "description": "EF&S integration links — REST APIs behind partner platforms; partially hosted onboarding; recipes/webhooks; monorepo as WS reference; released embedded UI + provider wiring.",
       "url": "https://embedded-finance-dev.com/skills/efs-components-best-practices/SKILL.md",
-      "digest": "sha256:1936b03d38a08e2e44aa349fd610bbb692a287847b2ef8c03a63d75eab6fa9a9"
+      "digest": "sha256:a3d9027c4a43410b1408993900e4b79a4c1cb5d62b4d1200eb135c9426ce27f5"
     }
   ]
 }
