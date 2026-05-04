@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 
 /** Base URL must match deployed showcase (see hero copy). Path is `/skills/<id>/SKILL.md`. */
 const SKILL_INSTALL_CLI =
-  'npm skills add https://embedded-finance-dev.com/ --skill efs-components-best-practices';
+  'npx skills add https://embedded-finance-dev.com/ --skill efs-components-best-practices';
 
 /**
  * Match sibling hero CTAs: mirror padding/rounding; `border-2 border-transparent` keeps the box
@@ -113,7 +113,7 @@ export function HeroSkillInstallDialog({
           <div className="rounded-page-md border border-jpm-gray-200 bg-jpm-gray-50 p-3">
             <div className="mb-2 flex items-center justify-between gap-2">
               <span className="font-medium text-jpm-gray-900">
-                Example install (npm skills)
+                Example install (npx skills)
               </span>
               <Button
                 type="button"

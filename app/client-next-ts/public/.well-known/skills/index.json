@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
+  "skills": [
+    {
+      "name": "efs-components-best-practices",
+      "type": "skill-md",
+      "description": "Canonical links and onboarding for JP Morgan Embedded Finance UI components — GitHub readme, recipes, partially hosted onboarding, webhook UX, Storybook-aligned docs paths, and EBComponentsProvider usage.",
+      "url": "https://embedded-finance-dev.com/skills/efs-components-best-practices/SKILL.md",
+      "digest": "sha256:1936b03d38a08e2e44aa349fd610bbb692a287847b2ef8c03a63d75eab6fa9a9"
+    }
+  ]
+}
