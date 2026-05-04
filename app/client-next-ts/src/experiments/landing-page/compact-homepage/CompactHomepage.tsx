@@ -9,6 +9,7 @@ import { BookOpen, Box, Play, Wrench } from 'lucide-react';
 
 import { Link } from '@tanstack/react-router';
 
+import { HeroSkillInstallDialog } from '@/components/landing/hero-skill-install-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -98,24 +99,27 @@ export function CompactHomepage() {
                 Morgan Embedded Finance APIs.
               </p>
 
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Link to="/demos">
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                <Link to="/demos" className="inline-flex">
                   <Button
                     size="lg"
                     className="w-full rounded-page-md border-0 bg-sp-brand px-7 py-3 text-base font-semibold !text-jpm-white shadow-page-card hover:bg-sp-brand-700 sm:w-auto"
                   >
+                    <Play className="size-5 shrink-0" />
                     EXPLORE DEMOS
                   </Button>
                 </Link>
-                <Link to="/documentation">
+                <Link to="/documentation" className="inline-flex">
                   <Button
                     variant="outline"
                     size="lg"
                     className="w-full rounded-page-md border-2 border-sp-brand px-7 py-3 text-base font-semibold text-sp-brand transition-all duration-200 hover:bg-sp-brand hover:text-jpm-white sm:w-auto"
                   >
+                    <BookOpen className="size-5 shrink-0" />
                     VIEW DOCUMENTATION
                   </Button>
                 </Link>
+                <HeroSkillInstallDialog />
               </div>
             </div>
 
