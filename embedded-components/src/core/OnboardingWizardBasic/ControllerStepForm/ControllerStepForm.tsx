@@ -68,6 +68,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Form } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
+import { mapCountriesOfFormationToComboboxOptions } from '@/core/OnboardingFlow/utils/countryFormationComboboxOption';
 
 import { FormActions } from '../FormActions/FormActions';
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
@@ -346,18 +347,10 @@ export const ControllerStepForm = () => {
             control={form.control}
             name="countryOfResidence"
             type="combobox"
-            options={COUNTRIES_OF_FORMATION.map((code) => ({
-              value: code,
-              searchValue: `[${code}] ${String(t([`common:countries.${code}`] as unknown as TemplateStringsArray))}`,
-              label: (
-                <span>
-                  <span className="eb-font-medium">[{code}]</span>{' '}
-                  {t([
-                    `common:countries.${code}`,
-                  ] as unknown as TemplateStringsArray)}
-                </span>
-              ),
-            }))}
+            options={mapCountriesOfFormationToComboboxOptions(
+              COUNTRIES_OF_FORMATION,
+              { label: t, filterText: t }
+            )}
           />
 
           <OnboardingFormField
@@ -580,18 +573,10 @@ export const ControllerStepForm = () => {
                 control={form.control}
                 name={`controllerAddresses.${index}.country`}
                 type="combobox"
-                options={COUNTRIES_OF_FORMATION.map((code) => ({
-                  value: code,
-                  searchValue: `[${code}] ${String(t([`common:countries.${code}`] as unknown as TemplateStringsArray))}`,
-                  label: (
-                    <span>
-                      <span className="eb-font-medium">[{code}]</span>{' '}
-                      {t([
-                        `common:countries.${code}`,
-                      ] as unknown as TemplateStringsArray)}
-                    </span>
-                  ),
-                }))}
+                options={mapCountriesOfFormationToComboboxOptions(
+                  COUNTRIES_OF_FORMATION,
+                  { label: t, filterText: t }
+                )}
               />
 
               {renderRemoveButton() && (
@@ -640,18 +625,10 @@ export const ControllerStepForm = () => {
                   control={form.control}
                   name={`controllerIds.${index}.issuer`}
                   type="combobox"
-                  options={COUNTRIES_OF_FORMATION.map((code) => ({
-                    value: code,
-                    searchValue: `[${code}] ${String(t([`common:countries.${code}`] as unknown as TemplateStringsArray))}`,
-                    label: (
-                      <span>
-                        <span className="eb-font-medium">[{code}]</span>{' '}
-                        {t([
-                          `common:countries.${code}`,
-                        ] as unknown as TemplateStringsArray)}
-                      </span>
-                    ),
-                  }))}
+                  options={mapCountriesOfFormationToComboboxOptions(
+                    COUNTRIES_OF_FORMATION,
+                    { label: t, filterText: t }
+                  )}
                 />
 
                 <OnboardingFormField

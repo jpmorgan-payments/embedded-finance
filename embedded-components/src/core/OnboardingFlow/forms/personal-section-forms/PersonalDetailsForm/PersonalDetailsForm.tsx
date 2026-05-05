@@ -10,6 +10,7 @@ import {
 } from '@/core/OnboardingFlow/consts';
 import { useFlowContext } from '@/core/OnboardingFlow/contexts/FlowContext';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
+import { mapCountriesOfFormationToComboboxOptions } from '@/core/OnboardingFlow/utils/countryFormationComboboxOption';
 import { getOrganizationParty } from '@/core/OnboardingFlow/utils/dataUtils';
 
 import {
@@ -40,18 +41,10 @@ export const PersonalDetailsForm: FormStepComponent = () => {
         control={form.control}
         name="countryOfResidence"
         type="combobox"
-        options={COUNTRIES_OF_FORMATION.map((code) => ({
-          value: code,
-          searchValue: `[${code}] ${tString([`common:countries.${code}`] as unknown as TemplateStringsArray)}`,
-          label: (
-            <span>
-              <span className="eb-font-medium">[{code}]</span>{' '}
-              {t([
-                `common:countries.${code}`,
-              ] as unknown as TemplateStringsArray)}
-            </span>
-          ),
-        }))}
+        options={mapCountriesOfFormationToComboboxOptions(
+          COUNTRIES_OF_FORMATION,
+          { label: t, filterText: tString }
+        )}
         required
       />
       <fieldset className="eb-grid eb-gap-y-3">

@@ -10,6 +10,7 @@ import { OnboardingFormField } from '@/core/OnboardingFlow/components';
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
 import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
+import { mapCountriesOfFormationToComboboxOptions } from '@/core/OnboardingFlow/utils/countryFormationComboboxOption';
 import { getOrganizationParty } from '@/core/OnboardingFlow/utils/dataUtils';
 import { convertPartyResponseToFormValues } from '@/core/OnboardingFlow/utils/formUtils';
 
@@ -90,18 +91,10 @@ export const BusinessIdentityForm: FormStepComponent = () => {
           control={form.control}
           name="countryOfFormation"
           type="combobox"
-          options={COUNTRIES_OF_FORMATION.map((code) => ({
-            value: code,
-            searchValue: `[${code}] ${tString([`common:countries.${code}`] as unknown as TemplateStringsArray)}`,
-            label: (
-              <span>
-                <span className="eb-font-medium">[{code}]</span>{' '}
-                {t([
-                  `common:countries.${code}`,
-                ] as unknown as TemplateStringsArray)}
-              </span>
-            ),
-          }))}
+          options={mapCountriesOfFormationToComboboxOptions(
+            COUNTRIES_OF_FORMATION,
+            { label: t, filterText: tString }
+          )}
         />
         <Alert variant="informative" density="sm" noTitle>
           <InfoIcon className="eb-size-4" />

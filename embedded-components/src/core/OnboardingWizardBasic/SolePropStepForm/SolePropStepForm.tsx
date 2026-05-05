@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Form } from '@/components/ui/form';
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
+import { mapCountriesOfFormationToComboboxOptions } from '@/core/OnboardingFlow/utils/countryFormationComboboxOption';
 
 import { FormActions } from '../FormActions/FormActions';
 import { OnboardingFormField } from '../OnboardingFormField/OnboardingFormField';
@@ -71,18 +72,10 @@ export const SolePropStepForm: FC = () => {
             control={form.control}
             name="countryOfFormation"
             type="combobox"
-            options={COUNTRIES_OF_FORMATION.map((code) => ({
-              value: code,
-              searchValue: `[${code}] ${String(t([`common:countries.${code}`] as unknown as TemplateStringsArray))}`,
-              label: (
-                <span>
-                  <span className="eb-font-medium">[{code}]</span>{' '}
-                  {t([
-                    `common:countries.${code}`,
-                  ] as unknown as TemplateStringsArray)}
-                </span>
-              ),
-            }))}
+            options={mapCountriesOfFormationToComboboxOptions(
+              COUNTRIES_OF_FORMATION,
+              { label: t, filterText: t }
+            )}
           />
 
           {/* Industry Information */}
@@ -207,18 +200,10 @@ export const SolePropStepForm: FC = () => {
                 control={form.control}
                 name={`addresses.${index}.country`}
                 type="combobox"
-                options={COUNTRIES_OF_FORMATION.map((code) => ({
-                  value: code,
-                  searchValue: `[${code}] ${String(t([`common:countries.${code}`] as unknown as TemplateStringsArray))}`,
-                  label: (
-                    <span>
-                      <span className="eb-font-medium">[{code}]</span>{' '}
-                      {t([
-                        `common:countries.${code}`,
-                      ] as unknown as TemplateStringsArray)}
-                    </span>
-                  ),
-                }))}
+                options={mapCountriesOfFormationToComboboxOptions(
+                  COUNTRIES_OF_FORMATION,
+                  { label: t, filterText: t }
+                )}
               />
             </div>
           ))}
@@ -369,18 +354,10 @@ export const SolePropStepForm: FC = () => {
                 control={form.control}
                 name={`individualAddresses.${index}.country`}
                 type="combobox"
-                options={COUNTRIES_OF_FORMATION.map((code) => ({
-                  value: code,
-                  searchValue: `[${code}] ${String(t([`common:countries.${code}`] as unknown as TemplateStringsArray))}`,
-                  label: (
-                    <span>
-                      <span className="eb-font-medium">[{code}]</span>{' '}
-                      {t([
-                        `common:countries.${code}`,
-                      ] as unknown as TemplateStringsArray)}
-                    </span>
-                  ),
-                }))}
+                options={mapCountriesOfFormationToComboboxOptions(
+                  COUNTRIES_OF_FORMATION,
+                  { label: t, filterText: t }
+                )}
               />
             </div>
           ))}
@@ -416,18 +393,10 @@ export const SolePropStepForm: FC = () => {
                 control={form.control}
                 name={`individualIds.${index}.issuer`}
                 type="combobox"
-                options={COUNTRIES_OF_FORMATION.map((code) => ({
-                  value: code,
-                  searchValue: `[${code}] ${String(t([`common:countries.${code}`] as unknown as TemplateStringsArray))}`,
-                  label: (
-                    <span>
-                      <span className="eb-font-medium">[{code}]</span>{' '}
-                      {t([
-                        `common:countries.${code}`,
-                      ] as unknown as TemplateStringsArray)}
-                    </span>
-                  ),
-                }))}
+                options={mapCountriesOfFormationToComboboxOptions(
+                  COUNTRIES_OF_FORMATION,
+                  { label: t, filterText: t }
+                )}
               />
             </div>
           ))}
