@@ -183,6 +183,15 @@ export type OnboardingConfigUsedInContext = {
    * `reviewAndAttest.termsAcknowledgements.intro` above the checkbox group. Default false.
    */
   showReviewAttestTermsAcknowledgementsIntro?: boolean;
+  /**
+   * When true, enables the option to invite beneficial owners to complete
+   * their own details via self-service. Adds an "Invite" button on the
+   * owners section and an "Invite to Complete" option on the review screen
+   * for owners with incomplete information.
+   *
+   * Non-breaking: when omitted or false, no invite UI is shown.
+   */
+  allowBeneficialOwnerInvitation?: boolean;
 };
 
 export type OnboardingFlowProps = OnboardingConfigDefault &

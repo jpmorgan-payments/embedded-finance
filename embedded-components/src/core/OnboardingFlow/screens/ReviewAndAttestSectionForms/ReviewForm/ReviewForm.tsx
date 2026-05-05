@@ -1,12 +1,15 @@
 import React, { Fragment, useMemo, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   AlertTriangle,
   AlertTriangleIcon,
   CheckIcon,
   ChevronDownIcon,
   InfoIcon,
+  Loader2Icon,
+  MailIcon,
   PencilIcon,
   TriangleAlertIcon,
   UsersIcon,
@@ -15,8 +18,12 @@ import { useForm, useFormState } from 'react-hook-form';
 import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
-import { useSmbdoListQuestions } from '@/api/generated/smbdo';
-import { QuestionResponse } from '@/api/generated/smbdo.schemas';
+import {
+  getSmbdoGetClientQueryKey,
+  useSmbdoListQuestions,
+  useUpdatePartyLegacy,
+} from '@/api/generated/smbdo';
+import { PartyResponse, QuestionResponse } from '@/api/generated/smbdo.schemas';
 import {
   Accordion,
   AccordionContent,
@@ -37,6 +44,16 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { StepsReviewCards } from '@/core/OnboardingFlow/components';
 import {
   useFlowContext,
@@ -62,11 +79,90 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   getPrevButtonLabel,
   getNextButtonLabel,
 }) => {
-  const { clientData, disclosureConfig } = useOnboardingContext();
+  const { clientData, disclosureConfig, allowBeneficialOwnerInvitation } =
+    useOnboardingContext();
   const { t, tString } = useTranslationWithTokens([
     'onboarding-overview',
     'common',
   ]);
+  const queryClient = useQueryClient();
+
+  // Invite-to-complete state
+  const [isInviteToCompleteDialogOpen, setIsInviteToCompleteDialogOpen] =
+    useState(false);
+  const [inviteToCompletePartyId, setInviteToCompletePartyId] = useState('');
+  const [inviteToCompleteEmail, setInviteToCompleteEmail] = useState('');
+  const [isInviteToCompleteSubmitting, setIsInviteToCompleteSubmitting] =
+    useState(false);
+
+  const { mutate: updatePartyForInvite } = useUpdatePartyLegacy();
+
+  const handleInviteToComplete = (party: PartyResponse) => {
+    if (party.email) {
+      // Party already has an email — directly add AUTHORIZED_USER role
+      setIsInviteToCompleteSubmitting(true);
+      setInviteToCompletePartyId(party.id ?? '');
+      updatePartyForInvite(
+        {
+          partyId: party.id ?? '',
+          data: {
+            roles: [...(party.roles ?? []), 'AUTHORIZED_USER'],
+            email: party.email,
+          },
+        },
+        {
+          onSuccess: () => {
+            if (clientData?.id) {
+              queryClient.invalidateQueries({
+                queryKey: getSmbdoGetClientQueryKey(clientData.id),
+              });
+            }
+            setIsInviteToCompleteSubmitting(false);
+          },
+          onError: () => {
+            setIsInviteToCompleteSubmitting(false);
+          },
+        }
+      );
+    } else {
+      // No email — open dialog to collect email
+      setInviteToCompletePartyId(party.id ?? '');
+      setInviteToCompleteEmail('');
+      setIsInviteToCompleteDialogOpen(true);
+    }
+  };
+
+  const handleInviteToCompleteWithEmail = () => {
+    const party = clientData?.parties?.find(
+      (p) => p.id === inviteToCompletePartyId
+    );
+    if (!party) return;
+
+    setIsInviteToCompleteSubmitting(true);
+    updatePartyForInvite(
+      {
+        partyId: inviteToCompletePartyId,
+        data: {
+          roles: [...(party.roles ?? []), 'AUTHORIZED_USER'],
+          email: inviteToCompleteEmail,
+        },
+      },
+      {
+        onSuccess: () => {
+          if (clientData?.id) {
+            queryClient.invalidateQueries({
+              queryKey: getSmbdoGetClientQueryKey(clientData.id),
+            });
+          }
+          setIsInviteToCompleteSubmitting(false);
+          setIsInviteToCompleteDialogOpen(false);
+        },
+        onError: () => {
+          setIsInviteToCompleteSubmitting(false);
+        },
+      }
+    );
+  };
 
   const hasDisclosureConfig = !!disclosureConfig?.platformName;
 
@@ -422,6 +518,33 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                                     )}
                                   </p>
                                 )}
+                              {allowBeneficialOwnerInvitation &&
+                                owner.roles?.includes('BENEFICIAL_OWNER') &&
+                                !owner.roles?.includes('AUTHORIZED_USER') &&
+                                owner.id &&
+                                !ownersValidation[owner.id].allStepsValid && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    type="button"
+                                    className="eb-mt-2 eb-flex eb-items-center eb-gap-2"
+                                    disabled={isInviteToCompleteSubmitting}
+                                    onClick={() =>
+                                      handleInviteToComplete(owner)
+                                    }
+                                  >
+                                    {isInviteToCompleteSubmitting &&
+                                    inviteToCompletePartyId === owner.id ? (
+                                      <Loader2Icon className="eb-h-4 eb-w-4 eb-animate-spin" />
+                                    ) : (
+                                      <MailIcon className="eb-h-4 eb-w-4" />
+                                    )}
+                                    {t(
+                                      'reviewAndAttest.inviteToCompleteButton',
+                                      'Invite to Complete'
+                                    )}
+                                  </Button>
+                                )}
                             </Card>
                           ))}
                         </div>
@@ -687,6 +810,58 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
           </div>
         </div>
       </form>
+
+      {allowBeneficialOwnerInvitation && (
+        <Dialog
+          open={isInviteToCompleteDialogOpen}
+          onOpenChange={(open) => {
+            if (!isInviteToCompleteSubmitting) {
+              setIsInviteToCompleteDialogOpen(open);
+            }
+          }}
+        >
+          <DialogContent className="eb-component">
+            <DialogHeader>
+              <DialogTitle>
+                {t(
+                  'reviewAndAttest.inviteToCompleteEmailTitle',
+                  'Invite to Complete'
+                )}
+              </DialogTitle>
+              <DialogDescription>
+                {t(
+                  'reviewAndAttest.inviteToCompleteEmailDescription',
+                  'Provide the email address for the beneficial owner to complete their details.'
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="eb-space-y-4">
+              <div className="eb-space-y-2">
+                <Label htmlFor="invite-complete-email">
+                  {t('reviewAndAttest.emailAddressLabel', 'Email Address')}
+                </Label>
+                <Input
+                  id="invite-complete-email"
+                  type="email"
+                  value={inviteToCompleteEmail}
+                  onChange={(e) => setInviteToCompleteEmail(e.target.value)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                onClick={handleInviteToCompleteWithEmail}
+                disabled={isInviteToCompleteSubmitting || !inviteToCompleteEmail}
+              >
+                {isInviteToCompleteSubmitting && (
+                  <Loader2Icon className="eb-h-4 eb-w-4 eb-animate-spin" />
+                )}
+                {t('reviewAndAttest.sendInvitationButton', 'Send Invitation')}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </Form>
   );
 };
