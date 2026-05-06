@@ -11,8 +11,10 @@ import {
 
 import type { RoutingInformationTransactionType } from '@/api/generated/ep-recipients.schemas';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { StepLayout } from '@/core/OnboardingFlow/components';
 import type {
   BankAccountFormConfig,
@@ -33,7 +35,13 @@ export type LinkAccountPrefillSummaryViewProps = {
   acknowledgementChecked: Record<string, boolean>;
   onAcknowledgementChange: (id: string, value: boolean) => void;
   acknowledgementsComplete: boolean;
-  onSubmit: () => void;
+  /**
+   * Mirrors {@link BankAccountForm} step 2 when {@link BankAccountFormConfig.requiredFields.certification}
+   * is true: user must confirm before linking.
+   */
+  certifyChecked: boolean;
+  onCertifyCheckedChange: (checked: boolean) => void;
+  onSubmit: (payload: BankAccountFormData) => void;
   onCancel: () => void;
   isSubmitting: boolean;
   errorAlert?: React.ReactNode;
@@ -80,6 +88,8 @@ export function LinkAccountPrefillSummaryView({
   acknowledgementChecked,
   onAcknowledgementChange,
   acknowledgementsComplete,
+  certifyChecked,
+  onCertifyCheckedChange,
   onSubmit,
   onCancel,
   isSubmitting,
@@ -94,6 +104,12 @@ export function LinkAccountPrefillSummaryView({
 
   const accountHolderName = accountHolderDisplayName(data);
   const routing = achRoutingNumber(data);
+
+  const showDefaultCertification =
+    !!bankFormConfig.requiredFields.certification;
+
+  const canSubmit =
+    acknowledgementsComplete && (!showDefaultCertification || certifyChecked);
 
   return (
     <StepLayout title={title} description={description}>
@@ -215,12 +231,39 @@ export function LinkAccountPrefillSummaryView({
           />
         ) : null}
 
+        {showDefaultCertification ? (
+          <>
+            <Separator />
+            <div className="eb-flex eb-items-start eb-space-x-2">
+              <Checkbox
+                id="eb-link-prefill-certify"
+                className="eb-mt-0.5"
+                checked={certifyChecked}
+                onCheckedChange={(v) => onCertifyCheckedChange(v === true)}
+                disabled={isSubmitting}
+                aria-label={bankFormConfig.content.certificationText}
+              />
+              <Label
+                htmlFor="eb-link-prefill-certify"
+                className="eb-cursor-pointer eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70"
+              >
+                {bankFormConfig.content.certificationText}
+              </Label>
+            </div>
+          </>
+        ) : null}
+
         <div className="eb-flex eb-flex-wrap eb-gap-2">
           <Button
             type="button"
             className="eb-inline-flex eb-items-center eb-gap-2"
-            disabled={isSubmitting || !acknowledgementsComplete}
-            onClick={onSubmit}
+            disabled={isSubmitting || !canSubmit}
+            onClick={() =>
+              onSubmit({
+                ...data,
+                certify: showDefaultCertification ? certifyChecked : true,
+              })
+            }
           >
             {isSubmitting ? (
               <Loader2Icon className="eb-size-4 eb-animate-spin" aria-hidden />

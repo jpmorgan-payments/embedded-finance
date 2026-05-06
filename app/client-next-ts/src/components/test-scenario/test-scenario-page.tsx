@@ -5,6 +5,7 @@ import { ClientStatus } from '@ef-api/smbdo-schemas';
 import {
   EBComponentsProvider,
   OnboardingFlow,
+  type LinkAccountReviewAcknowledgement,
   type LinkAccountStepOptions,
 } from '@jpmorgan-payments/embedded-finance-components';
 
@@ -52,6 +53,17 @@ const TEST_SCENARIO_CONTENT_TOKENS = {
           accurateInfo: SELL_SENSE_ALIGNED_DATA_ACCURACY_CHECKBOX,
         },
       },
+      /** Align prefill-summary acknowledgement copy with package `bank-account-form` `linkedAccount.certificationText`. */
+      screens: {
+        linkAccount: {
+          prefillSummary: {
+            acknowledgements: {
+              verifyAndAccuracy:
+                'I authorize verification of this external bank account, including microdeposit verification if required. I certify that the information provided is accurate and matches my bank account details.',
+            },
+          },
+        },
+      },
     },
   },
 };
@@ -68,11 +80,48 @@ const TEST_SCENARIO_LINK_ACCOUNT_OPTIONS: LinkAccountStepOptions = {
   completionMode: 'editable',
 };
 
-const LOGIN_PROFILES: {
+/**
+ * Single acknowledgement row using the standard onboarding i18n key; string overridden in
+ * {@link TEST_SCENARIO_CONTENT_TOKENS} to match linked-account certification (editable flow).
+ */
+const LINK_ACCOUNT_PREFILL_SUMMARY_ACKS: readonly LinkAccountReviewAcknowledgement[] =
+  [
+    {
+      id: 'verifyAndAccuracy',
+      labelKey:
+        'screens.linkAccount.prefillSummary.acknowledgements.verifyAndAccuracy',
+    },
+  ];
+
+/** Prefill summary demo: read-only fields + one confirmation row (config-driven, same copy as default cert). */
+const LINK_ACCOUNT_PREFILL_SUMMARY_OPTIONS: LinkAccountStepOptions = {
+  completionMode: 'prefillSummary',
+  initialValues: {
+    accountType: 'INDIVIDUAL',
+    firstName: 'Taylor',
+    lastName: 'Morgan',
+    businessName: '',
+    routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+    useSameRoutingNumber: true,
+    accountNumber: '12345678901234567',
+    bankAccountType: 'CHECKING',
+    paymentTypes: ['ACH'],
+    certify: true,
+  },
+  summaryDisplayedPaymentTypes: ['ACH'],
+  reviewAcknowledgements: LINK_ACCOUNT_PREFILL_SUMMARY_ACKS,
+  showAcknowledgementsIntro: false,
+};
+
+type DemoLoginProfile = {
   email: string;
   label: string;
   scenario: TestDemoScenarioMode;
-}[] = [
+  /** When set, overrides default link step options for this demo. */
+  linkAccountStepOptions?: LinkAccountStepOptions;
+};
+
+const LOGIN_PROFILES: DemoLoginProfile[] = [
   {
     email: 'happy-path@demo.test',
     label: 'Happy path — prefilled onboarding',
@@ -92,6 +141,13 @@ const LOGIN_PROFILES: {
     email: 'linked-active@demo.test',
     label: 'Linked account — immediately ACTIVE after link (APPROVED client)',
     scenario: 'linked-account-active',
+  },
+  {
+    email: 'happy-path-approved@demo.test',
+    label:
+      'Happy path — APPROVED immediately (prefill summary link step, ACTIVE linked account)',
+    scenario: 'happy-path-approved',
+    linkAccountStepOptions: LINK_ACCOUNT_PREFILL_SUMMARY_OPTIONS,
   },
 ];
 
@@ -222,11 +278,15 @@ export function TestScenarioPage() {
                   showLinkAccountStep
                   linkAccountEnabledStatuses={
                     sessionScenario === 'linked-account-approved' ||
-                    sessionScenario === 'linked-account-active'
+                    sessionScenario === 'linked-account-active' ||
+                    sessionScenario === 'happy-path-approved'
                       ? [ClientStatus.APPROVED]
                       : undefined
                   }
-                  linkAccountStepOptions={TEST_SCENARIO_LINK_ACCOUNT_OPTIONS}
+                  linkAccountStepOptions={
+                    selectedProfile.linkAccountStepOptions ??
+                    TEST_SCENARIO_LINK_ACCOUNT_OPTIONS
+                  }
                   disclosureConfig={TEST_SCENARIO_DISCLOSURE_CONFIG}
                 />
               </div>
@@ -295,18 +355,35 @@ export function TestScenarioPage() {
                   >
                     <SelectTrigger
                       id="test-scenario-username"
-                      className="h-11 w-full rounded-lg border-neutral-300 bg-white"
+                      className="h-auto min-h-11 w-full items-start gap-2 rounded-lg border-neutral-300 bg-white py-2.5 text-left [&>span]:min-w-0 [&>span]:flex-1"
                       disabled={resetLoading}
                     >
-                      <SelectValue placeholder="Select a demo user" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {LOGIN_PROFILES.map((p) => (
-                        <SelectItem key={p.email} value={p.email}>
-                          <span className="block font-medium">{p.email}</span>
-                          <span className="block text-xs text-neutral-500">
-                            {p.label}
+                      <SelectValue placeholder="Select a demo user">
+                        <span className="flex min-w-0 flex-col gap-0.5 text-left">
+                          <span className="truncate text-sm font-medium text-neutral-900">
+                            {selectedProfile.email}
                           </span>
+                          <span className="line-clamp-2 text-xs leading-snug text-neutral-500">
+                            {selectedProfile.label}
+                          </span>
+                        </span>
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="max-w-[min(100vw-2rem,28rem)]">
+                      {LOGIN_PROFILES.map((p) => (
+                        <SelectItem
+                          key={p.email}
+                          value={p.email}
+                          className="items-start py-2"
+                        >
+                          <div className="flex min-w-0 flex-col gap-0.5 pr-1">
+                            <span className="truncate font-medium text-neutral-900">
+                              {p.email}
+                            </span>
+                            <span className="whitespace-normal text-left text-xs leading-snug text-neutral-500">
+                              {p.label}
+                            </span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>

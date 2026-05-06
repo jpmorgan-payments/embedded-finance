@@ -141,7 +141,7 @@ describe('LinkAccountScreen', () => {
     } as unknown as ReturnType<typeof useRecipientsVerification>);
   });
 
-  test('prefill summary without acknowledgements enables confirm immediately', async () => {
+  test('prefill summary without acknowledgements requires default certification before confirm', async () => {
     const user = userEvent.setup();
 
     renderWithProviders(<LinkAccountScreen />, {
@@ -156,7 +156,7 @@ describe('LinkAccountScreen', () => {
           accountNumber: '12345678901234567',
           bankAccountType: 'CHECKING',
           paymentTypes: ['ACH'],
-          certify: true,
+          certify: false,
         },
       },
     });
@@ -165,9 +165,17 @@ describe('LinkAccountScreen', () => {
       await screen.findByRole('heading', { name: /Link a bank account/i })
     ).toBeInTheDocument();
 
+    const certifyCheckbox = screen.getByRole('checkbox', {
+      name: /I authorize verification of this external bank account/i,
+    });
+    expect(certifyCheckbox).not.toBeChecked();
+
     const confirmBtn = screen.getByRole('button', {
       name: /Confirm and link account/i,
     });
+    expect(confirmBtn).toBeDisabled();
+
+    await user.click(certifyCheckbox);
     expect(confirmBtn).not.toBeDisabled();
 
     await user.click(confirmBtn);

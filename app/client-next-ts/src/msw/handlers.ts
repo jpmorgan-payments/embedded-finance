@@ -44,13 +44,14 @@ import {
 /**
  * `/test-scenario` only (via `X-Test-Demo-Scenario`): happy-path, doc-request, and
  * linked-account-active create linked recipients as ACTIVE; linked-account-approved
- * uses READY_FOR_VALIDATION (microdeposits). Omit header → microdeposit path.
+ * uses READY_FOR_VALIDATION (microdeposits). happy-path-approved is APPROVED client + ACTIVE link.
  */
 function initialLinkedAccountRecipientStatus(
   testDemoScenarioHeader: string | null
 ): 'ACTIVE' | 'READY_FOR_VALIDATION' {
   if (
     testDemoScenarioHeader === 'happy-path' ||
+    testDemoScenarioHeader === 'happy-path-approved' ||
     testDemoScenarioHeader === 'doc-request' ||
     testDemoScenarioHeader === 'linked-account-active'
   ) {
@@ -729,6 +730,7 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
       }
       if (
         body?.testDemoScenario === 'happy-path' ||
+        body?.testDemoScenario === 'happy-path-approved' ||
         body?.testDemoScenario === 'doc-request' ||
         body?.testDemoScenario === 'linked-account-approved' ||
         body?.testDemoScenario === 'linked-account-active'

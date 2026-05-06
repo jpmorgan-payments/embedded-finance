@@ -555,6 +555,11 @@ const predefinedClients: Record<string, PredefinedClientShape> = {
 /** Test `/test-scenario` demo: seed Operator 80-shaped client after `_reset` when body includes `testDemoScenario`. */
 export type TestDemoScenarioMode =
   | 'happy-path'
+  /**
+   * Same Operator 80 shape as `happy-path`, but client is **APPROVED** immediately (no NEW →
+   * delayed approval). Linked LINKED_ACCOUNT creates use **ACTIVE** like `happy-path`.
+   */
+  | 'happy-path-approved'
   | 'doc-request'
   | 'linked-account-approved'
   /** APPROVED client + link step; new linked recipient is ACTIVE (no microdeposits). */
@@ -817,7 +822,8 @@ export function applyTestDemoScenario(mode: TestDemoScenarioMode): void {
     shape = { ...base, status: 'INFORMATION_REQUESTED' };
   } else if (
     mode === 'linked-account-approved' ||
-    mode === 'linked-account-active'
+    mode === 'linked-account-active' ||
+    mode === 'happy-path-approved'
   ) {
     shape = {
       ...base,
@@ -837,7 +843,8 @@ export function applyTestDemoScenario(mode: TestDemoScenarioMode): void {
   }
   if (
     mode === 'linked-account-approved' ||
-    mode === 'linked-account-active'
+    mode === 'linked-account-active' ||
+    mode === 'happy-path-approved'
   ) {
     promoteTestDemoClientPartiesToApproved(clientId);
   }
