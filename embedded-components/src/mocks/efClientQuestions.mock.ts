@@ -194,15 +194,13 @@ export const efClientQuestionsMock = {
     {
       content: [
         {
-          description:
-            'Please specify which countries from the above list.',
+          description: 'Please specify which countries from the above list.',
           label: 'Please specify which countries from the above list.',
           locale: 'en-US',
         },
       ],
       defaultLocale: 'en-US',
-      description:
-        'Please specify which countries from the above list.',
+      description: 'Please specify which countries from the above list.',
       id: '30162',
       parentQuestionId: '30158',
       responseSchema: {
@@ -221,8 +219,7 @@ export const efClientQuestionsMock = {
         {
           description:
             'What is the total monthly processing volume of the business?',
-          label:
-            'What is the total monthly processing volume of the business?',
+          label: 'What is the total monthly processing volume of the business?',
           locale: 'en-US',
         },
       ],

@@ -6,10 +6,10 @@
  * Uses custom content tokens for field label overrides and link-account step.
  */
 
+import { efClientOperator80Mock } from '@/mocks/efClientOperator80.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { type ClientResponse } from '@/api/generated/smbdo.schemas';
-import { efClientOperator80Mock } from '@/mocks/efClientOperator80.mock';
 
 import type { BaseStoryArgs } from '../../../../.storybook/preview';
 import type { OnboardingFlowProps } from '../types/onboarding.types';
@@ -76,7 +76,9 @@ type Story = StoryObj<OnboardingFlowStoryArgs>;
  */
 export const Operator80Prepopulated: Story = {
   name: 'Operator 80 — Prepopulated LLC',
-  loaders: [() => resetAndSeedClient(mockClientOperator80, PREPOPULATED_CLIENT_ID)],
+  loaders: [
+    () => resetAndSeedClient(mockClientOperator80, PREPOPULATED_CLIENT_ID),
+  ],
   args: {
     ...commonArgs,
     clientId: PREPOPULATED_CLIENT_ID,
