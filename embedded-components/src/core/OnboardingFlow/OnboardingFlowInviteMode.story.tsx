@@ -48,14 +48,14 @@ export const Default: Story = {
       db.party.create({
         id: '2000000112',
         partyType: 'INDIVIDUAL',
-        email: 'Peiter@neverlandbooks.com',
+        email: 'alice.johnson@acmecorp.com',
         roles: ['BENEFICIAL_OWNER'],
         active: true,
         profileStatus: 'NEW',
         createdAt: '2024-06-21T18:12:21.005Z',
         individualDetails: {
-          firstName: 'Peiter',
-          lastName: 'Pan',
+          firstName: 'Alice',
+          lastName: 'Johnson',
           jobTitle: 'CFO',
         },
       });

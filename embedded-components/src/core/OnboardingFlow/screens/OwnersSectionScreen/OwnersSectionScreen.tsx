@@ -6,6 +6,7 @@ import {
   ArrowRightIcon,
   InfoIcon,
   Loader2Icon,
+  MailIcon,
   PencilIcon,
   PlusIcon,
   TrashIcon,
@@ -15,6 +16,7 @@ import { useForm, useFormState } from 'react-hook-form';
 
 import {
   getSmbdoGetClientQueryKey,
+  useSmbdoUpdateClient,
   useUpdatePartyLegacy,
 } from '@/api/generated/smbdo';
 import { ClientResponse, Role } from '@/api/generated/smbdo.schemas';
@@ -30,7 +32,17 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { LearnMorePopoverTrigger } from '@/components/LearnMorePopover';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { AlertDialog, Badge, Card, CardTitle } from '@/components/ui';
@@ -51,14 +63,35 @@ import {
 
 export const OwnersSectionScreen = () => {
   const [openedRemoveDialog, setOpenedRemoveDialog] = useState(false);
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+  const [inviteFormData, setInviteFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+  });
+  const [isInviteSubmitting, setIsInviteSubmitting] = useState(false);
+
+  // Per-owner "Invite to Complete" state
+  const [isInviteToCompleteDialogOpen, setIsInviteToCompleteDialogOpen] =
+    useState(false);
+  const [inviteToCompletePartyId, setInviteToCompletePartyId] = useState<
+    string | null
+  >(null);
+  const [inviteToCompleteEmail, setInviteToCompleteEmail] = useState('');
+  const [isInviteToCompleteSubmitting, setIsInviteToCompleteSubmitting] =
+    useState(false);
 
   const {
     clientData,
     onPostPartySettled: onPostPartyResponse,
+    onPostClientSettled,
     organizationType,
+    allowBeneficialOwnerInvitation,
   } = useOnboardingContext();
   const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
   const queryClient = useQueryClient();
+
+  const { mutateAsync: updateClient } = useSmbdoUpdateClient();
 
   const controllerParty = clientData?.parties?.find(
     (party) =>
@@ -284,6 +317,118 @@ export const OwnersSectionScreen = () => {
     controllerUpdateStatus === 'pending' ||
     partyActiveUpdateStatus === 'pending';
 
+  const handleInviteBeneficialOwner = () => {
+    setInviteFormData({ firstName: '', lastName: '', email: '' });
+    setIsInviteDialogOpen(true);
+  };
+
+  const handleInviteFormSubmit = async () => {
+    if (!clientData?.id) return;
+    setIsInviteSubmitting(true);
+    try {
+      const response = await updateClient({
+        id: clientData.id,
+        data: {
+          addParties: [
+            {
+              partyType: 'INDIVIDUAL',
+              roles: ['BENEFICIAL_OWNER', 'AUTHORIZED_USER'],
+              email: inviteFormData.email,
+              individualDetails: {
+                firstName: inviteFormData.firstName,
+                lastName: inviteFormData.lastName,
+              },
+            },
+          ] as any,
+        },
+      });
+      onPostClientSettled?.(response, undefined);
+      queryClient.invalidateQueries({
+        queryKey: getSmbdoGetClientQueryKey(clientData.id),
+      });
+      setIsInviteDialogOpen(false);
+    } catch (error: any) {
+      onPostClientSettled?.(undefined, error?.response?.data);
+    } finally {
+      setIsInviteSubmitting(false);
+    }
+  };
+
+  // --- Per-owner "Invite to Complete" logic ---
+  const { mutateAsync: updatePartyForInvite } = useUpdatePartyLegacy();
+
+  const handleInviteToComplete = (party: {
+    id?: string;
+    email?: string;
+    roles?: string[];
+  }) => {
+    if (!party.id) return;
+
+    if (party.email) {
+      // Has email — directly add AUTHORIZED_USER role
+      setIsInviteToCompleteSubmitting(true);
+      updatePartyForInvite(
+        {
+          partyId: party.id,
+          data: {
+            roles: [...(party.roles ?? []), 'AUTHORIZED_USER'] as Role[],
+            email: party.email,
+          },
+        },
+        {
+          onSuccess: () => {
+            if (clientData) {
+              queryClient.invalidateQueries({
+                queryKey: getSmbdoGetClientQueryKey(clientData.id),
+              });
+            }
+          },
+          onSettled: () => {
+            setIsInviteToCompleteSubmitting(false);
+          },
+        }
+      );
+    } else {
+      // No email — open dialog to collect email
+      setInviteToCompletePartyId(party.id);
+      setInviteToCompleteEmail('');
+      setIsInviteToCompleteDialogOpen(true);
+    }
+  };
+
+  const handleInviteToCompleteWithEmail = () => {
+    if (!inviteToCompletePartyId || !inviteToCompleteEmail) return;
+
+    const party = clientData?.parties?.find(
+      (p) => p.id === inviteToCompletePartyId
+    );
+    if (!party) return;
+
+    setIsInviteToCompleteSubmitting(true);
+    updatePartyForInvite(
+      {
+        partyId: inviteToCompletePartyId,
+        data: {
+          roles: [...(party.roles ?? []), 'AUTHORIZED_USER'] as Role[],
+          email: inviteToCompleteEmail,
+        },
+      },
+      {
+        onSuccess: () => {
+          if (clientData) {
+            queryClient.invalidateQueries({
+              queryKey: getSmbdoGetClientQueryKey(clientData.id),
+            });
+          }
+          setIsInviteToCompleteDialogOpen(false);
+        },
+        onSettled: () => {
+          setIsInviteToCompleteSubmitting(false);
+        },
+      }
+    );
+  };
+
   // TODO: get completed status from global stepper,
   // send completed status to global stepper
 
@@ -413,6 +558,19 @@ export const OwnersSectionScreen = () => {
             <PlusIcon /> {t('screens.owners.addOwnerButton')}
           </Button>
 
+          {allowBeneficialOwnerInvitation && (
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="eb-w-full eb-text-lg"
+              onClick={handleInviteBeneficialOwner}
+              disabled={isFormDisabled || activeOwners.length >= 4}
+            >
+              <MailIcon /> {t('screens.owners.inviteOwnerButton', 'Invite Beneficial Owner')}
+            </Button>
+          )}
+
           {ownersData.length >= 4 && (
             <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
               {'\u24d8 '}
@@ -522,6 +680,38 @@ export const OwnersSectionScreen = () => {
                   <PencilIcon />
                   {t('screens.owners.editOwnerButton')}
                 </Button>
+
+                {allowBeneficialOwnerInvitation &&
+                  owner.id &&
+                  !ownersValidation[owner.id]?.allStepsValid &&
+                  !owner.roles?.includes('AUTHORIZED_USER') && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleInviteToComplete(owner)}
+                      disabled={isInviteToCompleteSubmitting}
+                    >
+                      {isInviteToCompleteSubmitting ? (
+                        <Loader2Icon className="eb-h-4 eb-w-4 eb-animate-spin" />
+                      ) : (
+                        <MailIcon className="eb-h-4 eb-w-4" />
+                      )}
+                      {t(
+                        'screens.owners.inviteToCompleteButton',
+                        'Request info by email'
+                      )}
+                    </Button>
+                  )}
+
+                {allowBeneficialOwnerInvitation &&
+                  owner.roles?.includes('AUTHORIZED_USER') && (
+                    <Badge
+                      variant="outline"
+                      className="eb-self-center eb-border-transparent eb-bg-green-50 eb-text-green-700"
+                    >
+                      {t('screens.owners.invitedBadge', 'Invited')}
+                    </Badge>
+                  )}
               </div>
               {owner.id && !ownersValidation[owner.id]?.allStepsValid && (
                 <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
@@ -571,6 +761,142 @@ export const OwnersSectionScreen = () => {
           </Button>
         </div>
       </div>
+
+      {allowBeneficialOwnerInvitation && (
+        <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
+          <DialogContent className="eb-component">
+            <DialogHeader>
+              <DialogTitle>
+                {t('screens.owners.inviteDialog.title', 'Invite Beneficial Owner')}
+              </DialogTitle>
+              <DialogDescription>
+                {t(
+                  'screens.owners.inviteDialog.description',
+                  'Send an invitation to a beneficial owner to complete their details themselves.'
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="eb-space-y-4">
+              <div className="eb-space-y-2">
+                <Label htmlFor="invite-first-name">
+                  {t('screens.owners.inviteDialog.firstNameLabel', 'First Name')}
+                </Label>
+                <Input
+                  id="invite-first-name"
+                  value={inviteFormData.firstName}
+                  onChange={(e) =>
+                    setInviteFormData((prev) => ({
+                      ...prev,
+                      firstName: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div className="eb-space-y-2">
+                <Label htmlFor="invite-last-name">
+                  {t('screens.owners.inviteDialog.lastNameLabel', 'Last Name')}
+                </Label>
+                <Input
+                  id="invite-last-name"
+                  value={inviteFormData.lastName}
+                  onChange={(e) =>
+                    setInviteFormData((prev) => ({
+                      ...prev,
+                      lastName: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div className="eb-space-y-2">
+                <Label htmlFor="invite-email">
+                  {t('screens.owners.inviteDialog.emailLabel', 'Email Address')}
+                </Label>
+                <Input
+                  id="invite-email"
+                  type="email"
+                  value={inviteFormData.email}
+                  onChange={(e) =>
+                    setInviteFormData((prev) => ({
+                      ...prev,
+                      email: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                onClick={handleInviteFormSubmit}
+                disabled={
+                  isInviteSubmitting ||
+                  !inviteFormData.firstName ||
+                  !inviteFormData.lastName ||
+                  !inviteFormData.email
+                }
+              >
+                {isInviteSubmitting && (
+                  <Loader2Icon className="eb-h-4 eb-w-4 eb-animate-spin" />
+                )}
+                {t('screens.owners.inviteDialog.sendButton', 'Send Invitation')}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {allowBeneficialOwnerInvitation && (
+        <Dialog
+          open={isInviteToCompleteDialogOpen}
+          onOpenChange={setIsInviteToCompleteDialogOpen}
+        >
+          <DialogContent className="eb-component">
+            <DialogHeader>
+              <DialogTitle>
+                {t(
+                  'screens.owners.inviteToCompleteDialog.title',
+                  'Request information by email'
+                )}
+              </DialogTitle>
+              <DialogDescription>
+                {t(
+                  'screens.owners.inviteToCompleteDialog.description',
+                  'Enter the email address to send a request for this owner to complete their information.'
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="eb-space-y-2">
+              <Label htmlFor="invite-to-complete-email">
+                {t(
+                  'screens.owners.inviteToCompleteDialog.emailLabel',
+                  'Email Address'
+                )}
+              </Label>
+              <Input
+                id="invite-to-complete-email"
+                type="email"
+                value={inviteToCompleteEmail}
+                onChange={(e) => setInviteToCompleteEmail(e.target.value)}
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                onClick={handleInviteToCompleteWithEmail}
+                disabled={
+                  isInviteToCompleteSubmitting || !inviteToCompleteEmail
+                }
+              >
+                {isInviteToCompleteSubmitting && (
+                  <Loader2Icon className="eb-h-4 eb-w-4 eb-animate-spin" />
+                )}
+                {t(
+                  'screens.owners.inviteToCompleteDialog.sendButton',
+                  'Send Request'
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </StepLayout>
   );
 };
