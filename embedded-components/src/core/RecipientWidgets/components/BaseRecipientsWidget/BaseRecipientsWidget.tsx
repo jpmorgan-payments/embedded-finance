@@ -208,6 +208,17 @@ export interface BaseRecipientsWidgetProps
    * Optional merge on top of linked-account create config (`LINKED_ACCOUNT` create dialog only).
    */
   linkAccountBankFormConfigOverride?: Partial<BankAccountFormConfig>;
+
+  /**
+   * When true, hides Remove in card overflow menus and table row actions (`LINKED_ACCOUNT` and `RECIPIENT`).
+   *
+   * **OnboardingFlow Overview** uses a separate prop: `hideLinkedAccountRemoval` on `OnboardingFlow`.
+   * The two flags are complementary (different components), not interchangeable — set both when your app
+   * embeds onboarding and this widget and you want Remove hidden in both places.
+   *
+   * @default false
+   */
+  hideRemoveRecipient?: boolean;
 }
 
 /**
@@ -242,6 +253,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   linkAccountReviewAcknowledgements,
   showLinkAccountAcknowledgementsIntro = false,
   linkAccountBankFormConfigOverride,
+  hideRemoveRecipient = false,
 }) => {
   // Get configuration for the recipient type
   const config = getRecipientTypeConfig(recipientType);
@@ -1059,6 +1071,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                       handleMicrodepositVerifySettled
                     }
                     onRemoveSuccess={handleRemoveSuccess}
+                    hideRemoveRecipient={hideRemoveRecipient}
                   />
                 </div>
               ) : scrollable ? (
@@ -1112,6 +1125,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                               i18nNamespace={config.i18nNamespace}
                               recipientType={recipientType}
                               headingLevel={childHeadingLevel}
+                              hideRemoveRecipient={hideRemoveRecipient}
                               className={cn({
                                 'eb-border-b-0':
                                   isCompact &&
@@ -1165,6 +1179,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                           i18nNamespace={config.i18nNamespace}
                           recipientType={recipientType}
                           headingLevel={childHeadingLevel}
+                          hideRemoveRecipient={hideRemoveRecipient}
                           className={cn({
                             'eb-border-b-0':
                               isCompact && index === recipients.length - 1,

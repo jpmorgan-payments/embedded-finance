@@ -298,7 +298,8 @@ export const LinkAccountScreen = () => {
     );
   }
 
-  // Existing account — redirect to overview where the account card lives
+  // Existing account — redirect to Overview where the linked-account card (and optional Remove) lives.
+  // Removal is controlled there by `hideLinkedAccountRemoval`; this step has no separate Remove UI.
   if (existingAccount) {
     // Use setTimeout to avoid state updates during render
     setTimeout(() => goTo('overview', { resetHistory: true }), 0);

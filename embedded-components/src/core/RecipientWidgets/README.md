@@ -75,3 +75,13 @@ import { LinkedAccountWidget, RecipientsWidget } from '@/core/RecipientWidgets';
 | Account Validation        | ✅ Supported             | ✅ Supported       |
 | Callback Prop             | `onAccountLinked`        | `onRecipientAdded` |
 | Verification Callback     | `onVerificationComplete` | N/A                |
+
+## Hiding Remove (unlink) in the widget UI
+
+**`hideRemoveRecipient`** (on `LinkedAccountWidget` / `RecipientsWidget`, via `BaseRecipientsWidget`) hides
+Remove in **recipient cards** and **table** rows.
+
+**OnboardingFlow** uses a different prop — **`hideLinkedAccountRemoval`** — for the **Overview** linked-account
+card only. The flags are **not** duplicates or opposites: different components, same host policy when needed.
+Set **`hideLinkedAccountRemoval`** on onboarding and **`hideRemoveRecipient`** on the widget if both appear in
+your app. See **`LinkedAccountWidget/README.md`** and **`docs/component-implementation.md`** in the repo root.

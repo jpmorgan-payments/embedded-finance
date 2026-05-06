@@ -74,6 +74,13 @@ Always wrap components with `EBComponentsProvider`:
 </EBComponentsProvider>
 ```
 
+### Hiding Remove: onboarding vs widget
+
+- **`hideLinkedAccountRemoval`** on **`OnboardingFlow`** — Overview linked-account row only.
+- **`hideRemoveRecipient`** on **`LinkedAccountWidget`** (and `RecipientsWidget`) — card / table Remove actions.
+
+The flags are **not** interchangeable; use **both** when both UIs are embedded and your policy hides unlink everywhere. Details: **[Component Implementation](../../docs/component-implementation.md)** (_Linked accounts: hiding Remove_).
+
 ## Documentation
 
 For detailed guidelines, see root-level documentation:

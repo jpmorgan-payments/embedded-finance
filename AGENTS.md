@@ -43,7 +43,7 @@ Before generating component code, review the architecture document for:
 - **[Code Quality Workflow](docs/code-quality-workflow.md)** - Mandatory test-fix-verify process
 - **[Testing Guidelines](docs/testing-guidelines.md)** - Test patterns, coverage, MSW setup
 - **[TypeScript Conventions](docs/typescript-conventions.md)** - Type safety, patterns, best practices
-- **[Component Implementation](docs/component-implementation.md)** - React patterns, hooks, styling
+- **[Component Implementation](docs/component-implementation.md)** - React patterns, hooks, styling (_Linked accounts: hiding Remove_ documents `hideLinkedAccountRemoval` vs `hideRemoveRecipient`)
 - **[Git Workflow](docs/git-workflow.md)** - Commit conventions and branching
 
 ## Package-Specific Instructions

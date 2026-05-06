@@ -288,6 +288,7 @@ export function TestScenarioPage() {
                     TEST_SCENARIO_LINK_ACCOUNT_OPTIONS
                   }
                   disclosureConfig={TEST_SCENARIO_DISCLOSURE_CONFIG}
+                  hideLinkedAccountRemoval
                 />
               </div>
             </main>

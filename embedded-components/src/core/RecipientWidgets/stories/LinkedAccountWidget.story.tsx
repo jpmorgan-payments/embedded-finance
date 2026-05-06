@@ -5,6 +5,7 @@
  * Start here to understand the component's primary use cases.
  *
  * For specialized scenarios, see:
+ * - Host configuration/* — e.g. `hideRemoveRecipient`
  * - Account Statuses/* - All account lifecycle states
  * - Integration/* - Payment integration and callbacks
  * - Workflows/* - Interactive demonstrations

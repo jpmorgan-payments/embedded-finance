@@ -30,6 +30,9 @@ export interface LinkedAccountWidgetProps
  * - Microdeposit verification for account ownership
  * - Editing and removing accounts
  *
+ * Pass **`hideRemoveRecipient`** to hide Remove in card/table UI; **`OnboardingFlow`** Overview uses
+ * **`hideLinkedAccountRemoval`** instead (see package README / `docs/component-implementation.md`).
+ *
  * For managing payment recipients without microdeposit verification,
  * use RecipientsWidget instead.
  *

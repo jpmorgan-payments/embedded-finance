@@ -63,6 +63,7 @@ export const OverviewScreen = () => {
     showLinkAccountStep,
     linkAccountEnabledStatuses,
     showDownloadChecklist,
+    hideLinkedAccountRemoval,
   } = useOnboardingContext();
   const {
     currentScreenId,
@@ -620,32 +621,36 @@ export const OverviewScreen = () => {
                               </span>
                             </Button>
                           </RecipientDetailsDialog>
-                          <RemoveAccountDialogTrigger
-                            recipient={existingLinkedAccount}
-                            i18nNamespace="linked-accounts"
-                            onRemoveSuccess={() => {
-                              invalidateRecipientQueries(
-                                queryClient,
-                                'LINKED_ACCOUNT'
-                              );
-                            }}
-                          >
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="eb-gap-1.5 eb-text-destructive hover:eb-text-destructive"
-                              data-user-event={
-                                LINKED_ACCOUNT_USER_JOURNEYS.REMOVE_STARTED
-                              }
-                              aria-label={`${tString('linked-accounts:actions.remove')} ${getRecipientDisplayName(existingLinkedAccount)}`}
+                          {!hideLinkedAccountRemoval ? (
+                            <RemoveAccountDialogTrigger
+                              recipient={existingLinkedAccount}
+                              i18nNamespace="linked-accounts"
+                              onRemoveSuccess={() => {
+                                invalidateRecipientQueries(
+                                  queryClient,
+                                  'LINKED_ACCOUNT'
+                                );
+                              }}
                             >
-                              <TrashIcon
-                                className="eb-h-4 eb-w-4"
-                                aria-hidden="true"
-                              />
-                              <span>{t('linked-accounts:actions.remove')}</span>
-                            </Button>
-                          </RemoveAccountDialogTrigger>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="eb-gap-1.5 eb-text-destructive hover:eb-text-destructive"
+                                data-user-event={
+                                  LINKED_ACCOUNT_USER_JOURNEYS.REMOVE_STARTED
+                                }
+                                aria-label={`${tString('linked-accounts:actions.remove')} ${getRecipientDisplayName(existingLinkedAccount)}`}
+                              >
+                                <TrashIcon
+                                  className="eb-h-4 eb-w-4"
+                                  aria-hidden="true"
+                                />
+                                <span>
+                                  {t('linked-accounts:actions.remove')}
+                                </span>
+                              </Button>
+                            </RemoveAccountDialogTrigger>
+                          ) : null}
                         </div>
                       }
                     />
