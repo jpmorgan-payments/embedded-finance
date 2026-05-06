@@ -72,33 +72,7 @@ type DemoLoginProfile = {
   linkAccountStepOptions?: LinkAccountStepOptions;
 };
 
-const LOGIN_PROFILES: DemoLoginProfile[] = [
-  {
-    email: 'happy-path@demo.test',
-    label: 'Happy path \u2013 no document request, no micro deposits',
-    scenario: 'happy-path',
-  },
-  {
-    email: 'docs-requested@demo.test',
-    label: 'Unhappy path \u2013 straight to document request',
-    scenario: 'doc-request',
-  },
-  {
-    email: 'linked-microdeposit@demo.test',
-    label: 'Unhappy path \u2013 straight to linked account with microdeposit',
-    scenario: 'linked-account-approved',
-  },
-  {
-    email: 'linked-active@demo.test',
-    label: 'Happy path \u2013 straight to linked account no microdeposit',
-    scenario: 'linked-account-active',
-  },
-  {
-    email: 'happy-path-approved@demo.test',
-    label:
-      'Happy path — APPROVED immediately (prefill summary link step, ACTIVE linked account)',
-    scenario: 'happy-path-approved',
-    linkAccountStepOptions: {
+const LINKED_ACCOUNT_OPTIONS: LinkAccountStepOptions = {
       completionMode: 'prefillSummary',
       initialValues: {
         accountType: 'INDIVIDUAL',
@@ -121,8 +95,31 @@ const LOGIN_PROFILES: DemoLoginProfile[] = [
         },
       ],
       showAcknowledgementsIntro: false,
-    },
+    }
+
+const LOGIN_PROFILES: DemoLoginProfile[] = [
+  {
+    email: 'happy-path@demo.test',
+    label: 'Happy path \u2013 no document request, no micro deposits',
+    scenario: 'happy-path',
   },
+  {
+    email: 'docs-requested@demo.test',
+    label: 'Unhappy path \u2013 straight to document request',
+    scenario: 'doc-request',
+  },
+  {
+    email: 'linked-microdeposit@demo.test',
+    label: 'Unhappy path \u2013 straight to linked account with microdeposit',
+    scenario: 'linked-account-approved',
+    linkAccountStepOptions: LINKED_ACCOUNT_OPTIONS,
+  },
+  {
+    email: 'linked-active@demo.test',
+    label: 'Happy path \u2013 straight to linked account no microdeposit',
+    scenario: 'linked-account-active',
+    linkAccountStepOptions: LINKED_ACCOUNT_OPTIONS
+  }
 ];
 
 function themeString(
