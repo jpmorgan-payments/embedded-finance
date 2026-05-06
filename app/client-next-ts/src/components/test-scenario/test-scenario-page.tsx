@@ -75,22 +75,22 @@ type DemoLoginProfile = {
 const LOGIN_PROFILES: DemoLoginProfile[] = [
   {
     email: 'happy-path@demo.test',
-    label: 'Happy path — prefilled onboarding',
+    label: 'Happy path \u2013 no document request, no micro deposits',
     scenario: 'happy-path',
   },
   {
     email: 'docs-requested@demo.test',
-    label: 'Documents requested — supporting docs',
+    label: 'Unhappy path \u2013 straight to document request',
     scenario: 'doc-request',
   },
   {
     email: 'linked-microdeposit@demo.test',
-    label: 'Linked account — microdeposit verification (APPROVED client)',
+    label: 'Unhappy path \u2013 straight to linked account with microdeposit',
     scenario: 'linked-account-approved',
   },
   {
     email: 'linked-active@demo.test',
-    label: 'Linked account — immediately ACTIVE after link (APPROVED client)',
+    label: 'Happy path \u2013 straight to linked account no microdeposit',
     scenario: 'linked-account-active',
   },
   {
@@ -262,8 +262,9 @@ export function TestScenarioPage() {
                       initialValues: {
                         paymentTypes: ['ACH'],
                         routingNumbers: [
-                          { paymentType: 'ACH', routingNumber: '' },
+                          { paymentType: 'ACH', routingNumber: '121000248' },
                         ],
+                        accountNumber: '6724301068',
                       },
                       completionMode: 'editable',
                     }
@@ -271,7 +272,7 @@ export function TestScenarioPage() {
                   disclosureConfig={{ platformName: 'Platform, Inc.' }}
                   hideLinkedAccountRemoval
                 />
-                <footer className="mx-auto mt-4 max-w-2xl px-4 py-4 text-center sm:px-5">
+                <footer className="mx-auto mt-4 max-w-4xl px-4 py-4 text-center sm:px-5">
                   <p className="text-xs leading-relaxed text-neutral-500">
                     Platform, Inc. is not a bank. Banking services provided by
                     JPMorgan Chase Bank, N.A., Member FDIC (&ldquo;J.P.
