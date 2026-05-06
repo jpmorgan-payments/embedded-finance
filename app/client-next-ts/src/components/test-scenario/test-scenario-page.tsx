@@ -290,18 +290,21 @@ export function TestScenarioPage() {
                   disclosureConfig={TEST_SCENARIO_DISCLOSURE_CONFIG}
                   hideLinkedAccountRemoval
                 />
+                <footer className="mx-auto mt-4 max-w-2xl px-4 py-4 text-center sm:px-5">
+                  <p className="text-xs leading-relaxed text-neutral-500">
+                    Platform, Inc. is not a bank. Banking services provided by
+                    JPMorgan Chase Bank, N.A., Member FDIC (&ldquo;J.P.
+                    Morgan&rdquo;).
+                  </p>
+                  <p className="mt-2 text-xs leading-relaxed text-neutral-500">
+                    Accounts are insured by the FDIC up to $250,000 per
+                    depositor for each account ownership category; availability
+                    of FDIC deposit insurance coverage protects against the
+                    failure of J.P. Morgan, and not of Platform, Inc.
+                  </p>
+                </footer>
               </div>
             </main>
-            <footer className="shrink-0 border-t border-black/10 bg-neutral-50 px-5 py-4 sm:px-6">
-              <p className="mx-auto max-w-6xl text-xs leading-relaxed text-neutral-500">
-                Platform, Inc. is not a bank. Banking services provided by
-                JPMorgan Chase Bank, N.A., Member FDIC (&ldquo;J.P.
-                Morgan&rdquo;). Accounts are insured by the FDIC up to $250,000
-                per depositor for each account ownership category; availability
-                of FDIC deposit insurance coverage protects against the failure
-                of J.P. Morgan, and not of Platform, Inc.
-              </p>
-            </footer>
           </>
         ) : (
           <>

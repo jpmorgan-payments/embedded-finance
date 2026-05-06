@@ -66,6 +66,8 @@ type ClientIdParams = { clientId: string };
 type PartyIdParams = { partyId: string };
 /** Path params for routes with :documentRequestId */
 type DocumentRequestIdParams = { documentRequestId: string };
+/** Path params for routes with :documentId */
+type DocumentIdParams = { documentId: string };
 /** Path params for routes with :recipientId */
 type RecipientIdParams = { recipientId: string };
 /** Path params for routes with :accountId */
@@ -525,8 +527,12 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     });
   }),
 
-  http.get(`${apiUrl}/ef/do/v1/documents/:documentId`, () => {
-    return HttpResponse.json(efDocumentClientDetail);
+  http.get(`${apiUrl}/ef/do/v1/documents/:documentId`, ({ params }) => {
+    const { documentId } = params as DocumentIdParams;
+    return HttpResponse.json({
+      ...efDocumentClientDetail,
+      id: String(documentId),
+    });
   }),
 
   http.get(`${apiUrl}/ef/do/v1/documents/:documentId/file`, () => {
