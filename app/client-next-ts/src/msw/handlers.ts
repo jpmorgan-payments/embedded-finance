@@ -28,6 +28,7 @@ import { http, HttpResponse, type RequestHandler } from 'msw';
 import { getClientStatusOverrideForScenario } from '../components/sellsense/scenarios-config';
 import { efClientQuestionsMock, efDocumentClientDetail } from '../mocks';
 import { TEST_DEMO_SCENARIO_CLIENT_ID } from '../mocks/testScenarioOperator80Client.mock';
+import sampleTermsPdfUrl from './sample-terms.pdf?url';
 import {
   applyOverridesToDb,
   applyTestDemoScenario,
@@ -61,9 +62,22 @@ function initialLinkedAccountRecipientStatus(
 }
 
 /**
- * Payload for GET .../documents/:id/file. In Vitest (`import.meta.env.MODE === 'test'`),
- * relative `fetch('/sample-terms.pdf')` from an MSW handler often fails (invalid/unhandled URL),
- * so read `public/sample-terms.pdf` from disk. In dev/prod the PDF is fetched from the site origin.
+ * Resolved origin for bundled assets (handlers run in the Service Worker; `window` is undefined).
+ */
+function clientOrigin(): string {
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin;
+  }
+  if (typeof self !== 'undefined' && self.location?.origin) {
+    return self.location.origin;
+  }
+  return 'http://localhost';
+}
+
+/**
+ * Payload for GET .../documents/:id/file. Loads the bundled PDF (`?url`) so production hosts
+ * serve it from `/assets/*` instead of fragile root-relative `/sample-terms.pdf` (often broken
+ * by SPA rewrites). In Vitest, read `sample-terms.pdf` from disk next to this module.
  */
 async function loadSampleTermsPdfBytes(): Promise<Uint8Array> {
   if (import.meta.env.MODE === 'test') {
@@ -72,18 +86,18 @@ async function loadSampleTermsPdfBytes(): Promise<Uint8Array> {
     const { fileURLToPath } = await import('node:url');
     const pdfPath = path.join(
       path.dirname(fileURLToPath(import.meta.url)),
-      '..',
-      '..',
-      'public',
       'sample-terms.pdf',
     );
     return new Uint8Array(await readFile(pdfPath));
   }
 
-  const response = await fetch('/sample-terms.pdf');
+  const resolved = sampleTermsPdfUrl.startsWith('http')
+    ? sampleTermsPdfUrl
+    : new URL(sampleTermsPdfUrl, `${clientOrigin()}/`).href;
+  const response = await fetch(resolved);
   if (!response.ok) {
     throw new Error(
-      `Failed to fetch sample-terms.pdf for MSW mock (${response.status})`,
+      `Failed to fetch bundled sample terms PDF (${response.status} ${resolved})`,
     );
   }
   return new Uint8Array(await response.arrayBuffer());
