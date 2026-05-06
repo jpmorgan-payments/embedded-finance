@@ -5,7 +5,6 @@ import { ClientStatus } from '@ef-api/smbdo-schemas';
 import {
   EBComponentsProvider,
   OnboardingFlow,
-  type LinkAccountReviewAcknowledgement,
   type LinkAccountStepOptions,
 } from '@jpmorgan-payments/embedded-finance-components';
 
@@ -22,19 +21,9 @@ import { DatabaseResetUtils } from '@/lib/database-reset-utils';
 import { TEST_DEMO_SCENARIO_CLIENT_ID } from '@/mocks/testScenarioOperator80Client.mock';
 import type { TestDemoScenarioMode } from '@/msw/db';
 
-const TEST_CLIENT_ID = TEST_DEMO_SCENARIO_CLIENT_ID;
-
 /** Matches Operator 80 prepopulated story org (`testScenarioOperator80Client`). */
 const TEST_SCENARIO_CLIENT_DISPLAY_NAME = 'Operator 80 Palo Alto CA';
 
-/** Same checkbox line as SellSense (`reviewAndAttest.dataAccuracyCheckbox` default in package i18n). */
-const SELL_SENSE_ALIGNED_DATA_ACCURACY_CHECKBOX =
-  'The data I am providing is true, accurate and complete to the best of my knowledge.';
-
-/**
- * Disclosure attestation UI (`disclosureConfig`) — override only the first checkbox
- * (`reviewAndAttest.attestation.accurateInfo`); heading / terms keys stay on package defaults.
- */
 const TEST_SCENARIO_CONTENT_TOKENS = {
   name: 'enUS' as const,
   showTokenIds: true,
@@ -50,7 +39,14 @@ const TEST_SCENARIO_CONTENT_TOKENS = {
       },
       reviewAndAttest: {
         attestation: {
-          accurateInfo: SELL_SENSE_ALIGNED_DATA_ACCURACY_CHECKBOX,
+          accurateInfo:
+            'The data I am providing is true, accurate and complete to the best of my knowledge.',
+          authorizeSharing:
+            'You authorize Platform, Inc. and JPMorgan Chase Bank, N.A. ("JPMC") to share information to facilitate the opening of your deposit account(s), and appoint Platform, Inc. as your agent to act on your behalf regarding your deposit account pursuant to your agreement(s) with Platform, Inc..',
+        },
+        termsAndConditions: {
+          agreeToTerms:
+            "You have read, understand, and agree to the J.P. Morgan Account Terms and Platform Inc.'s Program Agreement.",
         },
       },
       /** Align prefill-summary acknowledgement copy with package `bank-account-form` `linkedAccount.certificationText`. */
@@ -66,51 +62,6 @@ const TEST_SCENARIO_CONTENT_TOKENS = {
       },
     },
   },
-};
-
-const TEST_SCENARIO_DISCLOSURE_CONFIG = {
-  platformName: 'Platform, Inc.',
-} as const;
-
-const TEST_SCENARIO_LINK_ACCOUNT_OPTIONS: LinkAccountStepOptions = {
-  initialValues: {
-    paymentTypes: ['ACH'],
-    routingNumbers: [{ paymentType: 'ACH', routingNumber: '' }],
-  },
-  completionMode: 'editable',
-};
-
-/**
- * Single acknowledgement row using the standard onboarding i18n key; string overridden in
- * {@link TEST_SCENARIO_CONTENT_TOKENS} to match linked-account certification (editable flow).
- */
-const LINK_ACCOUNT_PREFILL_SUMMARY_ACKS: readonly LinkAccountReviewAcknowledgement[] =
-  [
-    {
-      id: 'verifyAndAccuracy',
-      labelKey:
-        'screens.linkAccount.prefillSummary.acknowledgements.verifyAndAccuracy',
-    },
-  ];
-
-/** Prefill summary demo: read-only fields + one confirmation row (config-driven, same copy as default cert). */
-const LINK_ACCOUNT_PREFILL_SUMMARY_OPTIONS: LinkAccountStepOptions = {
-  completionMode: 'prefillSummary',
-  initialValues: {
-    accountType: 'INDIVIDUAL',
-    firstName: 'Taylor',
-    lastName: 'Morgan',
-    businessName: '',
-    routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
-    useSameRoutingNumber: true,
-    accountNumber: '12345678901234567',
-    bankAccountType: 'CHECKING',
-    paymentTypes: ['ACH'],
-    certify: true,
-  },
-  summaryDisplayedPaymentTypes: ['ACH'],
-  reviewAcknowledgements: LINK_ACCOUNT_PREFILL_SUMMARY_ACKS,
-  showAcknowledgementsIntro: false,
 };
 
 type DemoLoginProfile = {
@@ -147,7 +98,30 @@ const LOGIN_PROFILES: DemoLoginProfile[] = [
     label:
       'Happy path — APPROVED immediately (prefill summary link step, ACTIVE linked account)',
     scenario: 'happy-path-approved',
-    linkAccountStepOptions: LINK_ACCOUNT_PREFILL_SUMMARY_OPTIONS,
+    linkAccountStepOptions: {
+      completionMode: 'prefillSummary',
+      initialValues: {
+        accountType: 'INDIVIDUAL',
+        firstName: 'Taylor',
+        lastName: 'Morgan',
+        businessName: '',
+        routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+        useSameRoutingNumber: true,
+        accountNumber: '12345678901234567',
+        bankAccountType: 'CHECKING',
+        paymentTypes: ['ACH'],
+        certify: true,
+      },
+      summaryDisplayedPaymentTypes: ['ACH'],
+      reviewAcknowledgements: [
+        {
+          id: 'verifyAndAccuracy',
+          labelKey:
+            'screens.linkAccount.prefillSummary.acknowledgements.verifyAndAccuracy',
+        },
+      ],
+      showAcknowledgementsIntro: false,
+    },
   },
 ];
 
@@ -221,7 +195,7 @@ export function TestScenarioPage() {
       theme={ebTheme}
       headers={providerHeaders}
       contentTokens={TEST_SCENARIO_CONTENT_TOKENS}
-      clientId={sessionScenario ? TEST_CLIENT_ID : undefined}
+      clientId={sessionScenario ? TEST_DEMO_SCENARIO_CLIENT_ID : undefined}
     >
       <div
         className="flex min-h-screen flex-col"
@@ -284,10 +258,17 @@ export function TestScenarioPage() {
                       : undefined
                   }
                   linkAccountStepOptions={
-                    selectedProfile.linkAccountStepOptions ??
-                    TEST_SCENARIO_LINK_ACCOUNT_OPTIONS
+                    selectedProfile.linkAccountStepOptions ?? {
+                      initialValues: {
+                        paymentTypes: ['ACH'],
+                        routingNumbers: [
+                          { paymentType: 'ACH', routingNumber: '' },
+                        ],
+                      },
+                      completionMode: 'editable',
+                    }
                   }
-                  disclosureConfig={TEST_SCENARIO_DISCLOSURE_CONFIG}
+                  disclosureConfig={{ platformName: 'Platform, Inc.' }}
                   hideLinkedAccountRemoval
                 />
                 <footer className="mx-auto mt-4 max-w-2xl px-4 py-4 text-center sm:px-5">
