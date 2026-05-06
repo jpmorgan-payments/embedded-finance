@@ -26,9 +26,13 @@ const TEST_CLIENT_ID = TEST_DEMO_SCENARIO_CLIENT_ID;
 /** Matches Operator 80 prepopulated story org (`testScenarioOperator80Client`). */
 const TEST_SCENARIO_CLIENT_DISPLAY_NAME = 'Operator 80 Palo Alto CA';
 
+/** Same checkbox line as SellSense (`reviewAndAttest.dataAccuracyCheckbox` default in package i18n). */
+const SELL_SENSE_ALIGNED_DATA_ACCURACY_CHECKBOX =
+  'The data I am providing is true, accurate and complete to the best of my knowledge.';
+
 /**
- * Matches Core/OnboardingFlow Prepopulated story — Operator 80 — Prepopulated LLC:
- * content token overrides and disclosure / link-account options.
+ * Disclosure attestation UI (`disclosureConfig`) — override only the first checkbox
+ * (`reviewAndAttest.attestation.accurateInfo`); heading / terms keys stay on package defaults.
  */
 const TEST_SCENARIO_CONTENT_TOKENS = {
   name: 'enUS' as const,
@@ -44,8 +48,9 @@ const TEST_SCENARIO_CONTENT_TOKENS = {
         },
       },
       reviewAndAttest: {
-        dataAccuracyCheckbox:
-          'The data I am providing is true, accurate and complete to the best of my knowledge.',
+        attestation: {
+          accurateInfo: SELL_SENSE_ALIGNED_DATA_ACCURACY_CHECKBOX,
+        },
       },
     },
   },
