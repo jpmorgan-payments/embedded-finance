@@ -548,26 +548,26 @@ const FlowRenderer: React.FC = React.memo(() => {
           sectionStatuses[section.id] === 'completed_disabled'
             ? []
             : (section.stepperConfig?.steps ?? []).map((step, stepIndex) => {
-          // Check if this static step was explicitly
-          // completed and recorded in session data.
-          const isCompletedStaticStep =
-            step.stepType === 'static' &&
-            (sessionData.completedStaticStepIds ?? []).includes(step.id);
+                // Check if this static step was explicitly
+                // completed and recorded in session data.
+                const isCompletedStaticStep =
+                  step.stepType === 'static' &&
+                  (sessionData.completedStaticStepIds ?? []).includes(step.id);
 
-          return {
-            ...step,
-            status:
-              stepIndex > 0 && partyRequiredButMissing
-                ? 'on_hold'
-                : stepValidations[section.id][step.id].isValid ||
-                    isCompletedStaticStep
-                  ? 'completed'
-                  : step.stepType === 'check-answers' ||
-                      step.stepType === 'static'
-                    ? 'on_hold'
-                    : 'not_started',
-          } as TimelineStep;
-        }),
+                return {
+                  ...step,
+                  status:
+                    stepIndex > 0 && partyRequiredButMissing
+                      ? 'on_hold'
+                      : stepValidations[section.id][step.id].isValid ||
+                          isCompletedStaticStep
+                        ? 'completed'
+                        : step.stepType === 'check-answers' ||
+                            step.stepType === 'static'
+                          ? 'on_hold'
+                          : 'not_started',
+                } as TimelineStep;
+              }),
       };
     }),
     ...(showLinkAccountStep
