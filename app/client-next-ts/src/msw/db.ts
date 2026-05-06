@@ -556,7 +556,9 @@ const predefinedClients: Record<string, PredefinedClientShape> = {
 export type TestDemoScenarioMode =
   | 'happy-path'
   | 'doc-request'
-  | 'linked-account-approved';
+  | 'linked-account-approved'
+  /** APPROVED client + link step; new linked recipient is ACTIVE (no microdeposits). */
+  | 'linked-account-active';
 
 function seedPredefinedClientFromShape(
   clientId: string,
@@ -813,7 +815,10 @@ export function applyTestDemoScenario(mode: TestDemoScenarioMode): void {
   let shape: PredefinedClientShape;
   if (mode === 'doc-request') {
     shape = { ...base, status: 'INFORMATION_REQUESTED' };
-  } else if (mode === 'linked-account-approved') {
+  } else if (
+    mode === 'linked-account-approved' ||
+    mode === 'linked-account-active'
+  ) {
     shape = {
       ...base,
       status: 'APPROVED',
@@ -830,7 +835,10 @@ export function applyTestDemoScenario(mode: TestDemoScenarioMode): void {
   if (mode === 'doc-request') {
     syncTestDemoClientOutstandingDocumentIds(clientId);
   }
-  if (mode === 'linked-account-approved') {
+  if (
+    mode === 'linked-account-approved' ||
+    mode === 'linked-account-active'
+  ) {
     promoteTestDemoClientPartiesToApproved(clientId);
   }
   logDbState(`Test demo scenario: ${mode}`);

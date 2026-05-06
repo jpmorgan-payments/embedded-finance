@@ -83,6 +83,11 @@ const LOGIN_PROFILES: {
     label: 'Linked account — microdeposit verification (APPROVED client)',
     scenario: 'linked-account-approved',
   },
+  {
+    email: 'linked-active@demo.test',
+    label: 'Linked account — immediately ACTIVE after link (APPROVED client)',
+    scenario: 'linked-account-active',
+  },
 ];
 
 function themeString(
@@ -211,7 +216,8 @@ export function TestScenarioPage() {
                   ]}
                   showLinkAccountStep
                   linkAccountEnabledStatuses={
-                    sessionScenario === 'linked-account-approved'
+                    sessionScenario === 'linked-account-approved' ||
+                    sessionScenario === 'linked-account-active'
                       ? [ClientStatus.APPROVED]
                       : undefined
                   }

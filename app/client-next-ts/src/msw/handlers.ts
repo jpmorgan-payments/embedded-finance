@@ -42,16 +42,17 @@ import {
 } from './db';
 
 /**
- * `/test-scenario` only (via `X-Test-Demo-Scenario`): happy-path + doc-request skip
- * microdeposits after link; linked-account-approved keeps READY_FOR_VALIDATION.
- * SellSense and other callers omit the header → microdeposit path (unchanged).
+ * `/test-scenario` only (via `X-Test-Demo-Scenario`): happy-path, doc-request, and
+ * linked-account-active create linked recipients as ACTIVE; linked-account-approved
+ * uses READY_FOR_VALIDATION (microdeposits). Omit header → microdeposit path.
  */
 function initialLinkedAccountRecipientStatus(
   testDemoScenarioHeader: string | null
 ): 'ACTIVE' | 'READY_FOR_VALIDATION' {
   if (
     testDemoScenarioHeader === 'happy-path' ||
-    testDemoScenarioHeader === 'doc-request'
+    testDemoScenarioHeader === 'doc-request' ||
+    testDemoScenarioHeader === 'linked-account-active'
   ) {
     return 'ACTIVE';
   }
@@ -729,7 +730,8 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
       if (
         body?.testDemoScenario === 'happy-path' ||
         body?.testDemoScenario === 'doc-request' ||
-        body?.testDemoScenario === 'linked-account-approved'
+        body?.testDemoScenario === 'linked-account-approved' ||
+        body?.testDemoScenario === 'linked-account-active'
       ) {
         // Isolated from SellSense: those apps never send `testDemoScenario`.
         applyTestDemoScenario(body.testDemoScenario);
