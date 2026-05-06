@@ -73,29 +73,29 @@ type DemoLoginProfile = {
 };
 
 const LINKED_ACCOUNT_OPTIONS: LinkAccountStepOptions = {
-      completionMode: 'prefillSummary',
-      initialValues: {
-        accountType: 'INDIVIDUAL',
-        firstName: 'Taylor',
-        lastName: 'Morgan',
-        businessName: '',
-        routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
-        useSameRoutingNumber: true,
-        accountNumber: '12345678901234567',
-        bankAccountType: 'CHECKING',
-        paymentTypes: ['ACH'],
-        certify: true,
-      },
-      summaryDisplayedPaymentTypes: ['ACH'],
-      reviewAcknowledgements: [
-        {
-          id: 'verifyAndAccuracy',
-          labelKey:
-            'screens.linkAccount.prefillSummary.acknowledgements.verifyAndAccuracy',
-        },
-      ],
-      showAcknowledgementsIntro: false,
-    }
+  completionMode: 'prefillSummary',
+  initialValues: {
+    accountType: 'INDIVIDUAL',
+    firstName: 'Taylor',
+    lastName: 'Morgan',
+    businessName: '',
+    routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+    useSameRoutingNumber: true,
+    accountNumber: '12345678901234567',
+    bankAccountType: 'CHECKING',
+    paymentTypes: ['ACH'],
+    certify: true,
+  },
+  summaryDisplayedPaymentTypes: ['ACH'],
+  reviewAcknowledgements: [
+    {
+      id: 'verifyAndAccuracy',
+      labelKey:
+        'screens.linkAccount.prefillSummary.acknowledgements.verifyAndAccuracy',
+    },
+  ],
+  showAcknowledgementsIntro: false,
+};
 
 const LOGIN_PROFILES: DemoLoginProfile[] = [
   {
@@ -118,8 +118,8 @@ const LOGIN_PROFILES: DemoLoginProfile[] = [
     email: 'linked-active@demo.test',
     label: 'Happy path \u2013 straight to linked account no microdeposit',
     scenario: 'linked-account-active',
-    linkAccountStepOptions: LINKED_ACCOUNT_OPTIONS
-  }
+    linkAccountStepOptions: LINKED_ACCOUNT_OPTIONS,
+  },
 ];
 
 function themeString(
