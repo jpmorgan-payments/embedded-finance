@@ -46,6 +46,20 @@ export function useTranslationWithTokens<N extends ValidNamespace>(
 
   type TFunc = typeof originalT;
 
+  function extractStringDefaultFromTranslateArgs(
+    args: Parameters<TFunc>
+  ): string {
+    for (let i = args.length - 1; i >= 1; i -= 1) {
+      const a = args[i];
+      if (typeof a === 'object' && a !== null && !Array.isArray(a)) {
+        const dv = (a as { defaultValue?: unknown }).defaultValue;
+        if (typeof dv === 'string') return dv;
+      }
+    }
+    if (typeof args[1] === 'string') return args[1];
+    return '';
+  }
+
   /**
    * Translate a key, optionally annotating with token ID.
    * Returns ReactNode when showTokenIds is enabled, string otherwise.
@@ -103,9 +117,18 @@ export function useTranslationWithTokens<N extends ValidNamespace>(
   /**
    * Translate a key, always returning a plain string (no annotation).
    * Use this when the result must be a string (e.g., for title attributes).
+   *
+   * Coerces non-strings: nested JSON leaves from deep-merged resources or odd
+   * `t` results would otherwise become `[object Object]` in template literals.
    */
   const tString = (...args: Parameters<TFunc>): string => {
-    return (originalT as any)(...args);
+    const raw = (originalT as any)(...args);
+    if (typeof raw === 'string') return raw;
+    if (raw == null) return extractStringDefaultFromTranslateArgs(args);
+    if (typeof raw === 'number' || typeof raw === 'boolean') {
+      return String(raw);
+    }
+    return extractStringDefaultFromTranslateArgs(args);
   };
 
   return { t, tString, i18n, ready };

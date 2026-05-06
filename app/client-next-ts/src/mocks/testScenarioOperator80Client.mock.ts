@@ -102,7 +102,7 @@ export const testScenarioOperator80Client = {
         middleName: 'Thomas',
         lastName: 'Gellar',
         jobTitle: 'Other',
-        jobTitleDescription: 'Owner, Operator',
+        jobTitleDescription: 'Owner/Operator',
       },
       organizationDetails: {},
       status: 'ACTIVE',
