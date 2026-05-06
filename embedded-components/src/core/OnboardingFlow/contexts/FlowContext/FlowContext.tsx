@@ -127,9 +127,19 @@ export const FlowProvider: React.FC<{
   flowConfig: FlowConfig;
   /** Seed the active step when landing directly on a stepper section (see {@link OnboardingFlowEntry}). */
   seedInitialStepperStepId?: string | null;
-}> = ({ children, initialScreenId, flowConfig, seedInitialStepperStepId }) => {
+  /** Pre-set the editing party ID for the initial screen (used in invite mode). */
+  initialEditingPartyId?: string;
+}> = ({
+  children,
+  initialScreenId,
+  flowConfig,
+  seedInitialStepperStepId,
+  initialEditingPartyId,
+}) => {
   const [history, setHistory] = useState<ScreenId[]>([initialScreenId]);
-  const [editingPartyIds, setEditingPartyIds] = useState<EditingPartyIds>({});
+  const [editingPartyIds, setEditingPartyIds] = useState<EditingPartyIds>(
+    initialEditingPartyId ? { [initialScreenId]: initialEditingPartyId } : {}
+  );
   const [previouslyCompleted, setPreviouslyCompleted] = useState(false);
   const [reviewScreenOpenedSectionId, setReviewScreenOpenedSectionId] =
     useState<SectionScreenId | null>(null);

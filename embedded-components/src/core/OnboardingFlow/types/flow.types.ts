@@ -64,7 +64,8 @@ export type SectionScreenId =
   | 'owners-section'
   | 'additional-questions-section'
   | 'review-attest-section'
-  | 'upload-documents-section';
+  | 'upload-documents-section'
+  | 'invite-owner-section';
 
 export type ScreenConfig = StaticScreenConfig | SectionScreenConfig;
 
@@ -163,6 +164,8 @@ export type FlowSessionData = {
   completedStaticStepIds?: string[];
   /** Transient flag set after successfully creating a linked account; cleared when overview dismisses the banner. */
   linkAccountJustCreated?: boolean;
+  /** Set after invite mode submission to lock the timeline */
+  inviteSubmitted?: boolean;
 };
 
 export type StepperStepProps = {

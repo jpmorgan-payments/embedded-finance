@@ -4,6 +4,7 @@ import type { UserTrackingProps } from '@/lib/types/userTracking.types';
 import {
   ClientResponse,
   OrganizationType,
+  PartyResponse,
 } from '@/api/generated/smbdo.schemas';
 import { OnboardingConfigUsedInContext } from '@/core/OnboardingFlow/types/onboarding.types';
 
@@ -15,6 +16,12 @@ export type OnboardingContextType = OnboardingConfigUsedInContext &
     clientGetStatus: 'error' | 'success' | 'pending';
     setClientId: (clientId: string) => void;
     organizationType: OrganizationType | undefined;
+    /** When set, the flow operates in invite mode for a single party. */
+    partyId?: string;
+    /** Callback fired when invite-mode party data is successfully submitted. */
+    onInviteSubmitSuccess?: (partyData: PartyResponse) => void;
+    /** The party data fetched for invite mode (from GET /parties/:partyId). */
+    invitePartyData?: PartyResponse;
   };
 
 export const OnboardingContext = createContext<

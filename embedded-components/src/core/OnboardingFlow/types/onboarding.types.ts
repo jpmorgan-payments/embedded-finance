@@ -188,4 +188,18 @@ export type OnboardingConfigUsedInContext = {
 export type OnboardingFlowProps = OnboardingConfigDefault &
   OnboardingConfigUsedInContext & {
     flowEntry?: OnboardingFlowEntry;
+    /**
+     * When provided, the onboarding flow operates in **invite mode**: a standalone
+     * single-party data collection experience. The flow shows only the party's
+     * personal details, identity document, and contact details steps — with a
+     * final "Check your answers" summary and submit action.
+     *
+     * The party's name is fetched via the API and displayed as the section title.
+     */
+    partyId?: string;
+    /**
+     * Callback fired after the invite-mode party data has been successfully submitted.
+     * Only relevant when {@link partyId} is set.
+     */
+    onInviteSubmitSuccess?: (partyData: PartyResponse) => void;
   };
