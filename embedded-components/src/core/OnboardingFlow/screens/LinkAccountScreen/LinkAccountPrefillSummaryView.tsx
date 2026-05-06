@@ -241,7 +241,6 @@ export function LinkAccountPrefillSummaryView({
                 checked={certifyChecked}
                 onCheckedChange={(v) => onCertifyCheckedChange(v === true)}
                 disabled={isSubmitting}
-                aria-label={bankFormConfig.content.certificationText}
               />
               <Label
                 htmlFor="eb-link-prefill-certify"
