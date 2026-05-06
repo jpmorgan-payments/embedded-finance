@@ -17,6 +17,7 @@ import {
 } from '@/core/OnboardingFlow/contexts';
 import {
   BankAccountForm,
+  createCustomConfig,
   mergeBankAccountDefaultValues,
   useLinkedAccountConfig,
   type BankAccountFormData,
@@ -132,6 +133,16 @@ export const LinkAccountScreen = () => {
   // Use the linked-account config hook (same as BankAccountFormWrapper)
   const linkedAccountConfig = useLinkedAccountConfig();
 
+  const linkedAccountConfigWithOverride = useMemo(() => {
+    if (!linkAccountStepOptions?.bankFormConfigOverride) {
+      return linkedAccountConfig;
+    }
+    return createCustomConfig(
+      linkedAccountConfig,
+      linkAccountStepOptions.bankFormConfigOverride
+    );
+  }, [linkedAccountConfig, linkAccountStepOptions?.bankFormConfigOverride]);
+
   // Use the recipient form hook for API submission
   const {
     submit,
@@ -149,9 +160,9 @@ export const LinkAccountScreen = () => {
   });
 
   const config = {
-    ...linkedAccountConfig,
+    ...linkedAccountConfigWithOverride,
     content: {
-      ...linkedAccountConfig.content,
+      ...linkedAccountConfigWithOverride.content,
       submitButtonText: t('screens.linkAccount.submitButton', 'Link Account'),
       cancelButtonText: t('common:cancel', 'Cancel'),
     },
@@ -292,7 +303,7 @@ export const LinkAccountScreen = () => {
         )}
         data={prefillSummaryFormData}
         displayedPaymentTypes={summaryDisplayedPaymentTypes}
-        bankFormConfig={linkedAccountConfig}
+        bankFormConfig={linkedAccountConfigWithOverride}
         acknowledgements={linkAcknowledgementItems}
         acknowledgementsIntro={
           linkAcknowledgementItems?.length &&

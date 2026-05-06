@@ -45,7 +45,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
 import { PaymentFlow } from '@/core/PaymentFlow';
 import type { PaymentMethod } from '@/core/PaymentFlow/PaymentFlow.types';
-import type { LinkAccountReviewAcknowledgement } from '@/core/RecipientWidgets/components/BankAccountForm/BankAccountForm.types';
+import type {
+  BankAccountFormConfig,
+  LinkAccountReviewAcknowledgement,
+} from '@/core/RecipientWidgets/components/BankAccountForm/BankAccountForm.types';
 
 import { useRecipients, useRecipientsTable } from '../../hooks';
 import {
@@ -201,6 +204,10 @@ export interface BaseRecipientsWidgetProps
   linkAccountReviewAcknowledgements?: readonly LinkAccountReviewAcknowledgement[];
   /** Show lead-in line above acknowledgements (see onboarding `showAcknowledgementsIntro`). */
   showLinkAccountAcknowledgementsIntro?: boolean;
+  /**
+   * Optional merge on top of linked-account create config (`LINKED_ACCOUNT` create dialog only).
+   */
+  linkAccountBankFormConfigOverride?: Partial<BankAccountFormConfig>;
 }
 
 /**
@@ -234,6 +241,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   userEventsLifecycle,
   linkAccountReviewAcknowledgements,
   showLinkAccountAcknowledgementsIntro = false,
+  linkAccountBankFormConfigOverride,
 }) => {
   // Get configuration for the recipient type
   const config = getRecipientTypeConfig(recipientType);
@@ -660,6 +668,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
         showLinkAccountAcknowledgementsIntro={
           showLinkAccountAcknowledgementsIntro
         }
+        linkAccountBankFormConfigOverride={linkAccountBankFormConfigOverride}
       />
 
       {/* Lifted Edit Dialog - Rendered at parent level to survive data updates */}

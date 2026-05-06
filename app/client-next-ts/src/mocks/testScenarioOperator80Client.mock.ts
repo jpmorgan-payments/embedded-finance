@@ -44,7 +44,7 @@ export const testScenarioOperator80Client = {
         organizationIds: [
           {
             idType: 'EIN',
-            value: '914316140',
+            value: '123456123',
             issuer: 'US',
           },
         ],
@@ -93,6 +93,7 @@ export const testScenarioOperator80Client = {
         middleName: 'Thomas',
         lastName: 'Gellar',
         jobTitle: 'Other',
+        jobTitleDescription: 'Owner, Operator',
       },
       organizationDetails: {},
       status: 'ACTIVE',

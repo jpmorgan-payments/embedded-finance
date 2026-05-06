@@ -12,6 +12,7 @@ import {
   SchemasApiError,
 } from '@/api/generated/smbdo.schemas';
 import type {
+  BankAccountFormConfig,
   BankAccountFormData,
   LinkAccountReviewAcknowledgement,
 } from '@/core/RecipientWidgets/components/BankAccountForm/BankAccountForm.types';
@@ -81,6 +82,12 @@ export type LinkAccountStepOptions = {
    * (`screens.linkAccount.prefillSummary.acknowledgementsIntro`) above the checkbox group. Default false.
    */
   showAcknowledgementsIntro?: boolean;
+  /**
+   * Optional merge on top of {@link useLinkedAccountConfig} for the link-account bank form
+   * (editable step and `prefillSummary` labels). Use to document or trial alternative
+   * `paymentMethods.available` / `allowMultiple` sets; production onboarding typically omits this.
+   */
+  bankFormConfigOverride?: Partial<BankAccountFormConfig>;
 };
 
 /**
