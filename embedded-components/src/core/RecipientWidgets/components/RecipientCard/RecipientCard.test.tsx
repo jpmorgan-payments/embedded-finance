@@ -130,6 +130,20 @@ describe('RecipientCard', () => {
     expect(screen.getByText(/remove/i)).toBeInTheDocument();
   });
 
+  it('should omit Remove when hideRemoveRecipient is true', async () => {
+    const user = userEvent.setup();
+    render(
+      <RecipientCard recipient={mockActiveRecipient} hideRemoveRecipient />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: /more actions for john doe/i })
+    );
+
+    expect(screen.getByText(/edit/i)).toBeInTheDocument();
+    expect(screen.queryByText(/^remove$/i)).not.toBeInTheDocument();
+  });
+
   it('should hide actions when hideActions is true', () => {
     render(<RecipientCard recipient={mockActiveRecipient} hideActions />);
 

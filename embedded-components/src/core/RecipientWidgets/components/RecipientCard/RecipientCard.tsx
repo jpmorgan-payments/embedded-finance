@@ -101,6 +101,13 @@ export interface RecipientCardProps {
   recipientType?: SupportedRecipientType;
 
   /**
+   * When true, omits Remove from the overflow menu.
+   *
+   * @default false
+   */
+  hideRemoveRecipient?: boolean;
+
+  /**
    * Heading level for the recipient card title.
    * Should be one level below the parent widget's heading.
    *
@@ -129,6 +136,7 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
   i18nNamespace = 'linked-accounts',
   recipientType = 'LINKED_ACCOUNT',
   headingLevel = 3,
+  hideRemoveRecipient = false,
 }) => {
   const { t, tString } = useTranslationWithTokens(i18nNamespace);
 
@@ -297,22 +305,26 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
           </TooltipContent>
         </Tooltip>
       )}
-      <DropdownMenuSeparator />
-      <RemoveAccountDialogTrigger
-        recipient={recipient}
-        onRecipientSettled={onRecipientSettled}
-        onRemoveSuccess={onRemoveSuccess}
-        i18nNamespace={i18nNamespace}
-      >
-        <DropdownMenuItem
-          onSelect={(e) => e.preventDefault()}
-          data-user-event={LINKED_ACCOUNT_USER_JOURNEYS.REMOVE_STARTED}
-          className="eb-cursor-pointer eb-text-destructive focus:eb-text-destructive"
-        >
-          <TrashIcon className="eb-mr-2 eb-h-4 eb-w-4" />
-          <span>{t('actions.remove')}</span>
-        </DropdownMenuItem>
-      </RemoveAccountDialogTrigger>
+      {!hideRemoveRecipient ? (
+        <>
+          <DropdownMenuSeparator />
+          <RemoveAccountDialogTrigger
+            recipient={recipient}
+            onRecipientSettled={onRecipientSettled}
+            onRemoveSuccess={onRemoveSuccess}
+            i18nNamespace={i18nNamespace}
+          >
+            <DropdownMenuItem
+              onSelect={(e) => e.preventDefault()}
+              data-user-event={LINKED_ACCOUNT_USER_JOURNEYS.REMOVE_STARTED}
+              className="eb-cursor-pointer eb-text-destructive focus:eb-text-destructive"
+            >
+              <TrashIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+              <span>{t('actions.remove')}</span>
+            </DropdownMenuItem>
+          </RemoveAccountDialogTrigger>
+        </>
+      ) : null}
     </>
   );
 

@@ -48,6 +48,7 @@ import {
   StepperStepProps,
 } from '@/core/OnboardingFlow/types/flow.types';
 import {
+  asPlainString,
   formatQuestionResponse,
   getPartyName,
 } from '@/core/OnboardingFlow/utils/dataUtils';
@@ -372,58 +373,61 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                             </Card>
                           )}
 
-                          {activeOwners.map((owner) => (
-                            <Card
-                              key={owner.id}
-                              className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4"
-                            >
-                              <div className="eb-space-y-1">
-                                <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
-                                  {getPartyName(owner)}
-                                </CardTitle>
-                                <p className="eb-text-sm eb-font-medium">
-                                  {owner.individualDetails?.jobTitle === 'Other'
-                                    ? `${tString('jobTitles.Other', 'Other')} - ${owner.individualDetails.jobTitleDescription}`
-                                    : t(
-                                        `jobTitles.${owner.individualDetails?.jobTitle}`,
-                                        {
-                                          defaultValue:
-                                            owner.individualDetails?.jobTitle ??
-                                            '',
-                                        }
-                                      )}
-                                </p>
-                                <div className="eb-flex eb-gap-2 eb-pt-2">
-                                  <Badge
-                                    variant="outline"
-                                    className="eb-border-transparent eb-bg-[#EDF4FF] eb-text-[#355FA1]"
-                                  >
-                                    {t('reviewAndAttest.owner', 'Owner')}
-                                  </Badge>
-                                  {owner.roles?.includes('CONTROLLER') && (
+                          {activeOwners.map((owner) => {
+                            const jobTitle = asPlainString(
+                              owner.individualDetails?.jobTitle
+                            );
+                            const jobTitleDescription = asPlainString(
+                              owner.individualDetails?.jobTitleDescription
+                            );
+                            return (
+                              <Card
+                                key={owner.id}
+                                className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4"
+                              >
+                                <div className="eb-space-y-1">
+                                  <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
+                                    {getPartyName(owner)}
+                                  </CardTitle>
+                                  <p className="eb-text-sm eb-font-medium">
+                                    {jobTitle === 'Other'
+                                      ? `${tString('jobTitles.Other', { defaultValue: 'Other' })} - ${jobTitleDescription}`
+                                      : t(`jobTitles.${jobTitle}`, {
+                                          defaultValue: jobTitle,
+                                        })}
+                                  </p>
+                                  <div className="eb-flex eb-gap-2 eb-pt-2">
                                     <Badge
                                       variant="outline"
-                                      className="eb-border-transparent eb-bg-[#FFEBD9] eb-text-[#8F521F]"
+                                      className="eb-border-transparent eb-bg-[#EDF4FF] eb-text-[#355FA1]"
                                     >
-                                      {t(
-                                        'reviewAndAttest.controller',
-                                        'Controller'
-                                      )}
+                                      {t('reviewAndAttest.owner', 'Owner')}
                                     </Badge>
-                                  )}
-                                </div>
-                              </div>
-                              {owner.id &&
-                                !ownersValidation[owner.id].allStepsValid && (
-                                  <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
-                                    {t(
-                                      'reviewAndAttest.individualMissingDetails',
-                                      '\u24d8 This individual is missing some details.'
+                                    {owner.roles?.includes('CONTROLLER') && (
+                                      <Badge
+                                        variant="outline"
+                                        className="eb-border-transparent eb-bg-[#FFEBD9] eb-text-[#8F521F]"
+                                      >
+                                        {t(
+                                          'reviewAndAttest.controller',
+                                          'Controller'
+                                        )}
+                                      </Badge>
                                     )}
-                                  </p>
-                                )}
-                            </Card>
-                          ))}
+                                  </div>
+                                </div>
+                                {owner.id &&
+                                  !ownersValidation[owner.id].allStepsValid && (
+                                    <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
+                                      {t(
+                                        'reviewAndAttest.individualMissingDetails',
+                                        '\u24d8 This individual is missing some details.'
+                                      )}
+                                    </p>
+                                  )}
+                              </Card>
+                            );
+                          })}
                         </div>
                       </Card>
                     );

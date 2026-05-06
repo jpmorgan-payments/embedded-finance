@@ -94,6 +94,19 @@ Each journey is tracked with:
 - `element`: The DOM element that triggered the event (if available)
 - `metadata`: Additional context (screenId, stepId, sectionId, etc.)
 
+## Hiding Remove / unlink on Overview
+
+Pass **`hideLinkedAccountRemoval`** on `OnboardingFlow` to hide the **Remove** control on the **Overview**
+linked-bank-account summary card (next to View details).
+
+This prop does **not** apply to **`LinkedAccountWidget`**. For the standalone widget — card menus and table
+row actions — pass **`hideRemoveRecipient`** on `LinkedAccountWidget` instead. The two flags address different
+surfaces; they do **not** contradict each other. Use **both** when your host mounts onboarding and the widget
+and you want unlink hidden everywhere.
+
+See also: **`RecipientWidgets/LinkedAccountWidget/README.md`**, repository **`docs/component-implementation.md`**
+(section _Linked accounts: hiding Remove_), and **Storybook** → Core → LinkedAccountWidget → Host configuration.
+
 ## Testing
 
 See **[TESTING.md](./TESTING.md)** for the full pyramid (schema tests, Vitest integration, Storybook parity, SellSense Playwright scenarios) and where to add new coverage.

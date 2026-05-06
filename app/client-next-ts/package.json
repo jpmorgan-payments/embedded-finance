@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite --port 3000",
     "start": "vite --port 3000",
+    "embed:sample-pdf": "node scripts/embed-sample-terms-pdf.mjs",
     "build": "rimraf dist && tsc && vite build",
     "serve": "vite preview",
     "test": "vitest run",

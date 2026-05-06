@@ -45,7 +45,10 @@ export default function CoreFunctionalRequirementsIndexArticle() {
                     className="inline-flex items-center gap-1 text-page-small font-medium text-sp-brand hover:underline"
                   >
                     <span>View folder on GitHub</span>
-                    <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    <ExternalLink
+                      className="h-3.5 w-3.5 shrink-0"
+                      aria-hidden
+                    />
                   </a>
                 </div>
                 <p className="mb-4 text-page-body text-jpm-gray">

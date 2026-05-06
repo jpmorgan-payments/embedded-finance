@@ -12,6 +12,7 @@ import {
   SchemasApiError,
 } from '@/api/generated/smbdo.schemas';
 import type {
+  BankAccountFormConfig,
   BankAccountFormData,
   LinkAccountReviewAcknowledgement,
 } from '@/core/RecipientWidgets/components/BankAccountForm/BankAccountForm.types';
@@ -81,6 +82,12 @@ export type LinkAccountStepOptions = {
    * (`screens.linkAccount.prefillSummary.acknowledgementsIntro`) above the checkbox group. Default false.
    */
   showAcknowledgementsIntro?: boolean;
+  /**
+   * Optional merge on top of {@link useLinkedAccountConfig} for the link-account bank form
+   * (editable step and `prefillSummary` labels). Use to document or trial alternative
+   * `paymentMethods.available` / `allowMultiple` sets; production onboarding typically omits this.
+   */
+  bankFormConfigOverride?: Partial<BankAccountFormConfig>;
 };
 
 /**
@@ -150,6 +157,22 @@ export type OnboardingConfigUsedInContext = {
    * Ignored when an active linked account already exists from the recipients API.
    */
   linkAccountStepOptions?: LinkAccountStepOptions;
+  /**
+   * When true, hides Remove on the **OnboardingFlow Overview** linked-account card (read-only unlink).
+   *
+   * **Relationship to `hideRemoveRecipient`:** These flags do not conflict — they apply to different
+   * surfaces. `hideLinkedAccountRemoval` only affects onboarding Overview. The **Link bank account**
+   * step (`LinkAccountScreen`) does not render Remove today; when an active linked account already exists,
+   * that step redirects to Overview, where this flag applies. If Remove is ever shown inline on the link
+   * step, gate it with this same prop so hosts stay consistent.
+   *
+   * `hideRemoveRecipient` is passed on **`LinkedAccountWidget`** / recipient widgets and hides Remove in
+   * card overflow menus and **table** row actions — not on OnboardingFlow. If your host renders **both**
+   * onboarding and the standalone linked-account widget, set each flag where you embed each UI.
+   *
+   * @default false
+   */
+  hideLinkedAccountRemoval?: boolean;
   hideSidebar?: boolean;
   /** Whether to show the "Download Checklist" button on the Overview screen. Defaults to false. */
   showDownloadChecklist?: boolean;

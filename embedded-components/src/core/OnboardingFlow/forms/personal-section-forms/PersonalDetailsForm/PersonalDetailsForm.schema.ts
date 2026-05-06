@@ -6,6 +6,7 @@ import {
 } from '@/core/OnboardingFlow/consts';
 import { useGetValidationMessage } from '@/core/OnboardingFlow/utils/formUtils';
 import {
+  JOB_TITLE_DESCRIPTION_PATTERN,
   NAME_PATTERN,
   SUFFIX_PATTERN,
 } from '@/core/OnboardingFlow/utils/validationPatterns';
@@ -79,7 +80,7 @@ export const usePersonalDetailsFormSchema = () => {
       .string()
       .max(50, v('controllerJobTitleDescription', 'maxLength'))
       .refine(
-        (val) => /^[a-zA-Z0-9\s,.&-]+$/.test(val),
+        (val) => val === '' || JOB_TITLE_DESCRIPTION_PATTERN.test(val),
         v('controllerJobTitleDescription', 'pattern')
       )
       .refine(

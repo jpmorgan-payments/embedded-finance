@@ -45,7 +45,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
 import { PaymentFlow } from '@/core/PaymentFlow';
 import type { PaymentMethod } from '@/core/PaymentFlow/PaymentFlow.types';
-import type { LinkAccountReviewAcknowledgement } from '@/core/RecipientWidgets/components/BankAccountForm/BankAccountForm.types';
+import type {
+  BankAccountFormConfig,
+  LinkAccountReviewAcknowledgement,
+} from '@/core/RecipientWidgets/components/BankAccountForm/BankAccountForm.types';
 
 import { useRecipients, useRecipientsTable } from '../../hooks';
 import {
@@ -201,6 +204,21 @@ export interface BaseRecipientsWidgetProps
   linkAccountReviewAcknowledgements?: readonly LinkAccountReviewAcknowledgement[];
   /** Show lead-in line above acknowledgements (see onboarding `showAcknowledgementsIntro`). */
   showLinkAccountAcknowledgementsIntro?: boolean;
+  /**
+   * Optional merge on top of linked-account create config (`LINKED_ACCOUNT` create dialog only).
+   */
+  linkAccountBankFormConfigOverride?: Partial<BankAccountFormConfig>;
+
+  /**
+   * When true, hides Remove in card overflow menus and table row actions (`LINKED_ACCOUNT` and `RECIPIENT`).
+   *
+   * **OnboardingFlow Overview** uses a separate prop: `hideLinkedAccountRemoval` on `OnboardingFlow`.
+   * The two flags are complementary (different components), not interchangeable — set both when your app
+   * embeds onboarding and this widget and you want Remove hidden in both places.
+   *
+   * @default false
+   */
+  hideRemoveRecipient?: boolean;
 }
 
 /**
@@ -234,6 +252,8 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   userEventsLifecycle,
   linkAccountReviewAcknowledgements,
   showLinkAccountAcknowledgementsIntro = false,
+  linkAccountBankFormConfigOverride,
+  hideRemoveRecipient = false,
 }) => {
   // Get configuration for the recipient type
   const config = getRecipientTypeConfig(recipientType);
@@ -660,6 +680,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
         showLinkAccountAcknowledgementsIntro={
           showLinkAccountAcknowledgementsIntro
         }
+        linkAccountBankFormConfigOverride={linkAccountBankFormConfigOverride}
       />
 
       {/* Lifted Edit Dialog - Rendered at parent level to survive data updates */}
@@ -1050,6 +1071,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                       handleMicrodepositVerifySettled
                     }
                     onRemoveSuccess={handleRemoveSuccess}
+                    hideRemoveRecipient={hideRemoveRecipient}
                   />
                 </div>
               ) : scrollable ? (
@@ -1103,6 +1125,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                               i18nNamespace={config.i18nNamespace}
                               recipientType={recipientType}
                               headingLevel={childHeadingLevel}
+                              hideRemoveRecipient={hideRemoveRecipient}
                               className={cn({
                                 'eb-border-b-0':
                                   isCompact &&
@@ -1156,6 +1179,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
                           i18nNamespace={config.i18nNamespace}
                           recipientType={recipientType}
                           headingLevel={childHeadingLevel}
+                          hideRemoveRecipient={hideRemoveRecipient}
                           className={cn({
                             'eb-border-b-0':
                               isCompact && index === recipients.length - 1,

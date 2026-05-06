@@ -35,8 +35,7 @@ export type HeroSkillInstallTone =
 const heroSkillToneClasses: Record<HeroSkillInstallTone, string> = {
   split:
     'w-full rounded-page-md px-6 py-3 text-sm font-semibold sm:w-auto sm:px-8 sm:py-4 sm:text-base lg:text-page-body',
-  compact:
-    'w-full rounded-page-md px-7 py-3 text-base font-semibold sm:w-auto',
+  compact: 'w-full rounded-page-md px-7 py-3 text-base font-semibold sm:w-auto',
   'compact-accent':
     'w-full rounded-page-md px-8 py-4 text-base font-semibold transition-all duration-300 sm:w-auto',
   pill: 'w-full rounded-full px-8 py-3 text-base font-semibold sm:w-auto',
@@ -85,8 +84,8 @@ export function HeroSkillInstallDialog({
             Embedded Finance & Solutions skill
           </DialogTitle>
           <DialogDescription className="text-left text-page-body text-jpm-gray">
-            For agents integrating EF&amp;S: backend APIs and webhooks, partially hosted
-            onboarding, OSS recipe and repo links.
+            For agents integrating EF&amp;S: backend APIs and webhooks,
+            partially hosted onboarding, OSS recipe and repo links.
           </DialogDescription>
         </DialogHeader>
 

@@ -11,6 +11,16 @@ Storybook: **Core → OnboardingFlow → Linked account**
 
 Both use **`RecipientAccountDisplayCard`**, **`StatusAlert`**, **`MicrodepositsFormDialogTrigger`**, and **`linked-accounts`** i18n — aligned with **LinkedAccountWidget**, which is the standalone management experience.
 
+## Host flags: hiding Remove (no contradiction)
+
+| Goal | Prop | Where |
+| ---- | ---- | ----- |
+| Hide Remove on **Overview** linked-account row | `hideLinkedAccountRemoval` | `OnboardingFlow` |
+| Hide Remove in **widget** cards / table rows | `hideRemoveRecipient` | `LinkedAccountWidget` (via `BaseRecipientsWidget`) |
+
+They apply to **different surfaces**. Use **both** when your app embeds onboarding Overview **and** the
+standalone widget with the same policy.
+
 ## Story files
 
 - **`OnboardingFlow.LinkedAccount.States.story.tsx`** — Client States: lifecycle seeds, prefill variants, existing **ACTIVE** account.

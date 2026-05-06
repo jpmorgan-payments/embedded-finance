@@ -17,6 +17,7 @@ import {
 } from '@/core/OnboardingFlow/contexts';
 import {
   BankAccountForm,
+  createCustomConfig,
   mergeBankAccountDefaultValues,
   useLinkedAccountConfig,
   type BankAccountFormData,
@@ -110,11 +111,10 @@ export const LinkAccountScreen = () => {
     Record<string, boolean>
   >({});
 
+  const [prefillCertifyChecked, setPrefillCertifyChecked] = useState(false);
+
   useEffect(() => {
-    if (
-      linkAccountStepOptions?.completionMode !== 'prefillSummary' ||
-      !linkAcknowledgementItems?.length
-    ) {
+    if (!linkAcknowledgementItems?.length) {
       setAcknowledgementChecked({});
       return;
     }
@@ -131,6 +131,29 @@ export const LinkAccountScreen = () => {
 
   // Use the linked-account config hook (same as BankAccountFormWrapper)
   const linkedAccountConfig = useLinkedAccountConfig();
+
+  const linkedAccountConfigWithOverride = useMemo(() => {
+    if (!linkAccountStepOptions?.bankFormConfigOverride) {
+      return linkedAccountConfig;
+    }
+    return createCustomConfig(
+      linkedAccountConfig,
+      linkAccountStepOptions.bankFormConfigOverride
+    );
+  }, [linkedAccountConfig, linkAccountStepOptions?.bankFormConfigOverride]);
+
+  /** When acknowledgements replace the certify row ({@link BankAccountForm}), keep prefill aligned. */
+  const bankFormConfigForPrefill = useMemo(() => {
+    const base = linkedAccountConfigWithOverride;
+    if (!linkAcknowledgementItems?.length) return base;
+    return {
+      ...base,
+      requiredFields: {
+        ...base.requiredFields,
+        certification: false,
+      },
+    };
+  }, [linkedAccountConfigWithOverride, linkAcknowledgementItems]);
 
   // Use the recipient form hook for API submission
   const {
@@ -149,9 +172,9 @@ export const LinkAccountScreen = () => {
   });
 
   const config = {
-    ...linkedAccountConfig,
+    ...linkedAccountConfigWithOverride,
     content: {
-      ...linkedAccountConfig.content,
+      ...linkedAccountConfigWithOverride.content,
       submitButtonText: t('screens.linkAccount.submitButton', 'Link Account'),
       cancelButtonText: t('common:cancel', 'Cancel'),
     },
@@ -168,18 +191,28 @@ export const LinkAccountScreen = () => {
   }, [linkAccountStepOptions]);
 
   useEffect(() => {
+    setPrefillCertifyChecked(false);
+  }, [clientId, linkAckIdsKey, prefillSummaryFormData]);
+
+  useEffect(() => {
     if (
       !prefillSummaryFormData ||
       linkAccountStepOptions?.completionMode !== 'prefillSummary'
     ) {
       return undefined;
     }
-    const dirty = Object.values(acknowledgementChecked).some(Boolean);
+    const defaultCertShown =
+      bankFormConfigForPrefill.requiredFields.certification === true;
+    const dirty =
+      Object.values(acknowledgementChecked).some(Boolean) ||
+      (defaultCertShown && prefillCertifyChecked);
     setFlowUnsavedChanges(dirty);
     return () => setFlowUnsavedChanges(false);
   }, [
     acknowledgementChecked,
+    bankFormConfigForPrefill.requiredFields.certification,
     linkAccountStepOptions?.completionMode,
+    prefillCertifyChecked,
     prefillSummaryFormData,
     setFlowUnsavedChanges,
   ]);
@@ -265,7 +298,8 @@ export const LinkAccountScreen = () => {
     );
   }
 
-  // Existing account — redirect to overview where the account card lives
+  // Existing account — redirect to Overview where the linked-account card (and optional Remove) lives.
+  // Removal is controlled there by `hideLinkedAccountRemoval`; this step has no separate Remove UI.
   if (existingAccount) {
     // Use setTimeout to avoid state updates during render
     setTimeout(() => goTo('overview', { resetHistory: true }), 0);
@@ -292,7 +326,7 @@ export const LinkAccountScreen = () => {
         )}
         data={prefillSummaryFormData}
         displayedPaymentTypes={summaryDisplayedPaymentTypes}
-        bankFormConfig={linkedAccountConfig}
+        bankFormConfig={bankFormConfigForPrefill}
         acknowledgements={linkAcknowledgementItems}
         acknowledgementsIntro={
           linkAcknowledgementItems?.length &&
@@ -308,12 +342,9 @@ export const LinkAccountScreen = () => {
           setAcknowledgementChecked((prev) => ({ ...prev, [id]: value }))
         }
         acknowledgementsComplete={acknowledgementsComplete}
-        onSubmit={() =>
-          submit({
-            ...prefillSummaryFormData,
-            certify: true,
-          })
-        }
+        certifyChecked={prefillCertifyChecked}
+        onCertifyCheckedChange={setPrefillCertifyChecked}
+        onSubmit={handleSubmit}
         onCancel={handleBack}
         isSubmitting={status === 'pending'}
         errorAlert={errorAlert}

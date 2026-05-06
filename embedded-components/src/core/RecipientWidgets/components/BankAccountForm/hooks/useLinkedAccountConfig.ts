@@ -16,20 +16,17 @@ export const useLinkedAccountConfig = (): BankAccountFormConfig => {
   return {
     useCase: 'LINKED_ACCOUNT',
     paymentMethods: {
-      available: ['ACH', 'WIRE', 'RTP'],
+      /** Onboarding link-account step: ACH only (no Wire / RTP). */
+      available: ['ACH'],
       configs: {
         ACH: {
           ...defaultConfigs.ACH,
           locked: true, // Cannot be deselected for linked accounts
         },
-        WIRE: {
-          ...defaultConfigs.WIRE,
-        },
-        RTP: {
-          ...defaultConfigs.RTP,
-        },
+        WIRE: defaultConfigs.WIRE,
+        RTP: defaultConfigs.RTP,
       },
-      allowMultiple: true,
+      allowMultiple: false,
       defaultSelected: ['ACH'],
     },
     accountHolder: {

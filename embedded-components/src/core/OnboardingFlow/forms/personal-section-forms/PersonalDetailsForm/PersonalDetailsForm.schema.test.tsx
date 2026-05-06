@@ -84,4 +84,41 @@ describe('PersonalDetailsForm schema (invalidOption & Other description)', () =>
     });
     expect(parsed.success).toBe(true);
   });
+
+  test('accepts non-Other title with empty job title description', () => {
+    const { result } = renderHook(() => useRefinedPersonalDetailsSchema());
+    const parsed = result.current.safeParse(validBase());
+    expect(parsed.success).toBe(true);
+  });
+
+  test('accepts backslash in job title description when title is Other', () => {
+    const { result } = renderHook(() => useRefinedPersonalDetailsSchema());
+    const parsed = result.current.safeParse({
+      ...validBase(),
+      controllerJobTitle: 'Other',
+      controllerJobTitleDescription: 'Dept\\Lead',
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  test('accepts common job-description punctuation when title is Other', () => {
+    const { result } = renderHook(() => useRefinedPersonalDetailsSchema());
+    const parsed = result.current.safeParse({
+      ...validBase(),
+      controllerJobTitle: 'Other',
+      controllerJobTitleDescription: `VP/Treasurer (Interim): Ops & IT; Sr. #2 - 100%`,
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  test('accepts typography slash and dash pasted from Word when title is Other', () => {
+    const { result } = renderHook(() => useRefinedPersonalDetailsSchema());
+    const parsed = result.current.safeParse({
+      ...validBase(),
+      controllerJobTitle: 'Other',
+      // U+2215 division slash, U+2013 en dash (distinct from ASCII / and -)
+      controllerJobTitleDescription: 'Owner\u2215Operator\u2013123',
+    });
+    expect(parsed.success).toBe(true);
+  });
 });

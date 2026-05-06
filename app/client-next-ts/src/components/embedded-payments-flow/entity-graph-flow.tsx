@@ -19,12 +19,12 @@ import {
 
 import '@xyflow/react/dist/style.css';
 
-import { cn } from '@/lib/utils';
 import {
   API_SURFACE_META,
   DATA_OBJECT_ENTITIES,
   type DataObjectId,
 } from '@/lib/embedded-payments-flow/scenarios';
+import { cn } from '@/lib/utils';
 
 /** Fixed layout tuned for 7 entities (px in React Flow coordinates). */
 const NODE_POSITION: Record<DataObjectId, { x: number; y: number }> = {
@@ -181,7 +181,10 @@ function GraphInner({
 }: {
   activeObjectIds: ReadonlySet<DataObjectId>;
 }) {
-  const initialNodes = useMemo(() => buildNodes(activeObjectIds), [activeObjectIds]);
+  const initialNodes = useMemo(
+    () => buildNodes(activeObjectIds),
+    [activeObjectIds]
+  );
   const staticEdges = useMemo(() => buildEdges(), []);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -191,9 +194,12 @@ function GraphInner({
     setNodes(buildNodes(activeObjectIds));
   }, [activeObjectIds, setNodes]);
 
-  const onInit = useCallback((instance: { fitView: (opts?: object) => void }) => {
-    instance.fitView({ padding: 0.2, maxZoom: 1.1 });
-  }, []);
+  const onInit = useCallback(
+    (instance: { fitView: (opts?: object) => void }) => {
+      instance.fitView({ padding: 0.2, maxZoom: 1.1 });
+    },
+    []
+  );
 
   return (
     <ReactFlow
@@ -214,14 +220,20 @@ function GraphInner({
       defaultEdgeOptions={{ type: 'smoothstep' }}
     >
       <Background gap={16} size={1} color="#e2e8f0" />
-      <Controls showInteractive={false} className="!border-sp-border !bg-white" />
+      <Controls
+        showInteractive={false}
+        className="!border-sp-border !bg-white"
+      />
       <MiniMap
         className="!border-sp-border !bg-gray-50"
         nodeStrokeWidth={2}
         zoomable
         pannable
       />
-      <Panel position="top-left" className="m-2 rounded-md bg-white/90 px-2 py-1 text-[11px] text-gray-600 shadow-sm">
+      <Panel
+        position="top-left"
+        className="m-2 rounded-md bg-white/90 px-2 py-1 text-[11px] text-gray-600 shadow-sm"
+      >
         Drag to pan · scroll to zoom · edges show FK-style links
       </Panel>
     </ReactFlow>
@@ -234,7 +246,7 @@ export function EntityGraphFlow({
   activeObjectIds: ReadonlySet<DataObjectId>;
 }) {
   return (
-    <div className="h-[min(520px,65vh)] w-full min-h-[360px] rounded-lg border border-sp-border bg-slate-50/50">
+    <div className="h-[min(520px,65vh)] min-h-[360px] w-full rounded-lg border border-sp-border bg-slate-50/50">
       <ReactFlowProvider>
         <GraphInner activeObjectIds={activeObjectIds} />
       </ReactFlowProvider>

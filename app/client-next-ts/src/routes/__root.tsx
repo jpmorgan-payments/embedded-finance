@@ -13,8 +13,9 @@ function RootComponent() {
   const location = useLocation();
   const isSellsenseDemo = location.pathname === '/sellsense-demo';
   const isYearInReview = location.pathname === '/year-in-review';
+  const isTestScenario = location.pathname === '/test-scenario';
 
-  if (isSellsenseDemo) {
+  if (isSellsenseDemo || isTestScenario) {
     return (
       <>
         <main>

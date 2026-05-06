@@ -197,6 +197,22 @@ Always wrap components with `EBComponentsProvider`:
 </EBComponentsProvider>
 ```
 
+## Linked accounts: hiding Remove
+
+Hosts sometimes need to disable unlink **Remove** in the UI while keeping the rest of linked-account flows.
+
+| Surface | Component | Prop |
+| ------- | --------- | ---- |
+| **Onboarding → Overview** linked-account row | `OnboardingFlow` | `hideLinkedAccountRemoval` |
+| **Standalone widget** — recipient cards & table actions | `LinkedAccountWidget` / `RecipientsWidget` | `hideRemoveRecipient` (via internal `BaseRecipientsWidget`) |
+
+**They do not contradict each other:** different props on different components. If your application renders **both**
+OnboardingFlow **and** `LinkedAccountWidget`, pass **`hideLinkedAccountRemoval`** on onboarding **and**
+**`hideRemoveRecipient`** on the widget when your policy requires Remove hidden in both places.
+
+**References:** `embedded-components/src/core/OnboardingFlow/README.md`, `embedded-components/src/core/RecipientWidgets/LinkedAccountWidget/README.md`,
+`embedded-components/src/core/RecipientWidgets/README.md`, `embedded-components/README.md` (component sections), and JSDoc on the props in source.
+
 ## Anti-Patterns to Avoid
 
 ### ❌ Aggregation barrel exports
