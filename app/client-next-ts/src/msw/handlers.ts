@@ -28,7 +28,8 @@ import { http, HttpResponse, type RequestHandler } from 'msw';
 import { getClientStatusOverrideForScenario } from '../components/sellsense/scenarios-config';
 import { efClientQuestionsMock, efDocumentClientDetail } from '../mocks';
 import { TEST_DEMO_SCENARIO_CLIENT_ID } from '../mocks/testScenarioOperator80Client.mock';
-import sampleTermsPdfUrl from './sample-terms.pdf?url';
+import { decodeFallbackTermsPdfBytes } from './terms-pdf-fallback.ts';
+import { getTermsPdfMockBytes } from './terms-pdf-mock.ts';
 import {
   applyOverridesToDb,
   applyTestDemoScenario,
@@ -59,48 +60,6 @@ function initialLinkedAccountRecipientStatus(
     return 'ACTIVE';
   }
   return 'READY_FOR_VALIDATION';
-}
-
-/**
- * Resolved origin for bundled assets (handlers run in the Service Worker; `window` is undefined).
- */
-function clientOrigin(): string {
-  if (typeof window !== 'undefined' && window.location?.origin) {
-    return window.location.origin;
-  }
-  if (typeof self !== 'undefined' && self.location?.origin) {
-    return self.location.origin;
-  }
-  return 'http://localhost';
-}
-
-/**
- * Payload for GET .../documents/:id/file. Loads the bundled PDF (`?url`) so production hosts
- * serve it from `/assets/*` instead of fragile root-relative `/sample-terms.pdf` (often broken
- * by SPA rewrites). In Vitest, read `sample-terms.pdf` from disk next to this module.
- */
-async function loadSampleTermsPdfBytes(): Promise<Uint8Array> {
-  if (import.meta.env.MODE === 'test') {
-    const { readFile } = await import('node:fs/promises');
-    const path = await import('node:path');
-    const { fileURLToPath } = await import('node:url');
-    const pdfPath = path.join(
-      path.dirname(fileURLToPath(import.meta.url)),
-      'sample-terms.pdf',
-    );
-    return new Uint8Array(await readFile(pdfPath));
-  }
-
-  const resolved = sampleTermsPdfUrl.startsWith('http')
-    ? sampleTermsPdfUrl
-    : new URL(sampleTermsPdfUrl, `${clientOrigin()}/`).href;
-  const response = await fetch(resolved);
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch bundled sample terms PDF (${response.status} ${resolved})`,
-    );
-  }
-  return new Uint8Array(await response.arrayBuffer());
 }
 
 /** Path params for routes with :clientId */
@@ -706,10 +665,12 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     });
   }),
 
-  http.get(`${apiUrl}/ef/do/v1/documents/:documentId/file`, async () => {
-    const buffer = await loadSampleTermsPdfBytes();
+  http.get(`${apiUrl}/ef/do/v1/documents/:documentId/file`, () => {
+    const body =
+      getTermsPdfMockBytes() ??
+      decodeFallbackTermsPdfBytes();
 
-    return new HttpResponse(buffer, {
+    return new HttpResponse(body, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': 'attachment; filename="sample-terms.pdf"',
