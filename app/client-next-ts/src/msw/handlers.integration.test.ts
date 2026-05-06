@@ -97,7 +97,7 @@ describe('MSW handlers (integration)', () => {
     expect(clientBefore).toBeTruthy();
     expect(
       (clientBefore?.outstanding as { questionIds?: string[] })?.questionIds
-    ).toEqual(expect.arrayContaining(['30195', '30005']));
+    ).toEqual(expect.arrayContaining(['30195']));
 
     const prevOutstanding = (clientBefore?.outstanding ?? {}) as {
       questionIds?: string[];
@@ -126,10 +126,7 @@ describe('MSW handlers (integration)', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        questionResponses: [
-          { questionId: '30005', values: ['50000'] },
-          { questionId: '30195', values: ['false'] },
-        ],
+        questionResponses: [{ questionId: '30195', values: ['false'] }],
       }),
     });
     expect(res.ok).toBe(true);
@@ -149,7 +146,6 @@ describe('MSW handlers (integration)', () => {
     const ids = (body.questionResponses ?? [])
       .map((r) => r.questionId)
       .filter(Boolean);
-    expect(ids).toContain('30005');
     expect(ids).toContain('30195');
   });
 

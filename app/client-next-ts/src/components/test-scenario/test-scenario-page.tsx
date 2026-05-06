@@ -5,6 +5,7 @@ import { ClientStatus } from '@ef-api/smbdo-schemas';
 import {
   EBComponentsProvider,
   OnboardingFlow,
+  type LinkAccountStepOptions,
 } from '@jpmorgan-payments/embedded-finance-components';
 
 import { useSellSenseThemes } from '@/components/sellsense/use-sellsense-themes';
@@ -42,6 +43,10 @@ const TEST_SCENARIO_CONTENT_TOKENS = {
           label: 'Occupation Description',
         },
       },
+      reviewAndAttest: {
+        dataAccuracyCheckbox:
+          'The data I am providing is true, accurate and complete to the best of my knowledge.',
+      },
     },
   },
 };
@@ -50,9 +55,12 @@ const TEST_SCENARIO_DISCLOSURE_CONFIG = {
   platformName: 'Platform, Inc.',
 } as const;
 
-const TEST_SCENARIO_LINK_ACCOUNT_OPTIONS = {
-  initialValues: {},
-  completionMode: 'editable' as const,
+const TEST_SCENARIO_LINK_ACCOUNT_OPTIONS: LinkAccountStepOptions = {
+  initialValues: {
+    paymentTypes: ['ACH'],
+    routingNumbers: [{ paymentType: 'ACH', routingNumber: '' }],
+  },
+  completionMode: 'editable',
 };
 
 const LOGIN_PROFILES: {
@@ -71,8 +79,8 @@ const LOGIN_PROFILES: {
     scenario: 'doc-request',
   },
   {
-    email: 'linked-approved@demo.test',
-    label: 'Linked account fast track — APPROVED client',
+    email: 'linked-microdeposit@demo.test',
+    label: 'Linked account — microdeposit verification (APPROVED client)',
     scenario: 'linked-account-approved',
   },
 ];

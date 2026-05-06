@@ -109,7 +109,7 @@ export const testScenarioOperator80Client = {
   outstanding: {
     attestationDocumentIds: ['a71d7f12-f224-4f80-865f-bc5c04f128bf'],
     documentRequestIds: [],
-    questionIds: ['30195', '30005'],
+    questionIds: ['30195'],
     partyIds: ['2100533138', '2100533139'],
     partyRoles: [],
   },

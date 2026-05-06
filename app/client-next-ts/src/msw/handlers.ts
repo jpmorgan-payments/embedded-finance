@@ -41,6 +41,23 @@ import {
   type TestDemoScenarioMode,
 } from './db';
 
+/**
+ * `/test-scenario` only (via `X-Test-Demo-Scenario`): happy-path + doc-request skip
+ * microdeposits after link; linked-account-approved keeps READY_FOR_VALIDATION.
+ * SellSense and other callers omit the header → microdeposit path (unchanged).
+ */
+function initialLinkedAccountRecipientStatus(
+  testDemoScenarioHeader: string | null
+): 'ACTIVE' | 'READY_FOR_VALIDATION' {
+  if (
+    testDemoScenarioHeader === 'happy-path' ||
+    testDemoScenarioHeader === 'doc-request'
+  ) {
+    return 'ACTIVE';
+  }
+  return 'READY_FOR_VALIDATION';
+}
+
 /** Path params for routes with :clientId */
 type ClientIdParams = { clientId: string };
 /** Path params for routes with :partyId */
@@ -880,6 +897,8 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     const data = (await request.json()) as RecipientRequest | null;
     console.log('Creating EF recipient:', data);
 
+    const testDemoScenario = request.headers.get('X-Test-Demo-Scenario');
+
     // Generate a unique recipient ID
     const recipientId =
       'c0712fc9-b7d5-4ee2-81bb-' + Math.random().toString(36).substring(2, 15);
@@ -891,7 +910,7 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     let initialStatus =
       (data as unknown as { status?: string })?.status ?? 'ACTIVE';
     if (recipientType === 'LINKED_ACCOUNT') {
-      initialStatus = 'READY_FOR_VALIDATION';
+      initialStatus = initialLinkedAccountRecipientStatus(testDemoScenario);
     }
 
     // Create the recipient in the database (DB shape extends API shape)
