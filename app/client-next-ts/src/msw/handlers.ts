@@ -28,7 +28,7 @@ import { http, HttpResponse, type RequestHandler } from 'msw';
 import { getClientStatusOverrideForScenario } from '../components/sellsense/scenarios-config';
 import { efClientQuestionsMock, efDocumentClientDetail } from '../mocks';
 import { TEST_DEMO_SCENARIO_CLIENT_ID } from '../mocks/testScenarioOperator80Client.mock';
-import { decodeFallbackTermsPdfBytes } from './terms-pdf-fallback.ts';
+import { getEmbeddedSampleTermsPdfBytes } from './terms-pdf-fallback.ts';
 import { getTermsPdfMockBytes } from './terms-pdf-mock.ts';
 import {
   applyOverridesToDb,
@@ -667,8 +667,7 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
 
   http.get(`${apiUrl}/ef/do/v1/documents/:documentId/file`, () => {
     const body =
-      getTermsPdfMockBytes() ??
-      decodeFallbackTermsPdfBytes();
+      getTermsPdfMockBytes() ?? getEmbeddedSampleTermsPdfBytes();
 
     return new HttpResponse(body, {
       headers: {

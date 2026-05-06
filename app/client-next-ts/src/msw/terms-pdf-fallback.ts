@@ -1,20 +1,21 @@
-/**
- * Minimal valid demo Terms PDF (aligned with embedded-components Storybook mock). Used when Vitest /
- * prefetch cannot load {@link ../sample-terms.pdf}.
- */
-export const DEMO_TERMS_PDF_BASE64 =
-  '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';
+import { SAMPLE_TERMS_EMBEDDED_PDF_BASE64 } from './sample-terms-pdf-base64.generated.ts';
 
-/** Decode DEMO_TERMS_PDF_BASE64 in Node or browser (Vitest integration uses Node + Buffer). */
-export function decodeFallbackTermsPdfBytes(): Uint8Array {
+/**
+ * Inlined PDF bytes from `sample-terms-pdf-base64.generated.ts`.
+ * Run `yarn embed:sample-pdf [<path/to.pdf>]` after changing terms content.
+ * The repo ships no `.pdf` binaries; MSW uses only the generated module.
+ */
+export function getEmbeddedSampleTermsPdfBytes(): Uint8Array {
   const g = globalThis as typeof globalThis & {
     Buffer?: { from(input: string, encoding: string): Uint8Array };
   };
   if (typeof g.Buffer !== 'undefined') {
-    return new Uint8Array(g.Buffer.from(DEMO_TERMS_PDF_BASE64, 'base64'));
+    return new Uint8Array(
+      g.Buffer.from(SAMPLE_TERMS_EMBEDDED_PDF_BASE64, 'base64'),
+    );
   }
 
-  const binary = atob(DEMO_TERMS_PDF_BASE64);
+  const binary = atob(SAMPLE_TERMS_EMBEDDED_PDF_BASE64);
   const out = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i += 1) {
     out[i] = binary.charCodeAt(i);
