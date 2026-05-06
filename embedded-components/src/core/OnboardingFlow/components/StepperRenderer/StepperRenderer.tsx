@@ -2,11 +2,17 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { defineStepper } from '@stepperize/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeftIcon, ChevronRightIcon, Loader2Icon } from 'lucide-react';
+import {
+  ArrowLeftIcon,
+  CheckIcon,
+  ChevronRightIcon,
+  Loader2Icon,
+} from 'lucide-react';
 import { useFormState } from 'react-hook-form';
 
 import { cn } from '@/lib/utils';
 import {
+  getGetPartyQueryKey,
   getSmbdoGetClientQueryKey,
   useSmbdoUpdateClientLegacy,
   useUpdatePartyLegacy,
@@ -17,8 +23,10 @@ import {
   PartyResponse,
   UpdatePartyRequestInline,
 } from '@/api/generated/smbdo.schemas';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
-import { Badge, Button, Form } from '@/components/ui';
+import { Badge, Button, Checkbox, Form } from '@/components/ui';
 import { StepLayout, StepsReviewCards } from '@/core/OnboardingFlow/components';
 import { partyFieldMap } from '@/core/OnboardingFlow/config';
 import {
@@ -67,8 +75,14 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   steps,
   getDefaultPartyRequestBody,
 }) => {
-  const { clientData, organizationType, alertOnPreviousStep } =
-    useOnboardingContext();
+  const {
+    clientData,
+    organizationType,
+    alertOnPreviousStep,
+    partyId: invitePartyId,
+    onInviteSubmitSuccess,
+    invitePartyData,
+  } = useOnboardingContext();
   const { t, tString } = useTranslationWithTokens('onboarding-overview');
 
   const {
@@ -92,9 +106,9 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
 
   const editingPartyId = editingPartyIds[currentScreenId];
 
-  const existingPartyData = clientData?.parties?.find(
-    (party) => party.id === editingPartyId
-  );
+  const existingPartyData =
+    clientData?.parties?.find((party) => party.id === editingPartyId) ??
+    (invitePartyData?.id === editingPartyId ? invitePartyData : undefined);
 
   const setExistingPartyData = (partyData: PartyResponse | undefined) => {
     updateEditingPartyId(currentScreenId, partyData?.id);
@@ -103,6 +117,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   const [checkAnswersStepId, setCheckAnswersStepId] = useState<string | null>(
     null
   );
+  const [inviteSubmitted, setInviteSubmitted] = useState(false);
   const checkAnswersMode = checkAnswersStepId !== null;
   const reviewMode = originScreenId === 'review-attest-section';
 
@@ -156,6 +171,8 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     !reviewMode &&
     originScreenId === prevSection?.id;
 
+  const isInviteMode = !!invitePartyId;
+
   const handleNext = () => {
     setIsFormSubmitting(false);
     if (checkAnswersMode) {
@@ -169,6 +186,11 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     } else if (currentStepNumber < steps.length) {
       stepperNext();
       setCurrentStepperStepIdFallback(steps[currentStepNumber].id);
+    } else if (isInviteMode && currentStep.stepType === 'check-answers') {
+      // Invite mode: final submission — notify host via callback
+      if (onInviteSubmitSuccess && existingPartyData) {
+        onInviteSubmitSuccess(existingPartyData);
+      }
     } else if (
       currentStep.stepType === 'check-answers' &&
       previouslyCompleted
@@ -196,6 +218,9 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   const getNextButtonLabel = () => {
     if (checkAnswersMode || reviewMode) {
       return t('stepperRenderer.buttons.save');
+    }
+    if (isInviteMode && currentStep.stepType === 'check-answers') {
+      return t('stepperRenderer.buttons.submit');
     }
     if (currentStep.stepType === 'check-answers' && previouslyCompleted) {
       return null;
@@ -330,114 +355,125 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       ref={mainRef}
       className="eb-flex eb-min-h-full eb-scroll-mt-44 eb-flex-col sm:eb-scroll-mt-48"
     >
-      <StepLayout
-        title={currentStep.title}
-        description={currentStep.description}
-        subTitle={
-          <div className="eb-flex eb-flex-col">
-            <nav className="eb-flex eb-items-center eb-gap-1 eb-text-sm eb-text-muted-foreground">
-              <Button
-                type="button"
-                variant="link"
-                onClick={() => goTo('overview')}
-                className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
-              >
-                <ArrowLeftIcon className="eb-size-3.5" />
-                {t('stepperRenderer.buttons.overviewHeader')}
-              </Button>
-              {originScreenId === 'owners-section' && (
-                <>
-                  <ChevronRightIcon className="eb-size-3.5" />
-                  <Button
-                    type="button"
-                    variant="link"
-                    onClick={() => goBack()}
-                    className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
-                  >
-                    {currentSection?.sectionConfig.shortLabel ??
-                      currentSection?.sectionConfig.label ??
-                      t(
-                        'onboarding-overview:screens.ownersSection.shortLabel'
-                      ) ??
-                      t('onboarding-overview:screens.ownersSection.label')}
-                  </Button>
-                </>
-              )}
-              <ChevronRightIcon className="eb-size-3.5" />
-              <span className="eb-truncate">
-                {shortLabelOverride ??
-                  currentSection?.sectionConfig.shortLabel ??
-                  currentSection?.sectionConfig.label}
-              </span>
-              {!isCheckAnswersStep && (
-                <>
-                  <ChevronRightIcon className="eb-size-3.5" />
-                  <span className="eb-shrink-0 eb-font-medium eb-text-foreground">
-                    {t('stepperRenderer.stepCounter', {
-                      currentStepNumber,
-                      totalSteps: formStepCount,
-                    })}
-                  </span>
-                </>
-              )}
-            </nav>
-            {originScreenId === 'owners-section' && (
-              <div className="eb-mt-4 eb-flex eb-items-center eb-gap-2">
-                <span className="eb-truncate eb-text-base eb-font-semibold eb-text-foreground">
-                  {getPartyName(existingPartyData) ||
-                    t('stepperRenderer.newOwnerLabel')}
+      {inviteSubmitted ? (
+        <InviteSubmittedConfirmation />
+      ) : (
+        <StepLayout
+          title={currentStep.title}
+          description={currentStep.description}
+          subTitle={
+            <div className="eb-flex eb-flex-col">
+              <nav className="eb-flex eb-items-center eb-gap-1 eb-text-sm eb-text-muted-foreground">
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={() => goTo('overview')}
+                  className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
+                >
+                  <ArrowLeftIcon className="eb-size-3.5" />
+                  {t('stepperRenderer.buttons.overviewHeader')}
+                </Button>
+                {originScreenId === 'owners-section' && (
+                  <>
+                    <ChevronRightIcon className="eb-size-3.5" />
+                    <Button
+                      type="button"
+                      variant="link"
+                      onClick={() => goBack()}
+                      className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
+                    >
+                      {currentSection?.sectionConfig.shortLabel ??
+                        currentSection?.sectionConfig.label ??
+                        t(
+                          'onboarding-overview:screens.ownersSection.shortLabel'
+                        ) ??
+                        t('onboarding-overview:screens.ownersSection.label')}
+                    </Button>
+                  </>
+                )}
+                <ChevronRightIcon className="eb-size-3.5" />
+                <span className="eb-truncate">
+                  {shortLabelOverride ??
+                    currentSection?.sectionConfig.shortLabel ??
+                    currentSection?.sectionConfig.label}
                 </span>
-                {existingPartyData?.roles?.includes('BENEFICIAL_OWNER') && (
-                  <Badge
-                    variant="outline"
-                    className="eb-shrink-0 eb-border-transparent eb-bg-[#EDF4FF] eb-text-[#355FA1]"
-                  >
-                    {t('onboarding-overview:screens.owners.badges.owner')}
-                  </Badge>
+                {!isCheckAnswersStep && (
+                  <>
+                    <ChevronRightIcon className="eb-size-3.5" />
+                    <span className="eb-shrink-0 eb-font-medium eb-text-foreground">
+                      {t('stepperRenderer.stepCounter', {
+                        currentStepNumber,
+                        totalSteps: formStepCount,
+                      })}
+                    </span>
+                  </>
                 )}
-                {existingPartyData?.roles?.includes('CONTROLLER') && (
-                  <Badge
-                    variant="outline"
-                    className="eb-shrink-0 eb-border-transparent eb-bg-[#FFEBD9] eb-text-[#8F521F]"
-                  >
-                    {t('onboarding-overview:screens.owners.badges.controller')}
-                  </Badge>
-                )}
-              </div>
-            )}
-          </div>
-        }
-      >
-        {currentStep.stepType === 'form' && (
-          <StepperFormStep
-            key={`${currentStep.id}-${existingPartyData?.id ?? 'new'}`}
-            currentStepId={currentStep.id}
-            Component={currentStep.Component}
-            defaultPartyRequestBody={getDefaultPartyRequestBody?.(
-              organizationType
-            )}
-            existingPartyData={existingPartyData}
-            setExistingPartyData={setExistingPartyData}
-            {...sharedProps}
-          />
-        )}
-        {currentStep.stepType === 'check-answers' && (
-          <CheckAnswersStep
-            key={currentStep.id}
-            steps={steps}
-            stepValidationMap={stepValidationMap}
-            onEditClick={(stepId) => {
-              setCheckAnswersStepId(currentStep.id);
-              stepperGoTo(stepId);
-            }}
-            existingPartyData={existingPartyData}
-            {...sharedProps}
-          />
-        )}
-        {currentStep.stepType === 'static' && currentStep.Component && (
-          <currentStep.Component key={currentStep.id} {...sharedProps} />
-        )}
-      </StepLayout>
+              </nav>
+              {originScreenId === 'owners-section' && (
+                <div className="eb-mt-4 eb-flex eb-items-center eb-gap-2">
+                  <span className="eb-truncate eb-text-base eb-font-semibold eb-text-foreground">
+                    {getPartyName(existingPartyData) ||
+                      t('stepperRenderer.newOwnerLabel')}
+                  </span>
+                  {existingPartyData?.roles?.includes('BENEFICIAL_OWNER') && (
+                    <Badge
+                      variant="outline"
+                      className="eb-shrink-0 eb-border-transparent eb-bg-[#EDF4FF] eb-text-[#355FA1]"
+                    >
+                      {t('onboarding-overview:screens.owners.badges.owner')}
+                    </Badge>
+                  )}
+                  {existingPartyData?.roles?.includes('CONTROLLER') && (
+                    <Badge
+                      variant="outline"
+                      className="eb-shrink-0 eb-border-transparent eb-bg-[#FFEBD9] eb-text-[#8F521F]"
+                    >
+                      {t(
+                        'onboarding-overview:screens.owners.badges.controller'
+                      )}
+                    </Badge>
+                  )}
+                </div>
+              )}
+            </div>
+          }
+        >
+          {currentStep.stepType === 'form' && (
+            <StepperFormStep
+              key={`${currentStep.id}-${existingPartyData?.id ?? 'new'}`}
+              currentStepId={currentStep.id}
+              Component={currentStep.Component}
+              defaultPartyRequestBody={getDefaultPartyRequestBody?.(
+                organizationType
+              )}
+              existingPartyData={existingPartyData}
+              setExistingPartyData={setExistingPartyData}
+              {...sharedProps}
+            />
+          )}
+          {currentStep.stepType === 'check-answers' && (
+            <CheckAnswersStep
+              key={currentStep.id}
+              steps={steps}
+              stepValidationMap={stepValidationMap}
+              onEditClick={(stepId) => {
+                setCheckAnswersStepId(currentStep.id);
+                stepperGoTo(stepId);
+              }}
+              existingPartyData={existingPartyData}
+              isInviteMode={isInviteMode}
+              onInviteSubmit={() => {
+                setInviteSubmitted(true);
+                updateSessionData({ inviteSubmitted: true });
+              }}
+              {...sharedProps}
+            />
+          )}
+          {currentStep.stepType === 'static' && currentStep.Component && (
+            <currentStep.Component key={currentStep.id} {...sharedProps} />
+          )}
+        </StepLayout>
+      )}
     </div>
   );
 };
@@ -574,6 +610,42 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
           }
         );
       }
+    }
+
+    // Invite mode: directly PATCH the existing party (no clientData needed)
+    if (!clientData && existingPartyData?.id) {
+      const partyRequestBody = generatePartyRequestBody(modifiedValues, {});
+
+      updateParty(
+        {
+          partyId: existingPartyData.id,
+          data: partyRequestBody,
+        },
+        {
+          onSettled: (data, error) => {
+            onPostPartySettled?.(data, error?.response?.data);
+          },
+          onSuccess: (response) => {
+            // Update the party query cache so downstream consumers
+            // (e.g. check-answers validation) see the latest data.
+            const partyQueryKey = getGetPartyQueryKey(response.id);
+            queryClient.setQueryData(partyQueryKey, response);
+
+            setExistingPartyData(response);
+            handleNext();
+          },
+          onError: (error) => {
+            setIsFormSubmitting(false);
+            if (error.response?.data.context) {
+              const apiFormErrors = mapPartyApiErrorsToFormErrors(
+                error.response.data.context
+              );
+              setApiFormErrors(form, apiFormErrors);
+            }
+          },
+        }
+      );
+      return;
     }
 
     // Client data exists - therefore we are adding or updating a party
@@ -877,6 +949,8 @@ interface CheckAnswersStepProps extends StepperStepProps {
   stepValidationMap: StepValidationMap;
   onEditClick: (stepId: string) => void;
   existingPartyData: PartyResponse | undefined;
+  isInviteMode?: boolean;
+  onInviteSubmit?: () => void;
 }
 
 export const CheckAnswersStep: React.FC<CheckAnswersStepProps> = ({
@@ -887,7 +961,17 @@ export const CheckAnswersStep: React.FC<CheckAnswersStepProps> = ({
   handleNext,
   getPrevButtonLabel,
   getNextButtonLabel,
+  isInviteMode,
+  onInviteSubmit,
 }) => {
+  const { t } = useTranslationWithTokens('onboarding-overview');
+  const [attested, setAttested] = useState(false);
+
+  const onSubmit = () => {
+    onInviteSubmit?.();
+    handleNext();
+  };
+
   return (
     <div className="eb-flex-auto">
       <div className="eb-mt-6 eb-h-full eb-space-y-6">
@@ -898,11 +982,28 @@ export const CheckAnswersStep: React.FC<CheckAnswersStepProps> = ({
         />
       </div>
       <div className="eb-mt-6 eb-space-y-6">
+        {isInviteMode && (
+          <div className="eb-flex eb-items-start eb-gap-2">
+            <Checkbox
+              id="invite-attestation"
+              className="eb-mt-0.5"
+              checked={attested}
+              onCheckedChange={(v) => setAttested(v === true)}
+            />
+            <label
+              htmlFor="invite-attestation"
+              className="eb-cursor-pointer eb-text-sm eb-leading-snug"
+            >
+              {t('stepperRenderer.inviteAttestation')}
+            </label>
+          </div>
+        )}
         <div className="eb-flex eb-flex-col eb-gap-3">
           <Button
-            onClick={handleNext}
+            onClick={isInviteMode ? onSubmit : handleNext}
             variant="default"
             size="lg"
+            disabled={isInviteMode && !attested}
             className={cn('eb-w-full eb-text-lg', {
               'eb-hidden': getNextButtonLabel() === null,
             })}
@@ -921,6 +1022,31 @@ export const CheckAnswersStep: React.FC<CheckAnswersStepProps> = ({
           </Button>
         </div>
       </div>
+    </div>
+  );
+};
+
+const InviteSubmittedConfirmation: React.FC = () => {
+  const { t } = useTranslationWithTokens('onboarding-overview');
+  return (
+    <div className="eb-mt-6">
+      <Card className="eb-rounded-md eb-border-none eb-bg-card">
+        <CardHeader className="eb-p-3">
+          <CardTitle>
+            <h2 className="eb-font-header eb-text-2xl eb-font-medium">
+              {t('stepperRenderer.inviteConfirmation.title')}
+            </h2>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="eb-p-3 eb-pt-0">
+          <Alert variant="success" density="sm" noTitle>
+            <CheckIcon className="eb-size-4" />
+            <AlertDescription>
+              {t('stepperRenderer.inviteConfirmation.description')}
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
     </div>
   );
 };
