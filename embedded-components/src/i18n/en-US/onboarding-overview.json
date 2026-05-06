@@ -296,9 +296,15 @@
     "stepCounter": "Step {{currentStepNumber}} of {{totalSteps}}",
     "newOwnerLabel": "New owner",
     "previousStepDataLossWarning": "If you go back, any information you entered on this step may be lost. Continue?",
+    "inviteAttestation": "I confirm all the information provided is true to the best of my knowledge",
+    "inviteConfirmation": {
+      "title": "All set!",
+      "description": "Your information has been submitted successfully"
+    },
     "buttons": {
       "overviewHeader": "Overview",
       "save": "Save",
+      "submit": "Submit",
       "continue": "Continue",
       "previous": "Previous",
       "cancel": "Cancel",
