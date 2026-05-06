@@ -27,8 +27,10 @@ import { http, HttpResponse, type RequestHandler } from 'msw';
 
 import { getClientStatusOverrideForScenario } from '../components/sellsense/scenarios-config';
 import { efClientQuestionsMock, efDocumentClientDetail } from '../mocks';
+import { TEST_DEMO_SCENARIO_CLIENT_ID } from '../mocks/testScenarioOperator80Client.mock';
 import {
   applyOverridesToDb,
+  applyTestDemoScenario,
   createTransactionWithBalanceUpdate,
   db,
   DEFAULT_SCENARIO,
@@ -36,6 +38,7 @@ import {
   handleMagicValues,
   logDbState,
   resetDb,
+  type TestDemoScenarioMode,
 } from './db';
 
 /** Path params for routes with :clientId */
@@ -58,6 +61,75 @@ interface ClientOutstanding {
   attestationDocumentIds?: string[];
   partyIds?: string[];
   partyRoles?: string[];
+}
+
+type QuestionResponseEntry = { questionId: string; values?: unknown[] };
+
+type SubQuestionRule = {
+  anyValuesMatch?: string | string[];
+  questionIds?: string[];
+};
+
+function isSubQuestionTriggered(
+  sub: SubQuestionRule,
+  parentValues: unknown[]
+): boolean {
+  if (typeof sub.anyValuesMatch === 'string') {
+    return parentValues.some((v) => String(v) === sub.anyValuesMatch);
+  }
+  if (Array.isArray(sub.anyValuesMatch)) {
+    return parentValues.some((v) =>
+      (sub.anyValuesMatch as string[]).map(String).includes(String(v))
+    );
+  }
+  return false;
+}
+
+/**
+ * Keep client.outstanding.questionIds consistent with conditional questions after
+ * POST body questionResponses are merged. Otherwise children (e.g. 30162) stay
+ * outstanding when the parent (30158) was answered "No", blocking onboarding.
+ */
+function syncOutstandingQuestionIdsFromConditionalLogic(
+  outstanding: ClientOutstanding,
+  mergedQuestionResponses: QuestionResponseEntry[]
+): void {
+  const byId = new Map(
+    mergedQuestionResponses.map((r) => [r.questionId, r.values ?? []] as const)
+  );
+
+  const hasAnswer = (questionId: string) => {
+    const vals = byId.get(questionId);
+    return vals != null && vals.length > 0;
+  };
+
+  let qids = [...(outstanding.questionIds ?? [])];
+
+  for (const q of efClientQuestionsMock.questions) {
+    const subs = q.subQuestions as SubQuestionRule[] | undefined;
+    if (!subs?.length || !q.id) continue;
+
+    const parentValues = byId.get(q.id);
+    if (parentValues === undefined) continue;
+
+    for (const sq of subs) {
+      const ids = sq.questionIds ?? [];
+      if (ids.length === 0) continue;
+      const triggered = isSubQuestionTriggered(sq, parentValues);
+
+      if (!triggered) {
+        qids = qids.filter((id) => !ids.includes(id));
+      } else {
+        for (const childId of ids) {
+          if (!hasAnswer(childId) && !qids.includes(childId)) {
+            qids.push(childId);
+          }
+        }
+      }
+    }
+  }
+
+  outstanding.questionIds = qids;
 }
 
 export const createHandlers = (apiUrl: string): RequestHandler[] => [
@@ -290,6 +362,11 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
         const questionIds = updatedClient.outstanding.questionIds ?? [];
         updatedClient.outstanding.questionIds = questionIds.filter(
           (id: string) => !answeredQuestionIds.includes(id)
+        );
+
+        syncOutstandingQuestionIdsFromConditionalLogic(
+          updatedClient.outstanding,
+          updatedClient.questionResponses as QuestionResponseEntry[]
         );
       }
 
@@ -624,11 +701,21 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
       const body = (await request.json()) as {
         scenario?: string;
         overrides?: Record<string, unknown>;
+        /** Only `/test-scenario`; omit for SellSense (no DB shape change). */
+        testDemoScenario?: TestDemoScenarioMode;
       } | null;
       const scenario = body?.scenario ?? DEFAULT_SCENARIO;
       const result = resetDb(scenario);
       if (body?.overrides && Object.keys(body.overrides).length > 0) {
         applyOverridesToDb(body.overrides);
+      }
+      if (
+        body?.testDemoScenario === 'happy-path' ||
+        body?.testDemoScenario === 'doc-request' ||
+        body?.testDemoScenario === 'linked-account-approved'
+      ) {
+        // Isolated from SellSense: those apps never send `testDemoScenario`.
+        applyTestDemoScenario(body.testDemoScenario);
       }
       return HttpResponse.json(result);
     } catch (error) {
@@ -695,10 +782,58 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     async ({ request, params }) => {
       const { clientId } = params as ClientIdParams;
       const data = (await request.json()) as Record<string, unknown> | null;
+      const testDemoScenario = request.headers.get('X-Test-Demo-Scenario');
 
       const verificationResponse = handleMagicValues(clientId, data ?? {});
       if (!verificationResponse) {
         return new HttpResponse(null, { status: 404 });
+      }
+
+      // Delayed APPROVED only for `/test-scenario` happy path (header not sent by SellSense).
+      if (
+        testDemoScenario === 'happy-path' &&
+        clientId === TEST_DEMO_SCENARIO_CLIENT_ID
+      ) {
+        const delayMs = 3000;
+        setTimeout(() => {
+          const current = db.client.findFirst({
+            where: { id: { equals: clientId } },
+          });
+          if (!current || current.status !== 'REVIEW_IN_PROGRESS') {
+            return;
+          }
+
+          db.client.update({
+            where: { id: { equals: clientId } },
+            data: {
+              ...current,
+              status: 'APPROVED',
+              results: {
+                ...((current.results as Record<string, unknown>) || {}),
+                customerIdentityStatus: 'APPROVED',
+              },
+            },
+          });
+
+          const partyIds = (current.parties as string[]) || [];
+          for (const partyId of partyIds) {
+            const party = db.party.findFirst({
+              where: { id: { equals: partyId } },
+            });
+            if (!party) continue;
+            const profileStatus = (party as { profileStatus?: string })
+              .profileStatus;
+            if (profileStatus === 'NEW' || profileStatus === 'INCOMPLETE') {
+              db.party.delete({ where: { id: { equals: partyId } } });
+              db.party.create({
+                ...party,
+                profileStatus: 'APPROVED',
+              } as Record<string, unknown>);
+            }
+          }
+
+          logDbState('Test demo delayed approval');
+        }, delayMs);
       }
 
       return HttpResponse.json(verificationResponse);

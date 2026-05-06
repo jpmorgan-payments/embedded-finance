@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as YearInReviewRouteImport } from './routes/year-in-review'
 import { Route as WebhookExplorerRouteImport } from './routes/webhook-explorer'
 import { Route as UtilsRouteImport } from './routes/utils'
+import { Route as TestScenarioRouteImport } from './routes/test-scenario'
 import { Route as StoriesRouteImport } from './routes/stories'
 import { Route as SolutionsRouteImport } from './routes/solutions'
 import { Route as SellsenseDemoRouteImport } from './routes/sellsense-demo'
@@ -40,6 +41,11 @@ const WebhookExplorerRoute = WebhookExplorerRouteImport.update({
 const UtilsRoute = UtilsRouteImport.update({
   id: '/utils',
   path: '/utils',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestScenarioRoute = TestScenarioRouteImport.update({
+  id: '/test-scenario',
+  path: '/test-scenario',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StoriesRoute = StoriesRouteImport.update({
@@ -126,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/stories': typeof StoriesRouteWithChildren
+  '/test-scenario': typeof TestScenarioRoute
   '/utils': typeof UtilsRoute
   '/webhook-explorer': typeof WebhookExplorerRoute
   '/year-in-review': typeof YearInReviewRoute
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/payments-flow-simulator': typeof PaymentsFlowSimulatorRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
+  '/test-scenario': typeof TestScenarioRoute
   '/utils': typeof UtilsRoute
   '/webhook-explorer': typeof WebhookExplorerRoute
   '/year-in-review': typeof YearInReviewRoute
@@ -164,6 +172,7 @@ export interface FileRoutesById {
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/stories': typeof StoriesRouteWithChildren
+  '/test-scenario': typeof TestScenarioRoute
   '/utils': typeof UtilsRoute
   '/webhook-explorer': typeof WebhookExplorerRoute
   '/year-in-review': typeof YearInReviewRoute
@@ -185,6 +194,7 @@ export interface FileRouteTypes {
     | '/sellsense-demo'
     | '/solutions'
     | '/stories'
+    | '/test-scenario'
     | '/utils'
     | '/webhook-explorer'
     | '/year-in-review'
@@ -203,6 +213,7 @@ export interface FileRouteTypes {
     | '/payments-flow-simulator'
     | '/sellsense-demo'
     | '/solutions'
+    | '/test-scenario'
     | '/utils'
     | '/webhook-explorer'
     | '/year-in-review'
@@ -222,6 +233,7 @@ export interface FileRouteTypes {
     | '/sellsense-demo'
     | '/solutions'
     | '/stories'
+    | '/test-scenario'
     | '/utils'
     | '/webhook-explorer'
     | '/year-in-review'
@@ -242,6 +254,7 @@ export interface RootRouteChildren {
   SellsenseDemoRoute: typeof SellsenseDemoRoute
   SolutionsRoute: typeof SolutionsRoute
   StoriesRoute: typeof StoriesRouteWithChildren
+  TestScenarioRoute: typeof TestScenarioRoute
   UtilsRoute: typeof UtilsRoute
   WebhookExplorerRoute: typeof WebhookExplorerRoute
   YearInReviewRoute: typeof YearInReviewRoute
@@ -268,6 +281,13 @@ declare module '@tanstack/react-router' {
       path: '/utils'
       fullPath: '/utils'
       preLoaderRoute: typeof UtilsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/test-scenario': {
+      id: '/test-scenario'
+      path: '/test-scenario'
+      fullPath: '/test-scenario'
+      preLoaderRoute: typeof TestScenarioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stories': {
@@ -397,6 +417,7 @@ const rootRouteChildren: RootRouteChildren = {
   SellsenseDemoRoute: SellsenseDemoRoute,
   SolutionsRoute: SolutionsRoute,
   StoriesRoute: StoriesRouteWithChildren,
+  TestScenarioRoute: TestScenarioRoute,
   UtilsRoute: UtilsRoute,
   WebhookExplorerRoute: WebhookExplorerRoute,
   YearInReviewRoute: YearInReviewRoute,

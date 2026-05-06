@@ -2,7 +2,6 @@ import { ArrowRight, Link2 } from 'lucide-react';
 
 import { EntityGraphFlow } from '@/components/embedded-payments-flow/entity-graph-flow';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
 import {
   API_BASE_URLS,
   API_SURFACE_META,
@@ -11,6 +10,7 @@ import {
   type ApiSurfaceKey,
   type DataObjectId,
 } from '@/lib/embedded-payments-flow/scenarios';
+import { cn } from '@/lib/utils';
 
 function entitiesForSurface(surface: ApiSurfaceKey) {
   return DATA_OBJECT_ENTITIES.filter((e) => e.apiSurface === surface);
@@ -54,9 +54,7 @@ function SurfaceCard({
                 'min-w-[8rem] flex-1 rounded-lg border px-3 py-2 transition-opacity',
                 meta.chipClass,
                 isScenarioMode && !active && 'opacity-35',
-                isScenarioMode &&
-                  active &&
-                  'ring-2 ring-sp-brand ring-offset-1'
+                isScenarioMode && active && 'ring-2 ring-sp-brand ring-offset-1'
               )}
             >
               <p className="text-sm font-semibold">{entity.label}</p>
@@ -90,18 +88,13 @@ export function DataObjectMap({
       <div className="rounded-xl border border-sp-border bg-white p-4 shadow-sm">
         <p className="text-sm font-medium text-gray-900">API surfaces</p>
         <p className="mt-1 text-xs leading-relaxed text-gray-600">
-          Resources are grouped by published base path. Your integration may call
-          several surfaces (onboarding, embedded money movement, webhook
+          Resources are grouped by published base path. Your integration may
+          call several surfaces (onboarding, embedded money movement, webhook
           registration).
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           {(
-            [
-              'digitalOnboarding',
-              'embeddedV1',
-              'embeddedV2',
-              'efV1',
-            ] as const
+            ['digitalOnboarding', 'embeddedV1', 'embeddedV2', 'efV1'] as const
           ).map((key) => {
             const meta = API_SURFACE_META[key];
             return (
@@ -123,7 +116,9 @@ export function DataObjectMap({
       </div>
 
       <div className="rounded-xl border border-sp-border bg-white p-4 shadow-sm">
-        <p className="text-sm font-medium text-gray-900">Interactive entity graph</p>
+        <p className="text-sm font-medium text-gray-900">
+          Interactive entity graph
+        </p>
         <p className="mt-1 text-xs leading-relaxed text-gray-600">
           Nodes list key fields; edges follow typical IDs and references between
           resources (same scenario highlighting as below).
@@ -182,8 +177,8 @@ export function DataObjectMap({
         </ul>
         {isScenarioMode && (
           <p className="mt-3 text-xs text-gray-600">
-            Highlighted cards match the selected scenario; faded cards are out of
-            scope for that path.
+            Highlighted cards match the selected scenario; faded cards are out
+            of scope for that path.
           </p>
         )}
       </div>

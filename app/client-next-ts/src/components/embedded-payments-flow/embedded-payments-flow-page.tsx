@@ -10,6 +10,10 @@ import {
   SplitSquareVertical,
 } from 'lucide-react';
 
+import {
+  DataObjectMap,
+  ScenarioObjectChips,
+} from '@/components/embedded-payments-flow/data-object-map';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,11 +27,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  DataObjectMap,
-  ScenarioObjectChips,
-} from '@/components/embedded-payments-flow/data-object-map';
-import { cn } from '@/lib/utils';
-import {
   API_BASE_URLS,
   CAPABILITY_COLUMNS,
   INTEGRATION_SCENARIOS,
@@ -36,6 +35,7 @@ import {
   type CapabilityPresence,
   type FlowStep,
 } from '@/lib/embedded-payments-flow/scenarios';
+import { cn } from '@/lib/utils';
 
 type MainView = 'flows' | 'matrix' | 'object-map';
 
@@ -123,10 +123,7 @@ export function EmbeddedPaymentsFlowPage() {
               type="button"
               variant={view === 'flows' ? 'default' : 'ghost'}
               size="sm"
-              className={cn(
-                'gap-1.5',
-                view === 'flows' ? '' : 'text-gray-600'
-              )}
+              className={cn('gap-1.5', view === 'flows' ? '' : 'text-gray-600')}
               onClick={() => setView('flows')}
             >
               <ListTree className="h-4 w-4" />
@@ -162,7 +159,10 @@ export function EmbeddedPaymentsFlowPage() {
 
           {(view === 'flows' || view === 'object-map') && (
             <div className="flex flex-col gap-1.5 sm:w-80">
-              <Label htmlFor="scenario-select" className="text-xs text-gray-500">
+              <Label
+                htmlFor="scenario-select"
+                className="text-xs text-gray-500"
+              >
                 Integration scenario
               </Label>
               <Select value={scenarioId} onValueChange={setScenarioId}>
@@ -192,7 +192,9 @@ export function EmbeddedPaymentsFlowPage() {
               <CardHeader className="border-b border-sp-border pb-4">
                 <CardTitle className="text-lg">{scenario.name}</CardTitle>
                 <p className="text-sm text-gray-600">{scenario.tagline}</p>
-                <p className="mt-2 text-sm text-gray-700">{scenario.whenToUse}</p>
+                <p className="mt-2 text-sm text-gray-700">
+                  {scenario.whenToUse}
+                </p>
               </CardHeader>
               <CardContent className="p-4 pt-0">
                 <DataObjectMap activeObjectIds={scenarioObjectIdSet} />
@@ -205,7 +207,9 @@ export function EmbeddedPaymentsFlowPage() {
               <CardHeader className="border-b border-sp-border pb-4">
                 <CardTitle className="text-lg">{scenario.name}</CardTitle>
                 <p className="text-sm text-gray-600">{scenario.tagline}</p>
-                <p className="mt-2 text-sm text-gray-700">{scenario.whenToUse}</p>
+                <p className="mt-2 text-sm text-gray-700">
+                  {scenario.whenToUse}
+                </p>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="border-b border-sp-border px-4 pb-0 pt-4">
@@ -326,7 +330,9 @@ function FlowTimeline({
                   : 'border-transparent bg-white hover:border-gray-200'
               )}
             >
-              <p className="text-sm font-semibold text-gray-900">{step.title}</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {step.title}
+              </p>
               <p className="mt-1 text-xs leading-relaxed text-gray-600">
                 {step.description}
               </p>
@@ -358,7 +364,9 @@ function StepDetail({ step }: { step: FlowStep }) {
         </p>
       </div>
       <div>
-        <p className="text-xs font-medium uppercase text-gray-500">API surface</p>
+        <p className="text-xs font-medium uppercase text-gray-500">
+          API surface
+        </p>
         <ul className="mt-1 space-y-1">
           {step.apiHints.map((h) => (
             <li key={h}>
@@ -418,7 +426,9 @@ function CapabilityMatrix() {
   return (
     <Card className="border-sp-border shadow-page-card">
       <CardHeader className="border-b border-sp-border">
-        <CardTitle className="text-lg">Which capabilities per scenario</CardTitle>
+        <CardTitle className="text-lg">
+          Which capabilities per scenario
+        </CardTitle>
         <p className="text-sm text-gray-600">
           Rows are PDP-style capability areas; cells show whether that scenario
           typically includes them.
@@ -456,7 +466,10 @@ function CapabilityMatrix() {
                     </span>
                   </th>
                   {INTEGRATION_SCENARIOS.map((s) => (
-                    <td key={s.id} className="px-2 py-2 text-center align-middle">
+                    <td
+                      key={s.id}
+                      className="px-2 py-2 text-center align-middle"
+                    >
                       <MatrixCell
                         value={s.capabilities[col.id as CapabilityColumnId]}
                       />

@@ -9,6 +9,7 @@ import {
   vi,
 } from 'vitest';
 
+import { TEST_DEMO_SCENARIO_CLIENT_ID } from '../mocks/testScenarioOperator80Client.mock';
 import { db, DB_SCENARIOS, getDbStatus, resetDb } from './db';
 import { createHandlers } from './handlers';
 
@@ -76,6 +77,80 @@ describe('MSW handlers (integration)', () => {
     };
     expect(data.scenarios).toBeDefined();
     expect(data.default).toBeDefined();
+  });
+
+  it('POST /clients/:id merges questionResponses and prunes conditional outstanding IDs', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'happy-path',
+      }),
+    });
+
+    const clientId = TEST_DEMO_SCENARIO_CLIENT_ID;
+    const clientBefore = db.client.findFirst({
+      where: { id: { equals: clientId } },
+    });
+    expect(clientBefore).toBeTruthy();
+    expect(
+      (clientBefore?.outstanding as { questionIds?: string[] })?.questionIds
+    ).toEqual(expect.arrayContaining(['30195', '30005']));
+
+    const prevOutstanding = (clientBefore?.outstanding ?? {}) as {
+      questionIds?: string[];
+    };
+    db.client.update({
+      where: { id: { equals: clientId } },
+      data: {
+        ...clientBefore,
+        outstanding: {
+          ...prevOutstanding,
+          questionIds: [
+            ...new Set([...(prevOutstanding.questionIds ?? []), '30198']),
+          ],
+        },
+      } as never,
+    });
+
+    const withChild = db.client.findFirst({
+      where: { id: { equals: clientId } },
+    });
+    expect(
+      (withChild?.outstanding as { questionIds?: string[] })?.questionIds
+    ).toContain('30198');
+
+    const res = await fetch(`${API}/ef/do/v1/clients/${clientId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        questionResponses: [
+          { questionId: '30005', values: ['50000'] },
+          { questionId: '30195', values: ['false'] },
+        ],
+      }),
+    });
+    expect(res.ok).toBe(true);
+    const body = (await res.json()) as {
+      outstanding?: { questionIds?: string[] };
+      questionResponses?: Array<{ questionId?: string }>;
+    };
+
+    expect(body.outstanding?.questionIds ?? []).not.toContain('30198');
+    const stored = db.client.findFirst({
+      where: { id: { equals: clientId } },
+    });
+    expect(
+      (stored?.outstanding as { questionIds?: string[] })?.questionIds ?? []
+    ).not.toContain('30198');
+
+    const ids = (body.questionResponses ?? [])
+      .map((r) => r.questionId)
+      .filter(Boolean);
+    expect(ids).toContain('30005');
+    expect(ids).toContain('30195');
   });
 
   it('GET /ping returns keep-alive payload', async () => {
