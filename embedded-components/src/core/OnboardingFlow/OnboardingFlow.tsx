@@ -1,10 +1,16 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 
 import { cn } from '@/lib/utils';
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
-import { useSmbdoGetClient } from '@/api/generated/smbdo';
+import { useGetParty, useSmbdoGetClient } from '@/api/generated/smbdo';
 import type { ClientStatus } from '@/api/generated/smbdo.schemas';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import {
@@ -26,6 +32,7 @@ import {
 import { DisclosureFooter } from './components/DisclosureFooter/DisclosureFooter';
 import { StepperRenderer } from './components/StepperRenderer/StepperRenderer';
 import { flowConfig } from './config/flowConfig';
+import { buildInviteFlowConfig } from './config/inviteFlowConfig';
 import { FlowProvider, useFlowContext } from './contexts/FlowContext';
 import {
   OnboardingContext,
@@ -48,6 +55,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   onGetClientSettled,
   hideSidebar = false,
   flowEntry,
+  partyId,
+  onInviteSubmitSuccess,
   ...props
 }) => {
   const providerClientId = useClientId();
@@ -57,6 +66,30 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const effectiveHideSidebar = hideSidebar || !!props.docUploadOnlyMode;
 
   const { interceptorReady } = useInterceptorStatus();
+
+  const isInviteMode = !!partyId;
+
+  // Fetch party data when in invite mode
+  const {
+    data: invitePartyData,
+    status: invitePartyStatus,
+    error: invitePartyError,
+  } = useGetParty(partyId ?? '', {
+    query: {
+      enabled: isInviteMode && interceptorReady,
+      refetchOnWindowFocus: true,
+    },
+  });
+
+  const invitePartyName = isInviteMode
+    ? getPartyName(invitePartyData) || ''
+    : '';
+
+  // Build the invite flow config with the party's name
+  const inviteFlowConfig = useMemo(
+    () => (isInviteMode ? buildInviteFlowConfig(invitePartyName) : null),
+    [isInviteMode, invitePartyName]
+  );
 
   const {
     data: clientData,
@@ -90,16 +123,22 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const canUseFlowEntry =
     !!flowEntry && !props.docUploadOnlyMode && !!organizationType;
 
-  const flowProviderInitialScreenId = props.docUploadOnlyMode
-    ? 'upload-documents-section'
-    : canUseFlowEntry
-      ? flowEntry.screenId
-      : organizationType
-        ? 'overview'
-        : 'gateway';
+  const flowProviderInitialScreenId = isInviteMode
+    ? 'invite-owner-section'
+    : props.docUploadOnlyMode
+      ? 'upload-documents-section'
+      : canUseFlowEntry
+        ? flowEntry.screenId
+        : organizationType
+          ? 'overview'
+          : 'gateway';
 
   const flowProviderSeedStepperStepId =
     canUseFlowEntry && flowEntry.stepperStepId ? flowEntry.stepperStepId : null;
+
+  const activeFlowConfig = isInviteMode
+    ? (inviteFlowConfig ?? buildInviteFlowConfig(''))
+    : flowConfig;
 
   const { t } = useTranslationWithTokens(['onboarding-overview']);
 
@@ -125,6 +164,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         hideSidebar: effectiveHideSidebar,
         userEventsHandler,
         userEventsLifecycle,
+        partyId,
+        onInviteSubmitSuccess,
+        invitePartyData,
       }}
     >
       <div
@@ -141,6 +183,12 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         {/* TODO: replace with actual screens / skeletons */}
         {clientGetError ? (
           <ServerErrorAlert error={clientGetError} />
+        ) : isInviteMode && invitePartyStatus === 'pending' ? (
+          <FormLoadingState
+            message={t('onboarding-overview:fetchingClientData')}
+          />
+        ) : isInviteMode && invitePartyError ? (
+          <ServerErrorAlert error={invitePartyError} />
         ) : clientGetStatus === 'pending' &&
           clientId &&
           !props.docUploadOnlyMode ? (
@@ -150,8 +198,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         ) : (
           <FlowProvider
             initialScreenId={flowProviderInitialScreenId}
-            flowConfig={flowConfig}
+            flowConfig={activeFlowConfig}
             seedInitialStepperStepId={flowProviderSeedStepperStepId}
+            initialEditingPartyId={isInviteMode ? partyId : undefined}
           >
             <FlowRenderer />
           </FlowProvider>
@@ -173,6 +222,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     showLinkAccountStep,
     linkAccountEnabledStatuses,
     userEventsHandler,
+    partyId: invitePartyId,
   } = useOnboardingContext();
   const {
     currentScreenId,
@@ -304,6 +354,9 @@ const FlowRenderer: React.FC = React.memo(() => {
 
   // Redirect to gateway if organization type is not set
   useEffect(() => {
+    // In invite mode the flow is self-contained — no gateway/overview redirects.
+    if (invitePartyId) return;
+
     if (
       docUploadOnlyMode &&
       !['upload-documents-section', 'document-upload-form'].includes(
@@ -318,7 +371,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     ) {
       goTo('gateway', { resetHistory: true });
     }
-  }, [currentScreenId, docUploadOnlyMode, organizationType]);
+  }, [currentScreenId, docUploadOnlyMode, organizationType, invitePartyId]);
 
   // Clear mocked verifying state after a timeout
   useEffect(() => {
@@ -334,7 +387,11 @@ const FlowRenderer: React.FC = React.memo(() => {
     return () => {};
   }, [sessionData.mockedVerifyingSectionId]);
 
-  const screen = flowConfig.screens.find((s) => s.id === currentScreenId);
+  // Find the current screen from the active flow config (supports both standard and invite modes).
+  const allScreens = [...staticScreens, ...sections];
+  const screen =
+    allScreens.find((s) => s.id === currentScreenId) ??
+    flowConfig.screens.find((s) => s.id === currentScreenId);
   // Include the editing party id so the stepper remounts when switching owners.
   const editingPartyIdForScreen = editingPartyIds[currentScreenId];
 
@@ -378,17 +435,21 @@ const FlowRenderer: React.FC = React.memo(() => {
     : undefined;
 
   const timelineSections: TimelineSection[] = [
-    {
-      id: 'gateway',
-      title: t('onboarding-overview:flowRenderer.businessType'),
-      status:
-        organizationType && clientData?.status !== 'NEW'
-          ? 'completed_disabled'
-          : organizationType
-            ? 'completed'
-            : 'not_started',
-      steps: [],
-    },
+    ...(invitePartyId
+      ? []
+      : [
+          {
+            id: 'gateway',
+            title: t('onboarding-overview:flowRenderer.businessType'),
+            status:
+              organizationType && clientData?.status !== 'NEW'
+                ? 'completed_disabled'
+                : organizationType
+                  ? 'completed'
+                  : 'not_started',
+            steps: [],
+          } as TimelineSection,
+        ]),
     ...sections.map((section) => {
       // When a section creates a party (has getDefaultPartyRequestBody),
       // lock steps beyond the first until the party exists.
@@ -483,7 +544,10 @@ const FlowRenderer: React.FC = React.memo(() => {
         ...section,
         status: sectionStatuses[section.id] || 'not_started',
         title: section.sectionConfig.shortLabel ?? section.sectionConfig.label,
-        steps: (section.stepperConfig?.steps ?? []).map((step, stepIndex) => {
+        steps:
+          sectionStatuses[section.id] === 'completed_disabled'
+            ? []
+            : (section.stepperConfig?.steps ?? []).map((step, stepIndex) => {
           // Check if this static step was explicitly
           // completed and recorded in session data.
           const isCompletedStaticStep =
