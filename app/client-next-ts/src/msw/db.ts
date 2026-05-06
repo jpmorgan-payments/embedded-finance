@@ -40,9 +40,16 @@ import { mockLinkedAccounts } from '../mocks/linkedAccounts.mock';
 import { mockRecipientsResponse } from '../mocks/recipients.mock';
 import {
   TEST_DEMO_SCENARIO_CLIENT_ID,
+  TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE,
+  TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID,
   testScenarioOperator80Client,
 } from '../mocks/testScenarioOperator80Client.mock';
 import { mockTransactionsResponse } from '../mocks/transactions.mock';
+
+type SeedPredefinedClientOptions = {
+  /** Stable ids (`61800`, `61801+`) for `/test-scenario` Documents requested demo. */
+  useTestDemoFixedDocumentRequestIds?: boolean;
+};
 
 // --- Entity types (OAS-aligned) ---
 
@@ -567,8 +574,11 @@ export type TestDemoScenarioMode =
 
 function seedPredefinedClientFromShape(
   clientId: string,
-  clientData: PredefinedClientShape
+  clientData: PredefinedClientShape,
+  seedOptions?: SeedPredefinedClientOptions
 ): void {
+  const useFixedDocRequestIds =
+    seedOptions?.useTestDemoFixedDocumentRequestIds === true;
   console.log(`\nInitializing Client ${clientId}:`, clientData);
 
   const parties = clientData.parties || [];
@@ -657,13 +667,17 @@ function seedPredefinedClientFromShape(
       (p) => (p as { partyType?: string }).partyType === 'INDIVIDUAL'
     );
 
+    let individualDocIdOffset = 0;
     for (const indParty of individualParties) {
       const indDocRequest = efDocumentRequestDetailsList.find(
         (req: { id?: string }) => req.id === '68430'
       );
-      const generatedDocRequestId = Math.floor(
-        10000 + Math.random() * 90000
-      ).toString();
+      const generatedDocRequestId = useFixedDocRequestIds
+        ? String(
+            TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE +
+              individualDocIdOffset++
+          )
+        : Math.floor(10000 + Math.random() * 90000).toString();
       try {
         upsertDocumentRequest(generatedDocRequestId, {
           ...indDocRequest,
@@ -701,9 +715,9 @@ function seedPredefinedClientFromShape(
       const orgDocRequest = efDocumentRequestDetailsList.find(
         (req: { id?: string }) => req.id === '68803'
       );
-      const generatedDocRequestId = Math.floor(
-        10000 + Math.random() * 90000
-      ).toString();
+      const generatedDocRequestId = useFixedDocRequestIds
+        ? TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID
+        : Math.floor(10000 + Math.random() * 90000).toString();
       try {
         upsertDocumentRequest(generatedDocRequestId, {
           ...orgDocRequest,
@@ -837,7 +851,9 @@ export function applyTestDemoScenario(mode: TestDemoScenarioMode): void {
     shape = base;
   }
 
-  seedPredefinedClientFromShape(clientId, shape);
+  seedPredefinedClientFromShape(clientId, shape, {
+    useTestDemoFixedDocumentRequestIds: mode === 'doc-request',
+  });
   if (mode === 'doc-request') {
     syncTestDemoClientOutstandingDocumentIds(clientId);
   }

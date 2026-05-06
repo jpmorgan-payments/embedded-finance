@@ -5,6 +5,15 @@
  */
 export const TEST_DEMO_SCENARIO_CLIENT_ID = '3100006997';
 
+/** MSW-stable org document request (`POST …/submit` demos + network tooling). */
+export const TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID = '61800';
+
+/**
+ * Numeric base for individual-party document requests in doc-request demo (`61801`, `61802`, …).
+ * Operator 80 shape has one individual → `61801` only is typical.
+ */
+export const TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE = 61801;
+
 export const testScenarioOperator80Client = {
   id: TEST_DEMO_SCENARIO_CLIENT_ID,
   attestations: [],

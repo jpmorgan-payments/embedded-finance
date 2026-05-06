@@ -7,6 +7,7 @@ import {
   OnboardingFlow,
   type LinkAccountStepOptions,
 } from '@jpmorgan-payments/embedded-finance-components';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { useSellSenseThemes } from '@/components/sellsense/use-sellsense-themes';
 import { Button } from '@/components/ui/button';
@@ -132,6 +133,7 @@ function themeString(
 }
 
 export function TestScenarioPage() {
+  const queryClient = useQueryClient();
   const { mapThemeOption } = useSellSenseThemes();
   const [selectedEmail, setSelectedEmail] = useState(LOGIN_PROFILES[0].email);
   const [rememberUsername, setRememberUsername] = useState(false);
@@ -171,10 +173,12 @@ export function TestScenarioPage() {
       selectedProfile.scenario,
       setResetLoading
     );
+    queryClient.clear();
     setSessionScenario(selectedProfile.scenario);
   };
 
   const handleSignOut = () => {
+    queryClient.clear();
     setSessionScenario(null);
   };
 

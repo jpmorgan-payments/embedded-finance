@@ -153,6 +153,126 @@ function syncOutstandingQuestionIdsFromConditionalLogic(
   outstanding.questionIds = qids;
 }
 
+/** POST document-request submit — used for both versioned SMBDO paths and bare `/document-requests/...`. */
+async function handlePostDocumentRequestSubmit(
+  params: DocumentRequestIdParams
+) {
+  const rawId = params.documentRequestId;
+  const documentRequestId =
+    typeof rawId === 'string'
+      ? rawId.trim()
+      : typeof rawId === 'number'
+        ? String(rawId)
+        : String(rawId ?? '');
+
+  const documentRequest = db.documentRequest.findFirst({
+    where: { id: { equals: documentRequestId } },
+  });
+
+  if (!documentRequest) {
+    return new HttpResponse(null, { status: 404 });
+  }
+
+  db.documentRequest.update({
+    where: { id: { equals: documentRequestId } },
+    data: {
+      ...documentRequest,
+      status: 'SUBMITTED' as DocumentRequestStatus,
+    },
+  });
+
+  const client = db.client.findFirst({
+    where: { id: { equals: documentRequest.clientId as string } },
+  });
+
+  if (client) {
+    const prevOutstanding = (client.outstanding || {}) as ClientOutstanding;
+    const updatedClient: Record<string, unknown> & {
+      outstanding: ClientOutstanding;
+      parties?: string[];
+      status?: string;
+    } = {
+      ...client,
+      outstanding: {
+        ...prevOutstanding,
+        documentRequestIds: (
+          prevOutstanding.documentRequestIds || []
+        ).filter((id: string) => id !== documentRequestId),
+      },
+    };
+
+    const hasOutstandingDocRequests =
+      (updatedClient.outstanding.documentRequestIds?.length ?? 0) > 0;
+
+    const partyIds = (updatedClient.parties || []) as string[];
+    const partiesResolved = partyIds
+      .map((partyId: string) =>
+        db.party.findFirst({ where: { id: { equals: partyId } } })
+      )
+      .filter((p): p is NonNullable<typeof p> => p != null);
+
+    const hasPartyValidationPending = partiesResolved.some(
+      (party: Record<string, unknown>) =>
+        (
+          (party.validationResponse as Array<{
+            validationStatus?: string;
+          }>) || []
+        ).some(
+          (validation: { validationStatus?: string }) =>
+            validation.validationStatus === 'NEEDS_INFO'
+        )
+    );
+
+    if (!hasOutstandingDocRequests && !hasPartyValidationPending) {
+      updatedClient.status = 'REVIEW_IN_PROGRESS';
+    }
+
+    db.client.update({
+      where: { id: { equals: (client.id as string) ?? '' } },
+      data: updatedClient,
+    });
+  }
+
+  if (documentRequest.partyId) {
+    const party = db.party.findFirst({
+      where: { id: { equals: documentRequest.partyId as string } },
+    });
+
+    if (party) {
+      const partyVal = party as Record<string, unknown>;
+      const validationResponse = (partyVal.validationResponse || []) as Array<{
+        documentRequestIds?: string[];
+        [key: string]: unknown;
+      }>;
+      const updatedParty = {
+        ...party,
+        validationResponse: validationResponse
+          .map((validation) => {
+            const ids = validation.documentRequestIds ?? [];
+            return {
+              ...validation,
+              documentRequestIds: ids.filter(
+                (id: string) => id !== documentRequestId
+              ),
+            };
+          })
+          .filter((validation) => (validation.documentRequestIds ?? []).length > 0),
+      };
+
+      db.party.delete({
+        where: { id: { equals: party.id as string } },
+      });
+      db.party.create(updatedParty);
+    }
+  }
+
+  logDbState('Document Request Submission');
+  return HttpResponse.json(
+    { acceptedAt: new Date().toISOString() },
+    { status: 202 }
+  );
+}
+
 export const createHandlers = (apiUrl: string): RequestHandler[] => [
   http.get(`${apiUrl}/ef/do/v1/clients/:clientId`, (req) => {
     const { clientId } = req.params as ClientIdParams;
@@ -602,119 +722,18 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
 
   http.post(
     `${apiUrl}/ef/do/v1/document-requests/:documentRequestId/submit`,
-    async ({ params }) => {
-      const { documentRequestId } = params as DocumentRequestIdParams;
+    async ({ params }) =>
+      handlePostDocumentRequestSubmit(params as DocumentRequestIdParams)
+  ),
 
-      // Find the document request
-      const documentRequest = db.documentRequest.findFirst({
-        where: { id: { equals: documentRequestId } },
-      });
-
-      if (!documentRequest) {
-        return new HttpResponse(null, { status: 404 });
-      }
-
-      // Update document request status
-      const updatedRequest = db.documentRequest.update({
-        where: { id: { equals: documentRequestId } },
-        data: {
-          ...documentRequest,
-          status: 'SUBMITTED' as DocumentRequestStatus,
-        },
-      });
-
-      // Find the associated client
-      const client = db.client.findFirst({
-        where: { id: { equals: documentRequest.clientId as string } },
-      });
-
-      if (client) {
-        const prevOutstanding = (client.outstanding || {}) as ClientOutstanding;
-        const updatedClient: Record<string, unknown> & {
-          outstanding: ClientOutstanding;
-          parties?: string[];
-          status?: string;
-        } = {
-          ...client,
-          outstanding: {
-            ...prevOutstanding,
-            documentRequestIds: (
-              prevOutstanding.documentRequestIds || []
-            ).filter((id: string) => id !== documentRequestId),
-          },
-        };
-
-        const hasOutstandingDocRequests =
-          (updatedClient.outstanding.documentRequestIds?.length ?? 0) > 0;
-
-        const partyIds = (updatedClient.parties || []) as string[];
-        const parties = partyIds
-          .map((partyId: string) =>
-            db.party.findFirst({ where: { id: { equals: partyId } } })
-          )
-          .filter((p): p is NonNullable<typeof p> => p != null);
-
-        const hasPartyValidationPending = parties.some(
-          (party: Record<string, unknown>) =>
-            (
-              (party.validationResponse as Array<{
-                validationStatus?: string;
-              }>) || []
-            ).some(
-              (validation: { validationStatus?: string }) =>
-                validation.validationStatus === 'NEEDS_INFO'
-            )
-        );
-
-        if (!hasOutstandingDocRequests && !hasPartyValidationPending) {
-          updatedClient.status = 'REVIEW_IN_PROGRESS';
-        }
-
-        db.client.update({
-          where: { id: { equals: (client.id as string) ?? '' } },
-          data: updatedClient,
-        });
-      }
-
-      // If associated with a party, update party's validation response
-      if (documentRequest.partyId) {
-        const party = db.party.findFirst({
-          where: { id: { equals: documentRequest.partyId as string } },
-        });
-
-        if (party) {
-          const partyVal = party as Record<string, unknown>;
-          const validationResponse = (partyVal.validationResponse ||
-            []) as Array<{
-            documentRequestIds: string[];
-            [key: string]: unknown;
-          }>;
-          const updatedParty = {
-            ...party,
-            validationResponse: validationResponse
-              .map((validation: { documentRequestIds: string[] }) => ({
-                ...validation,
-                documentRequestIds: validation.documentRequestIds.filter(
-                  (id: string) => id !== documentRequestId
-                ),
-              }))
-              .filter(
-                (validation: { documentRequestIds: string[] }) =>
-                  validation.documentRequestIds.length > 0
-              ),
-          };
-
-          // Update party
-          db.party.delete({
-            where: { id: { equals: party.id as string } },
-          });
-          db.party.create(updatedParty);
-        }
-      }
-
-      logDbState('Document Request Submission');
-      return HttpResponse.json(updatedRequest);
-    }
+  /**
+   * Some axios/baseURL combos resolve SMBDO URLs to origin-root paths (omit `/ef/do/v1`).
+   * Mirrors the packaged MSW baseline (`embedded-components`): `/document-requests/...`.
+   */
+  http.post(
+    `${apiUrl}/document-requests/:documentRequestId/submit`,
+    async ({ params }) =>
+      handlePostDocumentRequestSubmit(params as DocumentRequestIdParams)
   ),
 
   http.get(`${apiUrl}/clients/:clientId`, () => {

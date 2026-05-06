@@ -9,7 +9,11 @@ import {
   vi,
 } from 'vitest';
 
-import { TEST_DEMO_SCENARIO_CLIENT_ID } from '../mocks/testScenarioOperator80Client.mock';
+import {
+  TEST_DEMO_SCENARIO_CLIENT_ID,
+  TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE,
+  TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID,
+} from '../mocks/testScenarioOperator80Client.mock';
 import { db, DB_SCENARIOS, getDbStatus, resetDb } from './db';
 import { createHandlers } from './handlers';
 
@@ -206,6 +210,64 @@ describe('MSW handlers (integration)', () => {
     expect(res.ok).toBe(true);
     const data = (await res.json()) as { documentRequests?: unknown[] };
     expect(Array.isArray(data.documentRequests)).toBe(true);
+  });
+
+  it('POST /document-requests/:id/submit returns 202 for test-scenario doc-request seed (61800)', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'doc-request',
+      }),
+    });
+
+    const clientId = TEST_DEMO_SCENARIO_CLIENT_ID;
+    const orgDocId = TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID;
+
+    const listBefore = await fetch(
+      `${API}/ef/do/v1/document-requests?clientId=${clientId}`
+    );
+    expect(listBefore.ok).toBe(true);
+    const envelope = (await listBefore.json()) as {
+      documentRequests?: { id?: string }[];
+    };
+    expect(envelope.documentRequests?.some((r) => r.id === orgDocId)).toBe(
+      true
+    );
+
+    const submitRes = await fetch(
+      `${API}/ef/do/v1/document-requests/${orgDocId}/submit`,
+      { method: 'POST' }
+    );
+    expect(submitRes.status).toBe(202);
+    const body = (await submitRes.json()) as { acceptedAt?: string };
+    expect(typeof body.acceptedAt).toBe('string');
+
+    const getDr = await fetch(`${API}/ef/do/v1/document-requests/${orgDocId}`);
+    expect(getDr.ok).toBe(true);
+    const dr = (await getDr.json()) as { id?: string; status?: string };
+    expect(dr.id).toBe(orgDocId);
+    expect(dr.status).toBe('SUBMITTED');
+  });
+
+  it('POST /document-requests/:id/submit (no /ef/do/v1 prefix) returns 202', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'doc-request',
+      }),
+    });
+
+    const indDocId = String(TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE);
+    const submitRes = await fetch(`${API}/document-requests/${indDocId}/submit`, {
+      method: 'POST',
+    });
+    expect(submitRes.status).toBe(202);
   });
 
   it('GET /questions returns filtered questions when questionIds provided', async () => {
