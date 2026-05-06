@@ -573,14 +573,17 @@ export const handlers = [
           .filter(Boolean);
 
         const hasPartyValidationPending = parties.some((party) =>
-          (party.validationResponse || []).some(
+          (party?.validationResponse || []).some(
             (validation) => validation.validationStatus === 'NEEDS_INFO'
           )
         );
 
-        // If no outstanding requests and no pending validations, update client status
-        if (!hasOutstandingDocRequests && !hasPartyValidationPending) {
-          updatedClient.status = 'REVIEW_IN_PROGRESS';
+        if (!hasOutstandingDocRequests) {
+          if (client.status === 'INFORMATION_REQUESTED') {
+            updatedClient.status = 'REVIEW_IN_PROGRESS';
+          } else if (!hasPartyValidationPending) {
+            updatedClient.status = 'REVIEW_IN_PROGRESS';
+          }
         }
 
         // Update client
@@ -602,11 +605,13 @@ export const handlers = [
             validationResponse: (party.validationResponse || [])
               .map((validation) => ({
                 ...validation,
-                documentRequestIds: validation.documentRequestIds.filter(
-                  (id) => id !== documentRequestId
-                ),
+                documentRequestIds: (
+                  validation.documentRequestIds ?? []
+                ).filter((id) => id !== documentRequestId),
               }))
-              .filter((validation) => validation.documentRequestIds.length > 0),
+              .filter(
+                (validation) => (validation.documentRequestIds ?? []).length > 0
+              ),
           };
 
           // Update party
