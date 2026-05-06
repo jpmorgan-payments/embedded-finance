@@ -60,6 +60,35 @@ function initialLinkedAccountRecipientStatus(
   return 'READY_FOR_VALIDATION';
 }
 
+/**
+ * Payload for GET .../documents/:id/file. In Vitest (`import.meta.env.MODE === 'test'`),
+ * relative `fetch('/sample-terms.pdf')` from an MSW handler often fails (invalid/unhandled URL),
+ * so read `public/sample-terms.pdf` from disk. In dev/prod the PDF is fetched from the site origin.
+ */
+async function loadSampleTermsPdfBytes(): Promise<Uint8Array> {
+  if (import.meta.env.MODE === 'test') {
+    const { readFile } = await import('node:fs/promises');
+    const path = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const pdfPath = path.join(
+      path.dirname(fileURLToPath(import.meta.url)),
+      '..',
+      '..',
+      'public',
+      'sample-terms.pdf',
+    );
+    return new Uint8Array(await readFile(pdfPath));
+  }
+
+  const response = await fetch('/sample-terms.pdf');
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch sample-terms.pdf for MSW mock (${response.status})`,
+    );
+  }
+  return new Uint8Array(await response.arrayBuffer());
+}
+
 /** Path params for routes with :clientId */
 type ClientIdParams = { clientId: string };
 /** Path params for routes with :partyId */
@@ -664,10 +693,9 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
   }),
 
   http.get(`${apiUrl}/ef/do/v1/documents/:documentId/file`, async () => {
-    const response = await fetch('/sample-terms.pdf');
-    const buffer = await response.arrayBuffer();
+    const buffer = await loadSampleTermsPdfBytes();
 
-    return new HttpResponse(new Uint8Array(buffer), {
+    return new HttpResponse(buffer, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': 'attachment; filename="sample-terms.pdf"',
