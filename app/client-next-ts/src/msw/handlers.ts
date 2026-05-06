@@ -153,7 +153,7 @@ function syncOutstandingQuestionIdsFromConditionalLogic(
   outstanding.questionIds = qids;
 }
 
-/** POST document-request submit — used for both versioned SMBDO paths and bare `/document-requests/...`. */
+/** POST document-request submit — `/ef/do/v1/...` and bare `/document-requests/...` (axios `baseURL` variants). */
 async function handlePostDocumentRequestSubmit(
   params: DocumentRequestIdParams
 ) {
@@ -223,8 +223,16 @@ async function handlePostDocumentRequestSubmit(
         )
     );
 
-    if (!hasOutstandingDocRequests && !hasPartyValidationPending) {
-      updatedClient.status = 'REVIEW_IN_PROGRESS';
+    if (!hasOutstandingDocRequests) {
+      // When there are no remaining outstanding document-request IDs:
+      // - INFORMATION_REQUESTED → REVIEW_IN_PROGRESS even if seeded parties still show
+      //   NEEDS_INFO for other fields (e.g. `/test-scenario` documents-request profile).
+      // - Otherwise: move to REVIEW_IN_PROGRESS only when no party NEEDS_INFO remains.
+      if (client.status === 'INFORMATION_REQUESTED') {
+        updatedClient.status = 'REVIEW_IN_PROGRESS';
+      } else if (!hasPartyValidationPending) {
+        updatedClient.status = 'REVIEW_IN_PROGRESS';
+      }
     }
 
     db.client.update({
@@ -726,10 +734,7 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
       handlePostDocumentRequestSubmit(params as DocumentRequestIdParams)
   ),
 
-  /**
-   * Some axios/baseURL combos resolve SMBDO URLs to origin-root paths (omit `/ef/do/v1`).
-   * Mirrors the packaged MSW baseline (`embedded-components`): `/document-requests/...`.
-   */
+  /** Bare `/document-requests/...` when requests resolve relative to origin (omit `/ef/do/v1`). */
   http.post(
     `${apiUrl}/document-requests/:documentRequestId/submit`,
     async ({ params }) =>

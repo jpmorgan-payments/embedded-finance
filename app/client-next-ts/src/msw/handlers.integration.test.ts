@@ -270,6 +270,40 @@ describe('MSW handlers (integration)', () => {
     expect(submitRes.status).toBe(202);
   });
 
+  it('doc-request: client becomes REVIEW_IN_PROGRESS after all document requests submitted', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'doc-request',
+      }),
+    });
+
+    const clientId = TEST_DEMO_SCENARIO_CLIENT_ID;
+    const orgDocId = TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID;
+    const indDocId = String(TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE);
+
+    await fetch(
+      `${API}/ef/do/v1/document-requests/${orgDocId}/submit`,
+      { method: 'POST' }
+    );
+    const afterOne = await fetch(`${API}/ef/do/v1/clients/${clientId}`);
+    expect(afterOne.ok).toBe(true);
+    const bodyOne = (await afterOne.json()) as { status?: string };
+    expect(bodyOne.status).toBe('INFORMATION_REQUESTED');
+
+    await fetch(
+      `${API}/ef/do/v1/document-requests/${indDocId}/submit`,
+      { method: 'POST' }
+    );
+    const afterBoth = await fetch(`${API}/ef/do/v1/clients/${clientId}`);
+    expect(afterBoth.ok).toBe(true);
+    const bodyBoth = (await afterBoth.json()) as { status?: string };
+    expect(bodyBoth.status).toBe('REVIEW_IN_PROGRESS');
+  });
+
   it('GET /questions returns filtered questions when questionIds provided', async () => {
     const res = await fetch(`${API}/ef/do/v1/questions?questionIds=30005`);
     expect(res.ok).toBe(true);

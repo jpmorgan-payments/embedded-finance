@@ -583,7 +583,13 @@ export function buildApprovedClientLinkAccountStory(options?: {
 }
 
 /**
- * Create document upload handlers for doc upload mode stories
+ * Create document upload handlers for doc upload mode stories.
+ *
+ * **Client status:** `GET /clients/:id` always returns `INFORMATION_REQUESTED` — it does not
+ * simulate a post-submit transition to `REVIEW_IN_PROGRESS`. Submits return `202` only.
+ * To exercise that transition, use the shared {@link handlers} MSW layer with the in-memory
+ * `db` (seed document requests + parties) or add a story-local override that mutates the
+ * client payload after submit.
  */
 export function createDocUploadHandlers(
   options: {
