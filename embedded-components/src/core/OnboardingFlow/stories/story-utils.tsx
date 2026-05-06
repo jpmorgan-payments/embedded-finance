@@ -587,8 +587,8 @@ export function buildApprovedClientLinkAccountStory(options?: {
  *
  * **Client status:** `GET /clients/:id` always returns `INFORMATION_REQUESTED` — it does not
  * simulate a post-submit transition to `REVIEW_IN_PROGRESS`. Submits return `202` only.
- * To exercise that transition, use the shared {@link handlers} MSW layer with the in-memory
- * `db` (seed document requests + parties) or add a story-local override that mutates the
+ * To exercise that transition, use the default MSW handlers in `src/msw/handlers.ts` with the
+ * in-memory `db` (seed document requests + parties) or add a story-local override that mutates the
  * client payload after submit.
  */
 export function createDocUploadHandlers(
