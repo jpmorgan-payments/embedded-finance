@@ -491,9 +491,9 @@ export const RETRO_ARCADE_THEME: EBTheme = {
 export const WALMART_THEME: EBTheme = {
   colorScheme: 'light',
   variables: {
-    contentFontFamily: 'Bogle, system-ui, -apple-system, sans-serif',
-    textHeadingFontFamily: 'Bogle, system-ui, -apple-system, sans-serif',
-    actionableFontFamily: 'Bogle, system-ui, -apple-system, sans-serif',
+    contentFontFamily: 'Open Sans, system-ui, -apple-system, sans-serif',
+    textHeadingFontFamily: 'Open Sans, system-ui, -apple-system, sans-serif',
+    actionableFontFamily: 'Open Sans, system-ui, -apple-system, sans-serif',
     actionableFontWeight: '700',
     actionableFontSize: '0.875rem',
     actionableLineHeight: '1.25rem',
