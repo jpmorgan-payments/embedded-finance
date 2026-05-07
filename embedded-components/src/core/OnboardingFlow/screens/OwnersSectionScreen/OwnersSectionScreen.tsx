@@ -567,7 +567,8 @@ export const OwnersSectionScreen = () => {
               onClick={handleInviteBeneficialOwner}
               disabled={isFormDisabled || activeOwners.length >= 4}
             >
-              <MailIcon /> {t('screens.owners.inviteOwnerButton', 'Invite Beneficial Owner')}
+              <MailIcon />{' '}
+              {t('screens.owners.inviteOwnerButton', 'Invite Beneficial Owner')}
             </Button>
           )}
 
@@ -704,14 +705,24 @@ export const OwnersSectionScreen = () => {
                   )}
 
                 {allowBeneficialOwnerInvitation &&
-                  owner.roles?.includes('AUTHORIZED_USER') && (
+                  owner.roles?.includes('AUTHORIZED_USER') &&
+                  (owner.id && ownersValidation[owner.id]?.allStepsValid ? (
                     <Badge
                       variant="outline"
-                      className="eb-self-center eb-border-transparent eb-bg-green-50 eb-text-green-700"
+                      className="eb-flex eb-items-center eb-gap-1 eb-self-center eb-border-transparent eb-bg-green-100 eb-text-green-800"
                     >
+                      <MailIcon className="eb-h-4 eb-w-4" />
+                      {t('screens.owners.completedBadge', 'Completed')}
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className="eb-flex eb-items-center eb-gap-1 eb-self-center eb-border-transparent eb-bg-blue-50 eb-text-blue-700"
+                    >
+                      <MailIcon className="eb-h-4 eb-w-4" />
                       {t('screens.owners.invitedBadge', 'Invited')}
                     </Badge>
-                  )}
+                  ))}
               </div>
               {owner.id && !ownersValidation[owner.id]?.allStepsValid && (
                 <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
@@ -767,7 +778,10 @@ export const OwnersSectionScreen = () => {
           <DialogContent className="eb-component">
             <DialogHeader>
               <DialogTitle>
-                {t('screens.owners.inviteDialog.title', 'Invite Beneficial Owner')}
+                {t(
+                  'screens.owners.inviteDialog.title',
+                  'Invite Beneficial Owner'
+                )}
               </DialogTitle>
               <DialogDescription>
                 {t(
@@ -779,7 +793,10 @@ export const OwnersSectionScreen = () => {
             <div className="eb-space-y-4">
               <div className="eb-space-y-2">
                 <Label htmlFor="invite-first-name">
-                  {t('screens.owners.inviteDialog.firstNameLabel', 'First Name')}
+                  {t(
+                    'screens.owners.inviteDialog.firstNameLabel',
+                    'First Name'
+                  )}
                 </Label>
                 <Input
                   id="invite-first-name"
