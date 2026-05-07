@@ -482,6 +482,85 @@ export const RETRO_ARCADE_THEME: EBTheme = {
 };
 
 /**
+ * Walmart Theme Configuration
+ *
+ * Matches Walmart.com branding: Spark yellow (#FFC220) primary,
+ * Walmart blue (#0071DC) for accents, clean white backgrounds,
+ * Bogle font family (falls back to system sans-serif)
+ */
+export const WALMART_THEME: EBTheme = {
+  colorScheme: 'light',
+  variables: {
+    contentFontFamily: 'Bogle, system-ui, -apple-system, sans-serif',
+    textHeadingFontFamily: 'Bogle, system-ui, -apple-system, sans-serif',
+    actionableFontFamily: 'Bogle, system-ui, -apple-system, sans-serif',
+    actionableFontWeight: '700',
+    actionableFontSize: '0.875rem',
+    actionableLineHeight: '1.25rem',
+    actionableTextTransform: 'none',
+    actionableLetterSpacing: '0em',
+    actionableAccentedBoldFontWeight: '700',
+    actionableSubtleFontWeight: '600',
+    actionableShiftOnActive: false,
+    actionableBorderRadius: '100px',
+    editableBorderRadius: '8px',
+    editableLabelFontSize: '0.875rem',
+    editableLabelFontWeight: '600',
+    editableLabelLineHeight: '1.25rem',
+    separableBorderRadius: '12px',
+    spacingUnit: '0.25rem',
+    overlayableZIndex: 1000,
+  },
+  light: {
+    containerPrimaryBackground: '#FFFFFF',
+    containerCardBackground: '#FFFFFF',
+    containerPrimaryForeground: '#2E2F32',
+    containerSecondaryBackground: '#F2F8FD',
+    containerSecondaryForeground: '#46474A',
+    contentPrimaryForeground: '#2E2F32',
+    overlayableBackground: '#FFFFFF',
+    overlayableForeground: '#2E2F32',
+    accentBackground: '#F2F8FD',
+    accentForeground: '#2E2F32',
+    editableBackground: '#FFFFFF',
+    editableBorderColor: '#74767C',
+    editableLabelForeground: '#2E2F32',
+    actionableAccentedBoldBackground: '#0071DC',
+    actionableAccentedBoldBackgroundHover: '#004F9A',
+    actionableAccentedBoldBackgroundActive: '#003874',
+    actionableAccentedBoldForeground: '#FFFFFF',
+    actionableAccentedBoldBorderWidth: '0px',
+    actionableSubtleBackground: 'transparent',
+    actionableSubtleBackgroundHover: '#E6F1FC',
+    actionableSubtleBackgroundActive: '#CCE3F9',
+    actionableSubtleForeground: '#0071DC',
+    actionableSubtleForegroundHover: '#004F9A',
+    actionableSubtleForegroundActive: '#003874',
+    actionableSubtleBorderWidth: '1px',
+    focusedRingColor: '#0071DC',
+    actionableNegativeBoldBackground: '#DE1C24',
+    actionableNegativeBoldBackgroundHover: '#B8151C',
+    actionableNegativeBoldBackgroundActive: '#910F14',
+    actionableNegativeBoldForeground: '#FFFFFF',
+    actionableNegativeBoldForegroundHover: '#FFFFFF',
+    actionableNegativeBoldForegroundActive: '#FFFFFF',
+    sentimentNegativeAccentBackground: '#FDE8E9',
+    sentimentCautionForeground: '#8C6900',
+    sentimentCautionAccentBackground: '#FFF4D6',
+    sentimentPositiveForeground: '#1D7D2F',
+    sentimentPositiveAccentBackground: '#E6F4E9',
+    statusInfoForeground: '#0071DC',
+    statusInfoAccentBackground: '#E6F1FC',
+    statusSuccessForeground: '#1D7D2F',
+    statusSuccessAccentBackground: '#E6F4E9',
+    statusWarningForeground: '#8C6900',
+    statusWarningAccentBackground: '#FFF4D6',
+    separableBorderColor: '#E2E3E5',
+    navigableBackground: '#ffffff',
+  },
+};
+
+/**
  * Available themes for use in stories
  */
 export const THEMES = {
@@ -491,6 +570,7 @@ export const THEMES = {
   CreateCommerce: CREATE_COMMERCE_THEME,
   PayFicient: PAYFICIENT_THEME,
   RetroArcade: RETRO_ARCADE_THEME,
+  Walmart: WALMART_THEME,
 } as const;
 
 export type ThemeName = keyof typeof THEMES;
