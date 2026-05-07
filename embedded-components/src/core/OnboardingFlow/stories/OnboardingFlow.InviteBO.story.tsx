@@ -37,13 +37,11 @@ const mockClientOwnersWithIncompleteBOs: ClientResponse = {
   ...mockClientNew,
   parties: [
     // Organization party (already complete from mockClientNew)
-    ...(mockClientNew.parties?.filter(
-      (p) => p.partyType === 'ORGANIZATION'
-    ) ?? []),
+    ...(mockClientNew.parties?.filter((p) => p.partyType === 'ORGANIZATION') ??
+      []),
     // Controller — fully complete (from mockClientNew base)
     ...(mockClientNew.parties?.filter(
-      (p) =>
-        p.partyType === 'INDIVIDUAL' && p.roles?.includes('CONTROLLER')
+      (p) => p.partyType === 'INDIVIDUAL' && p.roles?.includes('CONTROLLER')
     ) ?? []),
     // BO 1 — has email, incomplete (missing birthDate & addresses)
     {
@@ -119,12 +117,10 @@ const mockClientOwnersWithMixedInviteState: ClientResponse = {
 const mockClientReviewWithMixedBOs: ClientResponse = {
   ...mockClientNew,
   parties: [
+    ...(mockClientNew.parties?.filter((p) => p.partyType === 'ORGANIZATION') ??
+      []),
     ...(mockClientNew.parties?.filter(
-      (p) => p.partyType === 'ORGANIZATION'
-    ) ?? []),
-    ...(mockClientNew.parties?.filter(
-      (p) =>
-        p.partyType === 'INDIVIDUAL' && p.roles?.includes('CONTROLLER')
+      (p) => p.partyType === 'INDIVIDUAL' && p.roles?.includes('CONTROLLER')
     ) ?? []),
     // BO 1 — already invited (has AUTHORIZED_USER + email)
     {
@@ -210,14 +206,12 @@ const mockClientReviewWithMixedBOs: ClientResponse = {
 const mockClientOwnersFull: ClientResponse = {
   ...mockClientNew,
   parties: [
+    ...(mockClientNew.parties?.filter((p) => p.partyType === 'ORGANIZATION') ??
+      []),
     ...(mockClientNew.parties?.filter(
-      (p) => p.partyType === 'ORGANIZATION'
+      (p) => p.partyType === 'INDIVIDUAL' && p.roles?.includes('CONTROLLER')
     ) ?? []),
-    ...(mockClientNew.parties?.filter(
-      (p) =>
-        p.partyType === 'INDIVIDUAL' && p.roles?.includes('CONTROLLER')
-    ) ?? []),
-    ...['Eva Martinez', 'Liam O\'Brien', 'Priya Patel', 'Tomasz Nowak'].map(
+    ...['Eva Martinez', "Liam O'Brien", 'Priya Patel', 'Tomasz Nowak'].map(
       (name, i) => ({
         id: `200000014${i}`,
         partyType: 'INDIVIDUAL' as const,
@@ -285,7 +279,8 @@ type Story = StoryObj<OnboardingFlowStoryArgs>;
 export const OwnersWithInviteButton: Story = {
   name: 'Owners Section — Invite Enabled',
   loaders: [
-    () => resetAndSeedClient(mockClientOwnersWithIncompleteBOs, DEFAULT_CLIENT_ID),
+    () =>
+      resetAndSeedClient(mockClientOwnersWithIncompleteBOs, DEFAULT_CLIENT_ID),
   ],
   args: {
     ...commonArgs,
@@ -304,7 +299,8 @@ export const OwnersWithInviteButton: Story = {
 export const OwnersWithoutInviteButton: Story = {
   name: 'Owners Section — Invite Disabled (Default)',
   loaders: [
-    () => resetAndSeedClient(mockClientOwnersWithIncompleteBOs, DEFAULT_CLIENT_ID),
+    () =>
+      resetAndSeedClient(mockClientOwnersWithIncompleteBOs, DEFAULT_CLIENT_ID),
   ],
   args: {
     ...commonArgs,
@@ -324,7 +320,11 @@ export const OwnersWithoutInviteButton: Story = {
 export const OwnersMixedInviteState: Story = {
   name: 'Owners Section — Mixed (Invited + Pending)',
   loaders: [
-    () => resetAndSeedClient(mockClientOwnersWithMixedInviteState, DEFAULT_CLIENT_ID),
+    () =>
+      resetAndSeedClient(
+        mockClientOwnersWithMixedInviteState,
+        DEFAULT_CLIENT_ID
+      ),
   ],
   args: {
     ...commonArgs,
@@ -342,9 +342,7 @@ export const OwnersMixedInviteState: Story = {
  */
 export const OwnersMaxReached: Story = {
   name: 'Owners Section — Max Owners (Invite Disabled)',
-  loaders: [
-    () => resetAndSeedClient(mockClientOwnersFull, DEFAULT_CLIENT_ID),
-  ],
+  loaders: [() => resetAndSeedClient(mockClientOwnersFull, DEFAULT_CLIENT_ID)],
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
@@ -396,5 +394,76 @@ export const ReviewWithoutInvitationFlag: Story = {
       screenId: 'review-attest-section',
       stepperStepId: 'review',
     },
+  },
+};
+
+/**
+ * **Owners Section — Invite Completed**
+ *
+ * Alice Johnson was invited (AUTHORIZED_USER) and has completed all required
+ * details. Her badge shows "Completed" instead of "Invited".
+ * Marcus Chen remains incomplete with "Request info by email" still visible.
+ */
+const mockClientOwnersWithCompletedInvite: ClientResponse = {
+  ...mockClientOwnersWithIncompleteBOs,
+  parties: mockClientOwnersWithIncompleteBOs.parties?.map((p) => {
+    if (p.id === '2000000120') {
+      // Alice — invited AND fully complete
+      return {
+        ...p,
+        roles: ['BENEFICIAL_OWNER', 'AUTHORIZED_USER'],
+        individualDetails: {
+          ...p.individualDetails,
+          firstName: 'Alice',
+          lastName: 'Johnson',
+          jobTitle: 'CFO',
+          countryOfResidence: 'US',
+          natureOfOwnership: 'Direct',
+          soleOwner: false,
+          birthDate: '1980-03-15',
+          addresses: [
+            {
+              addressType: 'RESIDENTIAL_ADDRESS',
+              addressLines: ['100 Park Avenue'],
+              city: 'New York',
+              state: 'NY',
+              postalCode: '10017',
+              country: 'US',
+            },
+          ],
+          individualIds: [
+            {
+              idType: 'SSN',
+              issuer: 'US',
+              value: '300400005',
+            },
+          ],
+          phone: {
+            phoneType: 'MOBILE_PHONE',
+            countryCode: '+1',
+            phoneNumber: '2125551234',
+          },
+        },
+        validationResponse: [],
+      };
+    }
+    return p;
+  }),
+};
+
+export const OwnersInviteCompleted: Story = {
+  name: 'Owners Section — Invite Completed',
+  loaders: [
+    () =>
+      resetAndSeedClient(
+        mockClientOwnersWithCompletedInvite,
+        DEFAULT_CLIENT_ID
+      ),
+  ],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    allowBeneficialOwnerInvitation: true,
+    flowEntry: { screenId: 'owners-section' },
   },
 };
