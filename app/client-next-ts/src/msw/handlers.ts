@@ -28,8 +28,6 @@ import { http, HttpResponse, type RequestHandler } from 'msw';
 import { getClientStatusOverrideForScenario } from '../components/sellsense/scenarios-config';
 import { efClientQuestionsMock, efDocumentClientDetail } from '../mocks';
 import { TEST_DEMO_SCENARIO_CLIENT_ID } from '../mocks/testScenarioOperator80Client.mock';
-import { getEmbeddedSampleTermsPdfBytes } from './terms-pdf-fallback.ts';
-import { getTermsPdfMockBytes } from './terms-pdf-mock.ts';
 import {
   applyOverridesToDb,
   applyTestDemoScenario,
@@ -42,6 +40,8 @@ import {
   resetDb,
   type TestDemoScenarioMode,
 } from './db';
+import { getEmbeddedSampleTermsPdfBytes } from './terms-pdf-fallback.ts';
+import { getTermsPdfMockBytes } from './terms-pdf-mock.ts';
 
 /**
  * `/test-scenario` only (via `X-Test-Demo-Scenario`): happy-path, doc-request, and
@@ -197,9 +197,9 @@ async function handlePostDocumentRequestSubmit(
       ...client,
       outstanding: {
         ...prevOutstanding,
-        documentRequestIds: (
-          prevOutstanding.documentRequestIds || []
-        ).filter((id: string) => id !== documentRequestId),
+        documentRequestIds: (prevOutstanding.documentRequestIds || []).filter(
+          (id: string) => id !== documentRequestId
+        ),
       },
     };
 
@@ -266,7 +266,9 @@ async function handlePostDocumentRequestSubmit(
               ),
             };
           })
-          .filter((validation) => (validation.documentRequestIds ?? []).length > 0),
+          .filter(
+            (validation) => (validation.documentRequestIds ?? []).length > 0
+          ),
       };
 
       db.party.delete({
@@ -657,23 +659,24 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     });
   }),
 
+  // Register `/documents/:id/file` before `/documents/:id` so MSW matches the literal `file` segment first.
+  http.get(`${apiUrl}/ef/do/v1/documents/:documentId/file`, () => {
+    const body = getTermsPdfMockBytes() ?? getEmbeddedSampleTermsPdfBytes();
+
+    return new HttpResponse(body, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'attachment; filename="sample-terms.pdf"',
+      },
+    });
+  }),
+
   http.get(`${apiUrl}/ef/do/v1/documents/:documentId`, ({ params }) => {
     const { documentId } = params as DocumentIdParams;
     return HttpResponse.json({
       ...efDocumentClientDetail,
       id: String(documentId),
-    });
-  }),
-
-  http.get(`${apiUrl}/ef/do/v1/documents/:documentId/file`, () => {
-    const body =
-      getTermsPdfMockBytes() ?? getEmbeddedSampleTermsPdfBytes();
-
-    return new HttpResponse(body, {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': 'attachment; filename="sample-terms.pdf"',
-      },
     });
   }),
 
