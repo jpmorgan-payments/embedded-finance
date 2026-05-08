@@ -264,9 +264,12 @@ describe('MSW handlers (integration)', () => {
     });
 
     const indDocId = String(TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE);
-    const submitRes = await fetch(`${API}/document-requests/${indDocId}/submit`, {
-      method: 'POST',
-    });
+    const submitRes = await fetch(
+      `${API}/document-requests/${indDocId}/submit`,
+      {
+        method: 'POST',
+      }
+    );
     expect(submitRes.status).toBe(202);
   });
 
@@ -285,19 +288,17 @@ describe('MSW handlers (integration)', () => {
     const orgDocId = TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID;
     const indDocId = String(TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE);
 
-    await fetch(
-      `${API}/ef/do/v1/document-requests/${orgDocId}/submit`,
-      { method: 'POST' }
-    );
+    await fetch(`${API}/ef/do/v1/document-requests/${orgDocId}/submit`, {
+      method: 'POST',
+    });
     const afterOne = await fetch(`${API}/ef/do/v1/clients/${clientId}`);
     expect(afterOne.ok).toBe(true);
     const bodyOne = (await afterOne.json()) as { status?: string };
     expect(bodyOne.status).toBe('INFORMATION_REQUESTED');
 
-    await fetch(
-      `${API}/ef/do/v1/document-requests/${indDocId}/submit`,
-      { method: 'POST' }
-    );
+    await fetch(`${API}/ef/do/v1/document-requests/${indDocId}/submit`, {
+      method: 'POST',
+    });
     const afterBoth = await fetch(`${API}/ef/do/v1/clients/${clientId}`);
     expect(afterBoth.ok).toBe(true);
     const bodyBoth = (await afterBoth.json()) as { status?: string };
@@ -315,7 +316,16 @@ describe('MSW handlers (integration)', () => {
     const meta = await fetch(`${API}/ef/do/v1/documents/doc-1`);
     expect(meta.ok).toBe(true);
     const file = await fetch(`${API}/ef/do/v1/documents/doc-1/file`);
-    expect(file.ok).toBe(true);
+    if (!file.ok) {
+      const detail = `${file.status} ${file.statusText}`;
+      const bodySnippet = await file
+        .clone()
+        .text()
+        .catch(() => '');
+      throw new Error(
+        `GET document file failed: ${detail}${bodySnippet ? ` — ${bodySnippet.slice(0, 120)}` : ''}`
+      );
+    }
     expect(file.headers.get('Content-Type')).toContain('pdf');
   });
 
