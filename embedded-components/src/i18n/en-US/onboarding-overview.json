@@ -1362,6 +1362,8 @@
       "downloading": "Downloading...",
       "failedToDownload": "Failed to download document:",
       "failedToFetchDetails": "Failed to fetch document details:",
+      "saveDocument": "Save and review document",
+      "popupBlocked": "Unable to preview document in browser. Please save the document using the button below, then review it before proceeding.",
       "attestations": "Attestations",
       "agreeToTermsWithPlatform": "You have read and agree to the J.P. Morgan Account Terms and the {{platformAgreementLabel}}.",
       "agreeToTerms": "You have read and agree to the J.P. Morgan Account Terms.",

@@ -5,6 +5,7 @@ import { useQueries, useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircleIcon,
   CheckCircleIcon,
+  DownloadIcon,
   ExternalLinkIcon,
   FileIcon,
   InfoIcon,
@@ -181,6 +182,10 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
     [key: string]: string | null;
   }>({});
 
+  const [documentBlobUrls, setDocumentBlobUrls] = useState<{
+    [key: string]: string | null;
+  }>({});
+
   // Update client attestation
   const {
     mutateAsync: updateClientAsync,
@@ -208,7 +213,7 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
   const [platformAgreementOpened, setPlatformAgreementOpened] = useState(false);
 
   const allLinksOpened =
-    documentIds.every((id) => termsDocumentsOpened[id] || documentErrors[id]) &&
+    documentIds.every((id) => termsDocumentsOpened[id]) &&
     (!hasPlatformAgreement || platformAgreementOpened);
 
   const handlePlatformAgreementOpen = () => {
@@ -235,10 +240,16 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
       });
       const url = URL.createObjectURL(blob);
 
+      // Store the blob URL so we can offer a download fallback
+      setDocumentBlobUrls((prev) => ({ ...prev, [documentId]: url }));
+
       const newWindow = window.open(url, '_blank');
       if (!newWindow) {
         throw new Error(
-          'Failed to open document. Please check your popup blocker settings.'
+          tString(
+            'reviewAndAttest.termsAndConditions.popupBlocked',
+            'Failed to open document. Please check your popup blocker settings or use the save button to download the document.'
+          )
         );
       }
       newWindow.focus();
@@ -252,8 +263,50 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
             ? error.message
             : 'Failed to download document',
       }));
-      // TODO: temporarily set opened document
+    } finally {
+      setLoadingDocuments((prev) => ({ ...prev, [documentId]: false }));
+    }
+  };
+
+  const handleDocumentSave = (documentId: string) => async () => {
+    try {
+      setLoadingDocuments((prev) => ({ ...prev, [documentId]: true }));
+
+      let url = documentBlobUrls[documentId];
+
+      // If we don't have a cached blob URL, fetch the document again
+      if (!url) {
+        const response = await smbdoDownloadDocument(documentId, {
+          responseType: 'blob',
+        });
+        const blob = new Blob([response as BlobPart], {
+          type: 'application/pdf',
+        });
+        url = URL.createObjectURL(blob);
+        setDocumentBlobUrls((prev) => ({ ...prev, [documentId]: url }));
+      }
+
+      // Use a hidden anchor element to trigger a download
+      const query = documentQueries.find((q) => q.data?.id === documentId);
+      const fileName =
+        query?.data?.documentType?.replace(/\s+/g, '_') ?? documentId;
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${fileName}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Mark document as opened since user saved it
       setTermsDocumentsOpened((prev) => ({ ...prev, [documentId]: true }));
+      setDocumentErrors((prev) => ({ ...prev, [documentId]: null }));
+    } catch (error) {
+      setDocumentErrors((prev) => ({
+        ...prev,
+        [documentId]:
+          error instanceof Error ? error.message : 'Failed to save document',
+      }));
     } finally {
       setLoadingDocuments((prev) => ({ ...prev, [documentId]: false }));
     }
@@ -449,12 +502,28 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
                     </span>
                   </Button>
                   {query?.data?.id && documentErrors[query?.data.id] && (
-                    <div className="eb-ml-1 eb-text-sm eb-text-destructive">
-                      {t(
-                        'reviewAndAttest.termsAndConditions.failedToDownload',
-                        'Failed to download document:'
-                      )}{' '}
-                      {documentErrors[id]}
+                    <div className="eb-ml-1 eb-flex eb-flex-col eb-gap-1">
+                      <div className="eb-text-sm eb-text-destructive">
+                        {t(
+                          'reviewAndAttest.termsAndConditions.failedToDownload',
+                          'Failed to download document:'
+                        )}{' '}
+                        {documentErrors[id]}
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleDocumentSave(id)}
+                        disabled={loadingDocuments[id]}
+                        className="eb-w-fit eb-gap-1"
+                      >
+                        <DownloadIcon className="eb-h-4 eb-w-4" />
+                        {t(
+                          'reviewAndAttest.termsAndConditions.saveDocument',
+                          'Save document'
+                        )}
+                      </Button>
                     </div>
                   )}
                   {!query && documentErrors[id] && (
