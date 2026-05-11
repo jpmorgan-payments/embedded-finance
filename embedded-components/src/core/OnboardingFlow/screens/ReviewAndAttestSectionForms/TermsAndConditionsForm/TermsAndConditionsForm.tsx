@@ -503,12 +503,15 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
                   </Button>
                   {query?.data?.id && documentErrors[query?.data.id] && (
                     <div className="eb-ml-1 eb-flex eb-flex-col eb-gap-1">
-                      <div className="eb-text-sm eb-text-destructive">
-                        {t(
-                          'reviewAndAttest.termsAndConditions.failedToDownload',
-                          'Failed to download document:'
-                        )}{' '}
-                        {documentErrors[id]}
+                      <div className="eb-flex eb-items-start eb-gap-1.5 eb-text-sm eb-text-destructive">
+                        <AlertCircleIcon className="eb-mt-0.5 eb-h-4 eb-w-4 eb-shrink-0" />
+                        <span>
+                          {t(
+                            'reviewAndAttest.termsAndConditions.failedToDownload',
+                            'Failed to download document:'
+                          )}{' '}
+                          {documentErrors[id]}
+                        </span>
                       </div>
                       <Button
                         type="button"
@@ -527,12 +530,15 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
                     </div>
                   )}
                   {!query && documentErrors[id] && (
-                    <div className="eb-ml-1 eb-text-sm eb-text-destructive">
-                      {t(
-                        'reviewAndAttest.termsAndConditions.failedToFetchDetails',
-                        'Failed to fetch document details:'
-                      )}{' '}
-                      {documentErrors[id]}
+                    <div className="eb-ml-1 eb-flex eb-items-start eb-gap-1.5 eb-text-sm eb-text-destructive">
+                      <AlertCircleIcon className="eb-mt-0.5 eb-h-4 eb-w-4 eb-shrink-0" />
+                      <span>
+                        {t(
+                          'reviewAndAttest.termsAndConditions.failedToFetchDetails',
+                          'Failed to fetch document details:'
+                        )}{' '}
+                        {documentErrors[id]}
+                      </span>
                     </div>
                   )}
                 </div>
