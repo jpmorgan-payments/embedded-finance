@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useTranslationWithTokens } from '@/i18n';
 
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
@@ -7,14 +8,25 @@ import type {
   RoutingInformationTransactionType,
 } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
+import { RecipientCard } from '@/core/RecipientWidgets/components/RecipientCard/RecipientCard';
+import { invalidateRecipientQueries } from '@/core/RecipientWidgets/utils/invalidateRecipientQueries';
 import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
 import { StepLayout } from '@/core/OnboardingFlow/components';
 import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
+import type { LinkAccountPresetEntry } from '@/core/OnboardingFlow/types/onboarding.types';
 import {
   BankAccountForm,
   createCustomConfig,
@@ -63,7 +75,9 @@ export const LinkAccountScreen = () => {
     'linked-accounts',
   ]);
   const { goTo, setFlowUnsavedChanges, updateSessionData } = useFlowContext();
-  const { clientData, linkAccountStepOptions } = useOnboardingContext();
+  const { clientData, linkAccountStepOptions, hideLinkedAccountRemoval } =
+    useOnboardingContext();
+  const queryClient = useQueryClient();
 
   const { interceptorReady } = useInterceptorStatus();
 
@@ -72,6 +86,33 @@ export const LinkAccountScreen = () => {
   // a new client is created after the gateway screen and only the onboarding
   // context is updated — the provider value stays empty.
   const clientId = clientData?.id;
+
+  // ─── Multi-account preset selection ─────────────────────────────────────────
+  const presetAccounts = linkAccountStepOptions?.presetAccounts;
+  const [selectedPresetId, setSelectedPresetId] = useState<string | undefined>(
+    () => presetAccounts?.[0]?.id
+  );
+
+  // Track linked-then-continue flow (allowMultipleAccounts)
+  const [linkedCount, setLinkedCount] = useState(0);
+  const [showLinkAnother, setShowLinkAnother] = useState(false);
+  // When existing accounts present + allowMultipleAccounts, hide form until user clicks "Link another"
+  const [showAddForm, setShowAddForm] = useState(false);
+
+  const selectedPreset: LinkAccountPresetEntry | undefined = useMemo(() => {
+    if (!presetAccounts?.length) return undefined;
+    return presetAccounts.find((p) => p.id === selectedPresetId);
+  }, [presetAccounts, selectedPresetId]);
+
+  /** Effective initial values — either from the selected preset or the single `initialValues`. */
+  const effectiveInitialValues = useMemo(
+    () => selectedPreset?.initialValues ?? linkAccountStepOptions?.initialValues ?? {},
+    [selectedPreset, linkAccountStepOptions?.initialValues]
+  );
+
+  /** Effective partyId — preset-level takes precedence, then top-level. */
+  const effectivePartyId: string | undefined =
+    selectedPreset?.partyId ?? linkAccountStepOptions?.partyId;
 
   // Fetch fresh client data for the form (needed for account-holder prefill)
   const { data: clientResponseData } = useSmbdoGetClient(clientId ?? '', {
@@ -95,6 +136,19 @@ export const LinkAccountScreen = () => {
     recipientsData?.recipients?.find(
       (r) => r.status !== 'INACTIVE' && r.status !== 'REJECTED'
     );
+
+  // When allowMultipleAccounts is true, don't auto-redirect on existing account
+  const shouldRedirectOnExisting =
+    !!existingAccount && !linkAccountStepOptions?.allowMultipleAccounts;
+
+  /** All active/pending linked accounts (for display when allowMultipleAccounts). */
+  const existingAccounts: Recipient[] = useMemo(
+    () =>
+      recipientsData?.recipients?.filter(
+        (r) => r.status !== 'INACTIVE' && r.status !== 'REJECTED'
+      ) ?? [],
+    [recipientsData]
+  );
 
   const linkAcknowledgementItems =
     linkAccountStepOptions?.reviewAcknowledgements;
@@ -165,9 +219,17 @@ export const LinkAccountScreen = () => {
     mode: 'create',
     recipientType: 'LINKED_ACCOUNT',
     clientId,
+    partyId: effectivePartyId,
     onSuccess: () => {
-      updateSessionData({ linkAccountJustCreated: true });
-      goTo('overview', { resetHistory: true });
+      if (linkAccountStepOptions?.allowMultipleAccounts) {
+        setLinkedCount((c) => c + 1);
+        setShowAddForm(false);
+        setShowLinkAnother(true);
+        reset();
+      } else {
+        updateSessionData({ linkAccountJustCreated: true });
+        goTo('overview', { resetHistory: true });
+      }
     },
   });
 
@@ -186,9 +248,9 @@ export const LinkAccountScreen = () => {
     }
     return mergeBankAccountDefaultValues(
       LINK_ACCOUNT_PREFILL_MERGE_BASE,
-      linkAccountStepOptions.initialValues
+      effectiveInitialValues
     );
-  }, [linkAccountStepOptions]);
+  }, [linkAccountStepOptions, effectiveInitialValues]);
 
   useEffect(() => {
     setPrefillCertifyChecked(false);
@@ -245,9 +307,30 @@ export const LinkAccountScreen = () => {
     goTo('overview', { resetHistory: true });
   };
 
+  const handleLinkAnother = useCallback(() => {
+    setShowLinkAnother(false);
+    setShowAddForm(true);
+    reset();
+    // If presets, advance to next unlinked preset or stay on current
+    if (presetAccounts?.length) {
+      const currentIdx = presetAccounts.findIndex(
+        (p) => p.id === selectedPresetId
+      );
+      const nextPreset = presetAccounts[currentIdx + 1];
+      if (nextPreset) {
+        setSelectedPresetId(nextPreset.id);
+      }
+    }
+  }, [presetAccounts, selectedPresetId, reset]);
+
+  const handleFinishLinking = useCallback(() => {
+    updateSessionData({ linkAccountJustCreated: true });
+    goTo('overview', { resetHistory: true });
+  }, [updateSessionData, goTo]);
+
   const defaultValuesOverride =
     linkAccountStepOptions?.completionMode === 'editable'
-      ? linkAccountStepOptions.initialValues
+      ? effectiveInitialValues
       : undefined;
 
   const errorAlert = formError ? (
@@ -300,13 +383,181 @@ export const LinkAccountScreen = () => {
 
   // Existing account — redirect to Overview where the linked-account card (and optional Remove) lives.
   // Removal is controlled there by `hideLinkedAccountRemoval`; this step has no separate Remove UI.
-  if (existingAccount) {
+  // When allowMultipleAccounts is true, skip this redirect to allow creating more.
+  if (shouldRedirectOnExisting) {
     // Use setTimeout to avoid state updates during render
     setTimeout(() => goTo('overview', { resetHistory: true }), 0);
     return (
       <StepLayout title={t('screens.linkAccount.title', 'Link a bank account')}>
         <div className="eb-mt-6 eb-space-y-4">
           <Skeleton className="eb-h-32 eb-w-full eb-rounded-lg" />
+        </div>
+      </StepLayout>
+    );
+  }
+
+  // ─── Success state: "Link another account" prompt (allowMultipleAccounts) ───
+  if (showLinkAnother) {
+    return (
+      <StepLayout
+        title={t('screens.linkAccount.title', 'Link a bank account')}
+        description={t(
+          'screens.linkAccount.multiAccount.successDescription',
+          'Account linked successfully. You can link another account or return to overview.'
+        )}
+      >
+        <div className="eb-mt-6 eb-flex eb-flex-col eb-items-start eb-gap-3">
+          <p className="eb-text-sm eb-text-muted-foreground">
+            {t(
+              'screens.linkAccount.multiAccount.linkedCount',
+              '{{count}} account(s) linked in this session.',
+              { count: linkedCount }
+            )}
+          </p>
+          <div className="eb-flex eb-gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleLinkAnother}
+              data-testid="link-another-account-btn"
+            >
+              {t(
+                'screens.linkAccount.multiAccount.linkAnother',
+                'Link another account'
+              )}
+            </Button>
+            <Button
+              type="button"
+              onClick={handleFinishLinking}
+              data-testid="finish-linking-btn"
+            >
+              {t(
+                'screens.linkAccount.multiAccount.done',
+                'Done'
+              )}
+            </Button>
+          </div>
+        </div>
+      </StepLayout>
+    );
+  }
+
+  // ─── Account preset selector (when presetAccounts provided) ─────────────────
+  const accountSelector =
+    presetAccounts && presetAccounts.length > 1 ? (
+      <div className="eb-mb-4">
+        <label
+          htmlFor="link-account-preset-select"
+          className="eb-mb-1.5 eb-block eb-text-sm eb-font-medium"
+        >
+          {t(
+            'screens.linkAccount.presetSelector.label',
+            'Select account to link'
+          )}
+        </label>
+        <Select
+          value={selectedPresetId}
+          onValueChange={setSelectedPresetId}
+        >
+          <SelectTrigger id="link-account-preset-select" data-testid="preset-account-select">
+            <SelectValue
+              placeholder={t(
+                'screens.linkAccount.presetSelector.placeholder',
+                'Choose an account'
+              )}
+            />
+          </SelectTrigger>
+          <SelectContent>
+            {presetAccounts.map((preset, idx) => (
+              <SelectItem key={preset.id} value={preset.id}>
+                {preset.label
+                  ?? (preset.initialValues.firstName
+                    ? `${preset.initialValues.firstName} ${preset.initialValues.lastName ?? ''}`.trim()
+                    : preset.initialValues.businessName
+                      ?? t(
+                          'screens.linkAccount.presetSelector.defaultLabel',
+                          'Account {{index}}',
+                          { index: idx + 1 }
+                        ))}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    ) : null;
+
+  // ─── Existing linked accounts cards (shown when allowMultipleAccounts) ──────
+  const displayMode =
+    linkAccountStepOptions?.existingAccountsDisplay ?? 'detailed';
+
+  const existingAccountsSection =
+    linkAccountStepOptions?.allowMultipleAccounts &&
+    existingAccounts.length > 0 ? (
+      <div className="eb-mb-6" data-testid="existing-linked-accounts">
+        <h3 className="eb-mb-2 eb-text-sm eb-font-medium">
+          {t(
+            'screens.linkAccount.multiAccount.existingTitle',
+            'Linked accounts ({{count}})',
+            { count: existingAccounts.length }
+          )}
+        </h3>
+        <div className="eb-space-y-3">
+          {existingAccounts.map((recipient) => (
+            <RecipientCard
+              key={recipient.id}
+              recipient={recipient}
+              compact={displayMode === 'compact'}
+              hideRemoveRecipient={!!hideLinkedAccountRemoval}
+              onRemoveSuccess={() => {
+                invalidateRecipientQueries(queryClient, 'LINKED_ACCOUNT');
+              }}
+              recipientType="LINKED_ACCOUNT"
+              i18nNamespace="linked-accounts"
+            />
+          ))}
+        </div>
+        {!showAddForm && (
+          <div className="eb-mt-4 eb-flex eb-items-center eb-justify-between eb-rounded-md eb-border eb-border-dashed eb-border-muted-foreground eb-p-3">
+            <span className="eb-text-sm eb-font-medium">
+              {t(
+                'screens.linkAccount.multiAccount.addMoreTitle',
+                'Link another account'
+              )}
+            </span>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setShowAddForm(true)}
+              data-testid="add-another-account-btn"
+            >
+              {t(
+                'screens.linkAccount.multiAccount.addMoreButton',
+                'Add account'
+              )}
+            </Button>
+          </div>
+        )}
+      </div>
+    ) : null;
+
+  // Hide form when existing accounts present and user hasn't clicked "Add account"
+  const shouldHideForm =
+    linkAccountStepOptions?.allowMultipleAccounts &&
+    existingAccounts.length > 0 &&
+    !showAddForm;
+
+  // ─── Existing accounts only (form hidden until "Add account" clicked) ───────
+  if (shouldHideForm) {
+    return (
+      <StepLayout
+        title={t('screens.linkAccount.title', 'Link a bank account')}
+        description={t(
+          'screens.linkAccount.multiAccount.manageDescription',
+          'Manage your linked bank accounts or add a new one.'
+        )}
+      >
+        <div className="eb-mt-6">
+          {existingAccountsSection}
         </div>
       </StepLayout>
     );
@@ -324,6 +575,7 @@ export const LinkAccountScreen = () => {
           'screens.linkAccount.prefillSummary.description',
           'Review your bank details and accept the agreements to link this account.'
         )}
+        preSelector={<>{!showAddForm && existingAccountsSection}{accountSelector}</>}
         data={prefillSummaryFormData}
         displayedPaymentTypes={summaryDisplayedPaymentTypes}
         bankFormConfig={bankFormConfigForPrefill}
@@ -374,6 +626,8 @@ export const LinkAccountScreen = () => {
       )}
     >
       <div className="eb-mt-6">
+        {!showAddForm && existingAccountsSection}
+        {accountSelector}
         <BankAccountForm
           config={config}
           client={clientResponseData ?? clientData}

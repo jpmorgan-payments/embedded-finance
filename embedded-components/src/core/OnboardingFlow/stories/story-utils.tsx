@@ -24,6 +24,7 @@ import type { BankAccountFormData } from '@/core/RecipientWidgets/components/Ban
 import { handlers } from '../../../msw/handlers';
 import type {
   LinkAccountInitialValues,
+  LinkAccountPresetEntry,
   LinkAccountReviewAcknowledgement,
   OnboardingFlowProps,
 } from '../types/onboarding.types';
@@ -198,6 +199,38 @@ export const mockExistingLinkedAccountRejected2: Recipient = {
   updatedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(), // 12 days ago
 };
 
+/** Second active linked account — organization type for visual variety. */
+export const mockExistingLinkedAccountOrg: Recipient = {
+  id: 'la-existing-002',
+  type: 'LINKED_ACCOUNT',
+  status: 'ACTIVE',
+  clientId: DEFAULT_CLIENT_ID,
+  partyDetails: {
+    type: 'ORGANIZATION',
+    businessName: 'Acme Supplies LLC',
+    address: {
+      addressLine1: '100 Commerce St',
+      city: 'Chicago',
+      countryCode: 'US',
+      state: 'IL',
+      postalCode: '60601',
+    },
+  },
+  account: {
+    number: '55667788990011223',
+    type: 'CHECKING',
+    countryCode: 'US',
+    routingInformation: [
+      {
+        routingCodeType: 'USABA',
+        routingNumber: '071000013',
+        transactionType: 'ACH',
+      },
+    ],
+  },
+  createdAt: '2024-03-20T14:45:00Z',
+};
+
 /** Partial prefill for link-account step (`completionMode: 'editable'`). */
 export const mockLinkAccountPrefillEditable: LinkAccountInitialValues = {
   accountNumber: '98765432109876543',
@@ -241,6 +274,63 @@ export const mockLinkAccountPrefillSummaryAcknowledgementsThree: readonly LinkAc
       },
     },
   ];
+
+// ============================================================================
+// Linked Account Preset Mocks (multi-account / partyId)
+// ============================================================================
+
+/** Two preset accounts for multi-select demo: one individual, one organization. */
+export const mockPresetAccountsTwo: readonly LinkAccountPresetEntry[] = [
+  {
+    id: 'preset-individual',
+    label: 'Taylor Morgan — Personal',
+    partyId: '2000000112',
+    initialValues: {
+      accountType: 'INDIVIDUAL',
+      firstName: 'Taylor',
+      lastName: 'Morgan',
+      routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+      accountNumber: '12345678901234567',
+      bankAccountType: 'CHECKING',
+      paymentTypes: ['ACH'],
+      certify: false,
+    },
+  },
+  {
+    id: 'preset-organization',
+    label: 'Neverland Books LLC — Business',
+    partyId: '2000000113',
+    initialValues: {
+      accountType: 'ORGANIZATION',
+      businessName: 'Neverland Books LLC',
+      routingNumbers: [{ paymentType: 'ACH', routingNumber: '026009593' }],
+      accountNumber: '98765432109876543',
+      bankAccountType: 'CHECKING',
+      paymentTypes: ['ACH'],
+      certify: false,
+    },
+  },
+];
+
+/** Three preset accounts for richer multi-select demos. */
+export const mockPresetAccountsThree: readonly LinkAccountPresetEntry[] = [
+  ...mockPresetAccountsTwo,
+  {
+    id: 'preset-savings',
+    label: 'Taylor Morgan — Savings',
+    partyId: '2000000112',
+    initialValues: {
+      accountType: 'INDIVIDUAL',
+      firstName: 'Taylor',
+      lastName: 'Morgan',
+      routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+      accountNumber: '55555555555555555',
+      bankAccountType: 'SAVINGS',
+      paymentTypes: ['ACH'],
+      certify: false,
+    },
+  },
+];
 
 // ============================================================================
 // Document Request Mocks
