@@ -288,7 +288,11 @@ interface IndividualSelectorProps {
   }>;
   selectedFirstName: string | undefined;
   selectedLastName: string | undefined;
-  onSelect: (individual: { firstName: string; lastName: string }) => void;
+  onSelect: (individual: {
+    id: string | undefined;
+    firstName: string;
+    lastName: string;
+  }) => void;
 }
 
 const IndividualSelector: FC<IndividualSelectorProps> = ({
