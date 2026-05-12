@@ -10,11 +10,11 @@
  * to jump directly into the link step, similar to the Enabled Statuses stories.
  */
 
+import { db } from '@/msw/db';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
 import type { BaseStoryArgs } from '../../../../../.storybook/preview';
-import { db } from '@/msw/db';
 import type { OnboardingFlowProps } from '../../types/onboarding.types';
 import {
   commonArgs,

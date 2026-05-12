@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useTranslationWithTokens } from '@/i18n';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import type {
@@ -18,8 +18,6 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
-import { RecipientCard } from '@/core/RecipientWidgets/components/RecipientCard/RecipientCard';
-import { invalidateRecipientQueries } from '@/core/RecipientWidgets/utils/invalidateRecipientQueries';
 import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
 import { StepLayout } from '@/core/OnboardingFlow/components';
 import {
@@ -34,7 +32,9 @@ import {
   useLinkedAccountConfig,
   type BankAccountFormData,
 } from '@/core/RecipientWidgets/components/BankAccountForm';
+import { RecipientCard } from '@/core/RecipientWidgets/components/RecipientCard/RecipientCard';
 import { useRecipientForm } from '@/core/RecipientWidgets/hooks/useRecipientForm';
+import { invalidateRecipientQueries } from '@/core/RecipientWidgets/utils/invalidateRecipientQueries';
 
 import { LinkAccountPrefillSummaryView } from './LinkAccountPrefillSummaryView';
 
@@ -106,7 +106,10 @@ export const LinkAccountScreen = () => {
 
   /** Effective initial values — either from the selected preset or the single `initialValues`. */
   const effectiveInitialValues = useMemo(
-    () => selectedPreset?.initialValues ?? linkAccountStepOptions?.initialValues ?? {},
+    () =>
+      selectedPreset?.initialValues ??
+      linkAccountStepOptions?.initialValues ??
+      {},
     [selectedPreset, linkAccountStepOptions?.initialValues]
   );
 
@@ -431,10 +434,7 @@ export const LinkAccountScreen = () => {
               onClick={handleFinishLinking}
               data-testid="finish-linking-btn"
             >
-              {t(
-                'screens.linkAccount.multiAccount.done',
-                'Done'
-              )}
+              {t('screens.linkAccount.multiAccount.done', 'Done')}
             </Button>
           </div>
         </div>
@@ -455,11 +455,11 @@ export const LinkAccountScreen = () => {
             'Select account to link'
           )}
         </label>
-        <Select
-          value={selectedPresetId}
-          onValueChange={setSelectedPresetId}
-        >
-          <SelectTrigger id="link-account-preset-select" data-testid="preset-account-select">
+        <Select value={selectedPresetId} onValueChange={setSelectedPresetId}>
+          <SelectTrigger
+            id="link-account-preset-select"
+            data-testid="preset-account-select"
+          >
             <SelectValue
               placeholder={t(
                 'screens.linkAccount.presetSelector.placeholder',
@@ -470,15 +470,15 @@ export const LinkAccountScreen = () => {
           <SelectContent>
             {presetAccounts.map((preset, idx) => (
               <SelectItem key={preset.id} value={preset.id}>
-                {preset.label
-                  ?? (preset.initialValues.firstName
+                {preset.label ??
+                  (preset.initialValues.firstName
                     ? `${preset.initialValues.firstName} ${preset.initialValues.lastName ?? ''}`.trim()
-                    : preset.initialValues.businessName
-                      ?? t(
-                          'screens.linkAccount.presetSelector.defaultLabel',
-                          'Account {{index}}',
-                          { index: idx + 1 }
-                        ))}
+                    : (preset.initialValues.businessName ??
+                      t(
+                        'screens.linkAccount.presetSelector.defaultLabel',
+                        'Account {{index}}',
+                        { index: idx + 1 }
+                      )))}
               </SelectItem>
             ))}
           </SelectContent>
@@ -556,9 +556,7 @@ export const LinkAccountScreen = () => {
           'Manage your linked bank accounts or add a new one.'
         )}
       >
-        <div className="eb-mt-6">
-          {existingAccountsSection}
-        </div>
+        <div className="eb-mt-6">{existingAccountsSection}</div>
       </StepLayout>
     );
   }
@@ -575,7 +573,12 @@ export const LinkAccountScreen = () => {
           'screens.linkAccount.prefillSummary.description',
           'Review your bank details and accept the agreements to link this account.'
         )}
-        preSelector={<>{!showAddForm && existingAccountsSection}{accountSelector}</>}
+        preSelector={
+          <>
+            {!showAddForm && existingAccountsSection}
+            {accountSelector}
+          </>
+        }
         data={prefillSummaryFormData}
         displayedPaymentTypes={summaryDisplayedPaymentTypes}
         bankFormConfig={bankFormConfigForPrefill}

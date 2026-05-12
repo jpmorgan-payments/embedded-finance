@@ -640,7 +640,9 @@ describe('LinkAccountScreen', () => {
 
     // After success, should show the "Link another account" button
     await waitFor(() => {
-      expect(screen.getByTestId('link-another-account-btn')).toBeInTheDocument();
+      expect(
+        screen.getByTestId('link-another-account-btn')
+      ).toBeInTheDocument();
     });
     expect(screen.getByTestId('finish-linking-btn')).toBeInTheDocument();
   });
@@ -1025,8 +1027,6 @@ describe('LinkAccountScreen', () => {
     expect(section).toBeInTheDocument();
 
     // Count text should reflect both accounts
-    expect(
-      screen.getByText(/Linked accounts \(2\)/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Linked accounts \(2\)/i)).toBeInTheDocument();
   });
 });
