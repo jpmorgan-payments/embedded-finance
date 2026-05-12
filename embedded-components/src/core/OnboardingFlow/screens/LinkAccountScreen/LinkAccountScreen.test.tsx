@@ -613,7 +613,7 @@ describe('LinkAccountScreen', () => {
       } as unknown as ReturnType<typeof useRecipientForm>;
     });
 
-    const { rerender } = renderWithProviders(<LinkAccountScreen />, {
+    renderWithProviders(<LinkAccountScreen />, {
       ...baseOnboardingContext,
       linkAccountStepOptions: {
         completionMode: 'prefillSummary',
