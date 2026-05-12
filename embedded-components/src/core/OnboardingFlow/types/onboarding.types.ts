@@ -12,7 +12,7 @@ import {
   SchemasApiError,
 } from '@/api/generated/smbdo.schemas';
 import type {
-  BankAccountFormConfig,
+  BankAccountFormConfigOverride,
   BankAccountFormData,
   LinkAccountReviewAcknowledgement,
 } from '@/core/RecipientWidgets/components/BankAccountForm/BankAccountForm.types';
@@ -112,7 +112,7 @@ export type LinkAccountStepOptions = {
    * (editable step and `prefillSummary` labels). Use to document or trial alternative
    * `paymentMethods.available` / `allowMultiple` sets; production onboarding typically omits this.
    */
-  bankFormConfigOverride?: Partial<BankAccountFormConfig>;
+  bankFormConfigOverride?: BankAccountFormConfigOverride;
   /**
    * Existing party ID to associate with the linked account.
    * When provided, the API links the account to this party rather than

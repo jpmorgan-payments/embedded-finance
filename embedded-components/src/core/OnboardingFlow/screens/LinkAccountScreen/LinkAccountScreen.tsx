@@ -104,15 +104,6 @@ export const LinkAccountScreen = () => {
     return presetAccounts.find((p) => p.id === selectedPresetId);
   }, [presetAccounts, selectedPresetId]);
 
-  /** Effective initial values — either from the selected preset or the single `initialValues`. */
-  const effectiveInitialValues = useMemo(
-    () =>
-      selectedPreset?.initialValues ??
-      linkAccountStepOptions?.initialValues ??
-      {},
-    [selectedPreset, linkAccountStepOptions?.initialValues]
-  );
-
   /** Effective partyId — preset-level takes precedence, then top-level. */
   const effectivePartyId: string | undefined =
     selectedPreset?.partyId ?? linkAccountStepOptions?.partyId;
@@ -153,6 +144,44 @@ export const LinkAccountScreen = () => {
     [recipientsData]
   );
 
+  /** Effective initial values — either from the selected preset or the single `initialValues`. */
+  const rawInitialValues = useMemo(
+    () =>
+      selectedPreset?.initialValues ??
+      linkAccountStepOptions?.initialValues ??
+      {},
+    [selectedPreset, linkAccountStepOptions?.initialValues]
+  );
+
+  /**
+   * When `allowMultipleAccounts` is true and the prefilled account number already
+   * exists among linked accounts, clear the prefill so the user enters fresh data.
+   * This prevents re-linking the same account via a stale host-supplied prefill.
+   */
+  const isDuplicateAccount = useMemo(() => {
+    if (
+      !linkAccountStepOptions?.allowMultipleAccounts ||
+      !rawInitialValues.accountNumber ||
+      existingAccounts.length === 0
+    ) {
+      return false;
+    }
+    return existingAccounts.some(
+      (r) => r.account?.number === rawInitialValues.accountNumber
+    );
+  }, [
+    rawInitialValues,
+    linkAccountStepOptions?.allowMultipleAccounts,
+    existingAccounts,
+  ]);
+
+  const effectiveInitialValues = isDuplicateAccount ? {} : rawInitialValues;
+
+  /** When duplicate detected, fall back to editable mode regardless of host config. */
+  const effectiveCompletionMode = isDuplicateAccount
+    ? 'editable'
+    : linkAccountStepOptions?.completionMode;
+
   const linkAcknowledgementItems =
     linkAccountStepOptions?.reviewAcknowledgements;
 
@@ -178,7 +207,7 @@ export const LinkAccountScreen = () => {
     setAcknowledgementChecked(
       Object.fromEntries(linkAcknowledgementItems.map((a) => [a.id, false]))
     );
-  }, [linkAccountStepOptions?.completionMode, linkAckIdsKey]);
+  }, [effectiveCompletionMode, linkAckIdsKey]);
 
   const acknowledgementsComplete =
     !linkAcknowledgementItems?.length ||
@@ -227,8 +256,15 @@ export const LinkAccountScreen = () => {
       if (linkAccountStepOptions?.allowMultipleAccounts) {
         setLinkedCount((c) => c + 1);
         setShowAddForm(false);
-        setShowLinkAnother(true);
         reset();
+        // Refetch recipients so newly created account appears in the list
+        invalidateRecipientQueries(queryClient, 'LINKED_ACCOUNT');
+        // When existing accounts are present, return directly to the accounts
+        // list (the new account will appear after refetch). Only show the
+        // "Link another / Done" prompt when this was the first account linked.
+        if (existingAccounts.length === 0) {
+          setShowLinkAnother(true);
+        }
       } else {
         updateSessionData({ linkAccountJustCreated: true });
         goTo('overview', { resetHistory: true });
@@ -236,24 +272,35 @@ export const LinkAccountScreen = () => {
     },
   });
 
-  const config = {
-    ...linkedAccountConfigWithOverride,
-    content: {
-      ...linkedAccountConfigWithOverride.content,
-      submitButtonText: t('screens.linkAccount.submitButton', 'Link Account'),
-      cancelButtonText: t('common:cancel', 'Cancel'),
-    },
-  };
+  const config = useMemo(
+    () => ({
+      ...linkedAccountConfigWithOverride,
+      content: {
+        ...linkedAccountConfigWithOverride.content,
+        submitButtonText: t('screens.linkAccount.submitButton', 'Link Account'),
+        cancelButtonText: t('common:cancel', 'Cancel'),
+      },
+      existingAccounts: linkAccountStepOptions?.allowMultipleAccounts
+        ? existingAccounts
+        : undefined,
+    }),
+    [
+      linkedAccountConfigWithOverride,
+      t,
+      linkAccountStepOptions?.allowMultipleAccounts,
+      existingAccounts,
+    ]
+  );
 
   const prefillSummaryFormData = useMemo(() => {
-    if (linkAccountStepOptions?.completionMode !== 'prefillSummary') {
+    if (effectiveCompletionMode !== 'prefillSummary') {
       return null;
     }
     return mergeBankAccountDefaultValues(
       LINK_ACCOUNT_PREFILL_MERGE_BASE,
       effectiveInitialValues
     );
-  }, [linkAccountStepOptions, effectiveInitialValues]);
+  }, [effectiveCompletionMode, effectiveInitialValues]);
 
   useEffect(() => {
     setPrefillCertifyChecked(false);
@@ -262,7 +309,7 @@ export const LinkAccountScreen = () => {
   useEffect(() => {
     if (
       !prefillSummaryFormData ||
-      linkAccountStepOptions?.completionMode !== 'prefillSummary'
+      effectiveCompletionMode !== 'prefillSummary'
     ) {
       return undefined;
     }
@@ -276,7 +323,7 @@ export const LinkAccountScreen = () => {
   }, [
     acknowledgementChecked,
     bankFormConfigForPrefill.requiredFields.certification,
-    linkAccountStepOptions?.completionMode,
+    effectiveCompletionMode,
     prefillCertifyChecked,
     prefillSummaryFormData,
     setFlowUnsavedChanges,
@@ -286,11 +333,11 @@ export const LinkAccountScreen = () => {
     useMemo((): RoutingInformationTransactionType[] => {
       if (
         !prefillSummaryFormData ||
-        linkAccountStepOptions?.completionMode !== 'prefillSummary'
+        effectiveCompletionMode !== 'prefillSummary'
       ) {
         return [];
       }
-      const explicit = linkAccountStepOptions.summaryDisplayedPaymentTypes;
+      const explicit = linkAccountStepOptions?.summaryDisplayedPaymentTypes;
       if (explicit?.length) {
         return [...explicit];
       }
@@ -332,9 +379,7 @@ export const LinkAccountScreen = () => {
   }, [updateSessionData, goTo]);
 
   const defaultValuesOverride =
-    linkAccountStepOptions?.completionMode === 'editable'
-      ? effectiveInitialValues
-      : undefined;
+    effectiveCompletionMode === 'editable' ? effectiveInitialValues : undefined;
 
   const errorAlert = formError ? (
     <ServerErrorAlert
@@ -562,10 +607,7 @@ export const LinkAccountScreen = () => {
   }
 
   // Host prefill: single-page read-only bank summary + acknowledgements + submit
-  if (
-    prefillSummaryFormData &&
-    linkAccountStepOptions?.completionMode === 'prefillSummary'
-  ) {
+  if (prefillSummaryFormData && effectiveCompletionMode === 'prefillSummary') {
     return (
       <LinkAccountPrefillSummaryView
         title={t('screens.linkAccount.title', 'Link a bank account')}

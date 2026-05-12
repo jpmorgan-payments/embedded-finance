@@ -812,7 +812,7 @@ describe('LinkAccountScreen', () => {
           firstName: 'New',
           lastName: 'Account',
           routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
-          accountNumber: '12345678901234567',
+          accountNumber: '99988877766655544',
           bankAccountType: 'CHECKING',
           paymentTypes: ['ACH'],
           certify: false,

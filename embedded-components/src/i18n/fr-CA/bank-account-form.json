@@ -143,7 +143,8 @@
       "placeholder": "Entrer le numéro de compte",
       "validation": {
         "required": "Le numéro de compte est requis",
-        "digitsOnly": "Le numéro de compte doit contenir uniquement des chiffres"
+        "digitsOnly": "Le numéro de compte doit contenir uniquement des chiffres",
+        "duplicate": "Un compte avec ce numéro de compte et numéro de routage est déjà lié"
       }
     },
     "accountType": {

@@ -175,10 +175,12 @@ export function useRecipientForm({
       if (clientId) {
         createPayload.clientId = clientId;
       }
-      // When partyId is provided, use it instead of partyDetails
-      // so the API links the account to an existing party.
-      if (partyId) {
-        createPayload.partyId = partyId;
+      // When partyId is provided (explicitly or from form party selection),
+      // use it instead of partyDetails so the API links the account to an
+      // existing party rather than creating one.
+      const resolvedPartyId = partyId ?? data.selectedPartyId;
+      if (resolvedPartyId) {
+        createPayload.partyId = resolvedPartyId;
         delete createPayload.partyDetails;
       }
       createMutation.mutate({ data: createPayload });

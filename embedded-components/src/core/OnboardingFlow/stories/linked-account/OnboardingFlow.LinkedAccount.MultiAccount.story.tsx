@@ -10,9 +10,12 @@
  * to jump directly into the link step, similar to the Enabled Statuses stories.
  */
 
+import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
 import { db } from '@/msw/db';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
+
+import type { ListRecipientsResponse } from '@/api/generated/ep-recipients.schemas';
 
 import type { BaseStoryArgs } from '../../../../../.storybook/preview';
 import type { OnboardingFlowProps } from '../../types/onboarding.types';
@@ -33,6 +36,35 @@ import {
 
 type OnboardingFlowStoryArgs = OnboardingFlowProps & BaseStoryArgs;
 
+/**
+ * Resolve partyDetails from client mock data when only partyId is provided.
+ * Emulates real API behaviour: when the caller sends `partyId` the server
+ * looks up the existing party and populates `partyDetails` on the response.
+ */
+function resolvePartyDetails(
+  partyId: string | undefined,
+  fallback: Record<string, unknown>
+): Record<string, unknown> {
+  if (!partyId) return fallback;
+  const party = efClientCorpEBMock.parties?.find((p) => p.id === partyId);
+  if (!party) return fallback;
+
+  if (party.partyType === 'INDIVIDUAL' && party.individualDetails) {
+    return {
+      type: 'INDIVIDUAL',
+      firstName: party.individualDetails.firstName,
+      lastName: party.individualDetails.lastName,
+    };
+  }
+  if (party.partyType === 'ORGANIZATION' && party.organizationDetails) {
+    return {
+      type: 'ORGANIZATION',
+      businessName: party.organizationDetails.organizationName,
+    };
+  }
+  return fallback;
+}
+
 /** POST /recipients handler that always succeeds (for submit demos). */
 const onboardingLinkAccountPostHandler = http.post(
   '/recipients',
@@ -44,13 +76,80 @@ const onboardingLinkAccountPostHandler = http.post(
       type: (body.type as string) || 'LINKED_ACCOUNT',
       status: 'MICRODEPOSITS_INITIATED',
       clientId: body.clientId as string | undefined,
-      partyDetails: body.partyDetails || {},
+      partyDetails: resolvePartyDetails(
+        body.partyId as string | undefined,
+        (body.partyDetails as Record<string, unknown>) || {}
+      ),
       account: body.account || {},
       createdAt: timestamp,
       updatedAt: timestamp,
       verificationAttempts: 0,
     };
     return HttpResponse.json(newRecipient, { status: 201 });
+  }
+);
+
+/**
+ * Stateful POST /recipients handler — persists to MSW db with ACTIVE status
+ * so the new account appears immediately in the existing accounts list.
+ */
+const statefulLinkAccountPostHandler = http.post(
+  '/recipients',
+  async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const account = (body.account as Record<string, unknown>) || {};
+    const partyDetails = resolvePartyDetails(
+      body.partyId as string | undefined,
+      (body.partyDetails as Record<string, unknown>) || {}
+    );
+    const timestamp = new Date().toISOString();
+
+    const newRecipient = db.recipient.create({
+      id: `la-multi-${Date.now()}`,
+      type: (body.type as string) || 'LINKED_ACCOUNT',
+      status: 'ACTIVE',
+      clientId: (body.clientId as string) ?? DEFAULT_CLIENT_ID,
+      partyDetails,
+      account,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      verificationAttempts: 0,
+    });
+
+    return HttpResponse.json(newRecipient, { status: 201 });
+  }
+);
+
+/**
+ * Stateful GET /recipients handler — reads from MSW db so newly created
+ * accounts appear on refetch without a page reload.
+ */
+const statefulGetRecipientsHandler = http.get(
+  '/recipients',
+  async ({ request }) => {
+    const url = new URL(request.url);
+    const typeFilter = url.searchParams.get('type');
+    const statusFilter = url.searchParams.get('status');
+
+    let recipients = db.recipient.getAll();
+
+    if (statusFilter) {
+      recipients = recipients.filter((r) => r.status === statusFilter);
+    } else {
+      recipients = recipients.filter(
+        (r) => r.status !== 'INACTIVE' && r.status !== 'REJECTED'
+      );
+    }
+
+    if (typeFilter) {
+      recipients = recipients.filter((r) => r.type === typeFilter);
+    }
+
+    const response: ListRecipientsResponse = {
+      recipients: recipients as ListRecipientsResponse['recipients'],
+      metadata: { total_items: recipients.length },
+    };
+    return HttpResponse.json(response);
   }
 );
 
@@ -371,11 +470,11 @@ export const ExistingAccountsWithAddMore: Story = {
   parameters: {
     msw: {
       handlers: [
-        onboardingLinkAccountPostHandler,
+        statefulLinkAccountPostHandler,
+        statefulGetRecipientsHandler,
         ...createOnboardingFlowHandlers({
           client: mockClientApproved,
           clientId: DEFAULT_CLIENT_ID,
-          existingLinkedAccounts: [mockExistingLinkedAccount],
         }),
       ],
     },
@@ -434,11 +533,11 @@ export const ExistingAccountsDetailed: Story = {
   parameters: {
     msw: {
       handlers: [
-        onboardingLinkAccountPostHandler,
+        statefulLinkAccountPostHandler,
+        statefulGetRecipientsHandler,
         ...createOnboardingFlowHandlers({
           client: mockClientApproved,
           clientId: DEFAULT_CLIENT_ID,
-          existingLinkedAccounts: [mockExistingLinkedAccount],
         }),
       ],
     },
@@ -459,6 +558,135 @@ export const ExistingAccountsDetailed: Story = {
       allowMultipleAccounts: true,
       existingAccountsDisplay: 'detailed',
       initialValues: mockLinkAccountPrefillReadonly,
+    },
+  },
+};
+
+/**
+ * **9. Free-entry multi-account (editable, existing account)**
+ *
+ * `allowMultipleAccounts` with `completionMode: 'editable'` and empty `initialValues`.
+ * One existing linked account is seeded. The user sees the existing account card,
+ * clicks "Add account", then fills in all bank details from scratch.
+ */
+export const FreeEntryMultiAccount: Story = {
+  name: '9. Free-entry multi-account (editable)',
+  loaders: [
+    async () => {
+      resetAndSeedClient(mockClientApproved, DEFAULT_CLIENT_ID);
+      db.recipient.create({
+        id: mockExistingLinkedAccount.id,
+        type: mockExistingLinkedAccount.type ?? 'LINKED_ACCOUNT',
+        status: mockExistingLinkedAccount.status ?? 'ACTIVE',
+        clientId: mockExistingLinkedAccount.clientId ?? DEFAULT_CLIENT_ID,
+        partyDetails: mockExistingLinkedAccount.partyDetails ?? {},
+        account: mockExistingLinkedAccount.account ?? {},
+        createdAt:
+          mockExistingLinkedAccount.createdAt ?? new Date().toISOString(),
+        updatedAt:
+          mockExistingLinkedAccount.updatedAt ??
+          mockExistingLinkedAccount.createdAt ??
+          new Date().toISOString(),
+        verificationAttempts: 0,
+      });
+      return {};
+    },
+  ],
+  parameters: {
+    msw: {
+      handlers: [
+        statefulLinkAccountPostHandler,
+        statefulGetRecipientsHandler,
+        ...createOnboardingFlowHandlers({
+          client: mockClientApproved,
+          clientId: DEFAULT_CLIENT_ID,
+        }),
+      ],
+    },
+    docs: {
+      description: {
+        story:
+          'One existing account shown as a detailed card. Click "Add account" to reveal a blank editable form. User enters all bank details manually and can link multiple accounts in sequence.',
+      },
+    },
+  },
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    showLinkAccountStep: true,
+    flowEntry: { screenId: 'link-account' },
+    linkAccountStepOptions: {
+      completionMode: 'editable',
+      allowMultipleAccounts: true,
+      initialValues: {},
+    },
+  },
+};
+
+/**
+ * **10. Free-entry multi-account with multiple payment methods (existing account)**
+ *
+ * Same as story 9 but with `bankFormConfigOverride` enabling ACH + WIRE + RTP
+ * multi-select. One existing account is seeded. Demonstrates expanded payment
+ * method availability combined with `allowMultipleAccounts`.
+ */
+export const FreeEntryMultiAccountMultiPayment: Story = {
+  name: '10. Free-entry multi-account + ACH/WIRE/RTP',
+  loaders: [
+    async () => {
+      resetAndSeedClient(mockClientApproved, DEFAULT_CLIENT_ID);
+      db.recipient.create({
+        id: mockExistingLinkedAccount.id,
+        type: mockExistingLinkedAccount.type ?? 'LINKED_ACCOUNT',
+        status: mockExistingLinkedAccount.status ?? 'ACTIVE',
+        clientId: mockExistingLinkedAccount.clientId ?? DEFAULT_CLIENT_ID,
+        partyDetails: mockExistingLinkedAccount.partyDetails ?? {},
+        account: mockExistingLinkedAccount.account ?? {},
+        createdAt:
+          mockExistingLinkedAccount.createdAt ?? new Date().toISOString(),
+        updatedAt:
+          mockExistingLinkedAccount.updatedAt ??
+          mockExistingLinkedAccount.createdAt ??
+          new Date().toISOString(),
+        verificationAttempts: 0,
+      });
+      return {};
+    },
+  ],
+  parameters: {
+    msw: {
+      handlers: [
+        statefulLinkAccountPostHandler,
+        statefulGetRecipientsHandler,
+        ...createOnboardingFlowHandlers({
+          client: mockClientApproved,
+          clientId: DEFAULT_CLIENT_ID,
+        }),
+      ],
+    },
+    docs: {
+      description: {
+        story:
+          'One existing account shown as a detailed card. Click "Add account" to reveal a blank editable form with ACH + WIRE + RTP multi-select enabled via `bankFormConfigOverride`.',
+      },
+    },
+  },
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    showLinkAccountStep: true,
+    flowEntry: { screenId: 'link-account' },
+    linkAccountStepOptions: {
+      completionMode: 'editable',
+      allowMultipleAccounts: true,
+      initialValues: {},
+      bankFormConfigOverride: {
+        paymentMethods: {
+          available: ['ACH', 'WIRE', 'RTP'],
+          allowMultiple: true,
+          defaultSelected: ['ACH'],
+        },
+      },
     },
   },
 };

@@ -169,7 +169,25 @@ export interface BankAccountFormConfig {
       paymentMethod: RoutingInformationTransactionType
     ) => boolean | string;
   };
+
+  /**
+   * Existing linked accounts used for duplicate detection.
+   * When provided, the form validates that the entered account number + routing
+   * number combination does not already exist among these recipients.
+   */
+  existingAccounts?: Recipient[];
 }
+
+/**
+ * Deep-partial override type for {@link BankAccountFormConfig}.
+ * Makes `paymentMethods` sub-fields optional so callers can override
+ * individual keys (e.g. `available`, `allowMultiple`) without providing `configs`.
+ */
+export type BankAccountFormConfigOverride = Partial<
+  Omit<BankAccountFormConfig, 'paymentMethods'> & {
+    paymentMethods?: Partial<BankAccountFormConfig['paymentMethods']>;
+  }
+>;
 
 /**
  * Props for the BankAccountForm component
@@ -282,4 +300,11 @@ export interface BankAccountFormData {
 
   // Certification
   certify?: boolean;
+
+  /**
+   * Party ID selected from the account-holder dropdown (individual selector)
+   * or auto-resolved from client data (organization). When present, the submit
+   * handler should send `partyId` instead of `partyDetails`.
+   */
+  selectedPartyId?: string;
 }
