@@ -597,7 +597,7 @@ describe('LinkAccountScreen', () => {
     expect(payload.businessName).toBe('Alpha Corp');
   });
 
-  test('allowMultipleAccounts shows "Link another account" button after success', async () => {
+  test('allowMultipleAccounts hides form after success (no confirmation screen)', async () => {
     let onSuccessCb: (() => void) | undefined;
 
     vi.mocked(useRecipientForm).mockImplementation((opts) => {
@@ -638,13 +638,13 @@ describe('LinkAccountScreen', () => {
     // Simulate successful submission by invoking the onSuccess callback
     onSuccessCb?.();
 
-    // After success, should show the "Link another account" button
+    // After success, the form should be hidden — no confirmation prompt
     await waitFor(() => {
       expect(
-        screen.getByTestId('link-another-account-btn')
-      ).toBeInTheDocument();
+        screen.queryByTestId('link-another-account-btn')
+      ).not.toBeInTheDocument();
     });
-    expect(screen.getByTestId('finish-linking-btn')).toBeInTheDocument();
+    expect(screen.queryByTestId('finish-linking-btn')).not.toBeInTheDocument();
   });
 
   test('allowMultipleAccounts: existing account does NOT redirect to overview', async () => {
@@ -841,55 +841,6 @@ describe('LinkAccountScreen', () => {
     ).not.toBeInTheDocument();
   });
 
-  test('Done button after multi-account success navigates to overview', async () => {
-    const user = userEvent.setup();
-    let onSuccessCb: (() => void) | undefined;
-
-    vi.mocked(useRecipientForm).mockImplementation((opts) => {
-      onSuccessCb = opts.onSuccess;
-      return {
-        submit: mockSubmit,
-        status: 'idle',
-        error: null,
-        reset: vi.fn(),
-        isPending: false,
-        isSuccess: false,
-        isError: false,
-      } as unknown as ReturnType<typeof useRecipientForm>;
-    });
-
-    renderWithProviders(<LinkAccountScreen />, {
-      ...baseOnboardingContext,
-      linkAccountStepOptions: {
-        completionMode: 'prefillSummary',
-        allowMultipleAccounts: true,
-        initialValues: {
-          accountType: 'INDIVIDUAL',
-          firstName: 'Taylor',
-          lastName: 'Morgan',
-          routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
-          accountNumber: '12345678901234567',
-          bankAccountType: 'CHECKING',
-          paymentTypes: ['ACH'],
-          certify: false,
-        },
-      },
-    });
-
-    expect(
-      await screen.findByRole('heading', { name: /Link a bank account/i })
-    ).toBeInTheDocument();
-
-    // Trigger success
-    onSuccessCb?.();
-
-    // Click "Done"
-    const doneBtn = await screen.findByTestId('finish-linking-btn');
-    await user.click(doneBtn);
-
-    expect(mockGoTo).toHaveBeenCalledWith('overview', { resetHistory: true });
-  });
-
   test('hideLinkedAccountRemoval with existing accounts renders without errors', async () => {
     vi.mocked(useGetAllRecipients).mockReturnValue({
       data: { recipients: [mockExistingRecipient] },
@@ -1028,5 +979,110 @@ describe('LinkAccountScreen', () => {
 
     // Count text should reflect both accounts
     expect(screen.getByText(/Linked accounts \(2\)/i)).toBeInTheDocument();
+  });
+
+  // ─── PartyId resolution at component level ──────────────────────────────────
+
+  test('no partyId provided: useRecipientForm called with partyId undefined', async () => {
+    renderWithProviders(<LinkAccountScreen />, {
+      ...baseOnboardingContext,
+      linkAccountStepOptions: {
+        completionMode: 'prefillSummary',
+        initialValues: {
+          accountType: 'INDIVIDUAL',
+          firstName: 'Taylor',
+          lastName: 'Morgan',
+          routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+          accountNumber: '12345678901234567',
+          bankAccountType: 'CHECKING',
+          paymentTypes: ['ACH'],
+          certify: false,
+        },
+      },
+    });
+
+    expect(
+      await screen.findByRole('heading', { name: /Link a bank account/i })
+    ).toBeInTheDocument();
+
+    // Without partyId in linkAccountStepOptions, hook should be called with undefined
+    expect(useRecipientForm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        partyId: undefined,
+        recipientType: 'LINKED_ACCOUNT',
+        mode: 'create',
+      })
+    );
+  });
+
+  test('top-level partyId used when no presets exist', async () => {
+    renderWithProviders(<LinkAccountScreen />, {
+      ...baseOnboardingContext,
+      linkAccountStepOptions: {
+        completionMode: 'prefillSummary',
+        partyId: 'top-level-only',
+        initialValues: {
+          accountType: 'INDIVIDUAL',
+          firstName: 'Taylor',
+          lastName: 'Morgan',
+          routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+          accountNumber: '12345678901234567',
+          bankAccountType: 'CHECKING',
+          paymentTypes: ['ACH'],
+          certify: false,
+        },
+      },
+    });
+
+    expect(
+      await screen.findByRole('heading', { name: /Link a bank account/i })
+    ).toBeInTheDocument();
+
+    expect(useRecipientForm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        partyId: 'top-level-only',
+      })
+    );
+  });
+
+  test('preset without partyId falls back to top-level partyId', async () => {
+    renderWithProviders(<LinkAccountScreen />, {
+      ...baseOnboardingContext,
+      linkAccountStepOptions: {
+        completionMode: 'prefillSummary',
+        partyId: 'top-level-fallback',
+        initialValues: {},
+        presetAccounts: [
+          {
+            id: 'preset-no-party',
+            label: 'No Party Preset',
+            // No partyId on preset
+            initialValues: {
+              accountType: 'INDIVIDUAL',
+              firstName: 'No',
+              lastName: 'Party',
+              routingNumbers: [
+                { paymentType: 'ACH', routingNumber: '021000021' },
+              ],
+              accountNumber: '33333333333333333',
+              bankAccountType: 'CHECKING',
+              paymentTypes: ['ACH'],
+              certify: false,
+            },
+          },
+        ],
+      },
+    });
+
+    expect(
+      await screen.findByRole('heading', { name: /Link a bank account/i })
+    ).toBeInTheDocument();
+
+    // Should fall back to top-level partyId since preset doesn't have one
+    expect(useRecipientForm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        partyId: 'top-level-fallback',
+      })
+    );
   });
 });

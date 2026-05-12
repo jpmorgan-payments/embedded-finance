@@ -65,32 +65,7 @@ function resolvePartyDetails(
   return fallback;
 }
 
-/** POST /recipients handler that always succeeds (for submit demos). */
-const onboardingLinkAccountPostHandler = http.post(
-  '/recipients',
-  async ({ request }) => {
-    const body = (await request.json()) as Record<string, unknown>;
-    const timestamp = new Date().toISOString();
-    const newRecipient = {
-      id: `la-multi-${Date.now()}`,
-      type: (body.type as string) || 'LINKED_ACCOUNT',
-      status: 'MICRODEPOSITS_INITIATED',
-      clientId: body.clientId as string | undefined,
-      partyDetails: resolvePartyDetails(
-        body.partyId as string | undefined,
-        (body.partyDetails as Record<string, unknown>) || {}
-      ),
-      account: body.account || {},
-      createdAt: timestamp,
-      updatedAt: timestamp,
-      verificationAttempts: 0,
-    };
-    return HttpResponse.json(newRecipient, { status: 201 });
-  }
-);
-
-/**
- * Stateful POST /recipients handler — persists to MSW db with ACTIVE status
+/** POST /recipients handler — persists to MSW db with ACTIVE status
  * so the new account appears immediately in the existing accounts list.
  */
 const statefulLinkAccountPostHandler = http.post(
@@ -116,7 +91,13 @@ const statefulLinkAccountPostHandler = http.post(
       verificationAttempts: 0,
     });
 
-    return HttpResponse.json(newRecipient, { status: 201 });
+    return HttpResponse.json(
+      {
+        ...newRecipient,
+        ...(body.partyId ? { partyId: body.partyId } : {}),
+      },
+      { status: 201 }
+    );
   }
 );
 
@@ -190,7 +171,8 @@ export const WithPartyId: Story = {
   parameters: {
     msw: {
       handlers: [
-        onboardingLinkAccountPostHandler,
+        statefulLinkAccountPostHandler,
+        statefulGetRecipientsHandler,
         ...createOnboardingFlowHandlers({
           client: mockClientApproved,
           clientId: DEFAULT_CLIENT_ID,
@@ -234,7 +216,8 @@ export const PresetAccountsEditable: Story = {
   parameters: {
     msw: {
       handlers: [
-        onboardingLinkAccountPostHandler,
+        statefulLinkAccountPostHandler,
+        statefulGetRecipientsHandler,
         ...createOnboardingFlowHandlers({
           client: mockClientApproved,
           clientId: DEFAULT_CLIENT_ID,
@@ -278,7 +261,8 @@ export const PresetAccountsPrefillSummary: Story = {
   parameters: {
     msw: {
       handlers: [
-        onboardingLinkAccountPostHandler,
+        statefulLinkAccountPostHandler,
+        statefulGetRecipientsHandler,
         ...createOnboardingFlowHandlers({
           client: mockClientApproved,
           clientId: DEFAULT_CLIENT_ID,
@@ -321,7 +305,8 @@ export const PresetAccountsThree: Story = {
   parameters: {
     msw: {
       handlers: [
-        onboardingLinkAccountPostHandler,
+        statefulLinkAccountPostHandler,
+        statefulGetRecipientsHandler,
         ...createOnboardingFlowHandlers({
           client: mockClientApproved,
           clientId: DEFAULT_CLIENT_ID,
@@ -365,7 +350,8 @@ export const AllowMultipleAccounts: Story = {
   parameters: {
     msw: {
       handlers: [
-        onboardingLinkAccountPostHandler,
+        statefulLinkAccountPostHandler,
+        statefulGetRecipientsHandler,
         ...createOnboardingFlowHandlers({
           client: mockClientApproved,
           clientId: DEFAULT_CLIENT_ID,
@@ -408,7 +394,8 @@ export const PresetAccountsWithMultiple: Story = {
   parameters: {
     msw: {
       handlers: [
-        onboardingLinkAccountPostHandler,
+        statefulLinkAccountPostHandler,
+        statefulGetRecipientsHandler,
         ...createOnboardingFlowHandlers({
           client: mockClientApproved,
           clientId: DEFAULT_CLIENT_ID,

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -93,10 +93,7 @@ export const LinkAccountScreen = () => {
     () => presetAccounts?.[0]?.id
   );
 
-  // Track linked-then-continue flow (allowMultipleAccounts)
-  const [linkedCount, setLinkedCount] = useState(0);
-  const [showLinkAnother, setShowLinkAnother] = useState(false);
-  // When existing accounts present + allowMultipleAccounts, hide form until user clicks "Link another"
+  // When existing accounts present + allowMultipleAccounts, hide form until user clicks "Add account"
   const [showAddForm, setShowAddForm] = useState(false);
 
   const selectedPreset: LinkAccountPresetEntry | undefined = useMemo(() => {
@@ -254,17 +251,10 @@ export const LinkAccountScreen = () => {
     partyId: effectivePartyId,
     onSuccess: () => {
       if (linkAccountStepOptions?.allowMultipleAccounts) {
-        setLinkedCount((c) => c + 1);
         setShowAddForm(false);
         reset();
         // Refetch recipients so newly created account appears in the list
         invalidateRecipientQueries(queryClient, 'LINKED_ACCOUNT');
-        // When existing accounts are present, return directly to the accounts
-        // list (the new account will appear after refetch). Only show the
-        // "Link another / Done" prompt when this was the first account linked.
-        if (existingAccounts.length === 0) {
-          setShowLinkAnother(true);
-        }
       } else {
         updateSessionData({ linkAccountJustCreated: true });
         goTo('overview', { resetHistory: true });
@@ -357,27 +347,6 @@ export const LinkAccountScreen = () => {
     goTo('overview', { resetHistory: true });
   };
 
-  const handleLinkAnother = useCallback(() => {
-    setShowLinkAnother(false);
-    setShowAddForm(true);
-    reset();
-    // If presets, advance to next unlinked preset or stay on current
-    if (presetAccounts?.length) {
-      const currentIdx = presetAccounts.findIndex(
-        (p) => p.id === selectedPresetId
-      );
-      const nextPreset = presetAccounts[currentIdx + 1];
-      if (nextPreset) {
-        setSelectedPresetId(nextPreset.id);
-      }
-    }
-  }, [presetAccounts, selectedPresetId, reset]);
-
-  const handleFinishLinking = useCallback(() => {
-    updateSessionData({ linkAccountJustCreated: true });
-    goTo('overview', { resetHistory: true });
-  }, [updateSessionData, goTo]);
-
   const defaultValuesOverride =
     effectiveCompletionMode === 'editable' ? effectiveInitialValues : undefined;
 
@@ -439,49 +408,6 @@ export const LinkAccountScreen = () => {
       <StepLayout title={t('screens.linkAccount.title', 'Link a bank account')}>
         <div className="eb-mt-6 eb-space-y-4">
           <Skeleton className="eb-h-32 eb-w-full eb-rounded-lg" />
-        </div>
-      </StepLayout>
-    );
-  }
-
-  // ─── Success state: "Link another account" prompt (allowMultipleAccounts) ───
-  if (showLinkAnother) {
-    return (
-      <StepLayout
-        title={t('screens.linkAccount.title', 'Link a bank account')}
-        description={t(
-          'screens.linkAccount.multiAccount.successDescription',
-          'Account linked successfully. You can link another account or return to overview.'
-        )}
-      >
-        <div className="eb-mt-6 eb-flex eb-flex-col eb-items-start eb-gap-3">
-          <p className="eb-text-sm eb-text-muted-foreground">
-            {t(
-              'screens.linkAccount.multiAccount.linkedCount',
-              '{{count}} account(s) linked in this session.',
-              { count: linkedCount }
-            )}
-          </p>
-          <div className="eb-flex eb-gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleLinkAnother}
-              data-testid="link-another-account-btn"
-            >
-              {t(
-                'screens.linkAccount.multiAccount.linkAnother',
-                'Link another account'
-              )}
-            </Button>
-            <Button
-              type="button"
-              onClick={handleFinishLinking}
-              data-testid="finish-linking-btn"
-            >
-              {t('screens.linkAccount.multiAccount.done', 'Done')}
-            </Button>
-          </div>
         </div>
       </StepLayout>
     );
