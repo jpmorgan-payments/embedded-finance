@@ -97,7 +97,8 @@ Each journey is tracked with:
 ## Hiding Remove / unlink on Overview
 
 Pass **`hideLinkedAccountRemoval`** on `OnboardingFlow` to hide the **Remove** control on the **Overview**
-linked-bank-account summary card (next to View details).
+linked-bank-account summary card (next to View details). When `allowMultipleAccounts` is enabled,
+the same flag hides Remove on existing-account cards rendered on the **Link bank account** step.
 
 This prop does **not** apply to **`LinkedAccountWidget`**. For the standalone widget — card menus and table
 row actions — pass **`hideRemoveRecipient`** on `LinkedAccountWidget` instead. The two flags address different
@@ -106,6 +107,23 @@ and you want unlink hidden everywhere.
 
 See also: **`RecipientWidgets/LinkedAccountWidget/README.md`**, repository **`docs/component-implementation.md`**
 (section _Linked accounts: hiding Remove_), and **Storybook** → Core → LinkedAccountWidget → Host configuration.
+
+## Link account step options (`linkAccountStepOptions`)
+
+Pre-populate and configure the **Link bank account** step via `linkAccountStepOptions` on `OnboardingFlow`.
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `initialValues` | `Partial<BankAccountFormData>` | — | Default form values (partial for `editable`, full for `prefillSummary`). |
+| `completionMode` | `'editable' \| 'prefillSummary'` | — | `editable` = full two-step form; `prefillSummary` = read-only summary + confirm. |
+| `partyId` | `string` | — | Link to an existing party instead of creating one from form fields. |
+| `presetAccounts` | `LinkAccountPresetEntry[]` | — | Multiple preset accounts; renders a dropdown selector. Each entry may have its own `partyId` and `initialValues`. Preset `partyId` takes precedence over top-level `partyId`. |
+| `allowMultipleAccounts` | `boolean` | `false` | After linking, show "Link another account" instead of redirecting to Overview. Existing accounts display as cards above the form. |
+| `existingAccountsDisplay` | `'compact' \| 'detailed'` | `'detailed'` | Card style for existing accounts when `allowMultipleAccounts` is true. `detailed` shows status alerts, Verify action, and full action menus (same as LinkedAccountWidget). |
+| `reviewAcknowledgements` | `LinkAccountReviewAcknowledgement[]` | — | Agreement checkboxes required before submit (both modes). |
+| `showAcknowledgementsIntro` | `boolean` | `false` | Show lead-in text above acknowledgement checkboxes. |
+| `bankFormConfigOverride` | `Partial<BankAccountFormConfig>` | — | Override linked-account form config (payment methods, field visibility). |
+| `summaryDisplayedPaymentTypes` | `RoutingInformationTransactionType[]` | `initialValues.paymentTypes` or `['ACH']` | Payment types shown in prefill summary strip. |
 
 ## Testing
 
