@@ -204,7 +204,6 @@ Hosts sometimes need to disable unlink **Remove** in the UI while keeping the re
 | Surface | Component | Prop |
 | ------- | --------- | ---- |
 | **Onboarding → Overview** linked-account row | `OnboardingFlow` | `hideLinkedAccountRemoval` |
-| **Onboarding → Link step** existing-account cards (when `allowMultipleAccounts`) | `OnboardingFlow` | `hideLinkedAccountRemoval` (same prop, propagated to `RecipientCard`) |
 | **Standalone widget** — recipient cards & table actions | `LinkedAccountWidget` / `RecipientsWidget` | `hideRemoveRecipient` (via internal `BaseRecipientsWidget`) |
 
 **They do not contradict each other:** different props on different components. If your application renders **both**

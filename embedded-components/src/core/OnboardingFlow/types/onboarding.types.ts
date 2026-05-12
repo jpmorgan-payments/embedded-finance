@@ -57,31 +57,6 @@ export type Jurisdiction = 'US' | 'CA';
 export type LinkAccountInitialValues = Partial<BankAccountFormData>;
 
 /**
- * A preset linked-account entry with party identification and bank details.
- * Used when hosts supply multiple accounts via {@link LinkAccountStepOptions.presetAccounts}.
- *
- * Each preset identifies the party either by `partyId` (server-known) or inline
- * `partyDetails`. When both are provided, `partyId` takes precedence at submission.
- */
-export type LinkAccountPresetEntry = {
-  /** Unique key for this preset (used as React key and for selection tracking). */
-  id: string;
-  /**
-   * Human-readable label shown in the account selector dropdown.
-   * Falls back to party name or "Account {index}" when omitted.
-   */
-  label?: string;
-  /**
-   * Existing party ID to associate with this linked account.
-   * When provided, the API links the account to this party rather than
-   * creating a new one from `initialValues` party fields.
-   */
-  partyId?: string;
-  /** Initial values (partial or full) to pre-populate the form for this preset. */
-  initialValues: LinkAccountInitialValues;
-};
-
-/**
  * - **`editable`** — Full `BankAccountForm` two-step wizard; optional `initialValues` prefill.
  * - **`prefillSummary`** — Single page via `LinkAccountPrefillSummaryView` (disabled fields + payment strip; shares config/i18n with the form, not the full form tree).
  */
@@ -113,43 +88,6 @@ export type LinkAccountStepOptions = {
    * `paymentMethods.available` / `allowMultiple` sets; production onboarding typically omits this.
    */
   bankFormConfigOverride?: Partial<BankAccountFormConfig>;
-  /**
-   * Existing party ID to associate with the linked account.
-   * When provided, the API links the account to this party rather than
-   * deriving party details from `initialValues`. Takes precedence over party
-   * fields in `initialValues`.
-   */
-  partyId?: string;
-  /**
-   * Multiple preset accounts for the user to choose from via a select dropdown.
-   * Each entry can identify the party via `partyId` or inline party fields.
-   * When provided, the link-account step renders an account selector before
-   * showing the form/summary for the selected preset.
-   *
-   * **Backward-compatible:** when omitted, the existing single-account
-   * (`initialValues` + `completionMode`) flow is unchanged.
-   */
-  presetAccounts?: readonly LinkAccountPresetEntry[];
-  /**
-   * Allow creation of multiple linked accounts sequentially.
-   * When `true`, after successfully linking an account the UI offers a
-   * "Link another account" action instead of immediately returning to Overview.
-   * Aligned with `LinkedAccountWidget` `mode: 'list'` behavior.
-   *
-   * @default false
-   */
-  allowMultipleAccounts?: boolean;
-  /**
-   * How existing linked accounts are displayed when `allowMultipleAccounts` is true.
-   *
-   * - `'compact'` — minimal card showing account info only (overflow menu with View Details / Edit / Remove).
-   * - `'detailed'` — full card with status alerts, Verify action, View Details dialog, and Remove action.
-   *
-   * Applies regardless of the number of existing accounts (one or many).
-   *
-   * @default 'detailed'
-   */
-  existingAccountsDisplay?: 'compact' | 'detailed';
 };
 
 /**

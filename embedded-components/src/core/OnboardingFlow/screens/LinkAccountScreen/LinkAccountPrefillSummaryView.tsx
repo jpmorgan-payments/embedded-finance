@@ -26,8 +26,6 @@ import { LinkAccountAcknowledgementsGroup } from '@/core/RecipientWidgets/compon
 export type LinkAccountPrefillSummaryViewProps = {
   title: ReactNode;
   description?: ReactNode;
-  /** Optional pre-selector element (e.g. account preset dropdown) rendered above the summary. */
-  preSelector?: ReactNode;
   data: BankAccountFormData;
   /** Methods shown in the read-only strip (e.g. ACH); selection comes from `data.paymentTypes`. */
   displayedPaymentTypes: readonly RoutingInformationTransactionType[];
@@ -82,7 +80,6 @@ function achRoutingNumber(data: BankAccountFormData): string {
 export function LinkAccountPrefillSummaryView({
   title,
   description,
-  preSelector,
   data,
   displayedPaymentTypes,
   bankFormConfig,
@@ -117,7 +114,6 @@ export function LinkAccountPrefillSummaryView({
   return (
     <StepLayout title={title} description={description}>
       <div className="eb-mt-6 eb-space-y-6">
-        {preSelector}
         {errorAlert}
 
         <div className="eb-space-y-2">
