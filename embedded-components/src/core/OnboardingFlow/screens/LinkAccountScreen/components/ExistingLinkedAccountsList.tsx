@@ -50,6 +50,7 @@ export function ExistingLinkedAccountsList({
             }}
             recipientType="LINKED_ACCOUNT"
             i18nNamespace="linked-accounts"
+            allowDetailedPaymentMethods={false}
           />
         ))}
       </div>

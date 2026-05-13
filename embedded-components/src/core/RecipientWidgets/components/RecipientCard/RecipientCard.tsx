@@ -114,6 +114,25 @@ export interface RecipientCardProps {
    * @default 3
    */
   headingLevel?: HeadingLevel;
+
+  /**
+   * Show/hide the account number reveal toggle.
+   * @default true
+   */
+  showAccountToggle?: boolean;
+
+  /**
+   * Show/hide the payment methods section in non-compact mode.
+   * @default true
+   */
+  showPaymentMethods?: boolean;
+
+  /**
+   * Allow expanding payment methods to show detailed routing numbers.
+   * When false, only payment method badges are shown.
+   * @default true
+   */
+  allowDetailedPaymentMethods?: boolean;
 }
 
 /**
@@ -137,6 +156,9 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
   recipientType = 'LINKED_ACCOUNT',
   headingLevel = 3,
   hideRemoveRecipient = false,
+  showAccountToggle,
+  showPaymentMethods,
+  allowDetailedPaymentMethods,
 }) => {
   const { t, tString } = useTranslationWithTokens(i18nNamespace);
 
@@ -513,6 +535,9 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
       compact={compact}
       className={className}
       headingLevel={headingLevel}
+      showAccountToggle={showAccountToggle}
+      showPaymentMethods={showPaymentMethods}
+      allowDetailedPaymentMethods={allowDetailedPaymentMethods}
     />
   );
 };

@@ -114,15 +114,19 @@ describe('RecipientAccountDisplayCard', () => {
     const user = userEvent.setup();
     render(<RecipientAccountDisplayCard recipient={mockRecipient} />);
 
-    // Click expand button
-    const expandButton = screen.getByRole('button', {
-      name: /expand payment methods details/i,
-    });
-    await user.click(expandButton);
-
-    // Should show routing numbers
+    // Routing numbers visible by default
     expect(screen.getByText('123456789')).toBeInTheDocument();
     expect(screen.getByText('987654321')).toBeInTheDocument();
+
+    // Click collapse button to hide them
+    const collapseButton = screen.getByRole('button', {
+      name: /collapse payment methods details/i,
+    });
+    await user.click(collapseButton);
+
+    // Should no longer show routing numbers
+    expect(screen.queryByText('123456789')).not.toBeInTheDocument();
+    expect(screen.queryByText('987654321')).not.toBeInTheDocument();
   });
 
   it('should render header content when provided', () => {
@@ -181,7 +185,8 @@ describe('RecipientAccountDisplayCard', () => {
       />
     );
 
-    expect(screen.getByText(/add routing/i)).toBeInTheDocument();
+    // Starts expanded by default, so shows expanded label
+    expect(screen.getByText(/expanded button/i)).toBeInTheDocument();
   });
 
   it('should apply custom className', () => {
