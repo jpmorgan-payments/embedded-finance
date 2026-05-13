@@ -3,70 +3,37 @@ import { useTranslationWithTokens } from '@/i18n';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
-import type {
-  Recipient,
-  RoutingInformationTransactionType,
-} from '@/api/generated/ep-recipients.schemas';
+import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
 import { StepLayout } from '@/core/OnboardingFlow/components';
 import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
-import type { LinkAccountPresetEntry } from '@/core/OnboardingFlow/types/onboarding.types';
 import {
   BankAccountForm,
-  createCustomConfig,
-  mergeBankAccountDefaultValues,
-  useLinkedAccountConfig,
   type BankAccountFormData,
 } from '@/core/RecipientWidgets/components/BankAccountForm';
-import { RecipientCard } from '@/core/RecipientWidgets/components/RecipientCard/RecipientCard';
 import { useRecipientForm } from '@/core/RecipientWidgets/hooks/useRecipientForm';
 import { invalidateRecipientQueries } from '@/core/RecipientWidgets/utils/invalidateRecipientQueries';
 
+import { ExistingLinkedAccountsList } from './components/ExistingLinkedAccountsList';
+import { LinkAccountErrorAlert } from './components/LinkAccountErrorAlert';
+import { LinkAccountPresetSelector } from './components/LinkAccountPresetSelector';
+import { useLinkAccountAcknowledgements } from './hooks/useLinkAccountAcknowledgements';
+import { useLinkAccountFormConfig } from './hooks/useLinkAccountFormConfig';
+import { useLinkAccountPreset } from './hooks/useLinkAccountPreset';
 import { LinkAccountPrefillSummaryView } from './LinkAccountPrefillSummaryView';
-
-/** Fallback base merged with host `initialValues` for `prefillSummary`. */
-const LINK_ACCOUNT_PREFILL_MERGE_BASE: BankAccountFormData = {
-  accountType: 'INDIVIDUAL',
-  firstName: '',
-  lastName: '',
-  businessName: '',
-  routingNumbers: [{ paymentType: 'ACH', routingNumber: '' }],
-  useSameRoutingNumber: true,
-  accountNumber: '',
-  bankAccountType: 'CHECKING',
-  paymentTypes: ['ACH'],
-  certify: false,
-};
 
 /**
  * LinkAccountScreen
  *
- * Rendered when the user opens the **Link bank account** flow step (sidebar / navigation).
- * Submits new links via {@link useRecipientForm}.
- *
- * **Second onboarding surface for linked accounts:** the **Overview** screen also shows a read-only
- * bank card + status (and the same **Verify Account** CTA when `READY_FOR_VALIDATION`) without
- * leaving Overview. This step repeats that existing-account UI and adds **Return to overview**.
- * Shared building blocks with **LinkedAccountWidget** (`RecipientAccountDisplayCard`,
- * `StatusAlert`, {@link MicrodepositsFormDialogTrigger}, `linked-accounts` i18n).
- *
- * - **`editable`** — `BankAccountForm` (two-step LINKED_ACCOUNT wizard).
- * - **`prefillSummary`** — `LinkAccountPrefillSummaryView` (disabled fields + optional acknowledgements).
- * - **`reviewAcknowledgements`** — optional in any mode; `prefillSummary` uses the summary view, `editable` uses `BankAccountForm` step 2.
+ * Onboarding step for linking a bank account. Supports three modes:
+ * - **`editable`** — `BankAccountForm` two-step wizard.
+ * - **`prefillSummary`** — Read-only summary + acknowledgements.
+ * - **Multi-account** — List existing accounts with "Add account" CTA.
  */
 export const LinkAccountScreen = () => {
   const { t, tString } = useTranslationWithTokens([
@@ -78,61 +45,25 @@ export const LinkAccountScreen = () => {
   const { clientData, linkAccountStepOptions, hideLinkedAccountRemoval } =
     useOnboardingContext();
   const queryClient = useQueryClient();
-
   const { interceptorReady } = useInterceptorStatus();
 
-  // Use the clientId from onboarding context (clientData.id) rather than the
-  // provider's clientId.  When no clientId was supplied to EBComponentsProvider
-  // a new client is created after the gateway screen and only the onboarding
-  // context is updated — the provider value stays empty.
   const clientId = clientData?.id;
-
-  // ─── Multi-account preset selection ─────────────────────────────────────────
-  const presetAccounts = linkAccountStepOptions?.presetAccounts;
-  const [selectedPresetId, setSelectedPresetId] = useState<string | undefined>(
-    () => presetAccounts?.[0]?.id
-  );
 
   // When existing accounts present + allowMultipleAccounts, hide form until user clicks "Add account"
   const [showAddForm, setShowAddForm] = useState(false);
+  const [prefillCertifyChecked, setPrefillCertifyChecked] = useState(false);
 
-  const selectedPreset: LinkAccountPresetEntry | undefined = useMemo(() => {
-    if (!presetAccounts?.length) return undefined;
-    return presetAccounts.find((p) => p.id === selectedPresetId);
-  }, [presetAccounts, selectedPresetId]);
-
-  /** Effective partyId — preset-level takes precedence, then top-level. */
-  const effectivePartyId: string | undefined =
-    selectedPreset?.partyId ?? linkAccountStepOptions?.partyId;
-
-  // Fetch fresh client data for the form (needed for account-holder prefill)
+  // ─── Data fetching ──────────────────────────────────────────────────────────
   const { data: clientResponseData } = useSmbdoGetClient(clientId ?? '', {
-    query: {
-      enabled: interceptorReady && !!clientId,
-    },
+    query: { enabled: interceptorReady && !!clientId },
   });
 
-  // Fetch existing linked accounts
   const { data: recipientsData, isLoading: isLoadingRecipients } =
     useGetAllRecipients(
       { type: 'LINKED_ACCOUNT', clientId },
-      {
-        query: {
-          enabled: interceptorReady && !!clientId,
-        },
-      }
+      { query: { enabled: interceptorReady && !!clientId } }
     );
 
-  const existingAccount: Recipient | undefined =
-    recipientsData?.recipients?.find(
-      (r) => r.status !== 'INACTIVE' && r.status !== 'REJECTED'
-    );
-
-  // When allowMultipleAccounts is true, don't auto-redirect on existing account
-  const shouldRedirectOnExisting =
-    !!existingAccount && !linkAccountStepOptions?.allowMultipleAccounts;
-
-  /** All active/pending linked accounts (for display when allowMultipleAccounts). */
   const existingAccounts: Recipient[] = useMemo(
     () =>
       recipientsData?.recipients?.filter(
@@ -141,104 +72,41 @@ export const LinkAccountScreen = () => {
     [recipientsData]
   );
 
-  /** Effective initial values — either from the selected preset or the single `initialValues`. */
-  const rawInitialValues = useMemo(
-    () =>
-      selectedPreset?.initialValues ??
-      linkAccountStepOptions?.initialValues ??
-      {},
-    [selectedPreset, linkAccountStepOptions?.initialValues]
-  );
+  const existingAccount = existingAccounts[0];
+  const shouldRedirectOnExisting =
+    !!existingAccount && !linkAccountStepOptions?.allowMultipleAccounts;
 
-  /**
-   * When `allowMultipleAccounts` is true and the prefilled account number already
-   * exists among linked accounts, clear the prefill so the user enters fresh data.
-   * This prevents re-linking the same account via a stale host-supplied prefill.
-   */
-  const isDuplicateAccount = useMemo(() => {
-    if (
-      !linkAccountStepOptions?.allowMultipleAccounts ||
-      !rawInitialValues.accountNumber ||
-      existingAccounts.length === 0
-    ) {
-      return false;
-    }
-    return existingAccounts.some(
-      (r) => r.account?.number === rawInitialValues.accountNumber
-    );
-  }, [
-    rawInitialValues,
-    linkAccountStepOptions?.allowMultipleAccounts,
-    existingAccounts,
-  ]);
+  // ─── Preset selection & derived state ───────────────────────────────────────
+  const {
+    presetAccounts,
+    selectedPresetId,
+    setSelectedPresetId,
+    effectivePartyId,
+    effectiveInitialValues,
+    effectiveCompletionMode,
+  } = useLinkAccountPreset({ linkAccountStepOptions, existingAccounts });
 
-  const effectiveInitialValues = isDuplicateAccount ? {} : rawInitialValues;
+  // ─── Acknowledgements state ─────────────────────────────────────────────────
+  const acknowledgementItems = linkAccountStepOptions?.reviewAcknowledgements;
+  const acknowledgements = useLinkAccountAcknowledgements({
+    items: acknowledgementItems,
+    resetDeps: [effectiveCompletionMode],
+  });
 
-  /** When duplicate detected, fall back to editable mode regardless of host config. */
-  const effectiveCompletionMode = isDuplicateAccount
-    ? 'editable'
-    : linkAccountStepOptions?.completionMode;
+  // ─── Form config composition ────────────────────────────────────────────────
+  const {
+    configWithOverride,
+    bankFormConfigForPrefill,
+    prefillSummaryFormData,
+    summaryDisplayedPaymentTypes,
+  } = useLinkAccountFormConfig({
+    linkAccountStepOptions,
+    effectiveCompletionMode,
+    effectiveInitialValues,
+    acknowledgementItems,
+  });
 
-  const linkAcknowledgementItems =
-    linkAccountStepOptions?.reviewAcknowledgements;
-
-  const linkAckIdsKey = useMemo(
-    () =>
-      linkAcknowledgementItems?.length
-        ? linkAcknowledgementItems.map((a) => a.id).join('\0')
-        : '',
-    [linkAcknowledgementItems]
-  );
-
-  const [acknowledgementChecked, setAcknowledgementChecked] = useState<
-    Record<string, boolean>
-  >({});
-
-  const [prefillCertifyChecked, setPrefillCertifyChecked] = useState(false);
-
-  useEffect(() => {
-    if (!linkAcknowledgementItems?.length) {
-      setAcknowledgementChecked({});
-      return;
-    }
-    setAcknowledgementChecked(
-      Object.fromEntries(linkAcknowledgementItems.map((a) => [a.id, false]))
-    );
-  }, [effectiveCompletionMode, linkAckIdsKey]);
-
-  const acknowledgementsComplete =
-    !linkAcknowledgementItems?.length ||
-    linkAcknowledgementItems.every(
-      (a) => acknowledgementChecked[a.id] === true
-    );
-
-  // Use the linked-account config hook (same as BankAccountFormWrapper)
-  const linkedAccountConfig = useLinkedAccountConfig();
-
-  const linkedAccountConfigWithOverride = useMemo(() => {
-    if (!linkAccountStepOptions?.bankFormConfigOverride) {
-      return linkedAccountConfig;
-    }
-    return createCustomConfig(
-      linkedAccountConfig,
-      linkAccountStepOptions.bankFormConfigOverride
-    );
-  }, [linkedAccountConfig, linkAccountStepOptions?.bankFormConfigOverride]);
-
-  /** When acknowledgements replace the certify row ({@link BankAccountForm}), keep prefill aligned. */
-  const bankFormConfigForPrefill = useMemo(() => {
-    const base = linkedAccountConfigWithOverride;
-    if (!linkAcknowledgementItems?.length) return base;
-    return {
-      ...base,
-      requiredFields: {
-        ...base.requiredFields,
-        certification: false,
-      },
-    };
-  }, [linkedAccountConfigWithOverride, linkAcknowledgementItems]);
-
-  // Use the recipient form hook for API submission
+  // ─── Form submission ────────────────────────────────────────────────────────
   const {
     submit,
     status,
@@ -253,7 +121,6 @@ export const LinkAccountScreen = () => {
       if (linkAccountStepOptions?.allowMultipleAccounts) {
         setShowAddForm(false);
         reset();
-        // Refetch recipients so newly created account appears in the list
         invalidateRecipientQueries(queryClient, 'LINKED_ACCOUNT');
       } else {
         updateSessionData({ linkAccountJustCreated: true });
@@ -262,56 +129,24 @@ export const LinkAccountScreen = () => {
     },
   });
 
-  const config = useMemo(
-    () => ({
-      ...linkedAccountConfigWithOverride,
-      content: {
-        ...linkedAccountConfigWithOverride.content,
-        submitButtonText: t('screens.linkAccount.submitButton', 'Link Account'),
-        cancelButtonText: t('common:cancel', 'Cancel'),
-      },
-      existingAccounts: linkAccountStepOptions?.allowMultipleAccounts
-        ? existingAccounts
-        : undefined,
-    }),
-    [
-      linkedAccountConfigWithOverride,
-      t,
-      linkAccountStepOptions?.allowMultipleAccounts,
-      existingAccounts,
-    ]
-  );
-
-  const prefillSummaryFormData = useMemo(() => {
-    if (effectiveCompletionMode !== 'prefillSummary') {
-      return null;
-    }
-    return mergeBankAccountDefaultValues(
-      LINK_ACCOUNT_PREFILL_MERGE_BASE,
-      effectiveInitialValues
-    );
-  }, [effectiveCompletionMode, effectiveInitialValues]);
-
+  // ─── Effects ────────────────────────────────────────────────────────────────
   useEffect(() => {
     setPrefillCertifyChecked(false);
-  }, [clientId, linkAckIdsKey, prefillSummaryFormData]);
+  }, [clientId, acknowledgements.idsKey, prefillSummaryFormData]);
 
   useEffect(() => {
-    if (
-      !prefillSummaryFormData ||
-      effectiveCompletionMode !== 'prefillSummary'
-    ) {
+    if (!prefillSummaryFormData || effectiveCompletionMode !== 'prefillSummary') {
       return undefined;
     }
     const defaultCertShown =
       bankFormConfigForPrefill.requiredFields.certification === true;
     const dirty =
-      Object.values(acknowledgementChecked).some(Boolean) ||
+      Object.values(acknowledgements.checked).some(Boolean) ||
       (defaultCertShown && prefillCertifyChecked);
     setFlowUnsavedChanges(dirty);
     return () => setFlowUnsavedChanges(false);
   }, [
-    acknowledgementChecked,
+    acknowledgements.checked,
     bankFormConfigForPrefill.requiredFields.certification,
     effectiveCompletionMode,
     prefillCertifyChecked,
@@ -319,75 +154,30 @@ export const LinkAccountScreen = () => {
     setFlowUnsavedChanges,
   ]);
 
-  const summaryDisplayedPaymentTypes =
-    useMemo((): RoutingInformationTransactionType[] => {
-      if (
-        !prefillSummaryFormData ||
-        effectiveCompletionMode !== 'prefillSummary'
-      ) {
-        return [];
-      }
-      const explicit = linkAccountStepOptions?.summaryDisplayedPaymentTypes;
-      if (explicit?.length) {
-        return [...explicit];
-      }
-      const pt = prefillSummaryFormData.paymentTypes;
-      if (pt?.length) {
-        return [...pt];
-      }
-      return ['ACH'];
-    }, [linkAccountStepOptions, prefillSummaryFormData]);
+  // ─── Derived config for editable BankAccountForm ────────────────────────────
+  const config = useMemo(
+    () => ({
+      ...configWithOverride,
+      content: {
+        ...configWithOverride.content,
+        submitButtonText: t('screens.linkAccount.submitButton', 'Link Account'),
+        cancelButtonText: t('common:cancel', 'Cancel'),
+      },
+      existingAccounts: linkAccountStepOptions?.allowMultipleAccounts
+        ? existingAccounts
+        : undefined,
+    }),
+    [configWithOverride, t, linkAccountStepOptions?.allowMultipleAccounts, existingAccounts]
+  );
 
-  const handleSubmit = (data: BankAccountFormData) => {
-    submit(data);
-  };
-
+  // ─── Handlers ───────────────────────────────────────────────────────────────
+  const handleSubmit = (data: BankAccountFormData) => submit(data);
   const handleBack = () => {
     reset();
     goTo('overview', { resetHistory: true });
   };
 
-  const defaultValuesOverride =
-    effectiveCompletionMode === 'editable' ? effectiveInitialValues : undefined;
-
-  const errorAlert = formError ? (
-    <ServerErrorAlert
-      error={formError as any}
-      customTitle={t(
-        'screens.linkAccount.errorTitle',
-        'Failed to link account'
-      )}
-      customErrorMessage={{
-        '400': t(
-          'screens.linkAccount.errors.400',
-          'Please check the information you entered and try again.'
-        ),
-        '401': t(
-          'screens.linkAccount.errors.401',
-          'Your session has expired. Please log in and try again.'
-        ),
-        '409': t(
-          'screens.linkAccount.errors.409',
-          'This account may already exist. Please check your linked accounts.'
-        ),
-        '422': t(
-          'screens.linkAccount.errors.422',
-          'The account information is invalid. Please verify and try again.'
-        ),
-        '500': t(
-          'screens.linkAccount.errors.500',
-          'An unexpected error occurred. Please try again later.'
-        ),
-        default: t(
-          'screens.linkAccount.errors.default',
-          'An unexpected error occurred. Please try again.'
-        ),
-      }}
-      showDetails={false}
-    />
-  ) : undefined;
-
-  // Loading state while checking for existing accounts
+  // ─── Render: Loading ────────────────────────────────────────────────────────
   if (isLoadingRecipients) {
     return (
       <StepLayout title={t('screens.linkAccount.title', 'Link a bank account')}>
@@ -398,11 +188,8 @@ export const LinkAccountScreen = () => {
     );
   }
 
-  // Existing account — redirect to Overview where the linked-account card (and optional Remove) lives.
-  // Removal is controlled there by `hideLinkedAccountRemoval`; this step has no separate Remove UI.
-  // When allowMultipleAccounts is true, skip this redirect to allow creating more.
+  // ─── Render: Redirect when single existing account ──────────────────────────
   if (shouldRedirectOnExisting) {
-    // Use setTimeout to avoid state updates during render
     setTimeout(() => goTo('overview', { resetHistory: true }), 0);
     return (
       <StepLayout title={t('screens.linkAccount.title', 'Link a bank account')}>
@@ -413,111 +200,45 @@ export const LinkAccountScreen = () => {
     );
   }
 
-  // ─── Account preset selector (when presetAccounts provided) ─────────────────
+  // ─── Shared sub-elements ────────────────────────────────────────────────────
+  const displayMode = linkAccountStepOptions?.existingAccountsDisplay ?? 'detailed';
+  const showExistingSection =
+    !!linkAccountStepOptions?.allowMultipleAccounts && existingAccounts.length > 0;
+  const shouldHideForm = showExistingSection && !showAddForm;
+
+  const existingAccountsSection = showExistingSection ? (
+    <ExistingLinkedAccountsList
+      accounts={existingAccounts}
+      displayMode={displayMode}
+      hideRemoval={!!hideLinkedAccountRemoval}
+      showAddButton={!showAddForm}
+      onAddClick={() => setShowAddForm(true)}
+    />
+  ) : null;
+
   const accountSelector =
     presetAccounts && presetAccounts.length > 1 ? (
-      <div className="eb-mb-4">
-        <label
-          htmlFor="link-account-preset-select"
-          className="eb-mb-1.5 eb-block eb-text-sm eb-font-medium"
-        >
-          {t(
-            'screens.linkAccount.presetSelector.label',
-            'Select account to link'
-          )}
-        </label>
-        <Select value={selectedPresetId} onValueChange={setSelectedPresetId}>
-          <SelectTrigger
-            id="link-account-preset-select"
-            data-testid="preset-account-select"
-          >
-            <SelectValue
-              placeholder={t(
-                'screens.linkAccount.presetSelector.placeholder',
-                'Choose an account'
-              )}
-            />
-          </SelectTrigger>
-          <SelectContent>
-            {presetAccounts.map((preset, idx) => (
-              <SelectItem key={preset.id} value={preset.id}>
-                {preset.label ??
-                  (preset.initialValues.firstName
-                    ? `${preset.initialValues.firstName} ${preset.initialValues.lastName ?? ''}`.trim()
-                    : (preset.initialValues.businessName ??
-                      t(
-                        'screens.linkAccount.presetSelector.defaultLabel',
-                        'Account {{index}}',
-                        { index: idx + 1 }
-                      )))}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <LinkAccountPresetSelector
+        presets={presetAccounts}
+        value={selectedPresetId}
+        onChange={setSelectedPresetId}
+      />
     ) : null;
 
-  // ─── Existing linked accounts cards (shown when allowMultipleAccounts) ──────
-  const displayMode =
-    linkAccountStepOptions?.existingAccountsDisplay ?? 'detailed';
+  const errorAlert = formError ? (
+    <LinkAccountErrorAlert error={formError} />
+  ) : undefined;
 
-  const existingAccountsSection =
-    linkAccountStepOptions?.allowMultipleAccounts &&
-    existingAccounts.length > 0 ? (
-      <div className="eb-mb-6" data-testid="existing-linked-accounts">
-        <h3 className="eb-mb-2 eb-text-sm eb-font-medium">
-          {t(
-            'screens.linkAccount.multiAccount.existingTitle',
-            'Linked accounts ({{count}})',
-            { count: existingAccounts.length }
-          )}
-        </h3>
-        <div className="eb-space-y-3">
-          {existingAccounts.map((recipient) => (
-            <RecipientCard
-              key={recipient.id}
-              recipient={recipient}
-              compact={displayMode === 'compact'}
-              hideRemoveRecipient={!!hideLinkedAccountRemoval}
-              onRemoveSuccess={() => {
-                invalidateRecipientQueries(queryClient, 'LINKED_ACCOUNT');
-              }}
-              recipientType="LINKED_ACCOUNT"
-              i18nNamespace="linked-accounts"
-            />
-          ))}
-        </div>
-        {!showAddForm && (
-          <div className="eb-mt-4 eb-flex eb-items-center eb-justify-between eb-rounded-md eb-border eb-border-dashed eb-border-muted-foreground eb-p-3">
-            <span className="eb-text-sm eb-font-medium">
-              {t(
-                'screens.linkAccount.multiAccount.addMoreTitle',
-                'Link another account'
-              )}
-            </span>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setShowAddForm(true)}
-              data-testid="add-another-account-btn"
-            >
-              {t(
-                'screens.linkAccount.multiAccount.addMoreButton',
-                'Add account'
-              )}
-            </Button>
-          </div>
-        )}
-      </div>
-    ) : null;
+  const acknowledgementsIntro =
+    acknowledgementItems?.length &&
+    linkAccountStepOptions?.showAcknowledgementsIntro
+      ? t(
+          'screens.linkAccount.prefillSummary.acknowledgementsIntro',
+          'By electronically linking this account, you agree that:'
+        )
+      : undefined;
 
-  // Hide form when existing accounts present and user hasn't clicked "Add account"
-  const shouldHideForm =
-    linkAccountStepOptions?.allowMultipleAccounts &&
-    existingAccounts.length > 0 &&
-    !showAddForm;
-
-  // ─── Existing accounts only (form hidden until "Add account" clicked) ───────
+  // ─── Render: Existing accounts only (form hidden) ───────────────────────────
   if (shouldHideForm) {
     return (
       <StepLayout
@@ -532,7 +253,7 @@ export const LinkAccountScreen = () => {
     );
   }
 
-  // Host prefill: single-page read-only bank summary + acknowledgements + submit
+  // ─── Render: Prefill summary mode ──────────────────────────────────────────
   if (prefillSummaryFormData && effectiveCompletionMode === 'prefillSummary') {
     return (
       <LinkAccountPrefillSummaryView
@@ -550,21 +271,11 @@ export const LinkAccountScreen = () => {
         data={prefillSummaryFormData}
         displayedPaymentTypes={summaryDisplayedPaymentTypes}
         bankFormConfig={bankFormConfigForPrefill}
-        acknowledgements={linkAcknowledgementItems}
-        acknowledgementsIntro={
-          linkAcknowledgementItems?.length &&
-          linkAccountStepOptions?.showAcknowledgementsIntro
-            ? t(
-                'screens.linkAccount.prefillSummary.acknowledgementsIntro',
-                'By electronically linking this account, you agree that:'
-              )
-            : undefined
-        }
-        acknowledgementChecked={acknowledgementChecked}
-        onAcknowledgementChange={(id, value) =>
-          setAcknowledgementChecked((prev) => ({ ...prev, [id]: value }))
-        }
-        acknowledgementsComplete={acknowledgementsComplete}
+        acknowledgements={acknowledgementItems}
+        acknowledgementsIntro={acknowledgementsIntro}
+        acknowledgementChecked={acknowledgements.checked}
+        onAcknowledgementChange={acknowledgements.handleChange}
+        acknowledgementsComplete={acknowledgements.isComplete}
         certifyChecked={prefillCertifyChecked}
         onCertifyCheckedChange={setPrefillCertifyChecked}
         onSubmit={handleSubmit}
@@ -588,6 +299,10 @@ export const LinkAccountScreen = () => {
     );
   }
 
+  // ─── Render: Editable bank account form ─────────────────────────────────────
+  const defaultValuesOverride =
+    effectiveCompletionMode === 'editable' ? effectiveInitialValues : undefined;
+
   return (
     <StepLayout
       title={t('screens.linkAccount.title', 'Link a bank account')}
@@ -610,16 +325,8 @@ export const LinkAccountScreen = () => {
           embedded
           alert={errorAlert}
           onDirtyChange={setFlowUnsavedChanges}
-          reviewAcknowledgements={linkAcknowledgementItems}
-          acknowledgementsIntro={
-            linkAcknowledgementItems?.length &&
-            linkAccountStepOptions?.showAcknowledgementsIntro
-              ? t(
-                  'screens.linkAccount.prefillSummary.acknowledgementsIntro',
-                  'By electronically linking this account, you agree that:'
-                )
-              : undefined
-          }
+          reviewAcknowledgements={acknowledgementItems}
+          acknowledgementsIntro={acknowledgementsIntro}
           reviewAcknowledgementsGroupAriaLabel={tString(
             'screens.linkAccount.review.acknowledgementsGroupLabel',
             'Agreements required to link this account'
