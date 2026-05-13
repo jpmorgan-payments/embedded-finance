@@ -29,8 +29,7 @@ export function useLinkAccountAcknowledgements({
       return;
     }
     setChecked(Object.fromEntries(items.map((a) => [a.id, false])));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...resetDeps, idsKey]);
+  }, [...resetDeps, idsKey]); // eslint-disable-line
 
   const isComplete =
     !items?.length || items.every((a) => checked[a.id] === true);
