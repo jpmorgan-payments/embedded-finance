@@ -27,13 +27,13 @@ import type { Decorator, Meta, StoryObj } from '@storybook/react-vite';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
 import type { BaseStoryArgs } from '../../../../.storybook/preview';
+import type { OnboardingFlowProps } from '../types/onboarding.types';
 import {
   commonArgs,
   commonArgsWithCallbacks,
   commonArgTypes,
   OnboardingFlowTemplate,
 } from './story-utils';
-import type { OnboardingFlowProps } from '../types/onboarding.types';
 
 type OnboardingFlowStoryArgs = OnboardingFlowProps & BaseStoryArgs;
 
