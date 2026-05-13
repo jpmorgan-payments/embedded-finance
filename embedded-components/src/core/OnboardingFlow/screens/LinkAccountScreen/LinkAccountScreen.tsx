@@ -135,7 +135,10 @@ export const LinkAccountScreen = () => {
   }, [clientId, acknowledgements.idsKey, prefillSummaryFormData]);
 
   useEffect(() => {
-    if (!prefillSummaryFormData || effectiveCompletionMode !== 'prefillSummary') {
+    if (
+      !prefillSummaryFormData ||
+      effectiveCompletionMode !== 'prefillSummary'
+    ) {
       return undefined;
     }
     const defaultCertShown =
@@ -167,7 +170,12 @@ export const LinkAccountScreen = () => {
         ? existingAccounts
         : undefined,
     }),
-    [configWithOverride, t, linkAccountStepOptions?.allowMultipleAccounts, existingAccounts]
+    [
+      configWithOverride,
+      t,
+      linkAccountStepOptions?.allowMultipleAccounts,
+      existingAccounts,
+    ]
   );
 
   // ─── Handlers ───────────────────────────────────────────────────────────────
@@ -201,9 +209,11 @@ export const LinkAccountScreen = () => {
   }
 
   // ─── Shared sub-elements ────────────────────────────────────────────────────
-  const displayMode = linkAccountStepOptions?.existingAccountsDisplay ?? 'detailed';
+  const displayMode =
+    linkAccountStepOptions?.existingAccountsDisplay ?? 'detailed';
   const showExistingSection =
-    !!linkAccountStepOptions?.allowMultipleAccounts && existingAccounts.length > 0;
+    !!linkAccountStepOptions?.allowMultipleAccounts &&
+    existingAccounts.length > 0;
   const shouldHideForm = showExistingSection && !showAddForm;
 
   const existingAccountsSection = showExistingSection ? (

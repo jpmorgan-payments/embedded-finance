@@ -67,10 +67,7 @@ export function ExistingLinkedAccountsList({
             onClick={onAddClick}
             data-testid="add-another-account-btn"
           >
-            {t(
-              'screens.linkAccount.multiAccount.addMoreButton',
-              'Add account'
-            )}
+            {t('screens.linkAccount.multiAccount.addMoreButton', 'Add account')}
           </Button>
         </div>
       )}

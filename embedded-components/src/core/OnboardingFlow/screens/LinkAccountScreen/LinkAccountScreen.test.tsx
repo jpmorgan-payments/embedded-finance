@@ -838,9 +838,7 @@ describe('LinkAccountScreen', () => {
       expect(
         await screen.findByTestId('existing-linked-accounts')
       ).toBeInTheDocument();
-      expect(
-        screen.getByTestId('add-another-account-btn')
-      ).toBeInTheDocument();
+      expect(screen.getByTestId('add-another-account-btn')).toBeInTheDocument();
 
       // Form not visible
       expect(
@@ -929,9 +927,7 @@ describe('LinkAccountScreen', () => {
       expect(
         await screen.findByTestId('existing-linked-accounts')
       ).toBeInTheDocument();
-      expect(
-        screen.getByTestId('add-another-account-btn')
-      ).toBeInTheDocument();
+      expect(screen.getByTestId('add-another-account-btn')).toBeInTheDocument();
     });
 
     test('onSuccess resets form state and does NOT navigate away', async () => {
@@ -1067,9 +1063,7 @@ describe('LinkAccountScreen', () => {
         },
       });
 
-      await user.click(
-        await screen.findByRole('button', { name: /Cancel/i })
-      );
+      await user.click(await screen.findByRole('button', { name: /Cancel/i }));
 
       expect(mockGoTo).toHaveBeenCalledWith('overview', {
         resetHistory: true,

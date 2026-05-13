@@ -80,7 +80,10 @@ export function useLinkAccountFormConfig({
 
   const summaryDisplayedPaymentTypes =
     useMemo((): RoutingInformationTransactionType[] => {
-      if (!prefillSummaryFormData || effectiveCompletionMode !== 'prefillSummary') {
+      if (
+        !prefillSummaryFormData ||
+        effectiveCompletionMode !== 'prefillSummary'
+      ) {
         return [];
       }
       const explicit = linkAccountStepOptions?.summaryDisplayedPaymentTypes;
