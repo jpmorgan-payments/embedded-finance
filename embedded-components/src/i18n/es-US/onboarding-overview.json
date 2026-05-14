@@ -1307,6 +1307,8 @@
       "downloading": "Descargando...",
       "failedToDownload": "Error al descargar el documento:",
       "failedToFetchDetails": "Error al obtener los detalles del documento:",
+      "saveDocument": "Guardar y revisar documento",
+      "popupBlocked": "No se puede previsualizar el documento en el navegador. Guarde el documento usando el botón de abajo y revíselo antes de continuar.",
       "attestations": "Atestaciones",
       "agreeToTermsWithPlatform": "Ha leído y acepta los Términos de cuenta de J.P. Morgan y el {{platformAgreementLabel}}.",
       "agreeToTerms": "Ha leído y acepta los Términos de cuenta de J.P. Morgan.",

@@ -9,6 +9,7 @@
 
 import { db } from '@/msw/db';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
 
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 import { ORGANIZATION_TYPE_LIST } from '@/core/OnboardingFlow/consts';
@@ -679,6 +680,49 @@ export const WithDisclosureConfigNoLinks: Story = {
     showDisclosureFooter: true,
     disclosureConfig: {
       platformName: 'Acme Marketplace',
+    },
+  },
+};
+
+// =============================================================================
+// DOCUMENT PREVIEW EDGE CASES
+// =============================================================================
+
+/**
+ * **Popup Blocked — Save Document Fallback**
+ *
+ * Emulates the Safari popup-blocker scenario: `window.open` returns `null`
+ * when the user clicks a T&C document link, triggering the error state with
+ * a **"Save document"** download button as a fallback.
+ *
+ * Opens directly at the **Review & Attest → Terms and Conditions** step.
+ * Click a document link to see the popup-blocked error and the download alternative.
+ */
+export const PopupBlockedSaveDocumentFallback: Story = {
+  name: 'Popup Blocked — Save Document Fallback (Safari)',
+  loaders: [() => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID)],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    flowEntry: {
+      screenId: 'review-attest-section',
+      stepperStepId: 'documents',
+    },
+  },
+  beforeEach: () => {
+    // Stub window.open to return null, simulating a popup blocker (Safari)
+    const originalOpen = window.open;
+    window.open = fn().mockReturnValue(null) as unknown as typeof window.open;
+    return () => {
+      window.open = originalOpen;
+    };
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Simulates Safari with restricted popups. `window.open` is stubbed to return `null`, so clicking a T&C document link triggers the popup-blocked error. A **"Save document"** button appears as an alternative, allowing users to download the PDF directly without needing a popup window.',
+      },
     },
   },
 };
