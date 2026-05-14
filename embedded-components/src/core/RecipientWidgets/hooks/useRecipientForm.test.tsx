@@ -266,4 +266,248 @@ describe('useRecipientForm', () => {
     expect(result.current.status).toBe('idle');
     expect(result.current.error).toBe(null);
   });
+
+  // ─── PartyId resolution tests ──────────────────────────────────────────────
+
+  const baseFormData = {
+    accountType: 'INDIVIDUAL' as const,
+    firstName: 'Test',
+    lastName: 'User',
+    routingNumbers: [
+      { paymentType: 'ACH' as const, routingNumber: '123456789' },
+    ],
+    accountNumber: '12345678',
+    bankAccountType: 'CHECKING' as const,
+    paymentTypes: ['ACH' as const],
+    certify: true,
+  };
+
+  it('should send partyId and omit partyDetails when explicit partyId prop is provided', async () => {
+    let capturedData: any = null;
+
+    server.use(
+      http.post('/recipients', async ({ request }) => {
+        capturedData = await request.json();
+        return HttpResponse.json({
+          id: 'new-recipient',
+          status: 'MICRODEPOSITS_INITIATED',
+          ...capturedData,
+        });
+      })
+    );
+
+    const { result } = renderHook(
+      () =>
+        useRecipientForm({
+          mode: 'create',
+          recipientType: 'LINKED_ACCOUNT',
+          partyId: 'party-explicit-123',
+        }),
+      { wrapper: createWrapper() }
+    );
+
+    result.current.submit(baseFormData);
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(capturedData).toHaveProperty('partyId', 'party-explicit-123');
+    expect(capturedData).not.toHaveProperty('partyDetails');
+    expect(capturedData).toHaveProperty('type', 'LINKED_ACCOUNT');
+    expect(capturedData).toHaveProperty('account');
+  });
+
+  it('should send partyId from form selectedPartyId when no explicit partyId prop', async () => {
+    let capturedData: any = null;
+
+    server.use(
+      http.post('/recipients', async ({ request }) => {
+        capturedData = await request.json();
+        return HttpResponse.json({
+          id: 'new-recipient',
+          status: 'MICRODEPOSITS_INITIATED',
+          ...capturedData,
+        });
+      })
+    );
+
+    const { result } = renderHook(
+      () =>
+        useRecipientForm({
+          mode: 'create',
+          recipientType: 'LINKED_ACCOUNT',
+        }),
+      { wrapper: createWrapper() }
+    );
+
+    result.current.submit({
+      ...baseFormData,
+      selectedPartyId: 'party-from-form-456',
+    });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(capturedData).toHaveProperty('partyId', 'party-from-form-456');
+    expect(capturedData).not.toHaveProperty('partyDetails');
+  });
+
+  it('should prefer explicit partyId prop over form selectedPartyId', async () => {
+    let capturedData: any = null;
+
+    server.use(
+      http.post('/recipients', async ({ request }) => {
+        capturedData = await request.json();
+        return HttpResponse.json({
+          id: 'new-recipient',
+          status: 'MICRODEPOSITS_INITIATED',
+          ...capturedData,
+        });
+      })
+    );
+
+    const { result } = renderHook(
+      () =>
+        useRecipientForm({
+          mode: 'create',
+          recipientType: 'LINKED_ACCOUNT',
+          partyId: 'prop-party-wins',
+        }),
+      { wrapper: createWrapper() }
+    );
+
+    result.current.submit({
+      ...baseFormData,
+      selectedPartyId: 'form-party-loses',
+    });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(capturedData).toHaveProperty('partyId', 'prop-party-wins');
+    expect(capturedData).not.toHaveProperty('partyDetails');
+  });
+
+  it('should send partyDetails and no partyId when neither prop nor form provides partyId', async () => {
+    let capturedData: any = null;
+
+    server.use(
+      http.post('/recipients', async ({ request }) => {
+        capturedData = await request.json();
+        return HttpResponse.json({
+          id: 'new-recipient',
+          status: 'MICRODEPOSITS_INITIATED',
+          ...capturedData,
+        });
+      })
+    );
+
+    const { result } = renderHook(
+      () =>
+        useRecipientForm({
+          mode: 'create',
+          recipientType: 'LINKED_ACCOUNT',
+        }),
+      { wrapper: createWrapper() }
+    );
+
+    result.current.submit(baseFormData);
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(capturedData).toHaveProperty('partyDetails');
+    expect(capturedData.partyDetails).toEqual(
+      expect.objectContaining({
+        type: 'INDIVIDUAL',
+        firstName: 'Test',
+        lastName: 'User',
+      })
+    );
+    expect(capturedData).not.toHaveProperty('partyId');
+  });
+
+  it('should include clientId alongside partyId when both are provided', async () => {
+    let capturedData: any = null;
+
+    server.use(
+      http.post('/recipients', async ({ request }) => {
+        capturedData = await request.json();
+        return HttpResponse.json({
+          id: 'new-recipient',
+          status: 'MICRODEPOSITS_INITIATED',
+          ...capturedData,
+        });
+      })
+    );
+
+    const { result } = renderHook(
+      () =>
+        useRecipientForm({
+          mode: 'create',
+          recipientType: 'LINKED_ACCOUNT',
+          partyId: 'party-with-client',
+          clientId: 'client-abc',
+        }),
+      { wrapper: createWrapper() }
+    );
+
+    result.current.submit(baseFormData);
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(capturedData).toHaveProperty('partyId', 'party-with-client');
+    expect(capturedData).toHaveProperty('clientId', 'client-abc');
+    expect(capturedData).not.toHaveProperty('partyDetails');
+  });
+
+  it('should NOT use partyId for edit mode (only partyDetails)', async () => {
+    let capturedData: any = null;
+
+    server.use(
+      http.post('/recipients/:id', async ({ request }) => {
+        capturedData = await request.json();
+        return HttpResponse.json({
+          id: 'recipient-1',
+          status: 'ACTIVE',
+          type: 'LINKED_ACCOUNT',
+          ...capturedData,
+        });
+      })
+    );
+
+    const { result } = renderHook(
+      () =>
+        useRecipientForm({
+          mode: 'edit',
+          recipientType: 'LINKED_ACCOUNT',
+          recipientId: 'recipient-1',
+          partyId: 'party-should-be-ignored',
+        }),
+      { wrapper: createWrapper() }
+    );
+
+    result.current.submit(baseFormData);
+
+    await waitFor(
+      () => {
+        expect(
+          result.current.status !== 'idle' &&
+            result.current.status !== 'pending'
+        ).toBe(true);
+      },
+      { timeout: 3000 }
+    );
+
+    expect(result.current.isSuccess).toBe(true);
+    // Edit mode should send partyDetails, not partyId
+    expect(capturedData).toHaveProperty('partyDetails');
+    expect(capturedData).not.toHaveProperty('partyId');
+  });
 });

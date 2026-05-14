@@ -97,7 +97,8 @@ Each journey is tracked with:
 ## Hiding Remove / unlink on Overview
 
 Pass **`hideLinkedAccountRemoval`** on `OnboardingFlow` to hide the **Remove** control on the **Overview**
-linked-bank-account summary card (next to View details).
+linked-bank-account summary card (next to View details). When `allowMultipleAccounts` is enabled,
+the same flag hides Remove on existing-account cards rendered on the **Link bank account** step.
 
 This prop does **not** apply to **`LinkedAccountWidget`**. For the standalone widget — card menus and table
 row actions — pass **`hideRemoveRecipient`** on `LinkedAccountWidget` instead. The two flags address different
@@ -106,6 +107,41 @@ and you want unlink hidden everywhere.
 
 See also: **`RecipientWidgets/LinkedAccountWidget/README.md`**, repository **`docs/component-implementation.md`**
 (section _Linked accounts: hiding Remove_), and **Storybook** → Core → LinkedAccountWidget → Host configuration.
+
+## Link account step options (`linkAccountStepOptions`)
+
+Pre-populate and configure the **Link bank account** step via `linkAccountStepOptions` on `OnboardingFlow`.
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `initialValues` | `Partial<BankAccountFormData>` | — | Default form values (partial for `editable`, full for `prefillSummary`). |
+| `completionMode` | `'editable' \| 'prefillSummary'` | — | `editable` = full two-step form; `prefillSummary` = read-only summary + confirm. |
+| `partyId` | `string` | — | Link to an existing party instead of creating one from form fields. |
+| `presetAccounts` | `LinkAccountPresetEntry[]` | — | Multiple preset accounts; renders a dropdown selector. Each entry may have its own `partyId` and `initialValues`. Preset `partyId` takes precedence over top-level `partyId`. |
+| `allowMultipleAccounts` | `boolean` | `false` | After linking, show "Link another account" instead of redirecting to Overview. Existing accounts display as cards above the form. |
+| `existingAccountsDisplay` | `'compact' \| 'detailed'` | `'detailed'` | Card style for existing accounts when `allowMultipleAccounts` is true. `detailed` shows status alerts, Verify action, and full action menus (same as LinkedAccountWidget). |
+| `reviewAcknowledgements` | `LinkAccountReviewAcknowledgement[]` | — | Agreement checkboxes required before submit (both modes). |
+| `showAcknowledgementsIntro` | `boolean` | `false` | Show lead-in text above acknowledgement checkboxes. |
+| `bankFormConfigOverride` | `BankAccountFormConfigOverride` | — | Override linked-account form config (payment methods, field visibility). Deep-partial: `paymentMethods` sub-fields are individually optional. |
+| `summaryDisplayedPaymentTypes` | `RoutingInformationTransactionType[]` | `initialValues.paymentTypes` or `['ACH']` | Payment types shown in prefill summary strip. |
+
+## Duplicate account detection
+
+When `allowMultipleAccounts` is enabled and the host supplies `initialValues` whose `accountNumber` already exists among the linked accounts fetched from the API, the link-account step automatically:
+
+1. **Clears** the prefilled values so the user enters fresh data.
+2. **Forces** `completionMode` to `'editable'` regardless of the host-supplied value (overrides `prefillSummary`).
+3. **Validates at schema level** — the form rejects an account-number + routing-number combination that already exists among linked accounts (error key: `fields.accountNumber.validation.duplicate`).
+
+This prevents accidental re-linking of the same account via a stale host-supplied prefill.
+
+## PartyId resolution
+
+When the form sends `partyId` (either from `linkAccountStepOptions.partyId`, a preset account's `partyId`, or the form's account-holder dropdown), `partyDetails` is omitted from the `POST /recipients` request. The API links the account to the existing party. In MSW mocking, `partyDetails` is resolved from `db.party` so the response populates correctly.
+
+The form tracks the selected party via `selectedPartyId` in the form data, auto-resolved from:
+- The organisation party (when `prefillFromClient` is enabled and party type is `ORGANIZATION`)
+- The individual selector dropdown selection (when party type is `INDIVIDUAL`)
 
 ## Testing
 

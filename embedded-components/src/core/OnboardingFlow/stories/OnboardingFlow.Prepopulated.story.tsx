@@ -2,7 +2,7 @@
  * OnboardingFlow — Prepopulated client data story
  *
  * Demonstrates resuming onboarding for a client that already has
- * organization and controller data populated (Operator 80 restaurant).
+ * organization and controller data populated (restaurant).
  * Uses custom content tokens for field label overrides and link-account step.
  */
 
@@ -65,17 +65,17 @@ type Story = StoryObj<OnboardingFlowStoryArgs>;
 // =============================================================================
 
 /**
- * **Operator 80 — Prepopulated LLC with Controller**
+ * **Prepopulated LLC with Controller & Authorized User**
  *
  * Demonstrates resuming onboarding for a client with pre-existing data:
- * - Organization: Operator 80 Palo Alto CA (LLC, food services)
- * - Controller/Beneficial Owner: Kathy Thomas Gellar
+ * - Organization: Neverland Books (LLC, book store)
+ * - Controller/Authorized User: Peiter Pan
  * - Question responses pre-filled
  * - Link account step enabled with editable completion mode
  * - Custom content tokens overriding job title labels to "Occupation"
  */
 export const Operator80Prepopulated: Story = {
-  name: 'Operator 80 — Prepopulated LLC',
+  name: 'Prepopulated LLC (with Authorized User)',
   loaders: [
     () => resetAndSeedClient(mockClientOperator80, PREPOPULATED_CLIENT_ID),
   ],

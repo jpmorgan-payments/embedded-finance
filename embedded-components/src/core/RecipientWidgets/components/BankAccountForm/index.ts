@@ -30,6 +30,7 @@ export { createCustomConfig } from './utils';
 // Types
 export type {
   BankAccountFormConfig,
+  BankAccountFormConfigOverride,
   BankAccountFormContent,
   BankAccountFormData,
   BankAccountFormProps,

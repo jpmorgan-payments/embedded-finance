@@ -761,12 +761,36 @@ export const handlers = [
     const timestamp = new Date().toISOString();
     const newRecipientId = `recipient-${Date.now()}`;
 
+    // When partyId is provided, resolve partyDetails from the party db
+    // — emulates the real API which populates the response.
+    let partyDetails = body?.partyDetails || {};
+    if (body?.partyId) {
+      const party = db.party.findFirst({
+        where: { id: { equals: body.partyId } },
+      });
+      if (party?.partyType === 'INDIVIDUAL' && party.individualDetails) {
+        partyDetails = {
+          type: 'INDIVIDUAL',
+          firstName: party.individualDetails.firstName,
+          lastName: party.individualDetails.lastName,
+        };
+      } else if (
+        party?.partyType === 'ORGANIZATION' &&
+        party.organizationDetails
+      ) {
+        partyDetails = {
+          type: 'ORGANIZATION',
+          businessName: party.organizationDetails.organizationName,
+        };
+      }
+    }
+
     const newRecipient = {
       id: newRecipientId,
       type: body?.type || 'LINKED_ACCOUNT',
       status: 'MICRODEPOSITS_INITIATED',
       clientId: body?.clientId,
-      partyDetails: body?.partyDetails || {},
+      partyDetails,
       account: body?.account || {},
       createdAt: timestamp,
       updatedAt: timestamp,

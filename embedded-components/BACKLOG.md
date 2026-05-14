@@ -1,6 +1,6 @@
 # Embedded Components - Development Backlog
 
-**Last Updated:** April 8, 2026  
+**Last Updated:** May 12, 2026  
 **Status:** Living Document - Updated as work progresses  
 **Source:** UX Testing Report (2025-12-02, 2025-12-09, 2026-01-14, 2026-02-19, 2026-03-06), Development Roadmap, Recent PRs  
 **Reference:** Deployed showcase https://embedded-finance-dev.com/sellsense-demo (onboarding, linked-accounts, recipients, transactions, accounts, make-payment, **client-details**); Storybook https://storybook.embedded-finance-dev.com/
@@ -594,7 +594,7 @@ Substantial progress has been made. Re-assessment against latest source and depl
 
 - [ ] **BL-402-1:** Conditional attributes per payment method (ACH/RTP/WIRE) — **Partial progress Mar 2026:** email removed as required field for RTP (`usePaymentMethodConfig.ts`); payment method content token display fix; further work needed for WIRE-specific fields and ACH-only validations
 - [ ] **BL-402-2:** Edit flows parity + masking
-- [ ] **BL-402-3:** Recipient duplicate detection UX
+- [ ] **BL-402-3:** Recipient duplicate detection UX — **Partial progress May 2026:** Schema-level duplicate detection implemented in `BankAccountForm.schema.ts` (validates account number + routing number against `existingAccounts`). OnboardingFlow link-account step auto-detects duplicates and forces editable mode with cleared prefill. i18n messages added (en-US, fr-CA, es-US). Remaining: standalone RecipientsWidget duplicate UX, visual duplicate warning banner
 
 #### RecipientsWidget [BL-406]
 

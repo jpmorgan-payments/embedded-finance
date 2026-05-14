@@ -9,6 +9,8 @@ export const efClientOperator80Mock: ClientResponse = {
       id: '2100533138',
       createdAt: '2026-05-06T00:40:05.63Z',
       partyType: 'ORGANIZATION',
+      externalId: 'TCU1234',
+      email: 'info@Neverlandbooks.com',
       profileStatus: 'NEW',
       roles: ['CLIENT'],
       active: true,
@@ -25,48 +27,53 @@ export const efClientOperator80Mock: ClientResponse = {
       ],
       organizationDetails: {
         countryOfFormation: 'US',
-        dbaName: 'Operator 80 Palo Alto',
-        industryCategory: 'Accommodation and Food Services',
-        industryType: 'Limited-Service Restaurants',
+        dbaName: 'FT Books',
+        industryCategory:
+          'Sporting Goods, Hobby, Musical Instrument, and Book Stores',
+        industryType: 'Pet and Pet Supplies Retailers',
         industry: {
           codeType: 'NAICS',
-          code: '722513',
+          code: '459910',
         },
-        organizationName: 'Operator 80 Palo Alto CA',
-        organizationDescription:
-          'Quick service restaurant without alcohol sales.',
+        organizationName: 'Neverland Books',
+        organizationDescription: 'Step into a world of stories and imagination',
         organizationType: 'LIMITED_LIABILITY_COMPANY',
-        organizationIds: [
+        jurisdiction: 'US',
+        yearOfFormation: '1989',
+        addresses: [
           {
-            idType: 'EIN',
-            value: '914316140',
-            issuer: 'US',
+            addressType: 'BUSINESS_ADDRESS',
+            addressLines: ['2030 Century Park E'],
+            city: 'San Francisco',
+            state: 'CA',
+            postalCode: '90068',
+            country: 'US',
           },
         ],
-        websiteAvailable: false,
-        yearOfFormation: '1980',
+        phone: {
+          phoneType: 'BUSINESS_PHONE',
+          countryCode: '+1',
+          phoneNumber: '7606810558',
+        },
+        websiteAvailable: true,
+        website: 'https://www.Neverlandbooks.com',
       },
     },
     {
       id: '2100533139',
       createdAt: '2026-05-06T00:40:05.8Z',
-      email: '',
       partyType: 'INDIVIDUAL',
       parentPartyId: '2100533138',
+      externalId: 'TCU12344',
+      email: 'Peiter@neverlandbooks.com',
       profileStatus: 'NEW',
-      roles: ['CONTROLLER', 'BENEFICIAL_OWNER'],
+      roles: ['CONTROLLER', 'AUTHORIZED_USER'],
       active: true,
       validationResponse: [
         {
           validationStatus: 'NEEDS_INFO',
           validationType: 'ENTITY_VALIDATION',
           fields: [
-            {
-              name: 'individualIds',
-            },
-            {
-              name: 'addresses',
-            },
             {
               name: 'birthDate',
             },
@@ -75,10 +82,33 @@ export const efClientOperator80Mock: ClientResponse = {
       ],
       individualDetails: {
         countryOfResidence: 'US',
-        firstName: 'Kathy',
-        middleName: 'Thomas',
-        lastName: 'Gellar',
-        jobTitle: 'Other',
+        firstName: 'Peiter',
+        lastName: 'Pan',
+        jobTitle: 'CFO',
+        natureOfOwnership: 'Direct',
+        soleOwner: false,
+        addresses: [
+          {
+            addressType: 'RESIDENTIAL_ADDRESS',
+            addressLines: ['2029 Century Park E'],
+            city: 'Los Angeles',
+            state: 'CA',
+            postalCode: '90067',
+            country: 'US',
+          },
+        ],
+        individualIds: [
+          {
+            idType: 'SSN',
+            issuer: 'US',
+            value: '300400004',
+          },
+        ],
+        phone: {
+          phoneType: 'MOBILE_PHONE',
+          countryCode: '+1',
+          phoneNumber: '7606810558',
+        },
       },
     },
   ],

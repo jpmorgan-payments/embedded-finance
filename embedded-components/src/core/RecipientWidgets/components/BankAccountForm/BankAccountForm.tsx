@@ -288,7 +288,11 @@ interface IndividualSelectorProps {
   }>;
   selectedFirstName: string | undefined;
   selectedLastName: string | undefined;
-  onSelect: (individual: { firstName: string; lastName: string }) => void;
+  onSelect: (individual: {
+    id: string | undefined;
+    firstName: string;
+    lastName: string;
+  }) => void;
 }
 
 const IndividualSelector: FC<IndividualSelectorProps> = ({
@@ -707,8 +711,8 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     skipStepOne ? 2 : initialStep
   );
 
-  // Extract organization name from client data if available
-  const organizationName = useMemo(() => {
+  // Extract organization name and party ID from client data if available
+  const orgPartyInfo = useMemo(() => {
     if (!client?.parties) return undefined;
 
     const orgParty = client.parties.find(
@@ -718,8 +722,14 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
         party.roles?.includes('CLIENT')
     );
 
-    return orgParty?.organizationDetails?.organizationName;
+    if (!orgParty) return undefined;
+    return {
+      name: orgParty.organizationDetails?.organizationName,
+      id: orgParty.id,
+    };
   }, [client]);
+
+  const organizationName = orgPartyInfo?.name;
 
   // Extract individual parties from client data for linked account individual selector
   const individualParties = useMemo(() => {
@@ -947,6 +957,12 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
         : undefined,
       contacts: initialContacts,
       certify: false,
+      // Resolve partyId from client data when prefillFromClient is enabled
+      selectedPartyId: effectiveConfig.accountHolder.prefillFromClient
+        ? individualParties.length === 1
+          ? individualParties[0].id
+          : undefined
+        : undefined,
     } as BankAccountFormData;
   }, [
     recipient,
@@ -954,6 +970,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     effectiveConfig.accountHolder.prefillFromClient,
     individualParties,
     organizationName,
+    orgPartyInfo,
     initialRoutingNumbers,
     initialPaymentTypes,
     initialContacts,
@@ -1235,6 +1252,28 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     // Remove useSameRoutingNumber helper field (not part of API payload)
     delete cleanedData.useSameRoutingNumber;
 
+    // Resolve selectedPartyId from client data when prefillFromClient is enabled
+    // and the user didn't manually set one (e.g. org auto-prefill, or single individual)
+    if (
+      !cleanedData.selectedPartyId &&
+      effectiveConfig.accountHolder.prefillFromClient &&
+      client?.parties
+    ) {
+      if (cleanedData.accountType === 'ORGANIZATION' && orgPartyInfo?.id) {
+        cleanedData.selectedPartyId = orgPartyInfo.id;
+      } else if (cleanedData.accountType === 'INDIVIDUAL') {
+        // Match by name against known individuals
+        const matched = individualParties.find(
+          (p) =>
+            p.firstName === cleanedData.firstName &&
+            p.lastName === cleanedData.lastName
+        );
+        if (matched?.id) {
+          cleanedData.selectedPartyId = matched.id;
+        }
+      }
+    }
+
     onSubmit(cleanedData);
   };
 
@@ -1393,6 +1432,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                             form.setValue('lastName', individual.lastName, {
                               shouldValidate: true,
                             });
+                            form.setValue('selectedPartyId', individual.id);
                           }}
                         />
                       </>
