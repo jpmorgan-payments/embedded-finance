@@ -723,5 +723,13 @@
     "title": "Comptes liés",
     "disclaimer": "Pendant que votre intégration est en cours de traitement, vous pouvez commencer à ajouter des comptes liés à votre profil."
   },
-  "edit": "Modifier"
+  "edit": "Modifier",
+  "industrySelect": {
+    "placeholder": "Sélectionner une industrie",
+    "searchPlaceholder": "Rechercher des industries...",
+    "noResults": "Aucun résultat trouvé",
+    "priorityHeader": "Suggérées pour votre plateforme",
+    "priorityNoMatches": "Aucune suggestion ne correspond à votre recherche",
+    "allIndustriesHeader": "Toutes les industries"
+  }
 }
