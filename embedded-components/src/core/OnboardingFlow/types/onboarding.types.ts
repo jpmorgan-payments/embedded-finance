@@ -134,6 +134,9 @@ export type LinkAccountStepOptions = {
    * Allow creation of multiple linked accounts sequentially.
    * When `true`, after successfully linking an account the UI offers a
    * "Link another account" action instead of immediately returning to Overview.
+   * The full list of linked accounts (and add flow) lives on the **link-account**
+   * step; **Overview** only shows a short count summary and **Manage linked accounts**
+   * so the list is not duplicated.
    * Aligned with `LinkedAccountWidget` `mode: 'list'` behavior.
    *
    * @default false

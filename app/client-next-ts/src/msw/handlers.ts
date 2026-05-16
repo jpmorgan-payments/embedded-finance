@@ -27,7 +27,6 @@ import { http, HttpResponse, type RequestHandler } from 'msw';
 
 import { getClientStatusOverrideForScenario } from '../components/sellsense/scenarios-config';
 import { efClientQuestionsMock, efDocumentClientDetail } from '../mocks';
-import { TEST_DEMO_SCENARIO_CLIENT_ID } from '../mocks/testScenarioOperator80Client.mock';
 import {
   applyOverridesToDb,
   applyTestDemoScenario,
@@ -35,8 +34,10 @@ import {
   db,
   DEFAULT_SCENARIO,
   getDbStatus,
+  getTestScenarioClientIds,
   handleMagicValues,
   logDbState,
+  parseTestScenarioBundleId,
   resetDb,
   type TestDemoScenarioMode,
 } from './db';
@@ -55,7 +56,8 @@ function initialLinkedAccountRecipientStatus(
     testDemoScenarioHeader === 'happy-path' ||
     testDemoScenarioHeader === 'happy-path-approved' ||
     testDemoScenarioHeader === 'doc-request' ||
-    testDemoScenarioHeader === 'linked-account-active'
+    testDemoScenarioHeader === 'linked-account-active' ||
+    testDemoScenarioHeader === 'multi-linked-start-3'
   ) {
     return 'ACTIVE';
   }
@@ -753,6 +755,7 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
         overrides?: Record<string, unknown>;
         /** Only `/test-scenario`; omit for SellSense (no DB shape change). */
         testDemoScenario?: TestDemoScenarioMode;
+        testScenarioBundle?: string;
       } | null;
       const scenario = body?.scenario ?? DEFAULT_SCENARIO;
       const result = resetDb(scenario);
@@ -764,10 +767,14 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
         body?.testDemoScenario === 'happy-path-approved' ||
         body?.testDemoScenario === 'doc-request' ||
         body?.testDemoScenario === 'linked-account-approved' ||
-        body?.testDemoScenario === 'linked-account-active'
+        body?.testDemoScenario === 'linked-account-active' ||
+        body?.testDemoScenario === 'multi-linked-start-3'
       ) {
         // Isolated from SellSense: those apps never send `testDemoScenario`.
-        applyTestDemoScenario(body.testDemoScenario);
+        applyTestDemoScenario(
+          body.testDemoScenario,
+          parseTestScenarioBundleId(body.testScenarioBundle)
+        );
       }
       return HttpResponse.json(result);
     } catch (error) {
@@ -844,7 +851,7 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
       // Delayed APPROVED only for `/test-scenario` happy path (header not sent by SellSense).
       if (
         testDemoScenario === 'happy-path' &&
-        clientId === TEST_DEMO_SCENARIO_CLIENT_ID
+        getTestScenarioClientIds().includes(clientId)
       ) {
         const delayMs = 3000;
         setTimeout(() => {

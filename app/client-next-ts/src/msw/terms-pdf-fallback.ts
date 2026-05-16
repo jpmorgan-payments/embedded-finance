@@ -11,7 +11,7 @@ export function getEmbeddedSampleTermsPdfBytes(): Uint8Array {
   };
   if (typeof g.Buffer !== 'undefined') {
     return new Uint8Array(
-      g.Buffer.from(SAMPLE_TERMS_EMBEDDED_PDF_BASE64, 'base64'),
+      g.Buffer.from(SAMPLE_TERMS_EMBEDDED_PDF_BASE64, 'base64')
     );
   }
 

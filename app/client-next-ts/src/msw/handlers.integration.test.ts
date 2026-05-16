@@ -9,6 +9,7 @@ import {
   vi,
 } from 'vitest';
 
+import { TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID } from '../mocks/testScenarioMultiLinkedIllustrationClient.mock';
 import {
   TEST_DEMO_SCENARIO_CLIENT_ID,
   TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE,
@@ -358,4 +359,60 @@ describe('MSW handlers (integration)', () => {
     const res = await fetch(`${API}/clients/any`);
     expect(res.status).toBe(404);
   });
+
+  it.each([['multi-linked-start-3', 3]] as const)(
+    'test-scenario-2: %s seeds %i LINKED_ACCOUNT recipient(s)',
+    async (testDemoScenario, expectedCount) => {
+      await fetch(`${API}/ef/do/v1/_reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scenario: DB_SCENARIOS.EMPTY,
+          overrides: {},
+          testDemoScenario,
+          testScenarioBundle: 'test-scenario-2',
+        }),
+      });
+
+      const clientId = TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID;
+      const clientRes = await fetch(`${API}/ef/do/v1/clients/${clientId}`);
+      expect(clientRes.ok).toBe(true);
+
+      const recRes = await fetch(`${API}/ef/do/v1/recipients`);
+      expect(recRes.ok).toBe(true);
+      const data = (await recRes.json()) as {
+        recipients?: Array<{ type?: string }>;
+      };
+      const linked = (data.recipients ?? []).filter(
+        (r) => r.type === 'LINKED_ACCOUNT'
+      );
+      expect(linked.length).toBe(expectedCount);
+    }
+  );
+
+  it.each(['linked-account-approved', 'linked-account-active'] as const)(
+    'test-scenario-2: %s starts with no pre-linked LINKED_ACCOUNT recipients',
+    async (testDemoScenario) => {
+      await fetch(`${API}/ef/do/v1/_reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scenario: DB_SCENARIOS.EMPTY,
+          overrides: {},
+          testDemoScenario,
+          testScenarioBundle: 'test-scenario-2',
+        }),
+      });
+
+      const recRes = await fetch(`${API}/ef/do/v1/recipients`);
+      expect(recRes.ok).toBe(true);
+      const data = (await recRes.json()) as {
+        recipients?: Array<{ type?: string }>;
+      };
+      const linked = (data.recipients ?? []).filter(
+        (r) => r.type === 'LINKED_ACCOUNT'
+      );
+      expect(linked.length).toBe(0);
+    }
+  );
 });

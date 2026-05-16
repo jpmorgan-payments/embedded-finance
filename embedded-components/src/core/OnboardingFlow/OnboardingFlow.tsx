@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import type { ClientStatus } from '@/api/generated/smbdo.schemas';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import {
   useClientId,
@@ -38,6 +37,7 @@ import {
   getStepperValidation,
   getStepperValidations,
 } from './utils/flowUtils';
+import { getLinkAccountEnabled } from './utils/getLinkAccountEnabled';
 
 export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   alertOnExit = false,
@@ -172,6 +172,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     hideSidebar,
     showLinkAccountStep,
     linkAccountEnabledStatuses,
+    linkAccountStepOptions,
     userEventsHandler,
   } = useOnboardingContext();
   const {
@@ -261,12 +262,10 @@ const FlowRenderer: React.FC = React.memo(() => {
 
   const { interceptorReady } = useInterceptorStatus();
 
-  // Whether linking is enabled for the current client status.
-  // linkAccountEnabledStatuses takes precedence when provided;
-  // otherwise fall back to the original APPROVED-only check.
-  const linkAccountEnabled = linkAccountEnabledStatuses
-    ? linkAccountEnabledStatuses.includes(clientData?.status as ClientStatus)
-    : clientData?.status === 'APPROVED';
+  const linkAccountEnabled = getLinkAccountEnabled(
+    clientData,
+    linkAccountEnabledStatuses
+  );
 
   // Fetch existing linked accounts to determine sidebar status
   const { data: recipientsData } = useGetAllRecipients(
@@ -511,11 +510,20 @@ const FlowRenderer: React.FC = React.memo(() => {
           {
             id: 'link-account',
             title: t('onboarding-overview:flowRenderer.linkAccount'),
-            status: hasExistingLinkedAccount
-              ? 'completed_disabled'
-              : linkAccountEnabled
-                ? 'not_started'
-                : 'on_hold',
+            status: (() => {
+              if (!linkAccountEnabled) {
+                return hasExistingLinkedAccount
+                  ? 'completed_disabled'
+                  : 'on_hold';
+              }
+              if (linkAccountStepOptions?.allowMultipleAccounts) {
+                return 'not_started';
+              }
+              if (!hasExistingLinkedAccount) {
+                return 'not_started';
+              }
+              return 'completed_disabled';
+            })(),
             steps: [],
           },
         ] satisfies TimelineSection[])

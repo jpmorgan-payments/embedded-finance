@@ -418,6 +418,9 @@
         "title": "Link a bank account for payouts",
         "lockedMessage": "Available after your application has been submitted",
         "linkAccountTitle": "Link an account",
+        "multiAccountOverviewDescriptionSingular": "You have 1 linked account for payouts. Open the bank linking step to add another account or manage details.",
+        "multiAccountOverviewDescriptionPlural": "You have {{count}} linked accounts for payouts. Open the bank linking step to add another account or manage details.",
+        "manageLinkedAccountsButton": "Manage linked accounts",
         "successAlert": {
           "ACTIVE": "Your bank account has been verified and is ready for transactions.",
           "MICRODEPOSITS_INITIATED": "Your bank account details have been submitted. Two small deposits will be sent to your account for verification.",

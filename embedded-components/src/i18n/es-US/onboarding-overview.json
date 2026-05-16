@@ -375,6 +375,9 @@
         "title": "Vincular una cuenta bancaria para pagos",
         "lockedMessage": "Disponible después de que se envíe su solicitud",
         "linkAccountTitle": "Vincular una cuenta",
+        "multiAccountOverviewDescriptionSingular": "Tiene 1 cuenta vinculada para pagos. Abra el paso de vinculación bancaria para agregar otra cuenta o administrar los detalles.",
+        "multiAccountOverviewDescriptionPlural": "Tiene {{count}} cuentas vinculadas para pagos. Abra el paso de vinculación bancaria para agregar otra cuenta o administrar los detalles.",
+        "manageLinkedAccountsButton": "Administrar cuentas vinculadas",
         "successAlert": {
           "ACTIVE": "Su cuenta bancaria ha sido verificada y está lista para transacciones.",
           "MICRODEPOSITS_INITIATED": "Los datos de su cuenta bancaria han sido enviados. Se enviarán dos pequeños depósitos a su cuenta para verificación.",

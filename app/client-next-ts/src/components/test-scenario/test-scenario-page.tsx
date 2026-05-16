@@ -1,15 +1,19 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ClientStatus } from '@ef-api/smbdo-schemas';
 import {
   EBComponentsProvider,
   OnboardingFlow,
-  type LinkAccountStepOptions,
 } from '@jpmorgan-payments/embedded-finance-components';
+
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useSellSenseThemes } from '@/components/sellsense/use-sellsense-themes';
+import {
+  getTestScenarioBundleConfig,
+  type TestScenarioBundleConfig,
+} from '@/components/test-scenario/test-scenario-bundles';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -19,109 +23,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { DatabaseResetUtils } from '@/lib/database-reset-utils';
-import { TEST_DEMO_SCENARIO_CLIENT_ID } from '@/mocks/testScenarioOperator80Client.mock';
-import type { TestDemoScenarioMode } from '@/msw/db';
+import type { TestDemoScenarioMode, TestScenarioBundleId } from '@/msw/db';
 
-/** Matches Operator 80 prepopulated story org (`testScenarioOperator80Client`). */
-const TEST_SCENARIO_CLIENT_DISPLAY_NAME = 'Operator 80 Palo Alto CA';
-
-const TEST_SCENARIO_CONTENT_TOKENS = {
-  name: 'enUS' as const,
-  showTokenIds: true,
-  tokens: {
-    'onboarding-overview': {
-      fields: {
-        controllerJobTitle: {
-          label: 'Occupation',
-        },
-        controllerJobTitleDescription: {
-          label: 'Occupation Description',
-        },
-      },
-      reviewAndAttest: {
-        attestation: {
-          accurateInfo:
-            'The data I am providing is true, accurate and complete to the best of my knowledge.',
-          authorizeSharing:
-            'You authorize Platform, Inc. and JPMorgan Chase Bank, N.A. ("JPMC") to share information to facilitate the opening of your deposit account(s), and appoint Platform, Inc. as your agent to act on your behalf regarding your deposit account pursuant to your agreement(s) with Platform, Inc..',
-        },
-        termsAndConditions: {
-          agreeToTerms:
-            "You have read, understand, and agree to the J.P. Morgan Account Terms and Platform Inc.'s Program Agreement.",
-        },
-      },
-      /** Align prefill-summary acknowledgement copy with package `bank-account-form` `linkedAccount.certificationText`. */
-      screens: {
-        linkAccount: {
-          prefillSummary: {
-            acknowledgements: {
-              verifyAndAccuracy:
-                'I authorize verification of this external bank account, including microdeposit verification if required. I certify that the information provided is accurate and matches my bank account details.',
-            },
-          },
-        },
-      },
-    },
-  },
+export type TestScenarioPageProps = {
+  bundleId: TestScenarioBundleId;
 };
-
-type DemoLoginProfile = {
-  email: string;
-  label: string;
-  scenario: TestDemoScenarioMode;
-  /** When set, overrides default link step options for this demo. */
-  linkAccountStepOptions?: LinkAccountStepOptions;
-};
-
-const LINKED_ACCOUNT_OPTIONS: LinkAccountStepOptions = {
-  completionMode: 'prefillSummary',
-  initialValues: {
-    accountType: 'INDIVIDUAL',
-    firstName: 'Taylor',
-    lastName: 'Morgan',
-    businessName: '',
-    routingNumbers: [{ paymentType: 'ACH', routingNumber: '121000248' }],
-    useSameRoutingNumber: true,
-    accountNumber: '6724301068',
-    bankAccountType: 'CHECKING',
-    paymentTypes: ['ACH'],
-    certify: true,
-  },
-  summaryDisplayedPaymentTypes: ['ACH'],
-  reviewAcknowledgements: [
-    {
-      id: 'verifyAndAccuracy',
-      labelKey:
-        'screens.linkAccount.prefillSummary.acknowledgements.verifyAndAccuracy',
-    },
-  ],
-  showAcknowledgementsIntro: false,
-};
-
-const LOGIN_PROFILES: DemoLoginProfile[] = [
-  {
-    email: 'happy-path@demo.test',
-    label: 'Happy path \u2013 no document request, no micro deposits',
-    scenario: 'happy-path',
-  },
-  {
-    email: 'docs-requested@demo.test',
-    label: 'Unhappy path \u2013 straight to document request',
-    scenario: 'doc-request',
-  },
-  {
-    email: 'linked-microdeposit@demo.test',
-    label: 'Unhappy path \u2013 straight to linked account with microdeposit',
-    scenario: 'linked-account-approved',
-    linkAccountStepOptions: LINKED_ACCOUNT_OPTIONS,
-  },
-  {
-    email: 'linked-active@demo.test',
-    label: 'Happy path \u2013 straight to linked account no microdeposit',
-    scenario: 'linked-account-active',
-    linkAccountStepOptions: LINKED_ACCOUNT_OPTIONS,
-  },
-];
 
 function themeString(
   variables: Record<string, string | undefined>,
@@ -132,18 +38,30 @@ function themeString(
   return typeof v === 'string' && v.length > 0 ? v : fallback;
 }
 
-export function TestScenarioPage() {
+export function TestScenarioPage({ bundleId }: TestScenarioPageProps) {
   const queryClient = useQueryClient();
   const { mapThemeOption } = useSellSenseThemes();
-  const [selectedEmail, setSelectedEmail] = useState(LOGIN_PROFILES[0].email);
+  const bundleConfig = useMemo(
+    () => getTestScenarioBundleConfig(bundleId),
+    [bundleId]
+  );
+
+  const [selectedEmail, setSelectedEmail] = useState(
+    bundleConfig.loginProfiles[0].email
+  );
+
+  useEffect(() => {
+    setSelectedEmail(bundleConfig.loginProfiles[0].email);
+  }, [bundleConfig]);
+
   const [rememberUsername, setRememberUsername] = useState(false);
   const [sessionScenario, setSessionScenario] =
     useState<TestDemoScenarioMode | null>(null);
   const [resetLoading, setResetLoading] = useState(false);
 
   const ebTheme = useMemo(
-    () => mapThemeOption('Salt Theme', {}),
-    [mapThemeOption]
+    () => mapThemeOption(bundleConfig.theme, {}),
+    [mapThemeOption, bundleConfig.theme]
   );
 
   const themeVars = ebTheme.variables as Record<string, string | undefined>;
@@ -153,7 +71,7 @@ export function TestScenarioPage() {
     '#f6f7f8'
   );
   const shellFont = themeString(themeVars, 'contentFontFamily', 'Open Sans');
-  const saltPrimary = themeString(
+  const primaryBtn = themeString(
     themeVars,
     'actionableAccentedBoldBackground',
     '#1A7B99'
@@ -165,13 +83,23 @@ export function TestScenarioPage() {
   );
 
   const selectedProfile =
-    LOGIN_PROFILES.find((p) => p.email === selectedEmail) ?? LOGIN_PROFILES[0];
+    bundleConfig.loginProfiles.find((p) => p.email === selectedEmail) ??
+    bundleConfig.loginProfiles[0];
+
+  const onboardingFlow = bundleConfig.onboardingFlow;
+
+  const sessionBundleConfig: TestScenarioBundleConfig | null = sessionScenario
+    ? bundleConfig
+    : null;
 
   const handleContinue = async () => {
+    const bundlePayload =
+      bundleConfig.id === 'test-scenario' ? undefined : bundleConfig.id;
     await DatabaseResetUtils.resetTestDemoDatabase(
       'empty',
       selectedProfile.scenario,
-      setResetLoading
+      setResetLoading,
+      bundlePayload
     );
     queryClient.clear();
     setSessionScenario(selectedProfile.scenario);
@@ -190,13 +118,15 @@ export function TestScenarioPage() {
     [sessionScenario]
   );
 
+  const activeClientId = sessionBundleConfig?.clientId;
+
   return (
     <EBComponentsProvider
       apiBaseUrl="/ef/do/v1/"
       theme={ebTheme}
       headers={providerHeaders}
-      contentTokens={TEST_SCENARIO_CONTENT_TOKENS}
-      clientId={sessionScenario ? TEST_DEMO_SCENARIO_CLIENT_ID : undefined}
+      contentTokens={bundleConfig.contentTokens}
+      clientId={activeClientId}
     >
       <div
         className="flex min-h-screen flex-col"
@@ -218,9 +148,9 @@ export function TestScenarioPage() {
               <div className="flex min-w-0 items-center gap-4">
                 <span
                   className="truncate text-base font-medium text-neutral-800"
-                  title={TEST_SCENARIO_CLIENT_DISPLAY_NAME}
+                  title={sessionBundleConfig?.headerOrgDisplayName}
                 >
-                  {TEST_SCENARIO_CLIENT_DISPLAY_NAME}
+                  {sessionBundleConfig?.headerOrgDisplayName}
                 </span>
                 <Button
                   type="button"
@@ -236,42 +166,61 @@ export function TestScenarioPage() {
             </header>
             <main className="min-h-0 flex-1 overflow-auto p-4 sm:p-5">
               <div
-                key={`${sessionScenario}-${selectedEmail}`}
+                key={`${sessionScenario}-${selectedEmail}-${bundleConfig.id}`}
                 className="mx-auto max-w-6xl"
               >
                 <OnboardingFlow
-                  availableProducts={['EMBEDDED_PAYMENTS']}
-                  availableJurisdictions={['US']}
-                  availableOrganizationTypes={[
-                    'SOLE_PROPRIETORSHIP',
-                    'LIMITED_LIABILITY_COMPANY',
-                    'LIMITED_LIABILITY_PARTNERSHIP',
-                    'GENERAL_PARTNERSHIP',
-                    'LIMITED_PARTNERSHIP',
-                    'C_CORPORATION',
-                  ]}
-                  showLinkAccountStep
-                  linkAccountEnabledStatuses={
-                    sessionScenario === 'linked-account-approved' ||
-                    sessionScenario === 'linked-account-active' ||
-                    sessionScenario === 'happy-path-approved'
-                      ? [ClientStatus.APPROVED]
-                      : undefined
+                  availableProducts={
+                    onboardingFlow?.availableProducts ?? ['EMBEDDED_PAYMENTS']
                   }
-                  linkAccountStepOptions={
-                    selectedProfile.linkAccountStepOptions ?? {
-                      initialValues: {
-                        paymentTypes: ['ACH'],
-                        routingNumbers: [
-                          { paymentType: 'ACH', routingNumber: '121000248' },
-                        ],
-                        accountNumber: '6724301068',
-                      },
-                      completionMode: 'editable',
+                  availableJurisdictions={
+                    onboardingFlow?.availableJurisdictions ?? ['US']
+                  }
+                  availableOrganizationTypes={
+                    onboardingFlow?.availableOrganizationTypes ?? [
+                      'SOLE_PROPRIETORSHIP',
+                      'LIMITED_LIABILITY_COMPANY',
+                      'LIMITED_LIABILITY_PARTNERSHIP',
+                      'GENERAL_PARTNERSHIP',
+                      'LIMITED_PARTNERSHIP',
+                      'C_CORPORATION',
+                    ]
+                  }
+                  showLinkAccountStep={bundleConfig.showLinkAccountStep}
+                  {...(bundleConfig.showLinkAccountStep
+                    ? {
+                        linkAccountEnabledStatuses:
+                          sessionScenario === 'linked-account-approved' ||
+                          sessionScenario === 'linked-account-active' ||
+                          sessionScenario === 'happy-path-approved' ||
+                          sessionScenario === 'multi-linked-start-3'
+                            ? [ClientStatus.APPROVED]
+                            : undefined,
+                        linkAccountStepOptions:
+                          selectedProfile.linkAccountStepOptions ??
+                          bundleConfig.linkAccountStepOptions ?? {
+                            initialValues: {
+                              paymentTypes: ['ACH'],
+                              routingNumbers: [
+                                {
+                                  paymentType: 'ACH',
+                                  routingNumber: '121000248',
+                                },
+                              ],
+                              accountNumber: '6724301068',
+                            },
+                            completionMode: 'editable' as const,
+                          },
+                      }
+                    : {})}
+                  disclosureConfig={
+                    onboardingFlow?.disclosureConfig ?? {
+                      platformName: 'Platform, Inc.',
                     }
                   }
-                  disclosureConfig={{ platformName: 'Platform, Inc.' }}
-                  hideLinkedAccountRemoval
+                  hideLinkedAccountRemoval={
+                    onboardingFlow?.hideLinkedAccountRemoval ?? true
+                  }
                 />
                 <footer className="mx-auto mt-4 max-w-4xl px-4 py-4 text-center sm:px-5">
                   <p className="text-xs leading-relaxed text-neutral-500">
@@ -367,7 +316,7 @@ export function TestScenarioPage() {
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent className="max-w-[min(100vw-2rem,28rem)]">
-                      {LOGIN_PROFILES.map((p) => (
+                      {bundleConfig.loginProfiles.map((p) => (
                         <SelectItem
                           key={p.email}
                           value={p.email}
@@ -393,7 +342,7 @@ export function TestScenarioPage() {
                     checked={rememberUsername}
                     onChange={(e) => setRememberUsername(e.target.checked)}
                     className="h-4 w-4 rounded border-neutral-300"
-                    style={{ accentColor: saltPrimary }}
+                    style={{ accentColor: primaryBtn }}
                   />
                   <span className="text-sm text-neutral-900">
                     Remember username
@@ -404,7 +353,7 @@ export function TestScenarioPage() {
                   type="button"
                   disabled={resetLoading}
                   className="mt-6 h-11 w-full rounded-lg text-sm font-semibold uppercase tracking-wide text-white shadow-sm transition-colors hover:brightness-95 disabled:pointer-events-none disabled:opacity-60"
-                  style={{ backgroundColor: saltPrimary }}
+                  style={{ backgroundColor: primaryBtn }}
                   onClick={handleContinue}
                 >
                   {resetLoading ? 'Loading…' : 'Continue'}

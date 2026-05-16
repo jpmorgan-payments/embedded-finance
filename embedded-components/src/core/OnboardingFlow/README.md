@@ -118,7 +118,7 @@ Pre-populate and configure the **Link bank account** step via `linkAccountStepOp
 | `completionMode` | `'editable' \| 'prefillSummary'` | — | `editable` = full two-step form; `prefillSummary` = read-only summary + confirm. |
 | `partyId` | `string` | — | Link to an existing party instead of creating one from form fields. |
 | `presetAccounts` | `LinkAccountPresetEntry[]` | — | Multiple preset accounts; renders a dropdown selector. Each entry may have its own `partyId` and `initialValues`. Preset `partyId` takes precedence over top-level `partyId`. |
-| `allowMultipleAccounts` | `boolean` | `false` | After linking, show "Link another account" instead of redirecting to Overview. Existing accounts display as cards above the form. |
+| `allowMultipleAccounts` | `boolean` | `false` | After linking, show "Link another account" instead of redirecting to Overview. Existing accounts display as cards above the form on the **link-account** step only. **Overview** shows a short summary (account count + **Manage linked accounts**) so the full list is not duplicated; open the link-account step to add or manage accounts. |
 | `existingAccountsDisplay` | `'compact' \| 'detailed'` | `'detailed'` | Card style for existing accounts when `allowMultipleAccounts` is true. `detailed` shows status alerts, Verify action, and full action menus (same as LinkedAccountWidget). |
 | `reviewAcknowledgements` | `LinkAccountReviewAcknowledgement[]` | — | Agreement checkboxes required before submit (both modes). |
 | `showAcknowledgementsIntro` | `boolean` | `false` | Show lead-in text above acknowledgement checkboxes. |

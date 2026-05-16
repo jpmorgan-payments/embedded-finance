@@ -375,6 +375,9 @@
         "title": "Lier un compte bancaire pour les paiements",
         "lockedMessage": "Disponible après la soumission de votre demande",
         "linkAccountTitle": "Lier un compte",
+        "multiAccountOverviewDescriptionSingular": "Vous avez 1 compte lié pour les paiements. Ouvrez l’étape de liaison bancaire pour ajouter un autre compte ou gérer les détails.",
+        "multiAccountOverviewDescriptionPlural": "Vous avez {{count}} comptes liés pour les paiements. Ouvrez l’étape de liaison bancaire pour ajouter un autre compte ou gérer les détails.",
+        "manageLinkedAccountsButton": "Gérer les comptes liés",
         "successAlert": {
           "ACTIVE": "Votre compte bancaire a été vérifié et est prêt pour les transactions.",
           "MICRODEPOSITS_INITIATED": "Les informations de votre compte bancaire ont été soumises. Deux petits dépôts seront envoyés à votre compte pour vérification.",

@@ -5,14 +5,14 @@ import { TestScenarioPage } from '@/components/test-scenario/test-scenario-page'
 
 const queryClient = new QueryClient();
 
-export const Route = createFileRoute('/test-scenario')({
-  component: TestScenarioRoute,
+export const Route = createFileRoute('/test-scenario-2')({
+  component: TestScenario2Route,
 });
 
-function TestScenarioRoute() {
+function TestScenario2Route() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TestScenarioPage bundleId="test-scenario" />
+      <TestScenarioPage bundleId="test-scenario-2" />
     </QueryClientProvider>
   );
 }
