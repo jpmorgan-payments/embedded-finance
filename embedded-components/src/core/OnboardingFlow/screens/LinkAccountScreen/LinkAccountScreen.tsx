@@ -170,10 +170,7 @@ export const LinkAccountScreen = () => {
   }, [clientId, acknowledgements.idsKey, prefillSummaryFormData]);
 
   useEffect(() => {
-    if (
-      !prefillSummaryFormData ||
-      effectiveCompletionMode !== 'reviewOnly'
-    ) {
+    if (!prefillSummaryFormData || effectiveCompletionMode !== 'reviewOnly') {
       return undefined;
     }
     const defaultCertShown =

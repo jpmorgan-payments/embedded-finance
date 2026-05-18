@@ -79,9 +79,10 @@ export function useLinkAccountPreset({
     : rawInitialValues;
 
   /** When duplicate detected, fall back to editable mode regardless of host config. */
-  const effectiveCompletionMode: LinkAccountStepCompletionMode = isDuplicateAccount
-    ? 'editable'
-    : normalizeCompletionMode(linkAccountStepOptions?.completionMode);
+  const effectiveCompletionMode: LinkAccountStepCompletionMode =
+    isDuplicateAccount
+      ? 'editable'
+      : normalizeCompletionMode(linkAccountStepOptions?.completionMode);
 
   return {
     presetAccounts,

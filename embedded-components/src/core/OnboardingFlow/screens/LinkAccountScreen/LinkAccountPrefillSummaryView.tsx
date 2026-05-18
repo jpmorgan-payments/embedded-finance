@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import {
   AlertTriangleIcon,
@@ -122,7 +122,10 @@ export function LinkAccountPrefillSummaryView({
     // UI control, not prefilled data, so its errors should not appear in the alert.
     const configForValidation: BankAccountFormConfig = {
       ...bankFormConfig,
-      requiredFields: { ...bankFormConfig.requiredFields, certification: false },
+      requiredFields: {
+        ...bankFormConfig.requiredFields,
+        certification: false,
+      },
     };
     const schema = createBankAccountFormSchema(configForValidation, v);
     const result = schema.safeParse(data);
@@ -285,7 +288,9 @@ export function LinkAccountPrefillSummaryView({
                 id="eb-link-prefill-certify"
                 className="eb-mt-0.5"
                 checked={certifyChecked}
-                onCheckedChange={(v) => onCertifyCheckedChange(v === true)}
+                onCheckedChange={(checked) =>
+                  onCertifyCheckedChange(checked === true)
+                }
                 disabled={isSubmitting}
               />
               <Label
