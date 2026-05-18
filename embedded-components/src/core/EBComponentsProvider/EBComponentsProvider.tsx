@@ -22,12 +22,18 @@ import { EBConfig } from './config.types';
 import { convertThemeToCssString } from './convert-theme-to-css-variables';
 
 // Shared QueryClient — kept as a singleton to preserve cache across renders.
+// Non-enumerable + non-configurable to limit post-XSS exploitability.
 const queryClient: QueryClient = (() => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const g = globalThis as any;
   if (g.__EB_QUERY_CLIENT__) return g.__EB_QUERY_CLIENT__ as QueryClient;
   const client = new QueryClient();
-  g.__EB_QUERY_CLIENT__ = client;
+  Object.defineProperty(g, '__EB_QUERY_CLIENT__', {
+    value: client,
+    writable: false,
+    enumerable: false,
+    configurable: false,
+  });
   return client;
 })();
 

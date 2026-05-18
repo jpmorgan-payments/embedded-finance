@@ -92,9 +92,16 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
 
   const editingPartyId = editingPartyIds[currentScreenId];
 
-  const existingPartyData = clientData?.parties?.find(
-    (party) => party.id === editingPartyId
-  );
+  // When flowEntry navigates directly to a section, editingPartyId may not
+  // yet be set.  Fall back to the section's associatedPartyFilters (same
+  // logic the sidebar uses when opening a section).
+  const currentSectionConfig = sections.find((s) => s.id === currentScreenId);
+  const existingPartyData = editingPartyId
+    ? clientData?.parties?.find((party) => party.id === editingPartyId)
+    : getPartyByAssociatedPartyFilters(
+        clientData,
+        currentSectionConfig?.stepperConfig?.associatedPartyFilters
+      );
 
   const setExistingPartyData = (partyData: PartyResponse | undefined) => {
     updateEditingPartyId(currentScreenId, partyData?.id);

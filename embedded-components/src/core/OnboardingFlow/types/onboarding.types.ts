@@ -268,6 +268,32 @@ export type OnboardingConfigUsedInContext = {
    * `reviewAndAttest.termsAcknowledgements.intro` above the checkbox group. Default false.
    */
   showReviewAttestTermsAcknowledgementsIntro?: boolean;
+  /**
+   * **Business → Industry** (`IndustryForm`): host-curated NAICS codes to surface
+   * as a pinned "Suggested for your platform" group at the top of the industry
+   * combobox. Users can still pick any code from the full catalog beneath the
+   * pinned group.
+   *
+   * - Codes are resolved against the bundled NAICS catalog; unknown codes are
+   *   silently dropped (with a `console.warn` in development).
+   * - Order is preserved (use it to express the host's priority).
+   * - Composes with the AI suggestion feature (`NAICS_SUGGESTION_FEATURE_FLAG`)
+   *   — the two surfaces are independent and may both be active.
+   *
+   * The pinned-group header text is a content token
+   * (`onboarding-old:industrySelect.priorityHeader`, default
+   * "Suggested for your platform") — override it via
+   * `EBComponentsProvider` `contentTokens.tokens` when you want a
+   * platform-specific label like "Recommended for SellSense sellers".
+   *
+   * @example
+   * ```tsx
+   * <OnboardingFlow
+   *   priorityIndustryCodes={['722511', '445110', '311811']}
+   * />
+   * ```
+   */
+  priorityIndustryCodes?: readonly string[];
 };
 
 export type OnboardingFlowProps = OnboardingConfigDefault &

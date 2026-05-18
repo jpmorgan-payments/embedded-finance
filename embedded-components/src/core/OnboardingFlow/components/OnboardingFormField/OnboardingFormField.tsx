@@ -42,6 +42,7 @@ import {
 import { ImportantDateSelector } from '@/components/ux/ImportantDateSelector/ImportantDateSelector';
 import { PatternInput } from '@/components/ux/PatternInput';
 import { IndustryTypeSelect } from '@/core/OnboardingFlow/components/IndustryTypeSelect/IndustryTypeSelect';
+import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
 import {
   FieldContentTokenKey,
   FieldRule,
@@ -147,6 +148,9 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
 }: OnboardingFormFieldProps<TFieldValues>) {
   const form = useFormContext();
   const { getFieldRule } = useFormUtils();
+  // Pulled here (top-level hook call) and forwarded to `industrySelect` below.
+  // Only the `industrySelect` field reads it today.
+  const { priorityIndustryCodes } = useOnboardingContext();
 
   const { t, tString } = useTranslationWithTokens([
     'onboarding-old',
@@ -338,6 +342,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                         field={field}
                         data-dtrum-tracking={field.name}
                         placeholder={fieldPlaceholder}
+                        priorityCodes={priorityIndustryCodes}
                         onChange={(value) => {
                           onChangeProp?.(value);
                           field.onChange(value);
