@@ -381,7 +381,7 @@ export const OperationalDetailsForm = () => {
         if (itemEnum) {
           if (
             question?.responseSchema?.maxItems &&
-            question?.responseSchema?.maxItems > 0
+            question?.responseSchema?.maxItems > 1
           ) {
             return (
               <FormField
