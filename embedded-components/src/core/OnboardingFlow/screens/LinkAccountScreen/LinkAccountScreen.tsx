@@ -31,8 +31,8 @@ import { LinkAccountPrefillSummaryView } from './LinkAccountPrefillSummaryView';
  * LinkAccountScreen
  *
  * Onboarding step for linking a bank account. Supports three modes:
- * - **`editable`** — `BankAccountForm` two-step wizard.
- * - **`prefillSummary`** — Read-only summary + acknowledgements.
+ * - **`editable`** — `BankAccountForm` two-step wizard. (default)
+ * - **`reviewOnly`** — Read-only summary + acknowledgements.
  * - **Multi-account** — List existing accounts with "Add account" CTA.
  */
 export const LinkAccountScreen = () => {
@@ -82,9 +82,44 @@ export const LinkAccountScreen = () => {
     selectedPresetId,
     setSelectedPresetId,
     effectivePartyId,
-    effectiveInitialValues,
+    effectiveInitialValues: rawEffectiveInitialValues,
     effectiveCompletionMode,
   } = useLinkAccountPreset({ linkAccountStepOptions, existingAccounts });
+
+  // Enrich initial values with party name when partyId resolves to a known party
+  // and the host did not explicitly provide name fields.
+  const effectiveInitialValues = useMemo(() => {
+    if (!effectivePartyId || !clientResponseData?.parties) {
+      return rawEffectiveInitialValues;
+    }
+    const party = (
+      clientResponseData.parties as Array<Record<string, unknown>>
+    ).find((p) => p.id === effectivePartyId);
+    if (!party) return rawEffectiveInitialValues;
+
+    const enriched = { ...rawEffectiveInitialValues };
+
+    if (party.partyType === 'INDIVIDUAL') {
+      const details = party.individualDetails as
+        | { firstName?: string; lastName?: string }
+        | undefined;
+      if (details) {
+        if (!enriched.firstName) enriched.firstName = details.firstName ?? '';
+        if (!enriched.lastName) enriched.lastName = details.lastName ?? '';
+      }
+      if (!enriched.accountType) enriched.accountType = 'INDIVIDUAL';
+    } else if (party.partyType === 'ORGANIZATION') {
+      const details = party.organizationDetails as
+        | { organizationName?: string }
+        | undefined;
+      if (details && !enriched.businessName) {
+        enriched.businessName = details.organizationName ?? '';
+      }
+      if (!enriched.accountType) enriched.accountType = 'ORGANIZATION';
+    }
+
+    return enriched;
+  }, [rawEffectiveInitialValues, effectivePartyId, clientResponseData]);
 
   // ─── Acknowledgements state ─────────────────────────────────────────────────
   const acknowledgementItems = linkAccountStepOptions?.reviewAcknowledgements;
@@ -137,7 +172,7 @@ export const LinkAccountScreen = () => {
   useEffect(() => {
     if (
       !prefillSummaryFormData ||
-      effectiveCompletionMode !== 'prefillSummary'
+      effectiveCompletionMode !== 'reviewOnly'
     ) {
       return undefined;
     }
@@ -263,8 +298,8 @@ export const LinkAccountScreen = () => {
     );
   }
 
-  // ─── Render: Prefill summary mode ──────────────────────────────────────────
-  if (prefillSummaryFormData && effectiveCompletionMode === 'prefillSummary') {
+  // ─── Render: Review-only mode ───────────────────────────────────────────────
+  if (prefillSummaryFormData && effectiveCompletionMode === 'reviewOnly') {
     return (
       <LinkAccountPrefillSummaryView
         title={t('screens.linkAccount.title', 'Link a bank account')}

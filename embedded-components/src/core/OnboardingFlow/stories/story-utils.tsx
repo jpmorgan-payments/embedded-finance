@@ -237,7 +237,7 @@ export const mockLinkAccountPrefillEditable: LinkAccountInitialValues = {
   routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
 };
 
-/** Full form-shaped payload for link-account `prefillSummary` (or tests). */
+/** Full form-shaped payload for link-account `reviewOnly` mode (or tests). */
 export const mockLinkAccountPrefillReadonly: BankAccountFormData = {
   accountType: 'INDIVIDUAL',
   firstName: 'Taylor',
@@ -248,10 +248,25 @@ export const mockLinkAccountPrefillReadonly: BankAccountFormData = {
   accountNumber: '44556677889900112',
   bankAccountType: 'CHECKING',
   paymentTypes: ['ACH'],
-  certify: true,
+  certify: false,
 };
 
-/** Default three acknowledgements for `completionMode: 'prefillSummary'` demos. */
+/** Same as {@link mockLinkAccountPrefillReadonly} but without name fields —
+ * when `partyId` is provided, the account holder is derived from the party. */
+export const mockLinkAccountPrefillReadonlyNoName: BankAccountFormData = {
+  accountType: 'INDIVIDUAL',
+  firstName: '',
+  lastName: '',
+  businessName: '',
+  routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+  useSameRoutingNumber: true,
+  accountNumber: '44556677889900112',
+  bankAccountType: 'CHECKING',
+  paymentTypes: ['ACH'],
+  certify: false,
+};
+
+/** Default three acknowledgements for `completionMode: 'reviewOnly'` demos. */
 export const mockLinkAccountPrefillSummaryAcknowledgementsThree: readonly LinkAccountReviewAcknowledgement[] =
   [
     {
@@ -274,6 +289,95 @@ export const mockLinkAccountPrefillSummaryAcknowledgementsThree: readonly LinkAc
       },
     },
   ];
+
+// ============================================================================
+// Linked Account Prefill — Invalid Data Mocks (for validation stories)
+// ============================================================================
+
+/** 8-digit routing number (must be 9 digits).
+ * Name fields omitted — when `partyId` is provided, the account holder comes from the party. */
+export const mockLinkAccountPrefillInvalidRouting: BankAccountFormData = {
+  accountType: 'INDIVIDUAL',
+  firstName: '',
+  lastName: '',
+  businessName: '',
+  routingNumbers: [{ paymentType: 'ACH', routingNumber: '02100002' }], // 8 digits
+  useSameRoutingNumber: true,
+  accountNumber: '44556677889900112',
+  bankAccountType: 'CHECKING',
+  paymentTypes: ['ACH'],
+  certify: false,
+};
+
+/** Missing account number */
+export const mockLinkAccountPrefillMissingAccountNumber: BankAccountFormData = {
+  accountType: 'INDIVIDUAL',
+  firstName: 'Taylor',
+  lastName: 'Morgan',
+  businessName: '',
+  routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+  useSameRoutingNumber: true,
+  accountNumber: '',
+  bankAccountType: 'CHECKING',
+  paymentTypes: ['ACH'],
+  certify: false,
+};
+
+/** Missing account holder name (individual with no first/last) */
+export const mockLinkAccountPrefillMissingName: BankAccountFormData = {
+  accountType: 'INDIVIDUAL',
+  firstName: '',
+  lastName: '',
+  businessName: '',
+  routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+  useSameRoutingNumber: true,
+  accountNumber: '44556677889900112',
+  bankAccountType: 'CHECKING',
+  paymentTypes: ['ACH'],
+  certify: false,
+};
+
+/** Organization with missing business name */
+export const mockLinkAccountPrefillMissingBusinessName: BankAccountFormData = {
+  accountType: 'ORGANIZATION',
+  firstName: '',
+  lastName: '',
+  businessName: '',
+  routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+  useSameRoutingNumber: true,
+  accountNumber: '44556677889900112',
+  bankAccountType: 'CHECKING',
+  paymentTypes: ['ACH'],
+  certify: false,
+};
+
+/** Multiple validation failures: bad routing + missing account number + missing name */
+export const mockLinkAccountPrefillMultipleErrors: BankAccountFormData = {
+  accountType: 'INDIVIDUAL',
+  firstName: '',
+  lastName: '',
+  businessName: '',
+  routingNumbers: [{ paymentType: 'ACH', routingNumber: '1234' }], // 4 digits
+  useSameRoutingNumber: true,
+  accountNumber: '',
+  bankAccountType: 'CHECKING',
+  paymentTypes: ['ACH'],
+  certify: false,
+};
+
+/** Non-numeric routing number (letters in routing) */
+export const mockLinkAccountPrefillNonNumericRouting: BankAccountFormData = {
+  accountType: 'INDIVIDUAL',
+  firstName: 'Taylor',
+  lastName: 'Morgan',
+  businessName: '',
+  routingNumbers: [{ paymentType: 'ACH', routingNumber: '0210ABC21' }],
+  useSameRoutingNumber: true,
+  accountNumber: '44556677889900112',
+  bankAccountType: 'CHECKING',
+  paymentTypes: ['ACH'],
+  certify: false,
+};
 
 // ============================================================================
 // Linked Account Preset Mocks (multi-account / partyId)

@@ -49,8 +49,8 @@ export type Jurisdiction = 'US' | 'CA';
 
 /**
  * Host-supplied values for the optional link-account step.
- * With `completionMode: 'editable'`, partial data is allowed and the user completes the two-step form.
- * With `completionMode: 'prefillSummary'`, supply a full {@link BankAccountFormData}-compatible payload;
+ * With `completionMode: 'editable'` (default), partial data is allowed and the user completes the two-step form.
+ * With `completionMode: 'reviewOnly'`, supply a full {@link BankAccountFormData}-compatible payload;
  * the UI shows a read-only summary plus optional `reviewAcknowledgements`.
  * With `completionMode: 'editable'`, the same optional `reviewAcknowledgements` render on step 2 of the bank form.
  */
@@ -82,14 +82,27 @@ export type LinkAccountPresetEntry = {
 };
 
 /**
- * - **`editable`** — Full `BankAccountForm` two-step wizard; optional `initialValues` prefill.
- * - **`prefillSummary`** — Single page via `LinkAccountPrefillSummaryView` (disabled fields + payment strip; shares config/i18n with the form, not the full form tree).
+ * - **`editable`** — Full `BankAccountForm` two-step wizard; optional `initialValues` prefill. **(default)**
+ * - **`reviewOnly`** — Single page via `LinkAccountPrefillSummaryView` (disabled fields + payment strip; shares config/i18n with the form, not the full form tree).
+ *
+ * @deprecated `'prefillSummary'` is accepted as an alias for `'reviewOnly'` for backward compatibility.
  */
-export type LinkAccountStepCompletionMode = 'editable' | 'prefillSummary';
+export type LinkAccountStepCompletionMode =
+  | 'editable'
+  | 'reviewOnly'
+  | 'prefillSummary';
 
 export type LinkAccountStepOptions = {
   initialValues: LinkAccountInitialValues;
-  completionMode: LinkAccountStepCompletionMode;
+  /**
+   * Controls whether the user can edit the prefilled bank account data or only review it.
+   *
+   * - `'editable'` — Interactive form where the user can modify fields before submitting.
+   * - `'reviewOnly'` — Read-only summary; user can only acknowledge and confirm.
+   *
+   * @default 'editable'
+   */
+  completionMode?: LinkAccountStepCompletionMode;
   /**
    * Zero or more agreements before linking (any `completionMode`).
    * Omitted or `[]` = no supplemental checkboxes. When non-empty, every item must be
@@ -97,7 +110,7 @@ export type LinkAccountStepOptions = {
    */
   reviewAcknowledgements?: readonly LinkAccountReviewAcknowledgement[];
   /**
-   * When `completionMode` is `prefillSummary`, payment types listed here appear in the read-only
+   * When `completionMode` is `'reviewOnly'`, payment types listed here appear in the read-only
    * summary strip (labels from `BankAccountForm` config). Defaults to
    * `initialValues.paymentTypes` when set, otherwise `['ACH']`.
    */
@@ -109,7 +122,7 @@ export type LinkAccountStepOptions = {
   showAcknowledgementsIntro?: boolean;
   /**
    * Optional merge on top of {@link useLinkedAccountConfig} for the link-account bank form
-   * (editable step and `prefillSummary` labels). Use to document or trial alternative
+   * (editable step and `reviewOnly` labels). Use to document or trial alternative
    * `paymentMethods.available` / `allowMultiple` sets; production onboarding typically omits this.
    */
   bankFormConfigOverride?: BankAccountFormConfigOverride;

@@ -15,7 +15,7 @@ import {
   type BankAccountFormData,
 } from '@/core/RecipientWidgets/components/BankAccountForm';
 
-/** Fallback base merged with host `initialValues` for `prefillSummary`. */
+/** Fallback base merged with host `initialValues` for `reviewOnly` mode. */
 const LINK_ACCOUNT_PREFILL_MERGE_BASE: BankAccountFormData = {
   accountType: 'INDIVIDUAL',
   firstName: '',
@@ -31,7 +31,7 @@ const LINK_ACCOUNT_PREFILL_MERGE_BASE: BankAccountFormData = {
 
 type UseLinkAccountFormConfigOptions = {
   linkAccountStepOptions: LinkAccountStepOptions | undefined;
-  effectiveCompletionMode: LinkAccountStepCompletionMode | undefined;
+  effectiveCompletionMode: LinkAccountStepCompletionMode;
   effectiveInitialValues: LinkAccountInitialValues;
   acknowledgementItems: readonly LinkAccountReviewAcknowledgement[] | undefined;
 };
@@ -71,7 +71,7 @@ export function useLinkAccountFormConfig({
   }, [configWithOverride, acknowledgementItems]);
 
   const prefillSummaryFormData: BankAccountFormData | null = useMemo(() => {
-    if (effectiveCompletionMode !== 'prefillSummary') return null;
+    if (effectiveCompletionMode !== 'reviewOnly') return null;
     return mergeBankAccountDefaultValues(
       LINK_ACCOUNT_PREFILL_MERGE_BASE,
       effectiveInitialValues
@@ -82,7 +82,7 @@ export function useLinkAccountFormConfig({
     useMemo((): RoutingInformationTransactionType[] => {
       if (
         !prefillSummaryFormData ||
-        effectiveCompletionMode !== 'prefillSummary'
+        effectiveCompletionMode !== 'reviewOnly'
       ) {
         return [];
       }
