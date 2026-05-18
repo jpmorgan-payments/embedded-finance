@@ -39,6 +39,10 @@ import {
 import { mockLinkedAccounts } from '../mocks/linkedAccounts.mock';
 import { mockRecipientsResponse } from '../mocks/recipients.mock';
 import {
+  TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID,
+  testScenarioMultiLinkedIllustrationClient,
+} from '../mocks/testScenarioMultiLinkedIllustrationClient.mock';
+import {
   TEST_DEMO_SCENARIO_CLIENT_ID,
   TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE,
   TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID,
@@ -47,7 +51,7 @@ import {
 import { mockTransactionsResponse } from '../mocks/transactions.mock';
 
 type SeedPredefinedClientOptions = {
-  /** Stable ids (`61800`, `61801+`) for `/test-scenario` Documents requested demo. */
+  /** Stable ids (`61800`, `61801+`) for Operator 80–shaped demo clients (doc-request flows). */
   useTestDemoFixedDocumentRequestIds?: boolean;
 };
 
@@ -559,7 +563,7 @@ const predefinedClients: Record<string, PredefinedClientShape> = {
   } as PredefinedClientShape,
 };
 
-/** Test `/test-scenario` demo: seed Operator 80-shaped client after `_reset` when body includes `testDemoScenario`. */
+/** Test demo clients: seed Operator 80–shaped (or bundle-specific) client after `_reset` when body includes `testDemoScenario`. */
 export type TestDemoScenarioMode =
   | 'happy-path'
   /**
@@ -570,7 +574,49 @@ export type TestDemoScenarioMode =
   | 'doc-request'
   | 'linked-account-approved'
   /** APPROVED client + link step; new linked recipient is ACTIVE (no microdeposits). */
-  | 'linked-account-active';
+  | 'linked-account-active'
+  /**
+   * `/test-scenario-2` only: APPROVED client; MSW seeds **three** pre-existing LINKED_ACCOUNT recipients.
+   */
+  | 'multi-linked-start-3';
+
+/**
+ * `/test-scenario*` demo **bundle**: maps a route to client seed + optional recipient seeding in MSW.
+ * SellSense never sends this; omitted `testScenarioBundle` in `_reset` implies `test-scenario`.
+ */
+export type TestScenarioBundleId =
+  | 'test-scenario'
+  | 'test-scenario-2'
+  | 'test-scenario-3';
+
+export const DEFAULT_TEST_SCENARIO_BUNDLE_ID: TestScenarioBundleId =
+  'test-scenario';
+
+const TEST_SCENARIO_BUNDLE_IDS = [
+  'test-scenario',
+  'test-scenario-2',
+  'test-scenario-3',
+] as const satisfies readonly TestScenarioBundleId[];
+
+export function parseTestScenarioBundleId(
+  value: unknown
+): TestScenarioBundleId {
+  if (
+    typeof value === 'string' &&
+    (TEST_SCENARIO_BUNDLE_IDS as readonly string[]).includes(value)
+  ) {
+    return value as TestScenarioBundleId;
+  }
+  return DEFAULT_TEST_SCENARIO_BUNDLE_ID;
+}
+
+/** Client ids used by isolated `/test-scenario*` MSW seeds (delayed approval, etc.). */
+export function getTestScenarioClientIds(): string[] {
+  return [
+    TEST_DEMO_SCENARIO_CLIENT_ID,
+    TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID,
+  ];
+}
 
 function seedPredefinedClientFromShape(
   clientId: string,
@@ -821,15 +867,148 @@ function promoteTestDemoClientPartiesToApproved(clientId: string): void {
   }
 }
 
+function removeAllTestScenarioSeedClients(): void {
+  removePredefinedClient(TEST_DEMO_SCENARIO_CLIENT_ID);
+  removePredefinedClient(TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID);
+}
+
+/** Illustration: N ACTIVE linked-bank recipients for GET `/recipients` (`/test-scenario-2`). */
+function seedTestScenarioMultiLinkedRecipients(
+  clientId: string,
+  count: 0 | 1 | 3
+): void {
+  if (count === 0) return;
+
+  const ts = new Date().toISOString();
+  const allRows: Recipient[] = [
+    {
+      id: 'ts-b2-linked-001',
+      type: 'LINKED_ACCOUNT',
+      status: 'ACTIVE',
+      clientId,
+      partyDetails: {
+        type: 'ORGANIZATION',
+        businessName: 'Aurora Payroll LLC',
+        address: {
+          addressLine1: '400 Market St',
+          city: 'Portland',
+          state: 'OR',
+          postalCode: '97204',
+          countryCode: 'US',
+        },
+        contacts: [{ contactType: 'EMAIL', value: 'treasury@aurora-pay.test' }],
+      },
+      account: {
+        number: '4433221100',
+        type: 'CHECKING',
+        countryCode: 'US',
+        routingInformation: [
+          {
+            routingCodeType: 'USABA',
+            routingNumber: '121000248',
+            transactionType: 'ACH',
+          },
+        ],
+      },
+      createdAt: ts,
+      updatedAt: ts,
+    },
+    {
+      id: 'ts-b2-linked-002',
+      type: 'LINKED_ACCOUNT',
+      status: 'ACTIVE',
+      clientId,
+      partyDetails: {
+        type: 'ORGANIZATION',
+        businessName: 'Summit Clearing Co',
+        address: {
+          addressLine1: '88 Fremont Ave',
+          city: 'Denver',
+          state: 'CO',
+          postalCode: '80202',
+          countryCode: 'US',
+        },
+        contacts: [{ contactType: 'EMAIL', value: 'ops@summit-clear.test' }],
+      },
+      account: {
+        number: '5566778899',
+        type: 'CHECKING',
+        countryCode: 'US',
+        routingInformation: [
+          {
+            routingCodeType: 'USABA',
+            routingNumber: '111000025',
+            transactionType: 'ACH',
+          },
+        ],
+      },
+      createdAt: ts,
+      updatedAt: ts,
+    },
+    {
+      id: 'ts-b2-linked-003',
+      type: 'LINKED_ACCOUNT',
+      status: 'ACTIVE',
+      clientId,
+      partyDetails: {
+        type: 'ORGANIZATION',
+        businessName: 'Harborline Foods LLC',
+        address: {
+          addressLine1: '15 Harbor Quay',
+          city: 'Boston',
+          state: 'MA',
+          postalCode: '02110',
+          countryCode: 'US',
+        },
+        contacts: [{ contactType: 'EMAIL', value: 'ap@harborline.test' }],
+      },
+      account: {
+        number: '9988776655',
+        type: 'CHECKING',
+        countryCode: 'US',
+        routingInformation: [
+          {
+            routingCodeType: 'USABA',
+            routingNumber: '021000021',
+            transactionType: 'ACH',
+          },
+        ],
+      },
+      createdAt: ts,
+      updatedAt: ts,
+    },
+  ];
+
+  const rows = allRows.slice(0, count);
+
+  for (const r of rows) {
+    try {
+      db.recipient.create(r as Partial<DbRecipient> & { id: string });
+    } catch (error) {
+      console.error('Error creating illustration linked recipient:', error);
+    }
+  }
+}
+
 /**
  * Applies only when `POST /ef/do/v1/_reset` includes `testDemoScenario`.
  * Does not run for SellSense or other callers that omit that field.
  */
-export function applyTestDemoScenario(mode: TestDemoScenarioMode): void {
-  const clientId = TEST_DEMO_SCENARIO_CLIENT_ID;
-  const base = testScenarioOperator80Client as PredefinedClientShape;
+export function applyTestDemoScenario(
+  mode: TestDemoScenarioMode,
+  bundleId: TestScenarioBundleId = DEFAULT_TEST_SCENARIO_BUNDLE_ID
+): void {
+  const useMultiLinked = bundleId === 'test-scenario-2';
+  const clientId = useMultiLinked
+    ? TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID
+    : TEST_DEMO_SCENARIO_CLIENT_ID;
+  const base = (
+    useMultiLinked
+      ? testScenarioMultiLinkedIllustrationClient
+      : testScenarioOperator80Client
+  ) as PredefinedClientShape;
 
-  removePredefinedClient(clientId);
+  removeAllTestScenarioSeedClients();
 
   let shape: PredefinedClientShape;
   if (mode === 'doc-request') {
@@ -837,7 +1016,8 @@ export function applyTestDemoScenario(mode: TestDemoScenarioMode): void {
   } else if (
     mode === 'linked-account-approved' ||
     mode === 'linked-account-active' ||
-    mode === 'happy-path-approved'
+    mode === 'happy-path-approved' ||
+    (useMultiLinked && mode === 'multi-linked-start-3')
   ) {
     shape = {
       ...base,
@@ -860,11 +1040,22 @@ export function applyTestDemoScenario(mode: TestDemoScenarioMode): void {
   if (
     mode === 'linked-account-approved' ||
     mode === 'linked-account-active' ||
-    mode === 'happy-path-approved'
+    mode === 'happy-path-approved' ||
+    (useMultiLinked && mode === 'multi-linked-start-3')
   ) {
     promoteTestDemoClientPartiesToApproved(clientId);
   }
-  logDbState(`Test demo scenario: ${mode}`);
+  if (useMultiLinked) {
+    if (mode === 'multi-linked-start-3') {
+      seedTestScenarioMultiLinkedRecipients(clientId, 3);
+    } else if (
+      shape.status === 'APPROVED' &&
+      mode === 'happy-path-approved'
+    ) {
+      seedTestScenarioMultiLinkedRecipients(clientId, 3);
+    }
+  }
+  logDbState(`Test demo scenario: ${mode} (bundle: ${bundleId})`);
 }
 
 // --- Initialize ---

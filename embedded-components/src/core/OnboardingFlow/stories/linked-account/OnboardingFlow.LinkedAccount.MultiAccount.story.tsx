@@ -6,8 +6,10 @@
  * 2. **presetAccounts** — multiple preset accounts with a select dropdown
  * 3. **allowMultipleAccounts** — sequential linking with "Link another" flow
  *
- * All stories use an APPROVED client and `flowEntry: { screenId: 'link-account' }`
- * to jump directly into the link step, similar to the Enabled Statuses stories.
+ * Stories **1–4** use `flowEntry: { screenId: 'link-account' }` to focus on link-step
+ * mechanics (`partyId`, `presetAccounts`). Stories **5–10** (`allowMultipleAccounts` and
+ * existing-account seeds) omit `flowEntry` so the flow opens on **Overview** (summary +
+ * **Manage linked accounts**), matching production navigation.
  */
 
 import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
@@ -336,8 +338,8 @@ export const PresetAccountsThree: Story = {
 /**
  * **5. Allow multiple accounts (sequential linking)**
  *
- * After successful linking, shows "Link another account" / "Done" buttons.
- * Host sets `allowMultipleAccounts: true`.
+ * Host sets `allowMultipleAccounts: true`. Opens on **Overview** (no `flowEntry`); open
+ * **Manage linked accounts** (or the sidebar link step) to reach sequential linking.
  */
 export const AllowMultipleAccounts: Story = {
   name: '5. Allow multiple accounts (sequential)',
@@ -361,7 +363,7 @@ export const AllowMultipleAccounts: Story = {
     docs: {
       description: {
         story:
-          'Enables sequential linking. After confirming the first account, the UI shows "Link another account" instead of redirecting to Overview. Aligned with `LinkedAccountWidget` `mode: "list"` behavior.',
+          'Enables sequential linking. Starts on **Overview**; open **Manage linked accounts** to reach this step. After confirming the first account, the UI shows "Link another account" instead of redirecting to Overview. Aligned with `LinkedAccountWidget` `mode: "list"` behavior.',
       },
     },
   },
@@ -369,7 +371,6 @@ export const AllowMultipleAccounts: Story = {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
     showLinkAccountStep: true,
-    flowEntry: { screenId: 'link-account' },
     linkAccountStepOptions: {
       completionMode: 'prefillSummary',
       allowMultipleAccounts: true,
@@ -382,6 +383,7 @@ export const AllowMultipleAccounts: Story = {
  * **6. Preset accounts + multiple accounts**
  *
  * Combines both features: selector dropdown + sequential linking flow.
+ * No `flowEntry` — opens on **Overview** first.
  */
 export const PresetAccountsWithMultiple: Story = {
   name: '6. Preset accounts + allow multiple',
@@ -405,7 +407,7 @@ export const PresetAccountsWithMultiple: Story = {
     docs: {
       description: {
         story:
-          'Full combination: three preset accounts in a selector, prefill summary mode, and sequential linking enabled. After linking one, user can pick the next preset.',
+          'Full combination: three preset accounts in a selector, prefill summary mode, and sequential linking enabled. Starts on **Overview** — open **Manage linked accounts**, then after linking one preset the user can pick the next.',
       },
     },
   },
@@ -413,7 +415,6 @@ export const PresetAccountsWithMultiple: Story = {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
     showLinkAccountStep: true,
-    flowEntry: { screenId: 'link-account' },
     linkAccountStepOptions: {
       completionMode: 'prefillSummary',
       allowMultipleAccounts: true,
@@ -429,6 +430,7 @@ export const PresetAccountsWithMultiple: Story = {
  * Shows linked accounts that already exist (returned from GET /recipients)
  * as compact display cards, with the form below to link additional accounts.
  * Demonstrates the full "manage linked accounts" view when `allowMultipleAccounts: true`.
+ * No `flowEntry` — canvas starts on **Overview**, then **Manage linked accounts**.
  */
 export const ExistingAccountsWithAddMore: Story = {
   name: '7. Existing accounts + add more',
@@ -468,7 +470,7 @@ export const ExistingAccountsWithAddMore: Story = {
     docs: {
       description: {
         story:
-          'Demonstrates managing linked accounts: one existing account is shown as a compact card with an "Add account" button. Clicking the button hides existing accounts and shows the link form. Uses `allowMultipleAccounts: true`.',
+          'Starts on **Overview** with a count summary and **Manage linked accounts**. On the link step: one existing account as a compact card with an "Add account" button. Clicking the button hides existing accounts and shows the link form. Uses `allowMultipleAccounts: true`.',
       },
     },
   },
@@ -476,7 +478,6 @@ export const ExistingAccountsWithAddMore: Story = {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
     showLinkAccountStep: true,
-    flowEntry: { screenId: 'link-account' },
     linkAccountStepOptions: {
       completionMode: 'prefillSummary',
       allowMultipleAccounts: true,
@@ -492,6 +493,7 @@ export const ExistingAccountsWithAddMore: Story = {
  * Same as story 7 but with the default `existingAccountsDisplay: 'detailed'`.
  * Each existing account shows the full card: status alerts with Verify action,
  * View Details dialog trigger, and Remove action (unless `hideLinkedAccountRemoval` is set).
+ * No `flowEntry` — opens on **Overview** first.
  */
 export const ExistingAccountsDetailed: Story = {
   name: '8. Existing accounts — detailed with actions',
@@ -531,7 +533,7 @@ export const ExistingAccountsDetailed: Story = {
     docs: {
       description: {
         story:
-          'Detailed view (default): one existing account with full card showing status alert, View Details, and Remove actions.',
+          'Starts on **Overview**; open **Manage linked accounts** for the link step. Detailed view (default): one existing account with full card showing status alert, View Details, and Remove actions.',
       },
     },
   },
@@ -539,7 +541,6 @@ export const ExistingAccountsDetailed: Story = {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
     showLinkAccountStep: true,
-    flowEntry: { screenId: 'link-account' },
     linkAccountStepOptions: {
       completionMode: 'prefillSummary',
       allowMultipleAccounts: true,
@@ -555,6 +556,7 @@ export const ExistingAccountsDetailed: Story = {
  * `allowMultipleAccounts` with `completionMode: 'editable'` and empty `initialValues`.
  * One existing linked account is seeded. The user sees the existing account card,
  * clicks "Add account", then fills in all bank details from scratch.
+ * No `flowEntry` — opens on **Overview** first.
  */
 export const FreeEntryMultiAccount: Story = {
   name: '9. Free-entry multi-account (editable)',
@@ -593,7 +595,7 @@ export const FreeEntryMultiAccount: Story = {
     docs: {
       description: {
         story:
-          'One existing account shown as a detailed card. Click "Add account" to reveal a blank editable form. User enters all bank details manually and can link multiple accounts in sequence.',
+          'Starts on **Overview**; open **Manage linked accounts**. One existing account shown as a detailed card. Click "Add account" to reveal a blank editable form. User enters all bank details manually and can link multiple accounts in sequence.',
       },
     },
   },
@@ -601,7 +603,6 @@ export const FreeEntryMultiAccount: Story = {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
     showLinkAccountStep: true,
-    flowEntry: { screenId: 'link-account' },
     linkAccountStepOptions: {
       completionMode: 'editable',
       allowMultipleAccounts: true,
@@ -616,6 +617,7 @@ export const FreeEntryMultiAccount: Story = {
  * Same as story 9 but with `bankFormConfigOverride` enabling ACH + WIRE + RTP
  * multi-select. One existing account is seeded. Demonstrates expanded payment
  * method availability combined with `allowMultipleAccounts`.
+ * No `flowEntry` — opens on **Overview** first.
  */
 export const FreeEntryMultiAccountMultiPayment: Story = {
   name: '10. Free-entry multi-account + ACH/WIRE/RTP',
@@ -654,7 +656,7 @@ export const FreeEntryMultiAccountMultiPayment: Story = {
     docs: {
       description: {
         story:
-          'One existing account shown as a detailed card. Click "Add account" to reveal a blank editable form with ACH + WIRE + RTP multi-select enabled via `bankFormConfigOverride`.',
+          'Starts on **Overview**; open **Manage linked accounts**. One existing account shown as a detailed card. Click "Add account" to reveal a blank editable form with ACH + WIRE + RTP multi-select enabled via `bankFormConfigOverride`.',
       },
     },
   },
@@ -662,7 +664,6 @@ export const FreeEntryMultiAccountMultiPayment: Story = {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
     showLinkAccountStep: true,
-    flowEntry: { screenId: 'link-account' },
     linkAccountStepOptions: {
       completionMode: 'editable',
       allowMultipleAccounts: true,

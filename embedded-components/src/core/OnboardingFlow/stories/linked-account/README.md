@@ -34,7 +34,7 @@ When `linkAccountStepOptions.allowMultipleAccounts` is `true`:
 
 - **`OnboardingFlow.LinkedAccount.States.story.tsx`** — Client States: lifecycle seeds, prefill variants, existing **ACTIVE** account.
 - **`OnboardingFlow.LinkedAccount.Interactive.story.tsx`** — Play functions: full link + MSW state machine, prefill summary, **microdeposit verification from Overview** (story 3; slow pacing constants at top of play).
-- **`OnboardingFlow.LinkedAccount.MultiAccount.story.tsx`** — Multi-account features: `partyId` passthrough, `presetAccounts` selector, `allowMultipleAccounts` sequential linking, existing accounts display (compact and detailed).
+- **`OnboardingFlow.LinkedAccount.MultiAccount.story.tsx`** — Multi-account features: `partyId` passthrough, `presetAccounts` selector, `allowMultipleAccounts` sequential linking, existing accounts display (compact and detailed). Stories **5–10** omit `flowEntry` so the canvas opens on **Overview** (realistic handoff via **Manage linked accounts**); stories **1–4** keep `flowEntry: 'link-account'` to isolate link-step controls.
 
 Shared MSW helpers: **`../story-utils.tsx`** (`buildApprovedClientLinkAccountStory`, `createOnboardingFlowHandlers`, linked-account mocks).
 

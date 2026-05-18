@@ -1,4 +1,4 @@
-import type { TestDemoScenarioMode } from '../msw/db';
+import type { TestDemoScenarioMode, TestScenarioBundleId } from '../msw/db';
 import { getOverrides } from './mock-overrides-storage';
 
 // Database reset utilities for triggering component refetch
@@ -88,13 +88,14 @@ export const DatabaseResetUtils = {
   },
 
   /**
-   * Isolated reset for `/test-scenario` — does not apply SellSense mock JSON overrides
+   * Isolated reset for `/test-scenario` demo routes — does not apply SellSense mock JSON overrides
    * from localStorage; seeds `empty` and applies `testDemoScenario` on the MSW DB.
    */
   resetTestDemoDatabase: async (
     scenario: string,
     testDemoScenario: TestDemoScenarioMode,
-    setIsLoading: (loading: boolean) => void
+    setIsLoading: (loading: boolean) => void,
+    testScenarioBundle?: TestScenarioBundleId
   ) => {
     setIsLoading(true);
 
@@ -108,6 +109,7 @@ export const DatabaseResetUtils = {
           scenario,
           overrides: {},
           testDemoScenario,
+          ...(testScenarioBundle ? { testScenarioBundle } : {}),
         }),
       });
 

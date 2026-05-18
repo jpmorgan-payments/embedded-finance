@@ -1,5 +1,5 @@
 /**
- * MSW seed shape for `/test-scenario` only — aligns with
+ * MSW seed for the `/test-scenario` and `/test-scenario-3` onboarding demos — aligns with
  * `embedded-components` Prepopulated story: Operator 80 (`efClientOperator80.mock.ts`).
  * Not part of default `initializeDb` predefined clients.
  */

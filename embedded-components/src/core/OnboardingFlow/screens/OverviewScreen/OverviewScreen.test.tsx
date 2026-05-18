@@ -282,4 +282,78 @@ describe('OverviewScreen', () => {
       })
     ).not.toBeInTheDocument();
   });
+
+  test('allowMultipleAccounts shows summary CTA on overview without account card list', async () => {
+    vi.mocked(useGetAllRecipients).mockReturnValue({
+      data: {
+        recipients: [
+          mockOverviewLinkedRecipient,
+          { ...mockOverviewLinkedRecipient, id: 'linked-recipient-2' },
+        ],
+      },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useGetAllRecipients>);
+
+    renderOverview({
+      showLinkAccountStep: true,
+      clientData: buildClient('APPROVED'),
+      linkAccountStepOptions: {
+        completionMode: 'editable',
+        initialValues: {},
+        allowMultipleAccounts: true,
+      },
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('overview-manage-linked-accounts')
+      ).toBeInTheDocument();
+    });
+
+    expect(
+      screen.queryByTestId('existing-linked-accounts')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        i18n.t(
+          'onboarding-overview:screens.overview.bankAccountSection.multiAccountOverviewDescriptionPlural',
+          { count: 2 }
+        )
+      )
+    ).toBeInTheDocument();
+  });
+
+  test('allowMultipleAccounts uses singular summary copy for one linked account', async () => {
+    vi.mocked(useGetAllRecipients).mockReturnValue({
+      data: { recipients: [mockOverviewLinkedRecipient] },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useGetAllRecipients>);
+
+    renderOverview({
+      showLinkAccountStep: true,
+      clientData: buildClient('APPROVED'),
+      linkAccountStepOptions: {
+        completionMode: 'editable',
+        initialValues: {},
+        allowMultipleAccounts: true,
+      },
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('overview-manage-linked-accounts')
+      ).toBeInTheDocument();
+    });
+
+    expect(
+      screen.queryByTestId('existing-linked-accounts')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        i18n.t(
+          'onboarding-overview:screens.overview.bankAccountSection.multiAccountOverviewDescriptionSingular'
+        )
+      )
+    ).toBeInTheDocument();
+  });
 });
