@@ -122,6 +122,11 @@ const PatternInput = React.forwardRef<HTMLInputElement, PatternInputProps>(
         ? value
         : obfuscateValue(value as string, 4, props.format);
 
+    // Prevent browsers from saving obfuscated (asterisk-filled) values in autofill
+    const autoCompleteProps = obfuscateWhenUnfocused
+      ? { autoComplete: 'off' }
+      : {};
+
     return (
       <div className="eb-space-y-1">
         {!isFocused && shouldObfuscate ? (
@@ -130,6 +135,7 @@ const PatternInput = React.forwardRef<HTMLInputElement, PatternInputProps>(
             onChange={onChange}
             onFocus={handleFocus}
             onBlur={handleBlur}
+            {...autoCompleteProps}
             {...(props as React.ComponentProps<typeof Input>)}
           />
         ) : (
@@ -147,6 +153,7 @@ const PatternInput = React.forwardRef<HTMLInputElement, PatternInputProps>(
             onBlur={handleBlur}
             value={displayValue}
             getInputRef={refCallback}
+            {...autoCompleteProps}
             {...props}
           />
         )}
