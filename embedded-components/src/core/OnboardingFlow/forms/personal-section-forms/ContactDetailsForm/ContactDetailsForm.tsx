@@ -146,11 +146,13 @@ export const ContactDetailsForm: FormStepComponent = () => {
           control={form.control}
           name="individualAddress.secondaryAddressLine"
           type="text"
+          required={false}
         />
         <OnboardingFormField
           control={form.control}
           name="individualAddress.tertiaryAddressLine"
           type="text"
+          required={false}
         />
         <OnboardingFormField
           control={form.control}

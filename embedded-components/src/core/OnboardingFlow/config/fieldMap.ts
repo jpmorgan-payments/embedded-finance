@@ -966,6 +966,7 @@ export const partyFieldMap: PartyFieldMap = {
     },
     baseRule: {
       display: 'visible',
+      required: true,
       defaultValue: {
         addressType: 'RESIDENTIAL_ADDRESS',
         primaryAddressLine: '',
@@ -1061,6 +1062,7 @@ export const partyFieldMap: PartyFieldMap = {
     },
     baseRule: {
       display: 'visible',
+      required: true,
       defaultValue: {
         addressType: 'BUSINESS_ADDRESS',
         primaryAddressLine: '',

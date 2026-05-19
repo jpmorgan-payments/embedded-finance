@@ -128,11 +128,13 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
             control={form.control}
             name="organizationAddress.secondaryAddressLine"
             type="text"
+            required={false}
           />
           <OnboardingFormField
             control={form.control}
             name="organizationAddress.tertiaryAddressLine"
             type="text"
+            required={false}
           />
           <OnboardingFormField
             control={form.control}
