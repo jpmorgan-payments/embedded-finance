@@ -80,10 +80,17 @@ export const ContactDetailsForm: FormStepComponent = () => {
   }, [addressCountry]);
 
   useEffect(() => {
-    if (form.watch('controllerPhone.phoneType') !== 'MOBILE_PHONE') {
+    const phoneNumber = form.watch('controllerPhone.phoneNumber');
+    if (
+      phoneNumber &&
+      form.watch('controllerPhone.phoneType') !== 'MOBILE_PHONE'
+    ) {
       form.setValue('controllerPhone.phoneType', 'MOBILE_PHONE');
     }
-  }, [form.watch('controllerPhone.phoneType')]);
+  }, [
+    form.watch('controllerPhone.phoneType'),
+    form.watch('controllerPhone.phoneNumber'),
+  ]);
 
   return (
     <div className="eb-mt-6 eb-space-y-6">

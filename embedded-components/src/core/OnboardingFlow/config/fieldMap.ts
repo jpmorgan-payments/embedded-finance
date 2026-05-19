@@ -470,11 +470,11 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'organizationDetails.phone',
     baseRule: {
       display: 'visible',
-      required: true,
+      required: false,
       defaultValue: { phoneType: 'BUSINESS_PHONE', phoneNumber: '' },
     },
     toStringFn: (val) =>
-      val ? formatPhoneNumberIntl(val.phoneNumber) : undefined,
+      val?.phoneNumber ? formatPhoneNumberIntl(val.phoneNumber) : undefined,
     fromResponseFn: (val: PhoneSmbdo) =>
       val.phoneNumber
         ? {
@@ -482,7 +482,8 @@ export const partyFieldMap: PartyFieldMap = {
             phoneNumber: `${val.countryCode}${val.phoneNumber}`,
           }
         : undefined,
-    toRequestFn: (val): PhoneSmbdo => {
+    toRequestFn: (val): PhoneSmbdo | undefined => {
+      if (!val?.phoneNumber) return undefined;
       const phone = parsePhoneNumber(val.phoneNumber);
       return {
         phoneType: val.phoneType,
@@ -1330,11 +1331,11 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'individualDetails.phone',
     baseRule: {
       display: 'visible',
-      required: true,
+      required: false,
       defaultValue: { phoneType: 'MOBILE_PHONE', phoneNumber: '' },
     },
     toStringFn: (val) =>
-      val ? formatPhoneNumberIntl(val.phoneNumber) : undefined,
+      val?.phoneNumber ? formatPhoneNumberIntl(val.phoneNumber) : undefined,
     fromResponseFn: (val: PhoneSmbdo) =>
       val.phoneNumber
         ? {
@@ -1342,7 +1343,8 @@ export const partyFieldMap: PartyFieldMap = {
             phoneNumber: `${val.countryCode}${val.phoneNumber}`,
           }
         : undefined,
-    toRequestFn: (val): PhoneSmbdo => {
+    toRequestFn: (val): PhoneSmbdo | undefined => {
+      if (!val?.phoneNumber) return undefined;
       const phone = parsePhoneNumber(val.phoneNumber);
       return {
         phoneType: val.phoneType,
