@@ -144,14 +144,14 @@ export const ApprovedWithLinkAccountPrefillEditable: Story =
   });
 
 /**
- * **Approved with link account — prefill summary (three default agreements + intro)**
+ * **Approved with link account — reviewOnly (three default agreements + intro)**
  *
  * Disabled ACH strip, holder line, routing/account numbers, lead-in copy, three checkboxes, confirm.
  */
 export const ApprovedWithLinkAccountPrefillSummary: Story =
   buildApprovedClientLinkAccountStory({
     linkAccountStepOptions: {
-      completionMode: 'prefillSummary',
+      completionMode: 'reviewOnly',
       initialValues: mockLinkAccountPrefillReadonly,
       summaryDisplayedPaymentTypes: ['ACH'],
       reviewAcknowledgements:

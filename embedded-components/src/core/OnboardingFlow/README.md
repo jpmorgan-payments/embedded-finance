@@ -114,8 +114,8 @@ Pre-populate and configure the **Link bank account** step via `linkAccountStepOp
 
 | Prop | Type | Default | Description |
 | ---- | ---- | ------- | ----------- |
-| `initialValues` | `Partial<BankAccountFormData>` | — | Default form values (partial for `editable`, full for `prefillSummary`). |
-| `completionMode` | `'editable' \| 'prefillSummary'` | — | `editable` = full two-step form; `prefillSummary` = read-only summary + confirm. |
+| `initialValues` | `Partial<BankAccountFormData>` | — | Default form values (partial for `editable`, full for `reviewOnly`). |
+| `completionMode` | `'editable' \| 'reviewOnly'` | `'editable'` | `editable` = full two-step form; `reviewOnly` = read-only summary + confirm. Legacy alias `'prefillSummary'` is also accepted. |
 | `partyId` | `string` | — | Link to an existing party instead of creating one from form fields. |
 | `presetAccounts` | `LinkAccountPresetEntry[]` | — | Multiple preset accounts; renders a dropdown selector. Each entry may have its own `partyId` and `initialValues`. Preset `partyId` takes precedence over top-level `partyId`. |
 | `allowMultipleAccounts` | `boolean` | `false` | After linking, show "Link another account" instead of redirecting to Overview. Existing accounts display as cards above the form on the **link-account** step only. **Overview** shows a short summary (account count + **Manage linked accounts**) so the full list is not duplicated; open the link-account step to add or manage accounts. |
@@ -123,14 +123,14 @@ Pre-populate and configure the **Link bank account** step via `linkAccountStepOp
 | `reviewAcknowledgements` | `LinkAccountReviewAcknowledgement[]` | — | Agreement checkboxes required before submit (both modes). |
 | `showAcknowledgementsIntro` | `boolean` | `false` | Show lead-in text above acknowledgement checkboxes. |
 | `bankFormConfigOverride` | `BankAccountFormConfigOverride` | — | Override linked-account form config (payment methods, field visibility). Deep-partial: `paymentMethods` sub-fields are individually optional. |
-| `summaryDisplayedPaymentTypes` | `RoutingInformationTransactionType[]` | `initialValues.paymentTypes` or `['ACH']` | Payment types shown in prefill summary strip. |
+| `summaryDisplayedPaymentTypes` | `RoutingInformationTransactionType[]` | `initialValues.paymentTypes` or `['ACH']` | Payment types shown in reviewOnly summary strip. |
 
 ## Duplicate account detection
 
 When `allowMultipleAccounts` is enabled and the host supplies `initialValues` whose `accountNumber` already exists among the linked accounts fetched from the API, the link-account step automatically:
 
 1. **Clears** the prefilled values so the user enters fresh data.
-2. **Forces** `completionMode` to `'editable'` regardless of the host-supplied value (overrides `prefillSummary`).
+2. **Forces** `completionMode` to `'editable'` regardless of the host-supplied value (overrides `'reviewOnly'`).
 3. **Validates at schema level** — the form rejects an account-number + routing-number combination that already exists among linked accounts (error key: `fields.accountNumber.validation.duplicate`).
 
 This prevents accidental re-linking of the same account via a stale host-supplied prefill.

@@ -7,7 +7,7 @@ Storybook: **Core → OnboardingFlow → Linked account**
 | Surface                     | File                                              | Role                                                                                                                          |
 | --------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | **Overview — bank section** | `screens/OverviewScreen/OverviewScreen.tsx`       | Shows linked account **or** “Start” to open the link step. **Verify Account** when `READY_FOR_VALIDATION`.                    |
-| **Link bank account step**  | `screens/LinkAccountScreen/LinkAccountScreen.tsx` | Create flow (`editable` / `prefillSummary`), multi-account management, or redirect to Overview for single existing accounts. |
+| **Link bank account step**  | `screens/LinkAccountScreen/LinkAccountScreen.tsx` | Create flow (`editable` / `reviewOnly`), multi-account management, or redirect to Overview for single existing accounts. |
 
 Both surfaces use the shared **`RecipientCard`** component (from `RecipientWidgets`) for account display — the same component used by **LinkedAccountWidget**. This ensures consistent card rendering, action menus, status alerts, and microdeposit verification across all surfaces.
 
