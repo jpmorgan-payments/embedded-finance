@@ -176,5 +176,9 @@ BusinessIdentityForm.modifyFormValuesBeforeSubmit = (values) => {
   return {
     ...rest,
     ...(solePropHasEin !== 'no' ? { organizationIdEin } : {}),
+    // When "Same as legal name" is checked, send the org name as dbaName
+    ...(rest.dbaNameNotAvailable && rest.organizationName
+      ? { dbaName: rest.organizationName }
+      : {}),
   };
 };
