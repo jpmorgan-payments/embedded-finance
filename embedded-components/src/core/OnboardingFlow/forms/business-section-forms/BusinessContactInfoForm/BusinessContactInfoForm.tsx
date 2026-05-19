@@ -67,10 +67,17 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
   }, [orgAddressCountry]);
 
   useEffect(() => {
-    if (form.watch('organizationPhone.phoneType') !== 'BUSINESS_PHONE') {
+    const phoneNumber = form.watch('organizationPhone.phoneNumber');
+    if (
+      phoneNumber &&
+      form.watch('organizationPhone.phoneType') !== 'BUSINESS_PHONE'
+    ) {
       form.setValue('organizationPhone.phoneType', 'BUSINESS_PHONE');
     }
-  });
+  }, [
+    form.watch('organizationPhone.phoneType'),
+    form.watch('organizationPhone.phoneNumber'),
+  ]);
 
   return (
     <div className="eb-mt-6 eb-space-y-6">
@@ -121,11 +128,13 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
             control={form.control}
             name="organizationAddress.secondaryAddressLine"
             type="text"
+            required={false}
           />
           <OnboardingFormField
             control={form.control}
             name="organizationAddress.tertiaryAddressLine"
             type="text"
+            required={false}
           />
           <OnboardingFormField
             control={form.control}

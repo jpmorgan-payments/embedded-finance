@@ -363,7 +363,9 @@ export function generateClientRequestBody(
         ? (fieldConfig as { toRequestFn: (val: any) => any }).toRequestFn(value)
         : value;
 
-      setValueByPath(obj, path, modifiedValue);
+      if (modifiedValue !== undefined && modifiedValue !== null) {
+        setValueByPath(obj, path, modifiedValue);
+      }
     }
   });
 
@@ -393,7 +395,9 @@ export function generatePartyRequestBody(
         ? (fieldConfig as { toRequestFn: (val: any) => any }).toRequestFn(value)
         : value;
 
-      setValueByPath(obj, path, modifiedValue);
+      if (modifiedValue !== undefined && modifiedValue !== null) {
+        setValueByPath(obj, path, modifiedValue);
+      }
     }
   });
 
@@ -869,7 +873,21 @@ export function modifySchemaByClientContext(
       }
     } else if (ruleType === 'single') {
       if (!fieldRule.required) {
-        modifiedSchema = value.or(z.literal('')).or(z.undefined());
+        if (modifiedSchema instanceof z.ZodObject) {
+          // For non-required object fields, relax inner schemas to accept empty/undefined
+          const relaxedShape: Record<string, z.ZodType<any>> = {};
+          for (const [k, v] of Object.entries(
+            modifiedSchema.shape as Record<string, z.ZodType<any>>
+          )) {
+            relaxedShape[k] = v.or(z.literal('')).or(z.undefined());
+          }
+          modifiedSchema = z
+            .object(relaxedShape)
+            .or(z.literal(''))
+            .or(z.undefined());
+        } else {
+          modifiedSchema = value.or(z.literal('')).or(z.undefined());
+        }
       }
     }
     filteredSchema[key] = modifiedSchema;
