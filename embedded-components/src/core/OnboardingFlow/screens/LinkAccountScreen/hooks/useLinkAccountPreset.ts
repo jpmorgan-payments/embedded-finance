@@ -8,6 +8,14 @@ import type {
   LinkAccountStepOptions,
 } from '@/core/OnboardingFlow/types/onboarding.types';
 
+/** Normalize legacy `'prefillSummary'` to `'reviewOnly'` and default to `'editable'`. */
+function normalizeCompletionMode(
+  mode: LinkAccountStepCompletionMode | undefined
+): LinkAccountStepCompletionMode {
+  if (mode === 'prefillSummary') return 'reviewOnly';
+  return mode ?? 'editable';
+}
+
 type UseLinkAccountPresetOptions = {
   linkAccountStepOptions: LinkAccountStepOptions | undefined;
   existingAccounts: Recipient[];
@@ -71,8 +79,10 @@ export function useLinkAccountPreset({
     : rawInitialValues;
 
   /** When duplicate detected, fall back to editable mode regardless of host config. */
-  const effectiveCompletionMode: LinkAccountStepCompletionMode | undefined =
-    isDuplicateAccount ? 'editable' : linkAccountStepOptions?.completionMode;
+  const effectiveCompletionMode: LinkAccountStepCompletionMode =
+    isDuplicateAccount
+      ? 'editable'
+      : normalizeCompletionMode(linkAccountStepOptions?.completionMode);
 
   return {
     presetAccounts,

@@ -194,7 +194,7 @@ export const WithPartyId: Story = {
     showLinkAccountStep: true,
     flowEntry: { screenId: 'link-account' },
     linkAccountStepOptions: {
-      completionMode: 'prefillSummary',
+      completionMode: 'reviewOnly',
       partyId: '2000000112',
       initialValues: mockLinkAccountPrefillReadonly,
     },
@@ -247,13 +247,13 @@ export const PresetAccountsEditable: Story = {
 };
 
 /**
- * **3. Preset accounts with selector (prefill summary)**
+ * **3. Preset accounts with selector (reviewOnly)**
  *
- * Same dropdown but in `prefillSummary` mode — user selects a preset, sees the
+ * Same dropdown but in `reviewOnly` mode — user selects a preset, sees the
  * read-only summary, and confirms.
  */
 export const PresetAccountsPrefillSummary: Story = {
-  name: '3. Preset accounts — prefill summary (two accounts)',
+  name: '3. Preset accounts — reviewOnly (two accounts)',
   loaders: [
     async () => {
       resetAndSeedClient(mockClientApproved, DEFAULT_CLIENT_ID);
@@ -284,7 +284,7 @@ export const PresetAccountsPrefillSummary: Story = {
     showLinkAccountStep: true,
     flowEntry: { screenId: 'link-account' },
     linkAccountStepOptions: {
-      completionMode: 'prefillSummary',
+      completionMode: 'reviewOnly',
       initialValues: {},
       presetAccounts: mockPresetAccountsTwo,
     },
@@ -372,7 +372,7 @@ export const AllowMultipleAccounts: Story = {
     clientId: DEFAULT_CLIENT_ID,
     showLinkAccountStep: true,
     linkAccountStepOptions: {
-      completionMode: 'prefillSummary',
+      completionMode: 'reviewOnly',
       allowMultipleAccounts: true,
       initialValues: mockLinkAccountPrefillReadonly,
     },
@@ -407,7 +407,7 @@ export const PresetAccountsWithMultiple: Story = {
     docs: {
       description: {
         story:
-          'Full combination: three preset accounts in a selector, prefill summary mode, and sequential linking enabled. Starts on **Overview** — open **Manage linked accounts**, then after linking one preset the user can pick the next.',
+          'Full combination: three preset accounts in a selector, reviewOnly mode, and sequential linking enabled. Starts on **Overview** — open **Manage linked accounts**, then after linking one preset the user can pick the next.',
       },
     },
   },
@@ -416,7 +416,7 @@ export const PresetAccountsWithMultiple: Story = {
     clientId: DEFAULT_CLIENT_ID,
     showLinkAccountStep: true,
     linkAccountStepOptions: {
-      completionMode: 'prefillSummary',
+      completionMode: 'reviewOnly',
       allowMultipleAccounts: true,
       initialValues: {},
       presetAccounts: mockPresetAccountsThree,
@@ -479,7 +479,7 @@ export const ExistingAccountsWithAddMore: Story = {
     clientId: DEFAULT_CLIENT_ID,
     showLinkAccountStep: true,
     linkAccountStepOptions: {
-      completionMode: 'prefillSummary',
+      completionMode: 'reviewOnly',
       allowMultipleAccounts: true,
       existingAccountsDisplay: 'compact',
       initialValues: mockLinkAccountPrefillReadonly,
@@ -542,7 +542,7 @@ export const ExistingAccountsDetailed: Story = {
     clientId: DEFAULT_CLIENT_ID,
     showLinkAccountStep: true,
     linkAccountStepOptions: {
-      completionMode: 'prefillSummary',
+      completionMode: 'reviewOnly',
       allowMultipleAccounts: true,
       existingAccountsDisplay: 'detailed',
       initialValues: mockLinkAccountPrefillReadonly,

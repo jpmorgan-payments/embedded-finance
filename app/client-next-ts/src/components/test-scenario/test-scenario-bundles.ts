@@ -53,7 +53,7 @@ export type TestScenarioBundleConfig = {
 };
 
 const LINKED_ACCOUNT_OPTIONS: LinkAccountStepOptions = {
-  completionMode: 'prefillSummary',
+  completionMode: 'reviewOnly',
   initialValues: {
     accountType: 'INDIVIDUAL',
     firstName: 'Taylor',
@@ -205,7 +205,7 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
      * @see https://storybook.embedded-finance-dev.com/?path=/story/core-onboardingflow-linked-account-multi-account--existing-accounts-with-add-more
      */
     linkAccountStepOptions: {
-      completionMode: 'prefillSummary',
+      completionMode: 'reviewOnly',
       allowMultipleAccounts: true,
       existingAccountsDisplay: 'compact',
       initialValues: {

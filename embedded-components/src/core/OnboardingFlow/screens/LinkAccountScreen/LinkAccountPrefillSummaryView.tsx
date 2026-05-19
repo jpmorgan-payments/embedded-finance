@@ -1,6 +1,7 @@
-import type { ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import {
+  AlertTriangleIcon,
   ArrowLeftIcon,
   ArrowRightLeftIcon,
   BanknoteIcon,
@@ -10,17 +11,20 @@ import {
 } from 'lucide-react';
 
 import type { RoutingInformationTransactionType } from '@/api/generated/ep-recipients.schemas';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { StepLayout } from '@/core/OnboardingFlow/components';
-import type {
-  BankAccountFormConfig,
-  BankAccountFormData,
-  LinkAccountReviewAcknowledgement,
-} from '@/core/RecipientWidgets/components/BankAccountForm/BankAccountForm.types';
+import {
+  createBankAccountFormSchema,
+  type BankAccountFormConfig,
+  type BankAccountFormData,
+  type LinkAccountReviewAcknowledgement,
+} from '@/core/RecipientWidgets/components/BankAccountForm';
+import { useGetBankAccountValidationMessage } from '@/core/RecipientWidgets/components/BankAccountForm/BankAccountForm.schema';
 import { LinkAccountAcknowledgementsGroup } from '@/core/RecipientWidgets/components/BankAccountForm/linkAccountAcknowledgements';
 
 export type LinkAccountPrefillSummaryViewProps = {
@@ -111,14 +115,55 @@ export function LinkAccountPrefillSummaryView({
   const showDefaultCertification =
     !!bankFormConfig.requiredFields.certification;
 
+  // ─── Client-side validation of prefilled data ─────────────────────────────
+  const v = useGetBankAccountValidationMessage();
+  const validationErrors = useMemo(() => {
+    // Validate with certification disabled — the certify checkbox is a separate
+    // UI control, not prefilled data, so its errors should not appear in the alert.
+    const configForValidation: BankAccountFormConfig = {
+      ...bankFormConfig,
+      requiredFields: {
+        ...bankFormConfig.requiredFields,
+        certification: false,
+      },
+    };
+    const schema = createBankAccountFormSchema(configForValidation, v);
+    const result = schema.safeParse(data);
+    if (result.success) return [];
+    return result.error.issues.map((issue) => issue.message);
+  }, [data, bankFormConfig, v]);
+
+  const hasValidationErrors = validationErrors.length > 0;
+
   const canSubmit =
-    acknowledgementsComplete && (!showDefaultCertification || certifyChecked);
+    acknowledgementsComplete &&
+    (!showDefaultCertification || certifyChecked) &&
+    !hasValidationErrors;
 
   return (
     <StepLayout title={title} description={description}>
       <div className="eb-mt-6 eb-space-y-6">
         {preSelector}
         {errorAlert}
+
+        {hasValidationErrors ? (
+          <Alert variant="destructive">
+            <AlertTriangleIcon className="eb-h-4 eb-w-4" />
+            <AlertTitle>
+              {tString(
+                'prefillValidation.title',
+                'Invalid prefilled account data'
+              )}
+            </AlertTitle>
+            <AlertDescription>
+              <ul className="eb-mt-1 eb-list-disc eb-pl-4 eb-text-sm">
+                {validationErrors.map((msg) => (
+                  <li key={msg}>{msg}</li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        ) : null}
 
         <div className="eb-space-y-2">
           <Label className="eb-text-sm eb-font-medium">
@@ -243,7 +288,9 @@ export function LinkAccountPrefillSummaryView({
                 id="eb-link-prefill-certify"
                 className="eb-mt-0.5"
                 checked={certifyChecked}
-                onCheckedChange={(v) => onCertifyCheckedChange(v === true)}
+                onCheckedChange={(checked) =>
+                  onCertifyCheckedChange(checked === true)
+                }
                 disabled={isSubmitting}
               />
               <Label

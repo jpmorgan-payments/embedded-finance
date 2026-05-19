@@ -243,7 +243,7 @@ describe('LinkAccountScreen', () => {
 
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           initialValues: FULL_PREFILL_VALUES,
         },
       });
@@ -323,11 +323,11 @@ describe('LinkAccountScreen', () => {
   // Prefill Summary Mode
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  describe('prefillSummary mode', () => {
+  describe('reviewOnly mode', () => {
     test('shows read-only fields with prefilled values', async () => {
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           initialValues: FULL_PREFILL_VALUES,
         },
       });
@@ -346,7 +346,7 @@ describe('LinkAccountScreen', () => {
 
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           initialValues: FULL_PREFILL_VALUES,
         },
       });
@@ -370,7 +370,7 @@ describe('LinkAccountScreen', () => {
 
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           initialValues: FULL_PREFILL_VALUES,
         },
       });
@@ -401,7 +401,7 @@ describe('LinkAccountScreen', () => {
 
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           initialValues: FULL_PREFILL_VALUES,
           reviewAcknowledgements: [
             {
@@ -462,7 +462,7 @@ describe('LinkAccountScreen', () => {
     test('does NOT show editable form buttons', async () => {
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           initialValues: FULL_PREFILL_VALUES,
         },
       });
@@ -592,7 +592,7 @@ describe('LinkAccountScreen', () => {
     test('no partyId: useRecipientForm receives undefined', async () => {
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           initialValues: FULL_PREFILL_VALUES,
         },
       });
@@ -611,7 +611,7 @@ describe('LinkAccountScreen', () => {
     test('top-level partyId passed when no presets exist', async () => {
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           partyId: 'top-level-only',
           initialValues: FULL_PREFILL_VALUES,
         },
@@ -627,7 +627,7 @@ describe('LinkAccountScreen', () => {
     test('preset partyId takes precedence over top-level', async () => {
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           partyId: 'top-level-party',
           initialValues: {},
           presetAccounts: [
@@ -651,7 +651,7 @@ describe('LinkAccountScreen', () => {
     test('preset without partyId falls back to top-level', async () => {
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           partyId: 'top-level-fallback',
           initialValues: {},
           presetAccounts: [
@@ -676,7 +676,7 @@ describe('LinkAccountScreen', () => {
 
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           partyId: 'party-123',
           initialValues: FULL_PREFILL_VALUES,
         },
@@ -743,7 +743,7 @@ describe('LinkAccountScreen', () => {
     test('does NOT render selector with single preset', async () => {
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           initialValues: {},
           presetAccounts: [twoPresets[0]],
         },
@@ -776,7 +776,7 @@ describe('LinkAccountScreen', () => {
 
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           initialValues: {},
           presetAccounts: twoPresets,
         },
@@ -828,7 +828,7 @@ describe('LinkAccountScreen', () => {
 
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           allowMultipleAccounts: true,
           initialValues: FULL_PREFILL_VALUES,
         },
@@ -854,7 +854,7 @@ describe('LinkAccountScreen', () => {
 
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           allowMultipleAccounts: true,
           initialValues: {
             ...FULL_PREFILL_VALUES,
@@ -899,7 +899,7 @@ describe('LinkAccountScreen', () => {
 
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           allowMultipleAccounts: true,
           existingAccountsDisplay: 'compact',
           initialValues: FULL_PREFILL_VALUES,
@@ -917,7 +917,7 @@ describe('LinkAccountScreen', () => {
       renderScreen({
         hideLinkedAccountRemoval: true,
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           allowMultipleAccounts: true,
           initialValues: FULL_PREFILL_VALUES,
         },
@@ -934,7 +934,7 @@ describe('LinkAccountScreen', () => {
 
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           allowMultipleAccounts: true,
           initialValues: FULL_PREFILL_VALUES,
         },
@@ -962,7 +962,7 @@ describe('LinkAccountScreen', () => {
 
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           allowMultipleAccounts: true,
           // Same account number as ACTIVE_RECIPIENT
           initialValues: {
@@ -975,7 +975,7 @@ describe('LinkAccountScreen', () => {
       // Show "Add account" first
       await user.click(await screen.findByTestId('add-another-account-btn'));
 
-      // Should show editable form (forced by duplicate), NOT prefillSummary
+      // Should show editable form (forced by duplicate), NOT reviewOnly
       await waitFor(() => {
         expect(
           screen.getByRole('button', { name: /Continue to Account Details/i })
@@ -992,7 +992,7 @@ describe('LinkAccountScreen', () => {
 
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           initialValues: {
             ...FULL_PREFILL_VALUES,
             accountNumber: '12345678901234567',
@@ -1021,7 +1021,7 @@ describe('LinkAccountScreen', () => {
 
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           initialValues: FULL_PREFILL_VALUES,
         },
       });
@@ -1034,7 +1034,7 @@ describe('LinkAccountScreen', () => {
     test('no error alert when error is null', async () => {
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           initialValues: FULL_PREFILL_VALUES,
         },
       });
@@ -1057,7 +1057,7 @@ describe('LinkAccountScreen', () => {
 
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           initialValues: FULL_PREFILL_VALUES,
         },
       });
@@ -1074,7 +1074,7 @@ describe('LinkAccountScreen', () => {
 
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           initialValues: FULL_PREFILL_VALUES,
         },
       });
@@ -1099,12 +1099,12 @@ describe('LinkAccountScreen', () => {
   // ═══════════════════════════════════════════════════════════════════════════════
 
   describe('unsaved changes tracking', () => {
-    test('prefillSummary marks dirty when acknowledgement is checked', async () => {
+    test('reviewOnly marks dirty when acknowledgement is checked', async () => {
       const user = userEvent.setup();
 
       renderScreen({
         linkAccountStepOptions: {
-          completionMode: 'prefillSummary',
+          completionMode: 'reviewOnly',
           initialValues: FULL_PREFILL_VALUES,
           reviewAcknowledgements: [
             {

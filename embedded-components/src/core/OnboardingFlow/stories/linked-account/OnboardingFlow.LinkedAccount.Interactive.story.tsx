@@ -441,19 +441,19 @@ export const _1_LinkAccount_RecipientStateMachine: Story = {
 };
 
 /**
- * **2. Link account: prefill summary (three acknowledgements)**
+ * **2. Link account: reviewOnly (three acknowledgements)**
  *
- * `completionMode: 'prefillSummary'` with full `initialValues` and three `reviewAcknowledgements` rows.
+ * `completionMode: 'reviewOnly'` with full `initialValues` and three `reviewAcknowledgements` rows.
  * POST /recipients on confirm.
  */
 export const _2_LinkAccount_PrefillSummaryThreeAcknowledgements: Story = {
-  name: '2. Link account: prefill summary (three acknowledgements)',
+  name: '2. Link account: reviewOnly (three acknowledgements)',
   args: {
     ...commonArgs,
     clientId: '0030000132',
     showLinkAccountStep: true,
     linkAccountStepOptions: {
-      completionMode: 'prefillSummary',
+      completionMode: 'reviewOnly',
       initialValues: mockLinkAccountPrefillReadonly,
       summaryDisplayedPaymentTypes: ['ACH'],
       reviewAcknowledgements:
