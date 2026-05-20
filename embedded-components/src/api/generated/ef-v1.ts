@@ -5,10 +5,8 @@
  * Embedded Banking Solutions services from J.P. Morgan
  * OpenAPI spec version: 1.0.8
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useCallback } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -21,13 +19,11 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
+  UseQueryResult,
 } from '@tanstack/react-query';
 
-import {
-  useCallback
-} from 'react';
-
+import { useEbInstance } from '../use-axios-instance';
+import type { BodyType, ErrorType } from '../use-axios-instance';
 import type {
   AccountBalanceResponse,
   AccountResponseWithStatus,
@@ -46,8 +42,8 @@ import type {
   CaseCreateRequest,
   CaseCreateResponse,
   CaseDetails,
-  CaseUpdateRequest,
   CasesPaginationResponse,
+  CaseUpdateRequest,
   ClientInformationResponse,
   ClientVerificationsInformationRequest,
   ClientVerificationsInformationResponse,
@@ -60,8 +56,8 @@ import type {
   CreateUserRequest,
   DebitCardsResponse,
   DocumentDetails,
-  DocumentTypesResponse,
   DocumentsDetailsParams,
+  DocumentTypesResponse,
   FAQResponse,
   GetAccountsParams,
   GetAllClientsParams,
@@ -136,5691 +132,11654 @@ import type {
   UserResponse,
   WebhookRequest,
   WebhookResponse,
-  WebhookUpdateRequest
+  WebhookUpdateRequest,
 } from './ef-v1.schemas';
 
-import { useEbInstance } from '../use-axios-instance';
-import type { ErrorType , BodyType } from '../use-axios-instance';
-
-
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
 
 /**
  * Returns a list of Embedded Finance clients associated with your platform.
  * @summary List clients
  */
 export const useGetAllClientsHook = () => {
-        const getAllClients = useEbInstance<ListClientInformationResponse>();
+  const getAllClients = useEbInstance<ListClientInformationResponse>();
 
-        return useCallback((
-    params?: GetAllClientsParams,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getAllClients(
-          {url: `/clients`, method: 'GET',
-        params, signal
+  return useCallback(
+    (
+      params?: GetAllClientsParams,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getAllClients(
+        { url: `/clients`, method: 'GET', params, signal },
+        options
+      );
     },
-          options);
-        }, [getAllClients])
-      }
-    
+    [getAllClients]
+  );
+};
 
+export const getGetAllClientsQueryKey = (params?: GetAllClientsParams) => {
+  return [`/clients`, ...(params ? [params] : [])] as const;
+};
 
-
-export const getGetAllClientsQueryKey = (params?: GetAllClientsParams,) => {
-    return [
-    `/clients`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-    
-export const useGetAllClientsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(params?: GetAllClientsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetAllClientsQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetAllClientsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetAllClientsQueryKey(params);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetAllClientsQueryKey(params);
+  const getAllClients = useGetAllClientsHook();
 
-  const getAllClients =  useGetAllClientsHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>
+  > = ({ signal }) => getAllClients(params, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>> = ({ signal }) => getAllClients(params, requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetAllClientsQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>
+>;
+export type GetAllClientsQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetAllClientsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>>
-export type GetAllClientsQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useGetAllClients<TData = Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params: undefined |  GetAllClientsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>, TError, TData>> & Pick<
+export function useGetAllClients<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params: undefined | GetAllClientsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllClients<TData = Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: GetAllClientsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAllClients<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetAllClientsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllClients<TData = Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: GetAllClientsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAllClients<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetAllClientsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List clients
  */
 
-export function useGetAllClients<TData = Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: GetAllClientsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetAllClients<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetAllClientsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllClientsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetAllClientsQueryOptions(params, options);
 
-  const queryOptions = useGetAllClientsQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Creates a new client.
  * @summary Create client
  */
 export const usePostClientsHook = () => {
-        const postClients = useEbInstance<ClientInformationResponse>();
+  const postClients = useEbInstance<ClientInformationResponse>();
 
-        return useCallback((
-    createClientRequest: BodyType<CreateClientRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return postClients(
-          {url: `/clients`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createClientRequest, signal
+  return useCallback(
+    (
+      createClientRequest: BodyType<CreateClientRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return postClients(
+        {
+          url: `/clients`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: createClientRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [postClients])
-      }
-    
+    [postClients]
+  );
+};
 
+export const usePostClientsMutationOptions = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof usePostClientsHook>>>,
+    TError,
+    { data: BodyType<CreateClientRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof usePostClientsHook>>>,
+  TError,
+  { data: BodyType<CreateClientRequest> },
+  TContext
+> => {
+  const mutationKey = ['postClients'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const usePostClientsMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof usePostClientsHook>>>, TError,{data: BodyType<CreateClientRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof usePostClientsHook>>>, TError,{data: BodyType<CreateClientRequest>}, TContext> => {
+  const postClients = usePostClientsHook();
 
-const mutationKey = ['postClients'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof usePostClientsHook>>>,
+    { data: BodyType<CreateClientRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
 
-      const postClients =  usePostClientsHook()
+    return postClients(data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof usePostClientsHook>>>, {data: BodyType<CreateClientRequest>}> = (props) => {
-          const {data} = props ?? {};
+export type PostClientsMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof usePostClientsHook>>>
+>;
+export type PostClientsMutationBody = BodyType<CreateClientRequest>;
+export type PostClientsMutationError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-          return  postClients(data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostClientsMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof usePostClientsHook>>>>
-    export type PostClientsMutationBody = BodyType<CreateClientRequest>
-    export type PostClientsMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-    /**
+/**
  * @summary Create client
  */
-export const usePostClients = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof usePostClientsHook>>>, TError,{data: BodyType<CreateClientRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof usePostClientsHook>>>,
-        TError,
-        {data: BodyType<CreateClientRequest>},
-        TContext
-      > => {
-      return useMutation(usePostClientsMutationOptions(options), queryClient);
-    }
-    
+export const usePostClients = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof usePostClientsHook>>>,
+      TError,
+      { data: BodyType<CreateClientRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof usePostClientsHook>>>,
+  TError,
+  { data: BodyType<CreateClientRequest> },
+  TContext
+> => {
+  return useMutation(usePostClientsMutationOptions(options), queryClient);
+};
+
 /**
  * Returns details for a specific client using their unique identifier.
  * @summary Get client
  */
 export const useGetClientDetailsHook = () => {
-        const getClientDetails = useEbInstance<ClientInformationResponse>();
+  const getClientDetails = useEbInstance<ClientInformationResponse>();
 
-        return useCallback((
-    id: string,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getClientDetails(
-          {url: `/clients/${id}`, method: 'GET', signal
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getClientDetails(
+        { url: `/clients/${id}`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getClientDetails])
-      }
-    
+    [getClientDetails]
+  );
+};
 
+export const getGetClientDetailsQueryKey = (id: string) => {
+  return [`/clients/${id}`] as const;
+};
 
-
-export const getGetClientDetailsQueryKey = (id: string,) => {
-    return [
-    `/clients/${id}`
-    ] as const;
-    }
-
-    
-export const useGetClientDetailsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetClientDetailsQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetClientDetailsQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetClientDetailsQueryKey(id);
+  const getClientDetails = useGetClientDetailsHook();
 
-  const getClientDetails =  useGetClientDetailsHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>
+  > = ({ signal }) => getClientDetails(id, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>> = ({ signal }) => getClientDetails(id, requestOptions, signal);
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetClientDetailsQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>
+>;
+export type GetClientDetailsQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetClientDetailsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>>
-export type GetClientDetailsQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useGetClientDetails<TData = Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>, TError, TData>> & Pick<
+export function useGetClientDetails<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetClientDetails<TData = Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetClientDetails<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetClientDetails<TData = Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetClientDetails<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Get client
  */
 
-export function useGetClientDetails<TData = Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetClientDetails<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetClientDetailsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetClientDetailsQueryOptions(id, options);
 
-  const queryOptions = useGetClientDetailsQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Updates information about a specified client.
  * @summary Update client
  */
 export const useUpdateClientsHook = () => {
-        const updateClients = useEbInstance<UpdateClientResponse>();
+  const updateClients = useEbInstance<UpdateClientResponse>();
 
-        return useCallback((
-    id: string,
-    updateClientRequest: BodyType<UpdateClientRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return updateClients(
-          {url: `/clients/${id}`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: updateClientRequest, signal
+  return useCallback(
+    (
+      id: string,
+      updateClientRequest: BodyType<UpdateClientRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return updateClients(
+        {
+          url: `/clients/${id}`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: updateClientRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [updateClients])
-      }
-    
+    [updateClients]
+  );
+};
 
+export const useUpdateClientsMutationOptions = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useUpdateClientsHook>>>,
+    TError,
+    { id: string; data: BodyType<UpdateClientRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useUpdateClientsHook>>>,
+  TError,
+  { id: string; data: BodyType<UpdateClientRequest> },
+  TContext
+> => {
+  const mutationKey = ['updateClients'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useUpdateClientsMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdateClientsHook>>>, TError,{id: string;data: BodyType<UpdateClientRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdateClientsHook>>>, TError,{id: string;data: BodyType<UpdateClientRequest>}, TContext> => {
+  const updateClients = useUpdateClientsHook();
 
-const mutationKey = ['updateClients'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useUpdateClientsHook>>>,
+    { id: string; data: BodyType<UpdateClientRequest> }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
-      const updateClients =  useUpdateClientsHook()
+    return updateClients(id, data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useUpdateClientsHook>>>, {id: string;data: BodyType<UpdateClientRequest>}> = (props) => {
-          const {id,data} = props ?? {};
+export type UpdateClientsMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useUpdateClientsHook>>>
+>;
+export type UpdateClientsMutationBody = BodyType<UpdateClientRequest>;
+export type UpdateClientsMutationError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-          return  updateClients(id,data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UpdateClientsMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useUpdateClientsHook>>>>
-    export type UpdateClientsMutationBody = BodyType<UpdateClientRequest>
-    export type UpdateClientsMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-    /**
+/**
  * @summary Update client
  */
-export const useUpdateClients = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdateClientsHook>>>, TError,{id: string;data: BodyType<UpdateClientRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useUpdateClientsHook>>>,
-        TError,
-        {id: string;data: BodyType<UpdateClientRequest>},
-        TContext
-      > => {
-      return useMutation(useUpdateClientsMutationOptions(options), queryClient);
-    }
-    
+export const useUpdateClients = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useUpdateClientsHook>>>,
+      TError,
+      { id: string; data: BodyType<UpdateClientRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useUpdateClientsHook>>>,
+  TError,
+  { id: string; data: BodyType<UpdateClientRequest> },
+  TContext
+> => {
+  return useMutation(useUpdateClientsMutationOptions(options), queryClient);
+};
+
 /**
  * Get current and outstanding verifications for a given client. These tell clients what is required to complete onboarding.
  * @summary Get client verifications
  */
 export const useGetClientVerificationHook = () => {
-        const getClientVerification = useEbInstance<ClientVerificationsInformationResponse>();
+  const getClientVerification =
+    useEbInstance<ClientVerificationsInformationResponse>();
 
-        return useCallback((
-    id: string,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getClientVerification(
-          {url: `/clients/${id}/verifications`, method: 'GET', signal
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getClientVerification(
+        { url: `/clients/${id}/verifications`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getClientVerification])
-      }
-    
+    [getClientVerification]
+  );
+};
 
+export const getGetClientVerificationQueryKey = (id: string) => {
+  return [`/clients/${id}/verifications`] as const;
+};
 
-
-export const getGetClientVerificationQueryKey = (id: string,) => {
-    return [
-    `/clients/${id}/verifications`
-    ] as const;
-    }
-
-    
-export const useGetClientVerificationQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetClientVerificationQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey =
+    queryOptions?.queryKey ?? getGetClientVerificationQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetClientVerificationQueryKey(id);
+  const getClientVerification = useGetClientVerificationHook();
 
-  const getClientVerification =  useGetClientVerificationHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>
+  > = ({ signal }) => getClientVerification(id, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>> = ({ signal }) => getClientVerification(id, requestOptions, signal);
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetClientVerificationQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>
+>;
+export type GetClientVerificationQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetClientVerificationQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>>
-export type GetClientVerificationQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useGetClientVerification<TData = Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>, TError, TData>> & Pick<
+export function useGetClientVerification<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetClientVerification<TData = Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetClientVerification<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetClientVerification<TData = Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetClientVerification<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Get client verifications
  */
 
-export function useGetClientVerification<TData = Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetClientVerification<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetClientVerificationHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetClientVerificationQueryOptions(id, options);
 
-  const queryOptions = useGetClientVerificationQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Adds verification information provided by the client to continue onboarding.
  * @summary Add client verifications
  */
 export const useAddClientVerificationHook = () => {
-        const addClientVerification = useEbInstance<ClientVerificationsInformationResponse>();
+  const addClientVerification =
+    useEbInstance<ClientVerificationsInformationResponse>();
 
-        return useCallback((
-    id: string,
-    clientVerificationsInformationRequest: BodyType<ClientVerificationsInformationRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return addClientVerification(
-          {url: `/clients/${id}/verifications`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: clientVerificationsInformationRequest, signal
+  return useCallback(
+    (
+      id: string,
+      clientVerificationsInformationRequest: BodyType<ClientVerificationsInformationRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return addClientVerification(
+        {
+          url: `/clients/${id}/verifications`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: clientVerificationsInformationRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [addClientVerification])
-      }
-    
+    [addClientVerification]
+  );
+};
 
+export const useAddClientVerificationMutationOptions = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useAddClientVerificationHook>>>,
+    TError,
+    { id: string; data: BodyType<ClientVerificationsInformationRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useAddClientVerificationHook>>>,
+  TError,
+  { id: string; data: BodyType<ClientVerificationsInformationRequest> },
+  TContext
+> => {
+  const mutationKey = ['addClientVerification'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useAddClientVerificationMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useAddClientVerificationHook>>>, TError,{id: string;data: BodyType<ClientVerificationsInformationRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useAddClientVerificationHook>>>, TError,{id: string;data: BodyType<ClientVerificationsInformationRequest>}, TContext> => {
+  const addClientVerification = useAddClientVerificationHook();
 
-const mutationKey = ['addClientVerification'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useAddClientVerificationHook>>>,
+    { id: string; data: BodyType<ClientVerificationsInformationRequest> }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
-      const addClientVerification =  useAddClientVerificationHook()
+    return addClientVerification(id, data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useAddClientVerificationHook>>>, {id: string;data: BodyType<ClientVerificationsInformationRequest>}> = (props) => {
-          const {id,data} = props ?? {};
+export type AddClientVerificationMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useAddClientVerificationHook>>>
+>;
+export type AddClientVerificationMutationBody =
+  BodyType<ClientVerificationsInformationRequest>;
+export type AddClientVerificationMutationError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-          return  addClientVerification(id,data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AddClientVerificationMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useAddClientVerificationHook>>>>
-    export type AddClientVerificationMutationBody = BodyType<ClientVerificationsInformationRequest>
-    export type AddClientVerificationMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-    /**
+/**
  * @summary Add client verifications
  */
-export const useAddClientVerification = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useAddClientVerificationHook>>>, TError,{id: string;data: BodyType<ClientVerificationsInformationRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useAddClientVerificationHook>>>,
-        TError,
-        {id: string;data: BodyType<ClientVerificationsInformationRequest>},
-        TContext
-      > => {
-      return useMutation(useAddClientVerificationMutationOptions(options), queryClient);
-    }
-    
+export const useAddClientVerification = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useAddClientVerificationHook>>>,
+      TError,
+      { id: string; data: BodyType<ClientVerificationsInformationRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useAddClientVerificationHook>>>,
+  TError,
+  { id: string; data: BodyType<ClientVerificationsInformationRequest> },
+  TContext
+> => {
+  return useMutation(
+    useAddClientVerificationMutationOptions(options),
+    queryClient
+  );
+};
+
 /**
  * Retrieves list of users for a client. The API by default retrieves a lighter version of data.
  * @summary List users
  */
 export const useGetAllUsersHook = () => {
-        const getAllUsers = useEbInstance<ListUserResponse>();
+  const getAllUsers = useEbInstance<ListUserResponse>();
 
-        return useCallback((
-    params?: GetAllUsersParams,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getAllUsers(
-          {url: `/users`, method: 'GET',
-        params, signal
+  return useCallback(
+    (
+      params?: GetAllUsersParams,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getAllUsers(
+        { url: `/users`, method: 'GET', params, signal },
+        options
+      );
     },
-          options);
-        }, [getAllUsers])
-      }
-    
+    [getAllUsers]
+  );
+};
 
+export const getGetAllUsersQueryKey = (params?: GetAllUsersParams) => {
+  return [`/users`, ...(params ? [params] : [])] as const;
+};
 
-
-export const getGetAllUsersQueryKey = (params?: GetAllUsersParams,) => {
-    return [
-    `/users`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-    
-export const useGetAllUsersQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>, TError = ErrorType<User400ClientIdResponse | User401Response | User403Response | User500Response | User501Response | User503Response>>(params?: GetAllUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetAllUsersQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>,
+  TError = ErrorType<
+    | User400ClientIdResponse
+    | User401Response
+    | User403Response
+    | User500Response
+    | User501Response
+    | User503Response
+  >,
+>(
+  params?: GetAllUsersParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetAllUsersQueryKey(params);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetAllUsersQueryKey(params);
+  const getAllUsers = useGetAllUsersHook();
 
-  const getAllUsers =  useGetAllUsersHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>
+  > = ({ signal }) => getAllUsers(params, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>> = ({ signal }) => getAllUsers(params, requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetAllUsersQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>
+>;
+export type GetAllUsersQueryError = ErrorType<
+  | User400ClientIdResponse
+  | User401Response
+  | User403Response
+  | User500Response
+  | User501Response
+  | User503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetAllUsersQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>>
-export type GetAllUsersQueryError = ErrorType<User400ClientIdResponse | User401Response | User403Response | User500Response | User501Response | User503Response>
-
-
-export function useGetAllUsers<TData = Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>, TError = ErrorType<User400ClientIdResponse | User401Response | User403Response | User500Response | User501Response | User503Response>>(
- params: undefined |  GetAllUsersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>, TError, TData>> & Pick<
+export function useGetAllUsers<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>,
+  TError = ErrorType<
+    | User400ClientIdResponse
+    | User401Response
+    | User403Response
+    | User500Response
+    | User501Response
+    | User503Response
+  >,
+>(
+  params: undefined | GetAllUsersParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllUsers<TData = Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>, TError = ErrorType<User400ClientIdResponse | User401Response | User403Response | User500Response | User501Response | User503Response>>(
- params?: GetAllUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAllUsers<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>,
+  TError = ErrorType<
+    | User400ClientIdResponse
+    | User401Response
+    | User403Response
+    | User500Response
+    | User501Response
+    | User503Response
+  >,
+>(
+  params?: GetAllUsersParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllUsers<TData = Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>, TError = ErrorType<User400ClientIdResponse | User401Response | User403Response | User500Response | User501Response | User503Response>>(
- params?: GetAllUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAllUsers<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>,
+  TError = ErrorType<
+    | User400ClientIdResponse
+    | User401Response
+    | User403Response
+    | User500Response
+    | User501Response
+    | User503Response
+  >,
+>(
+  params?: GetAllUsersParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List users
  */
 
-export function useGetAllUsers<TData = Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>, TError = ErrorType<User400ClientIdResponse | User401Response | User403Response | User500Response | User501Response | User503Response>>(
- params?: GetAllUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetAllUsers<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>,
+  TError = ErrorType<
+    | User400ClientIdResponse
+    | User401Response
+    | User403Response
+    | User500Response
+    | User501Response
+    | User503Response
+  >,
+>(
+  params?: GetAllUsersParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllUsersHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetAllUsersQueryOptions(params, options);
 
-  const queryOptions = useGetAllUsersQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Creates a new user. This API is developed to enable clients to create a user for accessing and managing resources for that client. The payload has a property partyId. This partyId is used to add an existing party as a user. Phone field is optional when partyId is provided. When partyId is not provided, then phone field should be populated. When providing a role, if the role is a DEBIT_CARD_HOLDER then the resourceType and resourceId and action should be provided.
  * @summary Create user
  */
 export const usePostUsersHook = () => {
-        const postUsers = useEbInstance<UserResponse>();
+  const postUsers = useEbInstance<UserResponse>();
 
-        return useCallback((
-    createUserRequest: BodyType<CreateUserRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return postUsers(
-          {url: `/users`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createUserRequest, signal
+  return useCallback(
+    (
+      createUserRequest: BodyType<CreateUserRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return postUsers(
+        {
+          url: `/users`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: createUserRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [postUsers])
-      }
-    
+    [postUsers]
+  );
+};
 
+export const usePostUsersMutationOptions = <
+  TError = ErrorType<
+    | User400Response
+    | User401Response
+    | User403Response
+    | User500Response
+    | User501Response
+    | User503Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof usePostUsersHook>>>,
+    TError,
+    { data: BodyType<CreateUserRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof usePostUsersHook>>>,
+  TError,
+  { data: BodyType<CreateUserRequest> },
+  TContext
+> => {
+  const mutationKey = ['postUsers'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const usePostUsersMutationOptions = <TError = ErrorType<User400Response | User401Response | User403Response | User500Response | User501Response | User503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof usePostUsersHook>>>, TError,{data: BodyType<CreateUserRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof usePostUsersHook>>>, TError,{data: BodyType<CreateUserRequest>}, TContext> => {
+  const postUsers = usePostUsersHook();
 
-const mutationKey = ['postUsers'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof usePostUsersHook>>>,
+    { data: BodyType<CreateUserRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
 
-      const postUsers =  usePostUsersHook()
+    return postUsers(data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof usePostUsersHook>>>, {data: BodyType<CreateUserRequest>}> = (props) => {
-          const {data} = props ?? {};
+export type PostUsersMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof usePostUsersHook>>>
+>;
+export type PostUsersMutationBody = BodyType<CreateUserRequest>;
+export type PostUsersMutationError = ErrorType<
+  | User400Response
+  | User401Response
+  | User403Response
+  | User500Response
+  | User501Response
+  | User503Response
+>;
 
-          return  postUsers(data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostUsersMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof usePostUsersHook>>>>
-    export type PostUsersMutationBody = BodyType<CreateUserRequest>
-    export type PostUsersMutationError = ErrorType<User400Response | User401Response | User403Response | User500Response | User501Response | User503Response>
-
-    /**
+/**
  * @summary Create user
  */
-export const usePostUsers = <TError = ErrorType<User400Response | User401Response | User403Response | User500Response | User501Response | User503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof usePostUsersHook>>>, TError,{data: BodyType<CreateUserRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof usePostUsersHook>>>,
-        TError,
-        {data: BodyType<CreateUserRequest>},
-        TContext
-      > => {
-      return useMutation(usePostUsersMutationOptions(options), queryClient);
-    }
-    
+export const usePostUsers = <
+  TError = ErrorType<
+    | User400Response
+    | User401Response
+    | User403Response
+    | User500Response
+    | User501Response
+    | User503Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof usePostUsersHook>>>,
+      TError,
+      { data: BodyType<CreateUserRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof usePostUsersHook>>>,
+  TError,
+  { data: BodyType<CreateUserRequest> },
+  TContext
+> => {
+  return useMutation(usePostUsersMutationOptions(options), queryClient);
+};
+
 /**
  * Retrieves details for a specific user.
  * @summary Get user
  */
 export const useGetUserDetailsHook = () => {
-        const getUserDetails = useEbInstance<UserResponse>();
+  const getUserDetails = useEbInstance<UserResponse>();
 
-        return useCallback((
-    id: string,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getUserDetails(
-          {url: `/users/${id}`, method: 'GET', signal
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getUserDetails(
+        { url: `/users/${id}`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getUserDetails])
-      }
-    
+    [getUserDetails]
+  );
+};
 
+export const getGetUserDetailsQueryKey = (id: string) => {
+  return [`/users/${id}`] as const;
+};
 
-
-export const getGetUserDetailsQueryKey = (id: string,) => {
-    return [
-    `/users/${id}`
-    ] as const;
-    }
-
-    
-export const useGetUserDetailsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>, TError = ErrorType<User401Response | User403Response | User404Response | User500Response | User501Response | User503Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetUserDetailsQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>,
+  TError = ErrorType<
+    | User401Response
+    | User403Response
+    | User404Response
+    | User500Response
+    | User501Response
+    | User503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetUserDetailsQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetUserDetailsQueryKey(id);
+  const getUserDetails = useGetUserDetailsHook();
 
-  const getUserDetails =  useGetUserDetailsHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>
+  > = ({ signal }) => getUserDetails(id, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>> = ({ signal }) => getUserDetails(id, requestOptions, signal);
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetUserDetailsQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>
+>;
+export type GetUserDetailsQueryError = ErrorType<
+  | User401Response
+  | User403Response
+  | User404Response
+  | User500Response
+  | User501Response
+  | User503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetUserDetailsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>>
-export type GetUserDetailsQueryError = ErrorType<User401Response | User403Response | User404Response | User500Response | User501Response | User503Response>
-
-
-export function useGetUserDetails<TData = Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>, TError = ErrorType<User401Response | User403Response | User404Response | User500Response | User501Response | User503Response>>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>, TError, TData>> & Pick<
+export function useGetUserDetails<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>,
+  TError = ErrorType<
+    | User401Response
+    | User403Response
+    | User404Response
+    | User500Response
+    | User501Response
+    | User503Response
+  >,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetUserDetails<TData = Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>, TError = ErrorType<User401Response | User403Response | User404Response | User500Response | User501Response | User503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetUserDetails<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>,
+  TError = ErrorType<
+    | User401Response
+    | User403Response
+    | User404Response
+    | User500Response
+    | User501Response
+    | User503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetUserDetails<TData = Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>, TError = ErrorType<User401Response | User403Response | User404Response | User500Response | User501Response | User503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetUserDetails<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>,
+  TError = ErrorType<
+    | User401Response
+    | User403Response
+    | User404Response
+    | User500Response
+    | User501Response
+    | User503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Get user
  */
 
-export function useGetUserDetails<TData = Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>, TError = ErrorType<User401Response | User403Response | User404Response | User500Response | User501Response | User503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetUserDetails<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>,
+  TError = ErrorType<
+    | User401Response
+    | User403Response
+    | User404Response
+    | User500Response
+    | User501Response
+    | User503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetUserDetailsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetUserDetailsQueryOptions(id, options);
 
-  const queryOptions = useGetUserDetailsQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Updates information about user. For additional users only, full details like name, email, address phone and role can be updated.
  * @summary Update user
  */
 export const useUpdateUserByIdHook = () => {
-        const updateUserById = useEbInstance<UserResponse>();
+  const updateUserById = useEbInstance<UserResponse>();
 
-        return useCallback((
-    id: string,
-    updateUserRequest: BodyType<UpdateUserRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return updateUserById(
-          {url: `/users/${id}`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: updateUserRequest, signal
+  return useCallback(
+    (
+      id: string,
+      updateUserRequest: BodyType<UpdateUserRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return updateUserById(
+        {
+          url: `/users/${id}`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: updateUserRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [updateUserById])
-      }
-    
+    [updateUserById]
+  );
+};
 
+export const useUpdateUserByIdMutationOptions = <
+  TError = ErrorType<
+    | User400Response
+    | User401Response
+    | User403Response
+    | User500Response
+    | User501Response
+    | User503Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useUpdateUserByIdHook>>>,
+    TError,
+    { id: string; data: BodyType<UpdateUserRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useUpdateUserByIdHook>>>,
+  TError,
+  { id: string; data: BodyType<UpdateUserRequest> },
+  TContext
+> => {
+  const mutationKey = ['updateUserById'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useUpdateUserByIdMutationOptions = <TError = ErrorType<User400Response | User401Response | User403Response | User500Response | User501Response | User503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdateUserByIdHook>>>, TError,{id: string;data: BodyType<UpdateUserRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdateUserByIdHook>>>, TError,{id: string;data: BodyType<UpdateUserRequest>}, TContext> => {
+  const updateUserById = useUpdateUserByIdHook();
 
-const mutationKey = ['updateUserById'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useUpdateUserByIdHook>>>,
+    { id: string; data: BodyType<UpdateUserRequest> }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
-      const updateUserById =  useUpdateUserByIdHook()
+    return updateUserById(id, data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useUpdateUserByIdHook>>>, {id: string;data: BodyType<UpdateUserRequest>}> = (props) => {
-          const {id,data} = props ?? {};
+export type UpdateUserByIdMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useUpdateUserByIdHook>>>
+>;
+export type UpdateUserByIdMutationBody = BodyType<UpdateUserRequest>;
+export type UpdateUserByIdMutationError = ErrorType<
+  | User400Response
+  | User401Response
+  | User403Response
+  | User500Response
+  | User501Response
+  | User503Response
+>;
 
-          return  updateUserById(id,data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UpdateUserByIdMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useUpdateUserByIdHook>>>>
-    export type UpdateUserByIdMutationBody = BodyType<UpdateUserRequest>
-    export type UpdateUserByIdMutationError = ErrorType<User400Response | User401Response | User403Response | User500Response | User501Response | User503Response>
-
-    /**
+/**
  * @summary Update user
  */
-export const useUpdateUserById = <TError = ErrorType<User400Response | User401Response | User403Response | User500Response | User501Response | User503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdateUserByIdHook>>>, TError,{id: string;data: BodyType<UpdateUserRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useUpdateUserByIdHook>>>,
-        TError,
-        {id: string;data: BodyType<UpdateUserRequest>},
-        TContext
-      > => {
-      return useMutation(useUpdateUserByIdMutationOptions(options), queryClient);
-    }
-    
+export const useUpdateUserById = <
+  TError = ErrorType<
+    | User400Response
+    | User401Response
+    | User403Response
+    | User500Response
+    | User501Response
+    | User503Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useUpdateUserByIdHook>>>,
+      TError,
+      { id: string; data: BodyType<UpdateUserRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useUpdateUserByIdHook>>>,
+  TError,
+  { id: string; data: BodyType<UpdateUserRequest> },
+  TContext
+> => {
+  return useMutation(useUpdateUserByIdMutationOptions(options), queryClient);
+};
+
 /**
  * Retrieves a list of roles
  * @summary List all roles
  */
 export const useGetAllRolesHook = () => {
-        const getAllRoles = useEbInstance<ListRoleResponse>();
+  const getAllRoles = useEbInstance<ListRoleResponse>();
 
-        return useCallback((
-    params?: GetAllRolesParams,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getAllRoles(
-          {url: `/roles`, method: 'GET',
-        params, signal
+  return useCallback(
+    (
+      params?: GetAllRolesParams,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getAllRoles(
+        { url: `/roles`, method: 'GET', params, signal },
+        options
+      );
     },
-          options);
-        }, [getAllRoles])
-      }
-    
+    [getAllRoles]
+  );
+};
 
+export const getGetAllRolesQueryKey = (params?: GetAllRolesParams) => {
+  return [`/roles`, ...(params ? [params] : [])] as const;
+};
 
-
-export const getGetAllRolesQueryKey = (params?: GetAllRolesParams,) => {
-    return [
-    `/roles`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-    
-export const useGetAllRolesQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>, TError = ErrorType<UserApiError | User401Response | User403Response | User500Response | User501Response | User503Response>>(params?: GetAllRolesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetAllRolesQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>,
+  TError = ErrorType<
+    | UserApiError
+    | User401Response
+    | User403Response
+    | User500Response
+    | User501Response
+    | User503Response
+  >,
+>(
+  params?: GetAllRolesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetAllRolesQueryKey(params);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetAllRolesQueryKey(params);
+  const getAllRoles = useGetAllRolesHook();
 
-  const getAllRoles =  useGetAllRolesHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>
+  > = ({ signal }) => getAllRoles(params, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>> = ({ signal }) => getAllRoles(params, requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetAllRolesQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>
+>;
+export type GetAllRolesQueryError = ErrorType<
+  | UserApiError
+  | User401Response
+  | User403Response
+  | User500Response
+  | User501Response
+  | User503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetAllRolesQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>>
-export type GetAllRolesQueryError = ErrorType<UserApiError | User401Response | User403Response | User500Response | User501Response | User503Response>
-
-
-export function useGetAllRoles<TData = Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>, TError = ErrorType<UserApiError | User401Response | User403Response | User500Response | User501Response | User503Response>>(
- params: undefined |  GetAllRolesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>, TError, TData>> & Pick<
+export function useGetAllRoles<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>,
+  TError = ErrorType<
+    | UserApiError
+    | User401Response
+    | User403Response
+    | User500Response
+    | User501Response
+    | User503Response
+  >,
+>(
+  params: undefined | GetAllRolesParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllRoles<TData = Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>, TError = ErrorType<UserApiError | User401Response | User403Response | User500Response | User501Response | User503Response>>(
- params?: GetAllRolesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAllRoles<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>,
+  TError = ErrorType<
+    | UserApiError
+    | User401Response
+    | User403Response
+    | User500Response
+    | User501Response
+    | User503Response
+  >,
+>(
+  params?: GetAllRolesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllRoles<TData = Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>, TError = ErrorType<UserApiError | User401Response | User403Response | User500Response | User501Response | User503Response>>(
- params?: GetAllRolesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAllRoles<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>,
+  TError = ErrorType<
+    | UserApiError
+    | User401Response
+    | User403Response
+    | User500Response
+    | User501Response
+    | User503Response
+  >,
+>(
+  params?: GetAllRolesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List all roles
  */
 
-export function useGetAllRoles<TData = Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>, TError = ErrorType<UserApiError | User401Response | User403Response | User500Response | User501Response | User503Response>>(
- params?: GetAllRolesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetAllRoles<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>,
+  TError = ErrorType<
+    | UserApiError
+    | User401Response
+    | User403Response
+    | User500Response
+    | User501Response
+    | User503Response
+  >,
+>(
+  params?: GetAllRolesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllRolesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetAllRolesQueryOptions(params, options);
 
-  const queryOptions = useGetAllRolesQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Returns details of documents and their ids based on the product and jurisdiction for a client.
  * @summary Get details of documents of a specified type
  */
 export const useDocumentsDetailsHook = () => {
-        const documentsDetails = useEbInstance<ListDocumentsDetailsResponse>();
+  const documentsDetails = useEbInstance<ListDocumentsDetailsResponse>();
 
-        return useCallback((
-    params: DocumentsDetailsParams,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return documentsDetails(
-          {url: `/documents`, method: 'GET',
-        params, signal
+  return useCallback(
+    (
+      params: DocumentsDetailsParams,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return documentsDetails(
+        { url: `/documents`, method: 'GET', params, signal },
+        options
+      );
     },
-          options);
-        }, [documentsDetails])
-      }
-    
+    [documentsDetails]
+  );
+};
 
-
-
-export const getDocumentsDetailsQueryKey = (params?: DocumentsDetailsParams,) => {
-    return [
-    `/documents`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-    
-export const useDocumentsDetailsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(params: DocumentsDetailsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const getDocumentsDetailsQueryKey = (
+  params?: DocumentsDetailsParams
 ) => {
+  return [`/documents`, ...(params ? [params] : [])] as const;
+};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+export const useDocumentsDetailsQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params: DocumentsDetailsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getDocumentsDetailsQueryKey(params);
+  const queryKey =
+    queryOptions?.queryKey ?? getDocumentsDetailsQueryKey(params);
 
-  const documentsDetails =  useDocumentsDetailsHook();
+  const documentsDetails = useDocumentsDetailsHook();
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>> = ({ signal }) => documentsDetails(params, requestOptions, signal);
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>
+  > = ({ signal }) => documentsDetails(params, requestOptions, signal);
 
-      
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type DocumentsDetailsQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>
+>;
+export type DocumentsDetailsQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type DocumentsDetailsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>>
-export type DocumentsDetailsQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useDocumentsDetails<TData = Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params: DocumentsDetailsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>, TError, TData>> & Pick<
+export function useDocumentsDetails<
+  TData = Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params: DocumentsDetailsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useDocumentsDetails<TData = Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params: DocumentsDetailsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDocumentsDetails<
+  TData = Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params: DocumentsDetailsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useDocumentsDetails<TData = Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params: DocumentsDetailsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDocumentsDetails<
+  TData = Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params: DocumentsDetailsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Get details of documents of a specified type
  */
 
-export function useDocumentsDetails<TData = Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params: DocumentsDetailsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useDocumentsDetails<
+  TData = Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params: DocumentsDetailsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useDocumentsDetailsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useDocumentsDetailsQueryOptions(params, options);
 
-  const queryOptions = useDocumentsDetailsQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Retrieves details of a document using the document unique identifier.
  * @summary Retrieve details of a document
  */
 export const useGetDocumentDetailsHook = () => {
-        const getDocumentDetails = useEbInstance<DocumentDetails>();
+  const getDocumentDetails = useEbInstance<DocumentDetails>();
 
-        return useCallback((
-    id: string,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getDocumentDetails(
-          {url: `/documents/${id}`, method: 'GET', signal
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getDocumentDetails(
+        { url: `/documents/${id}`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getDocumentDetails])
-      }
-    
+    [getDocumentDetails]
+  );
+};
 
+export const getGetDocumentDetailsQueryKey = (id: string) => {
+  return [`/documents/${id}`] as const;
+};
 
-
-export const getGetDocumentDetailsQueryKey = (id: string,) => {
-    return [
-    `/documents/${id}`
-    ] as const;
-    }
-
-    
-export const useGetDocumentDetailsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetDocumentDetailsQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetDocumentDetailsQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetDocumentDetailsQueryKey(id);
+  const getDocumentDetails = useGetDocumentDetailsHook();
 
-  const getDocumentDetails =  useGetDocumentDetailsHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>
+  > = ({ signal }) => getDocumentDetails(id, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>> = ({ signal }) => getDocumentDetails(id, requestOptions, signal);
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetDocumentDetailsQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>
+>;
+export type GetDocumentDetailsQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetDocumentDetailsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>>
-export type GetDocumentDetailsQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useGetDocumentDetails<TData = Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>, TError, TData>> & Pick<
+export function useGetDocumentDetails<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetDocumentDetails<TData = Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetDocumentDetails<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetDocumentDetails<TData = Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetDocumentDetails<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Retrieve details of a document
  */
 
-export function useGetDocumentDetails<TData = Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetDocumentDetails<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetDocumentDetailsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetDocumentDetailsQueryOptions(id, options);
 
-  const queryOptions = useGetDocumentDetailsQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Download a document using the document unique identifier.
  * @summary Download a document
  */
 export const useDownloadDocumentHook = () => {
-        const downloadDocument = useEbInstance<Blob>();
+  const downloadDocument = useEbInstance<Blob>();
 
-        return useCallback((
-    id: string,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return downloadDocument(
-          {url: `/documents/${id}/file`, method: 'GET',
-        responseType: 'blob', signal
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return downloadDocument(
+        {
+          url: `/documents/${id}/file`,
+          method: 'GET',
+          responseType: 'blob',
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [downloadDocument])
-      }
-    
+    [downloadDocument]
+  );
+};
 
+export const getDownloadDocumentQueryKey = (id: string) => {
+  return [`/documents/${id}/file`] as const;
+};
 
-
-export const getDownloadDocumentQueryKey = (id: string,) => {
-    return [
-    `/documents/${id}/file`
-    ] as const;
-    }
-
-    
-export const useDownloadDocumentQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useDownloadDocumentQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getDownloadDocumentQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getDownloadDocumentQueryKey(id);
+  const downloadDocument = useDownloadDocumentHook();
 
-  const downloadDocument =  useDownloadDocumentHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>
+  > = ({ signal }) => downloadDocument(id, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>> = ({ signal }) => downloadDocument(id, requestOptions, signal);
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type DownloadDocumentQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>
+>;
+export type DownloadDocumentQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type DownloadDocumentQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>>
-export type DownloadDocumentQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useDownloadDocument<TData = Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>, TError, TData>> & Pick<
+export function useDownloadDocument<
+  TData = Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useDownloadDocument<TData = Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDownloadDocument<
+  TData = Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useDownloadDocument<TData = Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useDownloadDocument<
+  TData = Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Download a document
  */
 
-export function useDownloadDocument<TData = Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useDownloadDocument<
+  TData = Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useDownloadDocumentHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useDownloadDocumentQueryOptions(id, options);
 
-  const queryOptions = useDownloadDocumentQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Returns a list of debit cards for a specific client.
  * @summary List cards
  */
 export const useGetDebitCardsHook = () => {
-        const getDebitCards = useEbInstance<DebitCardsResponse>();
+  const getDebitCards = useEbInstance<DebitCardsResponse>();
 
-        return useCallback((
-    params?: GetDebitCardsParams,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getDebitCards(
-          {url: `/debit-cards`, method: 'GET',
-        params, signal
+  return useCallback(
+    (
+      params?: GetDebitCardsParams,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getDebitCards(
+        { url: `/debit-cards`, method: 'GET', params, signal },
+        options
+      );
     },
-          options);
-        }, [getDebitCards])
-      }
-    
+    [getDebitCards]
+  );
+};
 
+export const getGetDebitCardsQueryKey = (params?: GetDebitCardsParams) => {
+  return [`/debit-cards`, ...(params ? [params] : [])] as const;
+};
 
-
-export const getGetDebitCardsQueryKey = (params?: GetDebitCardsParams,) => {
-    return [
-    `/debit-cards`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-    
-export const useGetDebitCardsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | CardDetailsErrorResponse>>(params?: GetDebitCardsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetDebitCardsQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | CardDetailsErrorResponse
+  >,
+>(
+  params?: GetDebitCardsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetDebitCardsQueryKey(params);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetDebitCardsQueryKey(params);
+  const getDebitCards = useGetDebitCardsHook();
 
-  const getDebitCards =  useGetDebitCardsHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>
+  > = ({ signal }) => getDebitCards(params, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>> = ({ signal }) => getDebitCards(params, requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetDebitCardsQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>
+>;
+export type GetDebitCardsQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | CardDetailsErrorResponse
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetDebitCardsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>>
-export type GetDebitCardsQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | CardDetailsErrorResponse>
-
-
-export function useGetDebitCards<TData = Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | CardDetailsErrorResponse>>(
- params: undefined |  GetDebitCardsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>, TError, TData>> & Pick<
+export function useGetDebitCards<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | CardDetailsErrorResponse
+  >,
+>(
+  params: undefined | GetDebitCardsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetDebitCards<TData = Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | CardDetailsErrorResponse>>(
- params?: GetDebitCardsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetDebitCards<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | CardDetailsErrorResponse
+  >,
+>(
+  params?: GetDebitCardsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetDebitCards<TData = Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | CardDetailsErrorResponse>>(
- params?: GetDebitCardsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetDebitCards<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | CardDetailsErrorResponse
+  >,
+>(
+  params?: GetDebitCardsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List cards
  */
 
-export function useGetDebitCards<TData = Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | CardDetailsErrorResponse>>(
- params?: GetDebitCardsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetDebitCards<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | CardDetailsErrorResponse
+  >,
+>(
+  params?: GetDebitCardsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetDebitCardsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetDebitCardsQueryOptions(params, options);
 
-  const queryOptions = useGetDebitCardsQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Creates a new debit card.
  * @summary Create debit card
  */
 export const useCreateDebitCardHook = () => {
-        const createDebitCard = useEbInstance<CreateDebitCardResponse>();
+  const createDebitCard = useEbInstance<CreateDebitCardResponse>();
 
-        return useCallback((
-    createDebitCardRequest: BodyType<CreateDebitCardRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return createDebitCard(
-          {url: `/debit-cards`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createDebitCardRequest, signal
+  return useCallback(
+    (
+      createDebitCardRequest: BodyType<CreateDebitCardRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return createDebitCard(
+        {
+          url: `/debit-cards`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: createDebitCardRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [createDebitCard])
-      }
-    
+    [createDebitCard]
+  );
+};
 
+export const useCreateDebitCardMutationOptions = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useCreateDebitCardHook>>>,
+    TError,
+    { data: BodyType<CreateDebitCardRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useCreateDebitCardHook>>>,
+  TError,
+  { data: BodyType<CreateDebitCardRequest> },
+  TContext
+> => {
+  const mutationKey = ['createDebitCard'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useCreateDebitCardMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCreateDebitCardHook>>>, TError,{data: BodyType<CreateDebitCardRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCreateDebitCardHook>>>, TError,{data: BodyType<CreateDebitCardRequest>}, TContext> => {
+  const createDebitCard = useCreateDebitCardHook();
 
-const mutationKey = ['createDebitCard'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useCreateDebitCardHook>>>,
+    { data: BodyType<CreateDebitCardRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
 
-      const createDebitCard =  useCreateDebitCardHook()
+    return createDebitCard(data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useCreateDebitCardHook>>>, {data: BodyType<CreateDebitCardRequest>}> = (props) => {
-          const {data} = props ?? {};
+export type CreateDebitCardMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useCreateDebitCardHook>>>
+>;
+export type CreateDebitCardMutationBody = BodyType<CreateDebitCardRequest>;
+export type CreateDebitCardMutationError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-          return  createDebitCard(data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreateDebitCardMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useCreateDebitCardHook>>>>
-    export type CreateDebitCardMutationBody = BodyType<CreateDebitCardRequest>
-    export type CreateDebitCardMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-    /**
+/**
  * @summary Create debit card
  */
-export const useCreateDebitCard = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCreateDebitCardHook>>>, TError,{data: BodyType<CreateDebitCardRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useCreateDebitCardHook>>>,
-        TError,
-        {data: BodyType<CreateDebitCardRequest>},
-        TContext
-      > => {
-      return useMutation(useCreateDebitCardMutationOptions(options), queryClient);
-    }
-    
+export const useCreateDebitCard = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useCreateDebitCardHook>>>,
+      TError,
+      { data: BodyType<CreateDebitCardRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useCreateDebitCardHook>>>,
+  TError,
+  { data: BodyType<CreateDebitCardRequest> },
+  TContext
+> => {
+  return useMutation(useCreateDebitCardMutationOptions(options), queryClient);
+};
+
 /**
  * Returns card ID and iFrame link for virtual card details for a specific card.
  * @summary Get card
  */
 export const useGetDebitCardHook = () => {
-        const getDebitCard = useEbInstance<CardDetailResponse>();
+  const getDebitCard = useEbInstance<CardDetailResponse>();
 
-        return useCallback((
-    id: string,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getDebitCard(
-          {url: `/debit-cards/${id}`, method: 'GET', signal
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getDebitCard(
+        { url: `/debit-cards/${id}`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getDebitCard])
-      }
-    
+    [getDebitCard]
+  );
+};
 
+export const getGetDebitCardQueryKey = (id: string) => {
+  return [`/debit-cards/${id}`] as const;
+};
 
-
-export const getGetDebitCardQueryKey = (id: string,) => {
-    return [
-    `/debit-cards/${id}`
-    ] as const;
-    }
-
-    
-export const useGetDebitCardQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetDebitCardQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetDebitCardQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetDebitCardQueryKey(id);
+  const getDebitCard = useGetDebitCardHook();
 
-  const getDebitCard =  useGetDebitCardHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>
+  > = ({ signal }) => getDebitCard(id, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>> = ({ signal }) => getDebitCard(id, requestOptions, signal);
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetDebitCardQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>
+>;
+export type GetDebitCardQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetDebitCardQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>>
-export type GetDebitCardQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useGetDebitCard<TData = Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>, TError, TData>> & Pick<
+export function useGetDebitCard<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetDebitCard<TData = Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetDebitCard<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetDebitCard<TData = Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetDebitCard<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Get card
  */
 
-export function useGetDebitCard<TData = Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetDebitCard<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetDebitCardHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetDebitCardQueryOptions(id, options);
 
-  const queryOptions = useGetDebitCardQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Updates card details, such as PIN reset or to lock a lost card.
  * @summary Update card
  */
 export const useUpdateCardHook = () => {
-        const updateCard = useEbInstance<CardUpdateResponse>();
+  const updateCard = useEbInstance<CardUpdateResponse>();
 
-        return useCallback((
-    id: string,
-    cardUpdateRequest: BodyType<CardUpdateRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return updateCard(
-          {url: `/debit-cards/${id}`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: cardUpdateRequest, signal
+  return useCallback(
+    (
+      id: string,
+      cardUpdateRequest: BodyType<CardUpdateRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return updateCard(
+        {
+          url: `/debit-cards/${id}`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: cardUpdateRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [updateCard])
-      }
-    
+    [updateCard]
+  );
+};
 
+export const useUpdateCardMutationOptions = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useUpdateCardHook>>>,
+    TError,
+    { id: string; data: BodyType<CardUpdateRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useUpdateCardHook>>>,
+  TError,
+  { id: string; data: BodyType<CardUpdateRequest> },
+  TContext
+> => {
+  const mutationKey = ['updateCard'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useUpdateCardMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdateCardHook>>>, TError,{id: string;data: BodyType<CardUpdateRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdateCardHook>>>, TError,{id: string;data: BodyType<CardUpdateRequest>}, TContext> => {
+  const updateCard = useUpdateCardHook();
 
-const mutationKey = ['updateCard'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useUpdateCardHook>>>,
+    { id: string; data: BodyType<CardUpdateRequest> }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
-      const updateCard =  useUpdateCardHook()
+    return updateCard(id, data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useUpdateCardHook>>>, {id: string;data: BodyType<CardUpdateRequest>}> = (props) => {
-          const {id,data} = props ?? {};
+export type UpdateCardMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useUpdateCardHook>>>
+>;
+export type UpdateCardMutationBody = BodyType<CardUpdateRequest>;
+export type UpdateCardMutationError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-          return  updateCard(id,data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UpdateCardMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useUpdateCardHook>>>>
-    export type UpdateCardMutationBody = BodyType<CardUpdateRequest>
-    export type UpdateCardMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-    /**
+/**
  * @summary Update card
  */
-export const useUpdateCard = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdateCardHook>>>, TError,{id: string;data: BodyType<CardUpdateRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useUpdateCardHook>>>,
-        TError,
-        {id: string;data: BodyType<CardUpdateRequest>},
-        TContext
-      > => {
-      return useMutation(useUpdateCardMutationOptions(options), queryClient);
-    }
-    
+export const useUpdateCard = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useUpdateCardHook>>>,
+      TError,
+      { id: string; data: BodyType<CardUpdateRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useUpdateCardHook>>>,
+  TError,
+  { id: string; data: BodyType<CardUpdateRequest> },
+  TContext
+> => {
+  return useMutation(useUpdateCardMutationOptions(options), queryClient);
+};
+
 /**
  * Lock a card, blocks transactions
  * @summary Lock a Debit Card
  */
 export const useLockDebitCardHook = () => {
-        const lockDebitCard = useEbInstance<CardUpdateResponse>();
+  const lockDebitCard = useEbInstance<CardUpdateResponse>();
 
-        return useCallback((
-    id: string,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return lockDebitCard(
-          {url: `/debit-cards/${id}/lock`, method: 'POST', signal
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return lockDebitCard(
+        { url: `/debit-cards/${id}/lock`, method: 'POST', signal },
+        options
+      );
     },
-          options);
-        }, [lockDebitCard])
-      }
-    
+    [lockDebitCard]
+  );
+};
 
+export const useLockDebitCardMutationOptions = <
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useLockDebitCardHook>>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useLockDebitCardHook>>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ['lockDebitCard'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useLockDebitCardMutationOptions = <TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useLockDebitCardHook>>>, TError,{id: string}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useLockDebitCardHook>>>, TError,{id: string}, TContext> => {
+  const lockDebitCard = useLockDebitCardHook();
 
-const mutationKey = ['lockDebitCard'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useLockDebitCardHook>>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
 
-      const lockDebitCard =  useLockDebitCardHook()
+    return lockDebitCard(id, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useLockDebitCardHook>>>, {id: string}> = (props) => {
-          const {id} = props ?? {};
+export type LockDebitCardMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useLockDebitCardHook>>>
+>;
 
-          return  lockDebitCard(id,requestOptions)
-        }
+export type LockDebitCardMutationError = ErrorType<
+  | N400v2Response
+  | N401v2Response
+  | N403v2Response
+  | N404v2Response
+  | N500v2Response
+  | N503v2Response
+>;
 
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type LockDebitCardMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useLockDebitCardHook>>>>
-    
-    export type LockDebitCardMutationError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>
-
-    /**
+/**
  * @summary Lock a Debit Card
  */
-export const useLockDebitCard = <TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useLockDebitCardHook>>>, TError,{id: string}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useLockDebitCardHook>>>,
-        TError,
-        {id: string},
-        TContext
-      > => {
-      return useMutation(useLockDebitCardMutationOptions(options), queryClient);
-    }
-    
+export const useLockDebitCard = <
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useLockDebitCardHook>>>,
+      TError,
+      { id: string },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useLockDebitCardHook>>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  return useMutation(useLockDebitCardMutationOptions(options), queryClient);
+};
+
 /**
  * Unlock a card, allows transactions
  * @summary Unlock a Debit Card
  */
 export const useUnlockDebitCardHook = () => {
-        const unlockDebitCard = useEbInstance<CardUpdateResponse>();
+  const unlockDebitCard = useEbInstance<CardUpdateResponse>();
 
-        return useCallback((
-    id: string,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return unlockDebitCard(
-          {url: `/debit-cards/${id}/unlock`, method: 'POST', signal
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return unlockDebitCard(
+        { url: `/debit-cards/${id}/unlock`, method: 'POST', signal },
+        options
+      );
     },
-          options);
-        }, [unlockDebitCard])
-      }
-    
+    [unlockDebitCard]
+  );
+};
 
+export const useUnlockDebitCardMutationOptions = <
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useUnlockDebitCardHook>>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useUnlockDebitCardHook>>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ['unlockDebitCard'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useUnlockDebitCardMutationOptions = <TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUnlockDebitCardHook>>>, TError,{id: string}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUnlockDebitCardHook>>>, TError,{id: string}, TContext> => {
+  const unlockDebitCard = useUnlockDebitCardHook();
 
-const mutationKey = ['unlockDebitCard'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useUnlockDebitCardHook>>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
 
-      const unlockDebitCard =  useUnlockDebitCardHook()
+    return unlockDebitCard(id, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useUnlockDebitCardHook>>>, {id: string}> = (props) => {
-          const {id} = props ?? {};
+export type UnlockDebitCardMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useUnlockDebitCardHook>>>
+>;
 
-          return  unlockDebitCard(id,requestOptions)
-        }
+export type UnlockDebitCardMutationError = ErrorType<
+  | N400v2Response
+  | N401v2Response
+  | N403v2Response
+  | N404v2Response
+  | N500v2Response
+  | N503v2Response
+>;
 
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UnlockDebitCardMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useUnlockDebitCardHook>>>>
-    
-    export type UnlockDebitCardMutationError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>
-
-    /**
+/**
  * @summary Unlock a Debit Card
  */
-export const useUnlockDebitCard = <TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUnlockDebitCardHook>>>, TError,{id: string}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useUnlockDebitCardHook>>>,
-        TError,
-        {id: string},
-        TContext
-      > => {
-      return useMutation(useUnlockDebitCardMutationOptions(options), queryClient);
-    }
-    
+export const useUnlockDebitCard = <
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useUnlockDebitCardHook>>>,
+      TError,
+      { id: string },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useUnlockDebitCardHook>>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  return useMutation(useUnlockDebitCardMutationOptions(options), queryClient);
+};
+
 /**
  * Cancel a card without issuing a replacement.
  * @summary Cancel a Debit Card
  */
 export const useCancelDebitCardHook = () => {
-        const cancelDebitCard = useEbInstance<CardUpdateResponse>();
+  const cancelDebitCard = useEbInstance<CardUpdateResponse>();
 
-        return useCallback((
-    id: string,
-    cardCancelRequest: BodyType<CardCancelRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return cancelDebitCard(
-          {url: `/debit-cards/${id}/cancel`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: cardCancelRequest, signal
+  return useCallback(
+    (
+      id: string,
+      cardCancelRequest: BodyType<CardCancelRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return cancelDebitCard(
+        {
+          url: `/debit-cards/${id}/cancel`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: cardCancelRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [cancelDebitCard])
-      }
-    
+    [cancelDebitCard]
+  );
+};
 
+export const useCancelDebitCardMutationOptions = <
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useCancelDebitCardHook>>>,
+    TError,
+    { id: string; data: BodyType<CardCancelRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useCancelDebitCardHook>>>,
+  TError,
+  { id: string; data: BodyType<CardCancelRequest> },
+  TContext
+> => {
+  const mutationKey = ['cancelDebitCard'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useCancelDebitCardMutationOptions = <TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCancelDebitCardHook>>>, TError,{id: string;data: BodyType<CardCancelRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCancelDebitCardHook>>>, TError,{id: string;data: BodyType<CardCancelRequest>}, TContext> => {
+  const cancelDebitCard = useCancelDebitCardHook();
 
-const mutationKey = ['cancelDebitCard'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useCancelDebitCardHook>>>,
+    { id: string; data: BodyType<CardCancelRequest> }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
-      const cancelDebitCard =  useCancelDebitCardHook()
+    return cancelDebitCard(id, data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useCancelDebitCardHook>>>, {id: string;data: BodyType<CardCancelRequest>}> = (props) => {
-          const {id,data} = props ?? {};
+export type CancelDebitCardMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useCancelDebitCardHook>>>
+>;
+export type CancelDebitCardMutationBody = BodyType<CardCancelRequest>;
+export type CancelDebitCardMutationError = ErrorType<
+  | N400v2Response
+  | N401v2Response
+  | N403v2Response
+  | N404v2Response
+  | N500v2Response
+  | N503v2Response
+>;
 
-          return  cancelDebitCard(id,data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CancelDebitCardMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useCancelDebitCardHook>>>>
-    export type CancelDebitCardMutationBody = BodyType<CardCancelRequest>
-    export type CancelDebitCardMutationError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>
-
-    /**
+/**
  * @summary Cancel a Debit Card
  */
-export const useCancelDebitCard = <TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCancelDebitCardHook>>>, TError,{id: string;data: BodyType<CardCancelRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useCancelDebitCardHook>>>,
-        TError,
-        {id: string;data: BodyType<CardCancelRequest>},
-        TContext
-      > => {
-      return useMutation(useCancelDebitCardMutationOptions(options), queryClient);
-    }
-    
+export const useCancelDebitCard = <
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useCancelDebitCardHook>>>,
+      TError,
+      { id: string; data: BodyType<CardCancelRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useCancelDebitCardHook>>>,
+  TError,
+  { id: string; data: BodyType<CardCancelRequest> },
+  TContext
+> => {
+  return useMutation(useCancelDebitCardMutationOptions(options), queryClient);
+};
+
 /**
  * Replace a card, cancels an existing card and issues a replacement.
  * @summary Replace Card
  */
 export const useReplaceDebitCardHook = () => {
-        const replaceDebitCard = useEbInstance<CardUpdateResponse>();
+  const replaceDebitCard = useEbInstance<CardUpdateResponse>();
 
-        return useCallback((
-    id: string,
-    cardReplaceRequest: BodyType<CardReplaceRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return replaceDebitCard(
-          {url: `/debit-cards/${id}/replace`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: cardReplaceRequest, signal
+  return useCallback(
+    (
+      id: string,
+      cardReplaceRequest: BodyType<CardReplaceRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return replaceDebitCard(
+        {
+          url: `/debit-cards/${id}/replace`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: cardReplaceRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [replaceDebitCard])
-      }
-    
+    [replaceDebitCard]
+  );
+};
 
+export const useReplaceDebitCardMutationOptions = <
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useReplaceDebitCardHook>>>,
+    TError,
+    { id: string; data: BodyType<CardReplaceRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useReplaceDebitCardHook>>>,
+  TError,
+  { id: string; data: BodyType<CardReplaceRequest> },
+  TContext
+> => {
+  const mutationKey = ['replaceDebitCard'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useReplaceDebitCardMutationOptions = <TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useReplaceDebitCardHook>>>, TError,{id: string;data: BodyType<CardReplaceRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useReplaceDebitCardHook>>>, TError,{id: string;data: BodyType<CardReplaceRequest>}, TContext> => {
+  const replaceDebitCard = useReplaceDebitCardHook();
 
-const mutationKey = ['replaceDebitCard'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useReplaceDebitCardHook>>>,
+    { id: string; data: BodyType<CardReplaceRequest> }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
-      const replaceDebitCard =  useReplaceDebitCardHook()
+    return replaceDebitCard(id, data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useReplaceDebitCardHook>>>, {id: string;data: BodyType<CardReplaceRequest>}> = (props) => {
-          const {id,data} = props ?? {};
+export type ReplaceDebitCardMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useReplaceDebitCardHook>>>
+>;
+export type ReplaceDebitCardMutationBody = BodyType<CardReplaceRequest>;
+export type ReplaceDebitCardMutationError = ErrorType<
+  | N400v2Response
+  | N401v2Response
+  | N403v2Response
+  | N404v2Response
+  | N500v2Response
+  | N503v2Response
+>;
 
-          return  replaceDebitCard(id,data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ReplaceDebitCardMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useReplaceDebitCardHook>>>>
-    export type ReplaceDebitCardMutationBody = BodyType<CardReplaceRequest>
-    export type ReplaceDebitCardMutationError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>
-
-    /**
+/**
  * @summary Replace Card
  */
-export const useReplaceDebitCard = <TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useReplaceDebitCardHook>>>, TError,{id: string;data: BodyType<CardReplaceRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useReplaceDebitCardHook>>>,
-        TError,
-        {id: string;data: BodyType<CardReplaceRequest>},
-        TContext
-      > => {
-      return useMutation(useReplaceDebitCardMutationOptions(options), queryClient);
-    }
-    
+export const useReplaceDebitCard = <
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useReplaceDebitCardHook>>>,
+      TError,
+      { id: string; data: BodyType<CardReplaceRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useReplaceDebitCardHook>>>,
+  TError,
+  { id: string; data: BodyType<CardReplaceRequest> },
+  TContext
+> => {
+  return useMutation(useReplaceDebitCardMutationOptions(options), queryClient);
+};
+
 /**
  * Set a pin on a debit card.
  * @summary Set a debit card pin number
  */
 export const useSetDebitCardPinHook = () => {
-        const setDebitCardPin = useEbInstance<CardUpdateResponse>();
+  const setDebitCardPin = useEbInstance<CardUpdateResponse>();
 
-        return useCallback((
-    id: string,
-    cardPinChangeRequest: BodyType<CardPinChangeRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return setDebitCardPin(
-          {url: `/debit-cards/${id}/set-pin`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: cardPinChangeRequest, signal
+  return useCallback(
+    (
+      id: string,
+      cardPinChangeRequest: BodyType<CardPinChangeRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return setDebitCardPin(
+        {
+          url: `/debit-cards/${id}/set-pin`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: cardPinChangeRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [setDebitCardPin])
-      }
-    
+    [setDebitCardPin]
+  );
+};
 
+export const useSetDebitCardPinMutationOptions = <
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useSetDebitCardPinHook>>>,
+    TError,
+    { id: string; data: BodyType<CardPinChangeRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useSetDebitCardPinHook>>>,
+  TError,
+  { id: string; data: BodyType<CardPinChangeRequest> },
+  TContext
+> => {
+  const mutationKey = ['setDebitCardPin'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useSetDebitCardPinMutationOptions = <TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSetDebitCardPinHook>>>, TError,{id: string;data: BodyType<CardPinChangeRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSetDebitCardPinHook>>>, TError,{id: string;data: BodyType<CardPinChangeRequest>}, TContext> => {
+  const setDebitCardPin = useSetDebitCardPinHook();
 
-const mutationKey = ['setDebitCardPin'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useSetDebitCardPinHook>>>,
+    { id: string; data: BodyType<CardPinChangeRequest> }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
-      const setDebitCardPin =  useSetDebitCardPinHook()
+    return setDebitCardPin(id, data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useSetDebitCardPinHook>>>, {id: string;data: BodyType<CardPinChangeRequest>}> = (props) => {
-          const {id,data} = props ?? {};
+export type SetDebitCardPinMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useSetDebitCardPinHook>>>
+>;
+export type SetDebitCardPinMutationBody = BodyType<CardPinChangeRequest>;
+export type SetDebitCardPinMutationError = ErrorType<
+  | N400v2Response
+  | N401v2Response
+  | N403v2Response
+  | N404v2Response
+  | N500v2Response
+  | N503v2Response
+>;
 
-          return  setDebitCardPin(id,data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type SetDebitCardPinMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSetDebitCardPinHook>>>>
-    export type SetDebitCardPinMutationBody = BodyType<CardPinChangeRequest>
-    export type SetDebitCardPinMutationError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>
-
-    /**
+/**
  * @summary Set a debit card pin number
  */
-export const useSetDebitCardPin = <TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSetDebitCardPinHook>>>, TError,{id: string;data: BodyType<CardPinChangeRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useSetDebitCardPinHook>>>,
-        TError,
-        {id: string;data: BodyType<CardPinChangeRequest>},
-        TContext
-      > => {
-      return useMutation(useSetDebitCardPinMutationOptions(options), queryClient);
-    }
-    
+export const useSetDebitCardPin = <
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useSetDebitCardPinHook>>>,
+      TError,
+      { id: string; data: BodyType<CardPinChangeRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useSetDebitCardPinHook>>>,
+  TError,
+  { id: string; data: BodyType<CardPinChangeRequest> },
+  TContext
+> => {
+  return useMutation(useSetDebitCardPinMutationOptions(options), queryClient);
+};
+
 /**
  * Set debit card limits
  * @summary Set debit card limits
  */
 export const useSetDebitCardLimitHook = () => {
-        const setDebitCardLimit = useEbInstance<CardUpdateResponse>();
+  const setDebitCardLimit = useEbInstance<CardUpdateResponse>();
 
-        return useCallback((
-    id: string,
-    cardLimitChangeRequest: BodyType<CardLimitChangeRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return setDebitCardLimit(
-          {url: `/debit-cards/${id}/set-limit`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: cardLimitChangeRequest, signal
+  return useCallback(
+    (
+      id: string,
+      cardLimitChangeRequest: BodyType<CardLimitChangeRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return setDebitCardLimit(
+        {
+          url: `/debit-cards/${id}/set-limit`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: cardLimitChangeRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [setDebitCardLimit])
-      }
-    
+    [setDebitCardLimit]
+  );
+};
 
+export const useSetDebitCardLimitMutationOptions = <
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useSetDebitCardLimitHook>>>,
+    TError,
+    { id: string; data: BodyType<CardLimitChangeRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useSetDebitCardLimitHook>>>,
+  TError,
+  { id: string; data: BodyType<CardLimitChangeRequest> },
+  TContext
+> => {
+  const mutationKey = ['setDebitCardLimit'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useSetDebitCardLimitMutationOptions = <TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSetDebitCardLimitHook>>>, TError,{id: string;data: BodyType<CardLimitChangeRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSetDebitCardLimitHook>>>, TError,{id: string;data: BodyType<CardLimitChangeRequest>}, TContext> => {
+  const setDebitCardLimit = useSetDebitCardLimitHook();
 
-const mutationKey = ['setDebitCardLimit'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useSetDebitCardLimitHook>>>,
+    { id: string; data: BodyType<CardLimitChangeRequest> }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
-      const setDebitCardLimit =  useSetDebitCardLimitHook()
+    return setDebitCardLimit(id, data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useSetDebitCardLimitHook>>>, {id: string;data: BodyType<CardLimitChangeRequest>}> = (props) => {
-          const {id,data} = props ?? {};
+export type SetDebitCardLimitMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useSetDebitCardLimitHook>>>
+>;
+export type SetDebitCardLimitMutationBody = BodyType<CardLimitChangeRequest>;
+export type SetDebitCardLimitMutationError = ErrorType<
+  | N400v2Response
+  | N401v2Response
+  | N403v2Response
+  | N404v2Response
+  | N500v2Response
+  | N503v2Response
+>;
 
-          return  setDebitCardLimit(id,data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type SetDebitCardLimitMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSetDebitCardLimitHook>>>>
-    export type SetDebitCardLimitMutationBody = BodyType<CardLimitChangeRequest>
-    export type SetDebitCardLimitMutationError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>
-
-    /**
+/**
  * @summary Set debit card limits
  */
-export const useSetDebitCardLimit = <TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSetDebitCardLimitHook>>>, TError,{id: string;data: BodyType<CardLimitChangeRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useSetDebitCardLimitHook>>>,
-        TError,
-        {id: string;data: BodyType<CardLimitChangeRequest>},
-        TContext
-      > => {
-      return useMutation(useSetDebitCardLimitMutationOptions(options), queryClient);
-    }
-    
+export const useSetDebitCardLimit = <
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useSetDebitCardLimitHook>>>,
+      TError,
+      { id: string; data: BodyType<CardLimitChangeRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useSetDebitCardLimitHook>>>,
+  TError,
+  { id: string; data: BodyType<CardLimitChangeRequest> },
+  TContext
+> => {
+  return useMutation(useSetDebitCardLimitMutationOptions(options), queryClient);
+};
+
 /**
  * Returns a list of all recipients for a given client profile.
  * @summary List recipients
  */
 export const useGetAllRecipientsHook = () => {
-        const getAllRecipients = useEbInstance<ListRecipientsResponse>();
+  const getAllRecipients = useEbInstance<ListRecipientsResponse>();
 
-        return useCallback((
-    params?: GetAllRecipientsParams,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getAllRecipients(
-          {url: `/recipients`, method: 'GET',
-        params, signal
+  return useCallback(
+    (
+      params?: GetAllRecipientsParams,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getAllRecipients(
+        { url: `/recipients`, method: 'GET', params, signal },
+        options
+      );
     },
-          options);
-        }, [getAllRecipients])
-      }
-    
+    [getAllRecipients]
+  );
+};
 
-
-
-export const getGetAllRecipientsQueryKey = (params?: GetAllRecipientsParams,) => {
-    return [
-    `/recipients`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-    
-export const useGetAllRecipientsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(params?: GetAllRecipientsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const getGetAllRecipientsQueryKey = (
+  params?: GetAllRecipientsParams
 ) => {
+  return [`/recipients`, ...(params ? [params] : [])] as const;
+};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+export const useGetAllRecipientsQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetAllRecipientsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetAllRecipientsQueryKey(params);
+  const queryKey =
+    queryOptions?.queryKey ?? getGetAllRecipientsQueryKey(params);
 
-  const getAllRecipients =  useGetAllRecipientsHook();
+  const getAllRecipients = useGetAllRecipientsHook();
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>> = ({ signal }) => getAllRecipients(params, requestOptions, signal);
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>
+  > = ({ signal }) => getAllRecipients(params, requestOptions, signal);
 
-      
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetAllRecipientsQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>
+>;
+export type GetAllRecipientsQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetAllRecipientsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>>
-export type GetAllRecipientsQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useGetAllRecipients<TData = Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params: undefined |  GetAllRecipientsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>, TError, TData>> & Pick<
+export function useGetAllRecipients<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params: undefined | GetAllRecipientsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllRecipients<TData = Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: GetAllRecipientsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAllRecipients<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetAllRecipientsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllRecipients<TData = Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: GetAllRecipientsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAllRecipients<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetAllRecipientsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List recipients
  */
 
-export function useGetAllRecipients<TData = Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: GetAllRecipientsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetAllRecipients<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetAllRecipientsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetAllRecipientsQueryOptions(params, options);
 
-  const queryOptions = useGetAllRecipientsQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Creates a new recipient.
  * @summary Create recipient
  */
 export const useCreateRecipientHook = () => {
-        const createRecipient = useEbInstance<Recipient>();
+  const createRecipient = useEbInstance<Recipient>();
 
-        return useCallback((
-    recipientRequest: BodyType<RecipientRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return createRecipient(
-          {url: `/recipients`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: recipientRequest, signal
+  return useCallback(
+    (
+      recipientRequest: BodyType<RecipientRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return createRecipient(
+        {
+          url: `/recipients`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: recipientRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [createRecipient])
-      }
-    
+    [createRecipient]
+  );
+};
 
+export const useCreateRecipientMutationOptions = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useCreateRecipientHook>>>,
+    TError,
+    { data: BodyType<RecipientRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useCreateRecipientHook>>>,
+  TError,
+  { data: BodyType<RecipientRequest> },
+  TContext
+> => {
+  const mutationKey = ['createRecipient'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useCreateRecipientMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCreateRecipientHook>>>, TError,{data: BodyType<RecipientRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCreateRecipientHook>>>, TError,{data: BodyType<RecipientRequest>}, TContext> => {
+  const createRecipient = useCreateRecipientHook();
 
-const mutationKey = ['createRecipient'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useCreateRecipientHook>>>,
+    { data: BodyType<RecipientRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
 
-      const createRecipient =  useCreateRecipientHook()
+    return createRecipient(data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useCreateRecipientHook>>>, {data: BodyType<RecipientRequest>}> = (props) => {
-          const {data} = props ?? {};
+export type CreateRecipientMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useCreateRecipientHook>>>
+>;
+export type CreateRecipientMutationBody = BodyType<RecipientRequest>;
+export type CreateRecipientMutationError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-          return  createRecipient(data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreateRecipientMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useCreateRecipientHook>>>>
-    export type CreateRecipientMutationBody = BodyType<RecipientRequest>
-    export type CreateRecipientMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-    /**
+/**
  * @summary Create recipient
  */
-export const useCreateRecipient = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCreateRecipientHook>>>, TError,{data: BodyType<RecipientRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useCreateRecipientHook>>>,
-        TError,
-        {data: BodyType<RecipientRequest>},
-        TContext
-      > => {
-      return useMutation(useCreateRecipientMutationOptions(options), queryClient);
-    }
-    
+export const useCreateRecipient = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useCreateRecipientHook>>>,
+      TError,
+      { data: BodyType<RecipientRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useCreateRecipientHook>>>,
+  TError,
+  { data: BodyType<RecipientRequest> },
+  TContext
+> => {
+  return useMutation(useCreateRecipientMutationOptions(options), queryClient);
+};
+
 /**
  * Returns information about a specific recipient.
  * @summary Get recipient
  */
 export const useGetRecipientHook = () => {
-        const getRecipient = useEbInstance<Recipient>();
+  const getRecipient = useEbInstance<Recipient>();
 
-        return useCallback((
-    id: string,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getRecipient(
-          {url: `/recipients/${id}`, method: 'GET', signal
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getRecipient(
+        { url: `/recipients/${id}`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getRecipient])
-      }
-    
+    [getRecipient]
+  );
+};
 
+export const getGetRecipientQueryKey = (id: string) => {
+  return [`/recipients/${id}`] as const;
+};
 
-
-export const getGetRecipientQueryKey = (id: string,) => {
-    return [
-    `/recipients/${id}`
-    ] as const;
-    }
-
-    
-export const useGetRecipientQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetRecipientQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetRecipientQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetRecipientQueryKey(id);
+  const getRecipient = useGetRecipientHook();
 
-  const getRecipient =  useGetRecipientHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>
+  > = ({ signal }) => getRecipient(id, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>> = ({ signal }) => getRecipient(id, requestOptions, signal);
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetRecipientQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>
+>;
+export type GetRecipientQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetRecipientQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>>
-export type GetRecipientQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useGetRecipient<TData = Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>, TError, TData>> & Pick<
+export function useGetRecipient<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRecipient<TData = Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetRecipient<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRecipient<TData = Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetRecipient<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Get recipient
  */
 
-export function useGetRecipient<TData = Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetRecipient<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetRecipientQueryOptions(id, options);
 
-  const queryOptions = useGetRecipientQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Updates details of a recipient, such as adding values for attributes related to payment types. All attributes must be provided in the same format as when creating a recipient. The value partyDetails.type cannot be amended after creation.
  * @summary Update recipient
  */
 export const useAmendRecipientHook = () => {
-        const amendRecipient = useEbInstance<Recipient>();
+  const amendRecipient = useEbInstance<Recipient>();
 
-        return useCallback((
-    id: string,
-    updateRecipientRequest: BodyType<UpdateRecipientRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return amendRecipient(
-          {url: `/recipients/${id}`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: updateRecipientRequest, signal
+  return useCallback(
+    (
+      id: string,
+      updateRecipientRequest: BodyType<UpdateRecipientRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return amendRecipient(
+        {
+          url: `/recipients/${id}`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: updateRecipientRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [amendRecipient])
-      }
-    
+    [amendRecipient]
+  );
+};
 
+export const useAmendRecipientMutationOptions = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useAmendRecipientHook>>>,
+    TError,
+    { id: string; data: BodyType<UpdateRecipientRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useAmendRecipientHook>>>,
+  TError,
+  { id: string; data: BodyType<UpdateRecipientRequest> },
+  TContext
+> => {
+  const mutationKey = ['amendRecipient'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useAmendRecipientMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useAmendRecipientHook>>>, TError,{id: string;data: BodyType<UpdateRecipientRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useAmendRecipientHook>>>, TError,{id: string;data: BodyType<UpdateRecipientRequest>}, TContext> => {
+  const amendRecipient = useAmendRecipientHook();
 
-const mutationKey = ['amendRecipient'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useAmendRecipientHook>>>,
+    { id: string; data: BodyType<UpdateRecipientRequest> }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
-      const amendRecipient =  useAmendRecipientHook()
+    return amendRecipient(id, data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useAmendRecipientHook>>>, {id: string;data: BodyType<UpdateRecipientRequest>}> = (props) => {
-          const {id,data} = props ?? {};
+export type AmendRecipientMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useAmendRecipientHook>>>
+>;
+export type AmendRecipientMutationBody = BodyType<UpdateRecipientRequest>;
+export type AmendRecipientMutationError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-          return  amendRecipient(id,data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AmendRecipientMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useAmendRecipientHook>>>>
-    export type AmendRecipientMutationBody = BodyType<UpdateRecipientRequest>
-    export type AmendRecipientMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-    /**
+/**
  * @summary Update recipient
  */
-export const useAmendRecipient = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useAmendRecipientHook>>>, TError,{id: string;data: BodyType<UpdateRecipientRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useAmendRecipientHook>>>,
-        TError,
-        {id: string;data: BodyType<UpdateRecipientRequest>},
-        TContext
-      > => {
-      return useMutation(useAmendRecipientMutationOptions(options), queryClient);
-    }
-    
+export const useAmendRecipient = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useAmendRecipientHook>>>,
+      TError,
+      { id: string; data: BodyType<UpdateRecipientRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useAmendRecipientHook>>>,
+  TError,
+  { id: string; data: BodyType<UpdateRecipientRequest> },
+  TContext
+> => {
+  return useMutation(useAmendRecipientMutationOptions(options), queryClient);
+};
+
 /**
  * Creates a microdeposits verification process.
  * @summary Creates a microdeposits verification process.
  */
 export const useRecipientsVerificationHook = () => {
-        const recipientsVerification = useEbInstance<MicrodepositVerificationResponse>();
+  const recipientsVerification =
+    useEbInstance<MicrodepositVerificationResponse>();
 
-        return useCallback((
-    id: string,
-    microdepositAmounts: BodyType<MicrodepositAmounts>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return recipientsVerification(
-          {url: `/recipients/${id}/verify-microdeposit`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: microdepositAmounts, signal
+  return useCallback(
+    (
+      id: string,
+      microdepositAmounts: BodyType<MicrodepositAmounts>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return recipientsVerification(
+        {
+          url: `/recipients/${id}/verify-microdeposit`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: microdepositAmounts,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [recipientsVerification])
-      }
-    
+    [recipientsVerification]
+  );
+};
 
+export const useRecipientsVerificationMutationOptions = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useRecipientsVerificationHook>>>,
+    TError,
+    { id: string; data: BodyType<MicrodepositAmounts> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useRecipientsVerificationHook>>>,
+  TError,
+  { id: string; data: BodyType<MicrodepositAmounts> },
+  TContext
+> => {
+  const mutationKey = ['recipientsVerification'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useRecipientsVerificationMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useRecipientsVerificationHook>>>, TError,{id: string;data: BodyType<MicrodepositAmounts>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useRecipientsVerificationHook>>>, TError,{id: string;data: BodyType<MicrodepositAmounts>}, TContext> => {
+  const recipientsVerification = useRecipientsVerificationHook();
 
-const mutationKey = ['recipientsVerification'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useRecipientsVerificationHook>>>,
+    { id: string; data: BodyType<MicrodepositAmounts> }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
-      const recipientsVerification =  useRecipientsVerificationHook()
+    return recipientsVerification(id, data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useRecipientsVerificationHook>>>, {id: string;data: BodyType<MicrodepositAmounts>}> = (props) => {
-          const {id,data} = props ?? {};
+export type RecipientsVerificationMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useRecipientsVerificationHook>>>
+>;
+export type RecipientsVerificationMutationBody = BodyType<MicrodepositAmounts>;
+export type RecipientsVerificationMutationError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-          return  recipientsVerification(id,data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type RecipientsVerificationMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useRecipientsVerificationHook>>>>
-    export type RecipientsVerificationMutationBody = BodyType<MicrodepositAmounts>
-    export type RecipientsVerificationMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-    /**
+/**
  * @summary Creates a microdeposits verification process.
  */
-export const useRecipientsVerification = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useRecipientsVerificationHook>>>, TError,{id: string;data: BodyType<MicrodepositAmounts>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useRecipientsVerificationHook>>>,
-        TError,
-        {id: string;data: BodyType<MicrodepositAmounts>},
-        TContext
-      > => {
-      return useMutation(useRecipientsVerificationMutationOptions(options), queryClient);
-    }
-    
+export const useRecipientsVerification = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useRecipientsVerificationHook>>>,
+      TError,
+      { id: string; data: BodyType<MicrodepositAmounts> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useRecipientsVerificationHook>>>,
+  TError,
+  { id: string; data: BodyType<MicrodepositAmounts> },
+  TContext
+> => {
+  return useMutation(
+    useRecipientsVerificationMutationOptions(options),
+    queryClient
+  );
+};
+
 /**
  * Get cases for client profile
  * @summary Returns all cases for client profile.
  */
 export const useGetCasesHook = () => {
-        const getCases = useEbInstance<CasesPaginationResponse>();
+  const getCases = useEbInstance<CasesPaginationResponse>();
 
-        return useCallback((
-    params?: GetCasesParams,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getCases(
-          {url: `/cases`, method: 'GET',
-        params, signal
+  return useCallback(
+    (
+      params?: GetCasesParams,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getCases(
+        { url: `/cases`, method: 'GET', params, signal },
+        options
+      );
     },
-          options);
-        }, [getCases])
-      }
-    
+    [getCases]
+  );
+};
 
+export const getGetCasesQueryKey = (params?: GetCasesParams) => {
+  return [`/cases`, ...(params ? [params] : [])] as const;
+};
 
-
-export const getGetCasesQueryKey = (params?: GetCasesParams,) => {
-    return [
-    `/cases`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-    
-export const useGetCasesQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(params?: GetCasesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetCasesQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetCasesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetCasesQueryKey(params);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetCasesQueryKey(params);
+  const getCases = useGetCasesHook();
 
-  const getCases =  useGetCasesHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>
+  > = ({ signal }) => getCases(params, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>> = ({ signal }) => getCases(params, requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetCasesQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>
+>;
+export type GetCasesQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetCasesQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>>
-export type GetCasesQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useGetCases<TData = Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params: undefined |  GetCasesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>, TError, TData>> & Pick<
+export function useGetCases<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params: undefined | GetCasesParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCases<TData = Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: GetCasesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetCases<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetCasesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCases<TData = Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: GetCasesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetCases<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetCasesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Returns all cases for client profile.
  */
 
-export function useGetCases<TData = Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: GetCasesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetCases<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetCasesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetCasesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetCasesQueryOptions(params, options);
 
-  const queryOptions = useGetCasesQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Raises a case for support with Embedded Finance.
  * @summary Create a new case
  */
 export const useCreateCaseHook = () => {
-        const createCase = useEbInstance<CaseCreateResponse>();
+  const createCase = useEbInstance<CaseCreateResponse>();
 
-        return useCallback((
-    caseCreateRequest: BodyType<CaseCreateRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return createCase(
-          {url: `/cases`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: caseCreateRequest, signal
+  return useCallback(
+    (
+      caseCreateRequest: BodyType<CaseCreateRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return createCase(
+        {
+          url: `/cases`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: caseCreateRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [createCase])
-      }
-    
+    [createCase]
+  );
+};
 
+export const useCreateCaseMutationOptions = <
+  TError = ErrorType<
+    N401Response | N403Response | N404Response | N500Response | N503Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useCreateCaseHook>>>,
+    TError,
+    { data: BodyType<CaseCreateRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useCreateCaseHook>>>,
+  TError,
+  { data: BodyType<CaseCreateRequest> },
+  TContext
+> => {
+  const mutationKey = ['createCase'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useCreateCaseMutationOptions = <TError = ErrorType<N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCreateCaseHook>>>, TError,{data: BodyType<CaseCreateRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCreateCaseHook>>>, TError,{data: BodyType<CaseCreateRequest>}, TContext> => {
+  const createCase = useCreateCaseHook();
 
-const mutationKey = ['createCase'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useCreateCaseHook>>>,
+    { data: BodyType<CaseCreateRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
 
-      const createCase =  useCreateCaseHook()
+    return createCase(data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useCreateCaseHook>>>, {data: BodyType<CaseCreateRequest>}> = (props) => {
-          const {data} = props ?? {};
+export type CreateCaseMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useCreateCaseHook>>>
+>;
+export type CreateCaseMutationBody = BodyType<CaseCreateRequest>;
+export type CreateCaseMutationError = ErrorType<
+  N401Response | N403Response | N404Response | N500Response | N503Response
+>;
 
-          return  createCase(data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreateCaseMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useCreateCaseHook>>>>
-    export type CreateCaseMutationBody = BodyType<CaseCreateRequest>
-    export type CreateCaseMutationError = ErrorType<N401Response | N403Response | N404Response | N500Response | N503Response>
-
-    /**
+/**
  * @summary Create a new case
  */
-export const useCreateCase = <TError = ErrorType<N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCreateCaseHook>>>, TError,{data: BodyType<CaseCreateRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useCreateCaseHook>>>,
-        TError,
-        {data: BodyType<CaseCreateRequest>},
-        TContext
-      > => {
-      return useMutation(useCreateCaseMutationOptions(options), queryClient);
-    }
-    
+export const useCreateCase = <
+  TError = ErrorType<
+    N401Response | N403Response | N404Response | N500Response | N503Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useCreateCaseHook>>>,
+      TError,
+      { data: BodyType<CaseCreateRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useCreateCaseHook>>>,
+  TError,
+  { data: BodyType<CaseCreateRequest> },
+  TContext
+> => {
+  return useMutation(useCreateCaseMutationOptions(options), queryClient);
+};
+
 /**
  * Get case details
  * @summary Returns details of a case using the unique case ID.
  */
 export const useGetCaseHook = () => {
-        const getCase = useEbInstance<CaseDetails>();
+  const getCase = useEbInstance<CaseDetails>();
 
-        return useCallback((
-    id: string,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getCase(
-          {url: `/cases/${id}`, method: 'GET', signal
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getCase({ url: `/cases/${id}`, method: 'GET', signal }, options);
     },
-          options);
-        }, [getCase])
-      }
-    
+    [getCase]
+  );
+};
 
+export const getGetCaseQueryKey = (id: string) => {
+  return [`/cases/${id}`] as const;
+};
 
-
-export const getGetCaseQueryKey = (id: string,) => {
-    return [
-    `/cases/${id}`
-    ] as const;
-    }
-
-    
-export const useGetCaseQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetCaseQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetCaseQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetCaseQueryKey(id);
+  const getCase = useGetCaseHook();
 
-  const getCase =  useGetCaseHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>
+  > = ({ signal }) => getCase(id, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>> = ({ signal }) => getCase(id, requestOptions, signal);
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetCaseQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>
+>;
+export type GetCaseQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetCaseQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>>
-export type GetCaseQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useGetCase<TData = Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>, TError, TData>> & Pick<
+export function useGetCase<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCase<TData = Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetCase<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCase<TData = Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetCase<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Returns details of a case using the unique case ID.
  */
 
-export function useGetCase<TData = Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetCase<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetCaseHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetCaseQueryOptions(id, options);
 
-  const queryOptions = useGetCaseQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Update case
  * @summary Update information on a specific case.
  */
 export const useUpdateCaseHook = () => {
-        const updateCase = useEbInstance<CaseDetails>();
+  const updateCase = useEbInstance<CaseDetails>();
 
-        return useCallback((
-    id: string,
-    caseUpdateRequest: BodyType<CaseUpdateRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return updateCase(
-          {url: `/cases/${id}`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: caseUpdateRequest, signal
+  return useCallback(
+    (
+      id: string,
+      caseUpdateRequest: BodyType<CaseUpdateRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return updateCase(
+        {
+          url: `/cases/${id}`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: caseUpdateRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [updateCase])
-      }
-    
+    [updateCase]
+  );
+};
 
+export const useUpdateCaseMutationOptions = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useUpdateCaseHook>>>,
+    TError,
+    { id: string; data: BodyType<CaseUpdateRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useUpdateCaseHook>>>,
+  TError,
+  { id: string; data: BodyType<CaseUpdateRequest> },
+  TContext
+> => {
+  const mutationKey = ['updateCase'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useUpdateCaseMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdateCaseHook>>>, TError,{id: string;data: BodyType<CaseUpdateRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdateCaseHook>>>, TError,{id: string;data: BodyType<CaseUpdateRequest>}, TContext> => {
+  const updateCase = useUpdateCaseHook();
 
-const mutationKey = ['updateCase'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useUpdateCaseHook>>>,
+    { id: string; data: BodyType<CaseUpdateRequest> }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
-      const updateCase =  useUpdateCaseHook()
+    return updateCase(id, data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useUpdateCaseHook>>>, {id: string;data: BodyType<CaseUpdateRequest>}> = (props) => {
-          const {id,data} = props ?? {};
+export type UpdateCaseMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useUpdateCaseHook>>>
+>;
+export type UpdateCaseMutationBody = BodyType<CaseUpdateRequest>;
+export type UpdateCaseMutationError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-          return  updateCase(id,data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UpdateCaseMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useUpdateCaseHook>>>>
-    export type UpdateCaseMutationBody = BodyType<CaseUpdateRequest>
-    export type UpdateCaseMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-    /**
+/**
  * @summary Update information on a specific case.
  */
-export const useUpdateCase = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdateCaseHook>>>, TError,{id: string;data: BodyType<CaseUpdateRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useUpdateCaseHook>>>,
-        TError,
-        {id: string;data: BodyType<CaseUpdateRequest>},
-        TContext
-      > => {
-      return useMutation(useUpdateCaseMutationOptions(options), queryClient);
-    }
-    
+export const useUpdateCase = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useUpdateCaseHook>>>,
+      TError,
+      { id: string; data: BodyType<CaseUpdateRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useUpdateCaseHook>>>,
+  TError,
+  { id: string; data: BodyType<CaseUpdateRequest> },
+  TContext
+> => {
+  return useMutation(useUpdateCaseMutationOptions(options), queryClient);
+};
+
 /**
  * Retrieve FAQs
  * @summary API to retrieve general FAQ content as well as C1 specific FAQ content
  */
 export const useGetFaqHook = () => {
-        const getFaq = useEbInstance<FAQResponse>();
+  const getFaq = useEbInstance<FAQResponse>();
 
-        return useCallback((
-    params?: GetFaqParams,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getFaq(
-          {url: `/faqs`, method: 'GET',
-        params, signal
+  return useCallback(
+    (
+      params?: GetFaqParams,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getFaq({ url: `/faqs`, method: 'GET', params, signal }, options);
     },
-          options);
-        }, [getFaq])
-      }
-    
+    [getFaq]
+  );
+};
 
+export const getGetFaqQueryKey = (params?: GetFaqParams) => {
+  return [`/faqs`, ...(params ? [params] : [])] as const;
+};
 
-
-export const getGetFaqQueryKey = (params?: GetFaqParams,) => {
-    return [
-    `/faqs`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-    
-export const useGetFaqQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(params?: GetFaqParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetFaqQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetFaqParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetFaqQueryKey(params);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetFaqQueryKey(params);
+  const getFaq = useGetFaqHook();
 
-  const getFaq =  useGetFaqHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>
+  > = ({ signal }) => getFaq(params, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>> = ({ signal }) => getFaq(params, requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetFaqQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>
+>;
+export type GetFaqQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetFaqQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>>
-export type GetFaqQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useGetFaq<TData = Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params: undefined |  GetFaqParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>, TError, TData>> & Pick<
+export function useGetFaq<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params: undefined | GetFaqParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetFaq<TData = Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: GetFaqParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetFaq<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetFaqParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetFaq<TData = Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: GetFaqParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetFaq<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetFaqParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary API to retrieve general FAQ content as well as C1 specific FAQ content
  */
 
-export function useGetFaq<TData = Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: GetFaqParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetFaq<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetFaqParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetFaqHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetFaqQueryOptions(params, options);
 
-  const queryOptions = useGetFaqQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * List all your webhooks
  * @summary List webhooks
  */
 export const useListWebhooksHook = () => {
-        const listWebhooks = useEbInstance<ListWebhookResponse>();
+  const listWebhooks = useEbInstance<ListWebhookResponse>();
 
-        return useCallback((
-    params?: ListWebhooksParams,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return listWebhooks(
-          {url: `/webhooks`, method: 'GET',
-        params, signal
+  return useCallback(
+    (
+      params?: ListWebhooksParams,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return listWebhooks(
+        { url: `/webhooks`, method: 'GET', params, signal },
+        options
+      );
     },
-          options);
-        }, [listWebhooks])
-      }
-    
+    [listWebhooks]
+  );
+};
 
+export const getListWebhooksQueryKey = (params?: ListWebhooksParams) => {
+  return [`/webhooks`, ...(params ? [params] : [])] as const;
+};
 
-
-export const getListWebhooksQueryKey = (params?: ListWebhooksParams,) => {
-    return [
-    `/webhooks`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-    
-export const useListWebhooksQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(params?: ListWebhooksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useListWebhooksQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: ListWebhooksParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getListWebhooksQueryKey(params);
 
-  const queryKey =  queryOptions?.queryKey ?? getListWebhooksQueryKey(params);
+  const listWebhooks = useListWebhooksHook();
 
-  const listWebhooks =  useListWebhooksHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>
+  > = ({ signal }) => listWebhooks(params, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>> = ({ signal }) => listWebhooks(params, requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type ListWebhooksQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>
+>;
+export type ListWebhooksQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListWebhooksQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>>
-export type ListWebhooksQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useListWebhooks<TData = Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params: undefined |  ListWebhooksParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>, TError, TData>> & Pick<
+export function useListWebhooks<
+  TData = Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params: undefined | ListWebhooksParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListWebhooks<TData = Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: ListWebhooksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useListWebhooks<
+  TData = Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: ListWebhooksParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListWebhooks<TData = Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: ListWebhooksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useListWebhooks<
+  TData = Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: ListWebhooksParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List webhooks
  */
 
-export function useListWebhooks<TData = Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: ListWebhooksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useListWebhooks<
+  TData = Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: ListWebhooksParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useListWebhooksHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useListWebhooksQueryOptions(params, options);
 
-  const queryOptions = useListWebhooksQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Create a webhook subscription
  * @summary Create a webhook subscription.
  */
 export const useCreateWebhookHook = () => {
-        const createWebhook = useEbInstance<WebhookResponse>();
+  const createWebhook = useEbInstance<WebhookResponse>();
 
-        return useCallback((
-    webhookRequest: BodyType<WebhookRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return createWebhook(
-          {url: `/webhooks`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: webhookRequest, signal
+  return useCallback(
+    (
+      webhookRequest: BodyType<WebhookRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return createWebhook(
+        {
+          url: `/webhooks`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: webhookRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [createWebhook])
-      }
-    
+    [createWebhook]
+  );
+};
 
+export const useCreateWebhookMutationOptions = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useCreateWebhookHook>>>,
+    TError,
+    { data: BodyType<WebhookRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useCreateWebhookHook>>>,
+  TError,
+  { data: BodyType<WebhookRequest> },
+  TContext
+> => {
+  const mutationKey = ['createWebhook'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useCreateWebhookMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCreateWebhookHook>>>, TError,{data: BodyType<WebhookRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCreateWebhookHook>>>, TError,{data: BodyType<WebhookRequest>}, TContext> => {
+  const createWebhook = useCreateWebhookHook();
 
-const mutationKey = ['createWebhook'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useCreateWebhookHook>>>,
+    { data: BodyType<WebhookRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
 
-      const createWebhook =  useCreateWebhookHook()
+    return createWebhook(data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useCreateWebhookHook>>>, {data: BodyType<WebhookRequest>}> = (props) => {
-          const {data} = props ?? {};
+export type CreateWebhookMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useCreateWebhookHook>>>
+>;
+export type CreateWebhookMutationBody = BodyType<WebhookRequest>;
+export type CreateWebhookMutationError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-          return  createWebhook(data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreateWebhookMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useCreateWebhookHook>>>>
-    export type CreateWebhookMutationBody = BodyType<WebhookRequest>
-    export type CreateWebhookMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-    /**
+/**
  * @summary Create a webhook subscription.
  */
-export const useCreateWebhook = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCreateWebhookHook>>>, TError,{data: BodyType<WebhookRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useCreateWebhookHook>>>,
-        TError,
-        {data: BodyType<WebhookRequest>},
-        TContext
-      > => {
-      return useMutation(useCreateWebhookMutationOptions(options), queryClient);
-    }
-    
+export const useCreateWebhook = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useCreateWebhookHook>>>,
+      TError,
+      { data: BodyType<WebhookRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useCreateWebhookHook>>>,
+  TError,
+  { data: BodyType<WebhookRequest> },
+  TContext
+> => {
+  return useMutation(useCreateWebhookMutationOptions(options), queryClient);
+};
+
 /**
  * Get details of your subscription to a specific webhook.
  * @summary Get a webhook subscription by ID.
  */
 export const useGetWebhookHook = () => {
-        const getWebhook = useEbInstance<WebhookResponse>();
+  const getWebhook = useEbInstance<WebhookResponse>();
 
-        return useCallback((
-    id: string,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getWebhook(
-          {url: `/webhooks/${id}`, method: 'GET', signal
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getWebhook(
+        { url: `/webhooks/${id}`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getWebhook])
-      }
-    
+    [getWebhook]
+  );
+};
 
+export const getGetWebhookQueryKey = (id: string) => {
+  return [`/webhooks/${id}`] as const;
+};
 
-
-export const getGetWebhookQueryKey = (id: string,) => {
-    return [
-    `/webhooks/${id}`
-    ] as const;
-    }
-
-    
-export const useGetWebhookQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetWebhookQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetWebhookQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetWebhookQueryKey(id);
+  const getWebhook = useGetWebhookHook();
 
-  const getWebhook =  useGetWebhookHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>
+  > = ({ signal }) => getWebhook(id, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>> = ({ signal }) => getWebhook(id, requestOptions, signal);
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetWebhookQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>
+>;
+export type GetWebhookQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetWebhookQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>>
-export type GetWebhookQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useGetWebhook<TData = Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>, TError, TData>> & Pick<
+export function useGetWebhook<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetWebhook<TData = Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetWebhook<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetWebhook<TData = Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetWebhook<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Get a webhook subscription by ID.
  */
 
-export function useGetWebhook<TData = Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetWebhook<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetWebhookHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetWebhookQueryOptions(id, options);
 
-  const queryOptions = useGetWebhookQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Add or Remove webhook subscriptions and change a webhook status to ACTIVE or INACTIVE
  * @summary Update a webhook by ID.
  */
 export const useUpdateWebhookHook = () => {
-        const updateWebhook = useEbInstance<WebhookResponse>();
+  const updateWebhook = useEbInstance<WebhookResponse>();
 
-        return useCallback((
-    id: string,
-    webhookUpdateRequest: BodyType<WebhookUpdateRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return updateWebhook(
-          {url: `/webhooks/${id}`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: webhookUpdateRequest, signal
+  return useCallback(
+    (
+      id: string,
+      webhookUpdateRequest: BodyType<WebhookUpdateRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return updateWebhook(
+        {
+          url: `/webhooks/${id}`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: webhookUpdateRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [updateWebhook])
-      }
-    
+    [updateWebhook]
+  );
+};
 
+export const useUpdateWebhookMutationOptions = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useUpdateWebhookHook>>>,
+    TError,
+    { id: string; data: BodyType<WebhookUpdateRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useUpdateWebhookHook>>>,
+  TError,
+  { id: string; data: BodyType<WebhookUpdateRequest> },
+  TContext
+> => {
+  const mutationKey = ['updateWebhook'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useUpdateWebhookMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdateWebhookHook>>>, TError,{id: string;data: BodyType<WebhookUpdateRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdateWebhookHook>>>, TError,{id: string;data: BodyType<WebhookUpdateRequest>}, TContext> => {
+  const updateWebhook = useUpdateWebhookHook();
 
-const mutationKey = ['updateWebhook'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useUpdateWebhookHook>>>,
+    { id: string; data: BodyType<WebhookUpdateRequest> }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
-      const updateWebhook =  useUpdateWebhookHook()
+    return updateWebhook(id, data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useUpdateWebhookHook>>>, {id: string;data: BodyType<WebhookUpdateRequest>}> = (props) => {
-          const {id,data} = props ?? {};
+export type UpdateWebhookMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useUpdateWebhookHook>>>
+>;
+export type UpdateWebhookMutationBody = BodyType<WebhookUpdateRequest>;
+export type UpdateWebhookMutationError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-          return  updateWebhook(id,data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UpdateWebhookMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useUpdateWebhookHook>>>>
-    export type UpdateWebhookMutationBody = BodyType<WebhookUpdateRequest>
-    export type UpdateWebhookMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-    /**
+/**
  * @summary Update a webhook by ID.
  */
-export const useUpdateWebhook = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdateWebhookHook>>>, TError,{id: string;data: BodyType<WebhookUpdateRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useUpdateWebhookHook>>>,
-        TError,
-        {id: string;data: BodyType<WebhookUpdateRequest>},
-        TContext
-      > => {
-      return useMutation(useUpdateWebhookMutationOptions(options), queryClient);
-    }
-    
+export const useUpdateWebhook = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useUpdateWebhookHook>>>,
+      TError,
+      { id: string; data: BodyType<WebhookUpdateRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useUpdateWebhookHook>>>,
+  TError,
+  { id: string; data: BodyType<WebhookUpdateRequest> },
+  TContext
+> => {
+  return useMutation(useUpdateWebhookMutationOptions(options), queryClient);
+};
+
 /**
  * Retrieves a list of countries with their ISO 2-character codes.
  * @summary List available countries and country codes
  */
 export const useGetAllCountriesHook = () => {
-        const getAllCountries = useEbInstance<CountriesResponse>();
+  const getAllCountries = useEbInstance<CountriesResponse>();
 
-        return useCallback((
-    
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getAllCountries(
-          {url: `/countries`, method: 'GET', signal
+  return useCallback(
+    (
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getAllCountries(
+        { url: `/countries`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getAllCountries])
-      }
-    
-
-
+    [getAllCountries]
+  );
+};
 
 export const getGetAllCountriesQueryKey = () => {
-    return [
-    `/countries`
-    ] as const;
-    }
+  return [`/countries`] as const;
+};
 
-    
-export const useGetAllCountriesQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-) => {
+export const useGetAllCountriesQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetAllCountriesQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetAllCountriesQueryKey();
+  const getAllCountries = useGetAllCountriesHook();
 
-  const getAllCountries =  useGetAllCountriesHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>
+  > = ({ signal }) => getAllCountries(requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>> = ({ signal }) => getAllCountries(requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetAllCountriesQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>
+>;
+export type GetAllCountriesQueryError = ErrorType<
+  N400Response | N401Response | N403Response | N500Response | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetAllCountriesQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>>
-export type GetAllCountriesQueryError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>
-
-
-export function useGetAllCountries<TData = Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>, TError, TData>> & Pick<
+export function useGetAllCountries<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllCountries<TData = Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAllCountries<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllCountries<TData = Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAllCountries<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List available countries and country codes
  */
 
-export function useGetAllCountries<TData = Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetAllCountries<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAllCountriesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetAllCountriesQueryOptions(options);
 
-  const queryOptions = useGetAllCountriesQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Retrieves a list of subdivisions within a country. For example, the states of the USA.
  * @summary List available country subdivisions
  */
 export const useGetCountrySubdivisionHook = () => {
-        const getCountrySubdivision = useEbInstance<CountrySubdivisionResponse>();
+  const getCountrySubdivision = useEbInstance<CountrySubdivisionResponse>();
 
-        return useCallback((
-    params?: GetCountrySubdivisionParams,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getCountrySubdivision(
-          {url: `/country-subdivision`, method: 'GET',
-        params, signal
+  return useCallback(
+    (
+      params?: GetCountrySubdivisionParams,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getCountrySubdivision(
+        { url: `/country-subdivision`, method: 'GET', params, signal },
+        options
+      );
     },
-          options);
-        }, [getCountrySubdivision])
-      }
-    
+    [getCountrySubdivision]
+  );
+};
 
-
-
-export const getGetCountrySubdivisionQueryKey = (params?: GetCountrySubdivisionParams,) => {
-    return [
-    `/country-subdivision`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-    
-export const useGetCountrySubdivisionQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(params?: GetCountrySubdivisionParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const getGetCountrySubdivisionQueryKey = (
+  params?: GetCountrySubdivisionParams
 ) => {
+  return [`/country-subdivision`, ...(params ? [params] : [])] as const;
+};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+export const useGetCountrySubdivisionQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  params?: GetCountrySubdivisionParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetCountrySubdivisionQueryKey(params);
+  const queryKey =
+    queryOptions?.queryKey ?? getGetCountrySubdivisionQueryKey(params);
 
-  const getCountrySubdivision =  useGetCountrySubdivisionHook();
+  const getCountrySubdivision = useGetCountrySubdivisionHook();
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>> = ({ signal }) => getCountrySubdivision(params, requestOptions, signal);
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>
+  > = ({ signal }) => getCountrySubdivision(params, requestOptions, signal);
 
-      
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetCountrySubdivisionQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>
+>;
+export type GetCountrySubdivisionQueryError = ErrorType<
+  N400Response | N401Response | N403Response | N500Response | N503Response
+>;
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetCountrySubdivisionQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>>
-export type GetCountrySubdivisionQueryError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>
-
-
-export function useGetCountrySubdivision<TData = Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
- params: undefined |  GetCountrySubdivisionParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>, TError, TData>> & Pick<
+export function useGetCountrySubdivision<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  params: undefined | GetCountrySubdivisionParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCountrySubdivision<TData = Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
- params?: GetCountrySubdivisionParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetCountrySubdivision<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  params?: GetCountrySubdivisionParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCountrySubdivision<TData = Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
- params?: GetCountrySubdivisionParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetCountrySubdivision<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  params?: GetCountrySubdivisionParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List available country subdivisions
  */
 
-export function useGetCountrySubdivision<TData = Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
- params?: GetCountrySubdivisionParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetCountrySubdivision<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  params?: GetCountrySubdivisionParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetCountrySubdivisionHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetCountrySubdivisionQueryOptions(params, options);
 
-  const queryOptions = useGetCountrySubdivisionQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Returns a list of legal structures of a business. To be used when onboarding business clients.
  * @summary List legal structures
  */
 export const useGetLegalStructuresHook = () => {
-        const getLegalStructures = useEbInstance<LegalStructureResponse>();
+  const getLegalStructures = useEbInstance<LegalStructureResponse>();
 
-        return useCallback((
-    
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getLegalStructures(
-          {url: `/legal-structures`, method: 'GET', signal
+  return useCallback(
+    (
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getLegalStructures(
+        { url: `/legal-structures`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getLegalStructures])
-      }
-    
-
-
+    [getLegalStructures]
+  );
+};
 
 export const getGetLegalStructuresQueryKey = () => {
-    return [
-    `/legal-structures`
-    ] as const;
-    }
+  return [`/legal-structures`] as const;
+};
 
-    
-export const useGetLegalStructuresQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-) => {
+export const useGetLegalStructuresQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetLegalStructuresQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetLegalStructuresQueryKey();
+  const getLegalStructures = useGetLegalStructuresHook();
 
-  const getLegalStructures =  useGetLegalStructuresHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>
+  > = ({ signal }) => getLegalStructures(requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>> = ({ signal }) => getLegalStructures(requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetLegalStructuresQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>
+>;
+export type GetLegalStructuresQueryError = ErrorType<
+  N400Response | N401Response | N403Response | N500Response | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetLegalStructuresQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>>
-export type GetLegalStructuresQueryError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>
-
-
-export function useGetLegalStructures<TData = Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>, TError, TData>> & Pick<
+export function useGetLegalStructures<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetLegalStructures<TData = Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetLegalStructures<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetLegalStructures<TData = Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetLegalStructures<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List legal structures
  */
 
-export function useGetLegalStructures<TData = Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetLegalStructures<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetLegalStructuresHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetLegalStructuresQueryOptions(options);
 
-  const queryOptions = useGetLegalStructuresQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Returns a list of supporting documents that may be required during onboarding and ongoing checks.
  * @summary List supporting document-types
  */
 export const useGetDocumentTypesHook = () => {
-        const getDocumentTypes = useEbInstance<DocumentTypesResponse>();
+  const getDocumentTypes = useEbInstance<DocumentTypesResponse>();
 
-        return useCallback((
-    params?: GetDocumentTypesParams,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getDocumentTypes(
-          {url: `/document-types`, method: 'GET',
-        params, signal
+  return useCallback(
+    (
+      params?: GetDocumentTypesParams,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getDocumentTypes(
+        { url: `/document-types`, method: 'GET', params, signal },
+        options
+      );
     },
-          options);
-        }, [getDocumentTypes])
-      }
-    
+    [getDocumentTypes]
+  );
+};
 
-
-
-export const getGetDocumentTypesQueryKey = (params?: GetDocumentTypesParams,) => {
-    return [
-    `/document-types`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-    
-export const useGetDocumentTypesQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(params?: GetDocumentTypesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const getGetDocumentTypesQueryKey = (
+  params?: GetDocumentTypesParams
 ) => {
+  return [`/document-types`, ...(params ? [params] : [])] as const;
+};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+export const useGetDocumentTypesQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  params?: GetDocumentTypesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetDocumentTypesQueryKey(params);
+  const queryKey =
+    queryOptions?.queryKey ?? getGetDocumentTypesQueryKey(params);
 
-  const getDocumentTypes =  useGetDocumentTypesHook();
+  const getDocumentTypes = useGetDocumentTypesHook();
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>> = ({ signal }) => getDocumentTypes(params, requestOptions, signal);
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>
+  > = ({ signal }) => getDocumentTypes(params, requestOptions, signal);
 
-      
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetDocumentTypesQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>
+>;
+export type GetDocumentTypesQueryError = ErrorType<
+  N400Response | N401Response | N403Response | N500Response | N503Response
+>;
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetDocumentTypesQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>>
-export type GetDocumentTypesQueryError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>
-
-
-export function useGetDocumentTypes<TData = Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
- params: undefined |  GetDocumentTypesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>, TError, TData>> & Pick<
+export function useGetDocumentTypes<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  params: undefined | GetDocumentTypesParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetDocumentTypes<TData = Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
- params?: GetDocumentTypesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetDocumentTypes<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  params?: GetDocumentTypesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetDocumentTypes<TData = Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
- params?: GetDocumentTypesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetDocumentTypes<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  params?: GetDocumentTypesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List supporting document-types
  */
 
-export function useGetDocumentTypes<TData = Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
- params?: GetDocumentTypesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetDocumentTypes<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  params?: GetDocumentTypesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetDocumentTypesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetDocumentTypesQueryOptions(params, options);
 
-  const queryOptions = useGetDocumentTypesQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Returns a list of acceptable types of ID that can be submitted for onboarding or other client checks.
  * @summary List acceptable ID types
  */
 export const useGetIdTypesHook = () => {
-        const getIdTypes = useEbInstance<IdentificationTypeResponse>();
+  const getIdTypes = useEbInstance<IdentificationTypeResponse>();
 
-        return useCallback((
-    
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getIdTypes(
-          {url: `/id-types`, method: 'GET', signal
+  return useCallback(
+    (
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getIdTypes({ url: `/id-types`, method: 'GET', signal }, options);
     },
-          options);
-        }, [getIdTypes])
-      }
-    
-
-
+    [getIdTypes]
+  );
+};
 
 export const getGetIdTypesQueryKey = () => {
-    return [
-    `/id-types`
-    ] as const;
-    }
+  return [`/id-types`] as const;
+};
 
-    
-export const useGetIdTypesQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-) => {
+export const useGetIdTypesQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetIdTypesQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetIdTypesQueryKey();
+  const getIdTypes = useGetIdTypesHook();
 
-  const getIdTypes =  useGetIdTypesHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>
+  > = ({ signal }) => getIdTypes(requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>> = ({ signal }) => getIdTypes(requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetIdTypesQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>
+>;
+export type GetIdTypesQueryError = ErrorType<
+  N400Response | N401Response | N403Response | N500Response | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetIdTypesQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>>
-export type GetIdTypesQueryError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>
-
-
-export function useGetIdTypes<TData = Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>, TError, TData>> & Pick<
+export function useGetIdTypes<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetIdTypes<TData = Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetIdTypes<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetIdTypes<TData = Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetIdTypes<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List acceptable ID types
  */
 
-export function useGetIdTypes<TData = Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetIdTypes<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetIdTypesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetIdTypesQueryOptions(options);
 
-  const queryOptions = useGetIdTypesQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Returns a list of all industry categories and industry types for business clients. To be used in onboarding and other client checks.
  * @summary List industry categories and industry types.
  */
 export const useGetClientIndustryCategoriesHook = () => {
-        const getClientIndustryCategories = useEbInstance<IndustryCategoriesResponse>();
+  const getClientIndustryCategories =
+    useEbInstance<IndustryCategoriesResponse>();
 
-        return useCallback((
-    params?: GetClientIndustryCategoriesParams,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getClientIndustryCategories(
-          {url: `/industry-categories`, method: 'GET',
-        params, signal
+  return useCallback(
+    (
+      params?: GetClientIndustryCategoriesParams,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getClientIndustryCategories(
+        { url: `/industry-categories`, method: 'GET', params, signal },
+        options
+      );
     },
-          options);
-        }, [getClientIndustryCategories])
-      }
-    
+    [getClientIndustryCategories]
+  );
+};
 
-
-
-export const getGetClientIndustryCategoriesQueryKey = (params?: GetClientIndustryCategoriesParams,) => {
-    return [
-    `/industry-categories`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-    
-export const useGetClientIndustryCategoriesQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(params?: GetClientIndustryCategoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const getGetClientIndustryCategoriesQueryKey = (
+  params?: GetClientIndustryCategoriesParams
 ) => {
+  return [`/industry-categories`, ...(params ? [params] : [])] as const;
+};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+export const useGetClientIndustryCategoriesQueryOptions = <
+  TData = Awaited<
+    ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>
+  >,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  params?: GetClientIndustryCategoriesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>
+        >,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetClientIndustryCategoriesQueryKey(params);
+  const queryKey =
+    queryOptions?.queryKey ?? getGetClientIndustryCategoriesQueryKey(params);
 
-  const getClientIndustryCategories =  useGetClientIndustryCategoriesHook();
+  const getClientIndustryCategories = useGetClientIndustryCategoriesHook();
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>>> = ({ signal }) => getClientIndustryCategories(params, requestOptions, signal);
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>>
+  > = ({ signal }) =>
+    getClientIndustryCategories(params, requestOptions, signal);
 
-      
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetClientIndustryCategoriesQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>>
+>;
+export type GetClientIndustryCategoriesQueryError = ErrorType<
+  N400Response | N401Response | N403Response | N500Response | N503Response
+>;
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetClientIndustryCategoriesQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>>>
-export type GetClientIndustryCategoriesQueryError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>
-
-
-export function useGetClientIndustryCategories<TData = Awaited<ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
- params: undefined |  GetClientIndustryCategoriesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>>, TError, TData>> & Pick<
+export function useGetClientIndustryCategories<
+  TData = Awaited<
+    ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>
+  >,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  params: undefined | GetClientIndustryCategoriesParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>
+        >,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>>,
+          Awaited<
+            ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>
+          >,
           TError,
-          Awaited<ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetClientIndustryCategories<TData = Awaited<ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
- params?: GetClientIndustryCategoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>>, TError, TData>> & Pick<
+          Awaited<
+            ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>
+          >
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetClientIndustryCategories<
+  TData = Awaited<
+    ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>
+  >,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  params?: GetClientIndustryCategoriesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>
+        >,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>>,
+          Awaited<
+            ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>
+          >,
           TError,
-          Awaited<ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetClientIndustryCategories<TData = Awaited<ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
- params?: GetClientIndustryCategoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+          Awaited<
+            ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>
+          >
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetClientIndustryCategories<
+  TData = Awaited<
+    ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>
+  >,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  params?: GetClientIndustryCategoriesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>
+        >,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List industry categories and industry types.
  */
 
-export function useGetClientIndustryCategories<TData = Awaited<ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
- params?: GetClientIndustryCategoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetClientIndustryCategories<
+  TData = Awaited<
+    ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>
+  >,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  params?: GetClientIndustryCategoriesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<
+          ReturnType<ReturnType<typeof useGetClientIndustryCategoriesHook>>
+        >,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetClientIndustryCategoriesQueryOptions(
+    params,
+    options
+  );
 
-  const queryOptions = useGetClientIndustryCategoriesQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Returns a list of all available Embedded Finance products.
  * @summary List embedded finance products
  */
 export const useGetRefProductsHook = () => {
-        const getRefProducts = useEbInstance<ProductResponse>();
+  const getRefProducts = useEbInstance<ProductResponse>();
 
-        return useCallback((
-    
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getRefProducts(
-          {url: `/products`, method: 'GET', signal
+  return useCallback(
+    (
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getRefProducts(
+        { url: `/products`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getRefProducts])
-      }
-    
-
-
+    [getRefProducts]
+  );
+};
 
 export const getGetRefProductsQueryKey = () => {
-    return [
-    `/products`
-    ] as const;
-    }
+  return [`/products`] as const;
+};
 
-    
-export const useGetRefProductsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-) => {
+export const useGetRefProductsQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetRefProductsQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetRefProductsQueryKey();
+  const getRefProducts = useGetRefProductsHook();
 
-  const getRefProducts =  useGetRefProductsHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>
+  > = ({ signal }) => getRefProducts(requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>> = ({ signal }) => getRefProducts(requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetRefProductsQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>
+>;
+export type GetRefProductsQueryError = ErrorType<
+  N400Response | N401Response | N403Response | N500Response | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetRefProductsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>>
-export type GetRefProductsQueryError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>
-
-
-export function useGetRefProducts<TData = Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>, TError, TData>> & Pick<
+export function useGetRefProducts<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRefProducts<TData = Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetRefProducts<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRefProducts<TData = Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetRefProducts<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List embedded finance products
  */
 
-export function useGetRefProducts<TData = Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetRefProducts<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefProductsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetRefProductsQueryOptions(options);
 
-  const queryOptions = useGetRefProductsQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Returns a list of business types that can be used for client onboarding processes.
  * @summary List business types
  */
 export const useGetRefBusinessTypesHook = () => {
-        const getRefBusinessTypes = useEbInstance<BusinessTypesResponse>();
+  const getRefBusinessTypes = useEbInstance<BusinessTypesResponse>();
 
-        return useCallback((
-    
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getRefBusinessTypes(
-          {url: `/business-types`, method: 'GET', signal
+  return useCallback(
+    (
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getRefBusinessTypes(
+        { url: `/business-types`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getRefBusinessTypes])
-      }
-    
-
-
+    [getRefBusinessTypes]
+  );
+};
 
 export const getGetRefBusinessTypesQueryKey = () => {
-    return [
-    `/business-types`
-    ] as const;
-    }
+  return [`/business-types`] as const;
+};
 
-    
-export const useGetRefBusinessTypesQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-) => {
+export const useGetRefBusinessTypesQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetRefBusinessTypesQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetRefBusinessTypesQueryKey();
+  const getRefBusinessTypes = useGetRefBusinessTypesHook();
 
-  const getRefBusinessTypes =  useGetRefBusinessTypesHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>
+  > = ({ signal }) => getRefBusinessTypes(requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>> = ({ signal }) => getRefBusinessTypes(requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetRefBusinessTypesQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>
+>;
+export type GetRefBusinessTypesQueryError = ErrorType<
+  N400Response | N401Response | N403Response | N500Response | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetRefBusinessTypesQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>>
-export type GetRefBusinessTypesQueryError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>
-
-
-export function useGetRefBusinessTypes<TData = Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>, TError, TData>> & Pick<
+export function useGetRefBusinessTypes<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRefBusinessTypes<TData = Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetRefBusinessTypes<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRefBusinessTypes<TData = Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetRefBusinessTypes<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List business types
  */
 
-export function useGetRefBusinessTypes<TData = Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetRefBusinessTypes<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefBusinessTypesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetRefBusinessTypesQueryOptions(options);
 
-  const queryOptions = useGetRefBusinessTypesQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Returns a list of job titles that can be used for client onboarding.
  * @summary List job titles
  */
 export const useGetRefJobTitlesHook = () => {
-        const getRefJobTitles = useEbInstance<JobTitlesResponse>();
+  const getRefJobTitles = useEbInstance<JobTitlesResponse>();
 
-        return useCallback((
-    
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getRefJobTitles(
-          {url: `/job-titles`, method: 'GET', signal
+  return useCallback(
+    (
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getRefJobTitles(
+        { url: `/job-titles`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getRefJobTitles])
-      }
-    
-
-
+    [getRefJobTitles]
+  );
+};
 
 export const getGetRefJobTitlesQueryKey = () => {
-    return [
-    `/job-titles`
-    ] as const;
-    }
+  return [`/job-titles`] as const;
+};
 
-    
-export const useGetRefJobTitlesQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-) => {
+export const useGetRefJobTitlesQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetRefJobTitlesQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetRefJobTitlesQueryKey();
+  const getRefJobTitles = useGetRefJobTitlesHook();
 
-  const getRefJobTitles =  useGetRefJobTitlesHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>
+  > = ({ signal }) => getRefJobTitles(requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>> = ({ signal }) => getRefJobTitles(requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetRefJobTitlesQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>
+>;
+export type GetRefJobTitlesQueryError = ErrorType<
+  N400Response | N401Response | N403Response | N500Response | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetRefJobTitlesQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>>
-export type GetRefJobTitlesQueryError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>
-
-
-export function useGetRefJobTitles<TData = Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>, TError, TData>> & Pick<
+export function useGetRefJobTitles<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRefJobTitles<TData = Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetRefJobTitles<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRefJobTitles<TData = Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetRefJobTitles<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List job titles
  */
 
-export function useGetRefJobTitles<TData = Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetRefJobTitles<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefJobTitlesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetRefJobTitlesQueryOptions(options);
 
-  const queryOptions = useGetRefJobTitlesQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Returns a list of accepted party roles.
  * @summary List party roles
  */
 export const useGetRefPartyRolesHook = () => {
-        const getRefPartyRoles = useEbInstance<PartyRolesResponse>();
+  const getRefPartyRoles = useEbInstance<PartyRolesResponse>();
 
-        return useCallback((
-    
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getRefPartyRoles(
-          {url: `/party-roles`, method: 'GET', signal
+  return useCallback(
+    (
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getRefPartyRoles(
+        { url: `/party-roles`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getRefPartyRoles])
-      }
-    
-
-
+    [getRefPartyRoles]
+  );
+};
 
 export const getGetRefPartyRolesQueryKey = () => {
-    return [
-    `/party-roles`
-    ] as const;
-    }
+  return [`/party-roles`] as const;
+};
 
-    
-export const useGetRefPartyRolesQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-) => {
+export const useGetRefPartyRolesQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetRefPartyRolesQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetRefPartyRolesQueryKey();
+  const getRefPartyRoles = useGetRefPartyRolesHook();
 
-  const getRefPartyRoles =  useGetRefPartyRolesHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>
+  > = ({ signal }) => getRefPartyRoles(requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>> = ({ signal }) => getRefPartyRoles(requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetRefPartyRolesQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>
+>;
+export type GetRefPartyRolesQueryError = ErrorType<
+  N400Response | N401Response | N403Response | N500Response | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetRefPartyRolesQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>>
-export type GetRefPartyRolesQueryError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>
-
-
-export function useGetRefPartyRoles<TData = Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>, TError, TData>> & Pick<
+export function useGetRefPartyRoles<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRefPartyRoles<TData = Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetRefPartyRoles<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRefPartyRoles<TData = Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetRefPartyRoles<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List party roles
  */
 
-export function useGetRefPartyRoles<TData = Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetRefPartyRoles<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefPartyRolesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetRefPartyRolesQueryOptions(options);
 
-  const queryOptions = useGetRefPartyRolesQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Returns a list of accepted address types.
  * @summary List address types
  */
 export const useGetRefAddressTypesHook = () => {
-        const getRefAddressTypes = useEbInstance<AddressTypesResponse>();
+  const getRefAddressTypes = useEbInstance<AddressTypesResponse>();
 
-        return useCallback((
-    
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getRefAddressTypes(
-          {url: `/address-types`, method: 'GET', signal
+  return useCallback(
+    (
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getRefAddressTypes(
+        { url: `/address-types`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getRefAddressTypes])
-      }
-    
-
-
+    [getRefAddressTypes]
+  );
+};
 
 export const getGetRefAddressTypesQueryKey = () => {
-    return [
-    `/address-types`
-    ] as const;
-    }
+  return [`/address-types`] as const;
+};
 
-    
-export const useGetRefAddressTypesQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-) => {
+export const useGetRefAddressTypesQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetRefAddressTypesQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetRefAddressTypesQueryKey();
+  const getRefAddressTypes = useGetRefAddressTypesHook();
 
-  const getRefAddressTypes =  useGetRefAddressTypesHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>
+  > = ({ signal }) => getRefAddressTypes(requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>> = ({ signal }) => getRefAddressTypes(requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetRefAddressTypesQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>
+>;
+export type GetRefAddressTypesQueryError = ErrorType<
+  N400Response | N401Response | N403Response | N500Response | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetRefAddressTypesQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>>
-export type GetRefAddressTypesQueryError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>
-
-
-export function useGetRefAddressTypes<TData = Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>, TError, TData>> & Pick<
+export function useGetRefAddressTypes<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRefAddressTypes<TData = Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetRefAddressTypes<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRefAddressTypes<TData = Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetRefAddressTypes<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List address types
  */
 
-export function useGetRefAddressTypes<TData = Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetRefAddressTypes<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefAddressTypesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetRefAddressTypesQueryOptions(options);
 
-  const queryOptions = useGetRefAddressTypesQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Returns a list of accepted Nature Of Ownership values.
  * @summary List nature of ownership values
  */
 export const useGetRefNatureOfOwnershipsHook = () => {
-        const getRefNatureOfOwnerships = useEbInstance<NatureOfOwnershipsResponse>();
+  const getRefNatureOfOwnerships = useEbInstance<NatureOfOwnershipsResponse>();
 
-        return useCallback((
-    
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getRefNatureOfOwnerships(
-          {url: `/nature-of-ownerships`, method: 'GET', signal
+  return useCallback(
+    (
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getRefNatureOfOwnerships(
+        { url: `/nature-of-ownerships`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getRefNatureOfOwnerships])
-      }
-    
-
-
+    [getRefNatureOfOwnerships]
+  );
+};
 
 export const getGetRefNatureOfOwnershipsQueryKey = () => {
-    return [
-    `/nature-of-ownerships`
-    ] as const;
-    }
+  return [`/nature-of-ownerships`] as const;
+};
 
-    
-export const useGetRefNatureOfOwnershipsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-) => {
+export const useGetRefNatureOfOwnershipsQueryOptions = <
+  TData = Awaited<
+    ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>
+  >,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey =
+    queryOptions?.queryKey ?? getGetRefNatureOfOwnershipsQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetRefNatureOfOwnershipsQueryKey();
+  const getRefNatureOfOwnerships = useGetRefNatureOfOwnershipsHook();
 
-  const getRefNatureOfOwnerships =  useGetRefNatureOfOwnershipsHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>
+  > = ({ signal }) => getRefNatureOfOwnerships(requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>> = ({ signal }) => getRefNatureOfOwnerships(requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetRefNatureOfOwnershipsQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>
+>;
+export type GetRefNatureOfOwnershipsQueryError = ErrorType<
+  N400Response | N401Response | N403Response | N500Response | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetRefNatureOfOwnershipsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>>
-export type GetRefNatureOfOwnershipsQueryError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>
-
-
-export function useGetRefNatureOfOwnerships<TData = Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>, TError, TData>> & Pick<
+export function useGetRefNatureOfOwnerships<
+  TData = Awaited<
+    ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>
+  >,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>,
+          Awaited<
+            ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>
+          >,
           TError,
-          Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRefNatureOfOwnerships<TData = Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>, TError, TData>> & Pick<
+          Awaited<
+            ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>
+          >
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetRefNatureOfOwnerships<
+  TData = Awaited<
+    ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>
+  >,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>,
+          Awaited<
+            ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>
+          >,
           TError,
-          Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRefNatureOfOwnerships<TData = Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+          Awaited<
+            ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>
+          >
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetRefNatureOfOwnerships<
+  TData = Awaited<
+    ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>
+  >,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List nature of ownership values
  */
 
-export function useGetRefNatureOfOwnerships<TData = Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetRefNatureOfOwnerships<
+  TData = Awaited<
+    ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>
+  >,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefNatureOfOwnershipsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetRefNatureOfOwnershipsQueryOptions(options);
 
-  const queryOptions = useGetRefNatureOfOwnershipsQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Returns a list of accepted party types.
  * @summary List party types
  */
 export const useGetRefPartyTypesHook = () => {
-        const getRefPartyTypes = useEbInstance<PartyTypesResponse>();
+  const getRefPartyTypes = useEbInstance<PartyTypesResponse>();
 
-        return useCallback((
-    
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getRefPartyTypes(
-          {url: `/party-types`, method: 'GET', signal
+  return useCallback(
+    (
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getRefPartyTypes(
+        { url: `/party-types`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getRefPartyTypes])
-      }
-    
-
-
+    [getRefPartyTypes]
+  );
+};
 
 export const getGetRefPartyTypesQueryKey = () => {
-    return [
-    `/party-types`
-    ] as const;
-    }
+  return [`/party-types`] as const;
+};
 
-    
-export const useGetRefPartyTypesQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-) => {
+export const useGetRefPartyTypesQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetRefPartyTypesQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetRefPartyTypesQueryKey();
+  const getRefPartyTypes = useGetRefPartyTypesHook();
 
-  const getRefPartyTypes =  useGetRefPartyTypesHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>
+  > = ({ signal }) => getRefPartyTypes(requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>> = ({ signal }) => getRefPartyTypes(requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetRefPartyTypesQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>
+>;
+export type GetRefPartyTypesQueryError = ErrorType<
+  N400Response | N401Response | N403Response | N500Response | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetRefPartyTypesQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>>
-export type GetRefPartyTypesQueryError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>
-
-
-export function useGetRefPartyTypes<TData = Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>, TError, TData>> & Pick<
+export function useGetRefPartyTypes<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRefPartyTypes<TData = Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetRefPartyTypes<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetRefPartyTypes<TData = Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetRefPartyTypes<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List party types
  */
 
-export function useGetRefPartyTypes<TData = Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetRefPartyTypes<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>,
+  TError = ErrorType<
+    N400Response | N401Response | N403Response | N500Response | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRefPartyTypesHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetRefPartyTypesQueryOptions(options);
 
-  const queryOptions = useGetRefPartyTypesQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Get a statement document using its identifier
  * @summary Get a statement
  */
 export const useGetStatementHook = () => {
-        const getStatement = useEbInstance<Blob>();
+  const getStatement = useEbInstance<Blob>();
 
-        return useCallback((
-    id: string,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getStatement(
-          {url: `/statements/${id}`, method: 'GET',
-        responseType: 'blob', signal
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getStatement(
+        {
+          url: `/statements/${id}`,
+          method: 'GET',
+          responseType: 'blob',
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [getStatement])
-      }
-    
+    [getStatement]
+  );
+};
 
+export const getGetStatementQueryKey = (id: string) => {
+  return [`/statements/${id}`] as const;
+};
 
-
-export const getGetStatementQueryKey = (id: string,) => {
-    return [
-    `/statements/${id}`
-    ] as const;
-    }
-
-    
-export const useGetStatementQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>, TError = ErrorType<N401Response | N403Response | N404Response | N500Response | N503Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetStatementQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>,
+  TError = ErrorType<
+    N401Response | N403Response | N404Response | N500Response | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetStatementQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetStatementQueryKey(id);
+  const getStatement = useGetStatementHook();
 
-  const getStatement =  useGetStatementHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>
+  > = ({ signal }) => getStatement(id, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>> = ({ signal }) => getStatement(id, requestOptions, signal);
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetStatementQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>
+>;
+export type GetStatementQueryError = ErrorType<
+  N401Response | N403Response | N404Response | N500Response | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetStatementQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>>
-export type GetStatementQueryError = ErrorType<N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useGetStatement<TData = Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>, TError = ErrorType<N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>, TError, TData>> & Pick<
+export function useGetStatement<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>,
+  TError = ErrorType<
+    N401Response | N403Response | N404Response | N500Response | N503Response
+  >,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetStatement<TData = Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>, TError = ErrorType<N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetStatement<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>,
+  TError = ErrorType<
+    N401Response | N403Response | N404Response | N500Response | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetStatement<TData = Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>, TError = ErrorType<N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetStatement<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>,
+  TError = ErrorType<
+    N401Response | N403Response | N404Response | N500Response | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Get a statement
  */
 
-export function useGetStatement<TData = Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>, TError = ErrorType<N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetStatement<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>,
+  TError = ErrorType<
+    N401Response | N403Response | N404Response | N500Response | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetStatementHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetStatementQueryOptions(id, options);
 
-  const queryOptions = useGetStatementQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Returns statements filtered by search criteria.
  * @summary Search statements
  */
 export const useSearchStatementsHook = () => {
-        const searchStatements = useEbInstance<StatementsResponse>();
+  const searchStatements = useEbInstance<StatementsResponse>();
 
-        return useCallback((
-    params: SearchStatementsParams,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return searchStatements(
-          {url: `/statements/search`, method: 'GET',
-        params, signal
+  return useCallback(
+    (
+      params: SearchStatementsParams,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return searchStatements(
+        { url: `/statements/search`, method: 'GET', params, signal },
+        options
+      );
     },
-          options);
-        }, [searchStatements])
-      }
-    
+    [searchStatements]
+  );
+};
 
-
-
-export const getSearchStatementsQueryKey = (params?: SearchStatementsParams,) => {
-    return [
-    `/statements/search`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-    
-export const useSearchStatementsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>, TError = ErrorType<N401Response | N403Response | N404Response | N500Response | N503Response>>(params: SearchStatementsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const getSearchStatementsQueryKey = (
+  params?: SearchStatementsParams
 ) => {
+  return [`/statements/search`, ...(params ? [params] : [])] as const;
+};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+export const useSearchStatementsQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>,
+  TError = ErrorType<
+    N401Response | N403Response | N404Response | N500Response | N503Response
+  >,
+>(
+  params: SearchStatementsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getSearchStatementsQueryKey(params);
+  const queryKey =
+    queryOptions?.queryKey ?? getSearchStatementsQueryKey(params);
 
-  const searchStatements =  useSearchStatementsHook();
+  const searchStatements = useSearchStatementsHook();
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>> = ({ signal }) => searchStatements(params, requestOptions, signal);
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>
+  > = ({ signal }) => searchStatements(params, requestOptions, signal);
 
-      
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type SearchStatementsQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>
+>;
+export type SearchStatementsQueryError = ErrorType<
+  N401Response | N403Response | N404Response | N500Response | N503Response
+>;
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type SearchStatementsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>>
-export type SearchStatementsQueryError = ErrorType<N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useSearchStatements<TData = Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>, TError = ErrorType<N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params: SearchStatementsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>, TError, TData>> & Pick<
+export function useSearchStatements<
+  TData = Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>,
+  TError = ErrorType<
+    N401Response | N403Response | N404Response | N500Response | N503Response
+  >,
+>(
+  params: SearchStatementsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSearchStatements<TData = Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>, TError = ErrorType<N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params: SearchStatementsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useSearchStatements<
+  TData = Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>,
+  TError = ErrorType<
+    N401Response | N403Response | N404Response | N500Response | N503Response
+  >,
+>(
+  params: SearchStatementsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSearchStatements<TData = Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>, TError = ErrorType<N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params: SearchStatementsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useSearchStatements<
+  TData = Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>,
+  TError = ErrorType<
+    N401Response | N403Response | N404Response | N500Response | N503Response
+  >,
+>(
+  params: SearchStatementsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Search statements
  */
 
-export function useSearchStatements<TData = Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>, TError = ErrorType<N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params: SearchStatementsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useSearchStatements<
+  TData = Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>,
+  TError = ErrorType<
+    N401Response | N403Response | N404Response | N500Response | N503Response
+  >,
+>(
+  params: SearchStatementsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useSearchStatementsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useSearchStatementsQueryOptions(params, options);
 
-  const queryOptions = useSearchStatementsQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Creates a new transaction, such as a payment via ACH, Wire or Real Time Payments (RTP).
  * @summary Create transaction
  */
 export const useCreateTransactionHook = () => {
-        const createTransaction = useEbInstance<TransactionResponse>();
+  const createTransaction = useEbInstance<TransactionResponse>();
 
-        return useCallback((
-    postTransactionRequest: BodyType<PostTransactionRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return createTransaction(
-          {url: `/transactions`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: postTransactionRequest, signal
+  return useCallback(
+    (
+      postTransactionRequest: BodyType<PostTransactionRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return createTransaction(
+        {
+          url: `/transactions`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: postTransactionRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [createTransaction])
-      }
-    
+    [createTransaction]
+  );
+};
 
+export const useCreateTransactionMutationOptions = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useCreateTransactionHook>>>,
+    TError,
+    { data: BodyType<PostTransactionRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useCreateTransactionHook>>>,
+  TError,
+  { data: BodyType<PostTransactionRequest> },
+  TContext
+> => {
+  const mutationKey = ['createTransaction'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useCreateTransactionMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCreateTransactionHook>>>, TError,{data: BodyType<PostTransactionRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCreateTransactionHook>>>, TError,{data: BodyType<PostTransactionRequest>}, TContext> => {
+  const createTransaction = useCreateTransactionHook();
 
-const mutationKey = ['createTransaction'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useCreateTransactionHook>>>,
+    { data: BodyType<PostTransactionRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
 
-      const createTransaction =  useCreateTransactionHook()
+    return createTransaction(data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useCreateTransactionHook>>>, {data: BodyType<PostTransactionRequest>}> = (props) => {
-          const {data} = props ?? {};
+export type CreateTransactionMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useCreateTransactionHook>>>
+>;
+export type CreateTransactionMutationBody = BodyType<PostTransactionRequest>;
+export type CreateTransactionMutationError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-          return  createTransaction(data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreateTransactionMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useCreateTransactionHook>>>>
-    export type CreateTransactionMutationBody = BodyType<PostTransactionRequest>
-    export type CreateTransactionMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-    /**
+/**
  * @summary Create transaction
  */
-export const useCreateTransaction = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCreateTransactionHook>>>, TError,{data: BodyType<PostTransactionRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useCreateTransactionHook>>>,
-        TError,
-        {data: BodyType<PostTransactionRequest>},
-        TContext
-      > => {
-      return useMutation(useCreateTransactionMutationOptions(options), queryClient);
-    }
-    
+export const useCreateTransaction = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useCreateTransactionHook>>>,
+      TError,
+      { data: BodyType<PostTransactionRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useCreateTransactionHook>>>,
+  TError,
+  { data: BodyType<PostTransactionRequest> },
+  TContext
+> => {
+  return useMutation(useCreateTransactionMutationOptions(options), queryClient);
+};
+
 /**
  * Lists transactions for a specific client, which can be filtered using optional parameters.
  * @summary List and filter transactions
  */
 export const useListTransactionsHook = () => {
-        const listTransactions = useEbInstance<ListTransactionsSearchResponse>();
+  const listTransactions = useEbInstance<ListTransactionsSearchResponse>();
 
-        return useCallback((
-    params?: ListTransactionsParams,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return listTransactions(
-          {url: `/transactions`, method: 'GET',
-        params, signal
+  return useCallback(
+    (
+      params?: ListTransactionsParams,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return listTransactions(
+        { url: `/transactions`, method: 'GET', params, signal },
+        options
+      );
     },
-          options);
-        }, [listTransactions])
-      }
-    
+    [listTransactions]
+  );
+};
 
-
-
-export const getListTransactionsQueryKey = (params?: ListTransactionsParams,) => {
-    return [
-    `/transactions`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-    
-export const useListTransactionsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(params?: ListTransactionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const getListTransactionsQueryKey = (
+  params?: ListTransactionsParams
 ) => {
+  return [`/transactions`, ...(params ? [params] : [])] as const;
+};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+export const useListTransactionsQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: ListTransactionsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListTransactionsQueryKey(params);
+  const queryKey =
+    queryOptions?.queryKey ?? getListTransactionsQueryKey(params);
 
-  const listTransactions =  useListTransactionsHook();
+  const listTransactions = useListTransactionsHook();
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>> = ({ signal }) => listTransactions(params, requestOptions, signal);
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>
+  > = ({ signal }) => listTransactions(params, requestOptions, signal);
 
-      
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type ListTransactionsQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>
+>;
+export type ListTransactionsQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListTransactionsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>>
-export type ListTransactionsQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useListTransactions<TData = Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params: undefined |  ListTransactionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>, TError, TData>> & Pick<
+export function useListTransactions<
+  TData = Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params: undefined | ListTransactionsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListTransactions<TData = Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: ListTransactionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useListTransactions<
+  TData = Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: ListTransactionsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListTransactions<TData = Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: ListTransactionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useListTransactions<
+  TData = Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: ListTransactionsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List and filter transactions
  */
 
-export function useListTransactions<TData = Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: ListTransactionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useListTransactions<
+  TData = Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: ListTransactionsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useListTransactionsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useListTransactionsQueryOptions(params, options);
 
-  const queryOptions = useListTransactionsQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Returns details for a specific transaction using its unique identifier.
  * @summary Get transaction
  */
 export const useGetTransactionHook = () => {
-        const getTransaction = useEbInstance<TransactionGetResponse>();
+  const getTransaction = useEbInstance<TransactionGetResponse>();
 
-        return useCallback((
-    id: string,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getTransaction(
-          {url: `/transactions/${id}`, method: 'GET', signal
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getTransaction(
+        { url: `/transactions/${id}`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getTransaction])
-      }
-    
+    [getTransaction]
+  );
+};
 
+export const getGetTransactionQueryKey = (id: string) => {
+  return [`/transactions/${id}`] as const;
+};
 
-
-export const getGetTransactionQueryKey = (id: string,) => {
-    return [
-    `/transactions/${id}`
-    ] as const;
-    }
-
-    
-export const useGetTransactionQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetTransactionQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetTransactionQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetTransactionQueryKey(id);
+  const getTransaction = useGetTransactionHook();
 
-  const getTransaction =  useGetTransactionHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>
+  > = ({ signal }) => getTransaction(id, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>> = ({ signal }) => getTransaction(id, requestOptions, signal);
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetTransactionQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>
+>;
+export type GetTransactionQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetTransactionQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>>
-export type GetTransactionQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useGetTransaction<TData = Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>, TError, TData>> & Pick<
+export function useGetTransaction<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetTransaction<TData = Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetTransaction<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetTransaction<TData = Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetTransaction<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Get transaction
  */
 
-export function useGetTransaction<TData = Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetTransaction<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetTransactionHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetTransactionQueryOptions(id, options);
 
-  const queryOptions = useGetTransactionQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Returns a list of accounts for a specific client.
  * @summary List accounts
  */
 export const useGetAccountsHook = () => {
-        const getAccounts = useEbInstance<ListAccountsResponse>();
+  const getAccounts = useEbInstance<ListAccountsResponse>();
 
-        return useCallback((
-    params?: GetAccountsParams,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getAccounts(
-          {url: `/accounts`, method: 'GET',
-        params, signal
+  return useCallback(
+    (
+      params?: GetAccountsParams,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getAccounts(
+        { url: `/accounts`, method: 'GET', params, signal },
+        options
+      );
     },
-          options);
-        }, [getAccounts])
-      }
-    
+    [getAccounts]
+  );
+};
 
+export const getGetAccountsQueryKey = (params?: GetAccountsParams) => {
+  return [`/accounts`, ...(params ? [params] : [])] as const;
+};
 
-
-export const getGetAccountsQueryKey = (params?: GetAccountsParams,) => {
-    return [
-    `/accounts`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-    
-export const useGetAccountsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(params?: GetAccountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetAccountsQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetAccountsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetAccountsQueryKey(params);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetAccountsQueryKey(params);
+  const getAccounts = useGetAccountsHook();
 
-  const getAccounts =  useGetAccountsHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>
+  > = ({ signal }) => getAccounts(params, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>> = ({ signal }) => getAccounts(params, requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetAccountsQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>
+>;
+export type GetAccountsQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetAccountsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>>
-export type GetAccountsQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useGetAccounts<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params: undefined |  GetAccountsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError, TData>> & Pick<
+export function useGetAccounts<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params: undefined | GetAccountsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAccounts<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: GetAccountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAccounts<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetAccountsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAccounts<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: GetAccountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAccounts<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetAccountsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List accounts
  */
 
-export function useGetAccounts<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: GetAccountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetAccounts<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetAccountsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetAccountsQueryOptions(params, options);
 
-  const queryOptions = useGetAccountsQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Create an account for a specific client
  * @summary Create account
  */
 export const usePostAccountsHook = () => {
-        const postAccounts = useEbInstance<AccountResponseWithStatus>();
+  const postAccounts = useEbInstance<AccountResponseWithStatus>();
 
-        return useCallback((
-    createAccountRequest: BodyType<CreateAccountRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return postAccounts(
-          {url: `/accounts`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createAccountRequest, signal
+  return useCallback(
+    (
+      createAccountRequest: BodyType<CreateAccountRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return postAccounts(
+        {
+          url: `/accounts`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: createAccountRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [postAccounts])
-      }
-    
+    [postAccounts]
+  );
+};
 
+export const usePostAccountsMutationOptions = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>,
+    TError,
+    { data: BodyType<CreateAccountRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>,
+  TError,
+  { data: BodyType<CreateAccountRequest> },
+  TContext
+> => {
+  const mutationKey = ['postAccounts'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const usePostAccountsMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>, TError,{data: BodyType<CreateAccountRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>, TError,{data: BodyType<CreateAccountRequest>}, TContext> => {
+  const postAccounts = usePostAccountsHook();
 
-const mutationKey = ['postAccounts'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>,
+    { data: BodyType<CreateAccountRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
 
-      const postAccounts =  usePostAccountsHook()
+    return postAccounts(data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>, {data: BodyType<CreateAccountRequest>}> = (props) => {
-          const {data} = props ?? {};
+export type PostAccountsMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>
+>;
+export type PostAccountsMutationBody = BodyType<CreateAccountRequest>;
+export type PostAccountsMutationError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-          return  postAccounts(data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostAccountsMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>>
-    export type PostAccountsMutationBody = BodyType<CreateAccountRequest>
-    export type PostAccountsMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-    /**
+/**
  * @summary Create account
  */
-export const usePostAccounts = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>, TError,{data: BodyType<CreateAccountRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>,
-        TError,
-        {data: BodyType<CreateAccountRequest>},
-        TContext
-      > => {
-      return useMutation(usePostAccountsMutationOptions(options), queryClient);
-    }
-    
+export const usePostAccounts = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>,
+      TError,
+      { data: BodyType<CreateAccountRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>,
+  TError,
+  { data: BodyType<CreateAccountRequest> },
+  TContext
+> => {
+  return useMutation(usePostAccountsMutationOptions(options), queryClient);
+};
+
 /**
  * Look up a single account by account ID
  * @summary Get account
  */
 export const useGetAccountHook = () => {
-        const getAccount = useEbInstance<AccountResponseWithStatus>();
+  const getAccount = useEbInstance<AccountResponseWithStatus>();
 
-        return useCallback((
-    id: string,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getAccount(
-          {url: `/accounts/${id}`, method: 'GET', signal
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getAccount(
+        { url: `/accounts/${id}`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getAccount])
-      }
-    
+    [getAccount]
+  );
+};
 
+export const getGetAccountQueryKey = (id: string) => {
+  return [`/accounts/${id}`] as const;
+};
 
-
-export const getGetAccountQueryKey = (id: string,) => {
-    return [
-    `/accounts/${id}`
-    ] as const;
-    }
-
-    
-export const useGetAccountQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetAccountQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetAccountQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetAccountQueryKey(id);
+  const getAccount = useGetAccountHook();
 
-  const getAccount =  useGetAccountHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>
+  > = ({ signal }) => getAccount(id, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>> = ({ signal }) => getAccount(id, requestOptions, signal);
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetAccountQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>
+>;
+export type GetAccountQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetAccountQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>>
-export type GetAccountQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useGetAccount<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError, TData>> & Pick<
+export function useGetAccount<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAccount<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAccount<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAccount<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAccount<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Get account
  */
 
-export function useGetAccount<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetAccount<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetAccountQueryOptions(id, options);
 
-  const queryOptions = useGetAccountQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Get the balance details for an account
  * @summary Get an account balance
  */
 export const useGetAccountBalanceHook = () => {
-        const getAccountBalance = useEbInstance<AccountBalanceResponse>();
+  const getAccountBalance = useEbInstance<AccountBalanceResponse>();
 
-        return useCallback((
-    id: string,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getAccountBalance(
-          {url: `/accounts/${id}/balances`, method: 'GET', signal
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getAccountBalance(
+        { url: `/accounts/${id}/balances`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getAccountBalance])
-      }
-    
+    [getAccountBalance]
+  );
+};
 
+export const getGetAccountBalanceQueryKey = (id: string) => {
+  return [`/accounts/${id}/balances`] as const;
+};
 
-
-export const getGetAccountBalanceQueryKey = (id: string,) => {
-    return [
-    `/accounts/${id}/balances`
-    ] as const;
-    }
-
-    
-export const useGetAccountBalanceQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetAccountBalanceQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetAccountBalanceQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetAccountBalanceQueryKey(id);
+  const getAccountBalance = useGetAccountBalanceHook();
 
-  const getAccountBalance =  useGetAccountBalanceHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>
+  > = ({ signal }) => getAccountBalance(id, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>> = ({ signal }) => getAccountBalance(id, requestOptions, signal);
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetAccountBalanceQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>
+>;
+export type GetAccountBalanceQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetAccountBalanceQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>>
-export type GetAccountBalanceQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useGetAccountBalance<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError, TData>> & Pick<
+export function useGetAccountBalance<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAccountBalance<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAccountBalance<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAccountBalance<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAccountBalance<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Get an account balance
  */
 
-export function useGetAccountBalance<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetAccountBalance<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetAccountBalanceQueryOptions(id, options);
 
-  const queryOptions = useGetAccountBalanceQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Returns a list of all the holds on an account.
  * @summary Get balance holds
  */
 export const useGetBalanceHoldsHook = () => {
-        const getBalanceHolds = useEbInstance<ListBalanceHoldGetResponse>();
+  const getBalanceHolds = useEbInstance<ListBalanceHoldGetResponse>();
 
-        return useCallback((
-    params: GetBalanceHoldsParams,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getBalanceHolds(
-          {url: `/balance-holds`, method: 'GET',
-        params, signal
+  return useCallback(
+    (
+      params: GetBalanceHoldsParams,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getBalanceHolds(
+        { url: `/balance-holds`, method: 'GET', params, signal },
+        options
+      );
     },
-          options);
-        }, [getBalanceHolds])
-      }
-    
+    [getBalanceHolds]
+  );
+};
 
+export const getGetBalanceHoldsQueryKey = (params?: GetBalanceHoldsParams) => {
+  return [`/balance-holds`, ...(params ? [params] : [])] as const;
+};
 
-
-export const getGetBalanceHoldsQueryKey = (params?: GetBalanceHoldsParams,) => {
-    return [
-    `/balance-holds`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-    
-export const useGetBalanceHoldsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>, TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>>(params: GetBalanceHoldsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetBalanceHoldsQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>,
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+>(
+  params: GetBalanceHoldsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetBalanceHoldsQueryKey(params);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetBalanceHoldsQueryKey(params);
+  const getBalanceHolds = useGetBalanceHoldsHook();
 
-  const getBalanceHolds =  useGetBalanceHoldsHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>
+  > = ({ signal }) => getBalanceHolds(params, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>> = ({ signal }) => getBalanceHolds(params, requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetBalanceHoldsQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>
+>;
+export type GetBalanceHoldsQueryError = ErrorType<
+  | N400v2Response
+  | N401v2Response
+  | N403v2Response
+  | N404v2Response
+  | N500v2Response
+  | N503v2Response
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetBalanceHoldsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>>
-export type GetBalanceHoldsQueryError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>
-
-
-export function useGetBalanceHolds<TData = Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>, TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>>(
- params: GetBalanceHoldsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>, TError, TData>> & Pick<
+export function useGetBalanceHolds<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>,
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+>(
+  params: GetBalanceHoldsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetBalanceHolds<TData = Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>, TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>>(
- params: GetBalanceHoldsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetBalanceHolds<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>,
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+>(
+  params: GetBalanceHoldsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetBalanceHolds<TData = Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>, TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>>(
- params: GetBalanceHoldsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetBalanceHolds<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>,
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+>(
+  params: GetBalanceHoldsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Get balance holds
  */
 
-export function useGetBalanceHolds<TData = Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>, TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>>(
- params: GetBalanceHoldsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetBalanceHolds<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>,
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+>(
+  params: GetBalanceHoldsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetBalanceHoldsQueryOptions(params, options);
 
-  const queryOptions = useGetBalanceHoldsQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Returns details for a specific hold on an account.
  * @summary Get balance hold
  */
 export const useGetBalanceHoldsDetailsHook = () => {
-        const getBalanceHoldsDetails = useEbInstance<BalanceHoldGetResponse>();
+  const getBalanceHoldsDetails = useEbInstance<BalanceHoldGetResponse>();
 
-        return useCallback((
-    id: string,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getBalanceHoldsDetails(
-          {url: `/balance-holds/${id}`, method: 'GET', signal
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getBalanceHoldsDetails(
+        { url: `/balance-holds/${id}`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getBalanceHoldsDetails])
-      }
-    
+    [getBalanceHoldsDetails]
+  );
+};
 
+export const getGetBalanceHoldsDetailsQueryKey = (id: string) => {
+  return [`/balance-holds/${id}`] as const;
+};
 
-
-export const getGetBalanceHoldsDetailsQueryKey = (id: string,) => {
-    return [
-    `/balance-holds/${id}`
-    ] as const;
-    }
-
-    
-export const useGetBalanceHoldsDetailsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>, TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetBalanceHoldsDetailsQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>,
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey =
+    queryOptions?.queryKey ?? getGetBalanceHoldsDetailsQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetBalanceHoldsDetailsQueryKey(id);
+  const getBalanceHoldsDetails = useGetBalanceHoldsDetailsHook();
 
-  const getBalanceHoldsDetails =  useGetBalanceHoldsDetailsHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>
+  > = ({ signal }) => getBalanceHoldsDetails(id, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>> = ({ signal }) => getBalanceHoldsDetails(id, requestOptions, signal);
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetBalanceHoldsDetailsQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>
+>;
+export type GetBalanceHoldsDetailsQueryError = ErrorType<
+  | N400v2Response
+  | N401v2Response
+  | N403v2Response
+  | N404v2Response
+  | N500v2Response
+  | N503v2Response
+>;
 
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetBalanceHoldsDetailsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>>
-export type GetBalanceHoldsDetailsQueryError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>
-
-
-export function useGetBalanceHoldsDetails<TData = Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>, TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>, TError, TData>> & Pick<
+export function useGetBalanceHoldsDetails<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>,
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetBalanceHoldsDetails<TData = Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>, TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetBalanceHoldsDetails<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>,
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetBalanceHoldsDetails<TData = Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>, TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetBalanceHoldsDetails<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>,
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Get balance hold
  */
 
-export function useGetBalanceHoldsDetails<TData = Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>, TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetBalanceHoldsDetails<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>,
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetBalanceHoldsDetailsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetBalanceHoldsDetailsQueryOptions(id, options);
 
-  const queryOptions = useGetBalanceHoldsDetailsQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * @summary Get the details of the billing configuration that the client is currently on.
  */
 export const useGetBillingClientDetailsHook = () => {
-        const getBillingClientDetails = useEbInstance<BillingClientDetailsResponse>();
+  const getBillingClientDetails = useEbInstance<BillingClientDetailsResponse>();
 
-        return useCallback((
-    
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getBillingClientDetails(
-          {url: `/billing-configuration`, method: 'GET', signal
+  return useCallback(
+    (
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getBillingClientDetails(
+        { url: `/billing-configuration`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getBillingClientDetails])
-      }
-    
-
-
+    [getBillingClientDetails]
+  );
+};
 
 export const getGetBillingClientDetailsQueryKey = () => {
-    return [
-    `/billing-configuration`
-    ] as const;
-    }
+  return [`/billing-configuration`] as const;
+};
 
-    
-export const useGetBillingClientDetailsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-) => {
+export const useGetBillingClientDetailsQueryOptions = <
+  TData = Awaited<
+    ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>
+  >,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey =
+    queryOptions?.queryKey ?? getGetBillingClientDetailsQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetBillingClientDetailsQueryKey();
+  const getBillingClientDetails = useGetBillingClientDetailsHook();
 
-  const getBillingClientDetails =  useGetBillingClientDetailsHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>
+  > = ({ signal }) => getBillingClientDetails(requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>> = ({ signal }) => getBillingClientDetails(requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetBillingClientDetailsQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>
+>;
+export type GetBillingClientDetailsQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetBillingClientDetailsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>>
-export type GetBillingClientDetailsQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useGetBillingClientDetails<TData = Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>, TError, TData>> & Pick<
+export function useGetBillingClientDetails<
+  TData = Awaited<
+    ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>
+  >,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>,
+          Awaited<
+            ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>
+          >,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetBillingClientDetails<TData = Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetBillingClientDetails<
+  TData = Awaited<
+    ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>
+  >,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>,
+          Awaited<
+            ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>
+          >,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetBillingClientDetails<TData = Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetBillingClientDetails<
+  TData = Awaited<
+    ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>
+  >,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Get the details of the billing configuration that the client is currently on.
  */
 
-export function useGetBillingClientDetails<TData = Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetBillingClientDetails<
+  TData = Awaited<
+    ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>
+  >,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetBillingClientDetailsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetBillingClientDetailsQueryOptions(options);
 
-  const queryOptions = useGetBillingClientDetailsQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Creates a new payable intent.
  * @summary Create payment intent
  */
 export const useCreatePaymentIntentHook = () => {
-        const createPaymentIntent = useEbInstance<PaymentIntent>();
+  const createPaymentIntent = useEbInstance<PaymentIntent>();
 
-        return useCallback((
-    paymentIntentRequest: BodyType<PaymentIntentRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return createPaymentIntent(
-          {url: `/payment-intents`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: paymentIntentRequest, signal
+  return useCallback(
+    (
+      paymentIntentRequest: BodyType<PaymentIntentRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return createPaymentIntent(
+        {
+          url: `/payment-intents`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: paymentIntentRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [createPaymentIntent])
-      }
-    
+    [createPaymentIntent]
+  );
+};
 
+export const useCreatePaymentIntentMutationOptions = <
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useCreatePaymentIntentHook>>>,
+    TError,
+    { data: BodyType<PaymentIntentRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useCreatePaymentIntentHook>>>,
+  TError,
+  { data: BodyType<PaymentIntentRequest> },
+  TContext
+> => {
+  const mutationKey = ['createPaymentIntent'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useCreatePaymentIntentMutationOptions = <TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCreatePaymentIntentHook>>>, TError,{data: BodyType<PaymentIntentRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCreatePaymentIntentHook>>>, TError,{data: BodyType<PaymentIntentRequest>}, TContext> => {
+  const createPaymentIntent = useCreatePaymentIntentHook();
 
-const mutationKey = ['createPaymentIntent'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useCreatePaymentIntentHook>>>,
+    { data: BodyType<PaymentIntentRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
 
-      const createPaymentIntent =  useCreatePaymentIntentHook()
+    return createPaymentIntent(data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useCreatePaymentIntentHook>>>, {data: BodyType<PaymentIntentRequest>}> = (props) => {
-          const {data} = props ?? {};
+export type CreatePaymentIntentMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useCreatePaymentIntentHook>>>
+>;
+export type CreatePaymentIntentMutationBody = BodyType<PaymentIntentRequest>;
+export type CreatePaymentIntentMutationError = ErrorType<
+  | N400v2Response
+  | N401v2Response
+  | N403v2Response
+  | N404v2Response
+  | N500v2Response
+  | N503v2Response
+>;
 
-          return  createPaymentIntent(data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreatePaymentIntentMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useCreatePaymentIntentHook>>>>
-    export type CreatePaymentIntentMutationBody = BodyType<PaymentIntentRequest>
-    export type CreatePaymentIntentMutationError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>
-
-    /**
+/**
  * @summary Create payment intent
  */
-export const useCreatePaymentIntent = <TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useCreatePaymentIntentHook>>>, TError,{data: BodyType<PaymentIntentRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useCreatePaymentIntentHook>>>,
-        TError,
-        {data: BodyType<PaymentIntentRequest>},
-        TContext
-      > => {
-      return useMutation(useCreatePaymentIntentMutationOptions(options), queryClient);
-    }
-    
+export const useCreatePaymentIntent = <
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useCreatePaymentIntentHook>>>,
+      TError,
+      { data: BodyType<PaymentIntentRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useCreatePaymentIntentHook>>>,
+  TError,
+  { data: BodyType<PaymentIntentRequest> },
+  TContext
+> => {
+  return useMutation(
+    useCreatePaymentIntentMutationOptions(options),
+    queryClient
+  );
+};
+
 /**
  * Lists payment intents for a specific client.
  * @summary List payment intents
  */
 export const useListPaymentIntentsHook = () => {
-        const listPaymentIntents = useEbInstance<PaymentIntents>();
+  const listPaymentIntents = useEbInstance<PaymentIntents>();
 
-        return useCallback((
-    params?: ListPaymentIntentsParams,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return listPaymentIntents(
-          {url: `/payment-intents`, method: 'GET',
-        params, signal
+  return useCallback(
+    (
+      params?: ListPaymentIntentsParams,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return listPaymentIntents(
+        { url: `/payment-intents`, method: 'GET', params, signal },
+        options
+      );
     },
-          options);
-        }, [listPaymentIntents])
-      }
-    
+    [listPaymentIntents]
+  );
+};
 
-
-
-export const getListPaymentIntentsQueryKey = (params?: ListPaymentIntentsParams,) => {
-    return [
-    `/payment-intents`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-    
-export const useListPaymentIntentsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>, TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>>(params?: ListPaymentIntentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const getListPaymentIntentsQueryKey = (
+  params?: ListPaymentIntentsParams
 ) => {
+  return [`/payment-intents`, ...(params ? [params] : [])] as const;
+};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+export const useListPaymentIntentsQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>,
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+>(
+  params?: ListPaymentIntentsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListPaymentIntentsQueryKey(params);
+  const queryKey =
+    queryOptions?.queryKey ?? getListPaymentIntentsQueryKey(params);
 
-  const listPaymentIntents =  useListPaymentIntentsHook();
+  const listPaymentIntents = useListPaymentIntentsHook();
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>> = ({ signal }) => listPaymentIntents(params, requestOptions, signal);
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>
+  > = ({ signal }) => listPaymentIntents(params, requestOptions, signal);
 
-      
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type ListPaymentIntentsQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>
+>;
+export type ListPaymentIntentsQueryError = ErrorType<
+  | N400v2Response
+  | N401v2Response
+  | N403v2Response
+  | N404v2Response
+  | N500v2Response
+  | N503v2Response
+>;
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListPaymentIntentsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>>
-export type ListPaymentIntentsQueryError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>
-
-
-export function useListPaymentIntents<TData = Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>, TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>>(
- params: undefined |  ListPaymentIntentsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>, TError, TData>> & Pick<
+export function useListPaymentIntents<
+  TData = Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>,
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+>(
+  params: undefined | ListPaymentIntentsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPaymentIntents<TData = Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>, TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>>(
- params?: ListPaymentIntentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useListPaymentIntents<
+  TData = Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>,
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+>(
+  params?: ListPaymentIntentsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPaymentIntents<TData = Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>, TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>>(
- params?: ListPaymentIntentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useListPaymentIntents<
+  TData = Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>,
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+>(
+  params?: ListPaymentIntentsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List payment intents
  */
 
-export function useListPaymentIntents<TData = Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>, TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>>(
- params?: ListPaymentIntentsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useListPaymentIntents<
+  TData = Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>,
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+>(
+  params?: ListPaymentIntentsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useListPaymentIntentsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useListPaymentIntentsQueryOptions(params, options);
 
-  const queryOptions = useListPaymentIntentsQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Returns details for a specific payment intent using its unique identifier.
  * @summary Get payment intent
  */
 export const useGetPaymentIntentHook = () => {
-        const getPaymentIntent = useEbInstance<PaymentIntent>();
+  const getPaymentIntent = useEbInstance<PaymentIntent>();
 
-        return useCallback((
-    id: string,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getPaymentIntent(
-          {url: `/payment-intents/${id}`, method: 'GET', signal
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getPaymentIntent(
+        { url: `/payment-intents/${id}`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getPaymentIntent])
-      }
-    
+    [getPaymentIntent]
+  );
+};
 
+export const getGetPaymentIntentQueryKey = (id: string) => {
+  return [`/payment-intents/${id}`] as const;
+};
 
-
-export const getGetPaymentIntentQueryKey = (id: string,) => {
-    return [
-    `/payment-intents/${id}`
-    ] as const;
-    }
-
-    
-export const useGetPaymentIntentQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>, TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetPaymentIntentQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>,
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetPaymentIntentQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetPaymentIntentQueryKey(id);
+  const getPaymentIntent = useGetPaymentIntentHook();
 
-  const getPaymentIntent =  useGetPaymentIntentHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>
+  > = ({ signal }) => getPaymentIntent(id, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>> = ({ signal }) => getPaymentIntent(id, requestOptions, signal);
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetPaymentIntentQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>
+>;
+export type GetPaymentIntentQueryError = ErrorType<
+  | N400v2Response
+  | N401v2Response
+  | N403v2Response
+  | N404v2Response
+  | N500v2Response
+  | N503v2Response
+>;
 
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetPaymentIntentQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>>
-export type GetPaymentIntentQueryError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>
-
-
-export function useGetPaymentIntent<TData = Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>, TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>, TError, TData>> & Pick<
+export function useGetPaymentIntent<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>,
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPaymentIntent<TData = Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>, TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetPaymentIntent<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>,
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPaymentIntent<TData = Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>, TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetPaymentIntent<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>,
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Get payment intent
  */
 
-export function useGetPaymentIntent<TData = Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>, TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetPaymentIntent<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>,
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetPaymentIntentHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetPaymentIntentQueryOptions(id, options);
 
-  const queryOptions = useGetPaymentIntentQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Updates details for a specific payment intent using its unique identifier.
  * @summary Update payment intent
  */
 export const useUpdatePaymentIntentHook = () => {
-        const updatePaymentIntent = useEbInstance<PaymentIntent>();
+  const updatePaymentIntent = useEbInstance<PaymentIntent>();
 
-        return useCallback((
-    id: string,
-    updatePaymentIntentRequest: BodyType<UpdatePaymentIntentRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return updatePaymentIntent(
-          {url: `/payment-intents/${id}`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: updatePaymentIntentRequest, signal
+  return useCallback(
+    (
+      id: string,
+      updatePaymentIntentRequest: BodyType<UpdatePaymentIntentRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return updatePaymentIntent(
+        {
+          url: `/payment-intents/${id}`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: updatePaymentIntentRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [updatePaymentIntent])
-      }
-    
+    [updatePaymentIntent]
+  );
+};
 
+export const useUpdatePaymentIntentMutationOptions = <
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof useUpdatePaymentIntentHook>>>,
+    TError,
+    { id: string; data: BodyType<UpdatePaymentIntentRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof useUpdatePaymentIntentHook>>>,
+  TError,
+  { id: string; data: BodyType<UpdatePaymentIntentRequest> },
+  TContext
+> => {
+  const mutationKey = ['updatePaymentIntent'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const useUpdatePaymentIntentMutationOptions = <TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdatePaymentIntentHook>>>, TError,{id: string;data: BodyType<UpdatePaymentIntentRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdatePaymentIntentHook>>>, TError,{id: string;data: BodyType<UpdatePaymentIntentRequest>}, TContext> => {
+  const updatePaymentIntent = useUpdatePaymentIntentHook();
 
-const mutationKey = ['updatePaymentIntent'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof useUpdatePaymentIntentHook>>>,
+    { id: string; data: BodyType<UpdatePaymentIntentRequest> }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
-      const updatePaymentIntent =  useUpdatePaymentIntentHook()
+    return updatePaymentIntent(id, data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useUpdatePaymentIntentHook>>>, {id: string;data: BodyType<UpdatePaymentIntentRequest>}> = (props) => {
-          const {id,data} = props ?? {};
+export type UpdatePaymentIntentMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useUpdatePaymentIntentHook>>>
+>;
+export type UpdatePaymentIntentMutationBody =
+  BodyType<UpdatePaymentIntentRequest>;
+export type UpdatePaymentIntentMutationError = ErrorType<
+  | N400v2Response
+  | N401v2Response
+  | N403v2Response
+  | N404v2Response
+  | N500v2Response
+  | N503v2Response
+>;
 
-          return  updatePaymentIntent(id,data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UpdatePaymentIntentMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useUpdatePaymentIntentHook>>>>
-    export type UpdatePaymentIntentMutationBody = BodyType<UpdatePaymentIntentRequest>
-    export type UpdatePaymentIntentMutationError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>
-
-    /**
+/**
  * @summary Update payment intent
  */
-export const useUpdatePaymentIntent = <TError = ErrorType<N400v2Response | N401v2Response | N403v2Response | N404v2Response | N500v2Response | N503v2Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdatePaymentIntentHook>>>, TError,{id: string;data: BodyType<UpdatePaymentIntentRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof useUpdatePaymentIntentHook>>>,
-        TError,
-        {id: string;data: BodyType<UpdatePaymentIntentRequest>},
-        TContext
-      > => {
-      return useMutation(useUpdatePaymentIntentMutationOptions(options), queryClient);
-    }
-    
+export const useUpdatePaymentIntent = <
+  TError = ErrorType<
+    | N400v2Response
+    | N401v2Response
+    | N403v2Response
+    | N404v2Response
+    | N500v2Response
+    | N503v2Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof useUpdatePaymentIntentHook>>>,
+      TError,
+      { id: string; data: BodyType<UpdatePaymentIntentRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof useUpdatePaymentIntentHook>>>,
+  TError,
+  { id: string; data: BodyType<UpdatePaymentIntentRequest> },
+  TContext
+> => {
+  return useMutation(
+    useUpdatePaymentIntentMutationOptions(options),
+    queryClient
+  );
+};

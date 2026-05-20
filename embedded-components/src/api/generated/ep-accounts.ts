@@ -5,10 +5,8 @@
  * Create, organize and manage accounts.
  * OpenAPI spec version: 1.0.27
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useCallback } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -21,13 +19,11 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
+  UseQueryResult,
 } from '@tanstack/react-query';
 
-import {
-  useCallback
-} from 'react';
-
+import { useEbInstance } from '../use-axios-instance';
+import type { BodyType, ErrorType } from '../use-axios-instance';
 import type {
   AccountBalanceResponse,
   AccountResponseWithStatus,
@@ -39,364 +35,774 @@ import type {
   N403Response,
   N404Response,
   N500Response,
-  N503Response
+  N503Response,
 } from './ep-accounts.schemas';
 
-import { useEbInstance } from '../use-axios-instance';
-import type { ErrorType , BodyType } from '../use-axios-instance';
-
-
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
 
 /**
  * Returns a list of accounts for a specific client.
  * @summary List accounts
  */
 export const useGetAccountsHook = () => {
-        const getAccounts = useEbInstance<ListAccountsResponse>();
+  const getAccounts = useEbInstance<ListAccountsResponse>();
 
-        return useCallback((
-    params?: GetAccountsParams,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getAccounts(
-          {url: `/accounts`, method: 'GET',
-        params, signal
+  return useCallback(
+    (
+      params?: GetAccountsParams,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getAccounts(
+        { url: `/accounts`, method: 'GET', params, signal },
+        options
+      );
     },
-          options);
-        }, [getAccounts])
-      }
-    
+    [getAccounts]
+  );
+};
 
+export const getGetAccountsQueryKey = (params?: GetAccountsParams) => {
+  return [`/accounts`, ...(params ? [params] : [])] as const;
+};
 
-
-export const getGetAccountsQueryKey = (params?: GetAccountsParams,) => {
-    return [
-    `/accounts`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-    
-export const useGetAccountsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(params?: GetAccountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetAccountsQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetAccountsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetAccountsQueryKey(params);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetAccountsQueryKey(params);
+  const getAccounts = useGetAccountsHook();
 
-  const getAccounts =  useGetAccountsHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>
+  > = ({ signal }) => getAccounts(params, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>> = ({ signal }) => getAccounts(params, requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetAccountsQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>
+>;
+export type GetAccountsQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetAccountsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>>
-export type GetAccountsQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useGetAccounts<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params: undefined |  GetAccountsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError, TData>> & Pick<
+export function useGetAccounts<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params: undefined | GetAccountsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAccounts<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: GetAccountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAccounts<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetAccountsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAccounts<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: GetAccountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAccounts<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetAccountsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary List accounts
  */
 
-export function useGetAccounts<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- params?: GetAccountsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetAccounts<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  params?: GetAccountsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountsHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetAccountsQueryOptions(params, options);
 
-  const queryOptions = useGetAccountsQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Create an account for a specific client
  * @summary Create account
  */
 export const usePostAccountsHook = () => {
-        const postAccounts = useEbInstance<AccountResponseWithStatus>();
+  const postAccounts = useEbInstance<AccountResponseWithStatus>();
 
-        return useCallback((
-    createAccountRequest: BodyType<CreateAccountRequest>,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return postAccounts(
-          {url: `/accounts`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createAccountRequest, signal
+  return useCallback(
+    (
+      createAccountRequest: BodyType<CreateAccountRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return postAccounts(
+        {
+          url: `/accounts`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: createAccountRequest,
+          signal,
+        },
+        options
+      );
     },
-          options);
-        }, [postAccounts])
-      }
-    
+    [postAccounts]
+  );
+};
 
+export const usePostAccountsMutationOptions = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>,
+    TError,
+    { data: BodyType<CreateAccountRequest> },
+    TContext
+  >;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+}): UseMutationOptions<
+  Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>,
+  TError,
+  { data: BodyType<CreateAccountRequest> },
+  TContext
+> => {
+  const mutationKey = ['postAccounts'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const usePostAccountsMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>, TError,{data: BodyType<CreateAccountRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
-): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>, TError,{data: BodyType<CreateAccountRequest>}, TContext> => {
+  const postAccounts = usePostAccountsHook();
 
-const mutationKey = ['postAccounts'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>,
+    { data: BodyType<CreateAccountRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
 
-      const postAccounts =  usePostAccountsHook()
+    return postAccounts(data, requestOptions);
+  };
 
+  return { mutationFn, ...mutationOptions };
+};
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>, {data: BodyType<CreateAccountRequest>}> = (props) => {
-          const {data} = props ?? {};
+export type PostAccountsMutationResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>
+>;
+export type PostAccountsMutationBody = BodyType<CreateAccountRequest>;
+export type PostAccountsMutationError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-          return  postAccounts(data,requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostAccountsMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>>
-    export type PostAccountsMutationBody = BodyType<CreateAccountRequest>
-    export type PostAccountsMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-    /**
+/**
  * @summary Create account
  */
-export const usePostAccounts = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>, TError,{data: BodyType<CreateAccountRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>,
-        TError,
-        {data: BodyType<CreateAccountRequest>},
-        TContext
-      > => {
-      return useMutation(usePostAccountsMutationOptions(options), queryClient);
-    }
-    
+export const usePostAccounts = <
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>,
+      TError,
+      { data: BodyType<CreateAccountRequest> },
+      TContext
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<ReturnType<typeof usePostAccountsHook>>>,
+  TError,
+  { data: BodyType<CreateAccountRequest> },
+  TContext
+> => {
+  return useMutation(usePostAccountsMutationOptions(options), queryClient);
+};
+
 /**
  * Look up a single account by account ID
  * @summary Get account
  */
 export const useGetAccountHook = () => {
-        const getAccount = useEbInstance<AccountResponseWithStatus>();
+  const getAccount = useEbInstance<AccountResponseWithStatus>();
 
-        return useCallback((
-    id: string,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getAccount(
-          {url: `/accounts/${id}`, method: 'GET', signal
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getAccount(
+        { url: `/accounts/${id}`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getAccount])
-      }
-    
+    [getAccount]
+  );
+};
 
+export const getGetAccountQueryKey = (id: string) => {
+  return [`/accounts/${id}`] as const;
+};
 
-
-export const getGetAccountQueryKey = (id: string,) => {
-    return [
-    `/accounts/${id}`
-    ] as const;
-    }
-
-    
-export const useGetAccountQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetAccountQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetAccountQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetAccountQueryKey(id);
+  const getAccount = useGetAccountHook();
 
-  const getAccount =  useGetAccountHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>
+  > = ({ signal }) => getAccount(id, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>> = ({ signal }) => getAccount(id, requestOptions, signal);
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetAccountQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>
+>;
+export type GetAccountQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetAccountQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>>
-export type GetAccountQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useGetAccount<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError, TData>> & Pick<
+export function useGetAccount<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAccount<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAccount<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAccount<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAccount<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Get account
  */
 
-export function useGetAccount<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetAccount<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetAccountQueryOptions(id, options);
 
-  const queryOptions = useGetAccountQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
 
 /**
  * Get the balance details for an account
  * @summary Get an account balance
  */
 export const useGetAccountBalanceHook = () => {
-        const getAccountBalance = useEbInstance<AccountBalanceResponse>();
+  const getAccountBalance = useEbInstance<AccountBalanceResponse>();
 
-        return useCallback((
-    id: string,
- options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
-) => {
-        return getAccountBalance(
-          {url: `/accounts/${id}/balances`, method: 'GET', signal
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getAccountBalance(
+        { url: `/accounts/${id}/balances`, method: 'GET', signal },
+        options
+      );
     },
-          options);
-        }, [getAccountBalance])
-      }
-    
+    [getAccountBalance]
+  );
+};
 
+export const getGetAccountBalanceQueryKey = (id: string) => {
+  return [`/accounts/${id}/balances`] as const;
+};
 
-
-export const getGetAccountBalanceQueryKey = (id: string,) => {
-    return [
-    `/accounts/${id}/balances`
-    ] as const;
-    }
-
-    
-export const useGetAccountBalanceQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+export const useGetAccountBalanceQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  }
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetAccountBalanceQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetAccountBalanceQueryKey(id);
+  const getAccountBalance = useGetAccountBalanceHook();
 
-  const getAccountBalance =  useGetAccountBalanceHook();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>
+  > = ({ signal }) => getAccountBalance(id, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>> = ({ signal }) => getAccountBalance(id, requestOptions, signal);
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetAccountBalanceQueryResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>
+>;
+export type GetAccountBalanceQueryError = ErrorType<
+  | N400Response
+  | N401Response
+  | N403Response
+  | N404Response
+  | N500Response
+  | N503Response
+>;
 
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetAccountBalanceQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>>
-export type GetAccountBalanceQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
-
-
-export function useGetAccountBalance<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError, TData>> & Pick<
+export function useGetAccountBalance<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAccountBalance<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAccountBalance<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
           TError,
           Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>
-        > , 'initialData'
-      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAccountBalance<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAccountBalance<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Get an account balance
  */
 
-export function useGetAccountBalance<TData = Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetAccountBalance<
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+  TError = ErrorType<
+    | N400Response
+    | N401Response
+    | N403Response
+    | N404Response
+    | N500Response
+    | N503Response
+  >,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetAccountBalanceHook>>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = useGetAccountBalanceQueryOptions(id, options);
 
-  const queryOptions = useGetAccountBalanceQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
-
-
-
-
-

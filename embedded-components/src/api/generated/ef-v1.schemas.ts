@@ -7,13 +7,13 @@
  */
 export interface PageMetaData {
   /** Page Number.
- */
+   */
   page?: number;
   /** Number of records per page.
- */
+   */
   limit?: number;
   /** Total number of items.
- */
+   */
   total_items?: number;
 }
 
@@ -82,7 +82,7 @@ export interface Phone {
 
 export interface IdentityDTO {
   /** IdType denotes the type of taxpayer identification numbers e.g. SSN/EIN. EIN is acceptable idType for Privately Owned Business. Sole Proprietorship can have EIN/SSN as idType. For individuals like Owners and Controllers SSN is accepted as idType. Decision Makers do not require any tax identifier.
- */
+   */
   idType: string;
   /** Description of identification type e.g. Social Security Number */
   idDescription?: string;
@@ -107,22 +107,22 @@ export interface PartyDetailCommon {
 
 export type PartyDetailBusiness = PartyDetailCommon & {
   /** The type of business connected to the client. You can use the Reference Data resource to get a list of acceptable values. Examples include: Privately Owned Business. Sole Proprietorship.
- */
+   */
   businessType?: string;
   /** Legal Structure of the business entity. Legal structure is required for Privately Owned Business and Sole Proprietorship. Distinct legal structure. e.g. - Limited Liability Company - Corporation - Limited Partnership - Sole Proprietorship
- */
+   */
   legalStructure?: string;
   /** The industry category of the business connected to the client. For example, Accommodation and Food Services. You can use the Reference Data resource to get a list of acceptable values.
- */
+   */
   industryCategory?: string;
   /** The industry type of the business connected to the client. You can use the Reference Data resource to get a list of acceptable values.
- */
+   */
   industryType?: string;
   /** Significant ownership means there individuals who own 25% or more of the client's business. Always required for a Privately Owned Business. If Significant Ownership is selected as True, At least one related party should have the role of owner.
- */
+   */
   significantOwnership?: boolean;
   /** Entities in ownership means that one or more businesses own part of the business conected to the client. Always required for a Privately Owned Business.
- */
+   */
   entitiesInOwnership?: boolean;
   /**
    * The business?s legal name. It is the official name of the person or entity that owns a company. Must be the name used on the client's government forms and business paperwork
@@ -131,13 +131,13 @@ export type PartyDetailBusiness = PartyDetailCommon & {
    */
   businessName?: string;
   /** Any alias names for the business connected to the client.
- */
+   */
   businessAliasName?: string;
   /** The business?s description.
- */
+   */
   businessDescription?: string;
   /** Whether or not the business connected to the client has a website.
- */
+   */
   websiteAvailable?: boolean;
   /**
    * Website of the business connected to the client. Always required if websiteAvailable is true.
@@ -195,7 +195,7 @@ export type RelatedParty = PartyDetailCommon & {
    */
   lastName?: string;
   /** Job title in case of party type being an individual. JobTitle is required field for Controllers. Also, If Privately Owned Business is selected as the business type, Job Title should be a required field for Decision Makers. e.g. CEO|CFO|COO|President|Chairman|Senior Branch Manager|Other
- */
+   */
   jobTitle?: string;
   /**
    * In case on jobTitle is Other then Job title description is required.
@@ -217,11 +217,11 @@ export type RelatedParty = PartyDetailCommon & {
    */
   email?: string;
   /** Nature of ownership e.g. Direct|Indirect
- */
+   */
   natureOfOwnership?: string;
   soleOwner?: boolean;
   /** A Party type which could have one of the following distinct values: Organization, Individual, NonIndividual
- */
+   */
   partyType?: string;
   /**
    * A Party role which could have one or more of the following values: CLIENT, CONTROLLER, MARKETPLACE_OPERATOR, OWNER, PAYEE, DECISION_MAKER
@@ -235,15 +235,15 @@ If a SMB controller and owner is the same person - you have to send two parties 
 
 export type RelatedPartyResponse = RelatedParty & {
   /** Individual/NonIndividual client id, as UUID, that uniquely identifies the resource.
- */
+   */
   id: string;
   /** Status of the request. Can be active or deleted. */
   status?: string;
 };
 
-export type ClientInformationResponse = PartyDetailBusiness & ({
+export type ClientInformationResponse = PartyDetailBusiness & {
   /** Client ID. The unique identifier for a client.
- */
+   */
   id: string;
   /** active | deleted */
   status?: string;
@@ -255,17 +255,17 @@ export type ClientInformationResponse = PartyDetailBusiness & ({
    */
   products?: string[];
   /** The jurisdiction where the client would be onboarding.
- */
+   */
   jurisdiction?: string;
   /** Client ID of the platform entity the client is onboarded to.
- */
+   */
   parentClientId?: string;
   /** Once KYC has completed and approved, clients will be able to make payments out of their Embedded Bank Account.
 This flag will be set to FALSE until this process completes. Only present for clients.
  */
   enablePayouts?: boolean;
   /** Date the profile was created.
- */
+   */
   createdAt?: string;
   /** The client onboarding status */
   onboardingStatus?: string;
@@ -274,7 +274,7 @@ This flag will be set to FALSE until this process completes. Only present for cl
    * @maxItems 100
    */
   relatedParties?: RelatedPartyResponse[];
-});
+};
 
 export interface ListClientInformationResponse {
   metadata?: PageMetaData;
@@ -288,8 +288,8 @@ export interface ListClientInformationResponse {
 /**
  * Part of the request which is responsible for the reason
  */
-export type ApiErrorReasonV2Location = typeof ApiErrorReasonV2Location[keyof typeof ApiErrorReasonV2Location];
-
+export type ApiErrorReasonV2Location =
+  (typeof ApiErrorReasonV2Location)[keyof typeof ApiErrorReasonV2Location];
 
 export const ApiErrorReasonV2Location = {
   BODY: 'BODY',
@@ -326,11 +326,22 @@ export interface ApiError {
   context?: ApiErrorReasonV2[];
 }
 
-export type PartyDetailBusinessRequest = PartyDetailBusiness & { [key: string]: unknown } & Required<Pick<PartyDetailBusiness & { [key: string]: unknown }, 'businessName'>>;
+export type PartyDetailBusinessRequest = PartyDetailBusiness & {
+  [key: string]: unknown;
+} & Required<
+    Pick<PartyDetailBusiness & { [key: string]: unknown }, 'businessName'>
+  >;
 
 export type EntityDetailBusinessRequest = PartyDetailBusinessRequest;
 
-export type RelatedPartyRequest = RelatedParty & { [key: string]: unknown } & Required<Pick<RelatedParty & { [key: string]: unknown }, 'firstName' | 'lastName' | 'partyType' | 'partyRole' | 'email'>>;
+export type RelatedPartyRequest = RelatedParty & {
+  [key: string]: unknown;
+} & Required<
+    Pick<
+      RelatedParty & { [key: string]: unknown },
+      'firstName' | 'lastName' | 'partyType' | 'partyRole' | 'email'
+    >
+  >;
 
 export type RelatedPartiesRequest = RelatedPartyRequest;
 
@@ -345,7 +356,7 @@ export type CreateClientRequest = EntityDetailBusinessRequest & {
    */
   products: string[];
   /** The jurisdiction where the client would be onboarding.
- */
+   */
   jurisdiction?: string;
 };
 
@@ -414,7 +425,7 @@ export interface UpdatePhone {
 
 export interface UpdateIdentityDTO {
   /** IdType denotes the type of taxpayer identification numbers e.g. SSN/EIN. EIN is acceptable idType for Privately Owned Business. Sole Proprietorship can have EIN/SSN as idType. For individuals like Owners and Controllers SSN is accepted as idType.
- */
+   */
   idType: string;
   /** Description of identification type e.g. Social Security Number */
   idDescription?: string;
@@ -423,7 +434,7 @@ export interface UpdateIdentityDTO {
   /** Value of the identification type. EIN/SSN must be of 9 digits. */
   idValue: string;
   /** The action like ADD, UPDATE, REMOVE
- */
+   */
   action: string;
 }
 
@@ -434,40 +445,40 @@ export interface UpdatePartyDetailCommon {
   identities?: UpdateIdentityDTO[];
 }
 
-export type UpdatePartyDetailBusiness = UpdatePartyDetailCommon & ({
+export type UpdatePartyDetailBusiness = UpdatePartyDetailCommon & {
   /** The different business entity types that can be selected e.g. Privately Owned Business | Sole Proprietorship
- */
+   */
   businessType?: string;
   /** Legal Structure of the business entity. Legal structure is required for Privately Owned Business and Sole Proprietorship.
- */
+   */
   legalStructure?: string;
   /** Distinct industry category. e.g. - Accommodation and Food Services - Administrative and Support and Waste Management and Remediation Services - Agriculture, Forestry, Fishing and Hunting (not covered in economic census) - Arts, Entertainment, and Recreation - Construction - Educational Services - Finance and Insurance - Health Care and Social Assistance - Individuals - Information - Management of Companies and Enterprises - Manufacturing - Mining, Quarrying, and Oil and Gas Extraction - Other Services (except Public Administration) - Professional, Scientific, and Technical Services - Public Administration (not covered in economic census) - Real Estate and Rental and Leasing - Retail Trade - Transportation and Warehousing - Utilities - Wholesale Trade
- */
+   */
   industryCategory?: string;
   /** Industry type.
- */
+   */
   industryType?: string;
   /** Are there any individuals who own 25% or more of your business? e.g. true|false. significantOwnership is required for Privately Owned Business. If Significant Ownership is selected as True, At least one related party should have a role of owner.
- */
+   */
   significantOwnership?: boolean;
   /** If entitiesInOwnership is true, are there any businesses included in your ownership hierarchy? e.g. true|false. entitiesInOwnership is required for Privately Owned Business.
- */
+   */
   entitiesInOwnership?: boolean;
   /** The business?s legal name. It is the official name of the person or entity that owns a company.
 And, it?s the name used on your government forms and business paperwork
  */
   businessName?: string;
   /** The business?s alias name. It is the other alias name of the  entity that owns a company.This field can be set to empty by passing field value as ("") in request.
- */
+   */
   businessAliasName?: string;
   /** The business?s description.
- */
+   */
   businessDescription?: string;
   /** Does your business have a website? e.g. true|false
- */
+   */
   websiteAvailable?: boolean;
   /** Website of the client. website is required if websiteAvailable is true.This field can be set to empty by passing field value as ("") in request.
- */
+   */
   website?: string;
   /**
    * Email of the client.
@@ -478,22 +489,22 @@ And, it?s the name used on your government forms and business paperwork
   /** Country code in alpha-2 format */
   countryOfFormation?: string;
   /** Year of formation. Max and Min length is 4.
- */
+   */
   yearOfFormation?: string;
-});
+};
 
 export type UpdateEntityDetailBusinessRequest = UpdatePartyDetailBusiness & {
   /** Client id, that uniquely identifies the client.
- */
+   */
   id?: string;
 };
 
 export type UpdateRelatedPartyRequest = UpdatePartyDetailCommon & {
   /** Unique identifier for this party. It is only required for UPDATE and REMOVE actions
- */
+   */
   id?: string;
   /** The business?s legal name. It is the official name of the person or entity that owns a company. And, it?s the name used on your government forms and business paperwork. This field is only required when party type is NON-IND
- */
+   */
   businessName?: string;
   /**
    * First name of the individual in case of party type being an individual like Owners, Controllers and Decision Makers.
@@ -516,7 +527,7 @@ export type UpdateRelatedPartyRequest = UpdatePartyDetailCommon & {
    */
   lastName?: string;
   /** Job title in case of party type being an individual. JobTitle is required field for Controllers. Also, If Privately Owned Business is selected as the business type, Job Title should be a required field for Decision Makers. e.g. CEO|CFO|COO|President|Chairman|Senior Branch Manager|Other
- */
+   */
   jobTitle?: string;
   /**
    * In case on jobTitle is Other then Job title description is required.This field can be set to empty by passing field value as ("") in request.
@@ -525,17 +536,17 @@ export type UpdateRelatedPartyRequest = UpdatePartyDetailCommon & {
    */
   jobTitleDescription?: string;
   /** The date of birth (yyyy-MM-dd) of the individual in case of party type being an individual. This field is not required for the party type Organization.
- */
+   */
   birthDate?: string;
   /** Email of the individual.
- */
+   */
   email?: string;
   /** Nature of ownership e.g. Direct|Indirect.This field can be set to empty by passing field value as ("") in request.
- */
+   */
   natureOfOwnership?: string;
   soleOwner?: boolean;
   /** A Party type which could have one of the following distinct values: Organization, Individual, NonIndividual
- */
+   */
   partyType?: string;
   /**
    * A Party role which could have one or more of the following values: CLIENT, CONTROLLER, MARKETPLACE_OPERATOR, OWNER, PAYEE, DECISION_MAKER
@@ -549,7 +560,7 @@ If a SMB controller and owner is the same person - you have to send two parties 
 
 export type UpdateRelatedPartiesRequest = UpdateRelatedPartyRequest & {
   /** The action like ADD, UPDATE, REMOVE
- */
+   */
   action: string;
 };
 
@@ -560,7 +571,7 @@ export type UpdateClientRequest = UpdateEntityDetailBusinessRequest & {
 
 export type UpdateRelatedPartiesResponse = UpdateRelatedPartyRequest & {
   /** Client id, that uniquely identifies the client.
- */
+   */
   id: string;
 };
 
@@ -709,8 +720,7 @@ export interface ClientVerificationsInformationRequest {
   attestations?: AttestationsRequest[];
 }
 
-export type FetchLevel = typeof FetchLevel[keyof typeof FetchLevel];
-
+export type FetchLevel = (typeof FetchLevel)[keyof typeof FetchLevel];
 
 export const FetchLevel = {
   USER_STATUS: 'USER_STATUS',
@@ -741,8 +751,7 @@ export interface SchemasPhone {
 /**
  * Type of address e.g. 'Primary Residence' | 'Principal place of business'.
  */
-export type AddressType = typeof AddressType[keyof typeof AddressType];
-
+export type AddressType = (typeof AddressType)[keyof typeof AddressType];
 
 export const AddressType = {
   Principal_place_of_business: 'Principal place of business',
@@ -843,8 +852,7 @@ export interface BaseUser {
 /**
  * Status of the user derived from the identity provider.
  */
-export type Status = typeof Status[keyof typeof Status];
-
+export type Status = (typeof Status)[keyof typeof Status];
 
 export const Status = {
   INVITED: 'INVITED',
@@ -857,8 +865,8 @@ export const Status = {
 /**
  * Processing status during user/resource creation/update.
  */
-export type ProcessingStatus = typeof ProcessingStatus[keyof typeof ProcessingStatus];
-
+export type ProcessingStatus =
+  (typeof ProcessingStatus)[keyof typeof ProcessingStatus];
 
 export const ProcessingStatus = {
   Setup_In_Progress: 'Setup In Progress',
@@ -914,7 +922,7 @@ export type UserResponse = BaseUser & {
   /** @pattern ^\d{10}$ */
   clientId?: string;
   /** The client party id to link the user to. This is applicable when the party already exists for a C2.
- */
+   */
   relatedPartyId?: string;
   status?: Status;
   processingStatus?: ProcessingStatus;
@@ -991,8 +999,7 @@ export interface UserApiError {
   reasons?: UserApiErrorReason[];
 }
 
-export type UserApiAction = typeof UserApiAction[keyof typeof UserApiAction];
-
+export type UserApiAction = (typeof UserApiAction)[keyof typeof UserApiAction];
 
 export const UserApiAction = {
   ADD: 'ADD',
@@ -1025,28 +1032,33 @@ export type CreateUserRequest = BaseUser & {
    */
   clientId?: string;
   /** The client party id to link the user to. This is applicable when the party already exists for a C2.
- */
+   */
   relatedPartyId?: string;
   /**
    * @minItems 0
    * @maxItems 5
    */
   roles?: RoleRequest[];
-} & Required<Pick<BaseUser & {
-  /**
-   * The client ID of the user.
-   * @pattern ^\d{10}$
-   */
-  clientId?: string;
-  /** The client party id to link the user to. This is applicable when the party already exists for a C2.
- */
-  relatedPartyId?: string;
-  /**
-   * @minItems 0
-   * @maxItems 5
-   */
-  roles?: RoleRequest[];
-}, 'emailAddress'>>;
+} & Required<
+    Pick<
+      BaseUser & {
+        /**
+         * The client ID of the user.
+         * @pattern ^\d{10}$
+         */
+        clientId?: string;
+        /** The client party id to link the user to. This is applicable when the party already exists for a C2.
+         */
+        relatedPartyId?: string;
+        /**
+         * @minItems 0
+         * @maxItems 5
+         */
+        roles?: RoleRequest[];
+      },
+      'emailAddress'
+    >
+  >;
 
 export type UpdateUserRequest = BaseUser & {
   /**
@@ -1073,8 +1085,7 @@ export interface ListRoleResponse {
 /**
  * Product type identifies which domain the document is being uploaded to.
  */
-export type ProductType = typeof ProductType[keyof typeof ProductType];
-
+export type ProductType = (typeof ProductType)[keyof typeof ProductType];
 
 export const ProductType = {
   EB: 'EB',
@@ -1090,8 +1101,8 @@ export type ProductTypesArray = ProductType[];
 /**
  * Key value can be PARTY_ID or COUNTRY_CODE
  */
-export type DocumentMetadataKey = typeof DocumentMetadataKey[keyof typeof DocumentMetadataKey];
-
+export type DocumentMetadataKey =
+  (typeof DocumentMetadataKey)[keyof typeof DocumentMetadataKey];
 
 export const DocumentMetadataKey = {
   PARTY_ID: 'PARTY_ID',
@@ -1145,8 +1156,7 @@ export interface ListDocumentsDetailsResponse {
 /**
  * Supported document types.
  */
-export type DocumentType = typeof DocumentType[keyof typeof DocumentType];
-
+export type DocumentType = (typeof DocumentType)[keyof typeof DocumentType];
 
 export const DocumentType = {
   IRS_DOCUMENT_TIN: 'IRS_DOCUMENT_TIN',
@@ -1184,7 +1194,7 @@ export interface DocumentUploadData {
 
 export interface DocumentDetails {
   /** The unique id generated by the system for the uploaded document,  which can be used for future retrieval.
- */
+   */
   id?: string;
   documentType?: DocumentType;
   productType?: ProductType;
@@ -1198,8 +1208,8 @@ export interface DocumentDetails {
 /**
  * The current status of the card.
  */
-export type DebitCardStatus = typeof DebitCardStatus[keyof typeof DebitCardStatus];
-
+export type DebitCardStatus =
+  (typeof DebitCardStatus)[keyof typeof DebitCardStatus];
 
 export const DebitCardStatus = {
   ACTIVE: 'ACTIVE',
@@ -1255,13 +1265,13 @@ export interface DebitCardsResponse {
 
 export interface CardDetailsErrorResponse {
   /** Freeform explanatory text for the error.
- */
+   */
   errorDescription: string;
   /** A code defined by the API provider that describes the specific error for a given API. This code provides more fine grained information than the httpStatusCode. As an example if an API provides an httpStatusCode of 400 they may also include the serviceErrorCode that includes more specific information of what caused a 400 response. (i.e. INVALID_EMAIL, INVALID_PHONE_NUMBER, etc)
- */
+   */
   serviceErrorCode?: string;
   /** A code defined by the service for the external partner that includes a more specific information of what caused the error.
- */
+   */
   externalErrorCode?: string;
 }
 
@@ -1271,10 +1281,10 @@ export interface CardDetailsErrorResponse {
  */
 export interface CreateDebitCardRequest {
   /** Account Identifier/ Payment Routing Number
- */
+   */
   accountId: string;
   /** Party Id of the Card Holder
- */
+   */
   relatedPartyId: string;
   /**
    * The maximum total amount that can be spent in a single day. Resets at 00:00 each day.
@@ -1296,16 +1306,16 @@ export interface CreateDebitCardRequest {
  */
 export interface CreateDebitCardResponse {
   /** Account Identifier/ Payment Routing Number
- */
+   */
   accountId?: string;
   /** Customer Card Information Message
- */
+   */
   message?: string;
   /** Link to the Customer Profile
- */
+   */
   link?: string;
-  /** Card Identifier      
- */
+  /** Card Identifier
+   */
   id?: string;
 }
 
@@ -1315,10 +1325,10 @@ export interface CreateDebitCardResponse {
  */
 export interface CardDetailResponse {
   /** Account Identifier/ Payment Routing Number
- */
+   */
   accountId: string;
   /** Web link to the Card Holder Profile
- */
+   */
   link: string;
 }
 
@@ -1327,8 +1337,8 @@ export interface CardDetailResponse {
 Optional field. Only use if you want to update the status of the card.
 
  */
-export type CardUpdateRequestStatus = typeof CardUpdateRequestStatus[keyof typeof CardUpdateRequestStatus];
-
+export type CardUpdateRequestStatus =
+  (typeof CardUpdateRequestStatus)[keyof typeof CardUpdateRequestStatus];
 
 export const CardUpdateRequestStatus = {
   LOCKED: 'LOCKED',
@@ -1341,8 +1351,8 @@ export const CardUpdateRequestStatus = {
  * Reason for replacing card. Only required if status is set to REPLACED.
 
  */
-export type CardUpdateRequestReplacementReason = typeof CardUpdateRequestReplacementReason[keyof typeof CardUpdateRequestReplacementReason];
-
+export type CardUpdateRequestReplacementReason =
+  (typeof CardUpdateRequestReplacementReason)[keyof typeof CardUpdateRequestReplacementReason];
 
 export const CardUpdateRequestReplacementReason = {
   LOST: 'LOST',
@@ -1355,8 +1365,8 @@ export const CardUpdateRequestReplacementReason = {
  * Reason for cancelling card. Only required if status is set to CANCELLED.
 
  */
-export type CardUpdateRequestCancellingReason = typeof CardUpdateRequestCancellingReason[keyof typeof CardUpdateRequestCancellingReason];
-
+export type CardUpdateRequestCancellingReason =
+  (typeof CardUpdateRequestCancellingReason)[keyof typeof CardUpdateRequestCancellingReason];
 
 export const CardUpdateRequestCancellingReason = {
   LOST: 'LOST',
@@ -1378,10 +1388,10 @@ Optional field. Only use if you want to update the status of the card.
  */
   status?: CardUpdateRequestStatus;
   /** Reason for replacing card. Only required if status is set to REPLACED.
- */
+   */
   replacementReason?: CardUpdateRequestReplacementReason;
   /** Reason for cancelling card. Only required if status is set to CANCELLED.
- */
+   */
   cancellingReason?: CardUpdateRequestCancellingReason;
   /**
    * The maximum total amount that can be spent in a single day. Resets at 00:00 each day.
@@ -1396,10 +1406,10 @@ Optional field. Only use if you want to update the status of the card.
    */
   maxCashWithdrawalLimit?: number;
   /** Clears spending limits on this card. Set value to TRUE to remove any daily spending limits. If set to TRUE, any maxSpendLimit limit is ignored. You can still apply daily cash withdrawal limits  even when clearSpendLimit is set to TRUE.
- */
+   */
   clearSpendLimit?: boolean;
   /** Clears daily cashwithdrawal limits on this card. Set value to TRUE to remove any daily cashwithdrawal limits. If set to TRUE, any maxCashWithdrawalLimit limit is ignored. You can still apply daily spend limits even when clearCashWithdrawalLimit is set to TRUE.
- */
+   */
   clearCashWithdrawalLimit?: boolean;
 }
 
@@ -1433,8 +1443,8 @@ export interface ApiErrorV2 {
 /**
  * Reason for cancelling card.
  */
-export type CardCancelRequestReason = typeof CardCancelRequestReason[keyof typeof CardCancelRequestReason];
-
+export type CardCancelRequestReason =
+  (typeof CardCancelRequestReason)[keyof typeof CardCancelRequestReason];
 
 export const CardCancelRequestReason = {
   LOST: 'LOST',
@@ -1453,8 +1463,8 @@ export interface CardCancelRequest {
 /**
  * Reason for replacing card.
  */
-export type CardReplaceRequestReason = typeof CardReplaceRequestReason[keyof typeof CardReplaceRequestReason];
-
+export type CardReplaceRequestReason =
+  (typeof CardReplaceRequestReason)[keyof typeof CardReplaceRequestReason];
 
 export const CardReplaceRequestReason = {
   LOST: 'LOST',
@@ -1507,8 +1517,7 @@ export interface CardLimitChangeRequest {
   maxDailyCashWithdrawal?: CardLimitChangeRequestMaxDailyCashWithdrawal;
 }
 
-export type RecipientType = typeof RecipientType[keyof typeof RecipientType];
-
+export type RecipientType = (typeof RecipientType)[keyof typeof RecipientType];
 
 export const RecipientType = {
   RECIPIENT: 'RECIPIENT',
@@ -1519,8 +1528,7 @@ export const RecipientType = {
 /**
  * Two letter country code based on ISO 3166 standard (currently only US is supported)
  */
-export type CountryCode = typeof CountryCode[keyof typeof CountryCode];
-
+export type CountryCode = (typeof CountryCode)[keyof typeof CountryCode];
 
 export const CountryCode = {
   US: 'US',
@@ -1565,8 +1573,7 @@ export interface RecipientAddress {
   countryCode: CountryCode;
 }
 
-export type PartyType = typeof PartyType[keyof typeof PartyType];
-
+export type PartyType = (typeof PartyType)[keyof typeof PartyType];
 
 export const PartyType = {
   INDIVIDUAL: 'INDIVIDUAL',
@@ -1576,8 +1583,8 @@ export const PartyType = {
 /**
  * Type of contact information being provided
  */
-export type RecipientContactContactType = typeof RecipientContactContactType[keyof typeof RecipientContactContactType];
-
+export type RecipientContactContactType =
+  (typeof RecipientContactContactType)[keyof typeof RecipientContactContactType];
 
 export const RecipientContactContactType = {
   EMAIL: 'EMAIL',
@@ -1648,8 +1655,7 @@ export type AccountNumber = string;
 /**
  * Type of bank account, either CHECKING or SAVINGS. Only required for ACH payments. Exclude field from payload completely if not needed.
  */
-export type AccountType = typeof AccountType[keyof typeof AccountType];
-
+export type AccountType = (typeof AccountType)[keyof typeof AccountType];
 
 export const AccountType = {
   CHECKING: 'CHECKING',
@@ -1665,8 +1671,8 @@ export type RoutingNumber = string;
 /**
  * Type of transaction.
  */
-export type RoutingInformationTransactionType = typeof RoutingInformationTransactionType[keyof typeof RoutingInformationTransactionType];
-
+export type RoutingInformationTransactionType =
+  (typeof RoutingInformationTransactionType)[keyof typeof RoutingInformationTransactionType];
 
 export const RoutingInformationTransactionType = {
   ACH: 'ACH',
@@ -1677,8 +1683,8 @@ export const RoutingInformationTransactionType = {
 /**
  * Type of routing code. Only USABA is supported in this version of Embedded Banking.
  */
-export type RoutingCodeType = typeof RoutingCodeType[keyof typeof RoutingCodeType];
-
+export type RoutingCodeType =
+  (typeof RoutingCodeType)[keyof typeof RoutingCodeType];
 
 export const RoutingCodeType = {
   USABA: 'USABA',
@@ -1705,8 +1711,8 @@ export interface RecipientAccount {
   countryCode: CountryCode;
 }
 
-export type RecipientStatus = typeof RecipientStatus[keyof typeof RecipientStatus];
-
+export type RecipientStatus =
+  (typeof RecipientStatus)[keyof typeof RecipientStatus];
 
 export const RecipientStatus = {
   ACTIVE: 'ACTIVE',
@@ -1830,8 +1836,8 @@ export interface MicrodepositAmounts {
   amounts: number[];
 }
 
-export type MicrodepositVerificationResponseStatus = typeof MicrodepositVerificationResponseStatus[keyof typeof MicrodepositVerificationResponseStatus];
-
+export type MicrodepositVerificationResponseStatus =
+  (typeof MicrodepositVerificationResponseStatus)[keyof typeof MicrodepositVerificationResponseStatus];
 
 export const MicrodepositVerificationResponseStatus = {
   VERIFIED: 'VERIFIED',
@@ -1865,8 +1871,8 @@ export interface ContactDetails {
 /**
  * Case category
  */
-export type CasesDetailsType = typeof CasesDetailsType[keyof typeof CasesDetailsType];
-
+export type CasesDetailsType =
+  (typeof CasesDetailsType)[keyof typeof CasesDetailsType];
 
 export const CasesDetailsType = {
   ACCOUNT: 'ACCOUNT',
@@ -1882,8 +1888,8 @@ export const CasesDetailsType = {
 /**
  * Current status on case
  */
-export type CasesDetailsStatus = typeof CasesDetailsStatus[keyof typeof CasesDetailsStatus];
-
+export type CasesDetailsStatus =
+  (typeof CasesDetailsStatus)[keyof typeof CasesDetailsStatus];
 
 export const CasesDetailsStatus = {
   CLOSED: 'CLOSED',
@@ -1916,8 +1922,8 @@ export interface CasesPaginationResponse {
 /**
  * Case category
  */
-export type CaseCreateRequestType = typeof CaseCreateRequestType[keyof typeof CaseCreateRequestType];
-
+export type CaseCreateRequestType =
+  (typeof CaseCreateRequestType)[keyof typeof CaseCreateRequestType];
 
 export const CaseCreateRequestType = {
   ACCOUNT: 'ACCOUNT',
@@ -1972,8 +1978,8 @@ export interface CommentDetails {
 /**
  * Case category
  */
-export type CaseDetailsType = typeof CaseDetailsType[keyof typeof CaseDetailsType];
-
+export type CaseDetailsType =
+  (typeof CaseDetailsType)[keyof typeof CaseDetailsType];
 
 export const CaseDetailsType = {
   ACCOUNT: 'ACCOUNT',
@@ -1989,8 +1995,8 @@ export const CaseDetailsType = {
 /**
  * Current status on case.
  */
-export type CaseDetailsStatus = typeof CaseDetailsStatus[keyof typeof CaseDetailsStatus];
-
+export type CaseDetailsStatus =
+  (typeof CaseDetailsStatus)[keyof typeof CaseDetailsStatus];
 
 export const CaseDetailsStatus = {
   CLOSED: 'CLOSED',
@@ -2001,8 +2007,8 @@ export const CaseDetailsStatus = {
 /**
  * How the case was originally reported. This can be by form, phone, or email.
  */
-export type CaseDetailsOrigin = typeof CaseDetailsOrigin[keyof typeof CaseDetailsOrigin];
-
+export type CaseDetailsOrigin =
+  (typeof CaseDetailsOrigin)[keyof typeof CaseDetailsOrigin];
 
 export const CaseDetailsOrigin = {
   PHONE: 'PHONE',
@@ -2035,8 +2041,8 @@ export interface CaseDetails {
 /**
  * The status you want the case to have as a result of this request. To close a case, use CLOSED. To reopen a case, use REOPEN.
  */
-export type CaseUpdateRequestStatus = typeof CaseUpdateRequestStatus[keyof typeof CaseUpdateRequestStatus];
-
+export type CaseUpdateRequestStatus =
+  (typeof CaseUpdateRequestStatus)[keyof typeof CaseUpdateRequestStatus];
 
 export const CaseUpdateRequestStatus = {
   CLOSED: 'CLOSED',
@@ -2058,8 +2064,7 @@ export interface CaseUpdateRequest {
 /**
  * FAQ Type enum
  */
-export type FaqType = typeof FaqType[keyof typeof FaqType];
-
+export type FaqType = (typeof FaqType)[keyof typeof FaqType];
 
 export const FaqType = {
   C1_General: 'C1 General',
@@ -2094,8 +2099,8 @@ export interface FAQResponse {
 /**
  * The event types to be notified of.
  */
-export type SubscriptionEventType = typeof SubscriptionEventType[keyof typeof SubscriptionEventType];
-
+export type SubscriptionEventType =
+  (typeof SubscriptionEventType)[keyof typeof SubscriptionEventType];
 
 export const SubscriptionEventType = {
   TRANSACTION_COMPLETED: 'TRANSACTION_COMPLETED',
@@ -2111,7 +2116,8 @@ export const SubscriptionEventType = {
   ACCOUNT_CREATED: 'ACCOUNT_CREATED',
   ACCOUNT_CLOSED: 'ACCOUNT_CLOSED',
   RECIPIENT_READY_FOR_VALIDATION: 'RECIPIENT_READY_FOR_VALIDATION',
-  RECIPIENT_READY_FOR_VALIDATION_REMINDER: 'RECIPIENT_READY_FOR_VALIDATION_REMINDER',
+  RECIPIENT_READY_FOR_VALIDATION_REMINDER:
+    'RECIPIENT_READY_FOR_VALIDATION_REMINDER',
 } as const;
 
 /**
@@ -2125,8 +2131,8 @@ export interface Subscription {
 /**
  * The status of this webhook.
  */
-export type WebhookResponseStatus = typeof WebhookResponseStatus[keyof typeof WebhookResponseStatus];
-
+export type WebhookResponseStatus =
+  (typeof WebhookResponseStatus)[keyof typeof WebhookResponseStatus];
 
 export const WebhookResponseStatus = {
   ACTIVE: 'ACTIVE',
@@ -2174,8 +2180,8 @@ export interface WebhookRequest {
 /**
  * Allowed status - ACTIVE or INACTIVE
  */
-export type WebhookUpdateRequestStatus = typeof WebhookUpdateRequestStatus[keyof typeof WebhookUpdateRequestStatus];
-
+export type WebhookUpdateRequestStatus =
+  (typeof WebhookUpdateRequestStatus)[keyof typeof WebhookUpdateRequestStatus];
 
 export const WebhookUpdateRequestStatus = {
   ACTIVE: 'ACTIVE',
@@ -2427,8 +2433,8 @@ export interface StatementsResponse {
 /**
  * The types of transaction that the client is allowed to search by.
  */
-export type RequestTransactionType = typeof RequestTransactionType[keyof typeof RequestTransactionType];
-
+export type RequestTransactionType =
+  (typeof RequestTransactionType)[keyof typeof RequestTransactionType];
 
 export const RequestTransactionType = {
   PAYIN: 'PAYIN',
@@ -2446,8 +2452,8 @@ export const RequestTransactionType = {
 /**
  * The statuses of the transaction that the client is allowed to search by.
  */
-export type RequestTransactionStatus = typeof RequestTransactionStatus[keyof typeof RequestTransactionStatus];
-
+export type RequestTransactionStatus =
+  (typeof RequestTransactionStatus)[keyof typeof RequestTransactionStatus];
 
 export const RequestTransactionStatus = {
   PENDING: 'PENDING',
@@ -2472,8 +2478,8 @@ export const RequestTransactionStatus = {
  * `UNDEFINED` - The status of this transaction cannot be found.
 
  */
-export type TransactionStatus = typeof TransactionStatus[keyof typeof TransactionStatus];
-
+export type TransactionStatus =
+  (typeof TransactionStatus)[keyof typeof TransactionStatus];
 
 export const TransactionStatus = {
   PENDING: 'PENDING',
@@ -2490,8 +2496,8 @@ export const TransactionStatus = {
 /**
  * Defines the transaction according to specific types. For example, whether money has been paid into or out of the account.
  */
-export type TransactionType = typeof TransactionType[keyof typeof TransactionType];
-
+export type TransactionType =
+  (typeof TransactionType)[keyof typeof TransactionType];
 
 export const TransactionType = {
   PAYIN: 'PAYIN',
@@ -2519,8 +2525,8 @@ export const TransactionType = {
 /**
  * Accounting type (Credit (CR) / Debit (DR)) for transaction
  */
-export type AccountingType = typeof AccountingType[keyof typeof AccountingType];
-
+export type AccountingType =
+  (typeof AccountingType)[keyof typeof AccountingType];
 
 export const AccountingType = {
   DR: 'DR',
@@ -2530,8 +2536,7 @@ export const AccountingType = {
 /**
  * The method by which the payment was made - RTP, WIRE, ACH
  */
-export type PaymentRoute = typeof PaymentRoute[keyof typeof PaymentRoute];
-
+export type PaymentRoute = (typeof PaymentRoute)[keyof typeof PaymentRoute];
 
 export const PaymentRoute = {
   RTP: 'RTP',
@@ -2582,8 +2587,7 @@ export interface ListTransactionsSearchResponse {
 /**
  * Payment method - ACH, RTP, WIRE, ACH, TRANSFER. Only ACH (for payouts) and TRANSFER (for payments between embedded accounts) are used in Embedded Payments transactions.
  */
-export type PaymentType = typeof PaymentType[keyof typeof PaymentType];
-
+export type PaymentType = (typeof PaymentType)[keyof typeof PaymentType];
 
 export const PaymentType = {
   RTP: 'RTP',
@@ -2709,8 +2713,8 @@ export interface TransactionRecipientDetails {
 /**
  * Payment currency - currently supported: USD
  */
-export type PostTransactionRequestCurrency = typeof PostTransactionRequestCurrency[keyof typeof PostTransactionRequestCurrency];
-
+export type PostTransactionRequestCurrency =
+  (typeof PostTransactionRequestCurrency)[keyof typeof PostTransactionRequestCurrency];
 
 export const PostTransactionRequestCurrency = {
   USD: 'USD',
@@ -2786,8 +2790,7 @@ export interface TransactionResponse {
 /**
  * The type of the fee transaction. Use this to differentiate between the fee transactions that were charged and those that were reversed. * CHARGE - the fee that was incurred as a result of a transaction. * REVERSAL - the fee was incurred and then voided on a transaction.
  */
-export type FeeType = typeof FeeType[keyof typeof FeeType];
-
+export type FeeType = (typeof FeeType)[keyof typeof FeeType];
 
 export const FeeType = {
   CHARGE: 'CHARGE',
@@ -2797,8 +2800,8 @@ export const FeeType = {
 /**
  * The transaction type of the originating transaction that incurred a fee. This is only available for fee transactions. * ACH_PAYOUT - the original transaction was a payout made by ACH payment route. * RTP_PAYOUT - the original transaction was a payout made by ACH payment route. * WIRE_PAYOUT - the original transaction was a payout made by WIRE payment route. * DEBIT_CARD_REQUEST - the original transaction was a debit card request. * FEE - the original transaction was a fee that was reversed.
  */
-export type OriginatingTransactionType = typeof OriginatingTransactionType[keyof typeof OriginatingTransactionType];
-
+export type OriginatingTransactionType =
+  (typeof OriginatingTransactionType)[keyof typeof OriginatingTransactionType];
 
 export const OriginatingTransactionType = {
   ACH_PAYOUT: 'ACH_PAYOUT',
@@ -2843,17 +2846,28 @@ export type TransactionGetResponse = TransactionGetResponseDetails & {
   status: TransactionStatus;
   transactionType: TransactionType;
   debitCardDetails?: DebitCardDetails;
-} & Required<Pick<TransactionGetResponseDetails & {
-  status: TransactionStatus;
-  transactionType: TransactionType;
-  debitCardDetails?: DebitCardDetails;
-}, 'id' | 'creditorName' | 'debtorName' | 'amount' | 'currency' | 'memo' | 'paymentDate' | 'accountingType'>>;
+} & Required<
+    Pick<
+      TransactionGetResponseDetails & {
+        status: TransactionStatus;
+        transactionType: TransactionType;
+        debitCardDetails?: DebitCardDetails;
+      },
+      | 'id'
+      | 'creditorName'
+      | 'debtorName'
+      | 'amount'
+      | 'currency'
+      | 'memo'
+      | 'paymentDate'
+      | 'accountingType'
+    >
+  >;
 
 /**
  * Account State
  */
-export type AccountState = typeof AccountState[keyof typeof AccountState];
-
+export type AccountState = (typeof AccountState)[keyof typeof AccountState];
 
 export const AccountState = {
   OPEN: 'OPEN',
@@ -2864,8 +2878,7 @@ export const AccountState = {
 /**
  * Routing codes supported (currently only ABA is supported)
  */
-export type RoutingCode = typeof RoutingCode[keyof typeof RoutingCode];
-
+export type RoutingCode = (typeof RoutingCode)[keyof typeof RoutingCode];
 
 export const RoutingCode = {
   ABA: 'ABA',
@@ -2891,8 +2904,8 @@ export interface PaymentRoutingInformationDto {
 /**
  * Category of account
  */
-export type AccountCategory = typeof AccountCategory[keyof typeof AccountCategory];
-
+export type AccountCategory =
+  (typeof AccountCategory)[keyof typeof AccountCategory];
 
 export const AccountCategory = {
   CLIENT_DDA: 'CLIENT_DDA',
@@ -2931,8 +2944,8 @@ export interface ListAccountsResponse {
 /**
  * Category of account in create requests
  */
-export type AccountCategoryReq = typeof AccountCategoryReq[keyof typeof AccountCategoryReq];
-
+export type AccountCategoryReq =
+  (typeof AccountCategoryReq)[keyof typeof AccountCategoryReq];
 
 export const AccountCategoryReq = {
   LIMITED_DDA: 'LIMITED_DDA',
@@ -2953,8 +2966,8 @@ export interface CreateAccountRequest {
 /**
  * Payment routing status. Identifies whether the account is active, which means it has been used within the last 13 months. An account with the status INACTIVE is changed to ACTIVE as soon as a transaction is made on the account.
  */
-export type PaymentRoutingStatus = typeof PaymentRoutingStatus[keyof typeof PaymentRoutingStatus];
-
+export type PaymentRoutingStatus =
+  (typeof PaymentRoutingStatus)[keyof typeof PaymentRoutingStatus];
 
 export const PaymentRoutingStatus = {
   ACTIVE: 'ACTIVE',
@@ -2992,8 +3005,8 @@ export interface AccountResponseWithStatus {
 /**
  * Balance type: ITAV (interim available balance) or ITBD (interim booked balance)
  */
-export type AccountBalanceDtoTypeCode = typeof AccountBalanceDtoTypeCode[keyof typeof AccountBalanceDtoTypeCode];
-
+export type AccountBalanceDtoTypeCode =
+  (typeof AccountBalanceDtoTypeCode)[keyof typeof AccountBalanceDtoTypeCode];
 
 export const AccountBalanceDtoTypeCode = {
   ITAV: 'ITAV',
@@ -3073,8 +3086,8 @@ export interface ListBalanceHoldGetResponse {
 /**
  * The billing product type.
  */
-export type BillingEventBillingEventType = typeof BillingEventBillingEventType[keyof typeof BillingEventBillingEventType];
-
+export type BillingEventBillingEventType =
+  (typeof BillingEventBillingEventType)[keyof typeof BillingEventBillingEventType];
 
 export const BillingEventBillingEventType = {
   TRANSACTION: 'TRANSACTION',
@@ -3083,8 +3096,8 @@ export const BillingEventBillingEventType = {
 /**
  * The billing product sub-type.
  */
-export type BillingEventBillingEventSubType = typeof BillingEventBillingEventSubType[keyof typeof BillingEventBillingEventSubType];
-
+export type BillingEventBillingEventSubType =
+  (typeof BillingEventBillingEventSubType)[keyof typeof BillingEventBillingEventSubType];
 
 export const BillingEventBillingEventSubType = {
   ACH_PAYOUT: 'ACH_PAYOUT',
@@ -3095,8 +3108,8 @@ export const BillingEventBillingEventSubType = {
 /**
  * How the fee is going to be calculated on a pay as you go billing type or if the client has excedeed their allwance on a subscription.
  */
-export type BillingEventCalculationType = typeof BillingEventCalculationType[keyof typeof BillingEventCalculationType];
-
+export type BillingEventCalculationType =
+  (typeof BillingEventCalculationType)[keyof typeof BillingEventCalculationType];
 
 export const BillingEventCalculationType = {
   PERCENTAGE: 'PERCENTAGE',
@@ -3137,8 +3150,8 @@ export interface BillingEvent {
 /**
  * The type of billing the client is currently using.
  */
-export type BillingClientDetailsResponseType = typeof BillingClientDetailsResponseType[keyof typeof BillingClientDetailsResponseType];
-
+export type BillingClientDetailsResponseType =
+  (typeof BillingClientDetailsResponseType)[keyof typeof BillingClientDetailsResponseType];
 
 export const BillingClientDetailsResponseType = {
   SUBSCRIPTION: 'SUBSCRIPTION',
@@ -3148,8 +3161,8 @@ export const BillingClientDetailsResponseType = {
 /**
  * The charge currency.
  */
-export type BillingClientDetailsResponseCurrency = typeof BillingClientDetailsResponseCurrency[keyof typeof BillingClientDetailsResponseCurrency];
-
+export type BillingClientDetailsResponseCurrency =
+  (typeof BillingClientDetailsResponseCurrency)[keyof typeof BillingClientDetailsResponseCurrency];
 
 export const BillingClientDetailsResponseCurrency = {
   USD: 'USD',
@@ -3158,8 +3171,8 @@ export const BillingClientDetailsResponseCurrency = {
 /**
  * The period when the client would be billed if they are on a subscription.
  */
-export type BillingClientDetailsResponsePeriodType = typeof BillingClientDetailsResponsePeriodType[keyof typeof BillingClientDetailsResponsePeriodType];
-
+export type BillingClientDetailsResponsePeriodType =
+  (typeof BillingClientDetailsResponsePeriodType)[keyof typeof BillingClientDetailsResponsePeriodType];
 
 export const BillingClientDetailsResponsePeriodType = {
   MONTHLY: 'MONTHLY',
@@ -3169,8 +3182,8 @@ export const BillingClientDetailsResponsePeriodType = {
 /**
  * The month in which the client will be billed if they are on an yearly subscription.
  */
-export type BillingClientDetailsResponseBillingMonth = typeof BillingClientDetailsResponseBillingMonth[keyof typeof BillingClientDetailsResponseBillingMonth];
-
+export type BillingClientDetailsResponseBillingMonth =
+  (typeof BillingClientDetailsResponseBillingMonth)[keyof typeof BillingClientDetailsResponseBillingMonth];
 
 export const BillingClientDetailsResponseBillingMonth = {
   JANUARY: 'JANUARY',
@@ -3218,8 +3231,8 @@ export interface BillingClientDetailsResponse {
 /**
  * Payment intent status
  */
-export type PaymentIntentType = typeof PaymentIntentType[keyof typeof PaymentIntentType];
-
+export type PaymentIntentType =
+  (typeof PaymentIntentType)[keyof typeof PaymentIntentType];
 
 export const PaymentIntentType = {
   PAYABLE: 'PAYABLE',
@@ -3228,8 +3241,8 @@ export const PaymentIntentType = {
 /**
  * Payment intent status
  */
-export type PaymentIntentStatus = typeof PaymentIntentStatus[keyof typeof PaymentIntentStatus];
-
+export type PaymentIntentStatus =
+  (typeof PaymentIntentStatus)[keyof typeof PaymentIntentStatus];
 
 export const PaymentIntentStatus = {
   PENDING: 'PENDING',
@@ -3264,7 +3277,7 @@ export interface PaymentIntent {
   /** Generated balance hold Id of payable */
   balanceHoldId?: string;
   /** The currency of the check, in three-character ISO currency code.
- */
+   */
   currency?: string;
   /** Generated transaction Id of payable */
   transactionId?: string;
@@ -3287,7 +3300,7 @@ export interface PaymentIntentRequest {
   /** ISO date format - yyyy-MM-dd. If no date is provided, value will be set to 10 days from the current date. */
   expirationDate?: string;
   /** Transaction currency
- */
+   */
   currency: string;
   /**
    * ID of the account to make the payment from.
@@ -3345,8 +3358,8 @@ export interface TransactionCallbackEvent {
 /**
  * The client's status.
  */
-export type ClientCallbackEventStatus = typeof ClientCallbackEventStatus[keyof typeof ClientCallbackEventStatus];
-
+export type ClientCallbackEventStatus =
+  (typeof ClientCallbackEventStatus)[keyof typeof ClientCallbackEventStatus];
 
 export const ClientCallbackEventStatus = {
   APPROVED: 'APPROVED',
@@ -3370,8 +3383,8 @@ export interface ClientCallbackEvent {
 /**
  * The client's status.
  */
-export type PartyCallbackEventProfileStatus = typeof PartyCallbackEventProfileStatus[keyof typeof PartyCallbackEventProfileStatus];
-
+export type PartyCallbackEventProfileStatus =
+  (typeof PartyCallbackEventProfileStatus)[keyof typeof PartyCallbackEventProfileStatus];
 
 export const PartyCallbackEventProfileStatus = {
   APPROVED: 'APPROVED',
@@ -3401,8 +3414,8 @@ REJECTED: Cannot Be Processed
 ROLLOVER: Rollover To Future Date
 RETURNED: Returned
  */
-export type StatusDetailsStatus = typeof StatusDetailsStatus[keyof typeof StatusDetailsStatus];
-
+export type StatusDetailsStatus =
+  (typeof StatusDetailsStatus)[keyof typeof StatusDetailsStatus];
 
 export const StatusDetailsStatus = {
   PENDING: 'PENDING',
@@ -3444,8 +3457,8 @@ RETURNED: Returned */
   context?: StatusDetailsContextItem[];
 }
 
-export type RemittanceCallbackEventStatusType = typeof RemittanceCallbackEventStatusType[keyof typeof RemittanceCallbackEventStatusType];
-
+export type RemittanceCallbackEventStatusType =
+  (typeof RemittanceCallbackEventStatusType)[keyof typeof RemittanceCallbackEventStatusType];
 
 export const RemittanceCallbackEventStatusType = {
   INITIAL_STATUS: 'INITIAL_STATUS',
@@ -3479,8 +3492,8 @@ export interface PaymentRoutingInformation {
 /**
  * Account state
  */
-export type AccountCallbackEventState = typeof AccountCallbackEventState[keyof typeof AccountCallbackEventState];
-
+export type AccountCallbackEventState =
+  (typeof AccountCallbackEventState)[keyof typeof AccountCallbackEventState];
 
 export const AccountCallbackEventState = {
   OPEN: 'OPEN',
@@ -3491,8 +3504,8 @@ export const AccountCallbackEventState = {
 /**
  * Category of the account
  */
-export type AccountCallbackEventType = typeof AccountCallbackEventType[keyof typeof AccountCallbackEventType];
-
+export type AccountCallbackEventType =
+  (typeof AccountCallbackEventType)[keyof typeof AccountCallbackEventType];
 
 export const AccountCallbackEventType = {
   CLIENT_DDA: 'CLIENT_DDA',
@@ -3522,8 +3535,8 @@ export interface AccountCallbackEvent {
 /**
  * Callback event type needs to send to notsub for correct status.
  */
-export type RecipientNotificationStatus = typeof RecipientNotificationStatus[keyof typeof RecipientNotificationStatus];
-
+export type RecipientNotificationStatus =
+  (typeof RecipientNotificationStatus)[keyof typeof RecipientNotificationStatus];
 
 export const RecipientNotificationStatus = {
   READY_FOR_VALIDATION: 'READY_FOR_VALIDATION',
@@ -3537,8 +3550,8 @@ export interface RecipientsCallbackEvent {
   status?: RecipientNotificationStatus;
 }
 
-export type WebhookCallbackEventEventType = typeof WebhookCallbackEventEventType[keyof typeof WebhookCallbackEventEventType];
-
+export type WebhookCallbackEventEventType =
+  (typeof WebhookCallbackEventEventType)[keyof typeof WebhookCallbackEventEventType];
 
 export const WebhookCallbackEventEventType = {
   TRANSACTION_COMPLETED: 'TRANSACTION_COMPLETED',
@@ -3549,11 +3562,12 @@ export const WebhookCallbackEventEventType = {
   ACCOUNT_CREATED: 'ACCOUNT_CREATED',
   ACCOUNT_CLOSED: 'ACCOUNT_CLOSED',
   RECIPIENT_READY_FOR_VALIDATION: 'RECIPIENT_READY_FOR_VALIDATION',
-  RECIPIENT_READY_FOR_VALIDATION_REMINDER: 'RECIPIENT_READY_FOR_VALIDATION_REMINDER',
+  RECIPIENT_READY_FOR_VALIDATION_REMINDER:
+    'RECIPIENT_READY_FOR_VALIDATION_REMINDER',
 } as const;
 
-export type WebhookCallbackEventResourceType = typeof WebhookCallbackEventResourceType[keyof typeof WebhookCallbackEventResourceType];
-
+export type WebhookCallbackEventResourceType =
+  (typeof WebhookCallbackEventResourceType)[keyof typeof WebhookCallbackEventResourceType];
 
 export const WebhookCallbackEventResourceType = {
   TRANSACTIONS: 'TRANSACTIONS',
@@ -3571,7 +3585,13 @@ export interface WebhookCallbackEvent {
   resourceType: WebhookCallbackEventResourceType;
   /** Json formatted string containing the notification details */
   resource: string;
-  resourceObject?: TransactionCallbackEvent | ClientCallbackEvent | PartyCallbackEvent | RemittanceCallbackEvent | AccountCallbackEvent | RecipientsCallbackEvent;
+  resourceObject?:
+    | TransactionCallbackEvent
+    | ClientCallbackEvent
+    | PartyCallbackEvent
+    | RemittanceCallbackEvent
+    | AccountCallbackEvent
+    | RecipientsCallbackEvent;
   error?: ApiErrorV2;
 }
 
@@ -3728,8 +3748,8 @@ export type UserPageNoParameter = number;
  */
 export type UserRoleParameter = string;
 
-export type DocumentTypeParameter = typeof DocumentTypeParameter[keyof typeof DocumentTypeParameter];
-
+export type DocumentTypeParameter =
+  (typeof DocumentTypeParameter)[keyof typeof DocumentTypeParameter];
 
 export const DocumentTypeParameter = {
   TERMS_CONDITION: 'TERMS_CONDITION',
@@ -3756,8 +3776,8 @@ export type CasesPageNoParameter = number;
  */
 export type CountryCodeParameter = string;
 
-export type DocumentCategoryParameter = typeof DocumentCategoryParameter[keyof typeof DocumentCategoryParameter];
-
+export type DocumentCategoryParameter =
+  (typeof DocumentCategoryParameter)[keyof typeof DocumentCategoryParameter];
 
 export const DocumentCategoryParameter = {
   IDENTITY_VERIFICATION: 'IDENTITY_VERIFICATION',
@@ -3769,329 +3789,328 @@ export const DocumentCategoryParameter = {
 export type LegalStructureParameter = string;
 
 export type GetAllClientsParams = {
-/**
- * Number of records per page.
- * @minimum 1
- * @maximum 25
- */
-limit?: PageSizeParameter;
-/**
- * Page Number
- * @minimum 0
- */
-page?: PageNoParameter;
+  /**
+   * Number of records per page.
+   * @minimum 1
+   * @maximum 25
+   */
+  limit?: PageSizeParameter;
+  /**
+   * Page Number
+   * @minimum 0
+   */
+  page?: PageNoParameter;
 };
 
 export type GetAllUsersParams = {
-/**
+  /**
  * Determines the fetch level.<br><br>
 USER_STATUS: Fetches user status from identity provided<br><br>
 PARTY: Fetches party information for user like names, address, phones etc.<br><br>
 ROLES: Fetches user role information<br>
  */
-fetchLevel?: UserFetchLevelParameter;
-/**
- * Number of records per page.
- * @minimum 0
- * @maximum 25
- */
-limit?: UserPageSizeParameter;
-/**
- * Page Number
- * @minimum 0
- * @maximum 2000
- */
-page?: UserPageNoParameter;
+  fetchLevel?: UserFetchLevelParameter;
+  /**
+   * Number of records per page.
+   * @minimum 0
+   * @maximum 25
+   */
+  limit?: UserPageSizeParameter;
+  /**
+   * Page Number
+   * @minimum 0
+   * @maximum 2000
+   */
+  page?: UserPageNoParameter;
 };
 
 export type GetAllRolesParams = {
-/**
- * Number of records per page.
- * @minimum 0
- * @maximum 25
- */
-limit?: UserPageSizeParameter;
-/**
- * Page Number
- * @minimum 0
- * @maximum 2000
- */
-page?: UserPageNoParameter;
-/**
- * Role id
- * @pattern ^[a-zA-Z_]+$
- */
-roleId?: UserRoleParameter;
+  /**
+   * Number of records per page.
+   * @minimum 0
+   * @maximum 25
+   */
+  limit?: UserPageSizeParameter;
+  /**
+   * Page Number
+   * @minimum 0
+   * @maximum 2000
+   */
+  page?: UserPageNoParameter;
+  /**
+   * Role id
+   * @pattern ^[a-zA-Z_]+$
+   */
+  roleId?: UserRoleParameter;
 };
 
 export type DocumentsDetailsParams = {
-/**
- * The type of document. Can be terms and conditions or disclosure and consent documents.
- */
-type: DocumentTypeParameter;
-/**
- * Number of records per page.
- * @minimum 1
- * @maximum 25
- */
-limit?: PageSizeParameter;
-/**
- * Page Number
- * @minimum 0
- */
-page?: PageNoParameter;
+  /**
+   * The type of document. Can be terms and conditions or disclosure and consent documents.
+   */
+  type: DocumentTypeParameter;
+  /**
+   * Number of records per page.
+   * @minimum 1
+   * @maximum 25
+   */
+  limit?: PageSizeParameter;
+  /**
+   * Page Number
+   * @minimum 0
+   */
+  page?: PageNoParameter;
 };
 
 export type GetDebitCardsParams = {
-/**
- * Current page number.
- */
-page?: number;
-/**
- * Number of records per page.
- */
-limit?: number;
+  /**
+   * Current page number.
+   */
+  page?: number;
+  /**
+   * Number of records per page.
+   */
+  limit?: number;
 };
 
 export type GetAllRecipientsParams = {
-/**
- * Unique Client identifier
- * @minLength 10
- * @maxLength 10
- * @pattern ^\d{10}$
- */
-clientId?: ClientIdInQueryParameter;
-/**
- * Recipient type to return
- */
-type?: RecipientType;
-/**
- * Number of records per page.
- * @minimum 1
- * @maximum 25
- */
-limit?: PageSizeParameter;
-/**
- * Page Number
- * @minimum 0
- */
-page?: PageNoParameter;
+  /**
+   * Unique Client identifier
+   * @minLength 10
+   * @maxLength 10
+   * @pattern ^\d{10}$
+   */
+  clientId?: ClientIdInQueryParameter;
+  /**
+   * Recipient type to return
+   */
+  type?: RecipientType;
+  /**
+   * Number of records per page.
+   * @minimum 1
+   * @maximum 25
+   */
+  limit?: PageSizeParameter;
+  /**
+   * Page Number
+   * @minimum 0
+   */
+  page?: PageNoParameter;
 };
 
 export type GetCasesParams = {
-/**
- * Number of records per page.
- * @minimum 1
- */
-limit?: CasesPageSizeParameter;
-/**
- * Page Number
- * @minimum 1
- */
-page?: CasesPageNoParameter;
+  /**
+   * Number of records per page.
+   * @minimum 1
+   */
+  limit?: CasesPageSizeParameter;
+  /**
+   * Page Number
+   * @minimum 1
+   */
+  page?: CasesPageNoParameter;
 };
 
 export type GetFaqParams = {
-/**
- * Unique Client identifier
- * @minLength 10
- * @maxLength 10
- * @pattern ^\d{10}$
- */
-clientId?: ClientIdInQueryParameter;
-/**
- * Comma seperated tag values
- */
-tags?: string[];
+  /**
+   * Unique Client identifier
+   * @minLength 10
+   * @maxLength 10
+   * @pattern ^\d{10}$
+   */
+  clientId?: ClientIdInQueryParameter;
+  /**
+   * Comma seperated tag values
+   */
+  tags?: string[];
 };
 
 export type ListWebhooksParams = {
-/**
- * Page Number
- * @minimum 0
- */
-page?: PageNoParameter;
-/**
- * Number of records per page.
- * @minimum 1
- * @maximum 25
- */
-limit?: PageSizeParameter;
+  /**
+   * Page Number
+   * @minimum 0
+   */
+  page?: PageNoParameter;
+  /**
+   * Number of records per page.
+   * @minimum 1
+   * @maximum 25
+   */
+  limit?: PageSizeParameter;
 };
 
 export type GetCountrySubdivisionParams = {
-/**
- * ISO 3166-1 Alpha-2 Country Code
- * @minLength 2
- * @maxLength 2
- * @pattern ^[A-Z]{2}$
- */
-countryCode?: CountryCodeParameter;
-/**
- * Number of records per page.
- * @minimum 1
- * @maximum 25
- */
-limit?: PageSizeParameter;
-/**
- * Page Number
- * @minimum 0
- */
-page?: PageNoParameter;
+  /**
+   * ISO 3166-1 Alpha-2 Country Code
+   * @minLength 2
+   * @maxLength 2
+   * @pattern ^[A-Z]{2}$
+   */
+  countryCode?: CountryCodeParameter;
+  /**
+   * Number of records per page.
+   * @minimum 1
+   * @maximum 25
+   */
+  limit?: PageSizeParameter;
+  /**
+   * Page Number
+   * @minimum 0
+   */
+  page?: PageNoParameter;
 };
 
 export type GetDocumentTypesParams = {
-/**
- * ISO 3166-1 Alpha-2 Country Code
- * @minLength 2
- * @maxLength 2
- * @pattern ^[A-Z]{2}$
- */
-countryCode?: CountryCodeParameter;
-/**
- * Document category type.
- */
-documentCategory?: DocumentCategoryParameter;
-/**
- * url encoded legalStructure type.
- * @minLength 1
- * @maxLength 50
- */
-legalStructure?: LegalStructureParameter;
-/**
- * Number of records per page.
- * @minimum 1
- * @maximum 25
- */
-limit?: PageSizeParameter;
-/**
- * Page Number
- * @minimum 0
- */
-page?: PageNoParameter;
+  /**
+   * ISO 3166-1 Alpha-2 Country Code
+   * @minLength 2
+   * @maxLength 2
+   * @pattern ^[A-Z]{2}$
+   */
+  countryCode?: CountryCodeParameter;
+  /**
+   * Document category type.
+   */
+  documentCategory?: DocumentCategoryParameter;
+  /**
+   * url encoded legalStructure type.
+   * @minLength 1
+   * @maxLength 50
+   */
+  legalStructure?: LegalStructureParameter;
+  /**
+   * Number of records per page.
+   * @minimum 1
+   * @maximum 25
+   */
+  limit?: PageSizeParameter;
+  /**
+   * Page Number
+   * @minimum 0
+   */
+  page?: PageNoParameter;
 };
 
 export type GetClientIndustryCategoriesParams = {
-/**
- * Number of records per page.
- * @minimum 1
- * @maximum 25
- */
-limit?: PageSizeParameter;
-/**
- * Page Number
- * @minimum 0
- */
-page?: PageNoParameter;
+  /**
+   * Number of records per page.
+   * @minimum 1
+   * @maximum 25
+   */
+  limit?: PageSizeParameter;
+  /**
+   * Page Number
+   * @minimum 0
+   */
+  page?: PageNoParameter;
 };
 
 export type SearchStatementsParams = {
-/**
+  /**
  * Account identifiers used to represent client accounts.
 
  */
-accountIds?: string[];
-/**
- * Earliest date in search range. Must be set at least one day earlier than dateTo.
- */
-dateFrom: string;
-/**
- * Latest date in search range. Must be set at least one day later than dateFrom.
- */
-dateTo: string;
+  accountIds?: string[];
+  /**
+   * Earliest date in search range. Must be set at least one day earlier than dateTo.
+   */
+  dateFrom: string;
+  /**
+   * Latest date in search range. Must be set at least one day later than dateFrom.
+   */
+  dateTo: string;
 };
 
 export type ListTransactionsParams = {
-/**
- * Filters by type of transaction.
- */
-transactionType?: RequestTransactionType;
-/**
- * Filters by transaction status.
- */
-status?: RequestTransactionStatus;
-/**
- * Filters by the Embedded Banking client account number connected to the transaction.
- */
-accountNumber?: string;
-/**
- * Filters by an exact amount.
- */
-amountEquals?: string;
-/**
- * Filters by amounts greater than a specified value.
- */
-amountGreaterThan?: string;
-/**
- * Filters by amounts less than a specified value.
- */
-amountLessThan?: string;
-/**
- * Filters transactions by an exact date.
- */
-dateEquals?: string;
-/**
- * Filters for transactions made after this date.
- */
-dateGreaterThan?: string;
-/**
- * Filters for transactions made before this date.
- */
-dateLessThan?: string;
-/**
- * Filters for transactions made after this date and time.
- */
-dateTimeGreaterThan?: string;
-/**
- * Filters for transactions made before this date and time.
- */
-dateTimeLessThan?: string;
-/**
- * Filters by the recipient's account number.
- */
-recipientAccount?: string;
-/**
- * Filters for a transaction that matches a specific transaction ID. The transaction ID is generated by Embedded Banking when a transaction is created or received.
- */
-transactionId?: string;
+  /**
+   * Filters by type of transaction.
+   */
+  transactionType?: RequestTransactionType;
+  /**
+   * Filters by transaction status.
+   */
+  status?: RequestTransactionStatus;
+  /**
+   * Filters by the Embedded Banking client account number connected to the transaction.
+   */
+  accountNumber?: string;
+  /**
+   * Filters by an exact amount.
+   */
+  amountEquals?: string;
+  /**
+   * Filters by amounts greater than a specified value.
+   */
+  amountGreaterThan?: string;
+  /**
+   * Filters by amounts less than a specified value.
+   */
+  amountLessThan?: string;
+  /**
+   * Filters transactions by an exact date.
+   */
+  dateEquals?: string;
+  /**
+   * Filters for transactions made after this date.
+   */
+  dateGreaterThan?: string;
+  /**
+   * Filters for transactions made before this date.
+   */
+  dateLessThan?: string;
+  /**
+   * Filters for transactions made after this date and time.
+   */
+  dateTimeGreaterThan?: string;
+  /**
+   * Filters for transactions made before this date and time.
+   */
+  dateTimeLessThan?: string;
+  /**
+   * Filters by the recipient's account number.
+   */
+  recipientAccount?: string;
+  /**
+   * Filters for a transaction that matches a specific transaction ID. The transaction ID is generated by Embedded Banking when a transaction is created or received.
+   */
+  transactionId?: string;
 };
 
 export type GetAccountsParams = {
-/**
- * Unique Client identifier
- * @minLength 10
- * @maxLength 10
- * @pattern ^\d{10}$
- */
-clientId?: ClientIdInQueryParameter;
-/**
- * Number of records per page.
- * @minimum 1
- * @maximum 25
- */
-limit?: PageSizeParameter;
-/**
- * Page Number
- * @minimum 0
- */
-page?: PageNoParameter;
+  /**
+   * Unique Client identifier
+   * @minLength 10
+   * @maxLength 10
+   * @pattern ^\d{10}$
+   */
+  clientId?: ClientIdInQueryParameter;
+  /**
+   * Number of records per page.
+   * @minimum 1
+   * @maximum 25
+   */
+  limit?: PageSizeParameter;
+  /**
+   * Page Number
+   * @minimum 0
+   */
+  page?: PageNoParameter;
 };
 
 export type GetBalanceHoldsParams = {
-/**
- * Account ID
- */
-accountId: string;
+  /**
+   * Account ID
+   */
+  accountId: string;
 };
 
 export type ListPaymentIntentsParams = {
-/**
- * Recipient ID
- */
-recipientId?: string;
-/**
- * Payment intent status
- */
-status?: string;
+  /**
+   * Recipient ID
+   */
+  recipientId?: string;
+  /**
+   * Payment intent status
+   */
+  status?: string;
 };
-

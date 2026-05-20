@@ -8,8 +8,8 @@
 /**
  * The types of transaction that the client is allowed to search by.
  */
-export type RequestTransactionTypeV2 = typeof RequestTransactionTypeV2[keyof typeof RequestTransactionTypeV2];
-
+export type RequestTransactionTypeV2 =
+  (typeof RequestTransactionTypeV2)[keyof typeof RequestTransactionTypeV2];
 
 export const RequestTransactionTypeV2 = {
   RTP: 'RTP',
@@ -26,8 +26,8 @@ export const RequestTransactionTypeV2 = {
 /**
  * The statuses of the transaction that the client is allowed to search by.
  */
-export type RequestTransactionStatus = typeof RequestTransactionStatus[keyof typeof RequestTransactionStatus];
-
+export type RequestTransactionStatus =
+  (typeof RequestTransactionStatus)[keyof typeof RequestTransactionStatus];
 
 export const RequestTransactionStatus = {
   PENDING: 'PENDING',
@@ -42,13 +42,13 @@ export const RequestTransactionStatus = {
 
 export interface PageMetaData {
   /** Page Number.
- */
+   */
   page?: number;
   /** Number of records per page.
- */
+   */
   limit?: number;
   /** Total number of items.
- */
+   */
   total_items?: number;
 }
 
@@ -64,8 +64,8 @@ export interface PageMetaData {
  * `UNDEFINED` - The status of this transaction cannot be found.
 
  */
-export type TransactionStatus = typeof TransactionStatus[keyof typeof TransactionStatus];
-
+export type TransactionStatus =
+  (typeof TransactionStatus)[keyof typeof TransactionStatus];
 
 export const TransactionStatus = {
   PENDING: 'PENDING',
@@ -82,8 +82,8 @@ export const TransactionStatus = {
 /**
  * The transaction type of the transaction. Some transaction types are not available to be initiated via API and are therefore not included in the transaction request type field.
  */
-export type PaymentTypeResponse = typeof PaymentTypeResponse[keyof typeof PaymentTypeResponse];
-
+export type PaymentTypeResponse =
+  (typeof PaymentTypeResponse)[keyof typeof PaymentTypeResponse];
 
 export const PaymentTypeResponse = {
   RTP: 'RTP',
@@ -100,8 +100,8 @@ export const PaymentTypeResponse = {
 /**
  * The transaction type of the originating transaction that incurred a fee. This is only available for fee transactions. * ACH_PAYOUT - the original transaction was a payout made by ACH payment route. * RTP_PAYOUT - the original transaction was a payout made by ACH payment route. * WIRE_PAYOUT - the original transaction was a payout made by WIRE payment route. * DEBIT_CARD_REQUEST - the original transaction was a debit card request. * FEE - the original transaction was a fee that was reversed.
  */
-export type OriginatingTransactionType = typeof OriginatingTransactionType[keyof typeof OriginatingTransactionType];
-
+export type OriginatingTransactionType =
+  (typeof OriginatingTransactionType)[keyof typeof OriginatingTransactionType];
 
 export const OriginatingTransactionType = {
   ACH_PAYOUT: 'ACH_PAYOUT',
@@ -167,8 +167,8 @@ export interface ListTransactionsSearchResponseV2 {
 /**
  * Part of the request which is responsible for the reason
  */
-export type ApiErrorReasonV2Location = typeof ApiErrorReasonV2Location[keyof typeof ApiErrorReasonV2Location];
-
+export type ApiErrorReasonV2Location =
+  (typeof ApiErrorReasonV2Location)[keyof typeof ApiErrorReasonV2Location];
 
 export const ApiErrorReasonV2Location = {
   BODY: 'BODY',
@@ -208,8 +208,7 @@ export interface ApiErrorV2 {
 /**
  * Payment method - ACH, RTP, WIRE, ACH, TRANSFER. Only ACH (for payouts) and TRANSFER (for payments between embedded accounts) are used in Embedded Payments transactions.
  */
-export type PaymentType = typeof PaymentType[keyof typeof PaymentType];
-
+export type PaymentType = (typeof PaymentType)[keyof typeof PaymentType];
 
 export const PaymentType = {
   RTP: 'RTP',
@@ -221,8 +220,7 @@ export const PaymentType = {
 /**
  * Two letter country code based on ISO 3166 standard (currently only US is supported)
  */
-export type CountryCode = typeof CountryCode[keyof typeof CountryCode];
-
+export type CountryCode = (typeof CountryCode)[keyof typeof CountryCode];
 
 export const CountryCode = {
   US: 'US',
@@ -264,8 +262,7 @@ export interface RecipientAddress {
   countryCode: CountryCode;
 }
 
-export type PartyType = typeof PartyType[keyof typeof PartyType];
-
+export type PartyType = (typeof PartyType)[keyof typeof PartyType];
 
 export const PartyType = {
   INDIVIDUAL: 'INDIVIDUAL',
@@ -275,8 +272,8 @@ export const PartyType = {
 /**
  * Type of contact information being provided
  */
-export type RecipientContactContactType = typeof RecipientContactContactType[keyof typeof RecipientContactContactType];
-
+export type RecipientContactContactType =
+  (typeof RecipientContactContactType)[keyof typeof RecipientContactContactType];
 
 export const RecipientContactContactType = {
   EMAIL: 'EMAIL',
@@ -348,8 +345,7 @@ export type AccountNumber = string;
 /**
  * Type of bank account, either CHECKING or SAVINGS. Only required for ACH payments. Exclude field from payload completely if not needed.
  */
-export type AccountType = typeof AccountType[keyof typeof AccountType];
-
+export type AccountType = (typeof AccountType)[keyof typeof AccountType];
 
 export const AccountType = {
   CHECKING: 'CHECKING',
@@ -359,8 +355,8 @@ export const AccountType = {
 /**
  * Type of routing code. Only USABA is supported in this version of Embedded Banking.
  */
-export type RoutingCodeType = typeof RoutingCodeType[keyof typeof RoutingCodeType];
-
+export type RoutingCodeType =
+  (typeof RoutingCodeType)[keyof typeof RoutingCodeType];
 
 export const RoutingCodeType = {
   USABA: 'USABA',
@@ -394,8 +390,8 @@ export interface TransactionRecipientDetailsV2 {
 /**
  * Transaction currency
  */
-export type PostTransactionRequestV2Currency = typeof PostTransactionRequestV2Currency[keyof typeof PostTransactionRequestV2Currency];
-
+export type PostTransactionRequestV2Currency =
+  (typeof PostTransactionRequestV2Currency)[keyof typeof PostTransactionRequestV2Currency];
 
 export const PostTransactionRequestV2Currency = {
   USD: 'USD',
@@ -479,8 +475,7 @@ export interface TransactionResponseV2 {
 /**
  * The type of the fee transaction. Use this to differentiate between the fee transactions that were charged and those that were reversed. * CHARGE - the fee that was incurred as a result of a transaction. * REVERSAL - the fee was incurred and then voided on a transaction.
  */
-export type FeeType = typeof FeeType[keyof typeof FeeType];
-
+export type FeeType = (typeof FeeType)[keyof typeof FeeType];
 
 export const FeeType = {
   CHARGE: 'CHARGE',
@@ -537,9 +532,14 @@ export interface TransactionGetResponseDetailsV2 {
 
 export type TransactionGetResponseV2 = TransactionGetResponseDetailsV2 & {
   status: TransactionStatus;
-} & Required<Pick<TransactionGetResponseDetailsV2 & {
-  status: TransactionStatus;
-}, 'id' | 'amount' | 'currency' | 'paymentDate' | 'type' | 'createdAt'>>;
+} & Required<
+    Pick<
+      TransactionGetResponseDetailsV2 & {
+        status: TransactionStatus;
+      },
+      'id' | 'amount' | 'currency' | 'paymentDate' | 'type' | 'createdAt'
+    >
+  >;
 
 /**
  * Bad Request
@@ -582,61 +582,60 @@ export type ClientIdParameter = string;
 export type TokenParameter = string;
 
 export type ListTransactionsV2Params = {
-/**
- * Filters by type of transaction.
- */
-type?: RequestTransactionTypeV2;
-/**
- * Filters by transaction status.
- */
-status?: RequestTransactionStatus;
-/**
- * Filters by the Embedded Finance account id connected to the transaction.
- */
-accountId?: string;
-/**
- * Filters by an exact amount.
- */
-amountEquals?: string;
-/**
- * Filters by amounts greater than a specified value.
- */
-amountGreaterThan?: string;
-/**
- * Filters by amounts less than a specified value.
- */
-amountLessThan?: string;
-/**
- * Filters transactions by an exact date.
- */
-dateEquals?: string;
-/**
- * Filters for transactions made after this payment date.
- */
-dateGreaterThan?: string;
-/**
- * Filters for transactions made before this payment date.
- */
-dateLessThan?: string;
-/**
- * Filters for transactions created after this date and time.
- */
-dateTimeGreaterThan?: string;
-/**
- * Filters for transactions created before this date and time.
- */
-dateTimeLessThan?: string;
-/**
- * Filters for transactions from/to this recipientId.
- */
-recipientId?: string;
-/**
- * Filters for a transaction that matches a specific transaction reference ID provided by the client.
- */
-transactionReferenceId?: string;
-/**
- * Filters for transactions from/to this clientId.
- */
-clientId?: string;
+  /**
+   * Filters by type of transaction.
+   */
+  type?: RequestTransactionTypeV2;
+  /**
+   * Filters by transaction status.
+   */
+  status?: RequestTransactionStatus;
+  /**
+   * Filters by the Embedded Finance account id connected to the transaction.
+   */
+  accountId?: string;
+  /**
+   * Filters by an exact amount.
+   */
+  amountEquals?: string;
+  /**
+   * Filters by amounts greater than a specified value.
+   */
+  amountGreaterThan?: string;
+  /**
+   * Filters by amounts less than a specified value.
+   */
+  amountLessThan?: string;
+  /**
+   * Filters transactions by an exact date.
+   */
+  dateEquals?: string;
+  /**
+   * Filters for transactions made after this payment date.
+   */
+  dateGreaterThan?: string;
+  /**
+   * Filters for transactions made before this payment date.
+   */
+  dateLessThan?: string;
+  /**
+   * Filters for transactions created after this date and time.
+   */
+  dateTimeGreaterThan?: string;
+  /**
+   * Filters for transactions created before this date and time.
+   */
+  dateTimeLessThan?: string;
+  /**
+   * Filters for transactions from/to this recipientId.
+   */
+  recipientId?: string;
+  /**
+   * Filters for a transaction that matches a specific transaction reference ID provided by the client.
+   */
+  transactionReferenceId?: string;
+  /**
+   * Filters for transactions from/to this clientId.
+   */
+  clientId?: string;
 };
-

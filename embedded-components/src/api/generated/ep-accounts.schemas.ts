@@ -7,21 +7,20 @@
  */
 export interface PageMetaData {
   /** Page Number.
- */
+   */
   page?: number;
   /** Number of records per page.
- */
+   */
   limit?: number;
   /** Total number of items.
- */
+   */
   total_items?: number;
 }
 
 /**
  * Account State
  */
-export type AccountState = typeof AccountState[keyof typeof AccountState];
-
+export type AccountState = (typeof AccountState)[keyof typeof AccountState];
 
 export const AccountState = {
   OPEN: 'OPEN',
@@ -32,8 +31,7 @@ export const AccountState = {
 /**
  * Two letter country code based on ISO 3166 standard
  */
-export type CountryCode = typeof CountryCode[keyof typeof CountryCode];
-
+export type CountryCode = (typeof CountryCode)[keyof typeof CountryCode];
 
 export const CountryCode = {
   US: 'US',
@@ -42,8 +40,7 @@ export const CountryCode = {
 /**
  * Routing codes supported (currently only ABA is supported)
  */
-export type RoutingCode = typeof RoutingCode[keyof typeof RoutingCode];
-
+export type RoutingCode = (typeof RoutingCode)[keyof typeof RoutingCode];
 
 export const RoutingCode = {
   ABA: 'ABA',
@@ -69,8 +66,8 @@ export interface PaymentRoutingInformationDto {
 /**
  * Category of account
  */
-export type AccountCategory = typeof AccountCategory[keyof typeof AccountCategory];
-
+export type AccountCategory =
+  (typeof AccountCategory)[keyof typeof AccountCategory];
 
 export const AccountCategory = {
   CLIENT_DDA: 'CLIENT_DDA',
@@ -112,8 +109,8 @@ export interface ListAccountsResponse {
 /**
  * Part of the request which is responsible for the reason
  */
-export type ApiErrorReasonV2Location = typeof ApiErrorReasonV2Location[keyof typeof ApiErrorReasonV2Location];
-
+export type ApiErrorReasonV2Location =
+  (typeof ApiErrorReasonV2Location)[keyof typeof ApiErrorReasonV2Location];
 
 export const ApiErrorReasonV2Location = {
   BODY: 'BODY',
@@ -158,8 +155,8 @@ export interface ApiError {
 The `EMBEDDED_DDA` category is included only to support our legacy Embedded Banking (EB) product and should not be used.
 
  */
-export type AccountCategoryReq = typeof AccountCategoryReq[keyof typeof AccountCategoryReq];
-
+export type AccountCategoryReq =
+  (typeof AccountCategoryReq)[keyof typeof AccountCategoryReq];
 
 export const AccountCategoryReq = {
   LIMITED_DDA: 'LIMITED_DDA',
@@ -181,8 +178,8 @@ export interface CreateAccountRequest {
 /**
  * Indicates the current status of the Payment Routing Number (PRN) associated with an account. An "ACTIVE" status allows for both incoming and outgoing transactions, including external transfers. An "INACTIVE" status means that the client cannot receive payments (PAYIns) from external sources into the account, nor can they transfer money out externally. However, internal money movements within linked accounts are still possible. **Important:** An "INACTIVE" PRN status strictly pertains to the PRN's ability to handle external transactions and does not affect the overall status or functionality of the account itself. The account remains active and operational for other purposes.
  */
-export type PaymentRoutingStatus = typeof PaymentRoutingStatus[keyof typeof PaymentRoutingStatus];
-
+export type PaymentRoutingStatus =
+  (typeof PaymentRoutingStatus)[keyof typeof PaymentRoutingStatus];
 
 export const PaymentRoutingStatus = {
   ACTIVE: 'ACTIVE',
@@ -204,8 +201,8 @@ export interface PaymentRoutingInformationDtoWithStatus {
 /**
  * Restriction Type
  */
-export type RestrictionType = typeof RestrictionType[keyof typeof RestrictionType];
-
+export type RestrictionType =
+  (typeof RestrictionType)[keyof typeof RestrictionType];
 
 export const RestrictionType = {
   DIRECT_DEBIT: 'DIRECT_DEBIT',
@@ -242,8 +239,8 @@ export interface AccountResponseWithStatus {
 /**
  * Balance type: ITAV (interim available balance) or ITBD (interim booked balance)
  */
-export type AccountBalanceDtoTypeCode = typeof AccountBalanceDtoTypeCode[keyof typeof AccountBalanceDtoTypeCode];
-
+export type AccountBalanceDtoTypeCode =
+  (typeof AccountBalanceDtoTypeCode)[keyof typeof AccountBalanceDtoTypeCode];
 
 export const AccountBalanceDtoTypeCode = {
   ITAV: 'ITAV',
@@ -322,23 +319,22 @@ export type PageSizeParameter = number;
 export type PageNoParameter = number;
 
 export type GetAccountsParams = {
-/**
- * Unique Client identifier
- * @minLength 10
- * @maxLength 10
- * @pattern ^\d{10}$
- */
-clientId?: ClientIdInQueryParameter;
-/**
- * Number of records per page.
- * @minimum 1
- * @maximum 25
- */
-limit?: PageSizeParameter;
-/**
- * Page Number
- * @minimum 0
- */
-page?: PageNoParameter;
+  /**
+   * Unique Client identifier
+   * @minLength 10
+   * @maxLength 10
+   * @pattern ^\d{10}$
+   */
+  clientId?: ClientIdInQueryParameter;
+  /**
+   * Number of records per page.
+   * @minimum 1
+   * @maximum 25
+   */
+  limit?: PageSizeParameter;
+  /**
+   * Page Number
+   * @minimum 0
+   */
+  page?: PageNoParameter;
 };
-
