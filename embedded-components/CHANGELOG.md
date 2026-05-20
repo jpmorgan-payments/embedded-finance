@@ -2,6 +2,29 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.13.14] - 2026-05-19
+
+### Summary
+
+Link Account flow refactored with `reviewOnly` mode and client-side validation for prefilled data. Onboarding improvements including optional phone fields, address tracking fix, IndustryTypeSelect priority codes, and question field type stories. Added document download functionality with popup blocker fallback.
+
+### Changes
+
+- **feat:** Enhance IndustryTypeSelect with Priority Codes Feature
+- **feat:** Add document download functionality and fallback for popup blockers
+- **feat:** Update maxItems condition in OperationalDetailsForm and add story for question field types
+- **feat:** Add onboarding demo routes for test scenarios and update dependencies
+- **refactor:** Rename 'prefillSummary' to 'reviewOnly' and implement client-side validation for prefilled data in Link Account Flow
+- **refactor:** Simplify conditional checks and improve code formatting in LinkAccount components
+- **refactor:** Simplify currentSectionConfig assignment in StepperRenderer
+- **refactor:** Update singleton implementations
+- **fix:** Onboarding flow address not being tracked properly for progression
+- **fix:** Update phone fields to be optional in onboarding flow
+- **fix:** Improve error display for document download and fetch failures
+- **chore:** Downgrade `msw` versions in package.json and update mock service worker
+- **build(deps):** Bump brace-expansion in /embedded-components
+- **build(deps-dev):** Bump mermaid in /embedded-components
+
 ## [0.13.13] - 2026-05-13
 
 ### Summary
