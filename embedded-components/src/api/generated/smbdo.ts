@@ -5,7 +5,10 @@
  * Digital Onboarding APIs from J.P. Morgan.
  * OpenAPI spec version: 1.0.18
  */
-import { useMutation, useQuery } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQuery
+} from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -18,11 +21,13 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult,
+  UseQueryResult
 } from '@tanstack/react-query';
 
-import { ebInstance } from '../axios-instance';
-import type { BodyType, ErrorType } from '../axios-instance';
+import {
+  useCallback
+} from 'react';
+
 import type {
   ClientListResponse,
   ClientResponse,
@@ -63,3846 +68,1961 @@ import type {
   SmbdoListSessionsParams,
   SmbdoUploadDocumentBody,
   UpdateClientRequestSmbdo,
-  UpdatePartyRequest,
+  UpdatePartyRequest
 } from './smbdo.schemas';
 
+import { useEbInstance } from '../use-axios-instance';
+import type { ErrorType , BodyType } from '../use-axios-instance';
+
+
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+
 
 /**
  * Returns a list of clients associated with your platform.
  * @summary List clients
  */
-export const smbdoListClients = (
-  params?: SmbdoListClientsParams,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const useSmbdoListClientsHook = () => {
+        const smbdoListClients = useEbInstance<ClientListResponse>();
+
+        return useCallback((
+    params?: SmbdoListClientsParams,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<ClientListResponse>(
-    { url: `/clients`, method: 'GET', params, signal },
-    options
-  );
-};
+        return smbdoListClients(
+          {url: `/clients`, method: 'GET',
+        params, signal
+    },
+          options);
+        }, [smbdoListClients])
+      }
+    
 
-export const getSmbdoListClientsQueryKey = (
-  params?: SmbdoListClientsParams
+
+
+export const getSmbdoListClientsQueryKey = (params?: SmbdoListClientsParams,) => {
+    return [
+    `/clients`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+    
+export const useSmbdoListClientsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useSmbdoListClientsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(params?: SmbdoListClientsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListClientsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
 ) => {
-  return [`/clients`, ...(params ? [params] : [])] as const;
-};
 
-export const getSmbdoListClientsQueryOptions = <
-  TData = Awaited<ReturnType<typeof smbdoListClients>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params?: SmbdoListClientsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoListClients>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  }
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ?? getSmbdoListClientsQueryKey(params);
+  const queryKey =  queryOptions?.queryKey ?? getSmbdoListClientsQueryKey(params);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof smbdoListClients>>
-  > = ({ signal }) => smbdoListClients(params, requestOptions, signal);
+  const smbdoListClients =  useSmbdoListClientsHook();
 
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof smbdoListClients>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-};
+    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useSmbdoListClientsHook>>>> = ({ signal }) => smbdoListClients(params, requestOptions, signal);
 
-export type SmbdoListClientsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof smbdoListClients>>
->;
-export type SmbdoListClientsQueryError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N500Response
-  | N503Response
->;
+      
 
-export function useSmbdoListClients<
-  TData = Awaited<ReturnType<typeof smbdoListClients>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params: undefined | SmbdoListClientsParams,
-  options: {
-    query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoListClients>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListClientsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SmbdoListClientsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSmbdoListClientsHook>>>>
+export type SmbdoListClientsQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
+
+
+export function useSmbdoListClients<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoListClientsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params: undefined |  SmbdoListClientsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListClientsHook>>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof smbdoListClients>>,
+          Awaited<ReturnType<ReturnType<typeof useSmbdoListClientsHook>>>,
           TError,
-          Awaited<ReturnType<typeof smbdoListClients>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useSmbdoListClients<
-  TData = Awaited<ReturnType<typeof smbdoListClients>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params?: SmbdoListClientsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoListClients>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
+          Awaited<ReturnType<ReturnType<typeof useSmbdoListClientsHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSmbdoListClients<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoListClientsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params?: SmbdoListClientsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListClientsHook>>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof smbdoListClients>>,
+          Awaited<ReturnType<ReturnType<typeof useSmbdoListClientsHook>>>,
           TError,
-          Awaited<ReturnType<typeof smbdoListClients>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useSmbdoListClients<
-  TData = Awaited<ReturnType<typeof smbdoListClients>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params?: SmbdoListClientsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoListClients>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+          Awaited<ReturnType<ReturnType<typeof useSmbdoListClientsHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSmbdoListClients<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoListClientsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params?: SmbdoListClientsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListClientsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary List clients
  */
 
-export function useSmbdoListClients<
-  TData = Awaited<ReturnType<typeof smbdoListClients>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params?: SmbdoListClientsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoListClients>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getSmbdoListClientsQueryOptions(params, options);
+export function useSmbdoListClients<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoListClientsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params?: SmbdoListClientsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListClientsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const queryOptions = useSmbdoListClientsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+
+
+
 
 /**
  * Creates a client.
  * @summary Create client
  */
-export const smbdoPostClients = (
-  createClientRequestSmbdo: BodyType<CreateClientRequestSmbdo>,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const useSmbdoPostClientsHook = () => {
+        const smbdoPostClients = useEbInstance<ClientUpdatedResponse>();
+
+        return useCallback((
+    createClientRequestSmbdo: BodyType<CreateClientRequestSmbdo>,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<ClientUpdatedResponse>(
-    {
-      url: `/clients`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: createClientRequestSmbdo,
-      signal,
+        return smbdoPostClients(
+          {url: `/clients`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createClientRequestSmbdo, signal
     },
-    options
-  );
-};
+          options);
+        }, [smbdoPostClients])
+      }
+    
 
-export const getSmbdoPostClientsMutationOptions = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof smbdoPostClients>>,
-    TError,
-    { data: BodyType<CreateClientRequestSmbdo> },
-    TContext
-  >;
-  request?: SecondParameter<typeof ebInstance>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof smbdoPostClients>>,
-  TError,
-  { data: BodyType<CreateClientRequestSmbdo> },
-  TContext
-> => {
-  const mutationKey = ['smbdoPostClients'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof smbdoPostClients>>,
-    { data: BodyType<CreateClientRequestSmbdo> }
-  > = (props) => {
-    const { data } = props ?? {};
+export const useSmbdoPostClientsMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoPostClientsHook>>>, TError,{data: BodyType<CreateClientRequestSmbdo>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoPostClientsHook>>>, TError,{data: BodyType<CreateClientRequestSmbdo>}, TContext> => {
 
-    return smbdoPostClients(data, requestOptions);
-  };
+const mutationKey = ['smbdoPostClients'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
 
-  return { mutationFn, ...mutationOptions };
-};
+      const smbdoPostClients =  useSmbdoPostClientsHook()
 
-export type SmbdoPostClientsMutationResult = NonNullable<
-  Awaited<ReturnType<typeof smbdoPostClients>>
->;
-export type SmbdoPostClientsMutationBody = BodyType<CreateClientRequestSmbdo>;
-export type SmbdoPostClientsMutationError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N409Response
-  | N422Response
-  | N500Response
-  | N503Response
->;
 
-/**
+      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useSmbdoPostClientsHook>>>, {data: BodyType<CreateClientRequestSmbdo>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  smbdoPostClients(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SmbdoPostClientsMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSmbdoPostClientsHook>>>>
+    export type SmbdoPostClientsMutationBody = BodyType<CreateClientRequestSmbdo>
+    export type SmbdoPostClientsMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>
+
+    /**
  * @summary Create client
  */
-export const useSmbdoPostClients = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof smbdoPostClients>>,
-      TError,
-      { data: BodyType<CreateClientRequestSmbdo> },
-      TContext
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof smbdoPostClients>>,
-  TError,
-  { data: BodyType<CreateClientRequestSmbdo> },
-  TContext
-> => {
-  return useMutation(getSmbdoPostClientsMutationOptions(options), queryClient);
-};
-
+export const useSmbdoPostClients = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoPostClientsHook>>>, TError,{data: BodyType<CreateClientRequestSmbdo>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<ReturnType<typeof useSmbdoPostClientsHook>>>,
+        TError,
+        {data: BodyType<CreateClientRequestSmbdo>},
+        TContext
+      > => {
+      return useMutation(useSmbdoPostClientsMutationOptions(options), queryClient);
+    }
+    
 /**
  * Retrieve client details by its ID.
  * @summary Get client
  */
-export const smbdoGetClient = (
-  id: string,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const useSmbdoGetClientHook = () => {
+        const smbdoGetClient = useEbInstance<ClientResponse>();
+
+        return useCallback((
+    id: string,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<ClientResponse>(
-    { url: `/clients/${id}`, method: 'GET', signal },
-    options
-  );
-};
+        return smbdoGetClient(
+          {url: `/clients/${id}`, method: 'GET', signal
+    },
+          options);
+        }, [smbdoGetClient])
+      }
+    
 
-export const getSmbdoGetClientQueryKey = (id: string) => {
-  return [`/clients/${id}`] as const;
-};
 
-export const getSmbdoGetClientQueryOptions = <
-  TData = Awaited<ReturnType<typeof smbdoGetClient>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof smbdoGetClient>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  }
+
+export const getSmbdoGetClientQueryKey = (id: string,) => {
+    return [
+    `/clients/${id}`
+    ] as const;
+    }
+
+    
+export const useSmbdoGetClientQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetClientHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetClientHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getSmbdoGetClientQueryKey(id);
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof smbdoGetClient>>> = ({
-    signal,
-  }) => smbdoGetClient(id, requestOptions, signal);
+  const queryKey =  queryOptions?.queryKey ?? getSmbdoGetClientQueryKey(id);
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!id,
-    ...queryOptions,
-  } as UseQueryOptions<
-    Awaited<ReturnType<typeof smbdoGetClient>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-};
+  const smbdoGetClient =  useSmbdoGetClientHook();
 
-export type SmbdoGetClientQueryResult = NonNullable<
-  Awaited<ReturnType<typeof smbdoGetClient>>
->;
-export type SmbdoGetClientQueryError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N500Response
-  | N503Response
->;
+    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useSmbdoGetClientHook>>>> = ({ signal }) => smbdoGetClient(id, requestOptions, signal);
 
-export function useSmbdoGetClient<
-  TData = Awaited<ReturnType<typeof smbdoGetClient>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: string,
-  options: {
-    query: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof smbdoGetClient>>, TError, TData>
-    > &
-      Pick<
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetClientHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SmbdoGetClientQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSmbdoGetClientHook>>>>
+export type SmbdoGetClientQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
+
+
+export function useSmbdoGetClient<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetClientHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetClientHook>>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof smbdoGetClient>>,
+          Awaited<ReturnType<ReturnType<typeof useSmbdoGetClientHook>>>,
           TError,
-          Awaited<ReturnType<typeof smbdoGetClient>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useSmbdoGetClient<
-  TData = Awaited<ReturnType<typeof smbdoGetClient>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof smbdoGetClient>>, TError, TData>
-    > &
-      Pick<
+          Awaited<ReturnType<ReturnType<typeof useSmbdoGetClientHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSmbdoGetClient<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetClientHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetClientHook>>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof smbdoGetClient>>,
+          Awaited<ReturnType<ReturnType<typeof useSmbdoGetClientHook>>>,
           TError,
-          Awaited<ReturnType<typeof smbdoGetClient>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useSmbdoGetClient<
-  TData = Awaited<ReturnType<typeof smbdoGetClient>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof smbdoGetClient>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+          Awaited<ReturnType<ReturnType<typeof useSmbdoGetClientHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSmbdoGetClient<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetClientHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetClientHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get client
  */
 
-export function useSmbdoGetClient<
-  TData = Awaited<ReturnType<typeof smbdoGetClient>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof smbdoGetClient>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getSmbdoGetClientQueryOptions(id, options);
+export function useSmbdoGetClient<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetClientHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetClientHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const queryOptions = useSmbdoGetClientQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
 
-/**
- * Updates a client.
- * @summary Update client
- */
-export const smbdoUpdateClientLegacy = (
-  id: string,
-  updateClientRequestSmbdo: BodyType<UpdateClientRequestSmbdo>,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
-) => {
-  return ebInstance<ClientUpdatedResponse>(
-    {
-      url: `/clients/${id}`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: updateClientRequestSmbdo,
-      signal,
-    },
-    options
-  );
-};
 
-export const getSmbdoUpdateClientLegacyMutationOptions = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof smbdoUpdateClientLegacy>>,
-    TError,
-    { id: string; data: BodyType<UpdateClientRequestSmbdo> },
-    TContext
-  >;
-  request?: SecondParameter<typeof ebInstance>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof smbdoUpdateClientLegacy>>,
-  TError,
-  { id: string; data: BodyType<UpdateClientRequestSmbdo> },
-  TContext
-> => {
-  const mutationKey = ['smbdoUpdateClientLegacy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof smbdoUpdateClientLegacy>>,
-    { id: string; data: BodyType<UpdateClientRequestSmbdo> }
-  > = (props) => {
-    const { id, data } = props ?? {};
 
-    return smbdoUpdateClientLegacy(id, data, requestOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type SmbdoUpdateClientLegacyMutationResult = NonNullable<
-  Awaited<ReturnType<typeof smbdoUpdateClientLegacy>>
->;
-export type SmbdoUpdateClientLegacyMutationBody =
-  BodyType<UpdateClientRequestSmbdo>;
-export type SmbdoUpdateClientLegacyMutationError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N409Response
-  | N422Response
-  | N500Response
-  | N503Response
->;
-
-/**
- * @summary Update client
- */
-export const useSmbdoUpdateClientLegacy = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof smbdoUpdateClientLegacy>>,
-      TError,
-      { id: string; data: BodyType<UpdateClientRequestSmbdo> },
-      TContext
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof smbdoUpdateClientLegacy>>,
-  TError,
-  { id: string; data: BodyType<UpdateClientRequestSmbdo> },
-  TContext
-> => {
-  return useMutation(
-    getSmbdoUpdateClientLegacyMutationOptions(options),
-    queryClient
-  );
-};
 
 /**
  * Updates a client.
  * @summary Update client
  */
-export const smbdoUpdateClient = (
-  id: string,
-  updateClientRequestSmbdo: BodyType<UpdateClientRequestSmbdo>,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const useSmbdoUpdateClientLegacyHook = () => {
+        const smbdoUpdateClientLegacy = useEbInstance<ClientUpdatedResponse>();
+
+        return useCallback((
+    id: string,
+    updateClientRequestSmbdo: BodyType<UpdateClientRequestSmbdo>,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<ClientUpdatedResponse>(
-    {
-      url: `/clients/${id}`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: updateClientRequestSmbdo,
-      signal,
+        return smbdoUpdateClientLegacy(
+          {url: `/clients/${id}`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: updateClientRequestSmbdo, signal
     },
-    options
-  );
-};
+          options);
+        }, [smbdoUpdateClientLegacy])
+      }
+    
 
-export const getSmbdoUpdateClientMutationOptions = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof smbdoUpdateClient>>,
-    TError,
-    { id: string; data: BodyType<UpdateClientRequestSmbdo> },
-    TContext
-  >;
-  request?: SecondParameter<typeof ebInstance>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof smbdoUpdateClient>>,
-  TError,
-  { id: string; data: BodyType<UpdateClientRequestSmbdo> },
-  TContext
-> => {
-  const mutationKey = ['smbdoUpdateClient'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof smbdoUpdateClient>>,
-    { id: string; data: BodyType<UpdateClientRequestSmbdo> }
-  > = (props) => {
-    const { id, data } = props ?? {};
+export const useSmbdoUpdateClientLegacyMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoUpdateClientLegacyHook>>>, TError,{id: string;data: BodyType<UpdateClientRequestSmbdo>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoUpdateClientLegacyHook>>>, TError,{id: string;data: BodyType<UpdateClientRequestSmbdo>}, TContext> => {
 
-    return smbdoUpdateClient(id, data, requestOptions);
-  };
+const mutationKey = ['smbdoUpdateClientLegacy'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
 
-  return { mutationFn, ...mutationOptions };
-};
+      const smbdoUpdateClientLegacy =  useSmbdoUpdateClientLegacyHook()
 
-export type SmbdoUpdateClientMutationResult = NonNullable<
-  Awaited<ReturnType<typeof smbdoUpdateClient>>
->;
-export type SmbdoUpdateClientMutationBody = BodyType<UpdateClientRequestSmbdo>;
-export type SmbdoUpdateClientMutationError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N409Response
-  | N422Response
-  | N500Response
-  | N503Response
->;
 
-/**
+      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useSmbdoUpdateClientLegacyHook>>>, {id: string;data: BodyType<UpdateClientRequestSmbdo>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  smbdoUpdateClientLegacy(id,data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SmbdoUpdateClientLegacyMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSmbdoUpdateClientLegacyHook>>>>
+    export type SmbdoUpdateClientLegacyMutationBody = BodyType<UpdateClientRequestSmbdo>
+    export type SmbdoUpdateClientLegacyMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>
+
+    /**
  * @summary Update client
  */
-export const useSmbdoUpdateClient = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof smbdoUpdateClient>>,
-      TError,
-      { id: string; data: BodyType<UpdateClientRequestSmbdo> },
-      TContext
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof smbdoUpdateClient>>,
-  TError,
-  { id: string; data: BodyType<UpdateClientRequestSmbdo> },
-  TContext
-> => {
-  return useMutation(getSmbdoUpdateClientMutationOptions(options), queryClient);
-};
+export const useSmbdoUpdateClientLegacy = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoUpdateClientLegacyHook>>>, TError,{id: string;data: BodyType<UpdateClientRequestSmbdo>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<ReturnType<typeof useSmbdoUpdateClientLegacyHook>>>,
+        TError,
+        {id: string;data: BodyType<UpdateClientRequestSmbdo>},
+        TContext
+      > => {
+      return useMutation(useSmbdoUpdateClientLegacyMutationOptions(options), queryClient);
+    }
+    
+/**
+ * Updates a client.
+ * @summary Update client
+ */
+export const useSmbdoUpdateClientHook = () => {
+        const smbdoUpdateClient = useEbInstance<ClientUpdatedResponse>();
 
+        return useCallback((
+    id: string,
+    updateClientRequestSmbdo: BodyType<UpdateClientRequestSmbdo>,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
+) => {
+        return smbdoUpdateClient(
+          {url: `/clients/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateClientRequestSmbdo, signal
+    },
+          options);
+        }, [smbdoUpdateClient])
+      }
+    
+
+
+export const useSmbdoUpdateClientMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoUpdateClientHook>>>, TError,{id: string;data: BodyType<UpdateClientRequestSmbdo>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoUpdateClientHook>>>, TError,{id: string;data: BodyType<UpdateClientRequestSmbdo>}, TContext> => {
+
+const mutationKey = ['smbdoUpdateClient'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      const smbdoUpdateClient =  useSmbdoUpdateClientHook()
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useSmbdoUpdateClientHook>>>, {id: string;data: BodyType<UpdateClientRequestSmbdo>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  smbdoUpdateClient(id,data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SmbdoUpdateClientMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSmbdoUpdateClientHook>>>>
+    export type SmbdoUpdateClientMutationBody = BodyType<UpdateClientRequestSmbdo>
+    export type SmbdoUpdateClientMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>
+
+    /**
+ * @summary Update client
+ */
+export const useSmbdoUpdateClient = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoUpdateClientHook>>>, TError,{id: string;data: BodyType<UpdateClientRequestSmbdo>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<ReturnType<typeof useSmbdoUpdateClientHook>>>,
+        TError,
+        {id: string;data: BodyType<UpdateClientRequestSmbdo>},
+        TContext
+      > => {
+      return useMutation(useSmbdoUpdateClientMutationOptions(options), queryClient);
+    }
+    
 /**
  * Performs client verifications
  * @summary Perform client verifications
  */
-export const smbdoPostClientVerifications = (
-  id: string,
-  clientVerificationRequest: BodyType<ClientVerificationRequest>,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const useSmbdoPostClientVerificationsHook = () => {
+        const smbdoPostClientVerifications = useEbInstance<N202VerificationsResponse>();
+
+        return useCallback((
+    id: string,
+    clientVerificationRequest: BodyType<ClientVerificationRequest>,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<N202VerificationsResponse>(
-    {
-      url: `/clients/${id}/verifications`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: clientVerificationRequest,
-      signal,
+        return smbdoPostClientVerifications(
+          {url: `/clients/${id}/verifications`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: clientVerificationRequest, signal
     },
-    options
-  );
-};
+          options);
+        }, [smbdoPostClientVerifications])
+      }
+    
 
-export const getSmbdoPostClientVerificationsMutationOptions = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof smbdoPostClientVerifications>>,
-    TError,
-    { id: string; data: BodyType<ClientVerificationRequest> },
-    TContext
-  >;
-  request?: SecondParameter<typeof ebInstance>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof smbdoPostClientVerifications>>,
-  TError,
-  { id: string; data: BodyType<ClientVerificationRequest> },
-  TContext
-> => {
-  const mutationKey = ['smbdoPostClientVerifications'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof smbdoPostClientVerifications>>,
-    { id: string; data: BodyType<ClientVerificationRequest> }
-  > = (props) => {
-    const { id, data } = props ?? {};
+export const useSmbdoPostClientVerificationsMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoPostClientVerificationsHook>>>, TError,{id: string;data: BodyType<ClientVerificationRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoPostClientVerificationsHook>>>, TError,{id: string;data: BodyType<ClientVerificationRequest>}, TContext> => {
 
-    return smbdoPostClientVerifications(id, data, requestOptions);
-  };
+const mutationKey = ['smbdoPostClientVerifications'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
 
-  return { mutationFn, ...mutationOptions };
-};
+      const smbdoPostClientVerifications =  useSmbdoPostClientVerificationsHook()
 
-export type SmbdoPostClientVerificationsMutationResult = NonNullable<
-  Awaited<ReturnType<typeof smbdoPostClientVerifications>>
->;
-export type SmbdoPostClientVerificationsMutationBody =
-  BodyType<ClientVerificationRequest>;
-export type SmbdoPostClientVerificationsMutationError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N409Response
-  | N422Response
-  | N500Response
-  | N503Response
->;
 
-/**
+      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useSmbdoPostClientVerificationsHook>>>, {id: string;data: BodyType<ClientVerificationRequest>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  smbdoPostClientVerifications(id,data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SmbdoPostClientVerificationsMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSmbdoPostClientVerificationsHook>>>>
+    export type SmbdoPostClientVerificationsMutationBody = BodyType<ClientVerificationRequest>
+    export type SmbdoPostClientVerificationsMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>
+
+    /**
  * @summary Perform client verifications
  */
-export const useSmbdoPostClientVerifications = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof smbdoPostClientVerifications>>,
-      TError,
-      { id: string; data: BodyType<ClientVerificationRequest> },
-      TContext
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof smbdoPostClientVerifications>>,
-  TError,
-  { id: string; data: BodyType<ClientVerificationRequest> },
-  TContext
-> => {
-  return useMutation(
-    getSmbdoPostClientVerificationsMutationOptions(options),
-    queryClient
-  );
-};
-
+export const useSmbdoPostClientVerifications = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoPostClientVerificationsHook>>>, TError,{id: string;data: BodyType<ClientVerificationRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<ReturnType<typeof useSmbdoPostClientVerificationsHook>>>,
+        TError,
+        {id: string;data: BodyType<ClientVerificationRequest>},
+        TContext
+      > => {
+      return useMutation(useSmbdoPostClientVerificationsMutationOptions(options), queryClient);
+    }
+    
 /**
  * Lists customer due diligence questions.
 
  * @summary List questions
  */
-export const smbdoListQuestions = (
-  params?: SmbdoListQuestionsParams,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const useSmbdoListQuestionsHook = () => {
+        const smbdoListQuestions = useEbInstance<QuestionListResponse>();
+
+        return useCallback((
+    params?: SmbdoListQuestionsParams,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<QuestionListResponse>(
-    { url: `/questions`, method: 'GET', params, signal },
-    options
-  );
-};
+        return smbdoListQuestions(
+          {url: `/questions`, method: 'GET',
+        params, signal
+    },
+          options);
+        }, [smbdoListQuestions])
+      }
+    
 
-export const getSmbdoListQuestionsQueryKey = (
-  params?: SmbdoListQuestionsParams
+
+
+export const getSmbdoListQuestionsQueryKey = (params?: SmbdoListQuestionsParams,) => {
+    return [
+    `/questions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+    
+export const useSmbdoListQuestionsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useSmbdoListQuestionsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(params?: SmbdoListQuestionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListQuestionsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
 ) => {
-  return [`/questions`, ...(params ? [params] : [])] as const;
-};
 
-export const getSmbdoListQuestionsQueryOptions = <
-  TData = Awaited<ReturnType<typeof smbdoListQuestions>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params?: SmbdoListQuestionsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoListQuestions>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  }
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ?? getSmbdoListQuestionsQueryKey(params);
+  const queryKey =  queryOptions?.queryKey ?? getSmbdoListQuestionsQueryKey(params);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof smbdoListQuestions>>
-  > = ({ signal }) => smbdoListQuestions(params, requestOptions, signal);
+  const smbdoListQuestions =  useSmbdoListQuestionsHook();
 
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof smbdoListQuestions>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-};
+    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useSmbdoListQuestionsHook>>>> = ({ signal }) => smbdoListQuestions(params, requestOptions, signal);
 
-export type SmbdoListQuestionsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof smbdoListQuestions>>
->;
-export type SmbdoListQuestionsQueryError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N500Response
-  | N503Response
->;
+      
 
-export function useSmbdoListQuestions<
-  TData = Awaited<ReturnType<typeof smbdoListQuestions>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params: undefined | SmbdoListQuestionsParams,
-  options: {
-    query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoListQuestions>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListQuestionsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SmbdoListQuestionsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSmbdoListQuestionsHook>>>>
+export type SmbdoListQuestionsQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
+
+
+export function useSmbdoListQuestions<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoListQuestionsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params: undefined |  SmbdoListQuestionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListQuestionsHook>>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof smbdoListQuestions>>,
+          Awaited<ReturnType<ReturnType<typeof useSmbdoListQuestionsHook>>>,
           TError,
-          Awaited<ReturnType<typeof smbdoListQuestions>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useSmbdoListQuestions<
-  TData = Awaited<ReturnType<typeof smbdoListQuestions>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params?: SmbdoListQuestionsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoListQuestions>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
+          Awaited<ReturnType<ReturnType<typeof useSmbdoListQuestionsHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSmbdoListQuestions<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoListQuestionsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params?: SmbdoListQuestionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListQuestionsHook>>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof smbdoListQuestions>>,
+          Awaited<ReturnType<ReturnType<typeof useSmbdoListQuestionsHook>>>,
           TError,
-          Awaited<ReturnType<typeof smbdoListQuestions>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useSmbdoListQuestions<
-  TData = Awaited<ReturnType<typeof smbdoListQuestions>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params?: SmbdoListQuestionsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoListQuestions>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+          Awaited<ReturnType<ReturnType<typeof useSmbdoListQuestionsHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSmbdoListQuestions<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoListQuestionsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params?: SmbdoListQuestionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListQuestionsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary List questions
  */
 
-export function useSmbdoListQuestions<
-  TData = Awaited<ReturnType<typeof smbdoListQuestions>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params?: SmbdoListQuestionsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoListQuestions>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getSmbdoListQuestionsQueryOptions(params, options);
+export function useSmbdoListQuestions<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoListQuestionsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params?: SmbdoListQuestionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListQuestionsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const queryOptions = useSmbdoListQuestionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+
+
+
 
 /**
  * Get a customer due diligence question.
 
  * @summary Get question
  */
-export const smbdoGetQuestion = (
-  id: string,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const useSmbdoGetQuestionHook = () => {
+        const smbdoGetQuestion = useEbInstance<QuestionResponse>();
+
+        return useCallback((
+    id: string,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<QuestionResponse>(
-    { url: `/questions/${id}`, method: 'GET', signal },
-    options
-  );
-};
+        return smbdoGetQuestion(
+          {url: `/questions/${id}`, method: 'GET', signal
+    },
+          options);
+        }, [smbdoGetQuestion])
+      }
+    
 
-export const getSmbdoGetQuestionQueryKey = (id: string) => {
-  return [`/questions/${id}`] as const;
-};
 
-export const getSmbdoGetQuestionQueryOptions = <
-  TData = Awaited<ReturnType<typeof smbdoGetQuestion>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoGetQuestion>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  }
+
+export const getSmbdoGetQuestionQueryKey = (id: string,) => {
+    return [
+    `/questions/${id}`
+    ] as const;
+    }
+
+    
+export const useSmbdoGetQuestionQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetQuestionHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetQuestionHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getSmbdoGetQuestionQueryKey(id);
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof smbdoGetQuestion>>
-  > = ({ signal }) => smbdoGetQuestion(id, requestOptions, signal);
+  const queryKey =  queryOptions?.queryKey ?? getSmbdoGetQuestionQueryKey(id);
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!id,
-    ...queryOptions,
-  } as UseQueryOptions<
-    Awaited<ReturnType<typeof smbdoGetQuestion>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-};
+  const smbdoGetQuestion =  useSmbdoGetQuestionHook();
 
-export type SmbdoGetQuestionQueryResult = NonNullable<
-  Awaited<ReturnType<typeof smbdoGetQuestion>>
->;
-export type SmbdoGetQuestionQueryError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N500Response
-  | N503Response
->;
+    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useSmbdoGetQuestionHook>>>> = ({ signal }) => smbdoGetQuestion(id, requestOptions, signal);
 
-export function useSmbdoGetQuestion<
-  TData = Awaited<ReturnType<typeof smbdoGetQuestion>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: string,
-  options: {
-    query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoGetQuestion>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetQuestionHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SmbdoGetQuestionQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSmbdoGetQuestionHook>>>>
+export type SmbdoGetQuestionQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
+
+
+export function useSmbdoGetQuestion<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetQuestionHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetQuestionHook>>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof smbdoGetQuestion>>,
+          Awaited<ReturnType<ReturnType<typeof useSmbdoGetQuestionHook>>>,
           TError,
-          Awaited<ReturnType<typeof smbdoGetQuestion>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useSmbdoGetQuestion<
-  TData = Awaited<ReturnType<typeof smbdoGetQuestion>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoGetQuestion>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
+          Awaited<ReturnType<ReturnType<typeof useSmbdoGetQuestionHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSmbdoGetQuestion<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetQuestionHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetQuestionHook>>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof smbdoGetQuestion>>,
+          Awaited<ReturnType<ReturnType<typeof useSmbdoGetQuestionHook>>>,
           TError,
-          Awaited<ReturnType<typeof smbdoGetQuestion>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useSmbdoGetQuestion<
-  TData = Awaited<ReturnType<typeof smbdoGetQuestion>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoGetQuestion>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+          Awaited<ReturnType<ReturnType<typeof useSmbdoGetQuestionHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSmbdoGetQuestion<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetQuestionHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetQuestionHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get question
  */
 
-export function useSmbdoGetQuestion<
-  TData = Awaited<ReturnType<typeof smbdoGetQuestion>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoGetQuestion>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getSmbdoGetQuestionQueryOptions(id, options);
+export function useSmbdoGetQuestion<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetQuestionHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetQuestionHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const queryOptions = useSmbdoGetQuestionQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+
+
+
 
 /**
  * Get a list of document requests.
 
  * @summary List document requests
  */
-export const smbdoListDocumentRequests = (
-  params?: SmbdoListDocumentRequestsParams,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const useSmbdoListDocumentRequestsHook = () => {
+        const smbdoListDocumentRequests = useEbInstance<DocumentRequestListResponse>();
+
+        return useCallback((
+    params?: SmbdoListDocumentRequestsParams,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<DocumentRequestListResponse>(
-    { url: `/document-requests`, method: 'GET', params, signal },
-    options
-  );
-};
+        return smbdoListDocumentRequests(
+          {url: `/document-requests`, method: 'GET',
+        params, signal
+    },
+          options);
+        }, [smbdoListDocumentRequests])
+      }
+    
 
-export const getSmbdoListDocumentRequestsQueryKey = (
-  params?: SmbdoListDocumentRequestsParams
+
+
+export const getSmbdoListDocumentRequestsQueryKey = (params?: SmbdoListDocumentRequestsParams,) => {
+    return [
+    `/document-requests`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+    
+export const useSmbdoListDocumentRequestsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useSmbdoListDocumentRequestsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(params?: SmbdoListDocumentRequestsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListDocumentRequestsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
 ) => {
-  return [`/document-requests`, ...(params ? [params] : [])] as const;
-};
 
-export const getSmbdoListDocumentRequestsQueryOptions = <
-  TData = Awaited<ReturnType<typeof smbdoListDocumentRequests>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params?: SmbdoListDocumentRequestsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoListDocumentRequests>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  }
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ?? getSmbdoListDocumentRequestsQueryKey(params);
+  const queryKey =  queryOptions?.queryKey ?? getSmbdoListDocumentRequestsQueryKey(params);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof smbdoListDocumentRequests>>
-  > = ({ signal }) => smbdoListDocumentRequests(params, requestOptions, signal);
+  const smbdoListDocumentRequests =  useSmbdoListDocumentRequestsHook();
 
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof smbdoListDocumentRequests>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-};
+    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useSmbdoListDocumentRequestsHook>>>> = ({ signal }) => smbdoListDocumentRequests(params, requestOptions, signal);
 
-export type SmbdoListDocumentRequestsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof smbdoListDocumentRequests>>
->;
-export type SmbdoListDocumentRequestsQueryError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N500Response
-  | N503Response
->;
+      
 
-export function useSmbdoListDocumentRequests<
-  TData = Awaited<ReturnType<typeof smbdoListDocumentRequests>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params: undefined | SmbdoListDocumentRequestsParams,
-  options: {
-    query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoListDocumentRequests>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListDocumentRequestsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SmbdoListDocumentRequestsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSmbdoListDocumentRequestsHook>>>>
+export type SmbdoListDocumentRequestsQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
+
+
+export function useSmbdoListDocumentRequests<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoListDocumentRequestsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params: undefined |  SmbdoListDocumentRequestsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListDocumentRequestsHook>>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof smbdoListDocumentRequests>>,
+          Awaited<ReturnType<ReturnType<typeof useSmbdoListDocumentRequestsHook>>>,
           TError,
-          Awaited<ReturnType<typeof smbdoListDocumentRequests>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useSmbdoListDocumentRequests<
-  TData = Awaited<ReturnType<typeof smbdoListDocumentRequests>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params?: SmbdoListDocumentRequestsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoListDocumentRequests>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
+          Awaited<ReturnType<ReturnType<typeof useSmbdoListDocumentRequestsHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSmbdoListDocumentRequests<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoListDocumentRequestsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params?: SmbdoListDocumentRequestsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListDocumentRequestsHook>>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof smbdoListDocumentRequests>>,
+          Awaited<ReturnType<ReturnType<typeof useSmbdoListDocumentRequestsHook>>>,
           TError,
-          Awaited<ReturnType<typeof smbdoListDocumentRequests>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useSmbdoListDocumentRequests<
-  TData = Awaited<ReturnType<typeof smbdoListDocumentRequests>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params?: SmbdoListDocumentRequestsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoListDocumentRequests>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+          Awaited<ReturnType<ReturnType<typeof useSmbdoListDocumentRequestsHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSmbdoListDocumentRequests<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoListDocumentRequestsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params?: SmbdoListDocumentRequestsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListDocumentRequestsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary List document requests
  */
 
-export function useSmbdoListDocumentRequests<
-  TData = Awaited<ReturnType<typeof smbdoListDocumentRequests>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params?: SmbdoListDocumentRequestsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoListDocumentRequests>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getSmbdoListDocumentRequestsQueryOptions(
-    params,
-    options
-  );
+export function useSmbdoListDocumentRequests<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoListDocumentRequestsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params?: SmbdoListDocumentRequestsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListDocumentRequestsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const queryOptions = useSmbdoListDocumentRequestsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+
+
+
 
 /**
  * Returns details for a document request using its unique identifier.
  * @summary Get document request
  */
-export const smbdoGetDocumentRequest = (
-  id: DocumentRequestId,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const useSmbdoGetDocumentRequestHook = () => {
+        const smbdoGetDocumentRequest = useEbInstance<DocumentRequestResponse>();
+
+        return useCallback((
+    id: DocumentRequestId,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<DocumentRequestResponse>(
-    { url: `/document-requests/${id}`, method: 'GET', signal },
-    options
-  );
-};
+        return smbdoGetDocumentRequest(
+          {url: `/document-requests/${id}`, method: 'GET', signal
+    },
+          options);
+        }, [smbdoGetDocumentRequest])
+      }
+    
 
-export const getSmbdoGetDocumentRequestQueryKey = (id: DocumentRequestId) => {
-  return [`/document-requests/${id}`] as const;
-};
 
-export const getSmbdoGetDocumentRequestQueryOptions = <
-  TData = Awaited<ReturnType<typeof smbdoGetDocumentRequest>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: DocumentRequestId,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoGetDocumentRequest>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  }
+
+export const getSmbdoGetDocumentRequestQueryKey = (id: DocumentRequestId,) => {
+    return [
+    `/document-requests/${id}`
+    ] as const;
+    }
+
+    
+export const useSmbdoGetDocumentRequestQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentRequestHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(id: DocumentRequestId, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentRequestHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ?? getSmbdoGetDocumentRequestQueryKey(id);
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof smbdoGetDocumentRequest>>
-  > = ({ signal }) => smbdoGetDocumentRequest(id, requestOptions, signal);
+  const queryKey =  queryOptions?.queryKey ?? getSmbdoGetDocumentRequestQueryKey(id);
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!id,
-    ...queryOptions,
-  } as UseQueryOptions<
-    Awaited<ReturnType<typeof smbdoGetDocumentRequest>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-};
+  const smbdoGetDocumentRequest =  useSmbdoGetDocumentRequestHook();
 
-export type SmbdoGetDocumentRequestQueryResult = NonNullable<
-  Awaited<ReturnType<typeof smbdoGetDocumentRequest>>
->;
-export type SmbdoGetDocumentRequestQueryError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N500Response
-  | N503Response
->;
+    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentRequestHook>>>> = ({ signal }) => smbdoGetDocumentRequest(id, requestOptions, signal);
 
-export function useSmbdoGetDocumentRequest<
-  TData = Awaited<ReturnType<typeof smbdoGetDocumentRequest>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: DocumentRequestId,
-  options: {
-    query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoGetDocumentRequest>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentRequestHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SmbdoGetDocumentRequestQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentRequestHook>>>>
+export type SmbdoGetDocumentRequestQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
+
+
+export function useSmbdoGetDocumentRequest<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentRequestHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ id: DocumentRequestId, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentRequestHook>>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof smbdoGetDocumentRequest>>,
+          Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentRequestHook>>>,
           TError,
-          Awaited<ReturnType<typeof smbdoGetDocumentRequest>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useSmbdoGetDocumentRequest<
-  TData = Awaited<ReturnType<typeof smbdoGetDocumentRequest>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: DocumentRequestId,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoGetDocumentRequest>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
+          Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentRequestHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSmbdoGetDocumentRequest<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentRequestHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ id: DocumentRequestId, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentRequestHook>>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof smbdoGetDocumentRequest>>,
+          Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentRequestHook>>>,
           TError,
-          Awaited<ReturnType<typeof smbdoGetDocumentRequest>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useSmbdoGetDocumentRequest<
-  TData = Awaited<ReturnType<typeof smbdoGetDocumentRequest>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: DocumentRequestId,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoGetDocumentRequest>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+          Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentRequestHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSmbdoGetDocumentRequest<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentRequestHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ id: DocumentRequestId, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentRequestHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get document request
  */
 
-export function useSmbdoGetDocumentRequest<
-  TData = Awaited<ReturnType<typeof smbdoGetDocumentRequest>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: DocumentRequestId,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoGetDocumentRequest>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getSmbdoGetDocumentRequestQueryOptions(id, options);
+export function useSmbdoGetDocumentRequest<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentRequestHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ id: DocumentRequestId, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentRequestHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const queryOptions = useSmbdoGetDocumentRequestQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+
+
+
 
 /**
  * Submit a document request after documents that fulfill the request have been submitted.
  * @summary Submit a document request
  */
-export const smbdoSubmitDocumentRequest = (
-  id: DocumentRequestId,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const useSmbdoSubmitDocumentRequestHook = () => {
+        const smbdoSubmitDocumentRequest = useEbInstance<N202Response>();
+
+        return useCallback((
+    id: DocumentRequestId,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<N202Response>(
-    { url: `/document-requests/${id}/submit`, method: 'POST', signal },
-    options
-  );
-};
+        return smbdoSubmitDocumentRequest(
+          {url: `/document-requests/${id}/submit`, method: 'POST', signal
+    },
+          options);
+        }, [smbdoSubmitDocumentRequest])
+      }
+    
 
-export const getSmbdoSubmitDocumentRequestMutationOptions = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof smbdoSubmitDocumentRequest>>,
-    TError,
-    { id: DocumentRequestId },
-    TContext
-  >;
-  request?: SecondParameter<typeof ebInstance>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof smbdoSubmitDocumentRequest>>,
-  TError,
-  { id: DocumentRequestId },
-  TContext
-> => {
-  const mutationKey = ['smbdoSubmitDocumentRequest'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof smbdoSubmitDocumentRequest>>,
-    { id: DocumentRequestId }
-  > = (props) => {
-    const { id } = props ?? {};
+export const useSmbdoSubmitDocumentRequestMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoSubmitDocumentRequestHook>>>, TError,{id: DocumentRequestId}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoSubmitDocumentRequestHook>>>, TError,{id: DocumentRequestId}, TContext> => {
 
-    return smbdoSubmitDocumentRequest(id, requestOptions);
-  };
+const mutationKey = ['smbdoSubmitDocumentRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
 
-  return { mutationFn, ...mutationOptions };
-};
+      const smbdoSubmitDocumentRequest =  useSmbdoSubmitDocumentRequestHook()
 
-export type SmbdoSubmitDocumentRequestMutationResult = NonNullable<
-  Awaited<ReturnType<typeof smbdoSubmitDocumentRequest>>
->;
 
-export type SmbdoSubmitDocumentRequestMutationError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N409Response
-  | N422Response
-  | N500Response
-  | N503Response
->;
+      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useSmbdoSubmitDocumentRequestHook>>>, {id: DocumentRequestId}> = (props) => {
+          const {id} = props ?? {};
 
-/**
+          return  smbdoSubmitDocumentRequest(id,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SmbdoSubmitDocumentRequestMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSmbdoSubmitDocumentRequestHook>>>>
+    
+    export type SmbdoSubmitDocumentRequestMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>
+
+    /**
  * @summary Submit a document request
  */
-export const useSmbdoSubmitDocumentRequest = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof smbdoSubmitDocumentRequest>>,
-      TError,
-      { id: DocumentRequestId },
-      TContext
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof smbdoSubmitDocumentRequest>>,
-  TError,
-  { id: DocumentRequestId },
-  TContext
-> => {
-  return useMutation(
-    getSmbdoSubmitDocumentRequestMutationOptions(options),
-    queryClient
-  );
-};
-
+export const useSmbdoSubmitDocumentRequest = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoSubmitDocumentRequestHook>>>, TError,{id: DocumentRequestId}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<ReturnType<typeof useSmbdoSubmitDocumentRequestHook>>>,
+        TError,
+        {id: DocumentRequestId},
+        TContext
+      > => {
+      return useMutation(useSmbdoSubmitDocumentRequestMutationOptions(options), queryClient);
+    }
+    
 /**
  * This section allows the user to attach the binary file upload and meta-data associated with the document.
 
  * @summary Upload document
  */
-export const smbdoUploadDocument = (
-  smbdoUploadDocumentBody: BodyType<SmbdoUploadDocumentBody>,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
-) => {
-  const formData = new FormData();
-  formData.append(`file`, smbdoUploadDocumentBody.file);
-  formData.append(`documentData`, smbdoUploadDocumentBody.documentData);
+export const useSmbdoUploadDocumentHook = () => {
+        const smbdoUploadDocument = useEbInstance<DocumentResponse>();
 
-  return ebInstance<DocumentResponse>(
-    { url: `/documents`, method: 'POST', data: formData, signal },
-    options
-  );
-};
+        return useCallback((
+    smbdoUploadDocumentBody: BodyType<SmbdoUploadDocumentBody>,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
+) => {const formData = new FormData();
+formData.append(`file`, smbdoUploadDocumentBody.file);
+formData.append(`documentData`, smbdoUploadDocumentBody.documentData);
 
-export const getSmbdoUploadDocumentMutationOptions = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof smbdoUploadDocument>>,
-    TError,
-    { data: BodyType<SmbdoUploadDocumentBody> },
-    TContext
-  >;
-  request?: SecondParameter<typeof ebInstance>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof smbdoUploadDocument>>,
-  TError,
-  { data: BodyType<SmbdoUploadDocumentBody> },
-  TContext
-> => {
-  const mutationKey = ['smbdoUploadDocument'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+        return smbdoUploadDocument(
+          {url: `/documents`, method: 'POST',
+       data: formData, signal
+    },
+          options);
+        }, [smbdoUploadDocument])
+      }
+    
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof smbdoUploadDocument>>,
-    { data: BodyType<SmbdoUploadDocumentBody> }
-  > = (props) => {
-    const { data } = props ?? {};
 
-    return smbdoUploadDocument(data, requestOptions);
-  };
+export const useSmbdoUploadDocumentMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoUploadDocumentHook>>>, TError,{data: BodyType<SmbdoUploadDocumentBody>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoUploadDocumentHook>>>, TError,{data: BodyType<SmbdoUploadDocumentBody>}, TContext> => {
 
-  return { mutationFn, ...mutationOptions };
-};
+const mutationKey = ['smbdoUploadDocument'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
 
-export type SmbdoUploadDocumentMutationResult = NonNullable<
-  Awaited<ReturnType<typeof smbdoUploadDocument>>
->;
-export type SmbdoUploadDocumentMutationBody = BodyType<SmbdoUploadDocumentBody>;
-export type SmbdoUploadDocumentMutationError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N409Response
-  | N422Response
-  | N500Response
-  | N503Response
->;
+      const smbdoUploadDocument =  useSmbdoUploadDocumentHook()
 
-/**
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useSmbdoUploadDocumentHook>>>, {data: BodyType<SmbdoUploadDocumentBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  smbdoUploadDocument(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SmbdoUploadDocumentMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSmbdoUploadDocumentHook>>>>
+    export type SmbdoUploadDocumentMutationBody = BodyType<SmbdoUploadDocumentBody>
+    export type SmbdoUploadDocumentMutationError = ErrorType<N400Response | N401Response | N403Response | N409Response | N422Response | N500Response | N503Response>
+
+    /**
  * @summary Upload document
  */
-export const useSmbdoUploadDocument = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof smbdoUploadDocument>>,
-      TError,
-      { data: BodyType<SmbdoUploadDocumentBody> },
-      TContext
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof smbdoUploadDocument>>,
-  TError,
-  { data: BodyType<SmbdoUploadDocumentBody> },
-  TContext
-> => {
-  return useMutation(
-    getSmbdoUploadDocumentMutationOptions(options),
-    queryClient
-  );
-};
-
+export const useSmbdoUploadDocument = <TError = ErrorType<N400Response | N401Response | N403Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoUploadDocumentHook>>>, TError,{data: BodyType<SmbdoUploadDocumentBody>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<ReturnType<typeof useSmbdoUploadDocumentHook>>>,
+        TError,
+        {data: BodyType<SmbdoUploadDocumentBody>},
+        TContext
+      > => {
+      return useMutation(useSmbdoUploadDocumentMutationOptions(options), queryClient);
+    }
+    
 /**
  * Retrieves a list of document details.
 
  * @summary List document details
  */
-export const smbdoGetAllDocumentDetails = (
-  params?: SmbdoGetAllDocumentDetailsParams,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const useSmbdoGetAllDocumentDetailsHook = () => {
+        const smbdoGetAllDocumentDetails = useEbInstance<ListDocumentsResponse>();
+
+        return useCallback((
+    params?: SmbdoGetAllDocumentDetailsParams,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<ListDocumentsResponse>(
-    { url: `/documents`, method: 'GET', params, signal },
-    options
-  );
-};
+        return smbdoGetAllDocumentDetails(
+          {url: `/documents`, method: 'GET',
+        params, signal
+    },
+          options);
+        }, [smbdoGetAllDocumentDetails])
+      }
+    
 
-export const getSmbdoGetAllDocumentDetailsQueryKey = (
-  params?: SmbdoGetAllDocumentDetailsParams
+
+
+export const getSmbdoGetAllDocumentDetailsQueryKey = (params?: SmbdoGetAllDocumentDetailsParams,) => {
+    return [
+    `/documents`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+    
+export const useSmbdoGetAllDocumentDetailsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetAllDocumentDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(params?: SmbdoGetAllDocumentDetailsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetAllDocumentDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
 ) => {
-  return [`/documents`, ...(params ? [params] : [])] as const;
-};
 
-export const getSmbdoGetAllDocumentDetailsQueryOptions = <
-  TData = Awaited<ReturnType<typeof smbdoGetAllDocumentDetails>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params?: SmbdoGetAllDocumentDetailsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoGetAllDocumentDetails>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  }
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ?? getSmbdoGetAllDocumentDetailsQueryKey(params);
+  const queryKey =  queryOptions?.queryKey ?? getSmbdoGetAllDocumentDetailsQueryKey(params);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof smbdoGetAllDocumentDetails>>
-  > = ({ signal }) =>
-    smbdoGetAllDocumentDetails(params, requestOptions, signal);
+  const smbdoGetAllDocumentDetails =  useSmbdoGetAllDocumentDetailsHook();
 
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof smbdoGetAllDocumentDetails>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-};
+    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useSmbdoGetAllDocumentDetailsHook>>>> = ({ signal }) => smbdoGetAllDocumentDetails(params, requestOptions, signal);
 
-export type SmbdoGetAllDocumentDetailsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof smbdoGetAllDocumentDetails>>
->;
-export type SmbdoGetAllDocumentDetailsQueryError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N500Response
-  | N503Response
->;
+      
 
-export function useSmbdoGetAllDocumentDetails<
-  TData = Awaited<ReturnType<typeof smbdoGetAllDocumentDetails>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params: undefined | SmbdoGetAllDocumentDetailsParams,
-  options: {
-    query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoGetAllDocumentDetails>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetAllDocumentDetailsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SmbdoGetAllDocumentDetailsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSmbdoGetAllDocumentDetailsHook>>>>
+export type SmbdoGetAllDocumentDetailsQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
+
+
+export function useSmbdoGetAllDocumentDetails<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetAllDocumentDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params: undefined |  SmbdoGetAllDocumentDetailsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetAllDocumentDetailsHook>>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof smbdoGetAllDocumentDetails>>,
+          Awaited<ReturnType<ReturnType<typeof useSmbdoGetAllDocumentDetailsHook>>>,
           TError,
-          Awaited<ReturnType<typeof smbdoGetAllDocumentDetails>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useSmbdoGetAllDocumentDetails<
-  TData = Awaited<ReturnType<typeof smbdoGetAllDocumentDetails>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params?: SmbdoGetAllDocumentDetailsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoGetAllDocumentDetails>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
+          Awaited<ReturnType<ReturnType<typeof useSmbdoGetAllDocumentDetailsHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSmbdoGetAllDocumentDetails<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetAllDocumentDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params?: SmbdoGetAllDocumentDetailsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetAllDocumentDetailsHook>>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof smbdoGetAllDocumentDetails>>,
+          Awaited<ReturnType<ReturnType<typeof useSmbdoGetAllDocumentDetailsHook>>>,
           TError,
-          Awaited<ReturnType<typeof smbdoGetAllDocumentDetails>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useSmbdoGetAllDocumentDetails<
-  TData = Awaited<ReturnType<typeof smbdoGetAllDocumentDetails>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params?: SmbdoGetAllDocumentDetailsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoGetAllDocumentDetails>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+          Awaited<ReturnType<ReturnType<typeof useSmbdoGetAllDocumentDetailsHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSmbdoGetAllDocumentDetails<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetAllDocumentDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params?: SmbdoGetAllDocumentDetailsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetAllDocumentDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary List document details
  */
 
-export function useSmbdoGetAllDocumentDetails<
-  TData = Awaited<ReturnType<typeof smbdoGetAllDocumentDetails>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params?: SmbdoGetAllDocumentDetailsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoGetAllDocumentDetails>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getSmbdoGetAllDocumentDetailsQueryOptions(
-    params,
-    options
-  );
+export function useSmbdoGetAllDocumentDetails<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetAllDocumentDetailsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params?: SmbdoGetAllDocumentDetailsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetAllDocumentDetailsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const queryOptions = useSmbdoGetAllDocumentDetailsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+
+
+
 
 /**
  * Retrieve details of a document.
 
  * @summary Get document details
  */
-export const smbdoGetDocumentDetail = (
-  id: string,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const useSmbdoGetDocumentDetailHook = () => {
+        const smbdoGetDocumentDetail = useEbInstance<DocumentResponse>();
+
+        return useCallback((
+    id: string,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<DocumentResponse>(
-    { url: `/documents/${id}`, method: 'GET', signal },
-    options
-  );
-};
+        return smbdoGetDocumentDetail(
+          {url: `/documents/${id}`, method: 'GET', signal
+    },
+          options);
+        }, [smbdoGetDocumentDetail])
+      }
+    
 
-export const getSmbdoGetDocumentDetailQueryKey = (id: string) => {
-  return [`/documents/${id}`] as const;
-};
 
-export const getSmbdoGetDocumentDetailQueryOptions = <
-  TData = Awaited<ReturnType<typeof smbdoGetDocumentDetail>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoGetDocumentDetail>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  }
+
+export const getSmbdoGetDocumentDetailQueryKey = (id: string,) => {
+    return [
+    `/documents/${id}`
+    ] as const;
+    }
+
+    
+export const useSmbdoGetDocumentDetailQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentDetailHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentDetailHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ?? getSmbdoGetDocumentDetailQueryKey(id);
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof smbdoGetDocumentDetail>>
-  > = ({ signal }) => smbdoGetDocumentDetail(id, requestOptions, signal);
+  const queryKey =  queryOptions?.queryKey ?? getSmbdoGetDocumentDetailQueryKey(id);
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!id,
-    ...queryOptions,
-  } as UseQueryOptions<
-    Awaited<ReturnType<typeof smbdoGetDocumentDetail>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-};
+  const smbdoGetDocumentDetail =  useSmbdoGetDocumentDetailHook();
 
-export type SmbdoGetDocumentDetailQueryResult = NonNullable<
-  Awaited<ReturnType<typeof smbdoGetDocumentDetail>>
->;
-export type SmbdoGetDocumentDetailQueryError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N500Response
-  | N503Response
->;
+    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentDetailHook>>>> = ({ signal }) => smbdoGetDocumentDetail(id, requestOptions, signal);
 
-export function useSmbdoGetDocumentDetail<
-  TData = Awaited<ReturnType<typeof smbdoGetDocumentDetail>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: string,
-  options: {
-    query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoGetDocumentDetail>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentDetailHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SmbdoGetDocumentDetailQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentDetailHook>>>>
+export type SmbdoGetDocumentDetailQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
+
+
+export function useSmbdoGetDocumentDetail<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentDetailHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentDetailHook>>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof smbdoGetDocumentDetail>>,
+          Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentDetailHook>>>,
           TError,
-          Awaited<ReturnType<typeof smbdoGetDocumentDetail>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useSmbdoGetDocumentDetail<
-  TData = Awaited<ReturnType<typeof smbdoGetDocumentDetail>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoGetDocumentDetail>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
+          Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentDetailHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSmbdoGetDocumentDetail<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentDetailHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentDetailHook>>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof smbdoGetDocumentDetail>>,
+          Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentDetailHook>>>,
           TError,
-          Awaited<ReturnType<typeof smbdoGetDocumentDetail>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useSmbdoGetDocumentDetail<
-  TData = Awaited<ReturnType<typeof smbdoGetDocumentDetail>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoGetDocumentDetail>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+          Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentDetailHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSmbdoGetDocumentDetail<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentDetailHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentDetailHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get document details
  */
 
-export function useSmbdoGetDocumentDetail<
-  TData = Awaited<ReturnType<typeof smbdoGetDocumentDetail>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoGetDocumentDetail>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getSmbdoGetDocumentDetailQueryOptions(id, options);
+export function useSmbdoGetDocumentDetail<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentDetailHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoGetDocumentDetailHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const queryOptions = useSmbdoGetDocumentDetailQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+
+
+
 
 /**
  * Download a document using its unique identifier.
  * @summary Download a document
  */
-export const smbdoDownloadDocument = (
-  id: string,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const useSmbdoDownloadDocumentHook = () => {
+        const smbdoDownloadDocument = useEbInstance<Blob | SmbdoDownloadDocument200Six>();
+
+        return useCallback((
+    id: string,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<Blob | SmbdoDownloadDocument200Six>(
-    { url: `/documents/${id}/file`, method: 'GET', signal },
-    options
-  );
-};
+        return smbdoDownloadDocument(
+          {url: `/documents/${id}/file`, method: 'GET', signal
+    },
+          options);
+        }, [smbdoDownloadDocument])
+      }
+    
 
-export const getSmbdoDownloadDocumentQueryKey = (id: string) => {
-  return [`/documents/${id}/file`] as const;
-};
 
-export const getSmbdoDownloadDocumentQueryOptions = <
-  TData = Awaited<ReturnType<typeof smbdoDownloadDocument>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoDownloadDocument>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  }
+
+export const getSmbdoDownloadDocumentQueryKey = (id: string,) => {
+    return [
+    `/documents/${id}/file`
+    ] as const;
+    }
+
+    
+export const useSmbdoDownloadDocumentQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useSmbdoDownloadDocumentHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoDownloadDocumentHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ?? getSmbdoDownloadDocumentQueryKey(id);
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof smbdoDownloadDocument>>
-  > = ({ signal }) => smbdoDownloadDocument(id, requestOptions, signal);
+  const queryKey =  queryOptions?.queryKey ?? getSmbdoDownloadDocumentQueryKey(id);
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!id,
-    ...queryOptions,
-  } as UseQueryOptions<
-    Awaited<ReturnType<typeof smbdoDownloadDocument>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-};
+  const smbdoDownloadDocument =  useSmbdoDownloadDocumentHook();
 
-export type SmbdoDownloadDocumentQueryResult = NonNullable<
-  Awaited<ReturnType<typeof smbdoDownloadDocument>>
->;
-export type SmbdoDownloadDocumentQueryError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N500Response
-  | N503Response
->;
+    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useSmbdoDownloadDocumentHook>>>> = ({ signal }) => smbdoDownloadDocument(id, requestOptions, signal);
 
-export function useSmbdoDownloadDocument<
-  TData = Awaited<ReturnType<typeof smbdoDownloadDocument>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: string,
-  options: {
-    query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoDownloadDocument>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoDownloadDocumentHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SmbdoDownloadDocumentQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSmbdoDownloadDocumentHook>>>>
+export type SmbdoDownloadDocumentQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
+
+
+export function useSmbdoDownloadDocument<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoDownloadDocumentHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoDownloadDocumentHook>>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof smbdoDownloadDocument>>,
+          Awaited<ReturnType<ReturnType<typeof useSmbdoDownloadDocumentHook>>>,
           TError,
-          Awaited<ReturnType<typeof smbdoDownloadDocument>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useSmbdoDownloadDocument<
-  TData = Awaited<ReturnType<typeof smbdoDownloadDocument>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoDownloadDocument>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
+          Awaited<ReturnType<ReturnType<typeof useSmbdoDownloadDocumentHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSmbdoDownloadDocument<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoDownloadDocumentHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoDownloadDocumentHook>>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof smbdoDownloadDocument>>,
+          Awaited<ReturnType<ReturnType<typeof useSmbdoDownloadDocumentHook>>>,
           TError,
-          Awaited<ReturnType<typeof smbdoDownloadDocument>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useSmbdoDownloadDocument<
-  TData = Awaited<ReturnType<typeof smbdoDownloadDocument>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoDownloadDocument>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+          Awaited<ReturnType<ReturnType<typeof useSmbdoDownloadDocumentHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSmbdoDownloadDocument<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoDownloadDocumentHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoDownloadDocumentHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Download a document
  */
 
-export function useSmbdoDownloadDocument<
-  TData = Awaited<ReturnType<typeof smbdoDownloadDocument>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoDownloadDocument>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getSmbdoDownloadDocumentQueryOptions(id, options);
+export function useSmbdoDownloadDocument<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoDownloadDocumentHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoDownloadDocumentHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const queryOptions = useSmbdoDownloadDocumentQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+
+
+
 
 /**
  * Retrieves a list of parties.
  * @summary List parties
  */
-export const getAllParties = (
-  params?: GetAllPartiesParams,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const useGetAllPartiesHook = () => {
+        const getAllParties = useEbInstance<ListPartyResponse>();
+
+        return useCallback((
+    params?: GetAllPartiesParams,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<ListPartyResponse>(
-    { url: `/parties`, method: 'GET', params, signal },
-    options
-  );
-};
+        return getAllParties(
+          {url: `/parties`, method: 'GET',
+        params, signal
+    },
+          options);
+        }, [getAllParties])
+      }
+    
 
-export const getGetAllPartiesQueryKey = (params?: GetAllPartiesParams) => {
-  return [`/parties`, ...(params ? [params] : [])] as const;
-};
 
-export const getGetAllPartiesQueryOptions = <
-  TData = Awaited<ReturnType<typeof getAllParties>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params?: GetAllPartiesParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getAllParties>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  }
+
+export const getGetAllPartiesQueryKey = (params?: GetAllPartiesParams,) => {
+    return [
+    `/parties`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+    
+export const useGetAllPartiesQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetAllPartiesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(params?: GetAllPartiesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllPartiesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetAllPartiesQueryKey(params);
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllParties>>> = ({
-    signal,
-  }) => getAllParties(params, requestOptions, signal);
+  const queryKey =  queryOptions?.queryKey ?? getGetAllPartiesQueryKey(params);
 
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getAllParties>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-};
+  const getAllParties =  useGetAllPartiesHook();
 
-export type GetAllPartiesQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getAllParties>>
->;
-export type GetAllPartiesQueryError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N500Response
-  | N503Response
->;
+    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetAllPartiesHook>>>> = ({ signal }) => getAllParties(params, requestOptions, signal);
 
-export function useGetAllParties<
-  TData = Awaited<ReturnType<typeof getAllParties>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params: undefined | GetAllPartiesParams,
-  options: {
-    query: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getAllParties>>, TError, TData>
-    > &
-      Pick<
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllPartiesHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAllPartiesQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetAllPartiesHook>>>>
+export type GetAllPartiesQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
+
+
+export function useGetAllParties<TData = Awaited<ReturnType<ReturnType<typeof useGetAllPartiesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params: undefined |  GetAllPartiesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllPartiesHook>>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getAllParties>>,
+          Awaited<ReturnType<ReturnType<typeof useGetAllPartiesHook>>>,
           TError,
-          Awaited<ReturnType<typeof getAllParties>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useGetAllParties<
-  TData = Awaited<ReturnType<typeof getAllParties>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params?: GetAllPartiesParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getAllParties>>, TError, TData>
-    > &
-      Pick<
+          Awaited<ReturnType<ReturnType<typeof useGetAllPartiesHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAllParties<TData = Awaited<ReturnType<ReturnType<typeof useGetAllPartiesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params?: GetAllPartiesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllPartiesHook>>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getAllParties>>,
+          Awaited<ReturnType<ReturnType<typeof useGetAllPartiesHook>>>,
           TError,
-          Awaited<ReturnType<typeof getAllParties>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useGetAllParties<
-  TData = Awaited<ReturnType<typeof getAllParties>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params?: GetAllPartiesParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getAllParties>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+          Awaited<ReturnType<ReturnType<typeof useGetAllPartiesHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAllParties<TData = Awaited<ReturnType<ReturnType<typeof useGetAllPartiesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params?: GetAllPartiesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllPartiesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary List parties
  */
 
-export function useGetAllParties<
-  TData = Awaited<ReturnType<typeof getAllParties>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params?: GetAllPartiesParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getAllParties>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getGetAllPartiesQueryOptions(params, options);
+export function useGetAllParties<TData = Awaited<ReturnType<ReturnType<typeof useGetAllPartiesHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params?: GetAllPartiesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetAllPartiesHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const queryOptions = useGetAllPartiesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+
+
+
 
 /**
  * Creates a new party.
  * @summary Create party
  */
-export const postParty = (
-  createPartyRequest: BodyType<CreatePartyRequest>,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const usePostPartyHook = () => {
+        const postParty = useEbInstance<PartyResponse>();
+
+        return useCallback((
+    createPartyRequest: BodyType<CreatePartyRequest>,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<PartyResponse>(
-    {
-      url: `/parties`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: createPartyRequest,
-      signal,
+        return postParty(
+          {url: `/parties`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createPartyRequest, signal
     },
-    options
-  );
-};
+          options);
+        }, [postParty])
+      }
+    
 
-export const getPostPartyMutationOptions = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof postParty>>,
-    TError,
-    { data: BodyType<CreatePartyRequest> },
-    TContext
-  >;
-  request?: SecondParameter<typeof ebInstance>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof postParty>>,
-  TError,
-  { data: BodyType<CreatePartyRequest> },
-  TContext
-> => {
-  const mutationKey = ['postParty'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof postParty>>,
-    { data: BodyType<CreatePartyRequest> }
-  > = (props) => {
-    const { data } = props ?? {};
+export const usePostPartyMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof usePostPartyHook>>>, TError,{data: BodyType<CreatePartyRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof usePostPartyHook>>>, TError,{data: BodyType<CreatePartyRequest>}, TContext> => {
 
-    return postParty(data, requestOptions);
-  };
+const mutationKey = ['postParty'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
 
-  return { mutationFn, ...mutationOptions };
-};
+      const postParty =  usePostPartyHook()
 
-export type PostPartyMutationResult = NonNullable<
-  Awaited<ReturnType<typeof postParty>>
->;
-export type PostPartyMutationBody = BodyType<CreatePartyRequest>;
-export type PostPartyMutationError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N409Response
-  | N422Response
-  | N500Response
-  | N503Response
->;
 
-/**
+      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof usePostPartyHook>>>, {data: BodyType<CreatePartyRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  postParty(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostPartyMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof usePostPartyHook>>>>
+    export type PostPartyMutationBody = BodyType<CreatePartyRequest>
+    export type PostPartyMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>
+
+    /**
  * @summary Create party
  */
-export const usePostParty = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof postParty>>,
-      TError,
-      { data: BodyType<CreatePartyRequest> },
-      TContext
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof postParty>>,
-  TError,
-  { data: BodyType<CreatePartyRequest> },
-  TContext
-> => {
-  return useMutation(getPostPartyMutationOptions(options), queryClient);
-};
-
+export const usePostParty = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof usePostPartyHook>>>, TError,{data: BodyType<CreatePartyRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<ReturnType<typeof usePostPartyHook>>>,
+        TError,
+        {data: BodyType<CreatePartyRequest>},
+        TContext
+      > => {
+      return useMutation(usePostPartyMutationOptions(options), queryClient);
+    }
+    
 /**
  * Details a party by its unique identifier.
  * @summary Get party
  */
-export const getParty = (
-  partyId: string,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const useGetPartyHook = () => {
+        const getParty = useEbInstance<PartyResponse>();
+
+        return useCallback((
+    partyId: string,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<PartyResponse>(
-    { url: `/parties/${partyId}`, method: 'GET', signal },
-    options
-  );
-};
+        return getParty(
+          {url: `/parties/${partyId}`, method: 'GET', signal
+    },
+          options);
+        }, [getParty])
+      }
+    
 
-export const getGetPartyQueryKey = (partyId: string) => {
-  return [`/parties/${partyId}`] as const;
-};
 
-export const getGetPartyQueryOptions = <
-  TData = Awaited<ReturnType<typeof getParty>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  partyId: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getParty>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  }
+
+export const getGetPartyQueryKey = (partyId: string,) => {
+    return [
+    `/parties/${partyId}`
+    ] as const;
+    }
+
+    
+export const useGetPartyQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useGetPartyHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(partyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetPartyHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetPartyQueryKey(partyId);
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getParty>>> = ({
-    signal,
-  }) => getParty(partyId, requestOptions, signal);
+  const queryKey =  queryOptions?.queryKey ?? getGetPartyQueryKey(partyId);
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!partyId,
-    ...queryOptions,
-  } as UseQueryOptions<Awaited<ReturnType<typeof getParty>>, TError, TData> & {
-    queryKey: DataTag<QueryKey, TData, TError>;
-  };
-};
+  const getParty =  useGetPartyHook();
 
-export type GetPartyQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getParty>>
->;
-export type GetPartyQueryError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N500Response
-  | N503Response
->;
+    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useGetPartyHook>>>> = ({ signal }) => getParty(partyId, requestOptions, signal);
 
-export function useGetParty<
-  TData = Awaited<ReturnType<typeof getParty>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  partyId: string,
-  options: {
-    query: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getParty>>, TError, TData>
-    > &
-      Pick<
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(partyId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetPartyHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPartyQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useGetPartyHook>>>>
+export type GetPartyQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
+
+
+export function useGetParty<TData = Awaited<ReturnType<ReturnType<typeof useGetPartyHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ partyId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetPartyHook>>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getParty>>,
+          Awaited<ReturnType<ReturnType<typeof useGetPartyHook>>>,
           TError,
-          Awaited<ReturnType<typeof getParty>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useGetParty<
-  TData = Awaited<ReturnType<typeof getParty>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  partyId: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getParty>>, TError, TData>
-    > &
-      Pick<
+          Awaited<ReturnType<ReturnType<typeof useGetPartyHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetParty<TData = Awaited<ReturnType<ReturnType<typeof useGetPartyHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ partyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetPartyHook>>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getParty>>,
+          Awaited<ReturnType<ReturnType<typeof useGetPartyHook>>>,
           TError,
-          Awaited<ReturnType<typeof getParty>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useGetParty<
-  TData = Awaited<ReturnType<typeof getParty>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  partyId: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getParty>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+          Awaited<ReturnType<ReturnType<typeof useGetPartyHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetParty<TData = Awaited<ReturnType<ReturnType<typeof useGetPartyHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ partyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetPartyHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get party
  */
 
-export function useGetParty<
-  TData = Awaited<ReturnType<typeof getParty>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  partyId: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getParty>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getGetPartyQueryOptions(partyId, options);
+export function useGetParty<TData = Awaited<ReturnType<ReturnType<typeof useGetPartyHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ partyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useGetPartyHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const queryOptions = useGetPartyQueryOptions(partyId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
 
-/**
- * Updates a party.
- * @summary Update party
- */
-export const updatePartyLegacy = (
-  partyId: string,
-  updatePartyRequest: BodyType<UpdatePartyRequest>,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
-) => {
-  return ebInstance<PartyResponse>(
-    {
-      url: `/parties/${partyId}`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: updatePartyRequest,
-      signal,
-    },
-    options
-  );
-};
 
-export const getUpdatePartyLegacyMutationOptions = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof updatePartyLegacy>>,
-    TError,
-    { partyId: string; data: BodyType<UpdatePartyRequest> },
-    TContext
-  >;
-  request?: SecondParameter<typeof ebInstance>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof updatePartyLegacy>>,
-  TError,
-  { partyId: string; data: BodyType<UpdatePartyRequest> },
-  TContext
-> => {
-  const mutationKey = ['updatePartyLegacy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof updatePartyLegacy>>,
-    { partyId: string; data: BodyType<UpdatePartyRequest> }
-  > = (props) => {
-    const { partyId, data } = props ?? {};
 
-    return updatePartyLegacy(partyId, data, requestOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type UpdatePartyLegacyMutationResult = NonNullable<
-  Awaited<ReturnType<typeof updatePartyLegacy>>
->;
-export type UpdatePartyLegacyMutationBody = BodyType<UpdatePartyRequest>;
-export type UpdatePartyLegacyMutationError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N409Response
-  | N422Response
-  | N500Response
-  | N503Response
->;
-
-/**
- * @summary Update party
- */
-export const useUpdatePartyLegacy = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof updatePartyLegacy>>,
-      TError,
-      { partyId: string; data: BodyType<UpdatePartyRequest> },
-      TContext
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof updatePartyLegacy>>,
-  TError,
-  { partyId: string; data: BodyType<UpdatePartyRequest> },
-  TContext
-> => {
-  return useMutation(getUpdatePartyLegacyMutationOptions(options), queryClient);
-};
 
 /**
  * Updates a party.
  * @summary Update party
  */
-export const updateParty = (
-  partyId: string,
-  updatePartyRequest: BodyType<UpdatePartyRequest>,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const useUpdatePartyLegacyHook = () => {
+        const updatePartyLegacy = useEbInstance<PartyResponse>();
+
+        return useCallback((
+    partyId: string,
+    updatePartyRequest: BodyType<UpdatePartyRequest>,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<PartyResponse>(
-    {
-      url: `/parties/${partyId}`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: updatePartyRequest,
-      signal,
+        return updatePartyLegacy(
+          {url: `/parties/${partyId}`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: updatePartyRequest, signal
     },
-    options
-  );
-};
+          options);
+        }, [updatePartyLegacy])
+      }
+    
 
-export const getUpdatePartyMutationOptions = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof updateParty>>,
-    TError,
-    { partyId: string; data: BodyType<UpdatePartyRequest> },
-    TContext
-  >;
-  request?: SecondParameter<typeof ebInstance>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof updateParty>>,
-  TError,
-  { partyId: string; data: BodyType<UpdatePartyRequest> },
-  TContext
-> => {
-  const mutationKey = ['updateParty'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof updateParty>>,
-    { partyId: string; data: BodyType<UpdatePartyRequest> }
-  > = (props) => {
-    const { partyId, data } = props ?? {};
+export const useUpdatePartyLegacyMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdatePartyLegacyHook>>>, TError,{partyId: string;data: BodyType<UpdatePartyRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdatePartyLegacyHook>>>, TError,{partyId: string;data: BodyType<UpdatePartyRequest>}, TContext> => {
 
-    return updateParty(partyId, data, requestOptions);
-  };
+const mutationKey = ['updatePartyLegacy'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
 
-  return { mutationFn, ...mutationOptions };
-};
+      const updatePartyLegacy =  useUpdatePartyLegacyHook()
 
-export type UpdatePartyMutationResult = NonNullable<
-  Awaited<ReturnType<typeof updateParty>>
->;
-export type UpdatePartyMutationBody = BodyType<UpdatePartyRequest>;
-export type UpdatePartyMutationError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N409Response
-  | N422Response
-  | N500Response
-  | N503Response
->;
 
-/**
+      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useUpdatePartyLegacyHook>>>, {partyId: string;data: BodyType<UpdatePartyRequest>}> = (props) => {
+          const {partyId,data} = props ?? {};
+
+          return  updatePartyLegacy(partyId,data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdatePartyLegacyMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useUpdatePartyLegacyHook>>>>
+    export type UpdatePartyLegacyMutationBody = BodyType<UpdatePartyRequest>
+    export type UpdatePartyLegacyMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>
+
+    /**
  * @summary Update party
  */
-export const useUpdateParty = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof updateParty>>,
-      TError,
-      { partyId: string; data: BodyType<UpdatePartyRequest> },
-      TContext
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof updateParty>>,
-  TError,
-  { partyId: string; data: BodyType<UpdatePartyRequest> },
-  TContext
-> => {
-  return useMutation(getUpdatePartyMutationOptions(options), queryClient);
-};
+export const useUpdatePartyLegacy = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdatePartyLegacyHook>>>, TError,{partyId: string;data: BodyType<UpdatePartyRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<ReturnType<typeof useUpdatePartyLegacyHook>>>,
+        TError,
+        {partyId: string;data: BodyType<UpdatePartyRequest>},
+        TContext
+      > => {
+      return useMutation(useUpdatePartyLegacyMutationOptions(options), queryClient);
+    }
+    
+/**
+ * Updates a party.
+ * @summary Update party
+ */
+export const useUpdatePartyHook = () => {
+        const updateParty = useEbInstance<PartyResponse>();
 
+        return useCallback((
+    partyId: string,
+    updatePartyRequest: BodyType<UpdatePartyRequest>,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
+) => {
+        return updateParty(
+          {url: `/parties/${partyId}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updatePartyRequest, signal
+    },
+          options);
+        }, [updateParty])
+      }
+    
+
+
+export const useUpdatePartyMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdatePartyHook>>>, TError,{partyId: string;data: BodyType<UpdatePartyRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdatePartyHook>>>, TError,{partyId: string;data: BodyType<UpdatePartyRequest>}, TContext> => {
+
+const mutationKey = ['updateParty'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      const updateParty =  useUpdatePartyHook()
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useUpdatePartyHook>>>, {partyId: string;data: BodyType<UpdatePartyRequest>}> = (props) => {
+          const {partyId,data} = props ?? {};
+
+          return  updateParty(partyId,data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdatePartyMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useUpdatePartyHook>>>>
+    export type UpdatePartyMutationBody = BodyType<UpdatePartyRequest>
+    export type UpdatePartyMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>
+
+    /**
+ * @summary Update party
+ */
+export const useUpdateParty = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useUpdatePartyHook>>>, TError,{partyId: string;data: BodyType<UpdatePartyRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<ReturnType<typeof useUpdatePartyHook>>>,
+        TError,
+        {partyId: string;data: BodyType<UpdatePartyRequest>},
+        TContext
+      > => {
+      return useMutation(useUpdatePartyMutationOptions(options), queryClient);
+    }
+    
 /**
  * Start validation for a Party.
  * @summary Start party validation
  */
-export const postPartyValidations = (
-  partyId: string,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const usePostPartyValidationsHook = () => {
+        const postPartyValidations = useEbInstance<N202Response>();
+
+        return useCallback((
+    partyId: string,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<N202Response>(
-    { url: `/parties/${partyId}/validations`, method: 'POST', signal },
-    options
-  );
-};
+        return postPartyValidations(
+          {url: `/parties/${partyId}/validations`, method: 'POST', signal
+    },
+          options);
+        }, [postPartyValidations])
+      }
+    
 
-export const getPostPartyValidationsMutationOptions = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof postPartyValidations>>,
-    TError,
-    { partyId: string },
-    TContext
-  >;
-  request?: SecondParameter<typeof ebInstance>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof postPartyValidations>>,
-  TError,
-  { partyId: string },
-  TContext
-> => {
-  const mutationKey = ['postPartyValidations'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof postPartyValidations>>,
-    { partyId: string }
-  > = (props) => {
-    const { partyId } = props ?? {};
+export const usePostPartyValidationsMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof usePostPartyValidationsHook>>>, TError,{partyId: string}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof usePostPartyValidationsHook>>>, TError,{partyId: string}, TContext> => {
 
-    return postPartyValidations(partyId, requestOptions);
-  };
+const mutationKey = ['postPartyValidations'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
 
-  return { mutationFn, ...mutationOptions };
-};
+      const postPartyValidations =  usePostPartyValidationsHook()
 
-export type PostPartyValidationsMutationResult = NonNullable<
-  Awaited<ReturnType<typeof postPartyValidations>>
->;
 
-export type PostPartyValidationsMutationError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N409Response
-  | N422Response
-  | N500Response
-  | N503Response
->;
+      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof usePostPartyValidationsHook>>>, {partyId: string}> = (props) => {
+          const {partyId} = props ?? {};
 
-/**
+          return  postPartyValidations(partyId,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostPartyValidationsMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof usePostPartyValidationsHook>>>>
+    
+    export type PostPartyValidationsMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>
+
+    /**
  * @summary Start party validation
  */
-export const usePostPartyValidations = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof postPartyValidations>>,
-      TError,
-      { partyId: string },
-      TContext
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof postPartyValidations>>,
-  TError,
-  { partyId: string },
-  TContext
-> => {
-  return useMutation(
-    getPostPartyValidationsMutationOptions(options),
-    queryClient
-  );
-};
-
+export const usePostPartyValidations = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof usePostPartyValidationsHook>>>, TError,{partyId: string}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<ReturnType<typeof usePostPartyValidationsHook>>>,
+        TError,
+        {partyId: string},
+        TContext
+      > => {
+      return useMutation(usePostPartyValidationsMutationOptions(options), queryClient);
+    }
+    
 /**
  * Returns a list of sessions for a client.
  * @summary List sessions
  */
-export const smbdoListSessions = (
-  params: SmbdoListSessionsParams,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const useSmbdoListSessionsHook = () => {
+        const smbdoListSessions = useEbInstance<ListSessionResponse>();
+
+        return useCallback((
+    params: SmbdoListSessionsParams,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<ListSessionResponse>(
-    { url: `/sessions`, method: 'GET', params, signal },
-    options
-  );
-};
+        return smbdoListSessions(
+          {url: `/sessions`, method: 'GET',
+        params, signal
+    },
+          options);
+        }, [smbdoListSessions])
+      }
+    
 
-export const getSmbdoListSessionsQueryKey = (
-  params?: SmbdoListSessionsParams
+
+
+export const getSmbdoListSessionsQueryKey = (params?: SmbdoListSessionsParams,) => {
+    return [
+    `/sessions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+    
+export const useSmbdoListSessionsQueryOptions = <TData = Awaited<ReturnType<ReturnType<typeof useSmbdoListSessionsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(params: SmbdoListSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListSessionsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
 ) => {
-  return [`/sessions`, ...(params ? [params] : [])] as const;
-};
 
-export const getSmbdoListSessionsQueryOptions = <
-  TData = Awaited<ReturnType<typeof smbdoListSessions>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params: SmbdoListSessionsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoListSessions>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  }
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ?? getSmbdoListSessionsQueryKey(params);
+  const queryKey =  queryOptions?.queryKey ?? getSmbdoListSessionsQueryKey(params);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof smbdoListSessions>>
-  > = ({ signal }) => smbdoListSessions(params, requestOptions, signal);
+  const smbdoListSessions =  useSmbdoListSessionsHook();
 
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof smbdoListSessions>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-};
+    const queryFn: QueryFunction<Awaited<ReturnType<ReturnType<typeof useSmbdoListSessionsHook>>>> = ({ signal }) => smbdoListSessions(params, requestOptions, signal);
 
-export type SmbdoListSessionsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof smbdoListSessions>>
->;
-export type SmbdoListSessionsQueryError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N500Response
-  | N503Response
->;
+      
 
-export function useSmbdoListSessions<
-  TData = Awaited<ReturnType<typeof smbdoListSessions>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params: SmbdoListSessionsParams,
-  options: {
-    query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoListSessions>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListSessionsHook>>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SmbdoListSessionsQueryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSmbdoListSessionsHook>>>>
+export type SmbdoListSessionsQueryError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>
+
+
+export function useSmbdoListSessions<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoListSessionsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params: SmbdoListSessionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListSessionsHook>>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof smbdoListSessions>>,
+          Awaited<ReturnType<ReturnType<typeof useSmbdoListSessionsHook>>>,
           TError,
-          Awaited<ReturnType<typeof smbdoListSessions>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useSmbdoListSessions<
-  TData = Awaited<ReturnType<typeof smbdoListSessions>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params: SmbdoListSessionsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoListSessions>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
+          Awaited<ReturnType<ReturnType<typeof useSmbdoListSessionsHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSmbdoListSessions<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoListSessionsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params: SmbdoListSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListSessionsHook>>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof smbdoListSessions>>,
+          Awaited<ReturnType<ReturnType<typeof useSmbdoListSessionsHook>>>,
           TError,
-          Awaited<ReturnType<typeof smbdoListSessions>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useSmbdoListSessions<
-  TData = Awaited<ReturnType<typeof smbdoListSessions>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params: SmbdoListSessionsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoListSessions>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+          Awaited<ReturnType<ReturnType<typeof useSmbdoListSessionsHook>>>
+        > , 'initialData'
+      >, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSmbdoListSessions<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoListSessionsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params: SmbdoListSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListSessionsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary List sessions
  */
 
-export function useSmbdoListSessions<
-  TData = Awaited<ReturnType<typeof smbdoListSessions>>,
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N500Response
-    | N503Response
-  >,
->(
-  params: SmbdoListSessionsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof smbdoListSessions>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getSmbdoListSessionsQueryOptions(params, options);
+export function useSmbdoListSessions<TData = Awaited<ReturnType<ReturnType<typeof useSmbdoListSessionsHook>>>, TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N500Response | N503Response>>(
+ params: SmbdoListSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoListSessionsHook>>>, TError, TData>>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const queryOptions = useSmbdoListSessionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+
+
+
 
 /**
  * Create session.
  * @summary Create session.
  */
-export const smbdoPostSessions = (
-  createSessionRequest: BodyType<CreateSessionRequest>,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const useSmbdoPostSessionsHook = () => {
+        const smbdoPostSessions = useEbInstance<SessionResponse>();
+
+        return useCallback((
+    createSessionRequest: BodyType<CreateSessionRequest>,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<SessionResponse>(
-    {
-      url: `/sessions`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: createSessionRequest,
-      signal,
+        return smbdoPostSessions(
+          {url: `/sessions`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createSessionRequest, signal
     },
-    options
-  );
-};
+          options);
+        }, [smbdoPostSessions])
+      }
+    
 
-export const getSmbdoPostSessionsMutationOptions = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof smbdoPostSessions>>,
-    TError,
-    { data: BodyType<CreateSessionRequest> },
-    TContext
-  >;
-  request?: SecondParameter<typeof ebInstance>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof smbdoPostSessions>>,
-  TError,
-  { data: BodyType<CreateSessionRequest> },
-  TContext
-> => {
-  const mutationKey = ['smbdoPostSessions'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof smbdoPostSessions>>,
-    { data: BodyType<CreateSessionRequest> }
-  > = (props) => {
-    const { data } = props ?? {};
+export const useSmbdoPostSessionsMutationOptions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoPostSessionsHook>>>, TError,{data: BodyType<CreateSessionRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoPostSessionsHook>>>, TError,{data: BodyType<CreateSessionRequest>}, TContext> => {
 
-    return smbdoPostSessions(data, requestOptions);
-  };
+const mutationKey = ['smbdoPostSessions'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
 
-  return { mutationFn, ...mutationOptions };
-};
+      const smbdoPostSessions =  useSmbdoPostSessionsHook()
 
-export type SmbdoPostSessionsMutationResult = NonNullable<
-  Awaited<ReturnType<typeof smbdoPostSessions>>
->;
-export type SmbdoPostSessionsMutationBody = BodyType<CreateSessionRequest>;
-export type SmbdoPostSessionsMutationError = ErrorType<
-  | N400Response
-  | N401Response
-  | N403Response
-  | N404Response
-  | N409Response
-  | N422Response
-  | N500Response
-  | N503Response
->;
 
-/**
+      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useSmbdoPostSessionsHook>>>, {data: BodyType<CreateSessionRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  smbdoPostSessions(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SmbdoPostSessionsMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSmbdoPostSessionsHook>>>>
+    export type SmbdoPostSessionsMutationBody = BodyType<CreateSessionRequest>
+    export type SmbdoPostSessionsMutationError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>
+
+    /**
  * @summary Create session.
  */
-export const useSmbdoPostSessions = <
-  TError = ErrorType<
-    | N400Response
-    | N401Response
-    | N403Response
-    | N404Response
-    | N409Response
-    | N422Response
-    | N500Response
-    | N503Response
-  >,
-  TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof smbdoPostSessions>>,
-      TError,
-      { data: BodyType<CreateSessionRequest> },
-      TContext
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof smbdoPostSessions>>,
-  TError,
-  { data: BodyType<CreateSessionRequest> },
-  TContext
-> => {
-  return useMutation(getSmbdoPostSessionsMutationOptions(options), queryClient);
-};
-
+export const useSmbdoPostSessions = <TError = ErrorType<N400Response | N401Response | N403Response | N404Response | N409Response | N422Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoPostSessionsHook>>>, TError,{data: BodyType<CreateSessionRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<ReturnType<typeof useSmbdoPostSessionsHook>>>,
+        TError,
+        {data: BodyType<CreateSessionRequest>},
+        TContext
+      > => {
+      return useMutation(useSmbdoPostSessionsMutationOptions(options), queryClient);
+    }
+    
 /**
  * Generates recommendations based on the provided input.
  * @summary Generate Recommendations.
  */
-export const smbdoPostRecommendations = (
-  recommendationsRequest: BodyType<RecommendationsRequest>,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
+export const useSmbdoPostRecommendationsHook = () => {
+        const smbdoPostRecommendations = useEbInstance<RecommendationsResponse>();
+
+        return useCallback((
+    recommendationsRequest: BodyType<RecommendationsRequest>,
+ options?: SecondParameter<ReturnType<typeof useEbInstance>>,signal?: AbortSignal
 ) => {
-  return ebInstance<RecommendationsResponse>(
-    {
-      url: `/recommendations`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: recommendationsRequest,
-      signal,
+        return smbdoPostRecommendations(
+          {url: `/recommendations`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: recommendationsRequest, signal
     },
-    options
-  );
-};
+          options);
+        }, [smbdoPostRecommendations])
+      }
+    
 
-export const getSmbdoPostRecommendationsMutationOptions = <
-  TError = ErrorType<
-    N401Response | N403Response | N404Response | N500Response | N503Response
-  >,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof smbdoPostRecommendations>>,
-    TError,
-    { data: BodyType<RecommendationsRequest> },
-    TContext
-  >;
-  request?: SecondParameter<typeof ebInstance>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof smbdoPostRecommendations>>,
-  TError,
-  { data: BodyType<RecommendationsRequest> },
-  TContext
-> => {
-  const mutationKey = ['smbdoPostRecommendations'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof smbdoPostRecommendations>>,
-    { data: BodyType<RecommendationsRequest> }
-  > = (props) => {
-    const { data } = props ?? {};
+export const useSmbdoPostRecommendationsMutationOptions = <TError = ErrorType<N401Response | N403Response | N404Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoPostRecommendationsHook>>>, TError,{data: BodyType<RecommendationsRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+): UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoPostRecommendationsHook>>>, TError,{data: BodyType<RecommendationsRequest>}, TContext> => {
 
-    return smbdoPostRecommendations(data, requestOptions);
-  };
+const mutationKey = ['smbdoPostRecommendations'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
 
-  return { mutationFn, ...mutationOptions };
-};
+      const smbdoPostRecommendations =  useSmbdoPostRecommendationsHook()
 
-export type SmbdoPostRecommendationsMutationResult = NonNullable<
-  Awaited<ReturnType<typeof smbdoPostRecommendations>>
->;
-export type SmbdoPostRecommendationsMutationBody =
-  BodyType<RecommendationsRequest>;
-export type SmbdoPostRecommendationsMutationError = ErrorType<
-  N401Response | N403Response | N404Response | N500Response | N503Response
->;
 
-/**
+      const mutationFn: MutationFunction<Awaited<ReturnType<ReturnType<typeof useSmbdoPostRecommendationsHook>>>, {data: BodyType<RecommendationsRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  smbdoPostRecommendations(data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SmbdoPostRecommendationsMutationResult = NonNullable<Awaited<ReturnType<ReturnType<typeof useSmbdoPostRecommendationsHook>>>>
+    export type SmbdoPostRecommendationsMutationBody = BodyType<RecommendationsRequest>
+    export type SmbdoPostRecommendationsMutationError = ErrorType<N401Response | N403Response | N404Response | N500Response | N503Response>
+
+    /**
  * @summary Generate Recommendations.
  */
-export const useSmbdoPostRecommendations = <
-  TError = ErrorType<
-    N401Response | N403Response | N404Response | N500Response | N503Response
-  >,
-  TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof smbdoPostRecommendations>>,
-      TError,
-      { data: BodyType<RecommendationsRequest> },
-      TContext
-    >;
-    request?: SecondParameter<typeof ebInstance>;
-  },
-  queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof smbdoPostRecommendations>>,
-  TError,
-  { data: BodyType<RecommendationsRequest> },
-  TContext
-> => {
-  return useMutation(
-    getSmbdoPostRecommendationsMutationOptions(options),
-    queryClient
-  );
-};
+export const useSmbdoPostRecommendations = <TError = ErrorType<N401Response | N403Response | N404Response | N500Response | N503Response>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<ReturnType<typeof useSmbdoPostRecommendationsHook>>>, TError,{data: BodyType<RecommendationsRequest>}, TContext>, request?: SecondParameter<ReturnType<typeof useEbInstance>>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<ReturnType<typeof useSmbdoPostRecommendationsHook>>>,
+        TError,
+        {data: BodyType<RecommendationsRequest>},
+        TContext
+      > => {
+      return useMutation(useSmbdoPostRecommendationsMutationOptions(options), queryClient);
+    }
+    

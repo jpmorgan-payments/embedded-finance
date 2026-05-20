@@ -5,7 +5,8 @@
  * Streamline how you set up, manage, and verify payees by creating, updating, listing, and validating recipients for your payment transactions. This helps keep your payment workflows organized and secure without manual tracking.
  * OpenAPI spec version: 1.0.47
  */
-export type RecipientType = (typeof RecipientType)[keyof typeof RecipientType];
+export type RecipientType = typeof RecipientType[keyof typeof RecipientType];
+
 
 export const RecipientType = {
   RECIPIENT: 'RECIPIENT',
@@ -37,7 +38,8 @@ export interface PageMetaData {
 /**
  * Two letter country code based on ISO 3166 standard
  */
-export type CountryCode = (typeof CountryCode)[keyof typeof CountryCode];
+export type CountryCode = typeof CountryCode[keyof typeof CountryCode];
+
 
 export const CountryCode = {
   US: 'US',
@@ -88,7 +90,8 @@ export interface RecipientAddress {
   countryCode: CountryCode;
 }
 
-export type PartyType = (typeof PartyType)[keyof typeof PartyType];
+export type PartyType = typeof PartyType[keyof typeof PartyType];
+
 
 export const PartyType = {
   INDIVIDUAL: 'INDIVIDUAL',
@@ -98,8 +101,8 @@ export const PartyType = {
 /**
  * Type of contact information being provided
  */
-export type RecipientContactContactType =
-  (typeof RecipientContactContactType)[keyof typeof RecipientContactContactType];
+export type RecipientContactContactType = typeof RecipientContactContactType[keyof typeof RecipientContactContactType];
+
 
 export const RecipientContactContactType = {
   EMAIL: 'EMAIL',
@@ -170,7 +173,8 @@ export type AccountNumber = string;
 /**
  * Type of bank account.
  */
-export type AccountType = (typeof AccountType)[keyof typeof AccountType];
+export type AccountType = typeof AccountType[keyof typeof AccountType];
+
 
 export const AccountType = {
   CHECKING: 'CHECKING',
@@ -189,8 +193,8 @@ export type RoutingNumber = string;
 /**
  * Type of transaction.
  */
-export type RoutingInformationTransactionType =
-  (typeof RoutingInformationTransactionType)[keyof typeof RoutingInformationTransactionType];
+export type RoutingInformationTransactionType = typeof RoutingInformationTransactionType[keyof typeof RoutingInformationTransactionType];
+
 
 export const RoutingInformationTransactionType = {
   ACH: 'ACH',
@@ -201,8 +205,8 @@ export const RoutingInformationTransactionType = {
 /**
  * Type of routing code.
  */
-export type RoutingCodeType =
-  (typeof RoutingCodeType)[keyof typeof RoutingCodeType];
+export type RoutingCodeType = typeof RoutingCodeType[keyof typeof RoutingCodeType];
+
 
 export const RoutingCodeType = {
   USABA: 'USABA',
@@ -232,8 +236,8 @@ export interface RecipientAccount {
 /**
  * Callback event type needs to send to notsub for correct status.
  */
-export type RecipientStatus =
-  (typeof RecipientStatus)[keyof typeof RecipientStatus];
+export type RecipientStatus = typeof RecipientStatus[keyof typeof RecipientStatus];
+
 
 export const RecipientStatus = {
   ACTIVE: 'ACTIVE',
@@ -275,9 +279,7 @@ export interface FinancialInstitutionId {
 /**
  * Contains additional, unstructured information from the provider.
  */
-export interface ProviderResponse {
-  [key: string]: unknown;
-}
+export interface ProviderResponse { [key: string]: unknown }
 
 export interface Details {
   /** Account number */
@@ -368,8 +370,8 @@ export type ListRecipientsResponse = PageMetaData & {
 /**
  * Part of the request which is responsible for the reason
  */
-export type ApiErrorReasonV2Location =
-  (typeof ApiErrorReasonV2Location)[keyof typeof ApiErrorReasonV2Location];
+export type ApiErrorReasonV2Location = typeof ApiErrorReasonV2Location[keyof typeof ApiErrorReasonV2Location];
+
 
 export const ApiErrorReasonV2Location = {
   BODY: 'BODY',
@@ -461,8 +463,8 @@ export interface MicrodepositAmounts {
   amounts: number[];
 }
 
-export type MicrodepositVerificationResponseStatus =
-  (typeof MicrodepositVerificationResponseStatus)[keyof typeof MicrodepositVerificationResponseStatus];
+export type MicrodepositVerificationResponseStatus = typeof MicrodepositVerificationResponseStatus[keyof typeof MicrodepositVerificationResponseStatus];
+
 
 export const MicrodepositVerificationResponseStatus = {
   VERIFIED: 'VERIFIED',
@@ -528,27 +530,28 @@ export type PageSizeParameter = number;
 export type PageNoParameter = number;
 
 export type GetAllRecipientsParams = {
-  /**
-   * Unique Client identifier
-   * @minLength 10
-   * @maxLength 10
-   * @pattern ^\d{10}$
-   */
-  clientId?: ClientIdInQueryParameter;
-  /**
-   * Recipient type to return
-   */
-  type?: RecipientType;
-  /**
-   * Number of records per page.
-   * @minimum 1
-   * @maximum 25
-   */
-  limit?: PageSizeParameter;
-  /**
-   * Page Number
-   * @minimum 0
-   * @maximum 1000000
-   */
-  page?: PageNoParameter;
+/**
+ * Unique Client identifier
+ * @minLength 10
+ * @maxLength 10
+ * @pattern ^\d{10}$
+ */
+clientId?: ClientIdInQueryParameter;
+/**
+ * Recipient type to return
+ */
+type?: RecipientType;
+/**
+ * Number of records per page.
+ * @minimum 1
+ * @maximum 25
+ */
+limit?: PageSizeParameter;
+/**
+ * Page Number
+ * @minimum 0
+ * @maximum 1000000
+ */
+page?: PageNoParameter;
 };
+

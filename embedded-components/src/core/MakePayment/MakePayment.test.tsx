@@ -674,8 +674,7 @@ describe('MakePayment (Refactored)', () => {
   test('shows warning when preselected recipient cannot be found', async () => {
     // This test is skipped because it requires complex async coordination between:
     // 1. React Query processing the 404 error
-    // 2. The interceptorReady state being true
-    // 3. The component re-rendering with the error state
+    // 2. The component re-rendering with the error state
     // The warning functionality is tested in Storybook where the full integration works correctly.
     // The core logic (preselectedRecipientStatus === 'error' triggers recipientNotFound) is verified
     // through the component's useMemo logic and can be tested at the unit level if needed.

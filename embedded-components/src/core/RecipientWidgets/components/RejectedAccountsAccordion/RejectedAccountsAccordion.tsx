@@ -6,8 +6,8 @@ import { useLocale } from '@/lib/hooks/useLocale';
 import { getRecipientDisplayName } from '@/lib/recipientHelpers';
 import { cn } from '@/lib/utils';
 import {
-  getAllRecipients,
   useGetAllRecipients,
+  useGetAllRecipientsHook,
 } from '@/api/generated/ep-recipients';
 import type {
   GetAllRecipientsParams,
@@ -17,7 +17,6 @@ import type {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
 import { RecipientDetailsDialog } from '@/core/RecipientWidgets/components/RecipientDetailsDialog/RecipientDetailsDialog';
 
 const REJECTED_PAGE_LIMIT = 25;
@@ -41,25 +40,18 @@ export const RejectedAccountsAccordion: React.FC<
 > = ({ recipientType, queryParams }) => {
   const { t, tString } = useTranslationWithTokens('linked-accounts');
   const locale = useLocale();
-  const { interceptorReady } = useInterceptorStatus();
+  const getAllRecipients = useGetAllRecipientsHook();
 
   const [collapsed, setCollapsed] = useState(true);
 
   // Fetch first page of rejected accounts
-  const { data: rejectedData } = useGetAllRecipients(
-    {
-      type: recipientType,
-      status: 'REJECTED',
-      limit: REJECTED_PAGE_LIMIT,
-      page: 0,
-      ...queryParams,
-    } as GetAllRecipientsParams & { status: string },
-    {
-      query: {
-        enabled: interceptorReady,
-      },
-    }
-  );
+  const { data: rejectedData } = useGetAllRecipients({
+    type: recipientType,
+    status: 'REJECTED',
+    limit: REJECTED_PAGE_LIMIT,
+    page: 0,
+    ...queryParams,
+  } as GetAllRecipientsParams & { status: string });
 
   // Fetch additional pages beyond the first 25
   const [additionalRejected, setAdditionalRejected] = useState<Recipient[]>([]);
@@ -105,7 +97,7 @@ export const RejectedAccountsAccordion: React.FC<
     return () => {
       cancelled = true;
     };
-  }, [rejectedData?.total_items, recipientType, queryParams]);
+  }, [rejectedData?.total_items, recipientType, queryParams, getAllRecipients]);
 
   // Filter to last 30 days, sort most-recent-first
   const recentRejected = useMemo(() => {

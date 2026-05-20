@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 
 import { useGetAllRecipientsInfinite } from '@/api/generated/ep-recipients';
 import { PageMetaData, Recipient } from '@/api/generated/ep-recipients.schemas';
-import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
 
 import { SupportedRecipientType } from '../types';
 
@@ -111,8 +110,6 @@ export function useRecipients({
   pageSize = 10,
   recipientType,
 }: UseRecipientsOptions): UseRecipientsReturn {
-  const { interceptorReady } = useInterceptorStatus();
-
   // Use infinite query for proper pagination with accumulation
   const {
     data,
@@ -139,7 +136,6 @@ export function useRecipients({
           // Return next page number if more pages exist
           return currentPage + 1 < totalPages ? currentPage + 1 : undefined;
         },
-        enabled: interceptorReady,
         initialPageParam: 0,
       },
     }

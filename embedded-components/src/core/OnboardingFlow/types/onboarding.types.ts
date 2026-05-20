@@ -1,5 +1,4 @@
 import type { UserTrackingProps } from '@/lib/types/userTracking.types';
-import { ErrorType } from '@/api/axios-instance';
 import type { RoutingInformationTransactionType } from '@/api/generated/ep-recipients.schemas';
 import {
   ApiError,
@@ -11,6 +10,7 @@ import {
   PartyResponse,
   SchemasApiError,
 } from '@/api/generated/smbdo.schemas';
+import type { ErrorType } from '@/api/use-axios-instance';
 import type {
   BankAccountFormConfigOverride,
   BankAccountFormData,

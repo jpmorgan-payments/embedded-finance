@@ -7,8 +7,8 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 
 import {
-  smbdoGetDocumentRequest,
   useSmbdoGetClient,
+  useSmbdoGetDocumentRequestHook,
   useSmbdoSubmitDocumentRequest,
   useSmbdoUploadDocument,
 } from '@/api/generated/smbdo';
@@ -71,6 +71,7 @@ export const DocumentUploadStepForm = ({
   const { nextStep } = useStepper();
   const { clientId } = useOnboardingContext();
   const queryClient = useQueryClient();
+  const smbdoGetDocumentRequest = useSmbdoGetDocumentRequestHook();
   const uploadDocumentMutation = useSmbdoUploadDocument();
   const submitDocumentMutation = useSmbdoSubmitDocumentRequest();
 

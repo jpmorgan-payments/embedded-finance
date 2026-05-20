@@ -36,7 +36,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui';
-import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
 import { StepLayout } from '@/core/OnboardingFlow/components';
 import {
   useFlowContext,
@@ -89,8 +88,6 @@ export const OverviewScreen = () => {
     'linked-accounts',
   ]);
 
-  const { interceptorReady } = useInterceptorStatus();
-
   const linkAccountEnabled = getLinkAccountEnabled(
     clientData,
     linkAccountEnabledStatuses
@@ -107,7 +104,7 @@ export const OverviewScreen = () => {
     },
     {
       query: {
-        enabled: interceptorReady && !!clientData?.id,
+        enabled: !!clientData?.id,
       },
     }
   );
@@ -149,8 +146,7 @@ export const OverviewScreen = () => {
       { type: 'LINKED_ACCOUNT', clientId: clientData?.id },
       {
         query: {
-          enabled:
-            interceptorReady && !!showLinkAccountStep && !!clientData?.id,
+          enabled: !!showLinkAccountStep && !!clientData?.id,
         },
       }
     );

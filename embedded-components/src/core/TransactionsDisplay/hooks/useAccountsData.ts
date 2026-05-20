@@ -2,8 +2,6 @@ import { useMemo } from 'react';
 
 import { useGetAccounts } from '@/api/generated/ep-accounts';
 
-import { useInterceptorStatus } from '../../EBComponentsProvider/EBComponentsProvider';
-
 /**
  * Return type for useAccountsData hook
  */
@@ -36,18 +34,12 @@ export interface UseAccountsDataReturn {
  * ```
  */
 export function useAccountsData(): UseAccountsDataReturn {
-  const { interceptorReady } = useInterceptorStatus();
-
   const {
     data: accountsData,
     isLoading,
     isError,
     isSuccess,
-  } = useGetAccounts(undefined, {
-    query: {
-      enabled: interceptorReady,
-    },
-  });
+  } = useGetAccounts();
 
   const filteredAccountIds = useMemo(() => {
     if (!accountsData?.items) {

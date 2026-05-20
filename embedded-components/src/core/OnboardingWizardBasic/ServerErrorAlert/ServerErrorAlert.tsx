@@ -1,8 +1,8 @@
 import { FC, ReactNode } from 'react';
 import { AlertCircleIcon, RefreshCwIcon } from 'lucide-react';
 
-import { ErrorType } from '@/api/axios-instance';
 import { ApiError } from '@/api/generated/smbdo.schemas';
+import type { ErrorType } from '@/api/use-axios-instance';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 

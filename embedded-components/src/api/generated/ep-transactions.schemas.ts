@@ -8,8 +8,8 @@
 /**
  * The types of transaction that the client is allowed to search by.
  */
-export type RequestTransactionTypeV2 =
-  (typeof RequestTransactionTypeV2)[keyof typeof RequestTransactionTypeV2];
+export type RequestTransactionTypeV2 = typeof RequestTransactionTypeV2[keyof typeof RequestTransactionTypeV2];
+
 
 export const RequestTransactionTypeV2 = {
   RTP: 'RTP',
@@ -26,8 +26,8 @@ export const RequestTransactionTypeV2 = {
 /**
  * The statuses of the transaction that the client is allowed to search by.
  */
-export type RequestTransactionStatus =
-  (typeof RequestTransactionStatus)[keyof typeof RequestTransactionStatus];
+export type RequestTransactionStatus = typeof RequestTransactionStatus[keyof typeof RequestTransactionStatus];
+
 
 export const RequestTransactionStatus = {
   PENDING: 'PENDING',
@@ -72,8 +72,8 @@ export interface PageMetaData {
  * `UNDEFINED` - The status of this transaction cannot be found.
 
  */
-export type TransactionStatus =
-  (typeof TransactionStatus)[keyof typeof TransactionStatus];
+export type TransactionStatus = typeof TransactionStatus[keyof typeof TransactionStatus];
+
 
 export const TransactionStatus = {
   PENDING: 'PENDING',
@@ -135,8 +135,8 @@ export interface TransactionGetResponseBase {
  * The transaction type indicates the nature of the transaction.  Certain types cannot be initiated through the API and, as a result, are excluded from the transaction request type field.
 
  */
-export type PaymentTypeResponse =
-  (typeof PaymentTypeResponse)[keyof typeof PaymentTypeResponse];
+export type PaymentTypeResponse = typeof PaymentTypeResponse[keyof typeof PaymentTypeResponse];
+
 
 export const PaymentTypeResponse = {
   RTP: 'RTP',
@@ -153,8 +153,8 @@ export const PaymentTypeResponse = {
 /**
  * The transaction type of the originating transaction that incurred a 'FEE' or 'RETURN' transaction. This is only available for transactions of type 'FEE' or 'RETURN'. * ACH_PAYOUT - the original transaction was a payout made by ACH payment route. * RTP_PAYOUT - the original transaction was a payout made by ACH payment route. * WIRE_PAYOUT - the original transaction was a payout made by WIRE payment route. * DEBIT_CARD_REQUEST - the original transaction was a debit card request. * FEE - the original transaction was a fee that was reversed.
  */
-export type OriginatingTransactionType =
-  (typeof OriginatingTransactionType)[keyof typeof OriginatingTransactionType];
+export type OriginatingTransactionType = typeof OriginatingTransactionType[keyof typeof OriginatingTransactionType];
+
 
 export const OriginatingTransactionType = {
   ACH_PAYOUT: 'ACH_PAYOUT',
@@ -185,8 +185,8 @@ export interface ListTransactionsSearchResponseV2 {
 /**
  * Part of the request which is responsible for the reason
  */
-export type ApiErrorReasonV2Location =
-  (typeof ApiErrorReasonV2Location)[keyof typeof ApiErrorReasonV2Location];
+export type ApiErrorReasonV2Location = typeof ApiErrorReasonV2Location[keyof typeof ApiErrorReasonV2Location];
+
 
 export const ApiErrorReasonV2Location = {
   BODY: 'BODY',
@@ -259,7 +259,8 @@ export interface ApiErrorV2 {
  * `CARD` for Push to Card Transactions
 
  */
-export type PaymentType = (typeof PaymentType)[keyof typeof PaymentType];
+export type PaymentType = typeof PaymentType[keyof typeof PaymentType];
+
 
 export const PaymentType = {
   RTP: 'RTP',
@@ -272,7 +273,8 @@ export const PaymentType = {
 /**
  * Two letter country code based on ISO 3166 standard
  */
-export type CountryCode = (typeof CountryCode)[keyof typeof CountryCode];
+export type CountryCode = typeof CountryCode[keyof typeof CountryCode];
+
 
 export const CountryCode = {
   US: 'US',
@@ -323,7 +325,8 @@ export interface RecipientAddress {
   countryCode: CountryCode;
 }
 
-export type PartyType = (typeof PartyType)[keyof typeof PartyType];
+export type PartyType = typeof PartyType[keyof typeof PartyType];
+
 
 export const PartyType = {
   INDIVIDUAL: 'INDIVIDUAL',
@@ -333,8 +336,8 @@ export const PartyType = {
 /**
  * Type of contact information being provided
  */
-export type RecipientContactContactType =
-  (typeof RecipientContactContactType)[keyof typeof RecipientContactContactType];
+export type RecipientContactContactType = typeof RecipientContactContactType[keyof typeof RecipientContactContactType];
+
 
 export const RecipientContactContactType = {
   EMAIL: 'EMAIL',
@@ -405,7 +408,8 @@ export type AccountNumber = string;
 /**
  * Type of bank account.
  */
-export type AccountType = (typeof AccountType)[keyof typeof AccountType];
+export type AccountType = typeof AccountType[keyof typeof AccountType];
+
 
 export const AccountType = {
   CHECKING: 'CHECKING',
@@ -424,8 +428,8 @@ export type RoutingNumber = string;
 /**
  * Type of transaction.
  */
-export type RoutingInformationTransactionType =
-  (typeof RoutingInformationTransactionType)[keyof typeof RoutingInformationTransactionType];
+export type RoutingInformationTransactionType = typeof RoutingInformationTransactionType[keyof typeof RoutingInformationTransactionType];
+
 
 export const RoutingInformationTransactionType = {
   ACH: 'ACH',
@@ -436,8 +440,8 @@ export const RoutingInformationTransactionType = {
 /**
  * Type of routing code.
  */
-export type RoutingCodeType =
-  (typeof RoutingCodeType)[keyof typeof RoutingCodeType];
+export type RoutingCodeType = typeof RoutingCodeType[keyof typeof RoutingCodeType];
+
 
 export const RoutingCodeType = {
   USABA: 'USABA',
@@ -464,7 +468,8 @@ export interface RecipientAccount {
   countryCode: CountryCode;
 }
 
-export type RecipientType = (typeof RecipientType)[keyof typeof RecipientType];
+export type RecipientType = typeof RecipientType[keyof typeof RecipientType];
+
 
 export const RecipientType = {
   RECIPIENT: 'RECIPIENT',
@@ -475,17 +480,17 @@ export const RecipientType = {
 /**
  * Payment recipient, either recipient or recipient id must be provided for Payouts
  */
-export type TransactionRecipientDetailsV2 = { [key: string]: unknown } & {
+export type TransactionRecipientDetailsV2 = ({ [key: string]: unknown } & {
   partyDetails?: RecipientPartyDetails;
   account?: RecipientAccount;
   recipientType?: RecipientType;
-};
+});
 
 /**
  * This denotes the currency of the payment in ISO 4217 Alpha-3 Currency Code format
  */
-export type PostTransactionRequestBaseCurrency =
-  (typeof PostTransactionRequestBaseCurrency)[keyof typeof PostTransactionRequestBaseCurrency];
+export type PostTransactionRequestBaseCurrency = typeof PostTransactionRequestBaseCurrency[keyof typeof PostTransactionRequestBaseCurrency];
+
 
 export const PostTransactionRequestBaseCurrency = {
   USD: 'USD',
@@ -568,28 +573,24 @@ export type TransactionResponseV2 = TransactionRequestResponseBase & {
   creditorAccountNumber?: string;
   /** The date when the payment is requested to be processed. */
   paymentDate: string;
-} & Required<
-    Pick<
-      TransactionRequestResponseBase & {
-        /** Name of the debtor account holder. */
-        debtorName?: string;
-        /** Name of the debtor account holder. */
-        creditorName?: string;
-        /** The last 4 digits of the debtor account number - PRN or DDA. The digits are preceded by ... to show that the account number has been masked. */
-        debtorAccountNumber?: string;
-        /** The last 4 digits of the creditor account number - PRN or DDA. The digits are preceded by ... to show that the account number has been masked. */
-        creditorAccountNumber?: string;
-        /** The date when the payment is requested to be processed. */
-        paymentDate: string;
-      },
-      'currency' | 'status' | 'createdAt'
-    >
-  >;
+} & Required<Pick<TransactionRequestResponseBase & {
+  /** Name of the debtor account holder. */
+  debtorName?: string;
+  /** Name of the debtor account holder. */
+  creditorName?: string;
+  /** The last 4 digits of the debtor account number - PRN or DDA. The digits are preceded by ... to show that the account number has been masked. */
+  debtorAccountNumber?: string;
+  /** The last 4 digits of the creditor account number - PRN or DDA. The digits are preceded by ... to show that the account number has been masked. */
+  creditorAccountNumber?: string;
+  /** The date when the payment is requested to be processed. */
+  paymentDate: string;
+}, 'currency' | 'status' | 'createdAt'>>;
 
 /**
  * The type of the fee transaction. Use this to differentiate between the fee transactions that were charged and those that were reversed.<br> * `CHARGE` - the fee that was incurred as a result of a transaction.<br> * `REVERSAL` - the fee was incurred and then voided on a transaction.
  */
-export type FeeType = (typeof FeeType)[keyof typeof FeeType];
+export type FeeType = typeof FeeType[keyof typeof FeeType];
+
 
 export const FeeType = {
   CHARGE: 'CHARGE',
@@ -608,19 +609,14 @@ export type TransactionGetResponseV2 = TransactionGetResponse & {
   ledgerBalance?: number;
   /** A measure of how many times an account has been updated by a new transaction. The posting version is incremented by 1 whenever there's a an event on the account. It can be used to track the order in which transactions have occurred, so you can present the user with the most recent transactions first. */
   postingVersion?: number;
-} & Required<
-    Pick<
-      TransactionGetResponse & {
-        type: PaymentTypeResponse;
-        originatingTransactionType?: OriginatingTransactionType;
-        /** The ledger balance shows the total of all settled transactions at the time the request is made. Transactions which are in a pending state and transactions of type hold are excluded from this balance. The ledger balance is updated only when a transaction is settled. */
-        ledgerBalance?: number;
-        /** A measure of how many times an account has been updated by a new transaction. The posting version is incremented by 1 whenever there's a an event on the account. It can be used to track the order in which transactions have occurred, so you can present the user with the most recent transactions first. */
-        postingVersion?: number;
-      },
-      'id' | 'currency' | 'paymentDate' | 'status' | 'createdAt'
-    >
-  >;
+} & Required<Pick<TransactionGetResponse & {
+  type: PaymentTypeResponse;
+  originatingTransactionType?: OriginatingTransactionType;
+  /** The ledger balance shows the total of all settled transactions at the time the request is made. Transactions which are in a pending state and transactions of type hold are excluded from this balance. The ledger balance is updated only when a transaction is settled. */
+  ledgerBalance?: number;
+  /** A measure of how many times an account has been updated by a new transaction. The posting version is incremented by 1 whenever there's a an event on the account. It can be used to track the order in which transactions have occurred, so you can present the user with the most recent transactions first. */
+  postingVersion?: number;
+}, 'id' | 'currency' | 'paymentDate' | 'status' | 'createdAt'>>;
 
 /**
  * Bad Request
@@ -663,65 +659,66 @@ export type TokenParameter = string;
 export type ClientIdInQueryParameter = string;
 
 export type ListTransactionsV2Params = {
-  /**
-   * Filters for types of transaction. Use a comma separated list to send the transaction types you require.
-   * @minItems 0
-   */
-  type?: RequestTransactionTypeV2[];
-  /**
-   * Filters by comma separated list of statuses for transactions.
-   * @minItems 0
-   */
-  status?: RequestTransactionStatus[];
-  /**
-   * Filters by the Embedded Finance account id connected to the transaction.
-   */
-  accountId?: string;
-  /**
-   * Filters by an exact amount.
-   */
-  amountEquals?: string;
-  /**
-   * Filters by amounts greater than a specified value.
-   */
-  amountGreaterThan?: string;
-  /**
-   * Filters by amounts less than a specified value.
-   */
-  amountLessThan?: string;
-  /**
-   * Filters transactions by an exact date.
-   */
-  dateEquals?: string;
-  /**
-   * Filters for transactions made after this payment date.
-   */
-  dateGreaterThan?: string;
-  /**
-   * Filters for transactions made before this payment date.
-   */
-  dateLessThan?: string;
-  /**
-   * Filters for transactions created after this date and time.
-   */
-  dateTimeGreaterThan?: string;
-  /**
-   * Filters for transactions created before this date and time.
-   */
-  dateTimeLessThan?: string;
-  /**
-   * Filters for transactions from/to this recipientId.
-   */
-  recipientId?: string;
-  /**
-   * Filters for a transaction that matches a specific transaction reference ID provided by the client.
-   */
-  transactionReferenceId?: string;
-  /**
-   * Unique Client identifier
-   * @minLength 10
-   * @maxLength 10
-   * @pattern ^\d{10}$
-   */
-  clientId?: ClientIdInQueryParameter;
+/**
+ * Filters for types of transaction. Use a comma separated list to send the transaction types you require.
+ * @minItems 0
+ */
+type?: RequestTransactionTypeV2[];
+/**
+ * Filters by comma separated list of statuses for transactions.
+ * @minItems 0
+ */
+status?: RequestTransactionStatus[];
+/**
+ * Filters by the Embedded Finance account id connected to the transaction.
+ */
+accountId?: string;
+/**
+ * Filters by an exact amount.
+ */
+amountEquals?: string;
+/**
+ * Filters by amounts greater than a specified value.
+ */
+amountGreaterThan?: string;
+/**
+ * Filters by amounts less than a specified value.
+ */
+amountLessThan?: string;
+/**
+ * Filters transactions by an exact date.
+ */
+dateEquals?: string;
+/**
+ * Filters for transactions made after this payment date.
+ */
+dateGreaterThan?: string;
+/**
+ * Filters for transactions made before this payment date.
+ */
+dateLessThan?: string;
+/**
+ * Filters for transactions created after this date and time.
+ */
+dateTimeGreaterThan?: string;
+/**
+ * Filters for transactions created before this date and time.
+ */
+dateTimeLessThan?: string;
+/**
+ * Filters for transactions from/to this recipientId.
+ */
+recipientId?: string;
+/**
+ * Filters for a transaction that matches a specific transaction reference ID provided by the client.
+ */
+transactionReferenceId?: string;
+/**
+ * Unique Client identifier
+ * @minLength 10
+ * @maxLength 10
+ * @pattern ^\d{10}$
+ */
+clientId?: ClientIdInQueryParameter;
 };
+
