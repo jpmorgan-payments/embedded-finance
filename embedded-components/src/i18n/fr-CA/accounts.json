@@ -38,6 +38,7 @@
     "copyAccountNumber": "Copier le numéro de compte",
     "copyAchRouting": "Copier le numéro de routage ACH",
     "copyRoutingLabel": "Copier le numéro de routage {{type}}",
+    "balancesError": "Impossible de charger les soldes",
     "noBalanceData": "Informations de solde non disponibles",
     "dataAsOf": "Au {{date}}",
     "balanceTypeInfoAriaLabel": "En savoir plus sur {{type}}"

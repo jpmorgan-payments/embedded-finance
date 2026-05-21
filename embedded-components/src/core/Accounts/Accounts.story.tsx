@@ -20,6 +20,7 @@ import {
   commonArgs,
   commonArgTypes,
   createAccountsHandlers,
+  createBalanceErrorHandlers,
   createErrorHandlers,
   createLoadingHandlers,
   mockAccounts,
@@ -219,6 +220,27 @@ export const SlowNetwork: Story = {
   parameters: {
     msw: {
       handlers: createAccountsHandlers({ delayMs: 3000 }),
+    },
+  },
+};
+
+/**
+ * Balance fetch error state.
+ * Accounts load successfully but balance endpoint returns 500.
+ * Shows the error UI with "Try again" retry button in each AccountCard.
+ *
+ * **Use this to test:**
+ * - Balance error display in both compact and normal card modes
+ * - Retry button functionality
+ * - Graceful degradation when only balance data is unavailable
+ */
+export const BalanceError: Story = {
+  args: {
+    allowedCategories: ['LIMITED_DDA', 'LIMITED_DDA_PAYMENTS'],
+  },
+  parameters: {
+    msw: {
+      handlers: createBalanceErrorHandlers(),
     },
   },
 };
