@@ -1,19 +1,13 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
+
+import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
 import type { ModifiedTransaction } from '../../utils';
 import { TransactionCard } from './TransactionCard';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { retry: false },
-    mutations: { retry: false },
-  },
-});
-
 const renderWithProviders = (ui: React.ReactElement) => {
   return render(
-    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+    <EBComponentsProvider apiBaseUrl="http://test">{ui}</EBComponentsProvider>
   );
 };
 
@@ -33,10 +27,6 @@ const mockTransaction: ModifiedTransaction = {
 };
 
 describe('TransactionCard', () => {
-  beforeEach(() => {
-    queryClient.clear();
-  });
-
   test('renders transaction information', () => {
     renderWithProviders(<TransactionCard transaction={mockTransaction} />);
 
