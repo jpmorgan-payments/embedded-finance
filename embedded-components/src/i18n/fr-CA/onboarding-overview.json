@@ -1327,6 +1327,7 @@
     "optional": "Facultatif"
   },
   "reviewAndAttest": {
+    "businessType": "Type d'entreprise",
     "notSubmittedYet": "Votre demande n'a pas encore été soumise. Vérifiez vos données et continuez pour terminer.",
     "thereIsAProblem": "Il y a un problème",
     "provideMissingDetails": "Veuillez fournir les détails manquants avant de terminer votre demande.",

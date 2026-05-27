@@ -16,7 +16,10 @@ import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
 import { useSmbdoListQuestions } from '@/api/generated/smbdo';
-import { QuestionResponse } from '@/api/generated/smbdo.schemas';
+import {
+  ClientResponse,
+  QuestionResponse,
+} from '@/api/generated/smbdo.schemas';
 import {
   Accordion,
   AccordionContent,
@@ -38,6 +41,7 @@ import {
   FormMessage,
 } from '@/components/ui';
 import { StepsReviewCards } from '@/core/OnboardingFlow/components';
+import { partyFieldMap } from '@/core/OnboardingFlow/config/fieldMap';
 import {
   useFlowContext,
   useOnboardingContext,
@@ -50,6 +54,7 @@ import {
 import {
   asPlainString,
   formatQuestionResponse,
+  getOrganizationParty,
   getPartyName,
 } from '@/core/OnboardingFlow/utils/dataUtils';
 import {
@@ -278,6 +283,10 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
               </AlertDescription>
             </Alert>
           )}
+          <GatewayReviewCard
+            clientData={clientData}
+            onChangeClick={() => goTo('gateway')}
+          />
           <div>
             <Accordion
               type="single"
@@ -692,5 +701,92 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
         </div>
       </form>
     </Form>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Gateway Review Card
+// ---------------------------------------------------------------------------
+
+const GatewayReviewCard: React.FC<{
+  clientData: ClientResponse | undefined;
+  onChangeClick: () => void;
+}> = ({ clientData, onChangeClick }) => {
+  const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
+  const orgParty = getOrganizationParty(clientData);
+  const orgType = orgParty?.organizationDetails?.organizationType;
+  const publiclyTraded = orgParty?.organizationDetails?.publiclyTraded;
+  const isSubsidiary = orgParty?.organizationDetails?.isSubsidiary;
+
+  if (!orgType) return null;
+
+  // Get PTC display value using the fieldMap's toStringFn
+  const ptcValue = !publiclyTraded
+    ? 'none'
+    : isSubsidiary
+      ? 'subsidiary'
+      : 'ptc';
+  const ptcDisplayValue = partyFieldMap.isPTCOrSubsidiary?.toStringFn?.(
+    ptcValue,
+    {} as any
+  );
+
+  return (
+    <Card className="eb-grid eb-gap-y-3 eb-rounded-lg eb-border eb-p-4">
+      <div className="eb-mb-1 eb-flex eb-items-start eb-justify-between">
+        <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
+          {t('reviewAndAttest.businessType', 'Business type')}
+        </h2>
+        <Button
+          variant="ghost"
+          type="button"
+          size="sm"
+          className="eb-h-8 eb-p-2 eb-text-sm"
+          onClick={onChangeClick}
+        >
+          <PencilIcon />
+          {t('common:change', 'Change')}
+        </Button>
+      </div>
+      <div className="eb-space-y-2">
+        <div className="eb-space-y-0.5">
+          <p className="eb-text-sm eb-font-medium eb-text-muted-foreground">
+            {t('fields.organizationTypeHierarchy.label', 'Organization type')}
+          </p>
+          <p className="eb-text-sm">
+            {t(`organizationTypes.${orgType}`, orgType)}
+          </p>
+        </div>
+        {ptcValue !== 'none' && ptcDisplayValue && (
+          <>
+            <div className="eb-space-y-0.5">
+              <p className="eb-text-sm eb-font-medium eb-text-muted-foreground">
+                {t('fields.isPTCOrSubsidiary.label', 'Publicly traded status')}
+              </p>
+              <p className="eb-text-sm">{ptcDisplayValue as string}</p>
+            </div>
+            {publiclyTraded?.tickerSymbol && (
+              <div className="eb-space-y-0.5">
+                <p className="eb-text-sm eb-font-medium eb-text-muted-foreground">
+                  {t('fields.tickerSymbol.label', 'Ticker symbol')}
+                </p>
+                <p className="eb-text-sm">{publiclyTraded.tickerSymbol}</p>
+              </div>
+            )}
+            {publiclyTraded?.stockExchange && (
+              <div className="eb-space-y-0.5">
+                <p className="eb-text-sm eb-font-medium eb-text-muted-foreground">
+                  {t('fields.stockExchange.label', 'Stock exchange')}
+                </p>
+                <p className="eb-text-sm">
+                  {publiclyTraded.stockExchangeName ||
+                    publiclyTraded.stockExchange}
+                </p>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </Card>
   );
 };

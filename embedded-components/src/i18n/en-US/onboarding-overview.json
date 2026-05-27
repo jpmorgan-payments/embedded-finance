@@ -1386,6 +1386,7 @@
     "optional": "Optional"
   },
   "reviewAndAttest": {
+    "businessType": "Business type",
     "notSubmittedYet": "Your application is not submitted yet. Review your data and continue to finish.",
     "thereIsAProblem": "There is a problem",
     "provideMissingDetails": "Please provide missing details before finishing your application.",
