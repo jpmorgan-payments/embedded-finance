@@ -156,6 +156,45 @@ export interface IndirectOwnershipProps extends UserTrackingProps {
   /** Callback for real-time validation updates */
   onValidationChange?: (summary: ValidationSummary) => void;
 
+  /**
+   * When true, shows a gating question before the full indirect ownership UI:
+   * "Does anyone own 25% or more of your business through other companies?"
+   *
+   * - "Yes" → reveals the full indirect ownership builder
+   * - "No" → calls `onGatingAnswer('direct-only')` so the host can fall back
+   *
+   * @default false
+   */
+  showGatingQuestion?: boolean;
+
+  /**
+   * Callback when the gating question is answered.
+   * - `'direct-only'` — user answered "No" (no indirect owners)
+   * - `'has-indirect'` — user answered "Yes" (proceed with indirect UI)
+   */
+  onGatingAnswer?: (answer: 'direct-only' | 'has-indirect') => void;
+
+  /**
+   * Callback when a new owner is submitted from the Add Owner dialog.
+   * The host is responsible for creating the party via the API and refreshing
+   * client data. If not provided, owners are managed in local component state
+   * (standalone/demo mode).
+   */
+  onAddOwner?: (ownerData: {
+    entityType: 'INDIVIDUAL' | 'BUSINESS';
+    firstName?: string;
+    lastName?: string;
+    businessName?: string;
+    ownershipType: 'DIRECT' | 'INDIRECT';
+  }) => void;
+
+  /**
+   * Callback when an owner is removed. The host is responsible for
+   * deactivating the party via the API. If not provided, removal is
+   * managed in local component state (standalone/demo mode).
+   */
+  onRemoveOwner?: (ownerId: string) => void;
+
   /** Configuration options */
   config?: Partial<OwnershipConfig>;
 

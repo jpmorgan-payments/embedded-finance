@@ -64,10 +64,18 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
   userEventsLifecycle,
   client,
   onOwnershipComplete,
+  showGatingQuestion = false,
+  onGatingAnswer,
+  onAddOwner,
+  onRemoveOwner: onRemoveOwnerProp,
   readOnly = false,
   className = '',
   testId = 'indirect-ownership',
 }) => {
+  // Gating question state — when showGatingQuestion is true, we start undecided
+  const [gatingDecision, setGatingDecision] = useState<
+    'undecided' | 'has-indirect'
+  >(showGatingQuestion ? 'undecided' : 'has-indirect');
   // Set up automatic event tracking for data-user-event attributes
   useUserEventTracking({
     containerId: 'indirect-ownership-container',
@@ -84,9 +92,20 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
       party.roles?.includes('BENEFICIAL_OWNER')
     ) || [];
 
+  // In integrated mode (onAddOwner provided), derive parties directly from
+  // client prop so the component stays in sync with API responses.
+  // In standalone/demo mode, manage parties locally.
+  const isIntegratedMode = !!onAddOwner;
+
   // State management - Use PartyResponse as source of truth
-  const [beneficialOwnerParties, setBeneficialOwnerParties] =
+  const [localBeneficialOwnerParties, setLocalBeneficialOwnerParties] =
     useState<PartyResponse[]>(initialParties);
+
+  const beneficialOwnerParties = isIntegratedMode
+    ? initialParties
+    : localBeneficialOwnerParties;
+  const setBeneficialOwnerParties = setLocalBeneficialOwnerParties;
+
   // Store custom hierarchies for parties where user manually built/edited them
   const [customOwnershipHierarchies, setCustomOwnershipHierarchies] = useState<
     Map<string, any>
@@ -249,6 +268,22 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
       businessName?: string;
       ownershipType: 'DIRECT' | 'INDIRECT';
     }) => {
+      // Delegate to host if callback provided (integrated mode)
+      if (onAddOwner) {
+        onAddOwner(ownerData);
+        trackUserEvent({
+          actionName: INDIRECT_OWNERSHIP_USER_JOURNEYS.ADD_OWNER_COMPLETED,
+          metadata: {
+            ownershipType: ownerData.ownershipType,
+            entityType: ownerData.entityType,
+          },
+          userEventsHandler,
+        });
+        handleCloseDialog();
+        return;
+      }
+
+      // Standalone/demo mode — manage locally with fake IDs
       const newParty: PartyResponse =
         ownerData.entityType === 'INDIVIDUAL'
           ? {
@@ -293,7 +328,7 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
       });
       handleCloseDialog();
     },
-    [handleCloseDialog, userEventsHandler]
+    [handleCloseDialog, userEventsHandler, onAddOwner]
   );
 
   const handleRemoveOwner = useCallback(
@@ -303,14 +338,20 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
         metadata: { ownerId },
         userEventsHandler,
       });
-      // Mark as pending removal
+
+      // Delegate to host if callback provided (integrated mode)
+      if (onRemoveOwnerProp) {
+        onRemoveOwnerProp(ownerId);
+        return;
+      }
+
+      // Standalone/demo mode — manage locally
       pendingRemovalsRef.current.add(ownerId);
-      // Update state (pure function, no side effects)
       setBeneficialOwnerParties((prev) =>
         prev.filter((party) => party.id !== ownerId)
       );
     },
-    [userEventsHandler]
+    [userEventsHandler, onRemoveOwnerProp]
   );
 
   const handleBuildHierarchy = useCallback(
@@ -365,6 +406,67 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
     },
     [handleCloseDialog, userEventsHandler]
   );
+
+  // Gating question UI — shown before the full ownership builder
+  if (gatingDecision === 'undecided') {
+    return (
+      <div
+        id="indirect-ownership-container"
+        className={`eb-component eb-mx-auto eb-w-full eb-max-w-5xl eb-space-y-6 ${className}`}
+        data-testid={testId}
+      >
+        <Card role="region" aria-labelledby="gating-question-title">
+          <CardHeader className="eb-border-b eb-bg-muted/30 eb-p-4">
+            <CardTitle
+              id="gating-question-title"
+              className="eb-font-header eb-text-lg eb-font-semibold"
+            >
+              Ownership structure
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="eb-space-y-4 eb-p-4">
+            <p className="eb-text-sm eb-text-muted-foreground">
+              Does anyone own 25% or more of your business through one or more
+              other companies (indirect ownership)?
+            </p>
+            <RadioGroup
+              onValueChange={(value: string) => {
+                if (value === 'yes') {
+                  setGatingDecision('has-indirect');
+                  onGatingAnswer?.('has-indirect');
+                } else {
+                  onGatingAnswer?.('direct-only');
+                }
+              }}
+              className="eb-space-y-3"
+            >
+              <div className="eb-flex eb-cursor-pointer eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-p-3 hover:eb-bg-accent">
+                <RadioGroupItem value="no" id="gating-no" className="eb-mt-0.5" />
+                <div className="eb-flex-1 eb-space-y-1">
+                  <Label htmlFor="gating-no" className="eb-cursor-pointer">
+                    No — all owners hold their shares directly
+                  </Label>
+                </div>
+              </div>
+              <div className="eb-flex eb-cursor-pointer eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-p-3 hover:eb-bg-accent">
+                <RadioGroupItem value="yes" id="gating-yes" className="eb-mt-0.5" />
+                <div className="eb-flex-1 eb-space-y-1">
+                  <Label htmlFor="gating-yes" className="eb-cursor-pointer">
+                    Yes — some owners hold shares through other companies
+                  </Label>
+                  <p className="eb-text-sm eb-text-muted-foreground">
+                    You&apos;ll be asked to define the ownership chain for each
+                    indirect owner.
+                  </p>
+                </div>
+              </div>
+            </RadioGroup>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div
       id="indirect-ownership-container"

@@ -55,6 +55,9 @@ import {
 
 export const OwnersSectionScreen = () => {
   const [openedRemoveDialog, setOpenedRemoveDialog] = useState(false);
+  const [indirectGatingAnswer, setIndirectGatingAnswer] = useState<
+    'direct-only' | 'has-indirect' | null
+  >(null);
 
   const {
     clientData,
@@ -409,151 +412,155 @@ export const OwnersSectionScreen = () => {
           </form>
         </Form>
 
-        {enableIndirectOwnership ? (
+        {enableIndirectOwnership && indirectGatingAnswer !== 'direct-only' ? (
           <IndirectOwnership
             client={clientData}
             className="eb-mt-4"
+            showGatingQuestion
+            onGatingAnswer={setIndirectGatingAnswer}
           />
         ) : (
-        <div className="eb-space-y-4">
-          <Button
-            type="button"
-            variant="secondary"
-            size="lg"
-            className="eb-w-full eb-text-lg"
-            onClick={() => handleEditBeneficialOwner('')}
-            disabled={isFormDisabled || activeOwners.length >= 4}
-          >
-            <PlusIcon /> {t('screens.owners.addOwnerButton')}
-          </Button>
+          <div className="eb-space-y-4">
+            <Button
+              type="button"
+              variant="secondary"
+              size="lg"
+              className="eb-w-full eb-text-lg"
+              onClick={() => handleEditBeneficialOwner('')}
+              disabled={isFormDisabled || activeOwners.length >= 4}
+            >
+              <PlusIcon /> {t('screens.owners.addOwnerButton')}
+            </Button>
 
-          {ownersData.length >= 4 && (
-            <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
-              {'\u24d8 '}
-              {t('screens.owners.maxOwnersWarning')}
-            </p>
-          )}
+            {ownersData.length >= 4 && (
+              <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
+                {'\u24d8 '}
+                {t('screens.owners.maxOwnersWarning')}
+              </p>
+            )}
 
-          {activeOwners.length === 0 && (
-            <Card className="eb-mt-6 eb-p-4 eb-shadow-md">
-              <div className="eb-flex eb-flex-col eb-items-center eb-space-y-3">
-                <div className="eb-flex eb-h-8 eb-w-8 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary eb-stroke-white">
-                  <UsersIcon className="eb-size-4 eb-fill-white eb-stroke-white" />
-                </div>
-                <p className="eb-text-sm">
-                  {t('screens.owners.noStakeholdersAdded')}
-                </p>
-              </div>
-            </Card>
-          )}
-
-          {activeOwners.map((owner) => {
-            const jobTitle = asPlainString(owner.individualDetails?.jobTitle);
-            const jobTitleDescription = asPlainString(
-              owner.individualDetails?.jobTitleDescription
-            );
-            return (
-              <Card
-                key={owner.id}
-                className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4"
-              >
-                <div className="eb-space-y-1">
-                  <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
-                    {getPartyName(owner)}
-                  </CardTitle>
-                  <p className="eb-text-sm eb-font-medium">
-                    {jobTitle === 'Other'
-                      ? `${tString('jobTitles.Other', { defaultValue: 'Other' })} - ${jobTitleDescription}`
-                      : t(`jobTitles.${jobTitle}`, {
-                          defaultValue: jobTitle,
-                        })}
+            {activeOwners.length === 0 && (
+              <Card className="eb-mt-6 eb-p-4 eb-shadow-md">
+                <div className="eb-flex eb-flex-col eb-items-center eb-space-y-3">
+                  <div className="eb-flex eb-h-8 eb-w-8 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary eb-stroke-white">
+                    <UsersIcon className="eb-size-4 eb-fill-white eb-stroke-white" />
+                  </div>
+                  <p className="eb-text-sm">
+                    {t('screens.owners.noStakeholdersAdded')}
                   </p>
-                  <div className="eb-flex eb-gap-2 eb-pt-2">
-                    <Badge
-                      variant="outline"
-                      className="eb-border-transparent eb-bg-[#EDF4FF] eb-text-[#355FA1]"
-                    >
-                      {t('screens.owners.badges.owner')}
-                    </Badge>
-                    {owner.roles?.includes('CONTROLLER') && (
+                </div>
+              </Card>
+            )}
+
+            {activeOwners.map((owner) => {
+              const jobTitle = asPlainString(owner.individualDetails?.jobTitle);
+              const jobTitleDescription = asPlainString(
+                owner.individualDetails?.jobTitleDescription
+              );
+              return (
+                <Card
+                  key={owner.id}
+                  className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4"
+                >
+                  <div className="eb-space-y-1">
+                    <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
+                      {getPartyName(owner)}
+                    </CardTitle>
+                    <p className="eb-text-sm eb-font-medium">
+                      {jobTitle === 'Other'
+                        ? `${tString('jobTitles.Other', { defaultValue: 'Other' })} - ${jobTitleDescription}`
+                        : t(`jobTitles.${jobTitle}`, {
+                            defaultValue: jobTitle,
+                          })}
+                    </p>
+                    <div className="eb-flex eb-gap-2 eb-pt-2">
                       <Badge
                         variant="outline"
-                        className="eb-border-transparent eb-bg-[#FFEBD9] eb-text-[#8F521F]"
+                        className="eb-border-transparent eb-bg-[#EDF4FF] eb-text-[#355FA1]"
                       >
-                        {t('screens.owners.badges.controller')}
+                        {t('screens.owners.badges.owner')}
                       </Badge>
-                    )}
+                      {owner.roles?.includes('CONTROLLER') && (
+                        <Badge
+                          variant="outline"
+                          className="eb-border-transparent eb-bg-[#FFEBD9] eb-text-[#8F521F]"
+                        >
+                          {t('screens.owners.badges.controller')}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="eb-flex eb-gap-2 eb-pt-4">
-                  {!owner.roles?.includes('CONTROLLER') && (
-                    <AlertDialog
-                      open={openedRemoveDialog}
-                      onOpenChange={setOpenedRemoveDialog}
-                    >
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <TrashIcon />
-                          {t('screens.owners.removeOwnerButton')}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent className="eb-component">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            {t('screens.owners.removeOwnerDialog.title')}
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            <TransWithTokens
-                              ns="onboarding-overview"
-                              i18nKey="screens.owners.removeOwnerDialog.description"
-                              values={{
-                                owner: getPartyName(owner),
-                              }}
-                            />
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>
-                            {t('screens.owners.removeOwnerDialog.cancelButton')}
-                          </AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() =>
-                              owner.id && deactivateBeneficialOwner(owner.id)
-                            }
-                          >
-                            {partyActiveUpdateStatus === 'pending' && (
-                              <Loader2Icon className="eb-size-4 eb-animate-spin" />
-                            )}
-                            {t(
-                              'screens.owners.removeOwnerDialog.confirmButton'
-                            )}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  )}
+                  <div className="eb-flex eb-gap-2 eb-pt-4">
+                    {!owner.roles?.includes('CONTROLLER') && (
+                      <AlertDialog
+                        open={openedRemoveDialog}
+                        onOpenChange={setOpenedRemoveDialog}
+                      >
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <TrashIcon />
+                            {t('screens.owners.removeOwnerButton')}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="eb-component">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              {t('screens.owners.removeOwnerDialog.title')}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              <TransWithTokens
+                                ns="onboarding-overview"
+                                i18nKey="screens.owners.removeOwnerDialog.description"
+                                values={{
+                                  owner: getPartyName(owner),
+                                }}
+                              />
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>
+                              {t(
+                                'screens.owners.removeOwnerDialog.cancelButton'
+                              )}
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() =>
+                                owner.id && deactivateBeneficialOwner(owner.id)
+                              }
+                            >
+                              {partyActiveUpdateStatus === 'pending' && (
+                                <Loader2Icon className="eb-size-4 eb-animate-spin" />
+                              )}
+                              {t(
+                                'screens.owners.removeOwnerDialog.confirmButton'
+                              )}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      owner.id && handleEditBeneficialOwner(owner.id)
-                    }
-                  >
-                    <PencilIcon />
-                    {t('screens.owners.editOwnerButton')}
-                  </Button>
-                </div>
-                {owner.id && !ownersValidation[owner.id]?.allStepsValid && (
-                  <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
-                    {'\u24d8 '}
-                    {t('screens.owners.ownerIncompleteWarning')}
-                  </p>
-                )}
-              </Card>
-            );
-          })}
-        </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        owner.id && handleEditBeneficialOwner(owner.id)
+                      }
+                    >
+                      <PencilIcon />
+                      {t('screens.owners.editOwnerButton')}
+                    </Button>
+                  </div>
+                  {owner.id && !ownersValidation[owner.id]?.allStepsValid && (
+                    <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
+                      {'\u24d8 '}
+                      {t('screens.owners.ownerIncompleteWarning')}
+                    </p>
+                  )}
+                </Card>
+              );
+            })}
+          </div>
         )}
       </div>
 
