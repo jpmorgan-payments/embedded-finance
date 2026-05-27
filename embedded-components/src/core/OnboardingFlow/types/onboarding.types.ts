@@ -299,6 +299,20 @@ export type OnboardingConfigUsedInContext = {
    */
   showReviewAttestTermsAcknowledgementsIntro?: boolean;
   /**
+   * Enable indirect ownership hierarchy support.
+   *
+   * When `true`, the beneficial-owners section renders an enhanced UI that
+   * supports both direct and indirect ownership structures. Indirect owners
+   * are those who own ≥25% of the business through one or more intermediary
+   * entities (e.g. holding companies). The component renders a hierarchy
+   * builder for defining the chain of ownership.
+   *
+   * When `false` (default), only direct beneficial owners are collected.
+   *
+   * @default false
+   */
+  enableIndirectOwnership?: boolean;
+  /**
    * **Business → Industry** (`IndustryForm`): host-curated NAICS codes to surface
    * as a pinned "Suggested for your platform" group at the top of the industry
    * combobox. Users can still pick any code from the full catalog beneath the

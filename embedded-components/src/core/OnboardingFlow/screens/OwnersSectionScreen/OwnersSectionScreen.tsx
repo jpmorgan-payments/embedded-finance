@@ -34,6 +34,7 @@ import { Form } from '@/components/ui/form';
 import { LearnMorePopoverTrigger } from '@/components/LearnMorePopover';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { AlertDialog, Badge, Card, CardTitle } from '@/components/ui';
+import { IndirectOwnership } from '@/core/IndirectOwnership';
 import {
   OnboardingFormField,
   StepLayout,
@@ -59,6 +60,7 @@ export const OwnersSectionScreen = () => {
     clientData,
     onPostPartySettled: onPostPartyResponse,
     organizationType,
+    enableIndirectOwnership,
   } = useOnboardingContext();
   const { t, tString } = useTranslationWithTokens([
     'onboarding-overview',
@@ -407,6 +409,12 @@ export const OwnersSectionScreen = () => {
           </form>
         </Form>
 
+        {enableIndirectOwnership ? (
+          <IndirectOwnership
+            client={clientData}
+            className="eb-mt-4"
+          />
+        ) : (
         <div className="eb-space-y-4">
           <Button
             type="button"
@@ -546,6 +554,7 @@ export const OwnersSectionScreen = () => {
             );
           })}
         </div>
+        )}
       </div>
 
       <div className="eb-mt-6 eb-space-y-6">
