@@ -225,19 +225,24 @@ export const FlowProvider: React.FC<{
       return true;
     })
     .map((s) => {
-      // Remove the publicly-traded step when feature flag is off or org is sole proprietorship
-      if (
-        (!enablePubliclyTradedCompanies ||
-          organizationType === 'SOLE_PROPRIETORSHIP') &&
-        s.stepperConfig?.steps
-      ) {
+      // Filter out steps based on their includedForOrgTypes / excludedForOrgTypes
+      if (s.stepperConfig?.steps) {
+        const filteredSteps = s.stepperConfig.steps.filter((step) => {
+          // includedForOrgTypes takes precedence: step only shown for listed types
+          if (step.includedForOrgTypes) {
+            return step.includedForOrgTypes.includes(organizationType ?? '');
+          }
+          // excludedForOrgTypes: step hidden for listed types
+          if (step.excludedForOrgTypes) {
+            return !step.excludedForOrgTypes.includes(organizationType ?? '');
+          }
+          return true;
+        });
         return {
           ...s,
           stepperConfig: {
             ...s.stepperConfig,
-            steps: s.stepperConfig.steps.filter(
-              (step) => step.id !== 'publicly-traded'
-            ),
+            steps: filteredSteps,
           },
         };
       }

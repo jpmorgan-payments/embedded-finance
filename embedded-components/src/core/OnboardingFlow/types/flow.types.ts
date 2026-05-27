@@ -38,6 +38,8 @@ export interface BaseStep {
   description?: string;
   stepType: 'static' | 'check-answers'; // add future step types here
   Component?: React.ComponentType<StepperStepProps>;
+  excludedForOrgTypes?: string[];
+  includedForOrgTypes?: string[];
 }
 
 export interface FormStep {
@@ -46,6 +48,16 @@ export interface FormStep {
   description?: string;
   stepType: 'form';
   Component: FormStepComponent;
+  /**
+   * When set, this step is excluded from the stepper if the current
+   * organization type is in this list.
+   */
+  excludedForOrgTypes?: string[];
+  /**
+   * When set, this step is only included if the current
+   * organization type is in this list. Takes precedence over excludedForOrgTypes.
+   */
+  includedForOrgTypes?: string[];
 }
 
 export type ScreenId = StaticScreenId | SectionScreenId;

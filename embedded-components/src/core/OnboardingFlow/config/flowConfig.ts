@@ -12,7 +12,6 @@ import {
   BusinessContactInfoForm,
   BusinessIdentityForm,
   IndustryForm,
-  PubliclyTradedForm,
 } from '@/core/OnboardingFlow/forms/business-section-forms';
 import {
   ContactDetailsForm,
@@ -321,17 +320,6 @@ const sectionScreens: SectionScreenConfig[] = [
             'onboarding-overview:screens.businessSection.steps.businessIdentity.description'
           ),
           Component: BusinessIdentityForm,
-        },
-        {
-          id: 'publicly-traded',
-          stepType: 'form',
-          title: i18n.t(
-            'onboarding-overview:screens.businessSection.steps.publiclyTraded.title'
-          ),
-          description: i18n.t(
-            'onboarding-overview:screens.businessSection.steps.publiclyTraded.description'
-          ),
-          Component: PubliclyTradedForm,
         },
         {
           id: 'industry',

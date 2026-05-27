@@ -10,7 +10,6 @@ import {
   useBusinessContactInfoFormSchema,
   useBusinessIdentityFormSchema,
   useIndustryFormSchema,
-  usePubliclyTradedFormSchema,
 } from '@/core/OnboardingFlow/forms/business-section-forms';
 import {
   useContactDetailsFormSchema,
@@ -29,7 +28,6 @@ type OnboardingFormSchemaType = [
   ReturnType<typeof useBusinessIdentityFormSchema>,
   ReturnType<typeof useIndustryFormSchema>,
   ReturnType<typeof useBusinessContactInfoFormSchema>,
-  ReturnType<typeof usePubliclyTradedFormSchema>,
 ];
 
 type MergeSchemaInputs<TSchemas extends readonly z.ZodTypeAny[]> =

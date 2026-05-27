@@ -1148,22 +1148,20 @@
     },
     "isPTCOrSubsidiary": {
       "label": "Is your organization publicly traded, or a subsidiary of a publicly traded company?",
+      "labelSubsidiaryOnly": "Is your organization a subsidiary of a publicly traded company?",
       "description": "",
-      "tooltip": "A publicly traded company (PTC) is listed on a stock exchange. A subsidiary of a PTC is an organization where 50% or more of its ownership is held by a PTC."
-    },
-    "isSubsidiary": {
-      "label": "Is your organization the publicly traded company, or a subsidiary?",
-      "description": "If subsidiary, the ticker symbol and exchange should be for the parent publicly traded company.",
-      "tooltip": "",
-      "fieldName": "PTC or subsidiary",
+      "tooltip": "A publicly traded company (PTC) is listed on a stock exchange. A subsidiary of a PTC is an organization where 51% or more of its ownership is held by a PTC.",
       "options": {
-        "no": "My organization is publicly traded",
-        "yes": "My organization is a subsidiary of a publicly traded company"
+        "none": "No",
+        "ptc": "Yes, my organization is publicly traded",
+        "subsidiary": "Yes, my organization is a subsidiary of a publicly traded company"
       }
     },
     "tickerSymbol": {
       "label": "Ticker symbol",
-      "description": "The stock ticker symbol (e.g. AAPL, MSFT). If subsidiary, enter the parent company's ticker.",
+      "labelSubsidiary": "Parent company ticker symbol",
+      "description": "The stock ticker symbol (e.g. AAPL, MSFT)",
+      "descriptionSubsidiary": "Enter the ticker symbol of the publicly traded parent company",
       "tooltip": "",
       "placeholder": "e.g. AAPL",
       "fieldName": "Ticker symbol",
@@ -1175,22 +1173,12 @@
     },
     "stockExchange": {
       "label": "Stock exchange",
-      "description": "Select the exchange where the company is traded.",
+      "labelSubsidiary": "Parent company stock exchange",
+      "description": "If listed on multiple exchanges, select the primary listing exchange",
+      "descriptionSubsidiary": "If listed on multiple exchanges, select the primary listing exchange of the parent company",
       "tooltip": "",
+      "placeholder": "Search for a stock exchange",
       "fieldName": "Stock exchange",
-      "options": {
-        "XNYS": "NYSE (New York Stock Exchange)",
-        "XNAS": "NASDAQ",
-        "XLON": "LSE (London Stock Exchange)",
-        "XTSE": "TSX (Toronto Stock Exchange)",
-        "XHKG": "HKEX (Hong Kong Stock Exchange)",
-        "XJPX": "JPX (Japan Exchange Group)",
-        "XASX": "ASX (Australian Securities Exchange)",
-        "XFRA": "FSE (Frankfurt Stock Exchange)",
-        "XPAR": "Euronext Paris",
-        "XAMS": "Euronext Amsterdam",
-        "Other": "Other"
-      },
       "validation": {
         "required": "$t(validation:required)"
       }

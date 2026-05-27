@@ -538,12 +538,12 @@ export const partyFieldMap: PartyFieldMap = {
 
   // #region Publicly Traded Company (PTC) fields
   /**
-   * Gate question: Is the organization publicly traded or a subsidiary of a PTC?
-   * This is a UI-only field; the actual API fields are isSubsidiary + publiclyTraded block.
-   * Reads from publiclyTraded to derive the initial yes/no value.
+   * Gate question: Is the organization a PTC, subsidiary of a PTC, or neither?
+   * Values: 'none' | 'ptc' | 'subsidiary'
+   * Maps to: organizationDetails.isSubsidiary (derived) + organizationDetails.publiclyTraded (existence)
    */
   isPTCOrSubsidiary: {
-    path: 'organizationDetails.publiclyTraded',
+    path: 'organizationDetails',
     excludeFromMapping: true,
     saveResponseInContext: true,
     baseRule: {
@@ -551,14 +551,31 @@ export const partyFieldMap: PartyFieldMap = {
       required: false,
       defaultValue: '',
     },
-    fromResponseFn: (val: Record<string, unknown> | undefined) =>
-      val ? 'yes' : 'no',
-    toStringFn: (val: string) => (val === 'yes' ? 'Yes' : 'No'),
-    isHiddenInReviewFn: (val: string) => !val || val === '' || val === 'no',
+    fromResponseFn: (val: {
+      publiclyTraded?: unknown;
+      isSubsidiary?: boolean;
+    }) => {
+      if (!val?.publiclyTraded) return 'none';
+      return val.isSubsidiary ? 'subsidiary' : 'ptc';
+    },
+    toStringFn: (val) => {
+      if (val === 'ptc')
+        return i18n.t(
+          'onboarding-overview:fields.isPTCOrSubsidiary.options.ptc'
+        );
+      if (val === 'subsidiary')
+        return i18n.t(
+          'onboarding-overview:fields.isPTCOrSubsidiary.options.subsidiary'
+        );
+      return i18n.t(
+        'onboarding-overview:fields.isPTCOrSubsidiary.options.none'
+      );
+    },
   },
   /**
-   * Is the organization itself the PTC, or is it a subsidiary?
-   * Maps to organizationDetails.isSubsidiary in the API.
+   * Whether the organization is a subsidiary of a PTC.
+   * Derived from isPTCOrSubsidiary ('subsidiary' → true, 'ptc' → false).
+   * Injected by GatewayScreen onSubmit.
    */
   isSubsidiary: {
     path: 'organizationDetails.isSubsidiary',
@@ -567,15 +584,8 @@ export const partyFieldMap: PartyFieldMap = {
       required: false,
       defaultValue: '',
     },
-    fromResponseFn: (val: boolean) => (val ? 'yes' : 'no'),
-    toRequestFn: (val): boolean => val === 'yes',
-    toStringFn: (val: string) =>
-      val === 'yes'
-        ? i18n.t('onboarding-overview:fields.isSubsidiary.options.yes')
-        : val === 'no'
-          ? i18n.t('onboarding-overview:fields.isSubsidiary.options.no')
-          : '',
-    isHiddenInReviewFn: (val: string) => !val || val === '',
+    fromResponseFn: (val: boolean) => (val ? 'true' : 'false'),
+    toRequestFn: (val: string): boolean => val === 'true',
   },
   /**
    * Ticker symbol of the publicly traded company.
@@ -588,11 +598,9 @@ export const partyFieldMap: PartyFieldMap = {
       required: false,
       defaultValue: '',
     },
-    isHiddenInReviewFn: (val: string) => !val,
   },
   /**
-   * Stock exchange where the PTC is traded.
-   * US exchanges: XNYS (NYSE), XNAS (NASDAQ).
+   * Stock exchange where the PTC is traded (MIC code or "Other").
    */
   stockExchange: {
     path: 'organizationDetails.publiclyTraded.stockExchange',
@@ -601,13 +609,6 @@ export const partyFieldMap: PartyFieldMap = {
       required: false,
       defaultValue: '',
     },
-    toStringFn: (val: string) =>
-      val
-        ? i18n.t(`onboarding-overview:fields.stockExchange.options.${val}`, {
-            defaultValue: val,
-          })
-        : '',
-    isHiddenInReviewFn: (val: string) => !val,
   },
   /**
    * Name of the stock exchange when stockExchange is "Other".
@@ -619,7 +620,6 @@ export const partyFieldMap: PartyFieldMap = {
       required: false,
       defaultValue: '',
     },
-    isHiddenInReviewFn: (val: string) => !val,
   },
   // #endregion PTC
   // secondaryMccList: {

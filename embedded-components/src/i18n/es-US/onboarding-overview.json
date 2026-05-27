@@ -1087,6 +1087,54 @@
       "tooltip": "",
       "label": "Mi negocio no tiene sitio web"
     },
+    "isPTCOrSubsidiary": {
+      "label": "¿Su organización cotiza en bolsa o es una subsidiaria de una empresa que cotiza en bolsa?",
+      "labelSubsidiaryOnly": "¿Su organización es una subsidiaria de una empresa que cotiza en bolsa?",
+      "description": "",
+      "tooltip": "Una empresa que cotiza en bolsa (ECB) está registrada en una bolsa de valores. Una subsidiaria de una ECB es una organización en la que el 51% o más de su propiedad es de una ECB.",
+      "options": {
+        "none": "No",
+        "ptc": "Sí, mi organización cotiza en bolsa",
+        "subsidiary": "Sí, mi organización es una subsidiaria de una empresa que cotiza en bolsa"
+      }
+    },
+    "tickerSymbol": {
+      "label": "Símbolo bursátil",
+      "labelSubsidiary": "Símbolo bursátil de la empresa matriz",
+      "description": "El símbolo bursátil (p. ej. AAPL, MSFT)",
+      "descriptionSubsidiary": "Ingrese el símbolo bursátil de la empresa matriz que cotiza en bolsa",
+      "tooltip": "",
+      "placeholder": "p. ej. AAPL",
+      "fieldName": "Símbolo bursátil",
+      "validation": {
+        "required": "$t(validation:required)",
+        "pattern": "El símbolo bursátil debe contener solo letras mayúsculas y números",
+        "maxLength": "$t(validation:text.maxLength, {'count': 10})"
+      }
+    },
+    "stockExchange": {
+      "label": "Bolsa de valores",
+      "labelSubsidiary": "Bolsa de valores de la empresa matriz",
+      "description": "Si cotiza en múltiples bolsas, seleccione la bolsa de cotización principal",
+      "descriptionSubsidiary": "Si cotiza en múltiples bolsas, seleccione la bolsa de cotización principal de la empresa matriz",
+      "tooltip": "",
+      "placeholder": "Buscar una bolsa de valores",
+      "fieldName": "Bolsa de valores",
+      "validation": {
+        "required": "$t(validation:required)"
+      }
+    },
+    "stockExchangeName": {
+      "label": "Nombre de la bolsa de valores",
+      "description": "Por favor ingrese el nombre de la bolsa de valores.",
+      "tooltip": "",
+      "placeholder": "p. ej. Bolsa de Tokio",
+      "fieldName": "Nombre de la bolsa de valores",
+      "validation": {
+        "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 100})"
+      }
+    },
     "website": {
       "label": "Sitio web de la empresa",
       "tooltip": "",
