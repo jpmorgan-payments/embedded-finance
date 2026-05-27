@@ -315,6 +315,7 @@ The `OnboardingFlow` component provides a modern, enhanced onboarding experience
 | `alertOnPreviousStep`              | `boolean`                                                                                                                                 | No       | Confirm before **Previous** / **Back** inside the flow when there are unsaved edits (see **Leave and back prompts** below) |
 | `userEventsHandler`                | `(context: UserEventContext) => void \| number`                                                                                           | No       | Handler for user events with rich context               |
 | `userEventsLifecycle`              | `UserEventLifecycle`                                                                                                                      | No       | Optional lifecycle handlers for RUM libraries           |
+| `hideLinkedAccountRemoval`         | `boolean`                                                                                                                                 | No       | Hide **Remove** on the **Overview** linked-account card. Does **not** affect `LinkedAccountWidget`; use **`hideRemoveRecipient`** there. |
 
 **Leave and back prompts (`alertOnExit`, `alertOnPreviousStep`):**
 
@@ -322,6 +323,8 @@ The `OnboardingFlow` component provides a modern, enhanced onboarding experience
 - **When they are suppressed:** Prompts run only when SMBDO **`ClientStatus`** is **`NEW`** or **`INFORMATION_REQUESTED`** (draft or responding to requests). For any other status from the API schema—**`REVIEW_IN_PROGRESS`**, **`APPROVED`**, **`DECLINED`**, **`SUSPENDED`**, **`TERMINATED`**—prompts are suppressed (read-only / terminal pipeline from a host UX perspective).
 - **`alertOnExit`:** Uses the browser **`beforeunload`** event so the user gets a warning when navigating away from the page or closing the tab. Strings come from the **`onboarding-overview`** namespace (`flowRenderer.leavePageWarning`) and follow **`EBComponentsProvider`** `contentTokens` and locale. Many browsers display a **generic** leave-site message rather than custom copy.
 - **`alertOnPreviousStep`:** Uses a **`window.confirm`** dialog before stepping back within the flow, flow **Back** (e.g. link-account step), document upload **Cancel**, or **Return to overview** on the document upload list screen. Copy uses **`stepperRenderer.previousStepDataLossWarning`** in **`onboarding-overview`**. Hosts using content-token debug modes should rely on plain-string translations for dialog text (the implementation uses string-only lookups for `confirm`).
+
+**Linked accounts — hiding Remove:** **`hideLinkedAccountRemoval`** only affects **OnboardingFlow → Overview**. **`LinkedAccountWidget`** uses **`hideRemoveRecipient`** for card/table Remove actions. The flags are complementary (different components); see **`docs/component-implementation.md`** (_Linked accounts: hiding Remove_) and **`src/core/OnboardingFlow/README.md`**.
 
 #### Usage:
 
@@ -478,12 +481,15 @@ The `LinkedAccountWidget` component facilitates the process of adding a client's
 - **NEW**: Integration with MakePayment component for direct payment initiation
 - **NEW**: Single account mode for focused workflows
 
+**Remove / unlink:** Pass **`hideRemoveRecipient`** to hide Remove in cards and table rows. **`OnboardingFlow`** uses **`hideLinkedAccountRemoval`** for Overview instead — both may be needed if you embed both UIs (see **`docs/component-implementation.md`**).
+
 #### Props:
 
 | Prop Name                | Type                                                | Required | Description                                                         |
 | ------------------------ | --------------------------------------------------- | -------- | ------------------------------------------------------------------- |
 | `variant`                | `'default' \| 'singleAccount'`                      | No       | Display variant for different use cases                             |
 | `showCreateButton`       | `boolean`                                           | No       | Show/hide create functionality                                      |
+| `hideRemoveRecipient`    | `boolean`                                           | No       | Hide **Remove** in card menus and table rows (does **not** affect OnboardingFlow Overview — use **`hideLinkedAccountRemoval`** there) |
 | `makePaymentComponent`   | `React.ReactNode`                                   | No       | MakePayment component to render in each linked account card         |
 | `onLinkedAccountSettled` | `(recipient?: Recipient, error?: ApiError) => void` | No       | Callback function for linked account creation/verification response |
 

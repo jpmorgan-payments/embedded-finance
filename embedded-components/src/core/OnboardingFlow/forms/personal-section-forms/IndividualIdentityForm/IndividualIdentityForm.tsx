@@ -27,7 +27,7 @@ import {
 type IdTypeSelection = IndividualIdentityIdType | '';
 
 export const IndividualIdentityForm: FormStepComponent = () => {
-  const { t } = useTranslationWithTokens([
+  const { t, tString } = useTranslationWithTokens([
     'onboarding-overview',
     'onboarding-old',
   ]);
@@ -105,6 +105,7 @@ export const IndividualIdentityForm: FormStepComponent = () => {
         type="combobox"
         options={COUNTRIES_OF_FORMATION.map((code) => ({
           value: code,
+          searchValue: `[${code}] ${tString([`common:countries.${code}`] as unknown as TemplateStringsArray)}`,
           label: (
             <span>
               <span className="eb-font-medium">[{code}]</span>{' '}

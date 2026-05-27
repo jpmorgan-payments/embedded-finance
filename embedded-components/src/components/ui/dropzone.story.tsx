@@ -271,3 +271,85 @@ export const WithInitialFiles: Story = {
     },
   },
 };
+
+// Helper component for reset key demo
+const DropzoneWithReset = (args: any) => {
+  const [resetKey, setResetKey] = useState(0);
+  const [files, setFiles] = useState<File[]>([]);
+
+  return (
+    <div className="eb-component eb-mx-auto eb-max-w-md eb-p-4">
+      <Dropzone
+        {...args}
+        resetKey={resetKey}
+        onChange={(newFiles) => {
+          setFiles(newFiles);
+        }}
+      />
+      <button
+        type="button"
+        className="eb-mt-4 eb-rounded eb-bg-red-500 eb-px-3 eb-py-1 eb-text-sm eb-text-white"
+        onClick={() => setResetKey((k) => k + 1)}
+      >
+        Reset ({files.length} files)
+      </button>
+    </div>
+  );
+};
+
+export const WithResetKey: Story = {
+  render: (args) => <DropzoneWithReset {...args} />,
+  args: {
+    showFilesList: true,
+    showErrorMessage: true,
+    multiple: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Upload files, then click the Reset button to clear all files via the resetKey prop',
+      },
+    },
+  },
+};
+
+export const WithFileSizeLimit: Story = {
+  render: (args) => <DropzoneWithState {...args} />,
+  args: {
+    showFilesList: true,
+    showErrorMessage: true,
+    fileMaxSize: 100 * 1024, // 100 KB — easy to trigger the error
+    multiple: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Dropzone with a very small file size limit (100 KB). Upload a larger file to see the error message.',
+      },
+    },
+  },
+};
+
+export const MultipleFiles: Story = {
+  render: (args) => <DropzoneWithState {...args} />,
+  args: {
+    showFilesList: true,
+    showErrorMessage: true,
+    multiple: true,
+    accept: {
+      'image/*': ['.jpeg', '.jpg', '.png'],
+      'application/pdf': ['.pdf'],
+    },
+    enableFilePreview: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Dropzone that accepts multiple files. Upload several images and PDFs to see them listed.',
+      },
+    },
+  },
+};

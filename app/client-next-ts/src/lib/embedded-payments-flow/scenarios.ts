@@ -346,7 +346,10 @@ export const INTEGRATION_SCENARIOS: IntegrationScenario[] = [
         'await-approval',
         'Underwriting & approval',
         'Poll client status or consume push notifications until the client is approved for Embedded Payments.',
-        ['GET /clients/{id}', 'Incoming webhook deliveries (see POST /webhooks)'],
+        [
+          'GET /clients/{id}',
+          'Incoming webhook deliveries (see POST /webhooks)',
+        ],
         DOCS.onboard,
         RECIPE.webhook
       ),
@@ -370,7 +373,11 @@ export const INTEGRATION_SCENARIOS: IntegrationScenario[] = [
         'recipients',
         'Register recipients',
         'Add third-party payout destinations (ACH / Wire / RTP as applicable).',
-        ['POST /recipients', 'GET /recipients?clientId=…', 'GET /recipients/{id}'],
+        [
+          'POST /recipients',
+          'GET /recipients?clientId=…',
+          'GET /recipients/{id}',
+        ],
         DOCS.recipients,
         RECIPE.recipients
       ),
@@ -461,7 +468,8 @@ export const INTEGRATION_SCENARIOS: IntegrationScenario[] = [
     id: 'partially-hosted',
     name: 'Partially hosted onboarding',
     matrixLabel: 'Partially\nhosted',
-    tagline: 'Your UI for data collection; hosted UI for sensitive verification steps.',
+    tagline:
+      'Your UI for data collection; hosted UI for sensitive verification steps.',
     whenToUse:
       'You want a native feel for most of the flow but must hand off identity or verification to a hosted experience, then resume API flows.',
     layout: 'linear',
@@ -547,11 +555,7 @@ export const INTEGRATION_SCENARIOS: IntegrationScenario[] = [
         'reconcile',
         'Reconcile with GET APIs',
         'Use read APIs for support and edge cases when push delivery is delayed or ambiguous.',
-        [
-          'GET /clients',
-          'GET /accounts',
-          'GET /transactions',
-        ],
+        ['GET /clients', 'GET /accounts', 'GET /transactions'],
         DOCS.transactions,
         RECIPE.transactions
       ),
@@ -586,17 +590,14 @@ export const INTEGRATION_SCENARIOS: IntegrationScenario[] = [
     branches: [
       {
         title: 'Full Embedded path',
-        subtitle: 'Sub-merchants that need accounts and treasury-style controls',
+        subtitle:
+          'Sub-merchants that need accounts and treasury-style controls',
         steps: [
           step(
             'm1',
             'Onboard client',
             'Full KYB and approval for Embedded Payments.',
-            [
-              'POST /clients',
-              'POST /parties',
-              'PATCH /clients/{id}',
-            ],
+            ['POST /clients', 'POST /parties', 'PATCH /clients/{id}'],
             DOCS.onboard,
             RECIPE.onboarding
           ),
@@ -662,4 +663,3 @@ export const INTEGRATION_SCENARIOS: IntegrationScenario[] = [
     dataObjectsInvolved: ALL_DATA_OBJECT_IDS,
   },
 ];
-

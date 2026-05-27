@@ -23,6 +23,7 @@ import {
   mockClientInfoRequested,
   mockClientInReview,
   mockClientNew,
+  mockClientNewWithAuthorizedUserParty,
   OnboardingFlowTemplate,
   resetAndSeedClient,
 } from './story-utils';
@@ -75,6 +76,33 @@ export const NewNoClientId: Story = {
  */
 export const NewWithClientId: Story = {
   loaders: [() => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID)],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+
+    showDisclosureFooter: true,
+    disclosureConfig: {
+      platformName: 'SellSense',
+      platformAgreementUrl: 'https://example.com/sellsense-program-agreement',
+    },
+  },
+};
+
+/**
+ * **New Client - With Client ID (individual party has AUTHORIZED_USER role)**
+ *
+ * Same as **New Client - With Client ID**, but the controller individual
+ * party’s `roles` array includes `AUTHORIZED_USER` (uppercase API enum value).
+ */
+export const NewWithClientIdAuthorizedUserPartyRole: Story = {
+  name: 'New With Client ID (Authorized User party role)',
+  loaders: [
+    () =>
+      resetAndSeedClient(
+        mockClientNewWithAuthorizedUserParty,
+        DEFAULT_CLIENT_ID
+      ),
+  ],
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,

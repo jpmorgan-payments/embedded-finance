@@ -1,5 +1,8 @@
+import { BookOpen, Play } from 'lucide-react';
+
 import { Link } from '@tanstack/react-router';
 
+import { HeroSkillInstallDialog } from '@/components/landing/hero-skill-install-dialog';
 import { Button } from '@/components/ui/button';
 
 function ConceptVisualization() {
@@ -76,24 +79,27 @@ export function HeroSection() {
               full power of Embedded Finance APIs.
             </p>
 
-            <div className="flex flex-col gap-4 sm:flex-row">
-              <Link to="/demos">
+            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
+              <Link to="/demos" className="inline-flex">
                 <Button
                   size="lg"
                   className="w-full rounded-page-md border-0 bg-sp-brand px-6 py-3 text-sm font-semibold !text-jpm-white shadow-page-card hover:bg-sp-brand-700 sm:w-auto sm:px-8 sm:py-4 sm:text-base lg:text-page-body"
                 >
+                  <Play className="size-5 shrink-0" />
                   EXPLORE DEMOS
                 </Button>
               </Link>
-              <Link to="/documentation">
+              <Link to="/documentation" className="inline-flex">
                 <Button
                   variant="outline"
                   size="lg"
                   className="w-full rounded-page-md border-2 border-sp-brand px-6 py-3 text-sm font-semibold text-sp-brand transition-all duration-200 hover:bg-sp-brand hover:text-jpm-white sm:w-auto sm:px-8 sm:py-4 sm:text-base lg:text-page-body"
                 >
+                  <BookOpen className="size-5 shrink-0" />
                   VIEW DOCUMENTATION
                 </Button>
               </Link>
+              <HeroSkillInstallDialog tone="split" />
             </div>
           </div>
 

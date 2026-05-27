@@ -107,16 +107,25 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
 
   // Get icon for payment method type
   const getPaymentIcon = (type: RoutingInformationTransactionType) => {
+    let icon: React.ReactNode;
     switch (type) {
       case 'ACH':
-        return <BanknoteIcon className="eb-h-4 eb-w-4" />;
+        icon = <BanknoteIcon className="eb-h-4 eb-w-4 eb-text-primary" />;
+        break;
       case 'WIRE':
-        return <ArrowRightLeftIcon className="eb-h-4 eb-w-4" />;
+        icon = <ArrowRightLeftIcon className="eb-h-4 eb-w-4 eb-text-primary" />;
+        break;
       case 'RTP':
-        return <ZapIcon className="eb-h-4 eb-w-4" />;
+        icon = <ZapIcon className="eb-h-4 eb-w-4 eb-text-primary" />;
+        break;
       default:
         return null;
     }
+    return (
+      <div className="eb-flex eb-h-8 eb-w-8 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary/10">
+        {icon}
+      </div>
+    );
   };
 
   return (
@@ -129,7 +138,7 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
         return (
           <div key={type} className="eb-flex eb-items-center eb-gap-2">
             <label
-              className={`eb-flex eb-flex-1 eb-items-start eb-gap-3 eb-rounded-lg eb-border eb-bg-card eb-p-4 eb-transition-all ${
+              className={`eb-flex eb-flex-1 eb-items-center eb-gap-3 eb-rounded-lg eb-border eb-bg-card eb-p-4 eb-transition-all ${
                 isSelected
                   ? 'eb-border-primary eb-bg-primary/5 eb-shadow-sm'
                   : 'eb-border-border hover:eb-border-primary/50 hover:eb-bg-accent/50'
@@ -144,13 +153,12 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
                     handleToggle(type);
                   }
                 }}
-                className="eb-mt-0.5"
               />
-              <div className="eb-mt-0.5 eb-flex eb-items-center eb-gap-2 eb-text-primary">
-                {getPaymentIcon(type)}
-              </div>
+              {getPaymentIcon(type)}
               <div className="eb-flex eb-min-w-0 eb-flex-1 eb-flex-col eb-gap-1 sm:eb-flex-row sm:eb-flex-wrap sm:eb-items-center sm:eb-justify-between sm:eb-gap-2">
-                <span className="eb-font-medium">{config.label}</span>
+                <span className="eb-text-base eb-font-medium">
+                  {config.label}
+                </span>
                 {isLocked && (
                   <span className="eb-inline-flex eb-items-center eb-gap-1 eb-self-start eb-rounded-full eb-bg-informative-accent eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-informative sm:eb-px-2.5 sm:eb-py-1">
                     <LockIcon className="eb-h-3 eb-w-3 eb-shrink-0" />
@@ -280,7 +288,11 @@ interface IndividualSelectorProps {
   }>;
   selectedFirstName: string | undefined;
   selectedLastName: string | undefined;
-  onSelect: (individual: { firstName: string; lastName: string }) => void;
+  onSelect: (individual: {
+    id: string | undefined;
+    firstName: string;
+    lastName: string;
+  }) => void;
 }
 
 const IndividualSelector: FC<IndividualSelectorProps> = ({
@@ -699,8 +711,8 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     skipStepOne ? 2 : initialStep
   );
 
-  // Extract organization name from client data if available
-  const organizationName = useMemo(() => {
+  // Extract organization name and party ID from client data if available
+  const orgPartyInfo = useMemo(() => {
     if (!client?.parties) return undefined;
 
     const orgParty = client.parties.find(
@@ -710,8 +722,14 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
         party.roles?.includes('CLIENT')
     );
 
-    return orgParty?.organizationDetails?.organizationName;
+    if (!orgParty) return undefined;
+    return {
+      name: orgParty.organizationDetails?.organizationName,
+      id: orgParty.id,
+    };
   }, [client]);
+
+  const organizationName = orgPartyInfo?.name;
 
   // Extract individual parties from client data for linked account individual selector
   const individualParties = useMemo(() => {
@@ -939,6 +957,12 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
         : undefined,
       contacts: initialContacts,
       certify: false,
+      // Resolve partyId from client data when prefillFromClient is enabled
+      selectedPartyId: effectiveConfig.accountHolder.prefillFromClient
+        ? individualParties.length === 1
+          ? individualParties[0].id
+          : undefined
+        : undefined,
     } as BankAccountFormData;
   }, [
     recipient,
@@ -946,6 +970,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     effectiveConfig.accountHolder.prefillFromClient,
     individualParties,
     organizationName,
+    orgPartyInfo,
     initialRoutingNumbers,
     initialPaymentTypes,
     initialContacts,
@@ -1227,6 +1252,28 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     // Remove useSameRoutingNumber helper field (not part of API payload)
     delete cleanedData.useSameRoutingNumber;
 
+    // Resolve selectedPartyId from client data when prefillFromClient is enabled
+    // and the user didn't manually set one (e.g. org auto-prefill, or single individual)
+    if (
+      !cleanedData.selectedPartyId &&
+      effectiveConfig.accountHolder.prefillFromClient &&
+      client?.parties
+    ) {
+      if (cleanedData.accountType === 'ORGANIZATION' && orgPartyInfo?.id) {
+        cleanedData.selectedPartyId = orgPartyInfo.id;
+      } else if (cleanedData.accountType === 'INDIVIDUAL') {
+        // Match by name against known individuals
+        const matched = individualParties.find(
+          (p) =>
+            p.firstName === cleanedData.firstName &&
+            p.lastName === cleanedData.lastName
+        );
+        if (matched?.id) {
+          cleanedData.selectedPartyId = matched.id;
+        }
+      }
+    }
+
     onSubmit(cleanedData);
   };
 
@@ -1385,6 +1432,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                             form.setValue('lastName', individual.lastName, {
                               shouldValidate: true,
                             });
+                            form.setValue('selectedPartyId', individual.id);
                           }}
                         />
                       </>

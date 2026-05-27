@@ -49,7 +49,8 @@ export const CORE_COMPONENT_FUNCTIONAL_REQUIREMENTS: CoreComponentRequirementsEn
     {
       folder: 'MakePayment',
       title: 'MakePayment',
-      description: 'Payment amount, funding account, recipient, and submission UX.',
+      description:
+        'Payment amount, funding account, recipient, and submission UX.',
       docs: [
         { file: 'FUNCTIONAL_REQUIREMENTS.md' },
         {

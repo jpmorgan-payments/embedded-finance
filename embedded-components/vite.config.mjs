@@ -47,6 +47,12 @@ export default defineConfig(({ mode }) => {
         exclude: [
           '**/*.test.{ts,tsx}',
           '**/*.story.{ts,tsx}',
+          '**/*.stories.{ts,tsx}',
+          '**/*.fixtures.{ts,tsx}',
+          '**/*.mdx',
+          '**/.storybook/**',
+          '**/stories/**',
+          '**/fixtures/**',
           '**/*.d.ts',
           '**/api/generated/**',
           '**/node_modules/**',

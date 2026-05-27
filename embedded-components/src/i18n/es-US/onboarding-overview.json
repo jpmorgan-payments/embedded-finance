@@ -374,7 +374,18 @@
       "bankAccountSection": {
         "title": "Vincular una cuenta bancaria para pagos",
         "lockedMessage": "Disponible después de que se envíe su solicitud",
-        "linkAccountTitle": "Vincular una cuenta"
+        "linkAccountTitle": "Vincular una cuenta",
+        "multiAccountOverviewDescriptionSingular": "Tiene 1 cuenta vinculada para pagos. Abra el paso de vinculación bancaria para agregar otra cuenta o administrar los detalles.",
+        "multiAccountOverviewDescriptionPlural": "Tiene {{count}} cuentas vinculadas para pagos. Abra el paso de vinculación bancaria para agregar otra cuenta o administrar los detalles.",
+        "manageLinkedAccountsButton": "Administrar cuentas vinculadas",
+        "successAlert": {
+          "ACTIVE": "Su cuenta bancaria ha sido verificada y está lista para transacciones.",
+          "MICRODEPOSITS_INITIATED": "Los datos de su cuenta bancaria han sido enviados. Se enviarán dos pequeños depósitos a su cuenta para verificación.",
+          "PENDING": "Los datos de su cuenta bancaria han sido enviados y se están procesando.",
+          "READY_FOR_VALIDATION": "Los datos de su cuenta bancaria han sido enviados. Verifique los montos de los depósitos para completar la configuración.",
+          "REJECTED": "Los datos de su cuenta bancaria han sido enviados pero no pudieron ser verificados.",
+          "INACTIVE": "Los datos de su cuenta bancaria han sido enviados."
+        }
       }
     },
     "linkAccount": {
@@ -451,7 +462,8 @@
         },
         "contactDetails": {
           "title": "Sus datos de contacto",
-          "description": "Necesitamos algunos datos adicionales para confirmar su identidad."
+          "description": "Necesitamos algunos datos adicionales para confirmar su identidad.",
+          "countryMismatchWarning": "El país de la dirección no coincide con el país de residencia ({{country}}). Aún puede enviar, pero verifique que sea correcto."
         },
         "checkAnswers": {
           "title": "Verifique sus respuestas",
@@ -517,6 +529,16 @@
     "uploadDocumentsSection": {
       "label": "Documentos de respaldo",
       "onHoldText": "Le informaremos si se necesitan documentos"
+    },
+    "operationalDetails": {
+      "title": "Detalles operativos",
+      "description": "Responda estas preguntas adicionales para ayudarnos a comprender las operaciones de su negocio.",
+      "selectPlaceholder": "Seleccione una opción",
+      "noQuestions": "No hay preguntas adicionales. Puede continuar al siguiente paso.",
+      "loadingQuestions": "Cargando preguntas...",
+      "saveAndReturn": "Guardar y volver a la revisión",
+      "saveAndContinue": "Guardar y continuar a la revisión",
+      "newQuestionsGenerated": "Según sus respuestas, se necesitan algunas preguntas adicionales. Por favor complételas para continuar."
     }
   },
   "additionalQuestions": {
@@ -597,6 +619,7 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
+        "invalidOption": "$t(validation:common.invalidOption)",
         "minLength": "$t(validation:text.minLength, {'count': 2})",
         "maxLength": "$t(validation:text.maxLength, {'count': 50})",
         "pattern": "$t(validation:text.pattern)",
@@ -626,7 +649,8 @@
       "description": "Cómo posee o controla la organización",
       "tooltip": "",
       "validation": {
-        "required": "$t(validation:required)"
+        "required": "$t(validation:required)",
+        "invalidOption": "$t(validation:common.invalidOption)"
       }
     },
     "birthDate": {
@@ -702,6 +726,7 @@
         "itinDigitsOnly": "$t(validation:id.itin.digitsOnly)",
         "itinStartsWith9": "$t(validation:id.itin.startsWith9)",
         "itinMiddleDigits": "$t(validation:id.itin.middleDigits)",
+        "itinKnownInvalid": "$t(validation:id.itin.knownInvalid)",
         "noSpaces": "$t(validation:text.noSpaces)"
       }
     },
@@ -1262,7 +1287,7 @@
     "owner": "Propietario",
     "controller": "Controlador",
     "individualMissingDetails": "ⓘ A esta persona le faltan algunos detalles.",
-    "operationalDetails": "Detalles operativos",
+    "operationalDetailsHeading": "Detalles operativos",
     "fieldIsMissing": "Este campo falta",
     "response": "Respuesta",
     "complete": "Completo",
@@ -1285,6 +1310,8 @@
       "downloading": "Descargando...",
       "failedToDownload": "Error al descargar el documento:",
       "failedToFetchDetails": "Error al obtener los detalles del documento:",
+      "saveDocument": "Guardar y revisar documento",
+      "popupBlocked": "No se puede previsualizar el documento en el navegador. Guarde el documento usando el botón de abajo y revíselo antes de continuar.",
       "attestations": "Atestaciones",
       "agreeToTermsWithPlatform": "Ha leído y acepta los Términos de cuenta de J.P. Morgan y el {{platformAgreementLabel}}.",
       "agreeToTerms": "Ha leído y acepta los Términos de cuenta de J.P. Morgan.",

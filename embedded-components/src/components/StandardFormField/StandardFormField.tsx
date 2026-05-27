@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useRef, useState } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { Control, FieldPath, FieldValues } from 'react-hook-form';
 
@@ -106,7 +106,12 @@ export interface StandardFormFieldProps<
  */
 interface ComboboxFieldProps {
   field: any;
-  options: Array<{ label: ReactNode; value: string; disabled?: boolean }>;
+  options: Array<{
+    label: ReactNode;
+    value: string;
+    searchValue?: string;
+    disabled?: boolean;
+  }>;
   placeholder: string;
   noOptionsText: string;
   disabled: boolean;
@@ -129,6 +134,7 @@ const ComboboxField = ({
 }: ComboboxFieldProps) => {
   const [open, setOpen] = useState(false);
   const { onBlur, ...fieldWithoutBlur } = field;
+  const typeaheadRef = useRef({ search: '', timer: 0 });
 
   return (
     <FormItem className={className}>
@@ -147,6 +153,38 @@ const ComboboxField = ({
                 if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
                   e.preventDefault();
                   setOpen(true);
+                  return;
+                }
+                if (
+                  !open &&
+                  e.key.length === 1 &&
+                  !e.ctrlKey &&
+                  !e.metaKey &&
+                  !e.altKey
+                ) {
+                  e.preventDefault();
+                  const ta = typeaheadRef.current;
+                  window.clearTimeout(ta.timer);
+                  ta.search += e.key.toLowerCase();
+                  ta.timer = window.setTimeout(() => {
+                    ta.search = '';
+                  }, 1000);
+                  const getSearchText = (opt: (typeof options)[number]) =>
+                    (opt.searchValue ?? String(opt.label)).toLowerCase();
+                  const match =
+                    options.find((opt) =>
+                      getSearchText(opt).startsWith(ta.search)
+                    ) ??
+                    options
+                      .filter((opt) => getSearchText(opt).includes(ta.search))
+                      .sort(
+                        (a, b) =>
+                          getSearchText(a).indexOf(ta.search) -
+                          getSearchText(b).indexOf(ta.search)
+                      )[0];
+                  if (match && match.value !== field.value) {
+                    field.onChange(match.value);
+                  }
                 }
               }}
               {...fieldWithoutBlur}
@@ -159,36 +197,48 @@ const ComboboxField = ({
           </FormControl>
         </PopoverTrigger>
         <PopoverContent className="eb-w-[--radix-popover-trigger-width] eb-p-0">
-          <Command>
+          <Command
+            defaultValue={
+              field.value
+                ? (() => {
+                    const sel = options.find((o) => o.value === field.value);
+                    return sel
+                      ? `${sel.searchValue ?? String(sel.label)} ${sel.value}`
+                      : undefined;
+                  })()
+                : undefined
+            }
+          >
             <CommandInput placeholder={placeholder} />
             <CommandList>
               <CommandEmpty>{noOptionsText}</CommandEmpty>
               <CommandGroup>
-                {options.map((option) => (
-                  <CommandItem
-                    key={option.value}
-                    value={`${option.label} ${option.value}`}
-                    onSelect={() => {
-                      field.onChange(
-                        option.value === field.value ? '' : option.value
-                      );
-                      onBlur();
-                      setOpen(false);
-                    }}
-                    disabled={option.disabled}
-                    className="eb-cursor-pointer"
-                  >
-                    <Check
-                      className={cn(
-                        'eb-mr-2 eb-h-4 eb-w-4',
-                        field.value === option.value
-                          ? 'eb-opacity-100'
-                          : 'eb-opacity-0'
-                      )}
-                    />
-                    {option.label}
-                  </CommandItem>
-                ))}
+                {options.map((option) => {
+                  const isSelected = field.value === option.value;
+                  return (
+                    <CommandItem
+                      key={option.value}
+                      value={`${option.searchValue ?? option.label} ${option.value}`}
+                      onSelect={() => {
+                        field.onChange(
+                          option.value === field.value ? '' : option.value
+                        );
+                        onBlur();
+                        setOpen(false);
+                      }}
+                      disabled={option.disabled}
+                      className="eb-cursor-pointer"
+                    >
+                      <Check
+                        className={cn(
+                          'eb-mr-2 eb-h-4 eb-w-4',
+                          isSelected ? 'eb-opacity-100' : 'eb-opacity-0'
+                        )}
+                      />
+                      {option.label}
+                    </CommandItem>
+                  );
+                })}
               </CommandGroup>
             </CommandList>
           </Command>

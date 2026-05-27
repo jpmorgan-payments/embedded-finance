@@ -12,9 +12,7 @@
  * - NAICS code recommendations
  * - User event tracking for analytics
  *
- * **See Also:**
- * - Client States/* - Different client status scenarios
- * - Configuration/* - Configuration and feature variants
+ * **See also:** `stories/Docs.mdx` (Storybook decomposition taxonomy), plus grouped stories under `stories/` (Client States, Configuration & variants, Interactive, Resilience, Entry points, etc.).
  */
 
 import type { Meta, StoryObj } from '@storybook/react-vite';

@@ -9,6 +9,12 @@ import {
   vi,
 } from 'vitest';
 
+import { TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID } from '../mocks/testScenarioMultiLinkedIllustrationClient.mock';
+import {
+  TEST_DEMO_SCENARIO_CLIENT_ID,
+  TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE,
+  TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID,
+} from '../mocks/testScenarioOperator80Client.mock';
 import { db, DB_SCENARIOS, getDbStatus, resetDb } from './db';
 import { createHandlers } from './handlers';
 
@@ -78,6 +84,76 @@ describe('MSW handlers (integration)', () => {
     expect(data.default).toBeDefined();
   });
 
+  it('POST /clients/:id merges questionResponses and prunes conditional outstanding IDs', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'happy-path',
+      }),
+    });
+
+    const clientId = TEST_DEMO_SCENARIO_CLIENT_ID;
+    const clientBefore = db.client.findFirst({
+      where: { id: { equals: clientId } },
+    });
+    expect(clientBefore).toBeTruthy();
+    expect(
+      (clientBefore?.outstanding as { questionIds?: string[] })?.questionIds
+    ).toEqual(expect.arrayContaining(['30195']));
+
+    const prevOutstanding = (clientBefore?.outstanding ?? {}) as {
+      questionIds?: string[];
+    };
+    db.client.update({
+      where: { id: { equals: clientId } },
+      data: {
+        ...clientBefore,
+        outstanding: {
+          ...prevOutstanding,
+          questionIds: [
+            ...new Set([...(prevOutstanding.questionIds ?? []), '30198']),
+          ],
+        },
+      } as never,
+    });
+
+    const withChild = db.client.findFirst({
+      where: { id: { equals: clientId } },
+    });
+    expect(
+      (withChild?.outstanding as { questionIds?: string[] })?.questionIds
+    ).toContain('30198');
+
+    const res = await fetch(`${API}/ef/do/v1/clients/${clientId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        questionResponses: [{ questionId: '30195', values: ['false'] }],
+      }),
+    });
+    expect(res.ok).toBe(true);
+    const body = (await res.json()) as {
+      outstanding?: { questionIds?: string[] };
+      questionResponses?: Array<{ questionId?: string }>;
+    };
+
+    expect(body.outstanding?.questionIds ?? []).not.toContain('30198');
+    const stored = db.client.findFirst({
+      where: { id: { equals: clientId } },
+    });
+    expect(
+      (stored?.outstanding as { questionIds?: string[] })?.questionIds ?? []
+    ).not.toContain('30198');
+
+    const ids = (body.questionResponses ?? [])
+      .map((r) => r.questionId)
+      .filter(Boolean);
+    expect(ids).toContain('30195');
+  });
+
   it('GET /ping returns keep-alive payload', async () => {
     const res = await fetch(`${API}/ping`);
     expect(res.ok).toBe(true);
@@ -137,6 +213,99 @@ describe('MSW handlers (integration)', () => {
     expect(Array.isArray(data.documentRequests)).toBe(true);
   });
 
+  it('POST /document-requests/:id/submit returns 202 for test-scenario doc-request seed (61800)', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'doc-request',
+      }),
+    });
+
+    const clientId = TEST_DEMO_SCENARIO_CLIENT_ID;
+    const orgDocId = TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID;
+
+    const listBefore = await fetch(
+      `${API}/ef/do/v1/document-requests?clientId=${clientId}`
+    );
+    expect(listBefore.ok).toBe(true);
+    const envelope = (await listBefore.json()) as {
+      documentRequests?: { id?: string }[];
+    };
+    expect(envelope.documentRequests?.some((r) => r.id === orgDocId)).toBe(
+      true
+    );
+
+    const submitRes = await fetch(
+      `${API}/ef/do/v1/document-requests/${orgDocId}/submit`,
+      { method: 'POST' }
+    );
+    expect(submitRes.status).toBe(202);
+    const body = (await submitRes.json()) as { acceptedAt?: string };
+    expect(typeof body.acceptedAt).toBe('string');
+
+    const getDr = await fetch(`${API}/ef/do/v1/document-requests/${orgDocId}`);
+    expect(getDr.ok).toBe(true);
+    const dr = (await getDr.json()) as { id?: string; status?: string };
+    expect(dr.id).toBe(orgDocId);
+    expect(dr.status).toBe('SUBMITTED');
+  });
+
+  it('POST /document-requests/:id/submit (no /ef/do/v1 prefix) returns 202', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'doc-request',
+      }),
+    });
+
+    const indDocId = String(TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE);
+    const submitRes = await fetch(
+      `${API}/document-requests/${indDocId}/submit`,
+      {
+        method: 'POST',
+      }
+    );
+    expect(submitRes.status).toBe(202);
+  });
+
+  it('doc-request: client becomes REVIEW_IN_PROGRESS after all document requests submitted', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'doc-request',
+      }),
+    });
+
+    const clientId = TEST_DEMO_SCENARIO_CLIENT_ID;
+    const orgDocId = TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID;
+    const indDocId = String(TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE);
+
+    await fetch(`${API}/ef/do/v1/document-requests/${orgDocId}/submit`, {
+      method: 'POST',
+    });
+    const afterOne = await fetch(`${API}/ef/do/v1/clients/${clientId}`);
+    expect(afterOne.ok).toBe(true);
+    const bodyOne = (await afterOne.json()) as { status?: string };
+    expect(bodyOne.status).toBe('INFORMATION_REQUESTED');
+
+    await fetch(`${API}/ef/do/v1/document-requests/${indDocId}/submit`, {
+      method: 'POST',
+    });
+    const afterBoth = await fetch(`${API}/ef/do/v1/clients/${clientId}`);
+    expect(afterBoth.ok).toBe(true);
+    const bodyBoth = (await afterBoth.json()) as { status?: string };
+    expect(bodyBoth.status).toBe('REVIEW_IN_PROGRESS');
+  });
+
   it('GET /questions returns filtered questions when questionIds provided', async () => {
     const res = await fetch(`${API}/ef/do/v1/questions?questionIds=30005`);
     expect(res.ok).toBe(true);
@@ -148,7 +317,16 @@ describe('MSW handlers (integration)', () => {
     const meta = await fetch(`${API}/ef/do/v1/documents/doc-1`);
     expect(meta.ok).toBe(true);
     const file = await fetch(`${API}/ef/do/v1/documents/doc-1/file`);
-    expect(file.ok).toBe(true);
+    if (!file.ok) {
+      const detail = `${file.status} ${file.statusText}`;
+      const bodySnippet = await file
+        .clone()
+        .text()
+        .catch(() => '');
+      throw new Error(
+        `GET document file failed: ${detail}${bodySnippet ? ` — ${bodySnippet.slice(0, 120)}` : ''}`
+      );
+    }
     expect(file.headers.get('Content-Type')).toContain('pdf');
   });
 
@@ -181,4 +359,60 @@ describe('MSW handlers (integration)', () => {
     const res = await fetch(`${API}/clients/any`);
     expect(res.status).toBe(404);
   });
+
+  it.each([['multi-linked-start-3', 3]] as const)(
+    'test-scenario-2: %s seeds %i LINKED_ACCOUNT recipient(s)',
+    async (testDemoScenario, expectedCount) => {
+      await fetch(`${API}/ef/do/v1/_reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scenario: DB_SCENARIOS.EMPTY,
+          overrides: {},
+          testDemoScenario,
+          testScenarioBundle: 'test-scenario-2',
+        }),
+      });
+
+      const clientId = TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID;
+      const clientRes = await fetch(`${API}/ef/do/v1/clients/${clientId}`);
+      expect(clientRes.ok).toBe(true);
+
+      const recRes = await fetch(`${API}/ef/do/v1/recipients`);
+      expect(recRes.ok).toBe(true);
+      const data = (await recRes.json()) as {
+        recipients?: Array<{ type?: string }>;
+      };
+      const linked = (data.recipients ?? []).filter(
+        (r) => r.type === 'LINKED_ACCOUNT'
+      );
+      expect(linked.length).toBe(expectedCount);
+    }
+  );
+
+  it.each(['linked-account-approved', 'linked-account-active'] as const)(
+    'test-scenario-2: %s starts with no pre-linked LINKED_ACCOUNT recipients',
+    async (testDemoScenario) => {
+      await fetch(`${API}/ef/do/v1/_reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scenario: DB_SCENARIOS.EMPTY,
+          overrides: {},
+          testDemoScenario,
+          testScenarioBundle: 'test-scenario-2',
+        }),
+      });
+
+      const recRes = await fetch(`${API}/ef/do/v1/recipients`);
+      expect(recRes.ok).toBe(true);
+      const data = (await recRes.json()) as {
+        recipients?: Array<{ type?: string }>;
+      };
+      const linked = (data.recipients ?? []).filter(
+        (r) => r.type === 'LINKED_ACCOUNT'
+      );
+      expect(linked.length).toBe(0);
+    }
+  );
 });

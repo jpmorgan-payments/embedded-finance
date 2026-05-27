@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { defaultResources, i18n } from '@/i18n/config';
 import { objectEntries, objectKeys } from '@/utils/objectEntries';
@@ -362,7 +363,9 @@ export function generateClientRequestBody(
         ? (fieldConfig as { toRequestFn: (val: any) => any }).toRequestFn(value)
         : value;
 
-      setValueByPath(obj, path, modifiedValue);
+      if (modifiedValue !== undefined && modifiedValue !== null) {
+        setValueByPath(obj, path, modifiedValue);
+      }
     }
   });
 
@@ -392,7 +395,9 @@ export function generatePartyRequestBody(
         ? (fieldConfig as { toRequestFn: (val: any) => any }).toRequestFn(value)
         : value;
 
-      setValueByPath(obj, path, modifiedValue);
+      if (modifiedValue !== undefined && modifiedValue !== null) {
+        setValueByPath(obj, path, modifiedValue);
+      }
     }
   });
 
@@ -439,7 +444,10 @@ export function convertClientResponseToFormValues(
       const modifiedValue = config.fromResponseFn
         ? config.fromResponseFn(value)
         : value;
-      formValues[fieldName as keyof OnboardingFormValuesSubmit] = modifiedValue;
+      if (modifiedValue !== undefined) {
+        formValues[fieldName as keyof OnboardingFormValuesSubmit] =
+          modifiedValue;
+      }
     }
   });
 
@@ -467,7 +475,10 @@ export function convertPartyResponseToFormValues(
       const modifiedValue = config.fromResponseFn
         ? config.fromResponseFn(value)
         : value;
-      formValues[fieldName as keyof OnboardingFormValuesSubmit] = modifiedValue;
+      if (modifiedValue !== undefined) {
+        formValues[fieldName as keyof OnboardingFormValuesSubmit] =
+          modifiedValue;
+      }
     }
   });
 
@@ -768,8 +779,8 @@ export function modifySchemaByClientContext(
       currentScreenId
     );
 
-    // Skip hidden fields
-    if (fieldRule.display === 'hidden') {
+    // Skip hidden fields (unless they opt in to submission)
+    if (fieldRule.display === 'hidden' && !fieldRule.submitWhenHidden) {
       return;
     }
 
@@ -862,7 +873,21 @@ export function modifySchemaByClientContext(
       }
     } else if (ruleType === 'single') {
       if (!fieldRule.required) {
-        modifiedSchema = value.or(z.literal('')).or(z.undefined());
+        if (modifiedSchema instanceof z.ZodObject) {
+          // For non-required object fields, relax inner schemas to accept empty/undefined
+          const relaxedShape: Record<string, z.ZodType<any>> = {};
+          for (const [k, v] of Object.entries(
+            modifiedSchema.shape as Record<string, z.ZodType<any>>
+          )) {
+            relaxedShape[k] = v.or(z.literal('')).or(z.undefined());
+          }
+          modifiedSchema = z
+            .object(relaxedShape)
+            .or(z.literal(''))
+            .or(z.undefined());
+        } else {
+          modifiedSchema = value.or(z.literal('')).or(z.undefined());
+        }
       }
     }
     filteredSchema[key] = modifiedSchema;
@@ -893,7 +918,7 @@ export function modifyDefaultValuesByClientContext(
       clientContext,
       currentScreenId
     );
-    if (fieldRule.display !== 'hidden') {
+    if (fieldRule.display !== 'hidden' || fieldRule.submitWhenHidden) {
       filteredDefaultValues[key] = value ?? fieldRule.defaultValue ?? '';
     }
   });
@@ -911,6 +936,12 @@ export function useFormWithFilters<
       schema: z.ZodObject<Record<string, z.ZodType<any>>>
     ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>>;
     overrideDefaultValues?: Partial<OnboardingFormValuesInitial>;
+    /**
+     * When true, runs form.trigger() on mount to surface validation
+     * errors from pre-populated API data (e.g. invalid EIN format).
+     * Defaults to true when overrideDefaultValues is provided.
+     */
+    validateOnMount?: boolean;
   }
 ): UseFormReturn<z.input<TSchema>, any, z.output<TSchema>> {
   const { modifyDefaultValues, modifySchema } = useFormUtilsWithClientContext(
@@ -924,16 +955,105 @@ export function useFormWithFilters<
     )
   ) as DefaultValues<z.input<TSchema>>;
 
+  // When the API provides countryOfResidence but no address data,
+  // update the fieldMap's address default so the country field
+  // reflects countryOfResidence instead of the static 'US' fallback.
+  const overrides = props.overrideDefaultValues ?? {};
+  const countryOfResidence = (overrides as Record<string, unknown>)
+    .countryOfResidence as string | undefined;
+  const mergedDefaults: DefaultValues<z.input<TSchema>> = {
+    ...defaultValues,
+    ...overrides,
+  };
+  if (
+    countryOfResidence &&
+    !('individualAddress' in overrides) &&
+    mergedDefaults.individualAddress
+  ) {
+    mergedDefaults.individualAddress = {
+      ...mergedDefaults.individualAddress,
+      country: countryOfResidence,
+    };
+  }
+
   const form = useForm<z.input<TSchema>, any, z.output<TSchema>>({
     mode: 'onBlur',
     reValidateMode: 'onChange',
     ...props,
     resolver: zodResolver(modifySchema(props.schema, props.refineSchemaFn)),
-    defaultValues: {
-      ...defaultValues,
-      ...(props.overrideDefaultValues ?? {}),
-    },
+    defaultValues: mergedDefaults,
   });
+
+  // Validate pre-populated fields on mount to surface errors from API data
+  // (e.g. invalid EIN format, mismatched address country). Only validates
+  // fields that already have a non-empty value — empty required fields are
+  // left alone until the user interacts with them.
+  const shouldValidateOnMount =
+    props.validateOnMount ??
+    Object.keys(props.overrideDefaultValues ?? {}).length > 0;
+
+  const hasValidatedOnMount = useRef(false);
+  useEffect(() => {
+    if (shouldValidateOnMount && !hasValidatedOnMount.current) {
+      hasValidatedOnMount.current = true;
+
+      // Collect field paths that have non-empty values.
+      // For object-typed fields (e.g. phone: {phoneType, phoneNumber}),
+      // only include the object if ALL its leaf values are populated.
+      // This avoids false validation on objects with auto-set defaults
+      // (e.g. phoneType is always set, but phoneNumber may be empty).
+      const values = form.getValues();
+      const populatedFields: string[] = [];
+
+      const isEffectivelyEmpty = (val: unknown): boolean =>
+        val === '' ||
+        val == null ||
+        // Phone fields with only a country code (e.g. "+1") are empty
+        (typeof val === 'string' && /^\+\d{1,3}$/.test(val.trim()));
+
+      const isFullyPopulated = (obj: Record<string, any>): boolean =>
+        Object.values(obj).every((val) => {
+          if (val != null && typeof val === 'object' && !Array.isArray(val)) {
+            return isFullyPopulated(val);
+          }
+          return !isEffectivelyEmpty(val);
+        });
+
+      const collectPopulated = (obj: Record<string, any>, prefix = '') => {
+        for (const [key, val] of Object.entries(obj)) {
+          const path = prefix ? `${prefix}.${key}` : key;
+          if (Array.isArray(val)) {
+            val.forEach((item, idx) => {
+              if (item != null && typeof item === 'object') {
+                // For array items that are objects, only include if fully populated
+                if (isFullyPopulated(item)) {
+                  collectPopulated(item, `${path}.${idx}`);
+                }
+              } else if (!isEffectivelyEmpty(item)) {
+                populatedFields.push(`${path}.${idx}`);
+              }
+            });
+          } else if (
+            val != null &&
+            typeof val === 'object' &&
+            !Array.isArray(val)
+          ) {
+            // Only recurse into objects where all leaves are populated
+            if (isFullyPopulated(val)) {
+              collectPopulated(val, path);
+            }
+          } else if (!isEffectivelyEmpty(val)) {
+            populatedFields.push(path);
+          }
+        }
+      };
+      collectPopulated(values);
+
+      if (populatedFields.length > 0) {
+        form.trigger(populatedFields as any);
+      }
+    }
+  }, [shouldValidateOnMount, form]);
 
   return form;
 }

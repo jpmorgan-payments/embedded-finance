@@ -124,6 +124,9 @@ export interface RecipientsTableViewProps {
   /** Callback when recipient is successfully removed */
   onRemoveSuccess?: (recipient: Recipient) => void;
 
+  /** When true, hides Remove from the row overflow menu */
+  hideRemoveRecipient?: boolean;
+
   /** Optional additional CSS classes */
   className?: string;
 }
@@ -170,6 +173,7 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
   onRecipientSettled,
   onMicrodepositVerifySettled,
   onRemoveSuccess,
+  hideRemoveRecipient = false,
   className,
 }) => {
   // Get config for recipient type
@@ -279,23 +283,27 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
               </TooltipContent>
             </Tooltip>
           )}
-          <DropdownMenuSeparator />
+          {!hideRemoveRecipient ? (
+            <>
+              <DropdownMenuSeparator />
 
-          {/* Remove Account */}
-          <RemoveAccountDialogTrigger
-            recipient={recipient}
-            onRecipientSettled={onRecipientSettled}
-            onRemoveSuccess={onRemoveSuccess}
-          >
-            <DropdownMenuItem
-              onSelect={(e) => e.preventDefault()}
-              className="eb-cursor-pointer eb-text-destructive focus:eb-text-destructive"
-              data-user-event={userJourneys.REMOVE_STARTED}
-            >
-              <TrashIcon className="eb-mr-2 eb-h-4 eb-w-4" />
-              {t('actions.remove', { defaultValue: 'Remove' })}
-            </DropdownMenuItem>
-          </RemoveAccountDialogTrigger>
+              {/* Remove Account */}
+              <RemoveAccountDialogTrigger
+                recipient={recipient}
+                onRecipientSettled={onRecipientSettled}
+                onRemoveSuccess={onRemoveSuccess}
+              >
+                <DropdownMenuItem
+                  onSelect={(e) => e.preventDefault()}
+                  className="eb-cursor-pointer eb-text-destructive focus:eb-text-destructive"
+                  data-user-event={userJourneys.REMOVE_STARTED}
+                >
+                  <TrashIcon className="eb-mr-2 eb-h-4 eb-w-4" />
+                  {t('actions.remove', { defaultValue: 'Remove' })}
+                </DropdownMenuItem>
+              </RemoveAccountDialogTrigger>
+            </>
+          ) : null}
         </>
       );
 
@@ -415,6 +423,7 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
       onMicrodepositVerifySettled,
       onRemoveSuccess,
       onRecipientSettled,
+      hideRemoveRecipient,
     ]
   );
 

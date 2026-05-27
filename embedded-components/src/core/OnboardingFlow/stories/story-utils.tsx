@@ -24,6 +24,7 @@ import type { BankAccountFormData } from '@/core/RecipientWidgets/components/Ban
 import { handlers } from '../../../msw/handlers';
 import type {
   LinkAccountInitialValues,
+  LinkAccountPresetEntry,
   LinkAccountReviewAcknowledgement,
   OnboardingFlowProps,
 } from '../types/onboarding.types';
@@ -44,6 +45,22 @@ export const mockClientNew: ClientResponse = {
   ...efClientCorpEBMock,
   id: DEFAULT_CLIENT_ID,
   status: ClientStatus.NEW,
+};
+
+/**
+ * Same as {@link mockClientNew}, but the controller individual party
+ * (`2000000112`) includes `AUTHORIZED_USER` in `roles` (API uppercase enum).
+ */
+export const mockClientNewWithAuthorizedUserParty: ClientResponse = {
+  ...mockClientNew,
+  parties: mockClientNew.parties?.map((party) =>
+    party.partyType === 'INDIVIDUAL' && party.id === '2000000112'
+      ? {
+          ...party,
+          roles: ['AUTHORIZED_USER', 'CONTROLLER'],
+        }
+      : party
+  ),
 };
 
 /** Mock client with APPROVED status */
@@ -182,13 +199,45 @@ export const mockExistingLinkedAccountRejected2: Recipient = {
   updatedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(), // 12 days ago
 };
 
+/** Second active linked account — organization type for visual variety. */
+export const mockExistingLinkedAccountOrg: Recipient = {
+  id: 'la-existing-002',
+  type: 'LINKED_ACCOUNT',
+  status: 'ACTIVE',
+  clientId: DEFAULT_CLIENT_ID,
+  partyDetails: {
+    type: 'ORGANIZATION',
+    businessName: 'Acme Supplies LLC',
+    address: {
+      addressLine1: '100 Commerce St',
+      city: 'Chicago',
+      countryCode: 'US',
+      state: 'IL',
+      postalCode: '60601',
+    },
+  },
+  account: {
+    number: '55667788990011223',
+    type: 'CHECKING',
+    countryCode: 'US',
+    routingInformation: [
+      {
+        routingCodeType: 'USABA',
+        routingNumber: '071000013',
+        transactionType: 'ACH',
+      },
+    ],
+  },
+  createdAt: '2024-03-20T14:45:00Z',
+};
+
 /** Partial prefill for link-account step (`completionMode: 'editable'`). */
 export const mockLinkAccountPrefillEditable: LinkAccountInitialValues = {
   accountNumber: '98765432109876543',
   routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
 };
 
-/** Full form-shaped payload for link-account `prefillSummary` (or tests). */
+/** Full form-shaped payload for link-account `reviewOnly` mode (or tests). */
 export const mockLinkAccountPrefillReadonly: BankAccountFormData = {
   accountType: 'INDIVIDUAL',
   firstName: 'Taylor',
@@ -196,13 +245,28 @@ export const mockLinkAccountPrefillReadonly: BankAccountFormData = {
   businessName: '',
   routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
   useSameRoutingNumber: true,
-  accountNumber: '12345678901234567',
+  accountNumber: '44556677889900112',
   bankAccountType: 'CHECKING',
   paymentTypes: ['ACH'],
-  certify: true,
+  certify: false,
 };
 
-/** Default three acknowledgements for `completionMode: 'prefillSummary'` demos. */
+/** Same as {@link mockLinkAccountPrefillReadonly} but without name fields —
+ * when `partyId` is provided, the account holder is derived from the party. */
+export const mockLinkAccountPrefillReadonlyNoName: BankAccountFormData = {
+  accountType: 'INDIVIDUAL',
+  firstName: '',
+  lastName: '',
+  businessName: '',
+  routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+  useSameRoutingNumber: true,
+  accountNumber: '44556677889900112',
+  bankAccountType: 'CHECKING',
+  paymentTypes: ['ACH'],
+  certify: false,
+};
+
+/** Default three acknowledgements for `completionMode: 'reviewOnly'` demos. */
 export const mockLinkAccountPrefillSummaryAcknowledgementsThree: readonly LinkAccountReviewAcknowledgement[] =
   [
     {
@@ -225,6 +289,152 @@ export const mockLinkAccountPrefillSummaryAcknowledgementsThree: readonly LinkAc
       },
     },
   ];
+
+// ============================================================================
+// Linked Account Prefill — Invalid Data Mocks (for validation stories)
+// ============================================================================
+
+/** 8-digit routing number (must be 9 digits).
+ * Name fields omitted — when `partyId` is provided, the account holder comes from the party. */
+export const mockLinkAccountPrefillInvalidRouting: BankAccountFormData = {
+  accountType: 'INDIVIDUAL',
+  firstName: '',
+  lastName: '',
+  businessName: '',
+  routingNumbers: [{ paymentType: 'ACH', routingNumber: '02100002' }], // 8 digits
+  useSameRoutingNumber: true,
+  accountNumber: '44556677889900112',
+  bankAccountType: 'CHECKING',
+  paymentTypes: ['ACH'],
+  certify: false,
+};
+
+/** Missing account number */
+export const mockLinkAccountPrefillMissingAccountNumber: BankAccountFormData = {
+  accountType: 'INDIVIDUAL',
+  firstName: 'Taylor',
+  lastName: 'Morgan',
+  businessName: '',
+  routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+  useSameRoutingNumber: true,
+  accountNumber: '',
+  bankAccountType: 'CHECKING',
+  paymentTypes: ['ACH'],
+  certify: false,
+};
+
+/** Missing account holder name (individual with no first/last) */
+export const mockLinkAccountPrefillMissingName: BankAccountFormData = {
+  accountType: 'INDIVIDUAL',
+  firstName: '',
+  lastName: '',
+  businessName: '',
+  routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+  useSameRoutingNumber: true,
+  accountNumber: '44556677889900112',
+  bankAccountType: 'CHECKING',
+  paymentTypes: ['ACH'],
+  certify: false,
+};
+
+/** Organization with missing business name */
+export const mockLinkAccountPrefillMissingBusinessName: BankAccountFormData = {
+  accountType: 'ORGANIZATION',
+  firstName: '',
+  lastName: '',
+  businessName: '',
+  routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+  useSameRoutingNumber: true,
+  accountNumber: '44556677889900112',
+  bankAccountType: 'CHECKING',
+  paymentTypes: ['ACH'],
+  certify: false,
+};
+
+/** Multiple validation failures: bad routing + missing account number + missing name */
+export const mockLinkAccountPrefillMultipleErrors: BankAccountFormData = {
+  accountType: 'INDIVIDUAL',
+  firstName: '',
+  lastName: '',
+  businessName: '',
+  routingNumbers: [{ paymentType: 'ACH', routingNumber: '1234' }], // 4 digits
+  useSameRoutingNumber: true,
+  accountNumber: '',
+  bankAccountType: 'CHECKING',
+  paymentTypes: ['ACH'],
+  certify: false,
+};
+
+/** Non-numeric routing number (letters in routing) */
+export const mockLinkAccountPrefillNonNumericRouting: BankAccountFormData = {
+  accountType: 'INDIVIDUAL',
+  firstName: 'Taylor',
+  lastName: 'Morgan',
+  businessName: '',
+  routingNumbers: [{ paymentType: 'ACH', routingNumber: '0210ABC21' }],
+  useSameRoutingNumber: true,
+  accountNumber: '44556677889900112',
+  bankAccountType: 'CHECKING',
+  paymentTypes: ['ACH'],
+  certify: false,
+};
+
+// ============================================================================
+// Linked Account Preset Mocks (multi-account / partyId)
+// ============================================================================
+
+/** Two preset accounts for multi-select demo: one individual, one organization. */
+export const mockPresetAccountsTwo: readonly LinkAccountPresetEntry[] = [
+  {
+    id: 'preset-individual',
+    label: 'Taylor Morgan — Personal',
+    partyId: '2000000112',
+    initialValues: {
+      accountType: 'INDIVIDUAL',
+      firstName: 'Taylor',
+      lastName: 'Morgan',
+      routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+      accountNumber: '44556677889900112',
+      bankAccountType: 'CHECKING',
+      paymentTypes: ['ACH'],
+      certify: false,
+    },
+  },
+  {
+    id: 'preset-organization',
+    label: 'Neverland Books LLC — Business',
+    partyId: '2000000113',
+    initialValues: {
+      accountType: 'ORGANIZATION',
+      businessName: 'Neverland Books LLC',
+      routingNumbers: [{ paymentType: 'ACH', routingNumber: '026009593' }],
+      accountNumber: '98765432109876543',
+      bankAccountType: 'CHECKING',
+      paymentTypes: ['ACH'],
+      certify: false,
+    },
+  },
+];
+
+/** Three preset accounts for richer multi-select demos. */
+export const mockPresetAccountsThree: readonly LinkAccountPresetEntry[] = [
+  ...mockPresetAccountsTwo,
+  {
+    id: 'preset-savings',
+    label: 'Taylor Morgan — Savings',
+    partyId: '2000000112',
+    initialValues: {
+      accountType: 'INDIVIDUAL',
+      firstName: 'Taylor',
+      lastName: 'Morgan',
+      routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+      accountNumber: '55555555555555555',
+      bankAccountType: 'SAVINGS',
+      paymentTypes: ['ACH'],
+      certify: false,
+    },
+  },
+];
 
 // ============================================================================
 // Document Request Mocks
@@ -567,7 +777,13 @@ export function buildApprovedClientLinkAccountStory(options?: {
 }
 
 /**
- * Create document upload handlers for doc upload mode stories
+ * Create document upload handlers for doc upload mode stories.
+ *
+ * **Client status:** `GET /clients/:id` always returns `INFORMATION_REQUESTED` — it does not
+ * simulate a post-submit transition to `REVIEW_IN_PROGRESS`. Submits return `202` only.
+ * To exercise that transition, use the default MSW handlers in `src/msw/handlers.ts` with the
+ * in-memory `db` (seed document requests + parties) or add a story-local override that mutates the
+ * client payload after submit.
  */
 export function createDocUploadHandlers(
   options: {

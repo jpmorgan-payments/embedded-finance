@@ -78,6 +78,12 @@ const AddLinkedAccountForm = () => {
     createRecipient({
       data: {
         type: 'LINKED_ACCOUNT',
+        // Option A: Use partyId to link to an existing party (preferred when
+        // the party already exists, e.g. from onboarding). The API resolves
+        // partyDetails automatically.
+        //   partyId: '2000000112',
+        //
+        // Option B: Send partyDetails inline to create a new party.
         partyDetails: {
           type: data.accountType, // e.g. 'INDIVIDUAL' or 'ORGANIZATION'
           ...(data.accountType === 'INDIVIDUAL'

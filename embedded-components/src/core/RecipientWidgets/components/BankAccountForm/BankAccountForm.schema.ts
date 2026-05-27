@@ -374,6 +374,34 @@ export function createBankAccountFormSchema(
         });
       }
     });
+
+    // 7. Validate against existing accounts (duplicate detection)
+    if (
+      config.existingAccounts?.length &&
+      data.accountNumber?.trim() &&
+      data.routingNumbers?.length
+    ) {
+      const isDuplicate = config.existingAccounts.some((existing) => {
+        if (existing.account?.number !== data.accountNumber) return false;
+        // Match if any routing number in the form matches any routing number
+        // on the existing account (same transaction type + routing number).
+        return data.routingNumbers!.some((formRouting) =>
+          existing.account?.routingInformation?.some(
+            (existingRouting) =>
+              existingRouting.routingNumber === formRouting.routingNumber &&
+              existingRouting.transactionType === formRouting.paymentType
+          )
+        );
+      });
+
+      if (isDuplicate) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: v('fields.accountNumber.validation.duplicate'),
+          path: ['accountNumber'],
+        });
+      }
+    }
   }) as z.ZodType<BankAccountFormData>;
 }
 

@@ -42,6 +42,7 @@ import {
 import { ImportantDateSelector } from '@/components/ux/ImportantDateSelector/ImportantDateSelector';
 import { PatternInput } from '@/components/ux/PatternInput';
 import { IndustryTypeSelect } from '@/core/OnboardingFlow/components/IndustryTypeSelect/IndustryTypeSelect';
+import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
 import {
   FieldContentTokenKey,
   FieldRule,
@@ -102,6 +103,7 @@ interface SelectOrRadioGroupProps<
   options: Array<{
     label: React.ReactNode;
     value: string;
+    searchValue?: string;
     description?: React.ReactNode;
     disabled?: boolean;
   }>;
@@ -146,6 +148,9 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
 }: OnboardingFormFieldProps<TFieldValues>) {
   const form = useFormContext();
   const { getFieldRule } = useFormUtils();
+  // Pulled here (top-level hook call) and forwarded to `industrySelect` below.
+  // Only the `industrySelect` field reads it today.
+  const { priorityIndustryCodes } = useOnboardingContext();
 
   const { t, tString } = useTranslationWithTokens([
     'onboarding-old',
@@ -166,8 +171,16 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
 
   const fieldRequired = required ?? fieldRule.required ?? false;
   const fieldDisplay = fieldRule.display ?? 'visible';
-  const fieldInteraction =
-    readonly || fieldRule.interaction === 'readonly'
+
+  // Check if field has a validation error (used by editableWhenInvalid)
+  const fieldError = form.getFieldState(name)?.error;
+  const isReadonly = readonly || fieldRule.interaction === 'readonly';
+  const shouldOverrideReadonly =
+    isReadonly && fieldRule.editableWhenInvalid === true && fieldError != null;
+
+  const fieldInteraction = shouldOverrideReadonly
+    ? 'enabled'
+    : isReadonly
       ? 'readonly'
       : disabled || fieldRule.interaction === 'disabled'
         ? 'disabled'
@@ -265,6 +278,22 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
         const { onBlur, ...fieldWithoutBlur } = field;
         const [open, setOpen] = useState(false);
 
+        // Typeahead state for combobox — lets the user type to select
+        // an option while the dropdown is closed, like a native <select>.
+        // Uses a plain mutable object (not useRef) since this is inside
+        // a render prop where hooks cannot be called.
+        const [typeahead] = useState(() => ({ search: '', timer: 0 }));
+
+        // When the current value doesn't match any available option
+        // (e.g. invalid API data), treat as unset so the user sees
+        // the placeholder and must pick a valid option.
+        const matchedOption = options?.find((opt) => opt.value === field.value);
+        const hasUnmatchedValue =
+          (type === 'combobox' || type === 'select') &&
+          !!field.value &&
+          !!options &&
+          !matchedOption;
+
         return (
           <FormItem className={className}>
             {type !== 'checkbox' && type !== 'checkbox-basic' ? (
@@ -284,7 +313,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
             {fieldInteraction === 'readonly' ? (
               <p className="eb-font-bold">
                 {(options
-                  ? options.find(({ value }) => value === field.value)?.label
+                  ? matchedOption?.label
                   : (valueOverride ?? field.value)) || 'N/A'}
               </p>
             ) : (
@@ -313,6 +342,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                         field={field}
                         data-dtrum-tracking={field.name}
                         placeholder={fieldPlaceholder}
+                        priorityCodes={priorityIndustryCodes}
                         onChange={(value) => {
                           onChangeProp?.(value);
                           field.onChange(value);
@@ -338,54 +368,107 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                                 ) {
                                   e.preventDefault();
                                   setOpen(true);
+                                  return;
+                                }
+
+                                // Typeahead: when closed, printable keys
+                                // accumulate a search string and select the
+                                // first matching option (like native <select>).
+                                if (
+                                  !open &&
+                                  options &&
+                                  e.key.length === 1 &&
+                                  !e.ctrlKey &&
+                                  !e.metaKey &&
+                                  !e.altKey
+                                ) {
+                                  e.preventDefault();
+                                  const ta = typeahead;
+                                  window.clearTimeout(ta.timer);
+                                  ta.search += e.key.toLowerCase();
+                                  ta.timer = window.setTimeout(() => {
+                                    ta.search = '';
+                                  }, 1000);
+
+                                  const getSearchText = (
+                                    opt: (typeof options)[number]
+                                  ) =>
+                                    (
+                                      opt.searchValue ?? String(opt.label)
+                                    ).toLowerCase();
+                                  const match =
+                                    options.find((opt) =>
+                                      getSearchText(opt).startsWith(ta.search)
+                                    ) ??
+                                    options
+                                      .filter((opt) =>
+                                        getSearchText(opt).includes(ta.search)
+                                      )
+                                      .sort(
+                                        (a, b) =>
+                                          getSearchText(a).indexOf(ta.search) -
+                                          getSearchText(b).indexOf(ta.search)
+                                      )[0];
+                                  if (match && match.value !== field.value) {
+                                    onChangeProp?.(match.value);
+                                    field.onChange(match.value);
+                                  }
                                 }
                               }}
                               {...fieldWithoutBlur}
                             >
-                              {field.value
-                                ? options?.find(
-                                    (option) => option.value === field.value
-                                  )?.label
+                              {field.value && matchedOption
+                                ? matchedOption.label
                                 : fieldPlaceholder}
                               <ChevronsUpDown className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="eb-w-[--radix-popover-trigger-width] eb-p-0">
-                          <Command>
+                          <Command
+                            defaultValue={
+                              matchedOption
+                                ? `${matchedOption.searchValue ?? String(matchedOption.label)} ${matchedOption.value}`
+                                : undefined
+                            }
+                          >
                             <CommandInput placeholder={fieldPlaceholder} />
                             <CommandList>
                               <CommandEmpty>
                                 {t('common:noOptionFound')}
                               </CommandEmpty>
                               <CommandGroup>
-                                {options?.map((option) => (
-                                  <CommandItem
-                                    key={`combobox-option-${option.value}`}
-                                    value={`${option.label} ${option.value}`}
-                                    onSelect={() => {
-                                      onChangeProp?.(option.value);
-                                      field.onChange(
-                                        option.value === field.value
-                                          ? ''
-                                          : option.value
-                                      );
-                                      onBlur();
-                                      setOpen(false);
-                                    }}
-                                    className="eb-cursor-pointer"
-                                  >
-                                    <Check
-                                      className={cn(
-                                        'eb-mr-2 eb-h-4 eb-w-4',
-                                        field.value === option.value
-                                          ? 'eb-opacity-100'
-                                          : 'eb-opacity-0'
-                                      )}
-                                    />
-                                    {option.label}
-                                  </CommandItem>
-                                ))}
+                                {options?.map((option) => {
+                                  const isSelected =
+                                    field.value === option.value;
+                                  return (
+                                    <CommandItem
+                                      key={`combobox-option-${option.value}`}
+                                      value={`${option.searchValue ?? option.label} ${option.value}`}
+                                      onSelect={() => {
+                                        onChangeProp?.(option.value);
+                                        field.onChange(
+                                          option.value === field.value
+                                            ? ''
+                                            : option.value
+                                        );
+                                        onBlur();
+                                        setOpen(false);
+                                      }}
+                                      className="eb-cursor-pointer"
+                                    >
+                                      <Check
+                                        className={cn(
+                                          'eb-mr-2 eb-h-4 eb-w-4',
+                                          isSelected
+                                            ? 'eb-opacity-100'
+                                            : 'eb-opacity-0'
+                                        )}
+                                      />
+                                      {option.label}
+                                    </CommandItem>
+                                  );
+                                })}
                               </CommandGroup>
                             </CommandList>
                           </Command>
@@ -400,7 +483,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                           field.onChange(value);
                           onBlur();
                         }}
-                        value={field.value}
+                        value={hasUnmatchedValue ? '' : field.value}
                         data-dtrum-tracking={field.name}
                       >
                         <FormControl {...fieldWithoutBlur}>

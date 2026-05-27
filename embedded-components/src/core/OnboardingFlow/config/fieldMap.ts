@@ -176,6 +176,7 @@ export const partyFieldMap: PartyFieldMap = {
           // which is always the case in this onboarding flow. Hide the field
           // and default to 'Direct' so it's sent automatically on submit.
           display: 'hidden',
+          submitWhenHidden: true,
           required: false,
           defaultValue: 'Direct',
         },
@@ -469,16 +470,20 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'organizationDetails.phone',
     baseRule: {
       display: 'visible',
-      required: true,
+      required: false,
       defaultValue: { phoneType: 'BUSINESS_PHONE', phoneNumber: '' },
     },
     toStringFn: (val) =>
-      val ? formatPhoneNumberIntl(val.phoneNumber) : undefined,
-    fromResponseFn: (val: PhoneSmbdo) => ({
-      phoneType: val.phoneType!,
-      phoneNumber: `${val.countryCode}${val.phoneNumber}`,
-    }),
-    toRequestFn: (val): PhoneSmbdo => {
+      val?.phoneNumber ? formatPhoneNumberIntl(val.phoneNumber) : undefined,
+    fromResponseFn: (val: PhoneSmbdo) =>
+      val.phoneNumber
+        ? {
+            phoneType: val.phoneType!,
+            phoneNumber: `${val.countryCode}${val.phoneNumber}`,
+          }
+        : undefined,
+    toRequestFn: (val): PhoneSmbdo | undefined => {
+      if (!val?.phoneNumber) return undefined;
       const phone = parsePhoneNumber(val.phoneNumber);
       return {
         phoneType: val.phoneType,
@@ -982,6 +987,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   controllerJobTitleDescription: {
     path: 'individualDetails.jobTitleDescription',
+    isHiddenInReviewFn: (_val, values) => values.controllerJobTitle !== 'Other',
     baseRule: { display: 'visible', required: false, defaultValue: '' },
     conditionalRules: [
       {
@@ -1047,6 +1053,7 @@ export const partyFieldMap: PartyFieldMap = {
     },
     baseRule: {
       display: 'visible',
+      required: true,
       defaultValue: {
         addressType: 'RESIDENTIAL_ADDRESS',
         primaryAddressLine: '',
@@ -1142,6 +1149,7 @@ export const partyFieldMap: PartyFieldMap = {
     },
     baseRule: {
       display: 'visible',
+      required: true,
       defaultValue: {
         addressType: 'BUSINESS_ADDRESS',
         primaryAddressLine: '',
@@ -1412,16 +1420,20 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'individualDetails.phone',
     baseRule: {
       display: 'visible',
-      required: true,
+      required: false,
       defaultValue: { phoneType: 'MOBILE_PHONE', phoneNumber: '' },
     },
     toStringFn: (val) =>
-      val ? formatPhoneNumberIntl(val.phoneNumber) : undefined,
-    fromResponseFn: (val: PhoneSmbdo) => ({
-      phoneType: val.phoneType!,
-      phoneNumber: `${val.countryCode}${val.phoneNumber}`,
-    }),
-    toRequestFn: (val): PhoneSmbdo => {
+      val?.phoneNumber ? formatPhoneNumberIntl(val.phoneNumber) : undefined,
+    fromResponseFn: (val: PhoneSmbdo) =>
+      val.phoneNumber
+        ? {
+            phoneType: val.phoneType!,
+            phoneNumber: `${val.countryCode}${val.phoneNumber}`,
+          }
+        : undefined,
+    toRequestFn: (val): PhoneSmbdo | undefined => {
+      if (!val?.phoneNumber) return undefined;
       const phone = parsePhoneNumber(val.phoneNumber);
       return {
         phoneType: val.phoneType,

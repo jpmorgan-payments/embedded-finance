@@ -30,7 +30,7 @@ declare module '@tanstack/react-router' {
 // Initialize MSW
 async function enableMocking() {
   try {
-    const { worker } = await import('./msw/browser');
+    const { startShowcaseMocks } = await import('./msw/browser');
 
     // Suppress unhandled promise rejections from MSW service worker
     if (typeof window !== 'undefined') {
@@ -47,11 +47,8 @@ async function enableMocking() {
       });
     }
 
-    // `worker.start()` returns a Promise that resolves
-    // once the Service Worker is up and ready to intercept requests.
-    await worker.start({
-      onUnhandledRequest: 'bypass',
-    });
+    // Prefetches bundled PDF for document mocks before the worker registers (`msw/browser.ts`).
+    await startShowcaseMocks();
   } catch (error) {
     console.warn('MSW failed to start:', error);
     // Continue anyway - app should work without MSW in development

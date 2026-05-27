@@ -76,6 +76,10 @@ Always wrap components with `EBComponentsProvider` in tests:
 - **Watch mode**: `yarn test:watch`
 - **Coverage**: `yarn test:coverage`
 
+## OnboardingFlow
+
+Onboarding uses **Vitest + MSW + RTL** inside `embedded-components` for flow integration (including Bad API parity tests), plus optional **Playwright** smoke tests against the SellSense demo (`app/client-next-ts/tests/e2e/onboarding-flow.spec.ts`). See **`embedded-components/src/core/OnboardingFlow/TESTING.md`** for the full pyramid and commands.
+
 ## Before Committing
 
 Always run the full quality check:

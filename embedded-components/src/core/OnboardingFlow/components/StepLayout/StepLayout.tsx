@@ -7,6 +7,7 @@ type StepLayoutProps = {
   showSpinner?: boolean;
   subTitle?: ReactNode;
   description?: ReactNode;
+  alert?: ReactNode;
   children?: React.ReactNode;
 };
 
@@ -16,6 +17,7 @@ export const StepLayout: FC<StepLayoutProps> = ({
   showSpinner,
   subTitle,
   description,
+  alert,
   children,
 }) => (
   <div className="eb-flex eb-min-h-full eb-flex-auto eb-flex-col">
@@ -41,6 +43,8 @@ export const StepLayout: FC<StepLayoutProps> = ({
       {description && (
         <p className="eb-text-sm eb-font-normal">{description}</p>
       )}
+
+      {alert}
     </div>
     {children}
   </div>

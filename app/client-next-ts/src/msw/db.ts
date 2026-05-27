@@ -38,7 +38,22 @@ import {
 } from '../mocks/clientDetails.mock';
 import { mockLinkedAccounts } from '../mocks/linkedAccounts.mock';
 import { mockRecipientsResponse } from '../mocks/recipients.mock';
+import {
+  TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID,
+  testScenarioMultiLinkedIllustrationClient,
+} from '../mocks/testScenarioMultiLinkedIllustrationClient.mock';
+import {
+  TEST_DEMO_SCENARIO_CLIENT_ID,
+  TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE,
+  TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID,
+  testScenarioOperator80Client,
+} from '../mocks/testScenarioOperator80Client.mock';
 import { mockTransactionsResponse } from '../mocks/transactions.mock';
+
+type SeedPredefinedClientOptions = {
+  /** Stable ids (`61800`, `61801+`) for Operator 80–shaped demo clients (doc-request flows). */
+  useTestDemoFixedDocumentRequestIds?: boolean;
+};
 
 // --- Entity types (OAS-aligned) ---
 
@@ -548,6 +563,245 @@ const predefinedClients: Record<string, PredefinedClientShape> = {
   } as PredefinedClientShape,
 };
 
+/** Test demo clients: seed Operator 80–shaped (or bundle-specific) client after `_reset` when body includes `testDemoScenario`. */
+export type TestDemoScenarioMode =
+  | 'happy-path'
+  /**
+   * Same Operator 80 shape as `happy-path`, but client is **APPROVED** immediately (no NEW →
+   * delayed approval). Linked LINKED_ACCOUNT creates use **ACTIVE** like `happy-path`.
+   */
+  | 'happy-path-approved'
+  | 'doc-request'
+  | 'linked-account-approved'
+  /** APPROVED client + link step; new linked recipient is ACTIVE (no microdeposits). */
+  | 'linked-account-active'
+  /**
+   * `/test-scenario-2` only: APPROVED client; MSW seeds **three** pre-existing LINKED_ACCOUNT recipients.
+   */
+  | 'multi-linked-start-3';
+
+/**
+ * `/test-scenario*` demo **bundle**: maps a route to client seed + optional recipient seeding in MSW.
+ * SellSense never sends this; omitted `testScenarioBundle` in `_reset` implies `test-scenario`.
+ */
+export type TestScenarioBundleId =
+  | 'test-scenario'
+  | 'test-scenario-2'
+  | 'test-scenario-3';
+
+export const DEFAULT_TEST_SCENARIO_BUNDLE_ID: TestScenarioBundleId =
+  'test-scenario';
+
+const TEST_SCENARIO_BUNDLE_IDS = [
+  'test-scenario',
+  'test-scenario-2',
+  'test-scenario-3',
+] as const satisfies readonly TestScenarioBundleId[];
+
+export function parseTestScenarioBundleId(
+  value: unknown
+): TestScenarioBundleId {
+  if (
+    typeof value === 'string' &&
+    (TEST_SCENARIO_BUNDLE_IDS as readonly string[]).includes(value)
+  ) {
+    return value as TestScenarioBundleId;
+  }
+  return DEFAULT_TEST_SCENARIO_BUNDLE_ID;
+}
+
+/** Client ids used by isolated `/test-scenario*` MSW seeds (delayed approval, etc.). */
+export function getTestScenarioClientIds(): string[] {
+  return [
+    TEST_DEMO_SCENARIO_CLIENT_ID,
+    TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID,
+  ];
+}
+
+function seedPredefinedClientFromShape(
+  clientId: string,
+  clientData: PredefinedClientShape,
+  seedOptions?: SeedPredefinedClientOptions
+): void {
+  const useFixedDocRequestIds =
+    seedOptions?.useTestDemoFixedDocumentRequestIds === true;
+  console.log(`\nInitializing Client ${clientId}:`, clientData);
+
+  const parties = clientData.parties || [];
+  const timestamp = new Date().toISOString();
+
+  console.log('\nCreating Parties:');
+  parties.forEach((party) => {
+    if (party.id) {
+      const existingParty = db.party.findFirst({
+        where: { id: { equals: party.id as string } },
+      });
+
+      const newParty = {
+        ...party,
+        status: (party.status as string) || 'ACTIVE',
+        active: party.active !== undefined ? party.active : true,
+        createdAt: (party.createdAt as string) || timestamp,
+        preferences: (party.preferences as object) || {
+          defaultLanguage: 'en-US',
+        },
+        profileStatus: (party.profileStatus as string) || 'COMPLETE',
+        access: (party.access as unknown[]) || [],
+        validationResponse: (party.validationResponse as unknown[]) || [],
+      };
+
+      try {
+        if (existingParty) {
+          db.party.update({
+            where: { id: { equals: party.id as string } },
+            data: newParty,
+          });
+        } else {
+          db.party.create(newParty as Partial<DbParty> & { id: string });
+        }
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.includes('already exists')
+        ) {
+          try {
+            db.party.update({
+              where: { id: { equals: party.id as string } },
+              data: newParty,
+            });
+          } catch (updateError) {
+            console.error('Error updating party:', updateError);
+          }
+        } else {
+          console.error('Error creating party:', error);
+        }
+      }
+    }
+  });
+
+  const newClient = {
+    ...clientData,
+    id: clientId,
+    createdAt: (clientData.createdAt as string) || timestamp,
+    partyId:
+      (clientData.partyId as string) ||
+      (parties[0] as { id?: string } | undefined)?.id,
+    outstanding: {
+      documentRequestIds:
+        (clientData.outstanding?.documentRequestIds as string[]) || [],
+      questionIds: (clientData.outstanding?.questionIds as string[]) || [],
+      attestationDocumentIds:
+        (clientData.outstanding?.attestationDocumentIds as string[]) || [],
+      partyIds: (clientData.outstanding?.partyIds as string[]) || [],
+      partyRoles: (clientData.outstanding?.partyRoles as string[]) || [],
+    },
+    questionResponses: clientData.questionResponses || [],
+    attestations: clientData.attestations || [],
+    parties: parties
+      .map((p) => (p as { id?: string }).id)
+      .filter(Boolean) as string[],
+    products: (clientData.products as string[]) || [],
+    results: (clientData.results as Record<string, unknown>) || {
+      customerIdentityStatus: 'NOT_STARTED',
+    },
+  };
+
+  db.client.create(newClient as Partial<DbClient> & { id: string });
+
+  if (clientData.status === 'INFORMATION_REQUESTED') {
+    const individualParties = parties.filter(
+      (p) => (p as { partyType?: string }).partyType === 'INDIVIDUAL'
+    );
+
+    let individualDocIdOffset = 0;
+    for (const indParty of individualParties) {
+      const indDocRequest = efDocumentRequestDetailsList.find(
+        (req: { id?: string }) => req.id === '68430'
+      );
+      const generatedDocRequestId = useFixedDocRequestIds
+        ? String(
+            TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE +
+              individualDocIdOffset++
+          )
+        : Math.floor(10000 + Math.random() * 90000).toString();
+      try {
+        upsertDocumentRequest(generatedDocRequestId, {
+          ...indDocRequest,
+          id: generatedDocRequestId,
+          clientId,
+          partyId: (indParty as { id?: string }).id,
+          createdAt: timestamp,
+        } as Partial<DbDocumentRequest>);
+
+        const updatedParty = {
+          ...indParty,
+          validationResponse: [
+            ...((indParty.validationResponse as unknown[]) || []),
+            {
+              validationStatus: 'NEEDS_INFO',
+              validationType: 'ENTITY_VALIDATION',
+              documentRequestIds: [generatedDocRequestId],
+            },
+          ],
+        };
+
+        db.party.delete({
+          where: { id: { equals: (indParty as { id: string }).id } },
+        });
+        db.party.create(updatedParty as Partial<DbParty> & { id: string });
+      } catch (error) {
+        console.error('Error creating document request:', error);
+      }
+    }
+
+    const orgParty = parties.find(
+      (p) => (p as { partyType?: string }).partyType === 'ORGANIZATION'
+    );
+    if (orgParty) {
+      const orgDocRequest = efDocumentRequestDetailsList.find(
+        (req: { id?: string }) => req.id === '68803'
+      );
+      const generatedDocRequestId = useFixedDocRequestIds
+        ? TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID
+        : Math.floor(10000 + Math.random() * 90000).toString();
+      try {
+        upsertDocumentRequest(generatedDocRequestId, {
+          ...orgDocRequest,
+          id: generatedDocRequestId,
+          clientId,
+          partyId: (orgParty as { id?: string }).id,
+          createdAt: timestamp,
+        } as Partial<DbDocumentRequest>);
+
+        (
+          newClient.outstanding as { documentRequestIds: string[] }
+        ).documentRequestIds.push(generatedDocRequestId);
+      } catch (error) {
+        console.error('Error creating document request:', error);
+      }
+    }
+
+    // Intentionally no client `outstanding` persistence here — matches legacy
+    // seed behavior relied on by SellSense scenarios (in-memory newClient only).
+  }
+}
+
+export function removePredefinedClient(clientId: string): void {
+  db.documentRequest.deleteMany({
+    where: { clientId: { equals: clientId } },
+  } as never);
+
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+  if (!client) return;
+
+  for (const partyId of (client.parties as string[]) ?? []) {
+    db.party.delete({ where: { id: { equals: partyId } } });
+  }
+  db.client.delete({ where: { id: { equals: clientId } } });
+}
+
 // --- Logging ---
 
 export function logDbState(operation = 'Current State'): void {
@@ -568,6 +822,240 @@ export function logDbState(operation = 'Current State'): void {
   console.log('Account Balances:', accountBalances);
   console.log('Transactions:', transactions);
   console.log('=====================================');
+}
+
+/** `/test-scenario` only: align client.outstanding with seeded document requests. */
+function syncTestDemoClientOutstandingDocumentIds(clientId: string): void {
+  const requests = db.documentRequest.findMany({
+    where: { clientId: { equals: clientId } },
+  });
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+  if (!client) return;
+  const prevOutstanding = (client.outstanding ||
+    {}) as ClientResponseOutstanding;
+  db.client.update({
+    where: { id: { equals: clientId } },
+    data: {
+      ...client,
+      outstanding: {
+        ...prevOutstanding,
+        documentRequestIds: requests.map((r) => r.id as string),
+      },
+    },
+  });
+}
+
+/** `/test-scenario` linked-account fast track: APPROVED client + parties for unlocked link step. */
+function promoteTestDemoClientPartiesToApproved(clientId: string): void {
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+  if (!client) return;
+
+  for (const partyId of (client.parties as string[]) ?? []) {
+    const party = db.party.findFirst({
+      where: { id: { equals: partyId } },
+    });
+    if (!party) continue;
+    db.party.delete({ where: { id: { equals: partyId } } });
+    db.party.create({
+      ...party,
+      profileStatus: 'APPROVED',
+    } as Partial<DbParty> & { id: string });
+  }
+}
+
+function removeAllTestScenarioSeedClients(): void {
+  removePredefinedClient(TEST_DEMO_SCENARIO_CLIENT_ID);
+  removePredefinedClient(TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID);
+}
+
+/** Illustration: N ACTIVE linked-bank recipients for GET `/recipients` (`/test-scenario-2`). */
+function seedTestScenarioMultiLinkedRecipients(
+  clientId: string,
+  count: 0 | 1 | 3
+): void {
+  if (count === 0) return;
+
+  const ts = new Date().toISOString();
+  const allRows: Recipient[] = [
+    {
+      id: 'ts-b2-linked-001',
+      type: 'LINKED_ACCOUNT',
+      status: 'ACTIVE',
+      clientId,
+      partyDetails: {
+        type: 'ORGANIZATION',
+        businessName: 'Aurora Payroll LLC',
+        address: {
+          addressLine1: '400 Market St',
+          city: 'Portland',
+          state: 'OR',
+          postalCode: '97204',
+          countryCode: 'US',
+        },
+        contacts: [{ contactType: 'EMAIL', value: 'treasury@aurora-pay.test' }],
+      },
+      account: {
+        number: '4433221100',
+        type: 'CHECKING',
+        countryCode: 'US',
+        routingInformation: [
+          {
+            routingCodeType: 'USABA',
+            routingNumber: '121000248',
+            transactionType: 'ACH',
+          },
+        ],
+      },
+      createdAt: ts,
+      updatedAt: ts,
+    },
+    {
+      id: 'ts-b2-linked-002',
+      type: 'LINKED_ACCOUNT',
+      status: 'ACTIVE',
+      clientId,
+      partyDetails: {
+        type: 'ORGANIZATION',
+        businessName: 'Summit Clearing Co',
+        address: {
+          addressLine1: '88 Fremont Ave',
+          city: 'Denver',
+          state: 'CO',
+          postalCode: '80202',
+          countryCode: 'US',
+        },
+        contacts: [{ contactType: 'EMAIL', value: 'ops@summit-clear.test' }],
+      },
+      account: {
+        number: '5566778899',
+        type: 'CHECKING',
+        countryCode: 'US',
+        routingInformation: [
+          {
+            routingCodeType: 'USABA',
+            routingNumber: '111000025',
+            transactionType: 'ACH',
+          },
+        ],
+      },
+      createdAt: ts,
+      updatedAt: ts,
+    },
+    {
+      id: 'ts-b2-linked-003',
+      type: 'LINKED_ACCOUNT',
+      status: 'ACTIVE',
+      clientId,
+      partyDetails: {
+        type: 'ORGANIZATION',
+        businessName: 'Harborline Foods LLC',
+        address: {
+          addressLine1: '15 Harbor Quay',
+          city: 'Boston',
+          state: 'MA',
+          postalCode: '02110',
+          countryCode: 'US',
+        },
+        contacts: [{ contactType: 'EMAIL', value: 'ap@harborline.test' }],
+      },
+      account: {
+        number: '9988776655',
+        type: 'CHECKING',
+        countryCode: 'US',
+        routingInformation: [
+          {
+            routingCodeType: 'USABA',
+            routingNumber: '021000021',
+            transactionType: 'ACH',
+          },
+        ],
+      },
+      createdAt: ts,
+      updatedAt: ts,
+    },
+  ];
+
+  const rows = allRows.slice(0, count);
+
+  for (const r of rows) {
+    try {
+      db.recipient.create(r as Partial<DbRecipient> & { id: string });
+    } catch (error) {
+      console.error('Error creating illustration linked recipient:', error);
+    }
+  }
+}
+
+/**
+ * Applies only when `POST /ef/do/v1/_reset` includes `testDemoScenario`.
+ * Does not run for SellSense or other callers that omit that field.
+ */
+export function applyTestDemoScenario(
+  mode: TestDemoScenarioMode,
+  bundleId: TestScenarioBundleId = DEFAULT_TEST_SCENARIO_BUNDLE_ID
+): void {
+  const useMultiLinked = bundleId === 'test-scenario-2';
+  const clientId = useMultiLinked
+    ? TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID
+    : TEST_DEMO_SCENARIO_CLIENT_ID;
+  const base = (
+    useMultiLinked
+      ? testScenarioMultiLinkedIllustrationClient
+      : testScenarioOperator80Client
+  ) as PredefinedClientShape;
+
+  removeAllTestScenarioSeedClients();
+
+  let shape: PredefinedClientShape;
+  if (mode === 'doc-request') {
+    shape = { ...base, status: 'INFORMATION_REQUESTED' };
+  } else if (
+    mode === 'linked-account-approved' ||
+    mode === 'linked-account-active' ||
+    mode === 'happy-path-approved' ||
+    (useMultiLinked && mode === 'multi-linked-start-3')
+  ) {
+    shape = {
+      ...base,
+      status: 'APPROVED',
+      results: {
+        ...((base.results as Record<string, unknown>) || {}),
+        customerIdentityStatus: 'APPROVED',
+      },
+    };
+  } else {
+    shape = base;
+  }
+
+  seedPredefinedClientFromShape(clientId, shape, {
+    useTestDemoFixedDocumentRequestIds: mode === 'doc-request',
+  });
+  if (mode === 'doc-request') {
+    syncTestDemoClientOutstandingDocumentIds(clientId);
+  }
+  if (
+    mode === 'linked-account-approved' ||
+    mode === 'linked-account-active' ||
+    mode === 'happy-path-approved' ||
+    (useMultiLinked && mode === 'multi-linked-start-3')
+  ) {
+    promoteTestDemoClientPartiesToApproved(clientId);
+  }
+  if (useMultiLinked) {
+    if (mode === 'multi-linked-start-3') {
+      seedTestScenarioMultiLinkedRecipients(clientId, 3);
+    } else if (
+      shape.status === 'APPROVED' &&
+      mode === 'happy-path-approved'
+    ) {
+      seedTestScenarioMultiLinkedRecipients(clientId, 3);
+    }
+  }
+  logDbState(`Test demo scenario: ${mode} (bundle: ${bundleId})`);
 }
 
 // --- Initialize ---
@@ -600,166 +1088,7 @@ export function initializeDb(
 
       Object.entries(predefinedClients).forEach(([clientId, clientData]) => {
         try {
-          console.log(`\nInitializing Client ${clientId}:`, clientData);
-
-          const parties = clientData.parties || [];
-          const timestamp = new Date().toISOString();
-
-          console.log('\nCreating Parties:');
-          parties.forEach((party) => {
-            if (party.id) {
-              const existingParty = db.party.findFirst({
-                where: { id: { equals: party.id as string } },
-              });
-
-              const newParty = {
-                ...party,
-                status: (party.status as string) || 'ACTIVE',
-                active: party.active !== undefined ? party.active : true,
-                createdAt: (party.createdAt as string) || timestamp,
-                preferences: (party.preferences as object) || {
-                  defaultLanguage: 'en-US',
-                },
-                profileStatus: (party.profileStatus as string) || 'COMPLETE',
-                access: (party.access as unknown[]) || [],
-                validationResponse:
-                  (party.validationResponse as unknown[]) || [],
-              };
-
-              try {
-                if (existingParty) {
-                  db.party.update({
-                    where: { id: { equals: party.id as string } },
-                    data: newParty,
-                  });
-                } else {
-                  db.party.create(
-                    newParty as Partial<DbParty> & { id: string }
-                  );
-                }
-              } catch (error) {
-                if (
-                  error instanceof Error &&
-                  error.message.includes('already exists')
-                ) {
-                  try {
-                    db.party.update({
-                      where: { id: { equals: party.id as string } },
-                      data: newParty,
-                    });
-                  } catch (updateError) {
-                    console.error('Error updating party:', updateError);
-                  }
-                } else {
-                  console.error('Error creating party:', error);
-                }
-              }
-            }
-          });
-
-          const newClient = {
-            ...clientData,
-            id: clientId,
-            createdAt: (clientData.createdAt as string) || timestamp,
-            partyId:
-              (clientData.partyId as string) ||
-              (parties[0] as { id?: string } | undefined)?.id,
-            outstanding: {
-              documentRequestIds:
-                (clientData.outstanding?.documentRequestIds as string[]) || [],
-              questionIds:
-                (clientData.outstanding?.questionIds as string[]) || [],
-              attestationDocumentIds:
-                (clientData.outstanding?.attestationDocumentIds as string[]) ||
-                [],
-              partyIds: (clientData.outstanding?.partyIds as string[]) || [],
-              partyRoles:
-                (clientData.outstanding?.partyRoles as string[]) || [],
-            },
-            questionResponses: clientData.questionResponses || [],
-            attestations: clientData.attestations || [],
-            parties: parties
-              .map((p) => (p as { id?: string }).id)
-              .filter(Boolean) as string[],
-            products: (clientData.products as string[]) || [],
-            results: (clientData.results as Record<string, unknown>) || {
-              customerIdentityStatus: 'NOT_STARTED',
-            },
-          };
-
-          db.client.create(newClient as Partial<DbClient> & { id: string });
-
-          if (clientData.status === 'INFORMATION_REQUESTED') {
-            const individualParties = parties.filter(
-              (p) => (p as { partyType?: string }).partyType === 'INDIVIDUAL'
-            );
-
-            for (const indParty of individualParties) {
-              const indDocRequest = efDocumentRequestDetailsList.find(
-                (req: { id?: string }) => req.id === '68430'
-              );
-              const generatedDocRequestId = Math.floor(
-                10000 + Math.random() * 90000
-              ).toString();
-              try {
-                upsertDocumentRequest(generatedDocRequestId, {
-                  ...indDocRequest,
-                  id: generatedDocRequestId,
-                  clientId,
-                  partyId: (indParty as { id?: string }).id,
-                  createdAt: timestamp,
-                } as Partial<DbDocumentRequest>);
-
-                const updatedParty = {
-                  ...indParty,
-                  validationResponse: [
-                    ...((indParty.validationResponse as unknown[]) || []),
-                    {
-                      validationStatus: 'NEEDS_INFO',
-                      validationType: 'ENTITY_VALIDATION',
-                      documentRequestIds: [generatedDocRequestId],
-                    },
-                  ],
-                };
-
-                db.party.delete({
-                  where: { id: { equals: (indParty as { id: string }).id } },
-                });
-                db.party.create(
-                  updatedParty as Partial<DbParty> & { id: string }
-                );
-              } catch (error) {
-                console.error('Error creating document request:', error);
-              }
-            }
-
-            const orgParty = parties.find(
-              (p) => (p as { partyType?: string }).partyType === 'ORGANIZATION'
-            );
-            if (orgParty) {
-              const orgDocRequest = efDocumentRequestDetailsList.find(
-                (req: { id?: string }) => req.id === '68803'
-              );
-              const generatedDocRequestId = Math.floor(
-                10000 + Math.random() * 90000
-              ).toString();
-              try {
-                upsertDocumentRequest(generatedDocRequestId, {
-                  ...orgDocRequest,
-                  id: generatedDocRequestId,
-                  clientId,
-                  partyId: (orgParty as { id?: string }).id,
-                  createdAt: timestamp,
-                } as Partial<DbDocumentRequest>);
-
-                (
-                  newClient.outstanding as { documentRequestIds: string[] }
-                ).documentRequestIds.push(generatedDocRequestId);
-              } catch (error) {
-                console.error('Error creating document request:', error);
-              }
-            }
-          }
+          seedPredefinedClientFromShape(clientId, clientData);
         } catch (e) {
           console.error('Error creating client:', e);
         }

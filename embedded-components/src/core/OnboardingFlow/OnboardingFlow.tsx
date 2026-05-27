@@ -1,12 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
-import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 
 import { cn } from '@/lib/utils';
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import type { ClientStatus } from '@/api/generated/smbdo.schemas';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import {
   useClientId,
@@ -39,6 +37,7 @@ import {
   getStepperValidation,
   getStepperValidations,
 } from './utils/flowUtils';
+import { getLinkAccountEnabled } from './utils/getLinkAccountEnabled';
 
 export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   alertOnExit = false,
@@ -111,12 +110,6 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     userEventsHandler,
     userEventsLifecycle,
   });
-
-  useEnableDTRUMTracking({
-    userEmail: 'test@test.com',
-    DOMElementToTrack: 'embedded-component-layout',
-    eventsToTrack: ['click', 'blur'],
-  });
   // #endregion
 
   return (
@@ -179,6 +172,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     hideSidebar,
     showLinkAccountStep,
     linkAccountEnabledStatuses,
+    linkAccountStepOptions,
     userEventsHandler,
   } = useOnboardingContext();
   const {
@@ -268,12 +262,10 @@ const FlowRenderer: React.FC = React.memo(() => {
 
   const { interceptorReady } = useInterceptorStatus();
 
-  // Whether linking is enabled for the current client status.
-  // linkAccountEnabledStatuses takes precedence when provided;
-  // otherwise fall back to the original APPROVED-only check.
-  const linkAccountEnabled = linkAccountEnabledStatuses
-    ? linkAccountEnabledStatuses.includes(clientData?.status as ClientStatus)
-    : clientData?.status === 'APPROVED';
+  const linkAccountEnabled = getLinkAccountEnabled(
+    clientData,
+    linkAccountEnabledStatuses
+  );
 
   // Fetch existing linked accounts to determine sidebar status
   const { data: recipientsData } = useGetAllRecipients(
@@ -518,11 +510,20 @@ const FlowRenderer: React.FC = React.memo(() => {
           {
             id: 'link-account',
             title: t('onboarding-overview:flowRenderer.linkAccount'),
-            status: hasExistingLinkedAccount
-              ? 'completed_disabled'
-              : linkAccountEnabled
-                ? 'not_started'
-                : 'on_hold',
+            status: (() => {
+              if (!linkAccountEnabled) {
+                return hasExistingLinkedAccount
+                  ? 'completed_disabled'
+                  : 'on_hold';
+              }
+              if (linkAccountStepOptions?.allowMultipleAccounts) {
+                return 'not_started';
+              }
+              if (!hasExistingLinkedAccount) {
+                return 'not_started';
+              }
+              return 'completed_disabled';
+            })(),
             steps: [],
           },
         ] satisfies TimelineSection[])
@@ -622,7 +623,8 @@ const FlowRenderer: React.FC = React.memo(() => {
                   editingPartyId: stepId,
                   previouslyCompleted: !!validation?.allStepsValid,
                   shortLabelOverride: 'Edit owner',
-                  initialStepperStepId: firstInvalidStep,
+                  initialStepperStepId:
+                    firstInvalidStep ?? ownerStepperConfig?.steps.at(-1)?.id,
                 });
                 return;
               }

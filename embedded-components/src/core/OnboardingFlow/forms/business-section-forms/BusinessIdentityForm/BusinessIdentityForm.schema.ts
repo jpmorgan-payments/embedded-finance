@@ -232,21 +232,7 @@ export const useBusinessIdentityFormSchema = () => {
         (val) => val === 'yes' || val === 'no',
         v('solePropHasEin', 'required')
       ),
-    website: z
-      .string()
-      .max(500, v('website', 'maxLength', 500))
-      .refine(
-        (val) =>
-          /^https:\/\/(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}(?::\d{1,5})?(?:[/?#]\S*)?$/.test(
-            val
-          ),
-        v('website', 'format')
-      )
-      .refine(
-        (val) =>
-          !val || !/^https:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(val),
-        v('website', 'noIp')
-      ),
+    website: z.string().max(500, v('website', 'maxLength', 500)),
     websiteNotAvailable: z.boolean(),
   });
 };
@@ -267,12 +253,32 @@ export const refineBusinessIdentityFormSchema = (
         path: ['organizationIdEin'],
       });
     }
-    if (!values.websiteNotAvailable && !values.website) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: v('website', 'required'),
-        path: ['website'],
-      });
+    if (!values.websiteNotAvailable) {
+      if (!values.website) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: v('website', 'required'),
+          path: ['website'],
+        });
+      } else if (
+        !/^https:\/\/(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}(?::\d{1,5})?(?:[/?#]\S*)?$/.test(
+          values.website
+        )
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: v('website', 'format'),
+          path: ['website'],
+        });
+      } else if (
+        /^https:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(values.website)
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: v('website', 'noIp'),
+          path: ['website'],
+        });
+      }
     }
     if (!values.dbaNameNotAvailable && !values.dbaName) {
       context.addIssue({

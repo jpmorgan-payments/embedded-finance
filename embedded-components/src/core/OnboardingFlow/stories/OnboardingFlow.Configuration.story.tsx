@@ -1,12 +1,17 @@
 /**
- * OnboardingFlow - Configuration
+ * OnboardingFlow — Configuration & variants
  *
- * Different configuration variants and feature combinations.
+ * Single Storybook group for **product matrix**, **layout**, **navigation guards**,
+ * **doc-upload-only mode**, **locales**, **link-account**, **NAICS**, **disclosure /
+ * review-attest**, and **user tracking**. Former **Variants** duplicate exports were
+ * removed — extend this file only (see `Docs.mdx`).
  */
 
 import { db } from '@/msw/db';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
 
+import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 import { ORGANIZATION_TYPE_LIST } from '@/core/OnboardingFlow/consts';
 
 import type { BaseStoryArgs } from '../../../../.storybook/preview';
@@ -18,8 +23,10 @@ import {
   createOnboardingFlowHandlers,
   DEFAULT_CLIENT_ID,
   defaultHandlers,
+  DOC_UPLOAD_CLIENT_ID,
   mockClientApproved,
-  mockClientNoIndustry,
+  mockClientInfoRequested,
+  mockClientNew,
   mockExistingLinkedAccount,
   OnboardingFlowTemplate,
   resetAndSeedClient,
@@ -27,8 +34,13 @@ import {
 
 type OnboardingFlowStoryArgs = OnboardingFlowProps & BaseStoryArgs;
 
+const mockClientInformationRequestedDocUpload: ClientResponse = {
+  ...mockClientInfoRequested,
+  id: DOC_UPLOAD_CLIENT_ID,
+};
+
 const meta: Meta<OnboardingFlowStoryArgs> = {
-  title: 'Core/OnboardingFlow/Configuration',
+  title: 'Core/OnboardingFlow/Configuration & variants',
   component: OnboardingFlowTemplate,
   tags: ['@core', '@onboarding'],
   parameters: {
@@ -75,8 +87,8 @@ export const WithSidebar: Story = {
 /**
  * **Without Sidebar**
  *
- * Onboarding flow with sidebar hidden.
- * Linear progression through the flow.
+ * Linear progression (`hideSidebar: true`). `story-utils` `commonArgs` defaults to
+ * sidebar visible (`hideSidebar: false`).
  */
 export const WithoutSidebar: Story = {
   args: {
@@ -265,173 +277,10 @@ export const WithLinkAccountStepNewExistingAccount: Story = {
 // =============================================================================
 // NAICS RECOMMENDATION VARIANTS
 // =============================================================================
-
-/**
- * **NAICS - Single Recommendation**
- *
- * Shows AI-powered industry code suggestion with a single match.
- */
-export const NAICSSingleRecommendation: Story = {
-  name: 'NAICS - Single Recommendation',
-  play: async () => {
-    localStorage.setItem('NAICS_SUGGESTION_FEATURE_FLAG', 'true');
-  },
-  parameters: {
-    msw: {
-      handlers: createOnboardingFlowHandlers({
-        client: {
-          ...mockClientNoIndustry,
-          parties: mockClientNoIndustry.parties?.map((party) => ({
-            ...party,
-            organizationDetails: party.organizationDetails
-              ? {
-                  ...party.organizationDetails,
-                  organizationDescription:
-                    'We operate a fast-casual restaurant serving burgers, fries, and beverages.',
-                }
-              : party.organizationDetails,
-          })),
-        },
-        clientId: DEFAULT_CLIENT_ID,
-        naicsRecommendations: {
-          resource: [
-            {
-              naicsCode: '722511',
-              naicsDescription: 'Full-Service Restaurants',
-            },
-          ],
-          message: 'Recommended NAICS code for restaurant business',
-        },
-      }),
-    },
-  },
-  args: {
-    ...commonArgs,
-    clientId: DEFAULT_CLIENT_ID,
-  },
-};
-
-/**
- * **NAICS - Multiple Recommendations**
- *
- * Shows AI-powered industry code suggestions with multiple matches.
- */
-export const NAICSMultipleRecommendations: Story = {
-  name: 'NAICS - Multiple Recommendations',
-  play: async () => {
-    localStorage.setItem('NAICS_SUGGESTION_FEATURE_FLAG', 'true');
-  },
-  parameters: {
-    msw: {
-      handlers: createOnboardingFlowHandlers({
-        client: {
-          ...mockClientNoIndustry,
-          parties: mockClientNoIndustry.parties?.map((party) => ({
-            ...party,
-            organizationDetails: party.organizationDetails
-              ? {
-                  ...party.organizationDetails,
-                  organizationDescription:
-                    'We provide custom software development services, web application development, and technology consulting.',
-                }
-              : party.organizationDetails,
-          })),
-        },
-        clientId: DEFAULT_CLIENT_ID,
-        naicsRecommendations: {
-          resource: [
-            {
-              naicsCode: '541511',
-              naicsDescription: 'Custom Computer Programming Services',
-            },
-            {
-              naicsCode: '541512',
-              naicsDescription: 'Computer Systems Design Services',
-            },
-            {
-              naicsCode: '541519',
-              naicsDescription: 'Other Computer Related Services',
-            },
-          ],
-          message: 'Recommended NAICS codes for software consulting business',
-        },
-      }),
-    },
-  },
-  args: {
-    ...commonArgs,
-    clientId: DEFAULT_CLIENT_ID,
-  },
-};
-
-/**
- * **NAICS - No Recommendations**
- *
- * Shows behavior when no NAICS codes match the business description.
- */
-export const NAICSNoRecommendations: Story = {
-  name: 'NAICS - No Recommendations',
-  play: async () => {
-    localStorage.setItem('NAICS_SUGGESTION_FEATURE_FLAG', 'true');
-  },
-  parameters: {
-    msw: {
-      handlers: createOnboardingFlowHandlers({
-        client: {
-          ...mockClientNoIndustry,
-          parties: mockClientNoIndustry.parties?.map((party) => ({
-            ...party,
-            organizationDetails: party.organizationDetails
-              ? {
-                  ...party.organizationDetails,
-                  organizationDescription:
-                    'We do business stuff and make money.',
-                }
-              : party.organizationDetails,
-          })),
-        },
-        clientId: DEFAULT_CLIENT_ID,
-        naicsRecommendations: {
-          resource: [],
-          message: 'No matching NAICS codes found for this description',
-        },
-      }),
-    },
-  },
-  args: {
-    ...commonArgs,
-    clientId: DEFAULT_CLIENT_ID,
-  },
-};
-
-/**
- * **NAICS - API Error**
- *
- * Shows error handling when NAICS recommendation API fails.
- */
-export const NAICSAPIError: Story = {
-  name: 'NAICS - API Error',
-  play: async () => {
-    localStorage.setItem('NAICS_SUGGESTION_FEATURE_FLAG', 'true');
-  },
-  parameters: {
-    msw: {
-      handlers: createOnboardingFlowHandlers({
-        client: mockClientNoIndustry,
-        clientId: DEFAULT_CLIENT_ID,
-        naicsRecommendations: {
-          resource: [],
-          error: true,
-          errorStatus: 400,
-        },
-      }),
-    },
-  },
-  args: {
-    ...commonArgs,
-    clientId: DEFAULT_CLIENT_ID,
-  },
-};
+// Moved to `stories/naics/OnboardingFlow.naics.story.tsx`
+// (Storybook group: "Core / OnboardingFlow / NAICS / Industry").
+// That file also adds host-curated **priority codes** stories and lands the
+// user directly on the Industry step via `flowEntry`.
 
 // =============================================================================
 // USER TRACKING VARIANTS
@@ -476,6 +325,130 @@ export const WithUserTracking: Story = {
 };
 
 // =============================================================================
+// NAVIGATION GUARDS & EMBEDDED LAYOUT
+// =============================================================================
+
+/** Browser/tab close guard — verify in a host shell; Storybook cannot cover every navigation path. */
+export const NavigationAlertOnExit: Story = {
+  name: 'Navigation guard — alertOnExit',
+  loaders: [() => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID)],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    alertOnExit: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Sets `alertOnExit` for `beforeunload`-style confirmations when leaving the host page. Exercise tab close / refresh in your embedded app.',
+      },
+    },
+  },
+};
+
+/**
+ * Back / cancel paths — land on Personal mid-flow and use **Back** after editing,
+ * or exercise document-upload cancel when applicable.
+ */
+export const NavigationAlertOnPreviousStep: Story = {
+  name: 'Navigation guard — alertOnPreviousStep',
+  loaders: [() => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID)],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    alertOnPreviousStep: true,
+    flowEntry: {
+      screenId: 'personal-section',
+      stepperStepId: 'identity-document',
+    },
+  },
+};
+
+/** Host iframe / full-viewport embedding — root uses `style={{ minHeight: height }}`. */
+export const EmbeddedShellMinHeight100vh: Story = {
+  name: 'Embedded shell — minHeight 100vh',
+  loaders: [() => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID)],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    height: '100vh',
+  },
+};
+
+// =============================================================================
+// DOC UPLOAD ONLY MODE
+// =============================================================================
+
+export const DocUploadOnlyModeWithChecklist: Story = {
+  name: 'Doc upload only mode + download checklist flag',
+  loaders: [
+    () =>
+      resetAndSeedClient(
+        mockClientInformationRequestedDocUpload,
+        DOC_UPLOAD_CLIENT_ID
+      ),
+  ],
+  args: {
+    ...commonArgs,
+    clientId: DOC_UPLOAD_CLIENT_ID,
+    docUploadOnlyMode: true,
+    showDownloadChecklist: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`docUploadOnlyMode` opens the upload section; hosts often still pass `showDownloadChecklist`. Timeline sidebar stays collapsed/hidden in upload-only mode.',
+      },
+    },
+  },
+};
+
+export const DocUploadMaxFileSizeOneMegabyte: Story = {
+  name: 'Doc upload — max file size 1 MiB',
+  loaders: [
+    () =>
+      resetAndSeedClient(
+        mockClientInformationRequestedDocUpload,
+        DOC_UPLOAD_CLIENT_ID
+      ),
+  ],
+  args: {
+    ...commonArgs,
+    clientId: DOC_UPLOAD_CLIENT_ID,
+    docUploadOnlyMode: true,
+    docUploadMaxFileSizeBytes: 1024 * 1024,
+  },
+};
+
+// =============================================================================
+// LOCALES (PROVIDER CONTENT TOKEN PRESETS)
+// =============================================================================
+
+export const LocaleFrCaOverview: Story = {
+  name: 'Locale — fr-CA (overview)',
+  loaders: [() => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID)],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    flowEntry: { screenId: 'overview' },
+    contentTokensPreset: 'frCA',
+  },
+};
+
+export const LocaleEsUsOverview: Story = {
+  name: 'Locale — es-US (overview)',
+  loaders: [() => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID)],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    flowEntry: { screenId: 'overview' },
+    contentTokensPreset: 'esUS',
+  },
+};
+
+// =============================================================================
 // DISCLOSURE & ATTESTATION VARIANTS
 // =============================================================================
 
@@ -494,7 +467,6 @@ export const WithUserTracking: Story = {
  *   PDF (from the API) and a hyperlink to the Platform Provider's Program Agreement.
  */
 export const WithDisclosureConfig: Story = {
-  name: 'With Disclosure Config',
   args: {
     ...commonArgs,
     showDisclosureFooter: true,
@@ -544,6 +516,49 @@ export const WithDisclosureConfigNoLinks: Story = {
     showDisclosureFooter: true,
     disclosureConfig: {
       platformName: 'Acme Marketplace',
+    },
+  },
+};
+
+// =============================================================================
+// DOCUMENT PREVIEW EDGE CASES
+// =============================================================================
+
+/**
+ * **Popup Blocked — Save Document Fallback**
+ *
+ * Emulates the Safari popup-blocker scenario: `window.open` returns `null`
+ * when the user clicks a T&C document link, triggering the error state with
+ * a **"Save document"** download button as a fallback.
+ *
+ * Opens directly at the **Review & Attest → Terms and Conditions** step.
+ * Click a document link to see the popup-blocked error and the download alternative.
+ */
+export const PopupBlockedSaveDocumentFallback: Story = {
+  name: 'Popup Blocked — Save Document Fallback (Safari)',
+  loaders: [() => resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID)],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    flowEntry: {
+      screenId: 'review-attest-section',
+      stepperStepId: 'documents',
+    },
+  },
+  beforeEach: () => {
+    // Stub window.open to return null, simulating a popup blocker (Safari)
+    const originalOpen = window.open;
+    window.open = fn().mockReturnValue(null) as unknown as typeof window.open;
+    return () => {
+      window.open = originalOpen;
+    };
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Simulates Safari with restricted popups. `window.open` is stubbed to return `null`, so clicking a T&C document link triggers the popup-blocked error. A **"Save document"** button appears as an alternative, allowing users to download the PDF directly without needing a popup window.',
+      },
     },
   },
 };

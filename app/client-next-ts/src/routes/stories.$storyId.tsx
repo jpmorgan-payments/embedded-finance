@@ -4,7 +4,9 @@ import { z } from 'zod';
 
 import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 
+import { StoryRecipeGithubActions } from '@/components/stories/story-recipe-github-actions';
 import { Button } from '@/components/ui/button';
+import { storyHasLlmSource } from '@/lib/story-llm-sources';
 
 // Parameter validation schema
 const storySearchSchema = z.object({
@@ -43,7 +45,7 @@ const storyMeta = {
     tags: ['Documentation', 'Requirements', 'Core'],
   },
   'partially-hosted-onboarding': {
-    title: 'Hosted Onboarding UI Integration Guide',
+    title: 'Partially Hosted UI Integration Guide',
     date: '2026-03-12',
     readTime: '25 min read',
     tags: ['Onboarding', 'Hosted UI', 'Integration'],
@@ -97,8 +99,8 @@ export const Route = createFileRoute('/stories/$storyId')({
   component: Story,
   // Loading component
   pendingComponent: () => (
-    <div className="bg-jpm-white py-8">
-      <div className="mx-auto max-w-4xl px-6 lg:px-8">
+    <div className="bg-jpm-white py-6">
+      <div className="mx-auto max-w-4xl px-4 lg:px-6">
         <div className="animate-pulse">
           <div className="mb-4 h-8 rounded bg-jpm-gray-200"></div>
           <div className="mb-8 h-12 rounded bg-jpm-gray-200"></div>
@@ -113,8 +115,8 @@ export const Route = createFileRoute('/stories/$storyId')({
   ),
   // Error component
   errorComponent: () => (
-    <div className="bg-jpm-white py-8">
-      <div className="mx-auto max-w-4xl px-6 lg:px-8">
+    <div className="bg-jpm-white py-6">
+      <div className="mx-auto max-w-4xl px-4 lg:px-6">
         <div className="text-center">
           <h1 className="mb-4 text-page-h2 text-jpm-gray-900">
             Story Not Found
@@ -142,10 +144,10 @@ function Story() {
     storyComponents[storyId as keyof typeof storyComponents];
 
   return (
-    <div className="bg-jpm-white py-8">
-      <div className="mx-auto max-w-4xl px-6 lg:px-8">
+    <div className="bg-jpm-white py-6">
+      <div className="mx-auto max-w-4xl px-4 lg:px-6">
         {/* Back button */}
-        <div className="mb-8">
+        <div className="mb-5">
           <Link to="/stories">
             <Button
               variant="outline"
@@ -158,8 +160,8 @@ function Story() {
         </div>
 
         {/* Story header */}
-        <header className="mb-8">
-          <div className="mb-4 flex items-center text-page-small text-jpm-gray">
+        <header className="mb-5">
+          <div className="mb-3 flex items-center text-page-small text-jpm-gray">
             <Calendar className="mr-2 h-4 w-4" />
             <time dateTime={story.date}>
               {new Date(story.date).toLocaleDateString('en-US', {
@@ -172,7 +174,7 @@ function Story() {
             <span>{story.readTime}</span>
           </div>
 
-          <h1 className="mb-4 text-page-hero text-jpm-gray-900">
+          <h1 className="mb-3 text-page-hero text-jpm-gray-900">
             {story.title}
           </h1>
 
@@ -186,6 +188,12 @@ function Story() {
               </span>
             ))}
           </div>
+
+          {storyHasLlmSource(storyId) ? (
+            <div className="mt-3 border-t border-jpm-gray-100 pt-3">
+              <StoryRecipeGithubActions storyId={storyId} />
+            </div>
+          ) : null}
         </header>
 
         {/* Story content */}

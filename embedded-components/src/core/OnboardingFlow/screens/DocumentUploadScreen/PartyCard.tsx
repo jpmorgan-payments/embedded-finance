@@ -51,6 +51,23 @@ interface DocumentGroup {
   documents: DocumentResponse[];
 }
 
+/** Format upload timestamps for PartyCard; invalid ISO strings fall back to the raw value. */
+export function formatPartyCardUploadTime(timestamp: string): string {
+  if (!timestamp) return '';
+
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return timestamp;
+  return date.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+    timeZoneName: 'short',
+  });
+}
+
 /**
  * Component to display a party card with document upload functionality
  */
@@ -60,22 +77,6 @@ export const PartyCard: FC<PartyCardProps> = ({
   onUploadClick,
 }) => {
   const { t } = useTranslationWithTokens(['onboarding-overview']);
-  // Helper function to format timestamp to readable date
-  const formatUploadTime = (timestamp: string): string => {
-    if (!timestamp) return '';
-
-    const date = new Date(timestamp);
-    if (Number.isNaN(date.getTime())) return timestamp;
-    return date.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-      timeZoneName: 'short',
-    });
-  };
 
   // Helper function to get metadata value
   const getMetadataValue = (
@@ -253,7 +254,7 @@ export const PartyCard: FC<PartyCardProps> = ({
                       {uploadTime && (
                         <span className="eb-flex eb-items-center eb-gap-1 eb-text-xs eb-text-muted-foreground">
                           <ClockIcon className="eb-size-3" />
-                          {formatUploadTime(uploadTime)}
+                          {formatPartyCardUploadTime(uploadTime)}
                         </span>
                       )}
                     </div>

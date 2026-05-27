@@ -66,11 +66,11 @@ export function Sidebar({
   const scenarioKey = getScenarioKeyByDisplayName(clientScenario);
   const isOnboardingScenario = scenarioKey
     ? getOnboardingScenarios().some((s) => s.key === scenarioKey)
-    : // Fallback for legacy scenarios
+    : // Fallback when display name is not in scenarios-config (keep in sync with onboarding display names)
       [
         'New Seller - Onboarding',
         'Onboarding - Docs Needed',
-        'Onboarding - In Review',
+        'Onboarding - Seller with prefilled data',
       ].includes(clientScenario);
 
   // Choose appropriate menu based on scenario

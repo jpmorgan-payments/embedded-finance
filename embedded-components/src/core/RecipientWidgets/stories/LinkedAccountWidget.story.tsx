@@ -5,6 +5,7 @@
  * Start here to understand the component's primary use cases.
  *
  * For specialized scenarios, see:
+ * - Host configuration/* — e.g. `hideRemoveRecipient`
  * - Account Statuses/* - All account lifecycle states
  * - Integration/* - Payment integration and callbacks
  * - Workflows/* - Interactive demonstrations
@@ -15,6 +16,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 
+import type { BankAccountFormConfig } from '../components/BankAccountForm';
 import { LinkedAccountWidget } from '../LinkedAccountWidget/LinkedAccountWidget';
 import {
   commonArgs,
@@ -447,6 +449,56 @@ export const WithRejectedAccounts: Story = {
         ],
       };
       await seedRecipientData(combinedMock);
+    },
+  ],
+};
+
+/**
+ * Empty list with `linkAccountBankFormConfigOverride` exposing ACH, WIRE, and RTP on **create**.
+ * Open **Link New Account**: ACH stays locked; other listed methods are optional checkboxes when
+ * `allowMultiple` is true. Types not in `available` are not shown.
+ */
+export const CreateFlow_MultiplePaymentMethods: Story = {
+  args: {
+    mode: 'list',
+    linkAccountBankFormConfigOverride: {
+      paymentMethods: {
+        available: ['ACH', 'WIRE', 'RTP'],
+        allowMultiple: true,
+        defaultSelected: ['ACH'],
+      },
+    } as unknown as Partial<BankAccountFormConfig>,
+  },
+  loaders: [
+    async () => {
+      await seedRecipientData({
+        ...linkedAccountListMock,
+        recipients: [],
+      });
+    },
+  ],
+};
+
+/**
+ * Same pattern as **Create flow — multiple payment methods**, but **WIRE + RTP** only — no ACH row.
+ */
+export const CreateFlow_WireRtpOnly: Story = {
+  args: {
+    mode: 'list',
+    linkAccountBankFormConfigOverride: {
+      paymentMethods: {
+        available: ['WIRE', 'RTP'],
+        allowMultiple: true,
+        defaultSelected: ['WIRE'],
+      },
+    } as unknown as Partial<BankAccountFormConfig>,
+  },
+  loaders: [
+    async () => {
+      await seedRecipientData({
+        ...linkedAccountListMock,
+        recipients: [],
+      });
     },
   ],
 };

@@ -1,6 +1,7 @@
-import type { ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import {
+  AlertTriangleIcon,
   ArrowLeftIcon,
   ArrowRightLeftIcon,
   BanknoteIcon,
@@ -10,20 +11,27 @@ import {
 } from 'lucide-react';
 
 import type { RoutingInformationTransactionType } from '@/api/generated/ep-recipients.schemas';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { StepLayout } from '@/core/OnboardingFlow/components';
-import type {
-  BankAccountFormConfig,
-  BankAccountFormData,
-  LinkAccountReviewAcknowledgement,
-} from '@/core/RecipientWidgets/components/BankAccountForm/BankAccountForm.types';
+import {
+  createBankAccountFormSchema,
+  type BankAccountFormConfig,
+  type BankAccountFormData,
+  type LinkAccountReviewAcknowledgement,
+} from '@/core/RecipientWidgets/components/BankAccountForm';
+import { useGetBankAccountValidationMessage } from '@/core/RecipientWidgets/components/BankAccountForm/BankAccountForm.schema';
 import { LinkAccountAcknowledgementsGroup } from '@/core/RecipientWidgets/components/BankAccountForm/linkAccountAcknowledgements';
 
 export type LinkAccountPrefillSummaryViewProps = {
   title: ReactNode;
   description?: ReactNode;
+  /** Optional pre-selector element (e.g. account preset dropdown) rendered above the summary. */
+  preSelector?: ReactNode;
   data: BankAccountFormData;
   /** Methods shown in the read-only strip (e.g. ACH); selection comes from `data.paymentTypes`. */
   displayedPaymentTypes: readonly RoutingInformationTransactionType[];
@@ -33,7 +41,13 @@ export type LinkAccountPrefillSummaryViewProps = {
   acknowledgementChecked: Record<string, boolean>;
   onAcknowledgementChange: (id: string, value: boolean) => void;
   acknowledgementsComplete: boolean;
-  onSubmit: () => void;
+  /**
+   * Mirrors {@link BankAccountForm} step 2 when {@link BankAccountFormConfig.requiredFields.certification}
+   * is true: user must confirm before linking.
+   */
+  certifyChecked: boolean;
+  onCertifyCheckedChange: (checked: boolean) => void;
+  onSubmit: (payload: BankAccountFormData) => void;
   onCancel: () => void;
   isSubmitting: boolean;
   errorAlert?: React.ReactNode;
@@ -72,6 +86,7 @@ function achRoutingNumber(data: BankAccountFormData): string {
 export function LinkAccountPrefillSummaryView({
   title,
   description,
+  preSelector,
   data,
   displayedPaymentTypes,
   bankFormConfig,
@@ -80,6 +95,8 @@ export function LinkAccountPrefillSummaryView({
   acknowledgementChecked,
   onAcknowledgementChange,
   acknowledgementsComplete,
+  certifyChecked,
+  onCertifyCheckedChange,
   onSubmit,
   onCancel,
   isSubmitting,
@@ -95,10 +112,58 @@ export function LinkAccountPrefillSummaryView({
   const accountHolderName = accountHolderDisplayName(data);
   const routing = achRoutingNumber(data);
 
+  const showDefaultCertification =
+    !!bankFormConfig.requiredFields.certification;
+
+  // ─── Client-side validation of prefilled data ─────────────────────────────
+  const v = useGetBankAccountValidationMessage();
+  const validationErrors = useMemo(() => {
+    // Validate with certification disabled — the certify checkbox is a separate
+    // UI control, not prefilled data, so its errors should not appear in the alert.
+    const configForValidation: BankAccountFormConfig = {
+      ...bankFormConfig,
+      requiredFields: {
+        ...bankFormConfig.requiredFields,
+        certification: false,
+      },
+    };
+    const schema = createBankAccountFormSchema(configForValidation, v);
+    const result = schema.safeParse(data);
+    if (result.success) return [];
+    return result.error.issues.map((issue) => issue.message);
+  }, [data, bankFormConfig, v]);
+
+  const hasValidationErrors = validationErrors.length > 0;
+
+  const canSubmit =
+    acknowledgementsComplete &&
+    (!showDefaultCertification || certifyChecked) &&
+    !hasValidationErrors;
+
   return (
     <StepLayout title={title} description={description}>
       <div className="eb-mt-6 eb-space-y-6">
+        {preSelector}
         {errorAlert}
+
+        {hasValidationErrors ? (
+          <Alert variant="destructive">
+            <AlertTriangleIcon className="eb-h-4 eb-w-4" />
+            <AlertTitle>
+              {tString(
+                'prefillValidation.title',
+                'Invalid prefilled account data'
+              )}
+            </AlertTitle>
+            <AlertDescription>
+              <ul className="eb-mt-1 eb-list-disc eb-pl-4 eb-text-sm">
+                {validationErrors.map((msg) => (
+                  <li key={msg}>{msg}</li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        ) : null}
 
         <div className="eb-space-y-2">
           <Label className="eb-text-sm eb-font-medium">
@@ -215,12 +280,40 @@ export function LinkAccountPrefillSummaryView({
           />
         ) : null}
 
+        {showDefaultCertification ? (
+          <>
+            <Separator />
+            <div className="eb-flex eb-items-start eb-space-x-2">
+              <Checkbox
+                id="eb-link-prefill-certify"
+                className="eb-mt-0.5"
+                checked={certifyChecked}
+                onCheckedChange={(checked) =>
+                  onCertifyCheckedChange(checked === true)
+                }
+                disabled={isSubmitting}
+              />
+              <Label
+                htmlFor="eb-link-prefill-certify"
+                className="eb-cursor-pointer eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70"
+              >
+                {bankFormConfig.content.certificationText}
+              </Label>
+            </div>
+          </>
+        ) : null}
+
         <div className="eb-flex eb-flex-wrap eb-gap-2">
           <Button
             type="button"
             className="eb-inline-flex eb-items-center eb-gap-2"
-            disabled={isSubmitting || !acknowledgementsComplete}
-            onClick={onSubmit}
+            disabled={isSubmitting || !canSubmit}
+            onClick={() =>
+              onSubmit({
+                ...data,
+                certify: showDefaultCertification ? certifyChecked : true,
+              })
+            }
           >
             {isSubmitting ? (
               <Loader2Icon className="eb-size-4 eb-animate-spin" aria-hidden />

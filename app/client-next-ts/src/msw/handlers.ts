@@ -29,14 +29,40 @@ import { getClientStatusOverrideForScenario } from '../components/sellsense/scen
 import { efClientQuestionsMock, efDocumentClientDetail } from '../mocks';
 import {
   applyOverridesToDb,
+  applyTestDemoScenario,
   createTransactionWithBalanceUpdate,
   db,
   DEFAULT_SCENARIO,
   getDbStatus,
+  getTestScenarioClientIds,
   handleMagicValues,
   logDbState,
+  parseTestScenarioBundleId,
   resetDb,
+  type TestDemoScenarioMode,
 } from './db';
+import { getEmbeddedSampleTermsPdfBytes } from './terms-pdf-fallback.ts';
+import { getTermsPdfMockBytes } from './terms-pdf-mock.ts';
+
+/**
+ * `/test-scenario` only (via `X-Test-Demo-Scenario`): happy-path, doc-request, and
+ * linked-account-active create linked recipients as ACTIVE; linked-account-approved
+ * uses READY_FOR_VALIDATION (microdeposits). happy-path-approved is APPROVED client + ACTIVE link.
+ */
+function initialLinkedAccountRecipientStatus(
+  testDemoScenarioHeader: string | null
+): 'ACTIVE' | 'READY_FOR_VALIDATION' {
+  if (
+    testDemoScenarioHeader === 'happy-path' ||
+    testDemoScenarioHeader === 'happy-path-approved' ||
+    testDemoScenarioHeader === 'doc-request' ||
+    testDemoScenarioHeader === 'linked-account-active' ||
+    testDemoScenarioHeader === 'multi-linked-start-3'
+  ) {
+    return 'ACTIVE';
+  }
+  return 'READY_FOR_VALIDATION';
+}
 
 /** Path params for routes with :clientId */
 type ClientIdParams = { clientId: string };
@@ -44,6 +70,8 @@ type ClientIdParams = { clientId: string };
 type PartyIdParams = { partyId: string };
 /** Path params for routes with :documentRequestId */
 type DocumentRequestIdParams = { documentRequestId: string };
+/** Path params for routes with :documentId */
+type DocumentIdParams = { documentId: string };
 /** Path params for routes with :recipientId */
 type RecipientIdParams = { recipientId: string };
 /** Path params for routes with :accountId */
@@ -58,6 +86,205 @@ interface ClientOutstanding {
   attestationDocumentIds?: string[];
   partyIds?: string[];
   partyRoles?: string[];
+}
+
+type QuestionResponseEntry = { questionId: string; values?: unknown[] };
+
+type SubQuestionRule = {
+  anyValuesMatch?: string | string[];
+  questionIds?: string[];
+};
+
+function isSubQuestionTriggered(
+  sub: SubQuestionRule,
+  parentValues: unknown[]
+): boolean {
+  if (typeof sub.anyValuesMatch === 'string') {
+    return parentValues.some((v) => String(v) === sub.anyValuesMatch);
+  }
+  if (Array.isArray(sub.anyValuesMatch)) {
+    return parentValues.some((v) =>
+      (sub.anyValuesMatch as string[]).map(String).includes(String(v))
+    );
+  }
+  return false;
+}
+
+/**
+ * Keep client.outstanding.questionIds consistent with conditional questions after
+ * POST body questionResponses are merged. Otherwise children (e.g. 30162) stay
+ * outstanding when the parent (30158) was answered "No", blocking onboarding.
+ */
+function syncOutstandingQuestionIdsFromConditionalLogic(
+  outstanding: ClientOutstanding,
+  mergedQuestionResponses: QuestionResponseEntry[]
+): void {
+  const byId = new Map(
+    mergedQuestionResponses.map((r) => [r.questionId, r.values ?? []] as const)
+  );
+
+  const hasAnswer = (questionId: string) => {
+    const vals = byId.get(questionId);
+    return vals != null && vals.length > 0;
+  };
+
+  let qids = [...(outstanding.questionIds ?? [])];
+
+  for (const q of efClientQuestionsMock.questions) {
+    const subs = q.subQuestions as SubQuestionRule[] | undefined;
+    if (!subs?.length || !q.id) continue;
+
+    const parentValues = byId.get(q.id);
+    if (parentValues === undefined) continue;
+
+    for (const sq of subs) {
+      const ids = sq.questionIds ?? [];
+      if (ids.length === 0) continue;
+      const triggered = isSubQuestionTriggered(sq, parentValues);
+
+      if (!triggered) {
+        qids = qids.filter((id) => !ids.includes(id));
+      } else {
+        for (const childId of ids) {
+          if (!hasAnswer(childId) && !qids.includes(childId)) {
+            qids.push(childId);
+          }
+        }
+      }
+    }
+  }
+
+  outstanding.questionIds = qids;
+}
+
+/** POST document-request submit — `/ef/do/v1/...` and bare `/document-requests/...` (axios `baseURL` variants). */
+async function handlePostDocumentRequestSubmit(
+  params: DocumentRequestIdParams
+) {
+  const rawId = params.documentRequestId;
+  const documentRequestId =
+    typeof rawId === 'string'
+      ? rawId.trim()
+      : typeof rawId === 'number'
+        ? String(rawId)
+        : String(rawId ?? '');
+
+  const documentRequest = db.documentRequest.findFirst({
+    where: { id: { equals: documentRequestId } },
+  });
+
+  if (!documentRequest) {
+    return new HttpResponse(null, { status: 404 });
+  }
+
+  db.documentRequest.update({
+    where: { id: { equals: documentRequestId } },
+    data: {
+      ...documentRequest,
+      status: 'SUBMITTED' as DocumentRequestStatus,
+    },
+  });
+
+  const client = db.client.findFirst({
+    where: { id: { equals: documentRequest.clientId as string } },
+  });
+
+  if (client) {
+    const prevOutstanding = (client.outstanding || {}) as ClientOutstanding;
+    const updatedClient: Record<string, unknown> & {
+      outstanding: ClientOutstanding;
+      parties?: string[];
+      status?: string;
+    } = {
+      ...client,
+      outstanding: {
+        ...prevOutstanding,
+        documentRequestIds: (prevOutstanding.documentRequestIds || []).filter(
+          (id: string) => id !== documentRequestId
+        ),
+      },
+    };
+
+    const hasOutstandingDocRequests =
+      (updatedClient.outstanding.documentRequestIds?.length ?? 0) > 0;
+
+    const partyIds = (updatedClient.parties || []) as string[];
+    const partiesResolved = partyIds
+      .map((partyId: string) =>
+        db.party.findFirst({ where: { id: { equals: partyId } } })
+      )
+      .filter((p): p is NonNullable<typeof p> => p != null);
+
+    const hasPartyValidationPending = partiesResolved.some(
+      (party: Record<string, unknown>) =>
+        (
+          (party.validationResponse as Array<{
+            validationStatus?: string;
+          }>) || []
+        ).some(
+          (validation: { validationStatus?: string }) =>
+            validation.validationStatus === 'NEEDS_INFO'
+        )
+    );
+
+    if (!hasOutstandingDocRequests) {
+      // When there are no remaining outstanding document-request IDs:
+      // - INFORMATION_REQUESTED → REVIEW_IN_PROGRESS even if seeded parties still show
+      //   NEEDS_INFO for other fields (e.g. `/test-scenario` documents-request profile).
+      // - Otherwise: move to REVIEW_IN_PROGRESS only when no party NEEDS_INFO remains.
+      if (client.status === 'INFORMATION_REQUESTED') {
+        updatedClient.status = 'REVIEW_IN_PROGRESS';
+      } else if (!hasPartyValidationPending) {
+        updatedClient.status = 'REVIEW_IN_PROGRESS';
+      }
+    }
+
+    db.client.update({
+      where: { id: { equals: (client.id as string) ?? '' } },
+      data: updatedClient,
+    });
+  }
+
+  if (documentRequest.partyId) {
+    const party = db.party.findFirst({
+      where: { id: { equals: documentRequest.partyId as string } },
+    });
+
+    if (party) {
+      const partyVal = party as Record<string, unknown>;
+      const validationResponse = (partyVal.validationResponse || []) as Array<{
+        documentRequestIds?: string[];
+        [key: string]: unknown;
+      }>;
+      const updatedParty = {
+        ...party,
+        validationResponse: validationResponse
+          .map((validation) => {
+            const ids = validation.documentRequestIds ?? [];
+            return {
+              ...validation,
+              documentRequestIds: ids.filter(
+                (id: string) => id !== documentRequestId
+              ),
+            };
+          })
+          .filter(
+            (validation) => (validation.documentRequestIds ?? []).length > 0
+          ),
+      };
+
+      db.party.delete({
+        where: { id: { equals: party.id as string } },
+      });
+      db.party.create(updatedParty);
+    }
+  }
+
+  logDbState('Document Request Submission');
+  return HttpResponse.json(
+    { acceptedAt: new Date().toISOString() },
+    { status: 202 }
+  );
 }
 
 export const createHandlers = (apiUrl: string): RequestHandler[] => [
@@ -291,6 +518,11 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
         updatedClient.outstanding.questionIds = questionIds.filter(
           (id: string) => !answeredQuestionIds.includes(id)
         );
+
+        syncOutstandingQuestionIdsFromConditionalLogic(
+          updatedClient.outstanding,
+          updatedClient.questionResponses as QuestionResponseEntry[]
+        );
       }
 
       // Handle adding new attestations if present
@@ -429,24 +661,25 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     });
   }),
 
-  http.get(`${apiUrl}/ef/do/v1/documents/:documentId`, () => {
-    return HttpResponse.json(efDocumentClientDetail);
+  // Register `/documents/:id/file` before `/documents/:id` so MSW matches the literal `file` segment first.
+  http.get(`${apiUrl}/ef/do/v1/documents/:documentId/file`, () => {
+    const body = getTermsPdfMockBytes() ?? getEmbeddedSampleTermsPdfBytes();
+
+    return new HttpResponse(body, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'attachment; filename="sample-terms.pdf"',
+      },
+    });
   }),
 
-  http.get(`${apiUrl}/ef/do/v1/documents/:documentId/file`, () => {
-    // This is a minimal valid PDF file with "Sample PDF" text, encoded in base64
-    const pdfBase64 =
-      'JVBERi0xLjcKCjEgMCBvYmogICUgZW50cnkgcG9pbnQKPDwKICAvVHlwZSAvQ2F0YWxvZwogIC9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKICAvVHlwZSAvUGFnZXMKICAvTWVkaWFCb3ggWyAwIDAgMjAwIDIwMCBdCiAgL0NvdW50IDEKICAvS2lkcyBbIDMgMCBSIF0KPj4KZW5kb2JqCgozIDAgb2JqCjw8CiAgL1R5cGUgL1BhZ2UKICAvUGFyZW50IDIgMCBSCiAgL1Jlc291cmNlcyA8PAogICAgL0ZvbnQgPDwKICAgICAgL0YxIDQgMCBSIAogICAgPj4KICA+PgogIC9Db250ZW50cyA1IDAgUgo+PgplbmRvYmoKCjQgMCBvYmoKPDwKICAvVHlwZSAvRm9udAogIC9TdWJ0eXBlIC9UeXBlMQogIC9CYXNlRm9udCAvSGVsdmV0aWNhCj4+CmVuZG9iagoKNSAwIG9iaiAgJSBwYWdlIGNvbnRlbnQKPDwKICAvTGVuZ3RoIDQ0Cj4+CnN0cmVhbQpCVAo3MCA1MCBURCAKL0YxIDI0IFRmCihTYW1wbGUgUERGKSBUagpFVAplbmRzdHJlYW0KZW5kb2JqCgp4cmVmCjAgNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMTAgMDAwMDAgbiAKMDAwMDAwMDA3OSAwMDAwMCBuIAowMDAwMDAwMTczIDAwMDAwIG4gCjAwMDAwMDAzMDEgMDAwMDAgbiAKMDAwMDAwMDM4MCAwMDAwMCBuIAp0cmFpbGVyCjw8CiAgL1NpemUgNgogIC9Sb290IDEgMCBSCj4+CnN0YXJ0eHJlZgo0OTIKJSVFT0Y=';
-
-    return new HttpResponse(
-      Uint8Array.from(atob(pdfBase64), (c) => c.charCodeAt(0)),
-      {
-        headers: {
-          'Content-Type': 'application/pdf',
-          'Content-Disposition': 'attachment; filename="sample.pdf"',
-        },
-      }
-    );
+  http.get(`${apiUrl}/ef/do/v1/documents/:documentId`, ({ params }) => {
+    const { documentId } = params as DocumentIdParams;
+    return HttpResponse.json({
+      ...efDocumentClientDetail,
+      id: String(documentId),
+    });
   }),
 
   http.get(`${apiUrl}/ef/do/v1/document-requests`, (req) => {
@@ -500,119 +733,15 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
 
   http.post(
     `${apiUrl}/ef/do/v1/document-requests/:documentRequestId/submit`,
-    async ({ params }) => {
-      const { documentRequestId } = params as DocumentRequestIdParams;
+    async ({ params }) =>
+      handlePostDocumentRequestSubmit(params as DocumentRequestIdParams)
+  ),
 
-      // Find the document request
-      const documentRequest = db.documentRequest.findFirst({
-        where: { id: { equals: documentRequestId } },
-      });
-
-      if (!documentRequest) {
-        return new HttpResponse(null, { status: 404 });
-      }
-
-      // Update document request status
-      const updatedRequest = db.documentRequest.update({
-        where: { id: { equals: documentRequestId } },
-        data: {
-          ...documentRequest,
-          status: 'SUBMITTED' as DocumentRequestStatus,
-        },
-      });
-
-      // Find the associated client
-      const client = db.client.findFirst({
-        where: { id: { equals: documentRequest.clientId as string } },
-      });
-
-      if (client) {
-        const prevOutstanding = (client.outstanding || {}) as ClientOutstanding;
-        const updatedClient: Record<string, unknown> & {
-          outstanding: ClientOutstanding;
-          parties?: string[];
-          status?: string;
-        } = {
-          ...client,
-          outstanding: {
-            ...prevOutstanding,
-            documentRequestIds: (
-              prevOutstanding.documentRequestIds || []
-            ).filter((id: string) => id !== documentRequestId),
-          },
-        };
-
-        const hasOutstandingDocRequests =
-          (updatedClient.outstanding.documentRequestIds?.length ?? 0) > 0;
-
-        const partyIds = (updatedClient.parties || []) as string[];
-        const parties = partyIds
-          .map((partyId: string) =>
-            db.party.findFirst({ where: { id: { equals: partyId } } })
-          )
-          .filter((p): p is NonNullable<typeof p> => p != null);
-
-        const hasPartyValidationPending = parties.some(
-          (party: Record<string, unknown>) =>
-            (
-              (party.validationResponse as Array<{
-                validationStatus?: string;
-              }>) || []
-            ).some(
-              (validation: { validationStatus?: string }) =>
-                validation.validationStatus === 'NEEDS_INFO'
-            )
-        );
-
-        if (!hasOutstandingDocRequests && !hasPartyValidationPending) {
-          updatedClient.status = 'REVIEW_IN_PROGRESS';
-        }
-
-        db.client.update({
-          where: { id: { equals: (client.id as string) ?? '' } },
-          data: updatedClient,
-        });
-      }
-
-      // If associated with a party, update party's validation response
-      if (documentRequest.partyId) {
-        const party = db.party.findFirst({
-          where: { id: { equals: documentRequest.partyId as string } },
-        });
-
-        if (party) {
-          const partyVal = party as Record<string, unknown>;
-          const validationResponse = (partyVal.validationResponse ||
-            []) as Array<{
-            documentRequestIds: string[];
-            [key: string]: unknown;
-          }>;
-          const updatedParty = {
-            ...party,
-            validationResponse: validationResponse
-              .map((validation: { documentRequestIds: string[] }) => ({
-                ...validation,
-                documentRequestIds: validation.documentRequestIds.filter(
-                  (id: string) => id !== documentRequestId
-                ),
-              }))
-              .filter(
-                (validation: { documentRequestIds: string[] }) =>
-                  validation.documentRequestIds.length > 0
-              ),
-          };
-
-          // Update party
-          db.party.delete({
-            where: { id: { equals: party.id as string } },
-          });
-          db.party.create(updatedParty);
-        }
-      }
-
-      logDbState('Document Request Submission');
-      return HttpResponse.json(updatedRequest);
-    }
+  /** Bare `/document-requests/...` when requests resolve relative to origin (omit `/ef/do/v1`). */
+  http.post(
+    `${apiUrl}/document-requests/:documentRequestId/submit`,
+    async ({ params }) =>
+      handlePostDocumentRequestSubmit(params as DocumentRequestIdParams)
   ),
 
   http.get(`${apiUrl}/clients/:clientId`, () => {
@@ -624,11 +753,28 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
       const body = (await request.json()) as {
         scenario?: string;
         overrides?: Record<string, unknown>;
+        /** Only `/test-scenario`; omit for SellSense (no DB shape change). */
+        testDemoScenario?: TestDemoScenarioMode;
+        testScenarioBundle?: string;
       } | null;
       const scenario = body?.scenario ?? DEFAULT_SCENARIO;
       const result = resetDb(scenario);
       if (body?.overrides && Object.keys(body.overrides).length > 0) {
         applyOverridesToDb(body.overrides);
+      }
+      if (
+        body?.testDemoScenario === 'happy-path' ||
+        body?.testDemoScenario === 'happy-path-approved' ||
+        body?.testDemoScenario === 'doc-request' ||
+        body?.testDemoScenario === 'linked-account-approved' ||
+        body?.testDemoScenario === 'linked-account-active' ||
+        body?.testDemoScenario === 'multi-linked-start-3'
+      ) {
+        // Isolated from SellSense: those apps never send `testDemoScenario`.
+        applyTestDemoScenario(
+          body.testDemoScenario,
+          parseTestScenarioBundleId(body.testScenarioBundle)
+        );
       }
       return HttpResponse.json(result);
     } catch (error) {
@@ -695,10 +841,58 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     async ({ request, params }) => {
       const { clientId } = params as ClientIdParams;
       const data = (await request.json()) as Record<string, unknown> | null;
+      const testDemoScenario = request.headers.get('X-Test-Demo-Scenario');
 
       const verificationResponse = handleMagicValues(clientId, data ?? {});
       if (!verificationResponse) {
         return new HttpResponse(null, { status: 404 });
+      }
+
+      // Delayed APPROVED only for `/test-scenario` happy path (header not sent by SellSense).
+      if (
+        testDemoScenario === 'happy-path' &&
+        getTestScenarioClientIds().includes(clientId)
+      ) {
+        const delayMs = 3000;
+        setTimeout(() => {
+          const current = db.client.findFirst({
+            where: { id: { equals: clientId } },
+          });
+          if (!current || current.status !== 'REVIEW_IN_PROGRESS') {
+            return;
+          }
+
+          db.client.update({
+            where: { id: { equals: clientId } },
+            data: {
+              ...current,
+              status: 'APPROVED',
+              results: {
+                ...((current.results as Record<string, unknown>) || {}),
+                customerIdentityStatus: 'APPROVED',
+              },
+            },
+          });
+
+          const partyIds = (current.parties as string[]) || [];
+          for (const partyId of partyIds) {
+            const party = db.party.findFirst({
+              where: { id: { equals: partyId } },
+            });
+            if (!party) continue;
+            const profileStatus = (party as { profileStatus?: string })
+              .profileStatus;
+            if (profileStatus === 'NEW' || profileStatus === 'INCOMPLETE') {
+              db.party.delete({ where: { id: { equals: partyId } } });
+              db.party.create({
+                ...party,
+                profileStatus: 'APPROVED',
+              } as Record<string, unknown>);
+            }
+          }
+
+          logDbState('Test demo delayed approval');
+        }, delayMs);
       }
 
       return HttpResponse.json(verificationResponse);
@@ -745,6 +939,8 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     const data = (await request.json()) as RecipientRequest | null;
     console.log('Creating EF recipient:', data);
 
+    const testDemoScenario = request.headers.get('X-Test-Demo-Scenario');
+
     // Generate a unique recipient ID
     const recipientId =
       'c0712fc9-b7d5-4ee2-81bb-' + Math.random().toString(36).substring(2, 15);
@@ -756,7 +952,7 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     let initialStatus =
       (data as unknown as { status?: string })?.status ?? 'ACTIVE';
     if (recipientType === 'LINKED_ACCOUNT') {
-      initialStatus = 'READY_FOR_VALIDATION';
+      initialStatus = initialLinkedAccountRecipientStatus(testDemoScenario);
     }
 
     // Create the recipient in the database (DB shape extends API shape)
