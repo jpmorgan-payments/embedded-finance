@@ -81,9 +81,9 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
             const field = key as keyof OnboardingFormValuesInitial;
             const value = formValues?.[field];
             const fc = partyFieldMap?.[field] as {
-              isHiddenInReviewFn?: (val: any) => boolean;
+              isHiddenInReviewFn?: (val: any, values: any) => boolean;
             } & Record<string, any>;
-            return !fc?.isHiddenInReviewFn?.(value);
+            return !fc?.isHiddenInReviewFn?.(value, formValues);
           });
           if (schemaKeys.length > 0 && visibleKeys.length === 0) {
             return null;
