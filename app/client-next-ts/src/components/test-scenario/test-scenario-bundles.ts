@@ -205,6 +205,7 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
       completionMode: 'editable',
       allowMultipleAccounts: true,
       existingAccountsDisplay: 'compact',
+      initialValues: {},
     },
     onboardingFlow: {
       availableProducts: ['EMBEDDED_PAYMENTS'],
