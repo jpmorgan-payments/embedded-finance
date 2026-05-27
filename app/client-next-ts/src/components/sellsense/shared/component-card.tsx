@@ -60,8 +60,7 @@ export function ComponentTooltip({
               @jpmorgan-payments/embedded-finance-components
             </p>
             <p>
-              <strong>Version:</strong>{' '}
-              {embeddedComponentsPackageJson.version}
+              <strong>Version:</strong> {embeddedComponentsPackageJson.version}
             </p>
             <p>
               <strong>Component:</strong> {componentName}

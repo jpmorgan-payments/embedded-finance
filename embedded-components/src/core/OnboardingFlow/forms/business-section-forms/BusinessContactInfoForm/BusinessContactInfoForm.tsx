@@ -67,10 +67,17 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
   }, [orgAddressCountry]);
 
   useEffect(() => {
-    if (form.watch('organizationPhone.phoneType') !== 'BUSINESS_PHONE') {
+    const phoneNumber = form.watch('organizationPhone.phoneNumber');
+    if (
+      phoneNumber &&
+      form.watch('organizationPhone.phoneType') !== 'BUSINESS_PHONE'
+    ) {
       form.setValue('organizationPhone.phoneType', 'BUSINESS_PHONE');
     }
-  });
+  }, [
+    form.watch('organizationPhone.phoneType'),
+    form.watch('organizationPhone.phoneNumber'),
+  ]);
 
   return (
     <div className="eb-mt-6 eb-space-y-6">
@@ -98,6 +105,7 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
             type="combobox"
             options={COUNTRIES_OF_FORMATION.map((code) => ({
               value: code,
+              searchValue: `[${code}] ${tString([`common:countries.${code}`] as unknown as TemplateStringsArray)}`,
               label: (
                 <span>
                   <span className="eb-font-medium">[{code}]</span>{' '}
@@ -120,11 +128,13 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
             control={form.control}
             name="organizationAddress.secondaryAddressLine"
             type="text"
+            required={false}
           />
           <OnboardingFormField
             control={form.control}
             name="organizationAddress.tertiaryAddressLine"
             type="text"
+            required={false}
           />
           <OnboardingFormField
             control={form.control}

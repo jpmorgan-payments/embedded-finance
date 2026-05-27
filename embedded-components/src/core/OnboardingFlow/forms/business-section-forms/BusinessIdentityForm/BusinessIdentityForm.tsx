@@ -19,7 +19,7 @@ import {
 } from './BusinessIdentityForm.schema';
 
 export const BusinessIdentityForm: FormStepComponent = () => {
-  const { t } = useTranslationWithTokens(['onboarding-overview']);
+  const { t, tString } = useTranslationWithTokens(['onboarding-overview']);
 
   const { clientData } = useOnboardingContext();
 
@@ -92,6 +92,7 @@ export const BusinessIdentityForm: FormStepComponent = () => {
           type="combobox"
           options={COUNTRIES_OF_FORMATION.map((code) => ({
             value: code,
+            searchValue: `[${code}] ${tString([`common:countries.${code}`] as unknown as TemplateStringsArray)}`,
             label: (
               <span>
                 <span className="eb-font-medium">[{code}]</span>{' '}
@@ -175,5 +176,9 @@ BusinessIdentityForm.modifyFormValuesBeforeSubmit = (values) => {
   return {
     ...rest,
     ...(solePropHasEin !== 'no' ? { organizationIdEin } : {}),
+    // When "Same as legal name" is checked, send the org name as dbaName
+    ...(rest.dbaNameNotAvailable && rest.organizationName
+      ? { dbaName: rest.organizationName }
+      : {}),
   };
 };

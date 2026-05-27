@@ -1,3 +1,4 @@
+import type { TestDemoScenarioMode, TestScenarioBundleId } from '../msw/db';
 import { getOverrides } from './mock-overrides-storage';
 
 // Database reset utilities for triggering component refetch
@@ -82,6 +83,47 @@ export const DatabaseResetUtils = {
       }, 300);
     } catch (error) {
       console.error('Database reset failed:', error);
+      setIsLoading(false);
+    }
+  },
+
+  /**
+   * Isolated reset for `/test-scenario` demo routes — does not apply SellSense mock JSON overrides
+   * from localStorage; seeds `empty` and applies `testDemoScenario` on the MSW DB.
+   */
+  resetTestDemoDatabase: async (
+    scenario: string,
+    testDemoScenario: TestDemoScenarioMode,
+    setIsLoading: (loading: boolean) => void,
+    testScenarioBundle?: TestScenarioBundleId
+  ) => {
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/ef/do/v1/_reset', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          scenario,
+          overrides: {},
+          testDemoScenario,
+          ...(testScenarioBundle ? { testScenarioBundle } : {}),
+        }),
+      });
+
+      const data = await response.json();
+      console.log('Test demo database reset:', data);
+
+      setTimeout(() => {
+        DatabaseResetUtils.emulateTabSwitch();
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 100);
+      }, 300);
+    } catch (error) {
+      console.error('Test demo database reset failed:', error);
       setIsLoading(false);
     }
   },

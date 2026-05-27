@@ -106,7 +106,7 @@ export const RecipientAccountDisplayCard: React.FC<
   const { t } = useTranslationWithTokens('linked-accounts');
   const [showFullAccount, setShowFullAccount] = useState(false);
   const [showDetailedPaymentMethods, setShowDetailedPaymentMethods] =
-    useState(false);
+    useState(true);
 
   // Get the heading tag for this card (e.g., 'h3')
   const Heading = getHeadingTag(headingLevel);
@@ -661,7 +661,7 @@ export const RecipientAccountDisplayCard: React.FC<
                 aria-labelledby="payment-methods-heading"
                 role="region"
               >
-                {allowDetailedPaymentMethods && showDetailedPaymentMethods ? (
+                {showDetailedPaymentMethods ? (
                   // Detailed View with Routing Numbers
                   <div className="eb-space-y-1.5">
                     {paymentMethods.map((method) => {

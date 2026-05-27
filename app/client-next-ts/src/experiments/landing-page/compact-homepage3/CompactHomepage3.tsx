@@ -26,6 +26,7 @@ import {
 
 import { Link } from '@tanstack/react-router';
 
+import { HeroSkillInstallDialog } from '@/components/landing/hero-skill-install-dialog';
 import { Button } from '@/components/ui/button';
 
 // Action cards - simplified to 3 main paths
@@ -204,21 +205,23 @@ export function CompactHomepage3() {
 
           {/* Primary CTA */}
           <div
-            className={`delay-[400ms] transition-all duration-700 ${
+            className={`delay-[400ms] flex flex-col items-center justify-center gap-3 transition-all duration-700 sm:flex-row sm:flex-wrap ${
               isVisible
                 ? 'translate-y-0 opacity-100'
                 : 'translate-y-4 opacity-0'
             }`}
           >
-            <Link to="/demos">
+            <Link to="/demos" className="inline-flex">
               <Button
                 size="lg"
                 className="rounded-full bg-sp-brand px-8 py-3 text-base font-semibold !text-jpm-white shadow-lg transition-all hover:bg-sp-brand-700 hover:shadow-xl"
               >
+                <Play className="size-5 shrink-0" />
                 Get Started
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="size-4 shrink-0" />
               </Button>
             </Link>
+            <HeroSkillInstallDialog tone="pill" />
           </div>
         </div>
       </section>

@@ -143,7 +143,8 @@
       "placeholder": "Ingrese número de cuenta",
       "validation": {
         "required": "El número de cuenta es requerido",
-        "digitsOnly": "El número de cuenta debe contener solo dígitos"
+        "digitsOnly": "El número de cuenta debe contener solo dígitos",
+        "duplicate": "Ya existe una cuenta vinculada con este número de cuenta y número de ruta"
       }
     },
     "accountType": {

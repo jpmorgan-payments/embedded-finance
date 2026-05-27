@@ -22,7 +22,7 @@ const stories = [
   },
   {
     id: 'partially-hosted-onboarding' as const,
-    title: 'Hosted Onboarding UI Integration Guide',
+    title: 'Partially Hosted UI Integration Guide',
     excerpt:
       'Integrate the hosted Onboarding UI into your platform with session transfer, iframe embedding, postMessage, and security guidance. Source: PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md.',
     date: '2026-03-12',
@@ -60,10 +60,10 @@ const stories = [
 
 function StoriesIndex() {
   return (
-    <div className="bg-jpm-white py-8">
-      <div className="mx-auto max-w-4xl px-6 lg:px-8">
-        <div className="mb-12">
-          <h1 className="mb-4 text-page-hero text-jpm-gray-900">
+    <div className="bg-jpm-white py-6">
+      <div className="mx-auto max-w-4xl px-4 lg:px-6">
+        <div className="mb-8">
+          <h1 className="mb-3 text-page-hero text-jpm-gray-900">
             Engineering Recipes
           </h1>
           <p className="max-w-2xl text-page-body leading-relaxed text-jpm-gray">
@@ -75,13 +75,13 @@ function StoriesIndex() {
           </p>
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-6">
           {stories.map((story) => (
             <Card
               key={story.id}
               className="rounded-page-md border-0 bg-jpm-white shadow-page-card"
             >
-              <CardHeader className="pb-4">
+              <CardHeader className="pb-3">
                 <div className="mb-2 flex items-center text-page-small text-jpm-gray">
                   <Calendar className="mr-2 h-4 w-4" />
                   <time dateTime={story.date}>
@@ -113,13 +113,17 @@ function StoriesIndex() {
                       </span>
                     ))}
                   </div>
-                  <Link to="/stories/$storyId" params={{ storyId: story.id }}>
+                  <Link
+                    to="/stories/$storyId"
+                    params={{ storyId: story.id }}
+                    className="inline-flex"
+                  >
                     <Button
-                      variant="outline"
-                      className="flex items-center whitespace-nowrap rounded-page-md border-sp-brand font-semibold text-sp-brand hover:bg-sp-accent"
+                      variant="ghost"
+                      className="whitespace-nowrap rounded-page-md px-5 font-semibold text-sp-brand shadow-none hover:bg-sp-accent hover:text-sp-brand sm:px-6"
                     >
                       READ MORE
-                      <ArrowRight className="ml-2 h-4 w-4 flex-shrink-0" />
+                      <ArrowRight className="h-4 w-4 flex-shrink-0" />
                     </Button>
                   </Link>
                 </div>

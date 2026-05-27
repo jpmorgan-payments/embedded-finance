@@ -82,6 +82,19 @@ export type FieldRule<T = any> = {
   required?: boolean;
   contentTokenOverrideKey?: string;
   contentTokenOverrides?: ContentTokenOverrides;
+  /**
+   * When true and the field is `readonly`, the field will automatically
+   * switch to `enabled` if it has a validation error (e.g. from
+   * invalid API data detected via validateOnMount). This lets the user
+   * correct the value without requiring a separate edit flow.
+   */
+  editableWhenInvalid?: boolean;
+  /**
+   * When true, the field value is included in the form submission
+   * even when `display` is `'hidden'`. The field won't render any
+   * UI but its `defaultValue` will be registered and submitted.
+   */
+  submitWhenHidden?: boolean;
   defaultValue: T;
 };
 
@@ -90,6 +103,8 @@ export type ArrayFieldRule<T extends readonly unknown[] = any> = {
   interaction?: FieldInteractionConfig;
   contentTokenOverrideKey?: string;
   contentTokenOverrides?: ContentTokenOverrides;
+  editableWhenInvalid?: boolean;
+  submitWhenHidden?: boolean;
   minItems?: number;
   requiredItems?: number;
   maxItems?: number;
@@ -123,7 +138,10 @@ type BaseFieldConfiguration<T, IsSubField extends boolean = false> = {
     values: Partial<OnboardingFormValuesSubmit>
   ) => string | string[] | undefined;
   generateLabelStringFn?: (val: T) => string | undefined;
-  isHiddenInReviewFn?: (val: T) => boolean;
+  isHiddenInReviewFn?: (
+    val: T,
+    values: Partial<OnboardingFormValuesSubmit>
+  ) => boolean;
 };
 
 type DefaultKeys<Rule> = Extract<
@@ -148,7 +166,7 @@ type FieldConfigurationGeneric<
       excludeFromMapping?: false;
       saveResponseInContext?: never;
       path: string;
-      fromResponseFn?: (val: any) => T;
+      fromResponseFn?: (val: any) => T | undefined;
       toRequestFn?: (val: OnboardingFormValuesSubmit[K]) => any;
     } & BaseFieldConfiguration<T, IsSubfield>)
   | ({
@@ -156,7 +174,7 @@ type FieldConfigurationGeneric<
       excludeFromMapping: true;
       saveResponseInContext?: boolean;
       path?: string;
-      fromResponseFn?: (val: any) => T;
+      fromResponseFn?: (val: any) => T | undefined;
       toRequestFn?: never;
     } & BaseFieldConfiguration<T, IsSubfield>);
 

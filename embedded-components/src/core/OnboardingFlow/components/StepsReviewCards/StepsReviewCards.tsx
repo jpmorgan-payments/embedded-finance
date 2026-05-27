@@ -146,14 +146,14 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
                     values: Partial<OnboardingFormValuesInitial>
                   ) => string | string[] | undefined;
                   generateLabelStringFn?: (val: any) => string | undefined;
-                  isHiddenInReviewFn?: (val: any) => boolean;
+                  isHiddenInReviewFn?: (val: any, values: any) => boolean;
                 } & {
                   [key: string]: any;
                 };
 
                 const { fieldRule, ruleType } = getFieldRule(field);
 
-                if (fieldConfig?.isHiddenInReviewFn?.(value)) {
+                if (fieldConfig?.isHiddenInReviewFn?.(value, formValues)) {
                   return null;
                 }
 

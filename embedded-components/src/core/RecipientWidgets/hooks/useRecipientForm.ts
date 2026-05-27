@@ -40,6 +40,13 @@ export interface UseRecipientFormOptions {
    */
   clientId?: string;
 
+  /**
+   * Existing party ID to associate with the linked account.
+   * When provided on create, the payload uses `partyId` instead of `partyDetails`
+   * so the API links the account to an existing party rather than creating one.
+   */
+  partyId?: string;
+
   /** Callback when operation succeeds */
   onSuccess?: (recipient?: Recipient) => void;
 
@@ -113,6 +120,7 @@ export function useRecipientForm({
   recipientId,
   recipientType,
   clientId,
+  partyId,
   onSuccess,
   onError,
   onSettled,
@@ -166,6 +174,14 @@ export function useRecipientForm({
       );
       if (clientId) {
         createPayload.clientId = clientId;
+      }
+      // When partyId is provided (explicitly or from form party selection),
+      // use it instead of partyDetails so the API links the account to an
+      // existing party rather than creating one.
+      const resolvedPartyId = partyId ?? data.selectedPartyId;
+      if (resolvedPartyId) {
+        createPayload.partyId = resolvedPartyId;
+        delete createPayload.partyDetails;
       }
       createMutation.mutate({ data: createPayload });
     } else if (mode === 'edit' && recipientId) {

@@ -417,7 +417,18 @@
       "bankAccountSection": {
         "title": "Link a bank account for payouts",
         "lockedMessage": "Available after your application has been submitted",
-        "linkAccountTitle": "Link an account"
+        "linkAccountTitle": "Link an account",
+        "multiAccountOverviewDescriptionSingular": "You have 1 linked account for payouts. Open the bank linking step to add another account or manage details.",
+        "multiAccountOverviewDescriptionPlural": "You have {{count}} linked accounts for payouts. Open the bank linking step to add another account or manage details.",
+        "manageLinkedAccountsButton": "Manage linked accounts",
+        "successAlert": {
+          "ACTIVE": "Your bank account has been verified and is ready for transactions.",
+          "MICRODEPOSITS_INITIATED": "Your bank account details have been submitted. Two small deposits will be sent to your account for verification.",
+          "PENDING": "Your bank account details have been submitted and are being processed.",
+          "READY_FOR_VALIDATION": "Your bank account details have been submitted. Please verify the deposit amounts to complete setup.",
+          "REJECTED": "Your bank account details have been submitted but could not be verified.",
+          "INACTIVE": "Your bank account details have been submitted."
+        }
       }
     },
     "linkAccount": {
@@ -506,7 +517,8 @@
         },
         "contactDetails": {
           "title": "Your contact details",
-          "description": "We need some additional details to confirm your identity."
+          "description": "We need some additional details to confirm your identity.",
+          "countryMismatchWarning": "Address country does not match country of residence ({{country}}). You may still submit, but please verify this is correct."
         },
         "checkAnswers": {
           "title": "Check your answers",
@@ -576,6 +588,16 @@
     "uploadDocumentsSection": {
       "label": "Supporting documents",
       "onHoldText": "We'll let you know if any documents are needed"
+    },
+    "operationalDetails": {
+      "title": "Operational details",
+      "description": "Please answer these additional questions to help us understand your business operations.",
+      "selectPlaceholder": "Select an option",
+      "noQuestions": "There are no additional questions. You may proceed to the next step.",
+      "loadingQuestions": "Loading questions...",
+      "saveAndReturn": "Save and return to review",
+      "saveAndContinue": "Save and continue to review",
+      "newQuestionsGenerated": "Based on your responses, a few additional questions are needed. Please complete them to continue."
     }
   },
   "additionalQuestions": {
@@ -656,6 +678,7 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
+        "invalidOption": "$t(validation:common.invalidOption)",
         "minLength": "$t(validation:text.minLength, {'count': 2})",
         "maxLength": "$t(validation:text.maxLength, {'count': 50})",
         "pattern": "$t(validation:text.pattern)",
@@ -685,7 +708,8 @@
       "description": "How you own or control the organization",
       "tooltip": "",
       "validation": {
-        "required": "$t(validation:required)"
+        "required": "$t(validation:required)",
+        "invalidOption": "$t(validation:common.invalidOption)"
       }
     },
     "birthDate": {
@@ -761,6 +785,7 @@
         "itinDigitsOnly": "$t(validation:id.itin.digitsOnly)",
         "itinStartsWith9": "$t(validation:id.itin.startsWith9)",
         "itinMiddleDigits": "$t(validation:id.itin.middleDigits)",
+        "itinKnownInvalid": "$t(validation:id.itin.knownInvalid)",
         "noSpaces": "$t(validation:text.noSpaces)"
       }
     },
@@ -1381,7 +1406,7 @@
     "owner": "Owner",
     "controller": "Controller",
     "individualMissingDetails": "ⓘ This individual is missing some details.",
-    "operationalDetails": "Operational details",
+    "operationalDetailsHeading": "Operational details",
     "fieldIsMissing": "This field is missing",
     "response": "Response",
     "complete": "Complete",
@@ -1404,6 +1429,8 @@
       "downloading": "Downloading...",
       "failedToDownload": "Failed to download document:",
       "failedToFetchDetails": "Failed to fetch document details:",
+      "saveDocument": "Save and review document",
+      "popupBlocked": "Unable to preview document in browser. Please save the document using the button below, then review it before proceeding.",
       "attestations": "Attestations",
       "agreeToTermsWithPlatform": "You have read and agree to the J.P. Morgan Account Terms and the {{platformAgreementLabel}}.",
       "agreeToTerms": "You have read and agree to the J.P. Morgan Account Terms.",

@@ -1126,6 +1126,15 @@ export const commonArgTypes = {
       defaultValue: { summary: 'false' },
     },
   },
+  hideRemoveRecipient: {
+    control: { type: 'boolean' as const },
+    description:
+      'Hide Remove in card overflow menu and table row actions (unlink disabled in UI)',
+    table: {
+      category: 'Actions',
+      defaultValue: { summary: 'false' },
+    },
+  },
   showRejectedAccounts: {
     control: { type: 'boolean' as const },
     description:

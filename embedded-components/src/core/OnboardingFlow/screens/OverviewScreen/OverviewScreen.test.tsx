@@ -1,9 +1,10 @@
 import { i18n } from '@/i18n/config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-import { render, screen } from '@test-utils';
+import { render, screen, waitFor } from '@test-utils';
 
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
+import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 import { flowConfig } from '@/core/OnboardingFlow/config/flowConfig';
@@ -75,6 +76,29 @@ function renderOverview(contextOverrides: Partial<OnboardingContextType> = {}) {
     </QueryClientProvider>
   );
 }
+
+const mockOverviewLinkedRecipient: Recipient = {
+  id: 'linked-recipient-1',
+  status: 'ACTIVE',
+  type: 'LINKED_ACCOUNT',
+  partyDetails: {
+    type: 'INDIVIDUAL',
+    firstName: 'Jane',
+    lastName: 'Linked',
+  },
+  account: {
+    number: '12345678901234567',
+    countryCode: 'US',
+    routingInformation: [
+      {
+        transactionType: 'ACH',
+        routingNumber: '021000021',
+        routingCodeType: 'USABA',
+      },
+    ],
+  },
+  createdAt: new Date().toISOString(),
+};
 
 /** CardTitle renders an outer h2; verify section uses an inner h2 with `eb-font-header`. */
 function getVerifyBusinessHeadingText(text: string) {
@@ -206,5 +230,130 @@ describe('OverviewScreen', () => {
       'onboarding-overview:screens.overview.verifyBusinessSection.applicationSubmitted.title'
     );
     expect(getVerifyBusinessHeadingText(expected)).toBeInTheDocument();
+  });
+
+  test('linked account on overview shows Remove by default after recipients load', async () => {
+    vi.mocked(useGetAllRecipients).mockReturnValue({
+      data: { recipients: [mockOverviewLinkedRecipient] },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useGetAllRecipients>);
+
+    const removeLabel = i18n.t('linked-accounts:actions.remove');
+    renderOverview({
+      showLinkAccountStep: true,
+      clientData: buildClient('APPROVED'),
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', {
+          name: new RegExp(
+            `${removeLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*Jane`,
+            'i'
+          ),
+        })
+      ).toBeInTheDocument();
+    });
+  });
+
+  test('hideLinkedAccountRemoval hides Remove on overview linked account card', async () => {
+    vi.mocked(useGetAllRecipients).mockReturnValue({
+      data: { recipients: [mockOverviewLinkedRecipient] },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useGetAllRecipients>);
+
+    const removeLabel = i18n.t('linked-accounts:actions.remove');
+    renderOverview({
+      showLinkAccountStep: true,
+      hideLinkedAccountRemoval: true,
+      clientData: buildClient('APPROVED'),
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/jane\s+linked/i)).toBeInTheDocument();
+    });
+
+    expect(
+      screen.queryByRole('button', {
+        name: new RegExp(
+          `${removeLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*Jane`,
+          'i'
+        ),
+      })
+    ).not.toBeInTheDocument();
+  });
+
+  test('allowMultipleAccounts shows summary CTA on overview without account card list', async () => {
+    vi.mocked(useGetAllRecipients).mockReturnValue({
+      data: {
+        recipients: [
+          mockOverviewLinkedRecipient,
+          { ...mockOverviewLinkedRecipient, id: 'linked-recipient-2' },
+        ],
+      },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useGetAllRecipients>);
+
+    renderOverview({
+      showLinkAccountStep: true,
+      clientData: buildClient('APPROVED'),
+      linkAccountStepOptions: {
+        completionMode: 'editable',
+        initialValues: {},
+        allowMultipleAccounts: true,
+      },
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('overview-manage-linked-accounts')
+      ).toBeInTheDocument();
+    });
+
+    expect(
+      screen.queryByTestId('existing-linked-accounts')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        i18n.t(
+          'onboarding-overview:screens.overview.bankAccountSection.multiAccountOverviewDescriptionPlural',
+          { count: 2 }
+        )
+      )
+    ).toBeInTheDocument();
+  });
+
+  test('allowMultipleAccounts uses singular summary copy for one linked account', async () => {
+    vi.mocked(useGetAllRecipients).mockReturnValue({
+      data: { recipients: [mockOverviewLinkedRecipient] },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useGetAllRecipients>);
+
+    renderOverview({
+      showLinkAccountStep: true,
+      clientData: buildClient('APPROVED'),
+      linkAccountStepOptions: {
+        completionMode: 'editable',
+        initialValues: {},
+        allowMultipleAccounts: true,
+      },
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('overview-manage-linked-accounts')
+      ).toBeInTheDocument();
+    });
+
+    expect(
+      screen.queryByTestId('existing-linked-accounts')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        i18n.t(
+          'onboarding-overview:screens.overview.bankAccountSection.multiAccountOverviewDescriptionSingular'
+        )
+      )
+    ).toBeInTheDocument();
   });
 });

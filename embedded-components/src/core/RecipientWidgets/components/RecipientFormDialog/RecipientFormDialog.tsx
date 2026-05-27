@@ -23,10 +23,12 @@ import { useRecipientForm, type RecipientFormMode } from '../../hooks';
 import { RecipientI18nNamespace, SupportedRecipientType } from '../../types';
 import {
   BankAccountForm,
+  createCustomConfig,
   useLinkedAccountConfig,
   useLinkedAccountEditConfig,
   useRecipientConfig,
   useRecipientEditConfig,
+  type BankAccountFormConfig,
   type BankAccountFormData,
   type LinkAccountReviewAcknowledgement,
 } from '../BankAccountForm';
@@ -75,6 +77,11 @@ export interface RecipientFormDialogProps {
   linkAccountReviewAcknowledgements?: readonly LinkAccountReviewAcknowledgement[];
   /** Show lead-in copy above the acknowledgement group (`onboarding-overview`). */
   showLinkAccountAcknowledgementsIntro?: boolean;
+  /**
+   * Optional merge on top of {@link useLinkedAccountConfig} for **create** LINKED_ACCOUNT only.
+   * Storybook / hosts can expose alternate `paymentMethods.available` sets without forking the dialog.
+   */
+  linkAccountBankFormConfigOverride?: Partial<BankAccountFormConfig>;
 }
 
 /**
@@ -126,6 +133,7 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
   i18nNamespace,
   linkAccountReviewAcknowledgements,
   showLinkAccountAcknowledgementsIntro = false,
+  linkAccountBankFormConfigOverride,
 }) => {
   const { t } = useTranslationWithTokens(i18nNamespace);
   const { t: tOnboardingOverview, tString: tOnboardingOverviewString } =
@@ -141,7 +149,13 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
   });
 
   // Get appropriate config based on recipientType and mode
-  const linkedAccountCreateConfig = useLinkedAccountConfig();
+  const linkedAccountCreateBase = useLinkedAccountConfig();
+  const linkedAccountCreateConfig = linkAccountBankFormConfigOverride
+    ? createCustomConfig(
+        linkedAccountCreateBase,
+        linkAccountBankFormConfigOverride
+      )
+    : linkedAccountCreateBase;
   const linkedAccountEditConfig = useLinkedAccountEditConfig();
   const recipientCreateConfig = useRecipientConfig();
   const recipientEditConfig = useRecipientEditConfig();

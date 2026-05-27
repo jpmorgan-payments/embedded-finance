@@ -20,6 +20,18 @@ export function RecipesSection() {
       icon: <FileText className="h-5 w-5" />,
     },
     {
+      id: 'partially-hosted-onboarding',
+      title: 'Partially Hosted UI Integration Guide',
+      excerpt:
+        'Session transfer, iframe embedding, postMessage, and security for the hosted onboarding experience (PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md).',
+      date: '2026-03-12',
+      readTime: '25 min read',
+      tags: ['Onboarding', 'Hosted UI', 'Integration'],
+      link: '/stories/partially-hosted-onboarding',
+      external: false,
+      icon: <UserCog className="h-5 w-5" />,
+    },
+    {
       id: 'webhook-integration-recipe',
       title: 'Webhook Integration Recipe: UX Guidance',
       excerpt:
@@ -50,18 +62,6 @@ export function RecipesSection() {
       readTime: '10 min read',
       tags: ['Components', 'Accessibility', 'Dates'],
       link: '/stories/important-date-selector-component',
-    },
-    {
-      id: 'partially-hosted-onboarding',
-      title: 'Hosted Onboarding UI Integration Guide',
-      excerpt:
-        'Session transfer, iframe embedding, and security for the hosted onboarding experience (PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md).',
-      date: '2026-03-12',
-      readTime: '25 min read',
-      tags: ['Onboarding', 'Hosted UI', 'Integration'],
-      link: '/stories/partially-hosted-onboarding',
-      external: false,
-      icon: <UserCog className="h-5 w-5" />,
     },
   ];
 
@@ -119,22 +119,23 @@ export function RecipesSection() {
                     {recipe.external ? (
                       <Button
                         asChild
-                        variant="outline"
-                        className="flex items-center whitespace-nowrap rounded-page-md border-sp-brand font-semibold text-sp-brand hover:bg-sp-accent"
+                        variant="ghost"
+                        className="rounded-page-md px-6 font-semibold text-sp-brand shadow-none hover:bg-sp-accent hover:text-sp-brand"
                       >
                         <a
                           href={recipe.link}
                           target="_blank"
                           rel="noopener noreferrer"
+                          className="inline-flex whitespace-nowrap"
                         >
                           Read More
                         </a>
                       </Button>
                     ) : (
-                      <Link to={recipe.link}>
+                      <Link to={recipe.link} className="inline-flex">
                         <Button
-                          variant="outline"
-                          className="flex items-center whitespace-nowrap rounded-page-md border-sp-brand font-semibold text-sp-brand hover:bg-sp-accent"
+                          variant="ghost"
+                          className="whitespace-nowrap rounded-page-md px-6 font-semibold text-sp-brand shadow-none hover:bg-sp-accent hover:text-sp-brand"
                         >
                           Read More
                         </Button>

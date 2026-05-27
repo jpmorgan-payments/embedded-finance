@@ -116,6 +116,19 @@ export const getPartyName = (partyData?: PartyResponse) => {
     .trim();
 };
 
+/**
+ * Coerce API / form values to a plain string for labels and template literals.
+ * Non-primitive values stringify to "[object Object]" in JSX interpolation — avoid that.
+ */
+export function asPlainString(value: unknown): string {
+  if (value == null) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+  return '';
+}
+
 const currencyFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'USD',

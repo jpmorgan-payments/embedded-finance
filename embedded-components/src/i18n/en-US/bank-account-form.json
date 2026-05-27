@@ -143,7 +143,8 @@
       "placeholder": "Enter account number",
       "validation": {
         "required": "Account number is required",
-        "digitsOnly": "Account number must contain only digits"
+        "digitsOnly": "Account number must contain only digits",
+        "duplicate": "An account with this account and routing number is already linked"
       }
     },
     "accountType": {

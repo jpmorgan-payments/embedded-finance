@@ -12,6 +12,7 @@ import {
   SchemasApiError,
 } from '@/api/generated/smbdo.schemas';
 import type {
+  BankAccountFormConfigOverride,
   BankAccountFormData,
   LinkAccountReviewAcknowledgement,
 } from '@/core/RecipientWidgets/components/BankAccountForm/BankAccountForm.types';
@@ -48,22 +49,60 @@ export type Jurisdiction = 'US' | 'CA';
 
 /**
  * Host-supplied values for the optional link-account step.
- * With `completionMode: 'editable'`, partial data is allowed and the user completes the two-step form.
- * With `completionMode: 'prefillSummary'`, supply a full {@link BankAccountFormData}-compatible payload;
+ * With `completionMode: 'editable'` (default), partial data is allowed and the user completes the two-step form.
+ * With `completionMode: 'reviewOnly'`, supply a full {@link BankAccountFormData}-compatible payload;
  * the UI shows a read-only summary plus optional `reviewAcknowledgements`.
  * With `completionMode: 'editable'`, the same optional `reviewAcknowledgements` render on step 2 of the bank form.
  */
 export type LinkAccountInitialValues = Partial<BankAccountFormData>;
 
 /**
- * - **`editable`** — Full `BankAccountForm` two-step wizard; optional `initialValues` prefill.
- * - **`prefillSummary`** — Single page via `LinkAccountPrefillSummaryView` (disabled fields + payment strip; shares config/i18n with the form, not the full form tree).
+ * A preset linked-account entry with party identification and bank details.
+ * Used when hosts supply multiple accounts via {@link LinkAccountStepOptions.presetAccounts}.
+ *
+ * Each preset identifies the party either by `partyId` (server-known) or inline
+ * `partyDetails`. When both are provided, `partyId` takes precedence at submission.
  */
-export type LinkAccountStepCompletionMode = 'editable' | 'prefillSummary';
+export type LinkAccountPresetEntry = {
+  /** Unique key for this preset (used as React key and for selection tracking). */
+  id: string;
+  /**
+   * Human-readable label shown in the account selector dropdown.
+   * Falls back to party name or "Account {index}" when omitted.
+   */
+  label?: string;
+  /**
+   * Existing party ID to associate with this linked account.
+   * When provided, the API links the account to this party rather than
+   * creating a new one from `initialValues` party fields.
+   */
+  partyId?: string;
+  /** Initial values (partial or full) to pre-populate the form for this preset. */
+  initialValues: LinkAccountInitialValues;
+};
+
+/**
+ * - **`editable`** — Full `BankAccountForm` two-step wizard; optional `initialValues` prefill. **(default)**
+ * - **`reviewOnly`** — Single page via `LinkAccountPrefillSummaryView` (disabled fields + payment strip; shares config/i18n with the form, not the full form tree).
+ *
+ * @deprecated `'prefillSummary'` is accepted as an alias for `'reviewOnly'` for backward compatibility.
+ */
+export type LinkAccountStepCompletionMode =
+  | 'editable'
+  | 'reviewOnly'
+  | 'prefillSummary';
 
 export type LinkAccountStepOptions = {
   initialValues: LinkAccountInitialValues;
-  completionMode: LinkAccountStepCompletionMode;
+  /**
+   * Controls whether the user can edit the prefilled bank account data or only review it.
+   *
+   * - `'editable'` — Interactive form where the user can modify fields before submitting.
+   * - `'reviewOnly'` — Read-only summary; user can only acknowledge and confirm.
+   *
+   * @default 'editable'
+   */
+  completionMode?: LinkAccountStepCompletionMode;
   /**
    * Zero or more agreements before linking (any `completionMode`).
    * Omitted or `[]` = no supplemental checkboxes. When non-empty, every item must be
@@ -71,7 +110,7 @@ export type LinkAccountStepOptions = {
    */
   reviewAcknowledgements?: readonly LinkAccountReviewAcknowledgement[];
   /**
-   * When `completionMode` is `prefillSummary`, payment types listed here appear in the read-only
+   * When `completionMode` is `'reviewOnly'`, payment types listed here appear in the read-only
    * summary strip (labels from `BankAccountForm` config). Defaults to
    * `initialValues.paymentTypes` when set, otherwise `['ACH']`.
    */
@@ -81,6 +120,52 @@ export type LinkAccountStepOptions = {
    * (`screens.linkAccount.prefillSummary.acknowledgementsIntro`) above the checkbox group. Default false.
    */
   showAcknowledgementsIntro?: boolean;
+  /**
+   * Optional merge on top of {@link useLinkedAccountConfig} for the link-account bank form
+   * (editable step and `reviewOnly` labels). Use to document or trial alternative
+   * `paymentMethods.available` / `allowMultiple` sets; production onboarding typically omits this.
+   */
+  bankFormConfigOverride?: BankAccountFormConfigOverride;
+  /**
+   * Existing party ID to associate with the linked account.
+   * When provided, the API links the account to this party rather than
+   * deriving party details from `initialValues`. Takes precedence over party
+   * fields in `initialValues`.
+   */
+  partyId?: string;
+  /**
+   * Multiple preset accounts for the user to choose from via a select dropdown.
+   * Each entry can identify the party via `partyId` or inline party fields.
+   * When provided, the link-account step renders an account selector before
+   * showing the form/summary for the selected preset.
+   *
+   * **Backward-compatible:** when omitted, the existing single-account
+   * (`initialValues` + `completionMode`) flow is unchanged.
+   */
+  presetAccounts?: readonly LinkAccountPresetEntry[];
+  /**
+   * Allow creation of multiple linked accounts sequentially.
+   * When `true`, after successfully linking an account the UI offers a
+   * "Link another account" action instead of immediately returning to Overview.
+   * The full list of linked accounts (and add flow) lives on the **link-account**
+   * step; **Overview** only shows a short count summary and **Manage linked accounts**
+   * so the list is not duplicated.
+   * Aligned with `LinkedAccountWidget` `mode: 'list'` behavior.
+   *
+   * @default false
+   */
+  allowMultipleAccounts?: boolean;
+  /**
+   * How existing linked accounts are displayed when `allowMultipleAccounts` is true.
+   *
+   * - `'compact'` — minimal card showing account info only (overflow menu with View Details / Edit / Remove).
+   * - `'detailed'` — full card with status alerts, Verify action, View Details dialog, and Remove action.
+   *
+   * Applies regardless of the number of existing accounts (one or many).
+   *
+   * @default 'detailed'
+   */
+  existingAccountsDisplay?: 'compact' | 'detailed';
 };
 
 /**
@@ -150,6 +235,22 @@ export type OnboardingConfigUsedInContext = {
    * Ignored when an active linked account already exists from the recipients API.
    */
   linkAccountStepOptions?: LinkAccountStepOptions;
+  /**
+   * When true, hides Remove on the **OnboardingFlow Overview** linked-account card (read-only unlink).
+   *
+   * **Relationship to `hideRemoveRecipient`:** These flags do not conflict — they apply to different
+   * surfaces. `hideLinkedAccountRemoval` only affects onboarding Overview. The **Link bank account**
+   * step (`LinkAccountScreen`) does not render Remove today; when an active linked account already exists,
+   * that step redirects to Overview, where this flag applies. If Remove is ever shown inline on the link
+   * step, gate it with this same prop so hosts stay consistent.
+   *
+   * `hideRemoveRecipient` is passed on **`LinkedAccountWidget`** / recipient widgets and hides Remove in
+   * card overflow menus and **table** row actions — not on OnboardingFlow. If your host renders **both**
+   * onboarding and the standalone linked-account widget, set each flag where you embed each UI.
+   *
+   * @default false
+   */
+  hideLinkedAccountRemoval?: boolean;
   hideSidebar?: boolean;
   /** Whether to show the "Download Checklist" button on the Overview screen. Defaults to false. */
   showDownloadChecklist?: boolean;
@@ -197,6 +298,32 @@ export type OnboardingConfigUsedInContext = {
    * `reviewAndAttest.termsAcknowledgements.intro` above the checkbox group. Default false.
    */
   showReviewAttestTermsAcknowledgementsIntro?: boolean;
+  /**
+   * **Business → Industry** (`IndustryForm`): host-curated NAICS codes to surface
+   * as a pinned "Suggested for your platform" group at the top of the industry
+   * combobox. Users can still pick any code from the full catalog beneath the
+   * pinned group.
+   *
+   * - Codes are resolved against the bundled NAICS catalog; unknown codes are
+   *   silently dropped (with a `console.warn` in development).
+   * - Order is preserved (use it to express the host's priority).
+   * - Composes with the AI suggestion feature (`NAICS_SUGGESTION_FEATURE_FLAG`)
+   *   — the two surfaces are independent and may both be active.
+   *
+   * The pinned-group header text is a content token
+   * (`onboarding-old:industrySelect.priorityHeader`, default
+   * "Suggested for your platform") — override it via
+   * `EBComponentsProvider` `contentTokens.tokens` when you want a
+   * platform-specific label like "Recommended for SellSense sellers".
+   *
+   * @example
+   * ```tsx
+   * <OnboardingFlow
+   *   priorityIndustryCodes={['722511', '445110', '311811']}
+   * />
+   * ```
+   */
+  priorityIndustryCodes?: readonly string[];
 };
 
 export type OnboardingFlowProps = OnboardingConfigDefault &

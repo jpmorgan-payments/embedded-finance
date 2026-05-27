@@ -374,7 +374,18 @@
       "bankAccountSection": {
         "title": "Lier un compte bancaire pour les paiements",
         "lockedMessage": "Disponible après la soumission de votre demande",
-        "linkAccountTitle": "Lier un compte"
+        "linkAccountTitle": "Lier un compte",
+        "multiAccountOverviewDescriptionSingular": "Vous avez 1 compte lié pour les paiements. Ouvrez l’étape de liaison bancaire pour ajouter un autre compte ou gérer les détails.",
+        "multiAccountOverviewDescriptionPlural": "Vous avez {{count}} comptes liés pour les paiements. Ouvrez l’étape de liaison bancaire pour ajouter un autre compte ou gérer les détails.",
+        "manageLinkedAccountsButton": "Gérer les comptes liés",
+        "successAlert": {
+          "ACTIVE": "Votre compte bancaire a été vérifié et est prêt pour les transactions.",
+          "MICRODEPOSITS_INITIATED": "Les informations de votre compte bancaire ont été soumises. Deux petits dépôts seront envoyés à votre compte pour vérification.",
+          "PENDING": "Les informations de votre compte bancaire ont été soumises et sont en cours de traitement.",
+          "READY_FOR_VALIDATION": "Les informations de votre compte bancaire ont été soumises. Veuillez vérifier les montants des dépôts pour compléter la configuration.",
+          "REJECTED": "Les informations de votre compte bancaire ont été soumises mais n'ont pas pu être vérifiées.",
+          "INACTIVE": "Les informations de votre compte bancaire ont été soumises."
+        }
       }
     },
     "linkAccount": {
@@ -451,7 +462,8 @@
         },
         "contactDetails": {
           "title": "Vos coordonnées",
-          "description": "Nous avons besoin de renseignements supplémentaires pour confirmer votre identité."
+          "description": "Nous avons besoin de renseignements supplémentaires pour confirmer votre identité.",
+          "countryMismatchWarning": "Le pays de l'adresse ne correspond pas au pays de résidence ({{country}}). Vous pouvez toujours soumettre, mais veuillez vérifier que c'est correct."
         },
         "checkAnswers": {
           "title": "Vérifiez vos réponses",
@@ -517,6 +529,16 @@
     "uploadDocumentsSection": {
       "label": "Documents justificatifs",
       "onHoldText": "Nous vous informerons si des documents sont nécessaires"
+    },
+    "operationalDetails": {
+      "title": "Détails opérationnels",
+      "description": "Veuillez répondre à ces questions supplémentaires pour nous aider à comprendre les opérations de votre entreprise.",
+      "selectPlaceholder": "Sélectionner une option",
+      "noQuestions": "Il n'y a pas de questions supplémentaires. Vous pouvez passer à l'étape suivante.",
+      "loadingQuestions": "Chargement des questions...",
+      "saveAndReturn": "Enregistrer et revenir à la révision",
+      "saveAndContinue": "Enregistrer et continuer vers la révision",
+      "newQuestionsGenerated": "En fonction de vos réponses, quelques questions supplémentaires sont nécessaires. Veuillez les compléter pour continuer."
     }
   },
   "additionalQuestions": {
@@ -597,6 +619,7 @@
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
+        "invalidOption": "$t(validation:common.invalidOption)",
         "minLength": "$t(validation:text.minLength, {'count': 2})",
         "maxLength": "$t(validation:text.maxLength, {'count': 50})",
         "pattern": "$t(validation:text.pattern)",
@@ -626,7 +649,8 @@
       "description": "Comment vous détenez ou contrôlez l'organisation",
       "tooltip": "",
       "validation": {
-        "required": "$t(validation:required)"
+        "required": "$t(validation:required)",
+        "invalidOption": "$t(validation:common.invalidOption)"
       }
     },
     "birthDate": {
@@ -702,6 +726,7 @@
         "itinDigitsOnly": "$t(validation:id.itin.digitsOnly)",
         "itinStartsWith9": "$t(validation:id.itin.startsWith9)",
         "itinMiddleDigits": "$t(validation:id.itin.middleDigits)",
+        "itinKnownInvalid": "$t(validation:id.itin.knownInvalid)",
         "noSpaces": "$t(validation:text.noSpaces)"
       }
     },
@@ -1262,7 +1287,7 @@
     "owner": "Propriétaire",
     "controller": "Dirigeant",
     "individualMissingDetails": "ⓘ Certains détails de cette personne sont manquants.",
-    "operationalDetails": "Détails opérationnels",
+    "operationalDetailsHeading": "Détails opérationnels",
     "fieldIsMissing": "Ce champ est manquant",
     "response": "Réponse",
     "complete": "Terminé",
@@ -1285,6 +1310,8 @@
       "downloading": "Téléchargement...",
       "failedToDownload": "Échec du téléchargement du document :",
       "failedToFetchDetails": "Échec de la récupération des détails du document :",
+      "saveDocument": "Enregistrer et consulter le document",
+      "popupBlocked": "Impossible de prévisualiser le document dans le navigateur. Veuillez enregistrer le document à l'aide du bouton ci-dessous, puis le consulter avant de continuer.",
       "attestations": "Attestations",
       "agreeToTermsWithPlatform": "Vous avez lu et acceptez les conditions de compte J.P. Morgan et le {{platformAgreementLabel}}.",
       "agreeToTerms": "Vous avez lu et acceptez les conditions de compte J.P. Morgan.",

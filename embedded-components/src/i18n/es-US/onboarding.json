@@ -1415,6 +1415,9 @@
   "industrySelect": {
     "placeholder": "Select an industry",
     "searchPlaceholder": "Search industries...",
-    "noResults": "No results found"
+    "noResults": "No results found",
+    "priorityHeader": "Sugeridas para su plataforma",
+    "priorityNoMatches": "Ninguna sugerencia coincide con su búsqueda",
+    "allIndustriesHeader": "Todas las industrias"
   }
 }

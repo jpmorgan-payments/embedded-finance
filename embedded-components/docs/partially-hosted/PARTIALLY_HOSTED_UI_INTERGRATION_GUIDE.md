@@ -309,6 +309,7 @@ UI by appending optional URL parameters to the iframe `src` URL.
 | `disclosurePlatformName` | `string` | Platform name shown in the disclosure step |
 | `disclosurePlatformAgreementUrl` | `string` | URL for the platform agreement link |
 | `disclosurePlatformAgreementLabel` | `string` | Label for the platform agreement link |
+| `showDisclosureFooter` | `boolean` | When `true`, shows the regulatory disclosure footer (e.g. FDIC / "not a bank" language) at the bottom of the flow. Still requires `disclosurePlatformName` for the footer to render. Default: `false` |
 
 **Example — Customizing with disclosure and theme props:**
 
@@ -325,6 +326,7 @@ const themeTokens = {
 
 // 2. Component properties — platform disclosure configuration
 const componentProperties = {
+  showDisclosureFooter: true,
   disclosurePlatformName: 'SellSense Marketplace',
   disclosurePlatformAgreementUrl: 'https://sellsense.example.com/terms-of-service',
   disclosurePlatformAgreementLabel: 'SellSense Marketplace Terms of Service'

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useTranslationWithTokens } from '@/i18n';
-import { Banknote, Building2, Zap } from 'lucide-react';
+import { ArrowRightLeft, Banknote, Zap } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ function getPaymentMethodIcon(methodId: PaymentMethodType) {
     case 'RTP':
       return Zap;
     case 'WIRE':
-      return Building2;
+      return ArrowRightLeft;
     default:
       return Banknote;
   }
@@ -80,7 +80,7 @@ function PaymentMethodOption({
         </div>
 
         <div className="eb-min-w-0 eb-flex-1">
-          <div className="eb-font-medium eb-text-muted-foreground">
+          <div className="eb-text-sm eb-font-medium eb-text-muted-foreground">
             {method.name}
           </div>
           <div className="eb-text-xs eb-text-muted-foreground">
@@ -125,7 +125,7 @@ function PaymentMethodOption({
       </div>
 
       <div className="eb-flex-1">
-        <span className="eb-font-medium">{method.name}</span>
+        <span className="eb-text-sm eb-font-medium">{method.name}</span>
         {method.fee !== undefined && method.fee > 0 && (
           <span className="eb-ml-2 eb-text-sm eb-text-muted-foreground">
             {formatCurrency(method.fee)}

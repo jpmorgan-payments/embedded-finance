@@ -1,11 +1,14 @@
-import type { BankAccountFormConfig } from '../BankAccountForm.types';
+import type {
+  BankAccountFormConfig,
+  BankAccountFormConfigOverride,
+} from '../BankAccountForm.types';
 
 /**
  * Helper function to create a custom config by merging with defaults
  */
 export function createCustomConfig(
   baseConfig: BankAccountFormConfig,
-  overrides: Partial<BankAccountFormConfig>
+  overrides: BankAccountFormConfigOverride
 ): BankAccountFormConfig {
   return {
     ...baseConfig,

@@ -54,7 +54,18 @@ function App() {
 | `mode` | `'list' \| 'single'` | `'list'` | **list**: Show all accounts. **single**: Show one account |
 | `variant` | `'cards' \| 'compact-cards' \| 'table'` | `'cards'` | Visual display style |
 | `hideCreateButton` | `boolean` | `false` | Hide the "Link New Account" button |
+| `hideRemoveRecipient` | `boolean` | `false` | Hide **Remove** in card overflow menus and **table** row actions (unlink disabled in UI) |
 | `className` | `string` | — | Additional CSS classes |
+
+### OnboardingFlow vs `hideRemoveRecipient`
+
+**`hideRemoveRecipient`** applies only to this widget (`LinkedAccountWidget` → `BaseRecipientsWidget` →
+`RecipientCard` / `RecipientsTableView`). It does **not** control the Remove button on **OnboardingFlow →
+Overview**.
+
+For onboarding Overview, pass **`hideLinkedAccountRemoval`** on **`OnboardingFlow`**. That prop does **not**
+replace `hideRemoveRecipient`; hosts that embed **both** UIs should set each flag on the component where that
+UI is rendered so behavior stays aligned.
 
 ### Scrolling & Pagination
 

@@ -356,6 +356,7 @@ export const OrganizationStepForm = () => {
             type="combobox"
             options={COUNTRIES_OF_FORMATION.map((code) => ({
               value: code,
+              searchValue: `[${code}] ${String(t([`common:countries.${code}`] as unknown as TemplateStringsArray))}`,
               label: (
                 <span>
                   <span className="eb-font-medium">[{code}]</span>{' '}
@@ -548,6 +549,7 @@ export const OrganizationStepForm = () => {
                 type="combobox"
                 options={COUNTRIES_OF_FORMATION.map((code) => ({
                   value: code,
+                  searchValue: `[${code}] ${String(t([`common:countries.${code}`] as unknown as TemplateStringsArray))}`,
                   label: (
                     <span>
                       <span className="eb-font-medium">[{code}]</span>{' '}
@@ -636,6 +638,7 @@ export const OrganizationStepForm = () => {
                   type="combobox"
                   options={COUNTRIES_OF_FORMATION.map((code) => ({
                     value: code,
+                    searchValue: `[${code}] ${String(t([`common:countries.${code}`] as unknown as TemplateStringsArray))}`,
                     label: (
                       <span>
                         <span className="eb-font-medium">[{code}]</span>{' '}

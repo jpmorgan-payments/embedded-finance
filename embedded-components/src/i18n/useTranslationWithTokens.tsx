@@ -46,6 +46,20 @@ export function useTranslationWithTokens<N extends ValidNamespace>(
 
   type TFunc = typeof originalT;
 
+  function extractStringDefaultFromTranslateArgs(
+    args: Parameters<TFunc>
+  ): string {
+    for (let i = args.length - 1; i >= 1; i -= 1) {
+      const a = args[i];
+      if (typeof a === 'object' && a !== null && !Array.isArray(a)) {
+        const dv = (a as { defaultValue?: unknown }).defaultValue;
+        if (typeof dv === 'string') return dv;
+      }
+    }
+    if (typeof args[1] === 'string') return args[1];
+    return '';
+  }
+
   /**
    * Translate a key, optionally annotating with token ID.
    * Returns ReactNode when showTokenIds is enabled, string otherwise.
@@ -68,7 +82,17 @@ export function useTranslationWithTokens<N extends ValidNamespace>(
     }
 
     // Build full token ID (namespace.key)
-    const keyStr = String(args[0]);
+    // When args[0] is an array of fallback keys, find the key that
+    // i18next actually resolved to, so the data-content-token attribute
+    // reflects the real translation source rather than always the first key.
+    const rawKey = args[0];
+    let keyStr: string;
+    if (Array.isArray(rawKey)) {
+      const resolved = rawKey.find((k) => i18n.exists(k as string));
+      keyStr = String(resolved ?? rawKey[0]);
+    } else {
+      keyStr = String(rawKey);
+    }
     // Prefer `ns` from the last object arg (covers t(key, opts) and t(key, default, opts))
     let optionsForNs: Record<string, unknown> | undefined;
     for (let i = args.length - 1; i >= 1; i -= 1) {
@@ -93,9 +117,18 @@ export function useTranslationWithTokens<N extends ValidNamespace>(
   /**
    * Translate a key, always returning a plain string (no annotation).
    * Use this when the result must be a string (e.g., for title attributes).
+   *
+   * Coerces non-strings: nested JSON leaves from deep-merged resources or odd
+   * `t` results would otherwise become `[object Object]` in template literals.
    */
   const tString = (...args: Parameters<TFunc>): string => {
-    return (originalT as any)(...args);
+    const raw = (originalT as any)(...args);
+    if (typeof raw === 'string') return raw;
+    if (raw == null) return extractStringDefaultFromTranslateArgs(args);
+    if (typeof raw === 'number' || typeof raw === 'boolean') {
+      return String(raw);
+    }
+    return extractStringDefaultFromTranslateArgs(args);
   };
 
   return { t, tString, i18n, ready };

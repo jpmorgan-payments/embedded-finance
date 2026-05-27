@@ -118,107 +118,145 @@ The library is built on several key architectural principles:
 
 ## Available Components
 
+**Onboarding** journeys use **OnboardingFlow**; **active seller** experiences compose the wallet widgets below. Scenario labels such as **New Seller - Onboarding**, **Onboarding - Docs Needed**, and **Seller with Payments DDA** match how they appear in the packaged showcase app (`client-next-ts`).
+
 <div className="feature-grid">
 
 <div className="feature-card">
-  <h3 style={{ marginTop: 0 }}>🏦 Client Onboarding (KYC/KYB)</h3>
+  <h3 style={{ marginTop: 0 }}>Client onboarding (KYC / KYB)</h3>
   <p>
-    Complete client verification with incremental information collection, due
-    diligence questions, and document requests for seamless onboarding.
+    <strong>Component:</strong> <code>OnboardingFlow</code>
+    <br />
+    Incremental business and controller collection, operational (due diligence)
+    questions, documents and attestations, optional bank linking, and
+    review—Storybook: <strong>Core → OnboardingFlow</strong>.
   </p>
   <div style={{ marginTop: '1rem' }}>
     <span className="status-badge status-testing">Testing</span>
   </div>
   <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
-    <li>Create client with basic business information</li>
-    <li>Collect party details and due diligence responses</li>
-    <li>Handle document requests and attestations</li>
-    <li>Submit for verification and monitor status</li>
-  </ul>
-</div>
-
-<div className="feature-card">
-  <h3 style={{ marginTop: 0 }}>🔗 Link External Bank Account</h3>
-  <p>
-    Connect external bank accounts using Account Validation Service with
-    microdeposits verification for secure account linking.
-  </p>
-  <div style={{ marginTop: '1rem' }}>
-    <span className="status-badge status-testing">Testing</span>
-  </div>
-  <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
-    <li>Add recipient with account details and party information</li>
-    <li>Trigger Account Validation Service (AVS) checks</li>
-    <li>Complete microdeposits verification if required</li>
-    <li>Activate linked account for payments</li>
-  </ul>
-</div>
-
-<div className="feature-card">
-  <h3 style={{ marginTop: 0 }}>👥 Recipients Management</h3>
-  <p>
-    Add, view, edit, and manage third-party payment recipients with dynamic
-    validation, multi-method support (ACH, WIRE, RTP), and secure, accessible
-    workflows.
-  </p>
-  <div style={{ marginTop: '1rem' }}>
-    <span className="status-badge status-development">In Progress</span>
-  </div>
-  <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
-    <li>View, search, filter, and sort all saved recipients</li>
     <li>
-      Add new recipients with dynamic forms based on selected payment methods
+      <strong>New Seller - Onboarding</strong> — fresh US embedded-payments
+      client
     </li>
-    <li>Edit recipient details and update payment methods</li>
-    <li>Deactivate recipients with confirmation and audit tracking</li>
+    <li>
+      <strong>Onboarding - Seller with prefilled data</strong> — resume with
+      partially completed LLC data (review-style shell)
+    </li>
+    <li>
+      <strong>Onboarding - Docs Needed</strong> — outstanding document requests
+    </li>
+    <li>Submit for verification and track status inside the flow</li>
   </ul>
 </div>
 
 <div className="feature-card">
-  <h3 style={{ marginTop: 0 }}>💰 Make Payouts</h3>
+  <h3 style={{ marginTop: 0 }}>Linked bank accounts</h3>
   <p>
-    Initiate ACH, Wire, and RTP payments from Embedded Banking accounts to
-    external recipients and linked accounts.
+    <strong>Component:</strong> <code>LinkedAccountWidget</code>
+    <br />
+    Account Validation Service (AVS), microdeposit verification when required,
+    list and manage linked recipients—embedded in onboarding or on the seller
+    wallet (demo scenario <strong>Linked Bank Account</strong>).
+  </p>
+  <div style={{ marginTop: '1rem' }}>
+    <span className="status-badge status-testing">Testing</span>
+  </div>
+  <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
+    <li>Add and verify external accounts with AVS</li>
+    <li>Complete microdeposit validation when applicable</li>
+    <li>Manage linked account status alongside payouts</li>
+  </ul>
+</div>
+
+<div className="feature-card">
+  <h3 style={{ marginTop: 0 }}>Accounts</h3>
+  <p>
+    <strong>Component:</strong> <code>Accounts</code>
+    <br />
+    Embedded banking account summaries, balances, and masked identifiers—shown
+    in active seller scenarios such as <strong>Seller with Limited DDA</strong>{' '}
+    and <strong>Seller with Payments DDA</strong>.
   </p>
   <div style={{ marginTop: '1rem' }}>
     <span className="status-badge status-development">In Progress</span>
   </div>
   <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
-    <li>Get debtor account ID from your Embedded account</li>
-    <li>Create payment request with recipient and amount</li>
-    <li>Submit transaction with reference ID and memo</li>
+    <li>Filter by account category (for example Limited DDA)</li>
+    <li>Balances and routing details with masking</li>
+    <li>Accessible layout with guidance text</li>
   </ul>
 </div>
 
 <div className="feature-card">
-  <h3 style={{ marginTop: 0 }}>📊 Transaction History & Management</h3>
+  <h3 style={{ marginTop: 0 }}>Transaction history</h3>
   <p>
-    View, filter, and manage transaction records with detailed insights and
-    comprehensive reporting capabilities for better financial oversight.
+    <strong>Component:</strong> <code>TransactionsDisplay</code>
+    <br />
+    Payment transaction lists and detail patterns used on the demo{' '}
+    <strong>Transactions</strong> view and wallet grids.
   </p>
   <div style={{ marginTop: '1rem' }}>
-    <span className="status-badge status-coming-soon">Coming Soon</span>
+    <span className="status-badge status-development">In Progress</span>
   </div>
   <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
-    <li>Fetch transaction data with filtering options</li>
-    <li>Display transaction details and status</li>
-    <li>Provide search and sorting capabilities</li>
+    <li>Paginated history with status and type context</li>
+    <li>Drill-in patterns for transaction detail</li>
+    <li>Pairs with Accounts and Recipients in fuller wallet scenarios</li>
   </ul>
 </div>
 
 <div className="feature-card">
-  <h3 style={{ marginTop: 0 }}>🏦 Accounts Management</h3>
+  <h3 style={{ marginTop: 0 }}>Recipients</h3>
   <p>
-    View Embedded Finance accounts with detailed insights and balances for
-    better financial oversight.
+    <strong>Component:</strong> <code>RecipientsWidget</code>
+    <br />
+    Save and maintain payout recipients (ACH, wire, RTP) with
+    validation—featured on <strong>Seller with Payments DDA</strong>.
   </p>
   <div style={{ marginTop: '1rem' }}>
-    <span className="status-badge status-coming-soon">Coming Soon</span>
+    <span className="status-badge status-development">In Progress</span>
   </div>
   <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
-    <li>View accounts details and balances</li>
-    <li>Mask sensitive account information for security</li>
-    <li>Accessible, mobile-responsive design with tooltips and help text</li>
+    <li>List, search, and organize recipients</li>
+    <li>Add or edit recipients with method-specific fields</li>
+    <li>Works with Make Payment flows below</li>
+  </ul>
+</div>
+
+<div className="feature-card">
+  <h3 style={{ marginTop: 0 }}>Payments</h3>
+  <p>
+    <strong>Component:</strong> <code>PaymentFlow</code>
+    <br />
+    Guided payout experience from embedded accounts to recipients (SellSense
+    labels this <strong>Make Payment</strong> in the wallet shell).
+  </p>
+  <div style={{ marginTop: '1rem' }}>
+    <span className="status-badge status-development">In Progress</span>
+  </div>
+  <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
+    <li>Select account, recipient, amount, and rails-supported methods</li>
+    <li>Review step before submission</li>
+    <li>Hooks for completion and error handling</li>
+  </ul>
+</div>
+
+<div className="feature-card">
+  <h3 style={{ marginTop: 0 }}>Client profile</h3>
+  <p>
+    <strong>Component:</strong> <code>ClientDetails</code>
+    <br />
+    Read-only profile and verification snapshot for an onboarded client—paired
+    with accounts and recipients on <strong>Seller with Payments DDA</strong>.
+  </p>
+  <div style={{ marginTop: '1rem' }}>
+    <span className="status-badge status-development">In Progress</span>
+  </div>
+  <ul style={{ margin: '1rem 0', paddingLeft: '1.5rem' }}>
+    <li>Parties, contacts, and onboarding outcomes in one surface</li>
+    <li>Summary and alternate view modes where configured</li>
+    <li>Theming via the same provider tokens as other widgets</li>
   </ul>
 </div>
 
@@ -346,13 +384,13 @@ yarn add @jpmorgan-payments/embedded-finance-components
 ```tsx
 import {
   EBComponentsProvider,
-  OnboardingWizardBasic,
+  OnboardingFlow,
 } from '@jpmorgan-payments/embedded-finance-components';
 
 function App() {
   return (
     <EBComponentsProvider apiBaseUrl="https://your-api-base-url.com">
-      <OnboardingWizardBasic
+      <OnboardingFlow
         availableProducts={['EMBEDDED_PAYMENTS']}
         availableJurisdictions={['US']}
         onPostClientSettled={(response, error) => {
@@ -391,7 +429,7 @@ const customTheme = {
 - **Radix UI** primitives for accessibility
 - **Tailwind CSS** for styling (with `eb-` prefixes)
 - **Vite** & TypeScript for build tooling
-- **Storybook 8.x** for component development
+- **Storybook 10.x** for component development
 - **MSW** for API mocking in development
 - **TanStack React Query v5** for data fetching
 - **Zod** for validation
@@ -430,6 +468,7 @@ The components are designed for flexible integration into parent web application
 
 ### Key Resources
 
+- **Onboarding (Storybook)**: Use sidebar **Core → OnboardingFlow** for statuses, props, Storybook groups, and integration examples
 - **API Documentation**: [Embedded Payments API](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/)
 - **Add Linked Account**: [API Documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-linked-account)
 - **OpenAPI Specifications**: Located in `/api-specs/` directory
