@@ -48,6 +48,7 @@ export type TestScenarioBundleConfig = {
     | 'availableOrganizationTypes'
     | 'disclosureConfig'
     | 'hideLinkedAccountRemoval'
+    | 'priorityIndustryCodes'
   >;
   loginProfiles: TestScenarioLoginProfile[];
 };
@@ -192,48 +193,58 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
   },
   'test-scenario-2': {
     id: 'test-scenario-2',
-    headerOrgDisplayName: 'Riverbend Cafe Collective',
-    theme: 'SellSense',
+    headerOrgDisplayName: 'Top Dog Construction, LLC',
+    theme: 'Empty',
     contentTokens: buildContentTokens({
       controllerJobTitle: 'Role',
       controllerJobTitleDescription: 'Role details',
     }),
     showLinkAccountStep: true,
     clientId: TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID,
-    /**
-     * Same `linkAccountStepOptions` as Storybook `ExistingAccountsWithAddMore`.
-     * @see https://storybook.embedded-finance-dev.com/?path=/story/core-onboardingflow-linked-account-multi-account--existing-accounts-with-add-more
-     */
     linkAccountStepOptions: {
-      completionMode: 'reviewOnly',
+      completionMode: 'editable',
       allowMultipleAccounts: true,
       existingAccountsDisplay: 'compact',
-      initialValues: {
-        accountType: 'INDIVIDUAL',
-        firstName: 'Taylor',
-        lastName: 'Morgan',
-        businessName: '',
-        routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
-        useSameRoutingNumber: true,
-        accountNumber: '44556677889900112',
-        bankAccountType: 'CHECKING',
-        paymentTypes: ['ACH'],
-        certify: true,
-      },
     },
     onboardingFlow: {
       availableProducts: ['EMBEDDED_PAYMENTS'],
       availableJurisdictions: ['US'],
-      availableOrganizationTypes: [
-        'SOLE_PROPRIETORSHIP',
-        'LIMITED_LIABILITY_COMPANY',
-        'LIMITED_LIABILITY_PARTNERSHIP',
-        'GENERAL_PARTNERSHIP',
-        'LIMITED_PARTNERSHIP',
-        'C_CORPORATION',
-      ],
+      availableOrganizationTypes: ['LIMITED_LIABILITY_COMPANY'],
       disclosureConfig: { platformName: 'Platform, Inc.' },
-      hideLinkedAccountRemoval: true,
+      hideLinkedAccountRemoval: false,
+      priorityIndustryCodes: [
+        '236115',
+        '236116',
+        '236117',
+        '236118',
+        '236210',
+        '236220',
+        '237110',
+        '237120',
+        '237130',
+        '237210',
+        '237310',
+        '237990',
+        '238110',
+        '238120',
+        '238130',
+        '238140',
+        '238150',
+        '238160',
+        '238170',
+        '238190',
+        '238210',
+        '238220',
+        '238290',
+        '238310',
+        '238320',
+        '238330',
+        '238340',
+        '238350',
+        '238390',
+        '238910',
+        '238990',
+      ],
     },
     loginProfiles: MULTI_LINK_DEMO_PROFILES,
   },

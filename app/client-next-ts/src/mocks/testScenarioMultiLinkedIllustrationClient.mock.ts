@@ -1,5 +1,6 @@
 /**
- * MSW seed for the `/test-scenario-2` onboarding demo — sole proprietor–style org and dedicated client id.
+ * MSW seed for the `/test-scenario-2` onboarding demo — "Top Dog Construction, LLC".
+ * Minimum data required to create a client + authorized user.
  * Seeded when `testScenarioBundle` is `test-scenario-2`.
  */
 export const TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID = '3100006998';
@@ -20,31 +21,32 @@ export const testScenarioMultiLinkedIllustrationClient = {
         {
           validationStatus: 'NEEDS_INFO',
           validationType: 'ENTITY_VALIDATION',
-          fields: [{ name: 'addresses' }],
+          fields: [
+            { name: 'addresses' },
+            { name: 'industryCategory' },
+            { name: 'industryType' },
+            { name: 'organizationDescription' },
+            { name: 'yearOfFormation' },
+            { name: 'organizationIds' },
+          ],
         },
       ],
       organizationDetails: {
         countryOfFormation: 'US',
-        dbaName: 'Riverbend Cafe',
-        industryCategory: 'Food Services',
-        industryType: 'Cafeterias and Buffets',
-        industry: {
-          codeType: 'NAICS',
-          code: '722514',
-        },
-        organizationName: 'Riverbend Cafe Collective',
-        organizationDescription:
-          'Counter-service cafe with baked goods and espresso.',
-        organizationType: 'SOLE_PROPRIETORSHIP',
+        dbaName: 'Top Dog Construction',
+        industryCategory: '',
+        industryType: '',
+        organizationName: 'Top Dog Construction, LLC',
+        organizationDescription: '',
+        organizationType: 'LIMITED_LIABILITY_COMPANY',
         organizationIds: [
           {
-            idType: 'EIN',
-            value: '887654321',
-            issuer: 'US',
+            idType: '',
+            value: '',
+            issuer: '',
           },
         ],
-        websiteAvailable: true,
-        yearOfFormation: '2015',
+        yearOfFormation: '',
       },
       individualDetails: {},
       status: 'ACTIVE',
@@ -59,11 +61,11 @@ export const testScenarioMultiLinkedIllustrationClient = {
     {
       id: '2100535101',
       createdAt: '2026-05-08T14:22:10.2Z',
-      email: '',
+      email: 'ross.gellar@topdog.com',
       partyType: 'INDIVIDUAL',
       parentPartyId: '2100535100',
       profileStatus: 'NEW',
-      roles: ['CONTROLLER', 'BENEFICIAL_OWNER'],
+      roles: ['CONTROLLER', 'AUTHORIZED_USER'],
       active: true,
       validationResponse: [
         {
@@ -73,16 +75,19 @@ export const testScenarioMultiLinkedIllustrationClient = {
             { name: 'individualIds' },
             { name: 'addresses' },
             { name: 'birthDate' },
+            { name: 'countryOfResidence' },
+            { name: 'jobTitle' },
+            { name: 'jobTitleDescription' },
           ],
         },
       ],
       individualDetails: {
-        countryOfResidence: 'US',
-        firstName: 'Jordan',
-        middleName: 'Lee',
-        lastName: 'Okonkwo',
-        jobTitle: 'Other',
-        jobTitleDescription: 'Proprietor',
+        countryOfResidence: '',
+        firstName: 'Ross',
+        middleName: 'Thomas',
+        lastName: 'Gellar',
+        jobTitle: '',
+        jobTitleDescription: '',
       },
       organizationDetails: {},
       status: 'ACTIVE',
