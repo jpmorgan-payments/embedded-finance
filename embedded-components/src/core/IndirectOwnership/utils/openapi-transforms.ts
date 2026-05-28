@@ -9,42 +9,6 @@ import {
 } from '../IndirectOwnership.types';
 
 /**
- * Convert validation error codes to user-friendly messages
- */
-function formatValidationError(
-  validationType?: string,
-  validationStatus?: string
-): string {
-  // Handle null/undefined values
-  if (!validationType || !validationStatus) {
-    return 'Additional information required';
-  }
-
-  // Map validation types to user-friendly contexts
-  const typeMessages: Record<string, string> = {
-    ENTITY_VALIDATION: 'Entity information',
-    DOCUMENT_VALIDATION: 'Document verification',
-    IDENTITY_VALIDATION: 'Identity verification',
-    OWNERSHIP_VALIDATION: 'Ownership details',
-    COMPLIANCE_VALIDATION: 'Compliance check',
-  };
-
-  // Map validation statuses to user-friendly actions
-  const statusMessages: Record<string, string> = {
-    NEEDS_INFO: 'requires additional information',
-    PENDING: 'is pending review',
-    FAILED: 'has validation errors',
-    REJECTED: 'was rejected',
-    INCOMPLETE: 'is incomplete',
-  };
-
-  const typeMessage = typeMessages[validationType] || 'Information';
-  const statusMessage = statusMessages[validationStatus] || 'needs attention';
-
-  return `${typeMessage} ${statusMessage}`;
-}
-
-/**
  * Transform a PartyResponse to BeneficialOwner format
  */
 export function transformPartyToBeneficialOwner(
@@ -52,11 +16,19 @@ export function transformPartyToBeneficialOwner(
   allParties: PartyResponse[] = [],
   existingHierarchy?: any
 ): BeneficialOwner {
-  // Determine ownership type: DIRECT if no parentPartyId or parent is the CLIENT party
+  // Determine ownership type from multiple signals:
+  // 1. natureOfOwnership field (explicit API classification)
+  // 2. parentPartyId pointing to a non-CLIENT party (structural chain)
+  // 3. parentPartyId pointing to CLIENT = direct (just links party to client)
+  const natureOfOwnership = party.individualDetails?.natureOfOwnership;
   const parentIsClient = party.parentPartyId
     ? allParties.find((p) => p.id === party.parentPartyId)?.roles?.includes('CLIENT')
     : false;
-  const ownershipType = !party.parentPartyId || parentIsClient ? 'DIRECT' : 'INDIRECT';
+  const ownershipType =
+    natureOfOwnership === 'Indirect' ||
+    (party.parentPartyId && !parentIsClient)
+      ? 'INDIRECT'
+      : 'DIRECT';
 
   // Use existing hierarchy if provided, otherwise build for indirect owners
   const ownershipHierarchy =
@@ -89,9 +61,6 @@ export function transformPartyToBeneficialOwner(
     // Convenience properties for display
     firstName: party.individualDetails?.firstName,
     lastName: party.individualDetails?.lastName,
-    validationErrors: party.validationResponse?.map((vr) =>
-      formatValidationError(vr.validationType, vr.validationStatus)
-    ),
     createdAt: new Date(party.createdAt || Date.now()),
     updatedAt: new Date(party.createdAt || Date.now()),
   } as BeneficialOwner;

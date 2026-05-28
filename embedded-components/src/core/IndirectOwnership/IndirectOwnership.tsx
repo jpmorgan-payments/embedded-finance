@@ -233,7 +233,7 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
       (owner) => owner.status === 'ERROR'
     ).length,
     hasErrors: beneficialOwners.some((owner) => owner.status === 'ERROR'),
-    errors: beneficialOwners.flatMap((owner) => owner.validationErrors || []),
+    errors: [],
     warnings: [],
     canComplete:
       beneficialOwners.length > 0 &&
@@ -1054,23 +1054,7 @@ const OwnerCard: React.FC<OwnerCardProps> = ({
           </div>
         )}
 
-        {/* Validation Errors */}
-        {owner.validationErrors && owner.validationErrors.length > 0 && (
-          <div className="eb-mt-3 eb-space-y-1">
-            {owner.validationErrors.map((error: string, errorIndex: number) => (
-              <div
-                key={errorIndex}
-                className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-destructive"
-              >
-                <AlertTriangle
-                  className="eb-h-3 eb-w-3 eb-shrink-0"
-                  aria-hidden="true"
-                />
-                <span>{error}</span>
-              </div>
-            ))}
-          </div>
-        )}
+
       </div>
     </div>
   );
