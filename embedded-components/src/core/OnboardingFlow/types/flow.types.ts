@@ -55,6 +55,8 @@ export type StaticScreenId =
   | 'checklist'
   | 'overview'
   | 'owner-stepper'
+  | 'indirect-owner-details'
+  | 'intermediary-stepper'
   | 'document-upload-form'
   | 'link-account';
 

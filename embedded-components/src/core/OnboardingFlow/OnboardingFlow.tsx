@@ -197,7 +197,9 @@ const FlowRenderer: React.FC = React.memo(() => {
   // should not inherit the previous section.
   const isSubScreen =
     currentScreenId === 'owner-stepper' ||
-    currentScreenId === 'document-upload-form';
+    currentScreenId === 'document-upload-form' ||
+    currentScreenId === 'indirect-owner-details' ||
+    currentScreenId === 'intermediary-stepper';
   const sidebarSectionId = sections.some((s) => s.id === currentScreenId)
     ? currentScreenId
     : isSubScreen

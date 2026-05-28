@@ -9,6 +9,11 @@ import {
 } from 'lucide-react';
 
 import {
+  IntermediaryAddressForm,
+  IntermediaryOrgDetailsForm,
+} from '@/core/OnboardingFlow/forms/intermediary-section-forms';
+
+import {
   BusinessContactInfoForm,
   BusinessIdentityForm,
   IndustryForm,
@@ -22,6 +27,7 @@ import {
 import { DocumentUploadForm } from '@/core/OnboardingFlow/screens/DocumentUploadScreen/DocumentUploadForm';
 import { DocumentUploadScreen } from '@/core/OnboardingFlow/screens/DocumentUploadScreen/DocumentUploadScreen';
 import { GatewayScreen } from '@/core/OnboardingFlow/screens/GatewayScreen/GatewayScreen';
+import { IndirectOwnerDetailsScreen } from '@/core/OnboardingFlow/screens/IndirectOwnerDetailsScreen/IndirectOwnerDetailsScreen';
 import { LinkAccountScreen } from '@/core/OnboardingFlow/screens/LinkAccountScreen/LinkAccountScreen';
 import { OperationalDetailsForm } from '@/core/OnboardingFlow/screens/OperationalDetailsForm/OperationalDetailsForm';
 import { OverviewScreen } from '@/core/OnboardingFlow/screens/OverviewScreen/OverviewScreen';
@@ -124,6 +130,50 @@ const staticScreens: StaticScreenConfig[] = [
     isSection: false,
     type: 'component',
     Component: LinkAccountScreen,
+  },
+  {
+    id: 'indirect-owner-details',
+    isSection: false,
+    type: 'component',
+    Component: IndirectOwnerDetailsScreen,
+  },
+  {
+    id: 'intermediary-stepper',
+    isSection: false,
+    type: 'stepper',
+    stepperConfig: {
+      associatedPartyFilters: {
+        partyType: 'ORGANIZATION',
+        roles: ['BENEFICIAL_OWNER'],
+      },
+      getDefaultPartyRequestBody: () => ({
+        partyType: 'ORGANIZATION',
+        roles: ['BENEFICIAL_OWNER'],
+      }),
+      steps: [
+        {
+          id: 'org-details',
+          stepType: 'form',
+          title: 'Organization Details',
+          description:
+            'Legal name, type, and identification for the intermediary entity',
+          Component: IntermediaryOrgDetailsForm,
+        },
+        {
+          id: 'org-address',
+          stepType: 'form',
+          title: 'Business Address',
+          description: 'Legal business address of the intermediary entity',
+          Component: IntermediaryAddressForm,
+        },
+        {
+          id: 'check-answers',
+          stepType: 'check-answers',
+          title: 'Check Your Answers',
+          description: 'Review the information provided for this entity',
+        },
+      ],
+    },
   },
 ];
 

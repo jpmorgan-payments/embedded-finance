@@ -732,6 +732,11 @@ export const OwnersSectionScreen = () => {
                 goTo('review-attest-section', {
                   reviewScreenOpenedSectionId: 'owners-section',
                 });
+              } else if (
+                enableIndirectOwnership &&
+                indirectGatingAnswer !== 'direct-only'
+              ) {
+                goTo('indirect-owner-details');
               } else {
                 goTo('additional-questions-section');
               }
