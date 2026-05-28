@@ -1017,8 +1017,7 @@ export function applyTestDemoScenario(
         ? testScenarioHealthBenefitClient
         : testScenarioOperator80Client
   ) as PredefinedClientShape;
-  const useMultiLinked =
-    bundleId === 'test-scenario-2' || bundleId === 'test-scenario-3';
+  const useMultiLinked = bundleId === 'test-scenario-2';
 
   removeAllTestScenarioSeedClients();
 

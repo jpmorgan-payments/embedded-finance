@@ -256,8 +256,6 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
     clientId: TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
     linkAccountStepOptions: {
       completionMode: 'editable',
-      allowMultipleAccounts: true,
-      existingAccountsDisplay: 'compact',
       initialValues: {},
       bankFormConfigOverride: {
         paymentMethods: {
@@ -325,7 +323,7 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
         '624410',
       ],
     },
-    loginProfiles: MULTI_LINK_DEMO_PROFILES,
+    loginProfiles: OPERATOR_PROFILES,
   },
 };
 

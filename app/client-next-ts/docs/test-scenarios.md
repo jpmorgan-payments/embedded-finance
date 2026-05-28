@@ -8,7 +8,7 @@ This document is for **maintainers**. It describes how mocked onboarding demos a
 | ----------------------------------------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`/test-scenario`](http://localhost:3000/test-scenario)     | `test-scenario`   | Operator 80–shaped LLC client; Salt theme; full login paths including link-bank.                                                                                                   |
 | [`/test-scenario-2`](http://localhost:3000/test-scenario-2) | `test-scenario-2` | Riverbend client: **full onboarding-style logins** (happy path, docs, **linked-microdeposit** / **linked-active** with **zero** pre-mocked linked recipients) **plus** one optional login that pre-seeds **three** linked accounts (`3-linked@demo.test`). |
-| [`/test-scenario-3`](http://localhost:3000/test-scenario-3) | `test-scenario-3` | Health & Benefit Solutions client; same link-bank / multi-account shape as scenario 2 (ACH + WIRE + RTP); health-sector `priorityIndustryCodes`.                                  |
+| [`/test-scenario-3`](http://localhost:3000/test-scenario-3) | `test-scenario-3` | Health & Benefit Solutions client; **single** link-bank account (ACH + WIRE + RTP); standard login profiles only (no pre-seeded multi-link); health-sector `priorityIndustryCodes`. |
 
 Each path renders only its own flow. **Do not** add UI on these pages that refers to the other paths or “scenario numbers.”
 
