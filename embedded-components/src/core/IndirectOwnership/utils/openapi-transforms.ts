@@ -147,10 +147,9 @@ function buildOwnershipHierarchy(
     id: `hierarchy-${party.id}`,
     steps,
     isValid: true,
-    meets25PercentThreshold: calculateMeets25PercentThreshold(
-      'INDIRECT',
-      { steps }
-    ),
+    meets25PercentThreshold: calculateMeets25PercentThreshold('INDIRECT', {
+      steps,
+    }),
     createdAt: new Date(party.createdAt || Date.now()),
     updatedAt: new Date(party.createdAt || Date.now()),
   };

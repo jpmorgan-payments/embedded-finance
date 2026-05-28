@@ -7,9 +7,7 @@ import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 
 export const intermediaryAddressSchema = z.object({
-  organizationAddressLine1: z
-    .string()
-    .min(1, 'Address line 1 is required'),
+  organizationAddressLine1: z.string().min(1, 'Address line 1 is required'),
   organizationAddressLine2: z.string().optional(),
   organizationCity: z.string().min(1, 'City is required'),
   organizationState: z.string().min(1, 'State/Province is required'),
@@ -20,8 +18,7 @@ export const intermediaryAddressSchema = z.object({
 export const IntermediaryAddressForm: FormStepComponent = () => {
   const { t, tString } = useTranslationWithTokens(['onboarding-overview']);
 
-  const form =
-    useFormContext<z.input<typeof intermediaryAddressSchema>>();
+  const form = useFormContext<z.input<typeof intermediaryAddressSchema>>();
 
   return (
     <div className="eb-mt-6 eb-space-y-6">
@@ -76,9 +73,9 @@ export const IntermediaryAddressForm: FormStepComponent = () => {
             label: (
               <span>
                 <span className="eb-font-medium">[{code}]</span>{' '}
-                {t(
-                  [`common:countries.${code}`] as unknown as TemplateStringsArray
-                )}
+                {t([
+                  `common:countries.${code}`,
+                ] as unknown as TemplateStringsArray)}
               </span>
             ),
           }))}

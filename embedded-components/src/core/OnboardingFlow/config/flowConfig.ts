@@ -144,19 +144,20 @@ const staticScreens: StaticScreenConfig[] = [
     stepperConfig: {
       associatedPartyFilters: {
         partyType: 'ORGANIZATION',
-        roles: ['BENEFICIAL_OWNER'],
+        // INTERMEDIARY_OWNER is a new role being added to the API — not yet in generated types
+        roles: ['INTERMEDIARY_OWNER' as any],
       },
       getDefaultPartyRequestBody: () => ({
-        partyType: 'ORGANIZATION',
-        roles: ['BENEFICIAL_OWNER'],
+        partyType: 'ORGANIZATION' as const,
+        roles: ['INTERMEDIARY_OWNER' as any],
       }),
       steps: [
         {
           id: 'org-details',
           stepType: 'form',
-          title: 'Organization Details',
+          title: 'Intermediary Details',
           description:
-            'Legal name, type, and identification for the intermediary entity',
+            'Organization name, ownership percentage, and country of formation',
           Component: IntermediaryOrgDetailsForm,
         },
         {

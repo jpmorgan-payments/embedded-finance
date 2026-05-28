@@ -28,13 +28,38 @@ import { asPlainString } from '@/core/OnboardingFlow/utils/dataUtils';
 
 type PartyCompletionStatus = 'not-started' | 'incomplete' | 'complete';
 
-function getIndirectParties(clientData?: ClientResponse): PartyResponse[] {
+/**
+ * Get all individual beneficial owners — both direct and indirect.
+ * Direct owners have no parentPartyId; indirect owners have parentPartyId
+ * pointing to their intermediary entity.
+ */
+function getBeneficialOwnerIndividuals(
+  clientData?: ClientResponse
+): PartyResponse[] {
   if (!clientData?.parties) return [];
   return clientData.parties.filter(
     (party) =>
       party.active &&
-      party.roles?.includes('BENEFICIAL_OWNER') &&
-      party.parentPartyId !== undefined
+      party.partyType === 'INDIVIDUAL' &&
+      party.roles?.includes('BENEFICIAL_OWNER')
+  );
+}
+
+/**
+ * Get intermediary owner entities — organizations with INTERMEDIARY_OWNER role.
+ * Per API spec, these are the business entities through which indirect BOs
+ * hold ownership of the root client.
+ */
+function getIntermediaryEntities(
+  clientData?: ClientResponse
+): PartyResponse[] {
+  if (!clientData?.parties) return [];
+  return clientData.parties.filter(
+    (party) =>
+      party.active &&
+      party.partyType === 'ORGANIZATION' &&
+      // INTERMEDIARY_OWNER is a new role not yet in generated types
+      party.roles?.includes('INTERMEDIARY_OWNER' as any)
   );
 }
 
@@ -42,14 +67,16 @@ function getPartyCompletionStatus(party: PartyResponse): PartyCompletionStatus {
   if (party.partyType === 'ORGANIZATION') {
     const org = party.organizationDetails;
     if (!org) return 'not-started';
-    // Requires: organizationType, organizationIds, addresses, countryOfFormation
-    const hasType = !!org.organizationType;
-    const hasIds =
-      org.organizationIds && org.organizationIds.length > 0;
+    // Per Confluence API spec, required fields for intermediary owner:
+    // organizationName, addresses, ownershipPercentage, countryOfFormation
+    const hasName = !!org.organizationName;
     const hasAddress = org.addresses && org.addresses.length > 0;
     const hasCountry = !!org.countryOfFormation;
-    if (hasType && hasIds && hasAddress && hasCountry) return 'complete';
-    if (hasType || hasIds || hasAddress || hasCountry) return 'incomplete';
+    // ownershipPercentage is a new field — check at party level
+    const hasPercentage = !!(party as any).ownershipPercentage;
+    if (hasName && hasAddress && hasCountry && hasPercentage) return 'complete';
+    if (hasName || hasAddress || hasCountry || hasPercentage)
+      return 'incomplete';
     return 'not-started';
   }
 
@@ -57,8 +84,7 @@ function getPartyCompletionStatus(party: PartyResponse): PartyCompletionStatus {
   const ind = party.individualDetails;
   if (!ind) return 'not-started';
   const hasDob = !!ind.birthDate;
-  const hasAddress =
-    ind.addresses && ind.addresses.length > 0;
+  const hasAddress = ind.addresses && ind.addresses.length > 0;
   const hasCountry = !!ind.countryOfResidence;
   if (hasDob && hasAddress && hasCountry) return 'complete';
   if (hasDob || hasAddress || hasCountry) return 'incomplete';
@@ -78,7 +104,11 @@ function getPartyDisplayName(party: PartyResponse): string {
 
 const statusConfig: Record<
   PartyCompletionStatus,
-  { label: string; variant: 'default' | 'secondary' | 'outline'; className: string }
+  {
+    label: string;
+    variant: 'default' | 'secondary' | 'outline';
+    className: string;
+  }
 > = {
   'not-started': {
     label: 'Not started',
@@ -102,18 +132,13 @@ export const IndirectOwnerDetailsScreen = () => {
   const { goTo, goBack } = useFlowContext();
   const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
 
-  const indirectParties = getIndirectParties(clientData);
+  const individualParties = getBeneficialOwnerIndividuals(clientData);
+  const intermediaryEntities = getIntermediaryEntities(clientData);
 
-  const individualParties = indirectParties.filter(
-    (p) => p.partyType === 'INDIVIDUAL'
-  );
-  const orgParties = indirectParties.filter(
-    (p) => p.partyType === 'ORGANIZATION'
-  );
-
-  const allComplete = indirectParties.every(
-    (p) => getPartyCompletionStatus(p) === 'complete'
-  );
+  const allParties = [...individualParties, ...intermediaryEntities];
+  const allComplete =
+    allParties.length > 0 &&
+    allParties.every((p) => getPartyCompletionStatus(p) === 'complete');
 
   const handleEditIndividual = (partyId: string) => {
     goTo('owner-stepper', {
@@ -148,14 +173,17 @@ export const IndirectOwnerDetailsScreen = () => {
       }
       description="Please provide the required information for each owner and intermediary entity identified in your ownership structure."
     >
-      <div className="eb-mt-6 eb-space-y-6">
-        {/* Individual Beneficial Owners */}
-        {individualParties.length > 0 && (
-          <section className="eb-space-y-3">
-            <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
-              Beneficial Owners
-            </h3>
-            {individualParties.map((party) => {
+      <div className="eb-mt-6 eb-space-y-8">
+        {/* Section 1: Individuals that need information collected */}
+        <section className="eb-space-y-3">
+          <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+            Individuals
+          </h3>
+          <p className="eb-text-sm eb-text-muted-foreground">
+            Provide personal details for each beneficial owner.
+          </p>
+          {individualParties.length > 0 ? (
+            individualParties.map((party) => {
               const status = getPartyCompletionStatus(party);
               const config = statusConfig[status];
               return (
@@ -168,17 +196,25 @@ export const IndirectOwnerDetailsScreen = () => {
                   onEdit={() => party.id && handleEditIndividual(party.id)}
                 />
               );
-            })}
-          </section>
-        )}
+            })
+          ) : (
+            <p className="eb-text-sm eb-italic eb-text-muted-foreground">
+              No individual owners found.
+            </p>
+          )}
+        </section>
 
-        {/* Intermediary Organizations */}
-        {orgParties.length > 0 && (
-          <section className="eb-space-y-3">
-            <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
-              Intermediary Entities
-            </h3>
-            {orgParties.map((party) => {
+        {/* Section 2: Entities that need information collected */}
+        <section className="eb-space-y-3">
+          <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+            Intermediary Entities
+          </h3>
+          <p className="eb-text-sm eb-text-muted-foreground">
+            Provide organization details for each intermediary entity through
+            which indirect owners hold their ownership.
+          </p>
+          {intermediaryEntities.length > 0 ? (
+            intermediaryEntities.map((party) => {
               const status = getPartyCompletionStatus(party);
               const config = statusConfig[status];
               return (
@@ -191,14 +227,18 @@ export const IndirectOwnerDetailsScreen = () => {
                   onEdit={() => party.id && handleEditOrganization(party.id)}
                 />
               );
-            })}
-          </section>
-        )}
+            })
+          ) : (
+            <p className="eb-text-sm eb-italic eb-text-muted-foreground">
+              No intermediary entities found.
+            </p>
+          )}
+        </section>
 
-        {indirectParties.length === 0 && (
+        {allParties.length === 0 && (
           <Card className="eb-p-6 eb-text-center eb-text-muted-foreground">
-            No indirect parties found. Please go back and complete your
-            ownership structure first.
+            No parties found. Please go back and complete your ownership
+            structure first.
           </Card>
         )}
       </div>
@@ -211,11 +251,11 @@ export const IndirectOwnerDetailsScreen = () => {
           size="lg"
           className="eb-h-auto eb-min-h-11 eb-w-full eb-text-wrap eb-text-lg"
           onClick={handleContinue}
-          disabled={!allComplete && indirectParties.length > 0}
+          disabled={!allComplete && allParties.length > 0}
         >
           {allComplete
             ? 'Save and Continue'
-            : `Complete all details to continue (${indirectParties.filter((p) => getPartyCompletionStatus(p) === 'complete').length}/${indirectParties.length})`}
+            : `Complete all details to continue (${allParties.filter((p) => getPartyCompletionStatus(p) === 'complete').length}/${allParties.length})`}
         </Button>
       </div>
     </StepLayout>

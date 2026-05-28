@@ -394,7 +394,10 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
         onSaveHierarchy(
           ownerId,
           hierarchy.steps.map(
-            (step: { entityName: string; ownsRootBusinessDirectly: boolean }) => ({
+            (step: {
+              entityName: string;
+              ownsRootBusinessDirectly: boolean;
+            }) => ({
               entityName: step.entityName,
               ownsRootBusinessDirectly: step.ownsRootBusinessDirectly,
             })

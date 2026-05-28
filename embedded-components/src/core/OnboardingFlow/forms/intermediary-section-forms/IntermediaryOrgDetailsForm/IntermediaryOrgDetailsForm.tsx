@@ -3,23 +3,30 @@ import { useFormContext } from 'react-hook-form';
 import { z } from 'zod';
 
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
-import {
-  COUNTRIES_OF_FORMATION,
-  ORGANIZATION_TYPE_LIST,
-} from '@/core/OnboardingFlow/consts';
-import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
+import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 
+/**
+ * Schema aligned with Confluence "Intermediary Owner Details" requirements:
+ * - organizationName (pre-populated from hierarchy)
+ * - ownershipPercentage (1–100, percentage of root client)
+ * - countryOfFormation
+ *
+ * Note: Organization Type and Organization IDs are NOT mandated per API spec:
+ * "The rest of the organization information should not be mandated"
+ */
 export const intermediaryOrgDetailsSchema = z.object({
   organizationName: z.string().min(1, 'Organization name is required'),
-  organizationType: z.string().min(1, 'Organization type is required'),
-  organizationIdEin: z.string().min(1, 'EIN is required'),
+  ownershipPercentage: z.coerce
+    .number()
+    .int('Must be a whole number')
+    .min(1, 'Must be between 1 and 100')
+    .max(100, 'Must be between 1 and 100'),
   countryOfFormation: z.string().min(1, 'Country of formation is required'),
 });
 
 export const IntermediaryOrgDetailsForm: FormStepComponent = () => {
   const { t, tString } = useTranslationWithTokens(['onboarding-overview']);
-  const { clientData } = useOnboardingContext();
 
   const form =
     useFormContext<z.input<typeof intermediaryOrgDetailsSchema>>();
@@ -37,25 +44,11 @@ export const IntermediaryOrgDetailsForm: FormStepComponent = () => {
 
       <OnboardingFormField
         control={form.control}
-        name="organizationType"
-        type="select"
-        label="Organization Type"
-        description="Legal classification of this entity"
-        options={ORGANIZATION_TYPE_LIST.map((type) => ({
-          value: type,
-          label: tString(
-            [`common:organizationTypes.${type}`] as unknown as TemplateStringsArray,
-            { defaultValue: type.replace(/_/g, ' ') }
-          ),
-        }))}
-      />
-
-      <OnboardingFormField
-        control={form.control}
-        name="organizationIdEin"
+        name="ownershipPercentage"
         type="text"
-        label="EIN (Employer Identification Number)"
-        description="Federal tax identification number"
+        label="Ownership Percentage"
+        description="Percentage of the root client owned by this intermediary (1–100)"
+        inputProps={{ type: 'number', min: 1, max: 100 }}
       />
 
       <OnboardingFormField
