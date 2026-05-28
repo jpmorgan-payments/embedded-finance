@@ -206,6 +206,13 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
       allowMultipleAccounts: true,
       existingAccountsDisplay: 'compact',
       initialValues: {},
+      bankFormConfigOverride: {
+        paymentMethods: {
+          available: ['ACH', 'WIRE', 'RTP'],
+          allowMultiple: true,
+          defaultSelected: ['ACH'],
+        },
+      },
     },
     onboardingFlow: {
       availableProducts: ['EMBEDDED_PAYMENTS'],

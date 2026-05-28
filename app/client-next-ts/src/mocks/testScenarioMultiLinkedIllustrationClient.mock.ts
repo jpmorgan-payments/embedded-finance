@@ -81,15 +81,9 @@ export const testScenarioMultiLinkedIllustrationClient = {
   products: ['EMBEDDED_PAYMENTS'],
   outstanding: {
     attestationDocumentIds: ['b82e8c31-0a35-4d91-9f2a-9d1c6aa29c01'],
-    questionIds: ['30195'],
+    questionIds: ['30195', '30194'],
     partyIds: ['2100535100', '2100535101'],
   },
-  questionResponses: [
-    {
-      questionId: '30194',
-      values: ['500'],
-    },
-  ],
   status: 'NEW',
   results: {
     customerIdentityStatus: 'NOT_STARTED',
