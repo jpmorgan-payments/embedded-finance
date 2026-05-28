@@ -42,6 +42,7 @@ import {
 } from '@/components/ui';
 import { StepsReviewCards } from '@/core/OnboardingFlow/components';
 import { partyFieldMap } from '@/core/OnboardingFlow/config/fieldMap';
+import { PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES } from '@/core/OnboardingFlow/consts/stockExchanges';
 import {
   useFlowContext,
   useOnboardingContext,
@@ -713,6 +714,7 @@ const GatewayReviewCard: React.FC<{
   onChangeClick: () => void;
 }> = ({ clientData, onChangeClick }) => {
   const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
+  const { enablePubliclyTradedCompanies } = useOnboardingContext();
   const orgParty = getOrganizationParty(clientData);
   const orgType = orgParty?.organizationDetails?.organizationType;
   const publiclyTraded = orgParty?.organizationDetails?.publiclyTraded;
@@ -732,8 +734,8 @@ const GatewayReviewCard: React.FC<{
   );
 
   return (
-    <Card className="eb-grid eb-gap-y-3 eb-rounded-lg eb-border eb-p-4">
-      <div className="eb-mb-1 eb-flex eb-items-start eb-justify-between">
+    <Card className="eb-rounded-lg eb-border eb-p-4">
+      <div className="eb-flex eb-items-start eb-justify-between">
         <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
           {t('reviewAndAttest.businessType', 'Business type')}
         </h2>
@@ -748,44 +750,49 @@ const GatewayReviewCard: React.FC<{
           {t('common:change', 'Change')}
         </Button>
       </div>
-      <div className="eb-space-y-2">
+
+      <div className="eb-mt-3 eb-space-y-2">
         <div className="eb-space-y-0.5">
-          <p className="eb-text-sm eb-font-medium eb-text-muted-foreground">
+          <p className="eb-text-label eb-font-label eb-text-label-foreground">
             {t('fields.organizationTypeHierarchy.label', 'Organization type')}
           </p>
           <p className="eb-text-sm">
             {t(`organizationTypes.${orgType}`, orgType)}
           </p>
         </div>
-        {ptcValue !== 'none' && ptcDisplayValue && (
-          <>
+
+        {ptcValue !== 'none' && publiclyTraded && (
+          <div className="eb-space-y-0.5">
+            <p className="eb-text-label eb-font-label eb-text-label-foreground">
+              {t('fields.isPTCOrSubsidiary.label', 'Publicly traded status')}
+            </p>
+            <p className="eb-text-sm">
+              {[
+                ptcDisplayValue as string,
+                publiclyTraded.tickerSymbol &&
+                  `${t('fields.tickerSymbol.label', 'Ticker symbol')}: ${publiclyTraded.tickerSymbol}`,
+                (publiclyTraded.stockExchangeName ||
+                  publiclyTraded.stockExchange) &&
+                  `${t('fields.stockExchange.label', 'Stock exchange')}: ${publiclyTraded.stockExchangeName || publiclyTraded.stockExchange}`,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </p>
+          </div>
+        )}
+
+        {ptcValue === 'none' &&
+          enablePubliclyTradedCompanies &&
+          PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES.includes(orgType as any) && (
             <div className="eb-space-y-0.5">
-              <p className="eb-text-sm eb-font-medium eb-text-muted-foreground">
+              <p className="eb-text-label eb-font-label eb-text-label-foreground">
                 {t('fields.isPTCOrSubsidiary.label', 'Publicly traded status')}
               </p>
-              <p className="eb-text-sm">{ptcDisplayValue as string}</p>
+              <p className="eb-text-sm">
+                {t('fields.isPTCOrSubsidiary.options.none', 'No')}
+              </p>
             </div>
-            {publiclyTraded?.tickerSymbol && (
-              <div className="eb-space-y-0.5">
-                <p className="eb-text-sm eb-font-medium eb-text-muted-foreground">
-                  {t('fields.tickerSymbol.label', 'Ticker symbol')}
-                </p>
-                <p className="eb-text-sm">{publiclyTraded.tickerSymbol}</p>
-              </div>
-            )}
-            {publiclyTraded?.stockExchange && (
-              <div className="eb-space-y-0.5">
-                <p className="eb-text-sm eb-font-medium eb-text-muted-foreground">
-                  {t('fields.stockExchange.label', 'Stock exchange')}
-                </p>
-                <p className="eb-text-sm">
-                  {publiclyTraded.stockExchangeName ||
-                    publiclyTraded.stockExchange}
-                </p>
-              </div>
-            )}
-          </>
-        )}
+          )}
       </div>
     </Card>
   );

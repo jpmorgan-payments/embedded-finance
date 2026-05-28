@@ -371,8 +371,11 @@
         "businessTypeLabel": "Su tipo de negocio seleccionado",
         "ptcLabel": "Empresa que cotiza en bolsa",
         "ptcSubsidiaryLabel": "Filial de una empresa que cotiza en bolsa",
+        "notPubliclyTraded": "No cotiza en bolsa",
+        "notSubsidiary": "No es una subsidiaria de una empresa que cotiza en bolsa",
         "ptcTicker": "Símbolo: {{ticker}}",
         "ptcExchange": "Bolsa: {{exchange}}",
+        "ptcHint": "Si su empresa cotiza en bolsa o es subsidiaria de una que cotiza, seleccione Editar para agregar esa información.",
         "changeWarning": "Si cambia esto después de iniciar la solicitud, podría perder su progreso guardado.",
         "editBusinessType": "Editar"
       },

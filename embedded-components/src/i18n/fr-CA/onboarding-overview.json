@@ -371,8 +371,11 @@
         "businessTypeLabel": "Votre type d'entreprise sélectionné",
         "ptcLabel": "Société cotée en bourse",
         "ptcSubsidiaryLabel": "Filiale d'une société cotée en bourse",
+        "notPubliclyTraded": "Non cotée en bourse",
+        "notSubsidiary": "N'est pas une filiale d'une société cotée en bourse",
         "ptcTicker": "Symbole : {{ticker}}",
         "ptcExchange": "Bourse : {{exchange}}",
+        "ptcHint": "Si votre entreprise est cotée en bourse ou filiale d'une société cotée, sélectionnez Modifier pour ajouter ces renseignements.",
         "changeWarning": "Si vous modifiez ceci après avoir commencé la demande, vous pourriez perdre votre progression enregistrée.",
         "editBusinessType": "Modifier"
       },

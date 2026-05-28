@@ -37,7 +37,10 @@ import {
   CardTitle,
 } from '@/components/ui';
 import { StepLayout } from '@/core/OnboardingFlow/components';
-import { MAJOR_STOCK_EXCHANGES } from '@/core/OnboardingFlow/consts/stockExchanges';
+import {
+  MAJOR_STOCK_EXCHANGES,
+  PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES,
+} from '@/core/OnboardingFlow/consts/stockExchanges';
 import {
   useFlowContext,
   useOnboardingContext,
@@ -343,7 +346,7 @@ export const OverviewScreen = () => {
                       </Button>
                     </span>
 
-                    {publiclyTraded && (
+                    {publiclyTraded ? (
                       <div className="eb-mt-2 eb-space-y-1 eb-text-xs eb-text-muted-foreground">
                         <p className="eb-font-medium">
                           {isSubsidiary
@@ -369,6 +372,15 @@ export const OverviewScreen = () => {
                           </p>
                         )}
                       </div>
+                    ) : (
+                      enablePubliclyTradedCompanies &&
+                      PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES.includes(
+                        organizationType as any
+                      ) && (
+                        <p className="eb-mt-2 eb-text-xs eb-text-muted-foreground">
+                          {t('screens.overview.verifyBusinessSection.ptcHint')}
+                        </p>
+                      )
                     )}
 
                     <p className="eb-mt-3 eb-flex eb-gap-2 eb-text-xs eb-italic eb-text-muted-foreground">

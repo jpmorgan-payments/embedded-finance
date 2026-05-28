@@ -414,8 +414,11 @@
         "businessTypeLabel": "Your selected business type",
         "ptcLabel": "Publicly traded",
         "ptcSubsidiaryLabel": "Subsidiary of publicly traded company",
+        "notPubliclyTraded": "Not publicly traded",
+        "notSubsidiary": "Not a subsidiary of a publicly traded company",
         "ptcTicker": "Ticker: {{ticker}}",
         "ptcExchange": "Exchange: {{exchange}}",
+        "ptcHint": "If your company is publicly traded or a subsidiary of one, select Edit to add that information.",
         "changeWarning": "If you change this after starting the application, you may lose your saved progress.",
         "editBusinessType": "Edit"
       },
