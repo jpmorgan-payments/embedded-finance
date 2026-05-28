@@ -20,6 +20,7 @@ import {
   SectionScreenId,
   StaticScreenConfig,
   StepConfig,
+  VisibilityContext,
 } from '@/core/OnboardingFlow/types/flow.types';
 import {
   getOrganizationParty,
@@ -211,33 +212,16 @@ export const FlowProvider: React.FC<{
   const isPTCWithUSExchange =
     enablePubliclyTradedCompanies && isUSExchangePTC(orgParty);
 
+  const visibilityCtx: VisibilityContext = { orgParty };
+
   const sections = flowConfig.screens
     .filter((s) => s.isSection)
-    .filter(
-      (s) =>
-        !s.sectionConfig.excludedForOrgTypes?.includes(organizationType ?? '')
-    )
-    .filter((s) => {
-      // US-exchange PTCs skip the owners section (beneficial owners not required)
-      if (isPTCWithUSExchange && s.id === 'owners-section') {
-        return false;
-      }
-      return true;
-    })
+    .filter((s) => s.sectionConfig.isVisible?.(visibilityCtx) ?? true)
     .map((s) => {
-      // Filter out steps based on their includedForOrgTypes / excludedForOrgTypes
       if (s.stepperConfig?.steps) {
-        const filteredSteps = s.stepperConfig.steps.filter((step) => {
-          // includedForOrgTypes takes precedence: step only shown for listed types
-          if (step.includedForOrgTypes) {
-            return step.includedForOrgTypes.includes(organizationType ?? '');
-          }
-          // excludedForOrgTypes: step hidden for listed types
-          if (step.excludedForOrgTypes) {
-            return !step.excludedForOrgTypes.includes(organizationType ?? '');
-          }
-          return true;
-        });
+        const filteredSteps = s.stepperConfig.steps.filter(
+          (step) => step.isVisible?.(visibilityCtx) ?? true
+        );
         return {
           ...s,
           stepperConfig: {

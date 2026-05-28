@@ -30,34 +30,29 @@ export type FormStepComponent<TSchema extends DefaultSchema = DefaultSchema> =
     };
   };
 
-export type StepConfig = BaseStep | FormStep;
-
-export interface BaseStep {
-  id: string;
-  title: string;
-  description?: string;
-  stepType: 'static' | 'check-answers'; // add future step types here
-  Component?: React.ComponentType<StepperStepProps>;
-  excludedForOrgTypes?: string[];
-  includedForOrgTypes?: string[];
+export interface VisibilityContext {
+  orgParty: PartyResponse | undefined;
 }
 
-export interface FormStep {
+export type VisibilityPredicate = (ctx: VisibilityContext) => boolean;
+
+interface StepBase {
   id: string;
   title: string;
   description?: string;
+  isVisible?: VisibilityPredicate;
+}
+
+export type StepConfig = BaseStep | FormStep;
+
+export interface BaseStep extends StepBase {
+  stepType: 'static' | 'check-answers';
+  Component?: React.ComponentType<StepperStepProps>;
+}
+
+export interface FormStep extends StepBase {
   stepType: 'form';
   Component: FormStepComponent;
-  /**
-   * When set, this step is excluded from the stepper if the current
-   * organization type is in this list.
-   */
-  excludedForOrgTypes?: string[];
-  /**
-   * When set, this step is only included if the current
-   * organization type is in this list. Takes precedence over excludedForOrgTypes.
-   */
-  includedForOrgTypes?: string[];
 }
 
 export type ScreenId = StaticScreenId | SectionScreenId;
@@ -96,7 +91,7 @@ export type SectionScreenConfig = BaseScreenConfig & {
     helpText?: string;
     onHoldText?: string;
     requirementsList?: string[];
-    excludedForOrgTypes?: string[];
+    isVisible?: VisibilityPredicate;
     statusResolver?: (
       sessionData: FlowSessionData,
       clientData: ClientResponse | undefined,

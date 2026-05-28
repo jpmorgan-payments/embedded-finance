@@ -37,6 +37,7 @@ import {
   clientHasOutstandingDocRequests,
   getActiveOwners,
   getOrganizationParty,
+  isUSExchangePTC,
 } from '@/core/OnboardingFlow/utils/dataUtils';
 import { getStepperValidation } from '@/core/OnboardingFlow/utils/flowUtils';
 
@@ -221,6 +222,7 @@ const sectionScreens: SectionScreenConfig[] = [
             'onboarding-overview:screens.personalSection.steps.identityDocument.description'
           ),
           Component: IndividualIdentityForm,
+          isVisible: (ctx) => !isUSExchangePTC(ctx.orgParty),
         },
         {
           id: 'contact-details',
@@ -361,7 +363,9 @@ const sectionScreens: SectionScreenConfig[] = [
     isSection: true,
     type: 'component',
     sectionConfig: {
-      excludedForOrgTypes: ['SOLE_PROPRIETORSHIP'],
+      isVisible: (ctx) =>
+        ctx.orgParty?.organizationDetails?.organizationType !==
+          'SOLE_PROPRIETORSHIP' && !isUSExchangePTC(ctx.orgParty),
       label: i18n.t('onboarding-overview:screens.ownersSection.label'),
       shortLabel: i18n.t(
         'onboarding-overview:screens.ownersSection.shortLabel'

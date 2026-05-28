@@ -231,11 +231,15 @@ export const GatewayScreen = () => {
         submittableValues.organizationTypeHierarchy.specificOrganizationType ===
         existingOrgParty.organizationDetails?.organizationType;
       const existingPTC = existingOrgParty.organizationDetails?.publiclyTraded;
+      const existingIsSubsidiary =
+        existingOrgParty.organizationDetails?.isSubsidiary;
       const ptcUnchanged =
         (!hasPTC && !existingPTC) ||
         (hasPTC &&
           existingPTC?.tickerSymbol === submittableValues.tickerSymbol &&
-          existingPTC?.stockExchange === submittableValues.stockExchange);
+          existingPTC?.stockExchange === submittableValues.stockExchange &&
+          String(existingIsSubsidiary ?? false) ===
+            submittableValues.isSubsidiary);
 
       if (orgTypeUnchanged && ptcUnchanged) {
         handleNext();
