@@ -411,6 +411,10 @@
           "description": "Your business details have been verified"
         },
         "businessTypeLabel": "Your selected business type",
+        "ptcLabel": "Publicly traded",
+        "ptcSubsidiaryLabel": "Subsidiary of publicly traded company",
+        "ptcTicker": "Ticker: {{ticker}}",
+        "ptcExchange": "Exchange: {{exchange}}",
         "changeWarning": "If you change this after starting the application, you may lose your saved progress.",
         "editBusinessType": "Edit"
       },

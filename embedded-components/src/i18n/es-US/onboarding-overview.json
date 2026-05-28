@@ -368,6 +368,10 @@
           "description": "Los datos de su negocio han sido verificados"
         },
         "businessTypeLabel": "Su tipo de negocio seleccionado",
+        "ptcLabel": "Empresa que cotiza en bolsa",
+        "ptcSubsidiaryLabel": "Filial de una empresa que cotiza en bolsa",
+        "ptcTicker": "Símbolo: {{ticker}}",
+        "ptcExchange": "Bolsa: {{exchange}}",
         "changeWarning": "Si cambia esto después de iniciar la solicitud, podría perder su progreso guardado.",
         "editBusinessType": "Editar"
       },
