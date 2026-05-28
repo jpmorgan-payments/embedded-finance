@@ -52,8 +52,11 @@ export function transformPartyToBeneficialOwner(
   allParties: PartyResponse[] = [],
   existingHierarchy?: any
 ): BeneficialOwner {
-  // Determine ownership type based on parentPartyId
-  const ownershipType = party.parentPartyId ? 'INDIRECT' : 'DIRECT';
+  // Determine ownership type: DIRECT if no parentPartyId or parent is the CLIENT party
+  const parentIsClient = party.parentPartyId
+    ? allParties.find((p) => p.id === party.parentPartyId)?.roles?.includes('CLIENT')
+    : false;
+  const ownershipType = !party.parentPartyId || parentIsClient ? 'DIRECT' : 'INDIRECT';
 
   // Use existing hierarchy if provided, otherwise build for indirect owners
   const ownershipHierarchy =
@@ -112,7 +115,14 @@ function buildOwnershipHierarchy(
   let level = 1;
 
   while (currentParty) {
-    const isDirectOwner = !currentParty.parentPartyId;
+    // Stop if we've reached the root CLIENT party (the entity being onboarded).
+    // It's the destination of the chain, not a step in it.
+    if (currentParty.roles?.includes('CLIENT')) {
+      break;
+    }
+
+    const isDirectOwner = !currentParty.parentPartyId ||
+      allParties.find((p) => p.id === currentParty!.parentPartyId)?.roles?.includes('CLIENT');
 
     steps.push({
       id: `step-${currentParty.id}`,

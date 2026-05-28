@@ -59,7 +59,7 @@ describe('openapi-transforms', () => {
   const mockCompanyParty: PartyResponse = {
     id: 'party-company-coffee',
     partyType: 'ORGANIZATION',
-    roles: ['CLIENT'], // Use valid role from schema
+    roles: [], // Intermediate entity — not a CLIENT, not a BENEFICIAL_OWNER
     profileStatus: 'APPROVED',
     active: true,
     createdAt: '2024-01-01T00:00:00Z',
