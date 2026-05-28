@@ -242,14 +242,12 @@ export const OwnersSectionScreen = () => {
             },
           }
         : {
+            // Business entities are always intermediaries per API spec —
+            // only individuals can be beneficial owners
             partyType: 'ORGANIZATION' as const,
-            roles: ['BENEFICIAL_OWNER' as const],
+            roles: ['INTERMEDIARY_OWNER' as any],
             organizationDetails: {
               organizationName: ownerData.businessName,
-              natureOfOwnership:
-                ownerData.ownershipType === 'INDIRECT'
-                  ? ('Indirect' as const)
-                  : ('Direct' as const),
             },
           };
 
@@ -745,7 +743,10 @@ export const OwnersSectionScreen = () => {
           >
             {reviewMode
               ? t('screens.owners.saveAndReturnToReviewButton')
-              : t('screens.owners.saveAndContinueButton')}
+              : enableIndirectOwnership &&
+                  indirectGatingAnswer !== 'direct-only'
+                ? 'Save and Continue to Owner Details'
+                : t('screens.owners.saveAndContinueButton')}
           </Button>
         </div>
       </div>

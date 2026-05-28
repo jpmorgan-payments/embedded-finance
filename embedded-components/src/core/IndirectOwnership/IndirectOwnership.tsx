@@ -89,8 +89,10 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
     ? getRootCompanyName(client)
     : 'Unknown Entity';
   const initialParties =
-    client?.parties?.filter((party) =>
-      party.roles?.includes('BENEFICIAL_OWNER')
+    client?.parties?.filter(
+      (party) =>
+        party.roles?.includes('BENEFICIAL_OWNER') ||
+        party.roles?.includes('INTERMEDIARY_OWNER' as any)
     ) || [];
 
   // In integrated mode (onAddOwner provided), derive parties directly from
@@ -303,14 +305,11 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
               createdAt: new Date().toISOString(),
             }
           : {
+              // Business entities are always intermediaries per API spec
               id: `business-${Date.now()}`,
               partyType: 'ORGANIZATION',
               active: true,
-              roles: [],
-              parentPartyId:
-                ownerData.ownershipType === 'INDIRECT'
-                  ? 'temp-parent'
-                  : undefined,
+              roles: ['INTERMEDIARY_OWNER' as any],
               organizationDetails: {
                 organizationName: ownerData.businessName!,
               },
@@ -1298,6 +1297,9 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
                 </div>
               )}
 
+              {/* Ownership type only applies to individuals — business entities
+                  are always intermediaries per API spec */}
+              {entityType === 'INDIVIDUAL' && (
               <div className="eb-space-y-3">
                 <Label>Ownership Type</Label>
                 <RadioGroup
@@ -1318,9 +1320,7 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
                         Direct Owner
                       </Label>
                       <p className="eb-text-sm eb-text-muted-foreground">
-                        {entityType === 'INDIVIDUAL'
-                          ? 'Has 25% or more ownership directly'
-                          : 'Owns the business directly'}
+                        Has 25% or more ownership directly
                       </p>
                     </div>
                   </div>
@@ -1335,14 +1335,13 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
                         Indirect Owner
                       </Label>
                       <p className="eb-text-sm eb-text-muted-foreground">
-                        {entityType === 'INDIVIDUAL'
-                          ? 'Has 25% or more ownership through other companies'
-                          : 'Owns the business through other companies'}
+                        Has 25% or more ownership through other companies
                       </p>
                     </div>
                   </div>
                 </RadioGroup>
               </div>
+              )}
             </form>
           </div>
         </div>
