@@ -34,29 +34,13 @@ export const testScenarioMultiLinkedIllustrationClient = {
       organizationDetails: {
         countryOfFormation: 'US',
         dbaName: 'Top Dog Construction',
-        industryCategory: '',
-        industryType: '',
         organizationName: 'Top Dog Construction, LLC',
-        organizationDescription: '',
         organizationType: 'LIMITED_LIABILITY_COMPANY',
-        organizationIds: [
-          {
-            idType: '',
-            value: '',
-            issuer: '',
-          },
-        ],
-        yearOfFormation: '',
       },
-      individualDetails: {},
       status: 'ACTIVE',
       preferences: {
         defaultLanguage: 'en-US',
       },
-      access: [],
-      networkRegistration: {},
-      parentPartyId: '',
-      parentExternalId: '',
     },
     {
       id: '2100535101',
@@ -82,31 +66,23 @@ export const testScenarioMultiLinkedIllustrationClient = {
         },
       ],
       individualDetails: {
-        countryOfResidence: '',
         firstName: 'Ross',
         middleName: 'Thomas',
         lastName: 'Gellar',
-        jobTitle: '',
-        jobTitleDescription: '',
       },
       organizationDetails: {},
       status: 'ACTIVE',
       preferences: {
         defaultLanguage: 'en-US',
       },
-      access: [],
-      networkRegistration: {},
-      parentExternalId: '',
     },
   ],
   partyId: '2100535100',
   products: ['EMBEDDED_PAYMENTS'],
   outstanding: {
     attestationDocumentIds: ['b82e8c31-0a35-4d91-9f2a-9d1c6aa29c01'],
-    documentRequestIds: [],
     questionIds: ['30195'],
     partyIds: ['2100535100', '2100535101'],
-    partyRoles: [],
   },
   questionResponses: [
     {
