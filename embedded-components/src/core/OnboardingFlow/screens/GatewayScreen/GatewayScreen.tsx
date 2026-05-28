@@ -27,6 +27,11 @@ import {
 } from '@/core/OnboardingFlow/components';
 import { ORGANIZATION_TYPE_LIST } from '@/core/OnboardingFlow/consts';
 import {
+  PTC_ELIGIBLE_ORG_TYPES,
+  PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES,
+  useStockExchangeOptions,
+} from '@/core/OnboardingFlow/consts/stockExchanges';
+import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
@@ -47,7 +52,10 @@ import {
   useFormWithFilters,
 } from '@/core/OnboardingFlow/utils/formUtils';
 
-import { GatewayScreenFormSchema } from './GatewayScreen.schema';
+import {
+  GatewayScreenFormSchema,
+  refineGatewaySchema,
+} from './GatewayScreen.schema';
 
 type GeneralOrganizationType =
   | 'SOLE_PROPRIETORSHIP'
@@ -80,16 +88,24 @@ export const GatewayScreen = () => {
     onPostClientSettled,
     onPostPartySettled,
     availableOrganizationTypes,
+    enablePubliclyTradedCompanies,
   } = useOnboardingContext();
   const { goTo, sessionData, updateSessionData, setIsFormSubmitting } =
     useFlowContext();
 
   const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
 
+  const stockExchangeOptions = useStockExchangeOptions().flatMap((group) =>
+    group.options.map((opt) => ({ ...opt, group: group.label }))
+  );
+
   const form = useFormWithFilters({
     clientData,
     screenId: 'gateway',
     schema: GatewayScreenFormSchema,
+    refineSchemaFn: enablePubliclyTradedCompanies
+      ? refineGatewaySchema
+      : undefined,
     defaultValues: {},
   });
 
@@ -97,6 +113,9 @@ export const GatewayScreen = () => {
   useFlowUnsavedChangesSync(isDirty);
 
   const existingOrgParty = getOrganizationParty(clientData);
+
+  // PTC status cannot be reverted once set (API cannot remove publiclyTraded)
+  const isPTCLocked = !!existingOrgParty?.organizationDetails?.publiclyTraded;
 
   const [isFormPopulated, setIsFormPopulated] = useState(false);
 
@@ -136,6 +155,23 @@ export const GatewayScreen = () => {
   } = useSmbdoUpdateParty();
 
   const onSubmit = form.handleSubmit((values) => {
+    // Derive PTC request values
+    const ptcStatus = values.isPTCOrSubsidiary;
+    const hasPTC = ptcStatus === 'ptc' || ptcStatus === 'subsidiary';
+
+    // Prepare values with derived isSubsidiary and without PTC fields if not applicable
+    const submittableValues = {
+      ...values,
+      isSubsidiary: hasPTC
+        ? ptcStatus === 'subsidiary'
+          ? 'true'
+          : 'false'
+        : '',
+      tickerSymbol: hasPTC ? values.tickerSymbol : '',
+      stockExchange: hasPTC ? values.stockExchange : '',
+      stockExchangeName: hasPTC ? values.stockExchangeName : '',
+    };
+
     const defaultPartyData = {
       roles: [Role.CLIENT],
       partyType: PartyType.ORGANIZATION,
@@ -149,9 +185,14 @@ export const GatewayScreen = () => {
 
     // Create client if it doesn't exist
     if (!clientData) {
-      const requestBody = generateClientRequestBody(values, 0, 'parties', {
-        parties: [defaultPartyData],
-      });
+      const requestBody = generateClientRequestBody(
+        submittableValues,
+        0,
+        'parties',
+        {
+          parties: [defaultPartyData],
+        }
+      );
 
       postClient(
         {
@@ -190,17 +231,28 @@ export const GatewayScreen = () => {
 
     // Update the organization party if it exists
     else if (clientData && existingOrgParty?.id) {
-      // If the organization type is the same, move to the next step
-      if (
-        values.organizationTypeHierarchy.specificOrganizationType ===
-        existingOrgParty.organizationDetails?.organizationType
-      ) {
+      // If org type and PTC data are both unchanged, move to the next step
+      const orgTypeUnchanged =
+        submittableValues.organizationTypeHierarchy.specificOrganizationType ===
+        existingOrgParty.organizationDetails?.organizationType;
+      const existingPTC = existingOrgParty.organizationDetails?.publiclyTraded;
+      const existingIsSubsidiary =
+        existingOrgParty.organizationDetails?.isSubsidiary;
+      const ptcUnchanged =
+        (!hasPTC && !existingPTC) ||
+        (hasPTC &&
+          existingPTC?.tickerSymbol === submittableValues.tickerSymbol &&
+          existingPTC?.stockExchange === submittableValues.stockExchange &&
+          String(existingIsSubsidiary ?? false) ===
+            submittableValues.isSubsidiary);
+
+      if (orgTypeUnchanged && ptcUnchanged) {
         handleNext();
         return;
       }
 
       // Else update the party
-      const partyRequestBody = generatePartyRequestBody(values, {});
+      const partyRequestBody = generatePartyRequestBody(submittableValues, {});
 
       // HANDLE ORG TYPE CHANGES - Special handling for SOLE_PROPRIETORSHIP
       if (
@@ -278,7 +330,7 @@ export const GatewayScreen = () => {
     // If client exists but organization party does not exist, create it
     else {
       const clientRequestBody = generateClientRequestBody(
-        values,
+        submittableValues,
         0,
         'addParties',
         {
@@ -340,6 +392,28 @@ export const GatewayScreen = () => {
     'organizationTypeHierarchy.generalOrganizationType'
   );
 
+  const selectedSpecificOrganizationType = form.watch(
+    'organizationTypeHierarchy.specificOrganizationType'
+  );
+
+  const isPTCOrSubsidiary = form.watch('isPTCOrSubsidiary');
+  const stockExchange = form.watch('stockExchange');
+
+  // Determine if the PTC question should be shown
+  const showPTCQuestion =
+    enablePubliclyTradedCompanies &&
+    !!selectedSpecificOrganizationType &&
+    PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES.includes(
+      selectedSpecificOrganizationType as OrganizationType
+    );
+
+  // Can this org type be directly publicly traded (vs subsidiary-only)?
+  const canBePTCDirectly =
+    showPTCQuestion &&
+    PTC_ELIGIBLE_ORG_TYPES.includes(
+      selectedSpecificOrganizationType as OrganizationType
+    );
+
   const handleGeneralOrganizationTypeChange = (value: string) => {
     // Handle SOLE_PROPRIETORSHIP special case
     if (value === 'SOLE_PROPRIETORSHIP') {
@@ -347,17 +421,42 @@ export const GatewayScreen = () => {
         'organizationTypeHierarchy.specificOrganizationType',
         'SOLE_PROPRIETORSHIP'
       );
+      // Clear PTC fields since sole props can't be PTCs (unless locked)
+      if (!isPTCLocked) {
+        form.setValue('isPTCOrSubsidiary', '');
+        form.setValue('isSubsidiary', '');
+        form.setValue('tickerSymbol', '');
+        form.setValue('stockExchange', '');
+        form.setValue('stockExchangeName', '');
+      }
       return;
     }
 
-    // Otherwise, clear the specific organization type
+    // Otherwise, clear the specific organization type and PTC fields
     form.setValue('organizationTypeHierarchy.specificOrganizationType', '');
+    if (!isPTCLocked) {
+      form.setValue('isPTCOrSubsidiary', '');
+      form.setValue('isSubsidiary', '');
+      form.setValue('tickerSymbol', '');
+      form.setValue('stockExchange', '');
+      form.setValue('stockExchangeName', '');
+    }
   };
 
   const isFormSubmitting =
     clientUpdateStatus === 'pending' ||
     clientPostStatus === 'pending' ||
     partyUpdateStatus === 'pending';
+
+  // Clear stale PTC selection when "ptc" option is no longer available
+  useEffect(() => {
+    if (isPTCOrSubsidiary === 'ptc' && !canBePTCDirectly && !isPTCLocked) {
+      form.setValue('isPTCOrSubsidiary', '');
+      form.setValue('tickerSymbol', '');
+      form.setValue('stockExchange', '');
+      form.setValue('stockExchangeName', '');
+    }
+  }, [canBePTCDirectly, isPTCOrSubsidiary, isPTCLocked, form]);
 
   useEffect(() => {
     setIsFormSubmitting(isFormSubmitting);
@@ -399,6 +498,14 @@ export const GatewayScreen = () => {
           description={t('screens.gateway.description')}
         >
           <div className="eb-mt-6 eb-flex-auto eb-space-y-6">
+            {isPTCLocked && (
+              <Alert variant="informative" density="sm" noTitle>
+                <InfoIcon className="eb-h-4 eb-w-4" />
+                <AlertDescription className="eb-text-sm">
+                  {t('screens.gateway.ptcLockedAlert')}
+                </AlertDescription>
+              </Alert>
+            )}
             <OnboardingFormField
               control={form.control}
               disableFieldRuleMapping
@@ -408,6 +515,7 @@ export const GatewayScreen = () => {
                 value: type,
                 label: t([`generalOrganizationTypes.${type}`]),
                 description: t([`generalOrganizationTypeDescriptions.${type}`]),
+                disabled: isPTCLocked && type === 'SOLE_PROPRIETORSHIP',
               }))}
               onChange={handleGeneralOrganizationTypeChange}
               required
@@ -441,6 +549,99 @@ export const GatewayScreen = () => {
                 required
                 disabled={isFormDisabled}
               />
+            )}
+
+            {showPTCQuestion && (
+              <div className="eb-space-y-6 eb-rounded-lg eb-border eb-border-border eb-p-4">
+                <OnboardingFormField
+                  control={form.control}
+                  disableFieldRuleMapping
+                  name="isPTCOrSubsidiary"
+                  type="radio-group"
+                  label={
+                    canBePTCDirectly
+                      ? t('fields.isPTCOrSubsidiary.label')
+                      : t('fields.isPTCOrSubsidiary.labelSubsidiaryOnly')
+                  }
+                  options={[
+                    {
+                      value: 'none',
+                      label: t('fields.isPTCOrSubsidiary.options.none'),
+                      disabled: isPTCLocked,
+                    },
+                    ...(canBePTCDirectly
+                      ? [
+                          {
+                            value: 'ptc',
+                            label: t('fields.isPTCOrSubsidiary.options.ptc'),
+                          },
+                        ]
+                      : []),
+                    {
+                      value: 'subsidiary',
+                      label: t('fields.isPTCOrSubsidiary.options.subsidiary'),
+                    },
+                  ]}
+                  required
+                  disabled={isFormDisabled}
+                />
+
+                {isPTCOrSubsidiary && isPTCOrSubsidiary !== 'none' && (
+                  <div className="eb-space-y-6 eb-border-l-2 eb-border-l-muted eb-pl-4">
+                    <OnboardingFormField
+                      control={form.control}
+                      disableFieldRuleMapping
+                      name="tickerSymbol"
+                      type="text"
+                      label={
+                        isPTCOrSubsidiary === 'subsidiary'
+                          ? t('fields.tickerSymbol.labelSubsidiary')
+                          : t('fields.tickerSymbol.label')
+                      }
+                      description={
+                        isPTCOrSubsidiary === 'subsidiary'
+                          ? t('fields.tickerSymbol.descriptionSubsidiary')
+                          : t('fields.tickerSymbol.description')
+                      }
+                      inputProps={{ maxLength: 10 }}
+                      required
+                      disabled={isFormDisabled}
+                    />
+
+                    <OnboardingFormField
+                      control={form.control}
+                      disableFieldRuleMapping
+                      name="stockExchange"
+                      type="combobox"
+                      label={
+                        isPTCOrSubsidiary === 'subsidiary'
+                          ? t('fields.stockExchange.labelSubsidiary')
+                          : t('fields.stockExchange.label')
+                      }
+                      description={
+                        isPTCOrSubsidiary === 'subsidiary'
+                          ? t('fields.stockExchange.descriptionSubsidiary')
+                          : t('fields.stockExchange.description')
+                      }
+                      options={stockExchangeOptions}
+                      required
+                      disabled={isFormDisabled}
+                    />
+
+                    {stockExchange === 'Other' && (
+                      <OnboardingFormField
+                        control={form.control}
+                        disableFieldRuleMapping
+                        name="stockExchangeName"
+                        type="text"
+                        inputProps={{ maxLength: 100 }}
+                        required
+                        disabled={isFormDisabled}
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
             )}
           </div>
 

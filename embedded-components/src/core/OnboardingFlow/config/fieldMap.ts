@@ -535,6 +535,93 @@ export const partyFieldMap: PartyFieldMap = {
       defaultValue: false,
     },
   },
+
+  // #region Publicly Traded Company (PTC) fields
+  /**
+   * Gate question: Is the organization a PTC, subsidiary of a PTC, or neither?
+   * Values: 'none' | 'ptc' | 'subsidiary'
+   * Maps to: organizationDetails.isSubsidiary (derived) + organizationDetails.publiclyTraded (existence)
+   */
+  isPTCOrSubsidiary: {
+    path: 'organizationDetails',
+    excludeFromMapping: true,
+    saveResponseInContext: true,
+    baseRule: {
+      display: 'visible',
+      required: false,
+      defaultValue: '',
+    },
+    fromResponseFn: (val: {
+      publiclyTraded?: unknown;
+      isSubsidiary?: boolean;
+    }) => {
+      if (!val?.publiclyTraded) return 'none';
+      return val.isSubsidiary ? 'subsidiary' : 'ptc';
+    },
+    toStringFn: (val) => {
+      if (val === 'ptc')
+        return i18n.t(
+          'onboarding-overview:fields.isPTCOrSubsidiary.options.ptc'
+        );
+      if (val === 'subsidiary')
+        return i18n.t(
+          'onboarding-overview:fields.isPTCOrSubsidiary.options.subsidiary'
+        );
+      return i18n.t(
+        'onboarding-overview:fields.isPTCOrSubsidiary.options.none'
+      );
+    },
+  },
+  /**
+   * Whether the organization is a subsidiary of a PTC.
+   * Derived from isPTCOrSubsidiary ('subsidiary' → true, 'ptc' → false).
+   * Injected by GatewayScreen onSubmit.
+   */
+  isSubsidiary: {
+    path: 'organizationDetails.isSubsidiary',
+    baseRule: {
+      display: 'visible',
+      required: false,
+      defaultValue: '',
+    },
+    fromResponseFn: (val: boolean) => (val ? 'true' : 'false'),
+    toRequestFn: (val: string): boolean => val === 'true',
+  },
+  /**
+   * Ticker symbol of the publicly traded company.
+   * If subsidiary, this is the parent PTC's ticker.
+   */
+  tickerSymbol: {
+    path: 'organizationDetails.publiclyTraded.tickerSymbol',
+    baseRule: {
+      display: 'visible',
+      required: false,
+      defaultValue: '',
+    },
+  },
+  /**
+   * Stock exchange where the PTC is traded (MIC code or "Other").
+   */
+  stockExchange: {
+    path: 'organizationDetails.publiclyTraded.stockExchange',
+    baseRule: {
+      display: 'visible',
+      required: false,
+      defaultValue: '',
+    },
+  },
+  /**
+   * Name of the stock exchange when stockExchange is "Other".
+   */
+  stockExchangeName: {
+    path: 'organizationDetails.publiclyTraded.stockExchangeName',
+    baseRule: {
+      display: 'visible',
+      required: false,
+      defaultValue: '',
+    },
+  },
+  // #endregion PTC
   // secondaryMccList: {
   //   path: 'organizationDetails.secondaryMccList',
   //   baseRule: {

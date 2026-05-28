@@ -31,5 +31,6 @@ export {
   CommandEmpty,
   CommandGroup,
   CommandItem,
+  CommandSeparator,
   CommandShortcut,
 } from './command';

@@ -273,6 +273,7 @@
       "title": "Commençons",
       "description": "Sélectionnez votre type d'entreprise et nous vous expliquerons les renseignements nécessaires pour compléter cette demande.",
       "nextButton": "Commencer",
+      "ptcLockedAlert": "Le statut de société cotée en bourse de votre organisation a été enregistré et ne peut pas être supprimé. Certaines options sont restreintes.",
       "infoAlert": {
         "title": "Est-ce bien vous?",
         "description": "Pour protéger vos renseignements de compte, nous nous attendons à ce que la personne qui remplit cette demande détienne le contrôle principal des opérations financières et commerciales de l'entreprise. Si ce n'est pas votre cas, veuillez ne pas continuer ci-dessous."
@@ -368,6 +369,13 @@
           "description": "Les renseignements de votre entreprise ont été vérifiés"
         },
         "businessTypeLabel": "Votre type d'entreprise sélectionné",
+        "ptcLabel": "Société cotée en bourse",
+        "ptcSubsidiaryLabel": "Filiale d'une société cotée en bourse",
+        "notPubliclyTraded": "Non cotée en bourse",
+        "notSubsidiary": "N'est pas une filiale d'une société cotée en bourse",
+        "ptcTicker": "Symbole : {{ticker}}",
+        "ptcExchange": "Bourse : {{exchange}}",
+        "ptcHint": "Si votre entreprise est cotée en bourse ou filiale d'une société cotée, sélectionnez Modifier pour ajouter ces renseignements.",
         "changeWarning": "Si vous modifiez ceci après avoir commencé la demande, vous pourriez perdre votre progression enregistrée.",
         "editBusinessType": "Modifier"
       },
@@ -454,15 +462,18 @@
       "steps": {
         "personalDetails": {
           "title": "Vos renseignements personnels",
-          "description": "Nous recueillons vos renseignements personnels en tant que personne principale contrôlant les opérations commerciales de l'entreprise."
+          "description": "Nous recueillons vos renseignements personnels en tant que personne principale contrôlant les opérations commerciales de l'entreprise.",
+          "requirementSummary": "Votre nom et titre de poste"
         },
         "identityDocument": {
           "title": "Vos pièces d'identité",
-          "description": "Nous avons besoin de renseignements supplémentaires pour confirmer votre identité."
+          "description": "Nous avons besoin de renseignements supplémentaires pour confirmer votre identité.",
+          "requirementSummary": "Identifiant gouvernemental (p. ex. numéro d'assurance sociale)"
         },
         "contactDetails": {
           "title": "Vos coordonnées",
           "description": "Nous avons besoin de renseignements supplémentaires pour confirmer votre identité.",
+          "requirementSummary": "Adresse et coordonnées",
           "countryMismatchWarning": "Le pays de l'adresse ne correspond pas au pays de résidence ({{country}}). Vous pouvez toujours soumettre, mais veuillez vérifier que c'est correct."
         },
         "checkAnswers": {
@@ -1087,6 +1098,60 @@
       "tooltip": "",
       "label": "Mon entreprise n'a pas de site Web"
     },
+    "isPTCOrSubsidiary": {
+      "label": "Votre organisation est-elle cotée en bourse ou une filiale d'une société cotée en bourse?",
+      "labelSubsidiaryOnly": "Votre organisation est-elle une filiale d'une société cotée en bourse?",
+      "description": "",
+      "tooltip": "Une société cotée en bourse (SCB) est inscrite à une bourse. Une filiale d'une SCB est une organisation dont 51 % ou plus de sa propriété est détenue par une SCB.",
+      "options": {
+        "none": "Non",
+        "ptc": "Oui, mon organisation est cotée en bourse",
+        "subsidiary": "Oui, mon organisation est une filiale d'une société cotée en bourse"
+      }
+    },
+    "tickerSymbol": {
+      "label": "Symbole boursier",
+      "labelSubsidiary": "Symbole boursier de la société mère",
+      "description": "Le symbole boursier",
+      "descriptionSubsidiary": "Entrez le symbole boursier de la société mère cotée en bourse",
+      "tooltip": "",
+      "placeholder": "p. ex. JPM",
+      "fieldName": "Symbole boursier",
+      "validation": {
+        "required": "$t(validation:required)",
+        "pattern": "Le symbole boursier doit contenir uniquement des lettres majuscules et des chiffres",
+        "maxLength": "$t(validation:text.maxLength, {'count': 10})"
+      }
+    },
+    "stockExchange": {
+      "label": "Bourse",
+      "labelSubsidiary": "Bourse de la société mère",
+      "description": "Si cotée sur plusieurs bourses, sélectionnez la bourse de cotation principale",
+      "descriptionSubsidiary": "Si cotée sur plusieurs bourses, sélectionnez la bourse de cotation principale de la société mère",
+      "tooltip": "",
+      "placeholder": "Rechercher une bourse",
+      "fieldName": "Bourse",
+      "groups": {
+        "priority": "Bourses prioritaires",
+        "otherMajor": "Autres bourses majeures",
+        "other": "Autre"
+      },
+      "otherOption": "Autre (non listée ci-dessus)",
+      "validation": {
+        "required": "$t(validation:required)"
+      }
+    },
+    "stockExchangeName": {
+      "label": "Nom de la bourse",
+      "description": "Veuillez entrer le nom de la bourse.",
+      "tooltip": "",
+      "placeholder": "p. ex. Bourse de Tokyo",
+      "fieldName": "Nom de la bourse",
+      "validation": {
+        "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 100})"
+      }
+    },
     "website": {
       "label": "Site Web de l'entreprise",
       "tooltip": "",
@@ -1279,6 +1344,7 @@
     "optional": "Facultatif"
   },
   "reviewAndAttest": {
+    "businessType": "Type d'entreprise",
     "notSubmittedYet": "Votre demande n'a pas encore été soumise. Vérifiez vos données et continuez pour terminer.",
     "thereIsAProblem": "Il y a un problème",
     "provideMissingDetails": "Veuillez fournir les détails manquants avant de terminer votre demande.",

@@ -316,6 +316,7 @@
       "title": "Let's help you get started",
       "description": "Select your business type and we'll explain what information you'll need to complete this application.",
       "nextButton": "Get Started",
+      "ptcLockedAlert": "Your organization's publicly traded status has been saved and cannot be removed. Some options are restricted.",
       "infoAlert": {
         "title": "Is this you?",
         "description": "To keep your account details safe, we expect that the person completing this application holds primary control over financial and business operations for the business. If this is not you, please don't proceed below."
@@ -411,6 +412,13 @@
           "description": "Your business details have been verified"
         },
         "businessTypeLabel": "Your selected business type",
+        "ptcLabel": "Publicly traded",
+        "ptcSubsidiaryLabel": "Subsidiary of publicly traded company",
+        "notPubliclyTraded": "Not publicly traded",
+        "notSubsidiary": "Not a subsidiary of a publicly traded company",
+        "ptcTicker": "Ticker: {{ticker}}",
+        "ptcExchange": "Exchange: {{exchange}}",
+        "ptcHint": "If your company is publicly traded or a subsidiary of one, select Edit to add that information.",
         "changeWarning": "If you change this after starting the application, you may lose your saved progress.",
         "editBusinessType": "Edit"
       },
@@ -509,15 +517,18 @@
       "steps": {
         "personalDetails": {
           "title": "Your personal details",
-          "description": "We collect your personal information as the primary person controlling business operations for the company."
+          "description": "We collect your personal information as the primary person controlling business operations for the company.",
+          "requirementSummary": "Your name and job title"
         },
         "identityDocument": {
           "title": "Your ID details",
-          "description": "We need some additional details to confirm your identity."
+          "description": "We need some additional details to confirm your identity.",
+          "requirementSummary": "Government issued identifier (e.g. social security number)"
         },
         "contactDetails": {
           "title": "Your contact details",
           "description": "We need some additional details to confirm your identity.",
+          "requirementSummary": "Address and contact details",
           "countryMismatchWarning": "Address country does not match country of residence ({{country}}). You may still submit, but please verify this is correct."
         },
         "checkAnswers": {
@@ -549,6 +560,10 @@
         "checkAnswers": {
           "title": "Check your answers",
           "description": "Please ensure your answers are accurate and complete anything you may have missed."
+        },
+        "publiclyTraded": {
+          "title": "Publicly traded information",
+          "description": "If your organization is publicly traded or a subsidiary of a publicly traded company, please provide the trading details."
         }
       }
     },
@@ -1142,6 +1157,60 @@
       "tooltip": "",
       "label": "My business doesn't have a website"
     },
+    "isPTCOrSubsidiary": {
+      "label": "Is your organization publicly traded, or a subsidiary of a publicly traded company?",
+      "labelSubsidiaryOnly": "Is your organization a subsidiary of a publicly traded company?",
+      "description": "",
+      "tooltip": "A publicly traded company (PTC) is listed on a stock exchange. A subsidiary of a PTC is an organization where 51% or more of its ownership is held by a PTC.",
+      "options": {
+        "none": "No",
+        "ptc": "Yes, my organization is publicly traded",
+        "subsidiary": "Yes, my organization is a subsidiary of a publicly traded company"
+      }
+    },
+    "tickerSymbol": {
+      "label": "Ticker symbol",
+      "labelSubsidiary": "Parent company ticker symbol",
+      "description": "The stock ticker symbol",
+      "descriptionSubsidiary": "Enter the ticker symbol of the publicly traded parent company",
+      "tooltip": "",
+      "placeholder": "e.g. JPM",
+      "fieldName": "Ticker symbol",
+      "validation": {
+        "required": "$t(validation:required)",
+        "pattern": "Ticker symbol must contain only uppercase letters and numbers",
+        "maxLength": "$t(validation:text.maxLength, {'count': 10})"
+      }
+    },
+    "stockExchange": {
+      "label": "Stock exchange",
+      "labelSubsidiary": "Parent company stock exchange",
+      "description": "If listed on multiple exchanges, select the primary listing exchange",
+      "descriptionSubsidiary": "If listed on multiple exchanges, select the primary listing exchange of the parent company",
+      "tooltip": "",
+      "placeholder": "Search for a stock exchange",
+      "fieldName": "Stock exchange",
+      "groups": {
+        "priority": "Priority Exchanges",
+        "otherMajor": "Other Major Exchanges",
+        "other": "Other"
+      },
+      "otherOption": "Other (not listed above)",
+      "validation": {
+        "required": "$t(validation:required)"
+      }
+    },
+    "stockExchangeName": {
+      "label": "Stock exchange name",
+      "description": "Please enter the name of the stock exchange.",
+      "tooltip": "",
+      "placeholder": "e.g. Tokyo Stock Exchange",
+      "fieldName": "Stock exchange name",
+      "validation": {
+        "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 100})"
+      }
+    },
     "website": {
       "label": "Business website",
       "tooltip": "",
@@ -1334,6 +1403,7 @@
     "optional": "Optional"
   },
   "reviewAndAttest": {
+    "businessType": "Business type",
     "notSubmittedYet": "Your application is not submitted yet. Review your data and continue to finish.",
     "thereIsAProblem": "There is a problem",
     "provideMissingDetails": "Please provide missing details before finishing your application.",

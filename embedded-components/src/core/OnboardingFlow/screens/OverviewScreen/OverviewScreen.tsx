@@ -38,10 +38,17 @@ import {
 } from '@/components/ui';
 import { StepLayout } from '@/core/OnboardingFlow/components';
 import {
+  MAJOR_STOCK_EXCHANGES,
+  PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES,
+} from '@/core/OnboardingFlow/consts/stockExchanges';
+import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
-import { getPartyByAssociatedPartyFilters } from '@/core/OnboardingFlow/utils/dataUtils';
+import {
+  getOrganizationParty,
+  getPartyByAssociatedPartyFilters,
+} from '@/core/OnboardingFlow/utils/dataUtils';
 import { getLinkAccountEnabled } from '@/core/OnboardingFlow/utils/getLinkAccountEnabled';
 import { RecipientAccountDisplayCard } from '@/core/RecipientWidgets/components/RecipientAccountDisplayCard/RecipientAccountDisplayCard';
 import { RecipientDetailsDialog } from '@/core/RecipientWidgets/components/RecipientDetailsDialog/RecipientDetailsDialog';
@@ -64,6 +71,7 @@ export const OverviewScreen = () => {
     linkAccountStepOptions,
     showDownloadChecklist,
     hideLinkedAccountRemoval,
+    enablePubliclyTradedCompanies,
   } = useOnboardingContext();
   const {
     currentScreenId,
@@ -94,6 +102,23 @@ export const OverviewScreen = () => {
   );
 
   const organizationTypeText = t(`organizationTypes.${organizationType!}`);
+
+  // PTC info for display in the business type section
+  const orgParty = getOrganizationParty(clientData);
+  const publiclyTraded = enablePubliclyTradedCompanies
+    ? orgParty?.organizationDetails?.publiclyTraded
+    : undefined;
+  const isSubsidiary = orgParty?.organizationDetails?.isSubsidiary;
+  const stockExchangeDisplayName = useMemo(() => {
+    if (!publiclyTraded?.stockExchange) return undefined;
+    if (publiclyTraded.stockExchange === 'Other') {
+      return publiclyTraded.stockExchangeName ?? 'Other';
+    }
+    const match = MAJOR_STOCK_EXCHANGES.find(
+      ([code]) => code === publiclyTraded.stockExchange
+    );
+    return match ? `${match[1]} (${match[0]})` : publiclyTraded.stockExchange;
+  }, [publiclyTraded?.stockExchange, publiclyTraded?.stockExchangeName]);
 
   // Fetch document requests to check for outstanding requests
   const { data: documentRequestListResponse } = useSmbdoListDocumentRequests(
@@ -321,6 +346,43 @@ export const OverviewScreen = () => {
                       </Button>
                     </span>
 
+                    {publiclyTraded ? (
+                      <div className="eb-mt-2 eb-space-y-1 eb-text-xs eb-text-muted-foreground">
+                        <p className="eb-font-medium">
+                          {isSubsidiary
+                            ? t(
+                                'screens.overview.verifyBusinessSection.ptcSubsidiaryLabel'
+                              )
+                            : t(
+                                'screens.overview.verifyBusinessSection.ptcLabel'
+                              )}
+                        </p>
+                        <p>
+                          {t(
+                            'screens.overview.verifyBusinessSection.ptcTicker',
+                            { ticker: publiclyTraded.tickerSymbol }
+                          )}
+                        </p>
+                        {stockExchangeDisplayName && (
+                          <p>
+                            {t(
+                              'screens.overview.verifyBusinessSection.ptcExchange',
+                              { exchange: stockExchangeDisplayName }
+                            )}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      enablePubliclyTradedCompanies &&
+                      PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES.includes(
+                        organizationType as any
+                      ) && (
+                        <p className="eb-mt-2 eb-text-xs eb-text-muted-foreground">
+                          {t('screens.overview.verifyBusinessSection.ptcHint')}
+                        </p>
+                      )
+                    )}
+
                     <p className="eb-mt-3 eb-flex eb-gap-2 eb-text-xs eb-italic eb-text-muted-foreground">
                       <span className="eb-sr-only">{t('common:warning')}:</span>
                       <AlertTriangleIcon
@@ -443,15 +505,25 @@ export const OverviewScreen = () => {
                     /> */}
                         </div>
                       </div>
-                      {section.sectionConfig.requirementsList && (
-                        <ul className="eb-mt-1.5 eb-w-full eb-list-disc eb-whitespace-break-spaces eb-pl-8 eb-text-start eb-font-sans eb-text-sm eb-font-normal">
-                          {section.sectionConfig.requirementsList.map(
-                            (item, index) => (
+                      {(() => {
+                        // Derive requirements from visible steps' requirementSummary,
+                        // falling back to static requirementsList if no steps have summaries
+                        const stepSummaries =
+                          section.stepperConfig?.steps
+                            .map((step) => step.requirementSummary)
+                            .filter(Boolean) ?? [];
+                        const items =
+                          stepSummaries.length > 0
+                            ? stepSummaries
+                            : section.sectionConfig.requirementsList;
+                        return items && items.length > 0 ? (
+                          <ul className="eb-mt-1.5 eb-w-full eb-list-disc eb-whitespace-break-spaces eb-pl-8 eb-text-start eb-font-sans eb-text-sm eb-font-normal">
+                            {items.map((item, index) => (
                               <li key={index}>{item}</li>
-                            )
-                          )}
-                        </ul>
-                      )}
+                            ))}
+                          </ul>
+                        ) : null;
+                      })()}
                       <div className="eb-flex eb-justify-end">
                         <Button
                           variant={

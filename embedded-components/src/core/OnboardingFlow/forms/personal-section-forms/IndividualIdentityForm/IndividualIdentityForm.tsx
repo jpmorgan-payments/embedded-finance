@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
+import { useFlowContext } from '@/core/OnboardingFlow/contexts/FlowContext/FlowContext';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 import { useFormUtils } from '@/core/OnboardingFlow/utils/formUtils';
 
@@ -35,6 +36,7 @@ export const IndividualIdentityForm: FormStepComponent = () => {
       z.input<ReturnType<typeof useIndividualIdentityFormSchema>>
     >();
   const { getFieldRule } = useFormUtils();
+  const { isPTCWithUSExchange } = useFlowContext();
 
   const issuerCountry = form.watch('controllerIds.0.issuer');
   const isUS = issuerCountry === 'US';
@@ -115,7 +117,7 @@ export const IndividualIdentityForm: FormStepComponent = () => {
         }))}
         readonly
       />
-      {isUS && (
+      {!isPTCWithUSExchange && isUS && (
         <OnboardingFormField
           control={form.control}
           name="solePropSsn"
@@ -125,77 +127,78 @@ export const IndividualIdentityForm: FormStepComponent = () => {
           obfuscateWhenUnfocused
         />
       )}
-      {getFieldRule('controllerIds.0.value').fieldRule.display ===
-        'visible' && (
-        <div className="eb-space-y-3">
-          {!isUS && (
-            <OnboardingFormField
-              control={form.control}
-              name="controllerIds.0.idType"
-              type="select"
-              label={t([
-                'onboarding-overview:fields.controllerIds.idType.label',
-                'onboarding-old:fields.controllerIds.idType.label',
-              ])}
-              description={t([
-                'onboarding-overview:fields.controllerIds.idType.description',
-              ])}
-              options={NON_US_ID_TYPES.map((idType) => ({
-                value: idType,
-                label: getValueLabel(idType),
-              }))}
-              required
-              disableFieldRuleMapping
-            />
-          )}
-          {(isUS || currentIdType) && (
-            <OnboardingFormField
-              key={currentIdType}
-              control={form.control}
-              name="controllerIds.0.value"
-              type="text"
-              maskFormat={isSsnOrItin ? '### - ## - ####' : undefined}
-              maskChar={isSsnOrItin ? '_' : undefined}
-              label={getValueLabel(currentIdType)}
-              description={getValueDescription(currentIdType)}
-              obfuscateWhenUnfocused={isSsnOrItin}
-              inputProps={{
-                // Give each ID type a unique DOM name so the browser
-                // keeps separate autocomplete histories per type.
-                // RHF tracks this field via ref, not the DOM name.
-                name: `id-value-${currentIdType?.toLowerCase() || 'none'}`,
-              }}
-            />
-          )}
+      {!isPTCWithUSExchange &&
+        getFieldRule('controllerIds.0.value').fieldRule.display ===
+          'visible' && (
+          <div className="eb-space-y-3">
+            {!isUS && (
+              <OnboardingFormField
+                control={form.control}
+                name="controllerIds.0.idType"
+                type="select"
+                label={t([
+                  'onboarding-overview:fields.controllerIds.idType.label',
+                  'onboarding-old:fields.controllerIds.idType.label',
+                ])}
+                description={t([
+                  'onboarding-overview:fields.controllerIds.idType.description',
+                ])}
+                options={NON_US_ID_TYPES.map((idType) => ({
+                  value: idType,
+                  label: getValueLabel(idType),
+                }))}
+                required
+                disableFieldRuleMapping
+              />
+            )}
+            {(isUS || currentIdType) && (
+              <OnboardingFormField
+                key={currentIdType}
+                control={form.control}
+                name="controllerIds.0.value"
+                type="text"
+                maskFormat={isSsnOrItin ? '### - ## - ####' : undefined}
+                maskChar={isSsnOrItin ? '_' : undefined}
+                label={getValueLabel(currentIdType)}
+                description={getValueDescription(currentIdType)}
+                obfuscateWhenUnfocused={isSsnOrItin}
+                inputProps={{
+                  // Give each ID type a unique DOM name so the browser
+                  // keeps separate autocomplete histories per type.
+                  // RHF tracks this field via ref, not the DOM name.
+                  name: `id-value-${currentIdType?.toLowerCase() || 'none'}`,
+                }}
+              />
+            )}
 
-          {isUS && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" type="button" size="sm" className="">
-                  Use a different ID type
-                  <ChevronDownIcon />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="eb-component">
-                {availableIdTypes.map((idType) => (
-                  <DropdownMenuItem
-                    key={idType}
-                    disabled={form.watch('controllerIds.0.idType') === idType}
-                    onClick={() => {
-                      form.setValue('controllerIds.0.idType', idType);
-                      form.setValue('controllerIds.0.value', '');
-                    }}
-                  >
-                    <div className="eb-flex eb-items-center eb-gap-2">
-                      {getValueLabel(idType)}
-                    </div>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
-      )}
+            {isUS && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" type="button" size="sm" className="">
+                    Use a different ID type
+                    <ChevronDownIcon />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="eb-component">
+                  {availableIdTypes.map((idType) => (
+                    <DropdownMenuItem
+                      key={idType}
+                      disabled={form.watch('controllerIds.0.idType') === idType}
+                      onClick={() => {
+                        form.setValue('controllerIds.0.idType', idType);
+                        form.setValue('controllerIds.0.value', '');
+                      }}
+                    >
+                      <div className="eb-flex eb-items-center eb-gap-2">
+                        {getValueLabel(idType)}
+                      </div>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+        )}
     </div>
   );
 };

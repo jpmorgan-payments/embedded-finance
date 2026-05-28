@@ -37,6 +37,7 @@ import {
   clientHasOutstandingDocRequests,
   getActiveOwners,
   getOrganizationParty,
+  isUSExchangePTC,
 } from '@/core/OnboardingFlow/utils/dataUtils';
 import { getStepperValidation } from '@/core/OnboardingFlow/utils/flowUtils';
 
@@ -209,6 +210,9 @@ const sectionScreens: SectionScreenConfig[] = [
           description: i18n.t(
             'onboarding-overview:screens.personalSection.steps.personalDetails.description'
           ),
+          requirementSummary: i18n.t(
+            'onboarding-overview:screens.personalSection.steps.personalDetails.requirementSummary'
+          ),
           Component: PersonalDetailsForm,
         },
         {
@@ -220,7 +224,11 @@ const sectionScreens: SectionScreenConfig[] = [
           description: i18n.t(
             'onboarding-overview:screens.personalSection.steps.identityDocument.description'
           ),
+          requirementSummary: i18n.t(
+            'onboarding-overview:screens.personalSection.steps.identityDocument.requirementSummary'
+          ),
           Component: IndividualIdentityForm,
+          isVisible: (ctx) => !isUSExchangePTC(ctx.orgParty),
         },
         {
           id: 'contact-details',
@@ -230,6 +238,9 @@ const sectionScreens: SectionScreenConfig[] = [
           stepType: 'form',
           description: i18n.t(
             'onboarding-overview:screens.personalSection.steps.contactDetails.description'
+          ),
+          requirementSummary: i18n.t(
+            'onboarding-overview:screens.personalSection.steps.contactDetails.requirementSummary'
           ),
           Component: ContactDetailsForm,
         },
@@ -361,7 +372,9 @@ const sectionScreens: SectionScreenConfig[] = [
     isSection: true,
     type: 'component',
     sectionConfig: {
-      excludedForOrgTypes: ['SOLE_PROPRIETORSHIP'],
+      isVisible: (ctx) =>
+        ctx.orgParty?.organizationDetails?.organizationType !==
+          'SOLE_PROPRIETORSHIP' && !isUSExchangePTC(ctx.orgParty),
       label: i18n.t('onboarding-overview:screens.ownersSection.label'),
       shortLabel: i18n.t(
         'onboarding-overview:screens.ownersSection.shortLabel'

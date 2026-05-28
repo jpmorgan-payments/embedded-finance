@@ -30,20 +30,29 @@ export type FormStepComponent<TSchema extends DefaultSchema = DefaultSchema> =
     };
   };
 
-export type StepConfig = BaseStep | FormStep;
+export interface VisibilityContext {
+  orgParty: PartyResponse | undefined;
+}
 
-export interface BaseStep {
+export type VisibilityPredicate = (ctx: VisibilityContext) => boolean;
+
+interface StepBase {
   id: string;
   title: string;
   description?: string;
-  stepType: 'static' | 'check-answers'; // add future step types here
+  /** Short summary shown in the overview requirements list for this step. */
+  requirementSummary?: string;
+  isVisible?: VisibilityPredicate;
+}
+
+export type StepConfig = BaseStep | FormStep;
+
+export interface BaseStep extends StepBase {
+  stepType: 'static' | 'check-answers';
   Component?: React.ComponentType<StepperStepProps>;
 }
 
-export interface FormStep {
-  id: string;
-  title: string;
-  description?: string;
+export interface FormStep extends StepBase {
   stepType: 'form';
   Component: FormStepComponent;
 }
@@ -84,7 +93,7 @@ export type SectionScreenConfig = BaseScreenConfig & {
     helpText?: string;
     onHoldText?: string;
     requirementsList?: string[];
-    excludedForOrgTypes?: string[];
+    isVisible?: VisibilityPredicate;
     statusResolver?: (
       sessionData: FlowSessionData,
       clientData: ClientResponse | undefined,

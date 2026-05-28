@@ -1111,6 +1111,16 @@ export const commonArgTypes = {
       defaultValue: { summary: '10485760' },
     },
   },
+  enablePubliclyTradedCompanies: {
+    control: { type: 'boolean' as const },
+    description:
+      'Enable Publicly Traded Company (PTC) onboarding support. ' +
+      'Non-sole-prop entities can declare themselves as a PTC or subsidiary.',
+    table: {
+      category: 'Feature Flags',
+      defaultValue: { summary: 'false' },
+    },
+  },
   // Hide callback props from controls
   onPostClientSettled: { table: { disable: true } },
   onPostPartySettled: { table: { disable: true } },

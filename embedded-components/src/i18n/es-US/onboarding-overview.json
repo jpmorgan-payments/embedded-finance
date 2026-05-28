@@ -273,6 +273,7 @@
       "title": "Comencemos",
       "description": "Seleccione su tipo de negocio y le explicaremos qué información necesitará para completar esta solicitud.",
       "nextButton": "Comenzar",
+      "ptcLockedAlert": "El estado de cotización en bolsa de su organización ha sido guardado y no se puede eliminar. Algunas opciones están restringidas.",
       "infoAlert": {
         "title": "¿Es usted?",
         "description": "Para mantener seguros los datos de su cuenta, esperamos que la persona que complete esta solicitud tenga el control principal sobre las operaciones financieras y comerciales del negocio. Si no es usted, por favor no continúe a continuación."
@@ -368,6 +369,13 @@
           "description": "Los datos de su negocio han sido verificados"
         },
         "businessTypeLabel": "Su tipo de negocio seleccionado",
+        "ptcLabel": "Empresa que cotiza en bolsa",
+        "ptcSubsidiaryLabel": "Filial de una empresa que cotiza en bolsa",
+        "notPubliclyTraded": "No cotiza en bolsa",
+        "notSubsidiary": "No es una subsidiaria de una empresa que cotiza en bolsa",
+        "ptcTicker": "Símbolo: {{ticker}}",
+        "ptcExchange": "Bolsa: {{exchange}}",
+        "ptcHint": "Si su empresa cotiza en bolsa o es subsidiaria de una que cotiza, seleccione Editar para agregar esa información.",
         "changeWarning": "Si cambia esto después de iniciar la solicitud, podría perder su progreso guardado.",
         "editBusinessType": "Editar"
       },
@@ -454,15 +462,18 @@
       "steps": {
         "personalDetails": {
           "title": "Sus datos personales",
-          "description": "Recopilamos su información personal como la persona principal que controla las operaciones comerciales de la empresa."
+          "description": "Recopilamos su información personal como la persona principal que controla las operaciones comerciales de la empresa.",
+          "requirementSummary": "Su nombre y cargo"
         },
         "identityDocument": {
           "title": "Sus datos de identificación",
-          "description": "Necesitamos algunos datos adicionales para confirmar su identidad."
+          "description": "Necesitamos algunos datos adicionales para confirmar su identidad.",
+          "requirementSummary": "Identificador gubernamental (p. ej., número de seguro social)"
         },
         "contactDetails": {
           "title": "Sus datos de contacto",
           "description": "Necesitamos algunos datos adicionales para confirmar su identidad.",
+          "requirementSummary": "Dirección y datos de contacto",
           "countryMismatchWarning": "El país de la dirección no coincide con el país de residencia ({{country}}). Aún puede enviar, pero verifique que sea correcto."
         },
         "checkAnswers": {
@@ -1087,6 +1098,60 @@
       "tooltip": "",
       "label": "Mi negocio no tiene sitio web"
     },
+    "isPTCOrSubsidiary": {
+      "label": "¿Su organización cotiza en bolsa o es una subsidiaria de una empresa que cotiza en bolsa?",
+      "labelSubsidiaryOnly": "¿Su organización es una subsidiaria de una empresa que cotiza en bolsa?",
+      "description": "",
+      "tooltip": "Una empresa que cotiza en bolsa (ECB) está registrada en una bolsa de valores. Una subsidiaria de una ECB es una organización en la que el 51% o más de su propiedad es de una ECB.",
+      "options": {
+        "none": "No",
+        "ptc": "Sí, mi organización cotiza en bolsa",
+        "subsidiary": "Sí, mi organización es una subsidiaria de una empresa que cotiza en bolsa"
+      }
+    },
+    "tickerSymbol": {
+      "label": "Símbolo bursátil",
+      "labelSubsidiary": "Símbolo bursátil de la empresa matriz",
+      "description": "El símbolo bursátil",
+      "descriptionSubsidiary": "Ingrese el símbolo bursátil de la empresa matriz que cotiza en bolsa",
+      "tooltip": "",
+      "placeholder": "p. ej. JPM",
+      "fieldName": "Símbolo bursátil",
+      "validation": {
+        "required": "$t(validation:required)",
+        "pattern": "El símbolo bursátil debe contener solo letras mayúsculas y números",
+        "maxLength": "$t(validation:text.maxLength, {'count': 10})"
+      }
+    },
+    "stockExchange": {
+      "label": "Bolsa de valores",
+      "labelSubsidiary": "Bolsa de valores de la empresa matriz",
+      "description": "Si cotiza en múltiples bolsas, seleccione la bolsa de cotización principal",
+      "descriptionSubsidiary": "Si cotiza en múltiples bolsas, seleccione la bolsa de cotización principal de la empresa matriz",
+      "tooltip": "",
+      "placeholder": "Buscar una bolsa de valores",
+      "fieldName": "Bolsa de valores",
+      "groups": {
+        "priority": "Bolsas prioritarias",
+        "otherMajor": "Otras bolsas importantes",
+        "other": "Otro"
+      },
+      "otherOption": "Otro (no aparece en la lista)",
+      "validation": {
+        "required": "$t(validation:required)"
+      }
+    },
+    "stockExchangeName": {
+      "label": "Nombre de la bolsa de valores",
+      "description": "Por favor ingrese el nombre de la bolsa de valores.",
+      "tooltip": "",
+      "placeholder": "p. ej. Bolsa de Tokio",
+      "fieldName": "Nombre de la bolsa de valores",
+      "validation": {
+        "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 100})"
+      }
+    },
     "website": {
       "label": "Sitio web de la empresa",
       "tooltip": "",
@@ -1279,6 +1344,7 @@
     "optional": "Opcional"
   },
   "reviewAndAttest": {
+    "businessType": "Tipo de negocio",
     "notSubmittedYet": "Su solicitud aún no ha sido enviada. Revise sus datos y continúe para finalizar.",
     "thereIsAProblem": "Hay un problema",
     "provideMissingDetails": "Proporcione los detalles faltantes antes de finalizar su solicitud.",
