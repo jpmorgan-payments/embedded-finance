@@ -4,6 +4,7 @@ import type {
 } from '@jpmorgan-payments/embedded-finance-components';
 
 import type { ThemeOption } from '@/components/sellsense/use-sellsense-themes';
+import { TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID } from '@/mocks/testScenarioHealthBenefitClient.mock';
 import { TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID } from '@/mocks/testScenarioMultiLinkedIllustrationClient.mock';
 import { TEST_DEMO_SCENARIO_CLIENT_ID } from '@/mocks/testScenarioOperator80Client.mock';
 import type { TestDemoScenarioMode, TestScenarioBundleId } from '@/msw/db';
@@ -164,19 +165,6 @@ const MULTI_LINK_DEMO_PROFILES: TestScenarioLoginProfile[] = [
   ...MULTI_LINK_START_PROFILES,
 ];
 
-const NO_LINK_PROFILES: TestScenarioLoginProfile[] = [
-  {
-    email: 'happy-path@demo.test',
-    label: 'Happy path \u2013 no document request, no micro deposits',
-    scenario: 'happy-path',
-  },
-  {
-    email: 'docs-requested@demo.test',
-    label: 'Unhappy path \u2013 straight to document request',
-    scenario: 'doc-request',
-  },
-];
-
 const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
   'test-scenario': {
     id: 'test-scenario',
@@ -258,15 +246,79 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
   },
   'test-scenario-3': {
     id: 'test-scenario-3',
-    headerOrgDisplayName: 'Operator 80 Palo Alto CA',
-    theme: 'PayFicient',
+    headerOrgDisplayName: 'Health & Benefit Solutions, LLC',
+    theme: 'Empty',
     contentTokens: buildContentTokens({
-      controllerJobTitle: 'Position',
-      controllerJobTitleDescription: 'Position summary',
+      controllerJobTitle: 'Role',
+      controllerJobTitleDescription: 'Role details',
     }),
-    showLinkAccountStep: false,
-    clientId: TEST_DEMO_SCENARIO_CLIENT_ID,
-    loginProfiles: NO_LINK_PROFILES,
+    showLinkAccountStep: true,
+    clientId: TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
+    linkAccountStepOptions: {
+      completionMode: 'editable',
+      allowMultipleAccounts: true,
+      existingAccountsDisplay: 'compact',
+      initialValues: {},
+    },
+    onboardingFlow: {
+      availableProducts: ['EMBEDDED_PAYMENTS'],
+      availableJurisdictions: ['US'],
+      availableOrganizationTypes: ['LIMITED_LIABILITY_COMPANY'],
+      disclosureConfig: { platformName: 'Platform, Inc.' },
+      hideLinkedAccountRemoval: false,
+      priorityIndustryCodes: [
+        '524113',
+        '524114',
+        '524126',
+        '524127',
+        '524128',
+        '524130',
+        '524210',
+        '524291',
+        '524292',
+        '524298',
+        '621111',
+        '621112',
+        '621210',
+        '621310',
+        '621320',
+        '621330',
+        '621340',
+        '621391',
+        '621399',
+        '621410',
+        '621420',
+        '621491',
+        '621492',
+        '621493',
+        '621498',
+        '621511',
+        '621512',
+        '621610',
+        '621910',
+        '621991',
+        '621999',
+        '622110',
+        '622210',
+        '622310',
+        '623110',
+        '623210',
+        '623220',
+        '623311',
+        '623312',
+        '623990',
+        '624110',
+        '624120',
+        '624190',
+        '624210',
+        '624221',
+        '624229',
+        '624230',
+        '624310',
+        '624410',
+      ],
+    },
+    loginProfiles: MULTI_LINK_DEMO_PROFILES,
   },
 };
 
