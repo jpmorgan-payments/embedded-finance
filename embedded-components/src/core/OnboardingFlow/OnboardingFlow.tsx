@@ -6,10 +6,7 @@ import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
-import {
-  useClientId,
-  useInterceptorStatus,
-} from '@/core/EBComponentsProvider/EBComponentsProvider';
+import { useClientId } from '@/core/EBComponentsProvider/EBComponentsProvider';
 import {
   getOrganizationParty,
   getPartyByAssociatedPartyFilters,
@@ -56,15 +53,13 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   // Force sidebar hidden in docUploadOnlyMode
   const effectiveHideSidebar = hideSidebar || !!props.docUploadOnlyMode;
 
-  const { interceptorReady } = useInterceptorStatus();
-
   const {
     data: clientData,
     status: clientGetStatus,
     error: clientGetError,
   } = useSmbdoGetClient(clientId, {
     query: {
-      enabled: !!clientId && interceptorReady, // Only fetch if clientId is defined AND interceptor is ready
+      enabled: !!clientId,
       refetchOnWindowFocus: true,
       refetchInterval: 60000, // Refetch every 60 seconds
     },
@@ -260,8 +255,6 @@ const FlowRenderer: React.FC = React.memo(() => {
     currentScreenId
   );
 
-  const { interceptorReady } = useInterceptorStatus();
-
   const linkAccountEnabled = getLinkAccountEnabled(
     clientData,
     linkAccountEnabledStatuses
@@ -272,7 +265,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     { type: 'LINKED_ACCOUNT', clientId: clientData?.id },
     {
       query: {
-        enabled: interceptorReady && !!showLinkAccountStep && !!clientData?.id,
+        enabled: !!showLinkAccountStep && !!clientData?.id,
       },
     }
   );

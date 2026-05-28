@@ -5,6 +5,7 @@
  * Streamline how you set up, manage, and verify payees by creating, updating, listing, and validating recipients for your payment transactions. This helps keep your payment workflows organized and secure without manual tracking.
  * OpenAPI spec version: 1.0.47
  */
+import { useCallback } from 'react';
 import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import type {
   DataTag,
@@ -25,8 +26,8 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query';
 
-import { ebInstance } from '../axios-instance';
-import type { BodyType, ErrorType } from '../axios-instance';
+import { useEbInstance } from '../use-axios-instance';
+import type { BodyType, ErrorType } from '../use-axios-instance';
 import type {
   GetAllRecipientsParams,
   ListRecipientsResponse,
@@ -49,14 +50,21 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
  * Returns a list of all recipients for a given client profile.
  * @summary List recipients
  */
-export const getAllRecipients = (
-  params?: GetAllRecipientsParams,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
-) => {
-  return ebInstance<ListRecipientsResponse>(
-    { url: `/recipients`, method: 'GET', params, signal },
-    options
+export const useGetAllRecipientsHook = () => {
+  const getAllRecipients = useEbInstance<ListRecipientsResponse>();
+
+  return useCallback(
+    (
+      params?: GetAllRecipientsParams,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getAllRecipients(
+        { url: `/recipients`, method: 'GET', params, signal },
+        options
+      );
+    },
+    [getAllRecipients]
   );
 };
 
@@ -72,9 +80,9 @@ export const getGetAllRecipientsQueryKey = (
   return [`/recipients`, ...(params ? [params] : [])] as const;
 };
 
-export const getGetAllRecipientsInfiniteQueryOptions = <
+export const useGetAllRecipientsInfiniteQueryOptions = <
   TData = InfiniteData<
-    Awaited<ReturnType<typeof getAllRecipients>>,
+    Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
     GetAllRecipientsParams['page']
   >,
   TError = ErrorType<
@@ -90,14 +98,14 @@ export const getGetAllRecipientsInfiniteQueryOptions = <
   options?: {
     query?: Partial<
       UseInfiniteQueryOptions<
-        Awaited<ReturnType<typeof getAllRecipients>>,
+        Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
         TError,
         TData,
         QueryKey,
         GetAllRecipientsParams['page']
       >
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   }
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -105,20 +113,21 @@ export const getGetAllRecipientsInfiniteQueryOptions = <
   const queryKey =
     queryOptions?.queryKey ?? getGetAllRecipientsInfiniteQueryKey(params);
 
+  const getAllRecipients = useGetAllRecipientsHook();
+
   const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof getAllRecipients>>,
+    Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
     QueryKey,
     GetAllRecipientsParams['page']
   > = ({ signal, pageParam }) =>
     getAllRecipients(
-      // eslint-disable-next-line @typescript-eslint/dot-notation
-      { ...params, page: pageParam || params?.['page'] },
+      { ...params, page: pageParam || params?.page },
       requestOptions,
       signal
     );
 
   return { queryKey, queryFn, ...queryOptions } as UseInfiniteQueryOptions<
-    Awaited<ReturnType<typeof getAllRecipients>>,
+    Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
     TError,
     TData,
     QueryKey,
@@ -127,7 +136,7 @@ export const getGetAllRecipientsInfiniteQueryOptions = <
 };
 
 export type GetAllRecipientsInfiniteQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getAllRecipients>>
+  Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>
 >;
 export type GetAllRecipientsInfiniteQueryError = ErrorType<
   | N400Response
@@ -140,7 +149,7 @@ export type GetAllRecipientsInfiniteQueryError = ErrorType<
 
 export function useGetAllRecipientsInfinite<
   TData = InfiniteData<
-    Awaited<ReturnType<typeof getAllRecipients>>,
+    Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
     GetAllRecipientsParams['page']
   >,
   TError = ErrorType<
@@ -156,7 +165,7 @@ export function useGetAllRecipientsInfinite<
   options: {
     query: Partial<
       UseInfiniteQueryOptions<
-        Awaited<ReturnType<typeof getAllRecipients>>,
+        Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
         TError,
         TData,
         QueryKey,
@@ -165,14 +174,14 @@ export function useGetAllRecipientsInfinite<
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getAllRecipients>>,
+          Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
           TError,
-          Awaited<ReturnType<typeof getAllRecipients>>,
+          Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
           QueryKey
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): DefinedUseInfiniteQueryResult<TData, TError> & {
@@ -180,7 +189,7 @@ export function useGetAllRecipientsInfinite<
 };
 export function useGetAllRecipientsInfinite<
   TData = InfiniteData<
-    Awaited<ReturnType<typeof getAllRecipients>>,
+    Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
     GetAllRecipientsParams['page']
   >,
   TError = ErrorType<
@@ -196,7 +205,7 @@ export function useGetAllRecipientsInfinite<
   options?: {
     query?: Partial<
       UseInfiniteQueryOptions<
-        Awaited<ReturnType<typeof getAllRecipients>>,
+        Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
         TError,
         TData,
         QueryKey,
@@ -205,14 +214,14 @@ export function useGetAllRecipientsInfinite<
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getAllRecipients>>,
+          Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
           TError,
-          Awaited<ReturnType<typeof getAllRecipients>>,
+          Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
           QueryKey
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseInfiniteQueryResult<TData, TError> & {
@@ -220,7 +229,7 @@ export function useGetAllRecipientsInfinite<
 };
 export function useGetAllRecipientsInfinite<
   TData = InfiniteData<
-    Awaited<ReturnType<typeof getAllRecipients>>,
+    Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
     GetAllRecipientsParams['page']
   >,
   TError = ErrorType<
@@ -236,14 +245,14 @@ export function useGetAllRecipientsInfinite<
   options?: {
     query?: Partial<
       UseInfiniteQueryOptions<
-        Awaited<ReturnType<typeof getAllRecipients>>,
+        Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
         TError,
         TData,
         QueryKey,
         GetAllRecipientsParams['page']
       >
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseInfiniteQueryResult<TData, TError> & {
@@ -255,7 +264,7 @@ export function useGetAllRecipientsInfinite<
 
 export function useGetAllRecipientsInfinite<
   TData = InfiniteData<
-    Awaited<ReturnType<typeof getAllRecipients>>,
+    Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
     GetAllRecipientsParams['page']
   >,
   TError = ErrorType<
@@ -271,20 +280,20 @@ export function useGetAllRecipientsInfinite<
   options?: {
     query?: Partial<
       UseInfiniteQueryOptions<
-        Awaited<ReturnType<typeof getAllRecipients>>,
+        Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
         TError,
         TData,
         QueryKey,
         GetAllRecipientsParams['page']
       >
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseInfiniteQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getGetAllRecipientsInfiniteQueryOptions(params, options);
+  const queryOptions = useGetAllRecipientsInfiniteQueryOptions(params, options);
 
   const query = useInfiniteQuery(
     queryOptions,
@@ -296,8 +305,8 @@ export function useGetAllRecipientsInfinite<
   return { ...query, queryKey: queryOptions.queryKey };
 }
 
-export const getGetAllRecipientsQueryOptions = <
-  TData = Awaited<ReturnType<typeof getAllRecipients>>,
+export const useGetAllRecipientsQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
   TError = ErrorType<
     | N400Response
     | N401Response
@@ -311,12 +320,12 @@ export const getGetAllRecipientsQueryOptions = <
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getAllRecipients>>,
+        Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
         TError,
         TData
       >
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   }
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -324,19 +333,21 @@ export const getGetAllRecipientsQueryOptions = <
   const queryKey =
     queryOptions?.queryKey ?? getGetAllRecipientsQueryKey(params);
 
+  const getAllRecipients = useGetAllRecipientsHook();
+
   const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof getAllRecipients>>
+    Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>
   > = ({ signal }) => getAllRecipients(params, requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getAllRecipients>>,
+    Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
 export type GetAllRecipientsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getAllRecipients>>
+  Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>
 >;
 export type GetAllRecipientsQueryError = ErrorType<
   | N400Response
@@ -348,7 +359,7 @@ export type GetAllRecipientsQueryError = ErrorType<
 >;
 
 export function useGetAllRecipients<
-  TData = Awaited<ReturnType<typeof getAllRecipients>>,
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
   TError = ErrorType<
     | N400Response
     | N401Response
@@ -362,27 +373,27 @@ export function useGetAllRecipients<
   options: {
     query: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getAllRecipients>>,
+        Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
         TError,
         TData
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getAllRecipients>>,
+          Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
           TError,
-          Awaited<ReturnType<typeof getAllRecipients>>
+          Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 export function useGetAllRecipients<
-  TData = Awaited<ReturnType<typeof getAllRecipients>>,
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
   TError = ErrorType<
     | N400Response
     | N401Response
@@ -396,27 +407,27 @@ export function useGetAllRecipients<
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getAllRecipients>>,
+        Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
         TError,
         TData
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getAllRecipients>>,
+          Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
           TError,
-          Awaited<ReturnType<typeof getAllRecipients>>
+          Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 export function useGetAllRecipients<
-  TData = Awaited<ReturnType<typeof getAllRecipients>>,
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
   TError = ErrorType<
     | N400Response
     | N401Response
@@ -430,12 +441,12 @@ export function useGetAllRecipients<
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getAllRecipients>>,
+        Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
         TError,
         TData
       >
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -446,7 +457,7 @@ export function useGetAllRecipients<
  */
 
 export function useGetAllRecipients<
-  TData = Awaited<ReturnType<typeof getAllRecipients>>,
+  TData = Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
   TError = ErrorType<
     | N400Response
     | N401Response
@@ -460,18 +471,18 @@ export function useGetAllRecipients<
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getAllRecipients>>,
+        Awaited<ReturnType<ReturnType<typeof useGetAllRecipientsHook>>>,
         TError,
         TData
       >
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getGetAllRecipientsQueryOptions(params, options);
+  const queryOptions = useGetAllRecipientsQueryOptions(params, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,
@@ -485,24 +496,31 @@ export function useGetAllRecipients<
  * Creates a new recipient.
  * @summary Create recipient
  */
-export const createRecipient = (
-  recipientRequest: BodyType<RecipientRequest>,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
-) => {
-  return ebInstance<Recipient>(
-    {
-      url: `/recipients`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: recipientRequest,
-      signal,
+export const useCreateRecipientHook = () => {
+  const createRecipient = useEbInstance<Recipient>();
+
+  return useCallback(
+    (
+      recipientRequest: BodyType<RecipientRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return createRecipient(
+        {
+          url: `/recipients`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: recipientRequest,
+          signal,
+        },
+        options
+      );
     },
-    options
+    [createRecipient]
   );
 };
 
-export const getCreateRecipientMutationOptions = <
+export const useCreateRecipientMutationOptions = <
   TError = ErrorType<
     | N400Response
     | N401Response
@@ -514,14 +532,14 @@ export const getCreateRecipientMutationOptions = <
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof createRecipient>>,
+    Awaited<ReturnType<ReturnType<typeof useCreateRecipientHook>>>,
     TError,
     { data: BodyType<RecipientRequest> },
     TContext
   >;
-  request?: SecondParameter<typeof ebInstance>;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof createRecipient>>,
+  Awaited<ReturnType<ReturnType<typeof useCreateRecipientHook>>>,
   TError,
   { data: BodyType<RecipientRequest> },
   TContext
@@ -535,8 +553,10 @@ export const getCreateRecipientMutationOptions = <
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
 
+  const createRecipient = useCreateRecipientHook();
+
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof createRecipient>>,
+    Awaited<ReturnType<ReturnType<typeof useCreateRecipientHook>>>,
     { data: BodyType<RecipientRequest> }
   > = (props) => {
     const { data } = props ?? {};
@@ -548,7 +568,7 @@ export const getCreateRecipientMutationOptions = <
 };
 
 export type CreateRecipientMutationResult = NonNullable<
-  Awaited<ReturnType<typeof createRecipient>>
+  Awaited<ReturnType<ReturnType<typeof useCreateRecipientHook>>>
 >;
 export type CreateRecipientMutationBody = BodyType<RecipientRequest>;
 export type CreateRecipientMutationError = ErrorType<
@@ -576,35 +596,42 @@ export const useCreateRecipient = <
 >(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof createRecipient>>,
+      Awaited<ReturnType<ReturnType<typeof useCreateRecipientHook>>>,
       TError,
       { data: BodyType<RecipientRequest> },
       TContext
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
-  Awaited<ReturnType<typeof createRecipient>>,
+  Awaited<ReturnType<ReturnType<typeof useCreateRecipientHook>>>,
   TError,
   { data: BodyType<RecipientRequest> },
   TContext
 > => {
-  return useMutation(getCreateRecipientMutationOptions(options), queryClient);
+  return useMutation(useCreateRecipientMutationOptions(options), queryClient);
 };
 
 /**
  * Returns information about a specific recipient.
  * @summary Get recipient
  */
-export const getRecipient = (
-  id: string,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
-) => {
-  return ebInstance<Recipient>(
-    { url: `/recipients/${id}`, method: 'GET', signal },
-    options
+export const useGetRecipientHook = () => {
+  const getRecipient = useEbInstance<Recipient>();
+
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getRecipient(
+        { url: `/recipients/${id}`, method: 'GET', signal },
+        options
+      );
+    },
+    [getRecipient]
   );
 };
 
@@ -616,8 +643,10 @@ export const getGetRecipientQueryKey = (id: string) => {
   return [`/recipients/${id}`] as const;
 };
 
-export const getGetRecipientInfiniteQueryOptions = <
-  TData = InfiniteData<Awaited<ReturnType<typeof getRecipient>>>,
+export const useGetRecipientInfiniteQueryOptions = <
+  TData = InfiniteData<
+    Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>
+  >,
   TError = ErrorType<
     | N400Response
     | N401Response
@@ -631,12 +660,12 @@ export const getGetRecipientInfiniteQueryOptions = <
   options?: {
     query?: Partial<
       UseInfiniteQueryOptions<
-        Awaited<ReturnType<typeof getRecipient>>,
+        Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
         TError,
         TData
       >
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   }
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -644,9 +673,11 @@ export const getGetRecipientInfiniteQueryOptions = <
   const queryKey =
     queryOptions?.queryKey ?? getGetRecipientInfiniteQueryKey(id);
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getRecipient>>> = ({
-    signal,
-  }) => getRecipient(id, requestOptions, signal);
+  const getRecipient = useGetRecipientHook();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>
+  > = ({ signal }) => getRecipient(id, requestOptions, signal);
 
   return {
     queryKey,
@@ -654,14 +685,14 @@ export const getGetRecipientInfiniteQueryOptions = <
     enabled: !!id,
     ...queryOptions,
   } as UseInfiniteQueryOptions<
-    Awaited<ReturnType<typeof getRecipient>>,
+    Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
 export type GetRecipientInfiniteQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getRecipient>>
+  Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>
 >;
 export type GetRecipientInfiniteQueryError = ErrorType<
   | N400Response
@@ -673,7 +704,9 @@ export type GetRecipientInfiniteQueryError = ErrorType<
 >;
 
 export function useGetRecipientInfinite<
-  TData = InfiniteData<Awaited<ReturnType<typeof getRecipient>>>,
+  TData = InfiniteData<
+    Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>
+  >,
   TError = ErrorType<
     | N400Response
     | N401Response
@@ -687,27 +720,29 @@ export function useGetRecipientInfinite<
   options: {
     query: Partial<
       UseInfiniteQueryOptions<
-        Awaited<ReturnType<typeof getRecipient>>,
+        Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
         TError,
         TData
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getRecipient>>,
+          Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
           TError,
-          Awaited<ReturnType<typeof getRecipient>>
+          Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): DefinedUseInfiniteQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 export function useGetRecipientInfinite<
-  TData = InfiniteData<Awaited<ReturnType<typeof getRecipient>>>,
+  TData = InfiniteData<
+    Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>
+  >,
   TError = ErrorType<
     | N400Response
     | N401Response
@@ -721,27 +756,29 @@ export function useGetRecipientInfinite<
   options?: {
     query?: Partial<
       UseInfiniteQueryOptions<
-        Awaited<ReturnType<typeof getRecipient>>,
+        Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
         TError,
         TData
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getRecipient>>,
+          Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
           TError,
-          Awaited<ReturnType<typeof getRecipient>>
+          Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseInfiniteQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 export function useGetRecipientInfinite<
-  TData = InfiniteData<Awaited<ReturnType<typeof getRecipient>>>,
+  TData = InfiniteData<
+    Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>
+  >,
   TError = ErrorType<
     | N400Response
     | N401Response
@@ -755,12 +792,12 @@ export function useGetRecipientInfinite<
   options?: {
     query?: Partial<
       UseInfiniteQueryOptions<
-        Awaited<ReturnType<typeof getRecipient>>,
+        Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
         TError,
         TData
       >
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseInfiniteQueryResult<TData, TError> & {
@@ -771,7 +808,9 @@ export function useGetRecipientInfinite<
  */
 
 export function useGetRecipientInfinite<
-  TData = InfiniteData<Awaited<ReturnType<typeof getRecipient>>>,
+  TData = InfiniteData<
+    Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>
+  >,
   TError = ErrorType<
     | N400Response
     | N401Response
@@ -785,18 +824,18 @@ export function useGetRecipientInfinite<
   options?: {
     query?: Partial<
       UseInfiniteQueryOptions<
-        Awaited<ReturnType<typeof getRecipient>>,
+        Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
         TError,
         TData
       >
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseInfiniteQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getGetRecipientInfiniteQueryOptions(id, options);
+  const queryOptions = useGetRecipientInfiniteQueryOptions(id, options);
 
   const query = useInfiniteQuery(
     queryOptions,
@@ -808,8 +847,8 @@ export function useGetRecipientInfinite<
   return { ...query, queryKey: queryOptions.queryKey };
 }
 
-export const getGetRecipientQueryOptions = <
-  TData = Awaited<ReturnType<typeof getRecipient>>,
+export const useGetRecipientQueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
   TError = ErrorType<
     | N400Response
     | N401Response
@@ -822,18 +861,24 @@ export const getGetRecipientQueryOptions = <
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getRecipient>>, TError, TData>
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
+        TError,
+        TData
+      >
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   }
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetRecipientQueryKey(id);
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getRecipient>>> = ({
-    signal,
-  }) => getRecipient(id, requestOptions, signal);
+  const getRecipient = useGetRecipientHook();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>
+  > = ({ signal }) => getRecipient(id, requestOptions, signal);
 
   return {
     queryKey,
@@ -841,14 +886,14 @@ export const getGetRecipientQueryOptions = <
     enabled: !!id,
     ...queryOptions,
   } as UseQueryOptions<
-    Awaited<ReturnType<typeof getRecipient>>,
+    Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
 export type GetRecipientQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getRecipient>>
+  Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>
 >;
 export type GetRecipientQueryError = ErrorType<
   | N400Response
@@ -860,7 +905,7 @@ export type GetRecipientQueryError = ErrorType<
 >;
 
 export function useGetRecipient<
-  TData = Awaited<ReturnType<typeof getRecipient>>,
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
   TError = ErrorType<
     | N400Response
     | N401Response
@@ -873,24 +918,28 @@ export function useGetRecipient<
   id: string,
   options: {
     query: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getRecipient>>, TError, TData>
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
+        TError,
+        TData
+      >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getRecipient>>,
+          Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
           TError,
-          Awaited<ReturnType<typeof getRecipient>>
+          Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 export function useGetRecipient<
-  TData = Awaited<ReturnType<typeof getRecipient>>,
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
   TError = ErrorType<
     | N400Response
     | N401Response
@@ -903,24 +952,28 @@ export function useGetRecipient<
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getRecipient>>, TError, TData>
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
+        TError,
+        TData
+      >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getRecipient>>,
+          Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
           TError,
-          Awaited<ReturnType<typeof getRecipient>>
+          Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 export function useGetRecipient<
-  TData = Awaited<ReturnType<typeof getRecipient>>,
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
   TError = ErrorType<
     | N400Response
     | N401Response
@@ -933,9 +986,13 @@ export function useGetRecipient<
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getRecipient>>, TError, TData>
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
+        TError,
+        TData
+      >
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -946,7 +1003,7 @@ export function useGetRecipient<
  */
 
 export function useGetRecipient<
-  TData = Awaited<ReturnType<typeof getRecipient>>,
+  TData = Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
   TError = ErrorType<
     | N400Response
     | N401Response
@@ -959,15 +1016,19 @@ export function useGetRecipient<
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getRecipient>>, TError, TData>
+      UseQueryOptions<
+        Awaited<ReturnType<ReturnType<typeof useGetRecipientHook>>>,
+        TError,
+        TData
+      >
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getGetRecipientQueryOptions(id, options);
+  const queryOptions = useGetRecipientQueryOptions(id, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,
@@ -981,25 +1042,32 @@ export function useGetRecipient<
  * Updates details of a recipient, such as adding values for attributes related to payment types. All attributes must be provided in the same format as when creating a recipient. The value partyDetails.type cannot be amended after creation.
  * @summary Update recipient
  */
-export const amendRecipient = (
-  id: string,
-  updateRecipientRequest: BodyType<UpdateRecipientRequest>,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
-) => {
-  return ebInstance<Recipient>(
-    {
-      url: `/recipients/${id}`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: updateRecipientRequest,
-      signal,
+export const useAmendRecipientHook = () => {
+  const amendRecipient = useEbInstance<Recipient>();
+
+  return useCallback(
+    (
+      id: string,
+      updateRecipientRequest: BodyType<UpdateRecipientRequest>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return amendRecipient(
+        {
+          url: `/recipients/${id}`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: updateRecipientRequest,
+          signal,
+        },
+        options
+      );
     },
-    options
+    [amendRecipient]
   );
 };
 
-export const getAmendRecipientMutationOptions = <
+export const useAmendRecipientMutationOptions = <
   TError = ErrorType<
     | N400Response
     | N401Response
@@ -1011,14 +1079,14 @@ export const getAmendRecipientMutationOptions = <
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof amendRecipient>>,
+    Awaited<ReturnType<ReturnType<typeof useAmendRecipientHook>>>,
     TError,
     { id: string; data: BodyType<UpdateRecipientRequest> },
     TContext
   >;
-  request?: SecondParameter<typeof ebInstance>;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof amendRecipient>>,
+  Awaited<ReturnType<ReturnType<typeof useAmendRecipientHook>>>,
   TError,
   { id: string; data: BodyType<UpdateRecipientRequest> },
   TContext
@@ -1032,8 +1100,10 @@ export const getAmendRecipientMutationOptions = <
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
 
+  const amendRecipient = useAmendRecipientHook();
+
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof amendRecipient>>,
+    Awaited<ReturnType<ReturnType<typeof useAmendRecipientHook>>>,
     { id: string; data: BodyType<UpdateRecipientRequest> }
   > = (props) => {
     const { id, data } = props ?? {};
@@ -1045,7 +1115,7 @@ export const getAmendRecipientMutationOptions = <
 };
 
 export type AmendRecipientMutationResult = NonNullable<
-  Awaited<ReturnType<typeof amendRecipient>>
+  Awaited<ReturnType<ReturnType<typeof useAmendRecipientHook>>>
 >;
 export type AmendRecipientMutationBody = BodyType<UpdateRecipientRequest>;
 export type AmendRecipientMutationError = ErrorType<
@@ -1073,46 +1143,54 @@ export const useAmendRecipient = <
 >(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof amendRecipient>>,
+      Awaited<ReturnType<ReturnType<typeof useAmendRecipientHook>>>,
       TError,
       { id: string; data: BodyType<UpdateRecipientRequest> },
       TContext
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
-  Awaited<ReturnType<typeof amendRecipient>>,
+  Awaited<ReturnType<ReturnType<typeof useAmendRecipientHook>>>,
   TError,
   { id: string; data: BodyType<UpdateRecipientRequest> },
   TContext
 > => {
-  return useMutation(getAmendRecipientMutationOptions(options), queryClient);
+  return useMutation(useAmendRecipientMutationOptions(options), queryClient);
 };
 
 /**
  * Creates a microdeposits verification process.
  * @summary Creates a microdeposits verification process.
  */
-export const recipientsVerification = (
-  id: string,
-  microdepositAmounts: BodyType<MicrodepositAmounts>,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
-) => {
-  return ebInstance<MicrodepositVerificationResponse>(
-    {
-      url: `/recipients/${id}/verify-microdeposit`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: microdepositAmounts,
-      signal,
+export const useRecipientsVerificationHook = () => {
+  const recipientsVerification =
+    useEbInstance<MicrodepositVerificationResponse>();
+
+  return useCallback(
+    (
+      id: string,
+      microdepositAmounts: BodyType<MicrodepositAmounts>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return recipientsVerification(
+        {
+          url: `/recipients/${id}/verify-microdeposit`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: microdepositAmounts,
+          signal,
+        },
+        options
+      );
     },
-    options
+    [recipientsVerification]
   );
 };
 
-export const getRecipientsVerificationMutationOptions = <
+export const useRecipientsVerificationMutationOptions = <
   TError = ErrorType<
     | N400Response
     | N401Response
@@ -1124,14 +1202,14 @@ export const getRecipientsVerificationMutationOptions = <
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof recipientsVerification>>,
+    Awaited<ReturnType<ReturnType<typeof useRecipientsVerificationHook>>>,
     TError,
     { id: string; data: BodyType<MicrodepositAmounts> },
     TContext
   >;
-  request?: SecondParameter<typeof ebInstance>;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof recipientsVerification>>,
+  Awaited<ReturnType<ReturnType<typeof useRecipientsVerificationHook>>>,
   TError,
   { id: string; data: BodyType<MicrodepositAmounts> },
   TContext
@@ -1145,8 +1223,10 @@ export const getRecipientsVerificationMutationOptions = <
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
 
+  const recipientsVerification = useRecipientsVerificationHook();
+
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof recipientsVerification>>,
+    Awaited<ReturnType<ReturnType<typeof useRecipientsVerificationHook>>>,
     { id: string; data: BodyType<MicrodepositAmounts> }
   > = (props) => {
     const { id, data } = props ?? {};
@@ -1158,7 +1238,7 @@ export const getRecipientsVerificationMutationOptions = <
 };
 
 export type RecipientsVerificationMutationResult = NonNullable<
-  Awaited<ReturnType<typeof recipientsVerification>>
+  Awaited<ReturnType<ReturnType<typeof useRecipientsVerificationHook>>>
 >;
 export type RecipientsVerificationMutationBody = BodyType<MicrodepositAmounts>;
 export type RecipientsVerificationMutationError = ErrorType<
@@ -1186,22 +1266,22 @@ export const useRecipientsVerification = <
 >(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof recipientsVerification>>,
+      Awaited<ReturnType<ReturnType<typeof useRecipientsVerificationHook>>>,
       TError,
       { id: string; data: BodyType<MicrodepositAmounts> },
       TContext
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
-  Awaited<ReturnType<typeof recipientsVerification>>,
+  Awaited<ReturnType<ReturnType<typeof useRecipientsVerificationHook>>>,
   TError,
   { id: string; data: BodyType<MicrodepositAmounts> },
   TContext
 > => {
   return useMutation(
-    getRecipientsVerificationMutationOptions(options),
+    useRecipientsVerificationMutationOptions(options),
     queryClient
   );
 };

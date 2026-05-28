@@ -19,7 +19,7 @@ import { useGetFieldContentToken } from '@/core/OnboardingFlow/utils/formUtils';
 
 import { useContactDetailsFormSchema } from './ContactDetailsForm.schema';
 
-export const ContactDetailsForm: FormStepComponent = () => {
+export const ContactDetailsForm: FormStepComponent = ({ currentPartyData }) => {
   const { t, tString } = useTranslationWithTokens('onboarding-overview');
   const getIndividualAddressContentToken =
     useGetFieldContentToken('individualAddress');
@@ -29,7 +29,10 @@ export const ContactDetailsForm: FormStepComponent = () => {
   const isSoleProp =
     orgParty?.organizationDetails?.organizationType === 'SOLE_PROPRIETORSHIP';
   const countryOfFormation = orgParty?.organizationDetails?.countryOfFormation;
+  // Use the current party's own countryOfResidence (for owners),
+  // falling back to the controller's value for backward compat.
   const countryOfResidence =
+    currentPartyData?.individualDetails?.countryOfResidence ??
     getControllerParty(clientData)?.individualDetails?.countryOfResidence;
 
   const form =

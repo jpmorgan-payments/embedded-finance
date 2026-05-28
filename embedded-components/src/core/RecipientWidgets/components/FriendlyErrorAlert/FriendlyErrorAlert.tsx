@@ -3,8 +3,8 @@ import { useTranslationWithTokens } from '@/i18n';
 import { AlertTriangleIcon, InfoIcon, XCircleIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { ErrorType } from '@/api/axios-instance';
 import { ApiError } from '@/api/generated/smbdo.schemas';
+import type { ErrorType } from '@/api/use-axios-instance';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 

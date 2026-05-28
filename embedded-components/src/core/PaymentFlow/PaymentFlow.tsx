@@ -18,9 +18,9 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 
 import { cn } from '@/lib/utils';
-import { ErrorType } from '@/api/axios-instance';
 import {
-  getGetAccountBalanceQueryOptions,
+  getGetAccountBalanceQueryKey,
+  useGetAccountBalanceHook,
   useGetAccounts,
 } from '@/api/generated/ep-accounts';
 import { useGetAllRecipientsInfinite } from '@/api/generated/ep-recipients';
@@ -33,13 +33,13 @@ import type {
   ApiErrorV2,
   TransactionResponseV2,
 } from '@/api/generated/ep-transactions.schemas';
+import type { ErrorType } from '@/api/use-axios-instance';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 
-import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
 import { useRecipientForm } from '../RecipientWidgets/hooks';
 import { RadioIndicator } from './components/RadioIndicator';
 import { FlowContainer, FlowView, useFlowContext } from './FlowContainer';
@@ -2611,7 +2611,7 @@ export function PaymentFlow({
   const effectiveResetKey = resetKey ?? internalResetKey;
 
   // API hooks
-  const { interceptorReady } = useInterceptorStatus();
+  const getAccountBalance = useGetAccountBalanceHook();
 
   // Fetch accounts (clientId is automatically added by EBComponentsProvider interceptor)
   const {
@@ -2620,11 +2620,7 @@ export function PaymentFlow({
     isError: isAccountsError,
     error: _accountsError,
     refetch: refetchAccounts,
-  } = useGetAccounts(undefined, {
-    query: {
-      enabled: interceptorReady,
-    },
-  });
+  } = useGetAccounts();
 
   // Fetch RECIPIENT type with infinite scroll (only ACTIVE recipients)
   const {
@@ -2639,7 +2635,6 @@ export function PaymentFlow({
     { type: 'RECIPIENT', limit: 25 },
     {
       query: {
-        enabled: interceptorReady,
         initialPageParam: 0,
         getNextPageParam: (lastPage, allPages) => {
           const totalItems =
@@ -2667,7 +2662,6 @@ export function PaymentFlow({
     { type: 'LINKED_ACCOUNT', limit: 25 },
     {
       query: {
-        enabled: interceptorReady,
         initialPageParam: 0,
         getNextPageParam: (lastPage, allPages) => {
           const totalItems =
@@ -2701,13 +2695,12 @@ export function PaymentFlow({
 
   // Fetch balances for all active accounts in parallel
   const balanceQueries = useQueries({
-    queries: activeAccountIds.map((accountId) =>
-      getGetAccountBalanceQueryOptions(accountId, {
-        query: {
-          enabled: interceptorReady && !!accountId,
-        },
-      })
-    ),
+    queries: activeAccountIds.map((accountId) => ({
+      queryKey: getGetAccountBalanceQueryKey(accountId!),
+      queryFn: ({ signal }: { signal?: AbortSignal }) =>
+        getAccountBalance(accountId!, undefined, signal),
+      enabled: !!accountId,
+    })),
   });
 
   // Check if any balance query is still loading
@@ -3153,7 +3146,7 @@ export function PaymentFlowInline({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // API hooks
-  const { interceptorReady } = useInterceptorStatus();
+  const getAccountBalanceInline = useGetAccountBalanceHook();
 
   // Fetch accounts (clientId is automatically added by EBComponentsProvider interceptor)
   const {
@@ -3162,11 +3155,7 @@ export function PaymentFlowInline({
     isError: isAccountsError,
     error: _accountsError,
     refetch: refetchAccounts,
-  } = useGetAccounts(undefined, {
-    query: {
-      enabled: interceptorReady,
-    },
-  });
+  } = useGetAccounts();
 
   // Fetch RECIPIENT type with infinite scroll (only ACTIVE recipients)
   const {
@@ -3181,7 +3170,6 @@ export function PaymentFlowInline({
     { type: 'RECIPIENT', limit: 25 },
     {
       query: {
-        enabled: interceptorReady,
         initialPageParam: 0,
         getNextPageParam: (lastPage, allPages) => {
           const totalItems =
@@ -3209,7 +3197,6 @@ export function PaymentFlowInline({
     { type: 'LINKED_ACCOUNT', limit: 25 },
     {
       query: {
-        enabled: interceptorReady,
         initialPageParam: 0,
         getNextPageParam: (lastPage, allPages) => {
           const totalItems =
@@ -3243,8 +3230,10 @@ export function PaymentFlowInline({
   // Fetch balances for all accounts in parallel
   const balanceQueries = useQueries({
     queries: accounts.map((account) => ({
-      ...getGetAccountBalanceQueryOptions(account.id),
-      enabled: interceptorReady && accounts.length > 0,
+      queryKey: getGetAccountBalanceQueryKey(account.id!),
+      queryFn: ({ signal }: { signal?: AbortSignal }) =>
+        getAccountBalanceInline(account.id!, undefined, signal),
+      enabled: accounts.length > 0,
       retry: 1,
       staleTime: 30000,
     })),

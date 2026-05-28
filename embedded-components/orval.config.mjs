@@ -10,8 +10,8 @@ export default defineConfig({
       httpClient: 'axios',
       override: {
         mutator: {
-          path: './src/api/axios-instance.ts',
-          name: 'ebInstance',
+          path: './src/api/use-axios-instance.ts',
+          name: 'useEbInstance',
         },
       },
     },
@@ -25,8 +25,8 @@ export default defineConfig({
       httpClient: 'axios',
       override: {
         mutator: {
-          path: './src/api/axios-instance.ts',
-          name: 'ebInstance',
+          path: './src/api/use-axios-instance.ts',
+          name: 'useEbInstance',
         },
       },
     },
@@ -45,8 +45,8 @@ export default defineConfig({
           useInfiniteQueryParam: 'page',
         },
         mutator: {
-          path: './src/api/axios-instance.ts',
-          name: 'ebInstance',
+          path: './src/api/use-axios-instance.ts',
+          name: 'useEbInstance',
         },
       },
     },
@@ -60,8 +60,8 @@ export default defineConfig({
       httpClient: 'axios',
       override: {
         mutator: {
-          path: './src/api/axios-instance.ts',
-          name: 'ebInstance',
+          path: './src/api/use-axios-instance.ts',
+          name: 'useEbInstance',
         },
       },
     },
@@ -75,8 +75,8 @@ export default defineConfig({
       httpClient: 'axios',
       override: {
         mutator: {
-          path: './src/api/axios-instance.ts',
-          name: 'ebInstance',
+          path: './src/api/use-axios-instance.ts',
+          name: 'useEbInstance',
         },
       },
     },
@@ -90,8 +90,8 @@ export default defineConfig({
       httpClient: 'axios',
       override: {
         mutator: {
-          path: './src/api/axios-instance.ts',
-          name: 'ebInstance',
+          path: './src/api/use-axios-instance.ts',
+          name: 'useEbInstance',
         },
       },
     },
