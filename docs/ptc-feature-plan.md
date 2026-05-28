@@ -164,17 +164,51 @@ Translation keys added for:
 
 ---
 
+## 11. API Limitations & PTC Lock Behavior
+
+### Known API Constraints
+
+The SMBDO API has two limitations that affect PTC handling:
+
+1. **`publiclyTraded` cannot be removed via PATCH** — Once a party's `organizationDetails.publiclyTraded` block is set, there is no supported way to null it out or remove it. Sending empty strings or `null` is rejected.
+2. **Client parties cannot be deactivated** — Setting `active: false` on a client party is rejected by the API. This rules out a deactivate-and-recreate approach to clear PTC data.
+
+### UI-Level Prevention (PTC Lock)
+
+Because the API cannot undo PTC status, we prevent the transition at the UI level:
+
+**Implementation (`GatewayScreen.tsx`):**
+
+- `isPTCLocked` flag: Derived from `!!existingOrgParty?.organizationDetails?.publiclyTraded`. When `true`, the user has already submitted PTC data to the API and it cannot be undone.
+- **"No" radio option disabled**: The "No" option for the PTC radio is disabled when locked, preventing the user from switching away from PTC/subsidiary.
+- **SOLE_PROPRIETORSHIP disabled**: Since sole proprietorships cannot be PTC, the org type block is also disabled when locked (changing to sole prop would be incompatible with existing PTC data).
+- **Alert banner**: An informational alert is displayed at the top of the Gateway screen when PTC is locked, explaining that the publicly traded status cannot be changed.
+- **Stale-clear guards**: `useEffect` hooks that clear stale form values when selections change are guarded by `!isPTCLocked` to avoid wiping locked data.
+
+**Disabled styling (`OnboardingFormField.tsx`):**
+
+- `radio-group-blocks`: `has-[[disabled]]:eb-cursor-not-allowed has-[[disabled]]:eb-opacity-50 has-[[disabled]]:eb-shadow-none has-[[disabled]]:hover:eb-bg-input`
+- `radio-group` labels: Conditional `eb-cursor-not-allowed eb-opacity-50` when `option.disabled` is true.
+
+### Overview & Review Display
+
+- **Overview screen**: Shows PTC details (label, ticker, exchange) when `publiclyTraded` exists. For eligible org types without PTC data, a hint prompt is shown: _"If your company is publicly traded or a subsidiary of one, select Edit to add that information."_
+- **Review screen (`GatewayReviewCard`)**: Shows "Publicly traded status" with dot-separated details when PTC, or simply "No" when non-PTC (for eligible org types only).
+
+---
+
 ## Summary of Touched Areas
 
 | Area                   | Scope                                                              |
 | ---------------------- | ------------------------------------------------------------------ |
 | **Props / Config**     | 1 boolean prop (`enablePubliclyTradedCompanies`)                   |
-| **Gateway Screen**     | PTC radio (dynamic options) + inline ticker/exchange fields        |
+| **Gateway Screen**     | PTC radio (dynamic options) + inline ticker/exchange fields + lock |
 | **Visibility system**  | `isVisible` predicates on sections and steps in `flowConfig`       |
 | **Field map / Review** | 4 field entries + GatewayReviewCard                                |
 | **Section logic**      | `owners-section` + `identity-document` step conditionally excluded |
 | **Gateway submit**     | `ptcUnchanged` skip + org type update in single request            |
 | **API payload**        | `publiclyTraded` block + `subsidiaryOfPubliclyTraded`              |
-| **i18n**               | 3 locales (en-US, fr-CA, es-US), ~15 keys                          |
+| **PTC Lock**           | UI prevents PTC→non-PTC transition (API cannot undo)               |
+| **i18n**               | 3 locales (en-US, fr-CA, es-US), ~20 keys                          |
 | **Constants/helpers**  | Stock exchange list, PTC-eligible org types, utility predicates    |
 | **Tests**              | Unit + integration coverage                                        |
