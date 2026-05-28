@@ -459,7 +459,11 @@ describe('GatewayScreen (integration)', () => {
 
       // The PTC question should now appear
       await waitFor(() => {
-        expect(screen.getByText(/publicly traded/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            /is your organization publicly traded, or a subsidiary/i
+          )
+        ).toBeInTheDocument();
       });
     });
 
@@ -474,7 +478,11 @@ describe('GatewayScreen (integration)', () => {
         screen.getByRole('radio', { name: /i'm the sole owner/i })
       );
 
-      expect(screen.queryByText(/publicly traded/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(
+          /is your organization publicly traded, or a subsidiary/i
+        )
+      ).not.toBeInTheDocument();
     });
 
     test('selecting "Yes, my organization is publicly traded" shows ticker and exchange fields', async () => {
@@ -487,7 +495,11 @@ describe('GatewayScreen (integration)', () => {
       await selectCCorporation();
 
       await waitFor(() => {
-        expect(screen.getByText(/publicly traded/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            /is your organization publicly traded, or a subsidiary/i
+          )
+        ).toBeInTheDocument();
       });
 
       // Select "yes, publicly traded"
@@ -498,8 +510,8 @@ describe('GatewayScreen (integration)', () => {
 
       // Ticker symbol and stock exchange fields should appear
       await waitFor(() => {
-        expect(screen.getByText(/ticker symbol/i)).toBeInTheDocument();
-        expect(screen.getByText(/stock exchange/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/ticker symbol/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/stock exchange/i)).toBeInTheDocument();
       });
     });
 
@@ -513,7 +525,11 @@ describe('GatewayScreen (integration)', () => {
       await selectCCorporation();
 
       await waitFor(() => {
-        expect(screen.getByText(/publicly traded/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            /is your organization publicly traded, or a subsidiary/i
+          )
+        ).toBeInTheDocument();
       });
 
       const subsidiaryRadio = screen.getByRole('radio', {
@@ -522,8 +538,8 @@ describe('GatewayScreen (integration)', () => {
       await user.click(subsidiaryRadio);
 
       await waitFor(() => {
-        expect(screen.getByText(/ticker symbol/i)).toBeInTheDocument();
-        expect(screen.getByText(/stock exchange/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/ticker symbol/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/stock exchange/i)).toBeInTheDocument();
       });
     });
 
@@ -537,7 +553,11 @@ describe('GatewayScreen (integration)', () => {
       await selectCCorporation();
 
       await waitFor(() => {
-        expect(screen.getByText(/publicly traded/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            /is your organization publicly traded, or a subsidiary/i
+          )
+        ).toBeInTheDocument();
       });
 
       // Select PTC first to show the fields
@@ -548,7 +568,7 @@ describe('GatewayScreen (integration)', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText(/ticker symbol/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/ticker symbol/i)).toBeInTheDocument();
       });
 
       // Now select "No"
@@ -556,8 +576,12 @@ describe('GatewayScreen (integration)', () => {
       await user.click(noRadio);
 
       await waitFor(() => {
-        expect(screen.queryByText(/ticker symbol/i)).not.toBeInTheDocument();
-        expect(screen.queryByText(/stock exchange/i)).not.toBeInTheDocument();
+        expect(
+          screen.queryByLabelText(/ticker symbol/i)
+        ).not.toBeInTheDocument();
+        expect(
+          screen.queryByLabelText(/stock exchange/i)
+        ).not.toBeInTheDocument();
       });
     });
 
@@ -571,7 +595,11 @@ describe('GatewayScreen (integration)', () => {
       await selectCCorporation();
 
       await waitFor(() => {
-        expect(screen.getByText(/publicly traded/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            /is your organization publicly traded, or a subsidiary/i
+          )
+        ).toBeInTheDocument();
       });
 
       await user.click(
@@ -581,7 +609,7 @@ describe('GatewayScreen (integration)', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText(/stock exchange/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/stock exchange/i)).toBeInTheDocument();
       });
 
       // Open the stock exchange combobox and select "Other"
@@ -609,7 +637,11 @@ describe('GatewayScreen (integration)', () => {
       await selectCCorporation();
 
       await waitFor(() => {
-        expect(screen.getByText(/publicly traded/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            /is your organization publicly traded, or a subsidiary/i
+          )
+        ).toBeInTheDocument();
       });
 
       await user.click(
@@ -619,7 +651,7 @@ describe('GatewayScreen (integration)', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText(/ticker symbol/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/ticker symbol/i)).toBeInTheDocument();
       });
 
       // Switch to sole proprietorship
@@ -629,8 +661,14 @@ describe('GatewayScreen (integration)', () => {
 
       // PTC fields should be gone
       await waitFor(() => {
-        expect(screen.queryByText(/publicly traded/i)).not.toBeInTheDocument();
-        expect(screen.queryByText(/ticker symbol/i)).not.toBeInTheDocument();
+        expect(
+          screen.queryByText(
+            /is your organization publicly traded, or a subsidiary/i
+          )
+        ).not.toBeInTheDocument();
+        expect(
+          screen.queryByLabelText(/ticker symbol/i)
+        ).not.toBeInTheDocument();
       });
     });
 
@@ -644,7 +682,11 @@ describe('GatewayScreen (integration)', () => {
       await selectCCorporation();
 
       await waitFor(() => {
-        expect(screen.getByText(/publicly traded/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            /is your organization publicly traded, or a subsidiary/i
+          )
+        ).toBeInTheDocument();
       });
 
       await user.click(
@@ -655,7 +697,7 @@ describe('GatewayScreen (integration)', () => {
 
       // Fill in ticker symbol
       await waitFor(() => {
-        expect(screen.getByText(/ticker symbol/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/ticker symbol/i)).toBeInTheDocument();
       });
 
       const tickerInput = screen.getByRole('textbox');
