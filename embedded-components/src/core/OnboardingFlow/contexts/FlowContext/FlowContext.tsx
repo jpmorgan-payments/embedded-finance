@@ -83,20 +83,20 @@ const FlowContext = createContext<{
   currentScreenId: 'overview',
   originScreenId: null,
   goTo: () => {
-    throw new Error('goTo() must be used within FlowProvider');
+    // no-op: context not yet provided (e.g. during HMR)
   },
   goBack: () => {
-    throw new Error('goBack() must be used within FlowProvider');
+    // no-op: context not yet provided (e.g. during HMR)
   },
   editingPartyIds: {},
   updateEditingPartyId: () => {
-    throw new Error('updateEditingPartyId() must be used within FlowProvider');
+    // no-op: context not yet provided (e.g. during HMR)
   },
   staticScreens: [],
   sections: [],
   sessionData: {},
   updateSessionData: () => {
-    throw new Error('setSessionData() must be used within FlowProvider');
+    // no-op: context not yet provided (e.g. during HMR)
   },
   previouslyCompleted: false,
   reviewScreenOpenedSectionId: null,
@@ -104,28 +104,26 @@ const FlowContext = createContext<{
   isPTCWithUSExchange: false,
   currentStepperStepId: undefined,
   setCurrentStepperStepIdFallback: () => {
-    throw new Error(
-      'setCurrentStepperStepIdFallback() must be used within FlowProvider'
-    );
+    // no-op: context not yet provided (e.g. during HMR)
   },
   currentStepperGoTo: () => {
-    throw new Error('currentStepperGoTo() must be used within FlowProvider');
+    // no-op: context not yet provided (e.g. during HMR)
   },
   setCurrentStepper: () => {
-    throw new Error('setCurrentStepper() must be used within FlowProvider');
+    // no-op: context not yet provided (e.g. during HMR)
   },
   shortLabelOverride: null,
   savedFormValues: {},
   saveFormValue: () => {
-    throw new Error('saveFormValue() must be used within FlowProvider');
+    // no-op: context not yet provided (e.g. during HMR)
   },
   isFormSubmitting: false,
   setIsFormSubmitting: () => {
-    throw new Error('setIsFormSubmitting() must be used within FlowProvider');
+    // no-op: context not yet provided (e.g. during HMR)
   },
   unsavedChangesRef: { current: false },
   setFlowUnsavedChanges: () => {
-    throw new Error('setFlowUnsavedChanges() must be used within FlowProvider');
+    // no-op: context not yet provided (e.g. during HMR)
   },
 });
 
