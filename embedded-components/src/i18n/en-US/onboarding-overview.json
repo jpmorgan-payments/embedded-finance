@@ -513,15 +513,18 @@
       "steps": {
         "personalDetails": {
           "title": "Your personal details",
-          "description": "We collect your personal information as the primary person controlling business operations for the company."
+          "description": "We collect your personal information as the primary person controlling business operations for the company.",
+          "requirementSummary": "Your name and job title"
         },
         "identityDocument": {
           "title": "Your ID details",
-          "description": "We need some additional details to confirm your identity."
+          "description": "We need some additional details to confirm your identity.",
+          "requirementSummary": "Government issued identifier (e.g. social security number)"
         },
         "contactDetails": {
           "title": "Your contact details",
           "description": "We need some additional details to confirm your identity.",
+          "requirementSummary": "Address and contact details",
           "countryMismatchWarning": "Address country does not match country of residence ({{country}}). You may still submit, but please verify this is correct."
         },
         "checkAnswers": {

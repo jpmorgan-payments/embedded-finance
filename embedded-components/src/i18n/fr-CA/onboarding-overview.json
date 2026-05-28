@@ -458,15 +458,18 @@
       "steps": {
         "personalDetails": {
           "title": "Vos renseignements personnels",
-          "description": "Nous recueillons vos renseignements personnels en tant que personne principale contrôlant les opérations commerciales de l'entreprise."
+          "description": "Nous recueillons vos renseignements personnels en tant que personne principale contrôlant les opérations commerciales de l'entreprise.",
+          "requirementSummary": "Votre nom et titre de poste"
         },
         "identityDocument": {
           "title": "Vos pièces d'identité",
-          "description": "Nous avons besoin de renseignements supplémentaires pour confirmer votre identité."
+          "description": "Nous avons besoin de renseignements supplémentaires pour confirmer votre identité.",
+          "requirementSummary": "Identifiant gouvernemental (p. ex. numéro d'assurance sociale)"
         },
         "contactDetails": {
           "title": "Vos coordonnées",
           "description": "Nous avons besoin de renseignements supplémentaires pour confirmer votre identité.",
+          "requirementSummary": "Adresse et coordonnées",
           "countryMismatchWarning": "Le pays de l'adresse ne correspond pas au pays de résidence ({{country}}). Vous pouvez toujours soumettre, mais veuillez vérifier que c'est correct."
         },
         "checkAnswers": {

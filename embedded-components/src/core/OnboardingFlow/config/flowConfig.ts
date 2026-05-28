@@ -210,6 +210,9 @@ const sectionScreens: SectionScreenConfig[] = [
           description: i18n.t(
             'onboarding-overview:screens.personalSection.steps.personalDetails.description'
           ),
+          requirementSummary: i18n.t(
+            'onboarding-overview:screens.personalSection.steps.personalDetails.requirementSummary'
+          ),
           Component: PersonalDetailsForm,
         },
         {
@@ -220,6 +223,9 @@ const sectionScreens: SectionScreenConfig[] = [
           stepType: 'form',
           description: i18n.t(
             'onboarding-overview:screens.personalSection.steps.identityDocument.description'
+          ),
+          requirementSummary: i18n.t(
+            'onboarding-overview:screens.personalSection.steps.identityDocument.requirementSummary'
           ),
           Component: IndividualIdentityForm,
           isVisible: (ctx) => !isUSExchangePTC(ctx.orgParty),
@@ -232,6 +238,9 @@ const sectionScreens: SectionScreenConfig[] = [
           stepType: 'form',
           description: i18n.t(
             'onboarding-overview:screens.personalSection.steps.contactDetails.description'
+          ),
+          requirementSummary: i18n.t(
+            'onboarding-overview:screens.personalSection.steps.contactDetails.requirementSummary'
           ),
           Component: ContactDetailsForm,
         },

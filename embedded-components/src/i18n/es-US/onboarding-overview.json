@@ -458,15 +458,18 @@
       "steps": {
         "personalDetails": {
           "title": "Sus datos personales",
-          "description": "Recopilamos su información personal como la persona principal que controla las operaciones comerciales de la empresa."
+          "description": "Recopilamos su información personal como la persona principal que controla las operaciones comerciales de la empresa.",
+          "requirementSummary": "Su nombre y cargo"
         },
         "identityDocument": {
           "title": "Sus datos de identificación",
-          "description": "Necesitamos algunos datos adicionales para confirmar su identidad."
+          "description": "Necesitamos algunos datos adicionales para confirmar su identidad.",
+          "requirementSummary": "Identificador gubernamental (p. ej., número de seguro social)"
         },
         "contactDetails": {
           "title": "Sus datos de contacto",
           "description": "Necesitamos algunos datos adicionales para confirmar su identidad.",
+          "requirementSummary": "Dirección y datos de contacto",
           "countryMismatchWarning": "El país de la dirección no coincide con el país de residencia ({{country}}). Aún puede enviar, pero verifique que sea correcto."
         },
         "checkAnswers": {

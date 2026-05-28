@@ -493,15 +493,25 @@ export const OverviewScreen = () => {
                     /> */}
                         </div>
                       </div>
-                      {section.sectionConfig.requirementsList && (
-                        <ul className="eb-mt-1.5 eb-w-full eb-list-disc eb-whitespace-break-spaces eb-pl-8 eb-text-start eb-font-sans eb-text-sm eb-font-normal">
-                          {section.sectionConfig.requirementsList.map(
-                            (item, index) => (
+                      {(() => {
+                        // Derive requirements from visible steps' requirementSummary,
+                        // falling back to static requirementsList if no steps have summaries
+                        const stepSummaries =
+                          section.stepperConfig?.steps
+                            .map((step) => step.requirementSummary)
+                            .filter(Boolean) ?? [];
+                        const items =
+                          stepSummaries.length > 0
+                            ? stepSummaries
+                            : section.sectionConfig.requirementsList;
+                        return items && items.length > 0 ? (
+                          <ul className="eb-mt-1.5 eb-w-full eb-list-disc eb-whitespace-break-spaces eb-pl-8 eb-text-start eb-font-sans eb-text-sm eb-font-normal">
+                            {items.map((item, index) => (
                               <li key={index}>{item}</li>
-                            )
-                          )}
-                        </ul>
-                      )}
+                            ))}
+                          </ul>
+                        ) : null;
+                      })()}
                       <div className="eb-flex eb-justify-end">
                         <Button
                           variant={

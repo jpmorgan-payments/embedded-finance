@@ -40,6 +40,8 @@ interface StepBase {
   id: string;
   title: string;
   description?: string;
+  /** Short summary shown in the overview requirements list for this step. */
+  requirementSummary?: string;
   isVisible?: VisibilityPredicate;
 }
 
