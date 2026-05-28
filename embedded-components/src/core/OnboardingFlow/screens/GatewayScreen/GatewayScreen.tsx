@@ -441,6 +441,16 @@ export const GatewayScreen = () => {
     clientPostStatus === 'pending' ||
     partyUpdateStatus === 'pending';
 
+  // Clear stale PTC selection when "ptc" option is no longer available
+  useEffect(() => {
+    if (isPTCOrSubsidiary === 'ptc' && !canBePTCDirectly) {
+      form.setValue('isPTCOrSubsidiary', '');
+      form.setValue('tickerSymbol', '');
+      form.setValue('stockExchange', '');
+      form.setValue('stockExchangeName', '');
+    }
+  }, [canBePTCDirectly, isPTCOrSubsidiary, form]);
+
   useEffect(() => {
     setIsFormSubmitting(isFormSubmitting);
   }, [isFormSubmitting]);
