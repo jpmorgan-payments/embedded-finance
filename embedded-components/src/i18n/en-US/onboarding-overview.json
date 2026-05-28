@@ -1160,10 +1160,10 @@
     "tickerSymbol": {
       "label": "Ticker symbol",
       "labelSubsidiary": "Parent company ticker symbol",
-      "description": "The stock ticker symbol (e.g. AAPL, MSFT)",
+      "description": "The stock ticker symbol (e.g. JPM, MSFT)",
       "descriptionSubsidiary": "Enter the ticker symbol of the publicly traded parent company",
       "tooltip": "",
-      "placeholder": "e.g. AAPL",
+      "placeholder": "e.g. JPM",
       "fieldName": "Ticker symbol",
       "validation": {
         "required": "$t(validation:required)",
@@ -1179,6 +1179,12 @@
       "tooltip": "",
       "placeholder": "Search for a stock exchange",
       "fieldName": "Stock exchange",
+      "groups": {
+        "priority": "Priority Exchanges",
+        "otherMajor": "Other Major Exchanges",
+        "other": "Other"
+      },
+      "otherOption": "Other (not listed above)",
       "validation": {
         "required": "$t(validation:required)"
       }

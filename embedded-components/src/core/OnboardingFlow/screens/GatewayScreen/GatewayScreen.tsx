@@ -27,9 +27,9 @@ import {
 } from '@/core/OnboardingFlow/components';
 import { ORGANIZATION_TYPE_LIST } from '@/core/OnboardingFlow/consts';
 import {
-  getStockExchangeOptions,
   PTC_ELIGIBLE_ORG_TYPES,
   PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES,
+  useStockExchangeOptions,
 } from '@/core/OnboardingFlow/consts/stockExchanges';
 import {
   useFlowContext,
@@ -80,8 +80,6 @@ const ORG_TYPE_MAPPING: Record<GeneralOrganizationType, OrganizationType[]> = {
   ],
 };
 
-const stockExchangeOptions = getStockExchangeOptions();
-
 export const GatewayScreen = () => {
   const queryClient = useQueryClient();
   const {
@@ -96,6 +94,10 @@ export const GatewayScreen = () => {
     useFlowContext();
 
   const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
+
+  const stockExchangeOptions = useStockExchangeOptions().flatMap((group) =>
+    group.options.map((opt) => ({ ...opt, group: group.label }))
+  );
 
   const form = useFormWithFilters({
     clientData,
@@ -594,10 +596,7 @@ export const GatewayScreen = () => {
                           ? t('fields.stockExchange.descriptionSubsidiary')
                           : t('fields.stockExchange.description')
                       }
-                      options={stockExchangeOptions.map(({ value, label }) => ({
-                        value,
-                        label,
-                      }))}
+                      options={stockExchangeOptions}
                       required
                       disabled={isFormDisabled}
                     />

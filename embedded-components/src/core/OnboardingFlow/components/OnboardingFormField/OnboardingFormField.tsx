@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import {
@@ -20,6 +20,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
   FormControl,
   FormDescription,
   FormField,
@@ -106,6 +107,8 @@ interface SelectOrRadioGroupProps<
     searchValue?: string;
     description?: React.ReactNode;
     disabled?: boolean;
+    group?: string;
+    alwaysVisible?: boolean;
   }>;
 }
 interface OtherFieldProps<
@@ -431,45 +434,127 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                                 ? `${matchedOption.searchValue ?? String(matchedOption.label)} ${matchedOption.value}`
                                 : undefined
                             }
+                            filter={(value, search) => {
+                              const alwaysVisibleValues = options
+                                ?.filter((opt) => opt.alwaysVisible)
+                                .map(
+                                  (opt) =>
+                                    `${opt.searchValue ?? opt.label} ${opt.value}`
+                                );
+                              if (
+                                alwaysVisibleValues?.some(
+                                  (v) =>
+                                    String(v).toLowerCase() ===
+                                    value.toLowerCase()
+                                )
+                              ) {
+                                return 1;
+                              }
+                              return value
+                                .toLowerCase()
+                                .includes(search.toLowerCase())
+                                ? 1
+                                : 0;
+                            }}
                           >
                             <CommandInput placeholder={fieldPlaceholder} />
                             <CommandList>
                               <CommandEmpty>
                                 {t('common:noOptionFound')}
                               </CommandEmpty>
-                              <CommandGroup>
-                                {options?.map((option) => {
-                                  const isSelected =
-                                    field.value === option.value;
-                                  return (
-                                    <CommandItem
-                                      key={`combobox-option-${option.value}`}
-                                      value={`${option.searchValue ?? option.label} ${option.value}`}
-                                      onSelect={() => {
-                                        onChangeProp?.(option.value);
-                                        field.onChange(
-                                          option.value === field.value
-                                            ? ''
-                                            : option.value
-                                        );
-                                        onBlur();
-                                        setOpen(false);
-                                      }}
-                                      className="eb-cursor-pointer"
-                                    >
-                                      <Check
-                                        className={cn(
-                                          'eb-mr-2 eb-h-4 eb-w-4',
-                                          isSelected
-                                            ? 'eb-opacity-100'
-                                            : 'eb-opacity-0'
-                                        )}
-                                      />
-                                      {option.label}
-                                    </CommandItem>
+                              {(() => {
+                                const hasGroups = options?.some(
+                                  (opt) => opt.group
+                                );
+                                if (hasGroups && options) {
+                                  const groups = new Map<
+                                    string,
+                                    typeof options
+                                  >();
+                                  for (const opt of options) {
+                                    const key = opt.group ?? '';
+                                    if (!groups.has(key)) groups.set(key, []);
+                                    groups.get(key)!.push(opt);
+                                  }
+                                  return Array.from(groups.entries()).map(
+                                    ([groupLabel, groupOptions], idx) => (
+                                      <React.Fragment key={groupLabel}>
+                                        {idx > 0 && <CommandSeparator />}
+                                        <CommandGroup
+                                          heading={groupLabel || undefined}
+                                        >
+                                          {groupOptions.map((option) => {
+                                            const isSelected =
+                                              field.value === option.value;
+                                            return (
+                                              <CommandItem
+                                                key={`combobox-option-${option.value}`}
+                                                value={`${option.searchValue ?? option.label} ${option.value}`}
+                                                onSelect={() => {
+                                                  onChangeProp?.(option.value);
+                                                  field.onChange(
+                                                    option.value === field.value
+                                                      ? ''
+                                                      : option.value
+                                                  );
+                                                  onBlur();
+                                                  setOpen(false);
+                                                }}
+                                                className="eb-cursor-pointer"
+                                              >
+                                                <Check
+                                                  className={cn(
+                                                    'eb-mr-2 eb-h-4 eb-w-4',
+                                                    isSelected
+                                                      ? 'eb-opacity-100'
+                                                      : 'eb-opacity-0'
+                                                  )}
+                                                />
+                                                {option.label}
+                                              </CommandItem>
+                                            );
+                                          })}
+                                        </CommandGroup>
+                                      </React.Fragment>
+                                    )
                                   );
-                                })}
-                              </CommandGroup>
+                                }
+                                return (
+                                  <CommandGroup>
+                                    {options?.map((option) => {
+                                      const isSelected =
+                                        field.value === option.value;
+                                      return (
+                                        <CommandItem
+                                          key={`combobox-option-${option.value}`}
+                                          value={`${option.searchValue ?? option.label} ${option.value}`}
+                                          onSelect={() => {
+                                            onChangeProp?.(option.value);
+                                            field.onChange(
+                                              option.value === field.value
+                                                ? ''
+                                                : option.value
+                                            );
+                                            onBlur();
+                                            setOpen(false);
+                                          }}
+                                          className="eb-cursor-pointer"
+                                        >
+                                          <Check
+                                            className={cn(
+                                              'eb-mr-2 eb-h-4 eb-w-4',
+                                              isSelected
+                                                ? 'eb-opacity-100'
+                                                : 'eb-opacity-0'
+                                            )}
+                                          />
+                                          {option.label}
+                                        </CommandItem>
+                                      );
+                                    })}
+                                  </CommandGroup>
+                                );
+                              })()}
                             </CommandList>
                           </Command>
                         </PopoverContent>

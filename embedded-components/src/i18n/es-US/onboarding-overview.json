@@ -1101,10 +1101,10 @@
     "tickerSymbol": {
       "label": "Símbolo bursátil",
       "labelSubsidiary": "Símbolo bursátil de la empresa matriz",
-      "description": "El símbolo bursátil (p. ej. AAPL, MSFT)",
+      "description": "El símbolo bursátil (p. ej. JPM, MSFT)",
       "descriptionSubsidiary": "Ingrese el símbolo bursátil de la empresa matriz que cotiza en bolsa",
       "tooltip": "",
-      "placeholder": "p. ej. AAPL",
+      "placeholder": "p. ej. JPM",
       "fieldName": "Símbolo bursátil",
       "validation": {
         "required": "$t(validation:required)",
@@ -1120,6 +1120,12 @@
       "tooltip": "",
       "placeholder": "Buscar una bolsa de valores",
       "fieldName": "Bolsa de valores",
+      "groups": {
+        "priority": "Bolsas prioritarias",
+        "otherMajor": "Otras bolsas importantes",
+        "other": "Otro"
+      },
+      "otherOption": "Otro (no aparece en la lista)",
       "validation": {
         "required": "$t(validation:required)"
       }

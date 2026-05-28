@@ -1,3 +1,5 @@
+import { useTranslationWithTokens } from '@/i18n';
+
 import type { OrganizationType } from '@/api/generated/smbdo.schemas';
 
 /**
@@ -201,15 +203,67 @@ export const isNyseNasdaq = (code: string): boolean =>
 export const isMajorExchange = (code: string): boolean =>
   MAJOR_STOCK_EXCHANGES.some(([mic]) => mic === code);
 
+export interface StockExchangeOption {
+  value: string;
+  label: string;
+  description?: string;
+  alwaysVisible?: boolean;
+}
+
+export interface StockExchangeOptionGroup {
+  label: string;
+  options: StockExchangeOption[];
+}
+
 /**
- * Get stock exchange options for the combobox.
- * Returns all major exchanges + "Other" option.
+ * Hook that returns stock exchange options grouped by priority, with i18n.
+ * Group 1: NYSE & NASDAQ (priority exchanges per PTC requirements)
+ * Group 2: Other Major Exchanges (all remaining, alphabetical by country)
+ * Group 3: "Other" catch-all
  */
-export const getStockExchangeOptions = () => [
-  ...MAJOR_STOCK_EXCHANGES.map(([code, name, country]) => ({
-    value: code,
-    label: `${name} (${code})`,
-    description: country,
-  })),
-  { value: 'Other', label: 'Other', description: 'Not listed above' },
-];
+export const useStockExchangeOptions = (): StockExchangeOptionGroup[] => {
+  const { tString } = useTranslationWithTokens('onboarding-overview');
+
+  const priorityExchanges = MAJOR_STOCK_EXCHANGES.filter(([code]) =>
+    NYSE_NASDAQ_CODES.includes(code as NyseNasdaqCode)
+  );
+  const otherExchanges = MAJOR_STOCK_EXCHANGES.filter(
+    ([code]) => !NYSE_NASDAQ_CODES.includes(code as NyseNasdaqCode)
+  );
+
+  return [
+    {
+      label: tString('fields.stockExchange.groups.priority', {
+        defaultValue: 'Priority Exchanges',
+      }),
+      options: priorityExchanges.map(([code, name]) => ({
+        value: code,
+        label: `${name} (${code})`,
+      })),
+    },
+    {
+      label: tString('fields.stockExchange.groups.otherMajor', {
+        defaultValue: 'Other Major Exchanges',
+      }),
+      options: otherExchanges.map(([code, name, country]) => ({
+        value: code,
+        label: `${name} (${code})`,
+        description: country,
+      })),
+    },
+    {
+      label: tString('fields.stockExchange.groups.other', {
+        defaultValue: 'Other',
+      }),
+      options: [
+        {
+          value: 'Other',
+          label: tString('fields.stockExchange.otherOption', {
+            defaultValue: 'Other (not listed above)',
+          }),
+          alwaysVisible: true,
+        },
+      ],
+    },
+  ];
+};

@@ -45,11 +45,11 @@ Maps to:
 
 Shown conditionally after the PTC radio when any "Yes" option is selected:
 
-| Field               | Type            | Required    | Notes                                                                        |
-| ------------------- | --------------- | ----------- | ---------------------------------------------------------------------------- |
-| `tickerSymbol`      | Text input      | Yes         | Uppercase, max 10 chars. If subsidiary, this is the **parent PTC's** ticker. |
-| `stockExchange`     | Select dropdown | Yes         | Options: major exchanges from `MAJOR_STOCK_EXCHANGES` constant + `OTHER`     |
-| `stockExchangeName` | Text input      | Conditional | Required only when `stockExchange === "OTHER"`                               |
+| Field               | Type             | Required    | Notes                                                                                       |
+| ------------------- | ---------------- | ----------- | ------------------------------------------------------------------------------------------- |
+| `tickerSymbol`      | Text input       | Yes         | Uppercase, max 10 chars. If subsidiary, this is the **parent PTC's** ticker.                |
+| `stockExchange`     | Grouped combobox | Yes         | Grouped by priority: "US Exchanges" (NYSE/NASDAQ first) → "Other Major Exchanges" → "Other" |
+| `stockExchangeName` | Text input       | Conditional | Required only when `stockExchange === "OTHER"`                                              |
 
 Labels and descriptions change dynamically based on whether "Publicly Traded" or "Subsidiary" is selected (e.g., "Parent company's ticker symbol").
 
