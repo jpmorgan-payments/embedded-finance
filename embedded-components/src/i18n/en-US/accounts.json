@@ -41,6 +41,7 @@
     "copyRouting": "Copy routing number",
     "copyAchRouting": "Copy ACH routing number",
     "copyRoutingLabel": "Copy {{type}} routing number",
+    "balancesError": "Unable to load balances",
     "noBalanceData": "Balance information unavailable",
     "dataAsOf": "As of {{date}}",
     "balanceTypeInfoAriaLabel": "Learn more about {{type}}"

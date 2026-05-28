@@ -1,5 +1,5 @@
-import { ErrorType } from '@/api/axios-instance';
 import { ApiError } from '@/api/generated/smbdo.schemas';
+import type { ErrorType } from '@/api/use-axios-instance';
 
 /**
  * Error codes that can be intercepted and displayed with friendly messages.

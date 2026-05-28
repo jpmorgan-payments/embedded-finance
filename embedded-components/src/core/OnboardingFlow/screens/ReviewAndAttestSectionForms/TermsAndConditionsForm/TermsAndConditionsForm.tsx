@@ -19,8 +19,8 @@ import { useIPAddress } from '@/lib/hooks';
 import { cn } from '@/lib/utils';
 import {
   getSmbdoGetClientQueryKey,
-  smbdoDownloadDocument,
-  smbdoGetDocumentDetail,
+  useSmbdoDownloadDocumentHook,
+  useSmbdoGetDocumentDetailHook,
   useSmbdoPostClientVerifications,
   useSmbdoUpdateClientLegacy,
 } from '@/api/generated/smbdo';
@@ -67,6 +67,9 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
   } = useOnboardingContext();
   const { isFormSubmitting: isFormSubmittingContext, setIsFormSubmitting } =
     useFlowContext();
+
+  const smbdoDownloadDocument = useSmbdoDownloadDocumentHook();
+  const smbdoGetDocumentDetail = useSmbdoGetDocumentDetailHook();
 
   const { t, tString } = useTranslationWithTokens('onboarding-overview');
 

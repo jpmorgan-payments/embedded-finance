@@ -8,9 +8,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { useIPAddress } from '@/lib/hooks';
 import { _get, isValueEmpty } from '@/lib/utils';
 import {
-  smbdoDownloadDocument,
-  smbdoGetDocumentDetail,
+  useSmbdoDownloadDocumentHook,
   useSmbdoGetClient,
+  useSmbdoGetDocumentDetailHook,
   useSmbdoListQuestions,
   useSmbdoPostClientVerifications,
   useSmbdoUpdateClientLegacy,
@@ -59,6 +59,9 @@ export const ReviewAndAttestStepForm = () => {
   const { t } = useTranslation(['onboarding-old', 'common']);
   // Get QueryClient from the context
   const queryClient = useQueryClient();
+
+  const smbdoDownloadDocument = useSmbdoDownloadDocumentHook();
+  const smbdoGetDocumentDetail = useSmbdoGetDocumentDetailHook();
 
   const { prevStep, isDisabledStep } = useStepper();
   const {

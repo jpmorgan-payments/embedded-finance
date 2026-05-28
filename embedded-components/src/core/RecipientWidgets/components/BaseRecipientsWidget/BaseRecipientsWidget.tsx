@@ -20,10 +20,9 @@ import { getChildHeadingLevel } from '@/lib/types/headingLevel.types';
 import type { UserTrackingProps } from '@/lib/types/userTracking.types';
 import { cn } from '@/lib/utils';
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
-import type { ErrorType } from '@/api/axios-instance';
 import {
-  getAllRecipients,
   useGetAllRecipients,
+  useGetAllRecipientsHook,
 } from '@/api/generated/ep-recipients';
 import {
   MicrodepositVerificationResponse,
@@ -37,12 +36,12 @@ import type {
   ApiErrorV2,
   TransactionResponseV2,
 } from '@/api/generated/ep-transactions.schemas';
+import type { ErrorType } from '@/api/use-axios-instance';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useServerError } from '@/components/ServerErrorAlert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
-import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
 import { PaymentFlow } from '@/core/PaymentFlow';
 import type { PaymentMethod } from '@/core/PaymentFlow/PaymentFlow.types';
 import type {
@@ -260,6 +259,9 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   const userJourneys = getUserJourneys(config.eventPrefix);
   const queryClient = useQueryClient();
 
+  // Hook-based request function for imperative (non-hook) API calls
+  const getAllRecipients = useGetAllRecipientsHook();
+
   // Calculate child heading level (for h3 elements like cards, empty state)
   const childHeadingLevel = getChildHeadingLevel(headingLevel);
 
@@ -384,7 +386,6 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   // ============================================================================
 
   const locale = useLocale();
-  const { interceptorReady } = useInterceptorStatus();
 
   // Fetch rejected accounts via a separate query.
   // The API supports `status` as a query parameter but the generated
@@ -401,7 +402,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
     } as GetAllRecipientsParams & { status: string },
     {
       query: {
-        enabled: showRejectedAccounts && interceptorReady,
+        enabled: showRejectedAccounts,
       },
     }
   );

@@ -3,7 +3,6 @@ import { PaginationState } from '@tanstack/react-table';
 
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import { PageMetaData, Recipient } from '@/api/generated/ep-recipients.schemas';
-import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
 
 import { SupportedRecipientType } from '../types';
 
@@ -91,22 +90,13 @@ export function useRecipientsTable({
   pagination,
   recipientType,
 }: UseRecipientsTableOptions): UseRecipientsTableReturn {
-  const { interceptorReady } = useInterceptorStatus();
-
   // Fetch data for the current page using standard pagination
   const { data, isLoading, isError, error, isSuccess, refetch } =
-    useGetAllRecipients(
-      {
-        type: recipientType,
-        page: pagination.pageIndex,
-        limit: pagination.pageSize,
-      },
-      {
-        query: {
-          enabled: interceptorReady,
-        },
-      }
-    );
+    useGetAllRecipients({
+      type: recipientType,
+      page: pagination.pageIndex,
+      limit: pagination.pageSize,
+    });
 
   // Extract recipients from response
   const recipients = useMemo(() => {

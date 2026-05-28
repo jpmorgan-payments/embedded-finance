@@ -16,7 +16,6 @@ import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { useServerError } from '@/components/ServerErrorAlert';
 import { Button } from '@/components/ui';
 
-import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
 import { CLIENT_DETAILS_DEFAULT_VIEW_MODE } from './ClientDetails.constants';
 import type { ClientDetailsProps } from './ClientDetails.types';
 import { AccordionView } from './components/AccordionView/AccordionView';
@@ -40,7 +39,6 @@ export function ClientDetails({
 }: ClientDetailsProps) {
   const { t } = useTranslationWithTokens('client-details');
   const [showErrorDetails, setShowErrorDetails] = useState(false);
-  const { interceptorReady } = useInterceptorStatus();
 
   const Heading = getHeadingTag(headingLevel);
   const childHeadingLevel = getChildHeadingLevel(headingLevel);
@@ -53,7 +51,7 @@ export function ClientDetails({
     error,
     refetch,
   } = useSmbdoGetClient(clientId, {
-    query: { enabled: !!clientId && interceptorReady },
+    query: { enabled: !!clientId },
   });
 
   // Parse error for custom rendering

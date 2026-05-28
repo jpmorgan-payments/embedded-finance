@@ -26,6 +26,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Card, CardContent } from '@/components/ui';
 
 import {
@@ -106,6 +107,8 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
     const {
       data: balanceData,
       isLoading: isBalanceLoading,
+      isError: isBalanceError,
+      error: balanceError,
       refetch,
     } = useGetAccountBalance(account.id);
 
@@ -310,6 +313,15 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
             <div className="eb-flex eb-shrink-0 eb-flex-col eb-items-end">
               {isBalanceLoading ? (
                 <Skeleton className="eb-h-6 eb-w-24" />
+              ) : isBalanceError ? (
+                <ServerErrorAlert
+                  error={balanceError as any}
+                  customTitle={t('accounts:card.balancesError', {
+                    defaultValue: 'Unable to load balances',
+                  })}
+                  tryAgainAction={() => refetch()}
+                  showDetails={false}
+                />
               ) : balanceData?.balanceTypes?.[0] ? (
                 <span className="eb-font-mono eb-text-lg eb-font-bold eb-text-metric eb-duration-300 eb-animate-in eb-fade-in">
                   {
@@ -487,6 +499,15 @@ export const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
                   <Skeleton className="eb-h-7 eb-w-28" />
                 </div>
               </div>
+            ) : isBalanceError ? (
+              <ServerErrorAlert
+                error={balanceError as any}
+                customTitle={t('accounts:card.balancesError', {
+                  defaultValue: 'Unable to load balances',
+                })}
+                tryAgainAction={() => refetch()}
+                showDetails={false}
+              />
             ) : balanceData?.balanceTypes?.length ? (
               <div className="eb-space-y-3 eb-duration-300 eb-animate-in eb-fade-in">
                 <div className="eb-flex eb-flex-wrap eb-gap-6">

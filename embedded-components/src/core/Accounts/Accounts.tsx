@@ -24,7 +24,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useServerError } from '@/components/ServerErrorAlert';
 
-import { useInterceptorStatus } from '../EBComponentsProvider/EBComponentsProvider';
 import { ACCOUNTS_USER_JOURNEYS } from './Accounts.constants';
 import type { AccountsProps, AccountsRef } from './Accounts.types';
 import { AccountCard } from './components/AccountCard/AccountCard';
@@ -44,7 +43,6 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
     ref
   ) => {
     const { t } = useTranslationWithTokens(['accounts', 'common']);
-    const { interceptorReady } = useInterceptorStatus();
 
     // Calculate child heading level (for h3 elements like empty state)
     const childHeadingLevel = getChildHeadingLevel(headingLevel);
@@ -55,12 +53,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
     const [showErrorDetails, setShowErrorDetails] = useState(false);
 
     const { data, isLoading, isError, error, refetch } = useGetAccounts(
-      clientId ? { clientId } : undefined,
-      {
-        query: {
-          enabled: interceptorReady,
-        },
-      }
+      clientId ? { clientId } : undefined
     );
 
     // Parse error for custom display
@@ -150,15 +143,13 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
           <CardContent
             className={cn(
               'eb-space-y-4 eb-transition-all eb-duration-300 eb-ease-in-out',
-              isSingleAccount || isLoading || !interceptorReady
+              isSingleAccount || isLoading
                 ? 'eb-p-0'
                 : 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4'
             )}
           >
             {/* Loading state with skeleton */}
-            {(isLoading || !interceptorReady) && (
-              <AccountCardSkeleton hideBorder />
-            )}
+            {isLoading && <AccountCardSkeleton hideBorder />}
 
             {/* Error state */}
             {isError && (
@@ -262,64 +253,58 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
             )}
 
             {/* Empty state */}
-            {!isLoading &&
-              !isError &&
-              interceptorReady &&
-              filteredAccounts.length === 0 && (
-                <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-2 eb-py-6 eb-text-center">
-                  <div className="eb-rounded-full eb-bg-muted eb-p-3">
-                    <Landmark className="eb-h-6 eb-w-6 eb-text-muted-foreground" />
-                  </div>
-                  <div className="eb-space-y-1">
-                    <ChildHeading className="eb-text-sm eb-font-semibold eb-text-foreground">
-                      {t('accounts:emptyState.title', {
-                        defaultValue: 'No accounts found',
-                      })}
-                    </ChildHeading>
-                    <p className="eb-max-w-xs eb-text-xs eb-text-muted-foreground">
-                      {t('accounts:emptyState.description', {
-                        defaultValue:
-                          "You don't have any accounts yet. Contact support if you need assistance.",
-                      })}
-                    </p>
-                  </div>
+            {!isLoading && !isError && filteredAccounts.length === 0 && (
+              <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-2 eb-py-6 eb-text-center">
+                <div className="eb-rounded-full eb-bg-muted eb-p-3">
+                  <Landmark className="eb-h-6 eb-w-6 eb-text-muted-foreground" />
                 </div>
-              )}
+                <div className="eb-space-y-1">
+                  <ChildHeading className="eb-text-sm eb-font-semibold eb-text-foreground">
+                    {t('accounts:emptyState.title', {
+                      defaultValue: 'No accounts found',
+                    })}
+                  </ChildHeading>
+                  <p className="eb-max-w-xs eb-text-xs eb-text-muted-foreground">
+                    {t('accounts:emptyState.description', {
+                      defaultValue:
+                        "You don't have any accounts yet. Contact support if you need assistance.",
+                    })}
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Accounts list */}
-            {!isLoading &&
-              !isError &&
-              interceptorReady &&
-              filteredAccounts.length > 0 && (
-                <div
-                  className={cn('eb-grid eb-grid-cols-1 eb-items-start', {
-                    'eb-gap-3': !isSingleAccount,
-                    '@4xl:eb-grid-cols-2': filteredAccounts.length > 1,
-                  })}
-                >
-                  {filteredAccounts.map(
-                    (account: AccountResponse, index: number) => (
-                      <div
-                        key={account.id}
-                        className="eb-animate-fade-in"
-                        style={{
-                          animationDelay: `${index * 50}ms`,
-                          animationFillMode: 'backwards',
+            {!isLoading && !isError && filteredAccounts.length > 0 && (
+              <div
+                className={cn('eb-grid eb-grid-cols-1 eb-items-start', {
+                  'eb-gap-3': !isSingleAccount,
+                  '@4xl:eb-grid-cols-2': filteredAccounts.length > 1,
+                })}
+              >
+                {filteredAccounts.map(
+                  (account: AccountResponse, index: number) => (
+                    <div
+                      key={account.id}
+                      className="eb-animate-fade-in"
+                      style={{
+                        animationDelay: `${index * 50}ms`,
+                        animationFillMode: 'backwards',
+                      }}
+                    >
+                      <AccountCard
+                        account={account}
+                        hideBorder={isSingleAccount}
+                        headingLevel={childHeadingLevel}
+                        ref={(cardRef) => {
+                          accountCardRefs.current[account.id] = cardRef;
                         }}
-                      >
-                        <AccountCard
-                          account={account}
-                          hideBorder={isSingleAccount}
-                          headingLevel={childHeadingLevel}
-                          ref={(cardRef) => {
-                            accountCardRefs.current[account.id] = cardRef;
-                          }}
-                        />
-                      </div>
-                    )
-                  )}
-                </div>
-              )}
+                      />
+                    </div>
+                  )
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -6,7 +6,6 @@ import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
 import { StepLayout } from '@/core/OnboardingFlow/components';
 import {
   useFlowContext,
@@ -45,7 +44,6 @@ export const LinkAccountScreen = () => {
   const { clientData, linkAccountStepOptions, hideLinkedAccountRemoval } =
     useOnboardingContext();
   const queryClient = useQueryClient();
-  const { interceptorReady } = useInterceptorStatus();
 
   const clientId = clientData?.id;
 
@@ -55,13 +53,13 @@ export const LinkAccountScreen = () => {
 
   // ─── Data fetching ──────────────────────────────────────────────────────────
   const { data: clientResponseData } = useSmbdoGetClient(clientId ?? '', {
-    query: { enabled: interceptorReady && !!clientId },
+    query: { enabled: !!clientId },
   });
 
   const { data: recipientsData, isLoading: isLoadingRecipients } =
     useGetAllRecipients(
       { type: 'LINKED_ACCOUNT', clientId },
-      { query: { enabled: interceptorReady && !!clientId } }
+      { query: { enabled: !!clientId } }
     );
 
   const existingAccounts: Recipient[] = useMemo(

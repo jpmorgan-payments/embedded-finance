@@ -10,7 +10,6 @@ import {
   useGetRecipient,
 } from '@/api/generated/ep-recipients';
 
-import { useInterceptorStatus } from '../../EBComponentsProvider/EBComponentsProvider';
 import type { PaymentFormData, PaymentMethod } from '../types';
 import {
   filterPaymentMethods,
@@ -28,8 +27,6 @@ export const usePaymentData = (
   form: UseFormReturn<PaymentFormData>,
   recipientId?: string
 ) => {
-  const { interceptorReady } = useInterceptorStatus();
-
   // Fetch all recipients using infinite query to handle pagination
   // This automatically loads all pages until all recipients are fetched
   const {
@@ -41,7 +38,6 @@ export const usePaymentData = (
     isFetchingNextPage,
   } = useGetAllRecipientsInfinite(undefined, {
     query: {
-      enabled: interceptorReady,
       getNextPageParam: (lastPage) => {
         const totalItems = lastPage.metadata?.total_items || 0;
         const currentLimit = lastPage.metadata?.limit || 25;
@@ -58,7 +54,6 @@ export const usePaymentData = (
   // This ensures we load all recipients regardless of pagination
   useEffect(() => {
     if (
-      interceptorReady &&
       recipientsInfiniteData &&
       hasNextPage &&
       !isFetchingNextPage &&
@@ -81,7 +76,6 @@ export const usePaymentData = (
       }
     }
   }, [
-    interceptorReady,
     recipientsInfiniteData,
     hasNextPage,
     isFetchingNextPage,
@@ -116,7 +110,7 @@ export const usePaymentData = (
     error: preselectedRecipientError,
   } = useGetRecipient(recipientId || '', {
     query: {
-      enabled: interceptorReady && Boolean(recipientId),
+      enabled: Boolean(recipientId),
     },
   });
 
@@ -124,11 +118,7 @@ export const usePaymentData = (
     data: accountsData,
     status: accountsStatus,
     refetch: refetchAccounts,
-  } = useGetAccounts(undefined, {
-    query: {
-      enabled: interceptorReady,
-    },
-  });
+  } = useGetAccounts(undefined);
 
   // Filter accounts to only show DDA and LIMITED_DDA
   const accounts = useMemo(() => {
@@ -177,7 +167,7 @@ export const usePaymentData = (
     refetch: refetchBalance,
   } = useGetAccountBalance(selectedAccountId || '', {
     query: {
-      enabled: interceptorReady && Boolean(selectedAccountId),
+      enabled: Boolean(selectedAccountId),
     },
   });
 
