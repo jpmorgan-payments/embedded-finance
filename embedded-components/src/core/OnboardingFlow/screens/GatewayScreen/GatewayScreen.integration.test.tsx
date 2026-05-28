@@ -72,6 +72,7 @@ const gwCtx = vi.hoisted(() => {
         setIsFormSubmitting: gwCtx.setIsFormSubmitting,
         unsavedChangesRef: { current: false },
         setFlowUnsavedChanges: vi.fn(),
+        isPTCWithUSExchange: false,
       };
     },
   };
@@ -406,5 +407,281 @@ describe('GatewayScreen (integration)', () => {
 
     expect(gwCtx.postMutate).not.toHaveBeenCalled();
     expect(gwCtx.updateClientMutate).not.toHaveBeenCalled();
+  });
+
+  // =========================================================================
+  // PTC Feature Flag Enabled
+  // =========================================================================
+
+  describe('enablePubliclyTradedCompanies = true', () => {
+    const ptcOrgTypes = [
+      'SOLE_PROPRIETORSHIP',
+      'LIMITED_LIABILITY_COMPANY',
+      'C_CORPORATION',
+      'LIMITED_LIABILITY_PARTNERSHIP',
+      'LIMITED_PARTNERSHIP',
+      'GENERAL_PARTNERSHIP',
+      'PARTNERSHIP',
+      'S_CORPORATION',
+    ] as const;
+
+    function renderGatewayWithPTC(
+      overrides: Partial<OnboardingContextType> = {}
+    ) {
+      return renderGateway({
+        enablePubliclyTradedCompanies: true,
+        availableOrganizationTypes: [...ptcOrgTypes],
+        ...overrides,
+      });
+    }
+
+    async function selectCCorporation() {
+      await user.click(
+        screen.getByRole('radio', { name: /registered business/i })
+      );
+
+      const combo = await screen.findByRole('combobox');
+      await user.click(combo);
+      const cCorpOption = await screen.findByRole('option', {
+        name: /c corporation/i,
+      });
+      await user.click(cCorpOption);
+    }
+
+    test('PTC question appears after selecting a PTC-eligible org type', async () => {
+      renderGatewayWithPTC();
+
+      await screen.findByRole('heading', {
+        name: /let's help you get started/i,
+      });
+
+      await selectCCorporation();
+
+      // The PTC question should now appear
+      await waitFor(() => {
+        expect(screen.getByText(/publicly traded/i)).toBeInTheDocument();
+      });
+    });
+
+    test('PTC question does NOT appear for sole proprietorship', async () => {
+      renderGatewayWithPTC();
+
+      await screen.findByRole('heading', {
+        name: /let's help you get started/i,
+      });
+
+      await user.click(
+        screen.getByRole('radio', { name: /i'm the sole owner/i })
+      );
+
+      expect(screen.queryByText(/publicly traded/i)).not.toBeInTheDocument();
+    });
+
+    test('selecting "Yes, my organization is publicly traded" shows ticker and exchange fields', async () => {
+      renderGatewayWithPTC();
+
+      await screen.findByRole('heading', {
+        name: /let's help you get started/i,
+      });
+
+      await selectCCorporation();
+
+      await waitFor(() => {
+        expect(screen.getByText(/publicly traded/i)).toBeInTheDocument();
+      });
+
+      // Select "yes, publicly traded"
+      const ptcRadio = screen.getByRole('radio', {
+        name: /yes, my organization is publicly traded/i,
+      });
+      await user.click(ptcRadio);
+
+      // Ticker symbol and stock exchange fields should appear
+      await waitFor(() => {
+        expect(screen.getByText(/ticker symbol/i)).toBeInTheDocument();
+        expect(screen.getByText(/stock exchange/i)).toBeInTheDocument();
+      });
+    });
+
+    test('selecting "Yes, subsidiary" shows ticker and exchange fields', async () => {
+      renderGatewayWithPTC();
+
+      await screen.findByRole('heading', {
+        name: /let's help you get started/i,
+      });
+
+      await selectCCorporation();
+
+      await waitFor(() => {
+        expect(screen.getByText(/publicly traded/i)).toBeInTheDocument();
+      });
+
+      const subsidiaryRadio = screen.getByRole('radio', {
+        name: /subsidiary/i,
+      });
+      await user.click(subsidiaryRadio);
+
+      await waitFor(() => {
+        expect(screen.getByText(/ticker symbol/i)).toBeInTheDocument();
+        expect(screen.getByText(/stock exchange/i)).toBeInTheDocument();
+      });
+    });
+
+    test('selecting "No" hides ticker and exchange fields', async () => {
+      renderGatewayWithPTC();
+
+      await screen.findByRole('heading', {
+        name: /let's help you get started/i,
+      });
+
+      await selectCCorporation();
+
+      await waitFor(() => {
+        expect(screen.getByText(/publicly traded/i)).toBeInTheDocument();
+      });
+
+      // Select PTC first to show the fields
+      await user.click(
+        screen.getByRole('radio', {
+          name: /yes, my organization is publicly traded/i,
+        })
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText(/ticker symbol/i)).toBeInTheDocument();
+      });
+
+      // Now select "No"
+      const noRadio = screen.getByRole('radio', { name: /no/i });
+      await user.click(noRadio);
+
+      await waitFor(() => {
+        expect(screen.queryByText(/ticker symbol/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/stock exchange/i)).not.toBeInTheDocument();
+      });
+    });
+
+    test('selecting "Other" exchange shows the exchange name text field', async () => {
+      renderGatewayWithPTC();
+
+      await screen.findByRole('heading', {
+        name: /let's help you get started/i,
+      });
+
+      await selectCCorporation();
+
+      await waitFor(() => {
+        expect(screen.getByText(/publicly traded/i)).toBeInTheDocument();
+      });
+
+      await user.click(
+        screen.getByRole('radio', {
+          name: /yes, my organization is publicly traded/i,
+        })
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText(/stock exchange/i)).toBeInTheDocument();
+      });
+
+      // Open the stock exchange combobox and select "Other"
+      const exchangeCombobox = screen.getAllByRole('combobox')[1];
+      await user.click(exchangeCombobox);
+
+      const otherOption = await screen.findByRole('option', {
+        name: /other \(not listed above\)/i,
+      });
+      await user.click(otherOption);
+
+      // The exchange name text field should appear
+      await waitFor(() => {
+        expect(screen.getByText(/stock exchange name/i)).toBeInTheDocument();
+      });
+    });
+
+    test('changing org type clears PTC fields', async () => {
+      renderGatewayWithPTC();
+
+      await screen.findByRole('heading', {
+        name: /let's help you get started/i,
+      });
+
+      await selectCCorporation();
+
+      await waitFor(() => {
+        expect(screen.getByText(/publicly traded/i)).toBeInTheDocument();
+      });
+
+      await user.click(
+        screen.getByRole('radio', {
+          name: /yes, my organization is publicly traded/i,
+        })
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText(/ticker symbol/i)).toBeInTheDocument();
+      });
+
+      // Switch to sole proprietorship
+      await user.click(
+        screen.getByRole('radio', { name: /i'm the sole owner/i })
+      );
+
+      // PTC fields should be gone
+      await waitFor(() => {
+        expect(screen.queryByText(/publicly traded/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/ticker symbol/i)).not.toBeInTheDocument();
+      });
+    });
+
+    test('submits PTC data with ticker and exchange when PTC is selected', async () => {
+      renderGatewayWithPTC();
+
+      await screen.findByRole('heading', {
+        name: /let's help you get started/i,
+      });
+
+      await selectCCorporation();
+
+      await waitFor(() => {
+        expect(screen.getByText(/publicly traded/i)).toBeInTheDocument();
+      });
+
+      await user.click(
+        screen.getByRole('radio', {
+          name: /yes, my organization is publicly traded/i,
+        })
+      );
+
+      // Fill in ticker symbol
+      await waitFor(() => {
+        expect(screen.getByText(/ticker symbol/i)).toBeInTheDocument();
+      });
+
+      const tickerInput = screen.getByRole('textbox');
+      await user.type(tickerInput, 'JPM');
+
+      // Select a stock exchange
+      const exchangeCombobox = screen.getAllByRole('combobox')[1];
+      await user.click(exchangeCombobox);
+
+      const nyseOption = await screen.findByRole('option', {
+        name: /new york stock exchange/i,
+      });
+      await user.click(nyseOption);
+
+      // Submit
+      await user.click(screen.getByRole('button', { name: /get started/i }));
+
+      await waitFor(() => {
+        expect(gwCtx.postMutate).toHaveBeenCalled();
+      });
+
+      // Verify the request includes PTC data
+      const callArgs = gwCtx.postMutate.mock.calls[0][0];
+      const orgDetails = callArgs?.data?.parties?.[0]?.organizationDetails;
+      expect(orgDetails?.publiclyTraded?.tickerSymbol).toBe('JPM');
+      expect(orgDetails?.publiclyTraded?.stockExchange).toBe('XNYS');
+    });
   });
 });
