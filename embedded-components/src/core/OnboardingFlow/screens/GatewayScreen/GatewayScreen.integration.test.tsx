@@ -678,8 +678,9 @@ describe('GatewayScreen (integration)', () => {
       });
 
       // Verify the request includes PTC data
-      const callArgs = gwCtx.postMutate.mock.calls[0][0];
-      const orgDetails = callArgs?.data?.parties?.[0]?.organizationDetails;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const callArgs: any = gwCtx.postMutate.mock.calls[0][0];
+      const orgDetails: any = callArgs?.data?.parties?.[0]?.organizationDetails;
       expect(orgDetails?.publiclyTraded?.tickerSymbol).toBe('JPM');
       expect(orgDetails?.publiclyTraded?.stockExchange).toBe('XNYS');
     });
