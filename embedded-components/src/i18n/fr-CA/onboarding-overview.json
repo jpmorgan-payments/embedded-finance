@@ -1108,7 +1108,7 @@
     "tickerSymbol": {
       "label": "Symbole boursier",
       "labelSubsidiary": "Symbole boursier de la société mère",
-      "description": "Le symbole boursier (p. ex. JPM, MSFT)",
+      "description": "Le symbole boursier",
       "descriptionSubsidiary": "Entrez le symbole boursier de la société mère cotée en bourse",
       "tooltip": "",
       "placeholder": "p. ex. JPM",

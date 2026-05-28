@@ -1108,7 +1108,7 @@
     "tickerSymbol": {
       "label": "Símbolo bursátil",
       "labelSubsidiary": "Símbolo bursátil de la empresa matriz",
-      "description": "El símbolo bursátil (p. ej. JPM, MSFT)",
+      "description": "El símbolo bursátil",
       "descriptionSubsidiary": "Ingrese el símbolo bursátil de la empresa matriz que cotiza en bolsa",
       "tooltip": "",
       "placeholder": "p. ej. JPM",

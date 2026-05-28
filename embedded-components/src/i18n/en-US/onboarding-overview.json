@@ -1167,7 +1167,7 @@
     "tickerSymbol": {
       "label": "Ticker symbol",
       "labelSubsidiary": "Parent company ticker symbol",
-      "description": "The stock ticker symbol (e.g. JPM, MSFT)",
+      "description": "The stock ticker symbol",
       "descriptionSubsidiary": "Enter the ticker symbol of the publicly traded parent company",
       "tooltip": "",
       "placeholder": "e.g. JPM",
