@@ -1,18 +1,18 @@
 /**
- * MSW seed for the `/test-scenario-2` onboarding demo — "Top Dog Construction, LLC".
+ * MSW seed for the `/test-scenario-3` onboarding demo — "Health & Benefit Solutions, LLC".
  * Minimum data required to create a client + authorized user.
- * Seeded when `testScenarioBundle` is `test-scenario-2`.
+ * Seeded when `testScenarioBundle` is `test-scenario-3`.
  */
-export const TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID = '3100006998';
+export const TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID = '3100007001';
 
-export const testScenarioMultiLinkedIllustrationClient = {
-  id: TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID,
+export const testScenarioHealthBenefitClient = {
+  id: TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
   attestations: [],
-  createdAt: '2026-05-08T14:22:10.000Z',
+  createdAt: '2026-05-20T09:15:00.000Z',
   parties: [
     {
-      id: '2100535100',
-      createdAt: '2026-05-08T14:22:10.1Z',
+      id: '2100535200',
+      createdAt: '2026-05-20T09:15:00.1Z',
       partyType: 'ORGANIZATION',
       profileStatus: 'NEW',
       roles: ['CLIENT'],
@@ -33,21 +33,26 @@ export const testScenarioMultiLinkedIllustrationClient = {
       ],
       organizationDetails: {
         countryOfFormation: 'US',
-        dbaName: 'Top Dog Construction',
-        organizationName: 'Top Dog Construction, LLC',
+        dbaName: 'Health & Benefit Solutions',
+        organizationName: 'Health & Benefit Solutions, LLC',
         organizationType: 'LIMITED_LIABILITY_COMPANY',
       },
+      individualDetails: {},
       status: 'ACTIVE',
       preferences: {
         defaultLanguage: 'en-US',
       },
+      access: [],
+      networkRegistration: {},
+      parentPartyId: '',
+      parentExternalId: '',
     },
     {
-      id: '2100535101',
-      createdAt: '2026-05-08T14:22:10.2Z',
-      email: 'ross.gellar@topdog.com',
+      id: '2100535201',
+      createdAt: '2026-05-20T09:15:00.2Z',
+      email: 'ross.gellar@healthbenefits.com',
       partyType: 'INDIVIDUAL',
-      parentPartyId: '2100535100',
+      parentPartyId: '2100535200',
       profileStatus: 'NEW',
       roles: ['CONTROLLER', 'AUTHORIZED_USER'],
       active: true,
@@ -75,15 +80,26 @@ export const testScenarioMultiLinkedIllustrationClient = {
       preferences: {
         defaultLanguage: 'en-US',
       },
+      access: [],
+      networkRegistration: {},
+      parentExternalId: '',
     },
   ],
-  partyId: '2100535100',
+  partyId: '2100535200',
   products: ['EMBEDDED_PAYMENTS'],
   outstanding: {
-    attestationDocumentIds: ['b82e8c31-0a35-4d91-9f2a-9d1c6aa29c01'],
-    questionIds: ['30195', '30194'],
-    partyIds: ['2100535100', '2100535101'],
+    attestationDocumentIds: ['c93f9d42-1b46-5e02-a03b-ae2d7bb30d12'],
+    documentRequestIds: [],
+    questionIds: ['30195'],
+    partyIds: ['2100535200', '2100535201'],
+    partyRoles: [],
   },
+  questionResponses: [
+    {
+      questionId: '30194',
+      values: ['500'],
+    },
+  ],
   status: 'NEW',
   results: {
     customerIdentityStatus: 'NOT_STARTED',

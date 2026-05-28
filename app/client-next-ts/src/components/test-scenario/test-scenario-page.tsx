@@ -221,6 +221,9 @@ export function TestScenarioPage({ bundleId }: TestScenarioPageProps) {
                   hideLinkedAccountRemoval={
                     onboardingFlow?.hideLinkedAccountRemoval ?? true
                   }
+                  priorityIndustryCodes={
+                    onboardingFlow?.priorityIndustryCodes
+                  }
                 />
                 <footer className="mx-auto mt-4 max-w-4xl px-4 py-4 text-center sm:px-5">
                   <p className="text-xs leading-relaxed text-neutral-500">

@@ -39,6 +39,10 @@ import {
 import { mockLinkedAccounts } from '../mocks/linkedAccounts.mock';
 import { mockRecipientsResponse } from '../mocks/recipients.mock';
 import {
+  TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
+  testScenarioHealthBenefitClient,
+} from '../mocks/testScenarioHealthBenefitClient.mock';
+import {
   TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID,
   testScenarioMultiLinkedIllustrationClient,
 } from '../mocks/testScenarioMultiLinkedIllustrationClient.mock';
@@ -615,6 +619,7 @@ export function getTestScenarioClientIds(): string[] {
   return [
     TEST_DEMO_SCENARIO_CLIENT_ID,
     TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID,
+    TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
   ];
 }
 
@@ -870,6 +875,7 @@ function promoteTestDemoClientPartiesToApproved(clientId: string): void {
 function removeAllTestScenarioSeedClients(): void {
   removePredefinedClient(TEST_DEMO_SCENARIO_CLIENT_ID);
   removePredefinedClient(TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID);
+  removePredefinedClient(TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID);
 }
 
 /** Illustration: N ACTIVE linked-bank recipients for GET `/recipients` (`/test-scenario-2`). */
@@ -998,15 +1004,20 @@ export function applyTestDemoScenario(
   mode: TestDemoScenarioMode,
   bundleId: TestScenarioBundleId = DEFAULT_TEST_SCENARIO_BUNDLE_ID
 ): void {
-  const useMultiLinked = bundleId === 'test-scenario-2';
-  const clientId = useMultiLinked
-    ? TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID
-    : TEST_DEMO_SCENARIO_CLIENT_ID;
+  const clientId =
+    bundleId === 'test-scenario-2'
+      ? TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID
+      : bundleId === 'test-scenario-3'
+        ? TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID
+        : TEST_DEMO_SCENARIO_CLIENT_ID;
   const base = (
-    useMultiLinked
+    bundleId === 'test-scenario-2'
       ? testScenarioMultiLinkedIllustrationClient
-      : testScenarioOperator80Client
+      : bundleId === 'test-scenario-3'
+        ? testScenarioHealthBenefitClient
+        : testScenarioOperator80Client
   ) as PredefinedClientShape;
+  const useMultiLinked = bundleId === 'test-scenario-2';
 
   removeAllTestScenarioSeedClients();
 
