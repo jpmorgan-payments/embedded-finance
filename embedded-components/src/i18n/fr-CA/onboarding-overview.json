@@ -273,6 +273,7 @@
       "title": "Commençons",
       "description": "Sélectionnez votre type d'entreprise et nous vous expliquerons les renseignements nécessaires pour compléter cette demande.",
       "nextButton": "Commencer",
+      "ptcLockedAlert": "Le statut de société cotée en bourse de votre organisation a été enregistré et ne peut pas être supprimé. Certaines options sont restreintes.",
       "infoAlert": {
         "title": "Est-ce bien vous?",
         "description": "Pour protéger vos renseignements de compte, nous nous attendons à ce que la personne qui remplit cette demande détienne le contrôle principal des opérations financières et commerciales de l'entreprise. Si ce n'est pas votre cas, veuillez ne pas continuer ci-dessous."

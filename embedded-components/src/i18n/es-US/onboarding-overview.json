@@ -273,6 +273,7 @@
       "title": "Comencemos",
       "description": "Seleccione su tipo de negocio y le explicaremos qué información necesitará para completar esta solicitud.",
       "nextButton": "Comenzar",
+      "ptcLockedAlert": "El estado de cotización en bolsa de su organización ha sido guardado y no se puede eliminar. Algunas opciones están restringidas.",
       "infoAlert": {
         "title": "¿Es usted?",
         "description": "Para mantener seguros los datos de su cuenta, esperamos que la persona que complete esta solicitud tenga el control principal sobre las operaciones financieras y comerciales del negocio. Si no es usted, por favor no continúe a continuación."

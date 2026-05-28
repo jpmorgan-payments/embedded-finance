@@ -114,6 +114,9 @@ export const GatewayScreen = () => {
 
   const existingOrgParty = getOrganizationParty(clientData);
 
+  // PTC status cannot be reverted once set (API cannot remove publiclyTraded)
+  const isPTCLocked = !!existingOrgParty?.organizationDetails?.publiclyTraded;
+
   const [isFormPopulated, setIsFormPopulated] = useState(false);
 
   const handleNext = () => {
@@ -418,22 +421,26 @@ export const GatewayScreen = () => {
         'organizationTypeHierarchy.specificOrganizationType',
         'SOLE_PROPRIETORSHIP'
       );
-      // Clear PTC fields since sole props can't be PTCs
-      form.setValue('isPTCOrSubsidiary', '');
-      form.setValue('isSubsidiary', '');
-      form.setValue('tickerSymbol', '');
-      form.setValue('stockExchange', '');
-      form.setValue('stockExchangeName', '');
+      // Clear PTC fields since sole props can't be PTCs (unless locked)
+      if (!isPTCLocked) {
+        form.setValue('isPTCOrSubsidiary', '');
+        form.setValue('isSubsidiary', '');
+        form.setValue('tickerSymbol', '');
+        form.setValue('stockExchange', '');
+        form.setValue('stockExchangeName', '');
+      }
       return;
     }
 
     // Otherwise, clear the specific organization type and PTC fields
     form.setValue('organizationTypeHierarchy.specificOrganizationType', '');
-    form.setValue('isPTCOrSubsidiary', '');
-    form.setValue('isSubsidiary', '');
-    form.setValue('tickerSymbol', '');
-    form.setValue('stockExchange', '');
-    form.setValue('stockExchangeName', '');
+    if (!isPTCLocked) {
+      form.setValue('isPTCOrSubsidiary', '');
+      form.setValue('isSubsidiary', '');
+      form.setValue('tickerSymbol', '');
+      form.setValue('stockExchange', '');
+      form.setValue('stockExchangeName', '');
+    }
   };
 
   const isFormSubmitting =
@@ -443,13 +450,13 @@ export const GatewayScreen = () => {
 
   // Clear stale PTC selection when "ptc" option is no longer available
   useEffect(() => {
-    if (isPTCOrSubsidiary === 'ptc' && !canBePTCDirectly) {
+    if (isPTCOrSubsidiary === 'ptc' && !canBePTCDirectly && !isPTCLocked) {
       form.setValue('isPTCOrSubsidiary', '');
       form.setValue('tickerSymbol', '');
       form.setValue('stockExchange', '');
       form.setValue('stockExchangeName', '');
     }
-  }, [canBePTCDirectly, isPTCOrSubsidiary, form]);
+  }, [canBePTCDirectly, isPTCOrSubsidiary, isPTCLocked, form]);
 
   useEffect(() => {
     setIsFormSubmitting(isFormSubmitting);
@@ -491,6 +498,14 @@ export const GatewayScreen = () => {
           description={t('screens.gateway.description')}
         >
           <div className="eb-mt-6 eb-flex-auto eb-space-y-6">
+            {isPTCLocked && (
+              <Alert variant="informative" density="sm" noTitle>
+                <InfoIcon className="eb-h-4 eb-w-4" />
+                <AlertDescription className="eb-text-sm">
+                  {t('screens.gateway.ptcLockedAlert')}
+                </AlertDescription>
+              </Alert>
+            )}
             <OnboardingFormField
               control={form.control}
               disableFieldRuleMapping
@@ -500,6 +515,7 @@ export const GatewayScreen = () => {
                 value: type,
                 label: t([`generalOrganizationTypes.${type}`]),
                 description: t([`generalOrganizationTypeDescriptions.${type}`]),
+                disabled: isPTCLocked && type === 'SOLE_PROPRIETORSHIP',
               }))}
               onChange={handleGeneralOrganizationTypeChange}
               required
@@ -551,6 +567,7 @@ export const GatewayScreen = () => {
                     {
                       value: 'none',
                       label: t('fields.isPTCOrSubsidiary.options.none'),
+                      disabled: isPTCLocked,
                     },
                     ...(canBePTCDirectly
                       ? [

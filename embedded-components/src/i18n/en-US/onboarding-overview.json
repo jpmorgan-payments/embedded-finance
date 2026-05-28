@@ -316,6 +316,7 @@
       "title": "Let's help you get started",
       "description": "Select your business type and we'll explain what information you'll need to complete this application.",
       "nextButton": "Get Started",
+      "ptcLockedAlert": "Your organization's publicly traded status has been saved and cannot be removed. Some options are restricted.",
       "infoAlert": {
         "title": "Is this you?",
         "description": "To keep your account details safe, we expect that the person completing this application holds primary control over financial and business operations for the business. If this is not you, please don't proceed below."
