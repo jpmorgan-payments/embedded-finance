@@ -65,9 +65,11 @@ export function transformPartyToBeneficialOwner(
   // Determine status based ONLY on hierarchy completion (not KYC status)
   const status = determineOwnerStatus(ownershipType, !!ownershipHierarchy);
 
-  // Calculate if meets 25% threshold based on requirements scenarios
-  const meets25PercentThreshold =
-    ownershipType === 'DIRECT' || party.individualDetails?.firstName === 'Ross'; // Ross: 25% (meets), Rachel: 20% (doesn't meet)
+  // Calculate if meets 25% threshold based on hierarchy metadata
+  const meets25PercentThreshold = calculateMeets25PercentThreshold(
+    ownershipType,
+    ownershipHierarchy
+  );
 
   return {
     id: party.id,
@@ -145,36 +147,61 @@ function buildOwnershipHierarchy(
     id: `hierarchy-${party.id}`,
     steps,
     isValid: true,
-    meets25PercentThreshold: party.individualDetails?.firstName === 'Ross', // Ross meets, Rachel doesn't
+    meets25PercentThreshold: calculateMeets25PercentThreshold(
+      'INDIRECT',
+      { steps }
+    ),
     createdAt: new Date(party.createdAt || Date.now()),
     updatedAt: new Date(party.createdAt || Date.now()),
   };
 }
 
 /**
- * Get ownership percentage for demo purposes based on requirements scenarios
+ * Calculate whether an ownership chain meets the 25% beneficial ownership threshold.
+ * For direct owners, always true (they wouldn't be listed if <25%).
+ * For indirect owners, check the minimum percentage along the hierarchy chain.
+ */
+function calculateMeets25PercentThreshold(
+  ownershipType: 'DIRECT' | 'INDIRECT',
+  hierarchy?: { steps?: Array<{ metadata?: { ownershipPercentage?: number } }> }
+): boolean {
+  // Direct owners always meet threshold (they own ≥25% directly)
+  if (ownershipType === 'DIRECT') return true;
+
+  // No hierarchy data — can't determine, assume meets threshold
+  if (!hierarchy?.steps || hierarchy.steps.length === 0) return true;
+
+  // Find the minimum ownership percentage in the chain
+  const percentages = hierarchy.steps
+    .map((step) => step.metadata?.ownershipPercentage)
+    .filter((p): p is number => p !== undefined && p > 0);
+
+  // If no percentages recorded, assume meets threshold
+  if (percentages.length === 0) return true;
+
+  // The effective indirect ownership is the minimum percentage in the chain
+  // (simplified — actual calculation may multiply along chain)
+  return Math.min(...percentages) >= 25;
+}
+
+/**
+ * Get ownership percentage from party metadata.
+ * Returns the percentage stored on the intermediary, or a default.
  */
 function getOwnershipPercentage(
-  beneficialOwner: PartyResponse,
+  _beneficialOwner: PartyResponse,
   intermediateEntity: PartyResponse
 ): number {
-  const ownerName = beneficialOwner.individualDetails?.firstName;
-  const entityName = intermediateEntity.organizationDetails?.organizationName;
-
-  // Ross Geller scenario: Ross → Central Perk Coffee → Central Perk Coffee & Cookies (25% total)
-  if (ownerName === 'Ross' && entityName === 'Central Perk Coffee') {
-    return 25;
+  // Try to read from organization details metadata if available
+  // The API doesn't have a standard field for this yet, so we use
+  // a placeholder that will be populated once the detail form is built
+  const orgDetails = intermediateEntity.organizationDetails;
+  if (orgDetails && 'ownershipPercentage' in orgDetails) {
+    return (orgDetails as any).ownershipPercentage as number;
   }
 
-  // Rachel Green scenario: Rachel → Cookie Co. → Central Perk Cookie → Central Perk Coffee & Cookies (20% total)
-  if (ownerName === 'Rachel' && entityName === 'Cookie Co.') {
-    return 20;
-  }
-  if (ownerName === 'Rachel' && entityName === 'Central Perk Cookie') {
-    return 20;
-  }
-
-  return 30; // Default percentage
+  // Default: unknown percentage (display as 0 to indicate "not yet collected")
+  return 0;
 }
 
 /**

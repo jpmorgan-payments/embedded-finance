@@ -195,6 +195,24 @@ export interface IndirectOwnershipProps extends UserTrackingProps {
    */
   onRemoveOwner?: (ownerId: string) => void;
 
+  /**
+   * Callback when a hierarchy chain is saved for an indirect owner.
+   * The host is responsible for creating intermediary owner parties via
+   * the API (one per hierarchy step) with correct `parentPartyId` chaining.
+   *
+   * Each step in the array represents an intermediary entity in order from
+   * the beneficial owner toward the root business.
+   *
+   * If not provided, hierarchies are stored in local component state only.
+   */
+  onSaveHierarchy?: (
+    ownerId: string,
+    steps: Array<{
+      entityName: string;
+      ownsRootBusinessDirectly: boolean;
+    }>
+  ) => void;
+
   /** Configuration options */
   config?: Partial<OwnershipConfig>;
 

@@ -256,7 +256,7 @@ export const OwnersSectionScreen = () => {
     updateClient(
       {
         id: clientData.id,
-        data: { addParties: [newParty] },
+        data: { addParties: [newParty] as any },
       },
       {
         onSettled: (data, error) => {
@@ -296,6 +296,50 @@ export const OwnersSectionScreen = () => {
             );
             queryClient.invalidateQueries({ queryKey });
           }
+        },
+      }
+    );
+  };
+
+  // Handler for IndirectOwnership → save hierarchy (create intermediary parties)
+  const handleSaveHierarchy = (
+    ownerId: string,
+    steps: Array<{
+      entityName: string;
+      ownsRootBusinessDirectly: boolean;
+    }>
+  ) => {
+    if (!clientData) return;
+
+    // Create intermediary owner parties for each step in the chain.
+    // The API creates parties sequentially via addParties — each intermediary
+    // is an ORGANIZATION with role INTERMEDIARY_OWNER.
+    // parentPartyId chaining is done by the backend based on creation order.
+    const intermediaryParties = steps.map((step) => ({
+      partyType: 'ORGANIZATION' as const,
+      roles: ['INTERMEDIARY_OWNER' as const],
+      parentPartyId: ownerId,
+      organizationDetails: {
+        organizationName: step.entityName,
+        natureOfOwnership: step.ownsRootBusinessDirectly
+          ? ('Direct' as const)
+          : ('Indirect' as const),
+      },
+    }));
+
+    updateClient(
+      {
+        id: clientData.id,
+        data: { addParties: intermediaryParties as any },
+      },
+      {
+        onSettled: (data, error) => {
+          onPostClientSettled?.(data, error?.response?.data);
+        },
+        onSuccess: (response) => {
+          const queryKey = getSmbdoGetClientQueryKey(clientData.id);
+          queryClient.setQueryData(queryKey, response);
+          queryClient.invalidateQueries({ queryKey });
         },
       }
     );
@@ -514,6 +558,7 @@ export const OwnersSectionScreen = () => {
             onGatingAnswer={setIndirectGatingAnswer}
             onAddOwner={handleAddIndirectOwner}
             onRemoveOwner={handleRemoveIndirectOwner}
+            onSaveHierarchy={handleSaveHierarchy}
           />
         ) : (
           <div className="eb-space-y-4">

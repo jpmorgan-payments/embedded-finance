@@ -68,6 +68,7 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
   onGatingAnswer,
   onAddOwner,
   onRemoveOwner: onRemoveOwnerProp,
+  onSaveHierarchy,
   readOnly = false,
   className = '',
   testId = 'indirect-ownership',
@@ -388,7 +389,20 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
 
   const handleHierarchySaved = useCallback(
     (ownerId: string, hierarchy: any) => {
-      // Store hierarchy data separately - this marks the hierarchy as complete
+      // Delegate to host if callback provided (integrated mode)
+      if (onSaveHierarchy && hierarchy?.steps) {
+        onSaveHierarchy(
+          ownerId,
+          hierarchy.steps.map(
+            (step: { entityName: string; ownsRootBusinessDirectly: boolean }) => ({
+              entityName: step.entityName,
+              ownsRootBusinessDirectly: step.ownsRootBusinessDirectly,
+            })
+          )
+        );
+      }
+
+      // Store hierarchy data locally (for display in both modes)
       setCustomOwnershipHierarchies((prev) =>
         new Map(prev).set(ownerId, hierarchy)
       );
@@ -400,11 +414,9 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
         userEventsHandler,
       });
 
-      // Don't modify profileStatus - that's for KYC approval status
-      // The transform function will determine completion status based on hierarchy existence
       handleCloseDialog();
     },
-    [handleCloseDialog, userEventsHandler]
+    [handleCloseDialog, userEventsHandler, onSaveHierarchy]
   );
 
   // Gating question UI — shown before the full ownership builder
@@ -441,7 +453,11 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
               className="eb-space-y-3"
             >
               <div className="eb-flex eb-cursor-pointer eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-p-3 hover:eb-bg-accent">
-                <RadioGroupItem value="no" id="gating-no" className="eb-mt-0.5" />
+                <RadioGroupItem
+                  value="no"
+                  id="gating-no"
+                  className="eb-mt-0.5"
+                />
                 <div className="eb-flex-1 eb-space-y-1">
                   <Label htmlFor="gating-no" className="eb-cursor-pointer">
                     No — all owners hold their shares directly
@@ -449,7 +465,11 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
                 </div>
               </div>
               <div className="eb-flex eb-cursor-pointer eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-p-3 hover:eb-bg-accent">
-                <RadioGroupItem value="yes" id="gating-yes" className="eb-mt-0.5" />
+                <RadioGroupItem
+                  value="yes"
+                  id="gating-yes"
+                  className="eb-mt-0.5"
+                />
                 <div className="eb-flex-1 eb-space-y-1">
                   <Label htmlFor="gating-yes" className="eb-cursor-pointer">
                     Yes — some owners hold shares through other companies
@@ -1417,6 +1437,14 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
   const handleAddCompany = (ownsRootBusinessDirectly?: boolean) => {
     if (!currentCompanyName.trim()) {
       setErrors(['Company name is required']);
+      return;
+    }
+
+    // Max 10 intermediaries per beneficial owner (spec rule)
+    if (hierarchySteps.length >= 10) {
+      setErrors([
+        'Maximum of 10 intermediary entities per beneficial owner reached',
+      ]);
       return;
     }
 
