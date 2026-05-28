@@ -15,6 +15,7 @@ import { useForm, useFormState } from 'react-hook-form';
 
 import {
   getSmbdoGetClientQueryKey,
+  useSmbdoUpdateClientLegacy,
   useUpdatePartyLegacy,
 } from '@/api/generated/smbdo';
 import { ClientResponse, Role } from '@/api/generated/smbdo.schemas';
@@ -61,6 +62,7 @@ export const OwnersSectionScreen = () => {
 
   const {
     clientData,
+    onPostClientSettled,
     onPostPartySettled: onPostPartyResponse,
     organizationType,
     enableIndirectOwnership,
@@ -208,6 +210,97 @@ export const OwnersSectionScreen = () => {
     status: partyActiveUpdateStatus,
   } = useUpdatePartyLegacy();
 
+  // For adding new parties (indirect ownership integration)
+  const {
+    mutate: updateClient,
+    error: clientUpdateError,
+    status: clientUpdateStatus,
+  } = useSmbdoUpdateClientLegacy();
+
+  // Handler for IndirectOwnership → add a beneficial owner via API
+  const handleAddIndirectOwner = (ownerData: {
+    entityType: 'INDIVIDUAL' | 'BUSINESS';
+    firstName?: string;
+    lastName?: string;
+    businessName?: string;
+    ownershipType: 'DIRECT' | 'INDIRECT';
+  }) => {
+    if (!clientData) return;
+
+    const newParty =
+      ownerData.entityType === 'INDIVIDUAL'
+        ? {
+            partyType: 'INDIVIDUAL' as const,
+            roles: ['BENEFICIAL_OWNER' as const],
+            individualDetails: {
+              firstName: ownerData.firstName,
+              lastName: ownerData.lastName,
+              natureOfOwnership:
+                ownerData.ownershipType === 'INDIRECT'
+                  ? ('Indirect' as const)
+                  : ('Direct' as const),
+            },
+          }
+        : {
+            partyType: 'ORGANIZATION' as const,
+            roles: ['BENEFICIAL_OWNER' as const],
+            organizationDetails: {
+              organizationName: ownerData.businessName,
+              natureOfOwnership:
+                ownerData.ownershipType === 'INDIRECT'
+                  ? ('Indirect' as const)
+                  : ('Direct' as const),
+            },
+          };
+
+    updateClient(
+      {
+        id: clientData.id,
+        data: { addParties: [newParty] },
+      },
+      {
+        onSettled: (data, error) => {
+          onPostClientSettled?.(data, error?.response?.data);
+        },
+        onSuccess: (response) => {
+          const queryKey = getSmbdoGetClientQueryKey(clientData.id);
+          queryClient.setQueryData(queryKey, response);
+          queryClient.invalidateQueries({ queryKey });
+        },
+      }
+    );
+  };
+
+  // Handler for IndirectOwnership → remove (deactivate) a beneficial owner
+  const handleRemoveIndirectOwner = (ownerId: string) => {
+    updatePartyActive(
+      {
+        partyId: ownerId,
+        data: { active: false },
+      },
+      {
+        onSuccess: (response) => {
+          if (clientData) {
+            const queryKey = getSmbdoGetClientQueryKey(clientData.id);
+            queryClient.setQueryData(
+              queryKey,
+              (oldClientData: ClientResponse | undefined) => ({
+                ...oldClientData,
+                parties: oldClientData?.parties?.map((party) => {
+                  if (party.id === response.id) {
+                    return { ...party, ...response };
+                  }
+                  return party;
+                }),
+              })
+            );
+            queryClient.invalidateQueries({ queryKey });
+          }
+        },
+      }
+    );
+  };
+
   const ownersData =
     clientData?.parties?.filter(
       (party) =>
@@ -293,7 +386,8 @@ export const OwnersSectionScreen = () => {
 
   const isFormDisabled =
     controllerUpdateStatus === 'pending' ||
-    partyActiveUpdateStatus === 'pending';
+    partyActiveUpdateStatus === 'pending' ||
+    clientUpdateStatus === 'pending';
 
   // TODO: get completed status from global stepper,
   // send completed status to global stepper
@@ -418,6 +512,8 @@ export const OwnersSectionScreen = () => {
             className="eb-mt-4"
             showGatingQuestion
             onGatingAnswer={setIndirectGatingAnswer}
+            onAddOwner={handleAddIndirectOwner}
+            onRemoveOwner={handleRemoveIndirectOwner}
           />
         ) : (
           <div className="eb-space-y-4">
@@ -566,7 +662,9 @@ export const OwnersSectionScreen = () => {
 
       <div className="eb-mt-6 eb-space-y-6">
         <ServerErrorAlert
-          error={controllerUpdateError || partyActiveUpdateError}
+          error={
+            controllerUpdateError || partyActiveUpdateError || clientUpdateError
+          }
         />
         <div className="eb-flex eb-justify-between eb-gap-4">
           <Button
