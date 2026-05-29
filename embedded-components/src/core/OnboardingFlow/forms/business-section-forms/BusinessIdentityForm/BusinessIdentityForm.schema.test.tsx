@@ -86,20 +86,6 @@ describe('BusinessIdentityForm schema (website superRefine & EIN)', () => {
     expect(parsed.success).toBe(true);
   });
 
-  test('rejects invalid EIN prefix (IRS reserved ranges)', () => {
-    const { result } = renderHook(() => useRefinedBusinessIdentitySchema());
-    const parsed = result.current.safeParse({
-      ...validBase(),
-      organizationIdEin: '294316140',
-    });
-    expect(parsed.success).toBe(false);
-    expect(
-      parsed.error?.issues.some((i) =>
-        i.message.includes('organizationIdEin.invalidPrefix')
-      )
-    ).toBe(true);
-  });
-
   test('rejects blocklisted EIN values (all-same-digit, sequential)', () => {
     const { result } = renderHook(() => useRefinedBusinessIdentitySchema());
     const blocklisted = [

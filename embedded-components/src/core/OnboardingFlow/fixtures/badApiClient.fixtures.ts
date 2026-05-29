@@ -56,7 +56,7 @@ export function createMockClientInvalidSSN(): ClientResponse {
   return mock;
 }
 
-/** Organization EIN uses invalid prefix e.g. 29-xx-xxxxx (Storybook: InvalidEIN). */
+/** Organization EIN is too short — only 5 digits (Storybook: InvalidEIN). */
 export function createMockClientInvalidEIN(): ClientResponse {
   const mock = cloneDeep(mockClientNew);
   const org = mock.parties?.find(
@@ -68,7 +68,7 @@ export function createMockClientInvalidEIN(): ClientResponse {
       {
         idType: 'EIN',
         issuer: 'US',
-        value: '294316140',
+        value: '29431',
       },
     ];
   }

@@ -822,7 +822,6 @@
         "required": "$t(validation:required)",
         "length": "Le NIE doit contenir exactement 9 chiffres",
         "digitsOnly": "Le NIE ne peut contenir que des chiffres",
-        "invalidPrefix": "Préfixe NIE invalide",
         "invalidValue": "Veuillez entrer un NIE valide"
       }
     },

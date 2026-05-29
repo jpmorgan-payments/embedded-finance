@@ -7,38 +7,6 @@ import { NAME_PATTERN } from '@/core/OnboardingFlow/utils/validationPatterns';
 const CURRENT_YEAR = new Date().getFullYear();
 const SPECIAL_CHARS_PATTERN = /[()_/@&+%#;,.: '-]/;
 
-// Invalid EIN prefixes per IRS rules (updated April 2026).
-// These two-digit prefixes have never been issued or are reserved.
-// Source: https://www.irs.gov/businesses/small-businesses-self-employed/how-eins-are-assigned-and-valid-ein-prefixes
-const INVALID_EIN_PREFIXES = [
-  '00',
-  '07',
-  '08',
-  '09',
-  '17',
-  '18',
-  '19',
-  '28',
-  '29',
-  '49',
-  '69',
-  '70',
-  '78',
-  '79',
-  '89',
-  '96',
-  '97',
-];
-
-/**
- * Validates EIN prefix (first two digits).
- * Returns true if the prefix is valid (not in the invalid list).
- */
-const isValidEinPrefix = (value: string): boolean => {
-  const prefix = value.slice(0, 2);
-  return !INVALID_EIN_PREFIXES.includes(prefix);
-};
-
 // Blocklist of obviously invalid EIN values (all-same-digit, sequential patterns).
 const INVALID_EIN_VALUES = new Set([
   '000000000',
@@ -231,10 +199,6 @@ export const useBusinessIdentityFormSchema = () => {
       .refine(
         (val) => /^\d{9}$/.test(val),
         v('organizationIdEin', 'digitsOnly')
-      )
-      .refine(
-        (val) => isValidEinPrefix(val),
-        v('organizationIdEin', 'invalidPrefix')
       )
       .refine(
         (val) => isNotBlocklistedEin(val),
