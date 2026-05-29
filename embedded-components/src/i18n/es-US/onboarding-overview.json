@@ -822,7 +822,8 @@
         "required": "$t(validation:required)",
         "length": "El EIN debe tener exactamente 9 dígitos",
         "digitsOnly": "El EIN solo puede contener números",
-        "invalidPrefix": "Prefijo de EIN inválido"
+        "invalidPrefix": "Prefijo de EIN inválido",
+        "invalidValue": "Ingrese un EIN válido"
       }
     },
     "solePropHasEin": {

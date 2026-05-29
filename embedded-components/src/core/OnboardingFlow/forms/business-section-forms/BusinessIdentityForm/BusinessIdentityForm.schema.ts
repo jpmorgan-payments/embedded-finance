@@ -39,6 +39,27 @@ const isValidEinPrefix = (value: string): boolean => {
   return !INVALID_EIN_PREFIXES.includes(prefix);
 };
 
+// Blocklist of obviously invalid EIN values (all-same-digit, sequential patterns).
+const INVALID_EIN_VALUES = new Set([
+  '000000000',
+  '111111111',
+  '222222222',
+  '333333333',
+  '444444444',
+  '555555555',
+  '666666666',
+  '777777777',
+  '888888888',
+  '999999999',
+  '123456789',
+  '987654321',
+  '012345678',
+]);
+
+const isNotBlocklistedEin = (value: string): boolean => {
+  return !INVALID_EIN_VALUES.has(value);
+};
+
 // const OrganizationIdSchema = z
 //   .object({
 //     description: z
@@ -214,6 +235,10 @@ export const useBusinessIdentityFormSchema = () => {
       .refine(
         (val) => isValidEinPrefix(val),
         v('organizationIdEin', 'invalidPrefix')
+      )
+      .refine(
+        (val) => isNotBlocklistedEin(val),
+        v('organizationIdEin', 'invalidValue')
       ),
     solePropHasEin: z
       .string()

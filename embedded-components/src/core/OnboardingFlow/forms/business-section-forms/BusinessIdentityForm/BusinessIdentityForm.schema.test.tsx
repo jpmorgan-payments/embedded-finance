@@ -100,6 +100,31 @@ describe('BusinessIdentityForm schema (website superRefine & EIN)', () => {
     ).toBe(true);
   });
 
+  test('rejects blocklisted EIN values (all-same-digit, sequential)', () => {
+    const { result } = renderHook(() => useRefinedBusinessIdentitySchema());
+    const blocklisted = [
+      '000000000',
+      '111111111',
+      '555555555',
+      '999999999',
+      '123456789',
+      '987654321',
+      '012345678',
+    ];
+    for (const ein of blocklisted) {
+      const parsed = result.current.safeParse({
+        ...validBase(),
+        organizationIdEin: ein,
+      });
+      expect(parsed.success).toBe(false);
+      expect(
+        parsed.error?.issues.some((i) =>
+          i.message.includes('organizationIdEin.invalidValue')
+        )
+      ).toBe(true);
+    }
+  });
+
   test('requires DBA when dbaNameNotAvailable is false', () => {
     const { result } = renderHook(() => useRefinedBusinessIdentitySchema());
     const parsed = result.current.safeParse({

@@ -881,7 +881,8 @@
         "required": "$t(validation:required)",
         "length": "EIN must be exactly 9 digits",
         "digitsOnly": "EIN may only contain numbers",
-        "invalidPrefix": "Invalid EIN prefix"
+        "invalidPrefix": "Invalid EIN prefix",
+        "invalidValue": "Please enter a valid EIN"
       }
     },
     "solePropHasEin": {
