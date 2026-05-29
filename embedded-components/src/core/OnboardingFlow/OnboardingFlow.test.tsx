@@ -289,7 +289,7 @@ describe('OnboardingFlow', () => {
     // Ensure entered business data is displayed
     expect(await screen.findAllByText('Fake Corp')).toHaveLength(2);
     expect(screen.getByText('2020')).toBeInTheDocument();
-    expect(screen.getByText('12 - 3456789')).toBeInTheDocument();
+    expect(screen.getByText('30 - 0030003')).toBeInTheDocument();
     expect(screen.getByText('https://www.fakecorp.com')).toBeInTheDocument();
     expect(screen.getByText('We sell products.')).toBeInTheDocument();
     expect(
