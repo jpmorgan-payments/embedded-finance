@@ -135,7 +135,9 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   }
 
   const currentStepNumber = stepperUtils.getIndex(currentStep.id) + 1;
-  const formStepCount = steps.filter((s) => s.stepType === 'form').length;
+  const formStepCount = steps.filter(
+    (s) => s.stepType !== 'check-answers'
+  ).length;
   const isCheckAnswersStep = currentStep.stepType === 'check-answers';
   const currentSection = sections.find(
     (section) => section.id === currentScreenId
