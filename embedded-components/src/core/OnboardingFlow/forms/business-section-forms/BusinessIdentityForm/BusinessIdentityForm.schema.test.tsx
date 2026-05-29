@@ -90,7 +90,7 @@ describe('BusinessIdentityForm schema (website superRefine & EIN)', () => {
     const { result } = renderHook(() => useRefinedBusinessIdentitySchema());
     const parsed = result.current.safeParse({
       ...validBase(),
-      organizationIdEin: '914316140',
+      organizationIdEin: '294316140',
     });
     expect(parsed.success).toBe(false);
     expect(

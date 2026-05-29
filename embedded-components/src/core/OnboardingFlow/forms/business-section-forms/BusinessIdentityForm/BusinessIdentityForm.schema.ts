@@ -7,8 +7,9 @@ import { NAME_PATTERN } from '@/core/OnboardingFlow/utils/validationPatterns';
 const CURRENT_YEAR = new Date().getFullYear();
 const SPECIAL_CHARS_PATTERN = /[()_/@&+%#;,.: '-]/;
 
-// Invalid EIN prefixes per IRS rules.
+// Invalid EIN prefixes per IRS rules (updated April 2026).
 // These two-digit prefixes have never been issued or are reserved.
+// Source: https://www.irs.gov/businesses/small-businesses-self-employed/how-eins-are-assigned-and-valid-ein-prefixes
 const INVALID_EIN_PREFIXES = [
   '00',
   '07',
@@ -17,28 +18,16 @@ const INVALID_EIN_PREFIXES = [
   '17',
   '18',
   '19',
-  '20',
-  '26',
-  '27',
-  '45',
-  '46',
-  '47',
-  '48',
+  '28',
+  '29',
   '49',
+  '69',
   '70',
   '78',
   '79',
   '89',
-  '90',
-  '91',
-  '92',
-  '93',
-  '94',
-  '95',
   '96',
   '97',
-  '98',
-  '99',
 ];
 
 /**
