@@ -2,6 +2,18 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.14.1] - 2026-05-29
+
+### Changes
+
+#### Refactors
+
+- **onboarding:** remove prefix validation for EIN
+
+#### Chores
+
+- update tagging script to be more accurate
+
 ## [0.14.0] - 2026-05-29
 
 ### Summary
