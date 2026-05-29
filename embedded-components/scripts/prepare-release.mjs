@@ -44,13 +44,35 @@ function bumpVersion(current, type) {
   }
 }
 
-function getLastTag() {
+function getLastReleaseRef() {
+  // Strategy 1: Use the most recent git tag
   try {
-    return run('git describe --tags --abbrev=0');
+    const tag = run('git describe --tags --abbrev=0');
+    if (tag) return tag;
   } catch {
-    // No tags exist yet — use first commit
-    return run('git rev-list --max-parents=0 HEAD');
+    // No tags exist
   }
+
+  // Strategy 2: Parse the date from the last CHANGELOG entry and find commits after that date
+  try {
+    const changelog = readFileSync(resolve(ROOT, 'CHANGELOG.md'), 'utf-8');
+    const dateMatch = changelog.match(
+      /## \[\d+\.\d+\.\d+\] - (\d{4}-\d{2}-\d{2})/
+    );
+    if (dateMatch) {
+      const lastReleaseDate = dateMatch[1];
+      // Find the last commit on or before that date in embedded-components/
+      const ref = run(
+        `git log -1 --pretty=format:"%H" --until="${lastReleaseDate}T23:59:59" -- embedded-components/`
+      );
+      if (ref) return ref;
+    }
+  } catch {
+    // CHANGELOG parsing failed
+  }
+
+  // Strategy 3: Use 4 weeks ago as a reasonable window
+  return run('git rev-list -1 --before="4 weeks ago" HEAD');
 }
 
 function getConventionalCommits(since) {
@@ -122,12 +144,13 @@ const newVersion = bumpVersion(currentVersion, bumpType);
 console.log(`Bumping ${currentVersion} → ${newVersion} (${bumpType})`);
 
 // Collect commits
-const lastTag = getLastTag();
-const commits = getConventionalCommits(lastTag);
+const lastRef = getLastReleaseRef();
+console.log(`Collecting commits since: ${lastRef.slice(0, 10)}...`);
+const commits = getConventionalCommits(lastRef);
 
 if (commits.length === 0) {
   console.log(
-    'No conventional commits found since last tag. Proceeding with empty changelog entry.'
+    'No conventional commits found since last release. Proceeding with empty changelog entry.'
   );
 }
 
