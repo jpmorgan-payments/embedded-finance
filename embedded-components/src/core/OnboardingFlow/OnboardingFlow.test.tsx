@@ -226,7 +226,7 @@ describe('OnboardingFlow', () => {
     const yearOfFormationInput = screen.getByLabelText(/Year of formation/i);
     await user.type(yearOfFormationInput, '2020');
     const einInput = screen.getByLabelText(/Employer Identification Number/i);
-    await user.type(einInput, '123456789');
+    await user.type(einInput, '300030003');
     const websiteInput = screen.getByLabelText(/Business website/i);
     await user.type(websiteInput, 'https://www.fakecorp.com');
     // Proceed to next step
