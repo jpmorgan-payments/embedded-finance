@@ -2,6 +2,58 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.14.0] - 2026-05-29
+
+### Summary
+
+Publicly Traded Companies (PTC) feature: full end-to-end support for capturing ticker symbol and stock exchange during onboarding, with gateway-screen integration, overview hints, review display, and comprehensive e2e tests. Also includes EIN validation hardening (updated IRS prefix list + blocklist of obviously invalid values), step counter fix for the review section, and several onboarding data-handling improvements.
+
+### Changes
+
+#### Features
+
+- **onboarding (PTC):** add Publicly Traded Companies feature with gateway-screen integration, stock exchange priority grouping, overview hints, and review display
+- **onboarding (PTC):** filter PTC step from sections when feature flag is off or org type is sole prop
+- **onboarding (PTC):** clear stale PTC selection when option is no longer available
+- **onboarding (PTC):** add temporary restrictions for removing PTC status (API limitation)
+- **onboarding:** improve visibility configurability for sections/steps (dynamic requirement summaries based on step visibility)
+- **onboarding:** include dbaName when same as organization name
+- **onboarding:** disable autoComplete for obfuscated fields
+- **client-details:** add questions grouping and conditional visibility
+- **account-card:** add balance error state
+
+#### Bug Fixes
+
+- **onboarding:** fix step counter showing "Step X of 0" in review section
+- **onboarding:** fix incorrect party reference for countryOfResidence
+- **onboarding:** fix bug with missing argument in flow navigation
+- **onboarding:** remove unnecessary error throwing
+- **onboarding:** skip review cards where all fields are hidden
+- **onboarding:** add disableFieldRuleMapping to PubliclyTradedForm fields
+
+#### Refactors
+
+- replace global Axios singleton with per-provider scoped instances
+
+#### Documentation
+
+- update feature plan and onboarding recipe with latest PTC implementation details
+
+#### Chores
+
+- **onboarding:** update EIN invalid prefix list per latest IRS data (April 2026)
+- **onboarding:** add blocklist rejecting obviously invalid EINs (all-same-digit, sequential patterns)
+- show a review card for business type at top of review section
+- remove release-please workflow and add tag release workflow
+- remove redundant story names
+- update tagging script
+
+#### Tests
+
+- **onboarding:** add PTC end-to-end integration test (12 scenarios)
+- **onboarding:** add PTC matrix test cases
+- update GatewayScreen integration tests to resolve selector conflicts
+
 ## [0.13.14] - 2026-05-19
 
 ### Summary
