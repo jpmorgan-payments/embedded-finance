@@ -88,7 +88,11 @@
     "prettier": "prettier --check \"**/*.{ts,tsx}\"",
     "prettier:write": "prettier --write \"**/*.{ts,tsx}\"",
     "vitest": "vitest run",
-    "vitest:watch": "vitest"
+    "vitest:watch": "vitest",
+    "__comment_release": "=== RELEASE ===",
+    "release": "node scripts/prepare-release.mjs",
+    "release:minor": "node scripts/prepare-release.mjs minor",
+    "release:major": "node scripts/prepare-release.mjs major"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
