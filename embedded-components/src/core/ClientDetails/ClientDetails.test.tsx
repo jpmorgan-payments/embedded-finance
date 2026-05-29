@@ -1,0 +1,315 @@
+import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
+import { server } from '@/msw/server';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { http, HttpResponse } from 'msw';
+
+import { EBComponentsProvider } from '../EBComponentsProvider';
+import { ClientDetails } from './ClientDetails';
+import type { ClientDetailsProps } from './ClientDetails.types';
+
+const renderComponent = (props: Partial<ClientDetailsProps> = {}) => {
+  // NOTE: Don't reset handlers here - let tests manage their own handlers
+  // server.resetHandlers() is called in beforeEach already
+
+  const defaultProps: ClientDetailsProps = {
+    clientId: '0030000133',
+    ...props,
+  };
+
+  return render(
+    <EBComponentsProvider
+      apiBaseUrl="/"
+      headers={{}}
+      contentTokens={{ name: 'enUS' }}
+      reactQueryDefaultOptions={{
+        queries: { retry: false },
+      }}
+    >
+      <div className="eb-mx-auto eb-max-w-2xl eb-p-6">
+        <ClientDetails {...defaultProps} />
+      </div>
+    </EBComponentsProvider>
+  );
+};
+
+describe('ClientDetails', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    server.resetHandlers();
+    // Clean up stale Radix Dialog artifacts from previous tests
+    document
+      .querySelectorAll('[data-radix-portal]')
+      .forEach((el) => el.remove());
+    document.body.style.pointerEvents = '';
+    document.body.removeAttribute('data-scroll-locked');
+  });
+
+  afterEach(() => {
+    document
+      .querySelectorAll('[data-radix-portal]')
+      .forEach((el) => el.remove());
+    document.body.style.pointerEvents = '';
+    document.body.removeAttribute('data-scroll-locked');
+  });
+
+  describe('Rendering', () => {
+    test('renders "Client ID is required" when clientId is empty', () => {
+      renderComponent({ clientId: '' });
+
+      expect(screen.getByText(/Client ID is required/i)).toBeInTheDocument();
+    });
+
+    test('renders loading state', () => {
+      server.use(http.get('*/clients/:clientId', () => new Promise(() => {})));
+
+      renderComponent();
+
+      expect(document.querySelector('.eb-animate-pulse')).toBeInTheDocument();
+    });
+
+    test('renders client details in accordion view when viewMode is accordion', async () => {
+      server.use(
+        http.get('*/clients/:clientId', () =>
+          HttpResponse.json(efClientCorpEBMock)
+        )
+      );
+
+      renderComponent({ viewMode: 'accordion' });
+
+      await waitFor(() => {
+        expect(screen.getByText('Client details')).toBeInTheDocument();
+      });
+
+      // Client information appears in accordion header and section title
+      expect(
+        screen.getAllByText('Client information').length
+      ).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Organization').length).toBeGreaterThanOrEqual(
+        1
+      );
+      expect(screen.getAllByText('Controller').length).toBeGreaterThanOrEqual(
+        1
+      );
+      // Base mock has status: 'NEW' which translates to 'New'
+      // The accordion view shows this in the Application status row
+      expect(screen.getByText('New')).toBeInTheDocument();
+    });
+
+    test('renders client details in cards view when viewMode is cards', async () => {
+      server.use(
+        http.get('*/clients/:clientId', () =>
+          HttpResponse.json(efClientCorpEBMock)
+        )
+      );
+
+      renderComponent({ viewMode: 'cards' });
+
+      await waitFor(() => {
+        expect(screen.getByText('Client details')).toBeInTheDocument();
+      });
+
+      // Client information appears in card header and section title
+      expect(
+        screen.getAllByText('Client information').length
+      ).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Organization').length).toBeGreaterThanOrEqual(
+        1
+      );
+      expect(screen.getAllByText('Controller').length).toBeGreaterThanOrEqual(
+        1
+      );
+      // Business-facing data only (no internal client ID)
+      expect(
+        screen.getAllByText('Neverland Books').length
+      ).toBeGreaterThanOrEqual(1);
+    });
+
+    test('renders custom title when provided', async () => {
+      server.use(
+        http.get('*/clients/:clientId', () =>
+          HttpResponse.json(efClientCorpEBMock)
+        )
+      );
+
+      renderComponent({ viewMode: 'accordion' });
+
+      await waitFor(() => {
+        // Note: "Client details" is lowercase as per i18n translation
+        expect(screen.getByText('Client details')).toBeInTheDocument();
+      });
+    });
+
+    test('renders error state when GET /clients/:id fails', async () => {
+      server.use(
+        http.get('*/clients/:clientId', () =>
+          HttpResponse.json(
+            { title: 'Not found', httpStatus: 404 },
+            { status: 404 }
+          )
+        )
+      );
+
+      renderComponent({ clientId: 'nonexistent-client' });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Unable to load client/i)).toBeInTheDocument();
+      });
+
+      // Check for the error description
+      expect(
+        screen.getByText(/The requested client could not be found/i)
+      ).toBeInTheDocument();
+
+      // Check for the retry button
+      expect(
+        screen.getByRole('button', { name: /Try again/i })
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe('Summary View Mode', () => {
+    const mockApprovedClient = {
+      ...efClientCorpEBMock,
+      status: 'APPROVED',
+      results: {
+        customerIdentityStatus: 'APPROVED',
+      },
+    };
+
+    // Mock for onboarding client (non-approved) to test onboarding sections
+    const mockOnboardingClient = {
+      ...efClientCorpEBMock,
+      status: 'INFORMATION_REQUESTED',
+      results: {
+        customerIdentityStatus: 'INFORMATION_REQUESTED',
+      },
+    };
+
+    test('renders summary view with organization name and status badge', async () => {
+      server.use(
+        http.get('*/clients/:clientId', () =>
+          HttpResponse.json(mockApprovedClient)
+        )
+      );
+
+      renderComponent({ viewMode: 'summary' });
+
+      await waitFor(() => {
+        // Organization name appears in the header section
+        expect(screen.getByText('Neverland Books')).toBeInTheDocument();
+      });
+
+      // For approved clients, status is NOT shown (only shown for non-approved)
+      // So we just verify the org name is there
+      expect(screen.getByText('Neverland Books')).toBeInTheDocument();
+    });
+
+    test('renders section list for approved client (no onboarding sections)', async () => {
+      server.use(
+        http.get('*/clients/:clientId', () =>
+          HttpResponse.json(mockApprovedClient)
+        )
+      );
+
+      renderComponent({ viewMode: 'summary' });
+
+      await waitFor(() => {
+        expect(screen.getByText('Business Details')).toBeInTheDocument();
+      });
+
+      // For APPROVED clients, we show People section but NOT onboarding sections
+      expect(screen.getByText('People')).toBeInTheDocument();
+      // Onboarding sections should NOT be visible for approved clients
+      expect(screen.queryByText('Onboarding Progress')).not.toBeInTheDocument();
+      expect(screen.queryByText('Verification Status')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Documents & Questions')
+      ).not.toBeInTheDocument();
+    });
+
+    test('renders summary sections for non-approved client', async () => {
+      server.use(
+        http.get('*/clients/:clientId', () =>
+          HttpResponse.json(mockOnboardingClient)
+        )
+      );
+
+      renderComponent({ viewMode: 'summary' });
+
+      await waitFor(() => {
+        expect(screen.getByText('Business Details')).toBeInTheDocument();
+      });
+
+      // Default sections are identity and ownership (verification & compliance consolidated into identity)
+      expect(screen.getByText('People')).toBeInTheDocument();
+    });
+
+    test('opens drill-down sheet when section is clicked', async () => {
+      const user = userEvent.setup({ pointerEventsCheck: 0 });
+
+      server.use(
+        http.get('*/clients/:clientId', () =>
+          HttpResponse.json(mockApprovedClient)
+        )
+      );
+
+      // Use unique clientId to avoid React Query cache pollution from prior tests
+      renderComponent({ viewMode: 'summary', clientId: 'drill-down-test' });
+
+      await waitFor(() => {
+        expect(screen.getByText('Business Details')).toBeInTheDocument();
+      });
+
+      // Click on a section
+      await user.click(
+        screen.getByRole('button', { name: /Business Details/i })
+      );
+
+      // Dialog portal should render (outside the aria-hidden container)
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+      });
+    });
+
+    test('renders people section with owner count and controller', async () => {
+      server.use(
+        http.get('*/clients/:clientId', () =>
+          HttpResponse.json(mockApprovedClient)
+        )
+      );
+
+      renderComponent({ viewMode: 'summary' });
+
+      await waitFor(() => {
+        // New design shows "People" section with individual cards
+        expect(screen.getByText('People')).toBeInTheDocument();
+      });
+
+      // Should show controller count and owner count breakdown (badge + person list)
+      expect(screen.getAllByText(/Controller/i).length).toBeGreaterThan(0);
+    });
+
+    test('renders custom actions when provided', async () => {
+      server.use(
+        http.get('*/clients/:clientId', () =>
+          HttpResponse.json(mockApprovedClient)
+        )
+      );
+
+      renderComponent({
+        viewMode: 'summary',
+        actions: <button type="button">Custom Action</button>,
+      });
+
+      await waitFor(() => {
+        // Wait for data to load
+        expect(screen.getAllByText('Neverland Books').length).toBeGreaterThan(
+          0
+        );
+      });
+
+      expect(screen.getByText('Custom Action')).toBeInTheDocument();
+    });
+  });
+});

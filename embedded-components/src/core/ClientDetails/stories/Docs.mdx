@@ -1,0 +1,290 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+import * as ClientDetailsStories from '../ClientDetails.story';
+
+<Meta title="Beta/ClientDetails" of={ClientDetailsStories} />
+
+# ClientDetails
+
+The **ClientDetails** component displays comprehensive information for a fully onboarded client retrieved from `GET /clients/:id`. It provides three flexible view modes to suit different use cases.
+
+## Features
+
+- **Three View Modes**: Summary, Accordion, and Cards
+- **Drill-Down Navigation**: Click sections to view detailed information in slide-out sheets
+- **Custom Actions**: Add action buttons for workflows like editing or contacting support
+- **Section Filtering**: Choose which sections to display
+- **Status Indicators**: Visual badges for client approval status
+
+## View Modes
+
+<table>
+  <thead>
+    <tr>
+      <th>Mode</th>
+      <th>Description</th>
+      <th>Best For</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <strong>Summary</strong>
+      </td>
+      <td>Compact card with quick stats and clickable sections</td>
+      <td>Dashboards, overviews, quick reference</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Accordion</strong>
+      </td>
+      <td>Collapsible sections showing full details</td>
+      <td>Detailed review, printing, compliance checks</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Cards</strong>
+      </td>
+      <td>Grid of cards for each information section</td>
+      <td>Visual browsing, side-by-side comparison</td>
+    </tr>
+  </tbody>
+</table>
+
+## Summary Mode
+
+The summary view is designed for dashboard integration, providing at-a-glance information with the ability to drill down into details.
+
+### Key Features
+
+- **Business Header**: Organization name with DBA, type, and status badge
+- **Business Details Section**: Address and key business information
+- **People Section**: Shows beneficial owners count with controller name
+- **Documents Section**: Verification status and compliance information
+- **Drill-Down Sheets**: Click any section to open detailed view with navigation
+
+## Accordion Mode
+
+Full detail view with collapsible sections, similar to the onboarding review experience.
+
+## Cards Mode
+
+Information grouped into visual cards in a responsive grid layout.
+
+## Usage Examples
+
+### Basic Usage
+
+```tsx
+import { ClientDetails } from '@embedded-components/core/ClientDetails';
+
+// Summary view (default)
+<ClientDetails clientId="0030000133" />
+
+// Accordion view
+<ClientDetails clientId="0030000133" viewMode="accordion" />
+
+// Cards view
+<ClientDetails clientId="0030000133" viewMode="cards" />
+```
+
+### Custom Sections
+
+Display only specific sections relevant to your use case:
+
+```tsx
+<ClientDetails
+  clientId="0030000133"
+  sections={['identity', 'verification', 'ownership']}
+/>
+```
+
+### With Custom Actions
+
+Add action buttons for your workflow:
+
+```tsx
+<ClientDetails
+  clientId="0030000133"
+  actions={
+    <>
+      <Button variant="outline" size="sm">
+        Contact Support
+      </Button>
+      <Button variant="default" size="sm">
+        Edit Client
+      </Button>
+    </>
+  }
+/>
+```
+
+### External Navigation Handler
+
+Handle section clicks externally for custom routing:
+
+```tsx
+<ClientDetails
+  clientId="0030000133"
+  onSectionClick={(section) => {
+    navigate(`/client/${clientId}/${section}`);
+  }}
+/>
+```
+
+## Available Sections
+
+<table>
+  <thead>
+    <tr>
+      <th>Section</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>identity</code>
+      </td>
+      <td>Business identity and registration details</td>
+    </tr>
+    <tr>
+      <td>
+        <code>verification</code>
+      </td>
+      <td>KYC/KYB verification status and results</td>
+    </tr>
+    <tr>
+      <td>
+        <code>ownership</code>
+      </td>
+      <td>Beneficial owners and controllers</td>
+    </tr>
+    <tr>
+      <td>
+        <code>compliance</code>
+      </td>
+      <td>Compliance questionnaire responses</td>
+    </tr>
+    <tr>
+      <td>
+        <code>accounts</code>
+      </td>
+      <td>Associated bank accounts (when available)</td>
+    </tr>
+    <tr>
+      <td>
+        <code>activity</code>
+      </td>
+      <td>Recent transaction activity (when available)</td>
+    </tr>
+  </tbody>
+</table>
+
+## Props
+
+<table>
+  <thead>
+    <tr>
+      <th>Prop</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>clientId</code>
+      </td>
+      <td>
+        <code>string</code>
+      </td>
+      <td>Required</td>
+      <td>Client ID to fetch</td>
+    </tr>
+    <tr>
+      <td>
+        <code>viewMode</code>
+      </td>
+      <td>
+        <code>{`'summary' | 'accordion' | 'cards'`}</code>
+      </td>
+      <td>
+        <code>{`'summary'`}</code>
+      </td>
+      <td>Display mode</td>
+    </tr>
+    <tr>
+      <td>
+        <code>title</code>
+      </td>
+      <td>
+        <code>string</code>
+      </td>
+      <td>
+        <code>{`'Client details'`}</code>
+      </td>
+      <td>Section title (accordion/cards modes)</td>
+    </tr>
+    <tr>
+      <td>
+        <code>enableDrillDown</code>
+      </td>
+      <td>
+        <code>boolean</code>
+      </td>
+      <td>
+        <code>true</code>
+      </td>
+      <td>Enable drill-down sheets in summary mode</td>
+    </tr>
+    <tr>
+      <td>
+        <code>sections</code>
+      </td>
+      <td>
+        <code>ClientSection[]</code>
+      </td>
+      <td>All sections</td>
+      <td>Which sections to display</td>
+    </tr>
+    <tr>
+      <td>
+        <code>onSectionClick</code>
+      </td>
+      <td>
+        <code>{`(section) => void`}</code>
+      </td>
+      <td>—</td>
+      <td>External navigation handler</td>
+    </tr>
+    <tr>
+      <td>
+        <code>actions</code>
+      </td>
+      <td>
+        <code>ReactNode</code>
+      </td>
+      <td>—</td>
+      <td>Custom action buttons</td>
+    </tr>
+  </tbody>
+</table>
+
+## States
+
+### Loading State
+
+Shows skeleton placeholders while fetching client data.
+
+### Error State
+
+Displays error message when client fetch fails.
+
+### Status Variations
+
+The component displays appropriate status badges for non-approved clients:
+
+- **In Review**: Client is under review
+- **Information Requested**: Additional information needed from the client

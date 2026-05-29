@@ -545,7 +545,7 @@ const urlBlob = URL.createObjectURL(newBlob);
 
 (https://developer.mozilla.org/en-US/docs/Web/API/Response/blob#examples)
 
-5. Use `POST /clients/:id` to submit attestations.
+5. Use `PATCH /clients/:id` (Digital Onboarding API) to submit attestations via the client update request body (e.g. `addAttestations` per the OpenAPI spec)—there is no separate `POST …/attestations` route.
 
 ### Hooks
 

@@ -1,0 +1,39 @@
+Transactions Component - Console Logs
+Date: 2025-12-02
+Component: transactions
+
+=== CONSOLE MESSAGES SUMMARY ===
+Total Messages: 60+ log entries
+Errors: 3 errors detected (duplicate party creation)
+Warnings: 0 warnings
+Info Messages: Extensive MSW (Mock Service Worker) logging
+
+=== KEY FINDINGS ===
+
+1. Database Initialization:
+- MSW is initializing mock database with predefined clients
+- Scenario: "active-with-recipients"
+- Creating multiple clients, parties, recipients, accounts, and transactions
+
+2. Errors Detected:
+Duplicate Party Creation (3 errors):
+Error creating party: OperationError: Failed to create a "party" entity: 
+an entity with the same primary key "2200000111" ("id") already exists.
+- Issue: Duplicate party creation attempts
+- Impact: Non-critical (MSW mock data initialization)
+- Occurrences: 3 errors for parties 2200000111, 2200000112, 2200000113
+
+3. MSW (Mock Service Worker) Activity:
+- MSW successfully enabled and running
+- API calls intercepted and mocked:
+  - /ping - Health check endpoint (called 2 times)
+  - /ef/do/v1/accounts - Accounts API (called 2 times)
+  - /ef/do/v1/transactions - Transactions API (called 2 times)
+
+4. Tab Switch Emulation:
+- Browser tab switch events are being emulated
+- Components refetch data on tab switch
+
+=== FULL CONSOLE OUTPUT ===
+[Full console messages captured during testing - see browser console for complete details]
+

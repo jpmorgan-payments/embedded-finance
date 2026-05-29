@@ -117,6 +117,9 @@ export const getStepperValidation = (
         isValid: allStepsValid,
       };
     } else {
+      // Static steps and other unknown types cannot be validated
+      // by schema — they are always marked invalid so the sidebar
+      // renders them as on_hold (locked), preventing skip-ahead.
       stepValidationMap[step.id] = {
         result: undefined,
         isValid: false,

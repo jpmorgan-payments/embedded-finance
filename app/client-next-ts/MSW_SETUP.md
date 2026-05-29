@@ -11,7 +11,7 @@ responses. This allows for development without requiring a backend server.
 ## Files Created/Modified
 
 1. **`src/data/constants.ts`** - Contains API_URL and other constants
-2. **`src/msw/handlers.js`** - Updated import paths for constants and mocks
+2. **`src/msw/handlers.ts`** - Request handlers and API endpoints (typed; can use OAS types — see below)
 3. **`src/msw/browser.js`** - Already existed, imports updated
 4. **`src/main.tsx`** - Added MSW initialization
 5. **`public/mockServiceWorker.js`** - MSW service worker file
@@ -68,11 +68,17 @@ The handlers include mocks for:
 - `/ef/do/v1/documents/*` - Document endpoints
 - And more...
 
-## Database Simulation
+## Using OAS types in handlers
 
-The MSW setup includes a simulated database (`src/msw/db.js`) that maintains
-state across requests, allowing for realistic CRUD operations during
-development.
+You can use **OpenAPI-generated types** from embedded-components so mocked requests and responses match the real API contract. Path aliases `@ef-api/*-schemas` (in `tsconfig.json` and `vite.config.js`) point at `embedded-components/src/api/generated/*.schemas.ts`; import types there in handlers for request/response bodies and responses.
+
+## Database simulation (db.ts and @mswjs/data)
+
+The MSW setup uses **@mswjs/data** (v0.16.x) to simulate a stateful backend:
+
+- **`src/msw/db.ts`** – Single `factory()` with models: `client`, `party`, `documentRequest`, `recipient`, `account`, `accountBalance`, `transaction`. Each model has a `primaryKey(String)` (e.g. `id`). Handlers call `db.*.findFirst()`, `getAll()`, `create()`, `update()`, `delete()` / `deleteMany()`. Entity types align with OAS (`@ef-api/*-schemas`).
+- **Scenarios** – `initializeDb(force?, scenario?)` and `resetDb(scenario?)` seed the DB. Scenarios: `active`, `active-with-recipients`, `empty`. Default: `active-with-recipients`.
+- **Best practices** – One shared `db` instance; clear with `deleteMany({})` when resetting; keep entity shapes in sync with OAS so handlers and mocks stay aligned.
 
 ## Troubleshooting
 

@@ -1,0 +1,39 @@
+/**
+ * ClientDetails - Public API Types
+ * Only public types that consumers need should be exported here.
+ */
+
+import type { HeadingLevelProps } from '@/lib/types/headingLevel.types';
+
+/**
+ * Sections available for display in ClientDetails
+ */
+export type ClientSection =
+  | 'identity'
+  | 'verification'
+  | 'ownership'
+  | 'compliance'
+  | 'accounts'
+  | 'activity';
+
+/**
+ * View mode for displaying client information
+ * - summary: Compact card with quick stats and section navigation (NEW)
+ * - accordion: Sections in collapsible accordion (similar to onboarding final review)
+ * - cards: Same information grouped as visual cards
+ */
+export type ClientDetailsViewMode = 'summary' | 'accordion' | 'cards';
+
+/**
+ * Props for the ClientDetails component
+ */
+export interface ClientDetailsProps extends HeadingLevelProps {
+  /** Client ID to fetch and display (GET /clients/:id) */
+  clientId: string;
+  /** Display mode: summary, accordion or cards */
+  viewMode?: ClientDetailsViewMode;
+  /** Optional CSS class for the root container */
+  className?: string;
+  /** Custom actions to show in footer (summary mode only) */
+  actions?: React.ReactNode;
+}

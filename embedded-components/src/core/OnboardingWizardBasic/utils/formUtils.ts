@@ -740,9 +740,9 @@ export function modifyDefaultValuesByClientContext(
 export function useStepForm<
   TFieldValues extends FieldValues = FieldValues,
   TContext = any,
-  TTransformedValues extends FieldValues | undefined = undefined,
+  TTransformedValues extends FieldValues | undefined = TFieldValues,
 >(
-  props: UseFormProps<TFieldValues>
+  props: UseFormProps<TFieldValues, TContext, TTransformedValues>
 ): UseFormReturn<TFieldValues, TContext, TTransformedValues> {
   const { activeStep } = useStepper();
   const { currentForm, setCurrentForm, currentStepIndex, setCurrentStepIndex } =

@@ -1,0 +1,24 @@
+# Console Logs - Make Payment Component
+**Date:** January 14, 2026
+**Component:** Make Payment
+**URL:** https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=make-payment&theme=Empty
+
+## Summary
+- Total messages: 147
+- Errors: 0
+- Warnings: 0
+- Logs: 147 (MSW initialization and API calls)
+
+## Key Observations
+1. MSW initialization logs
+2. Duplicate API calls observed:
+   - `/ping` called twice
+   - `/ef/do/v1/recipients` called twice
+   - `/ef/do/v1/accounts` called twice
+   - `/ef/do/v1/accounts/acc-002/balances` called twice
+3. Tab switch emulation causing refetch (line 583-584)
+4. All API calls successful (200 OK)
+5. Component shows button initially - form opens on click (discoverability issue noted in previous testing)
+
+## Detailed Messages
+[Full console log captured - 147 messages total]

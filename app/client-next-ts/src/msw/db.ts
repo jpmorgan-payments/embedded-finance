@@ -1,0 +1,1631 @@
+/**
+ * MSW stateful data layer using @mswjs/data (v0.16.x factory API).
+ *
+ * Best practices:
+ * - One factory, one db instance; all models use primaryKey(String) for id.
+ * - Seed via initializeDb() / resetDb(scenario); handlers read/write through db.*.
+ * - Entity shapes align with OAS (`@ef-api/*-schemas`).
+ * - Use deleteMany({}) to clear a model; update via findFirst + update.
+ */
+import type {
+  AccountBalanceDto,
+  AccountBalanceDtoTypeCode,
+  AccountBalanceResponse,
+  AccountResponse,
+} from '@ef-api/ep-accounts-schemas';
+import type { Recipient } from '@ef-api/ep-recipients-schemas';
+import type { TransactionsSearchResponseV2 } from '@ef-api/ep-transactions-schemas';
+import type {
+  ClientResponseOutstanding,
+  ClientStatus,
+  DocumentRequestResponse,
+  PartyResponse,
+} from '@ef-api/smbdo-schemas';
+import { factory, primaryKey } from '@mswjs/data';
+import merge from 'lodash/merge';
+
+import { efDocumentRequestDetailsList } from '../mocks';
+import {
+  mockAccountBalance,
+  mockAccountBalance2,
+  mockActiveAccounts,
+  mockActiveWithRecipientsAccounts,
+} from '../mocks/accounts.mock';
+import {
+  LLCExistingClient,
+  LLCExistingClientOutstandingDocuments,
+  SoleProprietorExistingClient,
+} from '../mocks/clientDetails.mock';
+import { mockLinkedAccounts } from '../mocks/linkedAccounts.mock';
+import { mockRecipientsResponse } from '../mocks/recipients.mock';
+import {
+  TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
+  testScenarioHealthBenefitClient,
+} from '../mocks/testScenarioHealthBenefitClient.mock';
+import {
+  TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID,
+  testScenarioMultiLinkedIllustrationClient,
+} from '../mocks/testScenarioMultiLinkedIllustrationClient.mock';
+import {
+  TEST_DEMO_SCENARIO_CLIENT_ID,
+  TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE,
+  TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID,
+  testScenarioOperator80Client,
+} from '../mocks/testScenarioOperator80Client.mock';
+import { mockTransactionsResponse } from '../mocks/transactions.mock';
+
+type SeedPredefinedClientOptions = {
+  /** Stable ids (`61800`, `61801+`) for Operator 80–shaped demo clients (doc-request flows). */
+  useTestDemoFixedDocumentRequestIds?: boolean;
+};
+
+// --- Entity types (OAS-aligned) ---
+
+export interface DbClient {
+  id: string;
+  status?: ClientStatus;
+  partyId?: string;
+  parties?: string[];
+  products?: string[] | unknown[];
+  outstanding?: ClientResponseOutstanding;
+  questionResponses?: unknown[];
+  attestations?: unknown[];
+  results?: Record<string, unknown>;
+  createdAt?: string;
+}
+
+export type DbParty = PartyResponse & Record<string, unknown>;
+export type DbDocumentRequest = DocumentRequestResponse &
+  Record<string, unknown>;
+export type DbRecipient = Recipient;
+export type DbAccount = AccountResponse;
+/** OAS AccountBalanceResponse + DB-only fields (accountId, updatedAt). */
+export type DbAccountBalance = AccountBalanceResponse & {
+  accountId?: string;
+  updatedAt?: string;
+};
+export type DbTransaction = TransactionsSearchResponseV2;
+
+/** Options for id-based findFirst/delete (e.g. { where: { id: { equals: 'x' } } }). */
+type WhereIdOpts = { where: { id: { equals: string } } };
+type WhereClientId = { where: { clientId: { equals: string } } };
+
+/** documentRequest.update first argument (where + data). */
+export type DocumentRequestUpdateOpts = {
+  where: { id: { equals: string } };
+  data: Partial<DbDocumentRequest> & Record<string, unknown>;
+};
+
+/** recipient.update first argument (where + data). */
+export type RecipientUpdateOpts = {
+  where: { id: { equals: string } };
+  data: Partial<DbRecipient> & Record<string, unknown>;
+};
+
+export interface Db {
+  client: {
+    findFirst: (opts: WhereIdOpts) => DbClient | null;
+    findMany: (opts: WhereClientId) => DbClient[];
+    getAll: () => DbClient[];
+    create: (
+      data: (Partial<DbClient> & { id: string }) | Record<string, unknown>
+    ) => DbClient;
+    update: (opts: {
+      where: { id: { equals: string } };
+      data: Partial<DbClient> | Record<string, unknown>;
+    }) => DbClient;
+    deleteMany: (opts: object) => void;
+    delete: (opts: WhereIdOpts) => void;
+  };
+  party: {
+    findFirst: (opts: WhereIdOpts) => DbParty | null;
+    getAll: () => DbParty[];
+    create: (
+      data: (Partial<DbParty> & { id: string }) | Record<string, unknown>
+    ) => DbParty;
+    update: (opts: {
+      where: { id: { equals: string } };
+      data: Partial<DbParty> | Record<string, unknown>;
+    }) => DbParty;
+    delete: (opts: WhereIdOpts) => void;
+    deleteMany: (opts: object) => void;
+  };
+  documentRequest: {
+    findFirst: (opts: WhereIdOpts) => DbDocumentRequest | null;
+    findMany: (opts: WhereClientId) => DbDocumentRequest[];
+    getAll: () => DbDocumentRequest[];
+    update: (opts: DocumentRequestUpdateOpts) => DbDocumentRequest;
+    create: (
+      data:
+        | (Partial<DbDocumentRequest> & { id: string })
+        | Record<string, unknown>
+    ) => DbDocumentRequest;
+    deleteMany: (opts: object) => void;
+  };
+  recipient: {
+    findFirst: (opts: WhereIdOpts) => DbRecipient | null;
+    getAll: () => DbRecipient[];
+    create: (
+      data: (Partial<DbRecipient> & { id: string }) | Record<string, unknown>
+    ) => DbRecipient;
+    update: (opts: RecipientUpdateOpts) => DbRecipient;
+    deleteMany: (opts: object) => void;
+  };
+  account: {
+    findFirst: (opts: { where: Record<string, unknown> }) => DbAccount | null;
+    getAll: () => DbAccount[];
+    create: (
+      data: (Partial<DbAccount> & { id: string }) | Record<string, unknown>
+    ) => DbAccount;
+    deleteMany: (opts: object) => void;
+  };
+  accountBalance: {
+    findFirst: (opts: {
+      where: { accountId: { equals: string } };
+    }) => DbAccountBalance | null;
+    getAll: () => DbAccountBalance[];
+    create: (
+      data:
+        | (Partial<DbAccountBalance> & { id: string })
+        | Record<string, unknown>
+    ) => DbAccountBalance;
+    update: (opts: {
+      where: { accountId: { equals: string } };
+      data: Partial<DbAccountBalance>;
+    }) => DbAccountBalance;
+    deleteMany: (opts: object) => void;
+  };
+  transaction: {
+    findFirst: (opts: WhereIdOpts) => DbTransaction | null;
+    getAll: () => DbTransaction[];
+    create: (
+      data: (Partial<DbTransaction> & { id: string }) | Record<string, unknown>
+    ) => DbTransaction;
+    update: (opts: {
+      where: { id: { equals: string } };
+      data: Partial<DbTransaction> | Record<string, unknown>;
+    }) => DbTransaction;
+    deleteMany: (opts: object) => void;
+  };
+}
+
+// --- Constants ---
+
+export const MAGIC_VALUES: Record<string, string> = {
+  INFORMATION_REQUESTED: '111111111',
+  REVIEW_IN_PROGRESS: '222222222',
+  REJECTED: '333333333',
+  APPROVED: '444444444',
+};
+
+export const DB_SCENARIOS: Record<string, string> = {
+  ACTIVE: 'active',
+  ACTIVE_WITH_RECIPIENTS: 'active-with-recipients',
+  EMPTY: 'empty',
+};
+
+export const DEFAULT_SCENARIO = DB_SCENARIOS.ACTIVE_WITH_RECIPIENTS;
+
+// --- Factory ---
+
+export const db: Db = factory({
+  client: {
+    id: primaryKey(String),
+    status: String,
+    partyId: String,
+    parties: Array,
+    products: Array,
+    outstanding: {
+      documentRequestIds: Array,
+      questionIds: Array,
+      attestationDocumentIds: Array,
+      partyIds: Array,
+      partyRoles: Array,
+    },
+    questionResponses: Array,
+    attestations: Array,
+    results: Object,
+    createdAt: String,
+  },
+  party: {
+    id: primaryKey(String),
+    partyType: String,
+    email: String,
+    externalId: String,
+    roles: Array,
+    organizationDetails: Object,
+    individualDetails: Object,
+    status: String,
+    active: Boolean,
+    createdAt: String,
+    parentPartyId: String,
+    parentExternalId: String,
+    preferences: Object,
+    profileStatus: String,
+    access: Array,
+    networkRegistration: Object,
+    validationResponse: Array,
+  },
+  documentRequest: {
+    id: primaryKey(String),
+    clientId: String,
+    partyId: String,
+    documentType: String,
+    status: String,
+    description: String,
+    requirements: Array,
+    outstanding: Object,
+    createdAt: String,
+    validForDays: Number,
+  },
+  recipient: {
+    id: primaryKey(String),
+    type: String,
+    status: String,
+    clientId: String,
+    partyDetails: Object,
+    account: Object,
+    createdAt: String,
+    updatedAt: String,
+  },
+  account: {
+    id: primaryKey(String),
+    clientId: String,
+    label: String,
+    state: String,
+    category: String,
+    paymentRoutingInformation: Object,
+    createdAt: String,
+    updatedAt: String,
+  },
+  accountBalance: {
+    id: primaryKey(String),
+    accountId: String,
+    date: String,
+    currency: String,
+    balanceTypes: Array,
+    updatedAt: String,
+  },
+  transaction: {
+    id: primaryKey(String),
+    type: String,
+    status: String,
+    amount: Number,
+    currency: String,
+    paymentDate: String,
+    effectiveDate: String,
+    creditorAccountId: String,
+    debtorAccountId: String,
+    creditorName: String,
+    debtorName: String,
+    postingVersion: Number,
+    reference: String,
+    description: String,
+    createdAt: String,
+  },
+}) as unknown as Db;
+
+// --- Helpers ---
+
+export function updateAccountBalance(
+  accountId: string,
+  amount: number,
+  transactionType: 'CREDIT' | 'DEBIT' = 'CREDIT'
+): DbAccountBalance | null {
+  const balance = db.accountBalance.findFirst({
+    where: { accountId: { equals: accountId } },
+  });
+
+  if (!balance) {
+    console.warn(`No balance found for account ${accountId}`);
+    return null;
+  }
+
+  const balanceTypes: AccountBalanceDto[] = Array.isArray(balance.balanceTypes)
+    ? balance.balanceTypes
+    : [];
+  const updatedBalanceTypes: AccountBalanceDto[] = balanceTypes.map(
+    (balanceType) => {
+      let newAmount = balanceType.amount ?? 0;
+      if (transactionType === 'CREDIT') {
+        newAmount += amount;
+      } else if (transactionType === 'DEBIT') {
+        newAmount -= amount;
+      }
+      return {
+        typeCode: (balanceType.typeCode ?? 'ITAV') as AccountBalanceDtoTypeCode,
+        amount: Math.max(0, newAmount),
+      };
+    }
+  );
+
+  const updatedBalance = db.accountBalance.update({
+    where: { accountId: { equals: accountId } },
+    data: {
+      ...balance,
+      balanceTypes: updatedBalanceTypes,
+      updatedAt: new Date().toISOString(),
+    },
+  });
+
+  console.log(`Updated balance for account ${accountId}:`, updatedBalance);
+  return updatedBalance;
+}
+
+export function processTransaction(transactionData: DbTransaction): void {
+  const { creditorAccountId, debtorAccountId, amount, status } =
+    transactionData;
+
+  if (status === 'COMPLETED') {
+    const amt = typeof amount === 'number' ? amount : 0;
+    console.log(`Processing completed transaction for $${amt}`);
+    if (creditorAccountId) {
+      updateAccountBalance(creditorAccountId, amt, 'CREDIT');
+    }
+    if (debtorAccountId) {
+      updateAccountBalance(debtorAccountId, amt, 'DEBIT');
+    }
+  }
+}
+
+export function createTransactionWithBalanceUpdate(
+  transactionData: Record<string, unknown>
+): DbTransaction {
+  const transactionId = `txn-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+  let creditorAccountId =
+    (transactionData.creditorAccountId as string) || 'acc-001';
+  let creditorName =
+    (transactionData.creditorName as string) || 'SellSense Marketplace';
+
+  if (transactionData.recipientId) {
+    const recipient = db.recipient.findFirst({
+      where: { id: { equals: transactionData.recipientId as string } },
+    });
+
+    if (recipient) {
+      if (recipient.account?.number) {
+        const account = db.account.findFirst({
+          where: {
+            paymentRoutingInformation: {
+              accountNumber: { equals: recipient.account.number },
+            },
+          } as Record<string, unknown>,
+        });
+        if (account) {
+          creditorAccountId = account.id;
+        }
+      }
+      if (recipient.partyDetails) {
+        if (
+          recipient.partyDetails.type === 'ORGANIZATION' &&
+          recipient.partyDetails.businessName
+        ) {
+          creditorName = recipient.partyDetails.businessName;
+        } else if (recipient.partyDetails.type === 'INDIVIDUAL') {
+          const firstName = recipient.partyDetails.firstName || '';
+          const lastName = recipient.partyDetails.lastName || '';
+          creditorName =
+            `${firstName} ${lastName}`.trim() || 'Individual Recipient';
+        }
+      }
+    }
+  }
+
+  let debtorName = (transactionData.debtorName as string) || 'Mock Customer';
+  if (transactionData.debtorAccountId) {
+    const debtorAccount = db.account.findFirst({
+      where: { id: { equals: transactionData.debtorAccountId as string } },
+    });
+    if (debtorAccount?.label) {
+      debtorName = debtorAccount.label;
+    }
+  }
+
+  const newTransaction: Record<string, unknown> = {
+    id: transactionId,
+    type: transactionData.type || 'ACH',
+    status: transactionData.status || 'COMPLETED',
+    amount: transactionData.amount || 0,
+    currency: transactionData.currency || 'USD',
+    paymentDate:
+      (transactionData.paymentDate as string) ||
+      new Date().toISOString().slice(0, 10),
+    effectiveDate:
+      (transactionData.effectiveDate as string) ||
+      new Date().toISOString().slice(0, 10),
+    creditorAccountId,
+    debtorAccountId: (transactionData.debtorAccountId as string) || 'acc-002',
+    creditorName,
+    debtorName,
+    postingVersion: (transactionData.postingVersion as number) ?? 1,
+    reference:
+      (transactionData.reference as string) ||
+      (transactionData.transactionReferenceId as string) ||
+      `Sale #${Math.floor(Math.random() * 100000)}`,
+    description:
+      (transactionData.description as string) ||
+      (transactionData.memo as string) ||
+      'New transaction',
+    createdAt: new Date().toISOString(),
+  };
+
+  const createdTransaction = db.transaction.create(
+    newTransaction as Partial<DbTransaction> & { id: string }
+  );
+
+  if (createdTransaction.status === 'COMPLETED') {
+    processTransaction(createdTransaction);
+  }
+
+  console.log('Created transaction with balance update:', createdTransaction);
+  logDbState('Transaction Creation with Balance Update');
+
+  return createdTransaction;
+}
+
+export function updateTransactionStatus(
+  transactionId: string,
+  newStatus: string
+): DbTransaction {
+  const transaction = db.transaction.findFirst({
+    where: { id: { equals: transactionId } },
+  });
+
+  if (!transaction) {
+    throw new Error(`Transaction ${transactionId} not found`);
+  }
+
+  const oldStatus = transaction.status;
+  const updatedTransaction = db.transaction.update({
+    where: { id: { equals: transactionId } },
+    data: {
+      ...transaction,
+      status: newStatus,
+    },
+  });
+
+  if (oldStatus !== 'COMPLETED' && newStatus === 'COMPLETED') {
+    processTransaction(updatedTransaction);
+  } else if (oldStatus === 'COMPLETED' && newStatus !== 'COMPLETED') {
+    const amt =
+      typeof updatedTransaction.amount === 'number'
+        ? updatedTransaction.amount
+        : 0;
+    processTransaction({
+      ...updatedTransaction,
+      amount: -amt,
+    } as DbTransaction);
+  }
+
+  console.log(
+    `Updated transaction ${transactionId} status from ${oldStatus} to ${newStatus}`
+  );
+  logDbState('Transaction Status Update');
+
+  return updatedTransaction;
+}
+
+export function upsertDocumentRequest(
+  id: string,
+  data: Partial<DbDocumentRequest>
+): DbDocumentRequest {
+  const existingRequest = db.documentRequest.findFirst({
+    where: { id: { equals: id } },
+  });
+
+  const documentData: Record<string, unknown> = {
+    ...data,
+    createdAt: (data.createdAt as string) || new Date().toISOString(),
+    requirements: (data.requirements as unknown[]) || [],
+    outstanding: (data.outstanding as object) || {
+      documentTypes: [],
+      requirements: [],
+    },
+    validForDays: (data.validForDays as number) ?? 30,
+  };
+
+  let result: DbDocumentRequest;
+  if (existingRequest) {
+    result = db.documentRequest.update({
+      where: { id: { equals: id } },
+      data: { ...existingRequest, ...documentData },
+    });
+  } else {
+    result = db.documentRequest.create({
+      ...documentData,
+      id,
+    } as Partial<DbDocumentRequest> & { id: string });
+  }
+
+  logDbState('Document Request Upsert');
+  return result;
+}
+
+// --- Predefined data ---
+
+interface PredefinedClientShape {
+  parties?: DbParty[];
+  partyId?: string;
+  outstanding?: ClientResponseOutstanding;
+  questionResponses?: unknown[];
+  attestations?: unknown[];
+  products?: string[];
+  results?: Record<string, unknown>;
+  status?: string;
+  createdAt?: string;
+  [key: string]: unknown;
+}
+
+const predefinedClients: Record<string, PredefinedClientShape> = {
+  '0030000131': SoleProprietorExistingClient as PredefinedClientShape,
+  '0030000132': LLCExistingClient as PredefinedClientShape,
+  '0030000133': LLCExistingClientOutstandingDocuments as PredefinedClientShape,
+  '0030000134': {
+    ...LLCExistingClient,
+    status: 'REVIEW_IN_PROGRESS',
+  } as PredefinedClientShape,
+};
+
+/** Test demo clients: seed Operator 80–shaped (or bundle-specific) client after `_reset` when body includes `testDemoScenario`. */
+export type TestDemoScenarioMode =
+  | 'happy-path'
+  /**
+   * Same Operator 80 shape as `happy-path`, but client is **APPROVED** immediately (no NEW →
+   * delayed approval). Linked LINKED_ACCOUNT creates use **ACTIVE** like `happy-path`.
+   */
+  | 'happy-path-approved'
+  | 'doc-request'
+  | 'linked-account-approved'
+  /** APPROVED client + link step; new linked recipient is ACTIVE (no microdeposits). */
+  | 'linked-account-active'
+  /**
+   * `/test-scenario-2` only: APPROVED client; MSW seeds **three** pre-existing LINKED_ACCOUNT recipients.
+   */
+  | 'multi-linked-start-3';
+
+/**
+ * `/test-scenario*` demo **bundle**: maps a route to client seed + optional recipient seeding in MSW.
+ * SellSense never sends this; omitted `testScenarioBundle` in `_reset` implies `test-scenario`.
+ */
+export type TestScenarioBundleId =
+  | 'test-scenario'
+  | 'test-scenario-2'
+  | 'test-scenario-3';
+
+export const DEFAULT_TEST_SCENARIO_BUNDLE_ID: TestScenarioBundleId =
+  'test-scenario';
+
+const TEST_SCENARIO_BUNDLE_IDS = [
+  'test-scenario',
+  'test-scenario-2',
+  'test-scenario-3',
+] as const satisfies readonly TestScenarioBundleId[];
+
+export function parseTestScenarioBundleId(
+  value: unknown
+): TestScenarioBundleId {
+  if (
+    typeof value === 'string' &&
+    (TEST_SCENARIO_BUNDLE_IDS as readonly string[]).includes(value)
+  ) {
+    return value as TestScenarioBundleId;
+  }
+  return DEFAULT_TEST_SCENARIO_BUNDLE_ID;
+}
+
+/** Client ids used by isolated `/test-scenario*` MSW seeds (delayed approval, etc.). */
+export function getTestScenarioClientIds(): string[] {
+  return [
+    TEST_DEMO_SCENARIO_CLIENT_ID,
+    TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID,
+    TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
+  ];
+}
+
+function seedPredefinedClientFromShape(
+  clientId: string,
+  clientData: PredefinedClientShape,
+  seedOptions?: SeedPredefinedClientOptions
+): void {
+  const useFixedDocRequestIds =
+    seedOptions?.useTestDemoFixedDocumentRequestIds === true;
+  console.log(`\nInitializing Client ${clientId}:`, clientData);
+
+  const parties = clientData.parties || [];
+  const timestamp = new Date().toISOString();
+
+  console.log('\nCreating Parties:');
+  parties.forEach((party) => {
+    if (party.id) {
+      const existingParty = db.party.findFirst({
+        where: { id: { equals: party.id as string } },
+      });
+
+      const newParty = {
+        ...party,
+        status: (party.status as string) || 'ACTIVE',
+        active: party.active !== undefined ? party.active : true,
+        createdAt: (party.createdAt as string) || timestamp,
+        preferences: (party.preferences as object) || {
+          defaultLanguage: 'en-US',
+        },
+        profileStatus: (party.profileStatus as string) || 'COMPLETE',
+        access: (party.access as unknown[]) || [],
+        validationResponse: (party.validationResponse as unknown[]) || [],
+      };
+
+      try {
+        if (existingParty) {
+          db.party.update({
+            where: { id: { equals: party.id as string } },
+            data: newParty,
+          });
+        } else {
+          db.party.create(newParty as Partial<DbParty> & { id: string });
+        }
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.includes('already exists')
+        ) {
+          try {
+            db.party.update({
+              where: { id: { equals: party.id as string } },
+              data: newParty,
+            });
+          } catch (updateError) {
+            console.error('Error updating party:', updateError);
+          }
+        } else {
+          console.error('Error creating party:', error);
+        }
+      }
+    }
+  });
+
+  const newClient = {
+    ...clientData,
+    id: clientId,
+    createdAt: (clientData.createdAt as string) || timestamp,
+    partyId:
+      (clientData.partyId as string) ||
+      (parties[0] as { id?: string } | undefined)?.id,
+    outstanding: {
+      documentRequestIds:
+        (clientData.outstanding?.documentRequestIds as string[]) || [],
+      questionIds: (clientData.outstanding?.questionIds as string[]) || [],
+      attestationDocumentIds:
+        (clientData.outstanding?.attestationDocumentIds as string[]) || [],
+      partyIds: (clientData.outstanding?.partyIds as string[]) || [],
+      partyRoles: (clientData.outstanding?.partyRoles as string[]) || [],
+    },
+    questionResponses: clientData.questionResponses || [],
+    attestations: clientData.attestations || [],
+    parties: parties
+      .map((p) => (p as { id?: string }).id)
+      .filter(Boolean) as string[],
+    products: (clientData.products as string[]) || [],
+    results: (clientData.results as Record<string, unknown>) || {
+      customerIdentityStatus: 'NOT_STARTED',
+    },
+  };
+
+  db.client.create(newClient as Partial<DbClient> & { id: string });
+
+  if (clientData.status === 'INFORMATION_REQUESTED') {
+    const individualParties = parties.filter(
+      (p) => (p as { partyType?: string }).partyType === 'INDIVIDUAL'
+    );
+
+    let individualDocIdOffset = 0;
+    for (const indParty of individualParties) {
+      const indDocRequest = efDocumentRequestDetailsList.find(
+        (req: { id?: string }) => req.id === '68430'
+      );
+      const generatedDocRequestId = useFixedDocRequestIds
+        ? String(
+            TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE +
+              individualDocIdOffset++
+          )
+        : Math.floor(10000 + Math.random() * 90000).toString();
+      try {
+        upsertDocumentRequest(generatedDocRequestId, {
+          ...indDocRequest,
+          id: generatedDocRequestId,
+          clientId,
+          partyId: (indParty as { id?: string }).id,
+          createdAt: timestamp,
+        } as Partial<DbDocumentRequest>);
+
+        const updatedParty = {
+          ...indParty,
+          validationResponse: [
+            ...((indParty.validationResponse as unknown[]) || []),
+            {
+              validationStatus: 'NEEDS_INFO',
+              validationType: 'ENTITY_VALIDATION',
+              documentRequestIds: [generatedDocRequestId],
+            },
+          ],
+        };
+
+        db.party.delete({
+          where: { id: { equals: (indParty as { id: string }).id } },
+        });
+        db.party.create(updatedParty as Partial<DbParty> & { id: string });
+      } catch (error) {
+        console.error('Error creating document request:', error);
+      }
+    }
+
+    const orgParty = parties.find(
+      (p) => (p as { partyType?: string }).partyType === 'ORGANIZATION'
+    );
+    if (orgParty) {
+      const orgDocRequest = efDocumentRequestDetailsList.find(
+        (req: { id?: string }) => req.id === '68803'
+      );
+      const generatedDocRequestId = useFixedDocRequestIds
+        ? TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID
+        : Math.floor(10000 + Math.random() * 90000).toString();
+      try {
+        upsertDocumentRequest(generatedDocRequestId, {
+          ...orgDocRequest,
+          id: generatedDocRequestId,
+          clientId,
+          partyId: (orgParty as { id?: string }).id,
+          createdAt: timestamp,
+        } as Partial<DbDocumentRequest>);
+
+        (
+          newClient.outstanding as { documentRequestIds: string[] }
+        ).documentRequestIds.push(generatedDocRequestId);
+      } catch (error) {
+        console.error('Error creating document request:', error);
+      }
+    }
+
+    // Intentionally no client `outstanding` persistence here — matches legacy
+    // seed behavior relied on by SellSense scenarios (in-memory newClient only).
+  }
+}
+
+export function removePredefinedClient(clientId: string): void {
+  db.documentRequest.deleteMany({
+    where: { clientId: { equals: clientId } },
+  } as never);
+
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+  if (!client) return;
+
+  for (const partyId of (client.parties as string[]) ?? []) {
+    db.party.delete({ where: { id: { equals: partyId } } });
+  }
+  db.client.delete({ where: { id: { equals: clientId } } });
+}
+
+// --- Logging ---
+
+export function logDbState(operation = 'Current State'): void {
+  const clients = db.client.getAll();
+  const parties = db.party.getAll();
+  const documentRequests = db.documentRequest.getAll();
+  const recipients = db.recipient.getAll();
+  const accounts = db.account.getAll();
+  const accountBalances = db.accountBalance.getAll();
+  const transactions = db.transaction.getAll();
+
+  console.log('=== Database State After:', operation, '===');
+  console.log('Clients:', clients);
+  console.log('Parties:', parties);
+  console.log('Document Requests:', documentRequests);
+  console.log('Recipients:', recipients);
+  console.log('Accounts:', accounts);
+  console.log('Account Balances:', accountBalances);
+  console.log('Transactions:', transactions);
+  console.log('=====================================');
+}
+
+/** `/test-scenario` only: align client.outstanding with seeded document requests. */
+function syncTestDemoClientOutstandingDocumentIds(clientId: string): void {
+  const requests = db.documentRequest.findMany({
+    where: { clientId: { equals: clientId } },
+  });
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+  if (!client) return;
+  const prevOutstanding = (client.outstanding ||
+    {}) as ClientResponseOutstanding;
+  db.client.update({
+    where: { id: { equals: clientId } },
+    data: {
+      ...client,
+      outstanding: {
+        ...prevOutstanding,
+        documentRequestIds: requests.map((r) => r.id as string),
+      },
+    },
+  });
+}
+
+/** `/test-scenario` linked-account fast track: APPROVED client + parties for unlocked link step. */
+function promoteTestDemoClientPartiesToApproved(clientId: string): void {
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+  if (!client) return;
+
+  for (const partyId of (client.parties as string[]) ?? []) {
+    const party = db.party.findFirst({
+      where: { id: { equals: partyId } },
+    });
+    if (!party) continue;
+    db.party.delete({ where: { id: { equals: partyId } } });
+    db.party.create({
+      ...party,
+      profileStatus: 'APPROVED',
+    } as Partial<DbParty> & { id: string });
+  }
+}
+
+function removeAllTestScenarioSeedClients(): void {
+  removePredefinedClient(TEST_DEMO_SCENARIO_CLIENT_ID);
+  removePredefinedClient(TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID);
+  removePredefinedClient(TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID);
+}
+
+/** Illustration: N ACTIVE linked-bank recipients for GET `/recipients` (`/test-scenario-2`). */
+function seedTestScenarioMultiLinkedRecipients(
+  clientId: string,
+  count: 0 | 1 | 3
+): void {
+  if (count === 0) return;
+
+  const ts = new Date().toISOString();
+  const allRows: Recipient[] = [
+    {
+      id: 'ts-b2-linked-001',
+      type: 'LINKED_ACCOUNT',
+      status: 'ACTIVE',
+      clientId,
+      partyDetails: {
+        type: 'ORGANIZATION',
+        businessName: 'Aurora Payroll LLC',
+        address: {
+          addressLine1: '400 Market St',
+          city: 'Portland',
+          state: 'OR',
+          postalCode: '97204',
+          countryCode: 'US',
+        },
+        contacts: [{ contactType: 'EMAIL', value: 'treasury@aurora-pay.test' }],
+      },
+      account: {
+        number: '4433221100',
+        type: 'CHECKING',
+        countryCode: 'US',
+        routingInformation: [
+          {
+            routingCodeType: 'USABA',
+            routingNumber: '121000248',
+            transactionType: 'ACH',
+          },
+        ],
+      },
+      createdAt: ts,
+      updatedAt: ts,
+    },
+    {
+      id: 'ts-b2-linked-002',
+      type: 'LINKED_ACCOUNT',
+      status: 'ACTIVE',
+      clientId,
+      partyDetails: {
+        type: 'ORGANIZATION',
+        businessName: 'Summit Clearing Co',
+        address: {
+          addressLine1: '88 Fremont Ave',
+          city: 'Denver',
+          state: 'CO',
+          postalCode: '80202',
+          countryCode: 'US',
+        },
+        contacts: [{ contactType: 'EMAIL', value: 'ops@summit-clear.test' }],
+      },
+      account: {
+        number: '5566778899',
+        type: 'CHECKING',
+        countryCode: 'US',
+        routingInformation: [
+          {
+            routingCodeType: 'USABA',
+            routingNumber: '111000025',
+            transactionType: 'ACH',
+          },
+        ],
+      },
+      createdAt: ts,
+      updatedAt: ts,
+    },
+    {
+      id: 'ts-b2-linked-003',
+      type: 'LINKED_ACCOUNT',
+      status: 'ACTIVE',
+      clientId,
+      partyDetails: {
+        type: 'ORGANIZATION',
+        businessName: 'Harborline Foods LLC',
+        address: {
+          addressLine1: '15 Harbor Quay',
+          city: 'Boston',
+          state: 'MA',
+          postalCode: '02110',
+          countryCode: 'US',
+        },
+        contacts: [{ contactType: 'EMAIL', value: 'ap@harborline.test' }],
+      },
+      account: {
+        number: '9988776655',
+        type: 'CHECKING',
+        countryCode: 'US',
+        routingInformation: [
+          {
+            routingCodeType: 'USABA',
+            routingNumber: '021000021',
+            transactionType: 'ACH',
+          },
+        ],
+      },
+      createdAt: ts,
+      updatedAt: ts,
+    },
+  ];
+
+  const rows = allRows.slice(0, count);
+
+  for (const r of rows) {
+    try {
+      db.recipient.create(r as Partial<DbRecipient> & { id: string });
+    } catch (error) {
+      console.error('Error creating illustration linked recipient:', error);
+    }
+  }
+}
+
+/**
+ * Applies only when `POST /ef/do/v1/_reset` includes `testDemoScenario`.
+ * Does not run for SellSense or other callers that omit that field.
+ */
+export function applyTestDemoScenario(
+  mode: TestDemoScenarioMode,
+  bundleId: TestScenarioBundleId = DEFAULT_TEST_SCENARIO_BUNDLE_ID
+): void {
+  const clientId =
+    bundleId === 'test-scenario-2'
+      ? TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID
+      : bundleId === 'test-scenario-3'
+        ? TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID
+        : TEST_DEMO_SCENARIO_CLIENT_ID;
+  const base = (
+    bundleId === 'test-scenario-2'
+      ? testScenarioMultiLinkedIllustrationClient
+      : bundleId === 'test-scenario-3'
+        ? testScenarioHealthBenefitClient
+        : testScenarioOperator80Client
+  ) as PredefinedClientShape;
+  const useMultiLinked = bundleId === 'test-scenario-2';
+
+  removeAllTestScenarioSeedClients();
+
+  let shape: PredefinedClientShape;
+  if (mode === 'doc-request') {
+    shape = { ...base, status: 'INFORMATION_REQUESTED' };
+  } else if (
+    mode === 'linked-account-approved' ||
+    mode === 'linked-account-active' ||
+    mode === 'happy-path-approved' ||
+    (useMultiLinked && mode === 'multi-linked-start-3')
+  ) {
+    shape = {
+      ...base,
+      status: 'APPROVED',
+      results: {
+        ...((base.results as Record<string, unknown>) || {}),
+        customerIdentityStatus: 'APPROVED',
+      },
+    };
+  } else {
+    shape = base;
+  }
+
+  seedPredefinedClientFromShape(clientId, shape, {
+    useTestDemoFixedDocumentRequestIds: mode === 'doc-request',
+  });
+  if (mode === 'doc-request') {
+    syncTestDemoClientOutstandingDocumentIds(clientId);
+  }
+  if (
+    mode === 'linked-account-approved' ||
+    mode === 'linked-account-active' ||
+    mode === 'happy-path-approved' ||
+    (useMultiLinked && mode === 'multi-linked-start-3')
+  ) {
+    promoteTestDemoClientPartiesToApproved(clientId);
+  }
+  if (useMultiLinked) {
+    if (mode === 'multi-linked-start-3') {
+      seedTestScenarioMultiLinkedRecipients(clientId, 3);
+    } else if (
+      shape.status === 'APPROVED' &&
+      mode === 'happy-path-approved'
+    ) {
+      seedTestScenarioMultiLinkedRecipients(clientId, 3);
+    }
+  }
+  logDbState(`Test demo scenario: ${mode} (bundle: ${bundleId})`);
+}
+
+// --- Initialize ---
+
+export function initializeDb(
+  force = false,
+  scenario = DEFAULT_SCENARIO
+): boolean {
+  try {
+    const validScenarios = Object.values(DB_SCENARIOS);
+    if (!validScenarios.includes(scenario)) {
+      console.warn(
+        `Invalid scenario: ${scenario}. Using default: ${DEFAULT_SCENARIO}`
+      );
+      scenario = DEFAULT_SCENARIO;
+    }
+
+    const existingClients = db.client.getAll();
+    if (force || existingClients.length === 0) {
+      console.log('=== Starting Database Initialization ===');
+      console.log('Scenario:', scenario);
+
+      db.client.deleteMany({});
+      db.party.deleteMany({});
+      db.documentRequest.deleteMany({});
+      db.recipient.deleteMany({});
+      db.account.deleteMany({});
+      db.accountBalance.deleteMany({});
+      db.transaction.deleteMany({});
+
+      Object.entries(predefinedClients).forEach(([clientId, clientData]) => {
+        try {
+          seedPredefinedClientFromShape(clientId, clientData);
+        } catch (e) {
+          console.error('Error creating client:', e);
+        }
+      });
+
+      // Recipients
+      console.log('\n=== Initializing Recipients ===');
+
+      let recipientsToInitialize: DbRecipient[] = [];
+      if (scenario === DB_SCENARIOS.ACTIVE) {
+        recipientsToInitialize = mockLinkedAccounts.recipients ?? [];
+      } else if (scenario === DB_SCENARIOS.EMPTY) {
+        recipientsToInitialize = [];
+      } else {
+        recipientsToInitialize = [
+          ...(mockRecipientsResponse.recipients ?? []),
+          ...(mockLinkedAccounts.recipients ?? []),
+        ];
+      }
+
+      recipientsToInitialize.forEach((recipient) => {
+        try {
+          const newRecipient = {
+            ...recipient,
+            createdAt: recipient.createdAt || new Date().toISOString(),
+            updatedAt: recipient.updatedAt || new Date().toISOString(),
+          };
+          db.recipient.create(
+            newRecipient as Partial<DbRecipient> & { id: string }
+          );
+        } catch (error) {
+          console.error('Error creating recipient:', error);
+        }
+      });
+
+      // Accounts
+      console.log('\n=== Initializing Accounts ===');
+
+      let accountsToInitialize: DbAccount[] = [];
+      if (scenario === DB_SCENARIOS.ACTIVE || scenario === DB_SCENARIOS.EMPTY) {
+        accountsToInitialize = mockActiveAccounts.items;
+      } else {
+        accountsToInitialize = mockActiveWithRecipientsAccounts.items;
+      }
+
+      accountsToInitialize.forEach((account) => {
+        try {
+          const newAccount = {
+            ...account,
+            createdAt: account.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          db.account.create(newAccount as Partial<DbAccount> & { id: string });
+        } catch (error) {
+          console.error('Error creating account:', error);
+        }
+      });
+
+      // Balances
+      console.log('\n=== Initializing Account Balances ===');
+
+      let balancesToInitialize: (DbAccountBalance & { accountId: string })[] =
+        [];
+      if (scenario === DB_SCENARIOS.EMPTY) {
+        balancesToInitialize = [
+          {
+            ...mockAccountBalance,
+            balanceTypes: [
+              { typeCode: 'ITAV' as AccountBalanceDtoTypeCode, amount: 0 },
+              { typeCode: 'ITBD' as AccountBalanceDtoTypeCode, amount: 0 },
+            ],
+            updatedAt: new Date().toISOString(),
+          },
+        ];
+      } else {
+        balancesToInitialize = [
+          { ...mockAccountBalance, updatedAt: new Date().toISOString() },
+          { ...mockAccountBalance2, updatedAt: new Date().toISOString() },
+        ];
+      }
+
+      balancesToInitialize.forEach((balance) => {
+        try {
+          db.accountBalance.create(
+            balance as Partial<DbAccountBalance> & { id: string }
+          );
+        } catch (error) {
+          console.error('Error creating account balance:', error);
+        }
+      });
+
+      // Transactions
+      console.log('\n=== Initializing Transactions ===');
+
+      const transactionsToInitialize =
+        scenario === DB_SCENARIOS.EMPTY
+          ? []
+          : (mockTransactionsResponse.items ?? []);
+
+      transactionsToInitialize.forEach((transaction) => {
+        try {
+          const newTransaction = {
+            ...transaction,
+            createdAt: new Date().toISOString(),
+          };
+          db.transaction.create(
+            newTransaction as Partial<DbTransaction> & { id: string }
+          );
+        } catch (error) {
+          console.error('Error creating transaction:', error);
+        }
+      });
+
+      console.log('\n=== Final Database State ===');
+      logDbState('Database Initialization');
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Database initialization error:', error);
+    return false;
+  }
+}
+
+export function handleMagicValues(
+  clientId: string,
+  verificationData: Record<string, unknown> = {}
+): Record<string, unknown> | null {
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+
+  if (!client) return null;
+
+  const rootParty = client.parties?.[0]
+    ? db.party.findFirst({
+        where: { id: { equals: client.parties[0] } },
+      })
+    : null;
+
+  if (!rootParty) return null;
+
+  const rootPartyObj = rootParty as Record<string, unknown>;
+  const orgDetails = rootPartyObj.organizationDetails as
+    | { organizationIds?: Array<{ idType?: string; value?: string }> }
+    | undefined;
+  const indDetails = rootPartyObj.individualDetails as
+    | { individualIds?: Array<{ idType?: string; value?: string }> }
+    | undefined;
+
+  const taxId =
+    orgDetails?.organizationIds?.find((id) => id.idType === 'EIN')?.value ||
+    indDetails?.individualIds?.find((id) => id.idType === 'SSN')?.value;
+
+  let updatedClient: Record<string, unknown> = { ...client };
+
+  switch (taxId) {
+    case MAGIC_VALUES.INFORMATION_REQUESTED: {
+      updatedClient = merge({}, updatedClient, {
+        status: 'INFORMATION_REQUESTED',
+        outstanding: { documentRequestIds: [] },
+      });
+      const outstanding = updatedClient.outstanding as {
+        documentRequestIds: string[];
+      };
+
+      if ((rootParty as { partyType?: string }).partyType === 'ORGANIZATION') {
+        const generatedDocRequestId = Math.floor(
+          10000 + Math.random() * 90000
+        ).toString();
+        outstanding.documentRequestIds.push(generatedDocRequestId);
+        const orgDocRequest = efDocumentRequestDetailsList.find(
+          (req: { id?: string }) => req.id === '68803'
+        );
+        upsertDocumentRequest(generatedDocRequestId, {
+          ...orgDocRequest,
+          id: generatedDocRequestId,
+          clientId,
+          partyId: client.partyId as string,
+          createdAt: new Date().toISOString(),
+        } as Partial<DbDocumentRequest>);
+      }
+
+      const individualParties = ((client.parties as string[]) || [])
+        .map((partyId) =>
+          db.party.findFirst({ where: { id: { equals: partyId } } })
+        )
+        .filter(
+          (party): party is DbParty =>
+            party != null &&
+            (party as { partyType?: string }).partyType === 'INDIVIDUAL'
+        );
+
+      for (const indParty of individualParties) {
+        const generatedDocRequestId = Math.floor(
+          10000 + Math.random() * 90000
+        ).toString();
+        outstanding.documentRequestIds.push(generatedDocRequestId);
+
+        const updatedParty = {
+          ...indParty,
+          validationResponse: [
+            ...((indParty.validationResponse as unknown[]) || []),
+            {
+              validationStatus: 'NEEDS_INFO',
+              validationType: 'ENTITY_VALIDATION',
+              documentRequestIds: [generatedDocRequestId],
+            },
+          ],
+        };
+
+        db.party.delete({
+          where: { id: { equals: (indParty.id as string) ?? '' } },
+        });
+        db.party.create(updatedParty as Partial<DbParty> & { id: string });
+
+        const indDocRequest = efDocumentRequestDetailsList.find(
+          (req: { id?: string }) => req.id === '68430'
+        );
+        upsertDocumentRequest(generatedDocRequestId, {
+          ...indDocRequest,
+          id: generatedDocRequestId,
+          clientId,
+          partyId: indParty.id as string,
+          createdAt: new Date().toISOString(),
+        } as Partial<DbDocumentRequest>);
+      }
+      break;
+    }
+    case MAGIC_VALUES.REVIEW_IN_PROGRESS:
+      updatedClient = merge({}, updatedClient, {
+        status: 'REVIEW_IN_PROGRESS',
+      });
+      break;
+    case MAGIC_VALUES.REJECTED:
+      updatedClient = merge({}, updatedClient, {
+        status: 'REJECTED',
+        results: { customerIdentityStatus: 'REJECTED' },
+      });
+      break;
+    case MAGIC_VALUES.APPROVED:
+      updatedClient = merge({}, updatedClient, {
+        status: 'APPROVED',
+        results: { customerIdentityStatus: 'APPROVED' },
+      });
+      break;
+    default:
+      updatedClient = merge({}, updatedClient, {
+        status: 'REVIEW_IN_PROGRESS',
+      });
+      break;
+  }
+
+  db.client.update({
+    where: { id: { equals: clientId } },
+    data: updatedClient,
+  });
+
+  logDbState('Client Verification Update');
+
+  return {
+    acceptedAt: new Date().toISOString(),
+    consumerDevice: (verificationData.consumerDevice as object) || {
+      ipAddress: '',
+      sessionId: '',
+    },
+  };
+}
+
+/**
+ * Apply mock API overrides into the DB so handlers read/write normal mutable state.
+ * Overrides are response-shaped JSON (e.g. { items }, { recipients }); we replace
+ * the corresponding entities so "initial" state is the override and behaviour stays mutable.
+ */
+export function applyOverridesToDb(overrides: Record<string, unknown>): void {
+  if (Object.keys(overrides).length === 0) return;
+
+  const key = (k: string) => overrides[k];
+
+  // GET /ef/do/v1/accounts → { items: AccountResponse[] }
+  const accountsPayload = key('GET /ef/do/v1/accounts') as
+    | { items?: unknown[] }
+    | undefined;
+  if (
+    accountsPayload?.items &&
+    Array.isArray(accountsPayload.items) &&
+    accountsPayload.items.length > 0
+  ) {
+    db.account.deleteMany({});
+    accountsPayload.items.forEach((account) => {
+      const rec = account as Record<string, unknown> & { id?: string };
+      if (rec.id) db.account.create(rec as Partial<DbAccount> & { id: string });
+    });
+  }
+
+  // GET /ef/do/v1/recipients → { recipients: Recipient[] }
+  const recipientsPayload = key('GET /ef/do/v1/recipients') as
+    | { recipients?: unknown[] }
+    | undefined;
+  if (
+    recipientsPayload?.recipients &&
+    Array.isArray(recipientsPayload.recipients) &&
+    recipientsPayload.recipients.length > 0
+  ) {
+    db.recipient.deleteMany({});
+    recipientsPayload.recipients.forEach((recipient) => {
+      const rec = recipient as Record<string, unknown> & { id?: string };
+      if (rec.id)
+        db.recipient.create(rec as Partial<DbRecipient> & { id: string });
+    });
+  }
+
+  // GET /ef/do/v1/transactions → { items: Transaction[], metadata }
+  const transactionsPayload = key('GET /ef/do/v1/transactions') as
+    | { items?: unknown[] }
+    | undefined;
+  if (
+    transactionsPayload?.items &&
+    Array.isArray(transactionsPayload.items) &&
+    transactionsPayload.items.length > 0
+  ) {
+    db.transaction.deleteMany({});
+    transactionsPayload.items.forEach((transaction) => {
+      const rec = transaction as Record<string, unknown> & { id?: string };
+      if (rec.id)
+        db.transaction.create(rec as Partial<DbTransaction> & { id: string });
+    });
+  }
+
+  // GET /ef/do/v1/document-requests → { documentRequests: DocumentRequest[] }
+  const docRequestsPayload = key('GET /ef/do/v1/document-requests') as
+    | { documentRequests?: unknown[] }
+    | undefined;
+  if (
+    docRequestsPayload?.documentRequests &&
+    Array.isArray(docRequestsPayload.documentRequests)
+  ) {
+    db.documentRequest.deleteMany({});
+    docRequestsPayload.documentRequests.forEach((dr) => {
+      const rec = dr as Record<string, unknown> & { id?: string };
+      if (rec.id)
+        db.documentRequest.create(
+          rec as Partial<DbDocumentRequest> & { id: string }
+        );
+    });
+  }
+
+  // GET /ef/do/v1/clients/:clientId → client with parties[] (expanded)
+  const clientKeys = Object.keys(overrides).filter((k) =>
+    k.startsWith('GET /ef/do/v1/clients/')
+  );
+  for (const k of clientKeys) {
+    const clientPayload = overrides[k] as Record<string, unknown> & {
+      id?: string;
+      parties?: unknown[];
+    };
+    if (!clientPayload?.id) continue;
+    const parties = clientPayload.parties as
+      | Record<string, unknown>[]
+      | undefined;
+    if (Array.isArray(parties)) {
+      parties.forEach((p) => {
+        const party = p as Record<string, unknown> & { id?: string };
+        if (party.id) {
+          // Delete then recreate to guarantee deep nested objects (e.g. organizationDetails)
+          // are fully replaced — @mswjs/data Object fields are shallow-replaced on update,
+          // which can leave stale nested keys if the incoming object has a different shape.
+          const existing = db.party.findFirst({
+            where: { id: { equals: party.id } },
+          });
+          if (existing)
+            db.party.delete({ where: { id: { equals: party.id } } });
+          db.party.create(party as Partial<DbParty> & { id: string });
+        }
+      });
+    }
+    const { parties: _p, ...clientData } = clientPayload;
+    const existing = db.client.findFirst({
+      where: { id: { equals: clientPayload.id } },
+    });
+    if (existing)
+      db.client.update({
+        where: { id: { equals: clientPayload.id } },
+        data: {
+          ...clientData,
+          parties:
+            (clientPayload.parties as { id: string }[])?.map((x) => x.id) ??
+            existing.parties,
+        },
+      });
+    else
+      db.client.create({
+        ...clientData,
+        id: clientPayload.id,
+        parties:
+          (clientPayload.parties as { id: string }[])?.map((x) => x.id) ?? [],
+      } as Partial<DbClient> & { id: string });
+  }
+
+  // GET /ef/do/v1/accounts/:accountId/balances → single balance
+  const balanceKeys = Object.keys(overrides).filter(
+    (k) => k.includes('/accounts/') && k.includes('/balances')
+  );
+  for (const k of balanceKeys) {
+    const balancePayload = overrides[k] as Record<string, unknown> & {
+      accountId?: string;
+      id?: string;
+    };
+    if (!balancePayload) continue;
+    const accountId =
+      balancePayload.accountId ??
+      (balancePayload as { account?: { id?: string } }).account?.id;
+    if (!accountId) continue;
+    const existing = db.accountBalance.findFirst({
+      where: { accountId: { equals: accountId } },
+    });
+    const withId = {
+      ...balancePayload,
+      id: balancePayload.id ?? `bal-${accountId}`,
+      accountId,
+    };
+    if (existing)
+      db.accountBalance.update({
+        where: { accountId: { equals: accountId } },
+        data: balancePayload as Partial<DbAccountBalance>,
+      });
+    else
+      db.accountBalance.create(
+        withId as Partial<DbAccountBalance> & { id: string }
+      );
+  }
+
+  // GET /ef/do/v1/recipients/:recipientId → single recipient
+  const recipientByIdKeys = Object.keys(overrides).filter(
+    (k) =>
+      k.startsWith('GET /ef/do/v1/recipients/') &&
+      k !== 'GET /ef/do/v1/recipients'
+  );
+  for (const k of recipientByIdKeys) {
+    const rec = overrides[k] as Record<string, unknown> & { id?: string };
+    if (!rec?.id) continue;
+    const existing = db.recipient.findFirst({
+      where: { id: { equals: rec.id } },
+    });
+    if (existing)
+      db.recipient.update({
+        where: { id: { equals: rec.id } },
+        data: rec as Partial<DbRecipient>,
+      });
+    else db.recipient.create(rec as Partial<DbRecipient> & { id: string });
+  }
+
+  // GET /ef/do/v1/transactions/:id → single transaction
+  const transactionByIdKeys = Object.keys(overrides).filter(
+    (k) =>
+      k.startsWith('GET /ef/do/v1/transactions/') &&
+      k !== 'GET /ef/do/v1/transactions'
+  );
+  for (const k of transactionByIdKeys) {
+    const rec = overrides[k] as Record<string, unknown> & { id?: string };
+    if (!rec?.id) continue;
+    const existing = db.transaction.findFirst({
+      where: { id: { equals: rec.id } },
+    });
+    if (existing)
+      db.transaction.update({
+        where: { id: { equals: rec.id } },
+        data: rec as Partial<DbTransaction>,
+      });
+    else db.transaction.create(rec as Partial<DbTransaction> & { id: string });
+  }
+
+  logDbState('Apply Overrides');
+}
+
+export function resetDb(scenario = DEFAULT_SCENARIO): {
+  success: boolean;
+  message: string;
+  scenario: string;
+} {
+  const success = initializeDb(true, scenario);
+  logDbState('Database Reset');
+  return {
+    success,
+    message: success
+      ? `Database reset successfully with scenario: ${scenario}`
+      : 'Database reset completed with warnings',
+    scenario,
+  };
+}
+
+initializeDb(false, DEFAULT_SCENARIO);
+
+export function getDbStatus(): {
+  clientCount: number;
+  partyCount: number;
+  documentRequestCount: number;
+  recipientCount: number;
+  accountCount: number;
+  accountBalanceCount: number;
+  transactionCount: number;
+  clients: string[];
+  recipients: string[];
+  accounts: string[];
+  transactions: string[];
+} {
+  const clients = db.client.getAll();
+  const parties = db.party.getAll();
+  const documentRequests = db.documentRequest.getAll();
+  const recipients = db.recipient.getAll();
+  const accounts = db.account.getAll();
+  const accountBalances = db.accountBalance.getAll();
+  const transactions = db.transaction.getAll();
+
+  logDbState('Status Check');
+  return {
+    clientCount: clients.length,
+    partyCount: parties.length,
+    documentRequestCount: documentRequests.length,
+    recipientCount: recipients.length,
+    accountCount: accounts.length,
+    accountBalanceCount: accountBalances.length,
+    transactionCount: transactions.length,
+    clients: clients.map((c) => c.id),
+    recipients: recipients.map((r) => r.id),
+    accounts: accounts.map((a) => a.id),
+    transactions: transactions.map((t) => (t as { id?: string }).id ?? ''),
+  };
+}

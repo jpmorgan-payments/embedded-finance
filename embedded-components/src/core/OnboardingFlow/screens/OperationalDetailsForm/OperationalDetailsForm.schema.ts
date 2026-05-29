@@ -24,18 +24,36 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
         .refine(
           (val) => /^\d{4}-\d{2}-\d{2}$/.test(val),
           i18n.t(
-            'onboarding-old:fields.additionalQuestions.validation.dateFormat'
+            'onboarding-overview:additionalQuestions.validation.dateFormat'
+          )
+        );
+    } else if (question.id && MONEY_INPUT_QUESTION_IDS.includes(question.id)) {
+      // Money/currency inputs should allow decimals
+      valueSchema = z
+        .string()
+        .min(
+          1,
+          i18n.t('onboarding-overview:additionalQuestions.validation.required')
+        )
+        .refine(
+          (val) => /^\d+(\.\d{1,2})?$/.test(val),
+          i18n.t(
+            'onboarding-overview:additionalQuestions.validation.numberFormat'
           )
         );
     } else if (itemType) {
       switch (itemType) {
         case 'boolean':
-          valueSchema = z.enum(['true', 'false']);
+          valueSchema = z.enum(['true', 'false'], {
+            message: i18n.t('validation:common.invalidOption'),
+          });
           break;
         case 'string':
           if (itemEnum) {
             if (itemEnum.length > 0) {
-              valueSchema = z.enum([itemEnum[0], ...itemEnum.slice(1)]);
+              valueSchema = z.enum([itemEnum[0], ...itemEnum.slice(1)], {
+                message: i18n.t('validation:common.invalidOption'),
+              });
             } else {
               valueSchema = z.string();
             }
@@ -45,14 +63,14 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
               .min(
                 1,
                 i18n.t(
-                  'onboarding:fields.additionalQuestions.validation.required'
+                  'onboarding-overview:additionalQuestions.validation.required'
                 )
               );
             if (itemPattern) {
               valueSchema = (valueSchema as z.ZodString).refine(
                 (val) => new RegExp(itemPattern).test(val),
                 i18n.t(
-                  'onboarding:fields.additionalQuestions.validation.invalidFormat'
+                  'onboarding-overview:additionalQuestions.validation.invalidFormat'
                 )
               );
             }
@@ -64,13 +82,13 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
             .min(
               1,
               i18n.t(
-                'onboarding:fields.additionalQuestions.validation.required'
+                'onboarding-overview:additionalQuestions.validation.required'
               )
             )
             .refine(
               (val) => /^\d+$/.test(val),
               i18n.t(
-                'onboarding:fields.additionalQuestions.validation.numberFormat'
+                'onboarding-overview:additionalQuestions.validation.numberFormat'
               )
             );
           break;
@@ -78,7 +96,7 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
           valueSchema = z.string();
       }
     } else {
-      console.log('Unknown question type', question);
+      // Unknown question type
       return;
     }
 
@@ -92,13 +110,13 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
           .min(
             question?.responseSchema?.minItems ?? 1,
             i18n.t(
-              'onboarding-old:fields.additionalQuestions.validation.required'
+              'onboarding-overview:additionalQuestions.validation.required'
             )
           )
           .max(
             question?.responseSchema?.maxItems ?? 1,
             i18n.t(
-              'onboarding:fields.additionalQuestions.validation.maxItems',
+              'onboarding-overview:additionalQuestions.validation.maxItems',
               { maxItems: question?.responseSchema?.maxItems }
             )
           )
@@ -115,7 +133,12 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
       }
     }
 
-    schemaFields[`question_${question.id}`] = valueSchema;
+    // Sub-questions are validated conditionally in the superRefine below,
+    // so mark them as optional at the field level to avoid blocking
+    // validation when the sub-question is hidden.
+    schemaFields[`question_${question.id}`] = isOptional
+      ? valueSchema.optional()
+      : valueSchema;
   });
 
   return z.object(schemaFields).superRefine((values, context) => {
@@ -149,7 +172,7 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
                     context.addIssue({
                       code: z.ZodIssueCode.custom,
                       message: i18n.t(
-                        'onboarding:fields.additionalQuestions.validation.required'
+                        'onboarding-overview:additionalQuestions.validation.required'
                       ),
                       path: [`question_${question.id}`],
                     });
@@ -163,7 +186,7 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
                     context.addIssue({
                       code: z.ZodIssueCode.custom,
                       message: i18n.t(
-                        'onboarding:fields.additionalQuestions.validation.maxItems',
+                        'onboarding-overview:additionalQuestions.validation.maxItems',
                         { maxItems: question?.responseSchema?.maxItems }
                       ),
                       path: [`question_${question.id}`],
@@ -174,7 +197,7 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
                 context.addIssue({
                   code: z.ZodIssueCode.custom,
                   message: i18n.t(
-                    'onboarding:fields.additionalQuestions.validation.required'
+                    'onboarding-overview:additionalQuestions.validation.required'
                   ),
                   path: [`question_${question.id}`],
                 });

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
 import { API_URL } from '../data/constants';
 
 interface Transaction {
@@ -38,7 +39,7 @@ export function MSWTest() {
   if (loading) {
     return (
       <div className="p-4">
-        <h2 className="text-xl font-bold mb-4">MSW Test - Loading...</h2>
+        <h2 className="mb-4 text-xl font-bold">MSW Test - Loading...</h2>
         <div className="animate-pulse">Loading transactions...</div>
       </div>
     );
@@ -47,7 +48,7 @@ export function MSWTest() {
   if (error) {
     return (
       <div className="p-4">
-        <h2 className="text-xl font-bold mb-4">MSW Test - Error</h2>
+        <h2 className="mb-4 text-xl font-bold">MSW Test - Error</h2>
         <div className="text-red-600">Error: {error}</div>
         <div className="mt-2 text-sm text-gray-600">
           API URL: {API_URL || 'Not set'}
@@ -58,7 +59,7 @@ export function MSWTest() {
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">MSW Test - Success!</h2>
+      <h2 className="mb-4 text-xl font-bold">MSW Test - Success!</h2>
       <div className="mb-4 text-sm text-gray-600">
         API URL: {API_URL || 'Not set'}
       </div>
@@ -67,7 +68,7 @@ export function MSWTest() {
       </div>
       <div className="space-y-2">
         {transactions.slice(0, 3).map((transaction) => (
-          <div key={transaction.id} className="border p-3 rounded">
+          <div key={transaction.id} className="rounded border p-3">
             <div className="font-medium">{transaction.description}</div>
             <div className="text-sm text-gray-600">
               Amount: ${transaction.amount} | Date: {transaction.date}

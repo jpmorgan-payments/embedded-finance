@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, type ReactNode } from 'react';
 import {
   ClockIcon,
   FileCheckIcon,
@@ -14,8 +14,8 @@ const ICON_STROKE_WIDTH = 1.5; // Consistent stroke width
 
 interface Stage {
   icon: React.ReactNode;
-  title: string;
-  description: string;
+  title: ReactNode;
+  description: ReactNode;
   color: string;
   gradient: string;
 }

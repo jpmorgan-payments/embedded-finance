@@ -1,20 +1,23 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  Users,
-  Link,
-  UserCheck,
-  Receipt,
-  Zap,
-  Building2,
   Box,
+  Building2,
   ExternalLink,
   FileText,
-  Play,
   Github,
+  Link,
+  Play,
+  Receipt,
+  UserCheck,
+  UserCircle,
+  Users,
+  Zap,
 } from 'lucide-react';
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { CodeExamplesModal } from './code-examples-modal';
 
 export function ExperiencesSection() {
@@ -26,7 +29,7 @@ export function ExperiencesSection() {
 
   const handleCardTitleClick = (
     componentId: string,
-    componentTitle: string,
+    componentTitle: string
   ) => {
     setSelectedComponent({ id: componentId, title: componentTitle });
     setModalOpen(true);
@@ -39,7 +42,7 @@ export function ExperiencesSection() {
       description:
         'Complete client verification with incremental information collection, due diligence questions, and document requests for seamless onboarding.',
       icon: <Users className="h-5 w-5" />,
-      status: 'testing',
+      status: 'available',
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#2-onboardingflow',
       demoUrl:
@@ -69,7 +72,7 @@ export function ExperiencesSection() {
       demoUrl:
         '/sellsense-demo?fullscreen=true&component=linked-accounts&theme=Empty',
       githubUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/LinkedAccountWidget',
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/RecipientWidgets/LinkedAccountWidget',
       steps: [
         'Add recipient with account details and party information',
         'Trigger Account Validation Service (AVS) checks',
@@ -77,7 +80,7 @@ export function ExperiencesSection() {
         'Activate linked account for payments',
       ],
       recipeUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/LinkedAccountWidget/LINKED_ACCOUNTS_REQUIREMENTS.md',
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/RecipientWidgets/LINKED_ACCOUNTS_REQUIREMENTS.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-linked-account',
     },
@@ -87,13 +90,13 @@ export function ExperiencesSection() {
       description:
         'Add, view, edit, and manage third-party payment recipients with dynamic validation, multi-method support (ACH, WIRE, RTP), and secure, accessible workflows.',
       icon: <UserCheck className="h-5 w-5" />,
-      status: 'in progress',
+      status: 'testing',
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#5-recipients',
       demoUrl:
         '/sellsense-demo?fullscreen=true&component=recipients&theme=Empty',
       githubUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/Recipients',
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/RecipientWidgets/RecipientsWidget',
       steps: [
         'View, search, filter, and sort all saved recipients',
         'Add new recipients with dynamic forms based on selected payment methods',
@@ -104,9 +107,9 @@ export function ExperiencesSection() {
         'Accessible, mobile-responsive design with tooltips and help text',
       ],
       recipeUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/Recipients/RECIPIENTS_REQUIREMENTS.md',
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/RecipientWidgets/RecipientsWidget/README.md',
       docsUrl:
-        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/external-payments',
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/third-party-recipient',
     },
     {
       id: 'payments',
@@ -114,7 +117,7 @@ export function ExperiencesSection() {
       description:
         'Initiate ACH, Wire, and RTP payments from Embedded Banking accounts to external recipients and linked accounts.',
       icon: <Zap className="h-5 w-5" />,
-      status: 'in progress',
+      status: 'testing',
       demoUrl:
         '/sellsense-demo?fullscreen=true&component=make-payment&theme=Empty',
       githubUrl:
@@ -137,7 +140,7 @@ export function ExperiencesSection() {
       description:
         'View, filter, and manage transaction records with detailed insights and comprehensive reporting capabilities for better financial oversight.',
       icon: <Receipt className="h-5 w-5" />,
-      status: 'coming soon',
+      status: 'testing',
       demoUrl:
         '/sellsense-demo?fullscreen=true&component=transactions&theme=Empty',
       githubUrl:
@@ -161,7 +164,7 @@ export function ExperiencesSection() {
       description:
         'View Embedded Finance accounts with detailed insights and balances for better financial oversight.',
       icon: <Building2 className="h-5 w-5" />,
-      status: 'coming soon',
+      status: 'testing',
       demoUrl: '/sellsense-demo?fullscreen=true&component=accounts&theme=Empty',
       githubUrl:
         'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/Accounts',
@@ -177,55 +180,88 @@ export function ExperiencesSection() {
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-account',
     },
+    {
+      id: 'client-details',
+      title: 'Client Details',
+      description:
+        'View comprehensive client information for fully onboarded clients: identity, ownership, verification status, and organization details with summary, accordion, and cards view modes.',
+      icon: <UserCircle className="h-5 w-5" />,
+      status: 'in progress',
+      demoUrl:
+        '/sellsense-demo?fullscreen=true&component=client-details&theme=Empty',
+      githubUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/ClientDetails',
+      steps: [
+        'View client identity, verification, and ownership information',
+        'Switch between summary, accordion, and cards view modes',
+        'Drill down into sections for detailed information',
+        'Display status indicators and organization details',
+      ],
+      npmUrl:
+        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components',
+      recipeUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/ClientDetails/stories/Docs.mdx',
+      docsUrl:
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client',
+    },
   ];
 
   return (
     <>
-      <section id="embedded-components" className="py-8 bg-jpm-white">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-page-h2 text-jpm-gray-900 mb-4 text-center">
-              Explore Embedded Business Components
-            </h2>
-            <p className="text-page-body text-jpm-gray text-center mb-8 max-w-3xl mx-auto">
-              Pre-built workflows and implementation patterns for common
-              embedded finance use cases.{' '}
+      <section id="embedded-components" className="bg-jpm-white pb-8 pt-4">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-6xl">
+            <div className="mx-auto mb-8 flex max-w-3xl flex-wrap items-center justify-center gap-2.5">
               <a
                 href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sp-brand hover:text-sp-brand-700 underline whitespace-nowrap"
+                className="inline-flex items-center rounded-full border border-sp-border bg-white px-3 py-1 text-xs font-semibold text-sp-brand shadow-sm transition-colors hover:bg-sp-accent hover:text-sp-brand-700"
               >
                 View full documentation →
               </a>
-            </p>
+              <a
+                href="/partially-hosted-demo"
+                className="inline-flex items-center rounded-full border border-sp-border bg-white px-3 py-1 text-xs font-semibold text-sp-brand shadow-sm transition-colors hover:bg-sp-accent hover:text-sp-brand-700"
+              >
+                View partially hosted demo →
+              </a>
+              <a
+                href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center rounded-full border border-sp-border bg-white px-3 py-1 text-xs font-semibold text-sp-brand shadow-sm transition-colors hover:bg-sp-accent hover:text-sp-brand-700"
+              >
+                Partially hosted integration guide →
+              </a>
+            </div>
 
             {/* Grid Layout */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
               {experiences.map((exp) => (
                 <Card
                   key={exp.id}
-                  className="overflow-hidden border-0 shadow-page-card bg-jpm-white rounded-page-md h-64 flex flex-col"
+                  className="flex h-64 flex-col overflow-hidden rounded-page-md border-0 bg-jpm-white shadow-page-card"
                 >
-                  <CardHeader className="bg-sp-accent p-4 min-h-[4rem] flex-shrink-0 border-b border-sp-border">
+                  <CardHeader className="min-h-[4rem] flex-shrink-0 border-b border-sp-border bg-sp-accent p-4">
                     <div className="flex items-start justify-between">
                       <CardTitle className="flex items-start text-base font-semibold leading-tight">
-                        <div className="bg-white p-1 rounded-page-sm mr-2 text-sp-brand flex-shrink-0 border border-sp-border">
+                        <div className="mr-2 flex-shrink-0 rounded-page-sm border border-sp-border bg-white p-1 text-sp-brand">
                           {exp.icon}
                         </div>
                         <button
                           onClick={() =>
                             handleCardTitleClick(exp.id, exp.title)
                           }
-                          className="line-clamp-2 text-left hover:text-sp-brand hover:underline cursor-pointer transition-colors"
+                          className="line-clamp-2 cursor-pointer text-left transition-colors hover:text-sp-brand hover:underline"
                           title="Click to view code example"
                         >
                           {exp.title}
                         </button>
                       </CardTitle>
-                      <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                      <div className="ml-2 flex flex-shrink-0 items-center gap-1">
                         <span
-                          className={`px-1.5 py-0.5 text-xs font-medium rounded-page-sm ${
+                          className={`rounded-page-sm px-1.5 py-0.5 text-xs font-medium ${
                             exp.status === 'available'
                               ? 'bg-green-100 text-green-800'
                               : exp.status === 'testing'
@@ -249,85 +285,85 @@ export function ExperiencesSection() {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-4 flex-1 flex flex-col">
-                    <div className="flex-1 mb-4">
-                      <p className="text-sm text-jpm-gray leading-relaxed line-clamp-4">
+                  <CardContent className="flex flex-1 flex-col p-4">
+                    <div className="mb-4 flex-1">
+                      <p className="line-clamp-4 text-sm leading-relaxed text-jpm-gray">
                         {exp.description}
                       </p>
                     </div>
 
                     {/* Always visible, centrally aligned action buttons */}
-                    <div className="flex justify-center items-center gap-3 mt-auto pt-3 pb-1 border-t border-gray-100 flex-shrink-0 min-h-[3.5rem]">
+                    <div className="mt-auto flex min-h-[3.5rem] flex-shrink-0 items-center justify-center gap-3 border-t border-gray-100 pb-1 pt-3">
                       {exp.demoUrl && (
-                        <div className="relative group">
+                        <div className="group relative">
                           <button
-                            className="p-2.5 rounded-full bg-green-100 hover:bg-green-200 text-green-600 transition-colors"
+                            className="rounded-full bg-green-100 p-2.5 text-green-600 transition-colors hover:bg-green-200"
                             onClick={() => window.open(exp.demoUrl, '_blank')}
                             title="View Live Demo"
                           >
                             <Play className="h-5 w-5" />
                           </button>
-                          <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                          <div className="absolute -top-11 left-1/2 z-10 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
                             Live Demo
                           </div>
                         </div>
                       )}
 
                       {exp.githubUrl && (
-                        <div className="relative group">
+                        <div className="group relative">
                           <button
-                            className="p-2.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
+                            className="rounded-full bg-gray-100 p-2.5 text-gray-600 transition-colors hover:bg-gray-200"
                             onClick={() => window.open(exp.githubUrl, '_blank')}
                             title="View Source Code"
                           >
                             <Github className="h-5 w-5" />
                           </button>
-                          <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                          <div className="absolute -top-11 left-1/2 z-10 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
                             Source Code
                           </div>
                         </div>
                       )}
 
                       {exp.recipeUrl && (
-                        <div className="relative group">
+                        <div className="group relative">
                           <button
-                            className="p-2.5 rounded-full bg-sp-accent hover:bg-white text-sp-brand transition-colors border border-sp-border"
+                            className="rounded-full border border-sp-border bg-sp-accent p-2.5 text-sp-brand transition-colors hover:bg-white"
                             onClick={() => window.open(exp.recipeUrl, '_blank')}
                             title="View Implementation Recipe"
                           >
                             <FileText className="h-5 w-5" />
                           </button>
-                          <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                          <div className="absolute -top-11 left-1/2 z-10 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
                             Implementation Recipe
                           </div>
                         </div>
                       )}
 
                       {exp.docsUrl && (
-                        <div className="relative group">
+                        <div className="group relative">
                           <button
-                            className="p-2.5 rounded-full bg-sp-accent hover:bg-white text-sp-brand transition-colors border border-sp-border"
+                            className="rounded-full border border-sp-border bg-sp-accent p-2.5 text-sp-brand transition-colors hover:bg-white"
                             onClick={() => window.open(exp.docsUrl, '_blank')}
                             title="View API Documentation"
                           >
                             <ExternalLink className="h-5 w-5" />
                           </button>
-                          <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                          <div className="absolute -top-11 left-1/2 z-10 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
                             API Documentation
                           </div>
                         </div>
                       )}
 
                       {exp.npmUrl && (
-                        <div className="relative group">
+                        <div className="group relative">
                           <button
-                            className="p-2.5 rounded-full bg-sp-accent hover:bg-white text-sp-brand transition-colors border border-sp-border"
+                            className="rounded-full border border-sp-border bg-sp-accent p-2.5 text-sp-brand transition-colors hover:bg-white"
                             onClick={() => window.open(exp.npmUrl, '_blank')}
                             title="View NPM Components"
                           >
                             <Box className="h-5 w-5" />
                           </button>
-                          <div className="absolute -top-11 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                          <div className="absolute -top-11 left-1/2 z-10 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
                             NPM Components
                           </div>
                         </div>

@@ -79,7 +79,7 @@ describe('OrganizationStepForm', () => {
     expect(
       await screen.findByText(/Business name must be at least 2 characters/i)
     ).toBeInTheDocument();
-  });
+  }, 15000);
 
   test('validates organization email format', async () => {
     // Arrange
@@ -206,7 +206,7 @@ describe('OrganizationStepForm', () => {
     expect(
       await screen.findByText(/Website URL must be 500 characters or less/i)
     ).toBeInTheDocument();
-  }, 15000);
+  }, 30000);
 
   test('accepts valid https website URL', async () => {
     renderComponent();

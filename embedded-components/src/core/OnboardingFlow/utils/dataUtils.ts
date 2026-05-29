@@ -5,6 +5,7 @@ import {
   ClientResponse,
   PartyResponse,
 } from '@/api/generated/smbdo.schemas';
+import { isNyseNasdaq } from '@/core/OnboardingFlow/consts/stockExchanges';
 import { AssociatedPartyFilters } from '@/core/OnboardingFlow/types/flow.types';
 import { ClientContext } from '@/core/OnboardingFlow/types/form.types';
 
@@ -73,6 +74,24 @@ export const getControllerParty = (clientData?: ClientResponse) => {
   );
 };
 
+/**
+ * Returns `true` when the organization party has a `publiclyTraded` block
+ * AND the stock exchange is NYSE or NASDAQ.
+ */
+export const isUSExchangePTC = (orgParty?: PartyResponse): boolean => {
+  const publiclyTraded = orgParty?.organizationDetails?.publiclyTraded;
+  if (!publiclyTraded?.stockExchange) return false;
+  return isNyseNasdaq(publiclyTraded.stockExchange);
+};
+
+/**
+ * Returns `true` when the organization party has a `publiclyTraded` block,
+ * regardless of exchange.
+ */
+export const isPTC = (orgParty?: PartyResponse): boolean => {
+  return !!orgParty?.organizationDetails?.publiclyTraded?.stockExchange;
+};
+
 export const getPartyName = (partyData?: PartyResponse) => {
   if (!partyData) return '';
 
@@ -90,6 +109,19 @@ export const getPartyName = (partyData?: PartyResponse) => {
     .join(' ')
     .trim();
 };
+
+/**
+ * Coerce API / form values to a plain string for labels and template literals.
+ * Non-primitive values stringify to "[object Object]" in JSX interpolation — avoid that.
+ */
+export function asPlainString(value: unknown): string {
+  if (value == null) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+  return '';
+}
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -116,7 +148,19 @@ export const formatQuestionResponse = (response: ClientQuestionResponse) => {
 export const clientHasOutstandingDocRequests = (
   clientData: ClientResponse | undefined
 ): boolean => {
-  return (clientData?.outstanding.documentRequestIds?.length ?? 0) > 0;
+  // Check top-level outstanding document request IDs
+  const hasTopLevelDocRequests =
+    (clientData?.outstanding?.documentRequestIds?.length ?? 0) > 0;
+
+  // Check for document request IDs in party validation responses (also outstanding)
+  const hasPartyDocRequests =
+    clientData?.parties?.some((party) =>
+      party.validationResponse?.some(
+        (validation) => (validation.documentRequestIds?.length ?? 0) > 0
+      )
+    ) ?? false;
+
+  return hasTopLevelDocRequests || hasPartyDocRequests;
 };
 
 export const convertClientToSoleProprietorship = (

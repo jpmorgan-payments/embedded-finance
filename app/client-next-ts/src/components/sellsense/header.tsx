@@ -1,29 +1,33 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useState } from 'react';
+import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 import {
-  Settings,
-  Menu,
-  X,
+  Brush,
   ChevronDown,
+  Database,
+  Info,
+  Languages,
+  Menu,
+  Settings,
   SkipBack,
   SkipForward,
-  Info,
-  Brush,
+  X,
 } from 'lucide-react';
+
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+
 import type { ClientScenario, ContentTone } from './dashboard-layout';
-import type { ThemeOption } from './use-sellsense-themes';
-import { useThemeStyles } from './theme-utils';
 import {
-  SCENARIO_ORDER,
   getNextScenario,
   getScenarioByKey,
   getScenarioKeyByDisplayName,
+  SCENARIO_ORDER,
 } from './scenarios-config';
 import { ThemeCustomizationDrawer } from './theme-customization-drawer';
-import { useState } from 'react';
-import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
+import { useThemeStyles } from './theme-utils';
+import type { ThemeOption } from './use-sellsense-themes';
 
 // Company data - always the same
 const getCompanyInfo = () => {
@@ -37,6 +41,8 @@ interface HeaderProps {
   clientScenario: ClientScenario;
   setClientScenario: (scenario: ClientScenario) => void;
   theme: ThemeOption;
+  /** When theme is Custom, use this for logo/portal styling (e.g. Empty stays Empty) */
+  themeForDisplay: ThemeOption;
   setTheme: (theme: ThemeOption, customVariables?: EBThemeVariables) => void;
   contentTone: ContentTone;
   setContentTone: (tone: ContentTone) => void;
@@ -47,12 +53,18 @@ interface HeaderProps {
   isInfoModalOpen: boolean;
   setIsInfoModalOpen: (open: boolean) => void;
   customThemeData?: any; // Full custom theme data with baseTheme
+  isContentTokenEditorOpen: boolean;
+  setIsContentTokenEditorOpen: (open: boolean) => void;
+  isMockApiEditorOpen: boolean;
+  setIsMockApiEditorOpen: (open: boolean) => void;
+  mockOverrideCount: number;
 }
 
 export function Header({
   clientScenario,
   setClientScenario,
   theme,
+  themeForDisplay,
   setTheme,
   contentTone,
   isMobileMenuOpen,
@@ -62,8 +74,13 @@ export function Header({
   isInfoModalOpen,
   setIsInfoModalOpen,
   customThemeData = {},
+  isContentTokenEditorOpen,
+  setIsContentTokenEditorOpen,
+  isMockApiEditorOpen,
+  setIsMockApiEditorOpen,
+  mockOverrideCount,
 }: HeaderProps) {
-  const themeStyles = useThemeStyles(theme);
+  const themeStyles = useThemeStyles(themeForDisplay);
   const [isThemeDrawerOpen, setIsThemeDrawerOpen] = useState(false);
 
   // Get current scenario key and next/previous scenarios
@@ -116,7 +133,7 @@ export function Header({
   return (
     <>
       <header
-        className={`border-b shadow-sm h-16 flex items-center justify-between sticky top-0 z-10 px-4 lg:px-6 ${themeStyles.getHeaderStyles()}`}
+        className={`sticky top-0 z-10 flex h-16 items-center justify-between border-b px-4 shadow-sm lg:px-6 ${themeStyles.getHeaderStyles()}`}
       >
         {/* Left side - Logo and Mobile Menu Button */}
         <div className="flex items-center gap-3">
@@ -145,10 +162,10 @@ export function Header({
         </div>
 
         {/* Center - Demo Settings Summary */}
-        <div className="flex-1 flex items-center justify-center max-w-3xl mx-4">
+        <div className="mx-4 flex max-w-3xl flex-1 items-center justify-center">
           <button
             onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-            className={`flex items-center gap-2 text-sm transition-all duration-200 rounded-full px-4 py-2 border shadow-sm hover:shadow-md ${themeStyles.getHeaderSettingsButtonStyles()} ${
+            className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm shadow-sm transition-all duration-200 hover:shadow-md ${themeStyles.getHeaderSettingsButtonStyles()} ${
               isSettingsOpen ? 'shadow-md' : ''
             }`}
             title="Click to open demo settings"
@@ -165,13 +182,13 @@ export function Header({
               <span className={themeStyles.getHeaderLabelStyles()}>•</span>
               <span className="font-medium">{contentTone}</span>
               <ChevronDown
-                className={`h-3 w-3 ml-1 ${themeStyles.getHeaderLabelStyles()}`}
+                className={`ml-1 h-3 w-3 ${themeStyles.getHeaderLabelStyles()}`}
               />
             </div>
 
             {/* Desktop summary - detailed */}
             <div
-              className={`hidden sm:flex items-center gap-3 ${themeStyles.getHeaderTextStyles()}`}
+              className={`hidden items-center gap-3 sm:flex ${themeStyles.getHeaderTextStyles()}`}
             >
               <div className="flex items-center gap-1">
                 <span className={themeStyles.getHeaderLabelStyles()}>
@@ -194,7 +211,7 @@ export function Header({
                 <span className="font-medium">{contentTone}</span>
               </div>
               <ChevronDown
-                className={`h-4 w-4 ml-2 ${themeStyles.getHeaderLabelStyles()}`}
+                className={`ml-2 h-4 w-4 ${themeStyles.getHeaderLabelStyles()}`}
               />
             </div>
           </button>
@@ -203,14 +220,14 @@ export function Header({
         {/* Right side - User section, Scenario Navigation, and Settings */}
         <div className="flex items-center space-x-2 lg:space-x-3">
           {/* Scenario Navigation Buttons - Desktop Only */}
-          <div className="hidden lg:flex items-center gap-1 pr-2">
+          <div className="hidden items-center gap-1 pr-2 lg:flex">
             <Button
               variant="ghost"
               size="icon"
               onClick={handlePrevScenario}
               disabled={isFirstScenario}
               className={`h-8 w-8 rounded-full p-1 transition-all duration-200 hover:shadow-sm ${
-                isFirstScenario ? 'opacity-50 cursor-not-allowed' : ''
+                isFirstScenario ? 'cursor-not-allowed opacity-50' : ''
               } ${themeStyles.getHeaderButtonStyles()}`}
               title={`Previous scenario: ${prevScenario.displayName}`}
             >
@@ -223,7 +240,7 @@ export function Header({
               onClick={handleNextScenario}
               disabled={isLastScenario}
               className={`h-8 w-8 rounded-full p-1 transition-all duration-200 hover:shadow-sm ${
-                isLastScenario ? 'opacity-50 cursor-not-allowed' : ''
+                isLastScenario ? 'cursor-not-allowed opacity-50' : ''
               } ${themeStyles.getHeaderButtonStyles()}`}
               title={`Next scenario: ${nextScenario.displayName}`}
             >
@@ -253,6 +270,42 @@ export function Header({
             <Brush className="h-4 w-4 lg:h-5 lg:w-5" />
           </Button>
 
+          {/* Content Token Editor button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`h-8 w-8 rounded-full p-1 ${
+              isContentTokenEditorOpen ? 'bg-gray-100 bg-opacity-20' : ''
+            } ${themeStyles.getHeaderButtonStyles()}`}
+            onClick={() =>
+              setIsContentTokenEditorOpen(!isContentTokenEditorOpen)
+            }
+            title="Edit content tokens"
+          >
+            <Languages className="h-4 w-4 lg:h-5 lg:w-5" />
+          </Button>
+
+          {/* Mock API Editor button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`relative h-8 w-8 rounded-full p-1 ${
+              isMockApiEditorOpen ? 'bg-gray-100 bg-opacity-20' : ''
+            } ${themeStyles.getHeaderButtonStyles()}`}
+            onClick={() => setIsMockApiEditorOpen(!isMockApiEditorOpen)}
+            title="Edit mock API responses"
+          >
+            <Database className="h-4 w-4 lg:h-5 lg:w-5" />
+            {mockOverrideCount > 0 && (
+              <span
+                className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-medium text-white"
+                aria-label={`${mockOverrideCount} overrides`}
+              >
+                {mockOverrideCount > 9 ? '9+' : mockOverrideCount}
+              </span>
+            )}
+          </Button>
+
           {/* Settings button */}
           <Button
             variant="ghost"
@@ -267,11 +320,11 @@ export function Header({
 
           <div className="flex items-center space-x-2">
             <Avatar className="h-8 w-8 bg-sellsense-primary">
-              <AvatarFallback className="text-white text-sm font-medium">
+              <AvatarFallback className="text-sm font-medium text-white">
                 JD
               </AvatarFallback>
             </Avatar>
-            <div className="hidden sm:flex flex-col">
+            <div className="hidden flex-col sm:flex">
               <span
                 className={`text-sm font-medium ${themeStyles.getHeaderTextStyles()}`}
               >

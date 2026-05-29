@@ -11,7 +11,6 @@ node_modules
 .eslintcache
 /.pnp
 .pnp.js
-.env.*
 .env
 certs
 
@@ -20,6 +19,7 @@ certs
 *.iml
 .vscode
 *.icloud
+.cursor
 
 # Logs
 npm-debug.log*
@@ -39,3 +39,7 @@ app/client/src/generated-api-models
 
 #VSCode extension
 .VSCodeCounter
+.claude/settings.local.json
+
+# Yarn PnP install state
+.yarn/install-state.gz

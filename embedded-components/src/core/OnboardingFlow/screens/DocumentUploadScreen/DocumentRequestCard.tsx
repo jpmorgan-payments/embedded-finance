@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { RefreshCw } from 'lucide-react';
 import { Control, UseFormWatch } from 'react-hook-form';
 
@@ -65,6 +66,8 @@ export const DocumentRequestCard: FC<DocumentRequestCardProps> = ({
   onReset,
   maxFileSizeBytes,
 }) => {
+  const { t } = useTranslationWithTokens(['onboarding-overview']);
+
   if (!documentRequest?.id || !documentRequest.requirements?.length)
     return null;
 
@@ -87,7 +90,8 @@ export const DocumentRequestCard: FC<DocumentRequestCardProps> = ({
             onClick={onReset}
             className="eb-flex eb-h-6 eb-items-center eb-gap-1 eb-p-1 eb-text-xs"
           >
-            <RefreshCw className="!eb-size-3" /> Reset form
+            <RefreshCw className="!eb-size-3" />{' '}
+            {t('documentRequest.resetForm', 'Reset form')}
           </Button>
         </div>
 

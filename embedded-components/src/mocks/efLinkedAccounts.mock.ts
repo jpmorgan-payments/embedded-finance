@@ -6,12 +6,14 @@ import {
   RecipientContactContactType,
   RecipientStatus,
   RecipientType,
-} from '@/api/generated/ef-v1.schemas';
+} from '@/api/generated/ep-recipients.schemas';
 
 export const linkedAccountListMock: ListRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 3,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 4,
+  },
   recipients: [
     {
       partyDetails: {
@@ -40,7 +42,7 @@ export const linkedAccountListMock: ListRecipientsResponse = {
         ],
       },
       account: {
-        number: '2134380369277971423204567',
+        number: '12345678901234567',
         type: AccountType.CHECKING,
         countryCode: CountryCode.US,
         routingInformation: [
@@ -140,14 +142,56 @@ export const linkedAccountListMock: ListRecipientsResponse = {
       type: RecipientType.LINKED_ACCOUNT,
       status: RecipientStatus.READY_FOR_VALIDATION,
       createdAt: '2024-03-10T09:15:00Z',
+      updatedAt: '2024-03-12T14:30:00Z',
+    },
+    {
+      partyDetails: {
+        address: {
+          addressLine1: '456 Elm Street',
+          addressLine2: '',
+          addressLine3: '',
+          city: 'Boston',
+          countryCode: CountryCode.US,
+          state: 'MA',
+          postalCode: '02101',
+        },
+        type: PartyType.INDIVIDUAL,
+        firstName: 'Michael',
+        lastName: 'Chen',
+        contacts: [
+          {
+            contactType: RecipientContactContactType.EMAIL,
+            value: 'michael.chen@email.com',
+          },
+        ],
+      },
+      account: {
+        number: '1111222233334444',
+        type: AccountType.CHECKING,
+        countryCode: CountryCode.US,
+        routingInformation: [
+          {
+            routingCodeType: 'USABA',
+            routingNumber: '011401533',
+            transactionType: 'ACH',
+          },
+        ],
+      },
+      id: 'd4e5f6g7-h8i9-j0k1-l2m3-n4o5p6q7r8s9',
+      type: RecipientType.LINKED_ACCOUNT,
+      status: RecipientStatus.MICRODEPOSITS_INITIATED,
+      createdAt: '2024-03-15T11:20:00Z',
+      updatedAt: '2024-03-15T11:25:00Z',
     },
   ],
 };
 
 export const linkedAccountMicrodepositListMock: ListRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 1,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 1,
+  },
   recipients: [
     {
       partyDetails: {
@@ -176,7 +220,7 @@ export const linkedAccountMicrodepositListMock: ListRecipientsResponse = {
         ],
       },
       account: {
-        number: '2134380369277971423204567',
+        number: '12345678901234567',
         type: AccountType.CHECKING,
         countryCode: CountryCode.US,
         routingInformation: [
@@ -196,9 +240,11 @@ export const linkedAccountMicrodepositListMock: ListRecipientsResponse = {
 };
 
 export const linkedAccountReadyForValidationMock: ListRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 1,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 1,
+  },
   recipients: [
     {
       partyDetails: {
@@ -228,7 +274,7 @@ export const linkedAccountReadyForValidationMock: ListRecipientsResponse = {
         ],
       },
       account: {
-        number: '2134380369277971423204567',
+        number: '12345678901234567',
         type: AccountType.CHECKING,
         countryCode: CountryCode.US,
         routingInformation: [
@@ -243,14 +289,17 @@ export const linkedAccountReadyForValidationMock: ListRecipientsResponse = {
       type: RecipientType.LINKED_ACCOUNT,
       status: RecipientStatus.READY_FOR_VALIDATION,
       createdAt: '2024-01-15T10:30:00Z',
+      updatedAt: '2024-01-18T16:45:00Z',
     },
   ],
 };
 
 export const linkedAccountRejectedMock: ListRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 1,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 1,
+  },
   recipients: [
     {
       partyDetails: {
@@ -280,7 +329,7 @@ export const linkedAccountRejectedMock: ListRecipientsResponse = {
         ],
       },
       account: {
-        number: '2134380369277971423204567',
+        number: '12345678901234567',
         type: AccountType.CHECKING,
         countryCode: CountryCode.US,
         routingInformation: [
@@ -301,9 +350,11 @@ export const linkedAccountRejectedMock: ListRecipientsResponse = {
 
 // New mock for business accounts
 export const linkedAccountBusinessMock: ListRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 2,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 2,
+  },
   recipients: [
     {
       partyDetails: {
@@ -396,11 +447,67 @@ export const linkedAccountBusinessMock: ListRecipientsResponse = {
   ],
 };
 
+// Mock for single active account
+export const linkedAccountActiveMock: ListRecipientsResponse = {
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 1,
+  },
+  recipients: [
+    {
+      partyDetails: {
+        address: {
+          addressLine1: '451 Rose Garden',
+          addressLine2: '11249312',
+          addressLine3: 'Rose House',
+          city: 'New York City',
+          countryCode: CountryCode.US,
+          state: 'NY',
+          postalCode: '10007',
+        },
+        type: PartyType.INDIVIDUAL,
+        firstName: 'Alex',
+        lastName: 'James',
+        contacts: [
+          {
+            contactType: RecipientContactContactType.EMAIL,
+            value: 'testemail1@test.com',
+          },
+          {
+            contactType: RecipientContactContactType.PHONE,
+            countryCode: '+1',
+            value: '7587819587',
+          },
+        ],
+      },
+      account: {
+        number: '12345678901234567',
+        type: AccountType.CHECKING,
+        countryCode: CountryCode.US,
+        routingInformation: [
+          {
+            routingCodeType: 'USABA',
+            routingNumber: '154135115',
+            transactionType: 'ACH',
+          },
+        ],
+      },
+      id: 'c0712fc9-b7d5-4ee2-81bb-21ba80d56b4b',
+      type: RecipientType.LINKED_ACCOUNT,
+      status: RecipientStatus.ACTIVE,
+      createdAt: '2024-01-15T10:30:00Z',
+    },
+  ],
+};
+
 // Mock for inactive accounts
 export const linkedAccountInactiveMock: ListRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 1,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 1,
+  },
   recipients: [
     {
       partyDetails: {

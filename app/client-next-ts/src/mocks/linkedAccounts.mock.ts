@@ -1,5 +1,12 @@
-// Mock linked accounts data for LinkedAccountWidget component
-export const mockLinkedAccounts = {
+import type { Recipient, RecipientStatus } from '@ef-api/ep-recipients-schemas';
+
+/** Mock linked accounts (LINKED_ACCOUNT recipients). */
+export const mockLinkedAccounts: {
+  page: number;
+  limit: number;
+  total_items: number;
+  recipients: Recipient[];
+} = {
   page: 0,
   limit: 10,
   total_items: 3,
@@ -53,7 +60,7 @@ export const mockLinkedAccounts = {
 export const mockActiveLinkedAccounts = {
   ...mockLinkedAccounts,
   recipients: mockLinkedAccounts.recipients.filter(
-    (account: { status: string }) => account.status === 'ACTIVE',
+    (account) => account.status === 'ACTIVE'
   ),
   total_items: 1,
 };
@@ -61,9 +68,9 @@ export const mockActiveLinkedAccounts = {
 export const mockMicrodepositLinkedAccounts = {
   ...mockLinkedAccounts,
   recipients: mockLinkedAccounts.recipients.filter(
-    (account: { status: string }) =>
+    (account) =>
       account.status === 'MICRODEPOSITS_INITIATED' ||
-      account.status === 'READY_FOR_VALIDATION',
+      account.status === 'READY_FOR_VALIDATION'
   ),
   total_items: 2,
 };
@@ -177,7 +184,7 @@ export const createMockLinkedAccount = (overrides: any = {}) => {
 export const createMockLinkedAccountsResponse = (
   accounts: any[] = mockLinkedAccounts.recipients,
   page: number = 1,
-  limit: number = 10,
+  limit: number = 10
 ) => {
   // Convert 1-based page to 0-based index
   const startIndex = (page - 1) * limit;
@@ -195,12 +202,15 @@ export const createMockLinkedAccountsResponse = (
 // Function to get linked account by ID
 export const getLinkedAccountById = (id: string) => {
   return mockLinkedAccounts.recipients.find(
-    (account: { id: string }) => account.id === id,
+    (account: { id: string }) => account.id === id
   );
 };
 
 // Function to update linked account status
-export const updateLinkedAccountStatus = (id: string, status: string) => {
+export const updateLinkedAccountStatus = (
+  id: string,
+  status: RecipientStatus
+) => {
   const account = getLinkedAccountById(id);
   if (account) {
     account.status = status;

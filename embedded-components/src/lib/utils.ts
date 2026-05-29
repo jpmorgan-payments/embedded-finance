@@ -1,11 +1,8 @@
 import { defaultResources } from '@/i18n/config';
-import { useQuery } from '@tanstack/react-query';
 import { clsx, type ClassValue } from 'clsx';
 import DOMPurify from 'dompurify';
 import { getI18n } from 'react-i18next';
 import { extendTailwindMerge } from 'tailwind-merge';
-
-import { Recipient } from '@/api/generated/ep-recipients.schemas';
 
 const twMerge = extendTailwindMerge({
   prefix: 'eb-',
@@ -83,18 +80,6 @@ export function createRegExpAndMessage(
     prependedMessage + (specialCharacters ?? '').split('').join(' '),
   ];
 }
-
-export const getRecipientLabel = (recipient: Recipient) => {
-  const name =
-    recipient.partyDetails?.type === 'INDIVIDUAL'
-      ? [
-          recipient.partyDetails?.firstName,
-          recipient.partyDetails?.lastName,
-        ].join(' ')
-      : recipient.partyDetails?.businessName;
-
-  return `${name} (...${recipient.account ? recipient.account.number?.slice(-4) : ''})`;
-};
 
 // DEPRECATED - to remove
 export const loadContentTokens = (
@@ -259,27 +244,4 @@ export const sanitizeInput = (input: string): string => {
     .trim();
 
   return sanitized;
-};
-
-export const useIPAddress = () => {
-  return useQuery<string>({
-    queryKey: ['useIPAddress'],
-    queryFn: async () => {
-      if (process.env.NODE_ENV !== 'test') {
-        const { publicIpv4 } = await import('public-ip');
-
-        return publicIpv4({
-          fallbackUrls: [
-            `https://ifconfig.co/ip`,
-            'https://api64.ipify.org/',
-            'https://ipapi.co/ip',
-          ],
-        });
-      }
-      return new Promise((resolve) => {
-        resolve('1.1.1.1');
-      });
-    },
-    retry: 5,
-  });
 };

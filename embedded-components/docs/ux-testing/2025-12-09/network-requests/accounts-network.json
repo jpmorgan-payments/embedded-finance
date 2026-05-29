@@ -1,0 +1,39 @@
+{
+  "component": "Accounts",
+  "date": "2025-12-09",
+  "url": "https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=accounts&theme=Empty",
+  "requests": [
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/accounts?clientId=0030000131",
+      "status": 200,
+      "type": "fetch",
+      "note": "Accounts API with clientId filter (called twice - duplicate)"
+    },
+    {
+      "method": "GET",
+      "url": "https://embedded-finance-dev.com/ef/do/v1/accounts/acc-002/balances",
+      "status": 200,
+      "type": "fetch",
+      "note": "Account balance API (called twice - duplicate)"
+    }
+  ],
+  "summary": {
+    "total_requests": "Multiple (includes asset loading)",
+    "successful_requests": "All",
+    "failed_requests": 0,
+    "duplicate_calls": true,
+    "duplicate_endpoints": [
+      "/ef/do/v1/accounts?clientId=0030000131",
+      "/ef/do/v1/accounts/acc-002/balances",
+      "/ping"
+    ],
+    "msw_intercepted": true
+  }
+}
+
+
+
+
+
+

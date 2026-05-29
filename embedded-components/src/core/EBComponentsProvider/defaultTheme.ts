@@ -1,95 +1,242 @@
 import { EBTheme } from './config.types';
 
+/**
+ * Default theme configuration following Salt Design System nomenclature.
+ * @see https://www.saltdesignsystem.com/salt/themes/design-tokens/how-to-read-tokens
+ */
 export const defaultTheme: EBTheme = {
   colorScheme: 'system',
   variables: {
-    fontFamily: 'Geist',
-    borderRadius: '0.375rem',
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CONTENT CHARACTERISTIC - Typography
+    // ═══════════════════════════════════════════════════════════════════════════
+    contentFontFamily: 'Geist',
+    textHeadingFontFamily: 'Geist',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SEPARABLE CHARACTERISTIC - Borders
+    // ═══════════════════════════════════════════════════════════════════════════
+    separableBorderRadius: '0.375rem',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // LAYOUT & SPACING
+    // ═══════════════════════════════════════════════════════════════════════════
     spacingUnit: '0.25rem',
-    zIndexOverlay: 100,
-    buttonFontWeight: '500',
-    buttonFontSize: '0.875rem',
-    buttonLineHeight: '1.25rem',
-    primaryBorderWidth: '0rem',
-    secondaryBorderWidth: '0rem',
-    destructiveBorderWidth: '0rem',
-    shiftButtonOnActive: true,
-    buttonTextTransform: 'none',
-    buttonLetterSpacing: '0em',
-    formLabelFontSize: '0.875rem',
-    formLabelLineHeight: '1.25rem',
-    formLabelFontWeight: '500',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // OVERLAYABLE CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    overlayableZIndex: 100,
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACTIONABLE CHARACTERISTIC - Buttons
+    // ═══════════════════════════════════════════════════════════════════════════
+    actionableFontWeight: '500',
+    actionableFontSize: '0.875rem',
+    actionableLineHeight: '1.25rem',
+    actionableTextTransform: 'none',
+    actionableLetterSpacing: '0em',
+    actionableShiftOnActive: true,
+    actionableAccentedBoldBorderWidth: '0rem',
+    actionableSubtleBorderWidth: '0rem',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACTIONABLE NEGATIVE CHARACTERISTIC - Destructive
+    // ═══════════════════════════════════════════════════════════════════════════
+    actionableNegativeBoldBorderWidth: '0rem',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // EDITABLE CHARACTERISTIC - Form Labels
+    // ═══════════════════════════════════════════════════════════════════════════
+    editableLabelFontSize: '0.875rem',
+    editableLabelLineHeight: '1.25rem',
+    editableLabelFontWeight: '500',
   },
   light: {
-    backgroundColor: 'hsl(0 0% 100%)',
-    foregroundColor: 'hsl(240 10% 3.9%)',
-    formLabelForegroundColor: 'hsl(240 10% 3.9%)',
-    cardColor: 'hsl(0 0% 100%)',
-    cardForegroundColor: 'hsl(240 10% 3.9%)',
-    popoverColor: 'hsl(0 0% 100%)',
-    popoverForegroundColor: 'hsl(240 10% 3.9%)',
-    primaryColor: '#155C93',
-    primaryForegroundColor: 'hsl(0 0% 98%)',
-    secondaryColor: 'hsl(240 4.8% 95.9%)',
-    secondaryForegroundColor: 'hsl(240 5.9% 10%)',
-    mutedColor: 'hsl(240 4.8% 95.9%)',
-    mutedForegroundColor: 'hsl(240 3.8% 46.1%)',
-    accentColor: 'hsl(240 4.8% 95.9%)',
-    accentForegroundColor: 'hsl(240 5.9% 10%)',
-    destructiveColor: 'hsl(0 84.2% 60.2%)',
-    destructiveForegroundColor: 'hsl(0 0% 98%)',
-    destructiveAccentColor: '#FFECEA',
-    informativeColor: '#0078CF',
-    informativeAccentColor: '#EAF6FF',
-    warningColor: '#C75300',
-    warningAccentColor: '#FFECD9',
-    successColor: '#00875D',
-    successAccentColor: '#EAF5F2',
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CONTAINER CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    containerPrimaryBackground: 'hsl(0 0% 100%)',
+    contentPrimaryForeground: 'hsl(240 10% 3.9%)',
+    containerCardBackground: 'hsl(0 0% 100%)',
+    containerPrimaryForeground: 'hsl(240 10% 3.9%)',
+    containerSecondaryBackground: 'hsl(240 4.8% 95.9%)',
+    // Updated from 46.1% to 40% lightness for WCAG AA 4.5:1 contrast ratio compliance
+    containerSecondaryForeground: 'hsl(240 3.8% 40%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // EDITABLE CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    editableLabelForeground: 'hsl(240 10% 3.9%)',
+    editableBackground: 'hsl(0 0% 100%)',
+    editableBorderColor: 'hsl(240 5.9% 90%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // OVERLAYABLE CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    overlayableBackground: 'hsl(0 0% 100%)',
+    overlayableForeground: 'hsl(240 10% 3.9%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACTIONABLE CHARACTERISTIC - Accented Bold Variant (solid CTA)
+    // ═══════════════════════════════════════════════════════════════════════════
+    actionableAccentedBoldBackground: '#155C93',
+    actionableAccentedBoldForeground: 'hsl(0 0% 98%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACTIONABLE CHARACTERISTIC - Subtle Variant (transparent neutral)
+    // ═══════════════════════════════════════════════════════════════════════════
+    actionableSubtleBackground: 'hsl(240 4.8% 95.9%)',
+    actionableSubtleForeground: 'hsl(240 5.9% 10%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACCENT CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    accentBackground: 'hsl(240 4.8% 95.9%)',
+    contentAccentForeground: 'hsl(240 5.9% 10%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACTIONABLE CHARACTERISTIC - Negative Bold Variant (solid destructive)
+    // ═══════════════════════════════════════════════════════════════════════════
+    actionableNegativeBoldBackground: 'hsl(0 84.2% 60.2%)',
+    actionableNegativeBoldForeground: 'hsl(0 0% 98%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SENTIMENT CHARACTERISTIC - Negative (non-actionable contexts)
+    // ═══════════════════════════════════════════════════════════════════════════
+    sentimentNegativeAccentBackground: '#FFECEA',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SENTIMENT CHARACTERISTIC - Positive
+    // ═══════════════════════════════════════════════════════════════════════════
+    sentimentPositiveForeground: '#00875D',
+    sentimentPositiveAccentBackground: '#EAF5F2',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SENTIMENT CHARACTERISTIC - Caution
+    // ═══════════════════════════════════════════════════════════════════════════
+    sentimentCautionForeground: '#C75300',
+    sentimentCautionAccentBackground: '#FFECD9',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // STATUS CHARACTERISTIC - Info
+    // ═══════════════════════════════════════════════════════════════════════════
+    statusInfoForeground: '#0078CF',
+    statusInfoAccentBackground: '#EAF6FF',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SEPARABLE CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    separableBorderColor: 'hsl(240 5.9% 90%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // FOCUSED CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    focusedRingColor: 'hsl(240 10% 3.9%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // NAVIGABLE CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    navigableBackground: 'hsl(0 0% 98%)',
+    navigableForeground: 'hsl(240 5.3% 26.1%)',
+    navigableAccentBackground: 'hsl(240 4.8% 95.9%)',
+    navigableAccentForeground: 'hsl(240 5.9% 10%)',
+
+    // Legacy alert tokens (maps to container secondary)
     alertColor: 'hsl(0 0% 100%)',
     alertForegroundColor: 'hsl(240 10% 3.9%)',
-    borderColor: 'hsl(240 5.9% 90%)',
-    inputColor: 'hsl(0 0% 100%)',
-    inputBorderColor: 'hsl(240 5.9% 90%)',
-    ringColor: 'hsl(240 10% 3.9%)',
-    sidebarBackgroundColor: 'hsl(0 0% 98%)',
-    sidebarForegroundColor: 'hsl(240 5.3% 26.1%)',
-    sidebarAccentColor: 'hsl(240 4.8% 95.9%)',
-    sidebarAccentForegroundColor: 'hsl(240 5.9% 10%)',
   },
   dark: {
-    backgroundColor: 'hsl(240 10% 3.9%)',
-    foregroundColor: 'hsl(0 0% 98%)',
-    formLabelForegroundColor: 'hsl(0 0% 98%)',
-    cardColor: 'hsl(240 10% 3.9%)',
-    cardForegroundColor: 'hsl(0 0% 98%)',
-    popoverColor: 'hsl(240 10% 3.9%)',
-    popoverForegroundColor: 'hsl(0 0% 98%)',
-    primaryColor: '#155C93',
-    primaryForegroundColor: 'hsl(0 0% 98%)',
-    secondaryColor: 'hsl(240 3.7% 15.9%)',
-    secondaryForegroundColor: 'hsl(0 0% 98%)',
-    mutedColor: 'hsl(240 3.7% 15.9%)',
-    mutedForegroundColor: 'hsl(240 5% 64.9%)',
-    accentColor: 'hsl(240 3.7% 15.9%)',
-    accentForegroundColor: 'hsl(0 0% 98%)',
-    destructiveColor: 'hsl(0 74% 54%)',
-    destructiveForegroundColor: 'hsl(0 0% 98%)',
-    destructiveAccentColor: '#FFECEA',
-    informativeColor: '#0078CF',
-    informativeAccentColor: '#EAF6FF',
-    warningColor: '#C75300',
-    warningAccentColor: '#FFECD9',
-    successColor: '#00875D',
-    successAccentColor: '#EAF5F2',
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CONTAINER CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    containerPrimaryBackground: 'hsl(240 10% 3.9%)',
+    contentPrimaryForeground: 'hsl(0 0% 98%)',
+    containerCardBackground: 'hsl(240 10% 3.9%)',
+    containerPrimaryForeground: 'hsl(0 0% 98%)',
+    containerSecondaryBackground: 'hsl(240 3.7% 15.9%)',
+    containerSecondaryForeground: 'hsl(240 5% 64.9%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // EDITABLE CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    editableLabelForeground: 'hsl(0 0% 98%)',
+    editableBackground: 'hsl(240 3.7% 15.9%)',
+    editableBorderColor: 'hsl(240 3.7% 15.9%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // OVERLAYABLE CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    overlayableBackground: 'hsl(240 10% 3.9%)',
+    overlayableForeground: 'hsl(0 0% 98%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACTIONABLE CHARACTERISTIC - Accented Bold Variant (solid CTA)
+    // ═══════════════════════════════════════════════════════════════════════════
+    actionableAccentedBoldBackground: '#155C93',
+    actionableAccentedBoldForeground: 'hsl(0 0% 98%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACTIONABLE CHARACTERISTIC - Subtle Variant (transparent neutral)
+    // ═══════════════════════════════════════════════════════════════════════════
+    actionableSubtleBackground: 'hsl(240 3.7% 15.9%)',
+    actionableSubtleForeground: 'hsl(0 0% 98%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACCENT CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    accentBackground: 'hsl(240 3.7% 15.9%)',
+    contentAccentForeground: 'hsl(0 0% 98%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACTIONABLE CHARACTERISTIC - Negative Bold Variant (solid destructive)
+    // ═══════════════════════════════════════════════════════════════════════════
+    actionableNegativeBoldBackground: 'hsl(0 74% 54%)',
+    actionableNegativeBoldForeground: 'hsl(0 0% 98%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SENTIMENT CHARACTERISTIC - Negative (non-actionable contexts)
+    // ═══════════════════════════════════════════════════════════════════════════
+    sentimentNegativeAccentBackground: '#FFECEA',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SENTIMENT CHARACTERISTIC - Positive
+    // ═══════════════════════════════════════════════════════════════════════════
+    sentimentPositiveForeground: '#00875D',
+    sentimentPositiveAccentBackground: '#EAF5F2',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SENTIMENT CHARACTERISTIC - Caution
+    // ═══════════════════════════════════════════════════════════════════════════
+    sentimentCautionForeground: '#C75300',
+    sentimentCautionAccentBackground: '#FFECD9',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // STATUS CHARACTERISTIC - Info
+    // ═══════════════════════════════════════════════════════════════════════════
+    statusInfoForeground: '#0078CF',
+    statusInfoAccentBackground: '#EAF6FF',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SEPARABLE CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    separableBorderColor: 'hsl(240 3.7% 15.9%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // FOCUSED CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    focusedRingColor: 'hsl(240 4.9% 83.9%)',
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // NAVIGABLE CHARACTERISTIC
+    // ═══════════════════════════════════════════════════════════════════════════
+    navigableBackground: 'hsl(240 5.9% 10%)',
+    navigableForeground: 'hsl(240 4.8% 95.9%)',
+    navigableAccentBackground: 'hsl(240 3.7% 15.9%)',
+    navigableAccentForeground: 'hsl(240 4.8% 95.9%)',
+
+    // Legacy alert tokens (maps to container secondary)
     alertColor: 'hsl(240 3.7% 15.9%)',
     alertForegroundColor: 'hsl(0 0% 98%)',
-    borderColor: 'hsl(240 3.7% 15.9%)',
-    inputColor: 'hsl(240 3.7% 15.9%)',
-    inputBorderColor: 'hsl(240 3.7% 15.9%)',
-    ringColor: 'hsl(240 4.9% 83.9%)',
-    sidebarBackgroundColor: 'hsl(240 5.9% 10%)',
-    sidebarForegroundColor: 'hsl(240 4.8% 95.9%)',
-    sidebarAccentColor: 'hsl(240 3.7% 15.9%)',
-    sidebarAccentForegroundColor: 'hsl(240 4.8% 95.9%)',
   },
 };

@@ -1,22 +1,25 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
-import { useTranslation } from 'react-i18next';
+import { useTranslationWithTokens } from '@/i18n';
 
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
+import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
+import { useClientId } from '@/core/EBComponentsProvider/EBComponentsProvider';
 import {
   getOrganizationParty,
   getPartyByAssociatedPartyFilters,
+  getPartyName,
 } from '@/core/OnboardingFlow/utils/dataUtils';
 
 import {
   FormLoadingState,
   OnboardingTimeline,
-  ServerErrorAlert,
+  TimelineSection,
   TimelineStep,
 } from './components';
+import { DisclosureFooter } from './components/DisclosureFooter/DisclosureFooter';
 import { StepperRenderer } from './components/StepperRenderer/StepperRenderer';
 import { flowConfig } from './config/flowConfig';
 import { FlowProvider, useFlowContext } from './contexts/FlowContext';
@@ -24,22 +27,31 @@ import {
   OnboardingContext,
   useOnboardingContext,
 } from './contexts/OnboardingContext';
+import { ONBOARDING_FLOW_USER_JOURNEYS } from './OnboardingFlow.constants';
 import { OnboardingFlowProps } from './types/onboarding.types';
-import { getFlowProgress } from './utils/flowUtils';
+import {
+  getFlowProgress,
+  getStepperValidation,
+  getStepperValidations,
+} from './utils/flowUtils';
+import { getLinkAccountEnabled } from './utils/getLinkAccountEnabled';
 
 export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
-  initialClientId,
   alertOnExit = false,
-  userEventsToTrack = [],
+  alertOnPreviousStep = false,
   userEventsHandler,
+  userEventsLifecycle,
   height,
   onGetClientSettled,
-  enableSidebar = false,
+  hideSidebar = false,
+  flowEntry,
   ...props
 }) => {
-  const [clientId, setClientId] = useState(initialClientId ?? '');
+  const providerClientId = useClientId();
+  const [clientId, setClientId] = useState(providerClientId ?? '');
 
-  const { interceptorReady } = useInterceptorStatus();
+  // Force sidebar hidden in docUploadOnlyMode
+  const effectiveHideSidebar = hideSidebar || !!props.docUploadOnlyMode;
 
   const {
     data: clientData,
@@ -47,7 +59,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     error: clientGetError,
   } = useSmbdoGetClient(clientId, {
     query: {
-      enabled: !!clientId && interceptorReady, // Only fetch if clientId is defined AND interceptor is ready
+      enabled: !!clientId,
       refetchOnWindowFocus: true,
       refetchInterval: 60000, // Refetch every 60 seconds
     },
@@ -60,70 +72,38 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     }
   }, [clientData, clientGetStatus, clientGetError, onGetClientSettled]);
 
-  // Set clientId when initialClientId prop changes
+  // Set clientId when provider clientId changes
   useEffect(() => {
-    setClientId(initialClientId ?? '');
-  }, [initialClientId]);
+    setClientId(providerClientId ?? '');
+  }, [providerClientId]);
 
   const existingOrgParty = getOrganizationParty(clientData);
 
   const organizationType =
     existingOrgParty?.organizationDetails?.organizationType;
 
-  const { t } = useTranslation(['onboarding-overview']);
+  const canUseFlowEntry =
+    !!flowEntry && !props.docUploadOnlyMode && !!organizationType;
 
-  // Prevent the user from leaving the page
-  useEffect(() => {
-    const handleBeforeUnload = (event: {
-      preventDefault: () => void;
-      returnValue: boolean;
-    }) => {
-      event.preventDefault();
-      // Included for legacy support, e.g. Chrome/Edge < 119
-      event.returnValue = true;
-    };
+  const flowProviderInitialScreenId = props.docUploadOnlyMode
+    ? 'upload-documents-section'
+    : canUseFlowEntry
+      ? flowEntry.screenId
+      : organizationType
+        ? 'overview'
+        : 'gateway';
 
-    if (alertOnExit) {
-      window.addEventListener('beforeunload', handleBeforeUnload);
-    }
+  const flowProviderSeedStepperStepId =
+    canUseFlowEntry && flowEntry.stepperStepId ? flowEntry.stepperStepId : null;
 
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [alertOnExit]);
+  const { t } = useTranslationWithTokens(['onboarding-overview']);
 
   // #region User Events
-  const eventAnnotationHandler = useCallback((e: Event) => {
-    const target = e.target as HTMLTextAreaElement;
-    if (Object.keys(target.dataset).includes('userEventTracking')) {
-      userEventsHandler?.({
-        actionName: `${e.type} on ${target.dataset?.userEventTracking}`,
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    if (userEventsToTrack?.length > 0 && userEventsHandler) {
-      const wrapper = document.getElementById('eb-component');
-      userEventsToTrack.forEach((evt) =>
-        wrapper?.addEventListener(evt, eventAnnotationHandler)
-      );
-
-      return () => {
-        userEventsToTrack.forEach((evt) =>
-          wrapper?.removeEventListener(evt, eventAnnotationHandler)
-        );
-      };
-    }
-    return () => {
-      // Cleanup logic here (if needed)
-    };
-  }, []);
-
-  useEnableDTRUMTracking({
-    userEmail: 'test@test.com',
-    DOMElementToTrack: 'embedded-component-layout',
-    eventsToTrack: ['click', 'blur'],
+  // Set up automatic event tracking for data-user-event attributes
+  useUserEventTracking({
+    containerId: 'embedded-component-layout',
+    userEventsHandler,
+    userEventsLifecycle,
   });
   // #endregion
 
@@ -131,11 +111,15 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     <OnboardingContext.Provider
       value={{
         ...props,
+        alertOnExit,
+        alertOnPreviousStep,
         clientData,
         clientGetStatus,
         setClientId,
         organizationType,
-        enableSidebar,
+        hideSidebar: effectiveHideSidebar,
+        userEventsHandler,
+        userEventsLifecycle,
       }}
     >
       <div
@@ -143,35 +127,31 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         className={cn(
           'eb-component eb-mx-auto eb-flex eb-max-w-screen-sm eb-flex-1 eb-flex-col eb-bg-background eb-p-4 eb-pb-6 eb-font-sans eb-text-foreground eb-antialiased sm:eb-p-10 sm:eb-pb-12',
           {
-            'eb-max-w-screen-lg': enableSidebar,
+            'eb-max-w-screen-lg': !effectiveHideSidebar,
           }
         )}
         style={{ minHeight: height }}
-        key={initialClientId}
+        key={clientId}
       >
         {/* TODO: replace with actual screens / skeletons */}
         {clientGetError ? (
           <ServerErrorAlert error={clientGetError} />
         ) : clientGetStatus === 'pending' &&
-          initialClientId &&
+          clientId &&
           !props.docUploadOnlyMode ? (
           <FormLoadingState
             message={t('onboarding-overview:fetchingClientData')}
           />
         ) : (
           <FlowProvider
-            initialScreenId={
-              props.docUploadOnlyMode
-                ? 'upload-documents-section'
-                : organizationType
-                  ? 'overview'
-                  : 'gateway'
-            }
+            initialScreenId={flowProviderInitialScreenId}
             flowConfig={flowConfig}
+            seedInitialStepperStepId={flowProviderSeedStepperStepId}
           >
             <FlowRenderer />
           </FlowProvider>
         )}
+        <DisclosureFooter />
       </div>
     </OnboardingContext.Provider>
   );
@@ -179,21 +159,93 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
 // Memoize the FlowRenderer component to ensure consistent hook order
 const FlowRenderer: React.FC = React.memo(() => {
-  const { t } = useTranslation(['onboarding-overview']);
-  const { clientData, organizationType, docUploadOnlyMode, enableSidebar } =
-    useOnboardingContext();
+  const { t } = useTranslationWithTokens(['onboarding-overview']);
+  const {
+    clientData,
+    organizationType,
+    docUploadOnlyMode,
+    hideSidebar,
+    showLinkAccountStep,
+    linkAccountEnabledStatuses,
+    linkAccountStepOptions,
+    userEventsHandler,
+  } = useOnboardingContext();
   const {
     currentScreenId,
+    originScreenId,
     goTo,
     sessionData,
     updateSessionData,
     sections,
+    staticScreens,
+    editingPartyIds,
     savedFormValues,
     currentStepperStepId,
     currentStepperGoTo,
     setCurrentStepperStepIdFallback,
     isFormSubmitting,
   } = useFlowContext();
+
+  // When viewing a sub-screen (e.g. owner-stepper), highlight its parent
+  // section in the sidebar instead of leaving no section highlighted.
+  // Only sub-screens should fall back — top-level screens like overview
+  // should not inherit the previous section.
+  const isSubScreen =
+    currentScreenId === 'owner-stepper' ||
+    currentScreenId === 'document-upload-form';
+  const sidebarSectionId = sections.some((s) => s.id === currentScreenId)
+    ? currentScreenId
+    : isSubScreen
+      ? (originScreenId ?? currentScreenId)
+      : currentScreenId;
+
+  // Owner sidebar data — supports the list view (each owner by name)
+  // and the edit view (current owner's form steps).
+  const isInOwnerStepper = currentScreenId === 'owner-stepper';
+  const ownerStepperConfig = staticScreens.find(
+    (s) => s.id === 'owner-stepper'
+  )?.stepperConfig;
+
+  const activeOwners = ownerStepperConfig
+    ? (clientData?.parties?.filter(
+        (p) =>
+          p.active &&
+          p.partyType === 'INDIVIDUAL' &&
+          p.roles?.includes('BENEFICIAL_OWNER')
+      ) ?? [])
+    : [];
+
+  const ownerValidations = ownerStepperConfig
+    ? getStepperValidations(
+        ownerStepperConfig.steps,
+        activeOwners,
+        clientData,
+        savedFormValues,
+        'owner-stepper'
+      )
+    : {};
+
+  const editingOwnerParty = isInOwnerStepper
+    ? clientData?.parties?.find(
+        (p) => p.id === editingPartyIds['owner-stepper']
+      )
+    : undefined;
+  const ownerStepValidation =
+    isInOwnerStepper && ownerStepperConfig
+      ? getStepperValidation(
+          ownerStepperConfig.steps,
+          editingOwnerParty ?? {},
+          clientData,
+          savedFormValues,
+          'owner-stepper'
+        )
+      : undefined;
+
+  // True when the owner stepper is open but no saved party exists yet
+  // (e.g. the user just pressed "Add owner").
+  const isAddingNewOwner =
+    isInOwnerStepper &&
+    !activeOwners.some((o) => o.id === editingPartyIds['owner-stepper']);
 
   const { sectionStatuses, stepValidations } = getFlowProgress(
     sections,
@@ -203,9 +255,26 @@ const FlowRenderer: React.FC = React.memo(() => {
     currentScreenId
   );
 
-  const isMobile = useIsMobile();
+  const linkAccountEnabled = getLinkAccountEnabled(
+    clientData,
+    linkAccountEnabledStatuses
+  );
 
-  // Scroll to top on step change
+  // Fetch existing linked accounts to determine sidebar status
+  const { data: recipientsData } = useGetAllRecipients(
+    { type: 'LINKED_ACCOUNT', clientId: clientData?.id },
+    {
+      query: {
+        enabled: !!showLinkAccountStep && !!clientData?.id,
+      },
+    }
+  );
+
+  const hasExistingLinkedAccount = !!recipientsData?.recipients?.some(
+    (r) => r.status !== 'INACTIVE' && r.status !== 'REJECTED'
+  );
+
+  // Scroll to top on step change and track navigation
   const mainRef = useRef<HTMLDivElement>(null);
   const initialRender = useRef(true);
   useEffect(() => {
@@ -214,7 +283,16 @@ const FlowRenderer: React.FC = React.memo(() => {
       return;
     }
     mainRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [currentScreenId]);
+
+    // Track screen navigation
+    if (userEventsHandler) {
+      trackUserEvent({
+        actionName: ONBOARDING_FLOW_USER_JOURNEYS.SCREEN_NAVIGATION,
+        metadata: { screenId: currentScreenId },
+        userEventsHandler,
+      });
+    }
+  }, [currentScreenId, userEventsHandler]);
 
   // Redirect to gateway if organization type is not set
   useEffect(() => {
@@ -247,8 +325,11 @@ const FlowRenderer: React.FC = React.memo(() => {
     }
     return () => {};
   }, [sessionData.mockedVerifyingSectionId]);
-  console.log('state', currentStepperStepId);
+
   const screen = flowConfig.screens.find((s) => s.id === currentScreenId);
+  // Include the editing party id so the stepper remounts when switching owners.
+  const editingPartyIdForScreen = editingPartyIds[currentScreenId];
+
   // Memoize the rendered screen to help prevent hook ordering issues
   const renderScreen = useCallback(() => {
     if (!screen) {
@@ -271,22 +352,207 @@ const FlowRenderer: React.FC = React.memo(() => {
     }
 
     return <div>{t('onboarding-overview:errors.unhandledScreenError')}</div>;
-  }, [screen, currentScreenId, t]);
+  }, [screen, currentScreenId, editingPartyIdForScreen, t]);
+
+  // ---------------------------------------------------------------
+  // Freeze the sidebar snapshot while a form mutation is in flight.
+  // This prevents any intermediate data states (deactivated parties,
+  // new parties not yet linked, etc.) from flashing in the sidebar.
+  // ---------------------------------------------------------------
+  const timelineCurrentStepId = isInOwnerStepper
+    ? isAddingNewOwner
+      ? '__new-owner__'
+      : editingPartyIds['owner-stepper']
+    : currentStepperStepId;
+
+  const timelineCurrentSubStepId = isInOwnerStepper
+    ? currentStepperStepId
+    : undefined;
+
+  const timelineSections: TimelineSection[] = [
+    {
+      id: 'gateway',
+      title: t('onboarding-overview:flowRenderer.businessType'),
+      status:
+        organizationType && clientData?.status !== 'NEW'
+          ? 'completed_disabled'
+          : organizationType
+            ? 'completed'
+            : 'not_started',
+      steps: [],
+    },
+    ...sections.map((section) => {
+      // When a section creates a party (has getDefaultPartyRequestBody),
+      // lock steps beyond the first until the party exists.
+      // Step 1 collects countryOfResidence — required for party creation —
+      // so skipping it would cause the API call to fail.
+      const sectionParty = section.stepperConfig?.associatedPartyFilters
+        ? getPartyByAssociatedPartyFilters(
+            clientData,
+            section.stepperConfig.associatedPartyFilters
+          )
+        : undefined;
+      const partyRequiredButMissing =
+        !!section.stepperConfig?.getDefaultPartyRequestBody &&
+        !sectionParty?.id;
+
+      // Owners section: always show owner names with
+      // form sub-steps expanded under the owner being edited.
+      if (section.id === 'owners-section') {
+        return {
+          ...section,
+          status: sectionStatuses[section.id] || 'not_started',
+          title:
+            section.sectionConfig.shortLabel ?? section.sectionConfig.label,
+          steps: [
+            ...activeOwners.map((owner) => {
+              const isEditingThisOwner =
+                isInOwnerStepper &&
+                owner.id === editingPartyIds['owner-stepper'];
+              const validation = owner.id
+                ? ownerValidations[owner.id]
+                : undefined;
+
+              return {
+                id: owner.id ?? '',
+                title: getPartyName(owner) || 'Owner',
+                status: validation?.allStepsValid
+                  ? 'completed'
+                  : 'missing_details',
+                isExpanded: isEditingThisOwner,
+                subSteps:
+                  isEditingThisOwner &&
+                  ownerStepperConfig &&
+                  ownerStepValidation
+                    ? ownerStepperConfig.steps.map((step, stepIndex) => ({
+                        id: step.id,
+                        title: step.title,
+                        status:
+                          stepIndex > 0 && !editingOwnerParty?.id
+                            ? ('on_hold' as const)
+                            : ownerStepValidation.stepValidationMap[step.id]
+                                  ?.isValid
+                              ? ('completed' as const)
+                              : step.stepType === 'check-answers'
+                                ? ('on_hold' as const)
+                                : ('not_started' as const),
+                      }))
+                    : undefined,
+              } as TimelineStep;
+            }),
+            // Synthetic placeholder when adding a brand-new owner
+            // (party not yet created in the backend).
+            ...(isAddingNewOwner && ownerStepperConfig
+              ? [
+                  {
+                    id: '__new-owner__',
+                    title: 'New owner',
+                    status: 'not_started' as const,
+                    isExpanded: true,
+                    subSteps: ownerStepperConfig.steps.map(
+                      (step, stepIndex) => ({
+                        id: step.id,
+                        title: step.title,
+                        status:
+                          stepIndex > 0
+                            ? ('on_hold' as const)
+                            : ownerStepValidation?.stepValidationMap[step.id]
+                                  ?.isValid
+                              ? ('completed' as const)
+                              : step.stepType === 'check-answers'
+                                ? ('on_hold' as const)
+                                : ('not_started' as const),
+                      })
+                    ),
+                  } as TimelineStep,
+                ]
+              : []),
+          ],
+        };
+      }
+
+      return {
+        ...section,
+        status: sectionStatuses[section.id] || 'not_started',
+        title: section.sectionConfig.shortLabel ?? section.sectionConfig.label,
+        steps: (section.stepperConfig?.steps ?? []).map((step, stepIndex) => {
+          // Check if this static step was explicitly
+          // completed and recorded in session data.
+          const isCompletedStaticStep =
+            step.stepType === 'static' &&
+            (sessionData.completedStaticStepIds ?? []).includes(step.id);
+
+          return {
+            ...step,
+            status:
+              stepIndex > 0 && partyRequiredButMissing
+                ? 'on_hold'
+                : stepValidations[section.id][step.id].isValid ||
+                    isCompletedStaticStep
+                  ? 'completed'
+                  : step.stepType === 'check-answers' ||
+                      step.stepType === 'static'
+                    ? 'on_hold'
+                    : 'not_started',
+          } as TimelineStep;
+        }),
+      };
+    }),
+    ...(showLinkAccountStep
+      ? ([
+          {
+            id: 'link-account',
+            title: t('onboarding-overview:flowRenderer.linkAccount'),
+            status: (() => {
+              if (!linkAccountEnabled) {
+                return hasExistingLinkedAccount
+                  ? 'completed_disabled'
+                  : 'on_hold';
+              }
+              if (linkAccountStepOptions?.allowMultipleAccounts) {
+                return 'not_started';
+              }
+              if (!hasExistingLinkedAccount) {
+                return 'not_started';
+              }
+              return 'completed_disabled';
+            })(),
+            steps: [],
+          },
+        ] satisfies TimelineSection[])
+      : []),
+  ];
+
+  const frozenSidebarRef = useRef({
+    sectionId: sidebarSectionId,
+    stepId: timelineCurrentStepId,
+    subStepId: timelineCurrentSubStepId,
+    sections: timelineSections,
+  });
+  if (!isFormSubmitting) {
+    frozenSidebarRef.current = {
+      sectionId: sidebarSectionId,
+      stepId: timelineCurrentStepId,
+      subStepId: timelineCurrentSubStepId,
+      sections: timelineSections,
+    };
+  }
 
   return (
     <div
-      className="eb-flex eb-flex-1 eb-scroll-mt-44 eb-gap-6 sm:eb-scroll-mt-48"
+      className="eb-flex eb-flex-1 eb-scroll-mt-44 eb-gap-6 eb-@container sm:eb-scroll-mt-48"
       ref={mainRef}
       key={clientData?.id}
     >
-      {!isMobile && enableSidebar && (
-        <div className="eb-shrink-0">
+      {!hideSidebar && (
+        <div className="eb-hidden eb-shrink-0 @3xl:eb-block">
           <OnboardingTimeline
             className="eb-w-64 eb-rounded-lg eb-border eb-py-2 eb-shadow-sm lg:eb-w-80"
             title={t('onboarding-overview:documentUpload.onboardingProgress')}
             disableInteraction={isFormSubmitting}
-            currentSectionId={currentScreenId}
-            currentStepId={currentStepperStepId}
+            currentSectionId={frozenSidebarRef.current.sectionId}
+            currentStepId={frozenSidebarRef.current.stepId}
+            currentSubStepId={frozenSidebarRef.current.subStepId}
             onSectionClick={(screenId) => {
               const section = sections.find((s) => s.id === screenId);
               if (!section || section.type !== 'stepper') {
@@ -317,8 +583,6 @@ const FlowRenderer: React.FC = React.memo(() => {
                 return;
               }
 
-              console.log(targetStepId);
-
               goTo(screenId, {
                 resetHistory: true,
                 initialStepperStepId: firstInvalidStep,
@@ -329,43 +593,60 @@ const FlowRenderer: React.FC = React.memo(() => {
               setCurrentStepperStepIdFallback(targetStepId);
             }}
             onStepClick={(sectionId, stepId) => {
+              // Owners section: clicking an owner name opens their editor
+              if (sectionId === 'owners-section') {
+                // Already editing this exact owner (or new-owner placeholder)
+                if (
+                  isInOwnerStepper &&
+                  (editingPartyIds['owner-stepper'] === stepId ||
+                    (stepId === '__new-owner__' && isAddingNewOwner))
+                ) {
+                  return;
+                }
+                // Ignore clicks on the synthetic "New owner" placeholder
+                if (stepId === '__new-owner__') return;
+
+                const validation = ownerValidations[stepId];
+                const firstInvalidStep = ownerStepperConfig?.steps.find(
+                  (step) =>
+                    validation?.stepValidationMap[step.id] &&
+                    !validation.stepValidationMap[step.id].isValid
+                )?.id;
+                goTo('owner-stepper', {
+                  editingPartyId: stepId,
+                  previouslyCompleted: !!validation?.allStepsValid,
+                  shortLabelOverride: 'Edit owner',
+                  initialStepperStepId:
+                    firstInvalidStep ?? ownerStepperConfig?.steps.at(-1)?.id,
+                });
+                return;
+              }
+              // Same section: navigate within the active stepper
               if (sectionId === currentScreenId) {
                 currentStepperGoTo(stepId);
-              } else {
-                goTo(sectionId, {
-                  resetHistory: true,
+                return;
+              }
+              // Different section
+              goTo(sectionId, { resetHistory: true });
+            }}
+            onSubStepClick={(_sectionId, ownerPartyId, subStepId) => {
+              // Sub-step click within the owner's expanded form steps
+              if (
+                isInOwnerStepper &&
+                (editingPartyIds['owner-stepper'] === ownerPartyId ||
+                  (ownerPartyId === '__new-owner__' && isAddingNewOwner))
+              ) {
+                // Already editing this owner — just jump to the form step
+                currentStepperGoTo(subStepId);
+              } else if (ownerPartyId !== '__new-owner__') {
+                // Navigate to this owner and open the requested step
+                goTo('owner-stepper', {
+                  editingPartyId: ownerPartyId,
+                  initialStepperStepId: subStepId,
                 });
               }
             }}
-            sections={[
-              {
-                id: 'gateway',
-                title: t('onboarding-overview:flowRenderer.businessType'),
-                status: organizationType ? 'completed' : 'not_started',
-                steps: [],
-              },
-              ...sections.map((section) => ({
-                ...section,
-                status: sectionStatuses[section.id] || 'not_started',
-                title:
-                  section.sectionConfig.shortLabel ??
-                  section.sectionConfig.label,
-                steps: (section.stepperConfig?.steps ?? []).map(
-                  (step) =>
-                    ({
-                      ...step,
-                      status:
-                        step.id === 'documents'
-                          ? 'on_hold'
-                          : stepValidations[section.id][step.id].isValid
-                            ? 'completed'
-                            : step.stepType === 'check-answers'
-                              ? 'on_hold'
-                              : 'not_started',
-                    }) as TimelineStep
-                ),
-              })),
-            ]}
+            sections={frozenSidebarRef.current.sections}
           />
         </div>
       )}

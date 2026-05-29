@@ -29,7 +29,7 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 
 const sheetVariants = cva(
-  'eb-fixed eb-z-50 eb-gap-4 eb-bg-background eb-p-6 eb-shadow-lg eb-transition eb-ease-in-out data-[state=closed]:eb-duration-300 data-[state=open]:eb-duration-500 data-[state=open]:eb-animate-in data-[state=closed]:eb-animate-out',
+  'eb-component eb-fixed eb-z-50 eb-gap-4 eb-bg-background eb-p-6 eb-shadow-lg eb-transition eb-ease-in-out data-[state=closed]:eb-duration-300 data-[state=open]:eb-duration-500 data-[state=open]:eb-animate-in data-[state=closed]:eb-animate-out',
   {
     variants: {
       side: {
@@ -63,7 +63,7 @@ const SheetContent = React.forwardRef<
       {...props}
     >
       {children}
-      <SheetPrimitive.Close className="eb-absolute eb-right-4 eb-top-4 eb-rounded-sm eb-opacity-70 eb-ring-offset-background eb-transition-opacity hover:eb-opacity-100 focus:eb-outline-none focus:eb-ring-2 focus:eb-ring-ring focus:eb-ring-offset-2 disabled:eb-pointer-events-none data-[state=open]:eb-bg-secondary">
+      <SheetPrimitive.Close className="eb-absolute eb-right-4 eb-top-4 eb-flex eb-h-8 eb-w-8 eb-items-center eb-justify-center eb-rounded-md eb-border eb-border-input eb-bg-background eb-text-muted-foreground eb-ring-offset-background eb-transition-colors hover:eb-bg-accent hover:eb-text-accent-foreground focus:eb-outline-none focus:eb-ring-2 focus:eb-ring-ring focus:eb-ring-offset-2 disabled:eb-pointer-events-none">
         <X className="eb-h-4 eb-w-4" />
         <span className="eb-sr-only">Close</span>
       </SheetPrimitive.Close>

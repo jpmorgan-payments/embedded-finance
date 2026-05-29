@@ -1,67 +1,89 @@
+import { ArrowRight, Calendar } from 'lucide-react';
+
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { Button } from '@/components/ui/button';
-import { Calendar, ArrowRight } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const Route = createFileRoute('/stories/')({
   component: StoriesIndex,
 });
 
+// Latest first.
 const stories = [
   {
-    id: 'date-selector-challenges' as const,
-    title: 'Tackling Date Input Challenges: Common User Errors and Solutions',
+    id: 'core-functional-requirements-index' as const,
+    title: 'Core functional requirements — cross-reference',
     excerpt:
-      "Our team's experience implementing date selectors revealed critical UX issues that impact user experience. Learn from our mistakes and discover better approaches.",
-    date: '2024-12-23',
+      'Single index of GitHub links to every functional requirements markdown file under embedded-components/src/core for each active core component.',
+    date: '2026-04-15',
     readTime: '5 min read',
-    tags: ['UX', 'Date Input', 'User Experience'],
-  },
-  {
-    id: 'important-date-selector-component' as const,
-    title:
-      'Building an Accessible Important Date Selector: A Component Design Case Study',
-    excerpt:
-      'Follow-up to our date input challenges: How we designed and built a specialized Important Date Selector component that prioritizes accessibility and user experience.',
-    date: '2024-12-30',
-    readTime: '7 min read',
-    tags: ['Component Design', 'Accessibility', 'React'],
+    tags: ['Documentation', 'Requirements', 'Core'],
   },
   {
     id: 'partially-hosted-onboarding' as const,
-    title: 'Partially Hosted Onboarding Integration',
+    title: 'Partially Hosted UI Integration Guide',
     excerpt:
-      'Implement a hybrid onboarding approach where parts of client verification are handled in your app while leveraging embedded components for regulated steps.',
+      'Integrate the hosted Onboarding UI into your platform with session transfer, iframe embedding, postMessage, and security guidance. Source: PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md.',
+    date: '2026-03-12',
+    readTime: '25 min read',
+    tags: ['Onboarding', 'Hosted UI', 'Integration'],
+  },
+  {
+    id: 'webhook-integration-recipe' as const,
+    title: 'Webhook Integration Recipe: UX Guidance',
+    excerpt:
+      'Suggested UI/UX principles for webhook integration: event types, client-facing vs partner-platform surfaces, onboarding and operations patterns, and reconciliation. Source: WEBHOOK_INTEGRATION_RECIPE.md.',
+    date: '2026-01-08',
+    readTime: '12 min read',
+    tags: ['Webhooks', 'Integration', 'UX'],
+  },
+  {
+    id: 'important-date-selector-component' as const,
+    title: 'Important Date Selector Component Recipe',
+    excerpt:
+      'Design guidelines for ImportantDateSelector: problem analysis, accessibility, validation, and implementation notes for embedded finance. Source: IMPORTANT_DATE_SELECTOR_RECIPE.md.',
     date: '2025-06-12',
+    readTime: '10 min read',
+    tags: ['Components', 'Accessibility', 'Dates'],
+  },
+  {
+    id: 'date-selector-challenges' as const,
+    title: 'JavaScript/TypeScript Date Parsing Guide',
+    excerpt:
+      'Common date parsing pitfalls in JS/TS (timezones, ambiguous strings, DST) and reliable patterns for Embedded Finance components. Source: DATE_PARSING_GUIDE.md.',
+    date: '2025-04-28',
     readTime: '6 min read',
-    tags: ['Onboarding', 'Integration', 'Hybrid'],
+    tags: ['TypeScript', 'Dates', 'Parsing'],
   },
 ] as const;
 
 function StoriesIndex() {
   return (
-    <div className="py-8 bg-jpm-white">
-      <div className="max-w-4xl mx-auto px-6 lg:px-8">
-        <div className="mb-12">
-          <h1 className="text-page-hero text-jpm-gray-900 mb-4">
+    <div className="bg-jpm-white py-6">
+      <div className="mx-auto max-w-4xl px-4 lg:px-6">
+        <div className="mb-8">
+          <h1 className="mb-3 text-page-hero text-jpm-gray-900">
             Engineering Recipes
           </h1>
-          <p className="text-page-body text-jpm-gray leading-relaxed max-w-2xl">
-            Insights from our engineering team on building embedded finance
-            solutions, component design patterns, and user experience lessons
-            learned.
+          <p className="max-w-2xl text-page-body leading-relaxed text-jpm-gray">
+            Technical guides from{' '}
+            <code className="rounded bg-jpm-gray-100 px-1.5 py-0.5 font-mono text-page-small text-jpm-gray-900">
+              embedded-components/docs
+            </code>
+            .
           </p>
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-6">
           {stories.map((story) => (
             <Card
               key={story.id}
-              className="border-0 shadow-page-card bg-jpm-white rounded-page-md"
+              className="rounded-page-md border-0 bg-jpm-white shadow-page-card"
             >
-              <CardHeader className="pb-4">
-                <div className="flex items-center text-page-small text-jpm-gray mb-2">
-                  <Calendar className="h-4 w-4 mr-2" />
+              <CardHeader className="pb-3">
+                <div className="mb-2 flex items-center text-page-small text-jpm-gray">
+                  <Calendar className="mr-2 h-4 w-4" />
                   <time dateTime={story.date}>
                     {new Date(story.date).toLocaleDateString('en-US', {
                       year: 'numeric',
@@ -72,10 +94,10 @@ function StoriesIndex() {
                   <span className="mx-2">•</span>
                   <span>{story.readTime}</span>
                 </div>
-                <CardTitle className="text-page-h3 text-jpm-gray-900 mb-3">
+                <CardTitle className="mb-3 text-page-h3 text-jpm-gray-900">
                   {story.title}
                 </CardTitle>
-                <p className="text-page-body text-jpm-gray leading-relaxed">
+                <p className="text-page-body leading-relaxed text-jpm-gray">
                   {story.excerpt}
                 </p>
               </CardHeader>
@@ -85,19 +107,23 @@ function StoriesIndex() {
                     {story.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="px-2 py-1 bg-sp-accent text-sp-brand text-page-small rounded-page-sm border border-sp-border"
+                        className="rounded-page-sm border border-sp-border bg-sp-accent px-2 py-1 text-page-small text-sp-brand"
                       >
                         {tag}
                       </span>
                     ))}
                   </div>
-                  <Link to="/stories/$storyId" params={{ storyId: story.id }}>
+                  <Link
+                    to="/stories/$storyId"
+                    params={{ storyId: story.id }}
+                    className="inline-flex"
+                  >
                     <Button
-                      variant="outline"
-                      className="border-sp-brand text-sp-brand hover:bg-sp-accent rounded-page-md font-semibold flex items-center whitespace-nowrap"
+                      variant="ghost"
+                      className="whitespace-nowrap rounded-page-md px-5 font-semibold text-sp-brand shadow-none hover:bg-sp-accent hover:text-sp-brand sm:px-6"
                     >
                       READ MORE
-                      <ArrowRight className="ml-2 h-4 w-4 flex-shrink-0" />
+                      <ArrowRight className="h-4 w-4 flex-shrink-0" />
                     </Button>
                   </Link>
                 </div>

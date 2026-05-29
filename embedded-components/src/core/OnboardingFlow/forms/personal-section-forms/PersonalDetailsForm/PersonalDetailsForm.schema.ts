@@ -6,6 +6,7 @@ import {
 } from '@/core/OnboardingFlow/consts';
 import { useGetValidationMessage } from '@/core/OnboardingFlow/utils/formUtils';
 import {
+  JOB_TITLE_DESCRIPTION_PATTERN,
   NAME_PATTERN,
   SUFFIX_PATTERN,
 } from '@/core/OnboardingFlow/utils/validationPatterns';
@@ -13,6 +14,10 @@ import {
 export const usePersonalDetailsFormSchema = () => {
   const v = useGetValidationMessage();
   return z.object({
+    countryOfResidence: z
+      .string()
+      .min(1, v('countryOfResidence', 'required'))
+      .length(2, v('countryOfResidence', 'exactlyTwoChars')),
     controllerFirstName: z
       .string()
       .min(1, v('controllerFirstName', 'required'))
@@ -62,7 +67,12 @@ export const usePersonalDetailsFormSchema = () => {
         v('controllerNameSuffix', 'pattern')
       ),
     controllerJobTitle: z
-      .union([z.enum(JOB_TITLES), z.literal('')])
+      .union([
+        z.enum(JOB_TITLES, {
+          message: v('controllerJobTitle', 'invalidOption'),
+        }),
+        z.literal(''),
+      ])
       .refine((val) => val !== '', {
         message: v('controllerJobTitle', 'required'),
       }),
@@ -70,7 +80,7 @@ export const usePersonalDetailsFormSchema = () => {
       .string()
       .max(50, v('controllerJobTitleDescription', 'maxLength'))
       .refine(
-        (val) => /^[a-zA-Z0-9\s,.&-]+$/.test(val),
+        (val) => val === '' || JOB_TITLE_DESCRIPTION_PATTERN.test(val),
         v('controllerJobTitleDescription', 'pattern')
       )
       .refine(
@@ -82,7 +92,12 @@ export const usePersonalDetailsFormSchema = () => {
         v('controllerJobTitleDescription', 'noUrls')
       ),
     natureOfOwnership: z
-      .union([z.enum(NATURE_OF_OWNERSHIP_OPTIONS), z.literal('')])
+      .union([
+        z.enum(NATURE_OF_OWNERSHIP_OPTIONS, {
+          message: v('natureOfOwnership', 'invalidOption'),
+        }),
+        z.literal(''),
+      ])
       .refine((val) => val !== '', {
         message: v('natureOfOwnership', 'required'),
       }),

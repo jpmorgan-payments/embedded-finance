@@ -1,6 +1,6 @@
 import { FC, ReactNode, useState } from 'react';
 
-import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import {
   Dialog,
   DialogClose,

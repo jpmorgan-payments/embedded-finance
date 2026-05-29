@@ -1,0 +1,16 @@
+{
+  "component": "Accounts",
+  "date": "2026-01-14",
+  "url": "https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=accounts&theme=Empty",
+  "navigation": {
+    "total": 300.8
+  },
+  "memory": {
+    "used": 45,
+    "unit": "MB"
+  },
+  "summary": {
+    "totalLoadTime": "300.8ms",
+    "performance": "Excellent - second fastest component"
+  }
+}

@@ -1,0 +1,73 @@
+# Embedded Components - Package-Specific Configuration
+
+> **Cross-IDE Compatible**: This configuration works with Cursor, VS Code Copilot, Claude Code, and other AI agents.
+
+## 📚 Documentation Hierarchy
+
+**For detailed implementation, refer to:**
+
+1. **`ARCHITECTURE.md`** - ⭐ **Source of truth** for all architecture patterns
+2. **`../.github/copilot-instructions.md`** - Complete implementation guide
+3. **`../.github/skills/`** - Task-specific agent skills (automatically activated)
+4. **`AGENTS.md`** - Package-specific instructions
+
+## ⚠️ CRITICAL: Follow ARCHITECTURE.md
+
+**All code generation MUST follow the patterns defined in `ARCHITECTURE.md`.**
+
+Read `ARCHITECTURE.md` before generating any code. It contains:
+- Complete architecture patterns
+- Decision tree for code placement
+- Directory structure requirements
+- Public API patterns
+
+## 🔑 Quick Reference
+
+**Component Location:**
+```
+src/core/ComponentName/
+```
+
+**Architecture Rules:**
+- ✅ Individual hook/util files with colocated tests
+- ✅ Direct imports (no aggregation barrels for components)
+- ✅ Type colocation (only public API in `.types.ts`)
+- ✅ Forms = schemas (no schema? → use `components/`)
+
+**After ANY Code Change:**
+```powershell
+yarn test  # Runs: typecheck → format:check → lint → test:unit
+```
+
+**Fix Issues:**
+```powershell
+yarn format     # Auto-fix formatting
+yarn lint:fix   # Auto-fix linting
+yarn test       # Verify all checks pass
+```
+
+## 🛠️ Technology Stack
+
+- React 18.x + TypeScript (strict)
+- Radix UI primitives
+- Tailwind CSS (`eb-` prefix mandatory)
+- Tanstack React Query v5
+- Zod for validation
+- MSW for API mocking
+- Storybook 8.x
+
+## 📖 Need Implementation Details?
+
+**Don't duplicate patterns here.** See:
+
+- **All patterns** → `ARCHITECTURE.md` (source of truth)
+- **React/Hook/Testing patterns** → `../.github/copilot-instructions.md`
+- **Styling** → `../.github/skills/styling-guidelines/`
+- **Testing** → `../.github/skills/component-testing/`
+- **Code quality** → `../.github/skills/code-quality-workflow/`
+
+---
+
+**Format**: Agent Skills 1.0 (agentskills.io)  
+**Updated**: December 24, 2025  
+**Cross-IDE**: ✅ Cursor, VS Code Copilot, Claude Code

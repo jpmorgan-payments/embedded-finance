@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { InfoIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { AlertDescription } from '@/components/ui/alert';
@@ -19,7 +19,7 @@ import {
 } from './BusinessIdentityForm.schema';
 
 export const BusinessIdentityForm: FormStepComponent = () => {
-  const { t } = useTranslation(['onboarding-overview']);
+  const { t, tString } = useTranslationWithTokens(['onboarding-overview']);
 
   const { clientData } = useOnboardingContext();
 
@@ -92,6 +92,7 @@ export const BusinessIdentityForm: FormStepComponent = () => {
           type="combobox"
           options={COUNTRIES_OF_FORMATION.map((code) => ({
             value: code,
+            searchValue: `[${code}] ${tString([`common:countries.${code}`] as unknown as TemplateStringsArray)}`,
             label: (
               <span>
                 <span className="eb-font-medium">[{code}]</span>{' '}
@@ -139,6 +140,7 @@ export const BusinessIdentityForm: FormStepComponent = () => {
               maskFormat="## - #######"
               maskChar="_"
               required
+              obfuscateWhenUnfocused
             />
           )}
           <div className="eb-space-y-3">
@@ -174,5 +176,9 @@ BusinessIdentityForm.modifyFormValuesBeforeSubmit = (values) => {
   return {
     ...rest,
     ...(solePropHasEin !== 'no' ? { organizationIdEin } : {}),
+    // When "Same as legal name" is checked, send the org name as dbaName
+    ...(rest.dbaNameNotAvailable && rest.organizationName
+      ? { dbaName: rest.organizationName }
+      : {}),
   };
 };

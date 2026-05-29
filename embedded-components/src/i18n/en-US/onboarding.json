@@ -1,4 +1,5 @@
 {
+  "leavePageWarning": "You may lose unsaved changes if you leave this page.",
   "fields": {
     "externalId": {
       "label": "External ID",
@@ -1062,7 +1063,6 @@
   },
   "idValueLabels": {
     "placeholder": "Enter ID value",
-
     "SSN": "Social Security Number",
     "ITIN": "Individual Taxpayer Identification Number",
     "NATIONAL_ID": "National ID",
@@ -1070,7 +1070,6 @@
     "PASSPORT": "Passport",
     "SOCIAL_INSURANCE_NUMBER": "Social Insurance Number",
     "OTHER_GOVERNMENT_ID": "Other Government ID",
-
     "EIN": "Employer Identification Number",
     "BUSINESS_REGISTRATION_ID": "Business Registration ID",
     "BUSINESS_NUMBER": "Business Number",
@@ -1200,6 +1199,18 @@
       "TERMINATED": "Terminated"
     }
   },
+  "clientSummary": {
+    "actionRequired": "Action Required",
+    "outstandingItems": "{{docs}} document(s) and {{questions}} question(s) needed",
+    "additionalVerificationNeeded": "Additional verification needed",
+    "approvedAndVerified": "Approved & Verified",
+    "outstandingItemsDocuments": "{{count}} document(s) to upload",
+    "outstandingItemsQuestions": "{{count}} question(s) to answer",
+    "outstandingItemsLabel": "Outstanding Items",
+    "owners_one": "{{count}} owner",
+    "owners_other": "{{count}} owners",
+    "controller": "Controller"
+  },
   "linkedAccount": {
     "title": "Linked Accounts"
   },
@@ -1218,6 +1229,31 @@
     "allRequirementsComplete": "All outstanding KYC requirements have been addressed.",
     "questionResponses": "Questions Responses",
     "response": "Response",
+    "notSubmittedYet": "Your application is not submitted yet. Review your data and continue to finish.",
+    "thereIsAProblem": "There is a problem",
+    "provideMissingDetails": "Please provide missing details before finishing your application.",
+    "owners": "Owners",
+    "noStakeholders": "No stakeholders added yet.",
+    "owner": "Owner",
+    "controller": "Controller",
+    "individualMissingDetails": "ⓘ This individual is missing some details.",
+    "operationalDetails": "Operational details",
+    "fieldIsMissing": "This field is missing",
+    "complete": "Complete",
+    "missingDetails": "Missing details",
+    "dataAccuracyAttestation": "Data accuracy attestation",
+    "dataAccuracyCheckbox": "The data I am providing is true, accurate and complete to the best of my knowledge.",
+    "disclosure": {
+      "footer": "Banking services provided by JPMorgan Chase Bank, N.A., Member FDIC. {{platformName}} is not a bank.",
+      "fdic": "Deposit accounts are insured by the FDIC up to $250,000 per depositor for each account ownership category. Availability of FDIC deposit insurance coverage protects against the failure of JPMorgan Chase Bank, N.A., Member FDIC, and not of {{platformName}}."
+    },
+    "attestation": {
+      "heading": "By electronically submitting this Application, you agree that:",
+      "accurateInfo": "All information you have provided is complete and accurate, and you are opening this account solely for business purposes and not for consumer purposes.",
+      "authorizeSharing": "You authorize {{platformName}} and JPMorgan Chase Bank, N.A. (\"JPMC\") to share information to facilitate the opening of your deposit account(s), and appoint {{platformName}} as your agent to act on your behalf regarding your deposit account.",
+      "agreeToTerms": "You have read and agree to the <jpTermsLink>J.P. Morgan Account Terms</jpTermsLink> and the <platformAgreementLink>{{platformAgreementLabel}}</platformAgreementLink>.",
+      "mustAgreeToAll": "You must agree to all attestations before proceeding."
+    },
     "termsAndConditions": {
       "title": "Terms and Conditions",
       "description": "Please read and attest the below documents by J.P. Morgan to complete the process.",
@@ -1225,6 +1261,12 @@
       "termsCheckbox": "I have read and agree to the below attestation documents:",
       "downloading": "Downloading...",
       "openDocumentsWarning": "Please open the documents links to enable the terms and conditions checkbox.",
+      "openDocumentsAlert": "Please open the document links and confirm that you have read and agree to all documents.",
+      "failedToDownload": "Failed to download document:",
+      "failedToFetchDetails": "Failed to fetch document details:",
+      "documentAttestation": "Document attestation",
+      "agreeToDocuments": "I have read and agree to all of the documents listed on this page",
+      "mustReviewDocuments": "You must open and review all documents before selecting the checkbox",
       "submitDisabled": "Please agree to all terms and review all documents",
       "outstandingItemsWarning": "Please address all outstanding items",
       "submit": "Submit"
@@ -1371,5 +1413,22 @@
     "GOVERNMENT_ENTITY": "A Government Entity is a state, local, or federal organization that has a specific function or authority.",
     "SOLE_PROPRIETORSHIP": "An unincorporated business where the owner and the business are legally considered the same entity.",
     "UNINCORPORATED_ASSOCIATION": "An Unincorporated Association is a group of people who come together for a common purpose but do not register as a corporation or limited liability company."
+  },
+  "operationalDetails": {
+    "title": "Operational details",
+    "description": "Please answer these additional questions to help us understand your business operations.",
+    "selectPlaceholder": "Select an option",
+    "noQuestions": "No questions to display",
+    "loadingQuestions": "Loading questions...",
+    "saveAndReturn": "Save and return to review",
+    "saveAndContinue": "Save and continue to review"
+  },
+  "industrySelect": {
+    "placeholder": "Select an industry",
+    "searchPlaceholder": "Search industries...",
+    "noResults": "No results found",
+    "priorityHeader": "Suggested for your platform",
+    "priorityNoMatches": "No suggestions match your search",
+    "allIndustriesHeader": "All industries"
   }
 }

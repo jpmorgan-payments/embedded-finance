@@ -63,7 +63,7 @@ export const partyFieldMap: PartyFieldMap = {
           'LIMITED_LIABILITY_COMPANY',
           'LIMITED_LIABILITY_PARTNERSHIP',
           'C_CORPORATION',
-          'S_COPORATION',
+          'S_CORPORATION',
           'GENERAL_PARTNERSHIP',
           'LIMITED_PARTNERSHIP',
           'PARTNERSHIP',
@@ -76,9 +76,9 @@ export const partyFieldMap: PartyFieldMap = {
       }
       if (
         [
-          'NON_PROFIT_COPORATION',
+          'NON_PROFIT_CORPORATION',
           'GOVERNMENT_ENTITY',
-          'UNINCORPORATED ASSOCIATION',
+          'UNINCORPORATED_ASSOCIATION',
         ].includes(val)
       ) {
         return {
@@ -87,7 +87,7 @@ export const partyFieldMap: PartyFieldMap = {
         };
       }
       return {
-        generalOrganizationType: 'OTHER',
+        generalOrganizationType: '',
         specificOrganizationType: val,
       };
     },
@@ -140,6 +140,16 @@ export const partyFieldMap: PartyFieldMap = {
       required: false,
       defaultValue: '',
     },
+    conditionalRules: [
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          contentTokenOverrideKey: 'owner',
+        },
+      },
+    ],
   },
   // ownerEmail: {
   //   path: 'email',
@@ -162,8 +172,13 @@ export const partyFieldMap: PartyFieldMap = {
           screenId: ['owner-stepper'],
         },
         rule: {
-          display: 'visible',
-          required: true,
+          // The API rejects 'Indirect' when the parent party role is CLIENT,
+          // which is always the case in this onboarding flow. Hide the field
+          // and default to 'Direct' so it's sent automatically on submit.
+          display: 'hidden',
+          submitWhenHidden: true,
+          required: false,
+          defaultValue: 'Direct',
         },
       },
     ],
@@ -205,6 +220,10 @@ export const partyFieldMap: PartyFieldMap = {
         },
       ];
     },
+    // The API error path includes the array index and property
+    // (e.g. ".0.value"), but solePropSsn is a flat string field.
+    // Collapse the path so the error attaches to the field itself.
+    modifyErrorField: () => '',
   },
   yearOfFormation: {
     path: 'organizationDetails.yearOfFormation',
@@ -311,6 +330,7 @@ export const partyFieldMap: PartyFieldMap = {
         },
         rule: {
           display: 'visible',
+          required: true,
         },
       },
     ],
@@ -354,6 +374,10 @@ export const partyFieldMap: PartyFieldMap = {
         },
       ];
     },
+    // The API error path includes the array index and property
+    // (e.g. ".0.value"), but organizationIdEin is a flat string field.
+    // Collapse the path so the error attaches to the field itself.
+    modifyErrorField: () => '',
   },
   // organizationIds: {
   //   path: 'organizationDetails.organizationIds',
@@ -446,16 +470,20 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'organizationDetails.phone',
     baseRule: {
       display: 'visible',
-      required: true,
+      required: false,
       defaultValue: { phoneType: 'BUSINESS_PHONE', phoneNumber: '' },
     },
     toStringFn: (val) =>
-      val ? formatPhoneNumberIntl(val.phoneNumber) : undefined,
-    fromResponseFn: (val: PhoneSmbdo) => ({
-      phoneType: val.phoneType!,
-      phoneNumber: `${val.countryCode}${val.phoneNumber}`,
-    }),
-    toRequestFn: (val): PhoneSmbdo => {
+      val?.phoneNumber ? formatPhoneNumberIntl(val.phoneNumber) : undefined,
+    fromResponseFn: (val: PhoneSmbdo) =>
+      val.phoneNumber
+        ? {
+            phoneType: val.phoneType!,
+            phoneNumber: `${val.countryCode}${val.phoneNumber}`,
+          }
+        : undefined,
+    toRequestFn: (val): PhoneSmbdo | undefined => {
+      if (!val?.phoneNumber) return undefined;
       const phone = parsePhoneNumber(val.phoneNumber);
       return {
         phoneType: val.phoneType,
@@ -507,6 +535,93 @@ export const partyFieldMap: PartyFieldMap = {
       defaultValue: false,
     },
   },
+
+  // #region Publicly Traded Company (PTC) fields
+  /**
+   * Gate question: Is the organization a PTC, subsidiary of a PTC, or neither?
+   * Values: 'none' | 'ptc' | 'subsidiary'
+   * Maps to: organizationDetails.isSubsidiary (derived) + organizationDetails.publiclyTraded (existence)
+   */
+  isPTCOrSubsidiary: {
+    path: 'organizationDetails',
+    excludeFromMapping: true,
+    saveResponseInContext: true,
+    baseRule: {
+      display: 'visible',
+      required: false,
+      defaultValue: '',
+    },
+    fromResponseFn: (val: {
+      publiclyTraded?: unknown;
+      isSubsidiary?: boolean;
+    }) => {
+      if (!val?.publiclyTraded) return 'none';
+      return val.isSubsidiary ? 'subsidiary' : 'ptc';
+    },
+    toStringFn: (val) => {
+      if (val === 'ptc')
+        return i18n.t(
+          'onboarding-overview:fields.isPTCOrSubsidiary.options.ptc'
+        );
+      if (val === 'subsidiary')
+        return i18n.t(
+          'onboarding-overview:fields.isPTCOrSubsidiary.options.subsidiary'
+        );
+      return i18n.t(
+        'onboarding-overview:fields.isPTCOrSubsidiary.options.none'
+      );
+    },
+  },
+  /**
+   * Whether the organization is a subsidiary of a PTC.
+   * Derived from isPTCOrSubsidiary ('subsidiary' → true, 'ptc' → false).
+   * Injected by GatewayScreen onSubmit.
+   */
+  isSubsidiary: {
+    path: 'organizationDetails.isSubsidiary',
+    baseRule: {
+      display: 'visible',
+      required: false,
+      defaultValue: '',
+    },
+    fromResponseFn: (val: boolean) => (val ? 'true' : 'false'),
+    toRequestFn: (val: string): boolean => val === 'true',
+  },
+  /**
+   * Ticker symbol of the publicly traded company.
+   * If subsidiary, this is the parent PTC's ticker.
+   */
+  tickerSymbol: {
+    path: 'organizationDetails.publiclyTraded.tickerSymbol',
+    baseRule: {
+      display: 'visible',
+      required: false,
+      defaultValue: '',
+    },
+  },
+  /**
+   * Stock exchange where the PTC is traded (MIC code or "Other").
+   */
+  stockExchange: {
+    path: 'organizationDetails.publiclyTraded.stockExchange',
+    baseRule: {
+      display: 'visible',
+      required: false,
+      defaultValue: '',
+    },
+  },
+  /**
+   * Name of the stock exchange when stockExchange is "Other".
+   */
+  stockExchangeName: {
+    path: 'organizationDetails.publiclyTraded.stockExchangeName',
+    baseRule: {
+      display: 'visible',
+      required: false,
+      defaultValue: '',
+    },
+  },
+  // #endregion PTC
   // secondaryMccList: {
   //   path: 'organizationDetails.secondaryMccList',
   //   baseRule: {
@@ -531,6 +646,16 @@ export const partyFieldMap: PartyFieldMap = {
       required: true,
       defaultValue: '',
     },
+    conditionalRules: [
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          contentTokenOverrideKey: 'owner',
+        },
+      },
+    ],
     toStringFn: (val) => {
       if (val === undefined) {
         return undefined;
@@ -546,19 +671,69 @@ export const partyFieldMap: PartyFieldMap = {
   countryOfResidence: {
     path: 'individualDetails.countryOfResidence',
     baseRule: { display: 'visible', required: true, defaultValue: 'US' },
+    conditionalRules: [
+      {
+        condition: {
+          entityType: ['SOLE_PROPRIETORSHIP'],
+        },
+        rule: {
+          interaction: 'readonly',
+          defaultValue: 'US',
+          contentTokenOverrideKey: 'soleProp',
+        },
+      },
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          contentTokenOverrideKey: 'owner',
+        },
+      },
+    ],
     toStringFn: (val) => `${i18n.t(`common:countries.${val}`)} (${val})`,
   },
   controllerFirstName: {
     path: 'individualDetails.firstName',
     baseRule: { display: 'visible', required: true, defaultValue: '' },
+    conditionalRules: [
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          contentTokenOverrideKey: 'owner',
+        },
+      },
+    ],
   },
   controllerMiddleName: {
     path: 'individualDetails.middleName',
     baseRule: { display: 'visible', required: false, defaultValue: '' },
+    conditionalRules: [
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          contentTokenOverrideKey: 'owner',
+        },
+      },
+    ],
   },
   controllerLastName: {
     path: 'individualDetails.lastName',
     baseRule: { display: 'visible', required: true, defaultValue: '' },
+    conditionalRules: [
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          contentTokenOverrideKey: 'owner',
+        },
+      },
+    ],
   },
   controllerNameSuffix: {
     path: 'individualDetails.nameSuffix',
@@ -570,6 +745,14 @@ export const partyFieldMap: PartyFieldMap = {
           jurisdiction: ['CA'],
         },
         rule: { display: 'hidden' },
+      },
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          contentTokenOverrideKey: 'owner',
+        },
       },
     ],
   },
@@ -626,6 +809,14 @@ export const partyFieldMap: PartyFieldMap = {
           minItems: 0,
           defaultValue: [],
           display: 'hidden',
+        },
+      },
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          contentTokenOverrideKey: 'owner',
         },
       },
     ],
@@ -784,10 +975,19 @@ export const partyFieldMap: PartyFieldMap = {
         },
         rule: { display: 'hidden' },
       },
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          contentTokenOverrideKey: 'owner',
+        },
+      },
     ],
   },
   controllerJobTitleDescription: {
     path: 'individualDetails.jobTitleDescription',
+    isHiddenInReviewFn: (_val, values) => values.controllerJobTitle !== 'Other',
     baseRule: { display: 'visible', required: false, defaultValue: '' },
     conditionalRules: [
       {
@@ -796,6 +996,14 @@ export const partyFieldMap: PartyFieldMap = {
           jurisdiction: ['CA'],
         },
         rule: { display: 'hidden' },
+      },
+      {
+        condition: {
+          screenId: ['owner-stepper'],
+        },
+        rule: {
+          contentTokenOverrideKey: 'owner',
+        },
       },
     ],
   },
@@ -814,7 +1022,10 @@ export const partyFieldMap: PartyFieldMap = {
       ].filter((line) => line && line.trim() !== '');
     },
     modifyErrorField: (field) => {
-      const parts = field.split('.');
+      // Strip leading array index (e.g. ".0.state" → ".state")
+      // since addresses is an array in the API but a single object in the form
+      const normalized = field.replace(/^\.\d+/, '');
+      const parts = normalized.split('.');
       const lastPart = parts[parts.length - 1];
       const secondToLastPart = parts[parts.length - 2];
       if (secondToLastPart === 'addressLines' && /^\d+$/.test(lastPart)) {
@@ -838,10 +1049,11 @@ export const partyFieldMap: PartyFieldMap = {
         }
       }
 
-      return field;
+      return normalized;
     },
     baseRule: {
       display: 'visible',
+      required: true,
       defaultValue: {
         addressType: 'RESIDENTIAL_ADDRESS',
         primaryAddressLine: '',
@@ -906,7 +1118,10 @@ export const partyFieldMap: PartyFieldMap = {
       ].filter((line) => line && line.trim() !== '');
     },
     modifyErrorField: (field) => {
-      const parts = field.split('.');
+      // Strip leading array index (e.g. ".0.state" → ".state")
+      // since addresses is an array in the API but a single object in the form
+      const normalized = field.replace(/^\.\d+/, '');
+      const parts = normalized.split('.');
       const lastPart = parts[parts.length - 1];
       const secondToLastPart = parts[parts.length - 2];
       if (secondToLastPart === 'addressLines' && /^\d+$/.test(lastPart)) {
@@ -930,10 +1145,11 @@ export const partyFieldMap: PartyFieldMap = {
         }
       }
 
-      return field;
+      return normalized;
     },
     baseRule: {
       display: 'visible',
+      required: true,
       defaultValue: {
         addressType: 'BUSINESS_ADDRESS',
         primaryAddressLine: '',
@@ -1204,16 +1420,20 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'individualDetails.phone',
     baseRule: {
       display: 'visible',
-      required: true,
+      required: false,
       defaultValue: { phoneType: 'MOBILE_PHONE', phoneNumber: '' },
     },
     toStringFn: (val) =>
-      val ? formatPhoneNumberIntl(val.phoneNumber) : undefined,
-    fromResponseFn: (val: PhoneSmbdo) => ({
-      phoneType: val.phoneType!,
-      phoneNumber: `${val.countryCode}${val.phoneNumber}`,
-    }),
-    toRequestFn: (val): PhoneSmbdo => {
+      val?.phoneNumber ? formatPhoneNumberIntl(val.phoneNumber) : undefined,
+    fromResponseFn: (val: PhoneSmbdo) =>
+      val.phoneNumber
+        ? {
+            phoneType: val.phoneType!,
+            phoneNumber: `${val.countryCode}${val.phoneNumber}`,
+          }
+        : undefined,
+    toRequestFn: (val): PhoneSmbdo | undefined => {
+      if (!val?.phoneNumber) return undefined;
       const phone = parsePhoneNumber(val.phoneNumber);
       return {
         phoneType: val.phoneType,

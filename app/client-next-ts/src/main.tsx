@@ -1,11 +1,13 @@
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
-import { RouterProvider, createRouter } from '@tanstack/react-router';
+
+import { createRouter, RouterProvider } from '@tanstack/react-router';
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen';
 
 import './styles.css';
+
 import reportWebVitals from './reportWebVitals.ts';
 
 // Create a new router instance
@@ -28,13 +30,25 @@ declare module '@tanstack/react-router' {
 // Initialize MSW
 async function enableMocking() {
   try {
-    const { worker } = await import('./msw/browser');
+    const { startShowcaseMocks } = await import('./msw/browser');
 
-    // `worker.start()` returns a Promise that resolves
-    // once the Service Worker is up and ready to intercept requests.
-    await worker.start({
-      onUnhandledRequest: 'bypass',
-    });
+    // Suppress unhandled promise rejections from MSW service worker
+    if (typeof window !== 'undefined') {
+      window.addEventListener('unhandledrejection', (event) => {
+        const error = event.reason;
+        // Suppress MSW deserialization errors
+        if (
+          error?.message?.includes('Cannot read properties of undefined') &&
+          error?.stack?.includes('deserializeRequest')
+        ) {
+          event.preventDefault();
+          return;
+        }
+      });
+    }
+
+    // Prefetches bundled PDF for document mocks before the worker registers (`msw/browser.ts`).
+    await startShowcaseMocks();
   } catch (error) {
     console.warn('MSW failed to start:', error);
     // Continue anyway - app should work without MSW in development
@@ -50,7 +64,7 @@ if (rootElement && !rootElement.innerHTML) {
     root.render(
       <StrictMode>
         <RouterProvider router={router} />
-      </StrictMode>,
+      </StrictMode>
     );
   };
 

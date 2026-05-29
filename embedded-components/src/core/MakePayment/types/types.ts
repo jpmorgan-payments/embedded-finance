@@ -1,5 +1,6 @@
 import type React from 'react';
 
+import type { UserTrackingProps } from '@/lib/types/userTracking.types';
 import {
   AccountResponse,
   ListAccountsResponse,
@@ -19,11 +20,11 @@ export interface Account {
 export interface PaymentMethod {
   id: string;
   name: string;
-  fee: number;
+  fee?: number;
   description?: string;
 }
 
-export interface PaymentComponentProps {
+export interface PaymentComponentProps extends UserTrackingProps {
   triggerButton?: React.ReactNode;
   triggerButtonVariant?:
     | 'default'
@@ -49,11 +50,26 @@ export type { AccountResponse as AccountResponseType };
 
 export interface PaymentFormData {
   from: string;
-  to: string;
+  recipientMode: 'existing' | 'manual';
+  to?: string;
   amount: string;
   method: string;
   currency: string;
   memo?: string;
+  // manual recipient fields
+  saveRecipient?: boolean;
+  partyType?: 'INDIVIDUAL' | 'ORGANIZATION';
+  firstName?: string;
+  lastName?: string;
+  businessName?: string;
+  accountType?: 'CHECKING' | 'SAVINGS' | 'IBAN';
+  accountNumber?: string;
+  countryCode?: 'US';
+  routingNumber?: string;
+  addressLine1?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
 }
 
 export interface PaymentValidation {

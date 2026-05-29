@@ -4,523 +4,512 @@ import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-compo
 // Updated ThemeOption type to include Custom theme for user-defined themes
 export type ThemeOption =
   | 'Default Blue'
-  | 'S&P Theme'
+  | 'Salt Theme'
   | 'Create Commerce'
   | 'SellSense'
   | 'PayFicient'
   | 'Empty'
+  | 'Empty+'
   | 'Custom';
 
 export const useSellSenseThemes = () => {
   const getThemeVariables = useCallback(
     (
       themeOption: ThemeOption,
-      customVariables?: EBThemeVariables,
+      customVariables?: EBThemeVariables
     ): EBThemeVariables => {
       switch (themeOption) {
         case 'Custom':
-          // Custom theme - use provided custom variables or return empty
           return customVariables || {};
 
         case 'Empty':
-          // Empty theme - no design tokens to show component defaults
-          return {};
+          // Only tokens that differ from embedded-components defaultTheme (see defaultTheme.ts).
+          // Single override: visible focus ring for a11y (default light is hsl(240 10% 3.9%)).
+          return { focusedRingColor: '#0060f0' };
 
-        case 'Default Blue':
-          // Default Blue theme with v0.6.15 design tokens
+        case 'Empty+':
+          // Only tokens that differ from embedded-components defaultTheme (see defaultTheme.ts).
+          // No spacingUnit change (keeps default padding). A11y: 1rem actionable font + WCAG AA contrast for all button/status pairs.
           return {
-            // Typography - modern font stack
-            fontFamily:
-              'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
-            headerFontFamily:
-              'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
-            buttonFontFamily:
-              'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
-
-            // Main colors
-            backgroundColor: '#ffffff',
-            foregroundColor: '#1e293b',
-            cardColor: '#ffffff',
-            cardForegroundColor: '#1e293b',
-            popoverColor: '#ffffff',
-            popoverForegroundColor: '#1e293b',
-
-            // Primary colors - Default Blue
-            primaryColor: '#0060f0',
-            primaryHoverColor: '#0a4386',
-            primaryActiveColor: '#083366',
-            primaryForegroundColor: '#ffffff',
-            primaryForegroundHoverColor: '#f8fafc',
-            primaryForegroundActiveColor: '#f1f5f9',
-
-            // Secondary colors - Enhanced outline button support
-            secondaryColor: '#00000000', // Transparent
-            secondaryHoverColor: '#0060f014', // Blue tint (8% opacity)
-            secondaryActiveColor: '#0060f01f', // Slightly more prominent (12% opacity)
-            secondaryForegroundColor: '#0060f0',
-            secondaryForegroundHoverColor: '#0a4386',
-            secondaryForegroundActiveColor: '#083366',
-            secondaryBorderWidth: '1px',
-
-            // Muted colors
-            mutedColor: '#f8fafc',
-            mutedForegroundColor: '#64748b',
-            accentColor: '#f1f5f9',
-            accentForegroundColor: '#475569',
-
-            // Destructive colors
-            destructiveColor: '#ef4444',
-            destructiveHoverColor: '#dc2626',
-            destructiveActiveColor: '#b91c1c',
-            destructiveForegroundColor: '#ffffff',
-            destructiveForegroundHoverColor: '#fef2f2',
-            destructiveForegroundActiveColor: '#fee2e2',
-
-            // Enhanced alert system colors (v0.6.15)
-            alertColor: '#f1f5f9', // Default alert background
-            alertForegroundColor: '#1e293b', // Default alert text
-            informativeColor: '#0ea5e9', // Information alerts
-            informativeAccentColor: '#e0f2fe', // Information alert background
-            warningColor: '#f59e0b', // Warning alerts
-            warningAccentColor: '#fef3c7', // Warning alert background
-            successColor: '#10b981', // Success alerts
-            successAccentColor: '#d1fae5', // Success alert background
-
-            // Border and input styling
-            borderRadius: '8px',
-            buttonBorderRadius: '.313em', // Matching useThemes.ts
-            inputBorderRadius: '6px',
-            borderColor: '#e2e8f0',
-            inputColor: '#ffffff',
-            inputBorderColor: '#d1d5db',
-            ringColor: '#0060f0',
-
-            // Enhanced button styling with v0.6.15 improvements
-            buttonFontWeight: '500',
-            buttonFontSize: '0.875rem',
-            buttonLineHeight: '1.25rem',
-            buttonTextTransform: 'none',
-            buttonLetterSpacing: '0em',
-
-            // Button weights for different variants
-            primaryButtonFontWeight: '600',
-            secondaryButtonFontWeight: '500',
-            destructiveButtonFontWeight: '600',
-
-            // New v0.6.15 form label design tokens
-            formLabelFontSize: '0.875rem', // 14px - consistent label sizing
-            formLabelFontWeight: '500', // Medium weight for readability
-            formLabelLineHeight: '1.25rem', // Proper line height for labels
-
-            // Border widths
-            primaryBorderWidth: '0px',
-            destructiveBorderWidth: '0px',
-
-            // Spacing and effects
-            spacingUnit: '0.25rem',
-            shiftButtonOnActive: true, // Matching useThemes.ts
-            zIndexOverlay: 1000,
+            focusedRingColor: '#0060f0',
+            actionableFontSize: '1rem',
+            // Primary button (AA)
+            actionableAccentedBoldBackground: '#0047ab',
+            actionableAccentedBoldBackgroundHover: '#003d96',
+            actionableAccentedBoldBackgroundActive: '#003380',
+            actionableAccentedBoldForeground: '#ffffff',
+            actionableAccentedBoldForegroundHover: '#ffffff',
+            actionableAccentedBoldForegroundActive: '#ffffff',
+            // Secondary button (AA)
+            actionableSubtleBackground: '#e2e8f0',
+            actionableSubtleBackgroundHover: '#cbd5e1',
+            actionableSubtleBackgroundActive: '#cbd5e1',
+            actionableSubtleForeground: '#1e3a8a',
+            actionableSubtleForegroundHover: '#1e3a8a',
+            actionableSubtleForegroundActive: '#1e3a8a',
+            // Destructive button (AA)
+            actionableNegativeBoldBackground: '#b91c1c',
+            actionableNegativeBoldBackgroundHover: '#991b1b',
+            actionableNegativeBoldBackgroundActive: '#7f1d1d',
+            actionableNegativeBoldForeground: '#ffffff',
+            actionableNegativeBoldForegroundHover: '#ffffff',
+            actionableNegativeBoldForegroundActive: '#ffffff',
+            // Error message (AA)
+            sentimentNegativeAccentBackground: '#b91c1c',
+            statusErrorBackground: '#fef2f2',
+            statusErrorForegroundInformative: '#991b1b',
+            // Success (AA)
+            sentimentPositiveForeground: '#047857',
+            sentimentPositiveAccentBackground: '#d1fae5',
+            statusSuccessForeground: '#047857',
+            statusSuccessAccentBackground: '#d1fae5',
+            // Warning (AA)
+            sentimentCautionForeground: '#b45309',
+            sentimentCautionAccentBackground: '#fef3c7',
+            statusWarningForeground: '#b45309',
+            statusWarningAccentBackground: '#fef3c7',
+            // Info (AA)
+            statusInfoForeground: '#0369a1',
+            statusInfoAccentBackground: '#e0f2fe',
           };
 
-        case 'S&P Theme':
-          // S&P Theme with v0.6.15 design tokens (matching useThemes.ts)
+        case 'Default Blue':
           return {
-            fontFamily: 'Open Sans',
-            headerFontFamily: 'Amplitude',
-            buttonFontFamily: 'Amplitude',
-
-            // S&P brand colors
-            primaryColor: '#1B7F9E',
-            primaryHoverColor: '#166b85',
-            primaryActiveColor: '#145a71',
-            primaryForegroundColor: '#ffffff',
-
-            // Secondary styling with proper outline button support
-            secondaryColor: 'white', // Matching useThemes.ts
-            secondaryHoverColor: '#f1f2f480',
-            secondaryActiveColor: '#f1f2f4cc',
-            secondaryForegroundColor: '#1B7F9E',
-            secondaryForegroundHoverColor: '#166b85',
-            secondaryForegroundActiveColor: '#145a71',
-            secondaryBorderWidth: '1px',
-
-            // Background and layout
-            backgroundColor: '#f6f7f8',
-            foregroundColor: '#1e293b',
-            cardColor: '#ffffff',
-            cardForegroundColor: '#1e293b',
-
-            // Enhanced muted colors
-            mutedColor: '#f8fafc',
-            mutedForegroundColor: '#64748b',
-            accentColor: '#f1f5f9',
-            accentForegroundColor: '#475569',
-
-            // Enhanced alert system colors (v0.6.15)
-            alertColor: '#f6f7f8', // S&P themed alert background
-            alertForegroundColor: '#1e293b',
-            informativeColor: '#1B7F9E', // Using S&P primary for info
-            informativeAccentColor: '#e6f3f7', // S&P themed info background
-            warningColor: '#f59e0b',
-            warningAccentColor: '#fef3c7',
-            successColor: '#10b981',
-            successAccentColor: '#d1fae5',
-
-            // Destructive colors
-            destructiveColor: '#ef4444',
-            destructiveHoverColor: '#dc2626',
-            destructiveActiveColor: '#b91c1c',
-            destructiveForegroundColor: '#ffffff',
-            destructiveForegroundHoverColor: '#fef2f2',
-            destructiveForegroundActiveColor: '#fee2e2',
-
-            // Input styling
-            inputColor: '#FFFFFF',
-            inputBorderColor: '#0000004D', // Matching useThemes.ts
-            borderColor: '#0000004D',
-
-            // Border radius
-            borderRadius: '6px',
-            inputBorderRadius: '4px',
-            buttonBorderRadius: '8px',
-
-            // Enhanced button styling
-            buttonFontWeight: '600',
-            buttonFontSize: '0.875rem',
-            buttonLineHeight: '1.25rem',
-            buttonTextTransform: 'uppercase',
-            buttonLetterSpacing: '0.6px',
-
-            // Button weights
-            primaryButtonFontWeight: '600',
-            secondaryButtonFontWeight: '600',
-            destructiveButtonFontWeight: '600',
-
-            // New v0.6.15 form label design tokens - S&P styling
-            formLabelFontSize: '0.875rem',
-            formLabelFontWeight: '600', // Slightly heavier for S&P brand
-            formLabelLineHeight: '1.25rem',
-
-            // Border widths
-            primaryBorderWidth: '0px',
-            destructiveBorderWidth: '0px',
-
-            // Spacing and effects
+            contentFontFamily:
+              'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
+            textHeadingFontFamily:
+              'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
+            actionableFontFamily:
+              'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
+            actionableFontWeight: '500',
+            actionableFontSize: '0.875rem',
+            actionableLineHeight: '1.25rem',
+            actionableTextTransform: 'none',
+            actionableLetterSpacing: '0em',
+            actionableAccentedBoldFontWeight: '600',
+            actionableSubtleFontWeight: '500',
+            actionableShiftOnActive: true,
+            actionableBorderRadius: '.313em',
+            editableBorderRadius: '6px',
+            editableLabelFontSize: '0.875rem',
+            editableLabelFontWeight: '500',
+            editableLabelLineHeight: '1.25rem',
+            separableBorderRadius: '8px',
             spacingUnit: '0.25rem',
-            shiftButtonOnActive: false,
-            zIndexOverlay: 1000,
+            overlayableZIndex: 1000,
+
+            containerPrimaryBackground: '#ffffff',
+            containerCardBackground: '#ffffff',
+            containerPrimaryForeground: '#1e293b',
+            containerSecondaryBackground: '#f8fafc',
+            containerSecondaryForeground: '#64748b',
+            contentPrimaryForeground: '#1e293b',
+            overlayableBackground: '#ffffff',
+            overlayableForeground: '#1e293b',
+            accentBackground: '#f1f5f9',
+            accentForeground: '#475569',
+            contentAccentForeground: '#475569',
+            editableBackground: '#ffffff',
+            editableBorderColor: '#d1d5db',
+            separableBorderColor: '#e2e8f0',
+
+            actionableAccentedBoldBackground: '#0060f0',
+            actionableAccentedBoldBackgroundHover: '#0a4386',
+            actionableAccentedBoldBackgroundActive: '#083366',
+            actionableAccentedBoldForeground: '#ffffff',
+            actionableAccentedBoldForegroundHover: '#f8fafc',
+            actionableAccentedBoldForegroundActive: '#f1f5f9',
+            actionableAccentedBoldBorderWidth: '0px',
+
+            actionableSubtleBackground: '#00000000',
+            actionableSubtleBackgroundHover: '#0060f014',
+            actionableSubtleBackgroundActive: '#0060f01f',
+            actionableSubtleForeground: '#0060f0',
+            actionableSubtleForegroundHover: '#0a4386',
+            actionableSubtleForegroundActive: '#083366',
+            actionableSubtleBorderWidth: '1px',
+
+            focusedRingColor: '#0060f0',
+
+            actionableNegativeBoldBackground: '#ef4444',
+            actionableNegativeBoldBackgroundHover: '#dc2626',
+            actionableNegativeBoldBackgroundActive: '#b91c1c',
+            actionableNegativeBoldForeground: '#ffffff',
+            actionableNegativeBoldForegroundHover: '#fef2f2',
+            actionableNegativeBoldForegroundActive: '#fee2e2',
+            sentimentCautionForeground: '#f59e0b',
+            sentimentCautionAccentBackground: '#fef3c7',
+            sentimentPositiveForeground: '#10b981',
+            sentimentPositiveAccentBackground: '#d1fae5',
+            statusInfoForeground: '#0ea5e9',
+            statusInfoAccentBackground: '#e0f2fe',
+            statusSuccessForeground: '#10b981',
+            statusSuccessAccentBackground: '#d1fae5',
+            statusWarningForeground: '#f59e0b',
+            statusWarningAccentBackground: '#fef3c7',
+          };
+
+        case 'Salt Theme':
+          return {
+            contentFontFamily: 'Open Sans',
+            textHeadingFontFamily: 'Amplitude',
+            actionableFontFamily: 'Amplitude',
+            actionableFontWeight: '600',
+            actionableFontSize: '0.875rem',
+            actionableLineHeight: '1.25rem',
+            actionableTextTransform: 'uppercase',
+            actionableLetterSpacing: '0.6px',
+            actionableAccentedBoldFontWeight: '600',
+            actionableSubtleFontWeight: '600',
+            actionableShiftOnActive: false,
+            actionableBorderRadius: '8px',
+            editableBorderRadius: '4px',
+            editableLabelFontSize: '0.75rem',
+            editableLabelLineHeight: '1rem',
+            editableLabelFontWeight: '600',
+            separableBorderRadius: '6px',
+            spacingUnit: '0.25rem',
+
+            containerPrimaryBackground: '#f6f7f8',
+            containerCardBackground: '#FFFFFF',
+            containerPrimaryForeground: '#4C5157',
+            containerSecondaryBackground: '#f6f7f8',
+            containerSecondaryForeground: '#6B7280',
+            contentPrimaryForeground: '#4C5157',
+            overlayableBackground: '#FFFFFF',
+            overlayableForeground: '#1e293b',
+            accentBackground: '#f1f5f9',
+            accentForeground: '#475569',
+            contentAccentForeground: '#475569',
+            editableBackground: '#FFFFFF',
+            editableBorderColor: '#0000004D',
+            editableLabelForeground: '#4C5157',
+            separableBorderColor: '#0000004D',
+
+            actionableAccentedBoldBackground: '#1A7B99',
+            actionableAccentedBoldBackgroundHover: '#166b85',
+            actionableAccentedBoldBackgroundActive: '#145a71',
+            actionableAccentedBoldForeground: '#FFFFFF',
+            actionableAccentedBoldBorderWidth: '0px',
+
+            actionableSubtleBackground: 'white',
+            actionableSubtleBackgroundHover: '#f1f2f480',
+            actionableSubtleBackgroundActive: '#f1f2f4cc',
+            actionableSubtleForeground: '#1A7B99',
+            actionableSubtleForegroundHover: '#166b85',
+            actionableSubtleForegroundActive: '#145a71',
+            actionableSubtleBorderWidth: '1px',
+
+            focusedRingColor: '#1A7B99',
+
+            actionableNegativeBoldBackground: '#ef4444',
+            actionableNegativeBoldBackgroundHover: '#dc2626',
+            actionableNegativeBoldBackgroundActive: '#b91c1c',
+            actionableNegativeBoldForeground: '#FFFFFF',
+            sentimentNegativeAccentBackground: '#FFECEA',
+            sentimentPositiveForeground: '#00875D',
+            sentimentPositiveAccentBackground: '#EAF5F2',
+            sentimentCautionForeground: '#C75300',
+            sentimentCautionAccentBackground: '#FFECD9',
+            statusInfoForeground: '#1A7B99',
+            statusInfoAccentBackground: '#e6f3f7',
+            statusSuccessForeground: '#00875D',
+            statusSuccessAccentBackground: '#EAF5F2',
+            statusWarningForeground: '#C75300',
+            statusWarningAccentBackground: '#FFECD9',
           };
 
         case 'Create Commerce':
-          // Create Commerce theme with aligned color palette
           return {
-            // Typography
-            fontFamily: 'Open Sans',
-            headerFontFamily: 'Open Sans',
-            buttonFontFamily: 'Open Sans',
-
-            // Create Commerce brand colors
-            primaryColor: '#FD8172',
-            primaryHoverColor: '#fd6b5a', // Calculated hover state
-            primaryActiveColor: '#fc5441', // Calculated active state
-            primaryForegroundColor: '#EDEFF7', // Updated to match spec
-            primaryForegroundHoverColor: '#EDEFF7', // Added to match spec
-            primaryForegroundActiveColor: '#EDEFF7', // Consistent with hover
-
-            // Secondary styling aligned with spec
-            secondaryColor: '#EDEFF7', // Updated to match spec
-            secondaryHoverColor: '#d5d9e9', // Calculated hover (slightly darker)
-            secondaryActiveColor: '#2CB9AC', // Kept as specified
-            secondaryForegroundColor: '#3D5C6B', // Updated to match spec
-            secondaryForegroundHoverColor: '#3D5C6B', // Updated to match spec
-            secondaryForegroundActiveColor: '#2CB9AC', // Keeping accent color consistent
-            secondaryBorderWidth: '1px', // Keeping as specified
-
-            // Background and layout (updated to teal palette)
-            backgroundColor: '#3D5C6B', // Updated to match spec
-            foregroundColor: '#EDEFF7', // Updated to match spec
-            cardColor: '#3D5C6B', // Updated to match spec
-            cardForegroundColor: '#EDEFF7', // Updated to match spec
-
-            // Added popover styling from spec
-            popoverColor: '#38474E',
-            popoverForegroundColor: '#EDEFF7',
-
-            // Muted and accent colors updated
-            mutedColor: '#38474E', // Using accent color for muted background
-            mutedForegroundColor: '#98A2CD', // Updated to match spec
-            accentColor: '#38474E', // Updated to match spec
-            accentForegroundColor: '#EDEFF7', // Updated to match spec
-
-            // Alert system colors (keeping enhanced system with new palette)
-            alertColor: '#38474E', // Using accent color for alerts
-            alertForegroundColor: '#0F171F', // Updated to match spec
-            informativeColor: '#60A5FA', // Keeping blue for information
-            informativeAccentColor: '#B3C9CC', // Using accent color for backgrounds
-            warningColor: '#FBBF24', // Keeping amber for warnings
-            warningAccentColor: '#38474E', // Using accent color for backgrounds
-            successColor: '#34D399', // Keeping green for success
-            successAccentColor: '#38474E', // Using accent color for backgrounds
-
-            // Form and input styling
-            formLabelForegroundColor: '#EDEFF7', // Added from spec
-            inputColor: '#38474E', // Updated to match spec
-            inputBorderColor: '#0000004D', // Using borderColor from spec
-            borderColor: '#0000004D', // Updated to match spec
-
-            // Destructive colors (keeping with adjustments for new palette)
-            destructiveColor: '#FC8181',
-            destructiveHoverColor: '#F56565',
-            destructiveActiveColor: '#E53E3E',
-            destructiveForegroundColor: '#EDEFF7', // Updated to match theme
-            destructiveForegroundHoverColor: '#EDEFF7', // Updated to match theme
-            destructiveForegroundActiveColor: '#EDEFF7', // Updated to match theme
-
-            // Border radius
-            borderRadius: '8px', // Already matches spec
-            inputBorderRadius: '4px', // Already matches spec
-            buttonBorderRadius: '8px', // Already matches spec
-
-            // Button styling
-            buttonFontWeight: '600',
-            buttonFontSize: '0.875rem',
-            buttonLineHeight: '1.25rem',
-            buttonTextTransform: 'uppercase', // Already matches spec
-            buttonLetterSpacing: '0.6px', // Already matches spec
-
-            // Button weights
-            primaryButtonFontWeight: '600',
-            secondaryButtonFontWeight: '600',
-            destructiveButtonFontWeight: '600',
-
-            // Form label design tokens
-            formLabelFontSize: '0.875rem',
-            formLabelFontWeight: '500',
-            formLabelLineHeight: '1.25rem',
-
-            // Border widths
-            primaryBorderWidth: '0px',
-            destructiveBorderWidth: '0px',
-
-            // Spacing and effects
+            contentFontFamily: 'Open Sans',
+            textHeadingFontFamily: 'Open Sans',
+            actionableFontFamily: 'Open Sans',
+            actionableFontWeight: '600',
+            actionableFontSize: '0.875rem',
+            actionableLineHeight: '1.25rem',
+            actionableTextTransform: 'uppercase',
+            actionableLetterSpacing: '0.6px',
+            actionableAccentedBoldFontWeight: '600',
+            actionableSubtleFontWeight: '600',
+            actionableShiftOnActive: false,
+            actionableBorderRadius: '8px',
+            editableBorderRadius: '4px',
+            editableLabelFontSize: '0.875rem',
+            editableLabelFontWeight: '500',
+            editableLabelLineHeight: '1.25rem',
+            separableBorderRadius: '8px',
             spacingUnit: '0.25rem',
-            shiftButtonOnActive: false,
-            zIndexOverlay: 1000,
+            overlayableZIndex: 1000,
+
+            containerPrimaryBackground: '#3D5C6B',
+            containerCardBackground: '#3D5C6B',
+            containerPrimaryForeground: '#EDEFF7',
+            containerSecondaryBackground: '#38474E',
+            containerSecondaryForeground: '#98A2CD',
+            contentPrimaryForeground: '#EDEFF7',
+            overlayableBackground: '#38474E',
+            overlayableForeground: '#EDEFF7',
+            accentBackground: '#38474E',
+            accentForeground: '#EDEFF7',
+            contentAccentForeground: '#EDEFF7',
+            editableBackground: '#38474E',
+            editableBorderColor: '#0000004D',
+            editableLabelForeground: '#EDEFF7',
+            separableBorderColor: '#0000004D',
+
+            actionableAccentedBoldBackground: '#FD8172',
+            actionableAccentedBoldBackgroundHover: '#fd6b5a',
+            actionableAccentedBoldBackgroundActive: '#fc5441',
+            actionableAccentedBoldForeground: '#EDEFF7',
+            actionableAccentedBoldForegroundHover: '#EDEFF7',
+            actionableAccentedBoldForegroundActive: '#EDEFF7',
+            actionableAccentedBoldBorderWidth: '0px',
+
+            actionableSubtleBackground: '#EDEFF7',
+            actionableSubtleBackgroundHover: '#d5d9e9',
+            actionableSubtleBackgroundActive: '#2CB9AC',
+            actionableSubtleForeground: '#3D5C6B',
+            actionableSubtleForegroundHover: '#3D5C6B',
+            actionableSubtleForegroundActive: '#2CB9AC',
+            actionableSubtleBorderWidth: '1px',
+
+            focusedRingColor: '#FD8172',
+
+            actionableNegativeBoldBackground: '#FC8181',
+            actionableNegativeBoldBackgroundHover: '#F56565',
+            actionableNegativeBoldBackgroundActive: '#E53E3E',
+            actionableNegativeBoldForeground: '#EDEFF7',
+            actionableNegativeBoldForegroundHover: '#EDEFF7',
+            actionableNegativeBoldForegroundActive: '#EDEFF7',
+            sentimentCautionForeground: '#FBBF24',
+            sentimentCautionAccentBackground: '#38474E',
+            sentimentPositiveForeground: '#34D399',
+            sentimentPositiveAccentBackground: '#38474E',
+            statusInfoForeground: '#60A5FA',
+            statusInfoAccentBackground: '#B3C9CC',
+            statusSuccessForeground: '#34D399',
+            statusSuccessAccentBackground: '#38474E',
+            statusWarningForeground: '#FBBF24',
+            statusWarningAccentBackground: '#38474E',
           };
 
         case 'SellSense':
-          // SellSense theme with v0.6.15 design tokens (matching useThemes.ts)
           return {
-            fontFamily: 'Inter', // Matching useThemes.ts
-            headerFontFamily: 'Inter',
-            buttonFontFamily: 'Inter',
-
-            // SellSense brand colors
-            primaryColor: '#f55727',
-            primaryHoverColor: '#e14d1f',
-            primaryActiveColor: '#cc4319',
-            primaryForegroundColor: '#ffffff',
-
-            // Enhanced secondary button with outline support
-            secondaryColor: '#FDF7F0', // Matching useThemes.ts
-            secondaryHoverColor: 'hsla(240, 4.8%, 95.9%, 0.5)', // Matching useThemes.ts
-            secondaryActiveColor: '#2CB9AC',
-            secondaryForegroundColor: '#f55727',
-            secondaryForegroundHoverColor: '#e14d1f',
-            secondaryForegroundActiveColor: '#2CB9AC',
-            secondaryBorderWidth: '1px',
-
-            // Background and layout
-            backgroundColor: '#f7fafc', // Matching useThemes.ts
-            foregroundColor: '#1e293b',
-            cardColor: '#FFFFFF', // Matching useThemes.ts
-            cardForegroundColor: '#1e293b',
-
-            // Enhanced muted and accent colors
-            mutedColor: '#f8fafc',
-            mutedForegroundColor: '#64748b',
-            accentColor: '#f1f5f9',
-            accentForegroundColor: '#475569',
-
-            // Enhanced alert system colors (v0.6.15) - SellSense themed
-            alertColor: '#FDF7F0', // SellSense themed alert background
-            alertForegroundColor: '#1e293b',
-            informativeColor: '#2cb9ac',
-            informativeAccentColor: '#f0fffd',
-            warningColor: '#f59e0b',
-            warningAccentColor: '#fef3c7',
-            successColor: '#10b981',
-            successAccentColor: '#d1fae5',
-
-            // Destructive colors
-            destructiveColor: '#ef4444',
-            destructiveHoverColor: '#dc2626',
-            destructiveActiveColor: '#b91c1c',
-            destructiveForegroundColor: '#ffffff',
-            destructiveForegroundHoverColor: '#fef2f2',
-            destructiveForegroundActiveColor: '#fee2e2',
-
-            // Input styling
-            inputColor: '#FFFFFF',
-            inputBorderColor: '#0000004d',
-            borderColor: '#0000004d',
-
-            // Border radius
-            borderRadius: '8px',
-            inputBorderRadius: '4px',
-            buttonBorderRadius: '8px',
-
-            // Enhanced button styling
-            buttonFontWeight: '600',
-            buttonFontSize: '0.875rem',
-            buttonLineHeight: '1.25rem',
-            buttonTextTransform: 'uppercase',
-            buttonLetterSpacing: '0.6px',
-
-            // Button weights
-            primaryButtonFontWeight: '600',
-            secondaryButtonFontWeight: '600',
-            destructiveButtonFontWeight: '600',
-
-            // New v0.6.15 form label design tokens - SellSense styling
-            formLabelFontSize: '0.875rem',
-            formLabelFontWeight: '600', // Bold for SellSense brand consistency
-            formLabelLineHeight: '1.25rem',
-
-            // Border widths
-            primaryBorderWidth: '0px',
-            destructiveBorderWidth: '0px',
-
-            // Spacing and effects
+            contentFontFamily: 'Inter',
+            textHeadingFontFamily: 'Inter',
+            actionableFontFamily: 'Inter',
+            actionableFontWeight: '600',
+            actionableFontSize: '0.875rem',
+            actionableLineHeight: '1.25rem',
+            actionableTextTransform: 'uppercase',
+            actionableLetterSpacing: '0.6px',
+            actionableAccentedBoldFontWeight: '600',
+            actionableSubtleFontWeight: '600',
+            actionableShiftOnActive: false,
+            actionableBorderRadius: '8px',
+            editableBorderRadius: '4px',
+            editableLabelFontSize: '0.875rem',
+            editableLabelFontWeight: '600',
+            editableLabelLineHeight: '1.25rem',
+            separableBorderRadius: '8px',
             spacingUnit: '0.25rem',
-            shiftButtonOnActive: false,
-            zIndexOverlay: 1000,
+            overlayableZIndex: 1000,
+
+            containerPrimaryBackground: '#f7fafc',
+            containerCardBackground: '#FFFFFF',
+            containerPrimaryForeground: '#1e293b',
+            containerSecondaryBackground: '#f8fafc',
+            containerSecondaryForeground: '#64748b',
+            contentPrimaryForeground: '#1e293b',
+            overlayableBackground: '#FFFFFF',
+            overlayableForeground: '#1e293b',
+            accentBackground: '#f1f5f9',
+            accentForeground: '#475569',
+            accentMetricBackground: '#2cb9ac',
+            contentAccentForeground: '#475569',
+            editableBackground: '#FFFFFF',
+            editableBorderColor: '#0000004d',
+            editableLabelForeground: '#1e293b',
+            separableBorderColor: '#0000004d',
+
+            actionableAccentedBoldBackground: '#f55727',
+            actionableAccentedBoldBackgroundHover: '#e14d1f',
+            actionableAccentedBoldBackgroundActive: '#cc4319',
+            actionableAccentedBoldForeground: '#ffffff',
+            actionableAccentedBoldBorderWidth: '0px',
+
+            actionableSubtleBackground: '#FDF7F0',
+            actionableSubtleBackgroundHover: 'hsla(240, 4.8%, 95.9%, 0.5)',
+            actionableSubtleBackgroundActive: '#2CB9AC',
+            actionableSubtleForeground: '#f55727',
+            actionableSubtleForegroundHover: '#e14d1f',
+            actionableSubtleForegroundActive: '#2CB9AC',
+            actionableSubtleBorderWidth: '1px',
+
+            focusedRingColor: '#f55727',
+
+            actionableNegativeBoldBackground: '#ef4444',
+            actionableNegativeBoldBackgroundHover: '#dc2626',
+            actionableNegativeBoldBackgroundActive: '#b91c1c',
+            actionableNegativeBoldForeground: '#ffffff',
+            actionableNegativeBoldForegroundHover: '#fef2f2',
+            actionableNegativeBoldForegroundActive: '#fee2e2',
+            sentimentCautionForeground: '#f59e0b',
+            sentimentCautionAccentBackground: '#fef3c7',
+            sentimentPositiveForeground: '#10b981',
+            sentimentPositiveAccentBackground: '#d1fae5',
+            statusInfoForeground: '#2cb9ac',
+            statusInfoAccentBackground: '#f0fffd',
+            statusSuccessForeground: '#10b981',
+            statusSuccessAccentBackground: '#d1fae5',
+            statusWarningForeground: '#f59e0b',
+            statusWarningAccentBackground: '#fef3c7',
           };
 
         case 'PayFicient':
-          // PayFicient theme with v0.6.15 design tokens (matching useThemes.ts)
           return {
-            fontFamily: 'Manrope',
-            headerFontFamily: 'Manrope',
-            buttonFontFamily: 'Manrope',
-
-            // PayFicient brand colors
-            primaryColor: '#177556',
-            primaryHoverColor: '#145f47',
-            primaryActiveColor: '#114a38',
-            primaryForegroundColor: '#ffffff',
-
-            // Secondary styling
-            secondaryColor: '#FFFCF6', // Matching useThemes.ts
-            secondaryHoverColor: 'hsla(240, 4.8%, 95.9%, 0.5)', // Matching useThemes.ts
-            secondaryActiveColor: '#d6e8d1',
-            secondaryForegroundColor: '#177556',
-            secondaryForegroundHoverColor: '#145f47',
-            secondaryForegroundActiveColor: '#114a38',
-            secondaryBorderWidth: '1px',
-
-            // Background and layout
-            backgroundColor: '#FFFCF6',
-            foregroundColor: '#1e293b',
-            cardColor: '#F7F3F0', // Matching useThemes.ts
-            cardForegroundColor: '#1e293b',
-
-            // Enhanced muted and accent colors
-            mutedColor: '#f8fafc',
-            mutedForegroundColor: '#64748b',
-            accentColor: '#f1f5f9',
-            accentForegroundColor: '#475569',
-
-            // Enhanced alert system colors (v0.6.15) - PayFicient themed
-            alertColor: '#FFFCF6', // PayFicient themed alert background
-            alertForegroundColor: '#1e293b',
-            informativeColor: '#177556', // Using PayFicient primary for info
-            informativeAccentColor: '#e6f2ed', // PayFicient themed info background
-            warningColor: '#f59e0b',
-            warningAccentColor: '#fef3c7',
-            successColor: '#177556', // Using brand green for success
-            successAccentColor: '#d6e8d1', // PayFicient themed success background
-
-            // Destructive colors
-            destructiveColor: '#ef4444',
-            destructiveHoverColor: '#dc2626',
-            destructiveActiveColor: '#b91c1c',
-            destructiveForegroundColor: '#ffffff',
-            destructiveForegroundHoverColor: '#fef2f2',
-            destructiveForegroundActiveColor: '#fee2e2',
-
-            // Input styling
-            inputColor: '#FFFFFF',
-            inputBorderColor: '#0000004d',
-            borderColor: '#0000004d',
-
-            // Border radius
-            borderRadius: '5px', // Matching useThemes.ts
-            inputBorderRadius: '4px',
-            buttonBorderRadius: '8px',
-
-            // Enhanced button styling
-            buttonFontWeight: '600',
-            buttonFontSize: '0.875rem',
-            buttonLineHeight: '1.25rem',
-            buttonTextTransform: 'uppercase',
-            buttonLetterSpacing: '0.6px',
-
-            // Button weights
-            primaryButtonFontWeight: '600',
-            secondaryButtonFontWeight: '600',
-            destructiveButtonFontWeight: '600',
-
-            // New v0.6.15 form label design tokens - PayFicient styling
-            formLabelFontSize: '0.875rem',
-            formLabelFontWeight: '500', // Medium weight for PayFicient's clean aesthetic
-            formLabelLineHeight: '1.25rem',
-
-            // Border widths
-            primaryBorderWidth: '0px',
-            destructiveBorderWidth: '0px',
-
-            // Spacing and effects
+            contentFontFamily: 'Manrope',
+            textHeadingFontFamily: 'Manrope',
+            actionableFontFamily: 'Manrope',
+            actionableFontWeight: '600',
+            actionableFontSize: '0.875rem',
+            actionableLineHeight: '1.25rem',
+            actionableTextTransform: 'uppercase',
+            actionableLetterSpacing: '0.6px',
+            actionableAccentedBoldFontWeight: '600',
+            actionableSubtleFontWeight: '600',
+            actionableShiftOnActive: false,
+            actionableBorderRadius: '8px',
+            editableBorderRadius: '4px',
+            editableLabelFontSize: '0.875rem',
+            editableLabelFontWeight: '500',
+            editableLabelLineHeight: '1.25rem',
+            separableBorderRadius: '5px',
             spacingUnit: '0.25rem',
-            shiftButtonOnActive: false,
-            zIndexOverlay: 1000,
+            overlayableZIndex: 1000,
+
+            containerPrimaryBackground: '#FFFCF6',
+            containerCardBackground: '#F7F3F0',
+            containerPrimaryForeground: '#1e293b',
+            containerSecondaryBackground: '#f8fafc',
+            containerSecondaryForeground: '#64748b',
+            contentPrimaryForeground: '#1e293b',
+            overlayableBackground: '#FFFFFF',
+            overlayableForeground: '#1e293b',
+            accentBackground: '#f1f5f9',
+            accentForeground: '#475569',
+            contentAccentForeground: '#475569',
+            editableBackground: '#FFFFFF',
+            editableBorderColor: '#0000004d',
+            editableLabelForeground: '#1e293b',
+            separableBorderColor: '#0000004d',
+
+            actionableAccentedBoldBackground: '#177556',
+            actionableAccentedBoldBackgroundHover: '#145f47',
+            actionableAccentedBoldBackgroundActive: '#114a38',
+            actionableAccentedBoldForeground: '#ffffff',
+            actionableAccentedBoldBorderWidth: '0px',
+
+            actionableSubtleBackground: '#FFFCF6',
+            actionableSubtleBackgroundHover: 'hsla(240, 4.8%, 95.9%, 0.5)',
+            actionableSubtleBackgroundActive: '#d6e8d1',
+            actionableSubtleForeground: '#177556',
+            actionableSubtleForegroundHover: '#145f47',
+            actionableSubtleForegroundActive: '#114a38',
+            actionableSubtleBorderWidth: '1px',
+
+            focusedRingColor: '#177556',
+
+            actionableNegativeBoldBackground: '#ef4444',
+            actionableNegativeBoldBackgroundHover: '#dc2626',
+            actionableNegativeBoldBackgroundActive: '#b91c1c',
+            actionableNegativeBoldForeground: '#ffffff',
+            actionableNegativeBoldForegroundHover: '#fef2f2',
+            actionableNegativeBoldForegroundActive: '#fee2e2',
+            sentimentCautionForeground: '#f59e0b',
+            sentimentCautionAccentBackground: '#fef3c7',
+            sentimentPositiveForeground: '#177556',
+            sentimentPositiveAccentBackground: '#d6e8d1',
+            statusInfoForeground: '#177556',
+            statusInfoAccentBackground: '#e6f2ed',
+            statusSuccessForeground: '#177556',
+            statusSuccessAccentBackground: '#d6e8d1',
+            statusWarningForeground: '#f59e0b',
+            statusWarningAccentBackground: '#fef3c7',
           };
 
         default:
-          // Enhanced default fallback with v0.6.15 design tokens
           return {
-            fontFamily:
+            contentFontFamily:
               'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
-            primaryColor: '#0060f0',
-            primaryHoverColor: '#0a4386',
-            primaryForegroundColor: '#ffffff',
-            backgroundColor: '#ffffff',
-            foregroundColor: '#1e293b',
-            buttonBorderRadius: '.313em',
-            borderRadius: '8px',
-            buttonFontWeight: '500',
-            buttonTextTransform: 'none',
-            shiftButtonOnActive: true,
+            textHeadingFontFamily:
+              'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
+            actionableFontFamily:
+              'Open Sans, Helvetica Neue, helvetica, arial, sans-serif',
+            actionableFontWeight: '500',
+            actionableFontSize: '0.875rem',
+            actionableLineHeight: '1.25rem',
+            actionableTextTransform: 'none',
+            actionableLetterSpacing: '0em',
+            actionableAccentedBoldFontWeight: '600',
+            actionableSubtleFontWeight: '500',
+            actionableShiftOnActive: true,
+            actionableBorderRadius: '.313em',
+            editableBorderRadius: '6px',
+            editableLabelFontSize: '0.875rem',
+            editableLabelFontWeight: '500',
+            editableLabelLineHeight: '1.25rem',
+            separableBorderRadius: '8px',
             spacingUnit: '0.25rem',
+            overlayableZIndex: 1000,
 
-            // New v0.6.15 form label defaults
-            formLabelFontSize: '0.875rem',
-            formLabelFontWeight: '500',
-            formLabelLineHeight: '1.25rem',
+            containerPrimaryBackground: '#ffffff',
+            containerCardBackground: '#ffffff',
+            containerPrimaryForeground: '#1e293b',
+            containerSecondaryBackground: '#f8fafc',
+            containerSecondaryForeground: '#64748b',
+            contentPrimaryForeground: '#1e293b',
+            overlayableBackground: '#ffffff',
+            overlayableForeground: '#1e293b',
+            accentBackground: '#f1f5f9',
+            accentForeground: '#475569',
+            contentAccentForeground: '#475569',
+            editableBackground: '#ffffff',
+            editableBorderColor: '#d1d5db',
+            separableBorderColor: '#e2e8f0',
 
-            // Enhanced alert defaults
-            alertColor: '#f1f5f9',
-            alertForegroundColor: '#1e293b',
-            informativeColor: '#0ea5e9',
-            informativeAccentColor: '#e0f2fe',
-            warningColor: '#f59e0b',
-            warningAccentColor: '#fef3c7',
-            successColor: '#10b981',
-            successAccentColor: '#d1fae5',
+            actionableAccentedBoldBackground: '#0060f0',
+            actionableAccentedBoldBackgroundHover: '#0a4386',
+            actionableAccentedBoldBackgroundActive: '#0a4386',
+            actionableAccentedBoldForeground: '#ffffff',
+            actionableAccentedBoldBorderWidth: '0px',
+
+            actionableSubtleBackground: '#00000000',
+            actionableSubtleBackgroundHover: '#0060f014',
+            actionableSubtleBackgroundActive: '#0060f01f',
+            actionableSubtleForeground: '#0060f0',
+            actionableSubtleForegroundHover: '#0a4386',
+            actionableSubtleForegroundActive: '#0a4386',
+            actionableSubtleBorderWidth: '1px',
+
+            focusedRingColor: '#0060f0',
+
+            actionableNegativeBoldBackground: '#ef4444',
+            actionableNegativeBoldForeground: '#ffffff',
+            sentimentCautionForeground: '#f59e0b',
+            sentimentCautionAccentBackground: '#fef3c7',
+            sentimentPositiveForeground: '#10b981',
+            sentimentPositiveAccentBackground: '#d1fae5',
+            statusInfoForeground: '#0ea5e9',
+            statusInfoAccentBackground: '#e0f2fe',
+            statusSuccessForeground: '#10b981',
+            statusSuccessAccentBackground: '#d1fae5',
+            statusWarningForeground: '#f59e0b',
+            statusWarningAccentBackground: '#fef3c7',
           };
       }
     },
-    [],
+    []
   );
 
   const mapThemeOption = useCallback(
@@ -531,7 +520,7 @@ export const useSellSenseThemes = () => {
         variables,
       };
     },
-    [getThemeVariables],
+    [getThemeVariables]
   );
 
   const mapCustomTheme = useCallback((customVariables: EBThemeVariables) => {
@@ -550,7 +539,7 @@ export const useSellSenseThemes = () => {
 
 // Helper function to get theme variables directly
 export const getThemeVariables = (
-  themeOption: ThemeOption,
+  themeOption: ThemeOption
 ): EBThemeVariables => {
   const { getThemeVariables } = useSellSenseThemes();
   return getThemeVariables(themeOption);

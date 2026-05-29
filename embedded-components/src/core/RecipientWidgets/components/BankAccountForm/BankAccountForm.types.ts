@@ -1,0 +1,310 @@
+import type { ReactNode } from 'react';
+
+import type {
+  AccountType,
+  PartyType,
+  Recipient,
+  RecipientAddress,
+  RecipientContact,
+  RecipientContactContactType,
+  RoutingInformationTransactionType,
+} from '@/api/generated/ep-recipients.schemas';
+import type { ClientResponse } from '@/api/generated/smbdo.schemas';
+
+/**
+ * Checkbox rows for linked-account agreements (editable wizard, prefill summary, or widget).
+ *
+ * - **Copy** lives in `onboarding-overview` JSON (content tokens / locales).
+ * - **URLs** for `<termsLink>`-style tags are supplied per row (`linkHrefs`) so hosts can
+ *   point to their own legal pages without hard-coding links in translations.
+ */
+export type LinkAccountReviewAcknowledgement = {
+  id: string;
+  /** `onboarding-overview` key, e.g. `screens.linkAccount.prefillSummary.acknowledgements.businessPurpose` */
+  labelKey: string;
+  /** Maps Trans component names to absolute URLs */
+  linkHrefs?: Record<string, string>;
+};
+
+/**
+ * Configuration for a single payment method
+ */
+export interface PaymentMethodConfig {
+  /** Whether this payment method is enabled */
+  enabled: boolean;
+  /** Display label for the payment method */
+  label: ReactNode;
+  /** Plain string label for use in validation messages */
+  labelString: string;
+  /** Short label for compact display (e.g., badges, routing number labels) */
+  shortLabel: ReactNode;
+  /** Plain string short label for use in interpolation */
+  shortLabelString: string;
+  /** Description text */
+  description: ReactNode;
+  /** Whether this payment method can be deselected (for linked accounts, ACH is locked) */
+  locked?: boolean;
+  /** Required fields when this payment method is selected */
+  requiredFields: {
+    accountNumber?: boolean;
+    routingNumber?: boolean;
+    bankAccountType?: boolean;
+    address?: boolean;
+    contacts?: RecipientContactContactType[];
+  };
+  /** Validation rules for routing number */
+  routingValidation?: {
+    length: number;
+    pattern: RegExp;
+    errorMessage: string;
+  };
+  /** Helper text to show for this payment method */
+  helperText?: ReactNode;
+}
+
+/**
+ * Content/text configuration for customizing labels and messages
+ */
+export interface BankAccountFormContent {
+  submitButtonText: ReactNode;
+  /** Cancel button text */
+  cancelButtonText?: ReactNode;
+  /** Loading message */
+  loadingMessage?: ReactNode;
+  /** Section titles */
+  sections?: {
+    accountHolderType?: ReactNode;
+    accountHolderInfo?: ReactNode;
+    bankAccountDetails?: ReactNode;
+    paymentMethods?: ReactNode;
+    addressInfo?: ReactNode;
+    contactInfo?: ReactNode;
+  };
+  /** Field labels (override defaults) */
+  fieldLabels?: {
+    accountType?: ReactNode;
+    firstName?: ReactNode;
+    lastName?: ReactNode;
+    businessName?: ReactNode;
+    routingNumber?: ReactNode;
+    accountNumber?: ReactNode;
+    bankAccountType?: ReactNode;
+    primaryAddressLine?: ReactNode;
+    secondaryAddressLine?: ReactNode;
+    tertiaryAddressLine?: ReactNode;
+    city?: ReactNode;
+    state?: ReactNode;
+    postalCode?: ReactNode;
+  };
+  /** Certification text */
+  certificationText?: ReactNode;
+}
+
+/**
+ * Main configuration for the bank account form
+ */
+export interface BankAccountFormConfig {
+  /** Use case type - determines default configurations */
+  useCase: 'LINKED_ACCOUNT' | 'RECIPIENT' | 'SETTLEMENT_ACCOUNT';
+
+  /** Payment methods configuration */
+  paymentMethods: {
+    /** Available payment methods */
+    available: RoutingInformationTransactionType[];
+    /** Configuration for each payment method */
+    configs: Record<RoutingInformationTransactionType, PaymentMethodConfig>;
+    /** Whether multiple payment methods can be selected */
+    allowMultiple: boolean;
+    /** Default selected payment methods */
+    defaultSelected?: RoutingInformationTransactionType[];
+  };
+
+  /** Account holder type configuration */
+  accountHolder: {
+    /** Allow individual accounts */
+    allowIndividual: boolean;
+    /** Allow organization accounts */
+    allowOrganization: boolean;
+    /** Default type */
+    defaultType?: PartyType;
+    /**
+     * Whether to pre-fill account holder details from client data.
+     * When true, individual names and business names will be auto-populated
+     * from the client's party information.
+     * @default false
+     */
+    prefillFromClient?: boolean;
+  };
+
+  /** Global required fields */
+  requiredFields: {
+    /** Always require address regardless of payment method */
+    address?: boolean;
+    /** Always require contacts regardless of payment method */
+    contacts?: RecipientContactContactType[];
+    /** Require certification/authorization */
+    certification?: boolean;
+  };
+
+  /** Readonly fields (for edit mode) */
+  readonlyFields?: {
+    accountType?: boolean;
+    firstName?: boolean;
+    lastName?: boolean;
+    businessName?: boolean;
+    accountNumber?: boolean;
+    bankAccountType?: boolean;
+  };
+
+  /** Content/text configuration */
+  content: BankAccountFormContent;
+
+  /** Validation configuration */
+  validation?: {
+    /** Custom validation function for account number */
+    accountNumber?: (value: string) => boolean | string;
+    /** Custom validation function for routing number */
+    routingNumber?: (
+      value: string,
+      paymentMethod: RoutingInformationTransactionType
+    ) => boolean | string;
+  };
+
+  /**
+   * Existing linked accounts used for duplicate detection.
+   * When provided, the form validates that the entered account number + routing
+   * number combination does not already exist among these recipients.
+   */
+  existingAccounts?: Recipient[];
+}
+
+/**
+ * Deep-partial override type for {@link BankAccountFormConfig}.
+ * Makes `paymentMethods` sub-fields optional so callers can override
+ * individual keys (e.g. `available`, `allowMultiple`) without providing `configs`.
+ */
+export type BankAccountFormConfigOverride = Partial<
+  Omit<BankAccountFormConfig, 'paymentMethods'> & {
+    paymentMethods?: Partial<BankAccountFormConfig['paymentMethods']>;
+  }
+>;
+
+/**
+ * Props for the BankAccountForm component
+ */
+export interface BankAccountFormProps {
+  /** Configuration for the form behavior and validation */
+  config: BankAccountFormConfig;
+  /** Existing recipient data (for edit mode) */
+  recipient?: Recipient;
+  /** Client data fetched from API */
+  client?: ClientResponse;
+  /** Callback when form is submitted - handle success/error in parent */
+  onSubmit: (data: BankAccountFormData) => void;
+  /** Callback when form is cancelled */
+  onCancel?: () => void;
+  /** Whether to show the form in a dialog */
+  asDialog?: boolean;
+  /** Dialog trigger element (only used when asDialog=true) */
+  trigger?: ReactNode;
+  /** Whether the form is in loading state */
+  isLoading?: boolean;
+  /** Whether to show form as a card */
+  showCard?: boolean;
+  /** Custom alert/message to show above the form */
+  alert?: ReactNode;
+  /**
+   * Skip step 1 (payment method selection) and go directly to step 2.
+   * Useful when payment method is pre-selected and step 1 would be redundant.
+   * When true, back button on step 2 calls onCancel instead of going to step 1.
+   * @default false
+   */
+  skipStepOne?: boolean;
+  /**
+   * Initial step to start on (1 or 2).
+   * Unlike skipStepOne, this preserves normal back button navigation.
+   * Useful when returning to the form after reviewing data.
+   * @default 1
+   */
+  initialStep?: 1 | 2;
+  /**
+   * Render in embedded mode (inside another flow, not a dialog).
+   * When true, cancel button does not use DialogClose wrapper.
+   * @default false
+   */
+  embedded?: boolean;
+  /**
+   * Force initial payment types selection.
+   * When provided, this overrides the default behavior of using recipient's
+   * existing payment types or config.defaultSelected.
+   * Useful when enabling a new payment method on an existing recipient.
+   */
+  initialPaymentTypes?: RoutingInformationTransactionType[];
+  /**
+   * Merged on top of recipient/client-derived defaults (host prefill).
+   * When this object changes, the form is reset to the merged values.
+   */
+  defaultValuesOverride?: Partial<BankAccountFormData>;
+  /**
+   * Fired when react-hook-form `isDirty` changes (e.g. embedded onboarding leave / back guards).
+   */
+  onDirtyChange?: (dirty: boolean) => void;
+
+  /**
+   * Optional linked-account agreement checkboxes (step 2). When non-empty, each row must be
+   * checked before submit is enabled. Used by onboarding link step and `LinkedAccountWidget`.
+   * When set, the default `config.requiredFields.certification` checkbox is hidden (host copy replaces it).
+   */
+  reviewAcknowledgements?: readonly LinkAccountReviewAcknowledgement[];
+  /** Lead-in line above the acknowledgement group (e.g. from `showAcknowledgementsIntro` + i18n). */
+  acknowledgementsIntro?: ReactNode;
+  /**
+   * Accessible name for the acknowledgement group. Defaults to onboarding copy when omitted
+   * and `reviewAcknowledgements` is non-empty.
+   */
+  reviewAcknowledgementsGroupAriaLabel?: string;
+}
+
+/**
+ * Routing number configuration per payment method
+ */
+export interface PaymentMethodRoutingNumber {
+  paymentType: RoutingInformationTransactionType;
+  routingNumber: string;
+}
+
+/**
+ * Form data structure (internal)
+ */
+export interface BankAccountFormData {
+  // Account holder information
+  accountType: PartyType;
+  firstName?: string;
+  lastName?: string;
+  businessName?: string;
+
+  // Bank account details
+  routingNumbers: PaymentMethodRoutingNumber[];
+  useSameRoutingNumber?: boolean; // UX helper to use same routing for all methods
+  accountNumber: string;
+  bankAccountType: AccountType;
+
+  // Payment methods
+  paymentTypes: RoutingInformationTransactionType[];
+
+  // Address (conditional)
+  address?: RecipientAddress;
+
+  // Contacts (conditional)
+  contacts?: RecipientContact[];
+
+  // Certification
+  certify?: boolean;
+
+  /**
+   * Party ID selected from the account-holder dropdown (individual selector)
+   * or auto-resolved from client data (organization). When present, the submit
+   * handler should send `partyId` instead of `partyDetails`.
+   */
+  selectedPartyId?: string;
+}

@@ -104,6 +104,7 @@ interface SelectOrRadioGroupProps<
   options: Array<{
     label: React.ReactNode | string;
     value: string;
+    searchValue?: string;
     description?: string;
   }>;
 }
@@ -153,7 +154,8 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
     const context = useOnboardingContext();
     const { data } = useSmbdoGetClient(context.clientId ?? '');
     clientData = data;
-  } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch {
     const context = useOnboardingOverviewContext();
     clientData = context.clientData;
     isOverviewFlow = true;
@@ -248,6 +250,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
       render={({ field }) => {
         const { onBlur, ...fieldWithoutBlur } = field;
         const [open, setOpen] = useState(false);
+        const [typeahead] = useState(() => ({ search: '', timer: 0 }));
 
         return (
           <FormItem className={className}>
@@ -322,6 +325,62 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                               role="combobox"
                               aria-expanded={open}
                               className="eb-justify-between"
+                              onKeyDown={(e) => {
+                                if (
+                                  e.key === 'ArrowDown' ||
+                                  e.key === 'ArrowUp'
+                                ) {
+                                  e.preventDefault();
+                                  setOpen(true);
+                                  return;
+                                }
+                                if (
+                                  !open &&
+                                  options &&
+                                  e.key.length === 1 &&
+                                  !e.ctrlKey &&
+                                  !e.metaKey &&
+                                  !e.altKey
+                                ) {
+                                  e.preventDefault();
+                                  window.clearTimeout(typeahead.timer);
+                                  typeahead.search += e.key.toLowerCase();
+                                  typeahead.timer = window.setTimeout(() => {
+                                    typeahead.search = '';
+                                  }, 1000);
+                                  const getSearchText = (
+                                    opt: (typeof options)[number]
+                                  ) =>
+                                    (
+                                      opt.searchValue ?? String(opt.label)
+                                    ).toLowerCase();
+                                  const match =
+                                    options.find((opt) =>
+                                      getSearchText(opt).startsWith(
+                                        typeahead.search
+                                      )
+                                    ) ??
+                                    options
+                                      .filter((opt) =>
+                                        getSearchText(opt).includes(
+                                          typeahead.search
+                                        )
+                                      )
+                                      .sort(
+                                        (a, b) =>
+                                          getSearchText(a).indexOf(
+                                            typeahead.search
+                                          ) -
+                                          getSearchText(b).indexOf(
+                                            typeahead.search
+                                          )
+                                      )[0];
+                                  if (match && match.value !== field.value) {
+                                    onChangeProp?.(match.value);
+                                    field.onChange(match.value);
+                                  }
+                                }
+                              }}
                               {...fieldWithoutBlur}
                             >
                               {field.value
@@ -334,40 +393,57 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="eb-w-[--radix-popover-trigger-width] eb-p-0">
-                          <Command>
+                          <Command
+                            defaultValue={
+                              field.value && options
+                                ? (() => {
+                                    const sel = options.find(
+                                      (o) => o.value === field.value
+                                    );
+                                    return sel
+                                      ? `${sel.searchValue ?? String(sel.label)} ${sel.value}`
+                                      : undefined;
+                                  })()
+                                : undefined
+                            }
+                          >
                             <CommandInput placeholder={fieldPlaceholder} />
                             <CommandList>
                               <CommandEmpty>
                                 {t('common:noOptionFound')}
                               </CommandEmpty>
                               <CommandGroup>
-                                {options?.map((option) => (
-                                  <CommandItem
-                                    key={`combobox-option-${option.value}`}
-                                    value={`${option.label} ${option.value}`}
-                                    onSelect={() => {
-                                      onChangeProp?.(option.value);
-                                      field.onChange(
-                                        option.value === field.value
-                                          ? ''
-                                          : option.value
-                                      );
-                                      onBlur();
-                                      setOpen(false);
-                                    }}
-                                    className="eb-cursor-pointer"
-                                  >
-                                    <Check
-                                      className={cn(
-                                        'eb-mr-2 eb-h-4 eb-w-4',
-                                        field.value === option.value
-                                          ? 'eb-opacity-100'
-                                          : 'eb-opacity-0'
-                                      )}
-                                    />
-                                    {option.label}
-                                  </CommandItem>
-                                ))}
+                                {options?.map((option) => {
+                                  const isSelected =
+                                    field.value === option.value;
+                                  return (
+                                    <CommandItem
+                                      key={`combobox-option-${option.value}`}
+                                      value={`${option.searchValue ?? option.label} ${option.value}`}
+                                      onSelect={() => {
+                                        onChangeProp?.(option.value);
+                                        field.onChange(
+                                          option.value === field.value
+                                            ? ''
+                                            : option.value
+                                        );
+                                        onBlur();
+                                        setOpen(false);
+                                      }}
+                                      className="eb-cursor-pointer"
+                                    >
+                                      <Check
+                                        className={cn(
+                                          'eb-mr-2 eb-h-4 eb-w-4',
+                                          isSelected
+                                            ? 'eb-opacity-100'
+                                            : 'eb-opacity-0'
+                                        )}
+                                      />
+                                      {option.label}
+                                    </CommandItem>
+                                  );
+                                })}
                               </CommandGroup>
                             </CommandList>
                           </Command>

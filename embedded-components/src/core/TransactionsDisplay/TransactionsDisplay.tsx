@@ -1,177 +1,261 @@
-import { FC, forwardRef, useImperativeHandle } from 'react';
-import { RefreshCw } from 'lucide-react';
+import React, { forwardRef, useImperativeHandle, useState } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
+import {
+  ColumnFiltersState,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  SortingState,
+  useReactTable,
+  VisibilityState,
+} from '@tanstack/react-table';
 
-import { useMediaQuery } from '@/hooks/useMediaQuery';
-import { useListTransactionsV2 } from '@/api/generated/ep-transactions';
-import { Button } from '@/components/ui/button';
+import { useLocale } from '@/lib/hooks';
+import { cn } from '@/lib/utils';
+import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTable } from '@/components/ui/data-table';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 
-import { TransactionDetailsDialogTrigger } from './TransactionDetailsSheet/TransactionDetailsSheet';
-import { columns } from './TransactionsDisplay.columns';
-import { formatNumberToCurrency } from './utils/formatNumberToCurrency';
-import { modifyTransactionsData } from './utils/modifyTransactionsData';
-
-export type TransactionsDisplayProps = {
-  accountId: string;
-};
-
-// Define the ref interface for external actions
-export interface TransactionsDisplayRef {
-  refresh: () => void;
-  // Add other actions as needed
-  // reset: () => void;
-  // exportData: () => void;
-}
-
-const TransactionCard: FC<{ transaction: any }> = ({ transaction }) => (
-  <Card className="eb-mb-4 eb-space-y-2 eb-p-4 eb-shadow-sm">
-    <div className="eb-flex eb-items-center eb-justify-between">
-      <div className="eb-truncate eb-text-base eb-font-semibold">
-        {transaction.type || 'Transaction'}
-      </div>
-      <span className="eb-text-xs eb-font-medium eb-text-gray-500">
-        {transaction.status}
-      </span>
-    </div>
-    <div className="eb-flex eb-items-center eb-gap-2">
-      <span className="eb-text-xs eb-text-gray-500">
-        {transaction.paymentDate
-          ? new Date(transaction.paymentDate).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })
-          : 'N/A'}
-      </span>
-      <span className="eb-text-xs eb-text-gray-400">•</span>
-      <span className="eb-font-mono eb-text-xs eb-text-gray-700">
-        {transaction.transactionReferenceId || 'N/A'}
-      </span>
-    </div>
-    <div className="eb-mt-2 eb-flex eb-items-center eb-justify-between">
-      <div>
-        <span className="eb-text-xs eb-text-muted-foreground">Amount</span>
-        <div className="eb-font-medium">
-          {transaction.amount
-            ? formatNumberToCurrency(
-                transaction.amount,
-                transaction.currency ?? 'USD'
-              )
-            : 'N/A'}
-        </div>
-      </div>
-      <TransactionDetailsDialogTrigger transactionId={transaction.id}>
-        Details
-      </TransactionDetailsDialogTrigger>
-    </div>
-    <div className="eb-mt-2 eb-text-xs eb-text-gray-600">
-      <span className="eb-font-medium">Counterpart:</span>{' '}
-      {transaction.counterpartName || 'N/A'}
-    </div>
-    {transaction.memo && (
-      <div className="eb-mt-1 eb-text-xs eb-text-gray-500">
-        <span className="eb-font-medium">Memo:</span> {transaction.memo}
-      </div>
-    )}
-    <div className="eb-mt-1 eb-grid eb-grid-cols-2 eb-gap-2">
-      <div>
-        <span className="eb-text-xs eb-text-muted-foreground">Debtor</span>
-        <div className="eb-text-xs">{transaction.debtorName || 'N/A'}</div>
-      </div>
-      <div>
-        <span className="eb-text-xs eb-text-muted-foreground">Creditor</span>
-        <div className="eb-text-xs">{transaction.creditorName || 'N/A'}</div>
-      </div>
-    </div>
-  </Card>
-);
+import { TransactionCard } from './components/TransactionCard/TransactionCard';
+import { DataTablePagination } from './components/TransactionsTable/DataTablePagination';
+import { TransactionsTable } from './components/TransactionsTable/TransactionsTable';
+import { getTransactionsColumns } from './components/TransactionsTable/TransactionsTable.columns';
+import { TransactionsTableToolbar } from './components/TransactionsTable/TransactionsTableToolbar';
+import { useAccountsData, useTransactionsData } from './hooks';
+import { TRANSACTIONS_DISPLAY_USER_JOURNEYS } from './TransactionsDisplay.constants';
+import type {
+  TransactionsDisplayProps,
+  TransactionsDisplayRef,
+} from './TransactionsDisplay.types';
 
 export const TransactionsDisplay = forwardRef<
   TransactionsDisplayRef,
   TransactionsDisplayProps
->(({ accountId }, ref) => {
-  const { data, status, failureReason, refetch, isFetching } =
-    useListTransactionsV2({});
-  const isMobile = useMediaQuery('(max-width: 640px)');
-  const transactions = data?.items
-    ? modifyTransactionsData(data.items, accountId)
-    : [];
+>(
+  (
+    {
+      accountIds,
+      description,
+      userEventsHandler,
+      userEventsLifecycle,
+      className,
+    },
+    ref
+  ) => {
+    const { t } = useTranslationWithTokens(['transactions']);
+    const locale = useLocale();
+    const { filteredAccountIds } = useAccountsData();
 
-  // Expose internal methods to parent component
-  useImperativeHandle(
-    ref,
-    () => ({
-      refresh: () => {
-        refetch();
+    // Set up automatic event tracking for data-user-event attributes
+    useUserEventTracking({
+      containerId: 'transactions-display-container',
+      userEventsHandler,
+      userEventsLifecycle,
+    });
+    const { transactions, status, failureReason, refetch } =
+      useTransactionsData({
+        accountIds: accountIds ?? filteredAccountIds,
+      });
+
+    // Track view when transactions load
+    React.useEffect(() => {
+      if (status === 'success' && transactions.length > 0) {
+        trackUserEvent({
+          actionName: TRANSACTIONS_DISPLAY_USER_JOURNEYS.VIEW_LIST,
+          metadata: { count: transactions.length },
+          userEventsHandler,
+        });
+      }
+    }, [status, transactions.length, userEventsHandler]);
+
+    const isMobile = useMediaQuery('(max-width: 640px)');
+
+    // Get translated columns
+    // Type assertion needed due to TypeScript overload resolution issues with TFunction
+    const transactionsColumns = getTransactionsColumns(
+      t as (key: string, options?: any) => string,
+      locale
+    );
+
+    // Table state management (shared for both table and card views)
+    const [sorting, setSorting] = useState<SortingState>([]);
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+      transactionReferenceId: false,
+      effectiveDate: false,
+      memo: false,
+      counterpartName: false,
+      ledgerBalance: false,
+      postingVersion: false,
+      payinOrPayout: false,
+    });
+
+    // Create table instance for filtering, sorting, and pagination
+    const table = useReactTable({
+      data: transactions,
+      columns: transactionsColumns,
+      onSortingChange: setSorting,
+      onColumnFiltersChange: setColumnFilters,
+      getCoreRowModel: getCoreRowModel(),
+      getPaginationRowModel: getPaginationRowModel(),
+      getSortedRowModel: getSortedRowModel(),
+      getFilteredRowModel: getFilteredRowModel(),
+      onColumnVisibilityChange: setColumnVisibility,
+      state: {
+        sorting,
+        columnFilters,
+        columnVisibility,
       },
-      // Add other actions as needed:
-      // reset: () => {
-      //   // Reset any internal state
-      // },
-      // exportData: () => {
-      //   // Export transactions data
-      //   console.log('Exporting transactions:', transactions);
-      // },
-    }),
-    [refetch]
-  ); // Include dependencies that the methods use
+      initialState: {
+        pagination: {
+          pageSize: 25,
+        },
+        sorting: [
+          {
+            id: 'paymentDate',
+            desc: true, // Most recent first
+          },
+        ],
+      },
+    });
 
-  return (
-    <Card className="eb-component eb-w-full">
-      <CardHeader className="eb-flex eb-flex-row eb-items-center eb-justify-between eb-gap-2">
-        <CardTitle className="eb-flex-1 eb-text-xl eb-font-semibold">
-          Transactions
-        </CardTitle>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Refresh transactions"
-          title="Refresh transactions"
-          onClick={() => refetch()}
-          disabled={isFetching}
-          className="eb-ml-2 eb-cursor-pointer"
+    // Expose internal methods to parent component
+    useImperativeHandle(
+      ref,
+      () => ({
+        refresh: () => {
+          refetch();
+        },
+      }),
+      [refetch]
+    );
+
+    return (
+      <div className="eb-w-full eb-@container">
+        <Card
+          id="transactions-display-container"
+          className={cn(
+            'eb-component eb-mx-0 eb-w-full eb-max-w-none eb-overflow-hidden',
+            className
+          )}
         >
-          <span className="eb-sr-only">Refresh transactions</span>
-          <RefreshCw
-            className={`eb-h-5 eb-w-5 eb-text-gray-500 ${isFetching ? 'eb-animate-spin' : ''}`}
-          />
-        </Button>
-      </CardHeader>
-      <CardContent className="eb-space-y-4">
-        {status === 'pending' && (
-          <div className="eb-py-8 eb-text-center eb-text-gray-500">
-            Loading transactions...
-          </div>
-        )}
-        {status === 'error' && (
-          <div className="eb-py-8 eb-text-center eb-text-red-500">
-            Error: {failureReason?.message ?? 'Unknown error'}
-          </div>
-        )}
-        {status === 'success' &&
-          transactions.length > 0 &&
-          (isMobile ? (
-            <div>
-              {transactions.map((transaction) => (
-                <TransactionCard
-                  key={transaction.id}
-                  transaction={transaction}
-                />
-              ))}
+          <CardHeader className="eb-border-b eb-bg-muted/30 eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
+            <div className="eb-min-w-0 eb-flex-1">
+              <CardTitle className="eb-h-8 eb-truncate eb-font-header eb-text-lg eb-font-semibold eb-leading-8 @md:eb-text-xl">
+                {t('title', { defaultValue: 'Transactions' })}{' '}
+                {status === 'success' && (
+                  <span className="eb-animate-fade-in">
+                    {`(${table.getFilteredRowModel().rows.length})`}
+                  </span>
+                )}
+              </CardTitle>
+              {description && (
+                <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
+                  {description}
+                </p>
+              )}
             </div>
-          ) : (
-            <DataTable columns={columns} data={transactions} />
-          ))}
-        {status === 'success' && transactions.length === 0 && (
-          <div className="eb-py-8 eb-text-center eb-text-gray-500">
-            No transactions found
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-});
+          </CardHeader>
+          <CardContent className="eb-p-0">
+            {status === 'pending' && (
+              <div className="eb-px-2.5 eb-py-8 eb-text-center eb-text-muted-foreground @md:eb-px-3 @lg:eb-px-4">
+                {t('loading.transactions', {
+                  defaultValue: 'Loading transactions...',
+                })}
+              </div>
+            )}
+            {status === 'error' && (
+              <div className="eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
+                <ServerErrorAlert
+                  error={failureReason as any}
+                  customTitle={t('errors.loadTransactions.title', {
+                    defaultValue: 'Failed to load transactions',
+                  })}
+                  customErrorMessage={{
+                    '400': t('errors.loadTransactions.400', {
+                      defaultValue:
+                        'Invalid request. Please check your account filters and try again.',
+                    }),
+                    '401': t('errors.loadTransactions.401', {
+                      defaultValue: 'Please log in and try again.',
+                    }),
+                    '403': t('errors.loadTransactions.403', {
+                      defaultValue:
+                        'You do not have permission to view these transactions.',
+                    }),
+                    '404': t('errors.loadTransactions.404', {
+                      defaultValue: 'Transactions not found.',
+                    }),
+                    '500': t('errors.loadTransactions.500', {
+                      defaultValue:
+                        'An unexpected error occurred while loading transactions. Please try again later.',
+                    }),
+                    '503': t('errors.loadTransactions.503', {
+                      defaultValue:
+                        'The service is currently unavailable. Please try again later.',
+                    }),
+                    default: t('errors.loadTransactions.default', {
+                      defaultValue:
+                        'Failed to load transactions. Please try again.',
+                    }),
+                  }}
+                  tryAgainAction={() => refetch()}
+                  showDetails={false}
+                />
+              </div>
+            )}
+            {status === 'success' && transactions.length > 0 && (
+              <div className="eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
+                <div className="eb-w-full eb-space-y-4">
+                  <TransactionsTableToolbar table={table} />
+                  {isMobile ? (
+                    <div className="eb-space-y-4">
+                      {table.getRowModel().rows.length ? (
+                        table
+                          .getRowModel()
+                          .rows.map((row) => (
+                            <TransactionCard
+                              key={row.original.id ?? `transaction-${row.id}`}
+                              transaction={row.original}
+                            />
+                          ))
+                      ) : (
+                        <div className="eb-py-8 eb-text-center eb-text-muted-foreground">
+                          {t('empty.noResults', {
+                            defaultValue: 'No results.',
+                          })}
+                        </div>
+                      )}
+                      <DataTablePagination table={table} />
+                    </div>
+                  ) : (
+                    <>
+                      <TransactionsTable
+                        columns={transactionsColumns}
+                        data={transactions}
+                        table={table}
+                      />
+                      <DataTablePagination table={table} />
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+            {status === 'success' && transactions.length === 0 && (
+              <div className="eb-px-2.5 eb-py-8 eb-text-center eb-text-muted-foreground @md:eb-px-3 @lg:eb-px-4">
+                {t('empty.noTransactions', {
+                  defaultValue: 'No transactions found',
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+);
 
 // Add display name for better debugging
 TransactionsDisplay.displayName = 'TransactionsDisplay';

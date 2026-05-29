@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import {
   ControllerProps,
@@ -6,7 +7,6 @@ import {
   FieldValues,
   useFormContext,
 } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 import { PhoneInput } from '@/components/ui/phone-input';
@@ -20,6 +20,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
   FormControl,
   FormDescription,
   FormField,
@@ -42,6 +43,7 @@ import {
 import { ImportantDateSelector } from '@/components/ux/ImportantDateSelector/ImportantDateSelector';
 import { PatternInput } from '@/components/ux/PatternInput';
 import { IndustryTypeSelect } from '@/core/OnboardingFlow/components/IndustryTypeSelect/IndustryTypeSelect';
+import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
 import {
   FieldContentTokenKey,
   FieldRule,
@@ -76,7 +78,7 @@ interface BaseProps<
   type?: FieldType;
   label?: string | React.ReactNode;
   placeholder?: string;
-  description?: string;
+  description?: string | React.ReactNode;
   tooltip?: string | React.ReactNode;
   required?: boolean;
   readonly?: boolean;
@@ -87,6 +89,7 @@ interface BaseProps<
   inputProps?: React.ComponentProps<typeof Input>;
   maskFormat?: string;
   maskChar?: string;
+  obfuscateWhenUnfocused?: boolean;
   valueOverride?: string;
   onChange?: (...value: any[]) => void;
   labelClassName?: string;
@@ -99,10 +102,13 @@ interface SelectOrRadioGroupProps<
 > extends BaseProps<TFieldValues, TName> {
   type: 'select' | 'radio-group' | 'radio-group-blocks' | 'combobox';
   options: Array<{
-    label: React.ReactNode | string;
+    label: React.ReactNode;
     value: string;
-    description?: string;
+    searchValue?: string;
+    description?: React.ReactNode;
     disabled?: boolean;
+    group?: string;
+    alwaysVisible?: boolean;
   }>;
 }
 interface OtherFieldProps<
@@ -136,6 +142,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   inputProps,
   maskFormat,
   maskChar,
+  obfuscateWhenUnfocused,
   shouldUnregister,
   valueOverride,
   onChange: onChangeProp,
@@ -144,8 +151,11 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
 }: OnboardingFormFieldProps<TFieldValues>) {
   const form = useFormContext();
   const { getFieldRule } = useFormUtils();
+  // Pulled here (top-level hook call) and forwarded to `industrySelect` below.
+  // Only the `industrySelect` field reads it today.
+  const { priorityIndustryCodes } = useOnboardingContext();
 
-  const { t } = useTranslation([
+  const { t, tString } = useTranslationWithTokens([
     'onboarding-old',
     'onboarding-overview',
     'common',
@@ -164,8 +174,16 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
 
   const fieldRequired = required ?? fieldRule.required ?? false;
   const fieldDisplay = fieldRule.display ?? 'visible';
-  const fieldInteraction =
-    readonly || fieldRule.interaction === 'readonly'
+
+  // Check if field has a validation error (used by editableWhenInvalid)
+  const fieldError = form.getFieldState(name)?.error;
+  const isReadonly = readonly || fieldRule.interaction === 'readonly';
+  const shouldOverrideReadonly =
+    isReadonly && fieldRule.editableWhenInvalid === true && fieldError != null;
+
+  const fieldInteraction = shouldOverrideReadonly
+    ? 'enabled'
+    : isReadonly
       ? 'readonly'
       : disabled || fieldRule.interaction === 'disabled'
         ? 'disabled'
@@ -203,7 +221,33 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
     );
   };
 
-  const fieldPlaceholder = placeholder ?? getContentToken('placeholder');
+  // String version for HTML attributes like placeholder that require string type
+  const getContentTokenString = (id: FieldContentTokenKey) => {
+    const key = `fields.${tName}.${id}`;
+    const oldContentTokenKey = `onboarding-old:${key}`;
+    const contentTokenOverride = fieldRule.contentTokenOverrides?.[id];
+    if (typeof contentTokenOverride === 'string') {
+      return contentTokenOverride;
+    }
+    return tString(
+      [
+        `onboarding-overview:${key}.${fieldRule.contentTokenOverrideKey}`,
+        `onboarding-overview:${key}.default`,
+        `onboarding-overview:${key}`,
+        oldContentTokenKey, // TO REMOVE
+        'common:noTokenFallback',
+      ] as unknown as TemplateStringsArray,
+      {
+        number,
+        key,
+      }
+    );
+  };
+
+  const fieldPlaceholder =
+    typeof placeholder === 'string'
+      ? placeholder
+      : getContentTokenString('placeholder');
 
   const fieldLabel = (
     <>
@@ -237,6 +281,22 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
         const { onBlur, ...fieldWithoutBlur } = field;
         const [open, setOpen] = useState(false);
 
+        // Typeahead state for combobox — lets the user type to select
+        // an option while the dropdown is closed, like a native <select>.
+        // Uses a plain mutable object (not useRef) since this is inside
+        // a render prop where hooks cannot be called.
+        const [typeahead] = useState(() => ({ search: '', timer: 0 }));
+
+        // When the current value doesn't match any available option
+        // (e.g. invalid API data), treat as unset so the user sees
+        // the placeholder and must pick a valid option.
+        const matchedOption = options?.find((opt) => opt.value === field.value);
+        const hasUnmatchedValue =
+          (type === 'combobox' || type === 'select') &&
+          !!field.value &&
+          !!options &&
+          !matchedOption;
+
         return (
           <FormItem className={className}>
             {type !== 'checkbox' && type !== 'checkbox-basic' ? (
@@ -256,7 +316,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
             {fieldInteraction === 'readonly' ? (
               <p className="eb-font-bold">
                 {(options
-                  ? options.find(({ value }) => value === field.value)?.label
+                  ? matchedOption?.label
                   : (valueOverride ?? field.value)) || 'N/A'}
               </p>
             ) : (
@@ -267,8 +327,8 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                       <FormControl>
                         <PhoneInput
                           {...field}
-                          countries={['US']}
-                          placeholder="Enter phone number"
+                          countries={['US', 'CA']}
+                          placeholder={fieldPlaceholder}
                           international={false}
                           defaultCountry="US"
                           data-dtrum-tracking={field.name}
@@ -285,6 +345,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                         field={field}
                         data-dtrum-tracking={field.name}
                         placeholder={fieldPlaceholder}
+                        priorityCodes={priorityIndustryCodes}
                         onChange={(value) => {
                           onChangeProp?.(value);
                           field.onChange(value);
@@ -303,53 +364,197 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                               role="combobox"
                               aria-expanded={open}
                               className="eb-justify-between"
+                              onKeyDown={(e) => {
+                                if (
+                                  e.key === 'ArrowDown' ||
+                                  e.key === 'ArrowUp'
+                                ) {
+                                  e.preventDefault();
+                                  setOpen(true);
+                                  return;
+                                }
+
+                                // Typeahead: when closed, printable keys
+                                // accumulate a search string and select the
+                                // first matching option (like native <select>).
+                                if (
+                                  !open &&
+                                  options &&
+                                  e.key.length === 1 &&
+                                  !e.ctrlKey &&
+                                  !e.metaKey &&
+                                  !e.altKey
+                                ) {
+                                  e.preventDefault();
+                                  const ta = typeahead;
+                                  window.clearTimeout(ta.timer);
+                                  ta.search += e.key.toLowerCase();
+                                  ta.timer = window.setTimeout(() => {
+                                    ta.search = '';
+                                  }, 1000);
+
+                                  const getSearchText = (
+                                    opt: (typeof options)[number]
+                                  ) =>
+                                    (
+                                      opt.searchValue ?? String(opt.label)
+                                    ).toLowerCase();
+                                  const match =
+                                    options.find((opt) =>
+                                      getSearchText(opt).startsWith(ta.search)
+                                    ) ??
+                                    options
+                                      .filter((opt) =>
+                                        getSearchText(opt).includes(ta.search)
+                                      )
+                                      .sort(
+                                        (a, b) =>
+                                          getSearchText(a).indexOf(ta.search) -
+                                          getSearchText(b).indexOf(ta.search)
+                                      )[0];
+                                  if (match && match.value !== field.value) {
+                                    onChangeProp?.(match.value);
+                                    field.onChange(match.value);
+                                  }
+                                }
+                              }}
                               {...fieldWithoutBlur}
                             >
-                              {field.value
-                                ? options?.find(
-                                    (option) => option.value === field.value
-                                  )?.label
+                              {field.value && matchedOption
+                                ? matchedOption.label
                                 : fieldPlaceholder}
                               <ChevronsUpDown className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="eb-w-[--radix-popover-trigger-width] eb-p-0">
-                          <Command>
+                          <Command
+                            defaultValue={
+                              matchedOption
+                                ? `${matchedOption.searchValue ?? String(matchedOption.label)} ${matchedOption.value}`
+                                : undefined
+                            }
+                            filter={(value, search) => {
+                              const alwaysVisibleValues = options
+                                ?.filter((opt) => opt.alwaysVisible)
+                                .map(
+                                  (opt) =>
+                                    `${opt.searchValue ?? opt.label} ${opt.value}`
+                                );
+                              if (
+                                alwaysVisibleValues?.some(
+                                  (v) =>
+                                    String(v).toLowerCase() ===
+                                    value.toLowerCase()
+                                )
+                              ) {
+                                return 1;
+                              }
+                              return value
+                                .toLowerCase()
+                                .includes(search.toLowerCase())
+                                ? 1
+                                : 0;
+                            }}
+                          >
                             <CommandInput placeholder={fieldPlaceholder} />
                             <CommandList>
                               <CommandEmpty>
                                 {t('common:noOptionFound')}
                               </CommandEmpty>
-                              <CommandGroup>
-                                {options?.map((option) => (
-                                  <CommandItem
-                                    key={`combobox-option-${option.value}`}
-                                    value={`${option.label} ${option.value}`}
-                                    onSelect={() => {
-                                      onChangeProp?.(option.value);
-                                      field.onChange(
-                                        option.value === field.value
-                                          ? ''
-                                          : option.value
+                              {(() => {
+                                const hasGroups = options?.some(
+                                  (opt) => opt.group
+                                );
+                                if (hasGroups && options) {
+                                  const groups = new Map<
+                                    string,
+                                    typeof options
+                                  >();
+                                  for (const opt of options) {
+                                    const key = opt.group ?? '';
+                                    if (!groups.has(key)) groups.set(key, []);
+                                    groups.get(key)!.push(opt);
+                                  }
+                                  return Array.from(groups.entries()).map(
+                                    ([groupLabel, groupOptions], idx) => (
+                                      <React.Fragment key={groupLabel}>
+                                        {idx > 0 && <CommandSeparator />}
+                                        <CommandGroup
+                                          heading={groupLabel || undefined}
+                                        >
+                                          {groupOptions.map((option) => {
+                                            const isSelected =
+                                              field.value === option.value;
+                                            return (
+                                              <CommandItem
+                                                key={`combobox-option-${option.value}`}
+                                                value={`${option.searchValue ?? option.label} ${option.value}`}
+                                                onSelect={() => {
+                                                  onChangeProp?.(option.value);
+                                                  field.onChange(
+                                                    option.value === field.value
+                                                      ? ''
+                                                      : option.value
+                                                  );
+                                                  onBlur();
+                                                  setOpen(false);
+                                                }}
+                                                className="eb-cursor-pointer"
+                                              >
+                                                <Check
+                                                  className={cn(
+                                                    'eb-mr-2 eb-h-4 eb-w-4',
+                                                    isSelected
+                                                      ? 'eb-opacity-100'
+                                                      : 'eb-opacity-0'
+                                                  )}
+                                                />
+                                                {option.label}
+                                              </CommandItem>
+                                            );
+                                          })}
+                                        </CommandGroup>
+                                      </React.Fragment>
+                                    )
+                                  );
+                                }
+                                return (
+                                  <CommandGroup>
+                                    {options?.map((option) => {
+                                      const isSelected =
+                                        field.value === option.value;
+                                      return (
+                                        <CommandItem
+                                          key={`combobox-option-${option.value}`}
+                                          value={`${option.searchValue ?? option.label} ${option.value}`}
+                                          onSelect={() => {
+                                            onChangeProp?.(option.value);
+                                            field.onChange(
+                                              option.value === field.value
+                                                ? ''
+                                                : option.value
+                                            );
+                                            onBlur();
+                                            setOpen(false);
+                                          }}
+                                          className="eb-cursor-pointer"
+                                        >
+                                          <Check
+                                            className={cn(
+                                              'eb-mr-2 eb-h-4 eb-w-4',
+                                              isSelected
+                                                ? 'eb-opacity-100'
+                                                : 'eb-opacity-0'
+                                            )}
+                                          />
+                                          {option.label}
+                                        </CommandItem>
                                       );
-                                      onBlur();
-                                      setOpen(false);
-                                    }}
-                                    className="eb-cursor-pointer"
-                                  >
-                                    <Check
-                                      className={cn(
-                                        'eb-mr-2 eb-h-4 eb-w-4',
-                                        field.value === option.value
-                                          ? 'eb-opacity-100'
-                                          : 'eb-opacity-0'
-                                      )}
-                                    />
-                                    {option.label}
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
+                                    })}
+                                  </CommandGroup>
+                                );
+                              })()}
                             </CommandList>
                           </Command>
                         </PopoverContent>
@@ -363,7 +568,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                           field.onChange(value);
                           onBlur();
                         }}
-                        value={field.value}
+                        value={hasUnmatchedValue ? '' : field.value}
                         data-dtrum-tracking={field.name}
                       >
                         <FormControl {...fieldWithoutBlur}>
@@ -388,7 +593,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                       <FormControl>
                         <RadioGroup
                           {...field}
-                          value={field.value}
+                          value={field.value ?? ''}
                           onValueChange={(value) => {
                             onChangeProp?.(value);
                             field.onChange(value);
@@ -408,7 +613,9 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                                   disabled={option.disabled}
                                 />
                               </FormControl>
-                              <FormLabel className="eb-font-normal eb-text-foreground">
+                              <FormLabel
+                                className={`eb-font-normal eb-text-foreground ${option.disabled ? 'eb-cursor-not-allowed eb-opacity-50' : ''}`}
+                              >
                                 {option.label}
                               </FormLabel>
                             </FormItem>
@@ -421,7 +628,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                       <FormControl>
                         <RadioGroup
                           {...field}
-                          value={field.value}
+                          value={field.value ?? ''}
                           onValueChange={(value) => {
                             onChangeProp?.(value);
                             field.onChange(value);
@@ -434,7 +641,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                             <FormItem
                               key={`radio-group-option-${option.value}`}
                             >
-                              <FormLabel className="eb-flex eb-cursor-pointer eb-select-none eb-items-start eb-gap-3 eb-rounded-input eb-border eb-bg-input eb-p-6 eb-text-sm eb-font-medium eb-leading-none eb-shadow-md hover:eb-bg-accent/50 peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-50 has-[[data-state=checked]]:eb-border-primary has-[[data-state=checked]]:eb-bg-primary/5">
+                              <FormLabel className="eb-flex eb-cursor-pointer eb-select-none eb-items-start eb-gap-3 eb-rounded-input eb-border eb-bg-input eb-p-6 eb-text-sm eb-font-medium eb-leading-none eb-shadow-md hover:eb-bg-accent/50 peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-50 has-[[disabled]]:eb-cursor-not-allowed has-[[data-state=checked]]:eb-border-primary has-[[data-state=checked]]:eb-bg-primary/5 has-[[disabled]]:eb-opacity-50 has-[[disabled]]:eb-shadow-none has-[[disabled]]:hover:eb-bg-input">
                                 <FormControl>
                                   <RadioGroupItem
                                     value={option.value}
@@ -530,6 +737,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                             {...inputProps}
                             format={maskFormat ?? ''}
                             mask={maskChar}
+                            obfuscateWhenUnfocused={obfuscateWhenUnfocused}
                             type={type}
                             defaultValue={field.value}
                             value={valueOverride ?? field.value}
@@ -576,11 +784,16 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                             if (errorMsg && form) {
                               onChangeProp?.('');
                               field.onChange('');
-                              form.setError(field.name, {
-                                type: 'manual',
-                                message: errorMsg,
-                              });
-                              await form.trigger(field.name);
+                              // Defer setError so it runs after RHF's
+                              // internal validation cycle triggered by
+                              // field.onChange(''), which would otherwise
+                              // overwrite our error with "required".
+                              setTimeout(() => {
+                                form.setError(field.name, {
+                                  type: 'manual',
+                                  message: errorMsg,
+                                });
+                              }, 0);
                             } else if (date) {
                               form?.clearErrors(field.name);
                               onChangeProp?.(date?.toISOString().split('T')[0]);

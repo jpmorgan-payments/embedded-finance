@@ -2,7 +2,8 @@ import { i18n } from '@/i18n/config';
 import DOMPurify from 'dompurify';
 import { z } from 'zod';
 
-import { COUNTRIES_OF_FORMATION } from '../utils/COUNTRIES_OF_FORMATION';
+import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
+
 import { AddressSchema, PhoneSchema } from '../utils/schemas';
 
 const CURRENT_YEAR = new Date().getFullYear();

@@ -3,7 +3,7 @@ export const efDocumentRequestDetailsList = [
     id: '68430',
     createdAt: '2022-11-18T12:28:11.232Z',
     description:
-      "To verify your identity, please provide any one of the below unexpired document which has Full Legal name, Address and Date of Birth.\n1. Drivers license\n2. Passport\n3. Government issued identity card\nIf address on your identification document is not current, please additionally provide a Utility Bill or Bank Statement dated within last 6 months.",
+      'To verify your identity, please provide any one of the below unexpired document which has Full Legal name, Address and Date of Birth.\n1. Drivers license\n2. Passport\n3. Government issued identity card\nIf address on your identification document is not current, please additionally provide a Utility Bill or Bank Statement dated within last 6 months.',
     partyId: '2000000555',
     status: 'ACTIVE',
     requirements: [

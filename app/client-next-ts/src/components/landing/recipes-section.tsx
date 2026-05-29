@@ -1,68 +1,93 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Calendar, UserCog } from 'lucide-react';
+import { Calendar, FileText, UserCog, Webhook } from 'lucide-react';
+
 import { Link } from '@tanstack/react-router';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function RecipesSection() {
   const recipes = [
     {
-      id: 'date-selector-challenges',
-      title: 'Tackling Date Input Challenges: Common User Errors and Solutions',
+      id: 'core-functional-requirements-index',
+      title: 'Core functional requirements — cross-reference',
       excerpt:
-        "Our team's experience implementing date selectors revealed critical UX issues that impact user experience. Learn from our mistakes and discover better approaches.",
-      date: '2024-12-23',
+        'Index of links to all functional requirements markdown files under src/core for each active component.',
+      date: '2026-04-15',
       readTime: '5 min read',
-      tags: ['UX', 'Date Input', 'User Experience'],
-      link: '/stories/date-selector-challenges',
-    },
-    {
-      id: 'important-date-selector-component',
-      title:
-        'Building an Accessible Important Date Selector: A Component Design Case Study',
-      excerpt:
-        'Follow-up to our date input challenges: How we designed and built a specialized Important Date Selector component that prioritizes accessibility and user experience.',
-      date: '2024-12-30',
-      readTime: '7 min read',
-      tags: ['Component Design', 'Accessibility', 'React'],
-      link: '/stories/important-date-selector-component',
+      tags: ['Documentation', 'Requirements', 'Core'],
+      link: '/stories/core-functional-requirements-index',
+      external: false,
+      icon: <FileText className="h-5 w-5" />,
     },
     {
       id: 'partially-hosted-onboarding',
-      title: 'Partially Hosted Onboarding Integration',
+      title: 'Partially Hosted UI Integration Guide',
       excerpt:
-        'Implement a hybrid onboarding approach where parts of the client verification process are handled by your application while leveraging embedded components.',
-      date: '2024-12-01',
-      readTime: '6 min read',
-      tags: ['Onboarding', 'Integration', 'Hybrid'],
+        'Session transfer, iframe embedding, postMessage, and security for the hosted onboarding experience (PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md).',
+      date: '2026-03-12',
+      readTime: '25 min read',
+      tags: ['Onboarding', 'Hosted UI', 'Integration'],
       link: '/stories/partially-hosted-onboarding',
       external: false,
       icon: <UserCog className="h-5 w-5" />,
     },
+    {
+      id: 'webhook-integration-recipe',
+      title: 'Webhook Integration Recipe: UX Guidance',
+      excerpt:
+        'Client-facing and partner-platform UX patterns for webhook events, onboarding status, and operations (WEBHOOK_INTEGRATION_RECIPE.md).',
+      date: '2026-01-08',
+      readTime: '12 min read',
+      tags: ['Webhooks', 'Integration', 'UX'],
+      link: '/stories/webhook-integration-recipe',
+      external: false,
+      icon: <Webhook className="h-5 w-5" />,
+    },
+    {
+      id: 'date-selector-challenges',
+      title: 'JavaScript/TypeScript Date Parsing Guide',
+      excerpt:
+        'Timezone shifts, ambiguous formats, and reliable patterns for date handling in Embedded Finance components (DATE_PARSING_GUIDE.md).',
+      date: '2025-04-28',
+      readTime: '6 min read',
+      tags: ['TypeScript', 'Dates', 'Parsing'],
+      link: '/stories/date-selector-challenges',
+    },
+    {
+      id: 'important-date-selector-component',
+      title: 'Important Date Selector Component Recipe',
+      excerpt:
+        'Design guidelines and accessibility patterns for ImportantDateSelector (IMPORTANT_DATE_SELECTOR_RECIPE.md).',
+      date: '2025-06-12',
+      readTime: '10 min read',
+      tags: ['Components', 'Accessibility', 'Dates'],
+      link: '/stories/important-date-selector-component',
+    },
   ];
 
   return (
-    <section id="recipes" className="py-8 bg-jpm-white">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-page-h2 text-jpm-gray-900 mb-4 text-center">
+    <section id="recipes" className="bg-jpm-white py-8">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="mb-4 text-center text-page-h2 text-jpm-gray-900">
             Engineering Recipes
           </h2>
-          <p className="text-page-body text-jpm-gray text-center mb-8 max-w-2xl mx-auto">
+          <p className="mx-auto mb-8 max-w-2xl text-center text-page-body text-jpm-gray">
             Practical guides and case studies for building embedded finance
             solutions and integrating our components.
           </p>
 
           {/* Grid Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
             {recipes.map((recipe) => (
               <Card
                 key={recipe.id}
-                className="overflow-hidden border-0 shadow-page-card bg-jpm-white rounded-page-md h-70 flex flex-col"
+                className="h-70 flex flex-col overflow-hidden rounded-page-md border-0 bg-jpm-white shadow-page-card"
               >
-                <CardHeader className="bg-sp-accent p-4 min-h-[4rem] flex-shrink-0 border-b border-sp-border">
+                <CardHeader className="min-h-[4rem] flex-shrink-0 border-b border-sp-border bg-sp-accent p-4">
                   <div className="flex items-start justify-between">
                     <CardTitle className="flex items-start text-base font-semibold leading-tight">
-                      <div className="bg-white p-1 rounded-page-sm mr-2 text-sp-brand flex-shrink-0 border border-sp-border">
+                      <div className="mr-2 flex-shrink-0 rounded-page-sm border border-sp-border bg-white p-1 text-sp-brand">
                         {recipe.icon ? (
                           recipe.icon
                         ) : (
@@ -73,43 +98,44 @@ export function RecipesSection() {
                     </CardTitle>
                   </div>
                 </CardHeader>
-                <CardContent className="p-4 flex-1 flex flex-col">
-                  <div className="flex-1 mb-4">
-                    <p className="text-sm text-jpm-gray leading-relaxed line-clamp-4">
+                <CardContent className="flex flex-1 flex-col p-4">
+                  <div className="mb-4 flex-1">
+                    <p className="line-clamp-4 text-sm leading-relaxed text-jpm-gray">
                       {recipe.excerpt}
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-2 mb-2">
+                  <div className="mb-2 flex flex-wrap gap-2">
                     {recipe.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="px-2 py-1 bg-sp-accent text-sp-brand text-page-small rounded-page-sm border border-sp-border"
+                        className="rounded-page-sm border border-sp-border bg-sp-accent px-2 py-1 text-page-small text-sp-brand"
                       >
                         {tag}
                       </span>
                     ))}
                   </div>
                   {/* Action button perfectly bottom-aligned and always visible */}
-                  <div className="w-full flex justify-center items-center mt-auto pt-3 pb-1 border-t border-gray-100">
+                  <div className="mt-auto flex w-full items-center justify-center border-t border-gray-100 pb-1 pt-3">
                     {recipe.external ? (
                       <Button
                         asChild
-                        variant="outline"
-                        className="border-sp-brand text-sp-brand hover:bg-sp-accent rounded-page-md font-semibold flex items-center whitespace-nowrap"
+                        variant="ghost"
+                        className="rounded-page-md px-6 font-semibold text-sp-brand shadow-none hover:bg-sp-accent hover:text-sp-brand"
                       >
                         <a
                           href={recipe.link}
                           target="_blank"
                           rel="noopener noreferrer"
+                          className="inline-flex whitespace-nowrap"
                         >
                           Read More
                         </a>
                       </Button>
                     ) : (
-                      <Link to={recipe.link}>
+                      <Link to={recipe.link} className="inline-flex">
                         <Button
-                          variant="outline"
-                          className="border-sp-brand text-sp-brand hover:bg-sp-accent rounded-page-md font-semibold flex items-center whitespace-nowrap"
+                          variant="ghost"
+                          className="whitespace-nowrap rounded-page-md px-6 font-semibold text-sp-brand shadow-none hover:bg-sp-accent hover:text-sp-brand"
                         >
                           Read More
                         </Button>

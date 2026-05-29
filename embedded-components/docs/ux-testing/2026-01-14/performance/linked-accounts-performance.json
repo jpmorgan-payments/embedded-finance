@@ -1,0 +1,46 @@
+{
+  "component": "Linked Accounts",
+  "date": "2026-01-14",
+  "url": "https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=linked-accounts&theme=Empty",
+  "navigation": {
+    "dns": 173.2,
+    "tcp": 575.6,
+    "request": 104.5,
+    "response": 1.3,
+    "domProcessing": 640.6,
+    "load": 0,
+    "total": 1520.5
+  },
+  "resources": [
+    {
+      "name": "index-oA97vI2s.js",
+      "type": "script",
+      "duration": 528.9,
+      "size": 194579
+    },
+    {
+      "name": "index-B6-mdqri.css",
+      "type": "link",
+      "duration": 117.2,
+      "size": 12199
+    },
+    {
+      "name": "browser-DI5BZa7t.js",
+      "type": "script",
+      "duration": 398.2,
+      "size": 206609
+    }
+  ],
+  "memory": {
+    "used": 25,
+    "total": 26,
+    "limit": 2144,
+    "unit": "MB"
+  },
+  "summary": {
+    "totalLoadTime": "1520.5ms",
+    "largestResource": "browser-DI5BZa7t.js (206KB)",
+    "memoryUsage": "25MB / 2144MB (1.2%)",
+    "performance": "Good"
+  }
+}

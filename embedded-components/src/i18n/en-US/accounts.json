@@ -1,0 +1,58 @@
+{
+  "title": "Your accounts",
+  "titleSingle": "Your account",
+  "description": "View and manage your business accounts",
+  "loading": {
+    "accounts": "Loading accounts..."
+  },
+  "error": {
+    "loadFailed": "Failed to load accounts. Please try again.",
+    "retry": "Retry"
+  },
+  "emptyState": {
+    "title": "No accounts found",
+    "description": "You don't have any accounts yet. Contact support if you need assistance."
+  },
+  "status": {
+    "labels": {
+      "OPEN": "Open",
+      "CLOSED": "Closed",
+      "PENDING_CLOSE": "Pending Close"
+    }
+  },
+  "categories": {
+    "LIMITED_DDA_PAYMENTS": "Limited DDA Payments",
+    "LIMITED_DDA": "Limited DDA",
+    "EMBEDDED_DDA": "Embedded DDA",
+    "DDA": "DDA",
+    "CLIENT_OFFSET": "Client Offset",
+    "MANAGEMENT": "Management",
+    "PROCESSING": "Processing",
+    "PROCESSING_OFFSET": "Processing Offset"
+  },
+  "card": {
+    "accountNumber": "Account Number",
+    "routing": "Routing",
+    "achRouting": "ACH Routing Number",
+    "routingLabel": "{{type}} Routing Number",
+    "showDetails": "Show account details",
+    "hideDetails": "Hide account details",
+    "copyAccountNumber": "Copy account number",
+    "copyRouting": "Copy routing number",
+    "copyAchRouting": "Copy ACH routing number",
+    "copyRoutingLabel": "Copy {{type}} routing number",
+    "balancesError": "Unable to load balances",
+    "noBalanceData": "Balance information unavailable",
+    "dataAsOf": "As of {{date}}",
+    "balanceTypeInfoAriaLabel": "Learn more about {{type}}"
+  },
+  "balanceTypes": {
+    "ITAV": "Available Balance",
+    "ITBD": "Current Balance",
+    "ITAV_description": "Funds you can use now, including pending credits and minus holds.",
+    "ITBD_description": "Balance from settled transactions; may not reflect pending activity."
+  },
+  "skeleton": {
+    "loadingAccount": "Loading account"
+  }
+}

@@ -21,6 +21,7 @@ import {
 import { DocumentUploadForm } from '@/core/OnboardingFlow/screens/DocumentUploadScreen/DocumentUploadForm';
 import { DocumentUploadScreen } from '@/core/OnboardingFlow/screens/DocumentUploadScreen/DocumentUploadScreen';
 import { GatewayScreen } from '@/core/OnboardingFlow/screens/GatewayScreen/GatewayScreen';
+import { LinkAccountScreen } from '@/core/OnboardingFlow/screens/LinkAccountScreen/LinkAccountScreen';
 import { OperationalDetailsForm } from '@/core/OnboardingFlow/screens/OperationalDetailsForm/OperationalDetailsForm';
 import { OverviewScreen } from '@/core/OnboardingFlow/screens/OverviewScreen/OverviewScreen';
 import { OwnersSectionScreen } from '@/core/OnboardingFlow/screens/OwnersSectionScreen/OwnersSectionScreen';
@@ -36,6 +37,7 @@ import {
   clientHasOutstandingDocRequests,
   getActiveOwners,
   getOrganizationParty,
+  isUSExchangePTC,
 } from '@/core/OnboardingFlow/utils/dataUtils';
 import { getStepperValidation } from '@/core/OnboardingFlow/utils/flowUtils';
 
@@ -117,6 +119,12 @@ const staticScreens: StaticScreenConfig[] = [
     type: 'component',
     Component: DocumentUploadForm,
   },
+  {
+    id: 'link-account',
+    isSection: false,
+    type: 'component',
+    Component: LinkAccountScreen,
+  },
 ];
 
 const sectionScreens: SectionScreenConfig[] = [
@@ -142,21 +150,18 @@ const sectionScreens: SectionScreenConfig[] = [
         ),
       ],
       statusResolver: (
-        sessionData,
+        _sessionData,
         clientData,
         allStepsValid,
         stepValidationMap
       ) => {
-        if (sessionData.mockedKycCompleted) {
-          return 'hidden';
-        }
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
           clientData?.status === 'REVIEW_IN_PROGRESS' ||
           clientData?.status === 'APPROVED' ||
           clientData?.status === 'DECLINED'
         ) {
-          return 'hidden';
+          return 'completed_disabled';
         }
 
         if (
@@ -205,6 +210,9 @@ const sectionScreens: SectionScreenConfig[] = [
           description: i18n.t(
             'onboarding-overview:screens.personalSection.steps.personalDetails.description'
           ),
+          requirementSummary: i18n.t(
+            'onboarding-overview:screens.personalSection.steps.personalDetails.requirementSummary'
+          ),
           Component: PersonalDetailsForm,
         },
         {
@@ -216,7 +224,11 @@ const sectionScreens: SectionScreenConfig[] = [
           description: i18n.t(
             'onboarding-overview:screens.personalSection.steps.identityDocument.description'
           ),
+          requirementSummary: i18n.t(
+            'onboarding-overview:screens.personalSection.steps.identityDocument.requirementSummary'
+          ),
           Component: IndividualIdentityForm,
+          isVisible: (ctx) => !isUSExchangePTC(ctx.orgParty),
         },
         {
           id: 'contact-details',
@@ -226,6 +238,9 @@ const sectionScreens: SectionScreenConfig[] = [
           stepType: 'form',
           description: i18n.t(
             'onboarding-overview:screens.personalSection.steps.contactDetails.description'
+          ),
+          requirementSummary: i18n.t(
+            'onboarding-overview:screens.personalSection.steps.contactDetails.requirementSummary'
           ),
           Component: ContactDetailsForm,
         },
@@ -261,21 +276,18 @@ const sectionScreens: SectionScreenConfig[] = [
         ),
       ],
       statusResolver: (
-        sessionData,
+        _sessionData,
         clientData,
         allStepsValid,
         stepValidationMap
       ) => {
-        if (sessionData.mockedKycCompleted) {
-          return 'hidden';
-        }
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
           clientData?.status === 'REVIEW_IN_PROGRESS' ||
           clientData?.status === 'APPROVED' ||
           clientData?.status === 'DECLINED'
         ) {
-          return 'hidden';
+          return 'completed_disabled';
         }
 
         if (
@@ -360,8 +372,13 @@ const sectionScreens: SectionScreenConfig[] = [
     isSection: true,
     type: 'component',
     sectionConfig: {
-      excludedForOrgTypes: ['SOLE_PROPRIETORSHIP'],
+      isVisible: (ctx) =>
+        ctx.orgParty?.organizationDetails?.organizationType !==
+          'SOLE_PROPRIETORSHIP' && !isUSExchangePTC(ctx.orgParty),
       label: i18n.t('onboarding-overview:screens.ownersSection.label'),
+      shortLabel: i18n.t(
+        'onboarding-overview:screens.ownersSection.shortLabel'
+      ),
       icon: Users2Icon,
       requirementsList: [
         i18n.t('onboarding-overview:screens.ownersSection.requirementsList.0'),
@@ -388,23 +405,20 @@ const sectionScreens: SectionScreenConfig[] = [
           return allStepsValid;
         });
 
-        if (sessionData.mockedKycCompleted) {
-          return 'hidden';
-        }
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
           clientData?.status === 'REVIEW_IN_PROGRESS' ||
           clientData?.status === 'APPROVED' ||
           clientData?.status === 'DECLINED'
         ) {
-          return 'hidden';
+          return 'completed_disabled';
         }
 
         if (
           !getOrganizationParty(clientData)?.organizationDetails
             ?.organizationType
         ) {
-          return 'hidden';
+          return 'on_hold';
         }
 
         if (!allOwnersValid) {
@@ -436,19 +450,16 @@ const sectionScreens: SectionScreenConfig[] = [
           'onboarding-overview:screens.additionalQuestionsSection.requirementsList.1'
         ),
       ],
-      statusResolver: (sessionData, clientData) => {
+      statusResolver: (_sessionData, clientData) => {
         const sectionCompleted =
           clientData?.outstanding?.questionIds?.length === 0;
-        if (sessionData.mockedKycCompleted) {
-          return 'hidden';
-        }
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
           clientData?.status === 'REVIEW_IN_PROGRESS' ||
           clientData?.status === 'APPROVED' ||
           clientData?.status === 'DECLINED'
         ) {
-          return 'hidden';
+          return 'completed_disabled';
         }
 
         if (
@@ -472,17 +483,14 @@ const sectionScreens: SectionScreenConfig[] = [
     sectionConfig: {
       label: i18n.t('onboarding-overview:screens.reviewAttestSection.label'),
       icon: FileIcon,
-      statusResolver: (sessionData, clientData) => {
-        if (sessionData.mockedKycCompleted) {
-          return 'hidden';
-        }
+      statusResolver: (_sessionData, clientData) => {
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
           clientData?.status === 'REVIEW_IN_PROGRESS' ||
           clientData?.status === 'APPROVED' ||
           clientData?.status === 'DECLINED'
         ) {
-          return 'hidden';
+          return 'completed_disabled';
         }
 
         if (
@@ -545,13 +553,12 @@ const sectionScreens: SectionScreenConfig[] = [
         ) {
           return 'not_started';
         }
+
+        // Hide during REVIEW_IN_PROGRESS since we can't determine doc request history from clientData.
+        // The OverviewScreen shows the appropriate alert ("We have your documents" vs "Application submitted")
+        // using useSmbdoListDocumentRequests which has the actual document request data.
         if (
-          clientData?.status === 'REVIEW_IN_PROGRESS' &&
-          !hasOutstandingDocRequests
-        ) {
-          return 'completed_disabled';
-        }
-        if (
+          clientData?.status === 'REVIEW_IN_PROGRESS' ||
           clientData?.status === 'APPROVED' ||
           clientData?.status === 'DECLINED'
         ) {
@@ -564,7 +571,7 @@ const sectionScreens: SectionScreenConfig[] = [
         ) {
           return 'on_hold';
         }
-        return 'completed_disabled';
+        return 'on_hold';
       },
     },
     Component: DocumentUploadScreen,

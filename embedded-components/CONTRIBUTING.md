@@ -5,10 +5,10 @@ Please read our [organization-wide contribution guidelines](https://github.com/j
 ## Project Structure
 
 ```
-embedded-components/ 
-├── src/ # Source code 
-├── .storybook/ # Storybook configuration 
-├── dist/ # Built files (not in repo) 
+embedded-components/
+├── src/ # Source code
+├── .storybook/ # Storybook configuration
+├── dist/ # Built files (not in repo)
 └── public/ # Static assets and MSW worker
 ```
 
@@ -17,7 +17,7 @@ embedded-components/
 ### Core
 
 - React 18.x with TypeScript
-- Shadcn/UI components with Radix UI primitives 
+- Shadcn/UI components with Radix UI primitives
 - Tailwind CSS
 - Vite & TypeScript
 
@@ -52,47 +52,46 @@ yarn install
 
 ### 3. Configure VSCode (optional)
 
-  - Recommended plugins:
-    - ESLint
-    - Prettier
-    - Tailwind CSS Intellisense
-   
-  - Recommended settings
-    - Use the `files.associations` setting to tell VS Code to always open .css files in Tailwind CSS mode:
-      
-      ```json
-      "files.associations": {
-        "*.css": "tailwindcss"
-      }
-      ```
+- Recommended plugins:
+  - ESLint
+  - Prettier
+  - Tailwind CSS Intellisense
 
-    - By default VS Code will not trigger completions when editing "string" content, for example within JSX attribute values. Updating the `editor.quickSuggestions`  setting may improve your experience:
-      
-      ```json
-      "editor.quickSuggestions": {
-        "strings": "on"
-      }
-      ```
+- Recommended settings
+  - Use the `files.associations` setting to tell VS Code to always open .css files in Tailwind CSS mode:
 
-    - Allow Tailwind CSS Intellisense to autocomplete class names in `clsx`, `cva`, and `cx`:
-      
-      ```json
-      "tailwindCSS.experimental.classRegex": [
-        [
-          "(?:clsx|cva|cx)\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
-          "'([^']*)'"
-        ],
-        [
-          "(?:clsx|cva|cx)\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
-          "\"([^\"]*)\""
-        ],
-        [
-          "(?:clsx|cva|cx)\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
-          "`([^`]*)`"
-        ]
+    ```json
+    "files.associations": {
+      "*.css": "tailwindcss"
+    }
+    ```
+
+  - By default VS Code will not trigger completions when editing "string" content, for example within JSX attribute values. Updating the `editor.quickSuggestions` setting may improve your experience:
+
+    ```json
+    "editor.quickSuggestions": {
+      "strings": "on"
+    }
+    ```
+
+  - Allow Tailwind CSS Intellisense to autocomplete class names in `clsx`, `cva`, and `cx`:
+
+    ```json
+    "tailwindCSS.experimental.classRegex": [
+      [
+        "(?:clsx|cva|cx)\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
+        "'([^']*)'"
+      ],
+      [
+        "(?:clsx|cva|cx)\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
+        "\"([^\"]*)\""
+      ],
+      [
+        "(?:clsx|cva|cx)\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
+        "`([^`]*)`"
       ]
-      ```
-
+    ]
+    ```
 
 ### 4. Start development:
 
@@ -119,11 +118,10 @@ yarn test        # Full test suite
 ```
 
 3. Submit PR with:
-
-    - Clear description
-    - Storybook stories
-    - Unit tests
-    - Documentation updates
+   - Clear description
+   - Storybook stories
+   - Unit tests
+   - Documentation updates
 
 ## Code Standards
 

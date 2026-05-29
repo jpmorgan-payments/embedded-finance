@@ -1,11 +1,13 @@
 // Common UI components used in Arazzo Flow Dialog
 import React from 'react';
 import { Highlight, themes } from 'prism-react-renderer';
+
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+
 import {
-  type ArazzoWorkflowStep,
   HTTP_VERB_STYLES,
+  type ArazzoWorkflowStep,
   type HttpVerb,
   type OasOperationInfo,
 } from '../types';
@@ -27,13 +29,13 @@ export const DataTable: React.FC<TableProps> = ({
 }) => (
   <div
     className={cn(
-      'overflow-x-auto overflow-y-auto max-h-[calc(100%-20px)]',
-      className,
+      'max-h-[calc(100%-20px)] overflow-x-auto overflow-y-auto',
+      className
     )}
   >
     <table className="w-full min-w-[800px] text-sm">
-      <thead className="sticky top-0 bg-jpm-brown-50 z-10">
-        <tr className="text-left border-b">
+      <thead className="sticky top-0 z-10 bg-jpm-brown-50">
+        <tr className="border-b text-left">
           {headers.map((header, idx) => (
             <th key={idx} className="py-2 pr-4">
               {header}
@@ -67,7 +69,7 @@ export const HighlightCode: React.FC<{ code: string; language: string }> = ({
   <Highlight theme={themes.vsLight} code={code} language={language}>
     {({ className, style, tokens, getLineProps, getTokenProps }) => (
       <pre
-        className={`${className} text-xs max-h-full overflow-auto`}
+        className={`${className} max-h-full overflow-auto text-xs`}
         style={style}
       >
         {tokens.map((line, i) => (
@@ -105,16 +107,16 @@ export const StepCard: React.FC<StepCardProps> = ({
       key={step.stepId}
       onClick={onClick}
       className={cn(
-        'w-full text-left rounded-lg border p-3 bg-white',
-        'hover:border-jpm-brown-300 hover:bg-jpm-brown-50 transition-colors',
-        isSelected && 'border-jpm-brown bg-jpm-brown-50',
+        'w-full rounded-lg border bg-white p-3 text-left',
+        'transition-colors hover:border-jpm-brown-300 hover:bg-jpm-brown-50',
+        isSelected && 'border-jpm-brown bg-jpm-brown-50'
       )}
     >
-      <div className="flex items-center gap-2 mb-1">
+      <div className="mb-1 flex items-center gap-2">
         <Badge
           className={cn(
-            'text-[10px] px-2 py-0.5 border',
-            HTTP_VERB_STYLES[verb as HttpVerb],
+            'border px-2 py-0.5 text-[10px]',
+            HTTP_VERB_STYLES[verb as HttpVerb]
           )}
           variant="outline"
         >
@@ -125,11 +127,11 @@ export const StepCard: React.FC<StepCardProps> = ({
         </span>
       </div>
       {step.operationId && oasOperation?.path && (
-        <div className="text-[10px] text-muted-foreground mb-1 font-mono truncate">
+        <div className="mb-1 truncate font-mono text-[10px] text-muted-foreground">
           {oasOperation.path}
         </div>
       )}
-      <div className="text-sm leading-5 line-clamp-3">
+      <div className="line-clamp-3 text-sm leading-5">
         {step.description || step.stepId}
       </div>
     </button>

@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { defaultResources, i18n } from '@/i18n/config';
 import { objectEntries, objectKeys } from '@/utils/objectEntries';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,7 +11,6 @@ import {
   UseFormProps,
   UseFormReturn,
 } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -135,26 +136,49 @@ export function mapPartyApiErrorsToFormErrors(
 ): FormError[] {
   const fieldMapKeys = objectKeys(partyFieldMap);
   return errors.reduce((acc, error) => {
-    let remainingPath = '';
-    let modifyErrorField: AnyFieldConfiguration['modifyErrorField'];
+    const errorFieldInDotNotation = error.field?.replace(/\[(\w+)\]/g, '.$1');
 
-    const matchedKey = fieldMapKeys.find((key) => {
+    // Collect ALL matching fieldMap keys for this error path.
+    // Multiple fieldMap entries can share the same API path
+    // (e.g. solePropSsn and controllerIds both map to
+    // individualDetails.individualIds). Emitting errors for all
+    // matches lets form.setError() attach to whichever field is
+    // actually registered in the current form.
+    const matchedEntries: {
+      key: keyof typeof partyFieldMap;
+      remainingPath: string;
+      modifyErrorField?: AnyFieldConfiguration['modifyErrorField'];
+    }[] = [];
+
+    fieldMapKeys.forEach((key) => {
       const path = partyFieldMap[key]?.path;
-      if (path && error.field && error.field.startsWith(`$.${path}`)) {
-        remainingPath = error.field.substring(`$.${path}`.length);
-        modifyErrorField = partyFieldMap[key]?.modifyErrorField;
-        return true;
+      if (path && errorFieldInDotNotation) {
+        if (errorFieldInDotNotation.startsWith(`$.${path}`)) {
+          matchedEntries.push({
+            key,
+            remainingPath: errorFieldInDotNotation.substring(
+              `$.${path}`.length
+            ),
+            modifyErrorField: partyFieldMap[key]?.modifyErrorField,
+          });
+        } else if (errorFieldInDotNotation.startsWith(`$.party.${path}`)) {
+          matchedEntries.push({
+            key,
+            remainingPath: errorFieldInDotNotation.substring(
+              `$.party.${path}`.length
+            ),
+            modifyErrorField: partyFieldMap[key]?.modifyErrorField,
+          });
+        }
       }
-      if (path && error.field && error.field.startsWith(`$.party.${path}`)) {
-        remainingPath = error.field.substring(`$.party.${path}`.length);
-        modifyErrorField = partyFieldMap[key]?.modifyErrorField;
-        return true;
-      }
-      return false;
     });
 
     // Handle edge case where the error field is in the field map but not matched
-    if (!matchedKey && error.field && error.field in partyFieldMap) {
+    if (
+      matchedEntries.length === 0 &&
+      error.field &&
+      error.field in partyFieldMap
+    ) {
       acc.push({
         field: error.field as keyof typeof partyFieldMap,
         message: error.message,
@@ -162,34 +186,92 @@ export function mapPartyApiErrorsToFormErrors(
       });
     }
 
-    // Server error path sometimes does not include the index for array fields,
-    // so we assume it's the first index (0) and add it manually.
-    if (matchedKey && remainingPath) {
-      // Convert remainingPath to dot notation
-      remainingPath = remainingPath.replace(/\[(\w+)\]/g, '.$1');
-      if (modifyErrorField) {
-        remainingPath = modifyErrorField(remainingPath);
+    for (const entry of matchedEntries) {
+      let { remainingPath } = entry;
+
+      // Server error path sometimes does not include the index for array fields,
+      // so we assume it's the first index (0) and add it manually.
+      if (remainingPath) {
+        if (entry.modifyErrorField) {
+          remainingPath = entry.modifyErrorField(remainingPath);
+        }
+        if (remainingPath) {
+          acc.push({
+            field: `${entry.key}${remainingPath}` as FormError['field'],
+            message: error.message,
+            path: error.field,
+          });
+          // TODO: remove this when the server returns the correct path
+          acc.push({
+            field: `${entry.key}.0.${remainingPath}` as FormError['field'],
+            message: error.message,
+            path: error.field,
+          });
+        } else {
+          // modifyErrorField collapsed the path (e.g. solePropSsn)
+          acc.push({
+            field: entry.key as FormError['field'],
+            message: error.message,
+            path: error.field,
+          });
+        }
+      } else {
+        acc.push({
+          field: entry.key as FormError['field'],
+          message: error.message,
+          path: error.field,
+        });
       }
+    }
+
+    // No matches at all — emit as unhandled
+    if (
+      matchedEntries.length === 0 &&
+      !(error.field && error.field in partyFieldMap)
+    ) {
       acc.push({
-        field: `${matchedKey}${remainingPath}`,
-        message: error.message,
-        path: error.field,
-      });
-      // TODO: remove this when the server returns the correct path
-      acc.push({
-        field: `${matchedKey}.0.${remainingPath}`,
-        message: error.message,
-        path: error.field,
-      });
-    } else {
-      acc.push({
-        field: matchedKey ?? undefined,
+        field: undefined,
         message: error.message,
         path: error.field,
       });
     }
+
     return acc;
   }, [] as FormError[]);
+}
+
+/**
+ * Sanitizes verbose server error messages into user-friendly text.
+ * Strips technical prefixes like "Field /path/ value must have the expected value."
+ * and cleans up bracket notation for readability.
+ *
+ * This is a stopgap until the backend returns user-friendly messages directly.
+ *
+ * @example
+ * // "Field /individualDetails/addresses[0]/postalCode/ value must have the expected value. The postal code [00000] is invalid for the country [US]."
+ * // → "The postal code 00000 is invalid for the country US."
+ */
+export function sanitizeServerErrorMessage(message: string): string {
+  let sanitized = message;
+
+  // Strip "Field /.../ value must have the expected value. " prefix
+  sanitized = sanitized.replace(
+    /^Field\s+\/[^/]*(?:\/[^/]*)*\/\s+value must have the expected value\.\s*/i,
+    ''
+  );
+
+  // Strip standalone "Field /.../ " path references anywhere in the message
+  sanitized = sanitized.replace(/Field\s+\/[^/]*(?:\/[^/]*)*\/\s*/g, '');
+
+  // Clean up bracket notation: [00000] → 00000, [US] → US
+  sanitized = sanitized.replace(/\[([^\]]+)\]/g, '$1');
+
+  // Capitalize first letter if we stripped a prefix
+  if (sanitized && sanitized !== message) {
+    sanitized = sanitized.charAt(0).toUpperCase() + sanitized.slice(1);
+  }
+
+  return sanitized.trim() || message;
 }
 
 /**
@@ -209,8 +291,9 @@ export function setApiFormErrors(
     if (formError.field === undefined) {
       unhandledErrorString += `\n${formError.path}: ${formError.message}`;
     } else {
+      const friendlyMessage = sanitizeServerErrorMessage(formError.message);
       form.setError(formError.field, {
-        message: `Server Error: ${formError.message}`,
+        message: `Server Error: ${friendlyMessage}`,
       });
       if (!focused) {
         form.setFocus(formError.field);
@@ -280,7 +363,9 @@ export function generateClientRequestBody(
         ? (fieldConfig as { toRequestFn: (val: any) => any }).toRequestFn(value)
         : value;
 
-      setValueByPath(obj, path, modifiedValue);
+      if (modifiedValue !== undefined && modifiedValue !== null) {
+        setValueByPath(obj, path, modifiedValue);
+      }
     }
   });
 
@@ -310,7 +395,9 @@ export function generatePartyRequestBody(
         ? (fieldConfig as { toRequestFn: (val: any) => any }).toRequestFn(value)
         : value;
 
-      setValueByPath(obj, path, modifiedValue);
+      if (modifiedValue !== undefined && modifiedValue !== null) {
+        setValueByPath(obj, path, modifiedValue);
+      }
     }
   });
 
@@ -357,7 +444,10 @@ export function convertClientResponseToFormValues(
       const modifiedValue = config.fromResponseFn
         ? config.fromResponseFn(value)
         : value;
-      formValues[fieldName as keyof OnboardingFormValuesSubmit] = modifiedValue;
+      if (modifiedValue !== undefined) {
+        formValues[fieldName as keyof OnboardingFormValuesSubmit] =
+          modifiedValue;
+      }
     }
   });
 
@@ -385,9 +475,39 @@ export function convertPartyResponseToFormValues(
       const modifiedValue = config.fromResponseFn
         ? config.fromResponseFn(value)
         : value;
-      formValues[fieldName as keyof OnboardingFormValuesSubmit] = modifiedValue;
+      if (modifiedValue !== undefined) {
+        formValues[fieldName as keyof OnboardingFormValuesSubmit] =
+          modifiedValue;
+      }
     }
   });
+
+  // The issuer on controllerIds must always equal the party's
+  // countryOfResidence (SSN/ITIN are always US, but the issuer field
+  // itself should still reflect the country so the UI renders correctly).
+  // We normalise it here — the single API→form conversion point — so
+  // every downstream consumer sees the correct value without extra patches.
+  const country = formValues.countryOfResidence as string | undefined;
+  if (country) {
+    if (formValues.controllerIds?.length) {
+      formValues.controllerIds = formValues.controllerIds.map((id) => ({
+        ...id,
+        issuer: country,
+      })) as typeof formValues.controllerIds;
+    } else {
+      // No identity documents yet — generate a default entry.
+      // Non-US residents start with an empty idType so the user must
+      // explicitly select from PASSPORT, DRIVERS_LICENSE, or OTHER_GOVERNMENT_ID.
+      const isUS = country === 'US';
+      formValues.controllerIds = [
+        {
+          idType: isUS ? 'SSN' : '',
+          issuer: country,
+          value: '',
+        },
+      ];
+    }
+  }
 
   return formValues;
 }
@@ -570,6 +690,11 @@ export function getFieldRuleByClientContext(
         interaction: currentFieldRule.interaction,
         defaultValue: currentFieldRule.defaultAppendValue?.[subFieldName],
         ...subFieldRule,
+        // Inherit parent's contentTokenOverrideKey when the sub-field
+        // doesn't define its own, so owner/soleProp overrides propagate.
+        contentTokenOverrideKey:
+          subFieldRule.contentTokenOverrideKey ??
+          currentFieldRule.contentTokenOverrideKey,
       };
     } else {
       // We don't expect more segments if it's not an array config
@@ -654,8 +779,8 @@ export function modifySchemaByClientContext(
       currentScreenId
     );
 
-    // Skip hidden fields
-    if (fieldRule.display === 'hidden') {
+    // Skip hidden fields (unless they opt in to submission)
+    if (fieldRule.display === 'hidden' && !fieldRule.submitWhenHidden) {
       return;
     }
 
@@ -748,7 +873,21 @@ export function modifySchemaByClientContext(
       }
     } else if (ruleType === 'single') {
       if (!fieldRule.required) {
-        modifiedSchema = value.or(z.literal('')).or(z.undefined());
+        if (modifiedSchema instanceof z.ZodObject) {
+          // For non-required object fields, relax inner schemas to accept empty/undefined
+          const relaxedShape: Record<string, z.ZodType<any>> = {};
+          for (const [k, v] of Object.entries(
+            modifiedSchema.shape as Record<string, z.ZodType<any>>
+          )) {
+            relaxedShape[k] = v.or(z.literal('')).or(z.undefined());
+          }
+          modifiedSchema = z
+            .object(relaxedShape)
+            .or(z.literal(''))
+            .or(z.undefined());
+        } else {
+          modifiedSchema = value.or(z.literal('')).or(z.undefined());
+        }
       }
     }
     filteredSchema[key] = modifiedSchema;
@@ -779,7 +918,7 @@ export function modifyDefaultValuesByClientContext(
       clientContext,
       currentScreenId
     );
-    if (fieldRule.display !== 'hidden') {
+    if (fieldRule.display !== 'hidden' || fieldRule.submitWhenHidden) {
       filteredDefaultValues[key] = value ?? fieldRule.defaultValue ?? '';
     }
   });
@@ -797,6 +936,12 @@ export function useFormWithFilters<
       schema: z.ZodObject<Record<string, z.ZodType<any>>>
     ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>>;
     overrideDefaultValues?: Partial<OnboardingFormValuesInitial>;
+    /**
+     * When true, runs form.trigger() on mount to surface validation
+     * errors from pre-populated API data (e.g. invalid EIN format).
+     * Defaults to true when overrideDefaultValues is provided.
+     */
+    validateOnMount?: boolean;
   }
 ): UseFormReturn<z.input<TSchema>, any, z.output<TSchema>> {
   const { modifyDefaultValues, modifySchema } = useFormUtilsWithClientContext(
@@ -810,16 +955,105 @@ export function useFormWithFilters<
     )
   ) as DefaultValues<z.input<TSchema>>;
 
+  // When the API provides countryOfResidence but no address data,
+  // update the fieldMap's address default so the country field
+  // reflects countryOfResidence instead of the static 'US' fallback.
+  const overrides = props.overrideDefaultValues ?? {};
+  const countryOfResidence = (overrides as Record<string, unknown>)
+    .countryOfResidence as string | undefined;
+  const mergedDefaults: DefaultValues<z.input<TSchema>> = {
+    ...defaultValues,
+    ...overrides,
+  };
+  if (
+    countryOfResidence &&
+    !('individualAddress' in overrides) &&
+    mergedDefaults.individualAddress
+  ) {
+    mergedDefaults.individualAddress = {
+      ...mergedDefaults.individualAddress,
+      country: countryOfResidence,
+    };
+  }
+
   const form = useForm<z.input<TSchema>, any, z.output<TSchema>>({
     mode: 'onBlur',
     reValidateMode: 'onChange',
     ...props,
     resolver: zodResolver(modifySchema(props.schema, props.refineSchemaFn)),
-    defaultValues: {
-      ...defaultValues,
-      ...(props.overrideDefaultValues ?? {}),
-    },
+    defaultValues: mergedDefaults,
   });
+
+  // Validate pre-populated fields on mount to surface errors from API data
+  // (e.g. invalid EIN format, mismatched address country). Only validates
+  // fields that already have a non-empty value — empty required fields are
+  // left alone until the user interacts with them.
+  const shouldValidateOnMount =
+    props.validateOnMount ??
+    Object.keys(props.overrideDefaultValues ?? {}).length > 0;
+
+  const hasValidatedOnMount = useRef(false);
+  useEffect(() => {
+    if (shouldValidateOnMount && !hasValidatedOnMount.current) {
+      hasValidatedOnMount.current = true;
+
+      // Collect field paths that have non-empty values.
+      // For object-typed fields (e.g. phone: {phoneType, phoneNumber}),
+      // only include the object if ALL its leaf values are populated.
+      // This avoids false validation on objects with auto-set defaults
+      // (e.g. phoneType is always set, but phoneNumber may be empty).
+      const values = form.getValues();
+      const populatedFields: string[] = [];
+
+      const isEffectivelyEmpty = (val: unknown): boolean =>
+        val === '' ||
+        val == null ||
+        // Phone fields with only a country code (e.g. "+1") are empty
+        (typeof val === 'string' && /^\+\d{1,3}$/.test(val.trim()));
+
+      const isFullyPopulated = (obj: Record<string, any>): boolean =>
+        Object.values(obj).every((val) => {
+          if (val != null && typeof val === 'object' && !Array.isArray(val)) {
+            return isFullyPopulated(val);
+          }
+          return !isEffectivelyEmpty(val);
+        });
+
+      const collectPopulated = (obj: Record<string, any>, prefix = '') => {
+        for (const [key, val] of Object.entries(obj)) {
+          const path = prefix ? `${prefix}.${key}` : key;
+          if (Array.isArray(val)) {
+            val.forEach((item, idx) => {
+              if (item != null && typeof item === 'object') {
+                // For array items that are objects, only include if fully populated
+                if (isFullyPopulated(item)) {
+                  collectPopulated(item, `${path}.${idx}`);
+                }
+              } else if (!isEffectivelyEmpty(item)) {
+                populatedFields.push(`${path}.${idx}`);
+              }
+            });
+          } else if (
+            val != null &&
+            typeof val === 'object' &&
+            !Array.isArray(val)
+          ) {
+            // Only recurse into objects where all leaves are populated
+            if (isFullyPopulated(val)) {
+              collectPopulated(val, path);
+            }
+          } else if (!isEffectivelyEmpty(val)) {
+            populatedFields.push(path);
+          }
+        }
+      };
+      collectPopulated(values);
+
+      if (populatedFields.length > 0) {
+        form.trigger(populatedFields as any);
+      }
+    }
+  }, [shouldValidateOnMount, form]);
 
   return form;
 }
@@ -870,7 +1104,7 @@ export type ValidationMessageKeysFor<
 export const useGetFieldContentToken = (
   fieldName: FieldPath<OnboardingFormValuesSubmit>
 ) => {
-  const { t } = useTranslation([
+  const { tString } = useTranslationWithTokens([
     'onboarding-old',
     'onboarding-overview',
     'common',
@@ -888,20 +1122,20 @@ export const useGetFieldContentToken = (
   const getFieldContentToken = (key: FieldContentTokenKey): string => {
     const oldContentTokenKey = `onboarding-old:${key}`;
     const contentTokenOverride = fieldRule.contentTokenOverrides?.[key];
-    return (
-      contentTokenOverride ??
-      t(
-        [
-          `onboarding-overview:fields.${fieldName}.${key}.${fieldRule.contentTokenOverrideKey}`,
-          `onboarding-overview:fields.${fieldName}.${key}.default`,
-          `onboarding-overview:fields.${fieldName}.${key}`,
-          oldContentTokenKey, // TO REMOVE
-          'common:noTokenFallback',
-        ] as unknown as TemplateStringsArray,
-        {
-          key,
-        }
-      )
+    if (typeof contentTokenOverride === 'string') {
+      return contentTokenOverride;
+    }
+    return tString(
+      [
+        `onboarding-overview:fields.${fieldName}.${key}.${fieldRule.contentTokenOverrideKey}`,
+        `onboarding-overview:fields.${fieldName}.${key}.default`,
+        `onboarding-overview:fields.${fieldName}.${key}`,
+        oldContentTokenKey, // TO REMOVE
+        'common:noTokenFallback',
+      ] as unknown as TemplateStringsArray,
+      {
+        key,
+      }
     );
   };
 
@@ -921,7 +1155,7 @@ export const useGetValidationMessage = <
 >(): ((
   field: Field,
   messageKey: ValidationMessageKeysFor<Field>,
-  count?: number
+  countOrParams?: number | Record<string, string>
 ) => string) => {
   const { clientData } = useOnboardingContext();
   const { currentScreenId } = useFlowContext();
@@ -933,9 +1167,12 @@ export const useGetValidationMessage = <
   const getValidationMessage = (
     field: Field,
     messageKey: ValidationMessageKeysFor<Field>,
-    count?: number
+    countOrParams?: number | Record<string, string>
   ): string => {
     const { fieldRule } = getFieldRule(field);
+
+    const count = typeof countOrParams === 'number' ? countOrParams : undefined;
+    const extraParams = typeof countOrParams === 'object' ? countOrParams : {};
 
     // Build translation key path with validation prefix
     const translationKey = [
@@ -965,8 +1202,8 @@ export const useGetValidationMessage = <
         }
       );
 
-    // Return translation with optional count parameter for pluralization
-    return i18n.t(translationKey, { fieldName, count });
+    // Return translation with optional count and extra interpolation params
+    return i18n.t(translationKey, { fieldName, count, ...extraParams });
   };
   return getValidationMessage;
 };

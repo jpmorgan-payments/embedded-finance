@@ -61,7 +61,7 @@ export class FormDetectionUtils {
       if (dialog) {
         // Check if dialog contains any form elements
         const hasFormElements = dialog.querySelector(
-          'input, select, textarea, button[type="submit"]',
+          'input, select, textarea, button[type="submit"]'
         );
         if (hasFormElements) {
           return true;
@@ -80,7 +80,7 @@ export class FormDetectionUtils {
 
       // Check if all required elements are present
       const hasAllRequired = pattern.required.every((selector) =>
-        dialog.querySelector(selector),
+        dialog.querySelector(selector)
       );
 
       if (hasAllRequired) {
@@ -110,7 +110,7 @@ export class FormDetectionUtils {
 
     // Check if form has at least one interactive element
     const hasInteractiveElements = dialog.querySelector(
-      'input, select, textarea, button',
+      'input, select, textarea, button'
     );
     return hasInteractiveElements !== null;
   }

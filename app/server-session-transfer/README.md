@@ -13,6 +13,19 @@ This demo implements JPMorgan's recommended session transfer approach for embedd
 
 **Integration Pattern**: Partially Hosted - your backend handles authentication, JPMorgan handles the UI experience.
 
+## 🎯 Supported Experience Types
+
+The demo supports multiple hosted experience types, selectable from a dropdown in the UI:
+
+| Experience Type | Description |
+|----------------|-------------|
+| `HOSTED_ONBOARDING_UI` | Full onboarding flow for new clients |
+| `HOSTED_DOC_UPLOAD_ONBOARDING_UI` | Document upload step of the onboarding process |
+
+Each experience type renders a different embedded UI within the iframe targeting the specified Client ID.
+
+> **Default:** If no experience type is specified, the default is `HOSTED_DOC_UPLOAD_ONBOARDING_UI`.
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -57,29 +70,55 @@ This demo implements JPMorgan's recommended session transfer approach for embedd
 
 ### Running the Demo
 
-1. **Start the server:**
-   ```bash
-   npm start
-   ```
-   
-   For development with auto-reload:
-   ```bash
-   npm run dev
-   ```
+**Option 1: Manual Implementation (Default)**
+```bash
+npm start
+# or for development with auto-reload:
+npm run dev
+```
 
-2. **Open your browser:**
-   ```
-   http://localhost:3000
-   ```
+**Option 2: Utility Library Implementation**
+```bash
+npm run start:utility
+# or for development with auto-reload:
+npm run dev:utility
+```
 
-3. **Test the demo:**
-   - Enter a client ID (e.g., `3100002010`)
-   - Click "Create Embedded Session"
-   - The iframe will open with the JPMorgan onboarding experience
+Both methods serve on `http://localhost:3000` - the server uses the `INDEX_FILE` environment variable to determine which HTML file to serve.
+
+**Test the demo:**
+- Enter a client ID (e.g., `3100002010`)
+- Or use the **Create a New Client** section to create one first (the Client ID will be auto-filled)
+- Select an experience type
+- Click "Create Embedded Session"
+- The iframe will open with the JPMorgan onboarding experience
 
 ## 🔧 How It Works
 
-### 1. API Call Structure
+### 1. Client Creation (Optional)
+
+If you don't already have a Client ID, you can create one with a minimal payload. The demo UI includes an expandable section for this. The server calls:
+
+```javascript
+const requestData = {
+  parties: [
+    {
+      partyType: 'ORGANIZATION',
+      roles: ['CLIENT'],
+      organizationDetails: {
+        organizationType: 'LIMITED_LIABILITY_COMPANY', // from form
+        organizationName: 'Acme Corp',                 // from form
+        countryOfFormation: 'US'
+      }
+    }
+  ],
+  products: ['EMBEDDED_PAYMENTS']
+};
+```
+
+The response returns a Client ID that is auto-filled into the session form.
+
+### 2. API Call Structure
 
 The server makes a POST request to JPMorgan's sessions endpoint:
 
@@ -93,7 +132,7 @@ const requestData = {
 };
 ```
 
-### 2. Certificate Authentication
+### 3. Certificate Authentication
 
 The server uses your p12 certificate for secure authentication:
 
@@ -105,7 +144,7 @@ const httpsAgent = new https.Agent({
 });
 ```
 
-### 3. Session Response
+### 4. Session Response
 
 JPMorgan returns a session object:
 
@@ -122,13 +161,259 @@ JPMorgan returns a session object:
 }
 ```
 
-### 4. Iframe Integration
+### 5. Iframe Integration
 
-The token is appended to the URL as a query parameter:
+The token, experience type, and optional customization are appended to the URL as query parameters:
 
 ```javascript
-const iframeUrl = `${sessionData.url}?token=${sessionData.token}`;
+const iframeUrl = `${sessionData.url}?token=${sessionData.token}&hostedExperienceType=${experienceType}`;
+
+// Optional: append themeTokens, contentTokens, and componentProperties
+const themeTokens = encodeURIComponent(JSON.stringify({ colorScheme: 'light', variables: { ... } }));
+const componentProperties = encodeURIComponent(JSON.stringify({
+  disclosurePlatformName: 'SellSense Marketplace',
+  disclosurePlatformAgreementUrl: 'https://sellsense.example.com/terms-of-service',
+  disclosurePlatformAgreementLabel: 'SellSense Marketplace Terms of Service'
+}));
+const fullUrl = `${iframeUrl}&themeTokens=${themeTokens}&componentProperties=${componentProperties}`;
 ```
+
+## 🎯 Implementation Methods Comparison
+
+This demo provides two implementation approaches for embedding the JPMorgan onboarding UI. Choose the method that best fits your project's needs.
+
+### Method 1: Manual Implementation (`index.html`)
+
+**Approach**: Direct iframe manipulation with manual URL construction and DOM management.
+
+**Code Example:**
+```javascript
+// Manual iframe creation and URL construction
+const iframeUrl = `${sessionData.url}?token=${sessionData.token}`;
+const encodedTheme = encodeURIComponent(JSON.stringify(themeConfig));
+const experienceType = document.getElementById('experienceType').value;
+const iframeUrlWithTheme = `${iframeUrl}&themeTokens=${encodedTheme}&hostedExperienceType=${encodeURIComponent(experienceType)}`;
+const embedResponse = await fetch(`/embed?url=${encodeURIComponent(iframeUrlWithTheme)}`);
+const embedData = await embedResponse.json();
+showIframe(embedData.html);
+
+// Manual iframe height adjustment
+function adjustIframeHeight(iframe) {
+  const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+  const height = Math.max(/* ... height calculations ... */);
+  iframe.style.height = height + 'px';
+}
+```
+
+**Theme Configuration:**
+
+To customize the theme, encode theme tokens as a URL parameter and append to the iframe URL:
+
+```javascript
+// Build theme configuration using semantic design tokens
+const themeConfig = {
+  colorScheme: 'light',
+  variables: {
+    actionableAccentedBoldBackground: '#FF6600',  // Primary button color
+    actionableBorderRadius: '9999px'                // Button border radius
+  }
+};
+
+// Encode and append theme to iframe URL
+const encodedTheme = encodeURIComponent(JSON.stringify(themeConfig));
+const experienceType = 'HOSTED_ONBOARDING_UI'; // or any supported experience type
+const componentProperties = encodeURIComponent(JSON.stringify({
+  disclosurePlatformName: 'SellSense Marketplace',
+  disclosurePlatformAgreementUrl: 'https://sellsense.example.com/terms-of-service',
+  disclosurePlatformAgreementLabel: 'SellSense Marketplace Terms of Service'
+}));
+const iframeUrlWithTheme = `${sessionData.url}?token=${sessionData.token}&themeTokens=${encodedTheme}&componentProperties=${componentProperties}&hostedExperienceType=${encodeURIComponent(experienceType)}`;
+```
+
+For a complete list of available design tokens, refer to the [Embedded Components README](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming). For the full list of supported `componentProperties`, see the [Integration Guide](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md#url-parameters-for-onboarding-customization).
+
+**Characteristics:**
+- ✅ **Full Control**: Complete control over iframe creation and lifecycle
+- ✅ **No Dependencies**: Pure vanilla JavaScript, no external libraries
+- ✅ **Customizable**: Easy to customize iframe attributes and behavior
+- ⚠️ **More Code**: Requires manual implementation of URL construction, height adjustment, error handling
+- ⚠️ **Manual Security**: You must manually configure sandbox attributes and security settings
+- ⚠️ **No Built-in Events**: Manual postMessage handling required for iframe communication
+
+**Best For:**
+- Projects requiring maximum control and customization
+- Simple integrations with minimal iframe interaction needs
+- Teams comfortable with manual DOM manipulation
+- Environments where adding dependencies is not desired
+
+---
+
+### Method 2: Utility Library (`index-utility.html`)
+
+**Approach**: Uses `PartiallyHostedUIComponent` utility library (Section 3.3) for simplified integration.
+
+**Code Example:**
+```javascript
+// Import the utility library
+import PartiallyHostedUIComponent from './partially-hosted-ui-component.mjs';
+
+// Initialize with configuration
+const onboardingUI = new PartiallyHostedUIComponent({
+  sessionToken: sessionData.sessionToken,
+  baseUrl: sessionData.baseUrl,
+  experienceType: 'HOSTED_ONBOARDING_UI', // or any supported experience type
+  theme: {
+    colorScheme: 'light',
+    variables: {
+      actionableAccentedBoldBackground: '#FF6600',  // Primary action button color (semantic token)
+      actionableBorderRadius: '9999px'                 // Button border radius (semantic token)
+    }
+  },
+  contentTokens: { locale: 'en-US' },
+  componentProperties: {
+    disclosurePlatformName: 'SellSense Marketplace',
+    disclosurePlatformAgreementUrl: 'https://sellsense.example.com/terms-of-service',
+    disclosurePlatformAgreementLabel: 'SellSense Marketplace Terms of Service'
+  }
+});
+
+// Subscribe to events
+onboardingUI.subscribe((event) => {
+  if (event.message === 'OnboardingComplete') {
+    console.log('Onboarding completed!', event.payload);
+  }
+});
+
+// Mount to container
+onboardingUI.mount('onboarding-container');
+```
+
+**Characteristics:**
+- ✅ **Simplified API**: Clean, declarative configuration-based approach
+- ✅ **Built-in Security**: Automatic sandbox attributes and origin validation
+- ✅ **Event System**: Built-in pub/sub pattern for iframe communication
+- ✅ **URL Construction**: Automatic URL building with encoded parameters (theme, contentTokens, componentProperties)
+- ✅ **Lifecycle Management**: Automatic mount/unmount handling
+- ✅ **Type Safety**: JSDoc comments for IDE autocomplete and type hints
+- ⚠️ **Dependency**: Requires the utility library file (~750 lines)
+- ⚠️ **Less Control**: Some customization options abstracted away
+
+**Best For:**
+- Teams wanting faster integration with less boilerplate
+- Projects requiring theme customization and content localization
+- Applications needing robust event handling for iframe communication
+- Teams preferring declarative, configuration-based APIs
+- Production applications requiring built-in security best practices
+
+---
+
+### Side-by-Side Comparison
+
+| Feature | Manual Implementation | Utility Library |
+|---------|----------------------|-----------------|
+| **Lines of Code** | ~150 lines | ~50 lines |
+| **Dependencies** | None | 1 ES module file |
+| **URL Construction** | Manual string concatenation | Automatic with encoding |
+| **Security Attributes** | Manual configuration | Built-in defaults |
+| **Event Handling** | Manual postMessage listeners | Built-in pub/sub system |
+| **Theme Support** | Manual URL parameter encoding | Declarative configuration |
+| **Content Tokens** | Manual URL parameter encoding | Declarative configuration |
+| **Component Properties** | Manual URL parameter encoding | Declarative configuration |
+| **Lifecycle Management** | Manual DOM manipulation | Automatic mount/unmount |
+| **Error Handling** | Manual try/catch blocks | Built-in error events |
+| **Debugging** | Console.log statements | Structured event logging |
+| **Learning Curve** | Moderate (DOM APIs) | Low (declarative API) |
+| **Maintenance** | Higher (manual updates) | Lower (library updates) |
+
+### Running Each Version
+
+**Manual Implementation:**
+```bash
+npm start
+# or
+npm run dev
+# Opens: http://localhost:3000
+```
+
+**Utility Library:**
+```bash
+npm run start:utility
+# or
+npm run dev:utility
+# Opens: http://localhost:3000 (serves index-utility.html)
+```
+
+Both methods use the same backend API (`/sessions` endpoint) and provide identical functionality - the difference is in the frontend implementation approach.
+
+## 🎨 Theme Customization
+
+The demo includes sample theme overrides for customizing the embedded UI appearance. Both implementations support theme configuration:
+
+### Theme Configuration
+
+The theme system uses semantic design tokens. This demo shows examples of customizing:
+- **Primary Action Button Color**: Using `actionableAccentedBoldBackground` token
+- **Button Border Radius**: Using `actionableBorderRadius` token
+
+For a complete list of available design tokens, refer to the [Embedded Components README](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming).
+
+**💡 Interactive Theme Customization:**
+
+Use the [Customize Theme utility](https://embedded-finance-dev.com/sellsense-demo?scenario=Seller+with+Payments+DDA&view=wallet) to interactively refine and update your theme configuration. You can visually inspect the results in real-time and copy the generated JSON configuration to use in your implementation.
+
+### Method 1: Manual Implementation
+
+In `index.html`, theme parameters are manually encoded and appended to the iframe URL:
+
+```javascript
+// Build theme configuration using semantic design tokens
+const themeConfig = {
+  colorScheme: 'light',
+  variables: {
+    // Primary action button color (semantic token) - Orange
+    actionableAccentedBoldBackground: '#FF6600',
+    // Border radius for buttons specifically (semantic token)
+    actionableBorderRadius: '9999px'
+  }
+};
+
+// Encode and append to URL
+const encodedTheme = encodeURIComponent(JSON.stringify(themeConfig));
+const iframeUrlWithTheme = `${sessionData.iframeUrl}&themeTokens=${encodedTheme}`;
+```
+
+### Method 2: Utility Library
+
+In `index-utility.html`, theme is configured declaratively:
+
+```javascript
+const onboardingUI = new PartiallyHostedUIComponent({
+  sessionToken: sessionData.sessionToken,
+  baseUrl: sessionData.baseUrl,
+  experienceType: 'HOSTED_ONBOARDING_UI', // or any supported experience type
+  theme: {
+    colorScheme: 'light',
+    variables: {
+      // Primary action button color (semantic token) - Orange
+      actionableAccentedBoldBackground: '#FF6600',
+      // Border radius for buttons specifically (semantic token)
+      actionableBorderRadius: '9999px',
+      // Typography font family (semantic token)
+      contentFontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+    }
+  }
+});
+```
+
+The utility library automatically encodes the theme object and includes it in the iframe URL parameters.
+
+### Available Theme Variables
+
+The theme system uses semantic design tokens following the [Salt Design System](https://www.saltdesignsystem.com/salt/themes/design-tokens/how-to-read-tokens) nomenclature.
+
+For a complete list of available design tokens, token descriptions, default values, and usage examples, refer to the [Embedded Components README](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming).
+
+**Note**: Theme variables are passed to JPMorgan's hosted UI via URL parameters. The hosted UI applies these overrides to match your brand identity.
 
 ## 📁 Project Structure
 
@@ -139,7 +424,9 @@ server-session-transfer/
 ├── .env.example          # Environment variables template
 ├── .env                  # Your actual environment variables (not in repo)
 ├── public/
-│   └── index.html        # Client-side form interface
+│   ├── index.html        # Manual implementation (default)
+│   ├── index-utility.html # Utility library implementation
+│   └── partially-hosted-ui-component.mjs # Utility library (Section 3.3)
 └── README.md            # This file
 ```
 
@@ -148,6 +435,12 @@ server-session-transfer/
 ### `GET /`
 - Serves the main HTML form
 - Users can enter their client ID
+
+### `POST /clients`
+- Creates a new client with a minimal payload (optional prerequisite step)
+- **Body**: `{ "organizationName": "Acme Corp", "organizationType": "LIMITED_LIABILITY_COMPANY" }`
+- **Response**: `{ "success": true, "clientId": "3100002010", "clientStatus": "...", "clientData": {...} }`
+- **Authentication**: Server-side p12 certificate
 
 ### `POST /sessions`
 - Creates a new embedded UI session (matches JPMorgan API pattern)
@@ -199,7 +492,7 @@ DEBUG=true
 
 ## 📚 References
 
-- [Partially Hosted Onboarding Integration Guide](https://github.com/jpmorgan-payments/embedded-finance/blob/main/app/client/src/docs/PARTIALLY_HOSTED_ONBOARDING_INTEGRATION_GUIDE.md)
+- [Partially Hosted Onboarding Integration Guide](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md)
 
 ## 🚀 Production Implementation Guidelines
 
@@ -225,4 +518,4 @@ This demo provides a foundation for production implementation. For production de
 - **Document security controls** for audit and compliance purposes
 - **Regular security assessments** and penetration testing
 
-For detailed implementation guidance, refer to the [Partially Hosted Onboarding Integration Guide](https://github.com/jpmorgan-payments/embedded-finance/blob/main/app/client/src/docs/PARTIALLY_HOSTED_ONBOARDING_INTEGRATION_GUIDE.md). 
+For detailed implementation guidance, refer to the [Partially Hosted Onboarding Integration Guide](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md). 

@@ -1,0 +1,12 @@
+export { YearInReviewDashboard } from './YearInReviewDashboard';
+export { HeroSection } from './HeroSection';
+export { HighlightCards } from './HighlightCards';
+export { VersionTimeline } from './VersionTimeline';
+export { ComponentChart } from './ComponentChart';
+export { MonthlyActivityChart } from './MonthlyActivityChart';
+export { FeaturesShipped } from './FeaturesShipped';
+export { ContributorWall } from './ContributorWall';
+export { UXTestingJourney } from './UXTestingJourney';
+export { ContributionHeatmap } from './ContributionHeatmap';
+export { FunFacts } from './FunFacts';
+export { LookingAhead } from './LookingAhead';

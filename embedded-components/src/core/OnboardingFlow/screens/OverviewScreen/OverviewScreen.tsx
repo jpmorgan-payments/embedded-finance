@@ -1,21 +1,34 @@
+import { useMemo } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircleIcon,
   AlertTriangleIcon,
+  ArrowRightIcon,
   CheckCircle2Icon,
   CheckIcon,
   ChevronRightIcon,
   CircleDashedIcon,
+  ClipboardListIcon,
   Clock9Icon,
   DownloadIcon,
   InfoIcon,
   LockIcon,
   PencilIcon,
+  TrashIcon,
   XIcon,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
+import {
+  canVerifyMicrodeposits,
+  getRecipientDisplayName,
+} from '@/lib/recipientHelpers';
 import { cn } from '@/lib/utils';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useGetAllRecipients } from '@/api/generated/ep-recipients';
+import type { Recipient } from '@/api/generated/ep-recipients.schemas';
+import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Button,
   Card,
@@ -25,19 +38,41 @@ import {
 } from '@/components/ui';
 import { StepLayout } from '@/core/OnboardingFlow/components';
 import {
+  MAJOR_STOCK_EXCHANGES,
+  PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES,
+} from '@/core/OnboardingFlow/consts/stockExchanges';
+import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
 import {
-  clientHasOutstandingDocRequests,
+  getOrganizationParty,
   getPartyByAssociatedPartyFilters,
 } from '@/core/OnboardingFlow/utils/dataUtils';
+import { getLinkAccountEnabled } from '@/core/OnboardingFlow/utils/getLinkAccountEnabled';
+import { RecipientAccountDisplayCard } from '@/core/RecipientWidgets/components/RecipientAccountDisplayCard/RecipientAccountDisplayCard';
+import { RecipientDetailsDialog } from '@/core/RecipientWidgets/components/RecipientDetailsDialog/RecipientDetailsDialog';
+import { RejectedAccountsAccordion } from '@/core/RecipientWidgets/components/RejectedAccountsAccordion/RejectedAccountsAccordion';
+import { RemoveAccountDialogTrigger } from '@/core/RecipientWidgets/components/RemoveAccountDialog/RemoveAccountDialog';
+import { StatusAlert } from '@/core/RecipientWidgets/components/StatusAlert/StatusAlert';
+import { MicrodepositsFormDialogTrigger } from '@/core/RecipientWidgets/forms/MicrodepositsForm/MicrodepositsForm';
+import { LINKED_ACCOUNT_USER_JOURNEYS } from '@/core/RecipientWidgets/RecipientWidgets.constants';
+import { invalidateRecipientQueries } from '@/core/RecipientWidgets/utils/invalidateRecipientQueries';
 
 import { getFlowProgress } from '../../utils/flowUtils';
 
 export const OverviewScreen = () => {
-  const { organizationType, clientData, hideLinkAccountSection } =
-    useOnboardingContext();
+  const queryClient = useQueryClient();
+  const {
+    organizationType,
+    clientData,
+    showLinkAccountStep,
+    linkAccountEnabledStatuses,
+    linkAccountStepOptions,
+    showDownloadChecklist,
+    hideLinkedAccountRemoval,
+    enablePubliclyTradedCompanies,
+  } = useOnboardingContext();
   const {
     currentScreenId,
     sections,
@@ -55,31 +90,117 @@ export const OverviewScreen = () => {
     currentScreenId
   );
 
-  const { t } = useTranslation(['onboarding-overview', 'common']);
+  const { t, tString } = useTranslationWithTokens([
+    'onboarding-overview',
+    'common',
+    'linked-accounts',
+  ]);
 
-  // TODO:
-  const kycCompleted =
-    sessionData.mockedKycCompleted || clientData?.status === 'APPROVED';
+  const linkAccountEnabled = getLinkAccountEnabled(
+    clientData,
+    linkAccountEnabledStatuses
+  );
 
   const organizationTypeText = t(`organizationTypes.${organizationType!}`);
 
-  const docRequestsClosed = !clientHasOutstandingDocRequests(clientData);
+  // PTC info for display in the business type section
+  const orgParty = getOrganizationParty(clientData);
+  const publiclyTraded = enablePubliclyTradedCompanies
+    ? orgParty?.organizationDetails?.publiclyTraded
+    : undefined;
+  const isSubsidiary = orgParty?.organizationDetails?.isSubsidiary;
+  const stockExchangeDisplayName = useMemo(() => {
+    if (!publiclyTraded?.stockExchange) return undefined;
+    if (publiclyTraded.stockExchange === 'Other') {
+      return publiclyTraded.stockExchangeName ?? 'Other';
+    }
+    const match = MAJOR_STOCK_EXCHANGES.find(
+      ([code]) => code === publiclyTraded.stockExchange
+    );
+    return match ? `${match[1]} (${match[0]})` : publiclyTraded.stockExchange;
+  }, [publiclyTraded?.stockExchange, publiclyTraded?.stockExchangeName]);
+
+  // Fetch document requests to check for outstanding requests
+  const { data: documentRequestListResponse } = useSmbdoListDocumentRequests(
+    {
+      clientId: clientData?.id,
+      // @ts-expect-error - API expects this parameter
+      includeRelatedParty: true,
+    },
+    {
+      query: {
+        enabled: !!clientData?.id,
+      },
+    }
+  );
+
+  const documentRequests = documentRequestListResponse?.documentRequests;
+  const hasAnyDocumentRequests = (documentRequests?.length ?? 0) > 0;
+  const hasOutstandingDocRequests = documentRequests?.some(
+    (docRequest) => docRequest.status === 'ACTIVE'
+  );
+  const docRequestsClosed = !hasOutstandingDocRequests;
+
+  const verifyBusinessSectionTitleKey = useMemo(() => {
+    const status = clientData?.status;
+    if (status === 'NEW' || status === 'INFORMATION_REQUESTED') {
+      return 'screens.overview.verifyBusinessSection.title' as const;
+    }
+    if (status === 'APPROVED') {
+      return 'screens.overview.verifyBusinessSection.approved.title' as const;
+    }
+    if (status === 'DECLINED') {
+      return 'screens.overview.verifyBusinessSection.declined.title' as const;
+    }
+    if (status === 'REVIEW_IN_PROGRESS') {
+      if (!docRequestsClosed) {
+        return 'screens.overview.verifyBusinessSection.reviewInProgress.title' as const;
+      }
+      if (hasAnyDocumentRequests) {
+        return 'screens.overview.verifyBusinessSection.documentsReceived.title' as const;
+      }
+      return 'screens.overview.verifyBusinessSection.applicationSubmitted.title' as const;
+    }
+    return 'screens.overview.verifyBusinessSection.title' as const;
+  }, [clientData?.status, docRequestsClosed, hasAnyDocumentRequests]);
+
+  // Linked accounts (Overview bank section): summary card + status; same Verify CTA as LinkAccountScreen
+  // when READY_FOR_VALIDATION. See Docs.mdx / stories/linked-account/README.md.
+  const { data: recipientsData, isLoading: isLoadingLinkedRecipients } =
+    useGetAllRecipients(
+      { type: 'LINKED_ACCOUNT', clientId: clientData?.id },
+      {
+        query: {
+          enabled: !!showLinkAccountStep && !!clientData?.id,
+        },
+      }
+    );
+
+  const linkedAccounts = useMemo(
+    () =>
+      recipientsData?.recipients?.filter(
+        (r) => r.status !== 'INACTIVE' && r.status !== 'REJECTED'
+      ) ?? [],
+    [recipientsData]
+  );
+
+  const existingLinkedAccount: Recipient | undefined = linkedAccounts[0];
 
   return (
     <StepLayout
-      title={
-        <div className="eb-flex eb-items-center eb-justify-between">
-          <p>{t('screens.overview.title')}</p>
+      title={t('screens.overview.title')}
+      headerElement={
+        showDownloadChecklist ? (
           <Button variant="outline" size="sm">
             <DownloadIcon /> {t('screens.overview.downloadChecklist')}
           </Button>
-        </div>
+        ) : undefined
       }
       subTitle={
         !sessionData.hideOverviewInfoAlert && clientData?.status === 'NEW' ? (
           <Alert variant="informative" density="sm" noTitle>
             <InfoIcon className="eb-size-4" />
-            <AlertDescription>
+            <AlertDescription className="eb-pr-6">
               {t('screens.overview.infoAlert')}
             </AlertDescription>
             <button
@@ -104,20 +225,20 @@ export const OverviewScreen = () => {
           <CardHeader className="eb-p-3">
             <CardTitle>
               <h2 className="eb-font-header eb-text-2xl eb-font-medium">
-                {t('screens.overview.verifyBusinessSection.title')}
+                {t(verifyBusinessSectionTitleKey)}
               </h2>
             </CardTitle>
           </CardHeader>
           <CardContent className="eb-p-3 eb-pt-0">
             {clientData?.status === 'REVIEW_IN_PROGRESS' &&
               !docRequestsClosed && (
-                <Alert variant="informative" density="sm" className="eb-mb-6">
+                <Alert
+                  variant="informative"
+                  density="sm"
+                  className="eb-mb-6"
+                  noTitle
+                >
                   <Clock9Icon className="eb-size-4" />
-                  <AlertTitle>
-                    {t(
-                      'screens.overview.verifyBusinessSection.reviewInProgress.title'
-                    )}
-                  </AlertTitle>
                   <AlertDescription>
                     {t(
                       'screens.overview.verifyBusinessSection.reviewInProgress.description'
@@ -127,17 +248,36 @@ export const OverviewScreen = () => {
               )}
 
             {clientData?.status === 'REVIEW_IN_PROGRESS' &&
-              docRequestsClosed && (
-                <Alert variant="informative" density="sm" className="eb-mb-6">
+              docRequestsClosed &&
+              hasAnyDocumentRequests && (
+                <Alert
+                  variant="informative"
+                  density="sm"
+                  className="eb-mb-6"
+                  noTitle
+                >
                   <Clock9Icon className="eb-size-4" />
-                  <AlertTitle>
-                    {t(
-                      'screens.overview.verifyBusinessSection.documentsReceived.title'
-                    )}
-                  </AlertTitle>
                   <AlertDescription>
                     {t(
                       'screens.overview.verifyBusinessSection.documentsReceived.description'
+                    )}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+            {clientData?.status === 'REVIEW_IN_PROGRESS' &&
+              docRequestsClosed &&
+              !hasAnyDocumentRequests && (
+                <Alert
+                  variant="informative"
+                  density="sm"
+                  className="eb-mb-6"
+                  noTitle
+                >
+                  <Clock9Icon className="eb-size-4" />
+                  <AlertDescription>
+                    {t(
+                      'screens.overview.verifyBusinessSection.applicationSubmitted.description'
                     )}
                   </AlertDescription>
                 </Alert>
@@ -155,11 +295,8 @@ export const OverviewScreen = () => {
             )}
 
             {clientData?.status === 'DECLINED' && (
-              <Alert variant="destructive" density="sm">
+              <Alert variant="destructive" density="sm" noTitle>
                 <AlertCircleIcon className="eb-size-4" />
-                <AlertTitle>
-                  {t('screens.overview.verifyBusinessSection.declined.title')}
-                </AlertTitle>
                 <AlertDescription>
                   {t(
                     'screens.overview.verifyBusinessSection.declined.description'
@@ -169,11 +306,8 @@ export const OverviewScreen = () => {
             )}
 
             {clientData?.status === 'APPROVED' && (
-              <Alert variant="success" density="sm">
+              <Alert variant="success" density="sm" noTitle>
                 <CheckIcon className="eb-size-4" />
-                <AlertTitle>
-                  {t('screens.overview.verifyBusinessSection.approved.title')}
-                </AlertTitle>
                 <AlertDescription>
                   {t(
                     'screens.overview.verifyBusinessSection.approved.description'
@@ -212,8 +346,49 @@ export const OverviewScreen = () => {
                       </Button>
                     </span>
 
+                    {publiclyTraded ? (
+                      <div className="eb-mt-2 eb-space-y-1 eb-text-xs eb-text-muted-foreground">
+                        <p className="eb-font-medium">
+                          {isSubsidiary
+                            ? t(
+                                'screens.overview.verifyBusinessSection.ptcSubsidiaryLabel'
+                              )
+                            : t(
+                                'screens.overview.verifyBusinessSection.ptcLabel'
+                              )}
+                        </p>
+                        <p>
+                          {t(
+                            'screens.overview.verifyBusinessSection.ptcTicker',
+                            { ticker: publiclyTraded.tickerSymbol }
+                          )}
+                        </p>
+                        {stockExchangeDisplayName && (
+                          <p>
+                            {t(
+                              'screens.overview.verifyBusinessSection.ptcExchange',
+                              { exchange: stockExchangeDisplayName }
+                            )}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      enablePubliclyTradedCompanies &&
+                      PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES.includes(
+                        organizationType as any
+                      ) && (
+                        <p className="eb-mt-2 eb-text-xs eb-text-muted-foreground">
+                          {t('screens.overview.verifyBusinessSection.ptcHint')}
+                        </p>
+                      )
+                    )}
+
                     <p className="eb-mt-3 eb-flex eb-gap-2 eb-text-xs eb-italic eb-text-muted-foreground">
-                      <AlertTriangleIcon className="eb-size-4" />
+                      <span className="eb-sr-only">{t('common:warning')}:</span>
+                      <AlertTriangleIcon
+                        className="eb-size-4"
+                        aria-hidden="true"
+                      />
                       {t(
                         'screens.overview.verifyBusinessSection.changeWarning'
                       )}
@@ -245,7 +420,10 @@ export const OverviewScreen = () => {
                   section.stepperConfig?.associatedPartyFilters
                 );
 
-                if (sectionStatus === 'hidden') {
+                if (
+                  sectionStatus === 'hidden' ||
+                  sectionStatus === 'completed_disabled'
+                ) {
                   return null;
                 }
 
@@ -280,6 +458,7 @@ export const OverviewScreen = () => {
                             className={cn('eb-size-4', {
                               'eb-text-muted-foreground': sectionDisabled,
                             })}
+                            aria-hidden
                           />
                           <h3
                             className={cn(
@@ -294,8 +473,7 @@ export const OverviewScreen = () => {
                         </div>
 
                         <div className="eb-flex [&_svg]:eb-size-4">
-                          {(sectionStatus === 'completed' ||
-                            sectionStatus === 'completed_disabled') && (
+                          {sectionStatus === 'completed' && (
                             <>
                               <CheckCircle2Icon className="eb-stroke-success" />
                               <span className="eb-sr-only">Completed</span>
@@ -327,15 +505,25 @@ export const OverviewScreen = () => {
                     /> */}
                         </div>
                       </div>
-                      {section.sectionConfig.requirementsList && (
-                        <ul className="eb-mt-1.5 eb-w-full eb-list-disc eb-whitespace-break-spaces eb-pl-8 eb-text-start eb-font-sans eb-text-sm eb-font-normal">
-                          {section.sectionConfig.requirementsList.map(
-                            (item, index) => (
+                      {(() => {
+                        // Derive requirements from visible steps' requirementSummary,
+                        // falling back to static requirementsList if no steps have summaries
+                        const stepSummaries =
+                          section.stepperConfig?.steps
+                            .map((step) => step.requirementSummary)
+                            .filter(Boolean) ?? [];
+                        const items =
+                          stepSummaries.length > 0
+                            ? stepSummaries
+                            : section.sectionConfig.requirementsList;
+                        return items && items.length > 0 ? (
+                          <ul className="eb-mt-1.5 eb-w-full eb-list-disc eb-whitespace-break-spaces eb-pl-8 eb-text-start eb-font-sans eb-text-sm eb-font-normal">
+                            {items.map((item, index) => (
                               <li key={index}>{item}</li>
-                            )
-                          )}
-                        </ul>
-                      )}
+                            ))}
+                          </ul>
+                        ) : null;
+                      })()}
                       <div className="eb-flex eb-justify-end">
                         <Button
                           variant={
@@ -344,9 +532,7 @@ export const OverviewScreen = () => {
                               : 'default'
                           }
                           size="sm"
-                          className={cn('eb-mt-3', {
-                            'eb-hidden': sectionStatus === 'completed_disabled',
-                          })}
+                          className="eb-mt-3"
                           disabled={sectionDisabled}
                           data-testid={`${section.id}-button`}
                           aria-label={
@@ -361,7 +547,9 @@ export const OverviewScreen = () => {
                               editingPartyId: existingPartyData.id,
                               previouslyCompleted:
                                 sectionStatus === 'completed',
-                              initialStepperStepId: firstInvalidStep,
+                              initialStepperStepId:
+                                firstInvalidStep ??
+                                section.stepperConfig?.steps.at(-1)?.id,
                             });
                           }}
                         >
@@ -394,7 +582,7 @@ export const OverviewScreen = () => {
             </div>
           </CardContent>
         </Card>
-        {!hideLinkAccountSection && (
+        {showLinkAccountStep && (
           <Card className="eb-mt-6 eb-rounded-md eb-border-none eb-bg-card">
             <CardHeader className="eb-p-3">
               <CardTitle>
@@ -405,78 +593,289 @@ export const OverviewScreen = () => {
             </CardHeader>
             <CardContent className="eb-p-3 eb-pt-0">
               <div className="eb-space-y-3">
-                <div>
-                  <p
-                    className={cn(
-                      'eb-mb-3 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium',
-                      {
-                        'eb-text-muted-foreground': !kycCompleted,
-                      }
-                    )}
-                  >
-                    <LockIcon className="eb-size-4" />
-                    {t('screens.overview.bankAccountSection.lockedMessage')}
-                  </p>
-                  <Card
-                    className={cn('eb-rounded-md eb-border eb-bg-card eb-p-3', {
-                      'eb-border-dashed eb-border-muted-foreground':
-                        !kycCompleted,
-                    })}
-                  >
-                    <div className="eb-flex eb-w-full eb-justify-between">
-                      <div className="eb-flex eb-items-center eb-gap-2">
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 12 12"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
+                {isLoadingLinkedRecipients ? (
+                  <div className="eb-space-y-3 eb-pt-1">
+                    <Skeleton className="eb-h-5 eb-w-full eb-max-w-xs" />
+                    <Skeleton className="eb-h-28 eb-w-full eb-rounded-md" />
+                  </div>
+                ) : linkedAccounts.length > 0 ? (
+                  linkAccountStepOptions?.allowMultipleAccounts ? (
+                    <>
+                      {sessionData.linkAccountJustCreated && (
+                        <Alert
+                          variant="success"
+                          density="sm"
+                          className="eb-mb-2"
+                          noTitle
                         >
-                          <path
-                            d="M5.5 4V3H6.5V4H5.5Z"
-                            fill="#4C5157"
-                            fillOpacity="0.4"
-                          />
-                          <path
-                            fillRule="evenodd"
-                            clipRule="evenodd"
-                            d="M6 0L12 6H10V11H12V12H0V11L2 11V6H0L6 0ZM3 6V11H4V6H3ZM5 6V11H7V6H5ZM8 6V11H9V6H8ZM6 1.41421L9.58579 5H2.41421L6 1.41421Z"
-                            fill="#4C5157"
-                            fillOpacity={kycCompleted ? '1' : '0.8'}
-                          />
-                        </svg>
-                        <h3
-                          className={cn(
-                            'eb-font-header eb-text-lg eb-font-medium',
-                            {
-                              'eb-text-muted-foreground': !kycCompleted,
-                            }
-                          )}
-                        >
+                          <CheckCircle2Icon className="eb-size-4" />
+                          <AlertDescription className="eb-pr-6">
+                            {t(
+                              `screens.overview.bankAccountSection.successAlert.${linkedAccounts[0]?.status ?? 'ACTIVE'}`,
+                              'Your bank account details have been submitted successfully.'
+                            )}
+                          </AlertDescription>
+                          <button
+                            type="button"
+                            className="eb-absolute eb-right-4 eb-top-3 eb-rounded-sm eb-opacity-70 hover:eb-opacity-100 focus:eb-outline-none focus:eb-ring-2 focus:eb-ring-ring focus:eb-ring-offset-2"
+                            onClick={() => {
+                              updateSessionData({
+                                linkAccountJustCreated: false,
+                              });
+                            }}
+                          >
+                            <XIcon className="eb-size-4" />
+                            <span className="eb-sr-only">Close</span>
+                          </button>
+                        </Alert>
+                      )}
+                      {!linkAccountEnabled && (
+                        <p className="eb-mb-3 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium eb-text-muted-foreground">
+                          <LockIcon className="eb-size-4" />
                           {t(
-                            'screens.overview.bankAccountSection.linkAccountTitle'
+                            'screens.overview.bankAccountSection.lockedMessage'
                           )}
-                        </h3>
-                      </div>
+                        </p>
+                      )}
+                      <Card className="eb-rounded-md eb-border eb-bg-card eb-p-4">
+                        <p className="eb-text-sm eb-text-foreground">
+                          {linkedAccounts.length === 1
+                            ? t(
+                                'screens.overview.bankAccountSection.multiAccountOverviewDescriptionSingular',
+                                'You have 1 linked account for payouts. Open the bank linking step to add another account or manage details.'
+                              )
+                            : t(
+                                'screens.overview.bankAccountSection.multiAccountOverviewDescriptionPlural',
+                                'You have {{count}} linked accounts for payouts. Open the bank linking step to add another account or manage details.',
+                                { count: linkedAccounts.length }
+                              )}
+                        </p>
+                        <div className="eb-mt-4 eb-flex eb-justify-end">
+                          <Button
+                            variant={
+                              linkAccountEnabled ? 'default' : 'secondary'
+                            }
+                            size="sm"
+                            disabled={!linkAccountEnabled}
+                            data-testid="overview-manage-linked-accounts"
+                            onClick={() => goTo('link-account')}
+                          >
+                            {t(
+                              'screens.overview.bankAccountSection.manageLinkedAccountsButton',
+                              'Manage linked accounts'
+                            )}
+                            <ChevronRightIcon />
+                          </Button>
+                        </div>
+                      </Card>
+                    </>
+                  ) : (
+                    <>
+                      {sessionData.linkAccountJustCreated && (
+                        <Alert
+                          variant="success"
+                          density="sm"
+                          className="eb-mb-2"
+                          noTitle
+                        >
+                          <CheckCircle2Icon className="eb-size-4" />
+                          <AlertDescription className="eb-pr-6">
+                            {t(
+                              `screens.overview.bankAccountSection.successAlert.${existingLinkedAccount.status ?? 'ACTIVE'}`,
+                              'Your bank account details have been submitted successfully.'
+                            )}
+                          </AlertDescription>
+                          <button
+                            type="button"
+                            className="eb-absolute eb-right-4 eb-top-3 eb-rounded-sm eb-opacity-70 hover:eb-opacity-100 focus:eb-outline-none focus:eb-ring-2 focus:eb-ring-ring focus:eb-ring-offset-2"
+                            onClick={() => {
+                              updateSessionData({
+                                linkAccountJustCreated: false,
+                              });
+                            }}
+                          >
+                            <XIcon className="eb-size-4" />
+                            <span className="eb-sr-only">Close</span>
+                          </button>
+                        </Alert>
+                      )}
+                      <RecipientAccountDisplayCard
+                        recipient={existingLinkedAccount}
+                        statusAlert={
+                          existingLinkedAccount.status &&
+                          existingLinkedAccount.status !== 'ACTIVE' ? (
+                            <StatusAlert
+                              status={existingLinkedAccount.status}
+                              action={
+                                canVerifyMicrodeposits(
+                                  existingLinkedAccount
+                                ) ? (
+                                  <MicrodepositsFormDialogTrigger
+                                    recipientId={existingLinkedAccount.id}
+                                  >
+                                    <Button
+                                      variant="default"
+                                      size="sm"
+                                      data-user-event={
+                                        LINKED_ACCOUNT_USER_JOURNEYS.VERIFY_STARTED
+                                      }
+                                      aria-label={`${tString('linked-accounts:actions.verifyAccount')} for ${getRecipientDisplayName(existingLinkedAccount)}`}
+                                    >
+                                      <span>
+                                        {t(
+                                          'linked-accounts:actions.verifyAccount'
+                                        )}
+                                      </span>
+                                      <ArrowRightIcon
+                                        className="eb-ml-2 eb-h-4 eb-w-4"
+                                        aria-hidden="true"
+                                      />
+                                    </Button>
+                                  </MicrodepositsFormDialogTrigger>
+                                ) : undefined
+                              }
+                            />
+                          ) : undefined
+                        }
+                        showAccountToggle
+                        showPaymentMethods
+                        allowDetailedPaymentMethods={false}
+                        actionsContent={
+                          <div
+                            className="eb-flex eb-items-center eb-gap-2"
+                            role="group"
+                            aria-label="Account actions"
+                          >
+                            <RecipientDetailsDialog
+                              recipient={existingLinkedAccount}
+                            >
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="eb-gap-1.5"
+                                aria-label={`${tString('linked-accounts:actions.viewDetails')} for ${getRecipientDisplayName(existingLinkedAccount)}`}
+                              >
+                                <ClipboardListIcon
+                                  className="eb-h-4 eb-w-4"
+                                  aria-hidden="true"
+                                />
+                                <span>
+                                  {t('linked-accounts:actions.viewDetails')}
+                                </span>
+                              </Button>
+                            </RecipientDetailsDialog>
+                            {!hideLinkedAccountRemoval ? (
+                              <RemoveAccountDialogTrigger
+                                recipient={existingLinkedAccount}
+                                i18nNamespace="linked-accounts"
+                                onRemoveSuccess={() => {
+                                  invalidateRecipientQueries(
+                                    queryClient,
+                                    'LINKED_ACCOUNT'
+                                  );
+                                }}
+                              >
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="eb-gap-1.5 eb-text-destructive hover:eb-text-destructive"
+                                  data-user-event={
+                                    LINKED_ACCOUNT_USER_JOURNEYS.REMOVE_STARTED
+                                  }
+                                  aria-label={`${tString('linked-accounts:actions.remove')} ${getRecipientDisplayName(existingLinkedAccount)}`}
+                                >
+                                  <TrashIcon
+                                    className="eb-h-4 eb-w-4"
+                                    aria-hidden="true"
+                                  />
+                                  <span>
+                                    {t('linked-accounts:actions.remove')}
+                                  </span>
+                                </Button>
+                              </RemoveAccountDialogTrigger>
+                            ) : null}
+                          </div>
+                        }
+                      />
+                    </>
+                  )
+                ) : (
+                  <div className="eb-space-y-3">
+                    <RejectedAccountsAccordion
+                      recipientType="LINKED_ACCOUNT"
+                      queryParams={{ clientId: clientData?.id }}
+                    />
+                    {!linkAccountEnabled && (
+                      <p className="eb-mb-3 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium eb-text-muted-foreground">
+                        <LockIcon className="eb-size-4" />
+                        {t('screens.overview.bankAccountSection.lockedMessage')}
+                      </p>
+                    )}
+                    <Card
+                      className={cn(
+                        'eb-rounded-md eb-border eb-bg-card eb-p-3',
+                        {
+                          'eb-border-dashed eb-border-muted-foreground':
+                            !linkAccountEnabled,
+                        }
+                      )}
+                    >
+                      <div className="eb-flex eb-w-full eb-justify-between">
+                        <div className="eb-flex eb-items-center eb-gap-2">
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 12 12"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M5.5 4V3H6.5V4H5.5Z"
+                              fill="#4C5157"
+                              fillOpacity="0.4"
+                            />
+                            <path
+                              fillRule="evenodd"
+                              clipRule="evenodd"
+                              d="M6 0L12 6H10V11H12V12H0V11L2 11V6H0L6 0ZM3 6V11H4V6H3ZM5 6V11H7V6H5ZM8 6V11H9V6H8ZM6 1.41421L9.58579 5H2.41421L6 1.41421Z"
+                              fill="#4C5157"
+                              fillOpacity={linkAccountEnabled ? '1' : '0.8'}
+                            />
+                          </svg>
+                          <h3
+                            className={cn(
+                              'eb-font-header eb-text-lg eb-font-medium',
+                              {
+                                'eb-text-muted-foreground': !linkAccountEnabled,
+                              }
+                            )}
+                          >
+                            {t(
+                              'screens.overview.bankAccountSection.linkAccountTitle'
+                            )}
+                          </h3>
+                        </div>
 
-                      <div className="eb-flex [&_svg]:eb-size-4">
-                        <CircleDashedIcon className="eb-stroke-gray-600" />
-                        <span className="eb-sr-only">Not started</span>
+                        <div className="eb-flex [&_svg]:eb-size-4">
+                          <CircleDashedIcon className="eb-stroke-gray-600" />
+                          <span className="eb-sr-only">Not started</span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="eb-flex eb-justify-end">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="eb-mt-3"
-                        disabled={!kycCompleted}
-                      >
-                        {t('common:start')}
-                        <ChevronRightIcon />
-                      </Button>
-                    </div>
-                  </Card>
-                </div>
+                      <div className="eb-flex eb-justify-end">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="eb-mt-3"
+                          disabled={!linkAccountEnabled}
+                          onClick={() => goTo('link-account')}
+                        >
+                          {t('common:start')}
+                          <ChevronRightIcon />
+                        </Button>
+                      </div>
+                    </Card>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -1,6 +1,8 @@
 import { i18n } from '@/i18n/config';
 import { z } from 'zod';
 
+import { JOB_TITLE_DESCRIPTION_PATTERN } from '@/core/OnboardingFlow/utils/validationPatterns';
+
 import { AddressSchema, PhoneSchema } from '../utils/schemas';
 
 // Constants for validation
@@ -261,8 +263,8 @@ export const ControllerStepFormSchema = z.object({
         'onboarding:fields.controllerJobTitleDescription.validation.maxLength'
       )
     )
-    .regex(
-      /^[a-zA-Z0-9\s,.&-]+$/,
+    .refine(
+      (val) => val === '' || JOB_TITLE_DESCRIPTION_PATTERN.test(val),
       i18n.t(
         'onboarding:fields.controllerJobTitleDescription.validation.pattern'
       )

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import {
   AlertCircleIcon,
   BellIcon,
@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LinkedAccountWidget } from '@/core/LinkedAccountWidget/LinkedAccountWidget';
+import { LinkedAccountWidget } from '@/core/RecipientWidgets';
 
 import { useOnboardingContext } from '../OnboardingContextProvider/OnboardingContextProvider';
 import { AdvancedReviewInProgressLoadingState } from './AdvancedReviewInProgressLoadingState';
@@ -100,12 +100,11 @@ export const ClientOnboardingStateView: React.FC<
     });
 
     // You can also implement additional logic here
-    console.log(`Status changed from ${oldStatus} to ${newStatus}`);
   };
 
   useClientStatusMonitor(clientId, handleStatusChange);
 
-  const statusMessages: Record<ClientStatus, string> = {
+  const statusMessages: Record<ClientStatus, ReactNode> = {
     NEW: t('clientOnboardingStatus.statusMessages.NEW'),
     REVIEW_IN_PROGRESS: t(
       'clientOnboardingStatus.statusMessages.REVIEW_IN_PROGRESS'
@@ -237,7 +236,7 @@ export const ClientOnboardingStateView: React.FC<
                     'While your onboarding is being processed, you can start adding linked accounts to your profile.'
                   )}
                 </p>
-                <LinkedAccountWidget variant="singleAccount" />
+                <LinkedAccountWidget mode="single" />
               </div>
             )}
           </CardContent>

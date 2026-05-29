@@ -1,0 +1,135 @@
+import { type ReactNode } from 'react';
+import { defaultResources } from '@/i18n/config';
+import { useTranslation } from 'react-i18next';
+
+import { useContentTokens } from '@/core/EBComponentsProvider';
+
+/** Valid namespace keys from default resources */
+type ValidNamespace = keyof (typeof defaultResources)['enUS'];
+
+/**
+ * Translation result type that excludes null/undefined.
+ * This ensures the return type is always renderable content.
+ */
+export type TranslationResult = string | Exclude<ReactNode, null | undefined>;
+
+/**
+ * Returns a wrapped translation function that annotates output with token IDs.
+ *
+ * When `showTokenIds` is enabled:
+ * - Returns a <span data-content-token="namespace.key">translated text</span>
+ *
+ * When disabled:
+ * - Returns the plain translated string (normal behavior)
+ *
+ * Uses the same type inference as `useTranslation` for full intellisense.
+ *
+ * @example
+ * ```tsx
+ * // Single namespace
+ * const { t } = useTranslationWithTokens('recipients');
+ * return <h1>{t('title')}</h1>;
+ *
+ * // Multiple namespaces
+ * const { t } = useTranslationWithTokens(['accounts', 'common']);
+ * return <span>{t('actions.save')}</span>;
+ * ```
+ */
+export function useTranslationWithTokens<N extends ValidNamespace>(
+  ns: N | N[]
+) {
+  const contentTokensConfig = useContentTokens();
+  const { t: originalT, i18n, ready } = useTranslation(ns);
+
+  const showTokenIds = contentTokensConfig?.showTokenIds ?? false;
+  const primaryNs: ValidNamespace = Array.isArray(ns) ? ns[0] : ns;
+
+  type TFunc = typeof originalT;
+
+  function extractStringDefaultFromTranslateArgs(
+    args: Parameters<TFunc>
+  ): string {
+    for (let i = args.length - 1; i >= 1; i -= 1) {
+      const a = args[i];
+      if (typeof a === 'object' && a !== null && !Array.isArray(a)) {
+        const dv = (a as { defaultValue?: unknown }).defaultValue;
+        if (typeof dv === 'string') return dv;
+      }
+    }
+    if (typeof args[1] === 'string') return args[1];
+    return '';
+  }
+
+  /**
+   * Translate a key, optionally annotating with token ID.
+   * Returns ReactNode when showTokenIds is enabled, string otherwise.
+   *
+   * Must forward all arguments to i18next `t` (e.g. `t(key, defaultValue, options)`
+   * for interpolation). Only passing `(key, options)` drops the third argument and
+   * breaks strings like `Document {{number}}`.
+   */
+  function t(...args: Parameters<TFunc>): TranslationResult {
+    const translated = (originalT as any)(...args);
+
+    if (!showTokenIds) {
+      return translated;
+    }
+
+    // If the translated content is empty, return empty string to avoid rendering empty spans
+    // This preserves the behavior of conditional rendering based on empty content
+    if (translated === '' || translated === null || translated === undefined) {
+      return translated ?? '';
+    }
+
+    // Build full token ID (namespace.key)
+    // When args[0] is an array of fallback keys, find the key that
+    // i18next actually resolved to, so the data-content-token attribute
+    // reflects the real translation source rather than always the first key.
+    const rawKey = args[0];
+    let keyStr: string;
+    if (Array.isArray(rawKey)) {
+      const resolved = rawKey.find((k) => i18n.exists(k as string));
+      keyStr = String(resolved ?? rawKey[0]);
+    } else {
+      keyStr = String(rawKey);
+    }
+    // Prefer `ns` from the last object arg (covers t(key, opts) and t(key, default, opts))
+    let optionsForNs: Record<string, unknown> | undefined;
+    for (let i = args.length - 1; i >= 1; i -= 1) {
+      const a = args[i];
+      if (typeof a === 'object' && a !== null && !Array.isArray(a)) {
+        optionsForNs = a as Record<string, unknown>;
+        break;
+      }
+    }
+    const namespace =
+      (optionsForNs as { ns?: string } | undefined)?.ns ??
+      (keyStr.includes(':') ? undefined : primaryNs);
+    const tokenId = namespace ? `${namespace}:${keyStr}` : keyStr;
+
+    return (
+      <span data-content-token={tokenId} className="eb-contents">
+        {translated}
+      </span>
+    );
+  }
+
+  /**
+   * Translate a key, always returning a plain string (no annotation).
+   * Use this when the result must be a string (e.g., for title attributes).
+   *
+   * Coerces non-strings: nested JSON leaves from deep-merged resources or odd
+   * `t` results would otherwise become `[object Object]` in template literals.
+   */
+  const tString = (...args: Parameters<TFunc>): string => {
+    const raw = (originalT as any)(...args);
+    if (typeof raw === 'string') return raw;
+    if (raw == null) return extractStringDefaultFromTranslateArgs(args);
+    if (typeof raw === 'number' || typeof raw === 'boolean') {
+      return String(raw);
+    }
+    return extractStringDefaultFromTranslateArgs(args);
+  };
+
+  return { t, tString, i18n, ready };
+}

@@ -1,13 +1,14 @@
 // StepDetailsView component for displaying step details
 import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import { DataTable, EmptyRow, HighlightCode } from './ui-components';
+
 import {
+  HTTP_VERB_STYLES,
   type ArazzoWorkflowStep,
   type HttpVerb,
-  HTTP_VERB_STYLES,
   type OasOperationInfo,
 } from '../types';
 import {
@@ -18,6 +19,7 @@ import {
   getStepPayload,
 } from '../utils/schema-utils';
 import { getUiValidationForPath } from '../utils/ui-validation-map';
+import { DataTable, EmptyRow, HighlightCode } from './ui-components';
 
 interface StepDetailsViewProps {
   selectedStep: ArazzoWorkflowStep | null;
@@ -46,10 +48,10 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
   return (
     <Tabs
       defaultValue="step"
-      className="w-full h-full flex flex-col max-h-full"
+      className="flex h-full max-h-full w-full flex-col"
     >
-      <div className="shrink-0 bg-jpm-brown-100 border-b border-jpm-brown-300 px-2 sm:px-4">
-        <TabsList className="bg-transparent h-10 p-0 gap-1">
+      <div className="shrink-0 border-b border-jpm-brown-300 bg-jpm-brown-100 px-2 sm:px-4">
+        <TabsList className="h-10 gap-1 bg-transparent p-0">
           <TabsTrigger
             value="step"
             className="data-[state=active]:bg-white data-[state=active]:text-jpm-brown-900"
@@ -89,7 +91,7 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
           )}
         </TabsList>
       </div>
-      <div className="flex-1 overflow-auto p-3 sm:p-4 max-h-[calc(100%-50px)]">
+      <div className="max-h-[calc(100%-50px)] flex-1 overflow-auto p-3 sm:p-4">
         <TabsContent value="step" className="m-0 h-full overflow-auto">
           <HighlightCode
             code={
@@ -108,7 +110,7 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                 ? JSON.stringify(
                     getStepPayload(selectedStep ?? undefined),
                     null,
-                    2,
+                    2
                   )
                 : '// No payload for this step'
             }
@@ -134,7 +136,7 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
               const schema = getSchemaForPath(
                 row.path,
                 oasSpec,
-                selectedStep?.operationId,
+                selectedStep?.operationId
               );
 
               // Extract validation constraints
@@ -208,7 +210,7 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
             return (
               <div className="space-y-6">
                 <div>
-                  <div className="text-sm font-medium mb-2">
+                  <div className="mb-2 text-sm font-medium">
                     Success Criteria
                   </div>
                   <DataTable headers={['Condition']}>
@@ -223,9 +225,9 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                     )}
                   </DataTable>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div>
-                    <div className="text-sm font-medium mb-2">On Success</div>
+                    <div className="mb-2 text-sm font-medium">On Success</div>
                     <DataTable headers={['Reference']}>
                       {onSuccess.length === 0 ? (
                         <EmptyRow />
@@ -239,7 +241,7 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                     </DataTable>
                   </div>
                   <div>
-                    <div className="text-sm font-medium mb-2">On Failure</div>
+                    <div className="mb-2 text-sm font-medium">On Failure</div>
                     <DataTable headers={['Reference']}>
                       {onFailure.length === 0 ? (
                         <EmptyRow />
@@ -254,7 +256,7 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm font-medium mb-2">Outputs</div>
+                  <div className="mb-2 text-sm font-medium">Outputs</div>
                   <DataTable headers={['Name', 'Value']}>
                     {Object.keys(outputs).length === 0 ? (
                       <EmptyRow colSpan={2} />
@@ -316,19 +318,19 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                   <div className="flex items-center gap-2">
                     <Badge
                       className={cn(
-                        'text-xs px-2 py-1 border',
-                        HTTP_VERB_STYLES[verb as HttpVerb],
+                        'border px-2 py-1 text-xs',
+                        HTTP_VERB_STYLES[verb as HttpVerb]
                       )}
                       variant="outline"
                     >
                       {verb}
                     </Badge>
-                    <span className="text-sm font-mono">{path}</span>
+                    <span className="font-mono text-sm">{path}</span>
                   </div>
 
                   {(summary || description) && (
                     <div className="mt-3 text-sm">
-                      {summary && <p className="font-medium mb-1">{summary}</p>}
+                      {summary && <p className="mb-1 font-medium">{summary}</p>}
                       {description && (
                         <p className="text-muted-foreground">{description}</p>
                       )}
@@ -339,7 +341,7 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                 {/* Parameters */}
                 {parameters.length > 0 && (
                   <div>
-                    <div className="text-sm font-medium mb-2">Parameters</div>
+                    <div className="mb-2 text-sm font-medium">Parameters</div>
                     <DataTable
                       headers={[
                         'Name',
@@ -375,17 +377,17 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                 {/* Request Body */}
                 {requestBody && (
                   <div>
-                    <div className="text-sm font-medium mb-2">
+                    <div className="mb-2 text-sm font-medium">
                       Request Body{' '}
                       {requestContentType && `(${requestContentType})`}
                     </div>
                     {requestBody.description && (
-                      <p className="text-sm text-muted-foreground mb-2">
+                      <p className="mb-2 text-sm text-muted-foreground">
                         {requestBody.description}
                       </p>
                     )}
                     {requestSchema && (
-                      <div className="bg-white rounded-lg border p-3 overflow-auto max-h-[300px]">
+                      <div className="max-h-[300px] overflow-auto rounded-lg border bg-white p-3">
                         <HighlightCode
                           code={formatSchema(requestSchema)}
                           language="json"
@@ -398,7 +400,7 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                 {/* Response Codes */}
                 {Object.keys(responses).length > 0 && (
                   <div>
-                    <div className="text-sm font-medium mb-2">Responses</div>
+                    <div className="mb-2 text-sm font-medium">Responses</div>
                     <DataTable
                       headers={['Status', 'Description', 'Content Type']}
                     >
@@ -414,7 +416,7 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                                 {status}
                                 {status === '200' && (
                                   <Badge
-                                    className="ml-2 bg-green-100 text-green-800 border-green-300"
+                                    className="ml-2 border-green-300 bg-green-100 text-green-800"
                                     variant="outline"
                                   >
                                     OK
@@ -422,7 +424,7 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                                 )}
                                 {status.startsWith('4') && (
                                   <Badge
-                                    className="ml-2 bg-amber-100 text-amber-800 border-amber-300"
+                                    className="ml-2 border-amber-300 bg-amber-100 text-amber-800"
                                     variant="outline"
                                   >
                                     Error
@@ -430,7 +432,7 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                                 )}
                                 {status.startsWith('5') && (
                                   <Badge
-                                    className="ml-2 bg-red-100 text-red-800 border-red-300"
+                                    className="ml-2 border-red-300 bg-red-100 text-red-800"
                                     variant="outline"
                                   >
                                     Error
@@ -440,12 +442,12 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                               <td className="py-2 pr-4 text-xs">
                                 {respObj.description || ''}
                               </td>
-                              <td className="py-2 text-xs font-mono">
+                              <td className="py-2 font-mono text-xs">
                                 {contentTypes}
                               </td>
                             </tr>
                           );
-                        },
+                        }
                       )}
                     </DataTable>
 
@@ -453,14 +455,14 @@ export const StepDetailsView: React.FC<StepDetailsViewProps> = ({
                     {responses['200']?.content?.['application/json']
                       ?.schema && (
                       <div className="mt-4">
-                        <div className="text-xs font-medium mb-2">
+                        <div className="mb-2 text-xs font-medium">
                           Success Response Schema
                         </div>
-                        <div className="bg-white rounded-lg border p-3 overflow-auto max-h-[200px]">
+                        <div className="max-h-[200px] overflow-auto rounded-lg border bg-white p-3">
                           <HighlightCode
                             code={formatSchema(
                               responses['200'].content['application/json']
-                                .schema,
+                                .schema
                             )}
                             language="json"
                           />

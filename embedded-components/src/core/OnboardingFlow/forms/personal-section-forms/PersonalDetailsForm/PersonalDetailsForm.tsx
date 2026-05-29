@@ -1,12 +1,14 @@
+import { useTranslationWithTokens } from '@/i18n';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
 import {
+  COUNTRIES_OF_FORMATION,
   JOB_TITLES,
   NATURE_OF_OWNERSHIP_OPTIONS,
 } from '@/core/OnboardingFlow/consts';
+import { useFlowContext } from '@/core/OnboardingFlow/contexts/FlowContext';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 import { getOrganizationParty } from '@/core/OnboardingFlow/utils/dataUtils';
 
@@ -16,21 +18,47 @@ import {
 } from './PersonalDetailsForm.schema';
 
 export const PersonalDetailsForm: FormStepComponent = () => {
-  const { t } = useTranslation('onboarding-overview');
-  const schema = usePersonalDetailsFormSchema();
-  const form = useFormContext<z.input<typeof schema>>();
+  const { t, tString } = useTranslationWithTokens('onboarding-overview');
+  const { currentScreenId } = useFlowContext();
+  const _schema = usePersonalDetailsFormSchema();
+  const form = useFormContext<z.input<typeof _schema>>();
 
   const jobTitle = form.watch('controllerJobTitle');
 
+  const isOwnerContext = currentScreenId === 'owner-stepper';
+
+  const legalNameHeader = isOwnerContext
+    ? t('screens.ownerPersonalDetails.legalNameHeader')
+    : t('screens.personalDetails.legalNameHeader');
+  const legalNameDescription = isOwnerContext
+    ? t('screens.ownerPersonalDetails.legalNameDescription')
+    : t('screens.personalDetails.legalNameDescription');
+
   return (
     <div className="eb-mt-6 eb-space-y-6">
+      <OnboardingFormField
+        control={form.control}
+        name="countryOfResidence"
+        type="combobox"
+        options={COUNTRIES_OF_FORMATION.map((code) => ({
+          value: code,
+          searchValue: `[${code}] ${tString([`common:countries.${code}`] as unknown as TemplateStringsArray)}`,
+          label: (
+            <span>
+              <span className="eb-font-medium">[{code}]</span>{' '}
+              {t([
+                `common:countries.${code}`,
+              ] as unknown as TemplateStringsArray)}
+            </span>
+          ),
+        }))}
+        required
+      />
       <fieldset className="eb-grid eb-gap-y-3">
         <legend className="eb-mb-1.5 eb-text-lg eb-font-medium">
-          {t('screens.personalDetails.legalNameHeader')}
+          {legalNameHeader}
         </legend>
-        <p className="eb-text-sm">
-          {t('screens.personalDetails.legalNameDescription')}
-        </p>
+        <p className="eb-text-sm">{legalNameDescription}</p>
         <OnboardingFormField
           control={form.control}
           name="controllerFirstName"
@@ -100,10 +128,6 @@ PersonalDetailsForm.modifyFormValuesBeforeSubmit = (
     ...(values.controllerJobTitle === 'Other'
       ? { controllerJobTitleDescription }
       : { controllerJobTitleDescription: undefined }),
-    // Set the country of residence as it is required
-    countryOfResidence: 'US',
-    // To be used when more countries are supported
-    // partyData?.individualDetails?.countryOfResidence ?? 'US',
   };
 };
 PersonalDetailsForm.updateAnotherPartyOnSubmit = {

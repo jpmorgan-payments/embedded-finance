@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import {
   ClientResponse,
+  CreatePartyRequestInline,
   OrganizationType,
   PartyResponse,
 } from '@/api/generated/smbdo.schemas';
@@ -29,20 +30,29 @@ export type FormStepComponent<TSchema extends DefaultSchema = DefaultSchema> =
     };
   };
 
-export type StepConfig = BaseStep | FormStep;
+export interface VisibilityContext {
+  orgParty: PartyResponse | undefined;
+}
 
-export interface BaseStep {
+export type VisibilityPredicate = (ctx: VisibilityContext) => boolean;
+
+interface StepBase {
   id: string;
   title: string;
   description?: string;
-  stepType: 'static' | 'check-answers'; // add future step types here
+  /** Short summary shown in the overview requirements list for this step. */
+  requirementSummary?: string;
+  isVisible?: VisibilityPredicate;
+}
+
+export type StepConfig = BaseStep | FormStep;
+
+export interface BaseStep extends StepBase {
+  stepType: 'static' | 'check-answers';
   Component?: React.ComponentType<StepperStepProps>;
 }
 
-export interface FormStep {
-  id: string;
-  title: string;
-  description?: string;
+export interface FormStep extends StepBase {
   stepType: 'form';
   Component: FormStepComponent;
 }
@@ -54,7 +64,8 @@ export type StaticScreenId =
   | 'checklist'
   | 'overview'
   | 'owner-stepper'
-  | 'document-upload-form';
+  | 'document-upload-form'
+  | 'link-account';
 
 export type SectionScreenId =
   | 'personal-section'
@@ -82,7 +93,7 @@ export type SectionScreenConfig = BaseScreenConfig & {
     helpText?: string;
     onHoldText?: string;
     requirementsList?: string[];
-    excludedForOrgTypes?: string[];
+    isVisible?: VisibilityPredicate;
     statusResolver?: (
       sessionData: FlowSessionData,
       clientData: ClientResponse | undefined,
@@ -113,7 +124,7 @@ export interface StepperConfig {
   associatedPartyFilters?: AssociatedPartyFilters;
   getDefaultPartyRequestBody?: (
     orgType?: OrganizationType
-  ) => Partial<PartyResponse>;
+  ) => Partial<CreatePartyRequestInline>;
 }
 
 export interface AssociatedPartyFilters {
@@ -156,15 +167,17 @@ export type FlowSessionData = {
   isControllerOwnerQuestionAnswered?: boolean;
   isOwnersSectionDone?: boolean;
   mockedVerifyingSectionId?: ScreenId;
-  mockedKycCompleted?: boolean;
   hideGatewayInfoAlert?: boolean;
   hideOverviewInfoAlert?: boolean;
+  completedStaticStepIds?: string[];
+  /** Transient flag set after successfully creating a linked account; cleared when overview dismisses the banner. */
+  linkAccountJustCreated?: boolean;
 };
 
 export type StepperStepProps = {
   handleNext: () => void;
   handlePrev: () => void;
-  getPrevButtonLabel: () => string | null;
-  getNextButtonLabel: () => string | null;
+  getPrevButtonLabel: () => React.ReactNode | null;
+  getNextButtonLabel: () => React.ReactNode | null;
   prevButtonDisabled?: boolean;
 };

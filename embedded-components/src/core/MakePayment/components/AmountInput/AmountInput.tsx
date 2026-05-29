@@ -1,6 +1,6 @@
 import React from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import {
   FormControl,
@@ -38,7 +38,7 @@ export const AmountInput: React.FC<AmountInputProps> = ({
   totalAmount,
   availableBalance,
 }) => {
-  const { t } = useTranslation(['make-payment']);
+  const { t } = useTranslationWithTokens(['make-payment']);
   const form = useFormContext<PaymentFormData>();
 
   const amount = Number.parseFloat(form.watch('amount') || '0');
@@ -46,11 +46,11 @@ export const AmountInput: React.FC<AmountInputProps> = ({
 
   return (
     <div className="eb-space-y-4">
-      <div className="eb-text-sm eb-font-medium eb-text-foreground">
+      <h3 className="eb-text-base eb-font-semibold">
         {t('sections.amount.label', {
-          defaultValue: '3. How much are you paying?',
+          defaultValue: 'How much are you paying?',
         })}
-      </div>
+      </h3>
 
       {/* Currency and Amount on same line */}
       <div className="eb-flex eb-gap-2">
@@ -59,7 +59,7 @@ export const AmountInput: React.FC<AmountInputProps> = ({
           control={form.control}
           name="currency"
           render={({ field }) => (
-            <FormItem className="eb-flex-shrink-0">
+            <FormItem className="eb-shrink-0">
               <Select
                 onValueChange={field.onChange}
                 defaultValue="USD"

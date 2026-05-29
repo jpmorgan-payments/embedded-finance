@@ -1,0 +1,35 @@
+{
+  "component": "transactions",
+  "date": "2025-12-02",
+  "navigationTiming": {
+    "dns": 39.6,
+    "tcp": 24.4,
+    "request": 11.7,
+    "response": 0.6,
+    "domProcessing": 47.7,
+    "load": 0,
+    "total": 204.4
+  },
+  "resourceLoading": {
+    "totalResources": 15,
+    "largestResource": {
+      "name": "sellsense-demo-DHwOlM2K.js",
+      "duration": 114,
+      "type": "script"
+    },
+    "averageResourceLoad": 30.7
+  },
+  "memoryUsage": {
+    "usedMB": 46,
+    "totalMB": 63,
+    "limitMB": 2144,
+    "efficiency": "Good (2.1% of limit used)"
+  },
+  "assessment": {
+    "loadTime": "Excellent (204ms - under 250ms)",
+    "domProcessing": "Good (47.7ms - under 100ms)",
+    "memory": "Efficient",
+    "note": "Metrics are from mocked environment (MSW), actual production performance may differ"
+  }
+}
+

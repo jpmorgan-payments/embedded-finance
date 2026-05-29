@@ -1,0 +1,28 @@
+{
+  "component": "Recipients",
+  "date": "2026-01-14",
+  "url": "https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=recipients&theme=Empty",
+  "totalRequests": 43,
+  "summary": {
+    "successful": 35,
+    "failed": 8,
+    "failedReasons": ["ERR_ABORTED (navigation-related cancellations)", "304 Not Modified (cached resources)"],
+    "duplicateCalls": true,
+    "duplicateEndpoints": [
+      "/ping",
+      "/ef/do/v1/recipients?type=RECIPIENT&limit=10",
+      "/ef/do/v1/recipients?type=RECIPIENT&page=0&limit=10",
+      "/ef/do/v1/recipients",
+      "/ef/do/v1/recipients/recipient-001",
+      "/ef/do/v1/recipients/recipient-002",
+      "/ef/do/v1/recipients/recipient-004",
+      "/ef/do/v1/accounts",
+      "/ef/do/v1/accounts/acc-002/balances"
+    ]
+  },
+  "findings": {
+    "duplicateCalls": "All API endpoints called twice - consistent pattern across components",
+    "abortedRequests": "Some requests show ERR_ABORTED - likely due to navigation or component unmounting",
+    "cachedResources": "Many resources return 304 Not Modified (good caching behavior)"
+  }
+}

@@ -123,7 +123,7 @@ describe('ReviewPanel', () => {
     expect(screen.getByText('Payment details')).toBeInTheDocument();
   });
 
-  test('displays fee and total calculations', () => {
+  test('displays total calculation', () => {
     render(
       <TestWrapper>
         <ReviewPanel
@@ -134,7 +134,46 @@ describe('ReviewPanel', () => {
       </TestWrapper>
     );
 
+    // Total should always be displayed
+    expect(screen.getByText('Total')).toBeInTheDocument();
+  });
+
+  test('displays fee when payment method has a fee', () => {
+    const paymentMethodsWithFee = [{ id: 'ACH', name: 'ACH', fee: 2.5 }];
+
+    render(
+      <TestWrapper>
+        <ReviewPanel
+          filteredRecipients={mockRecipients}
+          accounts={mockAccounts}
+          accountsStatus="success"
+          paymentMethods={paymentMethodsWithFee}
+        />
+      </TestWrapper>
+    );
+
+    // Fee should be displayed when payment method has a fee > 0
     expect(screen.getByText('Fee')).toBeInTheDocument();
+    expect(screen.getByText('Total')).toBeInTheDocument();
+  });
+
+  test('does not display fee when payment method has no fee', () => {
+    const paymentMethodsNoFee = [{ id: 'ACH', name: 'ACH' }];
+
+    render(
+      <TestWrapper>
+        <ReviewPanel
+          filteredRecipients={mockRecipients}
+          accounts={mockAccounts}
+          accountsStatus="success"
+          paymentMethods={paymentMethodsNoFee}
+        />
+      </TestWrapper>
+    );
+
+    // Fee should not be displayed when fee is 0 or undefined
+    expect(screen.queryByText('Fee')).not.toBeInTheDocument();
+    // Total should still be displayed
     expect(screen.getByText('Total')).toBeInTheDocument();
   });
 });

@@ -1,0 +1,54 @@
+{
+  "title": "Cuentas",
+  "description": "Vea y administre sus cuentas comerciales",
+  "loading": {
+    "accounts": "Cargando cuentas..."
+  },
+  "error": {
+    "loadFailed": "Error al cargar las cuentas. Por favor, intente nuevamente.",
+    "retry": "Reintentar"
+  },
+  "emptyState": {
+    "title": "No se encontraron cuentas",
+    "description": "Ninguna cuenta coincide con las categorías seleccionadas. Contacte al soporte si necesita crear una cuenta."
+  },
+  "status": {
+    "labels": {
+      "OPEN": "Abierta",
+      "CLOSED": "Cerrada",
+      "PENDING_CLOSE": "Cierre pendiente"
+    }
+  },
+  "categories": {
+    "LIMITED_DDA_PAYMENTS": "Limited DDA Payments",
+    "LIMITED_DDA": "Limited DDA",
+    "EMBEDDED_DDA": "Embedded DDA",
+    "DDA": "DDA",
+    "CLIENT_OFFSET": "Client Offset",
+    "MANAGEMENT": "Management",
+    "PROCESSING": "Processing",
+    "PROCESSING_OFFSET": "Processing Offset"
+  },
+  "card": {
+    "accountNumber": "Número de cuenta",
+    "routing": "Enrutamiento",
+    "achRouting": "Número de enrutamiento ACH",
+    "routingLabel": "Número de enrutamiento {{type}}",
+    "showDetails": "Mostrar detalles de la cuenta",
+    "hideDetails": "Ocultar detalles de la cuenta",
+    "copyAccountNumber": "Copiar número de cuenta",
+    "copyRouting": "Copiar número de enrutamiento",
+    "copyAchRouting": "Copiar número de enrutamiento ACH",
+    "copyRoutingLabel": "Copiar número de enrutamiento {{type}}",
+    "balancesError": "No se pudieron cargar los saldos",
+    "noBalanceData": "Información de saldo no disponible",
+    "dataAsOf": "Al {{date}}",
+    "balanceTypeInfoAriaLabel": "Más información sobre {{type}}"
+  },
+  "balanceTypes": {
+    "ITAV": "Saldo disponible",
+    "ITBD": "Saldo actual",
+    "ITAV_description": "Fondos que puede usar ahora, incluyendo créditos pendientes y menos retenciones.",
+    "ITBD_description": "Saldo de transacciones liquidadas; puede no reflejar actividad pendiente."
+  }
+}

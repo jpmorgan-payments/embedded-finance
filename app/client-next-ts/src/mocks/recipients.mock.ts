@@ -1,9 +1,10 @@
+import type {
+  ListRecipientsResponse,
+  Recipient,
+} from '@ef-api/ep-recipients-schemas';
 
-// Mock recipients data for Recipients component
-export const mockRecipientsResponse = {
-  page: 0,
-  limit: 10,
-  total_items: 4,
+// Mock recipients data for Recipients component (OAS ListRecipientsResponse)
+export const mockRecipientsResponse: ListRecipientsResponse = {
   recipients: [
     {
       id: 'recipient-001',
@@ -94,7 +95,6 @@ export const mockRecipientsResponse = {
       createdAt: '2024-01-10T14:20:00Z',
       updatedAt: '2024-01-16T09:15:00Z',
     },
-
     {
       id: 'recipient-004',
       type: 'RECIPIENT',
@@ -138,20 +138,33 @@ export const mockRecipientsResponse = {
       updatedAt: '2024-01-24T10:30:00Z',
     },
   ],
+  page: 0,
+  limit: 4,
+  total_items: 3,
+  metadata: {
+    page: 0,
+    limit: 4,
+    total_items: 3,
+  },
 };
 
 // Mock empty recipients response
 export const mockEmptyRecipientsResponse = {
+  recipients: [],
   page: 0,
   limit: 10,
   total_items: 0,
-  recipients: [],
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: 0,
+  },
 };
 
 // Mock recipients with different statuses
-export const mockActiveRecipients = mockRecipientsResponse.recipients.filter(
-  (r) => r.status === 'ACTIVE',
-);
+export const mockActiveRecipients = (
+  mockRecipientsResponse.recipients ?? []
+).filter((r) => r.status === 'ACTIVE');
 
 // Mock verification responses
 export const mockVerificationSuccess = {
@@ -170,8 +183,8 @@ export const mockVerificationFailure = {
 
 // Function to create mock recipient
 export const createMockRecipient = (
-  overrides: Partial<any> = {},
-): any => {
+  overrides: Partial<Recipient> = {}
+): Recipient => {
   return {
     id: `recipient-${Date.now()}`,
     type: 'RECIPIENT',
@@ -215,19 +228,24 @@ export const createMockRecipient = (
 
 // Function to create paginated recipients response
 export const createMockRecipientsResponse = (
-  recipients: any[] = mockRecipientsResponse.recipients,
-  page: number = 1,
-  limit: number = 10,
-): any => {
-  // Convert 1-based page to 0-based index
-  const startIndex = (page - 1) * limit;
+  recipients: Recipient[] = mockRecipientsResponse.recipients ?? [],
+  page: number = 0,
+  limit: number = 25
+): ListRecipientsResponse => {
+  // Use 0-based page index (OAS-aligned)
+  const startIndex = page * limit;
   const endIndex = startIndex + limit;
   const paginatedRecipients = recipients.slice(startIndex, endIndex);
 
   return {
+    recipients: paginatedRecipients,
     page,
     limit,
     total_items: recipients.length,
-    recipients: paginatedRecipients,
+    metadata: {
+      page,
+      limit,
+      total_items: recipients.length,
+    },
   };
 };

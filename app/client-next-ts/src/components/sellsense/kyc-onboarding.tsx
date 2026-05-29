@@ -5,33 +5,41 @@ import {
   EBComponentsProvider,
   OnboardingFlow,
 } from '@jpmorgan-payments/embedded-finance-components';
+import type {
+  EBConfig,
+  EBThemeVariables,
+} from '@jpmorgan-payments/embedded-finance-components';
+
 import { useSearch } from '@tanstack/react-router';
+
 import type { ClientScenario } from './dashboard-layout';
-import type { ThemeOption } from './use-sellsense-themes';
-import { useSellSenseThemes } from './use-sellsense-themes';
-import { useThemeStyles } from './theme-utils';
+import {
+  getHeaderDescriptionForScenario,
+  getHeaderTitleForScenario,
+  getScenarioNumber,
+  isOnboardingDocsNeededScenario,
+} from './scenarios-config';
 import {
   getClientIdFromScenario,
   getScenarioData,
 } from './sellsense-scenarios';
-import {
-  isOnboardingDocsNeededScenario,
-  getHeaderTitleForScenario,
-  getHeaderDescriptionForScenario,
-} from './scenarios-config';
-import { EmbeddedComponentCard, createFullscreenUrl } from './shared';
-import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
+import { createFullscreenUrl, EmbeddedComponentCard } from './shared';
+import { useThemeStyles } from './theme-utils';
+import type { ThemeOption } from './use-sellsense-themes';
+import { useSellSenseThemes } from './use-sellsense-themes';
 
 interface KycOnboardingProps {
   clientScenario: ClientScenario;
   theme?: ThemeOption;
   customThemeVariables?: EBThemeVariables;
+  contentTokens?: EBConfig['contentTokens'];
 }
 
 export function KycOnboarding({
   clientScenario,
   theme,
   customThemeVariables = {},
+  contentTokens,
 }: KycOnboardingProps) {
   const { mapThemeOption } = useSellSenseThemes();
   const searchParams = useSearch({ from: '/sellsense-demo' });
@@ -45,8 +53,18 @@ export function KycOnboarding({
   const scenarioData = getScenarioData(clientScenario);
   const ebTheme = mapThemeOption(
     currentTheme as ThemeOption,
-    customThemeVariables,
+    customThemeVariables
   );
+
+  // Merge content tokens with showTokenIds (same pattern as wallet-overview)
+  const baseContentTokens = contentTokens || {
+    name: 'enUS' as const,
+    tokens: {} as Record<string, unknown>,
+  };
+  const contentTokensWithIds = {
+    ...baseContentTokens,
+    showTokenIds: true,
+  };
 
   const handleFullScreen = () => {
     const fullscreenUrl = createFullscreenUrl(
@@ -55,7 +73,7 @@ export function KycOnboarding({
       {
         scenario: searchParams.scenario || clientScenario,
         contentTone: searchParams.contentTone || 'Standard',
-      },
+      }
     );
     window.open(fullscreenUrl, '_blank');
   };
@@ -78,7 +96,7 @@ export function KycOnboarding({
 
   const handlePostClientVerificationsResponse = (
     response?: any,
-    error?: any,
+    error?: any
   ) => {
     if (error) {
       console.error('Client verification error:', error);
@@ -89,7 +107,7 @@ export function KycOnboarding({
 
   const handleUserEvents = ({ actionName }: { actionName: string }) => {
     console.log(
-      `SellSense User action: ${actionName} (Scenario: ${scenarioData.scenarioId})`,
+      `SellSense User action: ${actionName} (Scenario: ${scenarioData.scenarioId})`
     );
     // Here you could integrate with analytics services
   };
@@ -106,12 +124,10 @@ export function KycOnboarding({
       headers={{
         'Content-Type': 'application/json',
       }}
-      contentTokens={{
-        name: 'enUS',
-      }}
+      contentTokens={contentTokensWithIds}
+      clientId={clientId}
     >
       <OnboardingFlow
-        initialClientId={clientId}
         onPostClientSettled={handlePostClientResponse}
         onPostPartySettled={handlePostPartyResponse}
         onPostClientVerificationsSettled={handlePostClientVerificationsResponse}
@@ -125,11 +141,9 @@ export function KycOnboarding({
           'LIMITED_PARTNERSHIP',
           'C_CORPORATION',
         ]}
-        userEventsToTrack={['click', 'submit', 'navigation']}
         userEventsHandler={handleUserEvents}
         docUploadOnlyMode={isOnboardingDocsNeededScenario(clientScenario)}
-        hideLinkAccountSection
-        enableSidebar
+        showLinkAccountStep
       />
     </EBComponentsProvider>
   );
@@ -145,12 +159,15 @@ export function KycOnboarding({
 
   // Normal mode with card wrapper and controls
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6 p-6">
       <div>
         <h1
-          className={`text-2xl font-bold mb-2 ${themeStyles.getHeaderTextStyles()}`}
+          className={`mb-2 text-2xl font-bold ${themeStyles.getHeaderTextStyles()}`}
         >
           {getHeaderTitleForScenario(clientScenario)}
+          <span className="ml-2 text-sm font-normal opacity-60">
+            (Scenario #{getScenarioNumber(clientScenario)})
+          </span>
         </h1>
         <p className={themeStyles.getHeaderLabelStyles()}>
           {getHeaderDescriptionForScenario(clientScenario)}

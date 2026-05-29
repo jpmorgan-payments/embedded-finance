@@ -1,38 +1,50 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSearch, useNavigate } from '@tanstack/react-router';
+import { useEffect, useRef, useState } from 'react';
 import {
   Accounts,
+  ClientDetails,
   EBComponentsProvider,
   LinkedAccountWidget,
-  MakePayment,
-  Recipients,
+  PaymentFlow,
+  RecipientsWidget,
   TransactionsDisplay,
 } from '@jpmorgan-payments/embedded-finance-components';
-import { RefreshCw } from 'lucide-react';
-import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
+import type {
+  EBConfig,
+  EBThemeVariables,
+} from '@jpmorgan-payments/embedded-finance-components';
+
+import { useNavigate, useSearch } from '@tanstack/react-router';
+
 import { usePingService } from '@/hooks/use-ping-service';
-import { Header } from './header';
-import { Sidebar } from './sidebar';
-import { SettingsDrawer } from './settings-drawer';
-import { InfoModal } from './info-modal';
+import { DatabaseResetUtils } from '@/lib/database-reset-utils';
+import { getOverrideKeys } from '@/lib/mock-overrides-storage';
+
+import { Button } from '../ui/button';
+import { ContentTokenEditorDrawer } from './content-token-editor-drawer';
 import { DashboardOverview } from './dashboard-overview';
+import { Footer } from './footer';
+import { Header } from './header';
+import { InfoModal } from './info-modal';
 import { KycOnboarding } from './kyc-onboarding';
-import { WalletOverview } from './wallet-overview';
-import { TransactionHistory } from './transaction-history';
-import { PayoutSettings } from './payout-settings';
 import { LoadingSkeleton } from './loading-skeleton';
-import type { ThemeOption } from './use-sellsense-themes';
+import { MockApiEditorDrawer } from './mock-api-editor-drawer';
+import { PayoutSettings } from './payout-settings';
 import {
-  getScenarioKeyByDisplayName,
+  getClientIdForScenario,
+  getResetDbScenario,
   getScenarioByKey,
   getScenarioDisplayNames,
+  getScenarioKeyByDisplayName,
   hasResetDbScenario,
-  getResetDbScenario,
 } from './scenarios-config';
-import { DatabaseResetUtils } from '@/lib/database-reset-utils';
+import { SettingsDrawer } from './settings-drawer';
+import { Sidebar } from './sidebar';
 import { useThemeStyles } from './theme-utils';
+import { TransactionHistory } from './transaction-history';
+import { useSellSenseThemes, type ThemeOption } from './use-sellsense-themes';
+import { WalletOverview } from './wallet-overview';
 
 // Use display names from centralized scenario configuration
 export type ClientScenario = ReturnType<typeof getScenarioDisplayNames>[number];
@@ -67,7 +79,7 @@ const ViewUtils = {
     switch (scenario) {
       case 'New Seller - Onboarding':
       case 'Onboarding - Docs Needed':
-      case 'Onboarding - In Review':
+      case 'Onboarding - Seller with prefilled data':
         return 'onboarding';
       default:
         return 'wallet';
@@ -86,7 +98,7 @@ const ViewUtils = {
     return [
       'New Seller - Onboarding',
       'Onboarding - Docs Needed',
-      'Onboarding - In Review',
+      'Onboarding - Seller with prefilled data',
     ].includes(scenario);
   },
 };
@@ -100,8 +112,34 @@ export function DashboardLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const [isContentTokenEditorOpen, setIsContentTokenEditorOpen] =
+    useState(false);
+  const [isMockApiEditorOpen, setIsMockApiEditorOpen] = useState(false);
+  const [mockOverrideCount, setMockOverrideCount] = useState(0);
+  const [selectedLanguage, setSelectedLanguage] = useState<
+    'enUS' | 'frCA' | 'esUS'
+  >('enUS');
+  const [contentTokens, setContentTokens] = useState<EBConfig['contentTokens']>(
+    {
+      name: 'enUS',
+    }
+  );
   const [hasProcessedInitialLoad, setHasProcessedInitialLoad] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(
+    // Start loading immediately when fullscreen onboarding needs an empty DB reset
+    // so the component never renders with stale seeded data.
+    !!(
+      searchParams.fullscreen &&
+      searchParams.component === 'onboarding' &&
+      searchParams.theme === 'Empty' &&
+      !searchParams.scenario
+    )
+  );
+  const mainContentRef = useRef<HTMLElement | null>(null);
+  const pendingScrollRestoreRef = useRef<{
+    scrollTop: number;
+    scrollLeft: number;
+  } | null>(null);
 
   // Initialize customThemeVariables from URL if present
   const getInitialCustomThemeVariables = (): EBThemeVariables => {
@@ -144,25 +182,33 @@ export function DashboardLayout() {
 
   // Store the full custom theme data for the theme drawer
   const [customThemeData, setCustomThemeData] = useState<any>(
-    getInitialCustomThemeData(),
+    getInitialCustomThemeData()
   );
 
   // Initialize state from search params with defaults
   const [clientScenario, setClientScenario] = useState<ClientScenario>(
-    (searchParams.scenario as ClientScenario) || 'New Seller - Onboarding',
+    (searchParams.scenario as ClientScenario) || 'New Seller - Onboarding'
   );
   const [theme, setTheme] = useState<ThemeOption>(
-    searchParams.theme || 'SellSense',
+    searchParams.theme || 'SellSense'
   );
-  const themeStyles = useThemeStyles(theme);
+  // When theme is Custom, use baseTheme for portal styling (logo, colors) so e.g. Empty stays Empty
+  const themeForDisplay: ThemeOption =
+    theme === 'Custom' && customThemeData?.baseTheme
+      ? customThemeData.baseTheme
+      : theme === 'Custom'
+        ? 'SellSense'
+        : theme;
+  const themeStyles = useThemeStyles(themeForDisplay);
+  const { mapThemeOption } = useSellSenseThemes();
   const [contentTone, setContentTone] = useState<ContentTone>(
-    searchParams.contentTone || 'Standard',
+    searchParams.contentTone || 'Standard'
   );
   const [activeView, setActiveView] = useState<View>(
     searchParams.view ||
       ViewUtils.getInitialView(
-        (searchParams.scenario as ClientScenario) || 'New Seller - Onboarding',
-      ),
+        (searchParams.scenario as ClientScenario) || 'New Seller - Onboarding'
+      )
   );
   const [showMswAlert, setShowMswAlert] = useState<boolean>(true);
   const pingQuery = usePingService();
@@ -184,7 +230,7 @@ export function DashboardLayout() {
       if (resetScenario) {
         DatabaseResetUtils.resetDatabaseForScenario(
           resetScenario,
-          setIsLoading,
+          setIsLoading
         );
       } else {
         // Just trigger component refetch without database reset
@@ -202,8 +248,12 @@ export function DashboardLayout() {
 
   const handleThemeChange = (
     newTheme: ThemeOption,
-    customVariables?: EBThemeVariables | any,
+    customVariables?: EBThemeVariables | any
   ) => {
+    const main = mainContentRef.current;
+    const scrollTop = main?.scrollTop ?? window.scrollY;
+    const scrollLeft = main?.scrollLeft ?? window.scrollX;
+
     setTheme(newTheme);
 
     // Handle CustomThemeData structure
@@ -220,6 +270,8 @@ export function DashboardLayout() {
         const updates: Record<string, any> = { theme: newTheme };
         updates.customTheme = JSON.stringify(customThemeData);
         updateSearchParams(updates);
+        pendingScrollRestoreRef.current = { scrollTop, scrollLeft };
+        restoreMainScroll(scrollTop, scrollLeft);
         return;
       } else if (Object.keys(customVariables).length > 0) {
         // This is just variables (legacy structure)
@@ -242,9 +294,33 @@ export function DashboardLayout() {
       // Remove customTheme from URL if switching to predefined theme or no custom variables
       updates.customTheme = undefined;
     }
+    // test
 
     updateSearchParams(updates);
+    pendingScrollRestoreRef.current = { scrollTop, scrollLeft };
+    restoreMainScroll(scrollTop, scrollLeft);
   };
+
+  const restoreMainScroll = (scrollTop: number, scrollLeft: number) => {
+    const apply = () => {
+      const el = mainContentRef.current;
+      if (el) {
+        el.scrollTop = scrollTop;
+        el.scrollLeft = scrollLeft;
+      } else {
+        window.scrollTo(scrollLeft, scrollTop);
+      }
+    };
+    requestAnimationFrame(() => requestAnimationFrame(apply));
+  };
+
+  // Restore scroll after theme state has committed and children have re-rendered
+  useEffect(() => {
+    const pending = pendingScrollRestoreRef.current;
+    if (!pending) return;
+    pendingScrollRestoreRef.current = null;
+    restoreMainScroll(pending.scrollTop, pending.scrollLeft);
+  }, [customThemeData, customThemeVariables]);
 
   const handleContentToneChange = (newContentTone: ContentTone) => {
     setContentTone(newContentTone);
@@ -258,7 +334,10 @@ export function DashboardLayout() {
   };
 
   // Helper function to update search params
-  const updateSearchParams = (updates: Record<string, any>) => {
+  const updateSearchParams = (
+    updates: Record<string, any>,
+    replace = false
+  ) => {
     navigate({
       search: (prev) => {
         const newSearch = { ...prev } as Record<string, any>;
@@ -274,7 +353,8 @@ export function DashboardLayout() {
 
         return newSearch;
       },
-      replace: true,
+      replace,
+      resetScroll: false, // Keep scroll position when only search params change (e.g. theme tokens)
     });
   };
 
@@ -285,14 +365,33 @@ export function DashboardLayout() {
     }
   }, [pingQuery.isSuccess]);
 
+  const needsEmptyDbReset =
+    searchParams.fullscreen &&
+    searchParams.component === 'onboarding' &&
+    searchParams.theme === 'Empty' &&
+    !searchParams.scenario;
+
   // MSW readiness check for fullscreen mode - simple delay approach
+  // For onboarding with theme=Empty and no explicit scenario, reset DB to 'empty'
+  // so recipients start clean. Other components keep seeded data.
   useEffect(() => {
     if (searchParams.fullscreen) {
-      setTimeout(() => {
-        DatabaseResetUtils.emulateTabSwitch();
-      }, 300);
+      if (needsEmptyDbReset) {
+        DatabaseResetUtils.resetDatabaseForScenario('empty', setIsLoading);
+      } else {
+        setTimeout(() => {
+          DatabaseResetUtils.emulateTabSwitch();
+        }, 300);
+      }
     }
   }, [searchParams.fullscreen]);
+
+  // Initialise the override badge count.
+  // Overrides are applied to the MSW DB automatically inside resetDatabaseForScenario
+  // (which bundles overrides into every _reset call), so no separate sync is needed here.
+  useEffect(() => {
+    setMockOverrideCount(getOverrideKeys().length);
+  }, []);
 
   // Effects
   // Handle initial load with URL parameters
@@ -301,11 +400,10 @@ export function DashboardLayout() {
       const scenarioFromUrl = searchParams.scenario as ClientScenario;
       console.log('Processing initial load with scenario:', scenarioFromUrl);
 
-      // Reset database for the scenario from URL
-      DatabaseResetUtils.resetDatabaseForScenario(
-        scenarioFromUrl,
-        setIsLoading,
-      );
+      // Use the DB scenario value (e.g. 'empty', 'active') when defined,
+      // otherwise fall back to the display name (handled by resetDb's fallback).
+      const dbScenario = getResetDbScenario(scenarioFromUrl) || scenarioFromUrl;
+      DatabaseResetUtils.resetDatabaseForScenario(dbScenario, setIsLoading);
 
       // Mark as processed to avoid duplicate resets
       setHasProcessedInitialLoad(true);
@@ -318,7 +416,7 @@ export function DashboardLayout() {
       setClientScenario(searchParams.scenario as ClientScenario);
       setActiveView(
         searchParams.view ||
-          ViewUtils.getInitialView(searchParams.scenario as ClientScenario),
+          ViewUtils.getInitialView(searchParams.scenario as ClientScenario)
       );
     }
     if (searchParams.theme && searchParams.theme !== theme) {
@@ -328,13 +426,25 @@ export function DashboardLayout() {
       if (searchParams.theme === 'Custom' && searchParams.customTheme) {
         try {
           const customTheme = JSON.parse(searchParams.customTheme as string);
-          setCustomThemeVariables(customTheme);
+
+          // Check if it's the new structure with baseTheme and variables
+          if (customTheme.baseTheme && customTheme.variables) {
+            // New structure - extract just the variables
+            setCustomThemeVariables(customTheme.variables);
+            setCustomThemeData(customTheme); // Store the full structure
+          } else {
+            // Legacy structure - use the entire object as variables
+            setCustomThemeVariables(customTheme);
+            setCustomThemeData({ variables: customTheme }); // Legacy structure
+          }
         } catch (error) {
           console.error('Failed to parse custom theme from URL:', error);
           setCustomThemeVariables({});
+          setCustomThemeData({});
         }
       } else if (searchParams.theme !== 'Custom') {
         setCustomThemeVariables({});
+        setCustomThemeData({});
       }
     }
     if (searchParams.contentTone && searchParams.contentTone !== contentTone) {
@@ -361,6 +471,7 @@ export function DashboardLayout() {
           clientScenario={clientScenario}
           theme={theme}
           customThemeVariables={customThemeVariables}
+          contentTokens={contentTokens}
         />
       );
     }
@@ -381,6 +492,7 @@ export function DashboardLayout() {
           <WalletOverview
             theme={theme}
             customThemeVariables={customThemeVariables}
+            contentTokens={contentTokens}
           />
         );
       case 'transactions':
@@ -388,7 +500,7 @@ export function DashboardLayout() {
       case 'payout':
         return <PayoutSettings />;
       case 'payments':
-        return <MakePayment />;
+        return <PaymentFlow />;
       default:
         return (
           <DashboardOverview
@@ -405,18 +517,13 @@ export function DashboardLayout() {
   const renderFullscreenComponent = () => {
     // Use theme from URL params for fullscreen mode, fallback to current theme
     const fullscreenTheme = searchParams.theme || theme;
+    const themeObject = mapThemeOption(fullscreenTheme);
 
-    // Create theme object for EBComponentsProvider
-    const themeObject = {
-      colorScheme: 'light' as const,
-      variables: {
-        primaryColor: '#6366f1', // Default blue color
-        backgroundColor: '#ffffff',
-        foregroundColor: '#1e293b',
-        borderColor: '#e2e8f0',
-        borderRadius: '8px',
-      },
-    };
+    // Determine clientId for fullscreen components that require it
+    const fullscreenClientScenario =
+      (searchParams.scenario as ClientScenario) || clientScenario;
+    const fullscreenClientId =
+      getClientIdForScenario(fullscreenClientScenario) || '0030000131';
 
     switch (searchParams.component) {
       case 'onboarding':
@@ -429,9 +536,9 @@ export function DashboardLayout() {
       case 'recipients':
         return (
           <div className="h-screen p-6">
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-2xl font-bold mb-6">Recipients</h1>
-              <div className="bg-white rounded-lg border p-6">
+            <div className="mx-auto max-w-4xl">
+              <h1 className="mb-6 text-2xl font-bold">Recipients</h1>
+              <div className="rounded-lg border bg-white p-6">
                 <EBComponentsProvider
                   apiBaseUrl="/ef/do/v1/"
                   theme={themeObject}
@@ -439,10 +546,11 @@ export function DashboardLayout() {
                     'Content-Type': 'application/json',
                   }}
                   contentTokens={{
-                    name: 'enUS',
+                    ...contentTokens,
+                    name: selectedLanguage,
                   }}
                 >
-                  <Recipients />
+                  <RecipientsWidget mode="list" viewMode="table" />
                 </EBComponentsProvider>
               </div>
             </div>
@@ -451,9 +559,9 @@ export function DashboardLayout() {
       case 'transactions':
         return (
           <div className="h-screen p-6">
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-2xl font-bold mb-6">Transaction History</h1>
-              <div className="bg-white rounded-lg border p-6">
+            <div className="mx-auto max-w-4xl">
+              <h1 className="mb-6 text-2xl font-bold">Transaction History</h1>
+              <div className="rounded-lg border bg-white p-6">
                 <EBComponentsProvider
                   apiBaseUrl="/ef/do/v1/"
                   theme={themeObject}
@@ -461,10 +569,11 @@ export function DashboardLayout() {
                     'Content-Type': 'application/json',
                   }}
                   contentTokens={{
-                    name: 'enUS',
+                    ...contentTokens,
+                    name: selectedLanguage,
                   }}
                 >
-                  <TransactionsDisplay accountId="0030000131" />
+                  <TransactionsDisplay accountIds={['0030000131']} />
                 </EBComponentsProvider>
               </div>
             </div>
@@ -473,9 +582,9 @@ export function DashboardLayout() {
       case 'accounts':
         return (
           <div className="h-screen p-6">
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-2xl font-bold mb-6">Accounts</h1>
-              <div className="bg-white rounded-lg border p-6">
+            <div className="mx-auto max-w-4xl">
+              <h1 className="mb-6 text-2xl font-bold">Accounts</h1>
+              <div className="rounded-lg border bg-white p-6">
                 <EBComponentsProvider
                   apiBaseUrl="/ef/do/v1/"
                   theme={themeObject}
@@ -483,12 +592,13 @@ export function DashboardLayout() {
                     'Content-Type': 'application/json',
                   }}
                   contentTokens={{
-                    name: 'enUS',
+                    ...contentTokens,
+                    name: selectedLanguage,
                   }}
                 >
                   <Accounts
                     allowedCategories={['LIMITED_DDA_PAYMENTS']}
-                    clientId="0030000131"
+                    clientId={fullscreenClientId}
                   />
                 </EBComponentsProvider>
               </div>
@@ -498,9 +608,9 @@ export function DashboardLayout() {
       case 'make-payment':
         return (
           <div className="h-screen p-6">
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-2xl font-bold mb-6">Make Payment</h1>
-              <div className="bg-white rounded-lg border p-6">
+            <div className="mx-auto max-w-4xl">
+              <h1 className="mb-6 text-2xl font-bold">Make Payment</h1>
+              <div className="rounded-lg border bg-white p-6">
                 <EBComponentsProvider
                   apiBaseUrl="/ef/do/v1/"
                   theme={themeObject}
@@ -508,28 +618,11 @@ export function DashboardLayout() {
                     'Content-Type': 'application/json',
                   }}
                   contentTokens={{
-                    name: 'enUS',
+                    ...contentTokens,
+                    name: selectedLanguage,
                   }}
                 >
-                  <MakePayment
-                    paymentMethods={[
-                      {
-                        fee: 2.5,
-                        id: 'ACH',
-                        name: 'ACH',
-                      },
-                      {
-                        fee: 1,
-                        id: 'RTP',
-                        name: 'RTP',
-                      },
-                      {
-                        fee: 25,
-                        id: 'WIRE',
-                        name: 'WIRE',
-                      },
-                    ]}
-                  />
+                  <PaymentFlow trigger={<Button>Make Payment</Button>} />
                 </EBComponentsProvider>
               </div>
             </div>
@@ -538,9 +631,9 @@ export function DashboardLayout() {
       case 'linked-accounts':
         return (
           <div className="h-screen p-6">
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-2xl font-bold mb-6">Linked Accounts</h1>
-              <div className="bg-white rounded-lg border p-6">
+            <div className="mx-auto max-w-4xl">
+              <h1 className="mb-6 text-2xl font-bold">Linked Accounts</h1>
+              <div className="rounded-lg border bg-white p-6">
                 <EBComponentsProvider
                   apiBaseUrl="/ef/do/v1/"
                   theme={themeObject}
@@ -548,21 +641,51 @@ export function DashboardLayout() {
                     'Content-Type': 'application/json',
                   }}
                   contentTokens={{
-                    name: 'enUS',
+                    ...contentTokens,
+                    name: selectedLanguage,
                   }}
                 >
                   <LinkedAccountWidget
-                    variant="default"
-                    showCreateButton={true}
+                    mode="list"
+                    viewMode="table"
+                    hideCreateButton={false}
                   />
                 </EBComponentsProvider>
               </div>
             </div>
           </div>
         );
+      case 'client-details': {
+        const clientDetailsViewMode = searchParams.viewMode ?? 'summary';
+        return (
+          <div className="h-screen p-6">
+            <div className="mx-auto max-w-4xl">
+              <h1 className="mb-6 text-2xl font-bold">Client Details</h1>
+              <div className="rounded-lg border bg-white p-6">
+                <EBComponentsProvider
+                  apiBaseUrl="/ef/do/v1/"
+                  theme={themeObject}
+                  headers={{
+                    'Content-Type': 'application/json',
+                  }}
+                  contentTokens={{
+                    ...contentTokens,
+                    name: selectedLanguage,
+                  }}
+                >
+                  <ClientDetails
+                    clientId={fullscreenClientId}
+                    viewMode={clientDetailsViewMode}
+                  />
+                </EBComponentsProvider>
+              </div>
+            </div>
+          </div>
+        );
+      }
       default:
         return (
-          <div className="flex items-center justify-center h-screen text-gray-500">
+          <div className="flex h-screen items-center justify-center text-gray-500">
             Component not found: {searchParams.component}
           </div>
         );
@@ -570,17 +693,93 @@ export function DashboardLayout() {
   };
 
   // Fullscreen mode - render only the component
+  // Show loading skeleton while DB reset is in progress to avoid stale-data flash
   if (searchParams.fullscreen) {
+    if (isLoading) {
+      return (
+        <div className="flex h-screen items-center justify-center">
+          <LoadingSkeleton theme={theme} />
+        </div>
+      );
+    }
     return <div className="h-screen">{renderFullscreenComponent()}</div>;
   }
 
   // Normal dashboard layout - responsive design
   return (
-    <div className="h-screen bg-sellsense-background-light overflow-hidden">
+    <div className="h-screen overflow-hidden bg-sellsense-background-light">
+      {/* Global Demo Notice Alert Banner - Above Header */}
+      {showMswAlert && (
+        <div className="relative z-20 bg-sellsense-background-light">
+          <div className="px-4 pb-2 pt-4">
+            <div
+              className={`mb-3 flex items-start gap-3 rounded-lg p-4 ${themeStyles.getAlertStyles()}`}
+            >
+              <div className="flex-1">
+                <div
+                  className={`mb-2 text-base font-semibold ${themeStyles.getAlertTextStyles()}`}
+                >
+                  🚨 DEMO NOTICE
+                </div>
+                <div className={`text-sm ${themeStyles.getAlertTextStyles()}`}>
+                  This web application is a <strong>demo showcase</strong> for
+                  the{' '}
+                  <a
+                    href="https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/overview"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium underline hover:text-amber-800"
+                  >
+                    J.P.Morgan Payments - Embedded Payments APIs
+                  </a>
+                  . <strong>This is not a real product</strong>
+                </div>
+                <div
+                  className={`mt-2 text-sm ${themeStyles.getAlertTextStyles()}`}
+                >
+                  Any data you enter stays within your browser and is handled by
+                  our{' '}
+                  <a
+                    href="https://mswjs.io"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium underline hover:text-amber-800"
+                  >
+                    Mock Service Worker
+                  </a>
+                  . No data is sent to any external services.{' '}
+                  {pingQuery.isSuccess
+                    ? 'Mock service is currently active. '
+                    : 'Service worker may have been terminated by the browser. '}
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="font-medium underline hover:text-amber-800 focus:underline focus:outline-none"
+                  >
+                    Reload mock data
+                  </button>{' '}
+                  to reset the demo state.
+                </div>
+              </div>
+              <div className="flex items-start">
+                <button
+                  onClick={() => setShowMswAlert(false)}
+                  className={`rounded-full p-1 text-xl font-bold leading-none text-amber-800 transition-colors hover:bg-amber-100 hover:text-amber-900`}
+                  aria-label="Dismiss demo notice"
+                  title="Dismiss demo notice"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Header
         clientScenario={clientScenario}
         setClientScenario={handleScenarioChange}
         theme={theme}
+        themeForDisplay={themeForDisplay}
         setTheme={handleThemeChange}
         contentTone={contentTone}
         setContentTone={handleContentToneChange}
@@ -591,11 +790,18 @@ export function DashboardLayout() {
         isInfoModalOpen={isInfoModalOpen}
         setIsInfoModalOpen={setIsInfoModalOpen}
         customThemeData={customThemeData}
+        isContentTokenEditorOpen={isContentTokenEditorOpen}
+        setIsContentTokenEditorOpen={setIsContentTokenEditorOpen}
+        isMockApiEditorOpen={isMockApiEditorOpen}
+        setIsMockApiEditorOpen={setIsMockApiEditorOpen}
+        mockOverrideCount={mockOverrideCount}
       />
 
       {/* Mobile-first responsive layout */}
       <div
-        className={`flex h-[calc(100vh-4rem)] relative ${themeStyles.getContentAreaStyles()}`}
+        className={`flex ${showMswAlert ? 'h-[calc(100vh-4rem-9rem)]' : 'h-[calc(100vh-4rem)]'} relative ${themeStyles.getContentAreaStyles()} ${
+          isContentTokenEditorOpen ? 'pr-[600px]' : ''
+        } transition-all duration-300`}
       >
         {/* Sidebar - responsive implementation */}
         <Sidebar
@@ -606,62 +812,21 @@ export function DashboardLayout() {
           isMobileMenuOpen={isMobileMenuOpen}
           setIsMobileMenuOpen={setIsMobileMenuOpen}
         />
-        {/* Main content area - responsive */}
-        <main className="flex-1 overflow-auto w-full min-w-0">
-          {/* MSW Alert Banner */}
-          {showMswAlert && (
-            <div className="px-4 pt-4">
-              <div
-                className={`rounded-lg p-3 mb-3 flex items-center ${themeStyles.getCardStyles()}`}
-              >
-                <div
-                  className={`flex-1 text-sm ${themeStyles.getHeaderTextStyles()}`}
-                >
-                  <span>
-                    API calls are being mocked using{' '}
-                    <a
-                      href="https://mswjs.io"
-                      target="_blank"
-                      rel="noreferrer"
-                      className={`underline font-medium ${themeStyles.getHeaderTextStyles()}`}
-                    >
-                      Mock Service Worker
-                    </a>
-                    .{' '}
-                    {pingQuery.isSuccess
-                      ? ' Mock service is currently active.'
-                      : ' Service worker may have been terminated by the browser. '}
-                  </span>
-                </div>
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => window.location.reload()}
-                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${
-                      pingQuery.isSuccess
-                        ? themeStyles.getLayoutButtonStyles(true)
-                        : 'bg-amber-600 text-white hover:bg-amber-700'
-                    }`}
-                  >
-                    <RefreshCw className="h-3 w-3" /> Reload Page
-                  </button>
-                  <button
-                    onClick={() => setShowMswAlert(false)}
-                    className={themeStyles.getHeaderLabelStyles()}
-                    aria-label="Dismiss"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-          {/* Add padding for mobile to account for fixed bottom navigation */}
-          <div className="pb-16 md:pb-0">{renderMainContent()}</div>
+        {/* Main content area - responsive (ref used to preserve scroll on theme token change) */}
+        <main
+          ref={mainContentRef}
+          className="w-full min-w-0 flex-1 overflow-auto"
+        >
+          {/* Add padding for mobile to account for fixed bottom navigation and footer */}
+          <div className="pb-32 md:pb-8">
+            {renderMainContent()}
+            <Footer themeForDisplay={themeForDisplay} />
+          </div>
         </main>
         {/* Mobile menu overlay */}
         {isMobileMenuOpen && (
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+            className="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
           />
         )}
@@ -684,6 +849,34 @@ export function DashboardLayout() {
         isOpen={isInfoModalOpen}
         onClose={() => setIsInfoModalOpen(false)}
         theme={theme}
+      />
+
+      {/* Content Token Editor Drawer */}
+      <ContentTokenEditorDrawer
+        isOpen={isContentTokenEditorOpen}
+        onClose={() => setIsContentTokenEditorOpen(false)}
+        onContentTokensChange={(tokens) => {
+          setContentTokens(tokens);
+        }}
+        selectedLanguage={selectedLanguage}
+        onLanguageChange={(lang) => {
+          const typedLang = lang as 'enUS' | 'frCA' | 'esUS';
+          setSelectedLanguage(typedLang);
+          // Update contentTokens.name when language changes
+          setContentTokens((prev) => ({
+            ...prev,
+            name: typedLang,
+          }));
+        }}
+        topOffset={showMswAlert ? 'calc(4rem + 9.5rem)' : '4rem'}
+      />
+
+      {/* Mock API Editor Drawer */}
+      <MockApiEditorDrawer
+        isOpen={isMockApiEditorOpen}
+        onClose={() => setIsMockApiEditorOpen(false)}
+        clientScenario={clientScenario}
+        onOverridesChange={() => setMockOverrideCount(getOverrideKeys().length)}
       />
     </div>
   );

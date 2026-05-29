@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react';
+
 import { createFileRoute } from '@tanstack/react-router';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useState, useEffect } from 'react';
+
 import ElectricBorder from '@/components/custom/ElectricBorder';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const Route = createFileRoute('/solutions')({
   component: SolutionsPage,
@@ -135,11 +137,11 @@ function SolutionsPage() {
   };
 
   return (
-    <div className="min-h-screen py-16 bg-white">
+    <div className="min-h-screen bg-white py-16">
       <div className="grid grid-cols-5 gap-4">
         {/* Mobile Menu Button - improved position */}
         <button
-          className="lg:hidden fixed top-24 left-6 z-50 p-2 rounded-md bg-jpm-white shadow-md"
+          className="fixed left-6 top-24 z-50 rounded-md bg-jpm-white p-2 shadow-md lg:hidden"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           <svg
@@ -160,22 +162,22 @@ function SolutionsPage() {
 
         {/* Main Content Area */}
         <div className="col-span-5 lg:col-span-5">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8">
-            <div id="overview" className="text-center mb-16">
-              <p className="text-sm font-semibold text-sp-ink mb-2">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <div id="overview" className="mb-16 text-center">
+              <p className="mb-2 text-sm font-semibold text-sp-ink">
                 IMPLEMENTATION OPTIONS
               </p>
-              <h1 className="text-page-h1 font-bold text-sp-ink mb-8">
+              <h1 className="mb-8 text-page-h1 font-bold text-sp-ink">
                 Developer Solutions for Every Integration Need
               </h1>
-              <div className="bg-sp-topaz-600 py-4 px-4 rounded-t-page-md">
+              <div className="rounded-t-page-md bg-sp-topaz-600 px-4 py-4">
                 <div className="text-page-subtitle font-bold text-white">
                   Choose Your Integration Approach
                 </div>
               </div>
               {/* Bulleted summary of options */}
               <div className="bg-sp-bullets-bg px-6 py-5">
-                <ul className="mx-auto max-w-5xl grid grid-cols-1 gap-y-3 gap-x-10 text-sp-ink md:grid-cols-2">
+                <ul className="mx-auto grid max-w-5xl grid-cols-1 gap-x-10 gap-y-3 text-sp-ink md:grid-cols-2">
                   <li className="flex items-start gap-3 text-page-h3">
                     <span className="mt-2.5 h-2.5 w-2.5 rounded-full bg-sp-brand" />
                     <span>Fully hosted UI solutions</span>
@@ -201,11 +203,11 @@ function SolutionsPage() {
             </div>
 
             <div id="integration-options" className="mb-16">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+              <div className="mb-16 grid grid-cols-1 gap-8 lg:grid-cols-3">
                 {groupsOrder.map((groupKey) => {
                   const meta = groupMeta[groupKey];
                   const items = implementationApproaches.filter(
-                    (a) => a.group === groupKey,
+                    (a) => a.group === groupKey
                   );
                   const borderColor = getBorderColor(groupKey);
 
@@ -217,8 +219,8 @@ function SolutionsPage() {
                     >
                       {/* Summary Block with Visualization */}
                       <div className="relative">
-                        <div className="bg-white rounded-page-md shadow-page-card border-0 hover:shadow-lg transition-all h-[220px] flex flex-col relative">
-                          <div className="bg-sp-accent rounded-t-page-md h-36 overflow-hidden border-b border-sp-border">
+                        <div className="relative flex h-[220px] flex-col rounded-page-md border-0 bg-white shadow-page-card transition-all hover:shadow-lg">
+                          <div className="h-36 overflow-hidden rounded-t-page-md border-b border-sp-border bg-sp-accent">
                             <div
                               className="h-full w-full"
                               style={{
@@ -230,18 +232,18 @@ function SolutionsPage() {
                             ></div>
                             {/* COMING SOON tag for JPM Hosted */}
                             {groupKey === 'hosted' && (
-                              <div className="absolute top-3 right-3">
-                                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-600 text-white uppercase tracking-wide">
+                              <div className="absolute right-3 top-3">
+                                <span className="inline-flex items-center rounded-full bg-gray-600 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white">
                                   Coming Soon
                                 </span>
                               </div>
                             )}
                           </div>
-                          <div className="p-4 flex flex-col flex-1 justify-center">
-                            <h2 className="text-page-body font-semibold text-sp-ink mb-2 text-center font-heading">
+                          <div className="flex flex-1 flex-col justify-center p-4">
+                            <h2 className="mb-2 text-center font-heading text-page-body font-semibold text-sp-ink">
                               {meta.summaryTitle}
                             </h2>
-                            <p className="text-sp-ink/80 text-center text-sm font-body">
+                            <p className="text-center font-body text-sm text-sp-ink/80">
                               {meta.summarySubtitle}
                             </p>
                           </div>
@@ -249,14 +251,14 @@ function SolutionsPage() {
 
                         {/* ElectricBorder overlay - only visible when Shift+F is pressed */}
                         {isShiftFPressed && (
-                          <div className="absolute inset-0 pointer-events-none z-10">
+                          <div className="pointer-events-none absolute inset-0 z-10">
                             <ElectricBorder
                               color={borderColor}
                               speed={1.2}
                               chaos={0.6}
                               thickness={3}
                               style={{ borderRadius: 16 }}
-                              className="w-full h-full"
+                              className="h-full w-full"
                             />
                           </div>
                         )}
@@ -264,9 +266,9 @@ function SolutionsPage() {
 
                       {items.map((approach, index) => (
                         <div key={index} className="relative">
-                          <Card className="border border-sp-border shadow-page-card bg-jpm-white !rounded-[0.375rem] overflow-hidden">
+                          <Card className="overflow-hidden !rounded-[0.375rem] border border-sp-border bg-jpm-white shadow-page-card">
                             <CardHeader className="bg-sp-accent">
-                              <div className="flex justify-between items-center">
+                              <div className="flex items-center justify-between">
                                 <CardTitle className="text-page-body text-sp-ink">
                                   <span className="font-heading">
                                     {approach.title}
@@ -275,10 +277,10 @@ function SolutionsPage() {
                               </div>
                             </CardHeader>
                             <CardContent className="p-6 font-body">
-                              <p className="text-sm text-sp-ink leading-relaxed mb-4">
+                              <p className="mb-4 text-sm leading-relaxed text-sp-ink">
                                 {approach.description}
                               </p>
-                              <div className="bg-sp-benefit p-4 rounded-page-sm border border-sp-border">
+                              <div className="rounded-page-sm border border-sp-border bg-sp-benefit p-4">
                                 <p className="text-sm font-semibold text-sp-ink">
                                   Key Benefit: {approach.benefit}
                                 </p>
@@ -288,14 +290,14 @@ function SolutionsPage() {
 
                           {/* ElectricBorder overlay - only visible when Shift+F is pressed */}
                           {isShiftFPressed && (
-                            <div className="absolute inset-0 pointer-events-none z-10">
+                            <div className="pointer-events-none absolute inset-0 z-10">
                               <ElectricBorder
                                 color={borderColor}
                                 speed={1.2}
                                 chaos={0.6}
                                 thickness={3}
                                 style={{ borderRadius: 16 }}
-                                className="w-full h-full"
+                                className="h-full w-full"
                               />
                             </div>
                           )}

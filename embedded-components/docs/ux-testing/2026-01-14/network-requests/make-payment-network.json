@@ -1,0 +1,23 @@
+{
+  "component": "Make Payment",
+  "date": "2026-01-14",
+  "url": "https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=make-payment&theme=Empty",
+  "totalRequests": 27,
+  "summary": {
+    "successful": 19,
+    "failed": 8,
+    "failedReasons": ["304 Not Modified (cached resources)"],
+    "duplicateCalls": true,
+    "duplicateEndpoints": [
+      "/ping",
+      "/ef/do/v1/recipients",
+      "/ef/do/v1/accounts",
+      "/ef/do/v1/accounts/acc-002/balances"
+    ]
+  },
+  "findings": {
+    "duplicateCalls": "All API endpoints called twice - consistent with other components",
+    "cachedResources": "Many resources return 304 Not Modified (good caching behavior)",
+    "performance": "Fast load time due to caching"
+  }
+}

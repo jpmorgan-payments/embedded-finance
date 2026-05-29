@@ -33,10 +33,12 @@ Code Push/PR → Amplify auto-deploys (from amplify.yml) → Wait for completion
 
 ### **Automatic Trigger**
 
-The workflow automatically runs when:
+The workflow runs when:
 
-- You push changes to the `main` branch
-- You create or update a pull request
+- You push changes to the `main` branch (after merge)
+- You open or update a pull request **that changes the showcase app** (`app/client-next-ts/**`)
+
+It does **not** run on PRs that only change other areas (e.g. `embedded-components/`), so component-only PRs are not blocked by this check.
 
 ### **Manual Trigger**
 

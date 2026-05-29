@@ -1,19 +1,23 @@
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 import { Loader2Icon } from 'lucide-react';
 
 type StepLayoutProps = {
-  title: string | JSX.Element;
+  title: ReactNode;
+  headerElement?: JSX.Element;
   showSpinner?: boolean;
-  subTitle?: string | JSX.Element;
-  description?: string;
+  subTitle?: ReactNode;
+  description?: ReactNode;
+  alert?: ReactNode;
   children?: React.ReactNode;
 };
 
 export const StepLayout: FC<StepLayoutProps> = ({
   title,
+  headerElement,
   showSpinner,
   subTitle,
   description,
+  alert,
   children,
 }) => (
   <div className="eb-flex eb-min-h-full eb-flex-auto eb-flex-col">
@@ -26,18 +30,21 @@ export const StepLayout: FC<StepLayoutProps> = ({
         subTitle
       )}
 
-      <div className="eb-flex eb-items-center eb-gap-3">
-        <h1 className="eb-w-full eb-font-header eb-text-3xl eb-font-medium">
-          {title}
-        </h1>
-        {showSpinner && (
-          <Loader2Icon className="eb-animate-spin eb-stroke-primary" />
-        )}
+      <div className="eb-flex eb-w-full eb-items-center eb-justify-between eb-gap-3">
+        <div className="eb-flex eb-items-center eb-gap-2">
+          <h1 className="eb-font-header eb-text-3xl eb-font-medium">{title}</h1>
+          {showSpinner && (
+            <Loader2Icon className="eb-animate-spin eb-stroke-primary" />
+          )}
+        </div>
+        {headerElement || null}
       </div>
 
       {description && (
         <p className="eb-text-sm eb-font-normal">{description}</p>
       )}
+
+      {alert}
     </div>
     {children}
   </div>

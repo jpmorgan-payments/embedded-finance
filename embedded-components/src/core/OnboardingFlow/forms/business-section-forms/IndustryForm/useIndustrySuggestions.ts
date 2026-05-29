@@ -1,18 +1,10 @@
 import { useEffect, useState } from 'react';
 
 import {
-  SmbdoGetRecommendationsMutationError,
-  useSmbdoGetRecommendations,
+  SmbdoPostRecommendationsMutationError,
+  useSmbdoPostRecommendations,
 } from '@/api/generated/smbdo';
-import { SmbdoGetRecommendationsBodyResourceType } from '@/api/generated/smbdo.schemas';
-
-/**
- * Type for industry recommendations returned by the API
- */
-export interface IndustryRecommendation {
-  naicsCode: string;
-  naicsDescription: string;
-}
+import { NaicsCodeResponse, ResourceType } from '@/api/generated/smbdo.schemas';
 
 /**
  * Hook that provides AI-based industry suggestion functionality
@@ -24,9 +16,9 @@ export const useIndustrySuggestions = (description: string) => {
   const [isFeatureFlagEnabled, setIsFeatureFlagEnabled] = useState(false);
 
   // Recommendations state
-  const [recommendations, setRecommendations] = useState<
-    IndustryRecommendation[]
-  >([]);
+  const [recommendations, setRecommendations] = useState<NaicsCodeResponse[]>(
+    []
+  );
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [showEmptyRecommendationWarning, setShowEmptyRecommendationWarning] =
     useState(false);
@@ -38,7 +30,7 @@ export const useIndustrySuggestions = (description: string) => {
 
   // Use the API mutation hook
   const { mutate: getRecommendations, isPending } =
-    useSmbdoGetRecommendations();
+    useSmbdoPostRecommendations();
 
   // Check for feature flag in localStorage
   useEffect(() => {
@@ -67,7 +59,7 @@ export const useIndustrySuggestions = (description: string) => {
     getRecommendations(
       {
         data: {
-          resourceType: SmbdoGetRecommendationsBodyResourceType.NAICS_CODE,
+          resourceType: ResourceType.NAICS_CODE,
           values,
         },
       },
@@ -87,7 +79,7 @@ export const useIndustrySuggestions = (description: string) => {
             setRecommendationErrorMessage(null);
           }
         },
-        onError: (error: SmbdoGetRecommendationsMutationError) => {
+        onError: (error: SmbdoPostRecommendationsMutationError) => {
           // Hide recommendations and show an error-style warning
           setShowRecommendations(false);
           setShowEmptyRecommendationWarning(false);

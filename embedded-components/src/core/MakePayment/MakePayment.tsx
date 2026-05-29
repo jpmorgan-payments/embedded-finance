@@ -1,10 +1,14 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import * as LucideIcons from 'lucide-react';
 import { FormProvider } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
+import { v4 as uuidv4 } from 'uuid';
 
+import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
+import { useCreateRecipient } from '@/api/generated/ep-recipients';
+import type { RecipientRequest } from '@/api/generated/ep-recipients.schemas';
 import { useCreateTransactionV2 } from '@/api/generated/ep-transactions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,9 +25,11 @@ import {
   AccountSelector,
   AdditionalInformation,
   AmountInput,
+  ManualRecipientFields,
   PaymentMethodSelector,
   PaymentSuccess,
   RecipientDetails,
+  RecipientModeToggle,
   RecipientSelector,
   ReviewPanel,
 } from './components';
@@ -33,28 +39,48 @@ import {
   usePaymentForm,
   usePaymentValidation,
 } from './hooks';
+import { MAKE_PAYMENT_USER_JOURNEYS } from './MakePayment.constants';
 import type { PaymentComponentProps } from './types';
+
+// Utility to generate a unique transaction reference ID
+function generateTransactionReferenceId(): string {
+  const prefix = 'PHUI_';
+  const uuid = uuidv4().replace(/-/g, ''); // Remove dashes to fit within the character limit
+  const maxLength = 35;
+  const randomPart = uuid.substring(0, maxLength - prefix.length);
+
+  return prefix + randomPart;
+}
 
 export const MakePayment: React.FC<PaymentComponentProps> = ({
   triggerButton,
   triggerButtonVariant = 'default',
   paymentMethods = [
-    { id: 'ACH', name: 'ACH', fee: 2.5 },
-    { id: 'RTP', name: 'RTP', fee: 1 },
-    { id: 'WIRE', name: 'WIRE', fee: 25 },
+    { id: 'ACH', name: 'ACH' },
+    { id: 'RTP', name: 'RTP' },
+    { id: 'WIRE', name: 'WIRE' },
   ],
   icon,
   recipientId,
   showPreviewPanel = true, // Default to true for backward compatibility
   onTransactionSettled,
+  userEventsHandler,
+  userEventsLifecycle,
 }) => {
-  const { t } = useTranslation(['make-payment']);
+  const { t } = useTranslationWithTokens(['make-payment']);
   const { form, resetForm } = usePaymentForm();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [localSuccess, setLocalSuccess] = useState(false);
 
+  // Set up automatic event tracking for data-user-event attributes
+  useUserEventTracking({
+    containerId: 'make-payment-container',
+    userEventsHandler,
+    userEventsLifecycle,
+  });
+
   // Get payment data using custom hook
-  const paymentData = usePaymentData(paymentMethods, form);
+  const paymentData = usePaymentData(paymentMethods, form, recipientId);
 
   // Get payment validation using custom hook
   const validation = usePaymentValidation(
@@ -69,7 +95,6 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     paymentData.selectedAccount,
     paymentData.filteredRecipients,
     paymentMethods,
-    paymentData.dynamicPaymentMethods,
     form
   );
 
@@ -80,63 +105,275 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     isError: isPaymentError,
     error: paymentError,
     reset: resetPayment,
-  } = useCreateTransactionV2();
+  } = useCreateTransactionV2({
+    mutation: {
+      onSuccess: (data) => {
+        trackUserEvent({
+          actionName: MAKE_PAYMENT_USER_JOURNEYS.PAYMENT_COMPLETED,
+          metadata: { transactionId: data.id, status: data.status },
+          userEventsHandler,
+        });
+      },
+      onError: (error) => {
+        trackUserEvent({
+          actionName: MAKE_PAYMENT_USER_JOURNEYS.PAYMENT_FAILED,
+          metadata: {
+            errorType: error?.name || 'UnknownError',
+            // Don't include error.message as it may contain PII
+          },
+          userEventsHandler,
+        });
+      },
+    },
+  });
+
+  // Recipient creation mutation
+  const { mutate: createRecipient, isPending: isCreatingRecipient } =
+    useCreateRecipient({
+      mutation: {
+        onSuccess: () => {
+          // Refetch recipients after creating
+          paymentData.refetchRecipients();
+        },
+      },
+    });
 
   // Derived state for recipient selection and warning
   const recipientSelectionState = React.useMemo(() => {
-    if (!recipientId || paymentData.filteredRecipients?.length === 0) {
+    if (!recipientId) {
       return { shouldSelectRecipient: false, recipientNotFound: false };
     }
 
-    const recipientExists = paymentData.filteredRecipients?.some(
-      (r) => r.id === recipientId
-    );
+    const {
+      preselectedRecipientStatus,
+      preselectedRecipient: fetchedRecipient,
+    } = paymentData;
 
-    if (recipientExists) {
-      // Auto-select the recipient if it exists and no recipient is currently selected
-      const currentRecipient = form.getValues('to');
-      if (!currentRecipient) {
-        form.setValue('to', recipientId);
+    // Wait for preselected recipient fetch to complete if it's still pending
+    // This includes when the query hasn't started yet (interceptor not ready)
+    if (preselectedRecipientStatus === 'pending') {
+      return { shouldSelectRecipient: false, recipientNotFound: false };
+    }
+
+    // If preselected recipient fetch failed (404, network error, etc), show warning
+    if (preselectedRecipientStatus === 'error') {
+      return { shouldSelectRecipient: false, recipientNotFound: true };
+    }
+
+    // If preselected recipient was successfully fetched, it exists (even if filtered out)
+    // Check if the fetched recipient data exists
+    if (preselectedRecipientStatus === 'success' && fetchedRecipient) {
+      // Recipient was found via GET /recipients/:id
+      // Check if recipient exists in filtered recipients (may be filtered out by account)
+      const recipientExists = paymentData.filteredRecipients?.some(
+        (r) => r.id === recipientId
+      );
+
+      if (recipientExists) {
+        // Auto-select the recipient if it exists and no recipient is currently selected
+        const currentRecipient = form.getValues('to');
+        if (!currentRecipient) {
+          form.setValue('to', recipientId);
+        }
       }
+      // Recipient was found via GET /recipients/:id, don't show warning
+      // (even if filtered out by account selection - that's a different UX concern)
       return { shouldSelectRecipient: false, recipientNotFound: false };
     }
 
-    // Show warning if recipientId is provided but not found in filtered recipients
+    // Fallback: If status is 'success' but no recipient data (shouldn't happen in normal flow)
+    // or if status is something unexpected, show warning as safety measure
+    // This handles edge cases where the query completed but returned no data
     return { shouldSelectRecipient: false, recipientNotFound: true };
-  }, [recipientId, paymentData.filteredRecipients, form]);
+  }, [
+    recipientId,
+    paymentData.filteredRecipients,
+    paymentData.preselectedRecipient,
+    paymentData.preselectedRecipientStatus,
+    form,
+  ]);
 
   const { recipientNotFound } = recipientSelectionState;
 
   // On submit, build payload and call mutation
   const handlePaymentSubmit = (values: any) => {
-    const recipient = paymentData.filteredRecipients?.find(
-      (r) => r.id === values.to
-    );
     const fromAccount = paymentData.accounts?.items.find(
       (a: { id: any }) => a.id === values.from
     );
-    if (!recipient || !fromAccount) return;
+    if (!fromAccount) return;
+
+    const common = {
+      amount: Number(values.amount),
+      currency: 'USD',
+      debtorAccountId: fromAccount.id,
+      transactionReferenceId: generateTransactionReferenceId(),
+      type: values.method,
+      ...(values.memo?.trim() && { memo: values.memo.trim() }),
+    } as any;
+
+    if (values.recipientMode === 'manual') {
+      const routingInfo = [
+        {
+          routingCodeType: 'USABA' as const,
+          routingNumber: values.routingNumber,
+          transactionType: values.method,
+        },
+      ];
+      const partyDetails =
+        values.partyType === 'INDIVIDUAL'
+          ? {
+              type: 'INDIVIDUAL' as const,
+              firstName: values.firstName,
+              lastName: values.lastName,
+              address:
+                values.method === 'RTP' || values.method === 'WIRE'
+                  ? {
+                      addressLine1: values.addressLine1,
+                      city: values.city,
+                      state: values.state,
+                      countryCode: 'US' as const,
+                      postalCode: values.postalCode,
+                    }
+                  : undefined,
+            }
+          : {
+              type: 'ORGANIZATION' as const,
+              businessName: values.businessName,
+              address:
+                values.method === 'RTP' || values.method === 'WIRE'
+                  ? {
+                      addressLine1: values.addressLine1,
+                      city: values.city,
+                      state: values.state,
+                      countryCode: 'US' as const,
+                      postalCode: values.postalCode,
+                    }
+                  : undefined,
+            };
+
+      // If saveRecipient is checked, create the recipient first
+      if (values.saveRecipient) {
+        const recipientRequest: RecipientRequest = {
+          type: 'RECIPIENT',
+          account: {
+            countryCode: 'US' as const,
+            number: values.accountNumber,
+            type: values.accountType,
+            routingInformation: routingInfo.map((info) => ({
+              routingCodeType: 'USABA' as const,
+              routingNumber: info.routingNumber,
+              transactionType: info.transactionType,
+            })),
+          },
+          partyDetails,
+        };
+
+        createRecipient(
+          { data: recipientRequest },
+          {
+            onSuccess: () => {
+              // After recipient is created, proceed with transaction
+              createTransaction(
+                {
+                  data: {
+                    ...common,
+                    recipient: {
+                      account: {
+                        countryCode: 'US',
+                        number: values.accountNumber,
+                        type: values.accountType,
+                        routingInformation: routingInfo,
+                      },
+                      partyDetails,
+                    },
+                  },
+                },
+                {
+                  onSuccess: () => {
+                    setLocalSuccess(true);
+                    // Tracking is handled at hook level to avoid duplicates
+                  },
+                  onSettled: () => onTransactionSettled?.(),
+                }
+              );
+            },
+            onError: (error) => {
+              console.error('Failed to create recipient:', error);
+              // Still proceed with transaction even if saving recipient fails
+              createTransaction(
+                {
+                  data: {
+                    ...common,
+                    recipient: {
+                      account: {
+                        countryCode: 'US',
+                        number: values.accountNumber,
+                        type: values.accountType,
+                        routingInformation: routingInfo,
+                      },
+                      partyDetails,
+                    },
+                  },
+                },
+                {
+                  onSuccess: () => {
+                    setLocalSuccess(true);
+                    // Tracking is handled at hook level to avoid duplicates
+                  },
+                  onSettled: () => onTransactionSettled?.(),
+                }
+              );
+            },
+          }
+        );
+        return;
+      }
+
+      // If not saving recipient, proceed directly with transaction
+      createTransaction(
+        {
+          data: {
+            ...common,
+            recipient: {
+              account: {
+                countryCode: 'US',
+                number: values.accountNumber,
+                type: values.accountType,
+                routingInformation: routingInfo,
+              },
+              partyDetails,
+            },
+          },
+        },
+        {
+          onSuccess: () => {
+            setLocalSuccess(true);
+            // Tracking is handled at hook level to avoid duplicates
+          },
+          onSettled: () => onTransactionSettled?.(),
+        }
+      );
+      return;
+    }
+
+    const recipient = paymentData.filteredRecipients?.find(
+      (r) => r.id === values.to
+    );
+    if (!recipient) return;
 
     createTransaction(
       {
         data: {
-          amount: Number(values.amount),
-          currency: 'USD',
-          debtorAccountId: fromAccount.id,
-          creditorAccountId: recipient?.account?.number,
+          ...common,
           recipientId: recipient.id,
-          transactionReferenceId: `PAY-${Date.now()}`,
-          type: values.method,
-          memo: values.memo || '',
         },
       },
       {
         onSuccess: () => {
           setLocalSuccess(true);
+          // Tracking is handled at hook level to avoid duplicates
         },
-        onSettled: () => {
-          onTransactionSettled?.();
-        },
+        onSettled: () => onTransactionSettled?.(),
       }
     );
   };
@@ -150,25 +387,34 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
     }
   }, [dialogOpen, resetPayment, resetForm]);
 
-  // Restore pre-selected values when dialog opens
+  // Restore pre-selected values when dialog opens (only on initial open, not when data changes)
   useEffect(() => {
     if (dialogOpen) {
-      // Auto-select single account
+      // Track form started
+      trackUserEvent({
+        actionName: MAKE_PAYMENT_USER_JOURNEYS.FORM_STARTED,
+        userEventsHandler,
+      });
+
+      // Auto-select single account only if no account is currently selected
       if (paymentData.accounts?.items?.length === 1) {
-        form.setValue('from', paymentData.accounts.items[0].id);
+        const currentAccount = form.getValues('from');
+        if (!currentAccount) {
+          form.setValue('from', paymentData.accounts.items[0].id);
+        }
       }
 
-      // Auto-select single recipient
+      // Auto-select single recipient only if no recipient is currently selected
+      // This should only happen on initial dialog open, not when filteredRecipients changes
       if (paymentData.filteredRecipients?.length === 1) {
-        form.setValue('to', paymentData.filteredRecipients[0].id);
+        const currentRecipient = form.getValues('to');
+        if (!currentRecipient) {
+          form.setValue('to', paymentData.filteredRecipients[0].id);
+        }
       }
     }
-  }, [
-    dialogOpen,
-    paymentData.accounts?.items,
-    paymentData.filteredRecipients,
-    form,
-  ]);
+    // Only run when dialog opens/closes, not when data changes
+  }, [dialogOpen, userEventsHandler]);
 
   // Restore recipient selection when recipients are loaded and dialog is open
   useEffect(() => {
@@ -206,6 +452,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
       <DialogTrigger asChild>
         {triggerButton || (
           <Button
+            data-user-event={MAKE_PAYMENT_USER_JOURNEYS.FORM_STARTED}
             onClick={() => setDialogOpen(true)}
             variant={triggerButtonVariant}
             className="eb-component eb-flex eb-items-center eb-gap-2"
@@ -215,15 +462,18 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="eb-p-0 sm:eb-max-w-[1200px]">
+      <DialogContent
+        id="make-payment-container"
+        className="eb-p-0 sm:eb-max-w-[1200px]"
+      >
         <DialogTitle className="eb-sr-only">{t('title')}</DialogTitle>
         <Card className="eb-rounded-none eb-border-none eb-shadow-none sm:eb-rounded-lg">
-          <CardHeader>
-            <CardTitle className="eb-text-xl eb-font-semibold">
+          <CardHeader className="eb-border-b eb-bg-muted/30 eb-p-2.5 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-p-3 @lg:eb-p-4">
+            <CardTitle className="eb-h-8 eb-truncate eb-font-header eb-text-lg eb-font-semibold eb-leading-8 @md:eb-text-xl">
               {t('title', { defaultValue: 'Make a payment' })}
             </CardTitle>
           </CardHeader>
-          <CardContent className="eb-space-y-4 eb-pt-0">
+          <CardContent className="eb-space-y-4 eb-p-2.5 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-p-3 @lg:eb-p-4">
             <DialogDescription>
               {t('description', {
                 defaultValue:
@@ -233,7 +483,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
 
             {/* Show recipient warning immediately if recipientId is invalid */}
             {recipientNotFound && recipientId && (
-              <div className="eb-rounded-md eb-border eb-border-destructive/20 eb-bg-destructive/10 eb-p-3">
+              <div className="eb-rounded-md eb-border eb-border-destructive/20 eb-bg-destructive/10 eb-p-2.5 @md:eb-p-3">
                 <div className="eb-text-sm eb-text-destructive">
                   {t('warnings.recipientNotFound', { recipientId })}
                 </div>
@@ -254,39 +504,69 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                   <Form {...form}>
                     <form
                       onSubmit={form.handleSubmit(handlePaymentSubmit)}
-                      className="eb-px-2 eb-py-2"
+                      className="eb-space-y-0"
                     >
                       <div
-                        className={`eb-grid eb-grid-cols-1 eb-gap-4 ${showPreviewPanel ? 'md:eb-grid-cols-2' : ''}`}
+                        className={`eb-grid eb-grid-cols-1 eb-gap-3 ${showPreviewPanel ? 'md:eb-grid-cols-2' : ''}`}
                       >
-                        <div className="eb-space-y-6">
-                          {/* Section 1: Who are you paying? */}
-                          <Card className="eb-p-4">
+                        <div className="eb-space-y-3">
+                          {/* Recipient section */}
+                          <Card className="eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
                             <CardContent className="eb-space-y-4 eb-p-0">
-                              <RecipientSelector
-                                filteredRecipients={
-                                  paymentData.filteredRecipients
-                                }
-                                selectedAccount={paymentData.selectedAccount}
-                                recipientsStatus={paymentData.recipientsStatus}
-                                refetchRecipients={
-                                  paymentData.refetchRecipients
-                                }
-                              />
+                              <div className="eb-space-y-4">
+                                <h3 className="eb-text-base eb-font-semibold">
+                                  {t('fields.to.label', {
+                                    defaultValue: 'Who are you paying?',
+                                  })}
+                                </h3>
+                                <RecipientModeToggle />
+                              </div>
 
-                              {/* Hide recipient details when there's only one recipient */}
-                              {paymentData.filteredRecipients?.length !== 1 && (
-                                <RecipientDetails
-                                  selectedRecipient={
-                                    paymentData.selectedRecipient
-                                  }
-                                />
+                              {form.watch('recipientMode') !== 'manual' ? (
+                                <>
+                                  <RecipientSelector
+                                    filteredRecipients={
+                                      paymentData.filteredRecipients
+                                    }
+                                    selectedAccount={
+                                      paymentData.selectedAccount
+                                    }
+                                    recipientsStatus={
+                                      paymentData.recipientsStatus
+                                    }
+                                    refetchRecipients={
+                                      paymentData.refetchRecipients
+                                    }
+                                    recipientDisabledMap={
+                                      paymentData.recipientDisabledMap
+                                    }
+                                    allRecipients={paymentData.recipients}
+                                  />
+                                  {paymentData.filteredRecipients?.length !==
+                                    1 && (
+                                    <RecipientDetails
+                                      selectedRecipient={
+                                        paymentData.selectedRecipient
+                                      }
+                                    />
+                                  )}
+                                </>
+                              ) : (
+                                <>
+                                  {/* Payment method becomes first control in section when manual */}
+                                  <PaymentMethodSelector
+                                    paymentMethods={paymentMethods}
+                                    isFormFilled={validation.isFormFilled}
+                                    fee={validation.fee}
+                                  />
+                                  <ManualRecipientFields />
+                                </>
                               )}
                             </CardContent>
                           </Card>
 
                           {/* Section 2: Which account are you paying from? */}
-                          <Card className="eb-p-4">
+                          <Card className="eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
                             <CardContent className="eb-p-0">
                               <AccountSelector
                                 accounts={paymentData.accounts}
@@ -295,12 +575,18 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                                 selectedAccountId={form.watch('from')}
                                 accountBalance={paymentData.accountBalance}
                                 isBalanceLoading={paymentData.isBalanceLoading}
+                                isBalanceError={paymentData.isBalanceError}
+                                balanceError={paymentData.balanceError}
+                                refetchBalance={paymentData.refetchBalance}
+                                accountDisabledMap={
+                                  paymentData.accountDisabledMap
+                                }
                               />
                             </CardContent>
                           </Card>
 
                           {/* Section 3: How much are you paying? */}
-                          <Card className="eb-p-4">
+                          <Card className="eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
                             <CardContent className="eb-p-0">
                               <AmountInput
                                 isAmountValid={validation.isAmountValid}
@@ -311,22 +597,24 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                           </Card>
 
                           {/* Section 4: How do you want to pay? */}
-                          <Card className="eb-p-4">
-                            <CardContent className="eb-p-0">
-                              <PaymentMethodSelector
-                                dynamicPaymentMethods={
-                                  paymentData.dynamicPaymentMethods
-                                }
-                                paymentMethods={paymentMethods}
-                                isFormFilled={validation.isFormFilled}
-                                amount={validation.amount}
-                                fee={validation.fee}
-                              />
-                            </CardContent>
-                          </Card>
+                          {form.watch('recipientMode') !== 'manual' &&
+                            form.watch('to') && (
+                              <Card className="eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
+                                <CardContent className="eb-p-0">
+                                  <PaymentMethodSelector
+                                    paymentMethods={
+                                      paymentData.dynamicPaymentMethods
+                                    }
+                                    isFormFilled={validation.isFormFilled}
+                                    fee={validation.fee}
+                                    accountsStatus={paymentData.accountsStatus}
+                                  />
+                                </CardContent>
+                              </Card>
+                            )}
 
                           {/* Section 5: Additional Information (optional) */}
-                          <Card className="eb-p-4">
+                          <Card className="eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
                             <CardContent className="eb-p-0">
                               <AdditionalInformation />
                             </CardContent>
@@ -348,6 +636,7 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                               }
                               accounts={paymentData.accounts}
                               accountsStatus={paymentData.accountsStatus}
+                              paymentMethods={paymentMethods}
                             />
                           </div>
                         )}
@@ -358,9 +647,13 @@ export const MakePayment: React.FC<PaymentComponentProps> = ({
                         >
                           <Button
                             type="submit"
+                            data-user-event={
+                              MAKE_PAYMENT_USER_JOURNEYS.FORM_SUBMITTED
+                            }
                             className="eb-w-full"
                             disabled={
                               isSubmitting ||
+                              isCreatingRecipient ||
                               !validation.isFormFilled ||
                               !validation.isAmountValid
                             }

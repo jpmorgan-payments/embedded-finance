@@ -1,9 +1,17 @@
-import { Fragment, useEffect, useMemo } from 'react';
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { Loader2Icon, MenuIcon } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { ArrowLeftIcon, InfoIcon, Loader2Icon } from 'lucide-react';
+import { useForm, useFormState } from 'react-hook-form';
 import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
@@ -13,6 +21,7 @@ import {
   useSmbdoUpdateClientLegacy,
 } from '@/api/generated/smbdo';
 import { QuestionResponse } from '@/api/generated/smbdo.schemas';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Form,
   FormControl,
@@ -30,16 +39,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Button, Checkbox, Separator } from '@/components/ui';
-import {
-  FormLoadingState,
-  ServerErrorAlert,
-  StepLayout,
-} from '@/core/OnboardingFlow/components';
+import { FormLoadingState, StepLayout } from '@/core/OnboardingFlow/components';
 import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
+import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
 
 import {
   createDynamicZodSchema,
@@ -47,7 +54,39 @@ import {
   MONEY_INPUT_QUESTION_IDS,
 } from './OperationalDetailsForm.schema';
 
+/**
+ * Extract question ID from API error message.
+ * Matches patterns like "question with ID [30002]" or similar.
+ */
+const extractQuestionIdFromMessage = (message: string): string | null => {
+  const match = message.match(/\[(\d+)\]/);
+  return match ? match[1] : null;
+};
+
+/**
+ * Format API error message to be more user-friendly.
+ * Extracts the actionable part from verbose server messages.
+ */
+const formatErrorMessage = (message: string): string => {
+  // Extract the hint in brackets at the end of the message, e.g., "[Please use a 2-letter ISO country code.]"
+  const hintMatch = message.match(/\[([^\]]+)\]\.?$/);
+  if (hintMatch) {
+    return hintMatch[1];
+  }
+
+  // If no hint found, try to simplify the message
+  if (message.includes('is not supported')) {
+    return 'The value entered is not supported. Please select a valid option.';
+  }
+
+  return message;
+};
+
 export const OperationalDetailsForm = () => {
+  const { t, tString } = useTranslationWithTokens([
+    'onboarding-overview',
+    'common',
+  ]);
   const queryClient = useQueryClient();
   const { clientData } = useOnboardingContext();
 
@@ -77,10 +116,77 @@ export const OperationalDetailsForm = () => {
     questionIds: allQuestionIds.join(','),
   });
 
-  // Prepare default values for the form
+  // Extract sub-question IDs that were not included in the initial fetch
+  const missingSubQuestionIds = useMemo(() => {
+    const fetchedQuestions = questionsData?.questions ?? [];
+    const fetchedIds = new Set(fetchedQuestions.map((q) => q.id));
+    const subIds = new Set<string>();
+
+    fetchedQuestions.forEach((q) => {
+      q.subQuestions?.forEach((sq) => {
+        sq.questionIds?.forEach((id) => {
+          if (!fetchedIds.has(id)) {
+            subIds.add(id);
+          }
+        });
+      });
+    });
+
+    return [...subIds].sort();
+  }, [questionsData]);
+
+  // Extract parent question IDs that were not included in the initial fetch
+  const missingParentQuestionIds = useMemo(() => {
+    const fetchedQuestions = questionsData?.questions ?? [];
+    const fetchedIds = new Set(allQuestionIds);
+    const parentIds = fetchedQuestions
+      .map((q) => q.parentQuestionId)
+      .filter((id): id is string => !!id && !fetchedIds.has(id));
+    return [...new Set(parentIds)].sort();
+  }, [questionsData, allQuestionIds]);
+
+  // Fetch any sub-questions or parent questions that were missing from the initial response
+  const missingQuestionIds = useMemo(() => {
+    return [
+      ...new Set([...missingSubQuestionIds, ...missingParentQuestionIds]),
+    ].sort();
+  }, [missingSubQuestionIds, missingParentQuestionIds]);
+
+  const {
+    data: supplementaryQuestionsData,
+    status: supplementaryQuestionsFetchStatus,
+  } = useSmbdoListQuestions(
+    { questionIds: missingQuestionIds.join(',') },
+    { query: { enabled: missingQuestionIds.length > 0 } }
+  );
+
+  // Merge parent and sub-question data into a single list
+  const allQuestions = useMemo(() => {
+    const primary = questionsData?.questions ?? [];
+    const secondary = supplementaryQuestionsData?.questions ?? [];
+    if (secondary.length === 0) return primary;
+
+    const existingIds = new Set(primary.map((q) => q.id));
+    return [...primary, ...secondary.filter((q) => !existingIds.has(q.id))];
+  }, [questionsData, supplementaryQuestionsData]);
+
+  // Overall loading: still pending if primary fetch is loading, or if we
+  // know there are missing questions and that fetch hasn't finished yet.
+  const isQuestionsLoading =
+    questionsFetchStatus === 'pending' ||
+    (missingQuestionIds.length > 0 &&
+      supplementaryQuestionsFetchStatus === 'pending');
+
+  // Prepare default values for the form (include sub-question IDs so they get form fields)
+  const allFormQuestionIds = useMemo(() => {
+    const ids = new Set(allQuestionIds);
+    missingSubQuestionIds.forEach((id) => ids.add(id));
+    return [...ids].sort();
+  }, [allQuestionIds, missingSubQuestionIds]);
+
   const defaultValues = useMemo(
     () =>
-      allQuestionIds.reduce(
+      allFormQuestionIds.reduce(
         (acc, id) => {
           const existingResponse = existingQuestionResponses?.find(
             (response) => response.questionId === id
@@ -92,10 +198,13 @@ export const OperationalDetailsForm = () => {
         },
         {} as Record<string, any>
       ),
-    [allQuestionIds, existingQuestionResponses]
+    [allFormQuestionIds, existingQuestionResponses]
   );
 
   const queryKey = getSmbdoGetClientQueryKey(clientData?.id ?? '');
+
+  const [hasNewQuestions, setHasNewQuestions] = useState(false);
+  const alertRef = useRef<HTMLDivElement>(null);
 
   const {
     mutate: updateClient,
@@ -103,12 +212,29 @@ export const OperationalDetailsForm = () => {
     status: updateClientStatus,
   } = useSmbdoUpdateClientLegacy({
     mutation: {
-      onError: (err) => {
-        console.log('mutation error', err);
+      onError: () => {
+        // Mutation error occurred
       },
       onSuccess: (response) => {
         queryClient.setQueryData(queryKey, response);
         setIsFormSubmitting(false);
+
+        // Check if the response has new outstanding questions.
+        // If so, stay on the page so the user can answer them.
+        const newOutstandingQuestionIds =
+          response?.outstanding?.questionIds ?? [];
+        if (newOutstandingQuestionIds.length > 0) {
+          setHasNewQuestions(true);
+          // Scroll alert into view after render
+          setTimeout(() => {
+            alertRef.current?.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start',
+            });
+          }, 100);
+          return;
+        }
+
         if (reviewMode) {
           goTo('review-attest-section', {
             reviewScreenOpenedSectionId: 'additional-questions-section',
@@ -131,9 +257,8 @@ export const OperationalDetailsForm = () => {
     const questionLabel = (
       <div className="">
         {question.description?.split('\n')?.map((line, index) => (
-          <div>
+          <div key={`${question.id}-label-${index}`}>
             <FormLabel
-              key={index}
               asterisk={index === 0}
               className={cn({
                 'eb-ml-4': index > 0,
@@ -159,6 +284,7 @@ export const OperationalDetailsForm = () => {
                 <Input
                   {...field}
                   type="date"
+                  value={field.value?.[0] ?? ''}
                   onChange={(e) => field.onChange([e.target.value])}
                 />
               </FormControl>
@@ -183,14 +309,14 @@ export const OperationalDetailsForm = () => {
                 </span>
                 <FormControl>
                   <Input
+                    {...field}
                     type="number"
                     min={0}
                     max={10000000000}
                     step={0.01}
                     placeholder="0.00"
                     className="eb-pl-7"
-                    {...field}
-                    value={field.value?.[0]}
+                    value={field.value?.[0] ?? ''}
                     onChange={(e) => {
                       const value = parseFloat(e.target.value);
                       if (value >= 0 && value <= 10000000000) {
@@ -224,20 +350,24 @@ export const OperationalDetailsForm = () => {
                 <FormControl>
                   <RadioGroup
                     onValueChange={(value) => field.onChange([value])}
-                    defaultValue={field?.value?.[0]}
+                    value={field?.value?.[0] ?? ''}
                     className="eb-flex eb-flex-col eb-space-y-1"
                   >
                     <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
                       <FormControl>
                         <RadioGroupItem value="true" />
                       </FormControl>
-                      <FormLabel className="eb-font-normal">Yes</FormLabel>
+                      <FormLabel className="eb-font-normal">
+                        {t('common:yes', 'Yes')}
+                      </FormLabel>
                     </FormItem>
                     <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
                       <FormControl>
                         <RadioGroupItem value="false" />
                       </FormControl>
-                      <FormLabel className="eb-font-normal">No</FormLabel>
+                      <FormLabel className="eb-font-normal">
+                        {t('common:no', 'No')}
+                      </FormLabel>
                     </FormItem>
                   </RadioGroup>
                 </FormControl>
@@ -251,7 +381,7 @@ export const OperationalDetailsForm = () => {
         if (itemEnum) {
           if (
             question?.responseSchema?.maxItems &&
-            question?.responseSchema?.maxItems > 0
+            question?.responseSchema?.maxItems > 1
           ) {
             return (
               <FormField
@@ -308,11 +438,16 @@ export const OperationalDetailsForm = () => {
                   {questionLabel}
                   <Select
                     onValueChange={(value) => field.onChange([value])}
-                    defaultValue={field?.value?.[0]}
+                    value={field?.value?.[0] ?? ''}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select an option" />
+                        <SelectValue
+                          placeholder={tString(
+                            'screens.operationalDetails.selectPlaceholder',
+                            'Select an option'
+                          )}
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -339,6 +474,7 @@ export const OperationalDetailsForm = () => {
                 <FormControl>
                   <Input
                     {...field}
+                    value={field.value?.[0] ?? ''}
                     onChange={(e) => field.onChange([e.target.value])}
                   />
                 </FormControl>
@@ -360,6 +496,7 @@ export const OperationalDetailsForm = () => {
                   <Input
                     type="number"
                     {...field}
+                    value={field.value?.[0] ?? ''}
                     onChange={(e) => field.onChange([e.target.value])}
                   />
                 </FormControl>
@@ -380,6 +517,7 @@ export const OperationalDetailsForm = () => {
                 <FormControl>
                   <Input
                     {...field}
+                    value={field.value?.[0] ?? ''}
                     onChange={(e) => field.onChange([e.target.value])}
                   />
                 </FormControl>
@@ -392,20 +530,81 @@ export const OperationalDetailsForm = () => {
   };
 
   const dynamicSchema = useMemo(() => {
-    const visibleQuestions: QuestionResponse[] = questionsData?.questions ?? [];
-    if (!visibleQuestions) return z.object({});
-    return createDynamicZodSchema(visibleQuestions);
-  }, [questionsData]);
+    if (!allQuestions.length) return z.object({});
+    return createDynamicZodSchema(allQuestions);
+  }, [allQuestions]);
 
   const form = useForm({
     resolver: zodResolver(dynamicSchema),
     defaultValues,
   });
 
+  const { isDirty } = useFormState({ control: form.control });
+  useFlowUnsavedChangesSync(isDirty);
+
+  /**
+   * Parse API error context and set field-level errors on the form.
+   * Extracts question IDs from error messages and maps them to form fields.
+   * Returns the first field name with an error for focusing.
+   */
+  const setFieldErrorsFromApiError = useCallback(
+    (error: typeof updateClientError): string | null => {
+      if (!error) return null;
+
+      const context = error.response?.data?.context;
+      if (!context || !Array.isArray(context)) return null;
+
+      let firstErrorField: string | null = null;
+
+      context.forEach(
+        (item: { code?: string; field?: string; message?: string }) => {
+          if (!item.message) return;
+
+          const questionId = extractQuestionIdFromMessage(item.message);
+          if (!questionId) return;
+
+          // Verify this question exists in our form
+          const questionExists = allQuestions.some((q) => q.id === questionId);
+          if (!questionExists) return;
+
+          const fieldName = `question_${questionId}`;
+          const userFriendlyMessage = formatErrorMessage(item.message);
+
+          form.setError(fieldName, {
+            type: 'server',
+            message: userFriendlyMessage,
+          });
+
+          // Track the first error field for focusing
+          if (!firstErrorField) {
+            firstErrorField = fieldName;
+          }
+        }
+      );
+
+      return firstErrorField;
+    },
+    [form, allQuestions]
+  );
+
+  // Handle API errors by setting field-level errors and focusing the first invalid field
+  useEffect(() => {
+    if (updateClientError && updateClientStatus === 'error') {
+      const firstErrorField = setFieldErrorsFromApiError(updateClientError);
+
+      // Focus the first field with an error after a short delay to ensure DOM is updated
+      if (firstErrorField) {
+        setTimeout(() => {
+          form.setFocus(firstErrorField);
+        }, 100);
+      }
+    }
+  }, [updateClientError, updateClientStatus, setFieldErrorsFromApiError, form]);
+
   const isQuestionVisible = (question: QuestionResponse) => {
     if (!question.parentQuestionId) return true;
 
-    const parentQuestion = questionsData?.questions?.find(
+    const parentQuestion = allQuestions.find(
       (q) => q.id === question.parentQuestionId
     );
     if (!parentQuestion) return false;
@@ -437,10 +636,18 @@ export const OperationalDetailsForm = () => {
 
   const onSubmit = (values: any) => {
     if (clientData?.id) {
-      const questionResponses = Object.entries(values).map(([key, value]) => ({
-        questionId: key.replace('question_', ''),
-        values: Array.isArray(value) ? value : [value],
-      }));
+      const questionResponses = Object.entries(values)
+        .filter(([key]) => {
+          const questionId = key.replace('question_', '');
+          const question = allQuestions.find((q) => q.id === questionId);
+          // Only include visible questions in the submission
+          return question ? isQuestionVisible(question) : false;
+        })
+        .map(([key, value]) => ({
+          key,
+          questionId: key.replace('question_', ''),
+          values: Array.isArray(value) ? value : [value],
+        }));
 
       const requestBody = {
         questionResponses,
@@ -454,29 +661,45 @@ export const OperationalDetailsForm = () => {
   };
 
   const renderQuestions = () => {
-    if (!questionsData) {
+    if (!allQuestions.length) {
       return (
         <div className="eb-text-muted-foreground">
-          There are no additional questions. You may proceed to the next step.
+          {t(
+            'screens.operationalDetails.noQuestions',
+            'There are no additional questions. You may proceed to the next step.'
+          )}
         </div>
       );
     }
 
-    return questionsData?.questions
-      ?.filter(isQuestionParent)
+    const renderSubQuestions = (
+      parentId: string | undefined
+    ): React.ReactNode => {
+      if (!parentId) return null;
+      return allQuestions
+        .filter((q) => q.parentQuestionId === parentId)
+        .filter(isQuestionVisible)
+        .map((subQuestion) => (
+          <Fragment
+            key={
+              subQuestion.id ??
+              `subquestion-${parentId}-${subQuestion.parentQuestionId}`
+            }
+          >
+            <div className="eb-mb-6">{renderQuestionInput(subQuestion)}</div>
+            {renderSubQuestions(subQuestion.id)}
+          </Fragment>
+        ));
+    };
+
+    return allQuestions
+      .filter(isQuestionParent)
       .filter(isQuestionVisible)
       .map((question, index) => (
-        <Fragment key={question.id}>
+        <Fragment key={question.id ?? `question-${index}`}>
           {index !== 0 && <Separator />}
           <div className="eb-mb-6">{renderQuestionInput(question)}</div>
-          {questionsData?.questions
-            ?.filter((q) => q.parentQuestionId === question.id)
-            .filter(isQuestionVisible)
-            .map((subQuestion) => (
-              <div key={subQuestion.id} className="eb-mb-6">
-                {renderQuestionInput(subQuestion)}
-              </div>
-            ))}
+          {renderSubQuestions(question.id)}
         </Fragment>
       ));
   };
@@ -485,31 +708,55 @@ export const OperationalDetailsForm = () => {
     setIsFormSubmitting(updateClientStatus === 'pending');
   }, [updateClientStatus]);
 
-  const isFormDisabled =
-    questionsFetchStatus === 'pending' || updateClientStatus === 'pending';
+  const isFormDisabled = isQuestionsLoading || updateClientStatus === 'pending';
 
-  if (questionsFetchStatus === 'pending') {
-    return <FormLoadingState message="Loading questions..." />;
+  if (isQuestionsLoading) {
+    return (
+      <FormLoadingState
+        message={tString(
+          'screens.operationalDetails.loadingQuestions',
+          'Loading questions...'
+        )}
+      />
+    );
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="eb-space-y-6">
         <StepLayout
-          title={
-            <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between eb-gap-4">
-              <span>Operational details</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => goTo('overview')}
-              >
-                Overview
-                <MenuIcon />
-              </Button>
-            </div>
+          title={tString(
+            'screens.operationalDetails.title',
+            'Operational details'
+          )}
+          subTitle={
+            <Button
+              type="button"
+              variant="link"
+              onClick={() => goTo('overview')}
+              className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
+            >
+              <ArrowLeftIcon className="eb-size-3.5" />
+              {t('common:overview', 'Overview')}
+            </Button>
           }
-          description="Please answer these additional questions to help us understand your business operations."
+          description={tString(
+            'screens.operationalDetails.description',
+            'Please answer these additional questions to help us understand your business operations.'
+          )}
+          alert={
+            hasNewQuestions ? (
+              <Alert ref={alertRef} variant="informative" noTitle>
+                <InfoIcon className="eb-h-4 eb-w-4" />
+                <AlertDescription>
+                  {t(
+                    'screens.operationalDetails.newQuestionsGenerated',
+                    'Based on your responses, a few additional questions are needed. Please complete them to continue.'
+                  )}
+                </AlertDescription>
+              </Alert>
+            ) : undefined
+          }
         >
           <div className="eb-mt-6 eb-flex-auto eb-space-y-6">
             {renderQuestions()}
@@ -527,8 +774,14 @@ export const OperationalDetailsForm = () => {
                 <Loader2Icon className="eb-animate-spin" />
               )}
               {reviewMode
-                ? 'Save and return to review'
-                : 'Save and continue to review'}
+                ? t(
+                    'screens.operationalDetails.saveAndReturn',
+                    'Save and return to review'
+                  )
+                : t(
+                    'screens.operationalDetails.saveAndContinue',
+                    'Save and continue to review'
+                  )}
             </Button>
           </div>
         </StepLayout>

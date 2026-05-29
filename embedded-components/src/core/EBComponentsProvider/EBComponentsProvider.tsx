@@ -5,33 +5,27 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useState,
+  useRef,
   type ErrorInfo,
 } from 'react';
-import { defaultResources, i18n } from '@/i18n/config';
+import { createI18nInstance } from '@/i18n/config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import Axios from 'axios';
 import { AlertCircle } from 'lucide-react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { I18nextProvider } from 'react-i18next';
 
-import { AXIOS_INSTANCE } from '@/api/axios-instance';
+import { AxiosInstanceProvider } from '@/api/AxiosInstanceContext';
 import { Toaster } from '@/components/ui/sonner';
 
 import { EBConfig } from './config.types';
 import { convertThemeToCssString } from './convert-theme-to-css-variables';
 
-const queryClient = new QueryClient();
-
 const ContentTokensContext = createContext<
   EBConfig['contentTokens'] | undefined
 >(undefined);
 
-// Create a context to track interceptor ready state
-const InterceptorContext = createContext<{
-  interceptorReady: boolean;
-}>({
-  interceptorReady: false,
-});
+const ClientIdContext = createContext<string | undefined>(undefined);
 
 // Only import devtools in development
 const ReactQueryDevtoolsProduction =
@@ -69,113 +63,170 @@ function ErrorFallback({ error }: { error: Error }) {
 
 const logError = (error: Error, info: ErrorInfo) => {
   // In production, you might want to send this to an error reporting service
+  // eslint-disable-next-line no-console
   console.error('Caught by error boundary:', error, info);
-};
-
-const mergeContentTokens = (
-  resources: typeof defaultResources,
-  contentTokens?: EBConfig['contentTokens']
-) => {
-  if (!contentTokens?.tokens) return;
-
-  Object.keys(resources).forEach((langKey) => {
-    const lang = langKey as keyof typeof resources;
-    Object.keys(resources[lang]).forEach((namespace) => {
-      const ns = namespace as keyof (typeof resources)[typeof lang];
-      if (contentTokens.tokens && contentTokens.tokens[ns]) {
-        i18n.addResourceBundle(
-          lang,
-          ns,
-          contentTokens.tokens[ns],
-          true, // deep merge
-          true // overwrite
-        );
-      }
-    });
-  });
 };
 
 export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
   children,
   apiBaseUrl,
+  apiBaseUrlTransforms,
+  apiBaseUrls, // deprecated
   headers = {},
   queryParams = {},
   theme = {},
   reactQueryDefaultOptions = {},
   contentTokens = {},
+  clientId,
 }) => {
-  const [currentInterceptor, setCurrentInterceptor] = useState(0);
-  const [interceptorReady, setInterceptorReady] = useState(false);
+  // Create a provider-scoped i18n instance
+  // This prevents global state pollution when multiple providers exist or routes change
+  const i18nInstance = useMemo(
+    () => createI18nInstance(contentTokens),
+    [contentTokens?.name, JSON.stringify(contentTokens?.tokens)]
+  );
 
-  // Set default headers and base URL in the axios interceptor
-  useEffect(() => {
-    // Remove the previous interceptor
-    if (currentInterceptor) {
-      AXIOS_INSTANCE.interceptors.request.eject(currentInterceptor);
-    }
+  // Stable JSON representations for deep comparison
+  const headersJson = JSON.stringify(headers);
+  const queryParamsJson = JSON.stringify(queryParams);
+  const apiBaseUrlsJson = JSON.stringify(apiBaseUrls);
 
-    // Add the new interceptor
-    const ebInterceptor = AXIOS_INSTANCE.interceptors.request.use(
-      (config: any) => {
-        try {
-          return {
-            ...config,
-            headers: {
-              ...config.headers,
-              ...headers,
-            },
-            params: {
-              ...config.params,
-              ...queryParams,
-            },
-            baseURL: apiBaseUrl,
-          };
-        } catch (error) {
-          console.error('Error processing URL in interceptor:', error);
-          return config; // Return original config if URL processing fails
-        }
-      }
-    );
+  // --- Provider-scoped QueryClient ---
+  // Each provider gets its own QueryClient so query caches don't leak between
+  // providers with different clientIds / base URLs.
+  const queryClientRef = useRef<QueryClient | null>(null);
+  if (!queryClientRef.current) {
+    queryClientRef.current = new QueryClient({
+      defaultOptions: reactQueryDefaultOptions,
+    });
+  }
+  const queryClient = queryClientRef.current;
 
-    // Save the interceptor ID to remove it on unmount
-    setCurrentInterceptor(ebInterceptor);
-
-    // Mark interceptor as ready
-    setInterceptorReady(true);
-
-    return () => {
-      AXIOS_INSTANCE.interceptors.request.eject(ebInterceptor);
-      setInterceptorReady(false);
-    };
-  }, [apiBaseUrl, JSON.stringify(headers), JSON.stringify(queryParams)]);
-
-  // Reset all queries when the interceptor changes
-  useEffect(() => {
-    if (currentInterceptor) {
-      queryClient.resetQueries();
-    }
-  }, [currentInterceptor, queryClient]);
-
-  // Set the default options for react-query
+  // Update default options when they change
   useEffect(() => {
     queryClient.setDefaultOptions(reactQueryDefaultOptions);
   }, [JSON.stringify(reactQueryDefaultOptions)]);
 
-  // Set the responseType to blob for file downloads
-  useEffect(() => {
-    AXIOS_INSTANCE.interceptors.request.use(
-      (config: any) => {
-        if (config.url.includes('/file')) {
-          config.responseType = 'blob';
+  // --- Provider-scoped Axios instance (synchronous interceptor) ---
+  // The interceptor is registered once and reads config from a mutable ref.
+  // This means it's available from the very first render — no timing gap,
+  // no need for `interceptorReady` gates on queries.
+  const configRef = useRef({
+    apiBaseUrl,
+    apiBaseUrlTransforms,
+    apiBaseUrls,
+    headers,
+    queryParams,
+    clientId,
+  });
+
+  // Keep the config ref in sync with the latest props.
+  // The interceptor reads from configRef.current at request time, so it
+  // always sees the most recent values without needing to re-register.
+  configRef.current = {
+    apiBaseUrl,
+    apiBaseUrlTransforms,
+    apiBaseUrls,
+    headers,
+    queryParams,
+    clientId,
+  };
+
+  // Create Axios instance with interceptors registered synchronously (once).
+  const axiosInstanceRef = useRef<ReturnType<typeof Axios.create> | null>(null);
+  if (!axiosInstanceRef.current) {
+    const instance = Axios.create();
+
+    // Main request interceptor — reads latest config from ref
+    instance.interceptors.request.use((config: any) => {
+      try {
+        const {
+          apiBaseUrl: baseUrl,
+          apiBaseUrlTransforms: transforms,
+          apiBaseUrls: legacyUrls,
+          headers: hdr,
+          queryParams: qp,
+          clientId: cId,
+        } = configRef.current;
+
+        const urlPath =
+          config.url?.replace(/^\/+/, '').split('?')[0].split('/')[0] || '';
+
+        const isGetRequest = config.method?.toUpperCase() === 'GET';
+
+        let finalBaseURL = baseUrl;
+
+        if (transforms?.[urlPath]) {
+          finalBaseURL = transforms[urlPath](baseUrl);
+        } else if (legacyUrls?.[urlPath]) {
+          finalBaseURL = legacyUrls[urlPath];
         }
 
+        return {
+          ...config,
+          headers: {
+            ...config.headers,
+            ...hdr,
+            ...(cId ? { client_id: cId } : {}),
+          },
+          params: {
+            ...config.params,
+            ...qp,
+            ...(cId && isGetRequest ? { clientId: cId } : {}),
+          },
+          data:
+            !isGetRequest &&
+            cId &&
+            config.data &&
+            !(config.data instanceof FormData)
+              ? {
+                  ...config.data,
+                  clientId: cId,
+                }
+              : config.data,
+          baseURL: finalBaseURL,
+        };
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Error processing URL in interceptor:', error);
+        return config;
+      }
+    });
+
+    // File download interceptor (blob response for /file URLs)
+    instance.interceptors.request.use(
+      (config: any) => {
+        if (config.url?.includes('/file')) {
+          config.responseType = 'blob';
+        }
         return config;
       },
       (error) => {
         return Promise.reject(error);
       }
     );
-  }, [AXIOS_INSTANCE]);
+
+    axiosInstanceRef.current = instance;
+  }
+
+  // Reset queries when config changes (skip initial mount).
+  // The interceptor itself doesn't need re-registration (it reads from configRef),
+  // but stale cached responses should be invalidated when config changes.
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    queryClient.resetQueries();
+  }, [
+    apiBaseUrl,
+    apiBaseUrlTransforms,
+    apiBaseUrlsJson,
+    headersJson,
+    queryParamsJson,
+    clientId,
+  ]);
 
   // Add color scheme class to the root element
   useEffect(() => {
@@ -198,18 +249,6 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
     [JSON.stringify(theme)]
   );
 
-  useEffect(() => {
-    i18n.reloadResources();
-    if (contentTokens.tokens) {
-      // Apply new tokens across all languages and namespaces
-      mergeContentTokens(defaultResources, contentTokens);
-    }
-    // Set the language if specified
-    if (contentTokens.name && contentTokens.name !== i18n.language) {
-      i18n.changeLanguage(contentTokens.name);
-    }
-  }, [contentTokens]);
-
   return (
     <>
       <style
@@ -220,18 +259,22 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
       />
 
       <ErrorBoundary FallbackComponent={ErrorFallback} onError={logError}>
-        <I18nextProvider i18n={i18n}>
-          <QueryClientProvider client={queryClient}>
-            <ContentTokensContext.Provider value={contentTokens}>
-              <InterceptorContext.Provider value={{ interceptorReady }}>
-                {children}
-              </InterceptorContext.Provider>
-            </ContentTokensContext.Provider>
-            <Toaster closeButton expand position="bottom-left" />
-            {process.env.NODE_ENV === 'development' &&
-              ReactQueryDevtoolsProduction && <ReactQueryDevtoolsProduction />}
-          </QueryClientProvider>
-        </I18nextProvider>
+        <QueryClientProvider client={queryClient}>
+          <AxiosInstanceProvider value={axiosInstanceRef.current}>
+            <ClientIdContext.Provider value={clientId}>
+              <I18nextProvider i18n={i18nInstance}>
+                <ContentTokensContext.Provider value={contentTokens}>
+                  {children}
+                </ContentTokensContext.Provider>
+              </I18nextProvider>
+              <Toaster closeButton expand position="bottom-left" />
+              {process.env.NODE_ENV === 'development' &&
+                ReactQueryDevtoolsProduction && (
+                  <ReactQueryDevtoolsProduction />
+                )}
+            </ClientIdContext.Provider>
+          </AxiosInstanceProvider>
+        </QueryClientProvider>
       </ErrorBoundary>
     </>
   );
@@ -240,23 +283,21 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
 export const useContentTokens = () => {
   const context = useContext(ContentTokensContext);
 
-  if (context === undefined) {
-    throw new Error(
-      'useContentTokens must be used within a ContentTokensProvider'
-    );
-  }
-
+  // Return undefined if used outside provider (allows optional usage)
   return context;
 };
 
-export const useInterceptorStatus = () => {
-  const context = useContext(InterceptorContext);
+/**
+ * @deprecated — With synchronous interceptor registration, readiness is
+ * guaranteed from the first render. This hook exists solely for backwards
+ * compatibility so existing `enabled: interceptorReady` guards still compile.
+ * It always returns `{ interceptorReady: true }`.
+ */
+const INTERCEPTOR_ALWAYS_READY = { interceptorReady: true } as const;
+export const useInterceptorStatus = () => INTERCEPTOR_ALWAYS_READY;
 
-  if (context === undefined) {
-    throw new Error(
-      'useInterceptorStatus must be used within an EBComponentsProvider'
-    );
-  }
+export const useClientId = () => {
+  const context = useContext(ClientIdContext);
 
   return context;
 };

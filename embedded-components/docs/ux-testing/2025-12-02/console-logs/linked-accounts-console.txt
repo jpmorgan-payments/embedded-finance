@@ -1,0 +1,43 @@
+Linked Accounts Component - Console Logs
+Date: 2025-12-02
+Component: linked-accounts
+
+=== CONSOLE MESSAGES SUMMARY ===
+Total Messages: 60+ log entries
+Errors: 3 errors detected
+Warnings: 0 warnings
+Info Messages: Extensive MSW (Mock Service Worker) logging
+
+=== KEY FINDINGS ===
+
+1. Database Initialization:
+- MSW is initializing mock database with predefined clients
+- Scenario: "active-with-recipients"
+- Creating multiple clients (0030000131, 0030000132, 0030000133, 0030000134)
+- Creating parties, recipients, accounts, and transactions
+
+2. Errors Detected:
+Error creating party: OperationError: Failed to create a "party" entity: 
+an entity with the same primary key "2200000111" ("id") already exists.
+- Issue: Duplicate party creation attempts
+- Impact: Non-critical (MSW mock data initialization)
+- Occurrences: 3 errors for parties 2200000111, 2200000112, 2200000113
+- Root Cause: Client 0030000134 attempts to create parties that already exist from Client 0030000132
+
+3. MSW (Mock Service Worker) Activity:
+- MSW successfully enabled and running
+- Worker script: /mockServiceWorker.js
+- Multiple API calls intercepted and mocked:
+  - /ping - Health check endpoint
+  - /ef/do/v1/recipients?type=LINKED_ACCOUNT - Linked accounts API
+  - /ef/do/v1/recipients - All recipients API
+  - /ef/do/v1/accounts - Accounts API
+  - /ef/do/v1/accounts/acc-002/balances - Account balances API
+
+4. Tab Switch Emulation:
+- Browser tab switch events are being emulated
+- Components refetch data on tab switch (good pattern for data freshness)
+
+=== FULL CONSOLE OUTPUT ===
+[Full console messages captured during testing - see browser console for complete details]
+

@@ -1,10 +1,11 @@
+import { ReactNode } from 'react';
 import { LucideIcon } from 'lucide-react';
 
 export type TimelineItemStatus = 'pending' | 'current' | 'completed';
 
 export interface TimelineStep {
   id: string;
-  title: string;
+  title: ReactNode;
   description?: string;
   status: TimelineItemStatus;
   icon?: LucideIcon;
@@ -12,7 +13,7 @@ export interface TimelineStep {
 
 export interface TimelineSection {
   id: string;
-  title: string;
+  title: ReactNode;
   description?: string;
   status: TimelineItemStatus;
   icon?: LucideIcon;

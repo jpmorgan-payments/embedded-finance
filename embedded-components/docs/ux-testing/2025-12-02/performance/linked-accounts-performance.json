@@ -1,0 +1,35 @@
+{
+  "component": "linked-accounts",
+  "date": "2025-12-02",
+  "navigationTiming": {
+    "dns": 41,
+    "tcp": 25.4,
+    "request": 14.3,
+    "response": 1.5,
+    "domProcessing": 59.7,
+    "load": 0,
+    "total": 235
+  },
+  "resourceLoading": {
+    "totalResources": 15,
+    "largestResource": {
+      "name": "sellsense-demo-DHwOlM2K.js",
+      "duration": 110.2,
+      "type": "script"
+    },
+    "averageResourceLoad": 38.5
+  },
+  "memoryUsage": {
+    "usedMB": 42,
+    "totalMB": 63,
+    "limitMB": 2144,
+    "efficiency": "Good (2.0% of limit used)"
+  },
+  "assessment": {
+    "loadTime": "Excellent (235ms - under 250ms)",
+    "domProcessing": "Good (59.7ms - under 100ms)",
+    "memory": "Efficient",
+    "note": "Metrics are from mocked environment (MSW), actual production performance may differ"
+  }
+}
+

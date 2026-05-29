@@ -1,9 +1,9 @@
 // Use types from the local generated schemas
 import type {
-  TransactionsSearchResponseV2,
   ListTransactionsSearchResponseV2,
-  TransactionStatus,
   PaymentTypeResponse,
+  TransactionsSearchResponseV2,
+  TransactionStatus,
 } from '../../../../embedded-components/src/api/generated/ep-transactions.schemas';
 
 // Mock transaction data for TransactionsDisplay component
@@ -96,18 +96,18 @@ export const mockEmptyTransactionsResponse: ListTransactionsSearchResponseV2 = {
 
 // Mock transactions with different statuses
 export const mockCompletedTransactions = mockTransactions.filter(
-  (t) => t.status === 'COMPLETED',
+  (t) => t.status === 'COMPLETED'
 );
 export const mockPendingTransactions = mockTransactions.filter(
-  (t) => t.status === 'PENDING',
+  (t) => t.status === 'PENDING'
 );
 export const mockFailedTransactions = mockTransactions.filter(
-  (t) => t.status === 'REJECTED' || t.status === 'RETURNED',
+  (t) => t.status === 'REJECTED' || t.status === 'RETURNED'
 );
 
 // Function to create mock transaction
 export const createMockTransaction = (
-  overrides: Partial<TransactionsSearchResponseV2> = {},
+  overrides: Partial<TransactionsSearchResponseV2> = {}
 ): TransactionsSearchResponseV2 => {
   return {
     id: `txn-${Date.now()}`,
@@ -132,7 +132,7 @@ export const createMockTransaction = (
 export const createMockTransactionsResponse = (
   transactions: TransactionsSearchResponseV2[] = mockTransactions,
   page: number = 1,
-  limit: number = 10,
+  limit: number = 10
 ): ListTransactionsSearchResponseV2 => {
   // Convert 1-based page to 0-based index
   const startIndex = (page - 1) * limit;

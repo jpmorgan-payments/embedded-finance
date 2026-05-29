@@ -1,0 +1,193 @@
+{
+  "title": "Bénéficiaires",
+  "loading": {
+    "recipients": "Chargement des bénéficiaires..."
+  },
+  "error": {
+    "loadFailed": "Échec du chargement des bénéficiaires. Veuillez réessayer.",
+    "retry": "Réessayer"
+  },
+  "errors": {
+    "known": {
+      "RTP_UNAVAILABLE": {
+        "title": "Paiements en Temps Réel Non Disponibles",
+        "description": "La banque du bénéficiaire ne prend pas en charge les Paiements en Temps Réel (RTP). Ce mode de paiement ne peut pas être utilisé pour ce compte.",
+        "suggestion": "Vous pouvez toujours ajouter ce bénéficiaire en utilisant ACH ou un virement bancaire."
+      }
+    }
+  },
+  "emptyState": {
+    "noRecipients": "Aucun bénéficiaire trouvé"
+  },
+  "actions": {
+    "addRecipient": "Ajouter un bénéficiaire",
+    "createNewRecipient": "Créer un nouveau bénéficiaire",
+    "editRecipient": "Modifier le bénéficiaire",
+    "deactivateRecipient": "Désactiver le bénéficiaire",
+    "deactivating": "Désactivation...",
+    "viewDetails": "Voir les détails",
+    "edit": "Modifier",
+    "deactivate": "Désactiver",
+    "viewRecipientDetails": "Voir les détails du bénéficiaire",
+    "editRecipientTitle": "Modifier le bénéficiaire",
+    "deactivateRecipientTitle": "Désactiver le bénéficiaire"
+  },
+  "filters": {
+    "searchPlaceholder": "Rechercher des bénéficiaires...",
+    "type": {
+      "label": "Type",
+      "all": "Tous les types",
+      "recipient": "Bénéficiaire",
+      "linkedAccount": "Compte lié",
+      "settlementAccount": "Compte de règlement"
+    },
+    "status": {
+      "label": "Statut",
+      "all": "Tous les statuts",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "microdepositsInitiated": "Microdépôts initiés",
+      "readyForValidation": "Prêt pour validation",
+      "rejected": "Rejeté"
+    },
+    "clearFilters": "Effacer les filtres"
+  },
+  "columns": {
+    "name": "Nom",
+    "type": "Type",
+    "status": "Statut",
+    "accountNumber": "Numéro de compte",
+    "accountType": "Type de compte",
+    "routingNumber": "Numéro de routage",
+    "createdAt": "Créé",
+    "updatedAt": "Mis à jour",
+    "partyId": "ID de partie",
+    "clientId": "ID de client",
+    "actions": "Actions"
+  },
+  "columnToggle": {
+    "button": "Colonnes",
+    "label": "Alterner les colonnes"
+  },
+  "pagination": {
+    "rowsTotal": "{{count}} ligne(s) au total",
+    "rowsPerPage": "Lignes par page",
+    "pageInfo": "Page {{current}} sur {{total}}",
+    "pageInfoMobile": "{{current}} / {{total}}",
+    "goToFirst": {
+      "srOnly": "Aller à la première page"
+    },
+    "goToPrevious": {
+      "srOnly": "Aller à la page précédente"
+    },
+    "goToNext": {
+      "srOnly": "Aller à la page suivante"
+    },
+    "goToLast": {
+      "srOnly": "Aller à la dernière page"
+    }
+  },
+  "details": {
+    "title": "Bénéficiaire : {{name}}",
+    "unknown": "Inconnu",
+    "partyType": {
+      "individual": "Individuel",
+      "business": "Entreprise"
+    },
+    "sections": {
+      "partyInformation": "Informations sur la partie",
+      "address": "Adresse",
+      "contactInformation": "Informations de contact",
+      "accountInformation": "Informations sur le compte",
+      "routingInformation": "Informations de routage",
+      "accountSummary": "Résumé du compte"
+    },
+    "fields": {
+      "type": "Type",
+      "firstName": "Prénom",
+      "lastName": "Nom de famille",
+      "businessName": "Nom de l'entreprise",
+      "accountNumber": "Numéro de compte",
+      "accountType": "Type de compte",
+      "country": "Pays",
+      "routingNumber": "Numéro de routage",
+      "codeType": "Type de code",
+      "transactionType": "Type de transaction"
+    },
+    "validationIssues": {
+      "title": "Ce bénéficiaire a des problèmes de validation :"
+    }
+  },
+  "card": {
+    "noPaymentMethods": "Aucune méthode de paiement",
+    "account": "Compte :"
+  },
+  "deactivateDialog": {
+    "title": "Désactiver le bénéficiaire",
+    "description": "Êtes-vous sûr de vouloir désactiver {{name}} ? Cette action ne peut pas être annulée.",
+    "unknownRecipient": "ce bénéficiaire",
+    "cancel": "Annuler",
+    "confirm": "Désactiver"
+  },
+  "forms": {
+    "linkAccount": {
+      "title": "Ajouter un bénéficiaire",
+      "titleSuccessByStatus": {
+        "ACTIVE": "Bénéficiaire ajouté avec succès",
+        "PENDING": "Création du bénéficiaire en cours",
+        "MICRODEPOSITS_INITIATED": "Bénéficiaire ajouté - Vérification en attente",
+        "READY_FOR_VALIDATION": "Bénéficiaire ajouté - Vérification prête",
+        "REJECTED": "Échec de la création du bénéficiaire",
+        "INACTIVE": "Bénéficiaire désactivé"
+      },
+      "description": "Entrez les détails du compte bancaire du bénéficiaire.",
+      "descriptionSuccess": "Votre bénéficiaire a été ajouté et est prêt à être utilisé.",
+      "error": {
+        "title": "Impossible d'ajouter le bénéficiaire"
+      },
+      "certify": {
+        "label": "J'autorise la vérification des informations du compte bancaire",
+        "validation": {
+          "required": "Vous devez autoriser la vérification pour continuer"
+        }
+      }
+    },
+    "editAccount": {
+      "title": "Modifier le bénéficiaire",
+      "titleSuccessByStatus": {
+        "ACTIVE": "Bénéficiaire mis à jour avec succès",
+        "PENDING": "Traitement de la mise à jour du bénéficiaire",
+        "MICRODEPOSITS_INITIATED": "Bénéficiaire mis à jour - Vérification en attente",
+        "READY_FOR_VALIDATION": "Bénéficiaire mis à jour - Vérification prête",
+        "REJECTED": "Échec de la mise à jour du bénéficiaire",
+        "INACTIVE": "Bénéficiaire désactivé"
+      },
+      "description": "Mettre à jour les informations du compte bancaire et les méthodes de paiement du bénéficiaire.",
+      "descriptionSuccess": "Votre bénéficiaire a été mis à jour avec succès.",
+      "error": {
+        "title": "Impossible de mettre à jour le bénéficiaire"
+      }
+    },
+    "removeAccount": {
+      "title": "Supprimer le bénéficiaire",
+      "titleSuccess": "Bénéficiaire supprimé",
+      "description": "Êtes-vous sûr de vouloir supprimer <strong>{{name}}</strong> de vos bénéficiaires?",
+      "descriptionSuccess": "<strong>{{name}}</strong> a été supprimé avec succès de vos bénéficiaires.",
+      "cancel": "Annuler",
+      "confirm": "Supprimer le bénéficiaire",
+      "removing": "Suppression...",
+      "close": "Fermer",
+      "error": {
+        "title": "Impossible de supprimer le bénéficiaire"
+      }
+    }
+  },
+  "status": {
+    "active": "Actif",
+    "inactive": "Inactif",
+    "pending": "En attente",
+    "rejected": "Rejeté",
+    "microdepositsInitiated": "Microdépôts initiés",
+    "readyForValidation": "Prêt pour validation"
+  }
+}

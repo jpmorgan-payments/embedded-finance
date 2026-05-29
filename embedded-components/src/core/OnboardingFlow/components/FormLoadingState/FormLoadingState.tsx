@@ -1,8 +1,8 @@
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 import { Loader2Icon } from 'lucide-react';
 
 type FormLoadingStateProps = {
-  message?: string;
+  message?: ReactNode;
 };
 
 export const FormLoadingState: FC<FormLoadingStateProps> = ({ message }) => {

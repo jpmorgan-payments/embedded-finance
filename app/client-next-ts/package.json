@@ -5,17 +5,24 @@
   "scripts": {
     "dev": "vite --port 3000",
     "start": "vite --port 3000",
+    "embed:sample-pdf": "node scripts/embed-sample-terms-pdf.mjs",
     "build": "rimraf dist && tsc && vite build",
     "serve": "vite preview",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "health-check": "node health-check.js",
-    "health-check:local": "node health-check.js --url http://localhost:3000/sellsense-demo --headless false",
+    "health-check:local": "node health-check.js --url http://localhost:3000 --headless false",
     "health-check:linked-bank": "node health-check.js --scenario=linked-bank-account",
     "health-check:onboarding": "node health-check.js --scenario=onboarding-docs-needed",
-    "health-check:all": "npm run health-check && npm run health-check:linked-bank && npm run health-check:onboarding"
+    "health-check:all": "npm run health-check && npm run health-check:linked-bank && npm run health-check:onboarding",
+    "e2e:sellsense-urls": "playwright test tests/e2e/sellsense-demo-urls.spec.ts",
+    "e2e:recipients": "playwright test tests/e2e/recipients-widget.spec.ts",
+    "e2e:onboarding": "playwright test tests/e2e/onboarding-flow.spec.ts"
   },
   "dependencies": {
-    "@jpmorgan-payments/embedded-finance-components": "^0.9.7",
+    "@jpmorgan-payments/embedded-finance-components": "file:../../embedded-components",
     "@mswjs/data": "^0.16.2",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-dialog": "^1.1.14",
@@ -25,48 +32,67 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-switch": "^1.2.5",
     "@radix-ui/react-tabs": "^1.1.12",
+    "@tanstack/react-query": "^5.90.21",
     "@tanstack/react-router": "^1.114.3",
     "@tanstack/react-router-devtools": "^1.114.3",
     "@tanstack/router-plugin": "^1.114.3",
     "@testing-library/user-event": "^14.6.1",
+    "@visual-json/core": "^0.2.0",
+    "@visual-json/react": "^0.2.0",
+    "@xyflow/react": "^12.10.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "lodash": "^4.17.21",
+    "date-fns": "^3.6.0",
+    "lodash": "^4.18.0",
     "lucide-react": "^0.476.0",
-    "msw": "^2.7.5",
+    "mermaid": "^10.9.5",
+    "msw": "2.12.10",
+    "papaparse": "^5.5.3",
     "prism-react-renderer": "^2.4.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-markdown": "^10.1.0",
+    "recharts": "^2.15.4",
+    "remark-gfm": "^4.0.0",
     "tailwind-merge": "^3.0.2",
     "tailwindcss": "^3.4.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "yaml": "^2.8.3"
   },
   "devDependencies": {
-    "@playwright/test": "^1.55.0",
+    "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
+    "@playwright/test": "^1.58.0",
     "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.2.0",
     "@types/lodash": "^4.17.13",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
-    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-react": "^5.1.4",
+    "@vitest/coverage-v8": "^4.1.5",
     "autoprefixer": "^10.4.20",
     "jsdom": "^26.0.0",
     "postcss": "^8.4.49",
     "prettier": "^3.5.3",
+    "prettier-plugin-tailwindcss": "^0.6.14",
     "rimraf": "^6.0.1",
     "typescript": "^5.7.2",
-    "vite": "^6.3.6",
-    "vitest": "^3.0.5",
+    "vite": "^7.3.2",
+    "vitest": "^4.1.5",
     "web-vitals": "^4.2.4"
   },
   "msw": {
     "workerDirectory": [
-      "..\\..\\..\\..\\public"
+      "..\\..\\..\\..\\public",
+      "public"
     ]
   },
   "overrides": {
     "vite": {
       "rollup": "npm:@rollup/wasm-node"
-    }
+    },
+    "@visual-json/core": "^0.2.0",
+    "dompurify": "3.4.0"
   }
 }

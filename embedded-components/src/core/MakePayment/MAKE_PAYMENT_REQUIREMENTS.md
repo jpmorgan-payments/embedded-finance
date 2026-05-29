@@ -187,10 +187,18 @@
 ### Payment Methods
 
 ```typescript
+// Default: No fees
 const PAYMENT_METHODS = [
-  { id: 'ACH', name: 'ACH', fee: 2.5 },
-  { id: 'RTP', name: 'RTP', fee: 1 },
-  { id: 'WIRE', name: 'WIRE', fee: 25 },
+  { id: 'ACH', name: 'ACH' },
+  { id: 'RTP', name: 'RTP' },
+  { id: 'WIRE', name: 'WIRE' },
+] as const;
+
+// With optional fees - fee UI is hidden when fee is 0 or undefined
+const PAYMENT_METHODS_WITH_FEES = [
+  { id: 'ACH', name: 'ACH', fee: 2.5, description: 'Standard processing' },
+  { id: 'RTP', name: 'RTP', fee: 1, description: 'Real-time payment' },
+  { id: 'WIRE', name: 'WIRE', fee: 25, description: 'Wire transfer' },
 ] as const;
 ```
 
@@ -284,3 +292,14 @@ interface MakePaymentProps {
 - Clear visual hierarchy and error feedback
 - Intuitive payment workflow
 - Consistent with other embedded components
+
+---
+
+## Storybook Reference
+
+- **Live stories**: [MakePayment — Storybook](https://storybook.embedded-finance-dev.com/?path=/story/legacy-makepayment--default)
+- **Showcase demo**: [Embedded Finance Showcase](https://embedded-finance-dev.com/sellsense-demo)
+
+> **Note**: The MakePayment component is under `Legacy/`. For the current payment flow implementation, see the [PaymentFlow requirements](../PaymentFlow/REQUIREMENTS.md) and its [Storybook stories](https://storybook.embedded-finance-dev.com/?path=/story/core-paymentflow-inline--default).
+
+Storybook stories serve as living documentation and implementation recipes. Each story demonstrates a specific scenario (account/recipient combos, payment methods, validation, success/error states) that maps directly to the functional requirements above.

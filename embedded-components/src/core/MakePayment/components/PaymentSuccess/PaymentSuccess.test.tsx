@@ -45,6 +45,7 @@ const mockFormData: PaymentFormData = {
   method: 'ACH',
   currency: 'USD',
   memo: 'Test payment memo',
+  recipientMode: 'existing',
 };
 
 const mockRecipients: Recipient[] = [

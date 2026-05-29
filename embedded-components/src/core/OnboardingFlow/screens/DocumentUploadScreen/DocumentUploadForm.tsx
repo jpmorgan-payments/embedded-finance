@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { useForm, useWatch } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
+import { useForm, useFormState, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
@@ -14,16 +14,14 @@ import {
   DocumentRequestResponse,
   DocumentTypeSmbdo,
 } from '@/api/generated/smbdo.schemas';
-import { Badge, Button, Form } from '@/components/ui';
-import {
-  FormLoadingState,
-  ServerErrorAlert,
-  StepLayout,
-} from '@/core/OnboardingFlow/components';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
+import { Button, Form } from '@/components/ui';
+import { FormLoadingState, StepLayout } from '@/core/OnboardingFlow/components';
 import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
+import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
 import { getPartyName } from '@/core/OnboardingFlow/utils/dataUtils';
 
 import { DocumentRequestCard } from './DocumentRequestCard';
@@ -33,12 +31,12 @@ import { UploadedDocument } from './documentUploadUtils';
  * Component for uploading documents for a specific party
  */
 export const DocumentUploadForm = () => {
-  const { t } = useTranslation(['onboarding-overview']);
+  const { t } = useTranslationWithTokens(['onboarding-overview']);
   const { clientData, docUploadMaxFileSizeBytes = 2 * 1024 * 1024 } =
     useOnboardingContext();
   const queryClient = useQueryClient();
 
-  const { goTo, editingPartyIds } = useFlowContext();
+  const { goTo, goBack, editingPartyIds } = useFlowContext();
 
   const docRequestId = editingPartyIds['document-upload-form'];
 
@@ -128,6 +126,9 @@ export const DocumentUploadForm = () => {
     resolver: zodResolver(DocumentUploadSchema),
     mode: 'onChange', // Add this to validate on change
   });
+
+  const { isDirty } = useFormState({ control: form.control });
+  useFlowUnsavedChangesSync(isDirty);
 
   // Add useEffect to trigger validation when form state needs updating
   useEffect(() => {
@@ -345,8 +346,14 @@ export const DocumentUploadForm = () => {
         // Upload each document individually (files are already compressed if applicable)
         for (const { documentType, file } of documentUploads) {
           const documentData = {
-            documentRequestId,
             documentType,
+            documentRequestId,
+            // metadata: [
+            //   {
+            //     key: 'DOCUMENT_REQUEST_ID',
+            //     value: documentRequestId,
+            //   },
+            // ],
           };
 
           await uploadDocumentMutation.mutateAsync({
@@ -533,29 +540,31 @@ export const DocumentUploadForm = () => {
       <form onSubmit={onSubmit} className="eb-flex eb-min-h-full eb-flex-col">
         <StepLayout title={getPartyName(currentPartyData)}>
           <div className="eb-flex-auto eb-space-y-6">
-            <div className="eb-mb-6 eb-mt-1">
-              {currentPartyData?.roles?.includes('CLIENT') && (
-                <Badge variant="subtle" size="lg">
-                  {t(
-                    'onboarding-overview:documentUpload.partyCard.roleLabels.business'
-                  )}
-                </Badge>
-              )}
-              {currentPartyData?.roles?.includes('BENEFICIAL_OWNER') && (
-                <Badge variant="subtle" size="lg">
-                  {t(
-                    'onboarding-overview:documentUpload.partyCard.roleLabels.owner'
-                  )}
-                </Badge>
-              )}
-              {currentPartyData?.roles?.includes('CONTROLLER') && (
-                <Badge variant="subtle" size="lg">
-                  {t(
-                    'onboarding-overview:documentUpload.partyCard.roleLabels.controller'
-                  )}
-                </Badge>
-              )}
-            </div>
+            <p className="eb-mb-6 eb-mt-1 eb-text-sm eb-text-muted-foreground">
+              {(
+                [
+                  currentPartyData?.roles?.includes('CLIENT') &&
+                    t(
+                      'onboarding-overview:documentUpload.partyCard.roleLabels.business'
+                    ),
+                  currentPartyData?.roles?.includes('BENEFICIAL_OWNER') &&
+                    t(
+                      'onboarding-overview:documentUpload.partyCard.roleLabels.owner'
+                    ),
+                  currentPartyData?.roles?.includes('CONTROLLER') &&
+                    t(
+                      'onboarding-overview:documentUpload.partyCard.roleLabels.controller'
+                    ),
+                ] as const
+              )
+                .filter(Boolean)
+                .map((role, index) => (
+                  <Fragment key={index}>
+                    {index > 0 && ' · '}
+                    {role}
+                  </Fragment>
+                ))}
+            </p>
             <div className="eb-space-y-4">
               {activeDocumentRequests?.map((documentRequest) => (
                 <DocumentRequestCard
@@ -615,8 +624,11 @@ export const DocumentUploadForm = () => {
                     )}
             </Button>
             <Button
+              type="button"
               variant="ghost"
-              onClick={() => goTo('upload-documents-section')}
+              onClick={() =>
+                goBack({ fallbackScreenId: 'upload-documents-section' })
+              }
               className="eb-text-primary hover:eb-bg-primary/5 hover:eb-text-primary"
             >
               {t(

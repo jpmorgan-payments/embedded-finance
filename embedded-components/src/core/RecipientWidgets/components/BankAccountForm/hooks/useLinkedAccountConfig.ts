@@ -1,0 +1,56 @@
+import { useTranslationWithTokens } from '@/i18n';
+
+import type { BankAccountFormConfig } from '../BankAccountForm.types';
+import { useDefaultPaymentMethodConfigs } from './useDefaultPaymentMethodConfigs';
+
+/**
+ * Hook to get linked account configuration with i18n
+ *
+ * Use this hook in components that need linked account form configuration.
+ * The configuration will be properly translated based on the current locale.
+ */
+export const useLinkedAccountConfig = (): BankAccountFormConfig => {
+  const { t } = useTranslationWithTokens('bank-account-form');
+  const defaultConfigs = useDefaultPaymentMethodConfigs();
+
+  return {
+    useCase: 'LINKED_ACCOUNT',
+    paymentMethods: {
+      /** Onboarding link-account step: ACH only (no Wire / RTP). */
+      available: ['ACH'],
+      configs: {
+        ACH: {
+          ...defaultConfigs.ACH,
+          locked: true, // Cannot be deselected for linked accounts
+        },
+        WIRE: defaultConfigs.WIRE,
+        RTP: defaultConfigs.RTP,
+      },
+      allowMultiple: false,
+      defaultSelected: ['ACH'],
+    },
+    accountHolder: {
+      allowIndividual: true,
+      allowOrganization: true,
+      defaultType: 'INDIVIDUAL',
+      prefillFromClient: true, // Pre-fill with client's party information
+    },
+    requiredFields: {
+      certification: true,
+    },
+    content: {
+      submitButtonText: t('linkedAccount.submitButton'),
+      cancelButtonText: t('linkedAccount.cancelButton'),
+      loadingMessage: t('linkedAccount.loadingMessage'),
+      sections: {
+        accountHolderType: t('sections.accountHolderType'),
+        accountHolderInfo: t('sections.accountHolderInfo'),
+        bankAccountDetails: t('sections.bankAccountDetails'),
+        paymentMethods: t('sections.paymentMethods'),
+        addressInfo: t('sections.addressInfo'),
+        contactInfo: t('sections.contactInfo'),
+      },
+      certificationText: t('linkedAccount.certificationText'),
+    },
+  };
+};

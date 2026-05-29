@@ -1,7 +1,7 @@
 import {
+  getScenarioDisplayNames,
   SCENARIOS_CONFIG,
   type ScenarioKey,
-  getScenarioDisplayNames,
 } from './scenarios-config';
 
 // Legacy type for backward compatibility - will be removed after migration
@@ -18,7 +18,7 @@ export const sellSenseScenarioMapping = Object.fromEntries(
       description: config.description,
       scenarioId: config.scenarioId,
     },
-  ]),
+  ])
 ) as Record<
   ClientScenario,
   {
@@ -33,9 +33,9 @@ export const getScenarioData = (scenario: ClientScenario) => {
 };
 
 export const getClientIdFromScenario = (
-  scenario: ClientScenario,
+  scenario: ClientScenario
 ): string | undefined => {
-  return sellSenseScenarioMapping[scenario].clientId;
+  return sellSenseScenarioMapping[scenario]?.clientId;
 };
 
 // New functions using ScenarioKey
@@ -44,7 +44,7 @@ export const getScenarioDataByKey = (scenarioKey: ScenarioKey) => {
 };
 
 export const getClientIdFromScenarioKey = (
-  scenarioKey: ScenarioKey,
+  scenarioKey: ScenarioKey
 ): string | undefined => {
   return SCENARIOS_CONFIG[scenarioKey].clientId;
 };

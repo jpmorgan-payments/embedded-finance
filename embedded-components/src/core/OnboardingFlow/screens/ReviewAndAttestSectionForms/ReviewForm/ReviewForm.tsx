@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { Fragment, useMemo, useState } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   AlertTriangle,
@@ -10,13 +11,15 @@ import {
   TriangleAlertIcon,
   UsersIcon,
 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
+import { useForm, useFormState } from 'react-hook-form';
 import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
 import { useSmbdoListQuestions } from '@/api/generated/smbdo';
-import { QuestionResponse } from '@/api/generated/smbdo.schemas';
+import {
+  ClientResponse,
+  QuestionResponse,
+} from '@/api/generated/smbdo.schemas';
 import {
   Accordion,
   AccordionContent,
@@ -38,16 +41,21 @@ import {
   FormMessage,
 } from '@/components/ui';
 import { StepsReviewCards } from '@/core/OnboardingFlow/components';
+import { partyFieldMap } from '@/core/OnboardingFlow/config/fieldMap';
+import { PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES } from '@/core/OnboardingFlow/consts/stockExchanges';
 import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
+import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
 import {
   SectionScreenId,
   StepperStepProps,
 } from '@/core/OnboardingFlow/types/flow.types';
 import {
+  asPlainString,
   formatQuestionResponse,
+  getOrganizationParty,
   getPartyName,
 } from '@/core/OnboardingFlow/utils/dataUtils';
 import {
@@ -61,31 +69,59 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   getPrevButtonLabel,
   getNextButtonLabel,
 }) => {
-  const { clientData } = useOnboardingContext();
-  const { t } = useTranslation(['onboarding-old', 'common']);
+  const { clientData, disclosureConfig } = useOnboardingContext();
+  const { t, tString } = useTranslationWithTokens([
+    'onboarding-overview',
+    'common',
+  ]);
+
+  const hasDisclosureConfig = !!disclosureConfig?.platformName;
 
   const {
     sections,
     goTo,
     sessionData,
+    updateSessionData,
     reviewScreenOpenedSectionId,
     currentScreenId,
     savedFormValues,
   } = useFlowContext();
 
-  const form = useForm({
-    defaultValues: {
-      attested: false,
-    },
-    resolver: zodResolver(
-      z.object({
-        attested: z.boolean().refine((value) => value === true, {
-          message:
-            'You must attest that the data is true, accurate, and complete.',
-        }),
-      })
+  const booleanRequired = z.boolean().refine((value) => value === true, {
+    message: tString(
+      'reviewAndAttest.attestation.mustAgreeToAll',
+      'You must agree to all attestations before proceeding.'
     ),
   });
+
+  const form = useForm({
+    defaultValues: hasDisclosureConfig
+      ? {
+          attested: false,
+          attestAccurateInfo: false,
+        }
+      : {
+          attested: false,
+        },
+    resolver: zodResolver(
+      hasDisclosureConfig
+        ? z.object({
+            attested: z.boolean().optional(),
+            attestAccurateInfo: booleanRequired,
+          })
+        : z.object({
+            attested: z.boolean().refine((value) => value === true, {
+              message: tString(
+                'reviewAndAttest.attestation.mustAttestAccurate',
+                'You must attest that the data is true, accurate, and complete.'
+              ),
+            }),
+          })
+    ),
+  });
+
+  const { isDirty } = useFormState({ control: form.control });
+  useFlowUnsavedChangesSync(isDirty);
 
   const { sectionStatuses } = getFlowProgress(
     sections,
@@ -111,10 +147,36 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
     questionIds: allQuestionIds.join(','),
   });
 
+  // Some questions reference a parentQuestionId that isn't in the original list.
+  // Fetch those missing parents so isQuestionVisible can resolve them.
+  const missingParentIds = useMemo(() => {
+    if (!questionsDetails?.questions) return [];
+    const fetchedIds = new Set(allQuestionIds);
+    const parentIds = questionsDetails.questions
+      .map((q) => q.parentQuestionId)
+      .filter((id): id is string => !!id && !fetchedIds.has(id));
+    return [...new Set(parentIds)];
+  }, [questionsDetails, allQuestionIds]);
+
+  const { data: parentQuestionsDetails } = useSmbdoListQuestions(
+    { questionIds: missingParentIds.join(',') },
+    { query: { enabled: missingParentIds.length > 0 } }
+  );
+
+  // Merge fetched questions with their missing parents into a single list
+  const allQuestionsDetails = useMemo(() => {
+    const base = questionsDetails?.questions ?? [];
+    const parents = parentQuestionsDetails?.questions ?? [];
+    if (parents.length === 0) return questionsDetails;
+    const existingIds = new Set(base.map((q) => q.id));
+    const merged = [...base, ...parents.filter((p) => !existingIds.has(p.id))];
+    return { ...questionsDetails, questions: merged };
+  }, [questionsDetails, parentQuestionsDetails]);
+
   const isQuestionVisible = (question: QuestionResponse) => {
     if (!question.parentQuestionId) return true;
 
-    const parentQuestion = questionsDetails?.questions?.find(
+    const parentQuestion = allQuestionsDetails?.questions?.find(
       (q) => q.id === question.parentQuestionId
     );
     if (!parentQuestion) return false;
@@ -186,6 +248,12 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
             setShouldDisplayAlert(true);
           } else {
             form.handleSubmit(() => {
+              updateSessionData({
+                completedStaticStepIds: [
+                  ...(sessionData.completedStaticStepIds ?? []),
+                  'review',
+                ],
+              });
               handleNext();
             })(e);
           }
@@ -196,20 +264,30 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
           <Alert variant="informative" noTitle>
             <InfoIcon className="eb-h-4 eb-w-4" />
             <AlertDescription>
-              Your application is not submitted yet. Review your data and
-              continue to finish.
+              {t(
+                'reviewAndAttest.notSubmittedYet',
+                'Your application is not submitted yet. Review your data and continue to finish.'
+              )}
             </AlertDescription>
           </Alert>
           {isMissingDetails && shouldDisplayAlert && (
             <Alert variant="warning">
               <AlertTriangle className="eb-h-4 eb-w-4" />
-              <AlertTitle>There is a problem</AlertTitle>
+              <AlertTitle>
+                {t('reviewAndAttest.thereIsAProblem', 'There is a problem')}
+              </AlertTitle>
               <AlertDescription>
-                Please provide missing details before finishing your
-                application.
+                {t(
+                  'reviewAndAttest.provideMissingDetails',
+                  'Please provide missing details before finishing your application.'
+                )}
               </AlertDescription>
             </Alert>
           )}
+          <GatewayReviewCard
+            clientData={clientData}
+            onChangeClick={() => goTo('gateway')}
+          />
           <div>
             <Accordion
               type="single"
@@ -262,7 +340,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                       <Card className="eb-mt-6 eb-p-4">
                         <div className="eb-flex eb-items-start eb-justify-between">
                           <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
-                            Owners
+                            {t('reviewAndAttest.owners', 'Owners')}
                           </h2>
                           {isSectionCompleted ? (
                             <Button
@@ -273,7 +351,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                               onClick={goToOwners}
                             >
                               <PencilIcon />
-                              Change
+                              {t('common:change', 'Change')}
                             </Button>
                           ) : (
                             <Button
@@ -284,7 +362,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                               onClick={goToOwners}
                             >
                               <PencilIcon />
-                              Add
+                              {t('common:add', 'Add')}
                             </Button>
                           )}
                         </div>
@@ -296,54 +374,70 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                                   <UsersIcon className="eb-size-4 eb-fill-white eb-stroke-white" />
                                 </div>
                                 <p className="eb-text-sm">
-                                  No stakeholders added yet.
+                                  {t(
+                                    'reviewAndAttest.noStakeholders',
+                                    'No stakeholders added yet.'
+                                  )}
                                 </p>
                               </div>
                             </Card>
                           )}
 
-                          {activeOwners.map((owner) => (
-                            <Card
-                              key={owner.id}
-                              className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4"
-                            >
-                              <div className="eb-space-y-1">
-                                <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
-                                  {getPartyName(owner)}
-                                </CardTitle>
-                                <p className="eb-text-sm eb-font-medium">
-                                  {owner.individualDetails?.jobTitle === 'Other'
-                                    ? `${t('jobTitles.Other')} - ${owner.individualDetails.jobTitleDescription}`
-                                    : t([
-                                        `jobTitles.${owner.individualDetails?.jobTitle}`,
-                                      ] as unknown as TemplateStringsArray)}
-                                </p>
-                                <div className="eb-flex eb-gap-2 eb-pt-2">
-                                  <Badge
-                                    variant="outline"
-                                    className="eb-border-transparent eb-bg-[#EDF4FF] eb-text-[#355FA1]"
-                                  >
-                                    Owner
-                                  </Badge>
-                                  {owner.roles?.includes('CONTROLLER') && (
+                          {activeOwners.map((owner) => {
+                            const jobTitle = asPlainString(
+                              owner.individualDetails?.jobTitle
+                            );
+                            const jobTitleDescription = asPlainString(
+                              owner.individualDetails?.jobTitleDescription
+                            );
+                            return (
+                              <Card
+                                key={owner.id}
+                                className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4"
+                              >
+                                <div className="eb-space-y-1">
+                                  <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
+                                    {getPartyName(owner)}
+                                  </CardTitle>
+                                  <p className="eb-text-sm eb-font-medium">
+                                    {jobTitle === 'Other'
+                                      ? `${tString('jobTitles.Other', { defaultValue: 'Other' })} - ${jobTitleDescription}`
+                                      : t(`jobTitles.${jobTitle}`, {
+                                          defaultValue: jobTitle,
+                                        })}
+                                  </p>
+                                  <div className="eb-flex eb-gap-2 eb-pt-2">
                                     <Badge
                                       variant="outline"
-                                      className="eb-border-transparent eb-bg-[#FFEBD9] eb-text-[#8F521F]"
+                                      className="eb-border-transparent eb-bg-[#EDF4FF] eb-text-[#355FA1]"
                                     >
-                                      Controller
+                                      {t('reviewAndAttest.owner', 'Owner')}
                                     </Badge>
-                                  )}
+                                    {owner.roles?.includes('CONTROLLER') && (
+                                      <Badge
+                                        variant="outline"
+                                        className="eb-border-transparent eb-bg-[#FFEBD9] eb-text-[#8F521F]"
+                                      >
+                                        {t(
+                                          'reviewAndAttest.controller',
+                                          'Controller'
+                                        )}
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                              {owner.id &&
-                                !ownersValidation[owner.id].allStepsValid && (
-                                  <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
-                                    {'\u24d8'} This individual is missing some
-                                    details.
-                                  </p>
-                                )}
-                            </Card>
-                          ))}
+                                {owner.id &&
+                                  !ownersValidation[owner.id].allStepsValid && (
+                                    <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
+                                      {t(
+                                        'reviewAndAttest.individualMissingDetails',
+                                        '\u24d8 This individual is missing some details.'
+                                      )}
+                                    </p>
+                                  )}
+                              </Card>
+                            );
+                          })}
                         </div>
                       </Card>
                     );
@@ -352,7 +446,10 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                       <Card className="eb-mt-6 eb-space-y-3 eb-rounded-lg eb-border eb-p-4">
                         <div className="eb-flex eb-items-start eb-justify-between">
                           <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
-                            Operational details
+                            {t(
+                              'reviewAndAttest.operationalDetailsHeading',
+                              'Operational details'
+                            )}
                           </h2>
                           <Button
                             variant="ghost"
@@ -364,66 +461,92 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                             }}
                           >
                             <PencilIcon />
-                            Change
+                            {t('common:change', 'Change')}
                           </Button>
                         </div>
-                        {questionsDetails?.questions?.map((question) => {
-                          if (!isQuestionVisible(question)) return null;
-
-                          const questionText = question.description
-                            ?.split('\n')
-                            .map((line, index) => (
-                              <p
-                                key={index}
-                                className={cn({
-                                  'eb-ml-4': index > 0,
-                                })}
-                              >
-                                {line}
-                              </p>
-                            ));
-
-                          if (
-                            question.id &&
-                            clientData?.outstanding.questionIds?.includes(
-                              question.id
-                            )
-                          ) {
-                            return (
-                              <div className="eb-space-y-0.5" key={question.id}>
-                                <div className="eb-text-sm eb-font-medium">
-                                  {questionText}
-                                </div>
-                                <div className="eb-flex eb-items-center eb-gap-1 eb-text-warning">
-                                  <TriangleAlertIcon className="eb-size-4" />
-                                  <p className="eb-italic">
-                                    This field is missing
+                        {allQuestionsDetails?.questions
+                          ?.filter((q) => !q.parentQuestionId)
+                          .filter(isQuestionVisible)
+                          .map((question) => {
+                            const renderQuestionReview = (
+                              q: typeof question
+                            ) => {
+                              const qText = q.description
+                                ?.split('\n')
+                                .map((line, idx) => (
+                                  <p
+                                    key={idx}
+                                    className={cn({
+                                      'eb-ml-4': idx > 0,
+                                    })}
+                                  >
+                                    {line}
                                   </p>
-                                </div>
-                              </div>
-                            );
-                          }
-                          const response = existingQuestionResponses?.find(
-                            (r) => r.questionId === question.id
-                          );
+                                ));
 
-                          return (
-                            <div className="eb-space-y-0.5" key={question.id}>
-                              <div className="eb-text-sm eb-font-medium">
-                                {questionText}
-                              </div>
-                              <div>
-                                <b>{t('reviewAndAttest.response')}:</b>{' '}
-                                {(response &&
-                                  formatQuestionResponse(response)) || (
-                                  <span className="eb-italic eb-text-muted-foreground">
-                                    {t('common:empty')}
-                                  </span>
+                              if (
+                                q.id &&
+                                clientData?.outstanding.questionIds?.includes(
+                                  q.id
+                                )
+                              ) {
+                                return (
+                                  <div className="eb-space-y-0.5" key={q.id}>
+                                    <div className="eb-text-sm eb-font-medium">
+                                      {qText}
+                                    </div>
+                                    <div className="eb-flex eb-items-center eb-gap-1 eb-text-warning">
+                                      <TriangleAlertIcon className="eb-size-4" />
+                                      <p className="eb-italic">
+                                        {t(
+                                          'reviewAndAttest.fieldIsMissing',
+                                          'This field is missing'
+                                        )}
+                                      </p>
+                                    </div>
+                                  </div>
+                                );
+                              }
+
+                              const response = existingQuestionResponses?.find(
+                                (r) => r.questionId === q.id
+                              );
+
+                              return (
+                                <div className="eb-space-y-0.5" key={q.id}>
+                                  <div className="eb-text-sm eb-font-medium">
+                                    {qText}
+                                  </div>
+                                  <div>
+                                    <b>{t('reviewAndAttest.response')}:</b>{' '}
+                                    {(response &&
+                                      formatQuestionResponse(response)) || (
+                                      <span className="eb-italic eb-text-muted-foreground">
+                                        {t('common:empty')}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            };
+
+                            // Collect visible sub-questions for this parent
+                            const subQuestions =
+                              allQuestionsDetails?.questions
+                                ?.filter(
+                                  (q) => q.parentQuestionId === question.id
+                                )
+                                .filter(isQuestionVisible) ?? [];
+
+                            return (
+                              <Fragment key={question.id}>
+                                {renderQuestionReview(question)}
+                                {subQuestions.map((sq) =>
+                                  renderQuestionReview(sq)
                                 )}
-                              </div>
-                            </div>
-                          );
-                        })}
+                              </Fragment>
+                            );
+                          })}
                       </Card>
                     );
                   }
@@ -450,12 +573,17 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                         <div className="eb-ml-auto eb-mr-2 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-normal eb-text-muted-foreground">
                           {isSectionCompleted ? (
                             <>
-                              <p>Complete</p>
+                              <p>{t('reviewAndAttest.complete', 'Complete')}</p>
                               <CheckIcon className="eb-size-4 eb-text-success" />
                             </>
                           ) : (
                             <>
-                              <p>Missing details</p>
+                              <p>
+                                {t(
+                                  'reviewAndAttest.missingDetails',
+                                  'Missing details'
+                                )}
+                              </p>
                               <AlertTriangleIcon className="eb-size-4 eb-text-warning" />
                             </>
                           )}
@@ -469,46 +597,86 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                 })}
             </Accordion>
           </div>
-          <div className="eb-space-y-2">
-            <p className="eb-text-sm eb-font-medium">
-              Data accuracy attestation
-            </p>
-            <FormField
-              control={form.control}
-              name="attested"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="eb-flex eb-items-start eb-space-x-3">
-                    <FormControl>
-                      <Checkbox
-                        className="eb-mt-0.5 eb-rounded-sm"
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormLabel className="eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
-                      The data I am providing is true, accurate and complete to
-                      the best of my knowledge.
-                    </FormLabel>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+          {hasDisclosureConfig ? (
+            <div className="eb-space-y-3">
+              <p className="eb-text-sm eb-font-medium">
+                {t(
+                  'reviewAndAttest.attestation.heading',
+                  'By electronically submitting this Application, you agree that:'
+                )}
+              </p>
+              <div
+                className="eb-space-y-3 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-4"
+                role="group"
+                aria-label={tString(
+                  'reviewAndAttest.dataAccuracyAttestation',
+                  'Data accuracy attestation'
+                )}
+              >
+                {/* Checkbox 1: Accurate info & business purposes */}
+                <FormField
+                  control={form.control}
+                  name="attestAccurateInfo"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="eb-flex eb-items-start eb-gap-2">
+                        <FormControl>
+                          <Checkbox
+                            className="eb-mt-0.5"
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-relaxed eb-text-foreground">
+                          {t(
+                            'reviewAndAttest.attestation.accurateInfo',
+                            'All information you have provided is complete and accurate, and you are opening this account solely for business purposes and not for consumer purposes.'
+                          )}
+                        </FormLabel>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="eb-space-y-2">
+              <p className="eb-text-sm eb-font-medium">
+                {t(
+                  'reviewAndAttest.dataAccuracyAttestation',
+                  'Data accuracy attestation'
+                )}
+              </p>
+              <FormField
+                control={form.control}
+                name="attested"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="eb-flex eb-items-start eb-space-x-3">
+                      <FormControl>
+                        <Checkbox
+                          className="eb-mt-0.5 eb-rounded-sm"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className="eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
+                        {t(
+                          'reviewAndAttest.dataAccuracyCheckbox',
+                          'The data I am providing is true, accurate and complete to the best of my knowledge.'
+                        )}
+                      </FormLabel>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
         </div>
         <div className="eb-mt-6 eb-space-y-6">
-          <div className="eb-flex eb-justify-between eb-gap-4">
-            <Button
-              onClick={handlePrev}
-              variant="secondary"
-              size="lg"
-              className={cn('eb-w-full eb-text-lg', {
-                'eb-hidden': getPrevButtonLabel() === null,
-              })}
-            >
-              {getPrevButtonLabel()}
-            </Button>
+          <div className="eb-flex eb-flex-col eb-gap-3">
             <Button
               type="submit"
               variant="default"
@@ -519,9 +687,113 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
             >
               {getNextButtonLabel()}
             </Button>
+            <Button
+              type="button"
+              onClick={handlePrev}
+              variant="secondary"
+              size="lg"
+              className={cn('eb-w-full eb-text-lg', {
+                'eb-hidden': getPrevButtonLabel() === null,
+              })}
+            >
+              {getPrevButtonLabel()}
+            </Button>
           </div>
         </div>
       </form>
     </Form>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Gateway Review Card
+// ---------------------------------------------------------------------------
+
+const GatewayReviewCard: React.FC<{
+  clientData: ClientResponse | undefined;
+  onChangeClick: () => void;
+}> = ({ clientData, onChangeClick }) => {
+  const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
+  const { enablePubliclyTradedCompanies } = useOnboardingContext();
+  const orgParty = getOrganizationParty(clientData);
+  const orgType = orgParty?.organizationDetails?.organizationType;
+  const publiclyTraded = orgParty?.organizationDetails?.publiclyTraded;
+  const isSubsidiary = orgParty?.organizationDetails?.isSubsidiary;
+
+  if (!orgType) return null;
+
+  // Get PTC display value using the fieldMap's toStringFn
+  const ptcValue = !publiclyTraded
+    ? 'none'
+    : isSubsidiary
+      ? 'subsidiary'
+      : 'ptc';
+  const ptcDisplayValue = partyFieldMap.isPTCOrSubsidiary?.toStringFn?.(
+    ptcValue,
+    {} as any
+  );
+
+  return (
+    <Card className="eb-rounded-lg eb-border eb-p-4">
+      <div className="eb-flex eb-items-start eb-justify-between">
+        <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
+          {t('reviewAndAttest.businessType', 'Business type')}
+        </h2>
+        <Button
+          variant="ghost"
+          type="button"
+          size="sm"
+          className="eb-h-8 eb-p-2 eb-text-sm"
+          onClick={onChangeClick}
+        >
+          <PencilIcon />
+          {t('common:change', 'Change')}
+        </Button>
+      </div>
+
+      <div className="eb-mt-3 eb-space-y-2">
+        <div className="eb-space-y-0.5">
+          <p className="eb-text-label eb-font-label eb-text-label-foreground">
+            {t('fields.organizationTypeHierarchy.label', 'Organization type')}
+          </p>
+          <p className="eb-text-sm">
+            {t(`organizationTypes.${orgType}`, orgType)}
+          </p>
+        </div>
+
+        {ptcValue !== 'none' && publiclyTraded && (
+          <div className="eb-space-y-0.5">
+            <p className="eb-text-label eb-font-label eb-text-label-foreground">
+              {t('fields.isPTCOrSubsidiary.label', 'Publicly traded status')}
+            </p>
+            <p className="eb-text-sm">
+              {[
+                ptcDisplayValue as string,
+                publiclyTraded.tickerSymbol &&
+                  `${t('fields.tickerSymbol.label', 'Ticker symbol')}: ${publiclyTraded.tickerSymbol}`,
+                (publiclyTraded.stockExchangeName ||
+                  publiclyTraded.stockExchange) &&
+                  `${t('fields.stockExchange.label', 'Stock exchange')}: ${publiclyTraded.stockExchangeName || publiclyTraded.stockExchange}`,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </p>
+          </div>
+        )}
+
+        {ptcValue === 'none' &&
+          enablePubliclyTradedCompanies &&
+          PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES.includes(orgType as any) && (
+            <div className="eb-space-y-0.5">
+              <p className="eb-text-label eb-font-label eb-text-label-foreground">
+                {t('fields.isPTCOrSubsidiary.label', 'Publicly traded status')}
+              </p>
+              <p className="eb-text-sm">
+                {t('fields.isPTCOrSubsidiary.options.none', 'No')}
+              </p>
+            </div>
+          )}
+      </div>
+    </Card>
   );
 };

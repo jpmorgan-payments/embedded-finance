@@ -1,12 +1,28 @@
 // @ts-nocheck
 import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { efDocumentClientDetail } from '@/mocks/efDocumentClientDetail';
+import {
+  mockTransactionComplete,
+  mockTransactionFee,
+  mockTransactionFeeReversal,
+  mockTransactionMinimal,
+  mockTransactionWithError,
+} from '@/mocks/transactions.mock';
 import merge from 'lodash/merge';
 import { http, HttpResponse } from 'msw';
 
 import { CreateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
 
-import { db, getDbStatus, handleMagicValues, logDbState, resetDb } from './db';
+import {
+  db,
+  dbLogger,
+  getActiveRecipients,
+  getDbStatus,
+  handleMagicValues,
+  logDbState,
+  resetDb,
+  verifyMicrodeposit,
+} from './db';
 
 export const handlers = [
   http.get(`/clients/:clientId`, (req) => {
@@ -88,7 +104,7 @@ export const handlers = [
       products: data?.products || ['EMBEDDED_PAYMENTS'],
       outstanding: {
         documentRequestIds: [],
-        questionIds: ['30005', '30158'],
+        questionIds: ['30005', '30026', '30088', '30095'],
         attestationDocumentIds: ['abcd1c1d-6635-43ff-a8e5-b252926bddef'],
         partyIds: [],
         partyRoles: [],
@@ -325,6 +341,54 @@ export const handlers = [
     return HttpResponse.json(updatedParty);
   }),
 
+  http.get('/parties/:partyId', ({ params }) => {
+    const { partyId } = params;
+    const party = db.party.findFirst({
+      where: { id: { equals: partyId } },
+    });
+
+    if (!party) {
+      return new HttpResponse(null, { status: 404 });
+    }
+
+    return HttpResponse.json(party);
+  }),
+
+  http.patch('/parties/:partyId', async ({ request, params }) => {
+    const { partyId } = params;
+    const data = await request.json();
+
+    const existingParty = db.party.findFirst({
+      where: { id: { equals: partyId } },
+    });
+
+    if (!existingParty) {
+      return new HttpResponse(null, { status: 404 });
+    }
+
+    db.party.delete({
+      where: { id: { equals: partyId } },
+    });
+
+    const { roles: newRoles, ...restData } = data;
+    const { roles: existingRoles, ...restExisting } = existingParty;
+
+    const mergedData = merge({}, restExisting, restData);
+
+    const finalData = {
+      ...mergedData,
+      roles: newRoles || existingRoles,
+    };
+
+    const updatedParty = db.party.create({
+      ...finalData,
+      id: partyId,
+    });
+
+    logDbState('Party PATCH Update');
+    return HttpResponse.json(updatedParty);
+  }),
+
   http.get('/questions', (req) => {
     const url = new URL(req.request.url);
     const questionIds = url.searchParams.get('questionIds');
@@ -336,24 +400,55 @@ export const handlers = [
     });
   }),
 
-  http.get('/documents/:documentId', () => {
-    return HttpResponse.json(efDocumentClientDetail);
+  /**
+   * List document details (query: clientId, partyId, page, limit).
+   * Party cards call this to show already-uploaded files per request.
+   */
+  http.get('/documents', () => {
+    return HttpResponse.json({
+      metadata: { page: 0, limit: 25, total: 0 },
+      documentDetails: [],
+    });
+  }),
+
+  http.get('/documents/:documentId', ({ params }) => {
+    const { documentId } = params;
+    return HttpResponse.json({
+      ...efDocumentClientDetail,
+      id: String(documentId),
+    });
   }),
 
   http.get('/documents/:documentId/file', () => {
-    // This is a minimal valid PDF file with "Sample PDF" text, encoded in base64
+    // Demo sample Terms & Conditions PDF (readable sections; not legally binding)
     const pdfBase64 =
-      'JVBERi0xLjcKCjEgMCBvYmogICUgZW50cnkgcG9pbnQKPDwKICAvVHlwZSAvQ2F0YWxvZwogIC9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmoKPDwKICAvVHlwZSAvUGFnZXMKICAvTWVkaWFCb3ggWyAwIDAgMjAwIDIwMCBdCiAgL0NvdW50IDEKICAvS2lkcyBbIDMgMCBSIF0KPj4KZW5kb2JqCgozIDAgb2JqCjw8CiAgL1R5cGUgL1BhZ2UKICAvUGFyZW50IDIgMCBSCiAgL1Jlc291cmNlcyA8PAogICAgL0ZvbnQgPDwKICAgICAgL0YxIDQgMCBSIAogICAgPj4KICA+PgogIC9Db250ZW50cyA1IDAgUgo+PgplbmRvYmoKCjQgMCBvYmoKPDwKICAvVHlwZSAvRm9udAogIC9TdWJ0eXBlIC9UeXBlMQogIC9CYXNlRm9udCAvSGVsdmV0aWNhCj4+CmVuZG9iagoKNSAwIG9iaiAgJSBwYWdlIGNvbnRlbnQKPDwKICAvTGVuZ3RoIDQ0Cj4+CnN0cmVhbQpCVAo3MCA1MCBURCAKL0YxIDI0IFRmCihTYW1wbGUgUERGKSBUagpFVAplbmRzdHJlYW0KZW5kb2JqCgp4cmVmCjAgNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMTAgMDAwMDAgbiAKMDAwMDAwMDA3OSAwMDAwMCBuIAowMDAwMDAwMTczIDAwMDAwIG4gCjAwMDAwMDAzMDEgMDAwMDAgbiAKMDAwMDAwMDM4MCAwMDAwMCBuIAp0cmFpbGVyCjw8CiAgL1NpemUgNgogIC9Sb290IDEgMCBSCj4+CnN0YXJ0eHJlZgo0OTIKJSVFT0Y=';
+      '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';
 
     return new HttpResponse(
       Uint8Array.from(atob(pdfBase64), (c) => c.charCodeAt(0)),
       {
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': 'attachment; filename="sample.pdf"',
+          'Content-Disposition':
+            'attachment; filename="FAKE_TERMS_CONDITIONS.pdf"',
         },
       }
     );
+  }),
+
+  http.get('/document-requests', ({ request }) => {
+    const url = new URL(request.url);
+    const clientId = url.searchParams.get('clientId');
+    if (!clientId) {
+      return new HttpResponse(null, {
+        status: 400,
+        statusText: 'Bad Request: Missing clientId parameter',
+      });
+    }
+    const documentRequests = db.documentRequest
+      .getAll()
+      .filter((dr) => dr.clientId === clientId);
+    return HttpResponse.json({ documentRequests });
   }),
 
   http.get('/document-requests/:documentRequestId', (req) => {
@@ -370,18 +465,57 @@ export const handlers = [
   }),
 
   http.post('/documents', async ({ request }) => {
-    const data = await request.json();
     const documentId = Math.random().toString(36).substring(7);
+    const contentType = request.headers.get('content-type') ?? '';
 
-    // Create a mock document response
+    let documentType: string | undefined;
+    let fileName: string | undefined;
+    let mimeType: string | undefined;
+    let metadata: Record<string, unknown> = {};
+
+    if (contentType.includes('multipart/form-data')) {
+      const fd = await request.formData();
+      const file = fd.get('file');
+      const documentDataRaw = fd.get('documentData');
+      if (typeof documentDataRaw === 'string') {
+        try {
+          const parsed = JSON.parse(documentDataRaw) as {
+            documentType?: string;
+            documentRequestId?: string;
+          };
+          documentType = parsed.documentType;
+          if (parsed.documentRequestId) {
+            metadata = { DOCUMENT_REQUEST_ID: parsed.documentRequestId };
+          }
+        } catch {
+          // ignore malformed JSON in tests / callers
+        }
+      }
+      if (file instanceof File) {
+        fileName = file.name;
+        mimeType = file.type || 'application/octet-stream';
+      }
+    } else {
+      const data = (await request.json()) as {
+        documentType?: string;
+        fileName?: string;
+        mimeType?: string;
+        metadata?: Record<string, unknown>;
+      };
+      documentType = data.documentType;
+      fileName = data.fileName;
+      mimeType = data.mimeType;
+      metadata = data.metadata || {};
+    }
+
     const documentResponse = {
       id: documentId,
       status: 'ACTIVE',
-      documentType: data.documentType,
-      fileName: data.fileName,
-      mimeType: data.mimeType,
+      documentType,
+      fileName,
+      mimeType,
       createdAt: new Date().toISOString(),
-      metadata: data.metadata || {},
+      metadata,
     };
 
     return HttpResponse.json(documentResponse, { status: 201 });
@@ -439,14 +573,17 @@ export const handlers = [
           .filter(Boolean);
 
         const hasPartyValidationPending = parties.some((party) =>
-          (party.validationResponse || []).some(
+          (party?.validationResponse || []).some(
             (validation) => validation.validationStatus === 'NEEDS_INFO'
           )
         );
 
-        // If no outstanding requests and no pending validations, update client status
-        if (!hasOutstandingDocRequests && !hasPartyValidationPending) {
-          updatedClient.status = 'REVIEW_IN_PROGRESS';
+        if (!hasOutstandingDocRequests) {
+          if (client.status === 'INFORMATION_REQUESTED') {
+            updatedClient.status = 'REVIEW_IN_PROGRESS';
+          } else if (!hasPartyValidationPending) {
+            updatedClient.status = 'REVIEW_IN_PROGRESS';
+          }
         }
 
         // Update client
@@ -468,11 +605,13 @@ export const handlers = [
             validationResponse: (party.validationResponse || [])
               .map((validation) => ({
                 ...validation,
-                documentRequestIds: validation.documentRequestIds.filter(
-                  (id) => id !== documentRequestId
-                ),
+                documentRequestIds: (
+                  validation.documentRequestIds ?? []
+                ).filter((id) => id !== documentRequestId),
               }))
-              .filter((validation) => validation.documentRequestIds.length > 0),
+              .filter(
+                (validation) => (validation.documentRequestIds ?? []).length > 0
+              ),
           };
 
           // Update party
@@ -510,5 +649,270 @@ export const handlers = [
     }
 
     return HttpResponse.json(verificationResponse);
+  }),
+
+  // Recipient endpoints
+  http.get('/recipients', ({ request }) => {
+    const url = new URL(request.url);
+    const clientId = url.searchParams.get('clientId');
+    const type = url.searchParams.get('type');
+
+    // Parse pagination params with OAS defaults: page=0, limit=25
+    const page = Math.max(0, parseInt(url.searchParams.get('page') || '0', 10));
+    const limit = Math.min(
+      25,
+      Math.max(1, parseInt(url.searchParams.get('limit') || '25', 10))
+    );
+
+    // Get active recipients (filter out INACTIVE and REJECTED)
+    let recipients = getActiveRecipients(clientId || undefined);
+
+    // Filter by type if provided
+    if (type) {
+      recipients = recipients.filter((r) => r.type === type);
+    }
+
+    // Apply server-side pagination
+    const totalItems = recipients.length;
+    const startIndex = page * limit;
+    const endIndex = startIndex + limit;
+    const paginatedRecipients = recipients.slice(startIndex, endIndex);
+
+    // Return OAS-aligned response structure
+    return HttpResponse.json({
+      recipients: paginatedRecipients,
+      metadata: {
+        page,
+        limit,
+        total_items: totalItems,
+      },
+    });
+  }),
+
+  http.get('/recipients/:id', ({ params }) => {
+    const { id } = params;
+    const recipient = db.recipient.findFirst({
+      where: { id: { equals: id } },
+    });
+
+    if (!recipient) {
+      return HttpResponse.json(
+        {
+          httpStatus: 404,
+          title: 'Recipient not found',
+          context: [],
+        },
+        { status: 404 }
+      );
+    }
+
+    // Don't return INACTIVE or REJECTED recipients
+    if (recipient.status === 'INACTIVE' || recipient.status === 'REJECTED') {
+      return HttpResponse.json(
+        {
+          httpStatus: 404,
+          title: 'Recipient not found',
+          context: [],
+        },
+        { status: 404 }
+      );
+    }
+
+    return HttpResponse.json(recipient);
+  }),
+
+  http.post(
+    '/recipients/:id/verify-microdeposit',
+    async ({ params, request }) => {
+      const { id } = params;
+      const body = await request.json();
+      const amounts = body?.amounts || [];
+
+      if (!Array.isArray(amounts) || amounts.length !== 2) {
+        return HttpResponse.json(
+          {
+            httpStatus: 400,
+            title: 'Invalid amounts provided',
+            context: [
+              {
+                field: 'amounts',
+                reason: 'Must provide exactly 2 amounts',
+              },
+            ],
+          },
+          { status: 400 }
+        );
+      }
+
+      const result = verifyMicrodeposit(id as string, amounts);
+
+      if (result.error) {
+        return HttpResponse.json(result.error, {
+          status: result.error.httpStatus,
+        });
+      }
+
+      return HttpResponse.json(result);
+    }
+  ),
+
+  http.post('/recipients', async ({ request }) => {
+    const body = await request.json();
+    const timestamp = new Date().toISOString();
+    const newRecipientId = `recipient-${Date.now()}`;
+
+    // When partyId is provided, resolve partyDetails from the party db
+    // — emulates the real API which populates the response.
+    let partyDetails = body?.partyDetails || {};
+    if (body?.partyId) {
+      const party = db.party.findFirst({
+        where: { id: { equals: body.partyId } },
+      });
+      if (party?.partyType === 'INDIVIDUAL' && party.individualDetails) {
+        partyDetails = {
+          type: 'INDIVIDUAL',
+          firstName: party.individualDetails.firstName,
+          lastName: party.individualDetails.lastName,
+        };
+      } else if (
+        party?.partyType === 'ORGANIZATION' &&
+        party.organizationDetails
+      ) {
+        partyDetails = {
+          type: 'ORGANIZATION',
+          businessName: party.organizationDetails.organizationName,
+        };
+      }
+    }
+
+    const newRecipient = {
+      id: newRecipientId,
+      type: body?.type || 'LINKED_ACCOUNT',
+      status: 'MICRODEPOSITS_INITIATED',
+      clientId: body?.clientId,
+      partyDetails,
+      account: body?.account || {},
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      verificationAttempts: 0,
+    };
+
+    db.recipient.create(newRecipient);
+    logDbState('Recipient Created');
+
+    return HttpResponse.json(newRecipient, { status: 201 });
+  }),
+
+  http.post('/recipients/:id', async ({ params, request }) => {
+    const { id } = params;
+    const body = await request.json();
+
+    dbLogger('[MSW] POST /recipients/:id called with:', { id, body });
+
+    const recipient = db.recipient.findFirst({
+      where: { id: { equals: id } },
+    });
+
+    if (!recipient) {
+      dbLogger('[MSW] Recipient not found with ID:', id);
+      const allRecipients = db.recipient.getAll();
+      dbLogger(
+        '[MSW] Available recipients:',
+        allRecipients.map((r) => ({ id: r.id, status: r.status }))
+      );
+
+      return HttpResponse.json(
+        {
+          httpStatus: 404,
+          title: 'Recipient not found',
+        },
+        { status: 404 }
+      );
+    }
+
+    dbLogger('[MSW] Found recipient before update:', recipient);
+
+    const updatedRecipient = db.recipient.update({
+      where: { id: { equals: id } },
+      data: {
+        ...recipient,
+        ...body,
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    dbLogger('[MSW] Updated recipient:', updatedRecipient);
+    logDbState('Recipient Updated');
+
+    return HttpResponse.json(updatedRecipient);
+  }),
+
+  http.delete('/recipients/:id', ({ params }) => {
+    const { id } = params;
+    const recipient = db.recipient.findFirst({
+      where: { id: { equals: id } },
+    });
+
+    if (!recipient) {
+      return HttpResponse.json(
+        {
+          httpStatus: 404,
+          title: 'Recipient not found',
+        },
+        { status: 404 }
+      );
+    }
+
+    db.recipient.delete({
+      where: { id: { equals: id } },
+    });
+
+    logDbState('Recipient Deleted');
+
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.get('/accounts', () => {
+    return HttpResponse.json({
+      accounts: [],
+      metadata: { total: 0 },
+    });
+  }),
+
+  http.get('/accounts/:id', ({ params }) => {
+    const { id } = params;
+    return HttpResponse.json({
+      id,
+      name: `Account ${id}`,
+      balance: '1000.00',
+      currency: 'USD',
+    });
+  }),
+
+  // Transaction details endpoint
+  http.get('/transactions/:id', ({ params }) => {
+    const { id } = params;
+
+    // Return different mocks based on transaction ID pattern
+    if (typeof id === 'string') {
+      if (id.includes('error')) {
+        return HttpResponse.json(mockTransactionWithError);
+      }
+      if (id.includes('minimal')) {
+        return HttpResponse.json(mockTransactionMinimal);
+      }
+      if (id.includes('fee-reversal')) {
+        return HttpResponse.json(mockTransactionFeeReversal);
+      }
+      if (id.includes('fee')) {
+        return HttpResponse.json(mockTransactionFee);
+      }
+      if (id.includes('complete')) {
+        return HttpResponse.json(mockTransactionComplete);
+      }
+    }
+
+    // Default: return complete transaction
+    return HttpResponse.json(mockTransactionComplete);
   }),
 ];

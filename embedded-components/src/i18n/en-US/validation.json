@@ -2,10 +2,13 @@
   "required": "{{fieldName}} is required",
   "format": "Invalid format",
   "pattern": "Invalid format",
+  "exactLength_one": "Must be exactly {{count}} character",
+  "exactLength_other": "Must be exactly {{count}} characters",
   "common": {
     "noSpaces": "No spaces are allowed",
     "invalidChars": "Invalid characters detected",
-    "selectOption": "Please select an option"
+    "selectOption": "Please select an option",
+    "invalidOption": "The current value is not valid. Please select an option from the list."
   },
   "text": {
     "minLength_one": "{{fieldName}} must be at least {{count}} character",
@@ -13,8 +16,6 @@
     "maxLength_one": "{{fieldName}} cannot exceed {{count}} character",
     "maxLength_other": "{{fieldName}} cannot exceed {{count}} characters",
     "noNumbers": "{{fieldName}} cannot contain numbers",
-    "noSpecialChars": "{{fieldName}} cannot contain special characters except {{allowedChars}}",
-    "specialCharsAllowed": "{{fieldName}} can only contain letters, numbers, and {{allowedChars}}",
     "noConsecutiveSpaces": "{{fieldName}} cannot contain consecutive spaces",
     "noLeadingSpace": "{{fieldName}} cannot begin with a space",
     "noTrailingSpace": "{{fieldName}} cannot end with a space",
@@ -22,12 +23,14 @@
     "noSpecialCharsAtEnd": "{{fieldName}} cannot end with a special character",
     "exactLength_one": "{{fieldName}} must be exactly {{count}} character",
     "exactLength_other": "{{fieldName}} must be exactly {{count}} characters",
-    "namePattern": "{{fieldName}} can only contain letters, spaces, hyphens, and apostrophes",
+    "namePattern": "{{fieldName}} can only contain letters, numbers, spaces, and ( ) _ / @ & + % # ; , . : ' -",
     "noConsecutiveHyphens": "{{fieldName}} cannot contain consecutive hyphens",
     "noLeadingHyphen": "{{fieldName}} cannot begin with a hyphen",
     "noTrailingHyphen": "{{fieldName}} cannot end with a hyphen",
     "noHtml": "{{fieldName}} cannot contain HTML tags",
-    "noUrls": "{{fieldName}} cannot contain URLs"
+    "noUrls": "{{fieldName}} cannot contain URLs",
+    "noSpaces": "{{fieldName}} cannot contain spaces",
+    "pattern": "{{fieldName}} has an invalid format"
   },
   "suffix": {
     "pattern": "{{fieldName}} can only contain letters, periods, and roman numerals"
@@ -43,8 +46,8 @@
   },
   "date": {
     "format": "Please use {{format}} format",
-    "invalid": "Please enter a valid date",
-    "future": "Date cannot be in the future",
+    "invalid": "This is not a valid calendar date. Please check the month, day, and year.",
+    "future": "Date of birth cannot be in the future",
     "past": "Date must be in the past",
     "range": {
       "day": "Day must be between {{min}} and {{max}}",
@@ -52,8 +55,8 @@
       "year": "Year must be between {{min}} and {{max}}"
     },
     "age": {
-      "tooYoung": "Must be at least {{years}} years old",
-      "tooOld": "Cannot exceed {{years}} years old"
+      "tooYoung": "Individual must be at least {{years}} years old",
+      "tooOld": "Date of birth indicates an age over {{years}}, please verify the date entered"
     }
   },
   "year": {
@@ -64,15 +67,25 @@
   },
   "url": {
     "invalid": "Please enter a valid website URL",
-    "format": "Please use a valid URL format (e.g. {{example}})",
+    "format": "URL must start with https:// and be a valid domain (e.g. {{example}})",
     "httpsRequired": "URL must begin with https://",
     "noIp": "Direct IP addresses are not allowed"
   },
   "id": {
     "ssn": "Please enter a valid Social Security Number (SSN)",
+    "ssnLength": "SSN must be exactly 9 digits",
+    "ssnDigitsOnly": "SSN must contain only numbers",
+    "ssnFirstThree": "SSN cannot start with 9 or 000",
+    "ssn666": "SSN cannot start with 666",
+    "ssnKnownInvalid": "This SSN is not valid. Please double-check and try again",
     "itin": {
-      "format": "Please enter a valid 9-digit ITIN starting with 9",
-      "invalidRange": "Invalid ITIN format in position 2-3"
+      "format": "Please enter a valid Individual Taxpayer Identification Number (ITIN)",
+      "invalidRange": "ITIN digits 4-5 must be in range 50-55, 60-65, 70-79, 80-88, 90-92, or 94-99",
+      "length": "ITIN must be exactly 9 digits",
+      "digitsOnly": "ITIN must contain only numbers",
+      "startsWith9": "ITIN must start with the digit 9",
+      "middleDigits": "ITIN digits 4-5 must be in range 50-55, 60-65, 70-79, 80-88, 90-92, or 94-99",
+      "knownInvalid": "This ITIN is not valid. Please check and re-enter."
     }
   },
   "address": {
@@ -94,7 +107,8 @@
     "decimal": "Value can have up to {{places}} decimal places",
     "positive": "Value must be positive",
     "negative": "Value must be negative",
-    "nonZero": "Value cannot be zero"
+    "nonZero": "Value cannot be zero",
+    "digitsOnly": "Value must contain only digits"
   },
   "file": {
     "size": "File size cannot exceed {{size}}",
@@ -110,5 +124,19 @@
     "lessThan": "{{field1}} must be less than {{field2}}",
     "greaterOrEqual": "{{field1}} must be greater than or equal to {{field2}}",
     "lessOrEqual": "{{field1}} must be less than or equal to {{field2}}"
+  },
+  "contact": {
+    "phone": {
+      "format": "Please enter a valid phone number",
+      "pattern": "Please enter a valid phone number (e.g. {{example}})"
+    },
+    "email": {
+      "invalid": "Please enter a valid email address",
+      "maxLength_one": "Email cannot exceed {{count}} character",
+      "maxLength_other": "Email cannot exceed {{count}} characters"
+    }
+  },
+  "selection": {
+    "required": "Please select at least one option"
   }
 }

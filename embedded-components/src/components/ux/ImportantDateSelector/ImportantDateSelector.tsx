@@ -1,6 +1,6 @@
 import React, { forwardRef, useCallback, useEffect, useState } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { X } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -108,7 +108,7 @@ export const ImportantDateSelector = forwardRef<
     const [isTouched, setIsTouched] = useState(false);
     const [isPrepopulated, setIsPrepopulated] = useState(!!value);
 
-    const { t } = useTranslation('common');
+    const { tString } = useTranslationWithTokens('common');
 
     const updateDate = useCallback(
       (newDay: string, newMonth: string, newYear: string) => {
@@ -116,7 +116,7 @@ export const ImportantDateSelector = forwardRef<
           newDay,
           newMonth,
           newYear,
-          t as (key: string) => string
+          tString as (key: string) => string
         );
 
         setIsValid(newIsValid);

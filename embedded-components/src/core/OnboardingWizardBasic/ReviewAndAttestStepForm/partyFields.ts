@@ -1,4 +1,9 @@
-import { TFunction } from 'i18next';
+/**
+ * Simple translation function type that accepts a key and returns a string.
+ * Used as a simpler alternative to TFunction from i18next for better compatibility
+ * with useTranslationWithTokens hook.
+ */
+type TranslateFn = (key: string) => string;
 
 const maskIdentification = (value: string) => {
   if (!value) return value;
@@ -8,7 +13,7 @@ const maskIdentification = (value: string) => {
 
 const formatIdentifications = (
   ids: Array<{ idType: string; value: string; issuer: string }> | undefined,
-  t: TFunction
+  t: TranslateFn
 ) => {
   if (!Array.isArray(ids) || !ids.length) return [];
   return ids.map(
@@ -17,12 +22,12 @@ const formatIdentifications = (
   );
 };
 
-const formatPhoneNumber = (phone: any, t: TFunction) =>
+const formatPhoneNumber = (phone: any, t: TranslateFn) =>
   phone
     ? `${t(`phoneTypes.${phone.phoneType}`)}: ${phone.countryCode} ${phone.phoneNumber}`
     : undefined;
 
-const formatAddresses = (addresses: any[] | undefined, t: TFunction) => {
+const formatAddresses = (addresses: any[] | undefined, t: TranslateFn) => {
   if (!Array.isArray(addresses)) return [];
   return addresses.map(
     (address) =>
@@ -32,19 +37,19 @@ const formatAddresses = (addresses: any[] | undefined, t: TFunction) => {
   );
 };
 
-const formatSocialMedia = (socialMedia: any[] | undefined, t: TFunction) => {
+const formatSocialMedia = (socialMedia: any[] | undefined, t: TranslateFn) => {
   if (!Array.isArray(socialMedia)) return [];
   return socialMedia.map(
     (s) => `${t(`socialMediaPlatform.${s.profilePlatform}`)}: ${s.username}`
   );
 };
 
-const formatRoles = (roles: string[] | undefined, t: TFunction) => {
+const formatRoles = (roles: string[] | undefined, t: TranslateFn) => {
   if (!Array.isArray(roles)) return [];
   return roles.map((role) => t(`partyRoles.${role}`));
 };
 
-export const organizationFields = (t: TFunction) => [
+export const organizationFields = (t: TranslateFn) => [
   {
     label: t('fields.organizationName.label'),
     path: 'organizationDetails.organizationName',
@@ -132,7 +137,7 @@ export const organizationFields = (t: TFunction) => [
   },
 ];
 
-export const individualFields = (t: TFunction) => [
+export const individualFields = (t: TranslateFn) => [
   {
     label: t('fields.controllerEmail.label'),
     path: 'email',

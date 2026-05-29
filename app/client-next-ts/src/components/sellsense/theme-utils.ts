@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+
 import type { ThemeOption } from './use-sellsense-themes';
 
 /**
@@ -31,6 +32,9 @@ export interface ThemeStyleUtils {
   getLogoAlt: () => string;
   getLogoStyles: () => string;
   getLayoutButtonStyles: (active: boolean) => string;
+  getAlertStyles: () => string;
+  getAlertTextStyles: () => string;
+  getAlertButtonStyles: () => string;
 }
 
 export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
@@ -39,10 +43,11 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getHeaderStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'bg-gray-50 border-gray-200'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return 'bg-white border-slate-200'; // backgroundColor: '#ffffff', borderColor: '#e2e8f0'
-        case 'S&P Theme':
+        case 'Salt Theme':
           return 'bg-[#f6f7f8] border-[#0000004D]'; // backgroundColor: '#f6f7f8', borderColor: '#0000004D'
         case 'Create Commerce':
           return 'bg-[#3D5C6B] border-[#0000001A]'; // backgroundColor: '#3D5C6B', borderColor: '#0000001A' (10% opacity)
@@ -57,9 +62,10 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getHeaderLabelStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'text-gray-600'; // Neutral styling for showing component defaults
         case 'Default Blue':
-        case 'S&P Theme':
+        case 'Salt Theme':
         case 'SellSense':
         case 'PayFicient':
           return 'text-slate-500'; // mutedForegroundColor: '#64748b'
@@ -72,10 +78,11 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getHeaderSelectStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'bg-white border-gray-300 text-gray-900'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return 'bg-white border-gray-300 text-slate-800'; // inputColor: '#ffffff', inputBorderColor: '#d1d5db', foregroundColor: '#1e293b'
-        case 'S&P Theme':
+        case 'Salt Theme':
           return 'bg-white border-[#0000004D] text-slate-800'; // inputColor: '#FFFFFF', inputBorderColor: '#0000004D', foregroundColor: '#1e293b'
         case 'Create Commerce':
           return 'bg-[#38474E] border-[#0000004D] text-[#EDEFF7]'; // inputColor: '#38474E', inputBorderColor: '#0000004D', foregroundColor: '#EDEFF7'
@@ -89,10 +96,11 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getHeaderButtonStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return 'text-[#0060f0] hover:text-[#0a4386] hover:bg-transparent'; // primaryColor: '#0060f0', primaryHoverColor: '#0a4386', secondaryColor: '#00000000'
-        case 'S&P Theme':
+        case 'Salt Theme':
           return 'text-[#1B7F9E] hover:text-[#166b85] hover:bg-white'; // primaryColor: '#1B7F9E', primaryHoverColor: '#166b85', secondaryColor: 'white'
         case 'Create Commerce':
           return 'text-[#FD8172] hover:text-[#fd6b5a] hover:bg-[#EDEFF7]'; // primaryColor: '#FD8172', primaryHoverColor: '#fd6b5a', secondaryColor: '#EDEFF7'
@@ -107,10 +115,11 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getHeaderSettingsButtonStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-gray-300'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return 'border-slate-200 bg-white hover:bg-slate-100 hover:border-slate-300'; // borderColor: '#e2e8f0', backgroundColor: '#ffffff'
-        case 'S&P Theme':
+        case 'Salt Theme':
           return 'border-[#0000004D] bg-white hover:bg-slate-100 hover:border-[#0000004D]'; // borderColor: '#0000004D', backgroundColor: '#ffffff'
         case 'Create Commerce':
           return 'border-[#0000004D] bg-[#38474E] hover:bg-[#4A5A6B] hover:border-[#0000004D]'; // borderColor: '#0000004D', backgroundColor: '#38474E'
@@ -125,9 +134,10 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getHeaderTextStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'text-gray-900'; // Neutral styling for showing component defaults
         case 'Default Blue':
-        case 'S&P Theme':
+        case 'Salt Theme':
         case 'SellSense':
         case 'PayFicient':
           return 'text-slate-800'; // foregroundColor: '#1e293b'
@@ -140,9 +150,10 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getHeaderCompanyTextStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'text-gray-500'; // Neutral styling for showing component defaults
         case 'Default Blue':
-        case 'S&P Theme':
+        case 'Salt Theme':
         case 'SellSense':
         case 'PayFicient':
           return 'text-slate-500'; // mutedForegroundColor: '#64748b'
@@ -157,10 +168,11 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getSidebarStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'bg-gray-50 border-gray-200'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return 'bg-white border-slate-200'; // backgroundColor: '#ffffff', borderColor: '#e2e8f0'
-        case 'S&P Theme':
+        case 'Salt Theme':
           return 'bg-[#f6f7f8] border-[#0000004D]'; // backgroundColor: '#f6f7f8', borderColor: '#0000004D'
         case 'Create Commerce':
           return 'bg-[#3D5C6B] border-[#0000001A]'; // backgroundColor: '#3D5C6B', borderColor: '#0000001A' (10% opacity)
@@ -177,10 +189,11 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
       if (selected) {
         switch (theme) {
           case 'Empty':
+          case 'Empty+':
             return 'text-gray-900 font-semibold bg-gray-200 border-l-4 border-gray-600'; // Neutral styling for showing component defaults
           case 'Default Blue':
             return 'text-[#0060f0] font-semibold bg-slate-100 border-l-4 border-[#0060f0]'; // primaryColor: '#0060f0', accentColor: '#f1f5f9'
-          case 'S&P Theme':
+          case 'Salt Theme':
             return 'text-[#1B7F9E] font-semibold bg-slate-100 border-l-4 border-[#1B7F9E]'; // primaryColor: '#1B7F9E', accentColor: '#f1f5f9'
           case 'Create Commerce':
             return 'text-[#FD8172] font-semibold bg-[#38474E] border-l-4 border-[#FD8172]'; // primaryColor: '#FD8172', accentColor: '#38474E'
@@ -194,10 +207,11 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
       } else {
         switch (theme) {
           case 'Empty':
+          case 'Empty+':
             return 'text-gray-600 font-normal border-l-4 border-transparent hover:bg-gray-200 hover:text-gray-900'; // Neutral styling for showing component defaults
           case 'Default Blue':
             return 'text-slate-800 font-normal border-l-4 border-transparent hover:bg-slate-100 hover:text-[#0060f0]'; // foregroundColor: '#1e293b', accentColor: '#f1f5f9', primaryColor: '#0060f0'
-          case 'S&P Theme':
+          case 'Salt Theme':
             return 'text-slate-800 font-normal border-l-4 border-transparent hover:bg-slate-100 hover:text-[#1B7F9E]'; // foregroundColor: '#1e293b', accentColor: '#f1f5f9', primaryColor: '#1B7F9E'
           case 'Create Commerce':
             return 'text-[#EDEFF7] font-normal border-l-4 border-transparent hover:bg-[#38474E] hover:text-[#FD8172]'; // foregroundColor: '#EDEFF7', accentColor: '#38474E', primaryColor: '#FD8172'
@@ -214,9 +228,10 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getSidebarLabelStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'text-gray-500'; // Neutral styling for showing component defaults
         case 'Default Blue':
-        case 'S&P Theme':
+        case 'Salt Theme':
         case 'SellSense':
         case 'PayFicient':
           return 'text-slate-500'; // mutedForegroundColor: '#64748b'
@@ -230,9 +245,10 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getSidebarTextStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'text-gray-700'; // Neutral styling for showing component defaults
         case 'Default Blue':
-        case 'S&P Theme':
+        case 'Salt Theme':
         case 'SellSense':
         case 'PayFicient':
           return 'text-slate-800'; // foregroundColor: '#1e293b'
@@ -247,10 +263,11 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getCardStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'bg-white border-gray-300'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return 'h-fit bg-white border-slate-200'; // popoverColor: '#ffffff', borderColor: '#e2e8f0'
-        case 'S&P Theme':
+        case 'Salt Theme':
           return 'h-fit bg-white border-[#0000004D]'; // cardColor: '#ffffff', borderColor: '#0000004D'
         case 'Create Commerce':
           return 'h-fit bg-[#38474E] border-[#0000001A]'; // popoverColor: '#38474E', borderColor: '#0000001A' (10% opacity)
@@ -266,10 +283,11 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getContentAreaStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'bg-white border-gray-300'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return ' bg-white border-slate-200'; // backgroundColor: '#ffffff', borderColor: '#e2e8f0'
-        case 'S&P Theme':
+        case 'Salt Theme':
           return 'bg-[#f6f7f8] border-[#0000004D]'; // backgroundColor: '#f6f7f8', borderColor: '#0000004D'
         case 'Create Commerce':
           return ' bg-[#3D5C6B] border-[#0000001A]'; // backgroundColor: '#3D5C6B', borderColor: '#0000001A' (10% opacity)
@@ -285,10 +303,11 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getIconStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return 'text-[#0060f0] hover:text-[#0a4386] hover:bg-transparent'; // primaryColor: '#0060f0', primaryHoverColor: '#0a4386', secondaryColor: '#00000000'
-        case 'S&P Theme':
+        case 'Salt Theme':
           return 'text-[#1B7F9E] hover:text-[#166b85] hover:bg-white'; // primaryColor: '#1B7F9E', primaryHoverColor: '#166b85', secondaryColor: 'white'
         case 'Create Commerce':
           return 'text-[#FD8172] hover:text-[#fd6b5a] hover:bg-[#EDEFF7]'; // primaryColor: '#FD8172', primaryHoverColor: '#fd6b5a', secondaryColor: '#EDEFF7'
@@ -305,10 +324,11 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getTagStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'bg-gray-100 text-gray-700 border-gray-300'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return 'bg-slate-50 text-[#0060f0] border-slate-200'; // accentColor: '#f1f5f9', primaryColor: '#0060f0', borderColor: '#e2e8f0'
-        case 'S&P Theme':
+        case 'Salt Theme':
           return 'bg-slate-50 text-[#1B7F9E] border-[#0000004D]'; // accentColor: '#f1f5f9', primaryColor: '#1B7F9E', borderColor: '#0000004D'
         case 'Create Commerce':
           return 'bg-[#38474E] text-[#FD8172] border-[#0000001A]'; // accentColor: '#38474E', primaryColor: '#FD8172', borderColor: '#0000001A' (10% opacity)
@@ -325,10 +345,11 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getDialogStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'bg-white text-gray-900 border-gray-300'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return 'bg-white text-slate-800 border-slate-200'; // backgroundColor: '#ffffff', foregroundColor: '#1e293b', borderColor: '#e2e8f0'
-        case 'S&P Theme':
+        case 'Salt Theme':
           return 'bg-[#f6f7f8] text-slate-800 border-[#0000004D]'; // backgroundColor: '#f6f7f8', foregroundColor: '#1e293b', borderColor: '#0000004D'
         case 'Create Commerce':
           return 'bg-[#3D5C6B] text-[#EDEFF7] border-[#0000001A]'; // backgroundColor: '#3D5C6B', foregroundColor: '#EDEFF7', borderColor: '#0000001A' (10% opacity)
@@ -345,10 +366,11 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getModalStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'bg-white text-gray-900 border-gray-300'; // Neutral styling for showing component defaults
         case 'Default Blue':
           return 'bg-white text-slate-800 border-slate-200'; // backgroundColor: '#ffffff', foregroundColor: '#1e293b', borderColor: '#e2e8f0'
-        case 'S&P Theme':
+        case 'Salt Theme':
           return 'bg-[#f6f7f8] text-slate-800 border-[#0000004D]'; // backgroundColor: '#f6f7f8', foregroundColor: '#1e293b', borderColor: '#0000004D'
         case 'Create Commerce':
           return 'bg-[#3D5C6B] text-[#EDEFF7] border-[#0000001A]'; // backgroundColor: '#3D5C6B', foregroundColor: '#EDEFF7', borderColor: '#0000001A' (10% opacity)
@@ -365,12 +387,13 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getLogoPath: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return ''; // No logo for empty theme - shows component defaults
         case 'PayFicient':
           return '/payficientlogo.svg';
         case 'Default Blue':
           return '/bluelogo.svg';
-        case 'S&P Theme':
+        case 'Salt Theme':
           return '/logo-jpm-brown.svg';
         case 'Create Commerce':
           return '/CreateCommerceLogo.svg';
@@ -383,11 +406,12 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getLogoAlt: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return ''; // No alt text for empty theme
         case 'PayFicient':
           return 'PayFicient Logo'; // Alt text for PayFicient placeholder
         case 'Default Blue':
-        case 'S&P Theme':
+        case 'Salt Theme':
         case 'Create Commerce':
           return 'Create Commerce Logo'; // Create Commerce alt text
         case 'SellSense':
@@ -399,13 +423,14 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
     getLogoStyles: () => {
       switch (theme) {
         case 'Empty':
+        case 'Empty+':
           return 'hidden'; // Hide logo completely for empty theme
         case 'PayFicient':
           return 'mt-5 h-[80px] w-auto max-w-[300px] object-contain'; // Even larger sizing for PayFicient logo
         case 'Default Blue':
           return 'h-12 w-auto max-w-[250px] object-contain'; // Standard sizing for Default Blue logo
-        case 'S&P Theme':
-          return 'h-9 w-auto max-w-[250px] object-contain'; // Standard sizing for S&P Theme logo
+        case 'Salt Theme':
+          return 'h-9 w-auto max-w-[250px] object-contain'; // Standard sizing for Salt Theme logo
         case 'Create Commerce':
           return 'h-9 w-auto max-w-[250px]';
         case 'SellSense':
@@ -418,10 +443,11 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
       if (active) {
         switch (theme) {
           case 'Empty':
+          case 'Empty+':
             return 'bg-gray-600 text-white font-medium'; // Neutral styling for showing component defaults
           case 'Default Blue':
             return 'bg-[#0060f0] text-white font-medium'; // primaryColor: '#0060f0'
-          case 'S&P Theme':
+          case 'Salt Theme':
             return 'bg-[#1B7F9E] text-white font-medium'; // primaryColor: '#1B7F9E'
           case 'Create Commerce':
             return 'bg-[#FD8172] text-white font-medium'; // primaryColor: '#FD8172'
@@ -435,10 +461,11 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
       } else {
         switch (theme) {
           case 'Empty':
+          case 'Empty+':
             return 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'; // Neutral styling for showing component defaults
           case 'Default Blue':
             return 'text-[#0060f0] hover:text-[#0a4386] hover:bg-transparent'; // primaryColor: '#0060f0', primaryHoverColor: '#0a4386'
-          case 'S&P Theme':
+          case 'Salt Theme':
             return 'text-[#1B7F9E] hover:text-[#166b85] hover:bg-white'; // primaryColor: '#1B7F9E', primaryHoverColor: '#166b85'
           case 'Create Commerce':
             return 'text-[#FD8172] hover:text-[#fd6b5a] hover:bg-[#EDEFF7]'; // primaryColor: '#FD8172', primaryHoverColor: '#fd6b5a'
@@ -449,6 +476,61 @@ export function createThemeStyleUtils(theme: ThemeOption): ThemeStyleUtils {
           default:
             return 'text-gray-600 hover:text-gray-900 hover:bg-gray-100';
         }
+      }
+    },
+
+    // Alert banner styles (prominent demo notice)
+    getAlertStyles: () => {
+      switch (theme) {
+        case 'Empty':
+        case 'Empty+':
+          return 'bg-amber-50 border-2 border-amber-200 shadow-lg'; // Neutral but prominent styling
+        case 'Default Blue':
+          return 'bg-amber-50 border-2 border-amber-300 shadow-lg'; // Prominent amber warning
+        case 'Salt Theme':
+          return 'bg-amber-50 border-2 border-amber-300 shadow-lg'; // Consistent warning styling
+        case 'Create Commerce':
+          return 'bg-amber-50 border-2 border-amber-300 shadow-lg'; // High contrast for dark theme
+        case 'SellSense':
+          return 'bg-amber-50 border-2 border-amber-300 shadow-lg'; // Brand-consistent warning
+        case 'PayFicient':
+          return 'bg-amber-50 border-2 border-amber-300 shadow-lg'; // Professional warning styling
+        default:
+          return 'bg-amber-50 border-2 border-amber-200 shadow-lg';
+      }
+    },
+
+    getAlertTextStyles: () => {
+      switch (theme) {
+        case 'Empty':
+        case 'Empty+':
+          return 'text-amber-900 font-medium'; // High contrast text
+        case 'Default Blue':
+        case 'Salt Theme':
+        case 'SellSense':
+        case 'PayFicient':
+          return 'text-amber-900 font-medium'; // Consistent high contrast
+        case 'Create Commerce':
+          return 'text-amber-900 font-medium'; // High contrast for dark theme
+        default:
+          return 'text-amber-900 font-medium';
+      }
+    },
+
+    getAlertButtonStyles: () => {
+      switch (theme) {
+        case 'Empty':
+        case 'Empty+':
+          return 'bg-amber-600 text-white hover:bg-amber-700 font-medium'; // Prominent button
+        case 'Default Blue':
+        case 'Salt Theme':
+        case 'SellSense':
+        case 'PayFicient':
+          return 'bg-amber-600 text-white hover:bg-amber-700 font-medium'; // Consistent warning button
+        case 'Create Commerce':
+          return 'bg-amber-600 text-white hover:bg-amber-700 font-medium'; // High contrast button
+        default:
+          return 'bg-amber-600 text-white hover:bg-amber-700 font-medium';
       }
     },
   };

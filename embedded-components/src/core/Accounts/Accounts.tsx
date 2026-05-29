@@ -1,46 +1,71 @@
 import {
   forwardRef,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { AlertCircle, Copy, Eye, EyeOff } from 'lucide-react';
-
+import { useTranslationWithTokens } from '@/i18n';
 import {
-  useGetAccountBalance,
-  useGetAccounts,
-} from '@/api/generated/ep-accounts';
+  AlertCircle,
+  ChevronDown,
+  ChevronUp,
+  Landmark,
+  RefreshCw,
+} from 'lucide-react';
+
+import { getChildHeadingLevel } from '@/lib/types/headingLevel.types';
+import { cn } from '@/lib/utils';
+import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
+import { useGetAccounts } from '@/api/generated/ep-accounts';
 import type { AccountResponse } from '@/api/generated/ep-accounts.schemas';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { InfoPopover } from '@/components/LearnMorePopover/InfoPopover';
+import { useServerError } from '@/components/ServerErrorAlert';
 
-export interface AccountsProps {
-  allowedCategories: string[];
-  clientId?: string;
-  /** Optional title for the accounts section */
-  title?: string;
-}
-
-// Define the ref interface for external actions
-export interface AccountsRef {
-  refresh: () => void;
-  // Add other actions as needed
-  // exportAccounts: () => void;
-  // getAccountsData: () => AccountResponse[];
-}
-
-// Define the ref interface for AccountCard
-export interface AccountCardRef {
-  refreshBalance: () => void;
-}
+import { ACCOUNTS_USER_JOURNEYS } from './Accounts.constants';
+import type { AccountsProps, AccountsRef } from './Accounts.types';
+import { AccountCard } from './components/AccountCard/AccountCard';
+import type { AccountCardRef } from './components/AccountCard/AccountCard';
+import { AccountCardSkeleton } from './components/AccountCardSkeleton';
 
 export const Accounts = forwardRef<AccountsRef, AccountsProps>(
-  ({ allowedCategories, clientId, title = 'Accounts' }, ref) => {
-    const { data, isLoading, isError, refetch } = useGetAccounts(
+  (
+    {
+      allowedCategories,
+      clientId,
+      headingLevel = 2,
+      title: _title,
+      userEventsHandler,
+      userEventsLifecycle,
+    },
+    ref
+  ) => {
+    const { t } = useTranslationWithTokens(['accounts', 'common']);
+
+    // Calculate child heading level (for h3 elements like empty state)
+    const childHeadingLevel = getChildHeadingLevel(headingLevel);
+    // Get the tag for child headings (e.g., 'h3' when main heading is 'h2')
+    const ChildHeading = `h${childHeadingLevel}` as const;
+
+    // State for error details expansion
+    const [showErrorDetails, setShowErrorDetails] = useState(false);
+
+    const { data, isLoading, isError, error, refetch } = useGetAccounts(
       clientId ? { clientId } : undefined
     );
+
+    // Parse error for custom display
+    const errorInfo = useServerError(error);
+    const errorMessage = errorInfo?.getErrorMessage({
+      '400': t('accounts:error.badRequest', {
+        defaultValue: 'Invalid request. Please check your parameters.',
+      }),
+      default: t('accounts:error.loadFailed', {
+        defaultValue: 'Failed to load accounts. Please try again.',
+      }),
+    });
 
     const filteredAccounts = useMemo(() => {
       if (!data?.items) return [];
@@ -49,8 +74,29 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
       );
     }, [data, allowedCategories]);
 
+    // Determine if single account layout should be used
+    const isSingleAccount = filteredAccounts.length === 1;
+
     // Create refs for each AccountCard
     const accountCardRefs = useRef<Record<string, AccountCardRef | null>>({});
+
+    // Set up automatic event tracking for data-user-event attributes
+    useUserEventTracking({
+      containerId: 'accounts-container',
+      userEventsHandler,
+      userEventsLifecycle,
+    });
+
+    // Track view when accounts load
+    useEffect(() => {
+      if (filteredAccounts.length > 0) {
+        trackUserEvent({
+          actionName: ACCOUNTS_USER_JOURNEYS.VIEW_ACCOUNTS,
+          metadata: { count: filteredAccounts.length },
+          userEventsHandler,
+        });
+      }
+    }, [filteredAccounts.length, userEventsHandler]);
 
     // Expose internal methods to parent component
     useImperativeHandle(
@@ -63,336 +109,208 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
           Object.values(accountCardRefs.current).forEach((cardRef) => {
             cardRef?.refreshBalance();
           });
+          trackUserEvent({
+            actionName: ACCOUNTS_USER_JOURNEYS.REFRESH,
+            userEventsHandler,
+          });
         },
-        // Add other actions as needed:
-        // exportAccounts: () => {
-        //   // Export accounts data
-        //   console.log('Exporting accounts:', filteredAccounts);
-        // },
-        // getAccountsData: () => {
-        //   return filteredAccounts;
-        // },
       }),
-      [refetch, filteredAccounts]
+      [refetch, userEventsHandler]
     );
 
-    if (isLoading) {
-      return (
-        <Card className="eb-component eb-w-full">
-          <CardHeader>
-            <CardTitle className="eb-text-xl eb-font-semibold">
-              {title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="eb-space-y-4">
-              {[...Array(2)].map((_, i) => (
-                <div key={i} className="eb-w-full">
-                  <div className="eb-p-4">
-                    <Skeleton className="eb-h-6 eb-w-1/3" />
-                    <Skeleton className="eb-mb-2 eb-h-4 eb-w-1/2" />
-                    <Skeleton className="eb-h-4 eb-w-1/4" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      );
-    }
-
-    if (isError) {
-      return (
-        <Card className="eb-component eb-w-full">
-          <CardHeader>
-            <CardTitle className="eb-text-xl eb-font-semibold">
-              {title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="eb-flex eb-items-center eb-gap-2 eb-text-red-600">
-              <AlertCircle className="eb-h-5 eb-w-5" />
-              <span>Failed to load accounts.</span>
-            </div>
-          </CardContent>
-        </Card>
-      );
-    }
-
-    if (!filteredAccounts.length) {
-      return (
-        <Card className="eb-component eb-w-full">
-          <CardHeader>
-            <CardTitle className="eb-text-xl eb-font-semibold">
-              {title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="eb-text-muted-foreground">No accounts found.</div>
-          </CardContent>
-        </Card>
-      );
-    }
-
-    // If more than one account, wrap each in its own Card for visual separation
-    if (filteredAccounts.length > 1) {
-      return (
-        <Card className="eb-component eb-w-full">
-          <CardHeader>
-            <CardTitle className="eb-text-xl eb-font-semibold">
-              {title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="eb-flex eb-flex-col eb-flex-wrap eb-gap-6">
-              {filteredAccounts.map((account: AccountResponse) => (
-                <div
-                  key={account.id}
-                  className="eb-w-full eb-min-w-[600px] sm:eb-flex-1"
-                >
-                  <AccountCard
-                    account={account}
-                    ref={(cardRef) => {
-                      accountCardRefs.current[account.id] = cardRef;
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      );
-    }
-
-    // Single account, no extra wrapper
     return (
-      <Card className="eb-component eb-w-full">
-        <CardHeader>
-          <CardTitle className="eb-text-xl eb-font-semibold">{title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AccountCard
-            account={filteredAccounts[0]}
-            ref={(cardRef) => {
-              accountCardRefs.current[filteredAccounts[0].id] = cardRef;
-            }}
-          />
-        </CardContent>
-      </Card>
+      <div id="accounts-container" className="eb-w-full eb-@container">
+        <Card className={cn('eb-component eb-w-full eb-overflow-hidden')}>
+          <CardHeader className="eb-border-b eb-bg-muted/30 eb-px-2.5 eb-py-2 eb-transition-all eb-duration-300 eb-ease-in-out @md:eb-px-3 @md:eb-py-2.5 @lg:eb-px-4 @lg:eb-py-3">
+            <div className="eb-flex eb-items-center eb-justify-between">
+              <CardTitle
+                headingLevel={headingLevel}
+                className="eb-truncate eb-font-header eb-text-lg eb-font-semibold eb-leading-normal @md:eb-text-xl"
+              >
+                {_title ??
+                  t('accounts:titleSingle', {
+                    defaultValue: 'Your account',
+                  })}
+                {!isLoading && !isError && filteredAccounts.length > 1 && (
+                  <span className="eb-animate-fade-in">
+                    {`s (${filteredAccounts.length})`}
+                  </span>
+                )}
+              </CardTitle>
+            </div>
+          </CardHeader>
+
+          <CardContent
+            className={cn(
+              'eb-space-y-4 eb-transition-all eb-duration-300 eb-ease-in-out',
+              isSingleAccount || isLoading
+                ? 'eb-p-0'
+                : 'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4'
+            )}
+          >
+            {/* Loading state with skeleton */}
+            {isLoading && <AccountCardSkeleton hideBorder />}
+
+            {/* Error state */}
+            {isError && (
+              <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-2 eb-py-6 eb-text-center">
+                <div className="eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
+                  <AlertCircle className="eb-h-6 eb-w-6 eb-text-destructive" />
+                </div>
+                <div className="eb-space-y-1">
+                  <ChildHeading className="eb-text-sm eb-font-semibold eb-text-foreground">
+                    {t('accounts:error.title', {
+                      defaultValue: 'Unable to load accounts',
+                    })}
+                  </ChildHeading>
+                  <p className="eb-max-w-xs eb-text-xs eb-text-muted-foreground">
+                    {errorMessage}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetch()}
+                  className="eb-mt-2"
+                >
+                  <RefreshCw className="eb-mr-2 eb-h-4 eb-w-4" />
+                  {t('common:tryAgain', { defaultValue: 'Try again' })}
+                </Button>
+
+                {/* Expandable details */}
+                {errorInfo?.hasDetails && (
+                  <div className="eb-mt-2 eb-w-full eb-max-w-sm">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowErrorDetails(!showErrorDetails)}
+                      className="eb-text-xs eb-text-muted-foreground"
+                    >
+                      {showErrorDetails ? (
+                        <ChevronUp className="eb-mr-1 eb-h-3 eb-w-3" />
+                      ) : (
+                        <ChevronDown className="eb-mr-1 eb-h-3 eb-w-3" />
+                      )}
+                      {showErrorDetails
+                        ? t('common:hideDetails', {
+                            defaultValue: 'Hide details',
+                          })
+                        : t('common:showDetails', {
+                            defaultValue: 'Show details',
+                          })}
+                    </Button>
+
+                    {showErrorDetails && (
+                      <div className="eb-mt-2 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-3 eb-text-left eb-text-xs">
+                        {errorInfo.httpStatus && (
+                          <div className="eb-mb-2">
+                            <span className="eb-font-medium">Status:</span>{' '}
+                            {errorInfo.httpStatus}
+                            {errorInfo.title && ` - ${errorInfo.title}`}
+                          </div>
+                        )}
+                        {errorInfo.reasons.length > 0 && (
+                          <div className="eb-mb-2">
+                            <span className="eb-font-medium">Reasons:</span>
+                            <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
+                              {errorInfo.reasons.map(
+                                (reason: any, i: number) => (
+                                  <li key={i}>
+                                    {reason.field && (
+                                      <span className="eb-font-medium">
+                                        {reason.field}:{' '}
+                                      </span>
+                                    )}
+                                    {reason.message || reason}
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                        {errorInfo.context.length > 0 && (
+                          <div>
+                            <span className="eb-font-medium">Context:</span>
+                            <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
+                              {errorInfo.context.map((ctx: any, i: number) => (
+                                <li key={i}>
+                                  {ctx.field && (
+                                    <span className="eb-font-medium">
+                                      {ctx.field}:{' '}
+                                    </span>
+                                  )}
+                                  {ctx.message}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Empty state */}
+            {!isLoading && !isError && filteredAccounts.length === 0 && (
+              <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-2 eb-py-6 eb-text-center">
+                <div className="eb-rounded-full eb-bg-muted eb-p-3">
+                  <Landmark className="eb-h-6 eb-w-6 eb-text-muted-foreground" />
+                </div>
+                <div className="eb-space-y-1">
+                  <ChildHeading className="eb-text-sm eb-font-semibold eb-text-foreground">
+                    {t('accounts:emptyState.title', {
+                      defaultValue: 'No accounts found',
+                    })}
+                  </ChildHeading>
+                  <p className="eb-max-w-xs eb-text-xs eb-text-muted-foreground">
+                    {t('accounts:emptyState.description', {
+                      defaultValue:
+                        "You don't have any accounts yet. Contact support if you need assistance.",
+                    })}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Accounts list */}
+            {!isLoading && !isError && filteredAccounts.length > 0 && (
+              <div
+                className={cn('eb-grid eb-grid-cols-1 eb-items-start', {
+                  'eb-gap-3': !isSingleAccount,
+                  '@4xl:eb-grid-cols-2': filteredAccounts.length > 1,
+                })}
+              >
+                {filteredAccounts.map(
+                  (account: AccountResponse, index: number) => (
+                    <div
+                      key={account.id}
+                      className="eb-animate-fade-in"
+                      style={{
+                        animationDelay: `${index * 50}ms`,
+                        animationFillMode: 'backwards',
+                      }}
+                    >
+                      <AccountCard
+                        account={account}
+                        hideBorder={isSingleAccount}
+                        headingLevel={childHeadingLevel}
+                        ref={(cardRef) => {
+                          accountCardRefs.current[account.id] = cardRef;
+                        }}
+                      />
+                    </div>
+                  )
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 );
 
 // Add display name for better debugging
 Accounts.displayName = 'Accounts';
-
-interface AccountCardProps {
-  account: AccountResponse;
-}
-
-const formatNumberWithCommas = (value: number) => {
-  // Format the number with thousands separators but keep decimal places separate
-  const parts = value.toFixed(2).split('.');
-  const formattedWhole = new Intl.NumberFormat('en-US').format(
-    Number(parts[0])
-  );
-  return { whole: formattedWhole, decimal: parts[1] };
-};
-
-const AccountCard = forwardRef<AccountCardRef, AccountCardProps>(
-  ({ account }, ref) => {
-    const {
-      data: balanceData,
-      isLoading: isBalanceLoading,
-      refetch,
-    } = useGetAccountBalance(account.id);
-
-    const [showSensitiveInfo, setShowSensitiveInfo] = useState(false);
-
-    useImperativeHandle(
-      ref,
-      () => ({
-        refreshBalance: () => {
-          refetch();
-        },
-      }),
-      [refetch]
-    );
-
-    const toggleSensitiveInfo = () => {
-      setShowSensitiveInfo(!showSensitiveInfo);
-    };
-
-    const formattedCategory =
-      account.category === 'LIMITED_DDA_PAYMENTS'
-        ? 'Payments DDA'
-        : account.category === 'LIMITED_DDA'
-          ? 'Limited DDA'
-          : account.category;
-
-    const maskedAccountNumber = account.paymentRoutingInformation?.accountNumber
-      ? account.paymentRoutingInformation.accountNumber.replace(
-          /.(?=.{4})/g,
-          '*'
-        )
-      : 'N/A';
-
-    return (
-      <Card className="eb-mb-4 eb-flex eb-flex-col eb-border-2 eb-border-gray-200 eb-p-4">
-        {/* Title Section */}
-        <div className="eb-mb-4 eb-pl-4 eb-text-xl eb-font-semibold">
-          {formattedCategory} | {maskedAccountNumber}
-        </div>
-
-        <div className="eb-flex eb-gap-4">
-          {/* Left Section: Balances */}
-          <div
-            className={`eb-p-4 ${
-              account.category === 'LIMITED_DDA' ? 'eb-flex-1' : 'eb-w-2/5'
-            }`}
-          >
-            <div className="eb-mb-4 eb-text-sm eb-font-semibold">Overview</div>
-            {isBalanceLoading ? (
-              <Skeleton className="eb-h-4 eb-w-1/2" />
-            ) : balanceData?.balanceTypes?.length ? (
-              <div
-                className={`eb-flex eb-gap-2 ${
-                  account.category === 'LIMITED_DDA'
-                    ? 'eb-flex-row'
-                    : 'eb-flex-col'
-                }`}
-              >
-                {balanceData.balanceTypes.map((b) => (
-                  <div
-                    key={b.typeCode}
-                    className="eb-flex eb-w-full eb-flex-col eb-items-start"
-                  >
-                    <span className="eb-text-xs eb-font-medium eb-text-gray-500">
-                      {b.typeCode === 'ITAV'
-                        ? 'Available Balance'
-                        : b.typeCode === 'ITBD'
-                          ? 'Current Balance'
-                          : b.typeCode}
-                    </span>
-                    <span className="eb-font-mono eb-text-lg eb-font-bold eb-text-metric">
-                      {formatNumberWithCommas(Number(b.amount)).whole}
-                      <span className="eb-text-sm">
-                        .{formatNumberWithCommas(Number(b.amount)).decimal}{' '}
-                        {balanceData.currency}
-                      </span>
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <span className="eb-text-xs eb-text-muted-foreground">
-                No balance data.
-              </span>
-            )}
-          </div>
-
-          {/* Right Section: Account Details */}
-          {account.category !== 'LIMITED_DDA' && (
-            <div className="eb-w-3/5 eb-p-4">
-              <div className="eb-mb-4 eb-flex eb-items-center eb-gap-1.5">
-                <span className="eb-text-sm eb-font-semibold">
-                  Account Details
-                </span>
-                <InfoPopover className="eb-ml-4">
-                  Account can be funded from external sources and is externally
-                  addressable via routing/account numbers here
-                </InfoPopover>
-              </div>
-              <div className="eb-flex eb-flex-col eb-gap-2">
-                <div className="eb-flex eb-w-full eb-items-center eb-justify-between">
-                  <span className="eb-text-xs eb-font-medium eb-text-gray-500">
-                    Account Number:
-                  </span>
-                  <div className="eb-flex eb-items-center">
-                    <span className="eb-font-mono eb-text-sm">
-                      {showSensitiveInfo
-                        ? account.paymentRoutingInformation?.accountNumber ||
-                          'N/A'
-                        : maskedAccountNumber}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={toggleSensitiveInfo}
-                      className="eb-ml-2 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
-                      title={
-                        showSensitiveInfo
-                          ? 'Hide account details'
-                          : 'Show account details'
-                      }
-                      aria-label={
-                        showSensitiveInfo
-                          ? 'Hide account details'
-                          : 'Show account details'
-                      }
-                    >
-                      {showSensitiveInfo ? (
-                        <EyeOff className="eb-h-3 eb-w-3" />
-                      ) : (
-                        <Eye className="eb-h-3 eb-w-3" />
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        navigator.clipboard.writeText(
-                          account.paymentRoutingInformation?.accountNumber || ''
-                        )
-                      }
-                      className="eb-ml-2 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
-                      title="Copy account number"
-                      aria-label="Copy account number"
-                    >
-                      <Copy className="eb-h-3 eb-w-3" />
-                    </button>
-                  </div>
-                </div>
-                <div className="eb-flex eb-w-full eb-items-center eb-justify-between">
-                  <span className="eb-text-xs eb-font-medium eb-text-gray-500">
-                    ACH Routing:
-                  </span>
-                  <div className="eb-flex eb-items-center">
-                    <span className="eb-font-mono eb-text-sm">028000024</span>
-                    <button
-                      type="button"
-                      onClick={() => navigator.clipboard.writeText('028000024')}
-                      className="eb-ml-2 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
-                      title="Copy ACH Routing"
-                      aria-label="Copy ACH Routing"
-                    >
-                      <Copy className="eb-h-3 eb-w-3" />
-                    </button>
-                  </div>
-                </div>
-                <div className="eb-flex eb-w-full eb-items-center eb-justify-between">
-                  <span className="eb-text-xs eb-font-medium eb-text-gray-500">
-                    Wire/RTP Routing:
-                  </span>
-                  <div className="eb-flex eb-items-center">
-                    <span className="eb-font-mono eb-text-sm">021000021</span>
-                    <button
-                      type="button"
-                      onClick={() => navigator.clipboard.writeText('021000021')}
-                      className="eb-ml-2 eb-inline-flex eb-cursor-pointer eb-items-center eb-text-gray-400 hover:eb-text-gray-600"
-                      title="Copy Wire/RTP Routing"
-                      aria-label="Copy Wire/RTP Routing"
-                    >
-                      <Copy className="eb-h-3 eb-w-3" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </Card>
-    );
-  }
-);
-
-// Add display name for AccountCard
-AccountCard.displayName = 'AccountCard';

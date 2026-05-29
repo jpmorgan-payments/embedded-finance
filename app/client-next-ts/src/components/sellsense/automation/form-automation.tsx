@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { FormDetectionUtils } from './form-detection';
+import { useEffect, useState } from 'react';
 import userEvent from '@testing-library/user-event';
+
+import { Button } from '@/components/ui/button';
+
+import { FormDetectionUtils } from './form-detection';
 
 // Field types for automation
 type FieldType = 'input' | 'select' | 'checkbox';
@@ -315,7 +317,7 @@ class FormAutomationUtils {
   private static async typeInField(
     selector: string,
     value: string,
-    delay: number = 2,
+    delay: number = 2
   ): Promise<void> {
     // First, find the active dialog
     const dialog =
@@ -339,7 +341,7 @@ class FormAutomationUtils {
 
     if (!element) {
       console.warn(
-        `Element not found for selectors: ${selector} within dialog`,
+        `Element not found for selectors: ${selector} within dialog`
       );
       console.log(
         'Available input elements in dialog:',
@@ -347,7 +349,7 @@ class FormAutomationUtils {
           name: el.getAttribute('name'),
           placeholder: el.getAttribute('placeholder'),
           type: el.getAttribute('type'),
-        })),
+        }))
       );
       return;
     }
@@ -385,7 +387,7 @@ class FormAutomationUtils {
 
   private static async selectOption(
     selector: string,
-    value: string,
+    value: string
   ): Promise<void> {
     // Try multiple selectors to find the element
     const selectors = selector.split(',').map((s) => s.trim());
@@ -431,7 +433,7 @@ class FormAutomationUtils {
           text: el.textContent?.trim(),
           ariaLabel: el.getAttribute('aria-label'),
           role: el.getAttribute('role'),
-        })),
+        }))
       );
 
       // Try to find the first available combobox
@@ -439,7 +441,7 @@ class FormAutomationUtils {
         element = comboboxes[0] as HTMLElement;
         console.log(
           'Using first available combobox:',
-          element.textContent?.trim(),
+          element.textContent?.trim()
         );
       }
     }
@@ -453,8 +455,8 @@ class FormAutomationUtils {
             text: el.textContent?.trim(),
             ariaLabel: el.getAttribute('aria-label'),
             role: el.getAttribute('role'),
-          }),
-        ),
+          })
+        )
       );
       return;
     }
@@ -476,7 +478,7 @@ class FormAutomationUtils {
     const computedStyle = window.getComputedStyle(clickTarget);
     if (computedStyle.pointerEvents === 'none') {
       console.warn(
-        'Element has pointer-events: none, trying to find clickable parent',
+        'Element has pointer-events: none, trying to find clickable parent'
       );
 
       // Try to find a clickable parent or sibling
@@ -550,20 +552,20 @@ class FormAutomationUtils {
         'Available options:',
         Array.from(
           document.querySelectorAll(
-            '[role="option"], [data-radix-collection-item]',
-          ),
+            '[role="option"], [data-radix-collection-item]'
+          )
         ).map((opt) => ({
           text: opt.textContent?.trim(),
           value: opt.getAttribute('data-value'),
           role: opt.getAttribute('role'),
-        })),
+        }))
       );
     }
   }
 
   private static async checkCheckbox(
     selector: string,
-    checked: boolean,
+    checked: boolean
   ): Promise<void> {
     const selectors = selector.split(',').map((s) => s.trim());
     let element: HTMLInputElement | null = null;
@@ -586,13 +588,13 @@ class FormAutomationUtils {
 
       // First try to find specific shadcn checkbox elements
       const checkboxButton = element.parentElement?.querySelector(
-        'button[role="checkbox"]',
+        'button[role="checkbox"]'
       );
       const checkboxSpan = element.parentElement?.querySelector(
-        'span[role="checkbox"]',
+        'span[role="checkbox"]'
       );
       const checkboxDiv = element.parentElement?.querySelector(
-        'div[role="checkbox"]',
+        'div[role="checkbox"]'
       );
 
       if (checkboxButton && checkboxButton instanceof HTMLElement) {
@@ -644,13 +646,13 @@ class FormAutomationUtils {
         if (visualIndicator) {
           visualIndicator.setAttribute(
             'data-state',
-            checked ? 'checked' : 'unchecked',
+            checked ? 'checked' : 'unchecked'
           );
         }
 
         // Try to find and click any associated button or span
         const associatedButton = element.parentElement?.querySelector(
-          'button, span[role="checkbox"]',
+          'button, span[role="checkbox"]'
         );
         if (associatedButton && associatedButton instanceof HTMLElement) {
           await user.click(associatedButton);
@@ -689,7 +691,7 @@ class FormAutomationUtils {
 
   private static async fillSelectField(
     field: AutomationField,
-    delay: number,
+    delay: number
   ): Promise<void> {
     const { selectors, value } = field;
 
@@ -707,7 +709,7 @@ class FormAutomationUtils {
 
   private static async fillInputField(
     field: AutomationField,
-    delay: number,
+    delay: number
   ): Promise<void> {
     const { selectors, value } = field;
     const selectorString = selectors.join(', ');
@@ -716,7 +718,7 @@ class FormAutomationUtils {
   }
 
   private static async fillCheckboxField(
-    field: AutomationField,
+    field: AutomationField
   ): Promise<void> {
     const { selectors, value } = field;
     const selectorString = selectors.join(', ');
@@ -733,7 +735,7 @@ interface AutomationTriggerProps {
 export function AutomationTrigger({ currentScenario }: AutomationTriggerProps) {
   const [isRunning, setIsRunning] = useState(false);
   const [formStatus, setFormStatus] = useState(
-    FormDetectionUtils.getFormStatus(),
+    FormDetectionUtils.getFormStatus()
   );
 
   useEffect(() => {
@@ -779,7 +781,7 @@ export function AutomationTrigger({ currentScenario }: AutomationTriggerProps) {
 
     if (!scenario) {
       console.warn(
-        `No automation scenario found for: ${currentScenario} (mapped to: ${mappedScenario})`,
+        `No automation scenario found for: ${currentScenario} (mapped to: ${mappedScenario})`
       );
       return;
     }
@@ -807,14 +809,14 @@ export function AutomationTrigger({ currentScenario }: AutomationTriggerProps) {
 
   return (
     <div className="fixed bottom-20 right-4 z-[9999] flex items-center gap-2">
-      <div className="bg-gray-100/90 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-600 shadow-lg">
+      <div className="rounded-lg border border-gray-200 bg-gray-100/90 px-3 py-2 text-xs text-gray-600 shadow-lg backdrop-blur-sm">
         <span className="font-medium">Ctrl + Shift + A</span>
-        <span className="text-gray-500 ml-1">to fill form</span>
+        <span className="ml-1 text-gray-500">to fill form</span>
       </div>
       <Button
         onClick={handleButtonClick}
         disabled={isRunning}
-        className="w-8 h-8 rounded-full bg-gray-100/90 hover:bg-gray-200/90 text-gray-600 shadow-lg border border-gray-200 hover:scale-105 transition-transform duration-200"
+        className="h-8 w-8 rounded-full border border-gray-200 bg-gray-100/90 text-gray-600 shadow-lg transition-transform duration-200 hover:scale-105 hover:bg-gray-200/90"
         style={{ pointerEvents: 'auto' }}
         title={`Fill Form (Ctrl+Shift+A) - ${currentScenario}`}
       >

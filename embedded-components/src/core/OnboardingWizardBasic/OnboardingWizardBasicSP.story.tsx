@@ -8,39 +8,55 @@ import { efDocumentRequestDetails } from '@/mocks/efDocumentRequestDetails.mock'
 import type { Meta, StoryFn } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
-import { EBComponentsProvider } from '@/core/EBComponentsProvider';
-import { EBConfig } from '@/core/EBComponentsProvider/config.types';
 import {
   OnboardingWizardBasic,
   OnboardingWizardBasicProps,
 } from '@/core/OnboardingWizardBasic/OnboardingWizardBasic';
 
-export type OnboardingWizardBasicWithProviderProps =
-  OnboardingWizardBasicProps & EBConfig;
+import type { BaseStoryArgs } from '../../../.storybook/preview';
 
-const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
+/**
+ * Story args interface extending base provider args
+ */
+export type OnboardingWizardBasicSPStoryArgs = OnboardingWizardBasicProps &
+  BaseStoryArgs;
+
+/**
+ * @deprecated Use OnboardingWizardBasicSPStoryArgs instead
+ * Kept for backward compatibility with existing story files
+ */
+export type OnboardingWizardBasicWithProviderProps =
+  OnboardingWizardBasicSPStoryArgs;
+
+const meta: Meta<OnboardingWizardBasicSPStoryArgs> = {
   title: 'Legacy/OnboardingWizardBasic/Steps',
   component: OnboardingWizardBasic,
   tags: ['@legacy', '@onboarding'],
   args: {
     onPostClientResponse: (data, error) => {
       if (data) {
+        // eslint-disable-next-line no-console
         console.log('@@POST client response data', data);
       } else if (error) {
+        // eslint-disable-next-line no-console
         console.log('@@POST client response error', error);
       }
     },
     onPostPartyResponse(response, error) {
       if (response) {
+        // eslint-disable-next-line no-console
         console.log('@@POST party response data', response);
       } else if (error) {
+        // eslint-disable-next-line no-console
         console.log('@@POST party response error', error);
       }
     },
     onPostClientVerificationsResponse: (data, error) => {
       if (data) {
+        // eslint-disable-next-line no-console
         console.log('@@POST verifications response data', data);
       } else if (error) {
+        // eslint-disable-next-line no-console
         console.log('@@POST verifications response error', error);
       }
     },
@@ -63,40 +79,11 @@ const meta: Meta<OnboardingWizardBasicWithProviderProps> = {
     },
     usePartyResource: { control: 'boolean' },
   },
-  decorators: [
-    (Story, context) => {
-      const {
-        apiBaseUrl,
-        headers,
-        theme,
-        reactQueryDefaultOptions,
-        contentTokens,
-      } = context.args;
-      return (
-        <EBComponentsProvider
-          apiBaseUrl={apiBaseUrl}
-          headers={headers}
-          // queryParams={{
-          //   platformId: '123',
-          //   version: 'v2',
-          // }}
-          theme={{
-            colorScheme: 'light',
-            ...theme,
-          }}
-          reactQueryDefaultOptions={reactQueryDefaultOptions}
-          contentTokens={contentTokens}
-        >
-          <Story />
-        </EBComponentsProvider>
-      );
-    },
-  ],
 };
 
 export default meta;
 
-const Template: StoryFn<OnboardingWizardBasicWithProviderProps> = (args) => (
+const Template: StoryFn<OnboardingWizardBasicSPStoryArgs> = (args) => (
   <OnboardingWizardBasic {...args} />
 );
 

@@ -1,28 +1,27 @@
 import React from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 
 import type { PaymentFormData } from '../../types';
 
 export const AdditionalInformation: React.FC = () => {
-  const { t } = useTranslation(['make-payment']);
+  const { t } = useTranslationWithTokens(['make-payment']);
   const form = useFormContext<PaymentFormData>();
 
   return (
-    <div className="eb-space-y-1">
-      <FormLabel className="eb-block">
+    <div className="eb-space-y-4">
+      <h3 className="eb-text-base eb-font-semibold">
         {t('sections.additionalInfo', {
-          defaultValue: '5. Additional Information (optional)',
+          defaultValue: 'Additional Information (optional)',
         })}
-      </FormLabel>
+      </h3>
       <div className="eb-mb-1 eb-text-xs eb-text-muted-foreground">
         {t('helpers.memo', {
           defaultValue: 'Internal note for your records (optional)',

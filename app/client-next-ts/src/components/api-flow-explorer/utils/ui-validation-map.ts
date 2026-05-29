@@ -1,3 +1,8 @@
+// Import the static JSON list to allow non-code contributions and simpler maintenance
+// Vite supports JSON imports natively
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import uiValidationJson from './ui-validation-map.json';
+
 // Static UI validation map for compact display in Payload Table
 // This maps JSONPath-like paths to concise UI validation descriptions derived from Zod schemas
 
@@ -6,11 +11,6 @@ export interface UiValidationRule {
   rules: string[]; // compact phrases like "required", "min:2", "max:100", "pattern: NAME_PATTERN"
   source?: string; // optional: which schema/file it’s from
 }
-
-// Import the static JSON list to allow non-code contributions and simpler maintenance
-// Vite supports JSON imports natively
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-import uiValidationJson from './ui-validation-map.json';
 
 export const UI_VALIDATION_RULES: UiValidationRule[] =
   (uiValidationJson as UiValidationRule[]) ?? [];
@@ -43,7 +43,7 @@ export function getUiValidationForPath(path: string): string {
     (p) =>
       p.replace(
         /^\$\.parties\[\*\]\.organizationIds\[\*\]\./,
-        '$.organization.organizationIds[*].',
+        '$.organization.organizationIds[*].'
       ),
     // Individual IDs field name difference to controllerIds
     (p) => p.replace(/\.individualIds\[/, '.controllerIds['),
@@ -68,11 +68,11 @@ export function getUiValidationForPath(path: string): string {
       c === '$.controller' ||
       c === '$.addresses[*]' ||
       c === '$.organizationPhone' ||
-      c === '$.controller.phone',
+      c === '$.controller.phone'
   );
   for (const base of containerBases) {
     const children = UI_VALIDATION_RULES.filter((r) =>
-      r.path.startsWith(`${base}.`),
+      r.path.startsWith(`${base}.`)
     );
     if (children.length > 0) {
       const sample = children.slice(0, 4).map((r) => {

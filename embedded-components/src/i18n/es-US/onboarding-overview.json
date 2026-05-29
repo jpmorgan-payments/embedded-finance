@@ -1,0 +1,1387 @@
+{
+  "addressFields": {
+    "city": {
+      "label": {
+        "default": "Ciudad / Pueblo",
+        "US": "Ciudad",
+        "CA": "Ciudad",
+        "MX": "Ciudad",
+        "ES": "Ciudad",
+        "AR": "Ciudad",
+        "CL": "Ciudad",
+        "CO": "Ciudad",
+        "CZ": "Ciudad",
+        "DK": "Ciudad",
+        "FI": "Ciudad",
+        "HU": "Ciudad",
+        "IE": "Ciudad / Pueblo",
+        "IL": "Ciudad",
+        "NL": "Ciudad",
+        "NO": "Ciudad",
+        "PE": "Ciudad",
+        "PT": "Ciudad",
+        "RU": "Ciudad",
+        "SA": "Ciudad",
+        "SE": "Ciudad",
+        "TR": "Ciudad / Distrito",
+        "EC": "Ciudad",
+        "HK": "Ciudad / Distrito",
+        "SG": "Ciudad"
+      },
+      "placeholder": {
+        "default": "Ingrese la ciudad"
+      },
+      "description": {
+        "default": ""
+      },
+      "tooltip": {
+        "default": ""
+      }
+    },
+    "state": {
+      "label": {
+        "default": "Estado / Provincia / Región",
+        "US": "Estado",
+        "CA": "Provincia",
+        "MX": "Estado",
+        "ES": "Provincia",
+        "AR": "Provincia",
+        "BE": "Provincia",
+        "CL": "Región",
+        "CO": "Departamento",
+        "CZ": "Región",
+        "DK": "Región",
+        "FI": "Región",
+        "HU": "Condado",
+        "IE": "Condado",
+        "IL": "Distrito",
+        "NL": "Provincia",
+        "NO": "Condado",
+        "PE": "Región",
+        "PT": "Distrito",
+        "RU": "Óblast / Krai",
+        "SA": "Región",
+        "SE": "Condado",
+        "TR": "Provincia",
+        "EC": "Provincia",
+        "HK": "Distrito",
+        "SG": "Región"
+      },
+      "placeholder": {
+        "default": "Seleccione o ingrese el estado / provincia",
+        "US": "Seleccione el estado",
+        "CA": "Seleccione la provincia",
+        "BE": "Seleccione la provincia",
+        "CL": "Seleccione la región",
+        "CO": "Seleccione el departamento",
+        "CZ": "Seleccione la región",
+        "DK": "Seleccione la región",
+        "FI": "Seleccione la región",
+        "HU": "Seleccione el condado",
+        "IE": "Seleccione el condado",
+        "IL": "Seleccione el distrito",
+        "NL": "Seleccione la provincia",
+        "NO": "Seleccione el condado",
+        "PE": "Seleccione la región",
+        "PT": "Seleccione el distrito",
+        "RU": "Seleccione el óblast / krai",
+        "SA": "Seleccione la región",
+        "SE": "Seleccione el condado",
+        "TR": "Seleccione la provincia",
+        "EC": "Seleccione la provincia",
+        "HK": "Seleccione el distrito",
+        "SG": "Seleccione la región"
+      },
+      "description": {
+        "default": ""
+      },
+      "tooltip": {
+        "default": ""
+      }
+    },
+    "postalCode": {
+      "label": {
+        "default": "Código postal",
+        "US": "Código ZIP",
+        "CA": "Código postal",
+        "AU": "Código postal",
+        "GB": "Código postal",
+        "DE": "Código postal",
+        "FR": "Código postal",
+        "IT": "Código postal",
+        "ES": "Código postal",
+        "BR": "CEP",
+        "MX": "Código postal",
+        "IN": "Código PIN",
+        "JP": "Código postal",
+        "KR": "Código postal",
+        "CN": "Código postal",
+        "CH": "Código postal",
+        "AR": "Código postal",
+        "ZA": "Código postal",
+        "PL": "Código postal",
+        "AT": "Código postal",
+        "NZ": "Código postal",
+        "BE": "Código postal",
+        "CL": "Código postal",
+        "CO": "Código postal",
+        "CZ": "Código postal",
+        "DK": "Código postal",
+        "FI": "Código postal",
+        "HU": "Código postal",
+        "IE": "Eircode",
+        "IL": "Código postal",
+        "NL": "Código postal",
+        "NO": "Código postal",
+        "PE": "Código postal",
+        "PT": "Código postal",
+        "RU": "Código postal",
+        "SA": "Código postal",
+        "SE": "Código postal",
+        "TR": "Código postal",
+        "EC": "Código postal",
+        "HK": "Código postal",
+        "SG": "Código postal"
+      },
+      "placeholder": {
+        "default": "Ingrese el código postal",
+        "US": "Ingrese el código ZIP",
+        "IE": "Ingrese el Eircode"
+      },
+      "description": {
+        "default": "",
+        "US": "Código ZIP de 5 o 9 dígitos",
+        "CA": "Formato: A1A 1A1",
+        "BR": "CEP de 8 dígitos",
+        "CL": "7 dígitos",
+        "CO": "6 dígitos",
+        "DK": "4 dígitos",
+        "FI": "5 dígitos",
+        "IE": "p. ej., D02 AF30",
+        "NL": "p. ej., 1234 AB",
+        "NO": "4 dígitos",
+        "PT": "p. ej., 1000-001",
+        "SE": "p. ej., 123 45",
+        "TR": "5 dígitos",
+        "EC": "6 dígitos",
+        "SG": "6 dígitos"
+      },
+      "tooltip": {
+        "default": ""
+      }
+    }
+  },
+  "fetchingClientData": "Cargando datos del cliente...",
+  "welcomeText": "¡Bienvenido!",
+  "errors": {
+    "unknownScreenId": "Identificador de pantalla desconocido: {{screenId}}",
+    "unhandledScreenError": "Error de pantalla no controlado"
+  },
+  "flowRenderer": {
+    "businessType": "Tipo de negocio",
+    "linkAccount": "Vincular cuenta bancaria",
+    "leavePageWarning": "Si abandona esta página, podría perder los cambios no guardados."
+  },
+  "documentUpload": {
+    "title": "Documentos de respaldo",
+    "onboardingProgress": "Progreso de la inscripción",
+    "loadingDocumentRequests": "Cargando solicitudes de documentos",
+    "businessSectionTitle": "Para el negocio",
+    "ownersSectionTitle": "Para propietarios y roles clave",
+    "returnToOverview": "Volver al resumen",
+    "noDocumentsRequired": "No se requieren documentos",
+    "regulatoryRequirementsDescription": "Para cumplir con los requisitos regulatorios, necesitamos obtener lo siguiente",
+    "documentNumber": "Documento {{number}}",
+    "selectDocumentType": "Seleccionar tipo de documento",
+    "optional": "(Opcional)",
+    "selectPlaceholder": "Seleccione un tipo de documento",
+    "uploadDocument": "Subir documento",
+    "partyCard": {
+      "statusLabels": {
+        "pending": "Pendiente",
+        "completed": "Completado",
+        "expired": "Vencido"
+      },
+      "roleLabels": {
+        "business": "Negocio",
+        "owner": "Propietario",
+        "controller": "Controlador"
+      },
+      "uploadDocuments": "Subir documentos",
+      "successMessage": "Documentos requeridos subidos exitosamente",
+      "uploadedOn": "Subido el"
+    },
+    "documentUploadForm": {
+      "fetchingDocumentRequest": "Cargando solicitud de documento...",
+      "uploadingDocuments": "Subiendo...",
+      "completeAllRequired": "Complete todos los documentos requeridos",
+      "uploadDocuments": "Subir documentos",
+      "cancel": "Cancelar",
+      "errorMessages": {
+        "uploadError": "Ocurrió un error inesperado al subir los documentos. Por favor, inténtelo de nuevo.",
+        "submitError": "Ocurrió un error inesperado al enviar las solicitudes de documentos. Por favor, inténtelo de nuevo."
+      }
+    },
+    "statusMessages": {
+      "reviewInProgress": {
+        "title": "Revisión en progreso",
+        "description": "Su inscripción está actualmente en revisión. Por favor, vuelva más tarde."
+      },
+      "approved": {
+        "description": "Su inscripción ha sido aprobada. No se requieren documentos."
+      },
+      "problemLoadingClient": {
+        "title": "Hubo un problema",
+        "description": "No se pudieron cargar los datos del cliente. Por favor, inténtelo de nuevo más tarde."
+      },
+      "problemLoadingDocuments": {
+        "title": "Hubo un problema",
+        "description": "No se pudieron cargar las solicitudes de documentos. Por favor, inténtelo de nuevo más tarde."
+      },
+      "noDocumentRequests": {
+        "title": "Hay un problema",
+        "description": "No se encontraron solicitudes de documentos."
+      },
+      "outstandingItems": {
+        "title": "Elementos pendientes",
+        "description": "Su inscripción tiene elementos pendientes que necesitan ser atendidos. Por favor, regrese al flujo de inscripción para resolverlos."
+      }
+    }
+  },
+  "stepperRenderer": {
+    "noStepsFound": "No se encontraron pasos",
+    "stepCounter": "Paso {{currentStepNumber}} de {{totalSteps}}",
+    "newOwnerLabel": "Nuevo propietario",
+    "previousStepDataLossWarning": "Si retrocede, la información ingresada en este paso podría perderse. ¿Continuar?",
+    "buttons": {
+      "overviewHeader": "Resumen",
+      "save": "Guardar",
+      "continue": "Continuar",
+      "previous": "Anterior",
+      "cancel": "Cancelar",
+      "agreeAndFinish": "Aceptar y finalizar",
+      "returnToAllOwnersOverview": "Volver al resumen de todos los propietarios",
+      "backToAllOwnersOverview": "Volver al resumen de todos los propietarios",
+      "returnToOverview": "Volver al resumen",
+      "continueToNextSection": "Continuar a la siguiente sección",
+      "continueToSection": "Continuar a {{sectionLabel}}",
+      "backToSection": "Volver a {{sectionLabel}}"
+    }
+  },
+  "screens": {
+    "gateway": {
+      "title": "Comencemos",
+      "description": "Seleccione su tipo de negocio y le explicaremos qué información necesitará para completar esta solicitud.",
+      "nextButton": "Comenzar",
+      "ptcLockedAlert": "El estado de cotización en bolsa de su organización ha sido guardado y no se puede eliminar. Algunas opciones están restringidas.",
+      "infoAlert": {
+        "title": "¿Es usted?",
+        "description": "Para mantener seguros los datos de su cuenta, esperamos que la persona que complete esta solicitud tenga el control principal sobre las operaciones financieras y comerciales del negocio. Si no es usted, por favor no continúe a continuación."
+      }
+    },
+    "personalDetails": {
+      "legalNameHeader": "Nombre legal",
+      "legalNameDescription": "Su nombre completo tal como está registrado ante las agencias gubernamentales"
+    },
+    "ownerPersonalDetails": {
+      "legalNameHeader": "Nombre legal",
+      "legalNameDescription": "El nombre completo del propietario tal como está registrado ante las agencias gubernamentales"
+    },
+    "industryForm": {
+      "infoAlert": "Esto se utiliza con fines regulatorios y de cumplimiento, así que asegúrese de que su selección sea precisa.",
+      "descriptionTooVague": "La descripción de su negocio es demasiado vaga para sugerir clasificaciones industriales relevantes. Proporcione detalles más específicos sobre sus actividades comerciales y operaciones principales.",
+      "viewExamplesOfDescriptions": "Ver ejemplos de buenas descripciones de negocios",
+      "recommendationsError": "No pudimos generar recomendaciones de industria en este momento. Inténtelo de nuevo más tarde o proceda seleccionando su industria manualmente.",
+      "tooltip": {
+        "title": "¿Cómo tomar la decisión correcta?",
+        "pleaseSelect": "Seleccione la misma clasificación elegida cuando su negocio u organización fue registrado en Norteamérica.",
+        "ifSoleProp": "Si es un propietario único o su negocio está registrado fuera de Norteamérica,",
+        "makeBestChoice": "Es posible que no haya seleccionado previamente una clasificación. En ese caso, elija la mejor opción según su línea principal de negocio."
+      },
+      "suggestButtonLabel": "Sugerir",
+      "analyzing": "Analizando la descripción de su negocio...",
+      "recommendationsHeader": "Industrias recomendadas según su descripción:",
+      "recommendationsInfo": "Estas recomendaciones son generadas por IA basadas en la descripción de su negocio y pueden no ser perfectamente precisas. Revíselas cuidadosamente antes de seleccionar."
+    },
+    "owners": {
+      "title": "Propietarios y roles clave",
+      "overviewButtonLabel": "Resumen",
+      "infoAlert": {
+        "header": "Para una $t(onboarding-overview:organizationTypes.{{organizationType}})",
+        "title": "Propietarios",
+        "pleaseAddAllOwners": "Agregue a <strong>todos los propietarios</strong> que posean el 25% o más del negocio"
+      },
+      "tooltip": {
+        "title": "¿Qué es un propietario?",
+        "description": "Un propietario es una persona o entidad que posee en última instancia al menos una parte de un negocio, establecido a través de una cadena de propiedad o por medios de control distintos al control directo."
+      },
+      "controllerIsOwnerQuestion": "¿Usted, el controlador, posee el 25% o más del negocio?",
+      "controllerCannotBeOwnerWarning": "No puede designarse como propietario ya que solo puede agregar hasta 4 beneficiarios efectivos.",
+      "makingChanges": "Realizando cambios...",
+      "addOwnerButton": "Agregar propietario",
+      "removeOwnerButton": "Eliminar",
+      "editOwnerButton": "Editar",
+      "goNowButton": "Ir ahora",
+      "ownerIncompleteWarning": "A esta persona le faltan algunos datos.",
+      "maxOwnersWarning": "Solo puede agregar hasta 4 beneficiarios efectivos.",
+      "noStakeholdersAdded": "Aún no se han agregado partes interesadas.",
+      "badges": {
+        "controller": "Controlador",
+        "owner": "Propietario"
+      },
+      "removeOwnerDialog": {
+        "title": "¿Eliminar propietario?",
+        "description": "¿Está seguro de que desea eliminar a <strong>{{owner}}</strong> como propietario?",
+        "confirmButton": "Sí, eliminar propietario",
+        "cancelButton": "No, mantener propietario"
+      },
+      "saveAndReturnToReviewButton": "Guardar y volver a la revisión",
+      "saveAndContinueButton": "Guardar y continuar a detalles operativos"
+    },
+    "overview": {
+      "title": "Resumen",
+      "description": "",
+      "infoAlert": "Sus datos se guardarán a medida que avance.",
+      "downloadChecklist": "Descargar lista de verificación",
+      "verifyBusinessSection": {
+        "title": "Verificar su negocio",
+        "reviewInProgress": {
+          "title": "¡Excelente trabajo!",
+          "description": "Espere mientras verificamos sus datos. Esto solo debería tomar un momento."
+        },
+        "documentsReceived": {
+          "title": "Tenemos sus documentos",
+          "description": "Espere si es posible mientras verificamos sus documentos."
+        },
+        "applicationSubmitted": {
+          "title": "Solicitud enviada",
+          "description": "Espere mientras revisamos su solicitud. Este proceso generalmente toma de 1 a 2 días hábiles."
+        },
+        "informationRequested": {
+          "description": "Estamos teniendo dificultades para verificar su negocio. Proporcione documentación de respaldo."
+        },
+        "declined": {
+          "title": "Solicitud rechazada",
+          "description": "Lo sentimos, pero no podemos proceder con su solicitud en este momento."
+        },
+        "approved": {
+          "title": "¡Todo listo!",
+          "description": "Los datos de su negocio han sido verificados"
+        },
+        "businessTypeLabel": "Su tipo de negocio seleccionado",
+        "ptcLabel": "Empresa que cotiza en bolsa",
+        "ptcSubsidiaryLabel": "Filial de una empresa que cotiza en bolsa",
+        "notPubliclyTraded": "No cotiza en bolsa",
+        "notSubsidiary": "No es una subsidiaria de una empresa que cotiza en bolsa",
+        "ptcTicker": "Símbolo: {{ticker}}",
+        "ptcExchange": "Bolsa: {{exchange}}",
+        "ptcHint": "Si su empresa cotiza en bolsa o es subsidiaria de una que cotiza, seleccione Editar para agregar esa información.",
+        "changeWarning": "Si cambia esto después de iniciar la solicitud, podría perder su progreso guardado.",
+        "editBusinessType": "Editar"
+      },
+      "bankAccountSection": {
+        "title": "Vincular una cuenta bancaria para pagos",
+        "lockedMessage": "Disponible después de que se envíe su solicitud",
+        "linkAccountTitle": "Vincular una cuenta",
+        "multiAccountOverviewDescriptionSingular": "Tiene 1 cuenta vinculada para pagos. Abra el paso de vinculación bancaria para agregar otra cuenta o administrar los detalles.",
+        "multiAccountOverviewDescriptionPlural": "Tiene {{count}} cuentas vinculadas para pagos. Abra el paso de vinculación bancaria para agregar otra cuenta o administrar los detalles.",
+        "manageLinkedAccountsButton": "Administrar cuentas vinculadas",
+        "successAlert": {
+          "ACTIVE": "Su cuenta bancaria ha sido verificada y está lista para transacciones.",
+          "MICRODEPOSITS_INITIATED": "Los datos de su cuenta bancaria han sido enviados. Se enviarán dos pequeños depósitos a su cuenta para verificación.",
+          "PENDING": "Los datos de su cuenta bancaria han sido enviados y se están procesando.",
+          "READY_FOR_VALIDATION": "Los datos de su cuenta bancaria han sido enviados. Verifique los montos de los depósitos para completar la configuración.",
+          "REJECTED": "Los datos de su cuenta bancaria han sido enviados pero no pudieron ser verificados.",
+          "INACTIVE": "Los datos de su cuenta bancaria han sido enviados."
+        }
+      }
+    },
+    "linkAccount": {
+      "title": "Vincular una cuenta bancaria",
+      "description": "Conecte su cuenta bancaria para recibir pagos.",
+      "submitButton": "Vincular cuenta",
+      "errorTitle": "Error al vincular la cuenta",
+      "returnToOverview": "Volver al resumen",
+      "success": {
+        "title": "Cuenta vinculada exitosamente",
+        "description": "Su cuenta bancaria ha sido vinculada para pagos."
+      },
+      "review": {
+        "title": "Revise su cuenta bancaria",
+        "description": "Confirme los datos a continuación antes de vincular esta cuenta para pagos.",
+        "confirmButton": "Confirmar y vincular cuenta",
+        "addressHeading": "Dirección del titular de la cuenta",
+        "contactsHeading": "Contacto",
+        "acknowledgementsGroupLabel": "Acuerdos necesarios para vincular esta cuenta",
+        "acknowledgements": {
+          "termsAndPolicies": "Al confirmar, acepta nuestros <termsLink>Términos y condiciones</termsLink> y reconoce nuestra <privacyLink>Política de privacidad</privacyLink>.",
+          "payoutAccountAttestation": "Confirmo que esta cuenta bancaria pertenece o está autorizada para el negocio de mi solicitud para recibir pagos."
+        }
+      },
+      "prefillSummary": {
+        "description": "Revise los datos bancarios y acepte los acuerdos para vincular esta cuenta.",
+        "accountHolderLabel": "Titular de la cuenta",
+        "acknowledgementsIntro": "Al vincular electrónicamente esta cuenta, usted acepta que:",
+        "acknowledgements": {
+          "businessPurpose": "Reconozco que la cuenta vinculada es principalmente para fines comerciales y no para fines de consumo.",
+          "verifyAndAccuracy": "Autorizo la verificación de esta cuenta vinculada, incluida la verificación por microdepósito si es necesario. Certifico que la información proporcionada es precisa y coincide con los datos de mi cuenta bancaria.",
+          "debitAndTerms": "Autorizo al proveedor de la plataforma y a JPMorgan Chase Bank, N.A. a debitar mi cuenta o cuentas vinculadas para financiamiento, pago de saldos negativos u otras tarifas. He leído y acepto los <jpTermsLink>términos de J.P. Morgan</jpTermsLink> y el <platformAgreementLink>acuerdo del programa del proveedor de la plataforma</platformAgreementLink>."
+        }
+      }
+    },
+    "companyIdentification": {
+      "useDifferentIdType": "Usar un tipo de identificación diferente",
+      "contactPlatformOperator": "Si su negocio está fuera de los Estados Unidos, comuníquese con el operador de la plataforma."
+    },
+    "ownerSteps": {
+      "personalDetails": {
+        "title": "Datos personales",
+        "description": "Recopilamos información personal para verificar la identidad de las personas por motivos de seguridad y cumplimiento."
+      },
+      "identityDocument": {
+        "title": "Documento de identidad",
+        "description": "Necesitamos algunos datos adicionales para verificar la identidad de las personas por motivos de seguridad y cumplimiento."
+      },
+      "contactDetails": {
+        "title": "Datos de contacto",
+        "description": "Necesitamos algunos datos adicionales para confirmar la identidad del propietario."
+      },
+      "checkAnswers": {
+        "title": "Verifique sus respuestas",
+        "description": "Asegúrese de que sus respuestas sean precisas y complete cualquier elemento que haya omitido."
+      }
+    },
+    "personalSection": {
+      "label": "Sus datos personales",
+      "shortLabel": "Datos personales",
+      "requirementsList": [
+        "Su nombre y cargo",
+        "Identificador gubernamental (p. ej., número de seguro social)",
+        "Dirección y datos de contacto"
+      ],
+      "steps": {
+        "personalDetails": {
+          "title": "Sus datos personales",
+          "description": "Recopilamos su información personal como la persona principal que controla las operaciones comerciales de la empresa.",
+          "requirementSummary": "Su nombre y cargo"
+        },
+        "identityDocument": {
+          "title": "Sus datos de identificación",
+          "description": "Necesitamos algunos datos adicionales para confirmar su identidad.",
+          "requirementSummary": "Identificador gubernamental (p. ej., número de seguro social)"
+        },
+        "contactDetails": {
+          "title": "Sus datos de contacto",
+          "description": "Necesitamos algunos datos adicionales para confirmar su identidad.",
+          "requirementSummary": "Dirección y datos de contacto",
+          "countryMismatchWarning": "El país de la dirección no coincide con el país de residencia ({{country}}). Aún puede enviar, pero verifique que sea correcto."
+        },
+        "checkAnswers": {
+          "title": "Verifique sus respuestas",
+          "description": "Asegúrese de que sus respuestas sean precisas y complete cualquier elemento que haya omitido."
+        }
+      }
+    },
+    "businessSection": {
+      "label": "Detalles del negocio",
+      "requirementsList": [
+        "Código de clasificación industrial",
+        "Detalles del número de registro (p. ej., número de identificación del empleador)",
+        "Ubicación y datos de contacto"
+      ],
+      "steps": {
+        "businessIdentity": {
+          "title": "Identidad del negocio",
+          "description": "Proporcione detalles sobre su negocio."
+        },
+        "industry": {
+          "title": "Descripción y clasificación industrial",
+          "description": "Proporcione una descripción de su negocio, luego elija la clasificación que mejor describa sus líneas de negocio generadoras de ingresos."
+        },
+        "contactInfo": {
+          "title": "Información de contacto",
+          "description": "Indíquenos cómo comunicarnos con usted."
+        },
+        "checkAnswers": {
+          "title": "Verifique sus respuestas",
+          "description": "Asegúrese de que sus respuestas sean precisas y complete cualquier elemento que haya omitido."
+        }
+      }
+    },
+    "ownersSection": {
+      "label": "Propietarios y roles clave",
+      "shortLabel": "Propietarios",
+      "requirementsList": [
+        "Nombre y cargo de todas las personas",
+        "Identificador gubernamental (p. ej., número de seguro social)",
+        "Dirección y datos de contacto"
+      ]
+    },
+    "additionalQuestionsSection": {
+      "label": "Detalles operativos",
+      "requirementsList": [
+        "Ingresos anuales totales",
+        "Preguntas adicionales según el perfil de su negocio"
+      ]
+    },
+    "reviewAttestSection": {
+      "label": "Revisar y atestar",
+      "steps": {
+        "review": {
+          "title": "Revise sus datos",
+          "description": "Asegúrese de que sus respuestas sean precisas y complete cualquier elemento que haya omitido."
+        },
+        "documents": {
+          "title": "Términos y condiciones",
+          "description": "Abra y revise los siguientes documentos de J.P. Morgan para completar el proceso."
+        }
+      }
+    },
+    "uploadDocumentsSection": {
+      "label": "Documentos de respaldo",
+      "onHoldText": "Le informaremos si se necesitan documentos"
+    },
+    "operationalDetails": {
+      "title": "Detalles operativos",
+      "description": "Responda estas preguntas adicionales para ayudarnos a comprender las operaciones de su negocio.",
+      "selectPlaceholder": "Seleccione una opción",
+      "noQuestions": "No hay preguntas adicionales. Puede continuar al siguiente paso.",
+      "loadingQuestions": "Cargando preguntas...",
+      "saveAndReturn": "Guardar y volver a la revisión",
+      "saveAndContinue": "Guardar y continuar a la revisión",
+      "newQuestionsGenerated": "Según sus respuestas, se necesitan algunas preguntas adicionales. Por favor complételas para continuar."
+    }
+  },
+  "additionalQuestions": {
+    "validation": {
+      "dateFormat": "Formato de fecha no válido",
+      "required": "Requerido",
+      "invalidFormat": "Formato no válido",
+      "numberFormat": "Debe ser un número",
+      "maxItems": "No puede exceder {{maxItems}} elementos"
+    }
+  },
+  "fields": {
+    "controllerFirstName": {
+      "label": "Nombre",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "minLength": "$t(validation:text.minLength, {'count': 2})",
+        "maxLength": "$t(validation:text.maxLength, {'count': 30})",
+        "pattern": "$t(validation:text.namePattern)",
+        "noNumbers": "$t(validation:text.noNumbers)",
+        "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)",
+        "noConsecutiveHyphens": "$t(validation:text.noConsecutiveHyphens)",
+        "noLeadingHyphen": "$t(validation:text.noLeadingHyphen)",
+        "noTrailingHyphen": "$t(validation:text.noTrailingHyphen)"
+      }
+    },
+    "controllerMiddleName": {
+      "label": "Segundo nombre",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "maxLength": "$t(validation:text.maxLength, {'count': 30})",
+        "pattern": "$t(validation:text.namePattern)",
+        "noNumbers": "$t(validation:text.noNumbers)",
+        "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)",
+        "noConsecutiveHyphens": "$t(validation:text.noConsecutiveHyphens)",
+        "noLeadingHyphen": "$t(validation:text.noLeadingHyphen)",
+        "noTrailingHyphen": "$t(validation:text.noTrailingHyphen)"
+      }
+    },
+    "controllerLastName": {
+      "label": "Apellido",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "minLength": "$t(validation:text.minLength, {'count': 2})",
+        "maxLength": "$t(validation:text.maxLength, {'count': 30})",
+        "pattern": "$t(validation:text.namePattern)",
+        "noNumbers": "$t(validation:text.noNumbers)",
+        "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)",
+        "noConsecutiveHyphens": "$t(validation:text.noConsecutiveHyphens)",
+        "noLeadingSpace": "$t(validation:text.noLeadingSpace)",
+        "noTrailingSpace": "$t(validation:text.noTrailingSpace)",
+        "noLeadingHyphen": "$t(validation:text.noLeadingHyphen)",
+        "noTrailingHyphen": "$t(validation:text.noTrailingHyphen)"
+      }
+    },
+    "controllerNameSuffix": {
+      "label": "Sufijo",
+      "description": "(p. ej., Jr., Sr. II, etc.)",
+      "tooltip": "",
+      "validation": {
+        "minLength": "$t(validation:text.minLength, {'count': 1})",
+        "maxLength": "$t(validation:text.maxLength, {'count': 5})",
+        "pattern": "El sufijo solo puede contener letras, puntos y números romanos"
+      }
+    },
+    "controllerJobTitle": {
+      "label": "Cargo",
+      "placeholder": "Seleccionar cargo",
+      "description": {
+        "default": "Su puesto actual en la organización",
+        "owner": "El puesto actual del propietario en la organización"
+      },
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "invalidOption": "$t(validation:common.invalidOption)",
+        "minLength": "$t(validation:text.minLength, {'count': 2})",
+        "maxLength": "$t(validation:text.maxLength, {'count': 50})",
+        "pattern": "$t(validation:text.pattern)",
+        "noLeadingSpace": "$t(validation:text.noLeadingSpace)",
+        "noTrailingSpace": "$t(validation:text.noTrailingSpace)"
+      }
+    },
+    "controllerJobTitleDescription": {
+      "label": "Descripción del cargo",
+      "placeholder": "Ingrese la descripción del cargo",
+      "description": {
+        "default": "Breve descripción de su rol y responsabilidades",
+        "owner": "Breve descripción del rol y responsabilidades del propietario"
+      },
+      "tooltip": "",
+      "validation": {
+        "maxLength": "$t(validation:text.maxLength, {'count': 50})",
+        "pattern": "$t(validation:text.pattern)",
+        "noHtml": "$t(validation:text.noHtml)",
+        "noUrls": "$t(validation:text.noUrls)",
+        "required": "La descripción es requerida cuando el cargo es Otro."
+      }
+    },
+    "natureOfOwnership": {
+      "label": "Naturaleza de la propiedad",
+      "placeholder": "Seleccionar naturaleza de la propiedad",
+      "description": "Cómo posee o controla la organización",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "invalidOption": "$t(validation:common.invalidOption)"
+      }
+    },
+    "birthDate": {
+      "label": "Fecha de nacimiento",
+      "description": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "format": "$t(validation:date.format, {'format': 'MM/DD/YYYY'})",
+        "invalid": "$t(validation:date.invalid)",
+        "future": "$t(validation:date.future)",
+        "tooOld": "$t(validation:date.age.tooOld, {'years': 120})",
+        "tooYoung": "$t(validation:date.age.tooYoung, {'years': 18})"
+      }
+    },
+    "countryOfResidence": {
+      "label": "País de residencia",
+      "tooltip": "",
+      "description": {
+        "default": "Seleccione su país de residencia actual",
+        "soleProp": "Como propietario único, su país de residencia está establecido como Estados Unidos",
+        "owner": "Seleccione el país de residencia actual del propietario"
+      },
+      "validation": {
+        "required": "$t(validation:required)",
+        "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})",
+        "onlyUS": "Solo se admite EE. UU. en este momento"
+      }
+    },
+    "solePropSsn": {
+      "label": "$t(onboarding-overview:idValueLabels.SSN)",
+      "description": "$t(onboarding-overview:idValueDescriptions.SSN)",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "format": "$t(validation:id.ssn)"
+      }
+    },
+    "controllerIds.idType": {
+      "label": "Tipo de identificación",
+      "placeholder": "Seleccionar tipo de identificación",
+      "description": "Elija el tipo de identificación gubernamental que desea proporcionar",
+      "tooltip": "",
+      "validation": {
+        "required": "El tipo de identificación es requerido"
+      }
+    },
+    "controllerIds.description": {
+      "label": "Descripción",
+      "placeholder": "Ingrese la descripción",
+      "description": "Descripción de la identificación",
+      "tooltip": "Debe coincidir con la descripción de la identificación en sus documentos de registro comercial",
+      "validation": {
+        "maxLength": "La descripción debe tener 100 caracteres o menos"
+      }
+    },
+    "controllerIds.value": {
+      "label": "Valor de identificación",
+      "placeholder": "Ingrese el valor de identificación",
+      "description": "Valor de identificación",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "format": "$t(validation:format)",
+        "ssnFormat": "$t(validation:id.ssn)",
+        "ssnLength": "$t(validation:id.ssnLength)",
+        "ssnDigitsOnly": "$t(validation:id.ssnDigitsOnly)",
+        "ssnFirstThree": "$t(validation:id.ssnFirstThree)",
+        "ssn666": "$t(validation:id.ssn666)",
+        "ssnKnownInvalid": "$t(validation:id.ssnKnownInvalid)",
+        "itinFormat": "$t(validation:id.itin.format)",
+        "itinRestrictedRange": "$t(validation:id.itin.invalidRange)",
+        "itinLength": "$t(validation:id.itin.length)",
+        "itinDigitsOnly": "$t(validation:id.itin.digitsOnly)",
+        "itinStartsWith9": "$t(validation:id.itin.startsWith9)",
+        "itinMiddleDigits": "$t(validation:id.itin.middleDigits)",
+        "itinKnownInvalid": "$t(validation:id.itin.knownInvalid)",
+        "noSpaces": "$t(validation:text.noSpaces)"
+      }
+    },
+    "controllerIds.expiryDate": {
+      "label": "Fecha de vencimiento",
+      "placeholder": "AAAA-MM-DD",
+      "description": "Fecha en que vence la identificación individual",
+      "tooltip": "",
+      "validation": {
+        "format": "La fecha de vencimiento debe estar en formato 'AAAA-MM-DD'",
+        "invalid": "Fecha inválida",
+        "past": "La fecha de vencimiento no puede ser en el pasado",
+        "tooFar": "La fecha de vencimiento no puede ser más de 10 años en el futuro"
+      }
+    },
+    "controllerIds.issuer": {
+      "label": "País emisor",
+      "placeholder": "Ingrese el emisor",
+      "description": {
+        "default": "Establecido según su país de residencia",
+        "owner": "Establecido según el país de residencia del propietario"
+      },
+      "tooltip": "",
+      "validation": {
+        "exactlyTwoChars": "El emisor debe ser un código de país de 2 letras"
+      }
+    },
+    "industry": {
+      "label": "Clasificación industrial",
+      "description": "p. ej., \"Concesionarios de botes\" o \"441222\".",
+      "placeholder": "Buscar por palabra clave o código NAICS de 6 dígitos",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)"
+      }
+    },
+    "countryOfFormation": {
+      "label": "País de registro",
+      "description": "",
+      "placeholder": "Seleccionar país de constitución",
+      "tooltip": "",
+      "validation": {
+        "exactlyTwoChars": "El código de país debe tener exactamente 2 caracteres",
+        "invalid": "Código de país inválido",
+        "usOnly": "Solo se admite EE. UU. en este momento"
+      }
+    },
+    "organizationName": {
+      "label": "Razón social de la empresa",
+      "fieldName": "Nombre del negocio",
+      "description": {
+        "default": "Ingrese esto exactamente como aparece en sus documentos de registro comercial",
+        "soleProp": "El nombre de su negocio como propietario único es el mismo que su nombre legal. Actualícelo en la sección de datos personales."
+      },
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "pattern": "$t(validation:text.namePattern)",
+        "minLength": "$t(validation:text.minLength, {'count': 2})",
+        "maxLength": "$t(validation:text.maxLength, {'count': 100})",
+        "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)"
+      }
+    },
+    "yearOfFormation": {
+      "label": "Año de constitución",
+      "description": "Ingrese en formato AAAA (p. ej., 2001)",
+      "tooltip": "",
+      "validation": {
+        "format": "$t(validation:year.format)",
+        "min": "$t(validation:year.min, {'min': 1800})",
+        "future": "$t(validation:year.future)"
+      }
+    },
+    "organizationIdEin": {
+      "label": "$t(onboarding-overview:idValueLabels.EIN)",
+      "description": {
+        "default": "$t(onboarding-overview:idValueLabels.EIN)",
+        "soleProp": "Actualice su identificación en la sección de datos personales"
+      },
+      "tooltip": "Debe coincidir con el valor de identificación de sus documentos de registro comercial",
+      "validation": {
+        "required": "$t(validation:required)",
+        "length": "El EIN debe tener exactamente 9 dígitos",
+        "digitsOnly": "El EIN solo puede contener números",
+        "invalidPrefix": "Prefijo de EIN inválido"
+      }
+    },
+    "solePropHasEin": {
+      "label": "¿Su negocio tiene un $t(onboarding-overview:idValueLabels.EIN)?",
+      "fieldName": "Este campo",
+      "description": "",
+      "tooltip": "",
+      "options": {
+        "yes": "Sí, mi negocio tiene un EIN",
+        "no": "No, mi negocio no tiene un EIN"
+      },
+      "validation": {
+        "required": "$t(validation:required)"
+      }
+    },
+    "controllerPhone": {
+      "label": "Número de teléfono",
+      "phoneNumber": {
+        "label": "Número de teléfono",
+        "placeholder": "Ingrese el número de teléfono",
+        "validation": {
+          "required": "$t(validation:required)",
+          "format": "$t(validation:phone.format)",
+          "pattern": "$t(validation:phone.pattern, {'format': 'international', 'example': '+1234567890'})"
+        }
+      },
+      "phoneType": {
+        "validation": {
+          "required": "$t(validation:required)"
+        }
+      }
+    },
+    "organizationPhone": {
+      "fieldName": {
+        "default": "Número de teléfono de la empresa",
+        "soleProp": "Número de teléfono comercial"
+      },
+      "phoneNumber": {
+        "label": "Número de teléfono comercial",
+        "validation": {
+          "required": "$t(validation:required)",
+          "format": "$t(validation:contact.phone.format)",
+          "pattern": "$t(validation:contact.phone.pattern, {'example': '+1234567890'})"
+        }
+      },
+      "phoneType": {
+        "validation": {
+          "required": "$t(validation:required)"
+        }
+      }
+    },
+    "organizationEmail": {
+      "label": {
+        "default": "Correo electrónico de la empresa",
+        "soleProp": "Correo electrónico comercial"
+      },
+      "description": {
+        "default": "Proporcione la mejor dirección de correo electrónico para contactar al negocio"
+      },
+      "tooltip": "",
+      "validation": {
+        "invalid": "$t(validation:email.invalid)",
+        "maxLength": "$t(validation:text.maxLength)",
+        "required": "$t(validation:required)"
+      }
+    },
+    "controllerEmail": {
+      "label": "Correo electrónico",
+      "placeholder": "Ingrese el correo electrónico",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "invalid": "$t(validation:contact.email.invalid)",
+        "maxLength": "$t(validation:contact.email.maxLength, {'count': 100})"
+      },
+      "group": "contact"
+    },
+    "individualAddress.sectionTitle": {
+      "default": "Dirección personal",
+      "owner": "Dirección personal del propietario"
+    },
+    "individualAddress.label": "Dirección",
+    "individualAddress.country": {
+      "label": "País",
+      "placeholder": "Seleccionar país",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})",
+        "onlyUS": "Solo se admite EE. UU. en este momento"
+      }
+    },
+    "individualAddress.primaryAddressLine": {
+      "label": "Línea de dirección 1",
+      "placeholder": "Ingrese la línea de dirección 1",
+      "description": "No se aceptan apartados postales",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+        "pattern": "La dirección solo puede contener letras, números y puntuación básica",
+        "poBox": "No se aceptan apartados postales (PO Box) ni buzones privados (PMB). Ingrese una dirección física."
+      }
+    },
+    "individualAddress.secondaryAddressLine": {
+      "label": "Línea de dirección 2",
+      "placeholder": "Ingrese la línea de dirección 2",
+      "description": "Apto., suite, unidad, edificio, etc.",
+      "tooltip": "",
+      "validation": {
+        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+        "pattern": "La dirección solo puede contener letras, números y puntuación básica"
+      }
+    },
+    "individualAddress.tertiaryAddressLine": {
+      "label": "Línea de dirección 3",
+      "placeholder": "Ingrese la línea de dirección 3",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+        "pattern": "La dirección solo puede contener letras, números y puntuación básica"
+      }
+    },
+    "individualAddress.city": {
+      "label": "$t(onboarding-overview:addressFields.city.label.default)",
+      "placeholder": "$t(onboarding-overview:addressFields.city.placeholder.default)",
+      "description": "$t(onboarding-overview:addressFields.city.description.default)",
+      "tooltip": "$t(onboarding-overview:addressFields.city.tooltip.default)",
+      "validation": {
+        "required": "$t(onboarding-overview:addressFields.city.label.{{country}}) es requerido(a)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 34})"
+      }
+    },
+    "individualAddress.state": {
+      "label": "$t(onboarding-overview:addressFields.state.label.default)",
+      "placeholder": "$t(onboarding-overview:addressFields.state.placeholder.default)",
+      "description": "$t(onboarding-overview:addressFields.state.description.default)",
+      "tooltip": "$t(onboarding-overview:addressFields.state.tooltip.default)",
+      "validation": {
+        "required": "$t(onboarding-overview:addressFields.state.label.{{country}}) es requerido(a)",
+        "invalid": "Por favor seleccione un(a) $t(onboarding-overview:addressFields.state.label.{{country}}) válido(a)"
+      }
+    },
+    "individualAddress.postalCode": {
+      "label": "$t(onboarding-overview:addressFields.postalCode.label.default)",
+      "placeholder": "$t(onboarding-overview:addressFields.postalCode.placeholder.default)",
+      "description": "$t(onboarding-overview:addressFields.postalCode.description.default)",
+      "tooltip": "$t(onboarding-overview:addressFields.postalCode.tooltip.default)",
+      "validation": {
+        "required": "$t(onboarding-overview:addressFields.postalCode.label.{{country}}) es requerido",
+        "maxLength": "$t(validation:text.maxLength, {'count': 10})",
+        "invalid": "Ingrese un código postal válido",
+        "invalidUS": "El código ZIP debe tener 5 o 9 dígitos (formato ZIP+4)",
+        "invalidCA": "El código postal debe tener el formato A1A 1A1",
+        "invalidGB": "El código postal debe tener un formato válido del Reino Unido (p. ej., SW1A 1AA)",
+        "invalidBR": "El CEP debe tener 8 dígitos (p. ej., 01001-000)",
+        "invalidJP": "El código postal debe tener 7 dígitos (p. ej., 123-4567)",
+        "invalidPL": "El código postal debe tener el formato XX-XXX (p. ej., 00-950)",
+        "invalidFourDigit": "El código postal debe tener exactamente 4 dígitos",
+        "invalidFiveDigit": "El código postal debe tener exactamente 5 dígitos",
+        "invalidSixDigit": "El código postal debe tener exactamente 6 dígitos",
+        "invalidSevenDigit": "El código postal debe tener exactamente 7 dígitos",
+        "invalidIE": "El Eircode debe tener el formato A65 F4E2 (p. ej., D02 AF30)",
+        "invalidNL": "El código postal debe tener el formato 1234 AB",
+        "invalidPT": "El código postal debe tener el formato XXXX-XXX (p. ej., 1000-001)",
+        "pattern": "El código postal debe tener exactamente 5 dígitos"
+      }
+    },
+    "organizationAddress.sectionTitle": "Dirección registrada",
+    "organizationAddress.sectionDescription": "Proporcione la dirección registrada de su empresa ante su autoridad local",
+    "organizationAddress.label": {
+      "default": "Dirección registrada",
+      "soleProp": "Dirección comercial"
+    },
+    "organizationAddress.country": {
+      "label": "País",
+      "placeholder": "Seleccionar país",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})",
+        "onlyUS": "Solo se admite EE. UU. en este momento"
+      }
+    },
+    "organizationAddress.primaryAddressLine": {
+      "label": "Línea de dirección 1",
+      "placeholder": "Ingrese la línea de dirección 1",
+      "description": "No se aceptan apartados postales",
+      "tooltip": "No se permiten apartados postales (PO Box), buzones privados (PMB), oficinas virtuales ni direcciones de agentes registrados. La dirección debe ser el lugar principal de negocios.",
+      "validation": {
+        "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+        "pattern": "La dirección solo puede contener letras, números y puntuación básica",
+        "poBox": "No se aceptan apartados postales (PO Box) ni buzones privados (PMB). Ingrese una dirección física."
+      }
+    },
+    "organizationAddress.secondaryAddressLine": {
+      "label": "Línea de dirección 2",
+      "placeholder": "Ingrese la línea de dirección 2",
+      "description": "Apto., suite, unidad, edificio, etc.",
+      "tooltip": "",
+      "validation": {
+        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+        "pattern": "La dirección solo puede contener letras, números y puntuación básica"
+      }
+    },
+    "organizationAddress.tertiaryAddressLine": {
+      "label": "Línea de dirección 3",
+      "placeholder": "Ingrese la línea de dirección 3",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+        "pattern": "La dirección solo puede contener letras, números y puntuación básica"
+      }
+    },
+    "organizationAddress.city": {
+      "label": "$t(onboarding-overview:addressFields.city.label.default)",
+      "placeholder": "$t(onboarding-overview:addressFields.city.placeholder.default)",
+      "description": "$t(onboarding-overview:addressFields.city.description.default)",
+      "tooltip": "$t(onboarding-overview:addressFields.city.tooltip.default)",
+      "validation": {
+        "required": "$t(onboarding-overview:addressFields.city.label.{{country}}) es requerido(a)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 34})"
+      }
+    },
+    "organizationAddress.state": {
+      "label": "$t(onboarding-overview:addressFields.state.label.default)",
+      "placeholder": "$t(onboarding-overview:addressFields.state.placeholder.default)",
+      "description": "$t(onboarding-overview:addressFields.state.description.default)",
+      "tooltip": "$t(onboarding-overview:addressFields.state.tooltip.default)",
+      "validation": {
+        "required": "$t(onboarding-overview:addressFields.state.label.{{country}}) es requerido(a)",
+        "invalid": "Por favor seleccione un(a) $t(onboarding-overview:addressFields.state.label.{{country}}) válido(a)"
+      }
+    },
+    "organizationAddress.postalCode": {
+      "label": "$t(onboarding-overview:addressFields.postalCode.label.default)",
+      "placeholder": "$t(onboarding-overview:addressFields.postalCode.placeholder.default)",
+      "description": "$t(onboarding-overview:addressFields.postalCode.description.default)",
+      "tooltip": "$t(onboarding-overview:addressFields.postalCode.tooltip.default)",
+      "validation": {
+        "required": "$t(onboarding-overview:addressFields.postalCode.label.{{country}}) es requerido",
+        "maxLength": "$t(validation:text.maxLength, {'count': 10})",
+        "invalid": "Ingrese un código postal válido",
+        "invalidUS": "El código ZIP debe tener 5 o 9 dígitos (formato ZIP+4)",
+        "invalidCA": "El código postal debe tener el formato A1A 1A1",
+        "invalidGB": "El código postal debe tener un formato válido del Reino Unido (p. ej., SW1A 1AA)",
+        "invalidBR": "El CEP debe tener 8 dígitos (p. ej., 01001-000)",
+        "invalidJP": "El código postal debe tener 7 dígitos (p. ej., 123-4567)",
+        "invalidPL": "El código postal debe tener el formato XX-XXX (p. ej., 00-950)",
+        "invalidFourDigit": "El código postal debe tener exactamente 4 dígitos",
+        "invalidFiveDigit": "El código postal debe tener exactamente 5 dígitos",
+        "invalidSixDigit": "El código postal debe tener exactamente 6 dígitos",
+        "invalidSevenDigit": "El código postal debe tener exactamente 7 dígitos",
+        "invalidIE": "El Eircode debe tener el formato A65 F4E2 (p. ej., D02 AF30)",
+        "invalidNL": "El código postal debe tener el formato 1234 AB",
+        "invalidPT": "El código postal debe tener el formato XXXX-XXX (p. ej., 1000-001)",
+        "pattern": "El código postal debe tener exactamente 5 dígitos"
+      }
+    },
+    "dbaNameNotAvailable": {
+      "description": "",
+      "tooltip": "",
+      "label": "Igual que la razón social de la empresa"
+    },
+    "websiteNotAvailable": {
+      "description": "",
+      "tooltip": "",
+      "label": "Mi negocio no tiene sitio web"
+    },
+    "isPTCOrSubsidiary": {
+      "label": "¿Su organización cotiza en bolsa o es una subsidiaria de una empresa que cotiza en bolsa?",
+      "labelSubsidiaryOnly": "¿Su organización es una subsidiaria de una empresa que cotiza en bolsa?",
+      "description": "",
+      "tooltip": "Una empresa que cotiza en bolsa (ECB) está registrada en una bolsa de valores. Una subsidiaria de una ECB es una organización en la que el 51% o más de su propiedad es de una ECB.",
+      "options": {
+        "none": "No",
+        "ptc": "Sí, mi organización cotiza en bolsa",
+        "subsidiary": "Sí, mi organización es una subsidiaria de una empresa que cotiza en bolsa"
+      }
+    },
+    "tickerSymbol": {
+      "label": "Símbolo bursátil",
+      "labelSubsidiary": "Símbolo bursátil de la empresa matriz",
+      "description": "El símbolo bursátil",
+      "descriptionSubsidiary": "Ingrese el símbolo bursátil de la empresa matriz que cotiza en bolsa",
+      "tooltip": "",
+      "placeholder": "p. ej. JPM",
+      "fieldName": "Símbolo bursátil",
+      "validation": {
+        "required": "$t(validation:required)",
+        "pattern": "El símbolo bursátil debe contener solo letras mayúsculas y números",
+        "maxLength": "$t(validation:text.maxLength, {'count': 10})"
+      }
+    },
+    "stockExchange": {
+      "label": "Bolsa de valores",
+      "labelSubsidiary": "Bolsa de valores de la empresa matriz",
+      "description": "Si cotiza en múltiples bolsas, seleccione la bolsa de cotización principal",
+      "descriptionSubsidiary": "Si cotiza en múltiples bolsas, seleccione la bolsa de cotización principal de la empresa matriz",
+      "tooltip": "",
+      "placeholder": "Buscar una bolsa de valores",
+      "fieldName": "Bolsa de valores",
+      "groups": {
+        "priority": "Bolsas prioritarias",
+        "otherMajor": "Otras bolsas importantes",
+        "other": "Otro"
+      },
+      "otherOption": "Otro (no aparece en la lista)",
+      "validation": {
+        "required": "$t(validation:required)"
+      }
+    },
+    "stockExchangeName": {
+      "label": "Nombre de la bolsa de valores",
+      "description": "Por favor ingrese el nombre de la bolsa de valores.",
+      "tooltip": "",
+      "placeholder": "p. ej. Bolsa de Tokio",
+      "fieldName": "Nombre de la bolsa de valores",
+      "validation": {
+        "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 100})"
+      }
+    },
+    "website": {
+      "label": "Sitio web de la empresa",
+      "tooltip": "",
+      "description": "Debe comenzar con https://",
+      "placeholder": "https://www.example.com",
+      "fieldName": "URL del sitio web",
+      "validation": {
+        "format": "$t(validation:url.format, {'example': 'https://www.example.com'})",
+        "maxLength": "$t(validation:text.maxLength, {'count': 500})",
+        "required": "$t(validation:required)",
+        "noIp": "$t(validation:url.noIp)"
+      }
+    },
+    "dbaName": {
+      "label": "Nombre comercial",
+      "fieldName": "Nombre comercial",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength)",
+        "pattern": "$t(validation:text.namePattern)",
+        "noLeadingSpace": "$t(validation:text.noLeadingSpace)",
+        "noTrailingSpace": "$t(validation:text.noTrailingSpace)",
+        "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)",
+        "minLength": "$t(validation:text.minLength)"
+      }
+    },
+    "organizationDescription": {
+      "label": "Descripción del negocio",
+      "description": "Proporcione un resumen de los productos y servicios que ofrece a los consumidores. Máximo 1,000 caracteres.",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength)",
+        "minLength": "$t(validation:text.minLength)",
+        "noHtml": "$t(validation:text.noHtml)",
+        "noUrls": "$t(validation:text.noUrls)"
+      },
+      "tooltipContent": {
+        "exampleTitle": "Ejemplo de descripción",
+        "exampleText": "{Business name} crea productos de belleza y cuidado del cabello sostenibles y asequibles, veganos y libres de crueldad animal. Nuestros productos más vendidos son nuestra línea de champú y acondicionador de cítricos orgánicos, así como nuestra máscara de pestañas sin parabenos ni sulfatos.",
+        "alignmentNote": "Asegúrese de que esto coincida con la clasificación de negocio que ha seleccionado.",
+        "visibilityTitle": "¿Mis clientes verán esto?",
+        "visibilityText": "No. Esto se utiliza únicamente con fines de cumplimiento y regulatorios."
+      }
+    },
+    "organizationTypeHierarchy": {
+      "generalOrganizationType": {
+        "label": "Seleccione su tipo general de negocio",
+        "description": "",
+        "tooltip": ""
+      },
+      "specificOrganizationType": {
+        "label": {
+          "REGISTERED_BUSINESS": "Seleccione la estructura legal específica",
+          "OTHER": "Seleccione su estructura de negocio específica"
+        },
+        "description": {
+          "REGISTERED_BUSINESS": "P. ej., Compañía de Responsabilidad Limitada (LLC)",
+          "OTHER": "P. ej., Corporación sin fines de lucro"
+        },
+        "placeholder": "Seleccionar o buscar",
+        "tooltip": ""
+      }
+    },
+    "organizationPhone.phoneType": {
+      "label": "Tipo de teléfono de la organización",
+      "placeholder": "Seleccionar tipo de teléfono",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)"
+      }
+    },
+    "organizationPhone.phoneNumber": {
+      "label": "Número de teléfono de la organización",
+      "placeholder": "Ingrese el número de teléfono de la organización",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "format": "$t(validation:phone.format)"
+      }
+    },
+    "controllerPhone.phoneType": {
+      "label": "Tipo de teléfono del controlador",
+      "placeholder": "Seleccionar tipo de teléfono",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)"
+      }
+    },
+    "controllerPhone.phoneNumber": {
+      "label": "Número de teléfono del controlador",
+      "placeholder": "Ingrese el número de teléfono del controlador",
+      "description": "",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "format": "$t(validation:phone.format)"
+      }
+    }
+  },
+  "idValueLabels": {
+    "placeholder": "Ingrese el valor de identificación",
+    "EIN": "Número de Identificación del Empleador (EIN)",
+    "BUSINESS_REGISTRATION_ID": "Número de registro comercial",
+    "BUSINESS_NUMBER": "Número de empresa",
+    "BUSINESS_REGISTRATION_NUMBER": "Número de inscripción comercial",
+    "SSN": "Número de seguro social (SSN)",
+    "ITIN": "Número de Identificación de Contribuyente Individual (ITIN)",
+    "NATIONAL_ID": "Identificación nacional",
+    "PASSPORT": "Pasaporte",
+    "DRIVERS_LICENSE": "Licencia de conducir",
+    "OTHER_GOVERNMENT_ID": "Otra identificación gubernamental",
+    "SOCIAL_INSURANCE_NUMBER": "Número de Seguro Social (SIN)"
+  },
+  "idValueDescriptions": {
+    "EIN": "Un número único de nueve dígitos, asignado por el IRS, que identifica a su empresa como un negocio que opera en los Estados Unidos.",
+    "BUSINESS_REGISTRATION_ID": "Un identificador único asignado por el estado o provincia donde su negocio está registrado.",
+    "BUSINESS_NUMBER": "Un número único asignado por la Agencia de Ingresos de Canadá (CRA) para identificar su negocio.",
+    "BUSINESS_REGISTRATION_NUMBER": "Un número único asignado por el estado o provincia donde su negocio está registrado.",
+    "SSN": "P. ej., 555-11-0000",
+    "ITIN": "P. ej., 900-70-0000",
+    "NATIONAL_ID": "Identificación nacional",
+    "PASSPORT": "Ingrese su número de pasaporte",
+    "DRIVERS_LICENSE": "Ingrese su número de licencia de conducir",
+    "OTHER_GOVERNMENT_ID": "Ingrese su número de identificación gubernamental",
+    "SOCIAL_INSURANCE_NUMBER": "Número de Seguro Social (SIN)"
+  },
+  "organizationTypes": {
+    "LIMITED_LIABILITY_COMPANY": "Compañía de Responsabilidad Limitada (LLC)",
+    "LIMITED_LIABILITY_PARTNERSHIP": "Sociedad de Responsabilidad Limitada (LLP)",
+    "GENERAL_PARTNERSHIP": "Sociedad General",
+    "LIMITED_PARTNERSHIP": "Sociedad en Comandita",
+    "C_CORPORATION": "Corporación tipo C",
+    "S_CORPORATION": "Corporación tipo S",
+    "PARTNERSHIP": "Sociedad",
+    "NON_PROFIT_CORPORATION": "Corporación sin fines de lucro",
+    "GOVERNMENT_ENTITY": "Entidad gubernamental",
+    "SOLE_PROPRIETORSHIP": "Propietario único",
+    "UNINCORPORATED_ASSOCIATION": "Asociación no incorporada",
+    "PUBLICLY_TRADED_COMPANY": "Empresa que cotiza en bolsa"
+  },
+  "organizationTypeDescriptions": {
+    "LIMITED_LIABILITY_COMPANY": "Una empresa propiedad de uno o más miembros y administrada por uno o más gerentes.",
+    "LIMITED_LIABILITY_PARTNERSHIP": "Una sociedad donde todos los propietarios, o socios limitados, tienen responsabilidad limitada.",
+    "GENERAL_PARTNERSHIP": "Una sociedad donde todos los propietarios, o socios generales, tienen responsabilidad ilimitada.",
+    "LIMITED_PARTNERSHIP": "Una sociedad entre uno o más socios limitados y un socio general.",
+    "C_CORPORATION": "Una empresa propiedad de accionistas y administrada por una junta directiva y otros ejecutivos.",
+    "S_CORPORATION": "Una Corporación tipo S es una corporación que cumple con los requisitos del IRS para ser gravada bajo el Subcapítulo S del Código de Rentas Internas.",
+    "PARTNERSHIP": "Una Sociedad es una estructura empresarial en la que dos o más personas administran y operan un negocio de acuerdo con los términos y objetivos establecidos en un Contrato de Sociedad.",
+    "PUBLICLY_TRADED_COMPANY": "Una Empresa que cotiza en bolsa es una empresa que ha emitido valores a través de una oferta pública inicial (OPI) y se negocia en al menos una bolsa de valores o en mercados extrabursátiles.",
+    "NON_PROFIT_CORPORATION": "Una Corporación sin fines de lucro es una entidad legal formada con el propósito de servir un beneficio público o mutuo distinto a la búsqueda o acumulación de ganancias para propietarios o inversionistas.",
+    "GOVERNMENT_ENTITY": "Una Entidad gubernamental es una organización estatal, local o federal que tiene una función o autoridad específica.",
+    "SOLE_PROPRIETORSHIP": "Un negocio no incorporado donde el propietario y el negocio se consideran legalmente como la misma entidad.",
+    "UNINCORPORATED_ASSOCIATION": "Una Asociación no incorporada es un grupo de personas que se reúnen con un propósito común pero no se registran como corporación o compañía de responsabilidad limitada."
+  },
+  "generalOrganizationTypes": {
+    "SOLE_PROPRIETORSHIP": "Propietario único",
+    "REGISTERED_BUSINESS": "Negocio registrado",
+    "OTHER": "Otro tipo de organización"
+  },
+  "generalOrganizationTypeDescriptions": {
+    "SOLE_PROPRIETORSHIP": "Soy el único propietario de mi negocio",
+    "REGISTERED_BUSINESS": "Administro un negocio registrado, como una $t(onboarding-overview:organizationTypes.LIMITED_LIABILITY_COMPANY)",
+    "OTHER": "Trabajo en otro tipo de organización, como una entidad sin fines de lucro o estatal"
+  },
+  "jobTitles": {
+    "CEO": "Director ejecutivo",
+    "CFO": "Director financiero",
+    "COO": "Director de operaciones",
+    "President": "Presidente",
+    "Chairman": "Presidente de la junta",
+    "Senior Branch Manager": "Gerente principal de sucursal",
+    "Other": "Otro"
+  },
+  "natureOfOwnership": {
+    "Direct": "Directa",
+    "Indirect": "Indirecta"
+  },
+  "documentRequest": {
+    "resetForm": "Restablecer formulario"
+  },
+  "requirementStep": {
+    "stepLabel": "Paso {{step}}",
+    "completedDocumentsProvided": "Completado - Documentos proporcionados:",
+    "optional": "Opcional"
+  },
+  "reviewAndAttest": {
+    "businessType": "Tipo de negocio",
+    "notSubmittedYet": "Su solicitud aún no ha sido enviada. Revise sus datos y continúe para finalizar.",
+    "thereIsAProblem": "Hay un problema",
+    "provideMissingDetails": "Proporcione los detalles faltantes antes de finalizar su solicitud.",
+    "owners": "Propietarios",
+    "noStakeholders": "Aún no se han agregado partes interesadas.",
+    "owner": "Propietario",
+    "controller": "Controlador",
+    "individualMissingDetails": "ⓘ A esta persona le faltan algunos detalles.",
+    "operationalDetailsHeading": "Detalles operativos",
+    "fieldIsMissing": "Este campo falta",
+    "response": "Respuesta",
+    "complete": "Completo",
+    "missingDetails": "Detalles faltantes",
+    "dataAccuracyAttestation": "Atestación de exactitud de datos",
+    "dataAccuracyCheckbox": "Los datos que proporciono son verdaderos, precisos y completos según mi leal saber y entender.",
+    "termsAcknowledgements": {
+      "intro": "Al enviar electrónicamente esta solicitud, usted acepta que:"
+    },
+    "attestation": {
+      "heading": "Al enviar electrónicamente esta solicitud, usted acepta que:",
+      "accurateInfo": "Toda la información que ha proporcionado es completa y precisa, y está abriendo esta cuenta únicamente con fines comerciales y no para fines de consumo.",
+      "authorizeSharing": "Usted autoriza a {{platformName}} y JPMorgan Chase Bank, N.A. (\"JPMC\") a compartir información para facilitar la apertura de su(s) cuenta(s) de depósito, y designa a {{platformName}} como su agente para actuar en su nombre con respecto a su cuenta de depósito.",
+      "mustAgreeToAll": "Debe aceptar todas las atestaciones antes de continuar.",
+      "mustAttestAccurate": "Debe atestar que los datos son verdaderos, precisos y completos.",
+      "mustAgreeToTerms": "Debe aceptar los términos antes de continuar."
+    },
+    "termsAndConditions": {
+      "openDocumentsAlert": "Abra los enlaces de los documentos y confirme que ha leído y acepta todos los documentos.",
+      "downloading": "Descargando...",
+      "failedToDownload": "Error al descargar el documento:",
+      "failedToFetchDetails": "Error al obtener los detalles del documento:",
+      "saveDocument": "Guardar y revisar documento",
+      "popupBlocked": "No se puede previsualizar el documento en el navegador. Guarde el documento usando el botón de abajo y revíselo antes de continuar.",
+      "attestations": "Atestaciones",
+      "agreeToTermsWithPlatform": "Ha leído y acepta los Términos de cuenta de J.P. Morgan y el {{platformAgreementLabel}}.",
+      "agreeToTerms": "Ha leído y acepta los Términos de cuenta de J.P. Morgan.",
+      "mustReviewDocuments": "Debe abrir y revisar todos los documentos antes de seleccionar la casilla"
+    }
+  }
+}

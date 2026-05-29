@@ -1,6 +1,5 @@
 import { FC, useCallback, useEffect, useMemo, useRef } from 'react';
 import { defaultResources, i18n } from '@/i18n/config';
-import { useEnableDTRUMTracking } from '@/utils/useDTRUMAction';
 import { DeepPartial } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -66,7 +65,8 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
   showLinkedAccountPanel = false,
   ...props
 }) => {
-  const { tokens: globalContentTokens = {} } = useContentTokens();
+  const { i18n: onboardingWizardI18n } = useTranslation('onboarding-old');
+  const { tokens: globalContentTokens = {} } = useContentTokens() ?? {};
 
   useEffect(() => {
     loadContentTokens(i18n.language, 'onboarding', [
@@ -80,25 +80,24 @@ export const OnboardingWizardBasic: FC<OnboardingWizardBasicProps> = ({
     i18n.language,
   ]);
 
-  // Prevent the user from leaving the page
+  // Same i18n + content-token behavior as OnboardingFlow leave warning (onboarding-old NS).
   useEffect(() => {
-    const handleBeforeUnload = (event: {
-      preventDefault: () => void;
-      returnValue: boolean;
-    }) => {
-      event.preventDefault();
-      // Included for legacy support, e.g. Chrome/Edge < 119
-      event.returnValue = true;
-    };
-
-    if (alertOnExit) {
-      window.addEventListener('beforeunload', handleBeforeUnload);
+    if (!alertOnExit) {
+      return undefined;
     }
 
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      const message = onboardingWizardI18n.t('leavePageWarning');
+      event.returnValue = message;
+      return message;
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [alertOnExit]);
+  }, [alertOnExit, onboardingWizardI18n, onboardingWizardI18n.language]);
 
   const eventAnnotationHandler = useCallback((e: Event) => {
     const target = e.target as HTMLTextAreaElement;
@@ -250,12 +249,6 @@ const OnboardingWizardBasicComponent: FC<
     organizationDetailsFromResponse?.jurisdiction,
     organizationDetailsFromResponse?.organizationType,
   ]);
-
-  useEnableDTRUMTracking({
-    userEmail: 'test@test.com',
-    DOMElementToTrack: 'embedded-component-layout',
-    eventsToTrack: ['click', 'blur'],
-  });
 
   const hasMounted = useRef(false);
   const stepRefs = useRef<(HTMLElement | null)[]>([]);
