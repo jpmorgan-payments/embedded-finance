@@ -53,7 +53,17 @@ function getLastReleaseRef() {
     // No tags exist
   }
 
-  // Strategy 2: Parse the date from the last CHANGELOG entry and find commits after that date
+  // Strategy 2: Find the most recent "chore(release):" commit
+  try {
+    const ref = run(
+      `git log -1 --pretty=format:"%H" --grep="^chore(release):" -- embedded-components/`
+    );
+    if (ref) return ref;
+  } catch {
+    // No release commits found
+  }
+
+  // Strategy 3: Parse the date from the last CHANGELOG entry
   try {
     const changelog = readFileSync(resolve(ROOT, 'CHANGELOG.md'), 'utf-8');
     const dateMatch = changelog.match(
@@ -61,7 +71,6 @@ function getLastReleaseRef() {
     );
     if (dateMatch) {
       const lastReleaseDate = dateMatch[1];
-      // Find the last commit on or before that date in embedded-components/
       const ref = run(
         `git log -1 --pretty=format:"%H" --until="${lastReleaseDate}T23:59:59" -- embedded-components/`
       );
@@ -71,7 +80,7 @@ function getLastReleaseRef() {
     // CHANGELOG parsing failed
   }
 
-  // Strategy 3: Use 4 weeks ago as a reasonable window
+  // Strategy 4: Use 4 weeks ago as a reasonable window
   return run('git rev-list -1 --before="4 weeks ago" HEAD');
 }
 
