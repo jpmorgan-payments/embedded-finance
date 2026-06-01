@@ -106,11 +106,17 @@ function categorizeCommits(commits) {
 
   const conventionalRegex = /^(\w+)(?:\(([^)]*)\))?!?:\s*(.+)$/;
 
+  // Map non-standard types to their canonical category
+  const typeAliases = {
+    bugfix: 'fix',
+    feature: 'feat',
+  };
+
   for (const msg of commits) {
     const match = msg.match(conventionalRegex);
     if (match) {
-      const [, type, scope, description] = match;
-      const key = type.toLowerCase();
+      const [, rawType, scope, description] = match;
+      const key = typeAliases[rawType.toLowerCase()] || rawType.toLowerCase();
       const target = categories[key] || categories.chore;
       const prefix = scope ? `**${scope}:** ` : '';
       target.items.push(`${prefix}${description}`);
