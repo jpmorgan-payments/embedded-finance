@@ -2,6 +2,14 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.14.3] - 2026-06-01
+
+### Changes
+
+#### Bug Fixes
+
+- **onboarding:** fix display of ptc text in review section
+
 ## [0.14.2] - 2026-06-01
 
 ### Changes
