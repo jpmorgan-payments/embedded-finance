@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'embedded-components/package.json'
+      - "embedded-components/package.json"
 
 permissions:
   contents: write
@@ -37,6 +37,8 @@ jobs:
       - name: Create tag and GitHub Release
         if: steps.check.outputs.exists == 'false'
         run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -a "${{ steps.version.outputs.tag }}" -m "Release ${{ steps.version.outputs.version }}"
           git push origin "${{ steps.version.outputs.tag }}"
 
@@ -45,7 +47,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ steps.version.outputs.tag }}" \
-            --title "v${{ steps.version.outputs.version }}" \
-            --generate-notes \
-            --notes-start-tag "$(git tag --sort=-v:refname | head -2 | tail -1)"
+          PREV_TAG=$(git tag --sort=-v:refname | head -2 | tail -1)
+          if [ -n "$PREV_TAG" ]; then
+            gh release create "${{ steps.version.outputs.tag }}" \
+              --title "v${{ steps.version.outputs.version }}" \
+              --generate-notes \
+              --notes-start-tag "$PREV_TAG"
+          else
+            gh release create "${{ steps.version.outputs.tag }}" \
+              --title "v${{ steps.version.outputs.version }}" \
+              --generate-notes
+          fi
