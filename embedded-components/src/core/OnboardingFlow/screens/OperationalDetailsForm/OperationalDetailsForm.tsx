@@ -135,22 +135,8 @@ export const OperationalDetailsForm = () => {
     return [...subIds].sort();
   }, [questionsData]);
 
-  // Extract parent question IDs that were not included in the initial fetch
-  const missingParentQuestionIds = useMemo(() => {
-    const fetchedQuestions = questionsData?.questions ?? [];
-    const fetchedIds = new Set(allQuestionIds);
-    const parentIds = fetchedQuestions
-      .map((q) => q.parentQuestionId)
-      .filter((id): id is string => !!id && !fetchedIds.has(id));
-    return [...new Set(parentIds)].sort();
-  }, [questionsData, allQuestionIds]);
-
-  // Fetch any sub-questions or parent questions that were missing from the initial response
-  const missingQuestionIds = useMemo(() => {
-    return [
-      ...new Set([...missingSubQuestionIds, ...missingParentQuestionIds]),
-    ].sort();
-  }, [missingSubQuestionIds, missingParentQuestionIds]);
+  // Fetch any sub-questions that were missing from the initial response
+  const missingQuestionIds = missingSubQuestionIds;
 
   const {
     data: supplementaryQuestionsData,
@@ -607,7 +593,8 @@ export const OperationalDetailsForm = () => {
     const parentQuestion = allQuestions.find(
       (q) => q.id === question.parentQuestionId
     );
-    if (!parentQuestion) return false;
+    // If parent isn't in our list, show the question anyway
+    if (!parentQuestion) return true;
 
     const parentResponse = form.watch(`question_${parentQuestion.id}`);
 
@@ -631,7 +618,12 @@ export const OperationalDetailsForm = () => {
   };
 
   const isQuestionParent = (question: QuestionResponse) => {
-    return !question.parentQuestionId;
+    if (!question.parentQuestionId) return true;
+    // Treat as top-level if parent isn't in our question list
+    const parentExists = allQuestions.some(
+      (q) => q.id === question.parentQuestionId
+    );
+    return !parentExists;
   };
 
   const onSubmit = (values: any) => {
