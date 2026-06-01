@@ -2,6 +2,25 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.14.2] - 2026-06-01
+
+### Changes
+
+#### Bug Fixes
+
+- **onboarding:** fix scenarios where skipped steps will still be displayed
+
+#### Chores
+
+- update release script
+- update lockfile
+- updating tagging with credentials
+
+#### Tests
+
+- **onboarding:** update e2e test to check for correct EIN
+- **onboarding:** update e2e test to use valid EIN
+
 ## [0.14.1] - 2026-05-29
 
 ### Changes
