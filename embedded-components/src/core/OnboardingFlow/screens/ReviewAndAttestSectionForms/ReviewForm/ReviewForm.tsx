@@ -767,16 +767,25 @@ const GatewayReviewCard: React.FC<{
               {t('fields.isPTCOrSubsidiary.label', 'Publicly traded status')}
             </p>
             <p className="eb-text-sm">
-              {[
-                ptcDisplayValue as string,
-                publiclyTraded.tickerSymbol &&
-                  `${t('fields.tickerSymbol.label', 'Ticker symbol')}: ${publiclyTraded.tickerSymbol}`,
-                (publiclyTraded.stockExchangeName ||
-                  publiclyTraded.stockExchange) &&
-                  `${t('fields.stockExchange.label', 'Stock exchange')}: ${publiclyTraded.stockExchangeName || publiclyTraded.stockExchange}`,
-              ]
-                .filter(Boolean)
-                .join(' · ')}
+              {ptcDisplayValue}
+              {publiclyTraded.tickerSymbol && (
+                <>
+                  {' · '}
+                  {t('fields.tickerSymbol.label', 'Ticker symbol')}
+                  {': '}
+                  {publiclyTraded.tickerSymbol}
+                </>
+              )}
+              {(publiclyTraded.stockExchangeName ||
+                publiclyTraded.stockExchange) && (
+                <>
+                  {' · '}
+                  {t('fields.stockExchange.label', 'Stock exchange')}
+                  {': '}
+                  {publiclyTraded.stockExchangeName ||
+                    publiclyTraded.stockExchange}
+                </>
+              )}
             </p>
           </div>
         )}
