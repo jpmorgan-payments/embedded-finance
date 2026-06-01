@@ -1,9 +1,11 @@
 import type {
+  EBThemeVariables,
   LinkAccountStepOptions,
   OnboardingFlowProps,
 } from '@jpmorgan-payments/embedded-finance-components';
 
 import type { ThemeOption } from '@/components/sellsense/use-sellsense-themes';
+import { TEST_SCENARIO_2_THEME_VARIABLES } from '@/components/test-scenario/test-scenario-2-theme';
 import { TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID } from '@/mocks/testScenarioHealthBenefitClient.mock';
 import { TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID } from '@/mocks/testScenarioMultiLinkedIllustrationClient.mock';
 import { TEST_DEMO_SCENARIO_CLIENT_ID } from '@/mocks/testScenarioOperator80Client.mock';
@@ -28,6 +30,8 @@ export type TestScenarioBundleConfig = {
   id: TestScenarioBundleId;
   headerOrgDisplayName: string;
   theme: ThemeOption;
+  /** When set, passed to `EBComponentsProvider` via the Custom theme path (test-scenario routes only). */
+  themeVariables?: EBThemeVariables;
   contentTokens: {
     name: 'enUS';
     showTokenIds: boolean;
@@ -182,7 +186,8 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
   'test-scenario-2': {
     id: 'test-scenario-2',
     headerOrgDisplayName: 'Top Dog Construction, LLC',
-    theme: 'Empty',
+    theme: 'Custom',
+    themeVariables: TEST_SCENARIO_2_THEME_VARIABLES,
     contentTokens: buildContentTokens({
       controllerJobTitle: 'Role',
       controllerJobTitleDescription: 'Role details',
