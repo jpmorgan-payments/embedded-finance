@@ -60,8 +60,11 @@ export function TestScenarioPage({ bundleId }: TestScenarioPageProps) {
   const [resetLoading, setResetLoading] = useState(false);
 
   const ebTheme = useMemo(
-    () => mapThemeOption(bundleConfig.theme, {}),
-    [mapThemeOption, bundleConfig.theme]
+    () =>
+      bundleConfig.themeVariables
+        ? mapThemeOption('Custom', bundleConfig.themeVariables)
+        : mapThemeOption(bundleConfig.theme, {}),
+    [mapThemeOption, bundleConfig.theme, bundleConfig.themeVariables]
   );
 
   const themeVars = ebTheme.variables as Record<string, string | undefined>;
