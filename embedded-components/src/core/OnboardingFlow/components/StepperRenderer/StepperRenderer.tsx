@@ -38,6 +38,7 @@ import {
   StepValidationMap,
 } from '@/core/OnboardingFlow/types/flow.types';
 import {
+  getOrganizationParty,
   getPartyByAssociatedPartyFilters,
   getPartyName,
 } from '@/core/OnboardingFlow/utils/dataUtils';
@@ -64,12 +65,18 @@ type StepperRendererProps = StepperConfig & {
 };
 
 export const StepperRenderer: React.FC<StepperRendererProps> = ({
-  steps,
+  steps: rawSteps,
   getDefaultPartyRequestBody,
 }) => {
   const { clientData, organizationType, alertOnPreviousStep } =
     useOnboardingContext();
   const { t, tString } = useTranslationWithTokens('onboarding-overview');
+
+  // Filter out steps whose isVisible predicate returns false
+  const orgParty = getOrganizationParty(clientData);
+  const steps = rawSteps.filter(
+    (step) => step.isVisible?.({ orgParty }) ?? true
+  );
 
   const {
     currentScreenId,
