@@ -734,12 +734,14 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                         <FormControl>
                           <PatternInput
                             {...field}
-                            {...inputProps}
+                            {...(inputProps as Omit<
+                              typeof inputProps,
+                              'defaultValue'
+                            >)}
                             format={maskFormat ?? ''}
                             mask={maskChar}
                             obfuscateWhenUnfocused={obfuscateWhenUnfocused}
                             type={type}
-                            defaultValue={field.value}
                             value={valueOverride ?? field.value}
                             placeholder={fieldPlaceholder}
                             onChange={(e) => {
