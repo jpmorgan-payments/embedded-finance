@@ -181,10 +181,10 @@ export const efClientCorpPTC_NonUS_Mock: ClientResponse = {
         dbaName: 'Neverland Books',
         organizationDescription: 'Step into a world of stories and imagination',
         industryCategory:
-          'Sporting Goods, Hobby, Musical Instrument, and Book Stores',
+          'Sporting Goods, Hobby, Musical Instrument, Book, and Miscellaneous Retailers',
         industryType: 'Book Retailers and News Dealers',
         industry: {
-          code: '451211',
+          code: '459210',
           codeType: 'NAICS',
         },
         countryOfFormation: 'US',
