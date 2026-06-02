@@ -172,6 +172,8 @@ export type FlowSessionData = {
   completedStaticStepIds?: string[];
   /** Transient flag set after successfully creating a linked account; cleared when overview dismisses the banner. */
   linkAccountJustCreated?: boolean;
+  /** Set when the user answers the PTC question on the gateway screen. */
+  isPTCQuestionAnswered?: boolean;
 };
 
 export type StepperStepProps = {

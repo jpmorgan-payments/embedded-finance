@@ -85,11 +85,22 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const canUseFlowEntry =
     !!flowEntry && !props.docUploadOnlyMode && !!organizationType;
 
+  // When PTC is enabled but unanswered, route back to gateway so user can
+  // confirm publicly-traded status before proceeding to overview.
+  // Only applies to existing clients (loaded via providerClientId), not
+  // freshly-created ones that just went through gateway in this session.
+  const ptcAnswered = !!existingOrgParty?.organizationDetails?.publiclyTraded;
+  const needsPTCGateway =
+    !!props.enablePubliclyTradedCompanies &&
+    !!providerClientId &&
+    !!organizationType &&
+    !ptcAnswered;
+
   const flowProviderInitialScreenId = props.docUploadOnlyMode
     ? 'upload-documents-section'
     : canUseFlowEntry
       ? flowEntry.screenId
-      : organizationType
+      : organizationType && !needsPTCGateway
         ? 'overview'
         : 'gateway';
 
@@ -168,6 +179,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     showLinkAccountStep,
     linkAccountEnabledStatuses,
     linkAccountStepOptions,
+    enablePubliclyTradedCompanies,
     userEventsHandler,
   } = useOnboardingContext();
   const {
@@ -193,6 +205,17 @@ const FlowRenderer: React.FC = React.memo(() => {
   const isSubScreen =
     currentScreenId === 'owner-stepper' ||
     currentScreenId === 'document-upload-form';
+
+  // PTC unanswered: lock sidebar sections so user must answer PTC first.
+  const orgParty = getOrganizationParty(clientData);
+  const ptcAnsweredInSession = !!sessionData.isPTCQuestionAnswered;
+  const needsPTCGateway =
+    !!enablePubliclyTradedCompanies &&
+    !!clientData?.id &&
+    !!organizationType &&
+    !orgParty?.organizationDetails?.publiclyTraded &&
+    !ptcAnsweredInSession;
+
   const sidebarSectionId = sections.some((s) => s.id === currentScreenId)
     ? currentScreenId
     : isSubScreen
@@ -376,7 +399,7 @@ const FlowRenderer: React.FC = React.memo(() => {
       status:
         organizationType && clientData?.status !== 'NEW'
           ? 'completed_disabled'
-          : organizationType
+          : organizationType && !needsPTCGateway
             ? 'completed'
             : 'not_started',
       steps: [],
@@ -401,7 +424,9 @@ const FlowRenderer: React.FC = React.memo(() => {
       if (section.id === 'owners-section') {
         return {
           ...section,
-          status: sectionStatuses[section.id] || 'not_started',
+          status: needsPTCGateway
+            ? 'on_hold'
+            : sectionStatuses[section.id] || 'not_started',
           title:
             section.sectionConfig.shortLabel ?? section.sectionConfig.label,
           steps: [
@@ -473,7 +498,9 @@ const FlowRenderer: React.FC = React.memo(() => {
 
       return {
         ...section,
-        status: sectionStatuses[section.id] || 'not_started',
+        status: needsPTCGateway
+          ? 'on_hold'
+          : sectionStatuses[section.id] || 'not_started',
         title: section.sectionConfig.shortLabel ?? section.sectionConfig.label,
         steps: (section.stepperConfig?.steps ?? []).map((step, stepIndex) => {
           // Check if this static step was explicitly

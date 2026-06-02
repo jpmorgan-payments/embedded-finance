@@ -555,7 +555,7 @@ export const partyFieldMap: PartyFieldMap = {
       publiclyTraded?: unknown;
       isSubsidiary?: boolean;
     }) => {
-      if (!val?.publiclyTraded) return 'none';
+      if (!val?.publiclyTraded) return '';
       return val.isSubsidiary ? 'subsidiary' : 'ptc';
     },
     toStringFn: (val) => {
