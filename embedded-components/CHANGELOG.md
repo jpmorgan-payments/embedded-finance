@@ -2,6 +2,31 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.14.4] - 2026-06-02
+
+Adds PTC (Publicly Traded Companies) gateway redirect logic so existing clients must answer the PTC question before proceeding, with sidebar sections locked until answered. Also includes various accessibility and React strict-mode fixes across components.
+
+### Changes
+
+#### Features
+
+- **onboarding:** when ptc flag is enabled, redirect user to gateway screen to ensure they answer ptc question
+- **storybook:** refine PTC stories to have better scenarios and mocks
+- **onboarding:** hide Owners section by default
+
+#### Bug Fixes
+
+- **storybook:** update incorrect naics code in ptc mock
+- **onboarding:** remove uncontrolled prop defaultValue from PatternInput
+- **onboarding:** assign keys for each item in OnboardingArrayField
+- **dropzone:** convert dropzone component to use forwardRef so Radix Slot can properly forward a ref to it
+- **transactions:** add missing description property for transaction dialog
+- **onboarding:** remove redundant h2 tag
+
+#### Chores
+
+- update test configuration to suppress act warnings
+
 ## [0.14.3] - 2026-06-01
 
 ### Changes

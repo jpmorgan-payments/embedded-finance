@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -119,6 +120,11 @@ export const TransactionDetailsDialogTrigger: FC<
                 </span>
               </Button>
             </DialogTitle>
+            <DialogDescription className="eb-sr-only">
+              {t('details.description', {
+                defaultValue: 'Transaction details and metadata',
+              })}
+            </DialogDescription>
             {transaction && (
               <>
                 <div className="eb-text-3xl eb-font-semibold">

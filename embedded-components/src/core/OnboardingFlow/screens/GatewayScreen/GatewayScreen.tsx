@@ -131,6 +131,17 @@ export const GatewayScreen = () => {
         existingOrgParty.id
       );
 
+      // If PTC question was already answered this session but the API has no
+      // publiclyTraded data, the answer was "none" — restore it so the radio
+      // shows the user's previous selection instead of appearing blank.
+      if (
+        sessionData.isPTCQuestionAnswered &&
+        !existingOrgParty.organizationDetails?.publiclyTraded &&
+        !formValues.isPTCOrSubsidiary
+      ) {
+        formValues.isPTCOrSubsidiary = 'none';
+      }
+
       form.reset(shapeFormValuesBySchema(formValues, GatewayScreenFormSchema));
       setIsFormPopulated(true);
     }
@@ -155,6 +166,11 @@ export const GatewayScreen = () => {
   } = useSmbdoUpdateParty();
 
   const onSubmit = form.handleSubmit((values) => {
+    // Mark PTC question as answered so sidebar unlocks after gateway
+    if (enablePubliclyTradedCompanies && values.isPTCOrSubsidiary) {
+      updateSessionData({ isPTCQuestionAnswered: true });
+    }
+
     // Derive PTC request values
     const ptcStatus = values.isPTCOrSubsidiary;
     const hasPTC = ptcStatus === 'ptc' || ptcStatus === 'subsidiary';
