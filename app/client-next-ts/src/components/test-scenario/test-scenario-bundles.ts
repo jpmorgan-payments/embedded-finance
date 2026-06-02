@@ -54,6 +54,7 @@ export type TestScenarioBundleConfig = {
     | 'availableJurisdictions'
     | 'availableOrganizationTypes'
     | 'disclosureConfig'
+    | 'enablePubliclyTradedCompanies'
     | 'hideLinkedAccountRemoval'
     | 'priorityIndustryCodes'
   >;
@@ -359,6 +360,7 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
       availableProducts: ['EMBEDDED_PAYMENTS'],
       availableJurisdictions: ['US'],
       availableOrganizationTypes: ['C_CORPORATION'],
+      enablePubliclyTradedCompanies: true,
       disclosureConfig: { platformName: 'Platform, Inc.' },
       hideLinkedAccountRemoval: false,
       priorityIndustryCodes: [
