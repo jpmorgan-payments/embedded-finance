@@ -44,12 +44,10 @@ jobs:
 
       - name: Extract changelog for this version
         if: steps.check.outputs.exists == 'false'
-        id: changelog
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           # Extract the section for this version from CHANGELOG.md
           NOTES=$(awk "/^## \[${VERSION}\]/{found=1; next} /^## \[/{if(found) exit} found{print}" embedded-components/CHANGELOG.md)
-          # Write to file to avoid shell escaping issues
           echo "$NOTES" > /tmp/release-notes.md
 
       - name: Create GitHub Release
@@ -57,6 +55,31 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ steps.version.outputs.tag }}" \
-            --title "v${{ steps.version.outputs.version }}" \
-            --notes-file /tmp/release-notes.md
+          PREV_TAG=$(git tag --sort=-v:refname | head -2 | tail -1)
+
+          # Build combined notes: CHANGELOG + separator + GitHub auto-notes + diff link
+          {
+            cat /tmp/release-notes.md
+            echo ""
+            echo "---"
+            echo ""
+          } > /tmp/combined-notes.md
+
+          if [ -n "$PREV_TAG" ]; then
+            # Append full diff link
+            {
+              echo ""
+              echo "**Full diff**: [\`${PREV_TAG}...${{ steps.version.outputs.tag }}\`](https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${{ steps.version.outputs.tag }})"
+            } >> /tmp/combined-notes.md
+
+            gh release create "${{ steps.version.outputs.tag }}" \
+              --title "v${{ steps.version.outputs.version }}" \
+              --generate-notes \
+              --notes-start-tag "$PREV_TAG" \
+              --notes-file /tmp/combined-notes.md
+          else
+            gh release create "${{ steps.version.outputs.tag }}" \
+              --title "v${{ steps.version.outputs.version }}" \
+              --generate-notes \
+              --notes-file /tmp/combined-notes.md
+          fi

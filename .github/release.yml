@@ -1,0 +1,15 @@
+# Configuration for GitHub's automatically generated release notes.
+# PRs are bundled (many changes per PR), so we skip categorization.
+# The CHANGELOG section handles the categorized breakdown from commits.
+# This just provides a linked PR list for traceability.
+# See: https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes
+
+changelog:
+  exclude:
+    authors:
+      - dependabot
+      - dependabot[bot]
+  categories:
+    - title: "Pull Requests"
+      labels:
+        - "*"
