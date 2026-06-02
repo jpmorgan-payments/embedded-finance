@@ -373,8 +373,10 @@ const sectionScreens: SectionScreenConfig[] = [
     type: 'component',
     sectionConfig: {
       isVisible: (ctx) =>
-        ctx.orgParty?.organizationDetails?.organizationType !==
-          'SOLE_PROPRIETORSHIP' && !isUSExchangePTC(ctx.orgParty),
+        !!ctx.orgParty?.organizationDetails?.organizationType &&
+        ctx.orgParty.organizationDetails.organizationType !==
+          'SOLE_PROPRIETORSHIP' &&
+        !isUSExchangePTC(ctx.orgParty),
       label: i18n.t('onboarding-overview:screens.ownersSection.label'),
       shortLabel: i18n.t(
         'onboarding-overview:screens.ownersSection.shortLabel'
