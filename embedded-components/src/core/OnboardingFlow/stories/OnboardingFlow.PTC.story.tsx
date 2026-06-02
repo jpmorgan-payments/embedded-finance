@@ -38,7 +38,6 @@
  * - Same collection rules as non-primary PTC
  */
 
-import { efClientCorpMock } from '@/mocks/efClientCorp.mock';
 import {
   efClientCorpPTC_NonUS_Mock,
   efClientCorpPTC_NonUS_Subsidiary_Mock,
@@ -46,6 +45,8 @@ import {
   efClientCorpPTC_US_Subsidiary_Mock,
 } from '@/mocks/efClientCorpPTC.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+
+import { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 import type { BaseStoryArgs } from '../../../../.storybook/preview';
 import type { OnboardingFlowProps } from '../types/onboarding.types';
@@ -93,37 +94,49 @@ export default meta;
 type Story = StoryObj<OnboardingFlowStoryArgs>;
 
 // =============================================================================
-// FEATURE FLAG ENABLED
+// FRESH CLIENT — ORG TYPE + NAME ONLY
 // =============================================================================
 
 /**
- * **Feature Flag Enabled**
+ * **Fresh Client (Org Type + Name Only)**
  *
- * When `enablePubliclyTradedCompanies` is `true`, non-sole-prop entities
- * can declare themselves as publicly traded or a subsidiary of a PTC.
- * This is the default story for exploring PTC onboarding.
+ * An existing client with only organization type and business name populated.
+ * PTC feature flag is enabled. Demonstrates the gateway redirect for clients
+ * that haven't yet answered the PTC question.
  */
-export const FeatureFlagEnabled: Story = {
-  args: {
-    ...commonArgs,
-    enablePubliclyTradedCompanies: true,
+const freshClientMock: ClientResponse = {
+  id: '0030000130',
+  partyId: '2000000111',
+  parties: [
+    {
+      id: '2000000111',
+      partyType: 'ORGANIZATION',
+      roles: ['CLIENT'],
+      profileStatus: 'NEW',
+      active: true,
+      createdAt: '2024-06-21T18:12:21.005Z',
+      organizationDetails: {
+        organizationType: 'C_CORPORATION',
+        organizationName: 'Neverland Books',
+        countryOfFormation: 'US',
+      },
+    },
+  ],
+  products: ['EMBEDDED_PAYMENTS'],
+  outstanding: {
+    attestationDocumentIds: [],
+    documentRequestIds: [],
+    partyIds: [],
+    partyRoles: [],
+    questionIds: ['30005'],
   },
+  questionResponses: [],
+  status: 'NEW',
 };
 
-// =============================================================================
-// NON-PTC PREFILLED CLIENT
-// =============================================================================
-
-/**
- * **Non-PTC Prefilled Client**
- *
- * A regular corporation (not publicly traded) with the PTC feature flag
- * enabled. Demonstrates that existing non-PTC clients can still proceed
- * through onboarding normally when the flag is on.
- */
-export const NonPTC_PrefilledClient: Story = {
-  name: 'Non-PTC Prefilled Client',
-  loaders: [() => resetAndSeedClient(efClientCorpMock, '0030000130')],
+export const FreshClient: Story = {
+  name: 'Fresh Client (Org Type + Name Only)',
+  loaders: [() => resetAndSeedClient(freshClientMock, '0030000130')],
   args: {
     ...commonArgs,
     clientId: '0030000130',
