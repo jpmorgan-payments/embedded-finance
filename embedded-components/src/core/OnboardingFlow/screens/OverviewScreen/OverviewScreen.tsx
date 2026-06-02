@@ -223,10 +223,8 @@ export const OverviewScreen = () => {
       <div className="eb-flex-auto eb-space-y-6">
         <Card className="eb-mt-6 eb-rounded-md eb-border-none eb-bg-card">
           <CardHeader className="eb-p-3">
-            <CardTitle>
-              <h2 className="eb-font-header eb-text-2xl eb-font-medium">
-                {t(verifyBusinessSectionTitleKey)}
-              </h2>
+            <CardTitle className="eb-font-header eb-text-2xl eb-font-medium">
+              {t(verifyBusinessSectionTitleKey)}
             </CardTitle>
           </CardHeader>
           <CardContent className="eb-p-3 eb-pt-0">
@@ -585,10 +583,8 @@ export const OverviewScreen = () => {
         {showLinkAccountStep && (
           <Card className="eb-mt-6 eb-rounded-md eb-border-none eb-bg-card">
             <CardHeader className="eb-p-3">
-              <CardTitle>
-                <h2 className="eb-font-header eb-text-2xl eb-font-medium">
-                  {t('screens.overview.bankAccountSection.title')}
-                </h2>
+              <CardTitle className="eb-font-header eb-text-2xl eb-font-medium">
+                {t('screens.overview.bankAccountSection.title')}
               </CardTitle>
             </CardHeader>
             <CardContent className="eb-p-3 eb-pt-0">
