@@ -1071,10 +1071,7 @@ export function applyTestDemoScenario(
   if (useMultiLinked) {
     if (mode === 'multi-linked-start-3') {
       seedTestScenarioMultiLinkedRecipients(clientId, 3);
-    } else if (
-      shape.status === 'APPROVED' &&
-      mode === 'happy-path-approved'
-    ) {
+    } else if (shape.status === 'APPROVED' && mode === 'happy-path-approved') {
       seedTestScenarioMultiLinkedRecipients(clientId, 3);
     }
   }

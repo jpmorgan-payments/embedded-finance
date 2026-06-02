@@ -201,19 +201,19 @@ export function TestScenarioPage({ bundleId }: TestScenarioPageProps) {
                             : undefined,
                         linkAccountStepOptions:
                           selectedProfile.linkAccountStepOptions ??
-                          bundleConfig.linkAccountStepOptions ?? {
-                            initialValues: {
-                              paymentTypes: ['ACH'],
-                              routingNumbers: [
-                                {
-                                  paymentType: 'ACH',
-                                  routingNumber: '121000248',
-                                },
-                              ],
-                              accountNumber: '6724301068',
+                            bundleConfig.linkAccountStepOptions ?? {
+                              initialValues: {
+                                paymentTypes: ['ACH'],
+                                routingNumbers: [
+                                  {
+                                    paymentType: 'ACH',
+                                    routingNumber: '121000248',
+                                  },
+                                ],
+                                accountNumber: '6724301068',
+                              },
+                              completionMode: 'editable' as const,
                             },
-                            completionMode: 'editable' as const,
-                          },
                       }
                     : {})}
                   disclosureConfig={
@@ -224,9 +224,7 @@ export function TestScenarioPage({ bundleId }: TestScenarioPageProps) {
                   hideLinkedAccountRemoval={
                     onboardingFlow?.hideLinkedAccountRemoval ?? true
                   }
-                  priorityIndustryCodes={
-                    onboardingFlow?.priorityIndustryCodes
-                  }
+                  priorityIndustryCodes={onboardingFlow?.priorityIndustryCodes}
                 />
                 <footer className="mx-auto mt-4 max-w-4xl px-4 py-4 text-center sm:px-5">
                   <p className="text-xs leading-relaxed text-neutral-500">
