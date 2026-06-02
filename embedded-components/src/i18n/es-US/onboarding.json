@@ -1243,6 +1243,10 @@
     "missingDetails": "Missing details",
     "dataAccuracyAttestation": "Data accuracy attestation",
     "dataAccuracyCheckbox": "The data I am providing is true, accurate and complete to the best of my knowledge.",
+    "disclosure": {
+      "footer": "Servicios bancarios proporcionados por JPMorgan Chase Bank, N.A., Miembro FDIC. {{platformName}} no es un banco.",
+      "fdic": "Las cuentas de depósito están aseguradas por la FDIC hasta $250,000 por depositante para cada categoría de titularidad de cuenta. La disponibilidad del seguro de depósitos de la FDIC protege contra la quiebra de JPMorgan Chase Bank, N.A., Miembro FDIC, y no de {{platformName}}."
+    },
     "termsAndConditions": {
       "title": "Terms and Conditions",
       "description": "Please read and attest the below documents by J.P. Morgan to complete the process.",

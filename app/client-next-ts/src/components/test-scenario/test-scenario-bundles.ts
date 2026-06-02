@@ -6,6 +6,7 @@ import type {
 
 import type { ThemeOption } from '@/components/sellsense/use-sellsense-themes';
 import { TEST_SCENARIO_2_THEME_VARIABLES } from '@/components/test-scenario/test-scenario-2-theme';
+import { TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID } from '@/mocks/testScenarioFasterFulfilmentClient.mock';
 import { TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID } from '@/mocks/testScenarioHealthBenefitClient.mock';
 import { TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID } from '@/mocks/testScenarioMultiLinkedIllustrationClient.mock';
 import { TEST_DEMO_SCENARIO_CLIENT_ID } from '@/mocks/testScenarioOperator80Client.mock';
@@ -16,6 +17,7 @@ export const TEST_SCENARIO_ROUTE_BY_BUNDLE = {
   'test-scenario': '/test-scenario',
   'test-scenario-2': '/test-scenario-2',
   'test-scenario-3': '/test-scenario-3',
+  'test-scenario-4': '/test-scenario-4',
 } as const satisfies Record<TestScenarioBundleId, string>;
 
 export type TestScenarioLoginProfile = {
@@ -52,6 +54,7 @@ export type TestScenarioBundleConfig = {
     | 'availableJurisdictions'
     | 'availableOrganizationTypes'
     | 'disclosureConfig'
+    | 'enablePubliclyTradedCompanies'
     | 'hideLinkedAccountRemoval'
     | 'priorityIndustryCodes'
   >;
@@ -329,6 +332,47 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
       ],
     },
     loginProfiles: OPERATOR_PROFILES,
+  },
+  'test-scenario-4': {
+    id: 'test-scenario-4',
+    headerOrgDisplayName: 'Faster Fulfilment Corp.',
+    theme: 'Empty',
+    contentTokens: buildContentTokens({
+      controllerJobTitle: 'Role',
+      controllerJobTitleDescription: 'Role details',
+    }),
+    showLinkAccountStep: true,
+    clientId: TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID,
+    linkAccountStepOptions: {
+      completionMode: 'editable',
+      allowMultipleAccounts: true,
+      existingAccountsDisplay: 'compact',
+      initialValues: {},
+      bankFormConfigOverride: {
+        paymentMethods: {
+          available: ['ACH', 'WIRE', 'RTP'],
+          allowMultiple: true,
+          defaultSelected: ['ACH'],
+        },
+      },
+    },
+    onboardingFlow: {
+      availableProducts: ['EMBEDDED_PAYMENTS'],
+      availableJurisdictions: ['US'],
+      availableOrganizationTypes: ['C_CORPORATION'],
+      enablePubliclyTradedCompanies: true,
+      disclosureConfig: { platformName: 'Platform, Inc.' },
+      hideLinkedAccountRemoval: false,
+      priorityIndustryCodes: [
+        '492110',
+        '492210',
+        '493110',
+        '493120',
+        '493130',
+        '493190',
+      ],
+    },
+    loginProfiles: MULTI_LINK_DEMO_PROFILES,
   },
 };
 

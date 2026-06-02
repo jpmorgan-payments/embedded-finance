@@ -39,6 +39,10 @@ import {
 import { mockLinkedAccounts } from '../mocks/linkedAccounts.mock';
 import { mockRecipientsResponse } from '../mocks/recipients.mock';
 import {
+  TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID,
+  testScenarioFasterFulfilmentClient,
+} from '../mocks/testScenarioFasterFulfilmentClient.mock';
+import {
   TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
   testScenarioHealthBenefitClient,
 } from '../mocks/testScenarioHealthBenefitClient.mock';
@@ -591,7 +595,8 @@ export type TestDemoScenarioMode =
 export type TestScenarioBundleId =
   | 'test-scenario'
   | 'test-scenario-2'
-  | 'test-scenario-3';
+  | 'test-scenario-3'
+  | 'test-scenario-4';
 
 export const DEFAULT_TEST_SCENARIO_BUNDLE_ID: TestScenarioBundleId =
   'test-scenario';
@@ -600,6 +605,7 @@ const TEST_SCENARIO_BUNDLE_IDS = [
   'test-scenario',
   'test-scenario-2',
   'test-scenario-3',
+  'test-scenario-4',
 ] as const satisfies readonly TestScenarioBundleId[];
 
 export function parseTestScenarioBundleId(
@@ -620,6 +626,7 @@ export function getTestScenarioClientIds(): string[] {
     TEST_DEMO_SCENARIO_CLIENT_ID,
     TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID,
     TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
+    TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID,
   ];
 }
 
@@ -876,6 +883,7 @@ function removeAllTestScenarioSeedClients(): void {
   removePredefinedClient(TEST_DEMO_SCENARIO_CLIENT_ID);
   removePredefinedClient(TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID);
   removePredefinedClient(TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID);
+  removePredefinedClient(TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID);
 }
 
 /** Illustration: N ACTIVE linked-bank recipients for GET `/recipients` (`/test-scenario-2`). */
@@ -1009,13 +1017,17 @@ export function applyTestDemoScenario(
       ? TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID
       : bundleId === 'test-scenario-3'
         ? TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID
-        : TEST_DEMO_SCENARIO_CLIENT_ID;
+        : bundleId === 'test-scenario-4'
+          ? TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID
+          : TEST_DEMO_SCENARIO_CLIENT_ID;
   const base = (
     bundleId === 'test-scenario-2'
       ? testScenarioMultiLinkedIllustrationClient
       : bundleId === 'test-scenario-3'
         ? testScenarioHealthBenefitClient
-        : testScenarioOperator80Client
+        : bundleId === 'test-scenario-4'
+          ? testScenarioFasterFulfilmentClient
+          : testScenarioOperator80Client
   ) as PredefinedClientShape;
   const useMultiLinked = bundleId === 'test-scenario-2';
 
@@ -1059,10 +1071,7 @@ export function applyTestDemoScenario(
   if (useMultiLinked) {
     if (mode === 'multi-linked-start-3') {
       seedTestScenarioMultiLinkedRecipients(clientId, 3);
-    } else if (
-      shape.status === 'APPROVED' &&
-      mode === 'happy-path-approved'
-    ) {
+    } else if (shape.status === 'APPROVED' && mode === 'happy-path-approved') {
       seedTestScenarioMultiLinkedRecipients(clientId, 3);
     }
   }

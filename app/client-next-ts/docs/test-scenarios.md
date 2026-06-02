@@ -9,6 +9,7 @@ This document is for **maintainers**. It describes how mocked onboarding demos a
 | [`/test-scenario`](http://localhost:3000/test-scenario)     | `test-scenario`   | Operator 80–shaped LLC client; Salt theme; full login paths including link-bank.                                                                                                   |
 | [`/test-scenario-2`](http://localhost:3000/test-scenario-2) | `test-scenario-2` | Top Dog Construction client; **warm-neutral demo theme** (`test-scenario-2-theme.ts`, not in SellSense picker); **full onboarding-style logins** (happy path, docs, **linked-microdeposit** / **linked-active** with **zero** pre-mocked linked recipients) **plus** one optional login that pre-seeds **three** linked accounts (`3-linked@demo.test`). |
 | [`/test-scenario-3`](http://localhost:3000/test-scenario-3) | `test-scenario-3` | Health & Benefit Solutions client; **single** link-bank account (ACH + WIRE + RTP); standard login profiles only (no pre-seeded multi-link); health-sector `priorityIndustryCodes`. |
+| [`/test-scenario-4`](http://localhost:3000/test-scenario-4) | `test-scenario-4` | Faster Fulfilment Corp. (Nasdaq PTC seed); `enablePubliclyTradedCompanies: true` on `OnboardingFlow`; C-corp + logistics `priorityIndustryCodes`; same login profiles as `/test-scenario-2`. |
 
 Each path renders only its own flow. **Do not** add UI on these pages that refers to the other paths or “scenario numbers.”
 
@@ -19,7 +20,7 @@ Each path renders only its own flow. **Do not** add UI on these pages that refer
 A **bundle** ties together:
 
 - **Route** → fixed `bundleId` passed from [`src/routes/test-scenario*.tsx`](../src/routes/test-scenario.tsx).
-- **UI**: theme, content tokens, `OnboardingFlow` flags via [`test-scenario-bundles.ts`](../src/components/test-scenario/test-scenario-bundles.ts).
+- **UI**: theme, content tokens, `OnboardingFlow` flags via [`test-scenario-bundles.ts`](../src/components/test-scenario/test-scenario-bundles.ts) (e.g. `enablePubliclyTradedCompanies` for PTC gateway/review UI—not only MSW party data).
 - **`clientId`** for `EBComponentsProvider`, matching the client MSW seeds for that bundle.
 
 ### Login profile / mode
@@ -53,6 +54,7 @@ Pathname → bundle mapping for reference:
 | [`src/routes/test-scenario.tsx`](../src/routes/test-scenario.tsx)                                               | `/test-scenario`                |
 | [`src/routes/test-scenario-2.tsx`](../src/routes/test-scenario-2.tsx)                                           | `/test-scenario-2`              |
 | [`src/routes/test-scenario-3.tsx`](../src/routes/test-scenario-3.tsx)                                           | `/test-scenario-3`              |
+| [`src/routes/test-scenario-4.tsx`](../src/routes/test-scenario-4.tsx)                                           | `/test-scenario-4`              |
 | [`src/components/test-scenario/test-scenario-page.tsx`](../src/components/test-scenario/test-scenario-page.tsx) | Shared login + `OnboardingFlow` |
 | [`src/lib/database-reset-utils.ts`](../src/lib/database-reset-utils.ts)                                         | `resetTestDemoDatabase`         |
 | [`src/msw/db.ts`](../src/msw/db.ts)                                                                             | `applyTestDemoScenario`, seeds  |
