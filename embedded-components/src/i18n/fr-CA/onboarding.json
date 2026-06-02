@@ -724,6 +724,12 @@
     "disclaimer": "Pendant que votre intégration est en cours de traitement, vous pouvez commencer à ajouter des comptes liés à votre profil."
   },
   "edit": "Modifier",
+  "reviewAndAttest": {
+    "disclosure": {
+      "footer": "Services bancaires fournis par JPMorgan Chase Bank, N.A., membre de la FDIC. {{platformName}} n'est pas une banque.",
+      "fdic": "Les comptes de dépôt sont assurés par la FDIC jusqu'à 250 000 $ par déposant pour chaque catégorie de propriété de compte. La disponibilité de l'assurance-dépôts de la FDIC protège contre la faillite de JPMorgan Chase Bank, N.A., membre de la FDIC, et non de {{platformName}}."
+    }
+  },
   "industrySelect": {
     "placeholder": "Sélectionner une industrie",
     "searchPlaceholder": "Rechercher des industries...",
