@@ -3,6 +3,23 @@ import '@testing-library/jest-dom/vitest';
 import { server } from '@/msw/server';
 import { vi } from 'vitest';
 
+// Suppress non-actionable React 18 act() warnings from third-party libraries
+// (e.g. react-dropzone async FileReader callbacks). Vitest 4's pre-bundled
+// module isolation prevents IS_REACT_ACT_ENVIRONMENT from reaching react-dom's
+// runtime scope, so we filter these known-benign warnings instead.
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  if (
+    typeof args[0] === 'string' &&
+    args[0].includes(
+      'The current testing environment is not configured to support act'
+    )
+  ) {
+    return;
+  }
+  originalConsoleError(...args);
+};
+
 const { getComputedStyle } = window;
 window.getComputedStyle = (elt) => getComputedStyle(elt);
 
