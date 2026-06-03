@@ -272,7 +272,7 @@ function renderDocumentUploadScreen(
  */
 async function waitForDocumentListReady() {
   await screen.findByRole('heading', { name: /for the business/i });
-  await screen.findByRole('heading', { name: /for owners and key roles/i });
+  await screen.findByRole('heading', { name: /for owners/i });
 }
 
 describe('DocumentUploadScreen', () => {
