@@ -2,6 +2,19 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.14.5] - 2026-06-03
+
+### Changes
+
+#### Features
+
+- **disclosure:** enhance footer and FDIC information across multiple languages
+
+#### Bug Fixes
+
+- **disclosure:** correct punctuation in footer text
+- **disclosure:** correct placeholder in FDIC information text
+
 ## [0.14.4] - 2026-06-02
 
 Adds PTC (Publicly Traded Companies) gateway redirect logic so existing clients must answer the PTC question before proceeding, with sidebar sections locked until answered. Also includes various accessibility and React strict-mode fixes across components.
