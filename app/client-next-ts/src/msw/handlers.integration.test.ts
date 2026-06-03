@@ -9,6 +9,8 @@ import {
   vi,
 } from 'vitest';
 
+import { TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID } from '../mocks/testScenarioFasterFulfilmentClient.mock';
+import { TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID } from '../mocks/testScenarioHealthBenefitClient.mock';
 import { TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID } from '../mocks/testScenarioMultiLinkedIllustrationClient.mock';
 import {
   TEST_DEMO_SCENARIO_CLIENT_ID,
@@ -360,33 +362,254 @@ describe('MSW handlers (integration)', () => {
     expect(res.status).toBe(404);
   });
 
-  it.each([['multi-linked-start-3', 3]] as const)(
-    'test-scenario-2: %s seeds %i LINKED_ACCOUNT recipient(s)',
-    async (testDemoScenario, expectedCount) => {
+  it.each([
+    {
+      mode: 'happy-path' as const,
+      orgType: 'LIMITED_LIABILITY_COMPANY',
+      hasPtc: false,
+    },
+    {
+      mode: 'happy-path-ptc' as const,
+      orgType: 'C_CORPORATION',
+      hasPtc: true,
+      ticker: 'FULFL',
+      exchange: 'XNAS',
+    },
+  ] as const)(
+    'test-scenario-4: $mode seeds Faster Fulfilment org without/with PTC',
+    async ({ mode, orgType, hasPtc, ...ptc }) => {
       await fetch(`${API}/ef/do/v1/_reset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           scenario: DB_SCENARIOS.EMPTY,
           overrides: {},
-          testDemoScenario,
-          testScenarioBundle: 'test-scenario-2',
+          testDemoScenario: mode,
+          testScenarioBundle: 'test-scenario-4',
         }),
       });
 
-      const clientId = TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID;
+      const clientRes = await fetch(
+        `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID}`
+      );
+      expect(clientRes.ok).toBe(true);
+      const client = (await clientRes.json()) as {
+        parties?: Array<{
+          roles?: string[];
+          organizationDetails?: {
+            organizationType?: string;
+            publiclyTraded?: { stockExchange?: string; tickerSymbol?: string };
+          };
+        }>;
+      };
+      const orgParty = (client.parties ?? []).find((p) =>
+        (p.roles ?? []).includes('CLIENT')
+      );
+      expect(orgParty?.organizationDetails?.organizationType).toBe(orgType);
+      if (hasPtc) {
+        expect(orgParty?.organizationDetails?.publiclyTraded).toEqual({
+          stockExchange: ptc.exchange,
+          tickerSymbol: ptc.ticker,
+        });
+      } else {
+        expect(orgParty?.organizationDetails?.publiclyTraded).toBeUndefined();
+      }
+    }
+  );
+
+  it.each([
+    ['test-scenario-2', TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID],
+    ['test-scenario-4', TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID],
+  ] as const)(
+    '%s: multi-linked-start-3 seeds 3 LINKED_ACCOUNT recipient(s)',
+    async (testScenarioBundle, clientId) => {
+      await fetch(`${API}/ef/do/v1/_reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scenario: DB_SCENARIOS.EMPTY,
+          overrides: {},
+          testDemoScenario: 'multi-linked-start-3',
+          testScenarioBundle,
+        }),
+      });
+
       const clientRes = await fetch(`${API}/ef/do/v1/clients/${clientId}`);
       expect(clientRes.ok).toBe(true);
+      const client = (await clientRes.json()) as { status?: string };
+      expect(client.status).toBe('APPROVED');
 
       const recRes = await fetch(`${API}/ef/do/v1/recipients`);
       expect(recRes.ok).toBe(true);
       const data = (await recRes.json()) as {
-        recipients?: Array<{ type?: string }>;
+        recipients?: Array<{ type?: string; id?: string }>;
       };
       const linked = (data.recipients ?? []).filter(
         (r) => r.type === 'LINKED_ACCOUNT'
       );
-      expect(linked.length).toBe(expectedCount);
+      expect(linked.length).toBe(3);
+      const idPrefix =
+        testScenarioBundle === 'test-scenario-4'
+          ? 'ts-b4-linked'
+          : 'ts-b2-linked';
+      expect(linked.map((r) => r.id)).toEqual(
+        expect.arrayContaining([
+          `${idPrefix}-001`,
+          `${idPrefix}-002`,
+          `${idPrefix}-003`,
+        ])
+      );
+    }
+  );
+
+  it.each([
+    {
+      bundle: 'test-scenario',
+      clientId: TEST_DEMO_SCENARIO_CLIENT_ID,
+      orgPartyId: '2100533138',
+      expectedName: 'Operator 80 Palo Alto CA',
+    },
+    {
+      bundle: 'test-scenario-2',
+      clientId: TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID,
+      orgPartyId: '2100535100',
+      expectedName: 'Top Dog Construction, LLC',
+    },
+    {
+      bundle: 'test-scenario-3',
+      clientId: TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
+      orgPartyId: '2100535200',
+      expectedName: 'Health & Benefit Solutions, LLC',
+    },
+    {
+      bundle: 'test-scenario-4',
+      clientId: TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID,
+      orgPartyId: '2100535300',
+      expectedName: 'Faster Fulfilment Corp.',
+    },
+  ] as const)(
+    '$bundle: partyId-only linked account has org display name',
+    async ({ bundle, clientId, orgPartyId, expectedName }) => {
+      await fetch(`${API}/ef/do/v1/_reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scenario: DB_SCENARIOS.EMPTY,
+          overrides: {},
+          testDemoScenario: 'linked-account-active',
+          testScenarioBundle: bundle,
+        }),
+      });
+
+      const accountSuffix = orgPartyId.slice(-4);
+      const createRes = await fetch(`${API}/ef/do/v1/recipients`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Test-Demo-Scenario': 'linked-account-active',
+        },
+        body: JSON.stringify({
+          type: 'LINKED_ACCOUNT',
+          clientId,
+          partyId: orgPartyId,
+          account: {
+            type: 'CHECKING',
+            number: `9000${accountSuffix}`,
+            countryCode: 'US',
+            routingInformation: [
+              {
+                routingCodeType: 'USABA',
+                routingNumber: '021000021',
+                transactionType: 'ACH',
+              },
+            ],
+          },
+        }),
+      });
+      expect(createRes.status).toBe(201);
+      const created = (await createRes.json()) as {
+        partyDetails?: { businessName?: string };
+      };
+      expect(created.partyDetails?.businessName).toBe(expectedName);
+
+      const recRes = await fetch(`${API}/ef/do/v1/recipients`);
+      const data = (await recRes.json()) as {
+        recipients?: Array<{
+          partyDetails?: { businessName?: string; type?: string };
+          account?: { number?: string };
+        }>;
+      };
+      const linked = (data.recipients ?? []).find(
+        (r) => r.account?.number === `9000${accountSuffix}`
+      );
+      expect(linked?.partyDetails?.businessName).toBe(expectedName);
+      expect(linked?.partyDetails?.type).toBe('ORGANIZATION');
+    }
+  );
+
+  it.each([
+    {
+      bundle: 'test-scenario-2',
+      clientId: TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID,
+      expectedName: 'Top Dog Construction, LLC',
+    },
+    {
+      bundle: 'test-scenario-4',
+      clientId: TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID,
+      expectedName: 'Faster Fulfilment Corp.',
+    },
+  ] as const)(
+    '$bundle: stub INDIVIDUAL partyDetails without names resolves to org on GET',
+    async ({ bundle, clientId, expectedName }) => {
+      await fetch(`${API}/ef/do/v1/_reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scenario: DB_SCENARIOS.EMPTY,
+          overrides: {},
+          testDemoScenario: 'linked-account-active',
+          testScenarioBundle: bundle,
+        }),
+      });
+
+      const createRes = await fetch(`${API}/ef/do/v1/recipients`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Test-Demo-Scenario': 'linked-account-active',
+        },
+        body: JSON.stringify({
+          type: 'LINKED_ACCOUNT',
+          clientId,
+          partyDetails: { type: 'INDIVIDUAL', firstName: '', lastName: '' },
+          account: {
+            type: 'CHECKING',
+            number: '1111222333',
+            countryCode: 'US',
+            routingInformation: [
+              {
+                routingCodeType: 'USABA',
+                routingNumber: '021000021',
+                transactionType: 'ACH',
+              },
+            ],
+          },
+        }),
+      });
+      expect(createRes.status).toBe(201);
+
+      const recRes = await fetch(`${API}/ef/do/v1/recipients`);
+      const data = (await recRes.json()) as {
+        recipients?: Array<{
+          partyDetails?: { businessName?: string; type?: string };
+          account?: { number?: string };
+        }>;
+      };
+      const linked = (data.recipients ?? []).find(
+        (r) => r.account?.number === '1111222333'
+      );
+      expect(linked?.partyDetails?.businessName).toBe(expectedName);
+      expect(linked?.partyDetails?.type).toBe('ORGANIZATION');
     }
   );
 

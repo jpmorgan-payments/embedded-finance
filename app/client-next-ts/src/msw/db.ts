@@ -42,6 +42,7 @@ import {
   TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID,
   testScenarioFasterFulfilmentClient,
 } from '../mocks/testScenarioFasterFulfilmentClient.mock';
+import { testScenarioFasterFulfilmentClientNoPtc } from '../mocks/testScenarioFasterFulfilmentClientNoPtc.mock';
 import {
   TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
   testScenarioHealthBenefitClient,
@@ -575,6 +576,11 @@ const predefinedClients: Record<string, PredefinedClientShape> = {
 export type TestDemoScenarioMode =
   | 'happy-path'
   /**
+   * `/test-scenario-4` only: same MSW behavior as `happy-path`, but seeds C-corp + Nasdaq PTC
+   * party data (`testScenarioFasterFulfilmentClient`).
+   */
+  | 'happy-path-ptc'
+  /**
    * Same Operator 80 shape as `happy-path`, but client is **APPROVED** immediately (no NEW →
    * delayed approval). Linked LINKED_ACCOUNT creates use **ACTIVE** like `happy-path`.
    */
@@ -584,7 +590,8 @@ export type TestDemoScenarioMode =
   /** APPROVED client + link step; new linked recipient is ACTIVE (no microdeposits). */
   | 'linked-account-active'
   /**
-   * `/test-scenario-2` only: APPROVED client; MSW seeds **three** pre-existing LINKED_ACCOUNT recipients.
+   * Bundles with multi-link demos (`test-scenario-2`, `test-scenario-4`): APPROVED client;
+   * MSW seeds **three** pre-existing LINKED_ACCOUNT recipients.
    */
   | 'multi-linked-start-3';
 
@@ -607,6 +614,12 @@ const TEST_SCENARIO_BUNDLE_IDS = [
   'test-scenario-3',
   'test-scenario-4',
 ] as const satisfies readonly TestScenarioBundleId[];
+
+/** Bundles that expose `3-linked@demo.test` / `multi-linked-start-3` recipient pre-seeding. */
+const TEST_SCENARIO_BUNDLES_WITH_MULTI_LINK: readonly TestScenarioBundleId[] = [
+  'test-scenario-2',
+  'test-scenario-4',
+];
 
 export function parseTestScenarioBundleId(
   value: unknown
@@ -886,17 +899,125 @@ function removeAllTestScenarioSeedClients(): void {
   removePredefinedClient(TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID);
 }
 
-/** Illustration: N ACTIVE linked-bank recipients for GET `/recipients` (`/test-scenario-2`). */
-function seedTestScenarioMultiLinkedRecipients(
+/** Illustration: N ACTIVE linked-bank recipients for GET `/recipients` (multi-link demo bundles). */
+function getTestScenarioMultiLinkedRecipientRows(
   clientId: string,
-  count: 0 | 1 | 3
-): void {
-  if (count === 0) return;
-
+  bundleId: TestScenarioBundleId
+): Recipient[] {
   const ts = new Date().toISOString();
-  const allRows: Recipient[] = [
+  const idPrefix =
+    bundleId === 'test-scenario-4' ? 'ts-b4-linked' : 'ts-b2-linked';
+
+  if (bundleId === 'test-scenario-4') {
+    return [
+      {
+        id: `${idPrefix}-001`,
+        type: 'LINKED_ACCOUNT',
+        status: 'ACTIVE',
+        clientId,
+        partyDetails: {
+          type: 'ORGANIZATION',
+          businessName: 'RapidRoute Logistics LLC',
+          address: {
+            addressLine1: '1200 Distribution Way',
+            city: 'Memphis',
+            state: 'TN',
+            postalCode: '38103',
+            countryCode: 'US',
+          },
+          contacts: [
+            { contactType: 'EMAIL', value: 'treasury@rapidroute-ff.test' },
+          ],
+        },
+        account: {
+          number: '4433221100',
+          type: 'CHECKING',
+          countryCode: 'US',
+          routingInformation: [
+            {
+              routingCodeType: 'USABA',
+              routingNumber: '084000026',
+              transactionType: 'ACH',
+            },
+          ],
+        },
+        createdAt: ts,
+        updatedAt: ts,
+      },
+      {
+        id: `${idPrefix}-002`,
+        type: 'LINKED_ACCOUNT',
+        status: 'ACTIVE',
+        clientId,
+        partyDetails: {
+          type: 'ORGANIZATION',
+          businessName: 'Midwest Freight Partners',
+          address: {
+            addressLine1: '4100 Industrial Pkwy',
+            city: 'Indianapolis',
+            state: 'IN',
+            postalCode: '46241',
+            countryCode: 'US',
+          },
+          contacts: [
+            { contactType: 'EMAIL', value: 'ap@midwest-freight-ff.test' },
+          ],
+        },
+        account: {
+          number: '5566778899',
+          type: 'CHECKING',
+          countryCode: 'US',
+          routingInformation: [
+            {
+              routingCodeType: 'USABA',
+              routingNumber: '074000078',
+              transactionType: 'ACH',
+            },
+          ],
+        },
+        createdAt: ts,
+        updatedAt: ts,
+      },
+      {
+        id: `${idPrefix}-003`,
+        type: 'LINKED_ACCOUNT',
+        status: 'ACTIVE',
+        clientId,
+        partyDetails: {
+          type: 'ORGANIZATION',
+          businessName: 'Coastal Distribution Co',
+          address: {
+            addressLine1: '88 Harbor Loop',
+            city: 'Jacksonville',
+            state: 'FL',
+            postalCode: '32202',
+            countryCode: 'US',
+          },
+          contacts: [
+            { contactType: 'EMAIL', value: 'ops@coastal-dist-ff.test' },
+          ],
+        },
+        account: {
+          number: '9988776655',
+          type: 'CHECKING',
+          countryCode: 'US',
+          routingInformation: [
+            {
+              routingCodeType: 'USABA',
+              routingNumber: '063000047',
+              transactionType: 'ACH',
+            },
+          ],
+        },
+        createdAt: ts,
+        updatedAt: ts,
+      },
+    ];
+  }
+
+  return [
     {
-      id: 'ts-b2-linked-001',
+      id: `${idPrefix}-001`,
       type: 'LINKED_ACCOUNT',
       status: 'ACTIVE',
       clientId,
@@ -928,7 +1049,7 @@ function seedTestScenarioMultiLinkedRecipients(
       updatedAt: ts,
     },
     {
-      id: 'ts-b2-linked-002',
+      id: `${idPrefix}-002`,
       type: 'LINKED_ACCOUNT',
       status: 'ACTIVE',
       clientId,
@@ -960,7 +1081,7 @@ function seedTestScenarioMultiLinkedRecipients(
       updatedAt: ts,
     },
     {
-      id: 'ts-b2-linked-003',
+      id: `${idPrefix}-003`,
       type: 'LINKED_ACCOUNT',
       status: 'ACTIVE',
       clientId,
@@ -992,8 +1113,19 @@ function seedTestScenarioMultiLinkedRecipients(
       updatedAt: ts,
     },
   ];
+}
 
-  const rows = allRows.slice(0, count);
+function seedTestScenarioMultiLinkedRecipients(
+  clientId: string,
+  bundleId: TestScenarioBundleId,
+  count: 0 | 1 | 3
+): void {
+  if (count === 0) return;
+
+  const rows = getTestScenarioMultiLinkedRecipientRows(
+    clientId,
+    bundleId
+  ).slice(0, count);
 
   for (const r of rows) {
     try {
@@ -1020,16 +1152,22 @@ export function applyTestDemoScenario(
         : bundleId === 'test-scenario-4'
           ? TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID
           : TEST_DEMO_SCENARIO_CLIENT_ID;
+  const fasterFulfilmentBase =
+    mode === 'happy-path-ptc'
+      ? testScenarioFasterFulfilmentClient
+      : testScenarioFasterFulfilmentClientNoPtc;
   const base = (
     bundleId === 'test-scenario-2'
       ? testScenarioMultiLinkedIllustrationClient
       : bundleId === 'test-scenario-3'
         ? testScenarioHealthBenefitClient
         : bundleId === 'test-scenario-4'
-          ? testScenarioFasterFulfilmentClient
+          ? fasterFulfilmentBase
           : testScenarioOperator80Client
   ) as PredefinedClientShape;
-  const useMultiLinked = bundleId === 'test-scenario-2';
+  const useMultiLinked = (
+    TEST_SCENARIO_BUNDLES_WITH_MULTI_LINK as readonly string[]
+  ).includes(bundleId);
 
   removeAllTestScenarioSeedClients();
 
@@ -1070,9 +1208,9 @@ export function applyTestDemoScenario(
   }
   if (useMultiLinked) {
     if (mode === 'multi-linked-start-3') {
-      seedTestScenarioMultiLinkedRecipients(clientId, 3);
+      seedTestScenarioMultiLinkedRecipients(clientId, bundleId, 3);
     } else if (shape.status === 'APPROVED' && mode === 'happy-path-approved') {
-      seedTestScenarioMultiLinkedRecipients(clientId, 3);
+      seedTestScenarioMultiLinkedRecipients(clientId, bundleId, 3);
     }
   }
   logDbState(`Test demo scenario: ${mode} (bundle: ${bundleId})`);
