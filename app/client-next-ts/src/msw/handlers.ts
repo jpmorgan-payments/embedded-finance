@@ -54,6 +54,7 @@ function initialLinkedAccountRecipientStatus(
 ): 'ACTIVE' | 'READY_FOR_VALIDATION' {
   if (
     testDemoScenarioHeader === 'happy-path' ||
+    testDemoScenarioHeader === 'happy-path-ptc' ||
     testDemoScenarioHeader === 'happy-path-approved' ||
     testDemoScenarioHeader === 'doc-request' ||
     testDemoScenarioHeader === 'linked-account-active' ||
@@ -62,6 +63,143 @@ function initialLinkedAccountRecipientStatus(
     return 'ACTIVE';
   }
   return 'READY_FOR_VALIDATION';
+}
+
+type DbPartyRecord = Record<string, unknown>;
+
+function buildRecipientPartyDetailsFromDbParty(
+  party: DbPartyRecord
+): Recipient['partyDetails'] | undefined {
+  if (party.partyType === 'INDIVIDUAL') {
+    const ind = party.individualDetails as
+      | { firstName?: string; lastName?: string }
+      | undefined;
+    if (!ind) return undefined;
+    return {
+      type: 'INDIVIDUAL',
+      firstName: ind.firstName ?? '',
+      lastName: ind.lastName ?? '',
+    };
+  }
+  if (party.partyType === 'ORGANIZATION') {
+    const org = party.organizationDetails as
+      | { organizationName?: string; dbaName?: string }
+      | undefined;
+    if (!org) return undefined;
+    const businessName = org.organizationName || org.dbaName || '';
+    return {
+      type: 'ORGANIZATION',
+      businessName,
+    };
+  }
+  return undefined;
+}
+
+function hasRecipientDisplayName(
+  partyDetails: Recipient['partyDetails'] | undefined
+): boolean {
+  if (!partyDetails) return false;
+  if (partyDetails.type === 'INDIVIDUAL') {
+    return !!(partyDetails.firstName?.trim() || partyDetails.lastName?.trim());
+  }
+  return !!partyDetails.businessName?.trim();
+}
+
+function getDbPartyById(partyId: string): DbPartyRecord | null {
+  return db.party.findFirst({
+    where: { id: { equals: partyId } },
+  }) as DbPartyRecord | null;
+}
+
+/** CLIENT org party for a test-demo / onboarding client seed. */
+function getClientOrganizationPartyDetails(
+  clientId: string
+): Recipient['partyDetails'] | undefined {
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  }) as { parties?: string[] } | null;
+  for (const pid of client?.parties ?? []) {
+    const party = getDbPartyById(pid);
+    const roles = party?.roles as string[] | undefined;
+    if (!party || !roles?.includes('CLIENT')) continue;
+    const fromOrg = buildRecipientPartyDetailsFromDbParty(party);
+    if (fromOrg && hasRecipientDisplayName(fromOrg)) {
+      return fromOrg;
+    }
+  }
+  return undefined;
+}
+
+function mergePartyDetailsExtras(
+  base: Recipient['partyDetails'],
+  extras: Recipient['partyDetails'] | undefined
+): Recipient['partyDetails'] {
+  if (!extras) return base;
+  return {
+    ...base,
+    ...(extras.address ? { address: extras.address } : {}),
+    ...(extras.contacts ? { contacts: extras.contacts } : {}),
+  };
+}
+
+/**
+ * Onboarding link flow often POSTs `partyId` only (no `partyDetails`) when
+ * `prefillFromClient` links the org party. Stub `partyDetails` with
+ * `type: INDIVIDUAL` and empty names must not override resolved SMBDO party data.
+ */
+function resolveLinkedAccountPartyDetails(
+  clientId: string,
+  partyId: string | undefined,
+  incoming: Recipient['partyDetails'] | undefined
+): Recipient['partyDetails'] | undefined {
+  const incomingExtras =
+    incoming?.address || incoming?.contacts
+      ? ({
+          ...(incoming.address ? { address: incoming.address } : {}),
+          ...(incoming.contacts ? { contacts: incoming.contacts } : {}),
+        } as Recipient['partyDetails'])
+      : undefined;
+
+  const partyRecord = partyId ? getDbPartyById(partyId) : null;
+  const fromPartyId = partyRecord
+    ? buildRecipientPartyDetailsFromDbParty(partyRecord)
+    : undefined;
+  const fromClientOrg = getClientOrganizationPartyDetails(clientId);
+  const incomingNamed =
+    incoming && hasRecipientDisplayName(incoming) ? { ...incoming } : undefined;
+
+  if (fromPartyId && hasRecipientDisplayName(fromPartyId)) {
+    return mergePartyDetailsExtras(fromPartyId, incomingExtras);
+  }
+  if (incomingNamed) {
+    return incomingNamed;
+  }
+  if (fromClientOrg) {
+    return mergePartyDetailsExtras(fromClientOrg, incomingExtras);
+  }
+  if (fromPartyId) {
+    return mergePartyDetailsExtras(fromPartyId, incomingExtras);
+  }
+  return incomingNamed ?? incomingExtras;
+}
+
+function enrichLinkedAccountRecipientForDisplay(
+  recipient: Recipient
+): Recipient {
+  if (recipient.type !== 'LINKED_ACCOUNT') return recipient;
+  const partyDetails = resolveLinkedAccountPartyDetails(
+    recipient.clientId ?? '',
+    (recipient as Recipient & { partyId?: string }).partyId,
+    recipient.partyDetails
+  );
+  if (
+    !partyDetails ||
+    !hasRecipientDisplayName(partyDetails) ||
+    partyDetails === recipient.partyDetails
+  ) {
+    return recipient;
+  }
+  return { ...recipient, partyDetails };
 }
 
 /** Path params for routes with :clientId */
@@ -764,6 +902,7 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
       }
       if (
         body?.testDemoScenario === 'happy-path' ||
+        body?.testDemoScenario === 'happy-path-ptc' ||
         body?.testDemoScenario === 'happy-path-approved' ||
         body?.testDemoScenario === 'doc-request' ||
         body?.testDemoScenario === 'linked-account-approved' ||
@@ -850,7 +989,8 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
 
       // Delayed APPROVED only for `/test-scenario` happy path (header not sent by SellSense).
       if (
-        testDemoScenario === 'happy-path' &&
+        (testDemoScenario === 'happy-path' ||
+          testDemoScenario === 'happy-path-ptc') &&
         getTestScenarioClientIds().includes(clientId)
       ) {
         const delayMs = 3000;
@@ -955,16 +1095,28 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
       initialStatus = initialLinkedAccountRecipientStatus(testDemoScenario);
     }
 
+    const clientId = data?.clientId ?? 'client-001';
+    const partyId = (data as RecipientRequest & { partyId?: string })?.partyId;
+    const partyDetails =
+      recipientType === 'LINKED_ACCOUNT'
+        ? resolveLinkedAccountPartyDetails(
+            clientId,
+            partyId,
+            data?.partyDetails
+          )
+        : data?.partyDetails;
+
     // Create the recipient in the database (DB shape extends API shape)
     const newRecipient = {
       id: recipientId,
       type: recipientType,
       status: initialStatus,
-      clientId: data?.clientId ?? 'client-001',
-      partyDetails: data?.partyDetails,
+      clientId,
+      partyDetails,
       account: data?.account,
       createdAt: timestamp,
       updatedAt: timestamp,
+      ...(partyId ? { partyId } : {}),
     };
 
     try {
@@ -973,12 +1125,17 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
 
       logDbState('EF Recipient Creation');
 
-      return HttpResponse.json(createdRecipient, {
-        status: 201,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      return HttpResponse.json(
+        enrichLinkedAccountRecipientForDisplay(
+          createdRecipient as unknown as Recipient
+        ),
+        {
+          status: 201,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
     } catch (error) {
       console.error('Error creating EF recipient:', error);
       return HttpResponse.json(
@@ -1082,11 +1239,14 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     }
 
     console.log('Found recipient:', recipient);
-    return HttpResponse.json(recipient as unknown as Recipient, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    return HttpResponse.json(
+      enrichLinkedAccountRecipientForDisplay(recipient as unknown as Recipient),
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
   }),
 
   // --- Embedded Components Handlers ---
@@ -1257,7 +1417,9 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     });
 
     // Get all recipients from database
-    let filteredRecipients = db.recipient.getAll() as unknown as Recipient[];
+    let filteredRecipients = (
+      db.recipient.getAll() as unknown as Recipient[]
+    ).map(enrichLinkedAccountRecipientForDisplay);
 
     // Filter by type if specified
     if (type) {

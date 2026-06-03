@@ -26,6 +26,11 @@ export type TestScenarioLoginProfile = {
   scenario: TestDemoScenarioMode;
   /** Override bundle `linkAccountStepOptions` only when a login needs an exceptional shape. */
   linkAccountStepOptions?: LinkAccountStepOptions;
+  /** Per-login `OnboardingFlow` props (e.g. scenario 4 PTC vs LLC happy paths). */
+  onboardingFlow?: Pick<
+    OnboardingFlowProps,
+    'availableOrganizationTypes' | 'enablePubliclyTradedCompanies'
+  >;
 };
 
 export type TestScenarioBundleConfig = {
@@ -131,8 +136,8 @@ function buildContentTokens(fieldLabels: {
 }
 
 /**
- * `/test-scenario-2` only: optional login that seeds three LINKED_ACCOUNT rows (see `applyTestDemoScenario`).
- * Other bundle logins (`linked-microdeposit`, `linked-active`) start with zero linked recipients.
+ * Multi-link demo bundles (`test-scenario-2`, `test-scenario-4`): optional login that seeds three
+ * LINKED_ACCOUNT rows (see `applyTestDemoScenario`). Other logins start with zero linked recipients.
  */
 const MULTI_LINK_START_PROFILES: TestScenarioLoginProfile[] = [
   {
@@ -166,9 +171,34 @@ const OPERATOR_PROFILES: TestScenarioLoginProfile[] = [
   },
 ];
 
-/** `/test-scenario-2`: same onboarding logins as `/test-scenario`, plus MSW-only linked-account count variants. */
+/** Multi-link bundles: same onboarding logins as `/test-scenario`, plus MSW-only linked-account count variants. */
 const MULTI_LINK_DEMO_PROFILES: TestScenarioLoginProfile[] = [
   ...OPERATOR_PROFILES,
+  ...MULTI_LINK_START_PROFILES,
+];
+
+/** `/test-scenario-4`: PTC happy path first, then LLC happy path without PTC, then other operator logins. */
+const SCENARIO_4_PROFILES: TestScenarioLoginProfile[] = [
+  {
+    email: 'happy-path-ptc@demo.test',
+    label: 'Happy path \u2013 PTC (Nasdaq seed, enablePubliclyTradedCompanies)',
+    scenario: 'happy-path-ptc',
+    onboardingFlow: {
+      enablePubliclyTradedCompanies: true,
+      availableOrganizationTypes: ['C_CORPORATION'],
+    },
+  },
+  {
+    email: 'happy-path@demo.test',
+    label:
+      'Happy path \u2013 LLC, no PTC in mock or component (same fulfilment data)',
+    scenario: 'happy-path',
+    onboardingFlow: {
+      enablePubliclyTradedCompanies: false,
+      availableOrganizationTypes: ['LIMITED_LIABILITY_COMPANY'],
+    },
+  },
+  ...OPERATOR_PROFILES.filter((p) => p.email !== 'happy-path@demo.test'),
   ...MULTI_LINK_START_PROFILES,
 ];
 
@@ -359,8 +389,8 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
     onboardingFlow: {
       availableProducts: ['EMBEDDED_PAYMENTS'],
       availableJurisdictions: ['US'],
-      availableOrganizationTypes: ['C_CORPORATION'],
-      enablePubliclyTradedCompanies: true,
+      availableOrganizationTypes: ['LIMITED_LIABILITY_COMPANY'],
+      enablePubliclyTradedCompanies: false,
       disclosureConfig: { platformName: 'Platform, Inc.' },
       hideLinkedAccountRemoval: false,
       priorityIndustryCodes: [
@@ -372,7 +402,7 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
         '493190',
       ],
     },
-    loginProfiles: MULTI_LINK_DEMO_PROFILES,
+    loginProfiles: SCENARIO_4_PROFILES,
   },
 };
 

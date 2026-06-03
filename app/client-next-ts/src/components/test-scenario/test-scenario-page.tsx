@@ -90,6 +90,7 @@ export function TestScenarioPage({ bundleId }: TestScenarioPageProps) {
     bundleConfig.loginProfiles[0];
 
   const onboardingFlow = bundleConfig.onboardingFlow;
+  const profileOnboarding = selectedProfile.onboardingFlow;
 
   const sessionBundleConfig: TestScenarioBundleConfig | null = sessionScenario
     ? bundleConfig
@@ -180,6 +181,7 @@ export function TestScenarioPage({ bundleId }: TestScenarioPageProps) {
                     onboardingFlow?.availableJurisdictions ?? ['US']
                   }
                   availableOrganizationTypes={
+                    profileOnboarding?.availableOrganizationTypes ??
                     onboardingFlow?.availableOrganizationTypes ?? [
                       'SOLE_PROPRIETORSHIP',
                       'LIMITED_LIABILITY_COMPANY',
@@ -225,7 +227,9 @@ export function TestScenarioPage({ bundleId }: TestScenarioPageProps) {
                     onboardingFlow?.hideLinkedAccountRemoval ?? true
                   }
                   enablePubliclyTradedCompanies={
-                    onboardingFlow?.enablePubliclyTradedCompanies ?? false
+                    profileOnboarding?.enablePubliclyTradedCompanies ??
+                    onboardingFlow?.enablePubliclyTradedCompanies ??
+                    false
                   }
                   priorityIndustryCodes={onboardingFlow?.priorityIndustryCodes}
                 />

@@ -1,9 +1,15 @@
 import { createRootRoute, Outlet, useLocation } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
+import { TEST_SCENARIO_ROUTE_BY_BUNDLE } from '@/components/test-scenario/test-scenario-bundles';
+
 import { Footer } from '../components/landing/footer';
 import { LandingHeader } from '../components/landing/landing-header';
 import { DemoNotice } from '../components/ui/demo-notice';
+
+const TEST_SCENARIO_PATHS = new Set<string>(
+  Object.values(TEST_SCENARIO_ROUTE_BY_BUNDLE)
+);
 
 export const Route = createRootRoute({
   component: RootComponent,
@@ -13,10 +19,7 @@ function RootComponent() {
   const location = useLocation();
   const isSellsenseDemo = location.pathname === '/sellsense-demo';
   const isYearInReview = location.pathname === '/year-in-review';
-  const isTestScenario =
-    location.pathname === '/test-scenario' ||
-    location.pathname === '/test-scenario-2' ||
-    location.pathname === '/test-scenario-3';
+  const isTestScenario = TEST_SCENARIO_PATHS.has(location.pathname);
 
   if (isSellsenseDemo || isTestScenario) {
     return (
