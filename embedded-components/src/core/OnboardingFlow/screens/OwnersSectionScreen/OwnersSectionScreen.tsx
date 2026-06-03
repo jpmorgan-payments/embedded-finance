@@ -306,7 +306,7 @@ export const OwnersSectionScreen = () => {
           {t('screens.owners.overviewButtonLabel')}
         </Button>
       }
-      description="Provide information for owners and senior managers for your company. Keep in mind that individual people may have multiple roles."
+      description={t('screens.owners.description')}
     >
       <div className="eb-mt-6 eb-flex-auto eb-space-y-6">
         <Alert variant="informative">

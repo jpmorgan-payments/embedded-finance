@@ -114,7 +114,7 @@ describe('OnboardingFlow', () => {
     expect(screen.getByText(/Verify your business/i)).toBeInTheDocument();
     expect(screen.getByText(/Your personal details/i)).toBeInTheDocument();
     expect(screen.getByText(/Business details/i)).toBeInTheDocument();
-    expect(screen.getByText(/Owners and key roles/i)).toBeInTheDocument();
+    expect(screen.getByText(/Owners/i)).toBeInTheDocument();
     expect(screen.getByText(/Operational details/i)).toBeInTheDocument();
     expect(screen.getByText(/Review and attest/i)).toBeInTheDocument();
     expect(screen.getByText(/Supporting documents/i)).toBeInTheDocument();
@@ -305,7 +305,9 @@ describe('OnboardingFlow', () => {
 
     // STEP 5 OWNERS SECTION
     await waitFor(() => {
-      expect(screen.getByText(/Owners and key roles/i)).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: /^Owners$/i })
+      ).toBeInTheDocument();
     });
     // 5a. Owners Component
     const controllerIsOwnerRadio = screen.getByRole('radio', {

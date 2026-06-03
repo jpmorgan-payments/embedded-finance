@@ -36,7 +36,7 @@ describe('OnboardingFlow seeded GET — LLC corp rich NEW', () => {
     renderSeededOnboardingFlow(LLC_CORP_RICH_NEW_SEEDED_CLIENT_ID);
     await waitForOverview();
 
-    expect(screen.getByText(/Owners and key roles/i)).toBeInTheDocument();
+    expect(screen.getByText(/Owners/i)).toBeInTheDocument();
 
     await user.click(screen.getByTestId('business-section-button'));
 
