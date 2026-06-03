@@ -305,7 +305,9 @@ describe('OnboardingFlow', () => {
 
     // STEP 5 OWNERS SECTION
     await waitFor(() => {
-      expect(screen.getByText(/^Owners$/i)).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: /^Owners$/i })
+      ).toBeInTheDocument();
     });
     // 5a. Owners Component
     const controllerIsOwnerRadio = screen.getByRole('radio', {
