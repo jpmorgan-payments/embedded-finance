@@ -172,6 +172,7 @@ const iframeUrl = `${sessionData.url}?token=${sessionData.token}&hostedExperienc
 const themeTokens = encodeURIComponent(JSON.stringify({ colorScheme: 'light', variables: { ... } }));
 const componentProperties = encodeURIComponent(JSON.stringify({
   disclosurePlatformName: 'SellSense Marketplace',
+  disclosureProductName: 'Wallet Accounts',
   disclosurePlatformAgreementUrl: 'https://sellsense.example.com/terms-of-service',
   disclosurePlatformAgreementLabel: 'SellSense Marketplace Terms of Service'
 }));
@@ -224,6 +225,7 @@ const encodedTheme = encodeURIComponent(JSON.stringify(themeConfig));
 const experienceType = 'HOSTED_ONBOARDING_UI'; // or any supported experience type
 const componentProperties = encodeURIComponent(JSON.stringify({
   disclosurePlatformName: 'SellSense Marketplace',
+  disclosureProductName: 'Wallet Accounts',
   disclosurePlatformAgreementUrl: 'https://sellsense.example.com/terms-of-service',
   disclosurePlatformAgreementLabel: 'SellSense Marketplace Terms of Service'
 }));
@@ -272,6 +274,7 @@ const onboardingUI = new PartiallyHostedUIComponent({
   contentTokens: { locale: 'en-US' },
   componentProperties: {
     disclosurePlatformName: 'SellSense Marketplace',
+    disclosureProductName: 'Wallet Accounts',
     disclosurePlatformAgreementUrl: 'https://sellsense.example.com/terms-of-service',
     disclosurePlatformAgreementLabel: 'SellSense Marketplace Terms of Service'
   }

@@ -307,6 +307,7 @@ UI by appending optional URL parameters to the iframe `src` URL.
 | `hideSidebar` | `boolean` | Hide sidebar navigation |
 | `showDownloadChecklist` | `boolean` | Show download button on Overview step |
 | `disclosurePlatformName` | `string` | Platform name shown in the disclosure step |
+| `disclosureProductName` | `string` | Product name shown in the FDIC disclosure (e.g. "Wallet Accounts"). Default: `"Accounts"` |
 | `disclosurePlatformAgreementUrl` | `string` | URL for the platform agreement link |
 | `disclosurePlatformAgreementLabel` | `string` | Label for the platform agreement link |
 | `showDisclosureFooter` | `boolean` | When `true`, shows the regulatory disclosure footer (e.g. FDIC / "not a bank" language) at the bottom of the flow. Still requires `disclosurePlatformName` for the footer to render. Default: `false` |
@@ -328,6 +329,7 @@ const themeTokens = {
 const componentProperties = {
   showDisclosureFooter: true,
   disclosurePlatformName: 'SellSense Marketplace',
+  disclosureProductName: 'Wallet Accounts',  // defaults to "Accounts" if omitted
   disclosurePlatformAgreementUrl: 'https://sellsense.example.com/terms-of-service',
   disclosurePlatformAgreementLabel: 'SellSense Marketplace Terms of Service'
 };
