@@ -39,8 +39,9 @@ export function DisclosureFooter() {
       <p className="eb-mt-1">
         {t('reviewAndAttest.disclosure.fdic', {
           platformName: disclosureConfig.platformName,
+          productName: disclosureConfig.productName ?? 'Accounts',
           defaultValue:
-            'Deposit accounts are insured by the FDIC up to $250,000 per depositor for each account ownership category. Availability of FDIC deposit insurance coverage protects against the failure of JPMorgan Chase Bank, N.A., Member FDIC, and not of {{platformName}}.',
+            '{{productName}} are insured by the FDIC up to $250,000 per depositor for each account ownership category. Availability of FDIC deposit insurance coverage protects against the failure of JPMorgan Chase Bank, N.A., Member FDIC, and not of {{platformName}}.',
         })}
       </p>
     </footer>

@@ -183,6 +183,8 @@ export type LinkAccountStepOptions = {
 export type OnboardingDisclosureConfig = {
   /** Display name of the platform provider (replaces `[Platform Provider]`). */
   platformName: string;
+  /** Display name for the deposit product shown in FDIC disclosure. Defaults to `"Accounts"`. */
+  productName?: string;
   /** URL for the Platform Provider's Program Agreement link shown in attestation text. */
   platformAgreementUrl?: string;
   /**
