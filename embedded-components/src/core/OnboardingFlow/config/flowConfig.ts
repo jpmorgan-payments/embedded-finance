@@ -2,12 +2,14 @@ import { i18n } from '@/i18n/config';
 import {
   BuildingIcon,
   FileIcon,
+  HeartHandshakeIcon,
   TagIcon,
   UploadIcon,
   UserIcon,
   Users2Icon,
 } from 'lucide-react';
 
+import { isNonprofitOrganizationType } from '@/core/OnboardingFlow/consts';
 import {
   BusinessContactInfoForm,
   BusinessIdentityForm,
@@ -22,6 +24,8 @@ import { DocumentUploadForm } from '@/core/OnboardingFlow/screens/DocumentUpload
 import { DocumentUploadScreen } from '@/core/OnboardingFlow/screens/DocumentUploadScreen/DocumentUploadScreen';
 import { GatewayScreen } from '@/core/OnboardingFlow/screens/GatewayScreen/GatewayScreen';
 import { LinkAccountScreen } from '@/core/OnboardingFlow/screens/LinkAccountScreen/LinkAccountScreen';
+import { CharitableDonorForm } from '@/core/OnboardingFlow/screens/NonprofitDueDiligenceScreen/forms/CharitableDonorForm';
+import { NonprofitDueDiligenceScreen } from '@/core/OnboardingFlow/screens/NonprofitDueDiligenceScreen/NonprofitDueDiligenceScreen';
 import { OperationalDetailsForm } from '@/core/OnboardingFlow/screens/OperationalDetailsForm/OperationalDetailsForm';
 import { OverviewScreen } from '@/core/OnboardingFlow/screens/OverviewScreen/OverviewScreen';
 import { OwnersSectionScreen } from '@/core/OnboardingFlow/screens/OwnersSectionScreen/OwnersSectionScreen';
@@ -111,6 +115,75 @@ const staticScreens: StaticScreenConfig[] = [
         roles: ['BENEFICIAL_OWNER'],
       }),
       steps: ownerSteps,
+    },
+  },
+  {
+    id: 'charitable-donor-stepper',
+    isSection: false,
+    type: 'stepper',
+    stepperConfig: {
+      associatedPartyFilters: {
+        partyType: 'ORGANIZATION',
+        roles: ['CHARITABLE_DONOR' as any],
+      },
+      getDefaultPartyRequestBody: () => ({
+        partyType: 'ORGANIZATION',
+        roles: ['CHARITABLE_DONOR' as any],
+      }),
+      steps: [
+        {
+          id: 'donor-details',
+          stepType: 'form',
+          title: 'Donor Organization Details',
+          description:
+            'Provide details about the charitable donor organization.',
+          Component: CharitableDonorForm,
+        },
+        {
+          id: 'check-answers',
+          stepType: 'check-answers',
+          title: 'Check answers',
+          description: 'Review the information you have provided.',
+        },
+      ],
+    },
+  },
+  {
+    id: 'wealth-contributor-stepper',
+    isSection: false,
+    type: 'stepper',
+    stepperConfig: {
+      associatedPartyFilters: {
+        partyType: 'INDIVIDUAL',
+        roles: ['WEALTH_CONTRIBUTOR' as any],
+      },
+      getDefaultPartyRequestBody: () => ({
+        partyType: 'INDIVIDUAL',
+        roles: ['WEALTH_CONTRIBUTOR' as any],
+      }),
+      steps: [
+        {
+          id: 'personal-details',
+          stepType: 'form',
+          title: 'Personal Details',
+          description:
+            'Provide details about the significant wealth contributor.',
+          Component: PersonalDetailsForm,
+        },
+        {
+          id: 'contact-details',
+          stepType: 'form',
+          title: 'Contact Details',
+          description: 'Provide address information for the contributor.',
+          Component: ContactDetailsForm,
+        },
+        {
+          id: 'check-answers',
+          stepType: 'check-answers',
+          title: 'Check answers',
+          description: 'Review the information you have provided.',
+        },
+      ],
     },
   },
   {
@@ -434,6 +507,47 @@ const sectionScreens: SectionScreenConfig[] = [
       },
     },
     Component: OwnersSectionScreen,
+  },
+  {
+    id: 'nonprofit-due-diligence-section',
+    isSection: true,
+    type: 'component',
+    sectionConfig: {
+      isVisible: (ctx) =>
+        isNonprofitOrganizationType(
+          ctx.orgParty?.organizationDetails?.organizationType
+        ),
+      label: 'Nonprofit Due Diligence',
+      shortLabel: 'Due Diligence',
+      icon: HeartHandshakeIcon,
+      requirementsList: [
+        'Charitable donor organizations (if applicable)',
+        'Significant wealth contributors (if applicable)',
+      ],
+      statusResolver: (sessionData, clientData) => {
+        if (
+          clientData?.status === 'INFORMATION_REQUESTED' ||
+          clientData?.status === 'REVIEW_IN_PROGRESS' ||
+          clientData?.status === 'APPROVED' ||
+          clientData?.status === 'DECLINED'
+        ) {
+          return 'completed_disabled';
+        }
+
+        if (
+          !getOrganizationParty(clientData)?.organizationDetails
+            ?.organizationType
+        ) {
+          return 'on_hold';
+        }
+
+        if (sessionData.isNonprofitDueDiligenceDone) {
+          return 'completed';
+        }
+        return 'not_started';
+      },
+    },
+    Component: NonprofitDueDiligenceScreen,
   },
   {
     id: 'additional-questions-section',

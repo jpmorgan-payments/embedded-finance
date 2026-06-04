@@ -11,6 +11,11 @@ import { z } from 'zod';
 import { AlertDescription } from '@/components/ui/alert';
 import { Alert, Button } from '@/components/ui';
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
+import {
+  isNonprofitOrganizationType,
+  isValidNonprofitNaicsCode,
+} from '@/core/OnboardingFlow/consts';
+import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 
 import { useIndustryFormSchema } from './IndustryForm.schema';
@@ -18,11 +23,21 @@ import { useIndustrySuggestions } from './useIndustrySuggestions';
 
 export const IndustryForm: FormStepComponent = () => {
   const { t } = useTranslationWithTokens('onboarding-overview');
+  const { organizationType } = useOnboardingContext();
+  const isNonprofit = isNonprofitOrganizationType(organizationType);
+
   const form =
     useFormContext<z.input<ReturnType<typeof useIndustryFormSchema>>>();
 
   // Get the business description from the form
   const description = form.watch('organizationDescription');
+  const selectedIndustry = form.watch('industry');
+
+  // Check if selected NAICS code is valid for nonprofit
+  const isInvalidNonprofitNaics =
+    isNonprofit &&
+    selectedIndustry &&
+    !isValidNonprofitNaicsCode(selectedIndustry, true);
 
   // Use our custom hook for AI industry suggestions
   const {
@@ -43,6 +58,35 @@ export const IndustryForm: FormStepComponent = () => {
   };
   return (
     <div className="eb-mt-1 eb-space-y-6">
+      {isNonprofit && (
+        <Alert
+          variant="informative"
+          density="sm"
+          noTitle
+          className="eb-mt-4 eb-max-w-full"
+        >
+          <InfoIcon className="eb-size-4 eb-shrink-0" />
+          <AlertDescription className="eb-break-words">
+            As a nonprofit or unincorporated association, only specific NAICS
+            codes are valid for your organization type. Suggested codes are
+            shown at the top of the list.
+          </AlertDescription>
+        </Alert>
+      )}
+      {isInvalidNonprofitNaics && (
+        <Alert
+          variant="warning"
+          density="sm"
+          className="eb-max-w-full"
+          title="Invalid NAICS code"
+        >
+          <AlertTriangleIcon className="eb-size-4 eb-shrink-0" />
+          <AlertDescription className="eb-break-words">
+            The selected NAICS code is not valid for your organization type.
+            Please select a code from the suggested nonprofit codes.
+          </AlertDescription>
+        </Alert>
+      )}
       <Alert
         variant="informative"
         density="sm"

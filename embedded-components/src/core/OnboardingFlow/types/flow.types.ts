@@ -64,6 +64,8 @@ export type StaticScreenId =
   | 'checklist'
   | 'overview'
   | 'owner-stepper'
+  | 'charitable-donor-stepper'
+  | 'wealth-contributor-stepper'
   | 'document-upload-form'
   | 'link-account';
 
@@ -71,6 +73,7 @@ export type SectionScreenId =
   | 'personal-section'
   | 'business-section'
   | 'owners-section'
+  | 'nonprofit-due-diligence-section'
   | 'additional-questions-section'
   | 'review-attest-section'
   | 'upload-documents-section';
@@ -166,6 +169,9 @@ export type FlowProgress = {
 export type FlowSessionData = {
   isControllerOwnerQuestionAnswered?: boolean;
   isOwnersSectionDone?: boolean;
+  isNonprofitDueDiligenceDone?: boolean;
+  hasCharitableDonors?: boolean;
+  hasWealthContributors?: boolean;
   mockedVerifyingSectionId?: ScreenId;
   hideGatewayInfoAlert?: boolean;
   hideOverviewInfoAlert?: boolean;
