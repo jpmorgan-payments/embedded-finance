@@ -2,6 +2,22 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.14.6] - 2026-06-03
+
+### Changes
+
+#### Features
+
+- **i18n:** update descriptions for owners section and info alert for clarity
+
+#### Refactors
+
+- simplify Owners section text in integration tests for clarity
+
+#### Tests
+
+- **OnboardingFlow:** update Owners section test to use role-based query for improved accessibility
+
 ## [0.14.5] - 2026-06-03
 
 ### Changes
