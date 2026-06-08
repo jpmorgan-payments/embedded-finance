@@ -2,12 +2,10 @@
 
 import {
   Accounts,
-  PaymentFlow,
   RecipientsWidget,
   TransactionsDisplay,
 } from '@jpmorgan-payments/embedded-finance-components';
 
-import { Button } from '@/components/ui/button';
 import { DatabaseResetUtils } from '@/lib/database-reset-utils';
 
 import { TEST_SCENARIO_5_DASHBOARD_ACCOUNT_ID } from './test-scenario-naics-codes';
@@ -40,8 +38,8 @@ export function TestScenarioDashboard({
           Payments account dashboard
         </h2>
         <p className="mt-1 text-sm text-neutral-600">
-          Approved client view for {orgDisplayName} — accounts, payments,
-          recipients, and transaction history.
+          Approved client view for {orgDisplayName} — accounts, recipients, and
+          transaction history.
         </p>
       </div>
 
@@ -56,24 +54,13 @@ export function TestScenarioDashboard({
           />
         </section>
 
-        <section className="rounded-lg border border-black/10 bg-white p-4 shadow-sm lg:col-span-2">
-          <h3 className="mb-3 text-base font-semibold text-neutral-900">
-            Make payment
-          </h3>
-          <PaymentFlow
-            initialAccountId={TEST_SCENARIO_5_DASHBOARD_ACCOUNT_ID}
-            onTransactionComplete={handlePaymentSettled}
-            trigger={<Button>Make payment</Button>}
-          />
-        </section>
-
-        <section className="rounded-lg border border-black/10 bg-white p-4 shadow-sm lg:col-span-2">
+        <section className="rounded-lg border border-black/10 bg-white p-4 shadow-sm">
           <h3 className="mb-3 text-base font-semibold text-neutral-900">
             Recipients
           </h3>
           <RecipientsWidget
             mode="list"
-            viewMode="table"
+            viewMode="compact-cards"
             onRecipientAdded={handleDataSettled}
             onPaymentComplete={handlePaymentSettled}
           />
