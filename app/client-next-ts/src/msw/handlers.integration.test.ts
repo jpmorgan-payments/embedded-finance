@@ -12,12 +12,19 @@ import {
 import { TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID } from '../mocks/testScenarioFasterFulfilmentClient.mock';
 import { TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID } from '../mocks/testScenarioHealthBenefitClient.mock';
 import { TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID } from '../mocks/testScenarioMultiLinkedIllustrationClient.mock';
+import { TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID } from '../mocks/testScenarioNaicsCodesClient.mock';
 import {
   TEST_DEMO_SCENARIO_CLIENT_ID,
   TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE,
   TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID,
 } from '../mocks/testScenarioOperator80Client.mock';
-import { db, DB_SCENARIOS, getDbStatus, resetDb } from './db';
+import {
+  applyTestDemoScenario,
+  db,
+  DB_SCENARIOS,
+  getDbStatus,
+  resetDb,
+} from './db';
 import { createHandlers } from './handlers';
 
 const API = 'http://localhost';
@@ -87,15 +94,8 @@ describe('MSW handlers (integration)', () => {
   });
 
   it('POST /clients/:id merges questionResponses and prunes conditional outstanding IDs', async () => {
-    await fetch(`${API}/ef/do/v1/_reset`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        scenario: DB_SCENARIOS.EMPTY,
-        overrides: {},
-        testDemoScenario: 'happy-path',
-      }),
-    });
+    resetDb(DB_SCENARIOS.EMPTY);
+    applyTestDemoScenario('happy-path', 'test-scenario');
 
     const clientId = TEST_DEMO_SCENARIO_CLIENT_ID;
     const clientBefore = db.client.findFirst({
@@ -638,4 +638,145 @@ describe('MSW handlers (integration)', () => {
       expect(linked.length).toBe(0);
     }
   );
+
+  it('test-scenario-5: naics-codes-dashboard seeds APPROVED client and wallet data', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'naics-codes-dashboard',
+        testScenarioBundle: 'test-scenario-5',
+      }),
+    });
+
+    const clientRes = await fetch(
+      `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID}`
+    );
+    expect(clientRes.ok).toBe(true);
+    const client = (await clientRes.json()) as { status?: string };
+    expect(client.status).toBe('APPROVED');
+
+    const accountsRes = await fetch(
+      `${API}/ef/do/v1/accounts?clientId=${TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID}`
+    );
+    const accounts = (await accountsRes.json()) as {
+      items?: Array<{
+        id?: string;
+        clientId?: string;
+        category?: string;
+        paymentRoutingInformation?: { accountNumber?: string };
+      }>;
+    };
+    expect(accounts.items ?? []).toHaveLength(1);
+    expect(accounts.items?.[0]?.category).toBe('LIMITED_DDA_PAYMENTS');
+    expect(accounts.items?.[0]?.paymentRoutingInformation?.accountNumber).toBe(
+      '445566778899'
+    );
+
+    const recipientsRes = await fetch(`${API}/ef/do/v1/recipients`);
+    const recipients = (await recipientsRes.json()) as {
+      recipients?: Array<{ type?: string }>;
+    };
+    const paymentRecipients = (recipients.recipients ?? []).filter(
+      (r) => r.type === 'RECIPIENT'
+    );
+    expect(paymentRecipients.length).toBe(3);
+  });
+
+  it('test-scenario-5: selecting NAICS code adds assessment questions to outstanding', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'naics-codes-onboarding',
+        testScenarioBundle: 'test-scenario-5',
+      }),
+    });
+
+    const clientRes = await fetch(
+      `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID}`
+    );
+    const client = (await clientRes.json()) as {
+      parties?: Array<{ id?: string }>;
+    };
+    const orgPartyId = client.parties?.[0]?.id;
+    expect(orgPartyId).toBeDefined();
+
+    await fetch(`${API}/ef/do/v1/parties/${orgPartyId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        organizationDetails: {
+          industry: { codeType: 'NAICS', code: '455110' },
+        },
+      }),
+    });
+
+    const afterIndustry = await fetch(
+      `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID}`
+    );
+    const updated = (await afterIndustry.json()) as {
+      outstanding?: { questionIds?: string[] };
+    };
+    expect(updated.outstanding?.questionIds ?? []).toEqual(
+      expect.arrayContaining(['40501', '40508'])
+    );
+
+    const viaGet = await fetch(
+      `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID}`
+    );
+    const viaGetBody = (await viaGet.json()) as {
+      outstanding?: { questionIds?: string[] };
+    };
+    expect(viaGetBody.outstanding?.questionIds ?? []).toEqual(
+      expect.arrayContaining([
+        '40501',
+        '40502',
+        '40503',
+        '40504',
+        '40505',
+        '40506',
+        '40508',
+      ])
+    );
+  });
+
+  it('test-scenario-5: answering NAICS questions auto-approves client', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'naics-codes-onboarding',
+        testScenarioBundle: 'test-scenario-5',
+      }),
+    });
+
+    const naicsResponses = [
+      { questionId: '40501', values: ['Amazon Marketplace'] },
+      { questionId: '40502', values: ['Electronics & gadgets'] },
+      { questionId: '40503', values: ['Fulfillment by Amazon (FBA)'] },
+      { questionId: '40504', values: ['Credit & debit cards'] },
+      { questionId: '40505', values: ['250000'] },
+      { questionId: '40506', values: ['false'] },
+      { questionId: '40508', values: ['2018-06-15'] },
+    ];
+
+    const updateRes = await fetch(
+      `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionResponses: naicsResponses }),
+      }
+    );
+    expect(updateRes.ok).toBe(true);
+    const body = (await updateRes.json()) as { status?: string };
+    expect(body.status).toBe('APPROVED');
+  });
 });

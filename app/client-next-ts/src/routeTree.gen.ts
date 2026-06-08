@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as YearInReviewRouteImport } from './routes/year-in-review'
 import { Route as WebhookExplorerRouteImport } from './routes/webhook-explorer'
 import { Route as UtilsRouteImport } from './routes/utils'
+import { Route as TestScenario5RouteImport } from './routes/test-scenario-5'
 import { Route as TestScenario4RouteImport } from './routes/test-scenario-4'
 import { Route as TestScenario3RouteImport } from './routes/test-scenario-3'
 import { Route as TestScenario2RouteImport } from './routes/test-scenario-2'
@@ -44,6 +45,11 @@ const WebhookExplorerRoute = WebhookExplorerRouteImport.update({
 const UtilsRoute = UtilsRouteImport.update({
   id: '/utils',
   path: '/utils',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestScenario5Route = TestScenario5RouteImport.update({
+  id: '/test-scenario-5',
+  path: '/test-scenario-5',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TestScenario4Route = TestScenario4RouteImport.update({
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/test-scenario-2': typeof TestScenario2Route
   '/test-scenario-3': typeof TestScenario3Route
   '/test-scenario-4': typeof TestScenario4Route
+  '/test-scenario-5': typeof TestScenario5Route
   '/utils': typeof UtilsRoute
   '/webhook-explorer': typeof WebhookExplorerRoute
   '/year-in-review': typeof YearInReviewRoute
@@ -176,6 +183,7 @@ export interface FileRoutesByTo {
   '/test-scenario-2': typeof TestScenario2Route
   '/test-scenario-3': typeof TestScenario3Route
   '/test-scenario-4': typeof TestScenario4Route
+  '/test-scenario-5': typeof TestScenario5Route
   '/utils': typeof UtilsRoute
   '/webhook-explorer': typeof WebhookExplorerRoute
   '/year-in-review': typeof YearInReviewRoute
@@ -200,6 +208,7 @@ export interface FileRoutesById {
   '/test-scenario-2': typeof TestScenario2Route
   '/test-scenario-3': typeof TestScenario3Route
   '/test-scenario-4': typeof TestScenario4Route
+  '/test-scenario-5': typeof TestScenario5Route
   '/utils': typeof UtilsRoute
   '/webhook-explorer': typeof WebhookExplorerRoute
   '/year-in-review': typeof YearInReviewRoute
@@ -225,6 +234,7 @@ export interface FileRouteTypes {
     | '/test-scenario-2'
     | '/test-scenario-3'
     | '/test-scenario-4'
+    | '/test-scenario-5'
     | '/utils'
     | '/webhook-explorer'
     | '/year-in-review'
@@ -247,6 +257,7 @@ export interface FileRouteTypes {
     | '/test-scenario-2'
     | '/test-scenario-3'
     | '/test-scenario-4'
+    | '/test-scenario-5'
     | '/utils'
     | '/webhook-explorer'
     | '/year-in-review'
@@ -270,6 +281,7 @@ export interface FileRouteTypes {
     | '/test-scenario-2'
     | '/test-scenario-3'
     | '/test-scenario-4'
+    | '/test-scenario-5'
     | '/utils'
     | '/webhook-explorer'
     | '/year-in-review'
@@ -294,6 +306,7 @@ export interface RootRouteChildren {
   TestScenario2Route: typeof TestScenario2Route
   TestScenario3Route: typeof TestScenario3Route
   TestScenario4Route: typeof TestScenario4Route
+  TestScenario5Route: typeof TestScenario5Route
   UtilsRoute: typeof UtilsRoute
   WebhookExplorerRoute: typeof WebhookExplorerRoute
   YearInReviewRoute: typeof YearInReviewRoute
@@ -320,6 +333,13 @@ declare module '@tanstack/react-router' {
       path: '/utils'
       fullPath: '/utils'
       preLoaderRoute: typeof UtilsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/test-scenario-5': {
+      id: '/test-scenario-5'
+      path: '/test-scenario-5'
+      fullPath: '/test-scenario-5'
+      preLoaderRoute: typeof TestScenario5RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/test-scenario-4': {
@@ -481,6 +501,7 @@ const rootRouteChildren: RootRouteChildren = {
   TestScenario2Route: TestScenario2Route,
   TestScenario3Route: TestScenario3Route,
   TestScenario4Route: TestScenario4Route,
+  TestScenario5Route: TestScenario5Route,
   UtilsRoute: UtilsRoute,
   WebhookExplorerRoute: WebhookExplorerRoute,
   YearInReviewRoute: YearInReviewRoute,
