@@ -181,18 +181,18 @@ const MULTI_LINK_DEMO_PROFILES: TestScenarioLoginProfile[] = [
 ];
 
 /** `/test-scenario-4`: PTC happy path first, then LLC happy path without PTC, then other operator logins. */
-/** `/test-scenario-5`: NAICS onboarding path and pre-approved dashboard path. */
+/** `/test-scenario-5`: Fund Management Platform — NAICS onboarding and pre-approved dashboard path. */
 const SCENARIO_5_PROFILES: TestScenarioLoginProfile[] = [
   {
     email: 'naics-codes-onboarding@demo.test',
     label:
-      'New client — select a recommended NAICS code, answer eight assessment questions, auto-approve to dashboard',
+      'New client — select a recommended NAICS code (fund management), answer fund assessment questions, auto-approve to dashboard',
     scenario: 'naics-codes-onboarding',
   },
   {
     email: 'dashboard-approved@demo.test',
     label:
-      'Approved client — skip onboarding and open wallet dashboard (accounts, linked accounts, recipients, transactions)',
+      'Approved client — skip onboarding and open payments account dashboard (accounts, recipients, transactions)',
     scenario: 'naics-codes-dashboard',
   },
 ];
@@ -425,7 +425,7 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
   },
   'test-scenario-5': {
     id: 'test-scenario-5',
-    headerOrgDisplayName: 'CommerceBridge Marketplace LLC',
+    headerOrgDisplayName: 'Leap Frog Investments, LLC',
     theme: 'Empty',
     contentTokens: buildContentTokens({
       controllerJobTitle: 'Role',

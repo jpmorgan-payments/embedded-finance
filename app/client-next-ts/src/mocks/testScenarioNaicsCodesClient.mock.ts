@@ -1,6 +1,6 @@
 /**
- * MSW seed for `/test-scenario-5` — CommerceBridge Marketplace LLC.
- * NAICS onboarding: three recommended NAICS codes trigger assessment questions.
+ * MSW seed for `/test-scenario-5` — Leap Frog Investments, LLC.
+ * NAICS onboarding: three recommended NAICS codes (fund management) trigger assessment questions.
  */
 export const TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID = '3100007005';
 
@@ -32,11 +32,20 @@ export const testScenarioNaicsCodesClient = {
       ],
       organizationDetails: {
         countryOfFormation: 'US',
-        dbaName: 'CommerceBridge',
-        organizationName: 'CommerceBridge Marketplace LLC',
+        dbaName: 'Leap Frog Investments',
+        organizationName: 'Leap Frog Investments, LLC',
         organizationType: 'LIMITED_LIABILITY_COMPANY',
-        organizationDescription:
-          'Multi-channel online retailer selling consumer goods through owned and marketplace storefronts.',
+        organizationDescription: '',
+        industryCategory: '',
+        industryType: '',
+        yearOfFormation: '',
+        organizationIds: [
+          {
+            idType: '',
+            value: '',
+            issuer: '',
+          },
+        ],
       },
       individualDetails: {},
       status: 'ACTIVE',
@@ -51,11 +60,11 @@ export const testScenarioNaicsCodesClient = {
     {
       id: '2100535401',
       createdAt: '2026-06-01T09:00:00.2Z',
-      email: '',
+      email: 'ross.gellar@leapfroginvestments.com',
       partyType: 'INDIVIDUAL',
       parentPartyId: '2100535400',
       profileStatus: 'NEW',
-      roles: ['CONTROLLER', 'BENEFICIAL_OWNER'],
+      roles: ['CONTROLLER', 'AUTHORIZED_USER'],
       active: true,
       validationResponse: [
         {
@@ -69,11 +78,12 @@ export const testScenarioNaicsCodesClient = {
         },
       ],
       individualDetails: {
-        countryOfResidence: 'US',
-        firstName: 'Jordan',
-        lastName: 'Reeves',
-        jobTitle: 'Owner',
-        jobTitleDescription: 'Founder & CEO',
+        countryOfResidence: '',
+        firstName: 'Ross',
+        middleName: 'Thomas',
+        lastName: 'Gellar',
+        jobTitle: '',
+        jobTitleDescription: '',
       },
       organizationDetails: {},
       status: 'ACTIVE',

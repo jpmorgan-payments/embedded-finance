@@ -1052,7 +1052,7 @@ function getOrgPartyIndustryCodeForClient(
 
 /**
  * Scenario 5 conditional logic: when the org party has a recommended NAICS
- * code, ensure all eight assessment questions are on `outstanding.questionIds`.
+ * code, ensure all fund assessment questions are on `outstanding.questionIds`.
  */
 export function syncTestScenario5NaicsCodeQuestionsFromIndustry(
   clientId: string

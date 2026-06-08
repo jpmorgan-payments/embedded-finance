@@ -711,7 +711,7 @@ describe('MSW handlers (integration)', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         organizationDetails: {
-          industry: { codeType: 'NAICS', code: '455110' },
+          industry: { codeType: 'NAICS', code: '525996' },
         },
       }),
     });
@@ -723,7 +723,7 @@ describe('MSW handlers (integration)', () => {
       outstanding?: { questionIds?: string[] };
     };
     expect(updated.outstanding?.questionIds ?? []).toEqual(
-      expect.arrayContaining(['40501', '40508'])
+      expect.arrayContaining(['30012', '30195'])
     );
 
     const viaGet = await fetch(
@@ -734,13 +734,29 @@ describe('MSW handlers (integration)', () => {
     };
     expect(viaGetBody.outstanding?.questionIds ?? []).toEqual(
       expect.arrayContaining([
-        '40501',
-        '40502',
-        '40503',
-        '40504',
-        '40505',
-        '40506',
-        '40508',
+        '30012',
+        '30013',
+        '30015',
+        '30032',
+        '30075',
+        '30163',
+        '30164',
+        '30165',
+        '30167',
+        '30169',
+        '30171',
+        '30173',
+        '30174',
+        '30178',
+        '30179',
+        '30181',
+        '30182',
+        '30183',
+        '30185',
+        '30187',
+        '30189',
+        '30191',
+        '30195',
       ])
     );
   });
@@ -758,13 +774,29 @@ describe('MSW handlers (integration)', () => {
     });
 
     const naicsResponses = [
-      { questionId: '40501', values: ['Amazon Marketplace'] },
-      { questionId: '40502', values: ['Electronics & gadgets'] },
-      { questionId: '40503', values: ['Fulfillment by Amazon (FBA)'] },
-      { questionId: '40504', values: ['Credit & debit cards'] },
-      { questionId: '40505', values: ['250000'] },
-      { questionId: '40506', values: ['false'] },
-      { questionId: '40508', values: ['2018-06-15'] },
+      { questionId: '30012', values: ['Investment Activities'] },
+      { questionId: '30013', values: ['Limited Partners of funds'] },
+      { questionId: '30015', values: ['Limited partner contributions'] },
+      { questionId: '30032', values: ['United States'] },
+      { questionId: '30075', values: ['Fund administration services'] },
+      { questionId: '30163', values: ['No'] },
+      { questionId: '30164', values: ['Yes'] },
+      { questionId: '30165', values: ['Special investment purposes', 'Finance purposes', 'Holding securities', 'Real Estate Investment', 'Other'] },
+      { questionId: '30167', values: ['Buy and sell property and assets', 'Buy and sell investments', 'Buy and sell businesses', 'Lending', 'Other'] },
+      { questionId: '30169', values: ['Long/Short', 'Convertible Arbitrage', 'Dedicated Short Bias', 'Emerging Markets', 'Risk Arbitrage', 'Equity Dividend Fund', 'Capital Appreciation Fund', 'Global Small Cap Fund', 'High Yield Bond Fund', 'Strategic Income Opportunities Fund', 'Balanced', 'Equity', 'Fixed Income', 'Cash', 'Alternatives', 'Real Estate', 'Other'] },
+      { questionId: '30171', values: ['Institutional Investors', 'High Net Worth Individuals', 'Fund of Funds', 'Pension Funds'] },
+      { questionId: '30173', values: ['10000000'] },
+      { questionId: '30174', values: ['No'] },
+      { questionId: '30178', values: ['Yes'] },
+      { questionId: '30179', values: ['No'] },
+      { questionId: '30181', values: ['Registered', 'Affiliated Adviser'] },
+      { questionId: '30182', values: ['12 months'] },
+      { questionId: '30183', values: ['KPMG', 'Deloitte & Touché', 'Ernst & Young', 'PwC', 'Other'] },
+      { questionId: '30185', values: ['United States'] },
+      { questionId: '30187', values: ['No'] },
+      { questionId: '30189', values: ['No'] },
+      { questionId: '30191', values: ['No'] },
+      { questionId: '30195', values: ['No'] },
     ];
 
     const updateRes = await fetch(

@@ -1,9 +1,9 @@
 /** Recommended NAICS codes surfaced first in the industry picker for `/test-scenario-5`. */
 /** Must exist in embedded-components `naics-codes.json` or they are dropped from the picker. */
 export const TEST_SCENARIO_5_NAICS_CODES = [
-  '455110',
-  '455211',
-  '459999',
+  '525996',
+  '525995',
+  '525991',
 ] as const;
 
 export type TestScenario5NaicsCode =
@@ -11,14 +11,29 @@ export type TestScenario5NaicsCode =
 
 /** NAICS assessment questions served after a recommended code is selected. */
 export const TEST_SCENARIO_5_QUESTION_IDS = [
-  '40501',
-  '40502',
-  '40503',
-  '40504',
-  '40505',
-  '40506',
-  '40507',
-  '40508',
+  '30012',
+  '30013',
+  '30015',
+  '30032',
+  '30075',
+  '30163',
+  '30164',
+  '30165',
+  '30167',
+  '30169',
+  '30171',
+  '30173',
+  '30174',
+  '30178',
+  '30179',
+  '30181',
+  '30182',
+  '30183',
+  '30185',
+  '30187',
+  '30189',
+  '30191',
+  '30195',
 ] as const;
 
 export const TEST_SCENARIO_5_DASHBOARD_ACCOUNT_ID = 'ts5-acc-payments';
@@ -33,13 +48,29 @@ export function isTestScenario5NaicsCode(
 }
 
 const NAICS_CODE_REQUIRED_QUESTION_IDS = [
-  '40501',
-  '40502',
-  '40503',
-  '40504',
-  '40505',
-  '40506',
-  '40508',
+  '30012',
+  '30013',
+  '30015',
+  '30032',
+  '30075',
+  '30163',
+  '30164',
+  '30165',
+  '30167',
+  '30169',
+  '30171',
+  '30173',
+  '30174',
+  '30178',
+  '30179',
+  '30181',
+  '30182',
+  '30183',
+  '30185',
+  '30187',
+  '30189',
+  '30191',
+  '30195',
 ] as const;
 
 export function areAllNaicsCodeQuestionsAnswered(
@@ -56,9 +87,5 @@ export function areAllNaicsCodeQuestionsAnswered(
   const coreComplete = NAICS_CODE_REQUIRED_QUESTION_IDS.every(
     (id) => answered.has(id) && !outstanding.has(id)
   );
-  if (!coreComplete) return false;
-
-  if (outstanding.has('40507')) return false;
-
-  return true;
+  return coreComplete;
 }

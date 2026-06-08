@@ -9919,6 +9919,45 @@
     "footnote": null
   },
   {
+    "id": "525991",
+    "description": "Open-End Investment Funds (except Exchange-Traded Funds)",
+    "sectorId": "52",
+    "sectorDescription": "Finance and Insurance",
+    "subsectorId": "525",
+    "subsectorDescription": "Funds, Trusts and Other Financial Vehicles",
+    "revenueLimit": 40,
+    "assetLimit": null,
+    "employeeCountLimit": null,
+    "parent": "525990",
+    "footnote": null
+  },
+  {
+    "id": "525995",
+    "description": "Closed-End Investment Funds",
+    "sectorId": "52",
+    "sectorDescription": "Finance and Insurance",
+    "subsectorId": "525",
+    "subsectorDescription": "Funds, Trusts and Other Financial Vehicles",
+    "revenueLimit": 40,
+    "assetLimit": null,
+    "employeeCountLimit": null,
+    "parent": "525990",
+    "footnote": null
+  },
+  {
+    "id": "525996",
+    "description": "Other Investment Pools and Funds",
+    "sectorId": "52",
+    "sectorDescription": "Finance and Insurance",
+    "subsectorId": "525",
+    "subsectorDescription": "Funds, Trusts and Other Financial Vehicles",
+    "revenueLimit": 40,
+    "assetLimit": null,
+    "employeeCountLimit": null,
+    "parent": "525990",
+    "footnote": null
+  },
+  {
     "id": "531110",
     "description": "Lessors of Residential Buildings and Dwellings",
     "sectorId": "53",

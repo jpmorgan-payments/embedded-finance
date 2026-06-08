@@ -2,7 +2,6 @@
 
 import {
   Accounts,
-  LinkedAccountWidget,
   PaymentFlow,
   RecipientsWidget,
   TransactionsDisplay,
@@ -38,11 +37,11 @@ export function TestScenarioDashboard({
     <div className="space-y-6">
       <div className="rounded-lg border border-black/10 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-semibold text-neutral-900">
-          Seller wallet dashboard
+          Payments account dashboard
         </h2>
         <p className="mt-1 text-sm text-neutral-600">
-          Approved client view for {orgDisplayName} — accounts, linked accounts,
-          payments, recipients, and transaction history.
+          Approved client view for {orgDisplayName} — accounts, payments,
+          recipients, and transaction history.
         </p>
       </div>
 
@@ -54,18 +53,6 @@ export function TestScenarioDashboard({
           <Accounts
             allowedCategories={['LIMITED_DDA_PAYMENTS']}
             clientId={clientId}
-          />
-        </section>
-
-        <section className="rounded-lg border border-black/10 bg-white p-4 shadow-sm">
-          <h3 className="mb-3 text-base font-semibold text-neutral-900">
-            Linked bank accounts
-          </h3>
-          <LinkedAccountWidget
-            mode="list"
-            viewMode="cards"
-            onAccountLinked={handleDataSettled}
-            onPaymentComplete={handlePaymentSettled}
           />
         </section>
 
