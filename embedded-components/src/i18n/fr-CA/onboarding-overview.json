@@ -1366,7 +1366,7 @@
     "attestation": {
       "heading": "En soumettant électroniquement cette demande, vous acceptez que :",
       "accurateInfo": "Toutes les informations que vous avez fournies sont complètes et exactes, et vous ouvrez ce compte uniquement à des fins commerciales et non à des fins de consommation.",
-      "authorizeSharing": "Vous autorisez {{platformName}} et JPMorgan Chase Bank, N.A. (\"JPMC\") à partager des informations pour faciliter l'ouverture de votre ou vos comptes de dépôt, et désignez {{platformName}} comme votre mandataire pour agir en votre nom concernant votre compte de dépôt.",
+      "authorizeSharing": "Vous autorisez {{platformName}} et JPMorgan Chase Bank, N.A. (\"J.P. Morgan\") à partager des informations pour faciliter l'ouverture de votre ou vos comptes de dépôt, et désignez {{platformName}} comme votre mandataire pour agir en votre nom concernant votre compte de dépôt.",
       "mustAgreeToAll": "Vous devez accepter toutes les attestations avant de continuer.",
       "mustAttestAccurate": "Vous devez attester que les données sont véridiques, exactes et complètes.",
       "mustAgreeToTerms": "Vous devez accepter les conditions avant de continuer."
