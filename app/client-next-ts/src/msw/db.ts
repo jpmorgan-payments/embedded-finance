@@ -39,6 +39,12 @@ import {
 import { mockLinkedAccounts } from '../mocks/linkedAccounts.mock';
 import { mockRecipientsResponse } from '../mocks/recipients.mock';
 import {
+  testScenario5DashboardAccount,
+  testScenario5DashboardBalance,
+  testScenario5DashboardRecipients,
+  testScenario5DashboardTransactions,
+} from '../mocks/testScenario5Dashboard.mock';
+import {
   TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID,
   testScenarioFasterFulfilmentClient,
 } from '../mocks/testScenarioFasterFulfilmentClient.mock';
@@ -52,12 +58,22 @@ import {
   testScenarioMultiLinkedIllustrationClient,
 } from '../mocks/testScenarioMultiLinkedIllustrationClient.mock';
 import {
+  TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID,
+  testScenarioNaicsCodesClient,
+} from '../mocks/testScenarioNaicsCodesClient.mock';
+import {
   TEST_DEMO_SCENARIO_CLIENT_ID,
   TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE,
   TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID,
   testScenarioOperator80Client,
 } from '../mocks/testScenarioOperator80Client.mock';
 import { mockTransactionsResponse } from '../mocks/transactions.mock';
+import {
+  areAllNaicsCodeQuestionsAnswered,
+  isTestScenario5NaicsCode,
+  TEST_SCENARIO_5_DASHBOARD_ACCOUNT_ID,
+  TEST_SCENARIO_5_QUESTION_IDS,
+} from './test-scenario-5';
 
 type SeedPredefinedClientOptions = {
   /** Stable ids (`61800`, `61801+`) for Operator 80–shaped demo clients (doc-request flows). */
@@ -593,7 +609,15 @@ export type TestDemoScenarioMode =
    * Bundles with multi-link demos (`test-scenario-2`, `test-scenario-4`): APPROVED client;
    * MSW seeds **three** pre-existing LINKED_ACCOUNT recipients.
    */
-  | 'multi-linked-start-3';
+  | 'multi-linked-start-3'
+  /**
+   * `/test-scenario-5`: NEW client → select NAICS code → answer assessment questions → APPROVED.
+   */
+  | 'naics-codes-onboarding'
+  /**
+   * `/test-scenario-5`: APPROVED client with wallet dashboard data pre-seeded.
+   */
+  | 'naics-codes-dashboard';
 
 /**
  * `/test-scenario*` demo **bundle**: maps a route to client seed + optional recipient seeding in MSW.
@@ -603,7 +627,8 @@ export type TestScenarioBundleId =
   | 'test-scenario'
   | 'test-scenario-2'
   | 'test-scenario-3'
-  | 'test-scenario-4';
+  | 'test-scenario-4'
+  | 'test-scenario-5';
 
 export const DEFAULT_TEST_SCENARIO_BUNDLE_ID: TestScenarioBundleId =
   'test-scenario';
@@ -613,6 +638,7 @@ const TEST_SCENARIO_BUNDLE_IDS = [
   'test-scenario-2',
   'test-scenario-3',
   'test-scenario-4',
+  'test-scenario-5',
 ] as const satisfies readonly TestScenarioBundleId[];
 
 /** Bundles that expose `3-linked@demo.test` / `multi-linked-start-3` recipient pre-seeding. */
@@ -640,7 +666,12 @@ export function getTestScenarioClientIds(): string[] {
     TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID,
     TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
     TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID,
+    TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID,
   ];
+}
+
+export function isTestScenario5ClientId(clientId: string): boolean {
+  return clientId === TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID;
 }
 
 function seedPredefinedClientFromShape(
@@ -897,6 +928,192 @@ function removeAllTestScenarioSeedClients(): void {
   removePredefinedClient(TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID);
   removePredefinedClient(TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID);
   removePredefinedClient(TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID);
+  removePredefinedClient(TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID);
+}
+
+function removeTestScenario5DashboardRows(): void {
+  const recipientIds = testScenario5DashboardRecipients.map((r) => r.id);
+  db.recipient.deleteMany({
+    where: { id: { in: recipientIds } },
+  });
+  db.accountBalance.deleteMany({
+    where: { id: { equals: testScenario5DashboardBalance.id } },
+  });
+  db.account.deleteMany({
+    where: { id: { equals: TEST_SCENARIO_5_DASHBOARD_ACCOUNT_ID } },
+  });
+  db.transaction.deleteMany({
+    where: {
+      id: {
+        in: testScenario5DashboardTransactions.map((txn) => txn.id),
+      },
+    },
+  });
+}
+
+/** Seeds accounts, linked accounts, recipients, and transactions for scenario 5 dashboard. */
+export function seedTestScenario5DashboardData(): void {
+  removeTestScenario5DashboardRows();
+  const timestamp = new Date().toISOString();
+
+  try {
+    db.account.create({
+      ...testScenario5DashboardAccount,
+      createdAt: testScenario5DashboardAccount.createdAt ?? timestamp,
+      updatedAt: timestamp,
+    } as Partial<DbAccount> & { id: string });
+  } catch (error) {
+    console.error('Error creating scenario 5 dashboard account:', error);
+  }
+
+  try {
+    db.accountBalance.create(
+      testScenario5DashboardBalance as Partial<DbAccountBalance> & {
+        id: string;
+      }
+    );
+  } catch (error) {
+    console.error('Error creating scenario 5 dashboard balance:', error);
+  }
+
+  for (const recipient of testScenario5DashboardRecipients) {
+    try {
+      db.recipient.create({
+        ...recipient,
+        createdAt: recipient.createdAt ?? timestamp,
+        updatedAt: recipient.updatedAt ?? timestamp,
+      } as Partial<DbRecipient> & { id: string });
+    } catch (error) {
+      console.error('Error creating scenario 5 dashboard recipient:', error);
+    }
+  }
+
+  for (const transaction of testScenario5DashboardTransactions) {
+    try {
+      db.transaction.create({
+        ...transaction,
+        createdAt: timestamp,
+      } as Partial<DbTransaction> & { id: string });
+    } catch (error) {
+      console.error('Error creating scenario 5 dashboard transaction:', error);
+    }
+  }
+}
+
+export function promoteTestScenario5ClientToApproved(clientId: string): void {
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+  if (!client) return;
+
+  db.client.update({
+    where: { id: { equals: clientId } },
+    data: {
+      ...client,
+      status: 'APPROVED',
+      results: {
+        ...((client.results as Record<string, unknown>) || {}),
+        customerIdentityStatus: 'APPROVED',
+      },
+    },
+  });
+
+  promoteTestDemoClientPartiesToApproved(clientId);
+  seedTestScenario5DashboardData();
+  logDbState('Test scenario 5 NAICS approval');
+}
+
+function getOrgPartyIndustryCodeForClient(
+  clientId: string
+): string | undefined {
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+  if (!client) return undefined;
+
+  const partyIds = (client.parties as string[]) ?? [];
+  for (const partyId of partyIds) {
+    const party = db.party.findFirst({
+      where: { id: { equals: partyId } },
+    });
+    if (!party) continue;
+    const partyRec = party as Record<string, unknown>;
+    if (partyRec.partyType !== 'ORGANIZATION') continue;
+    const org = partyRec.organizationDetails as
+      | { industry?: { code?: string } }
+      | undefined;
+    const code = org?.industry?.code;
+    if (typeof code === 'string' && code.length > 0) {
+      return code;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Scenario 5 conditional logic: when the org party has a recommended NAICS
+ * code, ensure all eight assessment questions are on `outstanding.questionIds`.
+ */
+export function syncTestScenario5NaicsCodeQuestionsFromIndustry(
+  clientId: string
+): void {
+  if (!isTestScenario5ClientId(clientId)) return;
+  const industryCode = getOrgPartyIndustryCodeForClient(clientId);
+  if (isTestScenario5NaicsCode(industryCode)) {
+    addNaicsCodeQuestionsForTestScenario5Client(clientId);
+  }
+}
+
+export function addNaicsCodeQuestionsForTestScenario5Client(
+  clientId: string
+): void {
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+  if (!client) return;
+
+  const outstanding = (client.outstanding || {}) as {
+    questionIds?: string[];
+    documentRequestIds?: string[];
+    attestationDocumentIds?: string[];
+    partyIds?: string[];
+    partyRoles?: string[];
+  };
+
+  const mergedIds = [
+    ...new Set([
+      ...(outstanding.questionIds ?? []),
+      ...TEST_SCENARIO_5_QUESTION_IDS,
+    ]),
+  ];
+
+  db.client.update({
+    where: { id: { equals: clientId } },
+    data: {
+      ...client,
+      outstanding: {
+        documentRequestIds: outstanding.documentRequestIds ?? [],
+        attestationDocumentIds: outstanding.attestationDocumentIds ?? [],
+        partyIds: outstanding.partyIds ?? [],
+        partyRoles: outstanding.partyRoles ?? [],
+        questionIds: mergedIds,
+      },
+    },
+  });
+}
+
+export function maybeApproveTestScenario5AfterQuestions(
+  clientId: string,
+  questionResponses: Array<{ questionId?: string }> | undefined,
+  outstandingQuestionIds: string[] | undefined
+): void {
+  if (!isTestScenario5ClientId(clientId)) return;
+  if (
+    !areAllNaicsCodeQuestionsAnswered(questionResponses, outstandingQuestionIds)
+  ) {
+    return;
+  }
+  promoteTestScenario5ClientToApproved(clientId);
 }
 
 /** Illustration: N ACTIVE linked-bank recipients for GET `/recipients` (multi-link demo bundles). */
@@ -1151,7 +1368,9 @@ export function applyTestDemoScenario(
         ? TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID
         : bundleId === 'test-scenario-4'
           ? TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID
-          : TEST_DEMO_SCENARIO_CLIENT_ID;
+          : bundleId === 'test-scenario-5'
+            ? TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID
+            : TEST_DEMO_SCENARIO_CLIENT_ID;
   const fasterFulfilmentBase =
     mode === 'happy-path-ptc'
       ? testScenarioFasterFulfilmentClient
@@ -1163,7 +1382,9 @@ export function applyTestDemoScenario(
         ? testScenarioHealthBenefitClient
         : bundleId === 'test-scenario-4'
           ? fasterFulfilmentBase
-          : testScenarioOperator80Client
+          : bundleId === 'test-scenario-5'
+            ? testScenarioNaicsCodesClient
+            : testScenarioOperator80Client
   ) as PredefinedClientShape;
   const useMultiLinked = (
     TEST_SCENARIO_BUNDLES_WITH_MULTI_LINK as readonly string[]
@@ -1178,6 +1399,7 @@ export function applyTestDemoScenario(
     mode === 'linked-account-approved' ||
     mode === 'linked-account-active' ||
     mode === 'happy-path-approved' ||
+    mode === 'naics-codes-dashboard' ||
     (useMultiLinked && mode === 'multi-linked-start-3')
   ) {
     shape = {
@@ -1202,9 +1424,13 @@ export function applyTestDemoScenario(
     mode === 'linked-account-approved' ||
     mode === 'linked-account-active' ||
     mode === 'happy-path-approved' ||
+    mode === 'naics-codes-dashboard' ||
     (useMultiLinked && mode === 'multi-linked-start-3')
   ) {
     promoteTestDemoClientPartiesToApproved(clientId);
+  }
+  if (mode === 'naics-codes-dashboard' && bundleId === 'test-scenario-5') {
+    seedTestScenario5DashboardData();
   }
   if (useMultiLinked) {
     if (mode === 'multi-linked-start-3') {

@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ClientStatus } from '@ef-api/smbdo-schemas';
+import type { ClientResponse } from '@ef-api/smbdo-schemas';
 import {
   EBComponentsProvider,
   OnboardingFlow,
@@ -14,6 +15,7 @@ import {
   getTestScenarioBundleConfig,
   type TestScenarioBundleConfig,
 } from '@/components/test-scenario/test-scenario-bundles';
+import { TestScenarioDashboard } from '@/components/test-scenario/test-scenario-dashboard';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -57,6 +59,7 @@ export function TestScenarioPage({ bundleId }: TestScenarioPageProps) {
   const [rememberUsername, setRememberUsername] = useState(false);
   const [sessionScenario, setSessionScenario] =
     useState<TestDemoScenarioMode | null>(null);
+  const [showDashboard, setShowDashboard] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
 
   const ebTheme = useMemo(
@@ -107,12 +110,43 @@ export function TestScenarioPage({ bundleId }: TestScenarioPageProps) {
     );
     queryClient.clear();
     setSessionScenario(selectedProfile.scenario);
+    setShowDashboard(selectedProfile.scenario === 'naics-codes-dashboard');
   };
 
   const handleSignOut = () => {
     queryClient.clear();
     setSessionScenario(null);
+    setShowDashboard(false);
   };
+
+  const handleGetClientSettled = useCallback(
+    (
+      clientData: ClientResponse | undefined,
+      status: 'pending' | 'error' | 'success'
+    ) => {
+      if (
+        sessionScenario === 'naics-codes-onboarding' &&
+        status === 'success' &&
+        clientData?.status === ClientStatus.APPROVED
+      ) {
+        setShowDashboard(true);
+      }
+    },
+    [sessionScenario]
+  );
+
+  const handlePostPartySettled = useCallback(
+    (_response?: unknown, error?: unknown) => {
+      if (sessionScenario !== 'naics-codes-onboarding' || error) return;
+      // EBComponentsProvider owns a separate QueryClient — emulateTabSwitch
+      // triggers refetchOnWindowFocus inside OnboardingFlow (same pattern as
+      // SellSense mock overrides and wallet dashboard callbacks).
+      setTimeout(() => {
+        DatabaseResetUtils.emulateTabSwitch();
+      }, 300);
+    },
+    [sessionScenario]
+  );
 
   const providerHeaders = useMemo(
     () => ({
@@ -170,69 +204,82 @@ export function TestScenarioPage({ bundleId }: TestScenarioPageProps) {
             </header>
             <main className="min-h-0 flex-1 overflow-auto p-4 sm:p-5">
               <div
-                key={`${sessionScenario}-${selectedEmail}-${bundleConfig.id}`}
+                key={`${sessionScenario}-${selectedEmail}-${bundleConfig.id}-${showDashboard ? 'dashboard' : 'onboarding'}`}
                 className="mx-auto max-w-6xl"
               >
-                <OnboardingFlow
-                  availableProducts={
-                    onboardingFlow?.availableProducts ?? ['EMBEDDED_PAYMENTS']
-                  }
-                  availableJurisdictions={
-                    onboardingFlow?.availableJurisdictions ?? ['US']
-                  }
-                  availableOrganizationTypes={
-                    profileOnboarding?.availableOrganizationTypes ??
-                    onboardingFlow?.availableOrganizationTypes ?? [
-                      'SOLE_PROPRIETORSHIP',
-                      'LIMITED_LIABILITY_COMPANY',
-                      'LIMITED_LIABILITY_PARTNERSHIP',
-                      'GENERAL_PARTNERSHIP',
-                      'LIMITED_PARTNERSHIP',
-                      'C_CORPORATION',
-                    ]
-                  }
-                  showLinkAccountStep={bundleConfig.showLinkAccountStep}
-                  {...(bundleConfig.showLinkAccountStep
-                    ? {
-                        linkAccountEnabledStatuses:
-                          sessionScenario === 'linked-account-approved' ||
-                          sessionScenario === 'linked-account-active' ||
-                          sessionScenario === 'happy-path-approved' ||
-                          sessionScenario === 'multi-linked-start-3'
-                            ? [ClientStatus.APPROVED]
-                            : undefined,
-                        linkAccountStepOptions:
-                          selectedProfile.linkAccountStepOptions ??
-                            bundleConfig.linkAccountStepOptions ?? {
-                              initialValues: {
-                                paymentTypes: ['ACH'],
-                                routingNumbers: [
-                                  {
-                                    paymentType: 'ACH',
-                                    routingNumber: '121000248',
-                                  },
-                                ],
-                                accountNumber: '6724301068',
-                              },
-                              completionMode: 'editable' as const,
-                            },
-                      }
-                    : {})}
-                  disclosureConfig={
-                    onboardingFlow?.disclosureConfig ?? {
-                      platformName: 'Platform, Inc.',
+                {showDashboard && activeClientId ? (
+                  <TestScenarioDashboard
+                    clientId={activeClientId}
+                    orgDisplayName={
+                      sessionBundleConfig?.headerOrgDisplayName ?? ''
                     }
-                  }
-                  hideLinkedAccountRemoval={
-                    onboardingFlow?.hideLinkedAccountRemoval ?? true
-                  }
-                  enablePubliclyTradedCompanies={
-                    profileOnboarding?.enablePubliclyTradedCompanies ??
-                    onboardingFlow?.enablePubliclyTradedCompanies ??
-                    false
-                  }
-                  priorityIndustryCodes={onboardingFlow?.priorityIndustryCodes}
-                />
+                  />
+                ) : (
+                  <OnboardingFlow
+                    onGetClientSettled={handleGetClientSettled}
+                    onPostPartySettled={handlePostPartySettled}
+                    availableProducts={
+                      onboardingFlow?.availableProducts ?? ['EMBEDDED_PAYMENTS']
+                    }
+                    availableJurisdictions={
+                      onboardingFlow?.availableJurisdictions ?? ['US']
+                    }
+                    availableOrganizationTypes={
+                      profileOnboarding?.availableOrganizationTypes ??
+                      onboardingFlow?.availableOrganizationTypes ?? [
+                        'SOLE_PROPRIETORSHIP',
+                        'LIMITED_LIABILITY_COMPANY',
+                        'LIMITED_LIABILITY_PARTNERSHIP',
+                        'GENERAL_PARTNERSHIP',
+                        'LIMITED_PARTNERSHIP',
+                        'C_CORPORATION',
+                      ]
+                    }
+                    showLinkAccountStep={bundleConfig.showLinkAccountStep}
+                    {...(bundleConfig.showLinkAccountStep
+                      ? {
+                          linkAccountEnabledStatuses:
+                            sessionScenario === 'linked-account-approved' ||
+                            sessionScenario === 'linked-account-active' ||
+                            sessionScenario === 'happy-path-approved' ||
+                            sessionScenario === 'multi-linked-start-3'
+                              ? [ClientStatus.APPROVED]
+                              : undefined,
+                          linkAccountStepOptions:
+                            selectedProfile.linkAccountStepOptions ??
+                              bundleConfig.linkAccountStepOptions ?? {
+                                initialValues: {
+                                  paymentTypes: ['ACH'],
+                                  routingNumbers: [
+                                    {
+                                      paymentType: 'ACH',
+                                      routingNumber: '121000248',
+                                    },
+                                  ],
+                                  accountNumber: '6724301068',
+                                },
+                                completionMode: 'editable' as const,
+                              },
+                        }
+                      : {})}
+                    disclosureConfig={
+                      onboardingFlow?.disclosureConfig ?? {
+                        platformName: 'Platform, Inc.',
+                      }
+                    }
+                    hideLinkedAccountRemoval={
+                      onboardingFlow?.hideLinkedAccountRemoval ?? true
+                    }
+                    enablePubliclyTradedCompanies={
+                      profileOnboarding?.enablePubliclyTradedCompanies ??
+                      onboardingFlow?.enablePubliclyTradedCompanies ??
+                      false
+                    }
+                    priorityIndustryCodes={
+                      onboardingFlow?.priorityIndustryCodes
+                    }
+                  />
+                )}
                 <footer className="mx-auto mt-4 max-w-4xl px-4 py-4 text-center sm:px-5">
                   <p className="text-xs leading-relaxed text-neutral-500">
                     Platform, Inc. is not a bank. Banking services provided by

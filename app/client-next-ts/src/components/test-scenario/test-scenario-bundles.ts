@@ -6,9 +6,11 @@ import type {
 
 import type { ThemeOption } from '@/components/sellsense/use-sellsense-themes';
 import { TEST_SCENARIO_2_THEME_VARIABLES } from '@/components/test-scenario/test-scenario-2-theme';
+import { TEST_SCENARIO_5_NAICS_CODES } from '@/components/test-scenario/test-scenario-naics-codes';
 import { TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID } from '@/mocks/testScenarioFasterFulfilmentClient.mock';
 import { TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID } from '@/mocks/testScenarioHealthBenefitClient.mock';
 import { TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID } from '@/mocks/testScenarioMultiLinkedIllustrationClient.mock';
+import { TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID } from '@/mocks/testScenarioNaicsCodesClient.mock';
 import { TEST_DEMO_SCENARIO_CLIENT_ID } from '@/mocks/testScenarioOperator80Client.mock';
 import type { TestDemoScenarioMode, TestScenarioBundleId } from '@/msw/db';
 
@@ -18,6 +20,7 @@ export const TEST_SCENARIO_ROUTE_BY_BUNDLE = {
   'test-scenario-2': '/test-scenario-2',
   'test-scenario-3': '/test-scenario-3',
   'test-scenario-4': '/test-scenario-4',
+  'test-scenario-5': '/test-scenario-5',
 } as const satisfies Record<TestScenarioBundleId, string>;
 
 export type TestScenarioLoginProfile = {
@@ -178,6 +181,22 @@ const MULTI_LINK_DEMO_PROFILES: TestScenarioLoginProfile[] = [
 ];
 
 /** `/test-scenario-4`: PTC happy path first, then LLC happy path without PTC, then other operator logins. */
+/** `/test-scenario-5`: NAICS onboarding path and pre-approved dashboard path. */
+const SCENARIO_5_PROFILES: TestScenarioLoginProfile[] = [
+  {
+    email: 'naics-codes-onboarding@demo.test',
+    label:
+      'New client — select a recommended NAICS code, answer eight assessment questions, auto-approve to dashboard',
+    scenario: 'naics-codes-onboarding',
+  },
+  {
+    email: 'dashboard-approved@demo.test',
+    label:
+      'Approved client — skip onboarding and open wallet dashboard (accounts, linked accounts, recipients, transactions)',
+    scenario: 'naics-codes-dashboard',
+  },
+];
+
 const SCENARIO_4_PROFILES: TestScenarioLoginProfile[] = [
   {
     email: 'happy-path-ptc@demo.test',
@@ -403,6 +422,26 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
       ],
     },
     loginProfiles: SCENARIO_4_PROFILES,
+  },
+  'test-scenario-5': {
+    id: 'test-scenario-5',
+    headerOrgDisplayName: 'CommerceBridge Marketplace LLC',
+    theme: 'Empty',
+    contentTokens: buildContentTokens({
+      controllerJobTitle: 'Role',
+      controllerJobTitleDescription: 'Role details',
+    }),
+    showLinkAccountStep: false,
+    clientId: TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID,
+    onboardingFlow: {
+      availableProducts: ['EMBEDDED_PAYMENTS'],
+      availableJurisdictions: ['US'],
+      availableOrganizationTypes: ['LIMITED_LIABILITY_COMPANY'],
+      disclosureConfig: { platformName: 'Platform, Inc.' },
+      hideLinkedAccountRemoval: true,
+      priorityIndustryCodes: [...TEST_SCENARIO_5_NAICS_CODES],
+    },
+    loginProfiles: SCENARIO_5_PROFILES,
   },
 };
 
