@@ -2,6 +2,15 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.14.7] - 2026-06-04
+
+### Changes
+
+#### Features
+
+- **disclosure:** add product name to FDIC disclosure for clarity
+- **disclosure:** enhance FDIC disclosure with product name for clarity
+
 ## [0.14.6] - 2026-06-03
 
 ### Changes

@@ -57,20 +57,10 @@ jobs:
         run: |
           PREV_TAG=$(git tag --sort=-v:refname | head -2 | tail -1)
 
-          # Build notes: CHANGELOG + diff link
-          {
-            cat /tmp/release-notes.md
-          } > /tmp/combined-notes.md
-
-          if [ -n "$PREV_TAG" ]; then
-            {
-              echo ""
-              echo "---"
-              echo ""
-              echo "**Full diff**: [\`${PREV_TAG}...${{ steps.version.outputs.tag }}\`](https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${{ steps.version.outputs.tag }})"
-            } >> /tmp/combined-notes.md
-          fi
+          # Build notes: CHANGELOG content only
+          cat /tmp/release-notes.md > /tmp/combined-notes.md
 
           gh release create "${{ steps.version.outputs.tag }}" \
             --title "v${{ steps.version.outputs.version }}" \
-            --notes-file /tmp/combined-notes.md
+            --notes-file /tmp/combined-notes.md \
+            --generate-notes
