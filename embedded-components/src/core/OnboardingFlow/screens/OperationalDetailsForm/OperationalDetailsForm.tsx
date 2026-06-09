@@ -523,6 +523,7 @@ export const OperationalDetailsForm = () => {
   const form = useForm({
     resolver: zodResolver(dynamicSchema),
     defaultValues,
+    mode: 'onBlur',
   });
 
   const { isDirty } = useFormState({ control: form.control });
