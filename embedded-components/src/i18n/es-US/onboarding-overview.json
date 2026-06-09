@@ -1099,14 +1099,14 @@
       "label": "Mi negocio no tiene sitio web"
     },
     "isPTCOrSubsidiary": {
-      "label": "¿Su organización cotiza en bolsa o es una subsidiaria de una empresa que cotiza en bolsa?",
-      "labelSubsidiaryOnly": "¿Su organización es una subsidiaria de una empresa que cotiza en bolsa?",
+      "label": "¿Su organización cotiza en bolsa o es una subsidiaria (51% o más de propiedad) de una empresa que cotiza en bolsa?",
+      "labelSubsidiaryOnly": "¿Su organización es una subsidiaria (51% o más de propiedad) de una empresa que cotiza en bolsa?",
       "description": "",
       "tooltip": "Una empresa que cotiza en bolsa (ECB) está registrada en una bolsa de valores. Una subsidiaria de una ECB es una organización en la que el 51% o más de su propiedad es de una ECB.",
       "options": {
         "none": "No",
         "ptc": "Sí, mi organización cotiza en bolsa",
-        "subsidiary": "Sí, mi organización es una subsidiaria de una empresa que cotiza en bolsa"
+        "subsidiary": "Sí, mi organización es una subsidiaria (51% o más de propiedad) de una empresa que cotiza en bolsa"
       }
     },
     "tickerSymbol": {

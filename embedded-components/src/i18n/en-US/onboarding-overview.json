@@ -1159,14 +1159,14 @@
       "label": "My business doesn't have a website"
     },
     "isPTCOrSubsidiary": {
-      "label": "Is your organization publicly traded, or a subsidiary of a publicly traded company?",
-      "labelSubsidiaryOnly": "Is your organization a subsidiary of a publicly traded company?",
+      "label": "Is your organization publicly traded, or a subsidiary (51% or more ownership) of a publicly traded company?",
+      "labelSubsidiaryOnly": "Is your organization a subsidiary (51% or more ownership) of a publicly traded company?",
       "description": "",
       "tooltip": "A publicly traded company (PTC) is listed on a stock exchange. A subsidiary of a PTC is an organization where 51% or more of its ownership is held by a PTC.",
       "options": {
         "none": "No",
         "ptc": "Yes, my organization is publicly traded",
-        "subsidiary": "Yes, my organization is a subsidiary of a publicly traded company"
+        "subsidiary": "Yes, my organization is a subsidiary (51% or more ownership) of a publicly traded company"
       }
     },
     "tickerSymbol": {
