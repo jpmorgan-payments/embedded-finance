@@ -19,9 +19,9 @@
  * After running, just push to main and the tag-release workflow handles tagging.
  */
 import { execSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -204,3 +204,16 @@ console.log(`\nCreated commit: chore(release): v${newVersion}`);
 console.log(
   'Push to main and the tag-release workflow will create the git tag automatically.'
 );
+
+// Run post-release hook if present (local-only, gitignored)
+const hookPath = resolve(ROOT, '.post-release-hook.mjs');
+if (existsSync(hookPath)) {
+  console.log('\nRunning post-release hook...');
+  try {
+    const { default: hook } = await import(pathToFileURL(hookPath).href);
+    await hook({ version: newVersion, repoRoot: REPO_ROOT, packageRoot: ROOT });
+  } catch (err) {
+    console.warn(`Post-release hook failed: ${err.message}`);
+    console.warn('You can run it manually later.');
+  }
+}
