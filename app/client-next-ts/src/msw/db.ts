@@ -1442,6 +1442,98 @@ export function applyTestDemoScenario(
   logDbState(`Test demo scenario: ${mode} (bundle: ${bundleId})`);
 }
 
+function deepMergeClientPatch<T extends Record<string, unknown>>(
+  base: T,
+  patch: Record<string, unknown>
+): T {
+  const merged = { ...base } as Record<string, unknown>;
+  for (const [key, value] of Object.entries(patch)) {
+    const existing = merged[key];
+    if (
+      value &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      existing &&
+      typeof existing === 'object' &&
+      !Array.isArray(existing)
+    ) {
+      merged[key] = deepMergeClientPatch(
+        existing as Record<string, unknown>,
+        value as Record<string, unknown>
+      );
+    } else {
+      merged[key] = value;
+    }
+  }
+  return merged as T;
+}
+
+/** Sync shell header org name into the seeded CLIENT organization party. */
+export function applyTestScenarioOrganizationDisplayName(
+  clientId: string,
+  organizationName: string
+): void {
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+  if (!client?.parties?.length) return;
+
+  for (const partyRef of client.parties) {
+    const partyId =
+      typeof partyRef === 'string'
+        ? partyRef
+        : (partyRef as { id?: string }).id;
+    if (!partyId) continue;
+
+    const party = db.party.findFirst({
+      where: { id: { equals: partyId } },
+    });
+    if (!party) continue;
+
+    const partyRec = party as {
+      partyType?: string;
+      roles?: string[];
+      organizationDetails?: Record<string, unknown>;
+    };
+    if (partyRec.partyType !== 'ORGANIZATION') continue;
+    if (!partyRec.roles?.includes('CLIENT')) continue;
+
+    const organizationDetails = {
+      ...(partyRec.organizationDetails ?? {}),
+      organizationName,
+      dbaName: organizationName,
+    };
+
+    db.party.delete({ where: { id: { equals: partyId } } });
+    db.party.create({
+      ...(party as Record<string, unknown>),
+      organizationDetails,
+    } as Partial<DbParty> & { id: string });
+    return;
+  }
+}
+
+/** Shallow/deep patch for universal test-scenario constructor client tweaks. */
+export function applyTestScenarioClientPatch(
+  clientId: string,
+  patch: Record<string, unknown>
+): void {
+  const existing = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+  if (!existing) return;
+
+  const merged = deepMergeClientPatch(
+    existing as unknown as Record<string, unknown>,
+    patch
+  );
+  const { parties: _parties, ...clientData } = merged;
+  db.client.update({
+    where: { id: { equals: clientId } },
+    data: clientData as Partial<DbClient>,
+  });
+}
+
 // --- Initialize ---
 
 export function initializeDb(

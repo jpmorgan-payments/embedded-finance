@@ -13,12 +13,23 @@ import { TEST_SCENARIO_5_DASHBOARD_ACCOUNT_ID } from './test-scenario-naics-code
 export type TestScenarioDashboardProps = {
   clientId: string;
   orgDisplayName: string;
+  componentProps?: Record<string, unknown>;
 };
 
 export function TestScenarioDashboard({
   clientId,
   orgDisplayName,
+  componentProps = {},
 }: TestScenarioDashboardProps) {
+  const accountsProps =
+    (componentProps.accounts as Record<string, unknown> | undefined) ?? {};
+  const recipientsProps =
+    (componentProps.recipients as Record<string, unknown> | undefined) ?? {};
+  const transactionsProps =
+    (componentProps.transactions as Record<string, unknown> | undefined) ?? {};
+  const accountIds = (componentProps.accountIds as string[] | undefined) ?? [
+    TEST_SCENARIO_5_DASHBOARD_ACCOUNT_ID,
+  ];
   const handleDataSettled = () => {
     setTimeout(() => {
       DatabaseResetUtils.emulateTabSwitch();
@@ -51,6 +62,7 @@ export function TestScenarioDashboard({
           <Accounts
             allowedCategories={['LIMITED_DDA_PAYMENTS']}
             clientId={clientId}
+            {...accountsProps}
           />
         </section>
 
@@ -63,6 +75,7 @@ export function TestScenarioDashboard({
             viewMode="compact-cards"
             onRecipientAdded={handleDataSettled}
             onPaymentComplete={handlePaymentSettled}
+            {...recipientsProps}
           />
         </section>
 
@@ -70,9 +83,7 @@ export function TestScenarioDashboard({
           <h3 className="mb-3 text-base font-semibold text-neutral-900">
             Transactions
           </h3>
-          <TransactionsDisplay
-            accountIds={[TEST_SCENARIO_5_DASHBOARD_ACCOUNT_ID]}
-          />
+          <TransactionsDisplay accountIds={accountIds} {...transactionsProps} />
         </section>
       </div>
     </div>

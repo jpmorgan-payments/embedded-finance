@@ -95,11 +95,18 @@ export const DatabaseResetUtils = {
     scenario: string,
     testDemoScenario: TestDemoScenarioMode,
     setIsLoading: (loading: boolean) => void,
-    testScenarioBundle?: TestScenarioBundleId
+    testScenarioBundle?: TestScenarioBundleId,
+    options?: {
+      clientId?: string;
+      clientPatch?: Record<string, unknown>;
+      orgDisplayName?: string;
+      overrides?: Record<string, unknown>;
+    }
   ) => {
     setIsLoading(true);
 
     try {
+      const overrides = options?.overrides ?? {};
       const response = await fetch('/ef/do/v1/_reset', {
         method: 'POST',
         headers: {
@@ -107,9 +114,18 @@ export const DatabaseResetUtils = {
         },
         body: JSON.stringify({
           scenario,
-          overrides: {},
+          overrides,
           testDemoScenario,
           ...(testScenarioBundle ? { testScenarioBundle } : {}),
+          ...(options?.clientId
+            ? { testScenarioClientId: options.clientId }
+            : {}),
+          ...(options?.clientPatch
+            ? { testScenarioClientPatch: options.clientPatch }
+            : {}),
+          ...(options?.orgDisplayName
+            ? { testScenarioOrgDisplayName: options.orgDisplayName }
+            : {}),
         }),
       });
 

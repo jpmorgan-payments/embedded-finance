@@ -31,6 +31,8 @@ import { testScenarioNaicsCodesQuestionsMock } from '../mocks/testScenarioNaicsC
 import {
   applyOverridesToDb,
   applyTestDemoScenario,
+  applyTestScenarioClientPatch,
+  applyTestScenarioOrganizationDisplayName,
   createTransactionWithBalanceUpdate,
   db,
   DEFAULT_SCENARIO,
@@ -937,12 +939,13 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
         /** Only `/test-scenario`; omit for SellSense (no DB shape change). */
         testDemoScenario?: TestDemoScenarioMode;
         testScenarioBundle?: string;
+        testScenarioClientPatch?: Record<string, unknown>;
+        testScenarioClientId?: string;
+        testScenarioOrgDisplayName?: string;
       } | null;
       const scenario = body?.scenario ?? DEFAULT_SCENARIO;
       const result = resetDb(scenario);
-      if (body?.overrides && Object.keys(body.overrides).length > 0) {
-        applyOverridesToDb(body.overrides);
-      }
+      let testScenarioClientId: string | undefined;
       if (
         body?.testDemoScenario === 'happy-path' ||
         body?.testDemoScenario === 'happy-path-ptc' ||
@@ -955,10 +958,28 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
         body?.testDemoScenario === 'naics-codes-dashboard'
       ) {
         // Isolated from SellSense: those apps never send `testDemoScenario`.
-        applyTestDemoScenario(
-          body.testDemoScenario,
-          parseTestScenarioBundleId(body.testScenarioBundle)
+        const bundleId = parseTestScenarioBundleId(body.testScenarioBundle);
+        applyTestDemoScenario(body.testDemoScenario, bundleId);
+        testScenarioClientId = body.testScenarioClientId;
+      }
+      if (
+        body?.testScenarioClientPatch &&
+        Object.keys(body.testScenarioClientPatch).length > 0 &&
+        testScenarioClientId
+      ) {
+        applyTestScenarioClientPatch(
+          testScenarioClientId,
+          body.testScenarioClientPatch
         );
+      }
+      if (body?.testScenarioOrgDisplayName && testScenarioClientId) {
+        applyTestScenarioOrganizationDisplayName(
+          testScenarioClientId,
+          body.testScenarioOrgDisplayName
+        );
+      }
+      if (body?.overrides && Object.keys(body.overrides).length > 0) {
+        applyOverridesToDb(body.overrides);
       }
       return HttpResponse.json(result);
     } catch (error) {

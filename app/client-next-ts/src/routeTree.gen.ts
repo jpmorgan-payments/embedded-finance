@@ -29,7 +29,10 @@ import { Route as DocumentationRouteImport } from './routes/documentation'
 import { Route as DemosRouteImport } from './routes/demos'
 import { Route as ComponentsRouteImport } from './routes/components'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TestScenarioIndexRouteImport } from './routes/test-scenario.index'
 import { Route as StoriesIndexRouteImport } from './routes/stories.index'
+import { Route as TestScenarioPlayRouteImport } from './routes/test-scenario.play'
+import { Route as TestScenarioConstructorRouteImport } from './routes/test-scenario.constructor'
 import { Route as StoriesStoryIdRouteImport } from './routes/stories.$storyId'
 
 const YearInReviewRoute = YearInReviewRouteImport.update({
@@ -132,10 +135,25 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TestScenarioIndexRoute = TestScenarioIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TestScenarioRoute,
+} as any)
 const StoriesIndexRoute = StoriesIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => StoriesRoute,
+} as any)
+const TestScenarioPlayRoute = TestScenarioPlayRouteImport.update({
+  id: '/play',
+  path: '/play',
+  getParentRoute: () => TestScenarioRoute,
+} as any)
+const TestScenarioConstructorRoute = TestScenarioConstructorRouteImport.update({
+  id: '/constructor',
+  path: '/constructor',
+  getParentRoute: () => TestScenarioRoute,
 } as any)
 const StoriesStoryIdRoute = StoriesStoryIdRouteImport.update({
   id: '/$storyId',
@@ -156,7 +174,7 @@ export interface FileRoutesByFullPath {
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/stories': typeof StoriesRouteWithChildren
-  '/test-scenario': typeof TestScenarioRoute
+  '/test-scenario': typeof TestScenarioRouteWithChildren
   '/test-scenario-2': typeof TestScenario2Route
   '/test-scenario-3': typeof TestScenario3Route
   '/test-scenario-4': typeof TestScenario4Route
@@ -165,7 +183,10 @@ export interface FileRoutesByFullPath {
   '/webhook-explorer': typeof WebhookExplorerRoute
   '/year-in-review': typeof YearInReviewRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
+  '/test-scenario/constructor': typeof TestScenarioConstructorRoute
+  '/test-scenario/play': typeof TestScenarioPlayRoute
   '/stories/': typeof StoriesIndexRoute
+  '/test-scenario/': typeof TestScenarioIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -179,7 +200,6 @@ export interface FileRoutesByTo {
   '/payments-flow-simulator': typeof PaymentsFlowSimulatorRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
-  '/test-scenario': typeof TestScenarioRoute
   '/test-scenario-2': typeof TestScenario2Route
   '/test-scenario-3': typeof TestScenario3Route
   '/test-scenario-4': typeof TestScenario4Route
@@ -188,7 +208,10 @@ export interface FileRoutesByTo {
   '/webhook-explorer': typeof WebhookExplorerRoute
   '/year-in-review': typeof YearInReviewRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
+  '/test-scenario/constructor': typeof TestScenarioConstructorRoute
+  '/test-scenario/play': typeof TestScenarioPlayRoute
   '/stories': typeof StoriesIndexRoute
+  '/test-scenario': typeof TestScenarioIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -204,7 +227,7 @@ export interface FileRoutesById {
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/stories': typeof StoriesRouteWithChildren
-  '/test-scenario': typeof TestScenarioRoute
+  '/test-scenario': typeof TestScenarioRouteWithChildren
   '/test-scenario-2': typeof TestScenario2Route
   '/test-scenario-3': typeof TestScenario3Route
   '/test-scenario-4': typeof TestScenario4Route
@@ -213,7 +236,10 @@ export interface FileRoutesById {
   '/webhook-explorer': typeof WebhookExplorerRoute
   '/year-in-review': typeof YearInReviewRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
+  '/test-scenario/constructor': typeof TestScenarioConstructorRoute
+  '/test-scenario/play': typeof TestScenarioPlayRoute
   '/stories/': typeof StoriesIndexRoute
+  '/test-scenario/': typeof TestScenarioIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -239,7 +265,10 @@ export interface FileRouteTypes {
     | '/webhook-explorer'
     | '/year-in-review'
     | '/stories/$storyId'
+    | '/test-scenario/constructor'
+    | '/test-scenario/play'
     | '/stories/'
+    | '/test-scenario/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -253,7 +282,6 @@ export interface FileRouteTypes {
     | '/payments-flow-simulator'
     | '/sellsense-demo'
     | '/solutions'
-    | '/test-scenario'
     | '/test-scenario-2'
     | '/test-scenario-3'
     | '/test-scenario-4'
@@ -262,7 +290,10 @@ export interface FileRouteTypes {
     | '/webhook-explorer'
     | '/year-in-review'
     | '/stories/$storyId'
+    | '/test-scenario/constructor'
+    | '/test-scenario/play'
     | '/stories'
+    | '/test-scenario'
   id:
     | '__root__'
     | '/'
@@ -286,7 +317,10 @@ export interface FileRouteTypes {
     | '/webhook-explorer'
     | '/year-in-review'
     | '/stories/$storyId'
+    | '/test-scenario/constructor'
+    | '/test-scenario/play'
     | '/stories/'
+    | '/test-scenario/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -302,7 +336,7 @@ export interface RootRouteChildren {
   SellsenseDemoRoute: typeof SellsenseDemoRoute
   SolutionsRoute: typeof SolutionsRoute
   StoriesRoute: typeof StoriesRouteWithChildren
-  TestScenarioRoute: typeof TestScenarioRoute
+  TestScenarioRoute: typeof TestScenarioRouteWithChildren
   TestScenario2Route: typeof TestScenario2Route
   TestScenario3Route: typeof TestScenario3Route
   TestScenario4Route: typeof TestScenario4Route
@@ -454,12 +488,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/test-scenario/': {
+      id: '/test-scenario/'
+      path: '/'
+      fullPath: '/test-scenario/'
+      preLoaderRoute: typeof TestScenarioIndexRouteImport
+      parentRoute: typeof TestScenarioRoute
+    }
     '/stories/': {
       id: '/stories/'
       path: '/'
       fullPath: '/stories/'
       preLoaderRoute: typeof StoriesIndexRouteImport
       parentRoute: typeof StoriesRoute
+    }
+    '/test-scenario/play': {
+      id: '/test-scenario/play'
+      path: '/play'
+      fullPath: '/test-scenario/play'
+      preLoaderRoute: typeof TestScenarioPlayRouteImport
+      parentRoute: typeof TestScenarioRoute
+    }
+    '/test-scenario/constructor': {
+      id: '/test-scenario/constructor'
+      path: '/constructor'
+      fullPath: '/test-scenario/constructor'
+      preLoaderRoute: typeof TestScenarioConstructorRouteImport
+      parentRoute: typeof TestScenarioRoute
     }
     '/stories/$storyId': {
       id: '/stories/$storyId'
@@ -484,6 +539,22 @@ const StoriesRouteChildren: StoriesRouteChildren = {
 const StoriesRouteWithChildren =
   StoriesRoute._addFileChildren(StoriesRouteChildren)
 
+interface TestScenarioRouteChildren {
+  TestScenarioConstructorRoute: typeof TestScenarioConstructorRoute
+  TestScenarioPlayRoute: typeof TestScenarioPlayRoute
+  TestScenarioIndexRoute: typeof TestScenarioIndexRoute
+}
+
+const TestScenarioRouteChildren: TestScenarioRouteChildren = {
+  TestScenarioConstructorRoute: TestScenarioConstructorRoute,
+  TestScenarioPlayRoute: TestScenarioPlayRoute,
+  TestScenarioIndexRoute: TestScenarioIndexRoute,
+}
+
+const TestScenarioRouteWithChildren = TestScenarioRoute._addFileChildren(
+  TestScenarioRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ComponentsRoute: ComponentsRoute,
@@ -497,7 +568,7 @@ const rootRouteChildren: RootRouteChildren = {
   SellsenseDemoRoute: SellsenseDemoRoute,
   SolutionsRoute: SolutionsRoute,
   StoriesRoute: StoriesRouteWithChildren,
-  TestScenarioRoute: TestScenarioRoute,
+  TestScenarioRoute: TestScenarioRouteWithChildren,
   TestScenario2Route: TestScenario2Route,
   TestScenario3Route: TestScenario3Route,
   TestScenario4Route: TestScenario4Route,

@@ -6,16 +6,22 @@ import type { ClientResponse } from '@ef-api/smbdo-schemas';
 import {
   EBComponentsProvider,
   OnboardingFlow,
+  type OnboardingFlowProps,
 } from '@jpmorgan-payments/embedded-finance-components';
 
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useSellSenseThemes } from '@/components/sellsense/use-sellsense-themes';
 import {
-  getTestScenarioBundleConfig,
-  type TestScenarioBundleConfig,
-} from '@/components/test-scenario/test-scenario-bundles';
+  createDefaultTestScenarioConfig,
+  resolveTestScenarioConfig,
+  type TestScenarioConfig,
+} from '@/components/test-scenario/test-scenario-config';
 import { TestScenarioDashboard } from '@/components/test-scenario/test-scenario-dashboard';
+import {
+  buildOnboardingFlowProps,
+  shouldShowDashboardForSession,
+} from '@/components/test-scenario/test-scenario-onboarding-props';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -28,7 +34,10 @@ import { DatabaseResetUtils } from '@/lib/database-reset-utils';
 import type { TestDemoScenarioMode, TestScenarioBundleId } from '@/msw/db';
 
 export type TestScenarioPageProps = {
-  bundleId: TestScenarioBundleId;
+  /** Fixed bundle route (legacy `/test-scenario-N` pages). */
+  bundleId?: TestScenarioBundleId;
+  /** Universal renderer: full config from encoded URL hash. */
+  config?: TestScenarioConfig;
 };
 
 function themeString(
@@ -40,21 +49,39 @@ function themeString(
   return typeof v === 'string' && v.length > 0 ? v : fallback;
 }
 
-export function TestScenarioPage({ bundleId }: TestScenarioPageProps) {
+export function TestScenarioPage({ bundleId, config }: TestScenarioPageProps) {
   const queryClient = useQueryClient();
   const { mapThemeOption } = useSellSenseThemes();
-  const bundleConfig = useMemo(
-    () => getTestScenarioBundleConfig(bundleId),
-    [bundleId]
-  );
+
+  const resolved = useMemo(() => {
+    if (config) return resolveTestScenarioConfig(config);
+    if (bundleId) {
+      const presetMap: Record<
+        TestScenarioBundleId,
+        TestScenarioConfig['preset']
+      > = {
+        'test-scenario': 'operator80',
+        'test-scenario-2': 'construction',
+        'test-scenario-3': 'health',
+        'test-scenario-4': 'logistics',
+        'test-scenario-5': 'fundManagement',
+      };
+      return resolveTestScenarioConfig(
+        createDefaultTestScenarioConfig(presetMap[bundleId])
+      );
+    }
+    throw new Error('TestScenarioPage requires bundleId or config');
+  }, [bundleId, config]);
+
+  const bundleConfig = resolved.bundleConfig;
 
   const [selectedEmail, setSelectedEmail] = useState(
-    bundleConfig.loginProfiles[0].email
+    resolved.loginProfile.email
   );
 
   useEffect(() => {
-    setSelectedEmail(bundleConfig.loginProfiles[0].email);
-  }, [bundleConfig]);
+    setSelectedEmail(resolved.loginProfile.email);
+  }, [resolved.loginProfile.email, bundleConfig.id]);
 
   const [rememberUsername, setRememberUsername] = useState(false);
   const [sessionScenario, setSessionScenario] =
@@ -89,28 +116,36 @@ export function TestScenarioPage({ bundleId }: TestScenarioPageProps) {
   );
 
   const selectedProfile =
-    bundleConfig.loginProfiles.find((p) => p.email === selectedEmail) ??
-    bundleConfig.loginProfiles[0];
+    resolved.loginProfiles.find((p) => p.email === selectedEmail) ??
+    resolved.loginProfiles[0];
 
-  const onboardingFlow = bundleConfig.onboardingFlow;
-  const profileOnboarding = selectedProfile.onboardingFlow;
-
-  const sessionBundleConfig: TestScenarioBundleConfig | null = sessionScenario
-    ? bundleConfig
-    : null;
+  const selectedLoginCase =
+    resolved.loginCases.find((item) => item.email === selectedEmail) ??
+    resolved.activeLoginCase;
 
   const handleContinue = async () => {
     const bundlePayload =
-      bundleConfig.id === 'test-scenario' ? undefined : bundleConfig.id;
+      resolved.bundleId === 'test-scenario' ? undefined : resolved.bundleId;
     await DatabaseResetUtils.resetTestDemoDatabase(
       'empty',
       selectedProfile.scenario,
       setResetLoading,
-      bundlePayload
+      bundlePayload,
+      {
+        clientId: bundleConfig.clientId,
+        clientPatch: resolved.mockReset.clientPatch,
+        orgDisplayName: resolved.mockReset.orgDisplayName,
+        overrides: resolved.mockReset.overrides,
+      }
     );
     queryClient.clear();
     setSessionScenario(selectedProfile.scenario);
-    setShowDashboard(selectedProfile.scenario === 'naics-codes-dashboard');
+    setShowDashboard(
+      shouldShowDashboardForSession(
+        resolved.layout,
+        selectedProfile.scenario
+      ) || selectedLoginCase.layout === 'dashboard'
+    );
   };
 
   const handleSignOut = () => {
@@ -138,9 +173,6 @@ export function TestScenarioPage({ bundleId }: TestScenarioPageProps) {
   const handlePostPartySettled = useCallback(
     (_response?: unknown, error?: unknown) => {
       if (sessionScenario !== 'naics-codes-onboarding' || error) return;
-      // EBComponentsProvider owns a separate QueryClient — emulateTabSwitch
-      // triggers refetchOnWindowFocus inside OnboardingFlow (same pattern as
-      // SellSense mock overrides and wallet dashboard callbacks).
       setTimeout(() => {
         DatabaseResetUtils.emulateTabSwitch();
       }, 300);
@@ -156,7 +188,22 @@ export function TestScenarioPage({ bundleId }: TestScenarioPageProps) {
     [sessionScenario]
   );
 
-  const activeClientId = sessionBundleConfig?.clientId;
+  const activeClientId = sessionScenario ? bundleConfig.clientId : undefined;
+
+  const onboardingFlowProps = useMemo(() => {
+    if (!sessionScenario) return null;
+    return buildOnboardingFlowProps({
+      bundleConfig,
+      sessionScenario,
+      activeLoginCase: selectedLoginCase,
+      onboardingProps: resolved.onboardingProps,
+    });
+  }, [
+    bundleConfig,
+    resolved.onboardingProps,
+    selectedLoginCase,
+    sessionScenario,
+  ]);
 
   return (
     <EBComponentsProvider
@@ -186,9 +233,9 @@ export function TestScenarioPage({ bundleId }: TestScenarioPageProps) {
               <div className="flex min-w-0 items-center gap-4">
                 <span
                   className="truncate text-base font-medium text-neutral-800"
-                  title={sessionBundleConfig?.headerOrgDisplayName}
+                  title={bundleConfig.headerOrgDisplayName}
                 >
-                  {sessionBundleConfig?.headerOrgDisplayName}
+                  {bundleConfig.headerOrgDisplayName}
                 </span>
                 <Button
                   type="button"
@@ -210,76 +257,16 @@ export function TestScenarioPage({ bundleId }: TestScenarioPageProps) {
                 {showDashboard && activeClientId ? (
                   <TestScenarioDashboard
                     clientId={activeClientId}
-                    orgDisplayName={
-                      sessionBundleConfig?.headerOrgDisplayName ?? ''
-                    }
+                    orgDisplayName={bundleConfig.headerOrgDisplayName}
+                    componentProps={resolved.dashboardProps}
                   />
-                ) : (
+                ) : onboardingFlowProps ? (
                   <OnboardingFlow
                     onGetClientSettled={handleGetClientSettled}
                     onPostPartySettled={handlePostPartySettled}
-                    availableProducts={
-                      onboardingFlow?.availableProducts ?? ['EMBEDDED_PAYMENTS']
-                    }
-                    availableJurisdictions={
-                      onboardingFlow?.availableJurisdictions ?? ['US']
-                    }
-                    availableOrganizationTypes={
-                      profileOnboarding?.availableOrganizationTypes ??
-                      onboardingFlow?.availableOrganizationTypes ?? [
-                        'SOLE_PROPRIETORSHIP',
-                        'LIMITED_LIABILITY_COMPANY',
-                        'LIMITED_LIABILITY_PARTNERSHIP',
-                        'GENERAL_PARTNERSHIP',
-                        'LIMITED_PARTNERSHIP',
-                        'C_CORPORATION',
-                      ]
-                    }
-                    showLinkAccountStep={bundleConfig.showLinkAccountStep}
-                    {...(bundleConfig.showLinkAccountStep
-                      ? {
-                          linkAccountEnabledStatuses:
-                            sessionScenario === 'linked-account-approved' ||
-                            sessionScenario === 'linked-account-active' ||
-                            sessionScenario === 'happy-path-approved' ||
-                            sessionScenario === 'multi-linked-start-3'
-                              ? [ClientStatus.APPROVED]
-                              : undefined,
-                          linkAccountStepOptions:
-                            selectedProfile.linkAccountStepOptions ??
-                              bundleConfig.linkAccountStepOptions ?? {
-                                initialValues: {
-                                  paymentTypes: ['ACH'],
-                                  routingNumbers: [
-                                    {
-                                      paymentType: 'ACH',
-                                      routingNumber: '121000248',
-                                    },
-                                  ],
-                                  accountNumber: '6724301068',
-                                },
-                                completionMode: 'editable' as const,
-                              },
-                        }
-                      : {})}
-                    disclosureConfig={
-                      onboardingFlow?.disclosureConfig ?? {
-                        platformName: 'Platform, Inc.',
-                      }
-                    }
-                    hideLinkedAccountRemoval={
-                      onboardingFlow?.hideLinkedAccountRemoval ?? true
-                    }
-                    enablePubliclyTradedCompanies={
-                      profileOnboarding?.enablePubliclyTradedCompanies ??
-                      onboardingFlow?.enablePubliclyTradedCompanies ??
-                      false
-                    }
-                    priorityIndustryCodes={
-                      onboardingFlow?.priorityIndustryCodes
-                    }
+                    {...(onboardingFlowProps as OnboardingFlowProps)}
                   />
-                )}
+                ) : null}
                 <footer className="mx-auto mt-4 max-w-4xl px-4 py-4 text-center sm:px-5">
                   <p className="text-xs leading-relaxed text-neutral-500">
                     Platform, Inc. is not a bank. Banking services provided by
@@ -374,7 +361,7 @@ export function TestScenarioPage({ bundleId }: TestScenarioPageProps) {
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent className="max-w-[min(100vw-2rem,28rem)]">
-                      {bundleConfig.loginProfiles.map((p) => (
+                      {resolved.loginProfiles.map((p) => (
                         <SelectItem
                           key={p.email}
                           value={p.email}
