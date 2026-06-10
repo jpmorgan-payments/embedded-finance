@@ -27,18 +27,24 @@ import { http, HttpResponse, type RequestHandler } from 'msw';
 
 import { getClientStatusOverrideForScenario } from '../components/sellsense/scenarios-config';
 import { efClientQuestionsMock, efDocumentClientDetail } from '../mocks';
+import { testScenarioNaicsCodesQuestionsMock } from '../mocks/testScenarioNaicsCodesQuestions.mock';
 import {
   applyOverridesToDb,
   applyTestDemoScenario,
+  applyTestScenarioClientPatch,
+  applyTestScenarioOrganizationDisplayName,
   createTransactionWithBalanceUpdate,
   db,
   DEFAULT_SCENARIO,
   getDbStatus,
   getTestScenarioClientIds,
   handleMagicValues,
+  isTestScenario5ClientId,
   logDbState,
+  maybeApproveTestScenario5AfterQuestions,
   parseTestScenarioBundleId,
   resetDb,
+  syncTestScenario5NaicsCodeQuestionsFromIndustry,
   type TestDemoScenarioMode,
 } from './db';
 import { getEmbeddedSampleTermsPdfBytes } from './terms-pdf-fallback.ts';
@@ -428,6 +434,9 @@ async function handlePostDocumentRequestSubmit(
 export const createHandlers = (apiUrl: string): RequestHandler[] => [
   http.get(`${apiUrl}/ef/do/v1/clients/:clientId`, (req) => {
     const { clientId } = req.params as ClientIdParams;
+
+    syncTestScenario5NaicsCodeQuestionsFromIndustry(clientId);
+
     const client = db.client.findFirst({
       where: { id: { equals: clientId } },
     });
@@ -661,6 +670,22 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
           updatedClient.outstanding,
           updatedClient.questionResponses as QuestionResponseEntry[]
         );
+
+        maybeApproveTestScenario5AfterQuestions(
+          clientId,
+          updatedClient.questionResponses as Array<{ questionId?: string }>,
+          updatedClient.outstanding.questionIds
+        );
+
+        const refreshedAfterApproval = db.client.findFirst({
+          where: { id: { equals: clientId } },
+        });
+        if (refreshedAfterApproval) {
+          updatedClient.status = refreshedAfterApproval.status as string;
+          updatedClient.results = refreshedAfterApproval.results;
+          updatedClient.outstanding = (refreshedAfterApproval.outstanding ||
+            updatedClient.outstanding) as ClientOutstanding;
+        }
       }
 
       // Handle adding new attestations if present
@@ -783,6 +808,20 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
         id: partyId, // Ensure we keep the same ID
       } as Record<string, unknown>);
 
+      const owningClient = db.client
+        .getAll()
+        .find((client) =>
+          ((client.parties as string[]) || []).includes(partyId as string)
+        );
+      if (
+        owningClient?.id &&
+        isTestScenario5ClientId(owningClient.id as string)
+      ) {
+        syncTestScenario5NaicsCodeQuestionsFromIndustry(
+          owningClient.id as string
+        );
+      }
+
       logDbState('Party Update');
       return HttpResponse.json(updatedParty);
     }
@@ -791,11 +830,17 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
   http.get(`${apiUrl}/ef/do/v1/questions`, (req) => {
     const url = new URL(req.request.url);
     const questionIds = url.searchParams.get('questionIds');
+    const allQuestions = [
+      ...efClientQuestionsMock.questions,
+      ...testScenarioNaicsCodesQuestionsMock.questions,
+    ];
+    const filtered = allQuestions.filter((q) => questionIds?.includes(q.id));
     return HttpResponse.json({
-      metadata: efClientQuestionsMock.metadata,
-      questions: efClientQuestionsMock?.questions.filter((q) =>
-        questionIds?.includes(q.id)
-      ),
+      metadata: {
+        page: 0,
+        total: filtered.length,
+      },
+      questions: filtered,
     });
   }),
 
@@ -894,12 +939,13 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
         /** Only `/test-scenario`; omit for SellSense (no DB shape change). */
         testDemoScenario?: TestDemoScenarioMode;
         testScenarioBundle?: string;
+        testScenarioClientPatch?: Record<string, unknown>;
+        testScenarioClientId?: string;
+        testScenarioOrgDisplayName?: string;
       } | null;
       const scenario = body?.scenario ?? DEFAULT_SCENARIO;
       const result = resetDb(scenario);
-      if (body?.overrides && Object.keys(body.overrides).length > 0) {
-        applyOverridesToDb(body.overrides);
-      }
+      let testScenarioClientId: string | undefined;
       if (
         body?.testDemoScenario === 'happy-path' ||
         body?.testDemoScenario === 'happy-path-ptc' ||
@@ -907,13 +953,34 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
         body?.testDemoScenario === 'doc-request' ||
         body?.testDemoScenario === 'linked-account-approved' ||
         body?.testDemoScenario === 'linked-account-active' ||
-        body?.testDemoScenario === 'multi-linked-start-3'
+        body?.testDemoScenario === 'multi-linked-start-3' ||
+        body?.testDemoScenario === 'naics-codes-onboarding' ||
+        body?.testDemoScenario === 'naics-codes-dashboard' ||
+        body?.testDemoScenario === 'naics-codes-doc-request'
       ) {
         // Isolated from SellSense: those apps never send `testDemoScenario`.
-        applyTestDemoScenario(
-          body.testDemoScenario,
-          parseTestScenarioBundleId(body.testScenarioBundle)
+        const bundleId = parseTestScenarioBundleId(body.testScenarioBundle);
+        applyTestDemoScenario(body.testDemoScenario, bundleId);
+        testScenarioClientId = body.testScenarioClientId;
+      }
+      if (
+        body?.testScenarioClientPatch &&
+        Object.keys(body.testScenarioClientPatch).length > 0 &&
+        testScenarioClientId
+      ) {
+        applyTestScenarioClientPatch(
+          testScenarioClientId,
+          body.testScenarioClientPatch
         );
+      }
+      if (body?.testScenarioOrgDisplayName && testScenarioClientId) {
+        applyTestScenarioOrganizationDisplayName(
+          testScenarioClientId,
+          body.testScenarioOrgDisplayName
+        );
+      }
+      if (body?.overrides && Object.keys(body.overrides).length > 0) {
+        applyOverridesToDb(body.overrides);
       }
       return HttpResponse.json(result);
     } catch (error) {
@@ -1480,8 +1547,23 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
   }),
 
   // MakePayment Component Handlers - Updated to use database
-  http.get(`${apiUrl}/ef/do/v1/accounts`, () => {
-    const accounts = db.account.getAll() as unknown as AccountResponse[];
+  http.get(`${apiUrl}/ef/do/v1/accounts`, (req) => {
+    const url = new URL(req.request.url);
+    const clientId = url.searchParams.get('clientId');
+
+    let accounts = db.account.getAll() as unknown as AccountResponse[];
+
+    if (clientId) {
+      accounts = accounts.filter((account) => account.clientId === clientId);
+    }
+
+    // Scenario 5 dashboard: single Limited DDA Payments account (...8899) for Make Payment
+    if (clientId && isTestScenario5ClientId(clientId)) {
+      accounts = accounts.filter(
+        (account) => account.category === 'LIMITED_DDA_PAYMENTS'
+      );
+    }
+
     console.log('Retrieved accounts from database:', accounts.length);
 
     const response: ListAccountsResponse = {

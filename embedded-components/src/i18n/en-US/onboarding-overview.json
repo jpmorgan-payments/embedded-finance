@@ -1426,7 +1426,7 @@
     "attestation": {
       "heading": "By electronically submitting this Application, you agree that:",
       "accurateInfo": "All information you have provided is complete and accurate, and you are opening this account solely for business purposes and not for consumer purposes.",
-      "authorizeSharing": "You authorize {{platformName}} and JPMorgan Chase Bank, N.A. (\"JPMC\") to share information to facilitate the opening of your deposit account(s), and appoint {{platformName}} as your agent to act on your behalf regarding your deposit account.",
+      "authorizeSharing": "You authorize {{platformName}} and JPMorgan Chase Bank, N.A. (\"J.P. Morgan\") to share information to facilitate the opening of your deposit account(s), and appoint {{platformName}} as your agent to act on your behalf regarding your deposit account.",
       "mustAgreeToAll": "You must agree to all attestations before proceeding.",
       "mustAttestAccurate": "You must attest that the data is true, accurate, and complete.",
       "mustAgreeToTerms": "You must agree to the terms before proceeding."
