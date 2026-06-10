@@ -763,7 +763,7 @@ describe('MSW handlers (integration)', () => {
       outstanding?: { questionIds?: string[] };
     };
     expect(updated.outstanding?.questionIds ?? []).toEqual(
-      expect.arrayContaining(['30012', '30191'])
+      expect.arrayContaining(['30012', '30191', '30195'])
     );
 
     const viaGet = await fetch(
@@ -796,6 +796,7 @@ describe('MSW handlers (integration)', () => {
         '30187',
         '30189',
         '30191',
+        '30195',
       ])
     );
   });
@@ -885,6 +886,7 @@ describe('MSW handlers (integration)', () => {
       { questionId: '30187', values: ['false'] },
       { questionId: '30189', values: ['false'] },
       { questionId: '30191', values: ['false'] },
+      { questionId: '30195', values: ['false'] },
     ];
 
     const updateRes = await fetch(

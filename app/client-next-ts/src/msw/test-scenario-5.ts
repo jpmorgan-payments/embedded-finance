@@ -33,6 +33,8 @@ export const TEST_SCENARIO_5_QUESTION_IDS = [
   '30187',
   '30189',
   '30191',
+  /** Sanctions — served from `efClientQuestionsMock` (not duplicated in NAICS mock). */
+  '30195',
 ] as const;
 
 export const TEST_SCENARIO_5_DASHBOARD_ACCOUNT_ID = 'ts5-acc-payments';
@@ -69,6 +71,8 @@ const NAICS_CODE_REQUIRED_QUESTION_IDS = [
   '30187',
   '30189',
   '30191',
+  /** Sanctions — served from `efClientQuestionsMock` (not duplicated in NAICS mock). */
+  '30195',
 ] as const;
 
 export function areAllNaicsCodeQuestionsAnswered(
