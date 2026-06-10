@@ -93,7 +93,8 @@
     "release": "node scripts/prepare-release.mjs",
     "release:minor": "node scripts/prepare-release.mjs minor",
     "release:major": "node scripts/prepare-release.mjs major",
-    "sync": "powershell -ExecutionPolicy Bypass -File .pipeline/sync-remote.ps1"
+    "sync": "powershell -ExecutionPolicy Bypass -File .pipeline/sync-remote.ps1",
+    "sync:pull": "powershell -ExecutionPolicy Bypass -File .pipeline/sync-pull.ps1"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
