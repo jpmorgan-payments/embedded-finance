@@ -96,15 +96,14 @@ function categorizeCommits(commits) {
   const categories = {
     feat: { label: 'Features', items: [] },
     fix: { label: 'Bug Fixes', items: [] },
-    refactor: { label: 'Refactors', items: [] },
     perf: { label: 'Performance', items: [] },
-    docs: { label: 'Documentation', items: [] },
-    chore: { label: 'Chores', items: [] },
-    build: { label: 'Build', items: [] },
-    test: { label: 'Tests', items: [] },
   };
 
-  const conventionalRegex = /^(\w+)(?:\(([^)]*)\))?!?:\s*(.+)$/;
+  // Only user-facing changes appear in the CHANGELOG.
+  // Everything else (refactor, docs, chore, build, test, ci, style) is excluded.
+  const includedTypes = new Set(['feat', 'fix', 'perf']);
+
+  const conventionalRegex = /^(\w+)(?:\(([^)]*)\))?(!)?:\s*(.+)$/;
 
   // Map non-standard types to their canonical category
   const typeAliases = {
@@ -112,23 +111,43 @@ function categorizeCommits(commits) {
     feature: 'feat',
   };
 
+  const breakingChanges = [];
+
   for (const msg of commits) {
     const match = msg.match(conventionalRegex);
     if (match) {
-      const [, rawType, scope, description] = match;
+      const [, rawType, scope, bang, description] = match;
       const key = typeAliases[rawType.toLowerCase()] || rawType.toLowerCase();
-      const target = categories[key] || categories.chore;
       const prefix = scope ? `**${scope}:** ` : '';
+
+      // Breaking changes (indicated by !) always appear regardless of type
+      if (bang) {
+        breakingChanges.push(`${prefix}${description}`);
+        continue;
+      }
+
+      if (!includedTypes.has(key)) continue;
+      const target = categories[key];
       target.items.push(`${prefix}${description}`);
     }
   }
 
-  return categories;
+  return { categories, breakingChanges };
 }
 
-function generateChangelog(version, categories) {
+function generateChangelog(version, { categories, breakingChanges }) {
   const date = new Date().toISOString().split('T')[0];
-  let entry = `## [${version}] - ${date}\n\n### Changes\n\n`;
+  let entry = `## [${version}] - ${date}\n\n`;
+
+  if (breakingChanges.length > 0) {
+    entry += `### ⚠ Breaking Changes\n\n`;
+    for (const item of breakingChanges) {
+      entry += `- ${item}\n`;
+    }
+    entry += '\n';
+  }
+
+  entry += `### Changes\n\n`;
 
   for (const cat of Object.values(categories)) {
     if (cat.items.length === 0) continue;
@@ -170,8 +189,8 @@ if (commits.length === 0) {
 }
 
 // Generate changelog entry
-const categories = categorizeCommits(commits);
-const changelogEntry = generateChangelog(newVersion, categories);
+const result = categorizeCommits(commits);
+const changelogEntry = generateChangelog(newVersion, result);
 
 // Update package.json
 pkg.version = newVersion;
