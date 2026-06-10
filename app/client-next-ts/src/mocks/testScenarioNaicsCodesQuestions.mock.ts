@@ -3,7 +3,7 @@
  * Questions triggered by NAICS codes 525996, 525995, 525991.
  */
 export const testScenarioNaicsCodesQuestionsMock = {
-  metadata: { page: 0, total: 25 },
+  metadata: { page: 0, total: 22 },
   questions: [
     {
       content: [
@@ -428,7 +428,7 @@ export const testScenarioNaicsCodesQuestionsMock = {
       responseSchema: {
         type: 'array',
         minItems: 1,
-        maxItems: 2,
+        maxItems: 1,
         items: {
           type: 'string',
           enum: ['Registered', 'Affiliated Adviser'],
@@ -559,27 +559,6 @@ export const testScenarioNaicsCodesQuestionsMock = {
       defaultLocale: 'en-US',
       description: 'Is the business organized as a trust?',
       id: '30191',
-      responseSchema: {
-        type: 'array',
-        minItems: 1,
-        maxItems: 1,
-        items: { type: 'boolean' },
-      },
-      subQuestions: [],
-    },
-    {
-      content: [
-        {
-          description:
-            "Are you planning to, or do you currently (i) operate or conduct business in; (ii) sell goods in or to; (iii) offer services in or to; (iv) have vendors or suppliers in; or (v) conduct business with entities domiciled or incorporated in, or with individuals domiciled in any of the following countries or regions which are subject to comprehensive or targeted sanctions: Cuba, Iran, North Korea, Syria, Russia, Venezuela, Belarus, Sudan, South Sudan, Myanmar, the Crimea, Donetsk People's Republic, or Luhansk People's Republic regions of Ukraine, or the nongovernment-controlled areas of Ukraine in Kherson and Zaporizhzhia Oblasts.",
-          label: 'Sanctioned countries business:',
-          locale: 'en-US',
-        },
-      ],
-      defaultLocale: 'en-US',
-      description:
-        "Are you planning to, or do you currently (i) operate or conduct business in; (ii) sell goods in or to; (iii) offer services in or to; (iv) have vendors or suppliers in; or (v) conduct business with entities domiciled or incorporated in, or with individuals domiciled in any of the following countries or regions which are subject to comprehensive or targeted sanctions: Cuba, Iran, North Korea, Syria, Russia, Venezuela, Belarus, Sudan, South Sudan, Myanmar, the Crimea, Donetsk People's Republic, or Luhansk People's Republic regions of Ukraine, or the nongovernment-controlled areas of Ukraine in Kherson and Zaporizhzhia Oblasts.",
-      id: '30195',
       responseSchema: {
         type: 'array',
         minItems: 1,

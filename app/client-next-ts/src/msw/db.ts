@@ -61,6 +61,7 @@ import {
   TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID,
   testScenarioNaicsCodesClient,
 } from '../mocks/testScenarioNaicsCodesClient.mock';
+import { testScenario5FundDocumentRequests } from '../mocks/testScenario5FundDocumentRequests.mock';
 import {
   TEST_DEMO_SCENARIO_CLIENT_ID,
   TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE,
@@ -617,7 +618,11 @@ export type TestDemoScenarioMode =
   /**
    * `/test-scenario-5`: APPROVED client with wallet dashboard data pre-seeded.
    */
-  | 'naics-codes-dashboard';
+  | 'naics-codes-dashboard'
+  /**
+   * `/test-scenario-5`: INFORMATION_REQUESTED client with fund-specific document requests.
+   */
+  | 'naics-codes-doc-request';
 
 /**
  * `/test-scenario*` demo **bundle**: maps a route to client seed + optional recipient seeding in MSW.
@@ -946,6 +951,46 @@ function removeTestScenario5DashboardRows(): void {
     where: {
       id: {
         in: testScenario5DashboardTransactions.map((txn) => txn.id),
+      },
+    },
+  });
+}
+
+/** Seeds fund-specific document requests for scenario 5 doc-request mode. */
+function seedTestScenario5FundDocumentRequests(clientId: string): void {
+  const timestamp = new Date().toISOString();
+  const docRequestIds: string[] = [];
+
+  for (const docReq of testScenario5FundDocumentRequests) {
+    try {
+      upsertDocumentRequest(docReq.id, {
+        ...docReq,
+        clientId,
+        createdAt: docReq.createdAt ?? timestamp,
+      } as Partial<DbDocumentRequest>);
+      docRequestIds.push(docReq.id);
+    } catch (error) {
+      console.error('Error creating scenario 5 fund document request:', error);
+    }
+  }
+
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+  if (!client) return;
+
+  const prevOutstanding = (client.outstanding ||
+    {}) as ClientResponseOutstanding;
+  db.client.update({
+    where: { id: { equals: clientId } },
+    data: {
+      ...client,
+      outstanding: {
+        ...prevOutstanding,
+        documentRequestIds: [
+          ...((prevOutstanding.documentRequestIds as string[]) ?? []),
+          ...docRequestIds,
+        ],
       },
     },
   });
@@ -1393,7 +1438,7 @@ export function applyTestDemoScenario(
   removeAllTestScenarioSeedClients();
 
   let shape: PredefinedClientShape;
-  if (mode === 'doc-request') {
+  if (mode === 'doc-request' || mode === 'naics-codes-doc-request') {
     shape = { ...base, status: 'INFORMATION_REQUESTED' };
   } else if (
     mode === 'linked-account-approved' ||
@@ -1415,10 +1460,14 @@ export function applyTestDemoScenario(
   }
 
   seedPredefinedClientFromShape(clientId, shape, {
-    useTestDemoFixedDocumentRequestIds: mode === 'doc-request',
+    useTestDemoFixedDocumentRequestIds:
+      mode === 'doc-request' || mode === 'naics-codes-doc-request',
   });
   if (mode === 'doc-request') {
     syncTestDemoClientOutstandingDocumentIds(clientId);
+  }
+  if (mode === 'naics-codes-doc-request' && bundleId === 'test-scenario-5') {
+    seedTestScenario5FundDocumentRequests(clientId);
   }
   if (
     mode === 'linked-account-approved' ||

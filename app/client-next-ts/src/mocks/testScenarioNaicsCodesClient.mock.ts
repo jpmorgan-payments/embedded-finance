@@ -1,5 +1,5 @@
 /**
- * MSW seed for `/test-scenario-5` — Leap Frog Investments, LLC.
+ * MSW seed for `/test-scenario-5` — Leap Frog Investments, LP.
  * NAICS onboarding: three recommended NAICS codes (fund management) trigger assessment questions.
  */
 export const TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID = '3100007005';
@@ -33,9 +33,10 @@ export const testScenarioNaicsCodesClient = {
       organizationDetails: {
         countryOfFormation: 'US',
         dbaName: 'Leap Frog Investments',
-        organizationName: 'Leap Frog Investments, LLC',
-        organizationType: 'LIMITED_LIABILITY_COMPANY',
-        organizationDescription: '',
+        organizationName: 'Leap Frog Investments, LP',
+        organizationType: 'LIMITED_LIABILITY_PARTNERSHIP',
+        organizationDescription:
+          'Venture capital fund with the purpose of investing in cutting edge technology',
         industryCategory: '',
         industryType: '',
         yearOfFormation: '',
@@ -46,6 +47,7 @@ export const testScenarioNaicsCodesClient = {
             issuer: '',
           },
         ],
+        email: 'admin@leapfroginvestments.com',
       },
       individualDetails: {},
       status: 'ACTIVE',

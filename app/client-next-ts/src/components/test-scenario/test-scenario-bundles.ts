@@ -190,6 +190,12 @@ const SCENARIO_5_PROFILES: TestScenarioLoginProfile[] = [
     scenario: 'naics-codes-onboarding',
   },
   {
+    email: 'docs-requested@demo.test',
+    label:
+      'Unhappy path — straight to fund document request (evidence of registration, organizational structure, offering memorandum, etc.)',
+    scenario: 'naics-codes-doc-request',
+  },
+  {
     email: 'dashboard-approved@demo.test',
     label:
       'Approved client — skip onboarding and open payments account dashboard (accounts, recipients, transactions)',
@@ -425,7 +431,7 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
   },
   'test-scenario-5': {
     id: 'test-scenario-5',
-    headerOrgDisplayName: 'Leap Frog Investments, LLC',
+    headerOrgDisplayName: 'Leap Frog Investments, LP',
     theme: 'Empty',
     contentTokens: buildContentTokens({
       controllerJobTitle: 'Role',
@@ -436,7 +442,7 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
     onboardingFlow: {
       availableProducts: ['EMBEDDED_PAYMENTS'],
       availableJurisdictions: ['US'],
-      availableOrganizationTypes: ['LIMITED_LIABILITY_COMPANY'],
+      availableOrganizationTypes: ['LIMITED_LIABILITY_PARTNERSHIP'],
       disclosureConfig: { platformName: 'Platform, Inc.' },
       hideLinkedAccountRemoval: true,
       priorityIndustryCodes: [...TEST_SCENARIO_5_NAICS_CODES],
