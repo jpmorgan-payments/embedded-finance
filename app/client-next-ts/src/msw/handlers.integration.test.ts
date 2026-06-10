@@ -741,9 +741,31 @@ describe('MSW handlers (integration)', () => {
       `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID}`
     );
     const client = (await clientRes.json()) as {
-      parties?: Array<{ id?: string }>;
+      parties?: Array<{
+        id?: string;
+        partyType?: string;
+        email?: string;
+        organizationDetails?: {
+          organizationIds?: Array<{
+            idType?: string;
+            value?: string;
+            issuer?: string;
+          }>;
+        };
+      }>;
     };
-    const orgPartyId = client.parties?.[0]?.id;
+    const orgParty = client.parties?.find((p) => p.partyType === 'ORGANIZATION');
+    expect(orgParty?.email).toBe('admin@leapfroginvestments.com');
+    expect(orgParty?.organizationDetails?.organizationIds).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          idType: 'EIN',
+          value: '472918365',
+          issuer: 'US',
+        }),
+      ])
+    );
+    const orgPartyId = orgParty?.id;
     expect(orgPartyId).toBeDefined();
 
     await fetch(`${API}/ef/do/v1/parties/${orgPartyId}`, {

@@ -12,6 +12,7 @@ export const testScenarioNaicsCodesClient = {
     {
       id: '2100535400',
       createdAt: '2026-06-01T09:00:00.1Z',
+      email: 'admin@leapfroginvestments.com',
       partyType: 'ORGANIZATION',
       profileStatus: 'NEW',
       roles: ['CLIENT'],
@@ -24,9 +25,7 @@ export const testScenarioNaicsCodesClient = {
             { name: 'addresses' },
             { name: 'industryCategory' },
             { name: 'industryType' },
-            { name: 'organizationDescription' },
             { name: 'yearOfFormation' },
-            { name: 'organizationIds' },
           ],
         },
       ],
@@ -42,12 +41,11 @@ export const testScenarioNaicsCodesClient = {
         yearOfFormation: '',
         organizationIds: [
           {
-            idType: '',
-            value: '',
-            issuer: '',
+            idType: 'EIN',
+            value: '472918365',
+            issuer: 'US',
           },
         ],
-        email: 'admin@leapfroginvestments.com',
       },
       individualDetails: {},
       status: 'ACTIVE',
