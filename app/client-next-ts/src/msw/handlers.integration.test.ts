@@ -639,6 +639,46 @@ describe('MSW handlers (integration)', () => {
     }
   );
 
+  it('test-scenario-5: naics-codes-doc-request seeds client and fund document requests', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'naics-codes-doc-request',
+        testScenarioBundle: 'test-scenario-5',
+      }),
+    });
+
+    const clientRes = await fetch(
+      `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID}?clientId=${TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID}`
+    );
+    expect(clientRes.ok).toBe(true);
+    const client = (await clientRes.json()) as {
+      status?: string;
+      outstanding?: { documentRequestIds?: string[] };
+    };
+    expect(client.status).toBe('INFORMATION_REQUESTED');
+    expect(client.outstanding?.documentRequestIds).toEqual(['ts5-doc-001']);
+
+    const drRes = await fetch(
+      `${API}/ef/do/v1/document-requests?clientId=${TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID}`
+    );
+    expect(drRes.ok).toBe(true);
+    const drEnvelope = (await drRes.json()) as {
+      documentRequests?: Array<{ id?: string }>;
+    };
+    expect(drEnvelope.documentRequests?.map((r) => r.id)).toEqual([
+      'ts5-doc-001',
+    ]);
+    expect(
+      drEnvelope.documentRequests?.some(
+        (r) => r.id === TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID
+      )
+    ).toBe(false);
+  });
+
   it('test-scenario-5: naics-codes-dashboard seeds APPROVED client and wallet data', async () => {
     await fetch(`${API}/ef/do/v1/_reset`, {
       method: 'POST',

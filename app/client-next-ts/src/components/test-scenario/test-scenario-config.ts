@@ -116,6 +116,7 @@ const MULTI_LINK_LOGIN_CASES: TestDemoScenarioMode[] = [
 
 const FUND_MGMT_LOGIN_CASES: TestDemoScenarioMode[] = [
   'naics-codes-onboarding',
+  'naics-codes-doc-request',
   'naics-codes-dashboard',
 ];
 
@@ -136,6 +137,7 @@ const LEGACY_LOGIN_CASE_CODE: Record<TestDemoScenarioMode, string> = {
   'linked-account-active': 'laa',
   'multi-linked-start-3': 'm3',
   'naics-codes-onboarding': 'nao',
+  'naics-codes-doc-request': 'nadr',
   'naics-codes-dashboard': 'nad',
 };
 
@@ -163,6 +165,8 @@ const LOGIN_CASE_LABELS: Record<TestDemoScenarioMode, string> = {
   'multi-linked-start-3': 'Starts with three linked bank accounts',
   'naics-codes-onboarding':
     'Onboarding → NAICS selection → fund questions → dashboard',
+  'naics-codes-doc-request':
+    'Unhappy path — fund document request (registration, structure, offering memo, etc.)',
   'naics-codes-dashboard': 'Pre-approved — open payments dashboard immediately',
 };
 

@@ -955,7 +955,8 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
         body?.testDemoScenario === 'linked-account-active' ||
         body?.testDemoScenario === 'multi-linked-start-3' ||
         body?.testDemoScenario === 'naics-codes-onboarding' ||
-        body?.testDemoScenario === 'naics-codes-dashboard'
+        body?.testDemoScenario === 'naics-codes-dashboard' ||
+        body?.testDemoScenario === 'naics-codes-doc-request'
       ) {
         // Isolated from SellSense: those apps never send `testDemoScenario`.
         const bundleId = parseTestScenarioBundleId(body.testScenarioBundle);

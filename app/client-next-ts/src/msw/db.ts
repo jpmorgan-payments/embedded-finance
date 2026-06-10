@@ -79,6 +79,8 @@ import {
 type SeedPredefinedClientOptions = {
   /** Stable ids (`61800`, `61801+`) for Operator 80–shaped demo clients (doc-request flows). */
   useTestDemoFixedDocumentRequestIds?: boolean;
+  /** Scenario 5 fund doc-request: client is INFORMATION_REQUESTED but fund docs are seeded separately. */
+  skipInformationRequestedDocumentRequests?: boolean;
 };
 
 // --- Entity types (OAS-aligned) ---
@@ -769,7 +771,10 @@ function seedPredefinedClientFromShape(
 
   db.client.create(newClient as Partial<DbClient> & { id: string });
 
-  if (clientData.status === 'INFORMATION_REQUESTED') {
+  if (
+    clientData.status === 'INFORMATION_REQUESTED' &&
+    seedOptions?.skipInformationRequestedDocumentRequests !== true
+  ) {
     const individualParties = parties.filter(
       (p) => (p as { partyType?: string }).partyType === 'INDIVIDUAL'
     );
@@ -1460,8 +1465,8 @@ export function applyTestDemoScenario(
   }
 
   seedPredefinedClientFromShape(clientId, shape, {
-    useTestDemoFixedDocumentRequestIds:
-      mode === 'doc-request' || mode === 'naics-codes-doc-request',
+    useTestDemoFixedDocumentRequestIds: mode === 'doc-request',
+    skipInformationRequestedDocumentRequests: mode === 'naics-codes-doc-request',
   });
   if (mode === 'doc-request') {
     syncTestDemoClientOutstandingDocumentIds(clientId);

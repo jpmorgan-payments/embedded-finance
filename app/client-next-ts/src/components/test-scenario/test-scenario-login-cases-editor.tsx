@@ -23,6 +23,7 @@ const ALL_LOGIN_SCENARIOS: TestDemoScenarioMode[] = [
   'linked-account-active',
   'multi-linked-start-3',
   'naics-codes-onboarding',
+  'naics-codes-doc-request',
   'naics-codes-dashboard',
 ];
 
