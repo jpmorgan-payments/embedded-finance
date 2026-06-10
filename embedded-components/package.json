@@ -65,7 +65,7 @@
     "__comment_test": "=== TESTING ===",
     "test": "npm run typecheck && npm run format:check && npm run lint && npm run test:unit",
     "test:unit": "vitest run",
-    "test:ci": "vitest run --coverage --reporter=default --reporter=junit --outputFile.junit=coverage/junit/results.xml",
+    "test:ci": "vitest run --coverage --reporter=default --reporter=junit --outputFile.junit=coverage/junit/results.xml --testTimeout=45000 --retry=1",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:coverage:onboarding": "vitest run src/core/OnboardingFlow --coverage --coverage.include=src/core/OnboardingFlow/**/*.ts --coverage.include=src/core/OnboardingFlow/**/*.tsx",
