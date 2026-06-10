@@ -2,6 +2,18 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.14.8] - 2026-06-10
+
+### Changes
+
+#### Features
+
+- **onboarding:** update the label and options of the ptc question to clarify 51% ownership for subsidaries
+
+#### Bug Fixes
+
+- **onboarding:** fix validation issues with questions on operational details page
+
 ## [0.14.7] - 2026-06-04
 
 ### Changes
