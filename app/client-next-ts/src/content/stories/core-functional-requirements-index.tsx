@@ -20,7 +20,7 @@ export default function CoreFunctionalRequirementsIndexArticle() {
           <code className="rounded bg-jpm-gray-100 px-1.5 py-0.5 font-mono text-page-small text-jpm-gray-900">
             src/core
           </code>
-          , excluding legacy-only folders such as OnboardingWizardBasic).
+          , excluding legacy-only folders).
         </p>
         <p>
           Use the links to open the canonical documents on GitHub (default

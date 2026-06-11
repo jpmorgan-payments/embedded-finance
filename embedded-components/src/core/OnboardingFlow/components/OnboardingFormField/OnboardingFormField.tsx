@@ -743,7 +743,6 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                             obfuscateWhenUnfocused={obfuscateWhenUnfocused}
                             type={type}
                             value={valueOverride ?? field.value}
-                            placeholder={fieldPlaceholder}
                             onChange={(e) => {
                               onChangeProp?.(e.target.value);
                               field.onChange(e);

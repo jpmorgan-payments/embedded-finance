@@ -12,7 +12,7 @@ React component library and showcase application for J.P. Morgan Embedded Financ
 
 React component library for embedded banking features.
 
-Components: OnboardingFlow, LinkedAccountWidget, RecipientsWidget, Accounts, MakePayment, TransactionsDisplay
+Components: OnboardingFlow, LinkedAccountWidget, RecipientsWidget, Accounts, PaymentFlow, TransactionsDisplay
 
 NPM: [@jpmorgan-payments/embedded-finance-components](https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components)
 
@@ -41,20 +41,24 @@ Demo for partially hosted (drop-in) embedded components integration using sessio
 **Prerequisites**: Node.js 18+, Yarn
 
 **Run showcase:**
+
 ```bash
 yarn install
 cd app/client-next-ts
 yarn install
 yarn dev
 ```
+
 Open `http://localhost:3000`
 
 **Run Storybook:**
+
 ```bash
 cd embedded-components
 yarn install
 yarn storybook
 ```
+
 Open `http://localhost:6006`
 
 ## Available Demos & Features

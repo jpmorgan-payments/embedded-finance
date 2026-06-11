@@ -27,16 +27,6 @@
 
 ### Quick Reference by Component
 
-**MakePayment:**
-
-- BL-020: Form field ordering consistency
-- BL-030: Tab switching behavior
-- BL-031: Fee display enhancement
-- BL-032: Form validation & feedback
-- BL-033: Date selection
-- BL-040: Modal accessibility
-- BL-403: Theme 0 enhancements (Recipient/method filtering, fee/time ETA, review/confirmation UX, cross-currency)
-
 **Recipients (DEPRECATED - use RecipientsWidget):**
 
 > ⚠️ The legacy Recipients component is deprecated. Use `RecipientsWidget` for new implementations.
@@ -153,7 +143,7 @@ Substantial progress has been made. Re-assessment against latest source and depl
 
 - **Button system:** A single shared `Button` component (`@/components/ui/button`) is used across core components. Variants: `default` (primary), `outline`, `secondary`, `ghost`, `link`, `destructive`, `warning`, `input`. All use `eb-` prefixed design tokens.
 - **Theme & tokens:** `EBComponentsProvider` and `convert-theme-to-css-variables` drive primary, secondary, destructive, etc. from `EBTheme` / `EBThemeVariables`. Salt-aligned token naming is in use.
-- **Component usage:** Onboarding, LinkedAccountWidget, RecipientsWidget, TransactionsDisplay, Accounts, MakePayment/PaymentFlow consistently import and use `Button` with semantic variants (e.g. primary submit = `default`, cancel = `outline`, icon actions = `ghost`).
+- **Component usage:** Onboarding, LinkedAccountWidget, RecipientsWidget, TransactionsDisplay, Accounts, PaymentFlow consistently import and use `Button` with semantic variants (e.g. primary submit = `default`, cancel = `outline`, icon actions = `ghost`).
 
 #### Remaining work [BL-001]
 
@@ -176,10 +166,10 @@ Substantial progress has been made. Re-assessment against latest source and depl
 
 **Source:** UX Testing Report - Make Payment Component Analysis  
 **Theme Alignment:** Theme 0 (Functional Enhancements), Theme 7 (A11y & UX Testing)  
-**Components Affected:** MakePayment / PaymentFlow  
+**Components Affected:** PaymentFlow  
 **Tracking IDs:** BL-020, BL-030, BL-031, BL-032, BL-033, BL-040, BL-403
 
-**Re-assessed (Jan 2026):** PaymentFlow and MakePayment use shared Button, PayeeSelector, ReviewPanel, etc. Field order, tab behavior, fee display, validation, date, and modal a11y are still product/design choices; verify against latest source and deployed make-payment view (embedded-finance-dev.com) for current behavior.
+**Re-assessed (Jan 2026):** PaymentFlow uses shared Button, PayeeSelector, ReviewPanel, etc. Field order, tab behavior, fee display, validation, date, and modal a11y are still product/design choices; verify against latest source and deployed make-payment view (embedded-finance-dev.com) for current behavior.
 
 #### Form Field Ordering Consistency [BL-020]
 
@@ -601,7 +591,7 @@ Substantial progress has been made. Re-assessment against latest source and depl
 - [ ] **BL-406-3:** Success confirmation/feedback after create/edit
 - [ ] **BL-406-4:** Ref-based control (refresh, clear filters, export)
 
-#### MakePayment [BL-403]
+#### PaymentFlow [BL-403]
 
 - [ ] **BL-403-1:** Recipient/method filtering logic
 - [ ] **BL-403-2:** Review fee/time ETA display
@@ -647,6 +637,7 @@ Substantial progress has been made. Re-assessment against latest source and depl
 **Tracking ID:** BL-420
 
 **March 2026 Progress:**
+
 - ✅ Content token architecture established: `ContentToken.tsx`, `useTranslationWithTokens.tsx`, new `EBContentTokens` type in `EBComponentsProvider`. Architecture documented in `docs/CONTENT_TOKENS_ARCHITECTURE.md`.
 - ✅ i18n circular dependency removed; i18n files reorganized (moved `TransWithTokens`, `useTranslationWithTokens` to `src/i18n/`)
 - ✅ es-US locale files added/expanded: onboarding, onboarding-overview, make-payment, linked-accounts, validation, common
@@ -926,7 +917,7 @@ Substantial progress has been made. Re-assessment against latest source and depl
 #### BL-800: ServerErrorAlert Pattern — Extension to Remaining Components 🟠
 
 **Source:** Git analysis (Mar 4, 2026 — `improve error and loading states`)  
-**Components Affected:** MakePayment/PaymentFlow, TransactionsDisplay, OnboardingFlow (remaining forms), LinkedAccountWidget  
+**Components Affected:** PaymentFlow, TransactionsDisplay, OnboardingFlow (remaining forms), LinkedAccountWidget  
 **Priority:** High  
 **Status:** 📋 Planned
 
@@ -934,7 +925,7 @@ Substantial progress has been made. Re-assessment against latest source and depl
 
 **Actions:**
 
-- [ ] **BL-800-1:** Apply `ServerErrorAlert` + `useServerError` pattern to `MakePayment`/`PaymentFlow` (all API calls: payment submit, recipient fetch, fee fetch)
+- [ ] **BL-800-1:** Apply `ServerErrorAlert` + `useServerError` pattern to `PaymentFlow` (all API calls: payment submit, recipient fetch, fee fetch)
 - [ ] **BL-800-2:** Apply pattern to `TransactionsDisplay` (transaction list fetch, detail fetch)
 - [ ] **BL-800-3:** Apply pattern to remaining `OnboardingFlow` forms (beyond `OperationalDetailsForm`)
 - [ ] **BL-800-4:** Apply pattern to `LinkedAccountWidget` (bank account create/verify/remove calls)
@@ -949,7 +940,7 @@ Substantial progress has been made. Re-assessment against latest source and depl
 **Priority:** Medium  
 **Status:** 📋 Planned
 
-**Background:** Content tokens were restructured with a formal architecture (`CONTENT_TOKENS_ARCHITECTURE.md`). Significant coverage was added to `ClientDetails`, `MakePayment/PaymentFlow`, `OnboardingFlow`, `Accounts`, `LinkedAccounts`, and `TransactionsDisplay`. However, coverage may be incomplete for edge-case strings, error messages, and some sub-components.
+**Background:** Content tokens were restructured with a formal architecture (`CONTENT_TOKENS_ARCHITECTURE.md`). Significant coverage was added to `ClientDetails`, `PaymentFlow`, `OnboardingFlow`, `Accounts`, `LinkedAccounts`, and `TransactionsDisplay`. However, coverage may be incomplete for edge-case strings, error messages, and some sub-components.
 
 **Actions:**
 

@@ -8,7 +8,7 @@ Conduct thorough UX testing, code inspection, and backlog updates for embedded f
 
 ## Prompt
 
-```
+````
 Please conduct a comprehensive UX testing and backlog update session:
 
 ## Phase 1: Code Inspection
@@ -26,7 +26,6 @@ Please conduct a comprehensive UX testing and backlog update session:
    - `embedded-components/src/core/Recipients/`
    - `embedded-components/src/core/TransactionsList/`
    - `embedded-components/src/core/AccountsDisplay/`
-   - `embedded-components/src/core/MakePayment/`
 
 3. **Pattern Analysis**:
    Check for consistency in:
@@ -84,13 +83,6 @@ For each component, test in Storybook:
    - Account selection
    - Balance display
    - Account number masking
-
-6. **MakePayment**
-   - Payment form
-   - Recipient selection
-   - Amount input validation
-   - Confirmation flow
-   - Success/error states
 
 ### For Each Component:
 
@@ -165,14 +157,16 @@ For each component:
 - Interaction: ✅/⚠️/❌
 - Responsive: ✅/⚠️/❌
 - Accessibility: ✅/⚠️/❌
-```
+````
 
 #### Pattern Analysis
+
 - Consistent patterns across components
 - Inconsistencies to address
 - Recommended standard patterns
 
 #### Accessibility Summary
+
 - WCAG compliance level
 - Common accessibility issues
 - Keyboard navigation gaps
@@ -183,12 +177,14 @@ For each component:
 Update `embedded-components/BACKLOG.md`:
 
 ### Categorize Issues:
+
 - **Critical**: Blocks functionality, severe UX issues
 - **Important**: Significant UX impact, inconsistencies
 - **Nice-to-have**: Polish, minor improvements
 - **Future**: Larger initiatives, new features
 
 ### For Each Issue:
+
 ```markdown
 ## [Priority] Issue Title
 
@@ -207,17 +203,20 @@ What happens now
 What should happen
 
 **Technical Details:**
+
 - File: path/to/file.tsx
 - Related: Other files affected
 - Dependency: What needs to happen first
 
 **Acceptance Criteria:**
+
 - [ ] Specific, testable criteria
 - [ ] User-facing improvements
 - [ ] Technical requirements
 ```
 
 ### Update Status:
+
 - Mark completed items as ✅ Done
 - Move in-progress items to 🚧 In Progress
 - Add new items to appropriate priority sections
@@ -228,41 +227,51 @@ What should happen
 Provide prioritized action items:
 
 ### Immediate Actions (This Sprint)
+
 1. Critical issues blocking users
 2. Quick wins with high impact
 
 ### Next Sprint
+
 1. Important consistency fixes
 2. Accessibility improvements
 
 ### Future Considerations
+
 1. Larger refactoring opportunities
 2. New features or enhancements
 
 ## Output Format
 
 Provide:
+
 1. **Executive summary** (3-5 key findings)
 2. **Testing report** (full component analysis)
 3. **Updated backlog** (with new items categorized)
 4. **Action items** (prioritized list with effort estimates)
 
 Reference files:
+
 - `embedded-components/BACKLOG.md` - Current backlog
 - `embedded-components/ARCHITECTURE.md` - Architecture patterns
 - Previous UX testing reports in `embedded-components/docs/ux-testing/`
+
 ```
 
 ## Usage
 
 **In VS Code with GitHub Copilot:**
 ```
+
 @workspace conduct UX testing following .github/prompts/ux-testing.md
+
 ```
 
 **Or simply:**
 ```
+
 Please run comprehensive UX testing and update the backlog
+
 ```
 
 ## Related Files
@@ -270,3 +279,4 @@ Please run comprehensive UX testing and update the backlog
 - `embedded-components/BACKLOG.md` - Component backlog
 - `embedded-components/docs/ux-testing/` - Previous testing reports
 - `.github/skills/component-testing/SKILL.md` - Testing patterns
+```
