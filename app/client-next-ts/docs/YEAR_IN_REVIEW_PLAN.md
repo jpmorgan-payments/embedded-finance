@@ -16,7 +16,6 @@ Create a "Year in Review" feature displayed as a single scrollable page with ful
 - **LinkedAccountWidget** - External bank account linking with microdeposits (Stable)
 - **RecipientsWidget** - Payment recipient management (Stable - shipped Jan 2026)
 - **Accounts** - Account management and display (In Testing)
-- **MakePayment** - Payment processing interface (In Testing)
 - **TransactionsDisplay** - Transaction history and display (In Testing)
 
 ---
@@ -543,9 +542,9 @@ export const YEAR_IN_REVIEW_2025 = {
   // Component status aligned with README
   componentStatus: {
     stable: ['OnboardingFlow', 'LinkedAccountWidget', 'RecipientsWidget'],
-    inTesting: ['Accounts', 'MakePayment', 'TransactionsDisplay'],
+    inTesting: ['Accounts', 'TransactionsDisplay'],
     deprecated: ['Recipients'],
-    removed: ['OnboardingWizardBasic'],
+    removed: ['OnboardingWizardBasic', 'MakePayment'],
   },
 };
 ```

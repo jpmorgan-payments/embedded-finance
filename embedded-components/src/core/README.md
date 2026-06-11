@@ -12,7 +12,6 @@ These are the main components that provide core embedded banking functionality:
 - **`RecipientWidgets/`** - Payment recipient and linked account management
   - **`LinkedAccountWidget/`** - External bank account linking with microdeposit verification
   - **`RecipientsWidget/`** - Payment recipient management (without microdeposits)
-- **`MakePayment/`** - Payment processing and forms
 - **`TransactionsDisplay/`** - Transaction history and display
 - **`OnboardingFlow/`** - Customer onboarding process
 
@@ -60,7 +59,6 @@ These are older components maintained for reference:
 Core/Accounts
 Core/RecipientWidgets/LinkedAccountWidget
 Core/RecipientWidgets/RecipientsWidget
-Core/MakePayment
 Core/TransactionsDisplay
 Core/OnboardingFlow
 ```

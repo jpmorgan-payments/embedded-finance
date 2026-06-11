@@ -15,7 +15,7 @@ Target: Align all core components with API docs, i18n, private labeling (design/
 - OnboardingFlow
 - LinkedAccountWidget
 - RecipientsWidget
-- MakePayment
+- PaymentFlow
 - TransactionsDisplay
 - Accounts
 
@@ -81,7 +81,7 @@ gantt
   - ✅ Compact-cards default + table view (PR #622 - Jan 8, 2026)
   - ✅ Scrollable virtual list + load-more pagination (PR #609 - Dec 12, 2025)
   - ✅ Config-driven forms aligned to recipient vs linked-account flows (PR #624 - Jan 8, 2026)
-- MakePayment
+- PaymentFlow
   - ✅ Recipient mode toggle refactored to RadioGroup (PR #601 - Dec 9, 2025) [BL-010]
   - ✅ Manual recipient creation with save option (PR #601 - Dec 9, 2025) [BL-010]
   - ✅ Payment method selector UI overhaul with icons (PR #601 - Dec 9, 2025) [BL-010]

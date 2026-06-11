@@ -48,7 +48,6 @@ graph LR;
     %% Other Core Components
     CORE --> ACC[Accounts/]
     CORE --> RW[RecipientWidgets/]
-    CORE --> MP[MakePayment/]
     CORE --> TD[TransactionsDisplay/]
     CORE --> CD[ClientDetails/]
 
@@ -119,7 +118,6 @@ Core provider component that configures the application environment:
 - **RecipientWidgets/** — Payment recipient and linked account management
   - `LinkedAccountWidget/` — External bank account linking with microdeposit verification
   - `RecipientsWidget/` — Payment recipient management
-- **MakePayment/** — Payment processing and forms
 - **TransactionsDisplay/** — Transaction history and display
 - **ClientDetails/** — Detailed client information display
 

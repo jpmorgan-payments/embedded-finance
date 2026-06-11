@@ -148,7 +148,6 @@ The library currently provides the following components:
 | ClientDetails        | Detailed client information (identity, ownership, KYC) | In Testing |
 | LinkedAccountWidget  | External bank account linking with microdeposits       | Stable     |
 | RecipientsWidget     | Payment recipient management (NEW)                     | Stable     |
-| MakePayment          | Payment processing interface                           | In Testing |
 | TransactionsDisplay  | Transaction history and display                        | In Testing |
 
 ### EBComponentsProvider
@@ -322,7 +321,7 @@ const AccountsSection = () => {
 >
 > The `RecipientsWidget` provides a modern, streamlined API for managing payment recipients with better i18n support, improved UX, and shared architecture with `LinkedAccountWidget`.
 
-The `Recipients` component provides comprehensive management of payment recipients, enabling users to create, view, edit, and delete recipient information. It now supports integration with the MakePayment component for seamless payment workflows.
+The `Recipients` component provides comprehensive management of payment recipients, enabling users to create, view, edit, and delete recipient information.
 
 #### Main Features:
 
@@ -332,8 +331,7 @@ The `Recipients` component provides comprehensive management of payment recipien
 - Search and filtering capabilities
 - Pagination for large recipient lists
 - Mobile-responsive design
-- **NEW**: Integration with MakePayment component for direct payment initiation
-- **NEW**: Widget mode for compact display in parent applications
+- Widget mode for compact display in parent applications
 
 #### Props:
 
@@ -343,7 +341,7 @@ The `Recipients` component provides comprehensive management of payment recipien
 | `initialRecipientType`   | `string`          | No       | Default recipient type (RECIPIENT, LINKED_ACCOUNT, SETTLEMENT_ACCOUNT) |
 | `showCreateButton`       | `boolean`         | No       | Show/hide create functionality                                         |
 | `config`                 | `object`          | No       | Configuration for payment methods and validation rules                 |
-| `makePaymentComponent`   | `React.ReactNode` | No       | MakePayment component to render in each recipient card/row             |
+| `makePaymentComponent`   | `React.ReactNode` | No       | Payment component to render in each recipient card/row                 |
 | `onRecipientCreated`     | `function`        | No       | Callback when recipient is created                                     |
 | `onRecipientUpdated`     | `function`        | No       | Callback when recipient is updated                                     |
 | `onRecipientDeactivated` | `function`        | No       | Callback when recipient is deactivated                                 |
@@ -355,7 +353,6 @@ The `Recipients` component provides comprehensive management of payment recipien
 ```jsx
 import {
   EBComponentsProvider,
-  MakePayment,
   Recipients,
 } from '@jpmorgan-payments/embedded-finance-components';
 
@@ -366,14 +363,6 @@ const RecipientsSection = () => {
         clientId="your-client-id"
         initialRecipientType="RECIPIENT"
         showCreateButton={true}
-        makePaymentComponent={
-          <MakePayment
-            triggerButtonVariant="link"
-            onTransactionSettled={(response, error) => {
-              console.log('Payment completed:', response);
-            }}
-          />
-        }
         onRecipientCreated={(recipient) => {
           console.log('Recipient created:', recipient);
         }}
@@ -392,8 +381,7 @@ The `LinkedAccountWidget` component facilitates the process of adding a client's
 - Add and manage external linked bank accounts for clients
 - Handle complex micro-deposits initiation logic
 - Support for multiple account types and verification methods
-- **NEW**: Integration with MakePayment component for direct payment initiation
-- **NEW**: Single account mode for focused workflows
+- Single account mode for focused workflows
 
 **Remove / unlink:** Pass **`hideRemoveRecipient`** to hide Remove in cards and table rows. **`OnboardingFlow`** uses **`hideLinkedAccountRemoval`** for Overview instead — both may be needed if you embed both UIs (see **`docs/component-implementation.md`**).
 
@@ -404,7 +392,7 @@ The `LinkedAccountWidget` component facilitates the process of adding a client's
 | `variant`                | `'default' \| 'singleAccount'`                      | No       | Display variant for different use cases                                                                                               |
 | `showCreateButton`       | `boolean`                                           | No       | Show/hide create functionality                                                                                                        |
 | `hideRemoveRecipient`    | `boolean`                                           | No       | Hide **Remove** in card menus and table rows (does **not** affect OnboardingFlow Overview — use **`hideLinkedAccountRemoval`** there) |
-| `makePaymentComponent`   | `React.ReactNode`                                   | No       | MakePayment component to render in each linked account card                                                                           |
+| `makePaymentComponent`   | `React.ReactNode`                                   | No       | Payment component to render in each linked account card                                                                               |
 | `onLinkedAccountSettled` | `(recipient?: Recipient, error?: ApiError) => void` | No       | Callback function for linked account creation/verification response                                                                   |
 
 #### Usage:
@@ -413,23 +401,12 @@ The `LinkedAccountWidget` component facilitates the process of adding a client's
 import {
   EBComponentsProvider,
   LinkedAccountWidget,
-  MakePayment,
 } from '@jpmorgan-payments/embedded-finance-components';
 
 const LinkedAccountSection = () => {
   return (
     <EBComponentsProvider apiBaseUrl="https://your-api-base-url.com">
-      <LinkedAccountWidget
-        variant="default"
-        makePaymentComponent={
-          <MakePayment
-            triggerButtonVariant="link"
-            onTransactionSettled={(response, error) => {
-              console.log('Payment completed:', response);
-            }}
-          />
-        }
-      />
+      <LinkedAccountWidget variant="default" />
     </EBComponentsProvider>
   );
 };
@@ -484,81 +461,7 @@ const RecipientsSection = () => {
 };
 ```
 
-### 6. MakePayment
-
-> **⚠️ In Testing**: This component is currently in testing state and could be not fully integrated with the OpenAPI Specification (OAS) or missing some target state functional/non-functional capabilities. It could be subject to significant changes.
-
-The `MakePayment` component provides a comprehensive payment interface that allows users to initiate payments between accounts with various payment methods. It can be used standalone or integrated into other components like Recipients and LinkedAccountWidget.
-
-#### Main Features:
-
-- Payment initiation with multiple payment methods (ACH, RTP, WIRE)
-- Fee calculation and display
-- Form validation and error handling
-- Success confirmation and repeat payment functionality
-- Customizable payment methods and fees
-- Auto-selection for single options
-- **NEW**: Integration with Recipients and LinkedAccountWidget components
-- **NEW**: Pre-selection of recipients based on account compatibility
-- **NEW**: Real-time account balance validation
-- **NEW**: Support for different trigger button variants
-
-#### Props:
-
-| Prop Name              | Type                                                                          | Required | Description                                      |
-| ---------------------- | ----------------------------------------------------------------------------- | -------- | ------------------------------------------------ |
-| `triggerButton`        | `React.ReactNode`                                                             | No       | Custom trigger button for opening payment dialog |
-| `triggerButtonVariant` | `'default' \| 'destructive' \| 'outline' \| 'secondary' \| 'ghost' \| 'link'` | No       | Button variant for trigger button                |
-| `accounts`             | `Array<{ id: string; name: string }>`                                         | No       | List of available accounts to pay from           |
-| `recipients`           | `Array<{ id: string; name: string; accountNumber: string }>`                  | No       | List of available recipients                     |
-| `paymentMethods`       | `Array<{ id: string; name: string; fee: number; description?: string }>`      | No       | List of available payment methods with fees      |
-| `icon`                 | `string`                                                                      | No       | Icon name from Lucide React icons                |
-| `recipientId`          | `string`                                                                      | No       | Optional recipient ID to pre-select              |
-| `onTransactionSettled` | `(response?: TransactionResponseV2, error?: ApiErrorV2) => void`              | No       | Callback when transaction is completed           |
-
-#### Usage:
-
-```jsx
-import {
-  EBComponentsProvider,
-  MakePayment,
-} from '@jpmorgan-payments/embedded-finance-components';
-
-const PaymentSection = () => {
-  return (
-    <EBComponentsProvider apiBaseUrl="https://your-api-base-url.com">
-      <MakePayment
-        triggerButtonVariant="link"
-        accounts={[
-          { id: 'account1', name: 'Main Account' },
-          { id: 'account2', name: 'Savings Account' },
-        ]}
-        recipients={[
-          {
-            id: 'recipient1',
-            name: 'John Doe',
-            accountNumber: '****1234',
-          },
-        ]}
-        paymentMethods={[
-          { id: 'ACH', name: 'ACH Transfer', fee: 2.5 },
-          { id: 'WIRE', name: 'Wire Transfer', fee: 25.0 },
-        ]}
-        icon="CirclePlus"
-        onTransactionSettled={(response, error) => {
-          if (response) {
-            console.log('Payment successful:', response);
-          } else {
-            console.error('Payment failed:', error);
-          }
-        }}
-      />
-    </EBComponentsProvider>
-  );
-};
-```
-
-### 7. TransactionsDisplay
+### 6. TransactionsDisplay
 
 > **⚠️ In Testing**: This component is currently in testing state and could be not fully integrated with the OpenAPI Specification (OAS) or missing some target state functional/non-functional capabilities. It could be subject to significant changes.
 

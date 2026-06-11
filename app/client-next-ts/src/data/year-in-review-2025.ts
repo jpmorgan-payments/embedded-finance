@@ -186,8 +186,8 @@ export const YEAR_IN_REVIEW_2025 = {
 
   componentStatus: {
     stable: ['OnboardingFlow', 'LinkedAccountWidget', 'RecipientsWidget'],
-    inTesting: ['Accounts', 'MakePayment', 'TransactionsDisplay'],
+    inTesting: ['Accounts', 'TransactionsDisplay'],
     deprecated: ['Recipients'],
-    removed: ['OnboardingWizardBasic'],
+    removed: ['OnboardingWizardBasic', 'MakePayment'],
   },
 } as const;

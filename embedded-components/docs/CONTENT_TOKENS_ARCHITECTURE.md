@@ -257,7 +257,7 @@ Follow these naming conventions for token keys:
 | `recipients`          | 247   | RecipientsWidget    | Recipient management      |
 | `linked-accounts`     | 219   | LinkedAccountWidget | Linked account management |
 | `bank-account-form`   | 194   | BankAccountForm     | Form fields               |
-| `make-payment`        | 76    | MakePayment         | Payment flow              |
+| `make-payment`        | 76    | PaymentFlow         | Payment flow              |
 | `onboarding-overview` | 965   | OnboardingFlow      | Onboarding UI             |
 | `client-details`      | 94    | ClientDetails       | Client info display       |
 

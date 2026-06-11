@@ -11,7 +11,6 @@ export * from './core/EBComponentsProvider';
 export { initEBComponentsManager } from './vanilla/EBComponentsManager';
 
 export * from './core/TransactionsDisplay';
-export * from './core/MakePayment/MakePayment';
 
 export * from './core/Accounts';
 
