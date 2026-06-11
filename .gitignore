@@ -43,7 +43,3 @@ app/client/src/generated-api-models
 
 # Yarn PnP install state
 .yarn/install-state.gz
-
-# Local-only files
-embedded-components/.pipeline/
-embedded-components/.post-release-hook.mjs
