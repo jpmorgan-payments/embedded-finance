@@ -231,7 +231,7 @@ describe('PTC Feature — End-to-End User Journey', () => {
       await waitFor(() => {
         expect(
           screen.getByText(
-            /Is your organization a subsidiary of a publicly traded company/i
+            /Is your organization a subsidiary \(51% or more ownership\) of a publicly traded company/i
           )
         ).toBeInTheDocument();
       });

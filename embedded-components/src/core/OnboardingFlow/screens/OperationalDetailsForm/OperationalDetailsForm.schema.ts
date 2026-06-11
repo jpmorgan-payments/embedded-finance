@@ -103,7 +103,13 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
     // If the question allows multiple values, wrap it in an array
     if (question?.responseSchema?.type === 'array') {
       const childSchema = valueSchema;
-      valueSchema = z.array(childSchema);
+      const requiredMsg = i18n.t(
+        'onboarding-overview:additionalQuestions.validation.required'
+      );
+      valueSchema = z.array(childSchema, {
+        required_error: requiredMsg,
+        invalid_type_error: requiredMsg,
+      });
 
       if (!isOptional) {
         valueSchema = (valueSchema as z.ZodArray<z.ZodTypeAny>)
@@ -162,38 +168,39 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
                   subQuestion.anyValuesMatch?.includes(value)
                 ))
             ) {
+              const fieldValue = values?.[`question_${question.id}`];
               if (question?.responseSchema?.type === 'array') {
-                if (question?.responseSchema?.minItems) {
-                  if (
-                    !values?.[`question_${question.id}`] ||
-                    values?.[`question_${question.id}`].length <
-                      question?.responseSchema?.minItems
-                  ) {
-                    context.addIssue({
-                      code: z.ZodIssueCode.custom,
-                      message: i18n.t(
-                        'onboarding-overview:additionalQuestions.validation.required'
-                      ),
-                      path: [`question_${question.id}`],
-                    });
-                  }
-                }
-                if (question?.responseSchema?.maxItems) {
-                  if (
-                    values?.[`question_${question.id}`].length >
-                    question?.responseSchema?.maxItems
-                  ) {
+                const minItems = question?.responseSchema?.minItems ?? 1;
+                if (
+                  !fieldValue ||
+                  !Array.isArray(fieldValue) ||
+                  fieldValue.length < minItems
+                ) {
+                  context.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: i18n.t(
+                      'onboarding-overview:additionalQuestions.validation.required'
+                    ),
+                    path: [`question_${question.id}`],
+                  });
+                } else if (question?.responseSchema?.maxItems) {
+                  if (fieldValue.length > question.responseSchema.maxItems) {
                     context.addIssue({
                       code: z.ZodIssueCode.custom,
                       message: i18n.t(
                         'onboarding-overview:additionalQuestions.validation.maxItems',
-                        { maxItems: question?.responseSchema?.maxItems }
+                        {
+                          maxItems: question?.responseSchema?.maxItems,
+                        }
                       ),
                       path: [`question_${question.id}`],
                     });
                   }
                 }
-              } else if (!values?.[`question_${question.id}`]) {
+              } else if (
+                !fieldValue ||
+                (Array.isArray(fieldValue) && fieldValue.length === 0)
+              ) {
                 context.addIssue({
                   code: z.ZodIssueCode.custom,
                   message: i18n.t(

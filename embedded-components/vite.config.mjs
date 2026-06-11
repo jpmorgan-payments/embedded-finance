@@ -41,7 +41,7 @@ export default defineConfig(({ mode }) => {
       setupFiles: './vitest.setup.mjs',
       coverage: {
         provider: 'v8',
-        reporter: ['text', 'html'],
+        reporter: ['text', 'html', 'lcov'],
         // Vitest v4 includes only covered files by default; define include explicitly.
         include: ['src/**/*.{ts,tsx}'],
         exclude: [

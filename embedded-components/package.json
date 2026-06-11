@@ -1,6 +1,6 @@
 {
   "name": "@jpmorgan-payments/embedded-finance-components",
-  "version": "0.14.7",
+  "version": "0.14.9",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -65,6 +65,7 @@
     "__comment_test": "=== TESTING ===",
     "test": "npm run typecheck && npm run format:check && npm run lint && npm run test:unit",
     "test:unit": "vitest run",
+    "test:ci": "vitest run --coverage --reporter=default --reporter=junit --outputFile.junit=coverage/junit/results.xml --testTimeout=45000 --retry=1",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:coverage:onboarding": "vitest run src/core/OnboardingFlow --coverage --coverage.include=src/core/OnboardingFlow/**/*.ts --coverage.include=src/core/OnboardingFlow/**/*.tsx",
@@ -92,7 +93,9 @@
     "__comment_release": "=== RELEASE ===",
     "release": "node scripts/prepare-release.mjs",
     "release:minor": "node scripts/prepare-release.mjs minor",
-    "release:major": "node scripts/prepare-release.mjs major"
+    "release:major": "node scripts/prepare-release.mjs major",
+    "sync": "powershell -ExecutionPolicy Bypass -File .pipeline/sync-remote.ps1",
+    "sync:pull": "powershell -ExecutionPolicy Bypass -File .pipeline/sync-pull.ps1"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
