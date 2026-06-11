@@ -497,7 +497,7 @@ export const partyFieldMap: PartyFieldMap = {
   website: {
     path: 'organizationDetails.website',
     baseRule: {
-      display: 'visible',
+      display: 'hidden',
       required: false,
       defaultValue: '',
     },
@@ -518,7 +518,7 @@ export const partyFieldMap: PartyFieldMap = {
     path: 'organizationDetails.websiteAvailable',
     isHiddenInReviewFn: () => true,
     baseRule: {
-      display: 'visible',
+      display: 'hidden',
       required: false,
       defaultValue: false,
     },

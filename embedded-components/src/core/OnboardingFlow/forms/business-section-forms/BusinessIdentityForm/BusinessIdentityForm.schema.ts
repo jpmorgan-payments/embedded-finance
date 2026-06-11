@@ -210,8 +210,12 @@ export const useBusinessIdentityFormSchema = () => {
         (val) => val === 'yes' || val === 'no',
         v('solePropHasEin', 'required')
       ),
-    website: z.string().max(500, v('website', 'maxLength', 500)),
-    websiteNotAvailable: z.boolean(),
+    website: z
+      .string()
+      .max(500, v('website', 'maxLength', 500))
+      .optional()
+      .or(z.literal('')),
+    websiteNotAvailable: z.boolean().optional(),
   });
 };
 
@@ -230,33 +234,6 @@ export const refineBusinessIdentityFormSchema = (
         message: v('organizationIdEin', 'required'),
         path: ['organizationIdEin'],
       });
-    }
-    if (!values.websiteNotAvailable) {
-      if (!values.website) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: v('website', 'required'),
-          path: ['website'],
-        });
-      } else if (
-        !/^https:\/\/(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}(?::\d{1,5})?(?:[/?#]\S*)?$/.test(
-          values.website
-        )
-      ) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: v('website', 'format'),
-          path: ['website'],
-        });
-      } else if (
-        /^https:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(values.website)
-      ) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: v('website', 'noIp'),
-          path: ['website'],
-        });
-      }
     }
     if (!values.dbaNameNotAvailable && !values.dbaName) {
       context.addIssue({

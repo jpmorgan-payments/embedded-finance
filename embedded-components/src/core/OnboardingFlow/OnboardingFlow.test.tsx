@@ -227,8 +227,7 @@ describe('OnboardingFlow', () => {
     await user.type(yearOfFormationInput, '2020');
     const einInput = screen.getByLabelText(/Employer Identification Number/i);
     await user.type(einInput, '300030003');
-    const websiteInput = screen.getByLabelText(/Business website/i);
-    await user.type(websiteInput, 'https://www.fakecorp.com');
+    // Website field is hidden (websiteAvailable deprecated)
     // Proceed to next step
     const continueButton5 = screen.getByRole('button', { name: /continue/i });
     await user.click(continueButton5);
@@ -290,7 +289,7 @@ describe('OnboardingFlow', () => {
     expect(await screen.findAllByText('Fake Corp')).toHaveLength(2);
     expect(screen.getByText('2020')).toBeInTheDocument();
     expect(screen.getByText('30 - 0030003')).toBeInTheDocument();
-    expect(screen.getByText('https://www.fakecorp.com')).toBeInTheDocument();
+    // Website field is hidden (websiteAvailable deprecated) - no longer shown in review
     expect(screen.getByText('We sell products.')).toBeInTheDocument();
     expect(
       screen.getByText(/Pet and Pet Supplies Retailers/i)

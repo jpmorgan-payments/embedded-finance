@@ -37,43 +37,32 @@ function validBase() {
 }
 
 describe('BusinessIdentityForm schema (website superRefine & EIN)', () => {
-  test('requires https website when websiteNotAvailable is false', () => {
+  test('no longer validates website when field is hidden (websiteAvailable deprecated)', () => {
     const { result } = renderHook(() => useRefinedBusinessIdentitySchema());
+    // Empty website with websiteNotAvailable false should still pass (field hidden)
     const parsed = result.current.safeParse({
       ...validBase(),
       website: '',
     });
-    expect(parsed.success).toBe(false);
-    expect(parsed.error?.issues.some((i) => i.path.includes('website'))).toBe(
-      true
-    );
+    expect(parsed.success).toBe(true);
   });
 
-  test('rejects malformed website URL', () => {
+  test('accepts malformed website URL when field is hidden', () => {
     const { result } = renderHook(() => useRefinedBusinessIdentitySchema());
     const parsed = result.current.safeParse({
       ...validBase(),
       website: 'example.com',
     });
-    expect(parsed.success).toBe(false);
-    expect(
-      parsed.error?.issues.some(
-        (i) =>
-          i.path.includes('website') && i.message.includes('website.format')
-      )
-    ).toBe(true);
+    expect(parsed.success).toBe(true);
   });
 
-  test('rejects https-looking host that is only an IPv4 literal (blocked after format)', () => {
+  test('accepts IPv4 website URL when field is hidden', () => {
     const { result } = renderHook(() => useRefinedBusinessIdentitySchema());
     const parsed = result.current.safeParse({
       ...validBase(),
       website: 'https://203.0.113.10/about',
     });
-    expect(parsed.success).toBe(false);
-    expect(
-      parsed.error?.issues.some((i) => i.path.join('.').includes('website'))
-    ).toBe(true);
+    expect(parsed.success).toBe(true);
   });
 
   test('allows website to be omitted when websiteNotAvailable is true', () => {

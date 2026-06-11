@@ -40,15 +40,6 @@ export const BusinessIdentityForm: FormStepComponent = () => {
     return () => subscription.unsubscribe();
   }, [form]);
 
-  useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === 'websiteNotAvailable' && value.websiteNotAvailable) {
-        form.clearErrors('website');
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [form]);
-
   return (
     <div className="eb-mt-6 eb-space-y-6">
       <OnboardingFormField
@@ -143,25 +134,6 @@ export const BusinessIdentityForm: FormStepComponent = () => {
               obfuscateWhenUnfocused
             />
           )}
-          <div className="eb-space-y-3">
-            <OnboardingFormField
-              control={form.control}
-              name="website"
-              type="text"
-              valueOverride={
-                form.watch('websiteNotAvailable') ? 'N/A' : undefined
-              }
-              disabled={form.watch('websiteNotAvailable')}
-              required
-            />
-            <OnboardingFormField
-              control={form.control}
-              name="websiteNotAvailable"
-              type="checkbox-basic"
-              label={t('fields.websiteNotAvailable.label')}
-              noOptionalLabel
-            />
-          </div>
         </div>
       )}
     </div>
