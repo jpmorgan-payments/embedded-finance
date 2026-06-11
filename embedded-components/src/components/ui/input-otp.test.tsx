@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import userEvent from '@testing-library/user-event';
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 import { render, screen } from '@test-utils';
 
 import {
@@ -32,8 +40,17 @@ describe('InputOTP', () => {
     document.elementFromPoint = vi.fn(() => null);
   });
 
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+  });
+
+  afterEach(() => {
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
+  });
+
   it('accepts input and updates slots', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     render(<ControlledOtp />);
 
     const input = screen.getByRole('textbox');
