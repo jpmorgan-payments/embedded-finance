@@ -472,7 +472,7 @@
         },
         "contactDetails": {
           "title": "Vos coordonnées",
-          "description": "Nous avons besoin de renseignements supplémentaires pour confirmer votre identité.",
+          "description": "Nous avons besoin de votre adresse et de vos coordonnées.",
           "requirementSummary": "Adresse et coordonnées",
           "countryMismatchWarning": "Le pays de l'adresse ne correspond pas au pays de résidence ({{country}}). Vous pouvez toujours soumettre, mais veuillez vérifier que c'est correct."
         },
