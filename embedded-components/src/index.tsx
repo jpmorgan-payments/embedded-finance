@@ -21,8 +21,6 @@ export type {
   PaymentFlowInlineProps,
 } from './core/PaymentFlow';
 
-export * from './core/OnboardingWizardBasic/OnboardingWizardBasic';
-
 export * from './core/OnboardingFlow';
 
 export * from './core/ClientDetails';

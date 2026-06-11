@@ -140,18 +140,16 @@ graph TB
 
 The library currently provides the following components:
 
-| Component             | Description                                            | Status                                |
-| --------------------- | ------------------------------------------------------ | ------------------------------------- |
-| EBComponentsProvider  | Provider wrapper for all embedded components           | Stable                                |
-| OnboardingWizardBasic | Legacy onboarding wizard                               | Deprecated                            |
-| OnboardingFlow        | Modern onboarding experience                           | Stable                                |
-| Accounts              | Account management and display                         | In Testing                            |
-| ClientDetails         | Detailed client information (identity, ownership, KYC) | In Testing                            |
-| LinkedAccountWidget   | External bank account linking with microdeposits       | Stable                                |
-| RecipientsWidget      | Payment recipient management (NEW)                     | Stable                                |
-| MakePayment           | Payment processing interface                           | In Testing                            |
-| TransactionsDisplay   | Transaction history and display                        | In Testing                            |
-| Recipients            | Legacy recipient management                            | **Deprecated** - Use RecipientsWidget |
+| Component            | Description                                            | Status     |
+| -------------------- | ------------------------------------------------------ | ---------- |
+| EBComponentsProvider | Provider wrapper for all embedded components           | Stable     |
+| OnboardingFlow       | Modern onboarding experience                           | Stable     |
+| Accounts             | Account management and display                         | In Testing |
+| ClientDetails        | Detailed client information (identity, ownership, KYC) | In Testing |
+| LinkedAccountWidget  | External bank account linking with microdeposits       | Stable     |
+| RecipientsWidget     | Payment recipient management (NEW)                     | Stable     |
+| MakePayment          | Payment processing interface                           | In Testing |
+| TransactionsDisplay  | Transaction history and display                        | In Testing |
 
 ### EBComponentsProvider
 
@@ -198,93 +196,9 @@ const EmbeddedFinanceSection = () => {
 };
 ```
 
-### 1. OnboardingWizardBasic
+### 1. OnboardingFlow
 
-The `OnboardingWizardBasic` component implements the client onboarding process as described in the [Embedded Payments API documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client).
-
-#### Main Features:
-
-- Create a client profile
-- Incrementally update client's related parties
-- Complete due diligence questions
-- Handle client attestations
-- Manage requests for additional documentation
-- Check and display onboarding status
-
-#### Props:
-
-| Prop Name                          | Type                                                                                                                                      | Required | Description                                             |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------- |
-| `onSetClientId`                    | `(clientId: string) => Promise<void>`                                                                                                     | No       | Callback function when client ID is set                 |
-| `onGetClientSettled`               | `(clientData: ClientResponse \| undefined, status: 'success' \| 'pending' \| 'error', error: ErrorType<SchemasApiError> \| null) => void` | No       | Callback function triggered when client data is fetched |
-| `onPostClientSettled`              | `(response?: ClientResponse, error?: ApiError) => void`                                                                                   | No       | Callback function for client creation response          |
-| `onPostPartySettled`               | `(response?: PartyResponse, error?: ApiError) => void`                                                                                    | No       | Callback function for party creation response           |
-| `onPostClientVerificationsSettled` | `(response?: ClientVerificationResponse, error?: ApiError) => void`                                                                       | No       | Callback function for client verification response      |
-| `availableProducts`                | `Array<ClientProduct>`                                                                                                                    | Yes      | List of available products for onboarding               |
-| `availableJurisdictions`           | `Array<Jurisdiction>`                                                                                                                     | Yes      | List of available jurisdictions for onboarding          |
-| `availableOrganizationTypes`       | `Array<OrganizationType>`                                                                                                                 | No       | List of available organization types                    |
-| `usePartyResource`                 | `boolean`                                                                                                                                 | No       | Whether to use party resource for onboarding            |
-| `blockPostVerification`            | `boolean`                                                                                                                                 | No       | Whether to block post-verification steps                |
-| `showLinkedAccountPanel`           | `boolean`                                                                                                                                 | No       | Whether to show linked account panel                    |
-| `initialStep`                      | `number`                                                                                                                                  | No       | Initial step to start onboarding from                   |
-| `variant`                          | `'circle' \| 'circle-alt' \| 'line'`                                                                                                      | No       | Visual variant of the stepper component                 |
-| `onboardingContentTokens`          | `DeepPartial<typeof defaultResources['enUS']['onboarding']>`                                                                              | No       | Custom content tokens for onboarding                    |
-| `alertOnExit`                      | `boolean`                                                                                                                                 | No       | Whether to show alert when exiting onboarding           |
-| `userEventsHandler`                | `(context: UserEventContext) => void \| number`                                                                                           | No       | Handler for user events with rich context               |
-| `userEventsLifecycle`              | `UserEventLifecycle`                                                                                                                      | No       | Optional lifecycle handlers for RUM libraries           |
-
-#### Usage:
-
-```jsx
-import {
-  EBComponentsProvider,
-  OnboardingWizardBasic,
-} from '@jpmorgan-payments/embedded-finance-components';
-
-const OnboardingSection = () => {
-  const [clientId, setClientId] = useManageClientExternalState();
-
-  const handlePostClientResponse = ({ response, error }) => {
-    // Handle client creation response or error
-    setClientId(response.id);
-  };
-
-  const handlePostClientVerificationsResponse = ({ clientId, error }) => {
-    // Handle post client verifications response or error
-  };
-
-  return (
-    <EBComponentsProvider
-      apiBaseUrl="https://your-api-base-url.com"
-      clientId={clientId}
-    >
-      <OnboardingWizardBasic
-        title="Client Onboarding"
-        onPostClientSettled={handlePostClientResponse}
-        onPostClientVerificationSettled={handlePostClientVerificationsResponse}
-        availableProducts={['EMBEDDED_PAYMENTS']}
-        availableJurisdictions={['US']}
-        variant="circle-alt"
-        initialStep={0}
-        showLinkedAccountPanel={true}
-        userEventsHandler={(context) => {
-          const { actionName, eventType, timestamp, metadata } = context;
-          // Track user events with rich context
-          console.log(`User journey: ${actionName}`, {
-            eventType,
-            timestamp,
-            metadata,
-          });
-        }}
-      />
-    </EBComponentsProvider>
-  );
-};
-```
-
-### 2. OnboardingFlow
-
-The `OnboardingFlow` component provides a modern, enhanced onboarding experience with improved UX and better flow management. It represents the next generation of the onboarding process with screen-based navigation and enhanced state management.
+The `OnboardingFlow` component implements the client onboarding process as described in the [Embedded Payments API documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client). It provides a modern onboarding experience with screen-based navigation and enhanced state management.
 
 #### Main Features:
 
@@ -297,24 +211,24 @@ The `OnboardingFlow` component provides a modern, enhanced onboarding experience
 
 #### Props:
 
-| Prop Name                          | Type                                                                                                                                      | Required | Description                                             |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------- |
-| `onGetClientSettled`               | `(clientData: ClientResponse \| undefined, status: 'success' \| 'pending' \| 'error', error: ErrorType<SchemasApiError> \| null) => void` | No       | Callback function triggered when client data is fetched |
-| `onPostClientSettled`              | `(response?: ClientResponse, error?: ApiError) => void`                                                                                   | No       | Callback function for client creation response          |
-| `onPostPartySettled`               | `(response?: PartyResponse, error?: ApiError) => void`                                                                                    | No       | Callback function for party creation response           |
-| `onPostClientVerificationsSettled` | `(response?: ClientVerificationResponse, error?: ApiError) => void`                                                                       | No       | Callback function for client verification response      |
-| `availableProducts`                | `Array<ClientProduct>`                                                                                                                    | Yes      | List of available products for onboarding               |
-| `availableJurisdictions`           | `Array<Jurisdiction>`                                                                                                                     | Yes      | List of available jurisdictions for onboarding          |
-| `availableOrganizationTypes`       | `Array<OrganizationType>`                                                                                                                 | No       | List of available organization types                    |
-| `usePartyResource`                 | `boolean`                                                                                                                                 | No       | Whether to use party resource for onboarding            |
-| `blockPostVerification`            | `boolean`                                                                                                                                 | No       | Whether to block post-verification steps                |
-| `docUploadOnlyMode`                | `boolean`                                                                                                                                 | No       | Whether to show only document upload screens            |
-| `height`                           | `string`                                                                                                                                  | No       | Minimum height for the component container              |
-| `onboardingContentTokens`          | `DeepPartial<typeof defaultResources['enUS']['onboarding']>`                                                                              | No       | Custom content tokens for onboarding                    |
-| `alertOnExit`                      | `boolean`                                                                                                                                 | No       | Warn before closing/leaving the browser tab when there are unsaved edits (see **Leave and back prompts** below)      |
-| `alertOnPreviousStep`              | `boolean`                                                                                                                                 | No       | Confirm before **Previous** / **Back** inside the flow when there are unsaved edits (see **Leave and back prompts** below) |
-| `userEventsHandler`                | `(context: UserEventContext) => void \| number`                                                                                           | No       | Handler for user events with rich context               |
-| `userEventsLifecycle`              | `UserEventLifecycle`                                                                                                                      | No       | Optional lifecycle handlers for RUM libraries           |
+| Prop Name                          | Type                                                                                                                                      | Required | Description                                                                                                                              |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `onGetClientSettled`               | `(clientData: ClientResponse \| undefined, status: 'success' \| 'pending' \| 'error', error: ErrorType<SchemasApiError> \| null) => void` | No       | Callback function triggered when client data is fetched                                                                                  |
+| `onPostClientSettled`              | `(response?: ClientResponse, error?: ApiError) => void`                                                                                   | No       | Callback function for client creation response                                                                                           |
+| `onPostPartySettled`               | `(response?: PartyResponse, error?: ApiError) => void`                                                                                    | No       | Callback function for party creation response                                                                                            |
+| `onPostClientVerificationsSettled` | `(response?: ClientVerificationResponse, error?: ApiError) => void`                                                                       | No       | Callback function for client verification response                                                                                       |
+| `availableProducts`                | `Array<ClientProduct>`                                                                                                                    | Yes      | List of available products for onboarding                                                                                                |
+| `availableJurisdictions`           | `Array<Jurisdiction>`                                                                                                                     | Yes      | List of available jurisdictions for onboarding                                                                                           |
+| `availableOrganizationTypes`       | `Array<OrganizationType>`                                                                                                                 | No       | List of available organization types                                                                                                     |
+| `usePartyResource`                 | `boolean`                                                                                                                                 | No       | Whether to use party resource for onboarding                                                                                             |
+| `blockPostVerification`            | `boolean`                                                                                                                                 | No       | Whether to block post-verification steps                                                                                                 |
+| `docUploadOnlyMode`                | `boolean`                                                                                                                                 | No       | Whether to show only document upload screens                                                                                             |
+| `height`                           | `string`                                                                                                                                  | No       | Minimum height for the component container                                                                                               |
+| `onboardingContentTokens`          | `DeepPartial<typeof defaultResources['enUS']['onboarding']>`                                                                              | No       | Custom content tokens for onboarding                                                                                                     |
+| `alertOnExit`                      | `boolean`                                                                                                                                 | No       | Warn before closing/leaving the browser tab when there are unsaved edits (see **Leave and back prompts** below)                          |
+| `alertOnPreviousStep`              | `boolean`                                                                                                                                 | No       | Confirm before **Previous** / **Back** inside the flow when there are unsaved edits (see **Leave and back prompts** below)               |
+| `userEventsHandler`                | `(context: UserEventContext) => void \| number`                                                                                           | No       | Handler for user events with rich context                                                                                                |
+| `userEventsLifecycle`              | `UserEventLifecycle`                                                                                                                      | No       | Optional lifecycle handlers for RUM libraries                                                                                            |
 | `hideLinkedAccountRemoval`         | `boolean`                                                                                                                                 | No       | Hide **Remove** on the **Overview** linked-account card. Does **not** affect `LinkedAccountWidget`; use **`hideRemoveRecipient`** there. |
 
 **Leave and back prompts (`alertOnExit`, `alertOnPreviousStep`):**
@@ -356,7 +270,7 @@ const OnboardingSection = () => {
 };
 ```
 
-### 3. Accounts
+### 2. Accounts
 
 > **⚠️ In Testing**: This component is currently in testing state and could be not fully integrated with the OpenAPI Specification (OAS) or missing some target state functional/non-functional capabilities. It could be subject to significant changes.
 
@@ -400,11 +314,11 @@ const AccountsSection = () => {
 };
 ```
 
-### 4. Recipients (DEPRECATED)
+### 3. Recipients (DEPRECATED)
 
 > ⚠️ **DEPRECATED**: The `Recipients` component is deprecated and will be removed in a future release.
 >
-> **Please use the new [`RecipientsWidget`](#5-recipientswidget) component instead.**
+> **Please use the new [`RecipientsWidget`](#4-recipientswidget) component instead.**
 >
 > The `RecipientsWidget` provides a modern, streamlined API for managing payment recipients with better i18n support, improved UX, and shared architecture with `LinkedAccountWidget`.
 
@@ -469,7 +383,7 @@ const RecipientsSection = () => {
 };
 ```
 
-### 5. LinkedAccountWidget
+### 4. LinkedAccountWidget
 
 The `LinkedAccountWidget` component facilitates the process of adding a client's linked account, as described in the [Add Linked Account API documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-linked-account).
 
@@ -485,13 +399,13 @@ The `LinkedAccountWidget` component facilitates the process of adding a client's
 
 #### Props:
 
-| Prop Name                | Type                                                | Required | Description                                                         |
-| ------------------------ | --------------------------------------------------- | -------- | ------------------------------------------------------------------- |
-| `variant`                | `'default' \| 'singleAccount'`                      | No       | Display variant for different use cases                             |
-| `showCreateButton`       | `boolean`                                           | No       | Show/hide create functionality                                      |
+| Prop Name                | Type                                                | Required | Description                                                                                                                           |
+| ------------------------ | --------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `variant`                | `'default' \| 'singleAccount'`                      | No       | Display variant for different use cases                                                                                               |
+| `showCreateButton`       | `boolean`                                           | No       | Show/hide create functionality                                                                                                        |
 | `hideRemoveRecipient`    | `boolean`                                           | No       | Hide **Remove** in card menus and table rows (does **not** affect OnboardingFlow Overview — use **`hideLinkedAccountRemoval`** there) |
-| `makePaymentComponent`   | `React.ReactNode`                                   | No       | MakePayment component to render in each linked account card         |
-| `onLinkedAccountSettled` | `(recipient?: Recipient, error?: ApiError) => void` | No       | Callback function for linked account creation/verification response |
+| `makePaymentComponent`   | `React.ReactNode`                                   | No       | MakePayment component to render in each linked account card                                                                           |
+| `onLinkedAccountSettled` | `(recipient?: Recipient, error?: ApiError) => void` | No       | Callback function for linked account creation/verification response                                                                   |
 
 #### Usage:
 
@@ -521,7 +435,7 @@ const LinkedAccountSection = () => {
 };
 ```
 
-### 6. RecipientsWidget
+### 5. RecipientsWidget
 
 The `RecipientsWidget` component enables users to manage payment recipients within your application. Unlike `LinkedAccountWidget`, it provides a simpler flow without microdeposit verification, ideal for managing payees and beneficiaries.
 
@@ -570,7 +484,7 @@ const RecipientsSection = () => {
 };
 ```
 
-### 7. MakePayment
+### 6. MakePayment
 
 > **⚠️ In Testing**: This component is currently in testing state and could be not fully integrated with the OpenAPI Specification (OAS) or missing some target state functional/non-functional capabilities. It could be subject to significant changes.
 
@@ -644,7 +558,7 @@ const PaymentSection = () => {
 };
 ```
 
-### 8. TransactionsDisplay
+### 7. TransactionsDisplay
 
 > **⚠️ In Testing**: This component is currently in testing state and could be not fully integrated with the OpenAPI Specification (OAS) or missing some target state functional/non-functional capabilities. It could be subject to significant changes.
 

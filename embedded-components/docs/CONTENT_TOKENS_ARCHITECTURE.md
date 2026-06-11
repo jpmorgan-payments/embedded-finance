@@ -248,19 +248,18 @@ Follow these naming conventions for token keys:
 
 ### Current Files (11 namespaces × 3 locales = 33 files)
 
-| Namespace             | Lines | Primary Component     | Customization Scope       |
-| --------------------- | ----- | --------------------- | ------------------------- |
-| `common`              | 89    | All (shared)          | Universal only            |
-| `validation`          | 119   | Form validation       | Error messages            |
-| `accounts`            | 62    | AccountsWidget        | Account display           |
-| `transactions`        | 167   | TransactionsDisplay   | Transaction UI            |
-| `recipients`          | 247   | RecipientsWidget      | Recipient management      |
-| `linked-accounts`     | 219   | LinkedAccountWidget   | Linked account management |
-| `bank-account-form`   | 194   | BankAccountForm       | Form fields               |
-| `make-payment`        | 76    | MakePayment           | Payment flow              |
-| `onboarding-overview` | 965   | OnboardingFlow        | Onboarding UI             |
-| `onboarding`          | 1385  | OnboardingWizardBasic | Onboarding fields         |
-| `client-details`      | 94    | ClientDetails         | Client info display       |
+| Namespace             | Lines | Primary Component   | Customization Scope       |
+| --------------------- | ----- | ------------------- | ------------------------- |
+| `common`              | 89    | All (shared)        | Universal only            |
+| `validation`          | 119   | Form validation     | Error messages            |
+| `accounts`            | 62    | AccountsWidget      | Account display           |
+| `transactions`        | 167   | TransactionsDisplay | Transaction UI            |
+| `recipients`          | 247   | RecipientsWidget    | Recipient management      |
+| `linked-accounts`     | 219   | LinkedAccountWidget | Linked account management |
+| `bank-account-form`   | 194   | BankAccountForm     | Form fields               |
+| `make-payment`        | 76    | MakePayment         | Payment flow              |
+| `onboarding-overview` | 965   | OnboardingFlow      | Onboarding UI             |
+| `client-details`      | 94    | ClientDetails       | Client info display       |
 
 ---
 

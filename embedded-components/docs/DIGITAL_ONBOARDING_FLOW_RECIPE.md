@@ -2,7 +2,7 @@
 
 ⚠️ DRAFT - BASED ON CODE ANALYSIS ⚠️
 
-This document describes the implementation and design decisions behind the `OnboardingFlow.tsx` component, which provides a flexible, section-based approach to digital onboarding, distinct from the linear stepper of `OnboardingWizardBasic.tsx`.
+This document describes the implementation and design decisions behind the `OnboardingFlow.tsx` component, which provides a flexible, section-based approach to digital onboarding.
 
 <!-- toc -->
 
@@ -43,7 +43,7 @@ This document describes the implementation and design decisions behind the `Onbo
 
 ## Introduction
 
-The `OnboardingFlow.tsx` component offers an alternative user experience for digital onboarding compared to the step-by-step `OnboardingWizardBasic.tsx`. Instead of a purely linear progression, it presents onboarding as a series of distinct sections or tasks, often displayed on an overview or checklist screen. This allows users more flexibility in navigating and completing sections, potentially out of order, although dependencies might exist.
+The `OnboardingFlow.tsx` component is the primary onboarding experience. Instead of a purely linear progression, it presents onboarding as a series of distinct sections or tasks, displayed on an overview or checklist screen. This allows users more flexibility in navigating and completing sections, potentially out of order, although dependencies might exist.
 
 This approach uses a configuration-driven system (`flowConfig.ts`) to define the available screens and sections, their content (React components or nested steppers), and associated logic (like status resolution).
 
@@ -230,7 +230,7 @@ These represent the core data collection areas, displayed on the `OverviewScreen
 ## Error Handling
 
 - API errors during the initial `useSmbdoGetClient` fetch are caught and displayed using `ServerErrorAlert` in `OnboardingFlow.tsx`.
-- Error handling within individual forms or steppers would be managed by those specific components (similar to the pattern described in `DIGITAL_ONBOARDING_RECIPE.md` for `OnboardingWizardBasic`).
+- Error handling within individual forms or steppers would be managed by those specific components.
 
 ## Configuration and Customization
 

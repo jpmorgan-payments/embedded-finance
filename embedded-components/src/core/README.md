@@ -27,7 +27,6 @@ These provide supporting functionality and infrastructure:
 
 These are older components maintained for reference:
 
-- **`OnboardingWizardBasic/`** - Legacy onboarding wizard (deprecated)
 - **`Recipients/`** - Legacy recipient management (deprecated, use `RecipientWidgets/RecipientsWidget/` instead)
 - **`RecipientListWidget/`** - Legacy recipient list widget (deprecated)
 
@@ -69,12 +68,6 @@ Core/OnboardingFlow
 ### **Legacy Component Stories**
 
 ```
-Legacy/OnboardingWizardBasic
-Legacy/OnboardingWizardBasic/Steps
-Legacy/OnboardingWizardBasic/ErrorStates
-Legacy/OnboardingWizardBasic/ContentTokens
-Legacy/OnboardingWizardBasic/ClientVariants
-Legacy/OnboardingWizardBasic/ApiStates
 Legacy/Recipients
 Legacy/Recipients/Validation
 Legacy/Recipients/Configuration
