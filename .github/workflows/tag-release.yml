@@ -55,12 +55,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          PREV_TAG=$(git tag --sort=-v:refname | head -2 | tail -1)
-
-          # Build notes: CHANGELOG content only
-          cat /tmp/release-notes.md > /tmp/combined-notes.md
-
           gh release create "${{ steps.version.outputs.tag }}" \
             --title "v${{ steps.version.outputs.version }}" \
-            --notes-file /tmp/combined-notes.md \
-            --generate-notes
+            --notes-file /tmp/release-notes.md
