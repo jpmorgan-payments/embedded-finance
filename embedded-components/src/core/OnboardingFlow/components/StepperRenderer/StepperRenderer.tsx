@@ -72,6 +72,17 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     useOnboardingContext();
   const { t, tString } = useTranslationWithTokens('onboarding-overview');
 
+  const resolveStepTitle = (step: StepConfig) => {
+    return t(step.titleKey as any);
+  };
+
+  const resolveStepDescription = (step: StepConfig) => {
+    if (step.descriptionKey) {
+      return t(step.descriptionKey as any);
+    }
+    return undefined;
+  };
+
   // Filter out steps whose isVisible predicate returns false
   const orgParty = getOrganizationParty(clientData);
   const steps = rawSteps.filter(
@@ -225,7 +236,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     if (currentStep.stepType === 'check-answers') {
       return nextSection
         ? t('stepperRenderer.buttons.continueToSection', {
-            sectionLabel: nextSection.sectionConfig.label,
+            sectionLabel: t(nextSection.sectionConfig.labelKey as any),
           })
         : t('stepperRenderer.buttons.continueToNextSection');
     }
@@ -301,7 +312,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     }
     if (canNavigateToPrevSection) {
       return t('stepperRenderer.buttons.backToSection', {
-        sectionLabel: prevSection?.sectionConfig.label,
+        sectionLabel: t(prevSection?.sectionConfig.labelKey as any),
       });
     }
     return t('stepperRenderer.buttons.previous');
@@ -347,8 +358,8 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       className="eb-flex eb-min-h-full eb-scroll-mt-44 eb-flex-col sm:eb-scroll-mt-48"
     >
       <StepLayout
-        title={currentStep.title}
-        description={currentStep.description}
+        title={resolveStepTitle(currentStep)}
+        description={resolveStepDescription(currentStep)}
         subTitle={
           <div className="eb-flex eb-flex-col">
             <nav className="eb-flex eb-items-center eb-gap-1 eb-text-sm eb-text-muted-foreground">
@@ -370,20 +381,25 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
                     onClick={() => goBack()}
                     className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
                   >
-                    {currentSection?.sectionConfig.shortLabel ??
-                      currentSection?.sectionConfig.label ??
-                      t(
-                        'onboarding-overview:screens.ownersSection.shortLabel'
-                      ) ??
-                      t('onboarding-overview:screens.ownersSection.label')}
+                    {currentSection?.sectionConfig.shortLabelKey
+                      ? t(currentSection.sectionConfig.shortLabelKey as any)
+                      : currentSection?.sectionConfig.labelKey
+                        ? t(currentSection.sectionConfig.labelKey as any)
+                        : (t(
+                            'onboarding-overview:screens.ownersSection.shortLabel'
+                          ) ??
+                          t('onboarding-overview:screens.ownersSection.label'))}
                   </Button>
                 </>
               )}
               <ChevronRightIcon className="eb-size-3.5" />
               <span className="eb-truncate">
                 {shortLabelOverride ??
-                  currentSection?.sectionConfig.shortLabel ??
-                  currentSection?.sectionConfig.label}
+                  (currentSection?.sectionConfig.shortLabelKey
+                    ? t(currentSection.sectionConfig.shortLabelKey as any)
+                    : currentSection?.sectionConfig.labelKey
+                      ? t(currentSection.sectionConfig.labelKey as any)
+                      : undefined)}
               </span>
               {!isCheckAnswersStep && (
                 <>

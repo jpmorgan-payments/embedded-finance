@@ -103,7 +103,7 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
           >
             <div className="eb-mb-1 eb-flex eb-items-start eb-justify-between">
               <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
-                {step.title}
+                {t(step.titleKey as any)}
               </h2>
               {!isValid ? (
                 <Button

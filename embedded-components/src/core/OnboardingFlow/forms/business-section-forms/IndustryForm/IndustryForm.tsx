@@ -17,7 +17,7 @@ import { useIndustryFormSchema } from './IndustryForm.schema';
 import { useIndustrySuggestions } from './useIndustrySuggestions';
 
 export const IndustryForm: FormStepComponent = () => {
-  const { t } = useTranslationWithTokens('onboarding-overview');
+  const { t, tString } = useTranslationWithTokens('onboarding-overview');
   const form =
     useFormContext<z.input<ReturnType<typeof useIndustryFormSchema>>>();
 
@@ -61,31 +61,37 @@ export const IndustryForm: FormStepComponent = () => {
           type="textarea"
           popoutTooltip
           tooltip={
-            <div className="eb-space-y-3">
-              <h2 className="eb-font-header eb-text-2xl eb-font-medium">
-                {t(
-                  'fields.organizationDescription.tooltipContent.exampleTitle'
-                )}
-              </h2>
-              <p className="eb-text-sm">
-                {t('fields.organizationDescription.tooltipContent.exampleText')}
-              </p>
-              <p className="eb-pb-1 eb-text-sm">
-                {t(
-                  'fields.organizationDescription.tooltipContent.alignmentNote'
-                )}
-              </p>
-              <h2 className="eb-font-header eb-text-2xl eb-font-medium">
-                {t(
-                  'fields.organizationDescription.tooltipContent.visibilityTitle'
-                )}
-              </h2>
-              <p className="eb-pb-1 eb-text-sm">
-                {t(
-                  'fields.organizationDescription.tooltipContent.visibilityText'
-                )}
-              </p>
-            </div>
+            tString(
+              'fields.organizationDescription.tooltipContent.exampleTitle'
+            ) ? (
+              <div className="eb-space-y-3">
+                <h2 className="eb-font-header eb-text-2xl eb-font-medium">
+                  {t(
+                    'fields.organizationDescription.tooltipContent.exampleTitle'
+                  )}
+                </h2>
+                <p className="eb-text-sm">
+                  {t(
+                    'fields.organizationDescription.tooltipContent.exampleText'
+                  )}
+                </p>
+                <p className="eb-pb-1 eb-text-sm">
+                  {t(
+                    'fields.organizationDescription.tooltipContent.alignmentNote'
+                  )}
+                </p>
+                <h2 className="eb-font-header eb-text-2xl eb-font-medium">
+                  {t(
+                    'fields.organizationDescription.tooltipContent.visibilityTitle'
+                  )}
+                </h2>
+                <p className="eb-pb-1 eb-text-sm">
+                  {t(
+                    'fields.organizationDescription.tooltipContent.visibilityText'
+                  )}
+                </p>
+              </div>
+            ) : undefined
           }
         />
         {showEmptyRecommendationWarning && (
@@ -150,20 +156,22 @@ export const IndustryForm: FormStepComponent = () => {
               type="industrySelect"
               popoutTooltip
               tooltip={
-                <div className="eb-mb-6">
-                  <h2 className="eb-mb-0 eb-font-header eb-text-2xl eb-font-medium">
-                    {t('screens.industryForm.tooltip.title')}
-                  </h2>
-                  <p className="eb-mb-0 eb-mt-1 eb-text-sm">
-                    {t('screens.industryForm.tooltip.pleaseSelect')}
-                  </p>
-                  <h3 className="eb-mb-0 eb-mt-3 eb-text-sm eb-font-medium">
-                    {t('screens.industryForm.tooltip.ifSoleProp')}
-                  </h3>
-                  <p className="eb-mb-0 eb-mt-1 eb-text-sm">
-                    {t('screens.industryForm.tooltip.makeBestChoice')}
-                  </p>
-                </div>
+                tString('screens.industryForm.tooltip.title') ? (
+                  <div className="eb-mb-6">
+                    <h2 className="eb-mb-0 eb-font-header eb-text-2xl eb-font-medium">
+                      {t('screens.industryForm.tooltip.title')}
+                    </h2>
+                    <p className="eb-mb-0 eb-mt-1 eb-text-sm">
+                      {t('screens.industryForm.tooltip.pleaseSelect')}
+                    </p>
+                    <h3 className="eb-mb-0 eb-mt-3 eb-text-sm eb-font-medium">
+                      {t('screens.industryForm.tooltip.ifSoleProp')}
+                    </h3>
+                    <p className="eb-mb-0 eb-mt-1 eb-text-sm">
+                      {t('screens.industryForm.tooltip.makeBestChoice')}
+                    </p>
+                  </div>
+                ) : undefined
               }
             />
           </div>

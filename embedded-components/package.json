@@ -29,7 +29,8 @@
   ],
   "files": [
     "dist",
-    "src/i18n"
+    "src/i18n",
+    "changelog.json"
   ],
   "main": "./dist/umd/ef-components.js",
   "module": "./dist/esm/ef-components.js",
@@ -52,7 +53,8 @@
     },
     "./i18n/en-US/*.json": "./src/i18n/en-US/*.json",
     "./i18n/es-US/*.json": "./src/i18n/es-US/*.json",
-    "./i18n/fr-CA/*.json": "./src/i18n/fr-CA/*.json"
+    "./i18n/fr-CA/*.json": "./src/i18n/fr-CA/*.json",
+    "./changelog.json": "./changelog.json"
   },
   "scripts": {
     "__comment_build": "=== BUILD ===",
@@ -90,12 +92,13 @@
     "prettier:write": "prettier --write \"**/*.{ts,tsx}\"",
     "vitest": "vitest run",
     "vitest:watch": "vitest",
-    "__comment_release": "=== RELEASE ===",
-    "release": "node scripts/prepare-release.mjs",
-    "release:minor": "node scripts/prepare-release.mjs minor",
-    "release:major": "node scripts/prepare-release.mjs major",
-    "sync": "powershell -ExecutionPolicy Bypass -File .pipeline/sync-remote.ps1",
-    "sync:pull": "powershell -ExecutionPolicy Bypass -File .pipeline/sync-pull.ps1"
+    "__comment_release": "=== RELEASE & SYNC ===",
+    "changelog:json": "node internal/generate-changelog-json.mjs",
+    "release": "powershell -ExecutionPolicy Bypass -File internal/release.ps1",
+    "release:minor": "powershell -ExecutionPolicy Bypass -File internal/release.ps1 minor",
+    "release:major": "powershell -ExecutionPolicy Bypass -File internal/release.ps1 major",
+    "sync:to-github": "powershell -ExecutionPolicy Bypass -File internal/sync-to-github.ps1",
+    "sync:from-github": "powershell -ExecutionPolicy Bypass -File internal/sync-from-github.ps1"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

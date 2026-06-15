@@ -568,7 +568,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                       >
                         <ChevronDownIcon className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-transition-transform eb-duration-200" />
                         <div className="eb-ml-2 eb-text-sm">
-                          {section.sectionConfig.label}
+                          {t(section.sectionConfig.labelKey as any)}
                         </div>
                         <div className="eb-ml-auto eb-mr-2 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-normal eb-text-muted-foreground">
                           {isSectionCompleted ? (
