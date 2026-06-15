@@ -80,7 +80,6 @@ web_modules/
 .env.local
 
 # Local sync config (per-developer paths)
-.sync-config.json
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
