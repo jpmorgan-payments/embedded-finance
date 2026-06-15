@@ -298,6 +298,7 @@
     "reason": "Reason:",
     "value": "Value:",
     "unknownError": "Unknown error",
+    "footnote": "",
     "defaultMessages": {
       "400": "Please check the information you entered and try again.",
       "401": "Please log in and try again.",

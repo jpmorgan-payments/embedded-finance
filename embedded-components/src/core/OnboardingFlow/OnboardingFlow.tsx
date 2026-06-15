@@ -171,6 +171,12 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 // Memoize the FlowRenderer component to ensure consistent hook order
 const FlowRenderer: React.FC = React.memo(() => {
   const { t } = useTranslationWithTokens(['onboarding-overview']);
+
+  // Resolve step title through content tokens at render time using titleKey.
+  const resolveStepTitle = (step: { id: string; titleKey: string }) => {
+    return t(step.titleKey as any) as string;
+  };
+
   const {
     clientData,
     organizationType,
@@ -427,8 +433,10 @@ const FlowRenderer: React.FC = React.memo(() => {
           status: needsPTCGateway
             ? 'on_hold'
             : sectionStatuses[section.id] || 'not_started',
-          title:
-            section.sectionConfig.shortLabel ?? section.sectionConfig.label,
+          title: t(
+            (section.sectionConfig.shortLabelKey ??
+              section.sectionConfig.labelKey) as any
+          ),
           steps: [
             ...activeOwners.map((owner) => {
               const isEditingThisOwner =
@@ -451,7 +459,7 @@ const FlowRenderer: React.FC = React.memo(() => {
                   ownerStepValidation
                     ? ownerStepperConfig.steps.map((step, stepIndex) => ({
                         id: step.id,
-                        title: step.title,
+                        title: resolveStepTitle(step),
                         status:
                           stepIndex > 0 && !editingOwnerParty?.id
                             ? ('on_hold' as const)
@@ -477,7 +485,7 @@ const FlowRenderer: React.FC = React.memo(() => {
                     subSteps: ownerStepperConfig.steps.map(
                       (step, stepIndex) => ({
                         id: step.id,
-                        title: step.title,
+                        title: resolveStepTitle(step),
                         status:
                           stepIndex > 0
                             ? ('on_hold' as const)
@@ -501,7 +509,10 @@ const FlowRenderer: React.FC = React.memo(() => {
         status: needsPTCGateway
           ? 'on_hold'
           : sectionStatuses[section.id] || 'not_started',
-        title: section.sectionConfig.shortLabel ?? section.sectionConfig.label,
+        title: t(
+          (section.sectionConfig.shortLabelKey ??
+            section.sectionConfig.labelKey) as any
+        ),
         steps: (section.stepperConfig?.steps ?? []).map((step, stepIndex) => {
           // Check if this static step was explicitly
           // completed and recorded in session data.
@@ -511,6 +522,7 @@ const FlowRenderer: React.FC = React.memo(() => {
 
           return {
             ...step,
+            title: resolveStepTitle(step),
             status:
               stepIndex > 0 && partyRequiredButMissing
                 ? 'on_hold'

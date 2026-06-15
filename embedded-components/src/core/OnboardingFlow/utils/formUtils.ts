@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { defaultResources, i18n } from '@/i18n/config';
 import { objectEntries, objectKeys } from '@/utils/objectEntries';
@@ -1104,7 +1104,7 @@ export type ValidationMessageKeysFor<
 export const useGetFieldContentToken = (
   fieldName: FieldPath<OnboardingFormValuesSubmit>
 ) => {
-  const { tString } = useTranslationWithTokens([
+  const { t, tString } = useTranslationWithTokens([
     'onboarding-old',
     'onboarding-overview',
     'common',
@@ -1114,8 +1114,8 @@ export const useGetFieldContentToken = (
   const { fieldRule } = getFieldRule(fieldName);
 
   /**
-   * Retrieves a localized content token for a specific field
-   * @param fieldRule - Field rule configuration containing content token overrides
+   * Retrieves a localized content token for a specific field (plain string, no annotation).
+   * Use for attributes (title, aria-label, placeholder) where ReactNode is not accepted.
    * @param key - Key for the desired content (e.g., 'placeholder', 'tooltip', 'label', 'description')
    * @returns The localized content token string
    */
@@ -1131,6 +1131,29 @@ export const useGetFieldContentToken = (
         `onboarding-overview:fields.${fieldName}.${key}.default`,
         `onboarding-overview:fields.${fieldName}.${key}`,
         oldContentTokenKey, // TO REMOVE
+        'common:noTokenFallback',
+      ] as unknown as TemplateStringsArray,
+      {
+        key,
+      }
+    );
+  };
+
+  /**
+   * Same as getFieldContentToken but returns an annotated ReactNode
+   * (with data-content-token when showTokenIds is enabled).
+   * Use for visible text rendered inside JSX elements.
+   */
+  getFieldContentToken.annotated = (key: FieldContentTokenKey): ReactNode => {
+    const contentTokenOverride = fieldRule.contentTokenOverrides?.[key];
+    if (typeof contentTokenOverride === 'string') {
+      return contentTokenOverride;
+    }
+    return t(
+      [
+        `onboarding-overview:fields.${fieldName}.${key}.${fieldRule.contentTokenOverrideKey}`,
+        `onboarding-overview:fields.${fieldName}.${key}.default`,
+        `onboarding-overview:fields.${fieldName}.${key}`,
         'common:noTokenFallback',
       ] as unknown as TemplateStringsArray,
       {

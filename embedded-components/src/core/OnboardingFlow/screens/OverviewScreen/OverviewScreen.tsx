@@ -428,7 +428,7 @@ export const OverviewScreen = () => {
                 return (
                   <div key={section.id}>
                     {sectionStatus === 'on_hold' &&
-                      section.sectionConfig.onHoldText && (
+                      section.sectionConfig.onHoldTextKey && (
                         <p
                           className={cn(
                             'eb-mb-3 eb-mt-7 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium',
@@ -438,7 +438,7 @@ export const OverviewScreen = () => {
                           )}
                         >
                           <LockIcon className="eb-size-4" />
-                          {section.sectionConfig.onHoldText}
+                          {t(section.sectionConfig.onHoldTextKey as any)}
                         </p>
                       )}
                     <Card
@@ -466,7 +466,7 @@ export const OverviewScreen = () => {
                               }
                             )}
                           >
-                            {section.sectionConfig.label}
+                            {t(section.sectionConfig.labelKey as any)}
                           </h3>
                         </div>
 
@@ -504,16 +504,24 @@ export const OverviewScreen = () => {
                         </div>
                       </div>
                       {(() => {
-                        // Derive requirements from visible steps' requirementSummary,
-                        // falling back to static requirementsList if no steps have summaries
+                        // Derive requirements from visible steps' requirementSummaryKey,
+                        // falling back to static requirementsListKeys if no steps have summaries
                         const stepSummaries =
                           section.stepperConfig?.steps
-                            .map((step) => step.requirementSummary)
+                            .map((step) =>
+                              step.requirementSummaryKey
+                                ? (t(
+                                    step.requirementSummaryKey as any
+                                  ) as string)
+                                : undefined
+                            )
                             .filter(Boolean) ?? [];
                         const items =
                           stepSummaries.length > 0
                             ? stepSummaries
-                            : section.sectionConfig.requirementsList;
+                            : section.sectionConfig.requirementsListKeys?.map(
+                                (key) => t(key as any) as string
+                              );
                         return items && items.length > 0 ? (
                           <ul className="eb-mt-1.5 eb-w-full eb-list-disc eb-whitespace-break-spaces eb-pl-8 eb-text-start eb-font-sans eb-text-sm eb-font-normal">
                             {items.map((item, index) => (
@@ -535,10 +543,10 @@ export const OverviewScreen = () => {
                           data-testid={`${section.id}-button`}
                           aria-label={
                             ['on_hold', 'not_started'].includes(sectionStatus)
-                              ? `${t('common:start')} ${section.sectionConfig.label}`
+                              ? `${t('common:start')} ${t(section.sectionConfig.labelKey as any)}`
                               : sectionStatus === 'completed'
-                                ? `${t('common:edit')} ${section.sectionConfig.label}`
-                                : `${t('common:continue')} ${section.sectionConfig.label}`
+                                ? `${t('common:edit')} ${t(section.sectionConfig.labelKey as any)}`
+                                : `${t('common:continue')} ${t(section.sectionConfig.labelKey as any)}`
                           }
                           onClick={() => {
                             goTo(section.id, {

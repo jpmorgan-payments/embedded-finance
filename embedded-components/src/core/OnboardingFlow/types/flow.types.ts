@@ -38,10 +38,12 @@ export type VisibilityPredicate = (ctx: VisibilityContext) => boolean;
 
 interface StepBase {
   id: string;
-  title: string;
-  description?: string;
-  /** Short summary shown in the overview requirements list for this step. */
-  requirementSummary?: string;
+  /** i18n key for resolving title through content tokens at render time. */
+  titleKey: string;
+  /** i18n key for resolving description through content tokens at render time. */
+  descriptionKey?: string;
+  /** i18n key for the short summary shown in the overview requirements list. */
+  requirementSummaryKey?: string;
   isVisible?: VisibilityPredicate;
 }
 
@@ -88,11 +90,16 @@ export type SectionScreenConfig = BaseScreenConfig & {
   isSection: true;
   sectionConfig: {
     icon: LucideIcon;
-    label: string;
-    shortLabel?: string;
-    helpText?: string;
-    onHoldText?: string;
-    requirementsList?: string[];
+    /** i18n key for the section label. */
+    labelKey: string;
+    /** i18n key for a short label (used in breadcrumbs). */
+    shortLabelKey?: string;
+    /** i18n key for help text. */
+    helpTextKey?: string;
+    /** i18n key for the on-hold message. */
+    onHoldTextKey?: string;
+    /** i18n keys for the requirements bullet list. */
+    requirementsListKeys?: string[];
     isVisible?: VisibilityPredicate;
     statusResolver?: (
       sessionData: FlowSessionData,

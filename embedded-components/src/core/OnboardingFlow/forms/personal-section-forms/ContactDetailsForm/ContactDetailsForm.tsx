@@ -109,7 +109,7 @@ export const ContactDetailsForm: FormStepComponent = ({ currentPartyData }) => {
       />
       <fieldset className="eb-grid eb-gap-3">
         <legend className="eb-mb-3 eb-font-header eb-text-lg eb-font-medium">
-          {getIndividualAddressContentToken('sectionTitle')}
+          {getIndividualAddressContentToken.annotated('sectionTitle')}
         </legend>
         <OnboardingFormField
           control={form.control}

@@ -127,7 +127,7 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
   tryAgainAction,
   showDetails = true,
 }) => {
-  const { t } = useTranslationWithTokens(['common']);
+  const { t, tString } = useTranslationWithTokens(['common']);
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
   if (!error) {
@@ -216,6 +216,12 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
         {customTitle ?? error?.response?.data?.title ?? error?.message}
       </AlertTitle>
       <AlertDescription>{getErrorMessage()}</AlertDescription>
+
+      {tString('errors.footnote') && (
+        <AlertDescription className="eb-mt-2 eb-text-xs eb-text-red-800">
+          {t('errors.footnote')}
+        </AlertDescription>
+      )}
 
       {showDetails && error?.response?.data && (
         <AlertDescription className="eb-mt-3">
