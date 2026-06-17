@@ -532,6 +532,7 @@ describe('PaymentFlowInline', () => {
   });
 
   it('renders with custom className', async () => {
+    // eslint-disable-next-line tailwindcss/no-custom-classname
     render(<PaymentFlowInline className="my-custom-class" />);
 
     await waitFor(() => {
@@ -601,5 +602,141 @@ describe('PaymentFlow utility functions', () => {
         expect(document.querySelector('[role="dialog"]')).toBeInTheDocument();
       });
     });
+  });
+});
+
+describe('PaymentFlowInline - user journey', () => {
+  beforeEach(() => {
+    setupDefaultHandlers();
+  });
+
+  it('full flow: select account → see payees → select payee → select method', async () => {
+    const user = userEvent.setup();
+
+    // Use single account so it auto-selects
+    server.use(
+      http.get('*/accounts', () =>
+        HttpResponse.json({
+          metadata: { page: 0, limit: 25, total_items: 1 },
+          items: [mockAccounts.items[0]],
+        })
+      )
+    );
+
+    render(<PaymentFlowInline />);
+
+    // Wait for account data to load and auto-select
+    await waitFor(
+      () => {
+        expect(screen.getByText('Operating Account')).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+
+    // With single account auto-selected, payee section should open
+    await waitFor(
+      () => {
+        expect(screen.getByText('John Doe')).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+
+    // Select a payee
+    await user.click(screen.getByText('John Doe'));
+
+    // Payment method section should now be available
+    await waitFor(() => {
+      expect(screen.getByText('Payment Method')).toBeInTheDocument();
+    });
+  });
+
+  it('displays account balance information', async () => {
+    server.use(
+      http.get('*/accounts', () =>
+        HttpResponse.json({
+          metadata: { page: 0, limit: 25, total_items: 1 },
+          items: [mockAccounts.items[0]],
+        })
+      )
+    );
+
+    render(<PaymentFlowInline />);
+
+    await waitFor(
+      () => {
+        expect(screen.getByText('Operating Account')).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+
+    // Balance should appear (from mock: 5000)
+    expect(screen.getAllByText(/5,000/).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('shows LIMITED_DDA account with restriction label', async () => {
+    render(<PaymentFlowInline />);
+
+    await waitFor(
+      () => {
+        expect(screen.getByText('Limited Account')).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+
+    // LIMITED_DDA accounts show "Linked accounts only" label
+    expect(screen.getByText(/linked accounts only/i)).toBeInTheDocument();
+  });
+
+  it('shows amount input that accepts decimal numbers', async () => {
+    const user = userEvent.setup();
+    render(<PaymentFlowInline />);
+
+    await waitFor(
+      () => {
+        expect(screen.getByLabelText(/amount/i)).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+
+    const amountInput = screen.getByLabelText(/amount/i);
+    await user.type(amountInput, '123.45');
+    expect(amountInput).toHaveValue('123.45');
+  });
+
+  it('amount input blocks non-numeric characters', async () => {
+    const user = userEvent.setup();
+    render(<PaymentFlowInline />);
+
+    await waitFor(
+      () => {
+        expect(screen.getByLabelText(/amount/i)).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+
+    const amountInput = screen.getByLabelText(/amount/i);
+    await user.type(amountInput, 'abc');
+    expect(amountInput).toHaveValue('');
+  });
+
+  it('memo field accepts text', async () => {
+    const user = userEvent.setup();
+    render(<PaymentFlowInline />);
+
+    await waitFor(
+      () => {
+        expect(screen.getByLabelText(/memo/i)).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+
+    const memoInput = screen.getByLabelText(/memo/i);
+    await user.type(memoInput, 'Invoice #1234');
+    expect(memoInput).toHaveValue('Invoice #1234');
+  });
+
+  it('renders the payment form inline (no dialog)', () => {
+    render(<PaymentFlowInline />);
+    expect(document.querySelector('[role="dialog"]')).not.toBeInTheDocument();
   });
 });

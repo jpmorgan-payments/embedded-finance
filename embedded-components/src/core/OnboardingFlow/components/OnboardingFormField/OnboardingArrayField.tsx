@@ -99,7 +99,10 @@ export function OnboardingArrayField<
     currentScreenId
   );
 
-  const { t, tString } = useTranslationWithTokens(['onboarding-old', 'common']);
+  const { t, tString } = useTranslationWithTokens([
+    'onboarding-overview',
+    'common',
+  ]);
 
   let fieldRule: OptionalDefaults<ArrayFieldRule<FieldValue<TFieldValues>>> =
     {};

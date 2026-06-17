@@ -27,10 +27,7 @@ import {
 type IdTypeSelection = IndividualIdentityIdType | '';
 
 export const IndividualIdentityForm: FormStepComponent = () => {
-  const { t, tString } = useTranslationWithTokens([
-    'onboarding-overview',
-    'onboarding-old',
-  ]);
+  const { t, tString } = useTranslationWithTokens(['onboarding-overview']);
   const form =
     useFormContext<
       z.input<ReturnType<typeof useIndividualIdentityFormSchema>>
@@ -50,11 +47,8 @@ export const IndividualIdentityForm: FormStepComponent = () => {
   const availableIdTypes = isUS ? US_ID_TYPES : NON_US_ID_TYPES;
 
   const getValueLabel = (idType: IdTypeSelection) => {
-    if (!idType) return t(['onboarding-old:idValueLabels.placeholder']);
-    return t([
-      `idValueLabels.${idType}`,
-      `onboarding-old:idValueLabels.${idType}`,
-    ]);
+    if (!idType) return t(['idValueLabels.placeholder']);
+    return t([`idValueLabels.${idType}`]);
   };
 
   const getValueDescription = (idType: IdTypeSelection) => {
@@ -138,7 +132,6 @@ export const IndividualIdentityForm: FormStepComponent = () => {
                 type="select"
                 label={t([
                   'onboarding-overview:fields.controllerIds.idType.label',
-                  'onboarding-old:fields.controllerIds.idType.label',
                 ])}
                 description={t([
                   'onboarding-overview:fields.controllerIds.idType.description',

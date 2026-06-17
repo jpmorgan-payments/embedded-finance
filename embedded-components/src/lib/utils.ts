@@ -1,7 +1,5 @@
-import { defaultResources } from '@/i18n/config';
 import { clsx, type ClassValue } from 'clsx';
 import DOMPurify from 'dompurify';
-import { getI18n } from 'react-i18next';
 import { extendTailwindMerge } from 'tailwind-merge';
 
 const twMerge = extendTailwindMerge({
@@ -80,36 +78,6 @@ export function createRegExpAndMessage(
     prependedMessage + (specialCharacters ?? '').split('').join(' '),
   ];
 }
-
-// DEPRECATED - to remove
-export const loadContentTokens = (
-  language: string,
-  namespace: string,
-  tokensArray: any[]
-) => {
-  const i18n = getI18n();
-
-  // Reset to default
-  Object.entries(defaultResources).forEach(([lng, defaultContentTokens]) => {
-    i18n.addResourceBundle(
-      lng,
-      namespace,
-      defaultContentTokens['onboarding-old'],
-      false, // deep
-      true // overwrite
-    );
-  });
-
-  // Apply provided content tokens
-  tokensArray.forEach((tokens) => {
-    if (tokens) {
-      i18n.addResourceBundle(language, namespace, tokens, true, true);
-    }
-  });
-
-  // Re-render with new content tokens
-  i18n.changeLanguage(i18n.language);
-};
 
 export async function compressImage(
   file: File,

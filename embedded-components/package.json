@@ -1,6 +1,6 @@
 {
   "name": "@jpmorgan-payments/embedded-finance-components",
-  "version": "0.15.1",
+  "version": "0.16.0",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -91,14 +91,7 @@
     "prettier": "prettier --check \"**/*.{ts,tsx}\"",
     "prettier:write": "prettier --write \"**/*.{ts,tsx}\"",
     "vitest": "vitest run",
-    "vitest:watch": "vitest",
-    "__comment_release": "=== RELEASE & SYNC ===",
-    "changelog:json": "node internal/generate-changelog-json.mjs",
-    "release": "powershell -ExecutionPolicy Bypass -File internal/release.ps1",
-    "release:minor": "powershell -ExecutionPolicy Bypass -File internal/release.ps1 minor",
-    "release:major": "powershell -ExecutionPolicy Bypass -File internal/release.ps1 major",
-    "sync:to-github": "powershell -ExecutionPolicy Bypass -File internal/sync-to-github.ps1",
-    "sync:from-github": "powershell -ExecutionPolicy Bypass -File internal/sync-from-github.ps1"
+    "vitest:watch": "vitest"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

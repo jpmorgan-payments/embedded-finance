@@ -6,7 +6,51 @@ import { buttonVariants } from '@/components/ui/button';
 
 const AlertDialog = AlertDialogPrimitive.Root;
 
-const AlertDialogTrigger = AlertDialogPrimitive.Trigger;
+/**
+ * AlertDialogTrigger wrapper that removes `aria-controls` when the dialog is closed.
+ * Same fix as DialogTrigger — see dialog.tsx for detailed explanation.
+ */
+const AlertDialogTrigger = React.forwardRef<
+  React.ElementRef<typeof AlertDialogPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Trigger>
+>((props, forwardedRef) => {
+  const localRef = React.useRef<HTMLElement | null>(null);
+
+  React.useEffect(() => {
+    const el = localRef.current;
+    if (!el) return undefined;
+
+    const cleanup = () => {
+      if (
+        el.getAttribute('data-state') === 'closed' &&
+        el.hasAttribute('aria-controls')
+      ) {
+        el.removeAttribute('aria-controls');
+      }
+    };
+
+    cleanup();
+
+    const observer = new MutationObserver(cleanup);
+    observer.observe(el, {
+      attributes: true,
+      attributeFilter: ['data-state', 'aria-controls'],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <AlertDialogPrimitive.Trigger
+      ref={(node) => {
+        localRef.current = node;
+        if (typeof forwardedRef === 'function') forwardedRef(node);
+        else if (forwardedRef) forwardedRef.current = node;
+      }}
+      {...props}
+    />
+  );
+});
+AlertDialogTrigger.displayName = AlertDialogPrimitive.Trigger.displayName;
 
 const AlertDialogPortal = AlertDialogPrimitive.Portal;
 

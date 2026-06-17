@@ -10,14 +10,14 @@ import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
  *    Member FDIC. [Platform Provider] is not a bank."
  *
  * Only visible when the host supplies a `disclosureConfig` with a
- * `platformName`.  All copy is controlled via `onboarding-old` i18n
+ * `platformName`.  All copy is controlled via `onboarding-overview` i18n
  * content tokens so platforms can override wording if approved by
  * JPM Legal.
  */
 export function DisclosureFooter() {
   const { disclosureConfig, showDisclosureFooter } = useOnboardingContext();
 
-  const { t } = useTranslationWithTokens('onboarding-old');
+  const { t } = useTranslationWithTokens('onboarding-overview');
 
   if (!showDisclosureFooter || !disclosureConfig?.platformName) {
     return null;

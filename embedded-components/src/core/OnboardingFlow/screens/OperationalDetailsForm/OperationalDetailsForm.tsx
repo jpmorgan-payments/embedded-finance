@@ -104,7 +104,9 @@ export const OperationalDetailsForm = () => {
     const existingIds = existingQuestionResponses.map(
       (response) => response.questionId ?? 'undefined'
     );
-    return [...new Set([...outstandingQuestionIds, ...existingIds])].sort();
+    return [...new Set([...outstandingQuestionIds, ...existingIds])].sort(
+      (a, b) => a.localeCompare(b)
+    );
   }, [outstandingQuestionIds, existingQuestionResponses]);
 
   // Fetch all questions
@@ -132,7 +134,7 @@ export const OperationalDetailsForm = () => {
       });
     });
 
-    return [...subIds].sort();
+    return [...subIds].sort((a, b) => a.localeCompare(b));
   }, [questionsData]);
 
   // Fetch any sub-questions that were missing from the initial response
@@ -167,7 +169,7 @@ export const OperationalDetailsForm = () => {
   const allFormQuestionIds = useMemo(() => {
     const ids = new Set(allQuestionIds);
     missingSubQuestionIds.forEach((id) => ids.add(id));
-    return [...ids].sort();
+    return [...ids].sort((a, b) => a.localeCompare(b));
   }, [allQuestionIds, missingSubQuestionIds]);
 
   const defaultValues = useMemo(
