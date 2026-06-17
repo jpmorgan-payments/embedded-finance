@@ -11,11 +11,15 @@ import {
 import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
 import { FormStepComponent } from '@/core/OnboardingFlow/types/flow.types';
 import { getOrganizationParty } from '@/core/OnboardingFlow/utils/dataUtils';
+import { useGetFieldContentToken } from '@/core/OnboardingFlow/utils/formUtils';
 
 import { useBusinessContactInfoFormSchema } from './BusinessContactInfoForm.schema';
 
 export const BusinessContactInfoForm: FormStepComponent = () => {
   const { t, tString } = useTranslationWithTokens('onboarding-overview');
+  const getOrgAddressContentToken = useGetFieldContentToken(
+    'organizationAddress'
+  );
 
   const { clientData } = useOnboardingContext();
   const countryOfFormation =
@@ -89,10 +93,10 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
       />
       <fieldset>
         <legend className="eb-font-header eb-text-lg eb-font-medium">
-          {t('fields.organizationAddress.sectionTitle')}
+          {getOrgAddressContentToken('sectionTitle')}
         </legend>
         <p className="eb-mt-1.5 eb-text-sm">
-          {t('fields.organizationAddress.sectionDescription')}
+          {getOrgAddressContentToken('sectionDescription')}
         </p>
         <div className="eb-mt-3 eb-space-y-3">
           <OnboardingFormField

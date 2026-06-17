@@ -289,7 +289,7 @@ export const useIndividualIdentityFormSchema = () => {
     controllerIds: z.array(createControllerIdSchema(v)).refine((ids) => {
       const types = ids?.map((id) => id.idType);
       return new Set(types).size === types?.length;
-    }, i18n.t('onboarding-old:fields.controllerIds.validation.uniqueTypes')),
+    }, i18n.t('onboarding-overview:fields.controllerIds.validation.uniqueTypes')),
   });
 };
 

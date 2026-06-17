@@ -156,7 +156,6 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   const { priorityIndustryCodes } = useOnboardingContext();
 
   const { t, tString } = useTranslationWithTokens([
-    'onboarding-old',
     'onboarding-overview',
     'common',
   ]);
@@ -201,7 +200,6 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
 
   const getContentToken = (id: FieldContentTokenKey) => {
     const key = `fields.${tName}.${id}`;
-    const oldContentTokenKey = `onboarding-old:${key}`;
     const contentTokenOverride = fieldRule.contentTokenOverrides?.[id];
     return (
       contentTokenOverride ??
@@ -210,7 +208,6 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
           `onboarding-overview:${key}.${fieldRule.contentTokenOverrideKey}`,
           `onboarding-overview:${key}.default`,
           `onboarding-overview:${key}`,
-          oldContentTokenKey, // TO REMOVE
           'common:noTokenFallback',
         ] as unknown as TemplateStringsArray,
         {
@@ -224,7 +221,6 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   // String version for HTML attributes like placeholder that require string type
   const getContentTokenString = (id: FieldContentTokenKey) => {
     const key = `fields.${tName}.${id}`;
-    const oldContentTokenKey = `onboarding-old:${key}`;
     const contentTokenOverride = fieldRule.contentTokenOverrides?.[id];
     if (typeof contentTokenOverride === 'string') {
       return contentTokenOverride;
@@ -234,7 +230,6 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
         `onboarding-overview:${key}.${fieldRule.contentTokenOverrideKey}`,
         `onboarding-overview:${key}.default`,
         `onboarding-overview:${key}`,
-        oldContentTokenKey, // TO REMOVE
         'common:noTokenFallback',
       ] as unknown as TemplateStringsArray,
       {

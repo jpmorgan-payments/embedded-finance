@@ -759,70 +759,81 @@
         "format": "$t(validation:id.ssn)"
       }
     },
-    "controllerIds.idType": {
-      "label": "ID type",
-      "placeholder": "Select ID type",
-      "description": "Choose the type of government-issued ID you'd like to provide",
-      "tooltip": "",
+    "controllerIds": {
+      "label": "Individual Identification",
+      "itemLabel": "Individual Identification",
+      "itemLabelNumbered": "Individual Identification {{number}}",
       "validation": {
-        "required": "ID type is required"
-      }
-    },
-    "controllerIds.description": {
-      "label": "Description",
-      "placeholder": "Enter description",
-      "description": "Description of the ID",
-      "tooltip": "should match your business registration documents ID description",
-      "validation": {
-        "maxLength": "Description must be 100 characters or less"
-      }
-    },
-    "controllerIds.value": {
-      "label": "ID value",
-      "placeholder": "Enter ID value",
-      "description": "ID value",
-      "tooltip": "",
-      "validation": {
-        "required": "$t(validation:required)",
-        "format": "$t(validation:format)",
-        "ssnFormat": "$t(validation:id.ssn)",
-        "ssnLength": "$t(validation:id.ssnLength)",
-        "ssnDigitsOnly": "$t(validation:id.ssnDigitsOnly)",
-        "ssnFirstThree": "$t(validation:id.ssnFirstThree)",
-        "ssn666": "$t(validation:id.ssn666)",
-        "ssnKnownInvalid": "$t(validation:id.ssnKnownInvalid)",
-        "itinFormat": "$t(validation:id.itin.format)",
-        "itinRestrictedRange": "$t(validation:id.itin.invalidRange)",
-        "itinLength": "$t(validation:id.itin.length)",
-        "itinDigitsOnly": "$t(validation:id.itin.digitsOnly)",
-        "itinStartsWith9": "$t(validation:id.itin.startsWith9)",
-        "itinMiddleDigits": "$t(validation:id.itin.middleDigits)",
-        "itinKnownInvalid": "$t(validation:id.itin.knownInvalid)",
-        "noSpaces": "$t(validation:text.noSpaces)"
-      }
-    },
-    "controllerIds.expiryDate": {
-      "label": "Expiry date",
-      "placeholder": "YYYY-MM-DD",
-      "description": "Date when the individual ID expires",
-      "tooltip": "",
-      "validation": {
-        "format": "Expiry date must be in 'YYYY-MM-DD' format",
-        "invalid": "Invalid date",
-        "past": "Expiry date cannot be in the past",
-        "tooFar": "Expiry date cannot be more than 10 years in the future"
-      }
-    },
-    "controllerIds.issuer": {
-      "label": "Issuing country",
-      "placeholder": "Enter issuer",
-      "description": {
-        "default": "Set based on your country of residence",
-        "owner": "Set based on the owner's country of residence"
+        "required": "At least one government ID is required",
+        "minItems": "Minimum {{count}} IDs required",
+        "maxItems": "Maximum {{count}} IDs allowed",
+        "uniqueTypes": "Each ID type must be unique"
       },
-      "tooltip": "",
-      "validation": {
-        "exactlyTwoChars": "Issuer must be a 2-letter country code"
+      "idType": {
+        "label": "ID type",
+        "placeholder": "Select ID type",
+        "description": "Choose the type of government-issued ID you'd like to provide",
+        "tooltip": "",
+        "validation": {
+          "required": "ID type is required"
+        }
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Enter description",
+        "description": "Description of the ID",
+        "tooltip": "should match your business registration documents ID description",
+        "validation": {
+          "maxLength": "Description must be 100 characters or less"
+        }
+      },
+      "value": {
+        "label": "ID value",
+        "placeholder": "Enter ID value",
+        "description": "ID value",
+        "tooltip": "",
+        "validation": {
+          "required": "$t(validation:required)",
+          "format": "$t(validation:format)",
+          "ssnFormat": "$t(validation:id.ssn)",
+          "ssnLength": "$t(validation:id.ssnLength)",
+          "ssnDigitsOnly": "$t(validation:id.ssnDigitsOnly)",
+          "ssnFirstThree": "$t(validation:id.ssnFirstThree)",
+          "ssn666": "$t(validation:id.ssn666)",
+          "ssnKnownInvalid": "$t(validation:id.ssnKnownInvalid)",
+          "itinFormat": "$t(validation:id.itin.format)",
+          "itinRestrictedRange": "$t(validation:id.itin.invalidRange)",
+          "itinLength": "$t(validation:id.itin.length)",
+          "itinDigitsOnly": "$t(validation:id.itin.digitsOnly)",
+          "itinStartsWith9": "$t(validation:id.itin.startsWith9)",
+          "itinMiddleDigits": "$t(validation:id.itin.middleDigits)",
+          "itinKnownInvalid": "$t(validation:id.itin.knownInvalid)",
+          "noSpaces": "$t(validation:text.noSpaces)"
+        }
+      },
+      "expiryDate": {
+        "label": "Expiry date",
+        "placeholder": "YYYY-MM-DD",
+        "description": "Date when the individual ID expires",
+        "tooltip": "",
+        "validation": {
+          "format": "Expiry date must be in 'YYYY-MM-DD' format",
+          "invalid": "Invalid date",
+          "past": "Expiry date cannot be in the past",
+          "tooFar": "Expiry date cannot be more than 10 years in the future"
+        }
+      },
+      "issuer": {
+        "label": "Issuing country",
+        "placeholder": "Enter issuer",
+        "description": {
+          "default": "Set based on your country of residence",
+          "owner": "Set based on the owner's country of residence"
+        },
+        "tooltip": "",
+        "validation": {
+          "exactlyTwoChars": "Issuer must be a 2-letter country code"
+        }
       }
     },
     "industry": {
@@ -907,12 +918,18 @@
           "required": "$t(validation:required)",
           "format": "$t(validation:phone.format)",
           "pattern": "$t(validation:phone.pattern, {'format': 'international', 'example': '+1234567890'})"
-        }
+        },
+        "description": "",
+        "tooltip": ""
       },
       "phoneType": {
         "validation": {
           "required": "$t(validation:required)"
-        }
+        },
+        "label": "Controller phone type",
+        "placeholder": "Select phone type",
+        "description": "",
+        "tooltip": ""
       }
     },
     "organizationPhone": {
@@ -926,12 +943,19 @@
           "required": "$t(validation:required)",
           "format": "$t(validation:contact.phone.format)",
           "pattern": "$t(validation:contact.phone.pattern, {'example': '+1234567890'})"
-        }
+        },
+        "placeholder": "Enter organization phone number",
+        "description": "",
+        "tooltip": ""
       },
       "phoneType": {
         "validation": {
           "required": "$t(validation:required)"
-        }
+        },
+        "label": "Organization phone type",
+        "placeholder": "Select phone type",
+        "description": "",
+        "tooltip": ""
       }
     },
     "organizationEmail": {
@@ -960,193 +984,6 @@
         "maxLength": "$t(validation:contact.email.maxLength, {'count': 100})"
       },
       "group": "contact"
-    },
-    "individualAddress.sectionTitle": {
-      "default": "Personal address",
-      "owner": "Owner's personal address"
-    },
-    "individualAddress.label": "Address",
-    "individualAddress.country": {
-      "label": "Country",
-      "placeholder": "Select country",
-      "description": "",
-      "tooltip": "",
-      "validation": {
-        "required": "$t(validation:required)",
-        "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})",
-        "onlyUS": "Only US is supported at this time"
-      }
-    },
-    "individualAddress.primaryAddressLine": {
-      "label": "Address line 1",
-      "placeholder": "Enter address line 1",
-      "description": "P.O. box is not accepted",
-      "tooltip": "",
-      "validation": {
-        "required": "$t(validation:required)",
-        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "Address can only contain letters, numbers, and basic punctuation",
-        "poBox": "Post-office boxes (PO Box) and private mail boxes (PMB) are not accepted. Please enter a physical street address."
-      }
-    },
-    "individualAddress.secondaryAddressLine": {
-      "label": "Address line 2",
-      "placeholder": "Enter address line 2",
-      "description": "Apt, Suite, Unit, Building etc.",
-      "tooltip": "",
-      "validation": {
-        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "Address can only contain letters, numbers, and basic punctuation"
-      }
-    },
-    "individualAddress.tertiaryAddressLine": {
-      "label": "Address line 3",
-      "placeholder": "Enter address line 3",
-      "description": "",
-      "tooltip": "",
-      "validation": {
-        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "Address can only contain letters, numbers, and basic punctuation"
-      }
-    },
-    "individualAddress.city": {
-      "label": "$t(onboarding-overview:addressFields.city.label.default)",
-      "placeholder": "$t(onboarding-overview:addressFields.city.placeholder.default)",
-      "description": "$t(onboarding-overview:addressFields.city.description.default)",
-      "tooltip": "$t(onboarding-overview:addressFields.city.tooltip.default)",
-      "validation": {
-        "required": "$t(onboarding-overview:addressFields.city.label.{{country}}) is required",
-        "maxLength": "$t(validation:text.maxLength, {'count': 34})"
-      }
-    },
-    "individualAddress.state": {
-      "label": "$t(onboarding-overview:addressFields.state.label.default)",
-      "placeholder": "$t(onboarding-overview:addressFields.state.placeholder.default)",
-      "description": "$t(onboarding-overview:addressFields.state.description.default)",
-      "tooltip": "$t(onboarding-overview:addressFields.state.tooltip.default)",
-      "validation": {
-        "required": "$t(onboarding-overview:addressFields.state.label.{{country}}) is required",
-        "invalid": "Please select a valid $t(onboarding-overview:addressFields.state.label.{{country}})"
-      }
-    },
-    "individualAddress.postalCode": {
-      "label": "$t(onboarding-overview:addressFields.postalCode.label.default)",
-      "placeholder": "$t(onboarding-overview:addressFields.postalCode.placeholder.default)",
-      "description": "$t(onboarding-overview:addressFields.postalCode.description.default)",
-      "tooltip": "$t(onboarding-overview:addressFields.postalCode.tooltip.default)",
-      "validation": {
-        "required": "$t(onboarding-overview:addressFields.postalCode.label.{{country}}) is required",
-        "maxLength": "$t(validation:text.maxLength, {'count': 10})",
-        "invalid": "Please enter a valid postal code",
-        "invalidUS": "ZIP code must be 5 digits or 9 digits (ZIP+4 format)",
-        "invalidCA": "Postal code must be in A1A 1A1 format",
-        "invalidGB": "Postcode must be a valid UK format (e.g., SW1A 1AA)",
-        "invalidBR": "CEP must be 8 digits (e.g., 01001-000)",
-        "invalidJP": "Postal code must be 7 digits (e.g., 123-4567)",
-        "invalidPL": "Postal code must be in XX-XXX format (e.g., 00-950)",
-        "invalidFourDigit": "Postal code must be exactly 4 digits",
-        "invalidFiveDigit": "Postal code must be exactly 5 digits",
-        "invalidSixDigit": "Postal code must be exactly 6 digits",
-        "invalidSevenDigit": "Postal code must be exactly 7 digits",
-        "invalidIE": "Eircode must be in format A65 F4E2 (e.g., D02 AF30)",
-        "invalidNL": "Postal code must be in 1234 AB format",
-        "invalidPT": "Postal code must be in XXXX-XXX format (e.g., 1000-001)",
-        "pattern": "Postal code must be exactly 5 digits"
-      }
-    },
-    "organizationAddress.sectionTitle": "Registered address",
-    "organizationAddress.sectionDescription": "Please provide the address registered to your company with your local authority",
-    "organizationAddress.label": {
-      "default": "Registered address",
-      "soleProp": "Business address"
-    },
-    "organizationAddress.country": {
-      "label": "Country",
-      "placeholder": "Select country",
-      "description": "",
-      "tooltip": "",
-      "validation": {
-        "required": "$t(validation:required)",
-        "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})",
-        "onlyUS": "Only US is supported at this time"
-      }
-    },
-    "organizationAddress.primaryAddressLine": {
-      "label": "Address line 1",
-      "placeholder": "Enter address line 1",
-      "description": "P.O. box is not accepted",
-      "tooltip": "Post-office boxes (PO Box), private mail boxes (PMB), virtual office and registered agent addresses are not allowed. The address must be the principal place of business.",
-      "validation": {
-        "required": "$t(validation:required)",
-        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "Address can only contain letters, numbers, and basic punctuation",
-        "poBox": "Post-office boxes (PO Box) and private mail boxes (PMB) are not accepted. Please enter a physical street address."
-      }
-    },
-    "organizationAddress.secondaryAddressLine": {
-      "label": "Address line 2",
-      "placeholder": "Enter address line 2",
-      "description": "Apt, Suite, Unit, Building etc.",
-      "tooltip": "",
-      "validation": {
-        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "Address can only contain letters, numbers, and basic punctuation"
-      }
-    },
-    "organizationAddress.tertiaryAddressLine": {
-      "label": "Address line 3",
-      "placeholder": "Enter address line 3",
-      "description": "",
-      "tooltip": "",
-      "validation": {
-        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "Address can only contain letters, numbers, and basic punctuation"
-      }
-    },
-    "organizationAddress.city": {
-      "label": "$t(onboarding-overview:addressFields.city.label.default)",
-      "placeholder": "$t(onboarding-overview:addressFields.city.placeholder.default)",
-      "description": "$t(onboarding-overview:addressFields.city.description.default)",
-      "tooltip": "$t(onboarding-overview:addressFields.city.tooltip.default)",
-      "validation": {
-        "required": "$t(onboarding-overview:addressFields.city.label.{{country}}) is required",
-        "maxLength": "$t(validation:text.maxLength, {'count': 34})"
-      }
-    },
-    "organizationAddress.state": {
-      "label": "$t(onboarding-overview:addressFields.state.label.default)",
-      "placeholder": "$t(onboarding-overview:addressFields.state.placeholder.default)",
-      "description": "$t(onboarding-overview:addressFields.state.description.default)",
-      "tooltip": "$t(onboarding-overview:addressFields.state.tooltip.default)",
-      "validation": {
-        "required": "$t(onboarding-overview:addressFields.state.label.{{country}}) is required",
-        "invalid": "Please select a valid $t(onboarding-overview:addressFields.state.label.{{country}})"
-      }
-    },
-    "organizationAddress.postalCode": {
-      "label": "$t(onboarding-overview:addressFields.postalCode.label.default)",
-      "placeholder": "$t(onboarding-overview:addressFields.postalCode.placeholder.default)",
-      "description": "$t(onboarding-overview:addressFields.postalCode.description.default)",
-      "tooltip": "$t(onboarding-overview:addressFields.postalCode.tooltip.default)",
-      "validation": {
-        "required": "$t(onboarding-overview:addressFields.postalCode.label.{{country}}) is required",
-        "maxLength": "$t(validation:text.maxLength, {'count': 10})",
-        "invalid": "Please enter a valid postal code",
-        "invalidUS": "ZIP code must be 5 digits or 9 digits (ZIP+4 format)",
-        "invalidCA": "Postal code must be in A1A 1A1 format",
-        "invalidGB": "Postcode must be a valid UK format (e.g., SW1A 1AA)",
-        "invalidBR": "CEP must be 8 digits (e.g., 01001-000)",
-        "invalidJP": "Postal code must be 7 digits (e.g., 123-4567)",
-        "invalidPL": "Postal code must be in XX-XXX format (e.g., 00-950)",
-        "invalidFourDigit": "Postal code must be exactly 4 digits",
-        "invalidFiveDigit": "Postal code must be exactly 5 digits",
-        "invalidSixDigit": "Postal code must be exactly 6 digits",
-        "invalidSevenDigit": "Postal code must be exactly 7 digits",
-        "invalidIE": "Eircode must be in format A65 F4E2 (e.g., D02 AF30)",
-        "invalidNL": "Postal code must be in 1234 AB format",
-        "invalidPT": "Postal code must be in XXXX-XXX format (e.g., 1000-001)",
-        "pattern": "Postal code must be exactly 5 digits"
-      }
     },
     "dbaNameNotAvailable": {
       "description": "",
@@ -1278,42 +1115,195 @@
         "tooltip": ""
       }
     },
-    "organizationPhone.phoneType": {
-      "label": "Organization phone type",
-      "placeholder": "Select phone type",
-      "description": "",
-      "tooltip": "",
-      "validation": {
-        "required": "$t(validation:required)"
+    "individualAddress": {
+      "sectionTitle": {
+        "default": "Personal address",
+        "owner": "Owner's personal address"
+      },
+      "label": "Address",
+      "country": {
+        "label": "Country",
+        "placeholder": "Select country",
+        "description": "",
+        "tooltip": "",
+        "validation": {
+          "required": "$t(validation:required)",
+          "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})",
+          "onlyUS": "Only US is supported at this time"
+        }
+      },
+      "primaryAddressLine": {
+        "label": "Address line 1",
+        "placeholder": "Enter address line 1",
+        "description": "P.O. box is not accepted",
+        "tooltip": "",
+        "validation": {
+          "required": "$t(validation:required)",
+          "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+          "pattern": "Address can only contain letters, numbers, and basic punctuation",
+          "poBox": "Post-office boxes (PO Box) and private mail boxes (PMB) are not accepted. Please enter a physical street address."
+        }
+      },
+      "secondaryAddressLine": {
+        "label": "Address line 2",
+        "placeholder": "Enter address line 2",
+        "description": "Apt, Suite, Unit, Building etc.",
+        "tooltip": "",
+        "validation": {
+          "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+          "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        }
+      },
+      "tertiaryAddressLine": {
+        "label": "Address line 3",
+        "placeholder": "Enter address line 3",
+        "description": "",
+        "tooltip": "",
+        "validation": {
+          "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+          "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        }
+      },
+      "city": {
+        "label": "$t(onboarding-overview:addressFields.city.label.default)",
+        "placeholder": "$t(onboarding-overview:addressFields.city.placeholder.default)",
+        "description": "$t(onboarding-overview:addressFields.city.description.default)",
+        "tooltip": "$t(onboarding-overview:addressFields.city.tooltip.default)",
+        "validation": {
+          "required": "$t(onboarding-overview:addressFields.city.label.{{country}}) is required",
+          "maxLength": "$t(validation:text.maxLength, {'count': 34})"
+        }
+      },
+      "state": {
+        "label": "$t(onboarding-overview:addressFields.state.label.default)",
+        "placeholder": "$t(onboarding-overview:addressFields.state.placeholder.default)",
+        "description": "$t(onboarding-overview:addressFields.state.description.default)",
+        "tooltip": "$t(onboarding-overview:addressFields.state.tooltip.default)",
+        "validation": {
+          "required": "$t(onboarding-overview:addressFields.state.label.{{country}}) is required",
+          "invalid": "Please select a valid $t(onboarding-overview:addressFields.state.label.{{country}})"
+        }
+      },
+      "postalCode": {
+        "label": "$t(onboarding-overview:addressFields.postalCode.label.default)",
+        "placeholder": "$t(onboarding-overview:addressFields.postalCode.placeholder.default)",
+        "description": "$t(onboarding-overview:addressFields.postalCode.description.default)",
+        "tooltip": "$t(onboarding-overview:addressFields.postalCode.tooltip.default)",
+        "validation": {
+          "required": "$t(onboarding-overview:addressFields.postalCode.label.{{country}}) is required",
+          "maxLength": "$t(validation:text.maxLength, {'count': 10})",
+          "invalid": "Please enter a valid postal code",
+          "invalidUS": "ZIP code must be 5 digits or 9 digits (ZIP+4 format)",
+          "invalidCA": "Postal code must be in A1A 1A1 format",
+          "invalidGB": "Postcode must be a valid UK format (e.g., SW1A 1AA)",
+          "invalidBR": "CEP must be 8 digits (e.g., 01001-000)",
+          "invalidJP": "Postal code must be 7 digits (e.g., 123-4567)",
+          "invalidPL": "Postal code must be in XX-XXX format (e.g., 00-950)",
+          "invalidFourDigit": "Postal code must be exactly 4 digits",
+          "invalidFiveDigit": "Postal code must be exactly 5 digits",
+          "invalidSixDigit": "Postal code must be exactly 6 digits",
+          "invalidSevenDigit": "Postal code must be exactly 7 digits",
+          "invalidIE": "Eircode must be in format A65 F4E2 (e.g., D02 AF30)",
+          "invalidNL": "Postal code must be in 1234 AB format",
+          "invalidPT": "Postal code must be in XXXX-XXX format (e.g., 1000-001)",
+          "pattern": "Postal code must be exactly 5 digits"
+        }
       }
     },
-    "organizationPhone.phoneNumber": {
-      "label": "Organization phone number",
-      "placeholder": "Enter organization phone number",
-      "description": "",
-      "tooltip": "",
-      "validation": {
-        "required": "$t(validation:required)",
-        "format": "$t(validation:phone.format)"
-      }
-    },
-    "controllerPhone.phoneType": {
-      "label": "Controller phone type",
-      "placeholder": "Select phone type",
-      "description": "",
-      "tooltip": "",
-      "validation": {
-        "required": "$t(validation:required)"
-      }
-    },
-    "controllerPhone.phoneNumber": {
-      "label": "Controller phone number",
-      "placeholder": "Enter organization phone number",
-      "description": "",
-      "tooltip": "",
-      "validation": {
-        "required": "$t(validation:required)",
-        "format": "$t(validation:phone.format)"
+    "organizationAddress": {
+      "sectionTitle": "Registered address",
+      "sectionDescription": "Please provide the address registered to your company with your local authority",
+      "label": {
+        "default": "Registered address",
+        "soleProp": "Business address"
+      },
+      "country": {
+        "label": "Country",
+        "placeholder": "Select country",
+        "description": "",
+        "tooltip": "",
+        "validation": {
+          "required": "$t(validation:required)",
+          "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})",
+          "onlyUS": "Only US is supported at this time"
+        }
+      },
+      "primaryAddressLine": {
+        "label": "Address line 1",
+        "placeholder": "Enter address line 1",
+        "description": "P.O. box is not accepted",
+        "tooltip": "Post-office boxes (PO Box), private mail boxes (PMB), virtual office and registered agent addresses are not allowed. The address must be the principal place of business.",
+        "validation": {
+          "required": "$t(validation:required)",
+          "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+          "pattern": "Address can only contain letters, numbers, and basic punctuation",
+          "poBox": "Post-office boxes (PO Box) and private mail boxes (PMB) are not accepted. Please enter a physical street address."
+        }
+      },
+      "secondaryAddressLine": {
+        "label": "Address line 2",
+        "placeholder": "Enter address line 2",
+        "description": "Apt, Suite, Unit, Building etc.",
+        "tooltip": "",
+        "validation": {
+          "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+          "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        }
+      },
+      "tertiaryAddressLine": {
+        "label": "Address line 3",
+        "placeholder": "Enter address line 3",
+        "description": "",
+        "tooltip": "",
+        "validation": {
+          "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+          "pattern": "Address can only contain letters, numbers, and basic punctuation"
+        }
+      },
+      "city": {
+        "label": "$t(onboarding-overview:addressFields.city.label.default)",
+        "placeholder": "$t(onboarding-overview:addressFields.city.placeholder.default)",
+        "description": "$t(onboarding-overview:addressFields.city.description.default)",
+        "tooltip": "$t(onboarding-overview:addressFields.city.tooltip.default)",
+        "validation": {
+          "required": "$t(onboarding-overview:addressFields.city.label.{{country}}) is required",
+          "maxLength": "$t(validation:text.maxLength, {'count': 34})"
+        }
+      },
+      "state": {
+        "label": "$t(onboarding-overview:addressFields.state.label.default)",
+        "placeholder": "$t(onboarding-overview:addressFields.state.placeholder.default)",
+        "description": "$t(onboarding-overview:addressFields.state.description.default)",
+        "tooltip": "$t(onboarding-overview:addressFields.state.tooltip.default)",
+        "validation": {
+          "required": "$t(onboarding-overview:addressFields.state.label.{{country}}) is required",
+          "invalid": "Please select a valid $t(onboarding-overview:addressFields.state.label.{{country}})"
+        }
+      },
+      "postalCode": {
+        "label": "$t(onboarding-overview:addressFields.postalCode.label.default)",
+        "placeholder": "$t(onboarding-overview:addressFields.postalCode.placeholder.default)",
+        "description": "$t(onboarding-overview:addressFields.postalCode.description.default)",
+        "tooltip": "$t(onboarding-overview:addressFields.postalCode.tooltip.default)",
+        "validation": {
+          "required": "$t(onboarding-overview:addressFields.postalCode.label.{{country}}) is required",
+          "maxLength": "$t(validation:text.maxLength, {'count': 10})",
+          "invalid": "Please enter a valid postal code",
+          "invalidUS": "ZIP code must be 5 digits or 9 digits (ZIP+4 format)",
+          "invalidCA": "Postal code must be in A1A 1A1 format",
+          "invalidGB": "Postcode must be a valid UK format (e.g., SW1A 1AA)",
+          "invalidBR": "CEP must be 8 digits (e.g., 01001-000)",
+          "invalidJP": "Postal code must be 7 digits (e.g., 123-4567)",
+          "invalidPL": "Postal code must be in XX-XXX format (e.g., 00-950)",
+          "invalidFourDigit": "Postal code must be exactly 4 digits",
+          "invalidFiveDigit": "Postal code must be exactly 5 digits",
+          "invalidSixDigit": "Postal code must be exactly 6 digits",
+          "invalidSevenDigit": "Postal code must be exactly 7 digits",
+          "invalidIE": "Eircode must be in format A65 F4E2 (e.g., D02 AF30)",
+          "invalidNL": "Postal code must be in 1234 AB format",
+          "invalidPT": "Postal code must be in XXXX-XXX format (e.g., 1000-001)",
+          "pattern": "Postal code must be exactly 5 digits"
+        }
       }
     }
   },
@@ -1442,6 +1432,18 @@
       "agreeToTermsWithPlatform": "You have read and agree to the J.P. Morgan Account Terms and the {{platformAgreementLabel}}.",
       "agreeToTerms": "You have read and agree to the J.P. Morgan Account Terms.",
       "mustReviewDocuments": "You must open and review all documents before selecting the checkbox"
+    },
+    "disclosure": {
+      "footer": "{{platformName}} is not a bank. Banking services provided by JPMorgan Chase Bank, N.A., Member FDIC (\"J.P. Morgan\").",
+      "fdic": "{{productName}} are insured by the FDIC up to $250,000 per depositor for each account ownership category; availability of FDIC deposit insurance coverage protects against the failure of J.P. Morgan, and not of {{platformName}}."
     }
+  },
+  "industrySelect": {
+    "placeholder": "Select an industry",
+    "searchPlaceholder": "Search industries...",
+    "noResults": "No results found",
+    "priorityHeader": "Suggested for your platform",
+    "priorityNoMatches": "No suggestions match your search",
+    "allIndustriesHeader": "All industries"
   }
 }

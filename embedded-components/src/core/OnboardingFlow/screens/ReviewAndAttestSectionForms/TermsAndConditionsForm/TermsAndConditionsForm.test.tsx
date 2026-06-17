@@ -216,4 +216,71 @@ describe('TermsAndConditionsForm', () => {
 
     expect(termsTestHooks.handlePrev).toHaveBeenCalled();
   });
+
+  test('shows disclosure footer with platform agreement when disclosureConfig is set', () => {
+    renderTermsForm({
+      disclosureConfig: {
+        platformName: 'Test Platform',
+        platformAgreementUrl: 'https://example.com/terms',
+      },
+    });
+
+    // Should render an additional authorization checkbox or link for the platform
+    // The disclosure section adds extra content to the form
+    const checkboxes = screen.getAllByRole('checkbox');
+    expect(checkboxes.length).toBeGreaterThanOrEqual(2);
+  });
+
+  test('shows multiple host acknowledgements when configured', async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    renderTermsForm({
+      reviewAttestTermsAcknowledgements: [
+        {
+          id: 'ack-1',
+          labelKey: 'reviewAndAttest.termsAndConditions.agreeToTerms',
+        },
+        {
+          id: 'ack-2',
+          labelKey: 'reviewAndAttest.termsAndConditions.agreeToTerms',
+        },
+      ],
+    });
+
+    const checkboxes = screen.getAllByRole('checkbox');
+    expect(checkboxes.length).toBeGreaterThanOrEqual(2);
+
+    // Continue should be disabled until all are checked
+    const continueBtn = screen.getByRole('button', { name: /^continue$/i });
+    expect(continueBtn).toBeDisabled();
+
+    // Check all checkboxes
+    for (const checkbox of checkboxes) {
+      await user.click(checkbox);
+    }
+
+    await waitFor(() => expect(continueBtn).not.toBeDisabled());
+  });
+
+  test('handles KYC mutation error gracefully', async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    termsTestHooks.kycMutateAsync.mockRejectedValueOnce(
+      new Error('KYC failed')
+    );
+
+    renderTermsForm();
+
+    // Check the attestation checkbox
+    await user.click(
+      screen.getByRole('checkbox', {
+        name: /you have read and agree to the j\.p\. morgan account terms/i,
+      })
+    );
+
+    await user.click(screen.getByRole('button', { name: /^continue$/i }));
+
+    // Should not call handleNext on error
+    await waitFor(() => {
+      expect(termsTestHooks.handleNext).not.toHaveBeenCalled();
+    });
+  });
 });

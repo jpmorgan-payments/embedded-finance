@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { _get, cn, createRegExpAndMessage, isValueEmpty } from './utils';
+import {
+  _get,
+  cn,
+  compressImage,
+  createRegExpAndMessage,
+  isValueEmpty,
+  sanitizeInput,
+} from './utils';
 
 describe('utils', () => {
   describe('cn', () => {
@@ -149,6 +156,76 @@ describe('utils', () => {
       const [regex, message] = createRegExpAndMessage(undefined, 'Msg: ');
       expect(regex.test('abc123')).toBe(true);
       expect(message).toBe('Msg: ');
+    });
+  });
+
+  describe('sanitizeInput', () => {
+    it('strips HTML tags', () => {
+      expect(sanitizeInput('<script>alert("xss")</script>hello')).toBe('hello');
+    });
+
+    it('strips HTML with attributes', () => {
+      expect(sanitizeInput('<a href="evil">click</a> safe')).toBe('click safe');
+    });
+
+    it('removes URLs', () => {
+      expect(sanitizeInput('visit https://evil.com now')).toBe('visit now');
+      expect(sanitizeInput('see http://bad.org here')).toBe('see here');
+    });
+
+    it('normalizes whitespace', () => {
+      expect(sanitizeInput('hello   world')).toBe('hello world');
+    });
+
+    it('removes angle brackets', () => {
+      // DOMPurify converts < > to entities, then the regex strips remaining raw ones
+      const result = sanitizeInput('a < b > c');
+      expect(result).not.toContain('<');
+      expect(result).not.toContain('>');
+    });
+
+    it('trims result', () => {
+      expect(sanitizeInput('  hello  ')).toBe('hello');
+    });
+
+    it('handles empty string', () => {
+      expect(sanitizeInput('')).toBe('');
+    });
+
+    it('passes through normal text unchanged', () => {
+      expect(sanitizeInput('John Doe')).toBe('John Doe');
+    });
+  });
+
+  describe('compressImage', () => {
+    function createMockFile(name: string, size: number, type: string): File {
+      const buffer = new ArrayBuffer(size);
+      return new File([buffer], name, { type });
+    }
+
+    it('rejects non-File inputs', async () => {
+      await expect(
+        compressImage('not a file' as unknown as File)
+      ).rejects.toThrow('Invalid file input');
+    });
+
+    it('rejects non-image files', async () => {
+      const file = createMockFile('test.txt', 1024, 'text/plain');
+      await expect(compressImage(file)).rejects.toThrow('File is not an image');
+    });
+
+    it('returns data URL for small images without compression', async () => {
+      // Create a small image file (< 100KB)
+      const file = createMockFile('small.png', 50 * 1024, 'image/png');
+
+      const result = await compressImage(file);
+      expect(result).toContain('data:');
+    });
+
+    it('accepts numeric options for backward compatibility', async () => {
+      const file = createMockFile('small.png', 50 * 1024, 'image/png');
+      const result = await compressImage(file, 500);
+      expect(result).toContain('data:');
     });
   });
 });

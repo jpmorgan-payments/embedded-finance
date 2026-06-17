@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { AlertTriangle, Check, CircleDashed, Lock } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -28,7 +29,7 @@ export interface TimelineSection {
 }
 
 export interface OnboardingTimelineProps
-  extends Omit<React.ComponentProps<'div'>, 'title'> {
+  extends Omit<React.ComponentProps<'nav'>, 'title'> {
   title?: React.ReactNode;
   description?: React.ReactNode;
   sections: TimelineSection[];
@@ -64,6 +65,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
   disableInteraction = false,
   ...props
 }) => {
+  const { tString } = useTranslationWithTokens('onboarding-overview');
   const getStatusIcon = (status: TimelineItemStatus, isSubItem = false) => {
     const iconSize = isSubItem ? 'eb-size-4' : 'eb-size-6';
 
@@ -204,7 +206,14 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
   };
 
   return (
-    <div
+    <nav
+      aria-label={
+        typeof title === 'string'
+          ? title
+          : tString('documentUpload.onboardingProgress', {
+              defaultValue: 'Onboarding Progress',
+            })
+      }
       className={cn(
         'eb-component eb-flex eb-flex-col eb-bg-sidebar eb-text-sidebar-foreground',
         className
@@ -696,7 +705,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
             </div>
           );
         })}
-    </div>
+    </nav>
   );
 };
 

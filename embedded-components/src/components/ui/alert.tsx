@@ -55,11 +55,10 @@ const Alert = React.forwardRef<
 Alert.displayName = 'Alert';
 
 const AlertTitle = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLHeadingElement>
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  // eslint-disable-next-line jsx-a11y/heading-has-content
-  <h5
+  <div
     ref={ref}
     className={cn(
       'eb-mb-1 eb-font-medium eb-leading-none eb-tracking-tight',

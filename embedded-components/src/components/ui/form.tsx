@@ -28,6 +28,10 @@ const FormFieldContext = React.createContext<FormFieldContextValue>(
 
 type FormItemContextValue = {
   id: string;
+  hasDescription: boolean;
+  hasMessage: boolean;
+  registerDescription: () => () => void;
+  registerMessage: () => () => void;
 };
 
 const FormItemContext = React.createContext<FormItemContextValue>(
@@ -64,6 +68,7 @@ const useFormField = () => {
     id,
     name: fieldContext.name,
     formItemId: `${id}-form-item`,
+    formLabelId: `${id}-form-item-label`,
     formDescriptionId: `${id}-form-item-description`,
     formMessageId: `${id}-form-item-message`,
     ...fieldState,
@@ -75,9 +80,32 @@ const FormItem = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
   const id = React.useId();
+  const [hasDescription, setHasDescription] = React.useState(false);
+  const [hasMessage, setHasMessage] = React.useState(false);
+
+  const registerDescription = React.useCallback(() => {
+    setHasDescription(true);
+    return () => setHasDescription(false);
+  }, []);
+
+  const registerMessage = React.useCallback(() => {
+    setHasMessage(true);
+    return () => setHasMessage(false);
+  }, []);
+
+  const contextValue = React.useMemo(
+    () => ({
+      id,
+      hasDescription,
+      hasMessage,
+      registerDescription,
+      registerMessage,
+    }),
+    [id, hasDescription, hasMessage, registerDescription, registerMessage]
+  );
 
   return (
-    <FormItemContext.Provider value={{ id }}>
+    <FormItemContext.Provider value={contextValue}>
       <div ref={ref} className={cn('eb-space-y-2', className)} {...props} />
     </FormItemContext.Provider>
   );
@@ -93,10 +121,11 @@ const FormLabel = React.forwardRef<
   React.ElementRef<typeof LabelPrimitive.Root>,
   FormLabelPropsRef
 >(({ className, asterisk, ...props }, ref) => {
-  const { error, formItemId } = useFormField();
+  const { error, formItemId, formLabelId } = useFormField();
   return (
     <Label
       ref={ref}
+      id={formLabelId}
       className={cn(
         error && '!eb-text-destructive',
         asterisk && `after:eb-text-red-500 after:eb-content-["_*"]`,
@@ -114,19 +143,24 @@ const FormControl = React.forwardRef<
   React.ElementRef<typeof Slot>,
   React.ComponentPropsWithoutRef<typeof Slot>
 >(({ ...props }, ref) => {
-  const { error, formItemId, formDescriptionId, formMessageId } =
+  const { error, formItemId, formLabelId, formDescriptionId, formMessageId } =
     useFormField();
+  const { hasDescription, hasMessage } = React.useContext(FormItemContext);
+
+  const describedByIds = [
+    hasDescription ? formDescriptionId : undefined,
+    error && hasMessage ? formMessageId : undefined,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <Slot
       ref={ref}
       id={formItemId}
-      aria-describedby={
-        !error
-          ? `${formDescriptionId}`
-          : `${formDescriptionId} ${formMessageId}`
-      }
+      aria-describedby={describedByIds || undefined}
       aria-invalid={!!error}
+      aria-labelledby={formLabelId}
       {...props}
     />
   );
@@ -138,6 +172,9 @@ const FormDescription = React.forwardRef<
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => {
   const { formDescriptionId } = useFormField();
+  const { registerDescription } = React.useContext(FormItemContext);
+
+  React.useEffect(() => registerDescription(), [registerDescription]);
 
   return (
     <p
@@ -155,6 +192,7 @@ const FormMessage = React.forwardRef<
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, children, ...props }, ref) => {
   const { error, formMessageId } = useFormField();
+  const { registerMessage } = React.useContext(FormItemContext);
   const body = error ? (
     <>
       {'\u24d8'} {String(error?.message)}{' '}
@@ -162,6 +200,11 @@ const FormMessage = React.forwardRef<
   ) : (
     children
   );
+
+  React.useEffect(() => {
+    if (body) return registerMessage();
+    return undefined;
+  }, [body, registerMessage]);
 
   if (!body) {
     return null;

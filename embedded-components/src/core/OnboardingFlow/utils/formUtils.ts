@@ -1083,18 +1083,52 @@ export function shapeFormValuesBySchema<T extends z.ZodRawShape>(
 }
 
 /**
+ * The raw fields object type from the onboarding-overview JSON.
+ */
+type OnboardingFields =
+  (typeof defaultResources)['enUS']['onboarding-overview']['fields'];
+
+/**
+ * Produces a union of dot-notation keys for nested objects under a parent key.
+ * e.g. for `{ controllerIds: { idType: {...}, value: {...}, label: "..." } }`
+ * yields `"controllerIds.idType" | "controllerIds.value"` (only children that are objects).
+ */
+type NestedFieldKeys<T> = {
+  [K in keyof T & string]: T[K] extends Record<string, unknown>
+    ? {
+        [C in keyof T[K] & string]: T[K][C] extends Record<string, unknown>
+          ? `${K}.${C}`
+          : never;
+      }[keyof T[K] & string]
+    : never;
+}[keyof T & string];
+
+/**
+ * All valid field keys: top-level keys plus dot-notation paths into nested objects.
+ */
+export type FieldKey =
+  | keyof OnboardingFields
+  | NestedFieldKeys<OnboardingFields>;
+
+/**
+ * Resolves the type of a field entry given a (possibly dot-notation) key.
+ */
+type ResolveField<F extends FieldKey> = F extends `${infer P}.${infer C}`
+  ? P extends keyof OnboardingFields
+    ? C extends keyof OnboardingFields[P]
+      ? OnboardingFields[P][C]
+      : never
+    : never
+  : F extends keyof OnboardingFields
+    ? OnboardingFields[F]
+    : never;
+
+/**
  * Helper type to extract validation message keys for a specific field
  * Uses conditional types to handle fields that might not have a validation key
  */
-export type ValidationMessageKeysFor<
-  Field extends
-    keyof (typeof defaultResources)['enUS']['onboarding-overview']['fields'],
-> =
-  (typeof defaultResources)['enUS']['onboarding-overview']['fields'][Field] extends {
-    validation: infer V;
-  }
-    ? keyof V
-    : string;
+export type ValidationMessageKeysFor<Field extends FieldKey> =
+  ResolveField<Field> extends { validation: infer V } ? keyof V : string;
 
 /**
  * React hook that provides a function to retrieve localized field content tokens
@@ -1105,7 +1139,6 @@ export const useGetFieldContentToken = (
   fieldName: FieldPath<OnboardingFormValuesSubmit>
 ) => {
   const { t, tString } = useTranslationWithTokens([
-    'onboarding-old',
     'onboarding-overview',
     'common',
   ]);
@@ -1114,23 +1147,22 @@ export const useGetFieldContentToken = (
   const { fieldRule } = getFieldRule(fieldName);
 
   /**
-   * Retrieves a localized content token for a specific field (plain string, no annotation).
-   * Use for attributes (title, aria-label, placeholder) where ReactNode is not accepted.
+   * Retrieves an annotated ReactNode content token for a specific field.
+   * Includes data-content-token attribute when showTokenIds is enabled.
+   * Use for visible text rendered inside JSX elements (the common case).
    * @param key - Key for the desired content (e.g., 'placeholder', 'tooltip', 'label', 'description')
-   * @returns The localized content token string
+   * @returns The localized content as a ReactNode
    */
-  const getFieldContentToken = (key: FieldContentTokenKey): string => {
-    const oldContentTokenKey = `onboarding-old:${key}`;
+  const getFieldContentToken = (key: FieldContentTokenKey): ReactNode => {
     const contentTokenOverride = fieldRule.contentTokenOverrides?.[key];
     if (typeof contentTokenOverride === 'string') {
       return contentTokenOverride;
     }
-    return tString(
+    return t(
       [
         `onboarding-overview:fields.${fieldName}.${key}.${fieldRule.contentTokenOverrideKey}`,
         `onboarding-overview:fields.${fieldName}.${key}.default`,
         `onboarding-overview:fields.${fieldName}.${key}`,
-        oldContentTokenKey, // TO REMOVE
         'common:noTokenFallback',
       ] as unknown as TemplateStringsArray,
       {
@@ -1140,16 +1172,15 @@ export const useGetFieldContentToken = (
   };
 
   /**
-   * Same as getFieldContentToken but returns an annotated ReactNode
-   * (with data-content-token when showTokenIds is enabled).
-   * Use for visible text rendered inside JSX elements.
+   * Returns a plain string content token (no annotation wrapper).
+   * Use for HTML attributes (title, aria-label, placeholder) where ReactNode is not accepted.
    */
-  getFieldContentToken.annotated = (key: FieldContentTokenKey): ReactNode => {
+  getFieldContentToken.string = (key: FieldContentTokenKey): string => {
     const contentTokenOverride = fieldRule.contentTokenOverrides?.[key];
     if (typeof contentTokenOverride === 'string') {
       return contentTokenOverride;
     }
-    return t(
+    return tString(
       [
         `onboarding-overview:fields.${fieldName}.${key}.${fieldRule.contentTokenOverrideKey}`,
         `onboarding-overview:fields.${fieldName}.${key}.default`,
@@ -1172,10 +1203,7 @@ export const useGetFieldContentToken = (
  * @param count - Optional count parameter for pluralized messages
  * @returns The localized validation message string
  */
-export const useGetValidationMessage = <
-  Field extends
-    keyof (typeof defaultResources)['enUS']['onboarding-overview']['fields'],
->(): ((
+export const useGetValidationMessage = <Field extends FieldKey>(): ((
   field: Field,
   messageKey: ValidationMessageKeysFor<Field>,
   countOrParams?: number | Record<string, string>
@@ -1192,7 +1220,9 @@ export const useGetValidationMessage = <
     messageKey: ValidationMessageKeysFor<Field>,
     countOrParams?: number | Record<string, string>
   ): string => {
-    const { fieldRule } = getFieldRule(field);
+    const { fieldRule } = getFieldRule(
+      field as FieldPath<OnboardingFormValuesSubmit>
+    );
 
     const count = typeof countOrParams === 'number' ? countOrParams : undefined;
     const extraParams = typeof countOrParams === 'object' ? countOrParams : {};

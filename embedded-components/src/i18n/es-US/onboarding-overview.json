@@ -699,70 +699,81 @@
         "format": "$t(validation:id.ssn)"
       }
     },
-    "controllerIds.idType": {
-      "label": "Tipo de identificación",
-      "placeholder": "Seleccionar tipo de identificación",
-      "description": "Elija el tipo de identificación gubernamental que desea proporcionar",
-      "tooltip": "",
+    "controllerIds": {
+      "label": "Identificación individual",
+      "itemLabel": "Identificación individual",
+      "itemLabelNumbered": "Identificación individual {{number}}",
       "validation": {
-        "required": "El tipo de identificación es requerido"
-      }
-    },
-    "controllerIds.description": {
-      "label": "Descripción",
-      "placeholder": "Ingrese la descripción",
-      "description": "Descripción de la identificación",
-      "tooltip": "Debe coincidir con la descripción de la identificación en sus documentos de registro comercial",
-      "validation": {
-        "maxLength": "La descripción debe tener 100 caracteres o menos"
-      }
-    },
-    "controllerIds.value": {
-      "label": "Valor de identificación",
-      "placeholder": "Ingrese el valor de identificación",
-      "description": "Valor de identificación",
-      "tooltip": "",
-      "validation": {
-        "required": "$t(validation:required)",
-        "format": "$t(validation:format)",
-        "ssnFormat": "$t(validation:id.ssn)",
-        "ssnLength": "$t(validation:id.ssnLength)",
-        "ssnDigitsOnly": "$t(validation:id.ssnDigitsOnly)",
-        "ssnFirstThree": "$t(validation:id.ssnFirstThree)",
-        "ssn666": "$t(validation:id.ssn666)",
-        "ssnKnownInvalid": "$t(validation:id.ssnKnownInvalid)",
-        "itinFormat": "$t(validation:id.itin.format)",
-        "itinRestrictedRange": "$t(validation:id.itin.invalidRange)",
-        "itinLength": "$t(validation:id.itin.length)",
-        "itinDigitsOnly": "$t(validation:id.itin.digitsOnly)",
-        "itinStartsWith9": "$t(validation:id.itin.startsWith9)",
-        "itinMiddleDigits": "$t(validation:id.itin.middleDigits)",
-        "itinKnownInvalid": "$t(validation:id.itin.knownInvalid)",
-        "noSpaces": "$t(validation:text.noSpaces)"
-      }
-    },
-    "controllerIds.expiryDate": {
-      "label": "Fecha de vencimiento",
-      "placeholder": "AAAA-MM-DD",
-      "description": "Fecha en que vence la identificación individual",
-      "tooltip": "",
-      "validation": {
-        "format": "La fecha de vencimiento debe estar en formato 'AAAA-MM-DD'",
-        "invalid": "Fecha inválida",
-        "past": "La fecha de vencimiento no puede ser en el pasado",
-        "tooFar": "La fecha de vencimiento no puede ser más de 10 años en el futuro"
-      }
-    },
-    "controllerIds.issuer": {
-      "label": "País emisor",
-      "placeholder": "Ingrese el emisor",
-      "description": {
-        "default": "Establecido según su país de residencia",
-        "owner": "Establecido según el país de residencia del propietario"
+        "required": "Se requiere al menos una identificación gubernamental",
+        "minItems": "Se requieren mínimo {{count}} identificaciones",
+        "maxItems": "Máximo {{count}} identificaciones permitidas",
+        "uniqueTypes": "Cada tipo de identificación debe ser único"
       },
-      "tooltip": "",
-      "validation": {
-        "exactlyTwoChars": "El emisor debe ser un código de país de 2 letras"
+      "idType": {
+        "label": "Tipo de identificación",
+        "placeholder": "Seleccionar tipo de identificación",
+        "description": "Elija el tipo de identificación gubernamental que desea proporcionar",
+        "tooltip": "",
+        "validation": {
+          "required": "El tipo de identificación es requerido"
+        }
+      },
+      "description": {
+        "label": "Descripción",
+        "placeholder": "Ingrese la descripción",
+        "description": "Descripción de la identificación",
+        "tooltip": "Debe coincidir con la descripción de la identificación en sus documentos de registro comercial",
+        "validation": {
+          "maxLength": "La descripción debe tener 100 caracteres o menos"
+        }
+      },
+      "value": {
+        "label": "Valor de identificación",
+        "placeholder": "Ingrese el valor de identificación",
+        "description": "Valor de identificación",
+        "tooltip": "",
+        "validation": {
+          "required": "$t(validation:required)",
+          "format": "$t(validation:format)",
+          "ssnFormat": "$t(validation:id.ssn)",
+          "ssnLength": "$t(validation:id.ssnLength)",
+          "ssnDigitsOnly": "$t(validation:id.ssnDigitsOnly)",
+          "ssnFirstThree": "$t(validation:id.ssnFirstThree)",
+          "ssn666": "$t(validation:id.ssn666)",
+          "ssnKnownInvalid": "$t(validation:id.ssnKnownInvalid)",
+          "itinFormat": "$t(validation:id.itin.format)",
+          "itinRestrictedRange": "$t(validation:id.itin.invalidRange)",
+          "itinLength": "$t(validation:id.itin.length)",
+          "itinDigitsOnly": "$t(validation:id.itin.digitsOnly)",
+          "itinStartsWith9": "$t(validation:id.itin.startsWith9)",
+          "itinMiddleDigits": "$t(validation:id.itin.middleDigits)",
+          "itinKnownInvalid": "$t(validation:id.itin.knownInvalid)",
+          "noSpaces": "$t(validation:text.noSpaces)"
+        }
+      },
+      "expiryDate": {
+        "label": "Fecha de vencimiento",
+        "placeholder": "AAAA-MM-DD",
+        "description": "Fecha en que vence la identificación individual",
+        "tooltip": "",
+        "validation": {
+          "format": "La fecha de vencimiento debe estar en formato 'AAAA-MM-DD'",
+          "invalid": "Fecha inválida",
+          "past": "La fecha de vencimiento no puede ser en el pasado",
+          "tooFar": "La fecha de vencimiento no puede ser más de 10 años en el futuro"
+        }
+      },
+      "issuer": {
+        "label": "País emisor",
+        "placeholder": "Ingrese el emisor",
+        "description": {
+          "default": "Establecido según su país de residencia",
+          "owner": "Establecido según el país de residencia del propietario"
+        },
+        "tooltip": "",
+        "validation": {
+          "exactlyTwoChars": "El emisor debe ser un código de país de 2 letras"
+        }
       }
     },
     "industry": {
@@ -847,12 +858,18 @@
           "required": "$t(validation:required)",
           "format": "$t(validation:phone.format)",
           "pattern": "$t(validation:phone.pattern, {'format': 'international', 'example': '+1234567890'})"
-        }
+        },
+        "description": "",
+        "tooltip": ""
       },
       "phoneType": {
         "validation": {
           "required": "$t(validation:required)"
-        }
+        },
+        "label": "Tipo de teléfono del controlador",
+        "placeholder": "Seleccionar tipo de teléfono",
+        "description": "",
+        "tooltip": ""
       }
     },
     "organizationPhone": {
@@ -866,12 +883,19 @@
           "required": "$t(validation:required)",
           "format": "$t(validation:contact.phone.format)",
           "pattern": "$t(validation:contact.phone.pattern, {'example': '+1234567890'})"
-        }
+        },
+        "placeholder": "Ingrese el número de teléfono de la organización",
+        "description": "",
+        "tooltip": ""
       },
       "phoneType": {
         "validation": {
           "required": "$t(validation:required)"
-        }
+        },
+        "label": "Tipo de teléfono de la organización",
+        "placeholder": "Seleccionar tipo de teléfono",
+        "description": "",
+        "tooltip": ""
       }
     },
     "organizationEmail": {
@@ -900,193 +924,6 @@
         "maxLength": "$t(validation:contact.email.maxLength, {'count': 100})"
       },
       "group": "contact"
-    },
-    "individualAddress.sectionTitle": {
-      "default": "Dirección personal",
-      "owner": "Dirección personal del propietario"
-    },
-    "individualAddress.label": "Dirección",
-    "individualAddress.country": {
-      "label": "País",
-      "placeholder": "Seleccionar país",
-      "description": "",
-      "tooltip": "",
-      "validation": {
-        "required": "$t(validation:required)",
-        "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})",
-        "onlyUS": "Solo se admite EE. UU. en este momento"
-      }
-    },
-    "individualAddress.primaryAddressLine": {
-      "label": "Línea de dirección 1",
-      "placeholder": "Ingrese la línea de dirección 1",
-      "description": "No se aceptan apartados postales",
-      "tooltip": "",
-      "validation": {
-        "required": "$t(validation:required)",
-        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "La dirección solo puede contener letras, números y puntuación básica",
-        "poBox": "No se aceptan apartados postales (PO Box) ni buzones privados (PMB). Ingrese una dirección física."
-      }
-    },
-    "individualAddress.secondaryAddressLine": {
-      "label": "Línea de dirección 2",
-      "placeholder": "Ingrese la línea de dirección 2",
-      "description": "Apto., suite, unidad, edificio, etc.",
-      "tooltip": "",
-      "validation": {
-        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "La dirección solo puede contener letras, números y puntuación básica"
-      }
-    },
-    "individualAddress.tertiaryAddressLine": {
-      "label": "Línea de dirección 3",
-      "placeholder": "Ingrese la línea de dirección 3",
-      "description": "",
-      "tooltip": "",
-      "validation": {
-        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "La dirección solo puede contener letras, números y puntuación básica"
-      }
-    },
-    "individualAddress.city": {
-      "label": "$t(onboarding-overview:addressFields.city.label.default)",
-      "placeholder": "$t(onboarding-overview:addressFields.city.placeholder.default)",
-      "description": "$t(onboarding-overview:addressFields.city.description.default)",
-      "tooltip": "$t(onboarding-overview:addressFields.city.tooltip.default)",
-      "validation": {
-        "required": "$t(onboarding-overview:addressFields.city.label.{{country}}) es requerido(a)",
-        "maxLength": "$t(validation:text.maxLength, {'count': 34})"
-      }
-    },
-    "individualAddress.state": {
-      "label": "$t(onboarding-overview:addressFields.state.label.default)",
-      "placeholder": "$t(onboarding-overview:addressFields.state.placeholder.default)",
-      "description": "$t(onboarding-overview:addressFields.state.description.default)",
-      "tooltip": "$t(onboarding-overview:addressFields.state.tooltip.default)",
-      "validation": {
-        "required": "$t(onboarding-overview:addressFields.state.label.{{country}}) es requerido(a)",
-        "invalid": "Por favor seleccione un(a) $t(onboarding-overview:addressFields.state.label.{{country}}) válido(a)"
-      }
-    },
-    "individualAddress.postalCode": {
-      "label": "$t(onboarding-overview:addressFields.postalCode.label.default)",
-      "placeholder": "$t(onboarding-overview:addressFields.postalCode.placeholder.default)",
-      "description": "$t(onboarding-overview:addressFields.postalCode.description.default)",
-      "tooltip": "$t(onboarding-overview:addressFields.postalCode.tooltip.default)",
-      "validation": {
-        "required": "$t(onboarding-overview:addressFields.postalCode.label.{{country}}) es requerido",
-        "maxLength": "$t(validation:text.maxLength, {'count': 10})",
-        "invalid": "Ingrese un código postal válido",
-        "invalidUS": "El código ZIP debe tener 5 o 9 dígitos (formato ZIP+4)",
-        "invalidCA": "El código postal debe tener el formato A1A 1A1",
-        "invalidGB": "El código postal debe tener un formato válido del Reino Unido (p. ej., SW1A 1AA)",
-        "invalidBR": "El CEP debe tener 8 dígitos (p. ej., 01001-000)",
-        "invalidJP": "El código postal debe tener 7 dígitos (p. ej., 123-4567)",
-        "invalidPL": "El código postal debe tener el formato XX-XXX (p. ej., 00-950)",
-        "invalidFourDigit": "El código postal debe tener exactamente 4 dígitos",
-        "invalidFiveDigit": "El código postal debe tener exactamente 5 dígitos",
-        "invalidSixDigit": "El código postal debe tener exactamente 6 dígitos",
-        "invalidSevenDigit": "El código postal debe tener exactamente 7 dígitos",
-        "invalidIE": "El Eircode debe tener el formato A65 F4E2 (p. ej., D02 AF30)",
-        "invalidNL": "El código postal debe tener el formato 1234 AB",
-        "invalidPT": "El código postal debe tener el formato XXXX-XXX (p. ej., 1000-001)",
-        "pattern": "El código postal debe tener exactamente 5 dígitos"
-      }
-    },
-    "organizationAddress.sectionTitle": "Dirección registrada",
-    "organizationAddress.sectionDescription": "Proporcione la dirección registrada de su empresa ante su autoridad local",
-    "organizationAddress.label": {
-      "default": "Dirección registrada",
-      "soleProp": "Dirección comercial"
-    },
-    "organizationAddress.country": {
-      "label": "País",
-      "placeholder": "Seleccionar país",
-      "description": "",
-      "tooltip": "",
-      "validation": {
-        "required": "$t(validation:required)",
-        "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})",
-        "onlyUS": "Solo se admite EE. UU. en este momento"
-      }
-    },
-    "organizationAddress.primaryAddressLine": {
-      "label": "Línea de dirección 1",
-      "placeholder": "Ingrese la línea de dirección 1",
-      "description": "No se aceptan apartados postales",
-      "tooltip": "No se permiten apartados postales (PO Box), buzones privados (PMB), oficinas virtuales ni direcciones de agentes registrados. La dirección debe ser el lugar principal de negocios.",
-      "validation": {
-        "required": "$t(validation:required)",
-        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "La dirección solo puede contener letras, números y puntuación básica",
-        "poBox": "No se aceptan apartados postales (PO Box) ni buzones privados (PMB). Ingrese una dirección física."
-      }
-    },
-    "organizationAddress.secondaryAddressLine": {
-      "label": "Línea de dirección 2",
-      "placeholder": "Ingrese la línea de dirección 2",
-      "description": "Apto., suite, unidad, edificio, etc.",
-      "tooltip": "",
-      "validation": {
-        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "La dirección solo puede contener letras, números y puntuación básica"
-      }
-    },
-    "organizationAddress.tertiaryAddressLine": {
-      "label": "Línea de dirección 3",
-      "placeholder": "Ingrese la línea de dirección 3",
-      "description": "",
-      "tooltip": "",
-      "validation": {
-        "maxLength": "$t(validation:text.maxLength, {'count': 60})",
-        "pattern": "La dirección solo puede contener letras, números y puntuación básica"
-      }
-    },
-    "organizationAddress.city": {
-      "label": "$t(onboarding-overview:addressFields.city.label.default)",
-      "placeholder": "$t(onboarding-overview:addressFields.city.placeholder.default)",
-      "description": "$t(onboarding-overview:addressFields.city.description.default)",
-      "tooltip": "$t(onboarding-overview:addressFields.city.tooltip.default)",
-      "validation": {
-        "required": "$t(onboarding-overview:addressFields.city.label.{{country}}) es requerido(a)",
-        "maxLength": "$t(validation:text.maxLength, {'count': 34})"
-      }
-    },
-    "organizationAddress.state": {
-      "label": "$t(onboarding-overview:addressFields.state.label.default)",
-      "placeholder": "$t(onboarding-overview:addressFields.state.placeholder.default)",
-      "description": "$t(onboarding-overview:addressFields.state.description.default)",
-      "tooltip": "$t(onboarding-overview:addressFields.state.tooltip.default)",
-      "validation": {
-        "required": "$t(onboarding-overview:addressFields.state.label.{{country}}) es requerido(a)",
-        "invalid": "Por favor seleccione un(a) $t(onboarding-overview:addressFields.state.label.{{country}}) válido(a)"
-      }
-    },
-    "organizationAddress.postalCode": {
-      "label": "$t(onboarding-overview:addressFields.postalCode.label.default)",
-      "placeholder": "$t(onboarding-overview:addressFields.postalCode.placeholder.default)",
-      "description": "$t(onboarding-overview:addressFields.postalCode.description.default)",
-      "tooltip": "$t(onboarding-overview:addressFields.postalCode.tooltip.default)",
-      "validation": {
-        "required": "$t(onboarding-overview:addressFields.postalCode.label.{{country}}) es requerido",
-        "maxLength": "$t(validation:text.maxLength, {'count': 10})",
-        "invalid": "Ingrese un código postal válido",
-        "invalidUS": "El código ZIP debe tener 5 o 9 dígitos (formato ZIP+4)",
-        "invalidCA": "El código postal debe tener el formato A1A 1A1",
-        "invalidGB": "El código postal debe tener un formato válido del Reino Unido (p. ej., SW1A 1AA)",
-        "invalidBR": "El CEP debe tener 8 dígitos (p. ej., 01001-000)",
-        "invalidJP": "El código postal debe tener 7 dígitos (p. ej., 123-4567)",
-        "invalidPL": "El código postal debe tener el formato XX-XXX (p. ej., 00-950)",
-        "invalidFourDigit": "El código postal debe tener exactamente 4 dígitos",
-        "invalidFiveDigit": "El código postal debe tener exactamente 5 dígitos",
-        "invalidSixDigit": "El código postal debe tener exactamente 6 dígitos",
-        "invalidSevenDigit": "El código postal debe tener exactamente 7 dígitos",
-        "invalidIE": "El Eircode debe tener el formato A65 F4E2 (p. ej., D02 AF30)",
-        "invalidNL": "El código postal debe tener el formato 1234 AB",
-        "invalidPT": "El código postal debe tener el formato XXXX-XXX (p. ej., 1000-001)",
-        "pattern": "El código postal debe tener exactamente 5 dígitos"
-      }
     },
     "dbaNameNotAvailable": {
       "description": "",
@@ -1218,42 +1055,195 @@
         "tooltip": ""
       }
     },
-    "organizationPhone.phoneType": {
-      "label": "Tipo de teléfono de la organización",
-      "placeholder": "Seleccionar tipo de teléfono",
-      "description": "",
-      "tooltip": "",
-      "validation": {
-        "required": "$t(validation:required)"
+    "individualAddress": {
+      "sectionTitle": {
+        "default": "Dirección personal",
+        "owner": "Dirección personal del propietario"
+      },
+      "label": "Dirección",
+      "country": {
+        "label": "País",
+        "placeholder": "Seleccionar país",
+        "description": "",
+        "tooltip": "",
+        "validation": {
+          "required": "$t(validation:required)",
+          "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})",
+          "onlyUS": "Solo se admite EE. UU. en este momento"
+        }
+      },
+      "primaryAddressLine": {
+        "label": "Línea de dirección 1",
+        "placeholder": "Ingrese la línea de dirección 1",
+        "description": "No se aceptan apartados postales",
+        "tooltip": "",
+        "validation": {
+          "required": "$t(validation:required)",
+          "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+          "pattern": "La dirección solo puede contener letras, números y puntuación básica",
+          "poBox": "No se aceptan apartados postales (PO Box) ni buzones privados (PMB). Ingrese una dirección física."
+        }
+      },
+      "secondaryAddressLine": {
+        "label": "Línea de dirección 2",
+        "placeholder": "Ingrese la línea de dirección 2",
+        "description": "Apto., suite, unidad, edificio, etc.",
+        "tooltip": "",
+        "validation": {
+          "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+          "pattern": "La dirección solo puede contener letras, números y puntuación básica"
+        }
+      },
+      "tertiaryAddressLine": {
+        "label": "Línea de dirección 3",
+        "placeholder": "Ingrese la línea de dirección 3",
+        "description": "",
+        "tooltip": "",
+        "validation": {
+          "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+          "pattern": "La dirección solo puede contener letras, números y puntuación básica"
+        }
+      },
+      "city": {
+        "label": "$t(onboarding-overview:addressFields.city.label.default)",
+        "placeholder": "$t(onboarding-overview:addressFields.city.placeholder.default)",
+        "description": "$t(onboarding-overview:addressFields.city.description.default)",
+        "tooltip": "$t(onboarding-overview:addressFields.city.tooltip.default)",
+        "validation": {
+          "required": "$t(onboarding-overview:addressFields.city.label.{{country}}) es requerido(a)",
+          "maxLength": "$t(validation:text.maxLength, {'count': 34})"
+        }
+      },
+      "state": {
+        "label": "$t(onboarding-overview:addressFields.state.label.default)",
+        "placeholder": "$t(onboarding-overview:addressFields.state.placeholder.default)",
+        "description": "$t(onboarding-overview:addressFields.state.description.default)",
+        "tooltip": "$t(onboarding-overview:addressFields.state.tooltip.default)",
+        "validation": {
+          "required": "$t(onboarding-overview:addressFields.state.label.{{country}}) es requerido(a)",
+          "invalid": "Por favor seleccione un(a) $t(onboarding-overview:addressFields.state.label.{{country}}) válido(a)"
+        }
+      },
+      "postalCode": {
+        "label": "$t(onboarding-overview:addressFields.postalCode.label.default)",
+        "placeholder": "$t(onboarding-overview:addressFields.postalCode.placeholder.default)",
+        "description": "$t(onboarding-overview:addressFields.postalCode.description.default)",
+        "tooltip": "$t(onboarding-overview:addressFields.postalCode.tooltip.default)",
+        "validation": {
+          "required": "$t(onboarding-overview:addressFields.postalCode.label.{{country}}) es requerido",
+          "maxLength": "$t(validation:text.maxLength, {'count': 10})",
+          "invalid": "Ingrese un código postal válido",
+          "invalidUS": "El código ZIP debe tener 5 o 9 dígitos (formato ZIP+4)",
+          "invalidCA": "El código postal debe tener el formato A1A 1A1",
+          "invalidGB": "El código postal debe tener un formato válido del Reino Unido (p. ej., SW1A 1AA)",
+          "invalidBR": "El CEP debe tener 8 dígitos (p. ej., 01001-000)",
+          "invalidJP": "El código postal debe tener 7 dígitos (p. ej., 123-4567)",
+          "invalidPL": "El código postal debe tener el formato XX-XXX (p. ej., 00-950)",
+          "invalidFourDigit": "El código postal debe tener exactamente 4 dígitos",
+          "invalidFiveDigit": "El código postal debe tener exactamente 5 dígitos",
+          "invalidSixDigit": "El código postal debe tener exactamente 6 dígitos",
+          "invalidSevenDigit": "El código postal debe tener exactamente 7 dígitos",
+          "invalidIE": "El Eircode debe tener el formato A65 F4E2 (p. ej., D02 AF30)",
+          "invalidNL": "El código postal debe tener el formato 1234 AB",
+          "invalidPT": "El código postal debe tener el formato XXXX-XXX (p. ej., 1000-001)",
+          "pattern": "El código postal debe tener exactamente 5 dígitos"
+        }
       }
     },
-    "organizationPhone.phoneNumber": {
-      "label": "Número de teléfono de la organización",
-      "placeholder": "Ingrese el número de teléfono de la organización",
-      "description": "",
-      "tooltip": "",
-      "validation": {
-        "required": "$t(validation:required)",
-        "format": "$t(validation:phone.format)"
-      }
-    },
-    "controllerPhone.phoneType": {
-      "label": "Tipo de teléfono del controlador",
-      "placeholder": "Seleccionar tipo de teléfono",
-      "description": "",
-      "tooltip": "",
-      "validation": {
-        "required": "$t(validation:required)"
-      }
-    },
-    "controllerPhone.phoneNumber": {
-      "label": "Número de teléfono del controlador",
-      "placeholder": "Ingrese el número de teléfono del controlador",
-      "description": "",
-      "tooltip": "",
-      "validation": {
-        "required": "$t(validation:required)",
-        "format": "$t(validation:phone.format)"
+    "organizationAddress": {
+      "sectionTitle": "Dirección registrada",
+      "sectionDescription": "Proporcione la dirección registrada de su empresa ante su autoridad local",
+      "label": {
+        "default": "Dirección registrada",
+        "soleProp": "Dirección comercial"
+      },
+      "country": {
+        "label": "País",
+        "placeholder": "Seleccionar país",
+        "description": "",
+        "tooltip": "",
+        "validation": {
+          "required": "$t(validation:required)",
+          "exactlyTwoChars": "$t(validation:exactLength, {'count': 2})",
+          "onlyUS": "Solo se admite EE. UU. en este momento"
+        }
+      },
+      "primaryAddressLine": {
+        "label": "Línea de dirección 1",
+        "placeholder": "Ingrese la línea de dirección 1",
+        "description": "No se aceptan apartados postales",
+        "tooltip": "No se permiten apartados postales (PO Box), buzones privados (PMB), oficinas virtuales ni direcciones de agentes registrados. La dirección debe ser el lugar principal de negocios.",
+        "validation": {
+          "required": "$t(validation:required)",
+          "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+          "pattern": "La dirección solo puede contener letras, números y puntuación básica",
+          "poBox": "No se aceptan apartados postales (PO Box) ni buzones privados (PMB). Ingrese una dirección física."
+        }
+      },
+      "secondaryAddressLine": {
+        "label": "Línea de dirección 2",
+        "placeholder": "Ingrese la línea de dirección 2",
+        "description": "Apto., suite, unidad, edificio, etc.",
+        "tooltip": "",
+        "validation": {
+          "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+          "pattern": "La dirección solo puede contener letras, números y puntuación básica"
+        }
+      },
+      "tertiaryAddressLine": {
+        "label": "Línea de dirección 3",
+        "placeholder": "Ingrese la línea de dirección 3",
+        "description": "",
+        "tooltip": "",
+        "validation": {
+          "maxLength": "$t(validation:text.maxLength, {'count': 60})",
+          "pattern": "La dirección solo puede contener letras, números y puntuación básica"
+        }
+      },
+      "city": {
+        "label": "$t(onboarding-overview:addressFields.city.label.default)",
+        "placeholder": "$t(onboarding-overview:addressFields.city.placeholder.default)",
+        "description": "$t(onboarding-overview:addressFields.city.description.default)",
+        "tooltip": "$t(onboarding-overview:addressFields.city.tooltip.default)",
+        "validation": {
+          "required": "$t(onboarding-overview:addressFields.city.label.{{country}}) es requerido(a)",
+          "maxLength": "$t(validation:text.maxLength, {'count': 34})"
+        }
+      },
+      "state": {
+        "label": "$t(onboarding-overview:addressFields.state.label.default)",
+        "placeholder": "$t(onboarding-overview:addressFields.state.placeholder.default)",
+        "description": "$t(onboarding-overview:addressFields.state.description.default)",
+        "tooltip": "$t(onboarding-overview:addressFields.state.tooltip.default)",
+        "validation": {
+          "required": "$t(onboarding-overview:addressFields.state.label.{{country}}) es requerido(a)",
+          "invalid": "Por favor seleccione un(a) $t(onboarding-overview:addressFields.state.label.{{country}}) válido(a)"
+        }
+      },
+      "postalCode": {
+        "label": "$t(onboarding-overview:addressFields.postalCode.label.default)",
+        "placeholder": "$t(onboarding-overview:addressFields.postalCode.placeholder.default)",
+        "description": "$t(onboarding-overview:addressFields.postalCode.description.default)",
+        "tooltip": "$t(onboarding-overview:addressFields.postalCode.tooltip.default)",
+        "validation": {
+          "required": "$t(onboarding-overview:addressFields.postalCode.label.{{country}}) es requerido",
+          "maxLength": "$t(validation:text.maxLength, {'count': 10})",
+          "invalid": "Ingrese un código postal válido",
+          "invalidUS": "El código ZIP debe tener 5 o 9 dígitos (formato ZIP+4)",
+          "invalidCA": "El código postal debe tener el formato A1A 1A1",
+          "invalidGB": "El código postal debe tener un formato válido del Reino Unido (p. ej., SW1A 1AA)",
+          "invalidBR": "El CEP debe tener 8 dígitos (p. ej., 01001-000)",
+          "invalidJP": "El código postal debe tener 7 dígitos (p. ej., 123-4567)",
+          "invalidPL": "El código postal debe tener el formato XX-XXX (p. ej., 00-950)",
+          "invalidFourDigit": "El código postal debe tener exactamente 4 dígitos",
+          "invalidFiveDigit": "El código postal debe tener exactamente 5 dígitos",
+          "invalidSixDigit": "El código postal debe tener exactamente 6 dígitos",
+          "invalidSevenDigit": "El código postal debe tener exactamente 7 dígitos",
+          "invalidIE": "El Eircode debe tener el formato A65 F4E2 (p. ej., D02 AF30)",
+          "invalidNL": "El código postal debe tener el formato 1234 AB",
+          "invalidPT": "El código postal debe tener el formato XXXX-XXX (p. ej., 1000-001)",
+          "pattern": "El código postal debe tener exactamente 5 dígitos"
+        }
       }
     }
   },
@@ -1382,6 +1372,18 @@
       "agreeToTermsWithPlatform": "Ha leído y acepta los Términos de cuenta de J.P. Morgan y el {{platformAgreementLabel}}.",
       "agreeToTerms": "Ha leído y acepta los Términos de cuenta de J.P. Morgan.",
       "mustReviewDocuments": "Debe abrir y revisar todos los documentos antes de seleccionar la casilla"
+    },
+    "disclosure": {
+      "footer": "Servicios bancarios proporcionados por JPMorgan Chase Bank, N.A., Miembro FDIC. {{platformName}} no es un banco.",
+      "fdic": "Las cuentas de depósito están aseguradas por la FDIC hasta $250,000 por depositante para cada categoría de titularidad de cuenta. La disponibilidad del seguro de depósitos de la FDIC protege contra la quiebra de JPMorgan Chase Bank, N.A., Miembro FDIC, y no de {{platformName}}."
     }
+  },
+  "industrySelect": {
+    "placeholder": "Seleccionar una industria",
+    "searchPlaceholder": "Buscar industrias...",
+    "noResults": "No se encontraron resultados",
+    "priorityHeader": "Sugeridas para su plataforma",
+    "priorityNoMatches": "Ninguna sugerencia coincide con su búsqueda",
+    "allIndustriesHeader": "Todas las industrias"
   }
 }

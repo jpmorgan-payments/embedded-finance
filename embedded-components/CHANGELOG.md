@@ -2,23 +2,68 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
-## [0.15.0] - 2026-06-11
-
-### ⚠ Breaking Changes
-
-- removed legacy MakePayment component
-- removed OnboardingWizardBasic
+## [0.16.0] - 2026-06-16
 
 ### Changes
 
 #### Features
 
-- **onboarding:** remove website field
+- **onboarding:** add a content token for server error footnote
 
 #### Bug Fixes
 
-- **onboarding:** omit placeholder for pattern input
-- **onboarding:** update incorrect step description for contact details step
+- **i18n:** add FieldKey type utility for nested validation field paths
+- **i18n:** restructure literal-dot keys into nested objects for correct resolution
+- **i18n:** restore contentTokenOverrideKey support in BusinessContactInfoForm; remove deprecated onboarding-old fallback
+- **a11y:** only set aria-describedby for mounted form elements
+- **a11y:** add aria-labelledby to FormControl for non-native elements
+- **a11y:** wrap OnboardingTimeline in nav landmark
+- **a11y:** replace h5 with div in AlertTitle to fix heading order
+- **a11y:** strip aria-controls from dialog triggers when closed
+- **a11y:** add missing aria-labels to buttons
+
+## [0.15.1] - 2026-06-15
+
+### Changes
+
+#### Features
+
+- **onboarding:** add a content token for server error footnote
+- **onboarding:** allow passing empty string for custom tooltip content token to hide tooltip
+- **storybook:** add stories for Linked Account API error scenarios
+
+#### Refactors
+
+- **onboarding:** use i18n keys instead of using i18n directly in flowConfig to allow custom content tokens
+- **onboarding:** enhance step title and description resolution using i18n keys; remove unused titleKey and descriptionKey properties
+- **onboarding:** enhance getFieldContentToken to support annotated ReactNode for improved localization
+- **onboarding:** simplify title rendering logic in StepsReviewCards component
+- remove unnecessary assertions
+
+#### Tests
+
+- add unit tests for PaymentFlow, ReviewPanel, BankAccountFormWrapper, and EnablePaymentMethodWrapper components
+- add unit tests for ownership validation, hierarchy utilities, and existing entities
+- add integration tests for PaymentFlowInline user journey
+- add test cases for utility functions and recipient helpers
+
+## [0.15.0] - 2026-06-11
+
+### ⚠ Breaking Changes
+
+- removed legacy `MakePayment` component (use `PaymentFlow` instead)
+- removed `OnboardingWizardBasic` component (use `OnboardingFlow` instead)
+
+### Changes
+
+#### Features
+
+- **onboarding:** hide website field from onboarding form
+
+#### Bug Fixes
+
+- **onboarding:** omit placeholder for PatternInput to prevent mask conflicts
+- **onboarding:** update incorrect step description for contact details step ("We need your address and contact information.")
 
 ## [0.14.9] - 2026-06-10
 
@@ -38,11 +83,15 @@ All notable changes to the `embedded-components` package are documented in this 
 
 #### Features
 
-- **onboarding:** update the label and options of the ptc question to clarify 51% ownership for subsidaries
+- **onboarding:** update the label and options of the PTC question to clarify 51% ownership for subsidiaries
 
 #### Bug Fixes
 
 - **onboarding:** fix validation issues with questions on operational details page
+
+#### Tests
+
+- **onboarding:** update test to match the new subsidiary option
 
 ## [0.14.7] - 2026-06-04
 
@@ -51,7 +100,6 @@ All notable changes to the `embedded-components` package are documented in this 
 #### Features
 
 - **disclosure:** add product name to FDIC disclosure for clarity
-- **disclosure:** enhance FDIC disclosure with product name for clarity
 
 ## [0.14.6] - 2026-06-03
 
@@ -103,10 +151,6 @@ Adds PTC (Publicly Traded Companies) gateway redirect logic so existing clients 
 - **transactions:** add missing description property for transaction dialog
 - **onboarding:** remove redundant h2 tag
 
-#### Chores
-
-- update test configuration to suppress act warnings
-
 ## [0.14.3] - 2026-06-01
 
 ### Changes
@@ -123,12 +167,6 @@ Adds PTC (Publicly Traded Companies) gateway redirect logic so existing clients 
 
 - **onboarding:** fix scenarios where skipped steps will still be displayed
 
-#### Chores
-
-- update release script
-- update lockfile
-- updating tagging with credentials
-
 #### Tests
 
 - **onboarding:** update e2e test to check for correct EIN
@@ -141,10 +179,6 @@ Adds PTC (Publicly Traded Companies) gateway redirect logic so existing clients 
 #### Refactors
 
 - **onboarding:** remove prefix validation for EIN
-
-#### Chores
-
-- update tagging script to be more accurate
 
 ## [0.14.0] - 2026-05-29
 
@@ -182,15 +216,6 @@ Publicly Traded Companies (PTC) feature: full end-to-end support for capturing t
 #### Documentation
 
 - update feature plan and onboarding recipe with latest PTC implementation details
-
-#### Chores
-
-- **onboarding:** update EIN invalid prefix list per latest IRS data (April 2026)
-- **onboarding:** add blocklist rejecting obviously invalid EINs (all-same-digit, sequential patterns)
-- show a review card for business type at top of review section
-- remove release-please workflow and add tag release workflow
-- remove redundant story names
-- update tagging script
 
 #### Tests
 
@@ -965,3 +990,4 @@ Linked account form default options fix (included in 0.10.20 range).
 ### Summary
 
 Base version at the beginning of 2026.
+
