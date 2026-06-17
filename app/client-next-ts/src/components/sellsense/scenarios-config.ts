@@ -4,6 +4,7 @@ export const SCENARIO_KEYS = {
   NEW_SELLER_ONBOARDING: 'new-seller-onboarding',
   ONBOARDING_DOCS_NEEDED: 'onboarding-docs-needed',
   ONBOARDING_IN_REVIEW: 'onboarding-in-review',
+  ONBOARDING_IN_REVIEW_LINK_ACCOUNT: 'onboarding-in-review-link-account',
   FRESH_START: 'fresh-start',
   ACTIVE_SELLER_LIMITED_DDA: 'active-seller-limited-dda',
   ACTIVE_SELLER_LIMITED_DDA_PAYMENTS: 'active-seller-limited-dda-payments',
@@ -81,6 +82,18 @@ export const SCENARIOS_CONFIG = {
     headerTitle: 'Almost there - review and complete',
     headerDescription:
       'Seller onboarding data is partially prefilled. Please review and complete the remaining information.',
+  },
+  [SCENARIO_KEYS.ONBOARDING_IN_REVIEW_LINK_ACCOUNT]: {
+    displayName: 'Onboarding - Link account in review',
+    shortName: 'Link account in review',
+    description: 'US LLC (review in progress, link account + microdeposits)',
+    clientId: '0030000134',
+    scenarioId: 'scenario6',
+    category: 'onboarding' as const,
+    resetDbScenario: 'empty' as const,
+    headerTitle: 'Review in progress — link your payout account',
+    headerDescription:
+      'Your application is under review. Link an external bank account now; microdeposits verification starts after you submit account details.',
   },
   [SCENARIO_KEYS.FRESH_START]: {
     displayName: 'Linked Bank Account',
@@ -175,6 +188,7 @@ export const SCENARIOS_CONFIG = {
 export const SCENARIO_ORDER: ScenarioKey[] = [
   SCENARIO_KEYS.NEW_SELLER_ONBOARDING,
   SCENARIO_KEYS.ONBOARDING_IN_REVIEW,
+  SCENARIO_KEYS.ONBOARDING_IN_REVIEW_LINK_ACCOUNT,
   SCENARIO_KEYS.ONBOARDING_DOCS_NEEDED,
   SCENARIO_KEYS.FRESH_START,
   SCENARIO_KEYS.ACTIVE_SELLER_LIMITED_DDA,
@@ -418,6 +432,24 @@ export const isOnboardingDocsNeededScenario = (
     return false;
   }
   return scenarioKey === SCENARIO_KEYS.ONBOARDING_DOCS_NEEDED;
+};
+
+/** Onboarding scenario with REVIEW_IN_PROGRESS client and editable link-account step (microdeposits). */
+export const isOnboardingLinkAccountInReviewScenario = (
+  scenarioDisplayName: string
+): boolean => {
+  const scenarioKey = getScenarioKeyByDisplayName(scenarioDisplayName);
+  if (!scenarioKey) {
+    return false;
+  }
+  return scenarioKey === SCENARIO_KEYS.ONBOARDING_IN_REVIEW_LINK_ACCOUNT;
+};
+
+export const usesMicrodepositLinkedAccountMock = (
+  scenarioDisplayName: string | null | undefined
+): boolean => {
+  if (!scenarioDisplayName) return false;
+  return isOnboardingLinkAccountInReviewScenario(scenarioDisplayName);
 };
 
 // Utility function to get scenario number (1-based index from SCENARIO_ORDER)

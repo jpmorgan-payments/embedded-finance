@@ -17,6 +17,7 @@ const BASE_URL =
 const SCENARIOS = [
   'New Seller - Onboarding',
   'Onboarding - Seller with prefilled data',
+  'Onboarding - Link account in review',
   'Onboarding - Docs Needed',
   'Linked Bank Account',
   'Seller with Limited DDA',

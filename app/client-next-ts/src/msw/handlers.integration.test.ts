@@ -923,4 +923,52 @@ describe('MSW handlers (integration)', () => {
     const body = (await updateRes.json()) as { status?: string };
     expect(body.status).toBe('APPROVED');
   });
+
+  it('SellSense link account in review: client is REVIEW_IN_PROGRESS and linked account POST uses MICRODEPOSITS_INITIATED', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scenario: DB_SCENARIOS.EMPTY, overrides: {} }),
+    });
+
+    const clientRes = await fetch(`${API}/ef/do/v1/clients/0030000134`, {
+      headers: {
+        'X-Scenario': 'Onboarding - Link account in review',
+      },
+    });
+    expect(clientRes.ok).toBe(true);
+    const client = (await clientRes.json()) as { status?: string };
+    expect(client.status).toBe('REVIEW_IN_PROGRESS');
+
+    const createRes = await fetch(`${API}/ef/do/v1/recipients`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Scenario': 'Onboarding - Link account in review',
+      },
+      body: JSON.stringify({
+        type: 'LINKED_ACCOUNT',
+        clientId: '0030000134',
+        partyDetails: {
+          type: 'ORGANIZATION',
+          businessName: 'Neverland Books',
+        },
+        account: {
+          number: '1234567890',
+          type: 'CHECKING',
+          countryCode: 'US',
+          routingInformation: [
+            {
+              routingCodeType: 'USABA',
+              routingNumber: '021000021',
+              transactionType: 'ACH',
+            },
+          ],
+        },
+      }),
+    });
+    expect(createRes.status).toBe(201);
+    const recipient = (await createRes.json()) as { status?: string };
+    expect(recipient.status).toBe('MICRODEPOSITS_INITIATED');
+  });
 });

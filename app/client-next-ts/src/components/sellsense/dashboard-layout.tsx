@@ -80,6 +80,7 @@ const ViewUtils = {
       case 'New Seller - Onboarding':
       case 'Onboarding - Docs Needed':
       case 'Onboarding - Seller with prefilled data':
+      case 'Onboarding - Link account in review':
         return 'onboarding';
       default:
         return 'wallet';
@@ -99,6 +100,7 @@ const ViewUtils = {
       'New Seller - Onboarding',
       'Onboarding - Docs Needed',
       'Onboarding - Seller with prefilled data',
+      'Onboarding - Link account in review',
     ].includes(scenario);
   },
 };
