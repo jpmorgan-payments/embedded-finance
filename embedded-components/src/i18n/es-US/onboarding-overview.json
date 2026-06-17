@@ -172,6 +172,7 @@
     }
   },
   "fetchingClientData": "Cargando datos del cliente...",
+  "mainLandmarkLabel": "Incorporación",
   "welcomeText": "¡Bienvenido!",
   "errors": {
     "unknownScreenId": "Identificador de pantalla desconocido: {{screenId}}",
@@ -564,6 +565,7 @@
   "fields": {
     "controllerFirstName": {
       "label": "Nombre",
+      "placeholder": "Ingrese el nombre",
       "description": "",
       "tooltip": "",
       "validation": {
@@ -580,6 +582,7 @@
     },
     "controllerMiddleName": {
       "label": "Segundo nombre",
+      "placeholder": "Ingrese el segundo nombre",
       "description": "",
       "tooltip": "",
       "validation": {
@@ -594,6 +597,7 @@
     },
     "controllerLastName": {
       "label": "Apellido",
+      "placeholder": "Ingrese el apellido",
       "description": "",
       "tooltip": "",
       "validation": {
@@ -612,6 +616,7 @@
     },
     "controllerNameSuffix": {
       "label": "Sufijo",
+      "placeholder": "Ingrese el sufijo",
       "description": "(p. ej., Jr., Sr. II, etc.)",
       "tooltip": "",
       "validation": {
@@ -798,6 +803,7 @@
     },
     "organizationName": {
       "label": "Razón social de la empresa",
+      "placeholder": "Ingrese el nombre del negocio",
       "fieldName": "Nombre del negocio",
       "description": {
         "default": "Ingrese esto exactamente como aparece en sus documentos de registro comercial",
@@ -814,6 +820,7 @@
     },
     "yearOfFormation": {
       "label": "Año de constitución",
+      "placeholder": "AAAA",
       "description": "Ingrese en formato AAAA (p. ej., 2001)",
       "tooltip": "",
       "validation": {
@@ -903,6 +910,7 @@
         "default": "Correo electrónico de la empresa",
         "soleProp": "Correo electrónico comercial"
       },
+      "placeholder": "Ingrese el correo electrónico",
       "description": {
         "default": "Proporcione la mejor dirección de correo electrónico para contactar al negocio"
       },
@@ -1004,6 +1012,7 @@
     },
     "dbaName": {
       "label": "Nombre comercial",
+      "placeholder": "Ingrese el nombre comercial",
       "fieldName": "Nombre comercial",
       "description": "",
       "tooltip": "",
@@ -1019,6 +1028,7 @@
     },
     "organizationDescription": {
       "label": "Descripción del negocio",
+      "placeholder": "Ingrese la descripción del negocio",
       "description": "Proporcione un resumen de los productos y servicios que ofrece a los consumidores. Máximo 1,000 caracteres.",
       "tooltip": "",
       "validation": {

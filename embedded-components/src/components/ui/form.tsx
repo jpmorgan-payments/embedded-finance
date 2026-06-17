@@ -195,7 +195,7 @@ const FormMessage = React.forwardRef<
   const { registerMessage } = React.useContext(FormItemContext);
   const body = error ? (
     <>
-      {'\u24d8'} {String(error?.message)}{' '}
+      {'\u24d8'} {error?.message ?? ''}{' '}
     </>
   ) : (
     children

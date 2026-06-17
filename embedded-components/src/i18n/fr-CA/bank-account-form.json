@@ -203,5 +203,9 @@
       "accountHolderType": "Type de destinataire",
       "accountHolderInfo": "Informations sur le destinataire"
     }
+  },
+  "prefillValidation": {
+    "title": "Données de compte préremplies invalides",
+    "footnote": "Si ces informations sont incorrectes, veuillez contacter l'administrateur de votre entreprise."
   }
 }

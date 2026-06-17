@@ -172,6 +172,7 @@
     }
   },
   "fetchingClientData": "Chargement des données du client...",
+  "mainLandmarkLabel": "Intégration",
   "welcomeText": "Bienvenue!",
   "errors": {
     "unknownScreenId": "Identifiant d'écran inconnu : {{screenId}}",
@@ -564,6 +565,7 @@
   "fields": {
     "controllerFirstName": {
       "label": "Prénom",
+      "placeholder": "Entrer le prénom",
       "description": "",
       "tooltip": "",
       "validation": {
@@ -580,6 +582,7 @@
     },
     "controllerMiddleName": {
       "label": "Deuxième prénom",
+      "placeholder": "Entrer le deuxième prénom",
       "description": "",
       "tooltip": "",
       "validation": {
@@ -594,6 +597,7 @@
     },
     "controllerLastName": {
       "label": "Nom de famille",
+      "placeholder": "Entrer le nom de famille",
       "description": "",
       "tooltip": "",
       "validation": {
@@ -612,6 +616,7 @@
     },
     "controllerNameSuffix": {
       "label": "Suffixe",
+      "placeholder": "Entrer le suffixe",
       "description": "(p. ex. Jr., Sr. II, etc.)",
       "tooltip": "",
       "validation": {
@@ -798,6 +803,7 @@
     },
     "organizationName": {
       "label": "Raison sociale de l'entreprise",
+      "placeholder": "Entrer la dénomination sociale",
       "fieldName": "Nom de l'entreprise",
       "description": {
         "default": "Veuillez entrer le nom exactement tel qu'il apparaît sur vos documents d'enregistrement d'entreprise",
@@ -814,6 +820,7 @@
     },
     "yearOfFormation": {
       "label": "Année de constitution",
+      "placeholder": "AAAA",
       "description": "Veuillez entrer au format AAAA (p. ex. 2001)",
       "tooltip": "",
       "validation": {
@@ -903,6 +910,7 @@
         "default": "Adresse courriel de l'entreprise",
         "soleProp": "Adresse courriel d'affaires"
       },
+      "placeholder": "Entrer l'adresse courriel",
       "description": {
         "default": "Fournissez la meilleure adresse courriel pour contacter l'entreprise"
       },
@@ -1004,6 +1012,7 @@
     },
     "dbaName": {
       "label": "Nom commercial",
+      "placeholder": "Entrer le nom commercial",
       "fieldName": "Nom commercial",
       "description": "",
       "tooltip": "",
@@ -1019,6 +1028,7 @@
     },
     "organizationDescription": {
       "label": "Description de l'entreprise",
+      "placeholder": "Entrer la description de l'entreprise",
       "description": "Veuillez fournir un résumé des produits et services que vous offrez aux consommateurs. 1 000 caractères maximum.",
       "tooltip": "",
       "validation": {

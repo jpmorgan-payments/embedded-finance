@@ -150,10 +150,7 @@ export function LinkAccountPrefillSummaryView({
           <Alert variant="destructive">
             <AlertTriangleIcon className="eb-h-4 eb-w-4" />
             <AlertTitle>
-              {tString(
-                'prefillValidation.title',
-                'Invalid prefilled account data'
-              )}
+              {t('prefillValidation.title', 'Invalid prefilled account data')}
             </AlertTitle>
             <AlertDescription>
               <ul className="eb-mt-1 eb-list-disc eb-pl-4 eb-text-sm">
@@ -162,6 +159,11 @@ export function LinkAccountPrefillSummaryView({
                 ))}
               </ul>
             </AlertDescription>
+            {tString('prefillValidation.footnote') && (
+              <AlertDescription className="eb-mt-2 eb-text-xs eb-text-red-800">
+                {t('prefillValidation.footnote')}
+              </AlertDescription>
+            )}
           </Alert>
         ) : null}
 
@@ -223,7 +225,7 @@ export function LinkAccountPrefillSummaryView({
         <div className="eb-grid eb-grid-cols-1 eb-gap-4 md:eb-grid-cols-2">
           <div className="eb-space-y-2">
             <Label htmlFor="eb-prefill-routing">
-              {tString('routingNumbers.singleMethodLabel', {
+              {t('routingNumbers.singleMethodLabel', {
                 method: tString('paymentMethods.ACH.shortLabel'),
               })}
             </Label>
@@ -238,7 +240,7 @@ export function LinkAccountPrefillSummaryView({
           </div>
           <div className="eb-space-y-2">
             <Label htmlFor="eb-prefill-account">
-              {tString('fields.accountNumber.label')}
+              {t('fields.accountNumber.label')}
             </Label>
             <Input
               id="eb-prefill-account"
@@ -253,7 +255,7 @@ export function LinkAccountPrefillSummaryView({
 
         <div className="eb-space-y-2">
           <Label htmlFor="eb-prefill-bank-type">
-            {tString('fields.accountType.label')}
+            {t('fields.accountType.label')}
           </Label>
           <Input
             id="eb-prefill-bank-type"

@@ -107,7 +107,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const flowProviderSeedStepperStepId =
     canUseFlowEntry && flowEntry.stepperStepId ? flowEntry.stepperStepId : null;
 
-  const { t } = useTranslationWithTokens(['onboarding-overview']);
+  const { t, tString } = useTranslationWithTokens(['onboarding-overview']);
 
   // #region User Events
   // Set up automatic event tracking for data-user-event attributes
@@ -133,8 +133,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         userEventsLifecycle,
       }}
     >
-      <div
+      <main
         id="embedded-component-layout"
+        aria-label={tString('onboarding-overview:mainLandmarkLabel')}
         className={cn(
           'eb-component eb-mx-auto eb-flex eb-max-w-screen-sm eb-flex-1 eb-flex-col eb-bg-background eb-p-4 eb-pb-6 eb-font-sans eb-text-foreground eb-antialiased sm:eb-p-10 sm:eb-pb-12',
           {
@@ -163,7 +164,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
           </FlowProvider>
         )}
         <DisclosureFooter />
-      </div>
+      </main>
     </OnboardingContext.Provider>
   );
 };

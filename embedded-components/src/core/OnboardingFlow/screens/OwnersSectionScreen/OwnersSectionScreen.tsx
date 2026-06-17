@@ -331,7 +331,11 @@ export const OwnersSectionScreen = () => {
                   </div>
                 }
               >
-                <Button variant="ghost" size="icon">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={tString('common:aria.moreInformation')}
+                >
                   <InfoIcon className="eb-size-6 eb-stroke-primary" />
                 </Button>
               </LearnMorePopoverTrigger>
