@@ -6,7 +6,7 @@ Base URL: `https://embedded-finance-dev.com/sellsense-demo`
 
 | Dimension    | Values |
 |-------------|--------|
-| **Scenarios** | New Seller - Onboarding, Onboarding - Seller with prefilled data, Onboarding - Docs Needed, Linked Bank Account, Seller with Limited DDA, Seller with Payments DDA |
+| **Scenarios** | New Seller - Onboarding, Onboarding - Seller with prefilled data, Onboarding - Link account in review, Onboarding - Docs Needed, Linked Bank Account, Seller with Limited DDA, Seller with Payments DDA |
 | **Themes**   | Empty, Default Blue, Salt Theme, Create Commerce, SellSense, PayFicient, Custom |
 | **Content tone** | Standard, Friendly |
 | **View**     | onboarding, overview, wallet, transactions, linked-accounts, payout, catalog, pricing, orders, payments, performance, analytics, growth |

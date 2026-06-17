@@ -15,6 +15,7 @@ import {
   getVisibleComponentsForScenario,
   isComponentVisibleForScenario,
   isOnboardingDocsNeededScenario,
+  isOnboardingLinkAccountInReviewScenario,
   SCENARIO_KEYS,
   SCENARIO_ORDER,
   shouldShowRecipientsForScenario,
@@ -25,6 +26,9 @@ describe('scenarios-config', () => {
     it('returns the next key in SCENARIO_ORDER', () => {
       expect(getNextScenario(SCENARIO_KEYS.NEW_SELLER_ONBOARDING)).toBe(
         SCENARIO_KEYS.ONBOARDING_IN_REVIEW
+      );
+      expect(getNextScenario(SCENARIO_KEYS.ONBOARDING_IN_REVIEW)).toBe(
+        SCENARIO_KEYS.ONBOARDING_IN_REVIEW_LINK_ACCOUNT
       );
     });
 
@@ -199,6 +203,21 @@ describe('scenarios-config', () => {
       expect(isOnboardingDocsNeededScenario('New Seller - Onboarding')).toBe(
         false
       );
+    });
+  });
+
+  describe('isOnboardingLinkAccountInReviewScenario', () => {
+    it('is true only for Link account in review', () => {
+      expect(
+        isOnboardingLinkAccountInReviewScenario(
+          'Onboarding - Link account in review'
+        )
+      ).toBe(true);
+      expect(
+        isOnboardingLinkAccountInReviewScenario(
+          'Onboarding - Seller with prefilled data'
+        )
+      ).toBe(false);
     });
   });
 

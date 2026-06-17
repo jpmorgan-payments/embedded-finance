@@ -23,6 +23,13 @@ describe('SellSense Scenarios', () => {
     expect(clientId).toBe('0030000132');
   });
 
+  it('should return client ID for Onboarding - Link account in review scenario', () => {
+    const clientId = getClientIdFromScenario(
+      'Onboarding - Link account in review'
+    );
+    expect(clientId).toBe('0030000134');
+  });
+
   it('should return client ID for Onboarding - Docs Needed scenario', () => {
     const clientId = getClientIdFromScenario('Onboarding - Docs Needed');
     expect(clientId).toBe('0030000133');
@@ -70,6 +77,13 @@ describe('SellSense Scenarios', () => {
     expect(data.clientId).toBe('0030000132');
   });
 
+  it('should return scenario data for Onboarding - Link account in review scenario', () => {
+    const data = getScenarioData('Onboarding - Link account in review');
+    expect(data).toBeDefined();
+    expect(data.clientId).toBe('0030000134');
+    expect(data.scenarioId).toBe('scenario6');
+  });
+
   it('should return scenario data for Onboarding - Docs Needed scenario', () => {
     const data = getScenarioData('Onboarding - Docs Needed');
     expect(data).toBeDefined();
@@ -107,6 +121,7 @@ describe('SellSense Scenarios', () => {
       'New Seller - Onboarding',
       'Linked Bank Account',
       'Onboarding - Seller with prefilled data',
+      'Onboarding - Link account in review',
       'Onboarding - Docs Needed',
       'Seller with Limited DDA',
       'Seller with Payments DDA',

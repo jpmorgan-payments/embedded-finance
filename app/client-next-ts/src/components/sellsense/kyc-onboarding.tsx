@@ -18,6 +18,7 @@ import {
   getHeaderTitleForScenario,
   getScenarioNumber,
   isOnboardingDocsNeededScenario,
+  isOnboardingLinkAccountInReviewScenario,
 } from './scenarios-config';
 import {
   getClientIdFromScenario,
@@ -116,6 +117,26 @@ export function KycOnboarding({
     setOpenTooltip(isOpen ? componentName : null);
   };
 
+  const isDocsNeededScenario = isOnboardingDocsNeededScenario(clientScenario);
+  const isLinkAccountInReviewScenario =
+    isOnboardingLinkAccountInReviewScenario(clientScenario);
+
+  const onboardingFlowProps = {
+    ...(isDocsNeededScenario
+      ? {
+          flowEntry: { screenId: 'upload-documents-section' as const },
+        }
+      : {}),
+    ...(isLinkAccountInReviewScenario
+      ? {
+          linkAccountStepOptions: {
+            completionMode: 'editable' as const,
+            initialValues: {},
+          },
+        }
+      : {}),
+  };
+
   // Render the core component
   const renderOnboardingComponent = () => (
     <EBComponentsProvider
@@ -123,6 +144,7 @@ export function KycOnboarding({
       theme={ebTheme}
       headers={{
         'Content-Type': 'application/json',
+        'X-Scenario': clientScenario,
       }}
       contentTokens={contentTokensWithIds}
       clientId={clientId}
@@ -142,8 +164,8 @@ export function KycOnboarding({
           'C_CORPORATION',
         ]}
         userEventsHandler={handleUserEvents}
-        docUploadOnlyMode={isOnboardingDocsNeededScenario(clientScenario)}
         showLinkAccountStep
+        {...onboardingFlowProps}
       />
     </EBComponentsProvider>
   );

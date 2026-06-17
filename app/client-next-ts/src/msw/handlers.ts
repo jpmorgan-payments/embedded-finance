@@ -25,7 +25,7 @@ import type {
 import merge from 'lodash/merge';
 import { http, HttpResponse, type RequestHandler } from 'msw';
 
-import { getClientStatusOverrideForScenario } from '../components/sellsense/scenarios-config';
+import { getClientStatusOverrideForScenario, usesMicrodepositLinkedAccountMock } from '../components/sellsense/scenarios-config';
 import { efClientQuestionsMock, efDocumentClientDetail } from '../mocks';
 import { testScenarioNaicsCodesQuestionsMock } from '../mocks/testScenarioNaicsCodesQuestions.mock';
 import {
@@ -54,10 +54,17 @@ import { getTermsPdfMockBytes } from './terms-pdf-mock.ts';
  * `/test-scenario` only (via `X-Test-Demo-Scenario`): happy-path, doc-request, and
  * linked-account-active create linked recipients as ACTIVE; linked-account-approved
  * uses READY_FOR_VALIDATION (microdeposits). happy-path-approved is APPROVED client + ACTIVE link.
+ *
+ * SellSense `Onboarding - Link account in review` (via `X-Scenario`) uses MICRODEPOSITS_INITIATED
+ * after POST /recipients to mirror embedded-components onboarding link behavior.
  */
 function initialLinkedAccountRecipientStatus(
-  testDemoScenarioHeader: string | null
-): 'ACTIVE' | 'READY_FOR_VALIDATION' {
+  testDemoScenarioHeader: string | null,
+  scenarioDisplayName: string | null
+): 'ACTIVE' | 'READY_FOR_VALIDATION' | 'MICRODEPOSITS_INITIATED' {
+  if (usesMicrodepositLinkedAccountMock(scenarioDisplayName)) {
+    return 'MICRODEPOSITS_INITIATED';
+  }
   if (
     testDemoScenarioHeader === 'happy-path' ||
     testDemoScenarioHeader === 'happy-path-ptc' ||
@@ -1147,6 +1154,7 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     console.log('Creating EF recipient:', data);
 
     const testDemoScenario = request.headers.get('X-Test-Demo-Scenario');
+    const scenarioDisplayName = request.headers.get('X-Scenario');
 
     // Generate a unique recipient ID
     const recipientId =
@@ -1159,7 +1167,10 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     let initialStatus =
       (data as unknown as { status?: string })?.status ?? 'ACTIVE';
     if (recipientType === 'LINKED_ACCOUNT') {
-      initialStatus = initialLinkedAccountRecipientStatus(testDemoScenario);
+      initialStatus = initialLinkedAccountRecipientStatus(
+        testDemoScenario,
+        scenarioDisplayName
+      );
     }
 
     const clientId = data?.clientId ?? 'client-001';
