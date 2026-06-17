@@ -215,6 +215,7 @@
     }
   },
   "fetchingClientData": "Fetching client data...",
+  "mainLandmarkLabel": "Onboarding",
   "welcomeText": "Welcome!",
   "errors": {
     "unknownScreenId": "Unknown screen id: {{screenId}}",
@@ -624,6 +625,7 @@
   "fields": {
     "controllerFirstName": {
       "label": "First name",
+      "placeholder": "Enter first name",
       "description": "",
       "tooltip": "",
       "validation": {
@@ -640,6 +642,7 @@
     },
     "controllerMiddleName": {
       "label": "Middle name",
+      "placeholder": "Enter middle name",
       "description": "",
       "tooltip": "",
       "validation": {
@@ -654,6 +657,7 @@
     },
     "controllerLastName": {
       "label": "Last name",
+      "placeholder": "Enter last name",
       "description": "",
       "tooltip": "",
       "validation": {
@@ -672,6 +676,7 @@
     },
     "controllerNameSuffix": {
       "label": "Suffix",
+      "placeholder": "Enter name suffix",
       "description": "(e.g. Jr., Sr. II, etc)",
       "tooltip": "",
       "validation": {
@@ -858,6 +863,7 @@
     },
     "organizationName": {
       "label": "Legal name of the company",
+      "placeholder": "Enter business name",
       "fieldName": "Business name",
       "description": {
         "default": "Please enter this exactly as it appears on your business registration documents",
@@ -874,6 +880,7 @@
     },
     "yearOfFormation": {
       "label": "Year of formation",
+      "placeholder": "YYYY",
       "description": "Please enter as YYYY format (e.g. 2001)",
       "tooltip": "",
       "validation": {
@@ -963,6 +970,7 @@
         "default": "Company email address",
         "soleProp": "Business email address"
       },
+      "placeholder": "Enter email address",
       "description": {
         "default": "Provide the best email address to contact the business"
       },
@@ -1064,6 +1072,7 @@
     },
     "dbaName": {
       "label": "Doing business as",
+      "placeholder": "Enter DBA name",
       "fieldName": "DBA name",
       "description": "",
       "tooltip": "",
@@ -1079,6 +1088,7 @@
     },
     "organizationDescription": {
       "label": "Business description",
+      "placeholder": "Enter business description",
       "description": "Please provide a summary of the products and services you offer to consumers. 1,000 characters maximum.",
       "tooltip": "",
       "validation": {

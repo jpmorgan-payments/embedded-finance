@@ -1,5 +1,8 @@
 {
   "noTokenFallback": "NO CONTENT TOKEN FOUND: {{key}}",
+  "aria": {
+    "moreInformation": "More information"
+  },
   "warning": "Warning",
   "next": "Next",
   "previous": "Previous",

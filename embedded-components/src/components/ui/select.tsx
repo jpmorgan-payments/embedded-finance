@@ -13,21 +13,52 @@ const SelectValue = SelectPrimitive.Value;
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Trigger
-    ref={ref}
-    className={cn(
-      'eb-flex eb-h-10 eb-w-full eb-items-center eb-justify-between eb-rounded-input eb-border eb-border-inputBorder eb-bg-input eb-px-3 eb-py-2 eb-text-sm eb-text-foreground eb-ring-offset-background placeholder:eb-text-muted-foreground focus:eb-outline-none focus:eb-ring-2 focus:eb-ring-ring focus:eb-ring-offset-2 disabled:eb-cursor-not-allowed disabled:eb-bg-gray-100 disabled:eb-opacity-50 [&>span]:eb-line-clamp-1',
-      className
-    )}
-    {...props}
-  >
-    {children}
-    <SelectPrimitive.Icon asChild>
-      <ChevronDown className="eb-h-4 eb-w-4 eb-opacity-50" />
-    </SelectPrimitive.Icon>
-  </SelectPrimitive.Trigger>
-));
+>(({ className, children, ...props }, ref) => {
+  const localRef = React.useRef<HTMLButtonElement | null>(null);
+
+  // Strip aria-controls when the select is closed because Radix portals
+  // the content (listbox) and it doesn't exist in the DOM until open.
+  // This resolves axe aria-valid-attr-value (WCAG 4.1.2).
+  React.useEffect(() => {
+    const el = localRef.current;
+    if (!el) return undefined;
+
+    const cleanup = () => {
+      if (el.dataset.state === 'closed' && el.hasAttribute('aria-controls')) {
+        el.removeAttribute('aria-controls');
+      }
+    };
+
+    cleanup();
+
+    const observer = new MutationObserver(cleanup);
+    observer.observe(el, {
+      attributes: true,
+      attributeFilter: ['data-state', 'aria-controls'],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <SelectPrimitive.Trigger
+      ref={(node) => {
+        localRef.current = node;
+        if (typeof ref === 'function') ref(node);
+        else if (ref) ref.current = node;
+      }}
+      className={cn(
+        'eb-flex eb-h-10 eb-w-full eb-items-center eb-justify-between eb-rounded-input eb-border eb-border-inputBorder eb-bg-input eb-px-3 eb-py-2 eb-text-sm eb-text-foreground eb-ring-offset-background placeholder:eb-text-muted-foreground focus:eb-outline-none focus:eb-ring-2 focus:eb-ring-ring focus:eb-ring-offset-2 disabled:eb-cursor-not-allowed disabled:eb-bg-gray-100 disabled:eb-opacity-50 [&>span]:eb-line-clamp-1',
+        className
+      )}
+      {...props}
+    >
+      {children}
+      <SelectPrimitive.Icon asChild>
+        <ChevronDown className="eb-h-4 eb-w-4 eb-opacity-50" />
+      </SelectPrimitive.Icon>
+    </SelectPrimitive.Trigger>
+  );
+});
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
 
 const SelectScrollUpButton = React.forwardRef<
