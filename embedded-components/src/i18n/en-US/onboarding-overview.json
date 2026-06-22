@@ -993,11 +993,6 @@
       },
       "group": "contact"
     },
-    "dbaNameNotAvailable": {
-      "description": "",
-      "tooltip": "",
-      "label": "Same as legal name of the company"
-    },
     "websiteNotAvailable": {
       "description": "",
       "tooltip": "",

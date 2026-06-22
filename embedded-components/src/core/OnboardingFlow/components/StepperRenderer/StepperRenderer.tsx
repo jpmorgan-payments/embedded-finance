@@ -236,7 +236,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     if (currentStep.stepType === 'check-answers') {
       return nextSection
         ? t('stepperRenderer.buttons.continueToSection', {
-            sectionLabel: t(nextSection.sectionConfig.labelKey as any),
+            sectionLabel: tString(nextSection.sectionConfig.labelKey as any),
           })
         : t('stepperRenderer.buttons.continueToNextSection');
     }
