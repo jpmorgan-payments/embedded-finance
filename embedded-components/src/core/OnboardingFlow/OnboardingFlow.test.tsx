@@ -219,10 +219,8 @@ describe('OnboardingFlow', () => {
       'Legal name of the company'
     );
     await user.type(businessNameInput, 'Fake Corp');
-    const sameAsLegalNameCheckbox = screen.getByLabelText(
-      /Same as legal name of the company/i
-    );
-    await user.click(sameAsLegalNameCheckbox);
+    const dbaNameInput = screen.getByLabelText(/Doing business as/i);
+    await user.type(dbaNameInput, 'Fake Corp');
     const yearOfFormationInput = screen.getByLabelText(/Year of formation/i);
     await user.type(yearOfFormationInput, '2020');
     const einInput = screen.getByLabelText(/Employer Identification Number/i);

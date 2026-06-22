@@ -157,13 +157,14 @@ export const useBusinessIdentityFormSchema = () => {
     dbaName: z
       .string()
       .max(100, v('dbaName', 'maxLength', 100))
-      .refine((val) => NAME_PATTERN.test(val), v('dbaName', 'pattern'))
+      .refine((val) => !val || NAME_PATTERN.test(val), v('dbaName', 'pattern'))
       .refine(
         (val) => !val || !/\s\s/.test(val),
         v('dbaName', 'noConsecutiveSpaces')
       )
-      .refine((val) => !val || val.length >= 2, v('dbaName', 'minLength', 2)),
-    dbaNameNotAvailable: z.boolean(),
+      .refine((val) => !val || val.length >= 2, v('dbaName', 'minLength', 2))
+      .optional()
+      .or(z.literal('')),
     yearOfFormation: z
       .string()
       .refine(
@@ -233,13 +234,6 @@ export const refineBusinessIdentityFormSchema = (
         code: z.ZodIssueCode.custom,
         message: v('organizationIdEin', 'required'),
         path: ['organizationIdEin'],
-      });
-    }
-    if (!values.dbaNameNotAvailable && !values.dbaName) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: v('dbaName', 'required'),
-        path: ['dbaName'],
       });
     }
   });

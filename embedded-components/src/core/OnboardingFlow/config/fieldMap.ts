@@ -249,14 +249,6 @@ export const partyFieldMap: PartyFieldMap = {
         rule: { display: 'hidden' },
       },
     ],
-    toStringFn: (val, formValues) => {
-      if (formValues.dbaNameNotAvailable) {
-        return formValues.organizationName === 'PLACEHOLDER_ORG_NAME'
-          ? i18n.t('common:na')
-          : formValues.organizationName;
-      }
-      return val;
-    },
   },
   organizationDescription: {
     path: 'organizationDetails.organizationDescription',
@@ -524,16 +516,6 @@ export const partyFieldMap: PartyFieldMap = {
     },
     fromResponseFn: (val: boolean) => val === false,
     toRequestFn: (val): boolean => !val,
-  },
-  dbaNameNotAvailable: {
-    excludeFromMapping: true,
-    saveResponseInContext: true,
-    isHiddenInReviewFn: () => true,
-    baseRule: {
-      display: 'visible',
-      required: false,
-      defaultValue: false,
-    },
   },
 
   // #region Publicly Traded Company (PTC) fields
