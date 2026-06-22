@@ -59,7 +59,7 @@ export const mockActiveWithRecipientsAccounts: { items: AccountResponse[] } = {
   items: [
     {
       id: 'acc-002',
-      clientId: '0030000131',
+      clientId: '0030000132',
       label: 'MAIN1098',
       state: 'OPEN',
       category: 'LIMITED_DDA_PAYMENTS',
