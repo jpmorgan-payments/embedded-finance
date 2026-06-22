@@ -933,11 +933,6 @@
       },
       "group": "contact"
     },
-    "dbaNameNotAvailable": {
-      "description": "",
-      "tooltip": "",
-      "label": "Igual que la razón social de la empresa"
-    },
     "websiteNotAvailable": {
       "description": "",
       "tooltip": "",

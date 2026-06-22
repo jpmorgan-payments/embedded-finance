@@ -2,7 +2,32 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
-## [0.16.2] - 2026-06-17
+## [0.16.3] - 2026-06-22
+
+### Changes
+
+#### Features
+
+- **onboarding:** remove dba name field's associated checkbox and change it to optional
+- **onboarding, i18n:** add a content token for invalid prefilled linked account scenario
+
+#### Bug Fixes
+
+- **a11y:** strip aria-controls from SelectTrigger when closed
+- **a11y:** wrap OnboardingFlow content in main landmark
+- **a11y:** add aria-label to icon-only InfoPopover dialog trigger
+- **onboarding, i18n:** restore missing content tokens
+- **onboarding:** fix issue where nested subquestions were not rendering and some issues with validation messages
+- **onboarding:** prevent display of select field if enum array is empty
+- **i18n:** add FieldKey type utility for nested validation field paths
+- **i18n:** restructure literal-dot keys into nested objects for correct resolution
+- **i18n:** restore contentTokenOverrideKey support in BusinessContactInfoForm; remove deprecated onboarding-old fallback
+
+#### Breaking Changes
+
+- **i18n:** remove onboarding-old namespace entirely
+
+## [0.16.2] - 2026-06-18
 
 ### Changes
 
