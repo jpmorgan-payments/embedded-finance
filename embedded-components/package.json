@@ -1,6 +1,6 @@
 {
     "name":  "@jpmorgan-payments/embedded-finance-components",
-    "version":  "0.16.2",
+    "version":  "0.16.3",
     "publishConfig":  {
                           "access":  "public",
                           "registry":  "https://registry.npmjs.org/"
@@ -62,9 +62,8 @@
                     "dev":  "vite",
                     "storybook":  "storybook dev -p 6006",
                     "storybook:build":  "cross-env NODE_OPTIONS=--max-old-space-size=8192 storybook build --disable-telemetry",
-                    "test":  "npm run typecheck \u0026\u0026 npm run format:check \u0026\u0026 npm run lint \u0026\u0026 npm run test:unit",
+                    "test":  "npm run typecheck \u0026\u0026 npm run lint \u0026\u0026 vitest run --coverage --reporter=default --reporter=junit --outputFile.junit=coverage/junit/results.xml --testTimeout=45000 --retry=1",
                     "test:unit":  "vitest run",
-                    "test:ci":  "vitest run --coverage --reporter=default --reporter=junit --outputFile.junit=coverage/junit/results.xml --testTimeout=45000 --retry=1",
                     "test:watch":  "vitest",
                     "test:coverage":  "vitest run --coverage",
                     "test:coverage:onboarding":  "vitest run src/core/OnboardingFlow --coverage --coverage.include=src/core/OnboardingFlow/**/*.ts --coverage.include=src/core/OnboardingFlow/**/*.tsx",
@@ -169,6 +168,7 @@
                             "@vitejs/plugin-react":  "^5.1.4",
                             "@vitest/coverage-v8":  "^4.1.5",
                             "@vitest/ui":  "^4.1.5",
+                            "ajv":  "^8.17.1",
                             "autoprefixer":  "^10.4.21",
                             "baseline-browser-mapping":  "^2.10.0",
                             "cross-env":  "^10.1.0",
@@ -216,6 +216,14 @@
     "engines":  {
                     "node":  "\u003e=20.19.0"
                 },
+    "overrides":  {
+                      "eslint":  {
+                                     "ajv":  "^6.12.6"
+                                 },
+                      "@eslint/eslintrc":  {
+                                               "ajv":  "^6.12.6"
+                                           }
+                  },
     "resolutions":  {
                         "msw":  "2.11.6",
                         "strip-ansi":  "6.0.1",

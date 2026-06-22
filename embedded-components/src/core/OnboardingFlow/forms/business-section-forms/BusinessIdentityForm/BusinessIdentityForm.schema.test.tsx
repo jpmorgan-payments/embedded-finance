@@ -26,7 +26,6 @@ function validBase() {
   return {
     organizationName: 'Acme Incorporated',
     dbaName: 'Acme',
-    dbaNameNotAvailable: false,
     yearOfFormation: '2020',
     countryOfFormation: 'US',
     organizationIdEin: '125698785',
@@ -100,15 +99,12 @@ describe('BusinessIdentityForm schema (website superRefine & EIN)', () => {
     }
   });
 
-  test('requires DBA when dbaNameNotAvailable is false', () => {
+  test('allows empty DBA name (optional field)', () => {
     const { result } = renderHook(() => useRefinedBusinessIdentitySchema());
     const parsed = result.current.safeParse({
       ...validBase(),
       dbaName: '',
     });
-    expect(parsed.success).toBe(false);
-    expect(parsed.error?.issues.some((i) => i.path.includes('dbaName'))).toBe(
-      true
-    );
+    expect(parsed.success).toBe(true);
   });
 });

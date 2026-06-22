@@ -2,7 +2,19 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
-## [0.16.2] - 2026-06-17
+## [0.16.3] - 2026-06-22
+
+### Changes
+
+#### Features
+
+- **onboarding:** remove dba name field's associated checkbox and change it to optional
+
+#### Breaking Changes
+
+- **i18n:** remove onboarding-old namespace entirely
+
+## [0.16.2] - 2026-06-18
 
 ### Changes
 
