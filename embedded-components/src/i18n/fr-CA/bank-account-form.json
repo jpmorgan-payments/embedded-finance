@@ -90,10 +90,6 @@
       "label": "Ligne d'adresse 2",
       "placeholder": "App., suite, unité, etc. (facultatif)"
     },
-    "addressLine3": {
-      "label": "Ligne d'adresse 3",
-      "placeholder": "Informations supplémentaires (facultatif)"
-    },
     "city": {
       "label": "Ville",
       "placeholder": "Entrer la ville"

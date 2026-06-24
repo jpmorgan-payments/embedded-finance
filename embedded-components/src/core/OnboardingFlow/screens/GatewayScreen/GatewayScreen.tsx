@@ -295,6 +295,13 @@ export const GatewayScreen = () => {
                 },
               },
               {
+                onSuccess: () => {
+                  // Refresh the client so client-level fields (e.g.
+                  // outstanding.questionIds) reflect the role change.
+                  queryClient.invalidateQueries({
+                    queryKey: getSmbdoGetClientQueryKey(clientData.id),
+                  });
+                },
                 onError: (error) => {
                   console.error('Failed to update controller roles:', error);
                 },
@@ -314,9 +321,10 @@ export const GatewayScreen = () => {
             onPostPartySettled?.(data, error?.response?.data);
           },
           onSuccess: (response) => {
+            const queryKey = getSmbdoGetClientQueryKey(clientData.id);
             // Update the client data in the cache while it fetches the new data
             queryClient.setQueryData(
-              getSmbdoGetClientQueryKey(clientData.id),
+              queryKey,
               (oldClientData: ClientResponse | undefined) => ({
                 ...oldClientData,
                 parties: oldClientData?.parties?.map((party) => {
@@ -330,6 +338,9 @@ export const GatewayScreen = () => {
                 }),
               })
             );
+            // Invalidate to refresh client-level fields (e.g.
+            // outstanding.questionIds) that the party response can't carry.
+            queryClient.invalidateQueries({ queryKey });
             handleNext();
           },
           onError: (error) => {

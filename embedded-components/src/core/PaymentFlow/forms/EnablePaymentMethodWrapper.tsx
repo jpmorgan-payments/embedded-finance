@@ -232,7 +232,6 @@ export function EnablePaymentMethodWrapper({
           address: {
             addressLine1: data.address.addressLine1,
             addressLine2: data.address.addressLine2,
-            addressLine3: data.address.addressLine3,
             city: data.address.city,
             state: data.address.state,
             postalCode: data.address.postalCode,

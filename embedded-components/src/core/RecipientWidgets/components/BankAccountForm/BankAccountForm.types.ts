@@ -91,7 +91,6 @@ export interface BankAccountFormContent {
     bankAccountType?: ReactNode;
     primaryAddressLine?: ReactNode;
     secondaryAddressLine?: ReactNode;
-    tertiaryAddressLine?: ReactNode;
     city?: ReactNode;
     state?: ReactNode;
     postalCode?: ReactNode;

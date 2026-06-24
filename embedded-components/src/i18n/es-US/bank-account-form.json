@@ -90,10 +90,6 @@
       "label": "Línea de dirección 2",
       "placeholder": "Apt, suite, unidad, etc. (opcional)"
     },
-    "addressLine3": {
-      "label": "Línea de dirección 3",
-      "placeholder": "Información adicional (opcional)"
-    },
     "city": {
       "label": "Ciudad",
       "placeholder": "Ingrese ciudad"
