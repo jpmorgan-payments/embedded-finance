@@ -36,7 +36,6 @@ export const useGetBankAccountValidationMessage = (): ValidationGetter => {
 const addressSchema = z.object({
   addressLine1: z.string().max(34).optional(),
   addressLine2: z.string().max(34).optional(),
-  addressLine3: z.string().max(34).optional(),
   city: z.string().max(34).optional(),
   state: z.string().max(34).optional(), // Allow longer state values (API may return full names)
   postalCode: z.string().max(10).optional(),

@@ -945,7 +945,6 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
         ? {
             addressLine1: sanitize(recipient.partyDetails.address.addressLine1),
             addressLine2: sanitize(recipient.partyDetails.address.addressLine2),
-            addressLine3: sanitize(recipient.partyDetails.address.addressLine3),
             city: sanitize(recipient.partyDetails.address.city),
             state: sanitize(recipient.partyDetails.address.state),
             postalCode: sanitize(recipient.partyDetails.address.postalCode),
@@ -1199,7 +1198,6 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
       form.setValue('address', {
         addressLine1: '',
         addressLine2: '',
-        addressLine3: '',
         city: '',
         state: '',
         postalCode: '',
@@ -1238,9 +1236,6 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
       const { address } = cleanedData;
       if (!address.addressLine2?.trim()) {
         delete address.addressLine2;
-      }
-      if (!address.addressLine3?.trim()) {
-        delete address.addressLine3;
       }
     }
 
@@ -1598,36 +1593,20 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
                             required
                             disabled={isLoading}
                           />
-                          <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
-                            <StandardFormField
-                              control={form.control}
-                              name="address.addressLine2"
-                              type="text"
-                              label={
-                                effectiveConfig.content.fieldLabels
-                                  ?.secondaryAddressLine ||
-                                t('address.addressLine2.label')
-                              }
-                              placeholder={tString(
-                                'address.addressLine2.placeholder'
-                              )}
-                              disabled={isLoading}
-                            />
-                            <StandardFormField
-                              control={form.control}
-                              name="address.addressLine3"
-                              type="text"
-                              label={
-                                effectiveConfig.content.fieldLabels
-                                  ?.tertiaryAddressLine ||
-                                t('address.addressLine3.label')
-                              }
-                              placeholder={tString(
-                                'address.addressLine3.placeholder'
-                              )}
-                              disabled={isLoading}
-                            />
-                          </div>
+                          <StandardFormField
+                            control={form.control}
+                            name="address.addressLine2"
+                            type="text"
+                            label={
+                              effectiveConfig.content.fieldLabels
+                                ?.secondaryAddressLine ||
+                              t('address.addressLine2.label')
+                            }
+                            placeholder={tString(
+                              'address.addressLine2.placeholder'
+                            )}
+                            disabled={isLoading}
+                          />
                           <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-3">
                             <StandardFormField
                               control={form.control}

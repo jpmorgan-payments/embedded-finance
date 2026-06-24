@@ -737,10 +737,7 @@ export const OperationalDetailsForm = () => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="eb-space-y-6">
         <StepLayout
-          title={tString(
-            'screens.operationalDetails.title',
-            'Operational details'
-          )}
+          title={t('screens.operationalDetails.title', 'Operational details')}
           subTitle={
             <Button
               type="button"
@@ -752,7 +749,7 @@ export const OperationalDetailsForm = () => {
               {t('common:overview', 'Overview')}
             </Button>
           }
-          description={tString(
+          description={t(
             'screens.operationalDetails.description',
             'Please answer these additional questions to help us understand your business operations.'
           )}

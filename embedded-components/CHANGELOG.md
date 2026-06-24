@@ -2,6 +2,17 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.16.4] - 2026-06-24
+
+### Changes
+
+#### Bug Fixes
+
+- **onboarding:** enable token highlighting for Operational Details screen
+- **recipients:** remove deprecated Address Line 3 field from bank account forms
+- **onboarding:** prevent visual flicker when entering "Check Answers" screen by implementing an existing party cache
+- **onboarding:** invalidate the client on party update in order to properly fetch the latest outstanding questions block
+
 ## [0.16.3] - 2026-06-22
 
 ### Changes

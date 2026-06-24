@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { defineStepper } from '@stepperize/react';
 import { useQueryClient } from '@tanstack/react-query';
+import type { ParseKeys } from 'i18next';
 import { ArrowLeftIcon, ChevronRightIcon, Loader2Icon } from 'lucide-react';
 import { useFormState } from 'react-hook-form';
 
@@ -110,18 +111,50 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
 
   const editingPartyId = editingPartyIds[currentScreenId];
 
+  // Holds the most recent party returned by a submit mutation. It bridges the
+  // brief window between writing the mutation response into the query cache and
+  // that update propagating back down through `clientData` (which comes from
+  // the parent's useSmbdoGetClient observer). Without it, advancing to the
+  // check-answers step — which re-validates each step against `clientData` —
+  // renders one stale frame where the just-completed step momentarily looks
+  // incomplete before flipping to completed.
+  const [lastSubmittedParty, setLastSubmittedParty] = useState<
+    PartyResponse | undefined
+  >();
+
   // When flowEntry navigates directly to a section, editingPartyId may not
   // yet be set.  Fall back to the section's associatedPartyFilters (same
   // logic the sidebar uses when opening a section).
   const currentSectionConfig = sections.find((s) => s.id === currentScreenId);
-  const existingPartyData = editingPartyId
+  const partyDataFromCache = editingPartyId
     ? clientData?.parties?.find((party) => party.id === editingPartyId)
     : getPartyByAssociatedPartyFilters(
         clientData,
         currentSectionConfig?.stepperConfig?.associatedPartyFilters
       );
 
+  // Prefer the freshly-submitted party while the cache update is still
+  // propagating. Only applied when it matches the party currently being
+  // edited, so switching parties/sections falls back to the cache.
+  const existingPartyData =
+    lastSubmittedParty && lastSubmittedParty.id === editingPartyId
+      ? { ...partyDataFromCache, ...lastSubmittedParty }
+      : partyDataFromCache;
+
+  // Once the cache-derived party reflects the latest write, drop the bridge so
+  // the query cache remains the single source of truth. `partyDataFromCache`
+  // only changes reference when the party actually changes (React Query
+  // structural sharing), so this fires exactly when propagation completes.
+  // Intentionally keyed only on `partyDataFromCache` — adding
+  // `lastSubmittedParty` would clear the bridge before propagation finishes.
+  useEffect(() => {
+    if (lastSubmittedParty) {
+      setLastSubmittedParty(undefined);
+    }
+  }, [partyDataFromCache]);
+
   const setExistingPartyData = (partyData: PartyResponse | undefined) => {
+    setLastSubmittedParty(partyData);
     updateEditingPartyId(currentScreenId, partyData?.id);
   };
 
@@ -352,6 +385,36 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     prevButtonDisabled,
   };
 
+  let ownersSectionLabel: ReturnType<typeof t>;
+  if (currentSection?.sectionConfig.shortLabelKey) {
+    ownersSectionLabel = t(
+      currentSection.sectionConfig
+        .shortLabelKey as ParseKeys<'onboarding-overview'>
+    );
+  } else if (currentSection?.sectionConfig.labelKey) {
+    ownersSectionLabel = t(
+      currentSection.sectionConfig.labelKey as ParseKeys<'onboarding-overview'>
+    );
+  } else {
+    ownersSectionLabel =
+      t('onboarding-overview:screens.ownersSection.shortLabel') ??
+      t('onboarding-overview:screens.ownersSection.label');
+  }
+
+  let currentSectionLabel: ReturnType<typeof t> | undefined;
+  if (currentSection?.sectionConfig.shortLabelKey) {
+    currentSectionLabel = t(
+      currentSection.sectionConfig
+        .shortLabelKey as ParseKeys<'onboarding-overview'>
+    );
+  } else if (currentSection?.sectionConfig.labelKey) {
+    currentSectionLabel = t(
+      currentSection.sectionConfig.labelKey as ParseKeys<'onboarding-overview'>
+    );
+  } else {
+    currentSectionLabel = undefined;
+  }
+
   return (
     <div
       ref={mainRef}
@@ -381,25 +444,13 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
                     onClick={() => goBack()}
                     className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
                   >
-                    {currentSection?.sectionConfig.shortLabelKey
-                      ? t(currentSection.sectionConfig.shortLabelKey as any)
-                      : currentSection?.sectionConfig.labelKey
-                        ? t(currentSection.sectionConfig.labelKey as any)
-                        : (t(
-                            'onboarding-overview:screens.ownersSection.shortLabel'
-                          ) ??
-                          t('onboarding-overview:screens.ownersSection.label'))}
+                    {ownersSectionLabel}
                   </Button>
                 </>
               )}
               <ChevronRightIcon className="eb-size-3.5" />
               <span className="eb-truncate">
-                {shortLabelOverride ??
-                  (currentSection?.sectionConfig.shortLabelKey
-                    ? t(currentSection.sectionConfig.shortLabelKey as any)
-                    : currentSection?.sectionConfig.labelKey
-                      ? t(currentSection.sectionConfig.labelKey as any)
-                      : undefined)}
+                {shortLabelOverride ?? currentSectionLabel}
               </span>
               {!isCheckAnswersStep && (
                 <>
@@ -603,6 +654,14 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
             onSettled: (data, error) => {
               onPostPartySettled?.(data, error?.response?.data);
             },
+            onSuccess: () => {
+              // Refresh the client so client-level fields (e.g.
+              // outstanding.questionIds) reflect this party change. The
+              // party response can't carry client-level state.
+              queryClient.invalidateQueries({
+                queryKey: getSmbdoGetClientQueryKey(clientData.id),
+              });
+            },
           }
         );
       }
@@ -770,10 +829,8 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
             onSuccess: (response) => {
               const queryKey = getSmbdoGetClientQueryKey(clientData.id);
 
-              // Update client cache with party data synchronously.
-              // No invalidateQueries needed — setQueryData already has
-              // the correct party data, and a background refetch would
-              // cause a brief flash as it overwrites the optimistic update.
+              // Optimistically merge the updated party so the UI updates
+              // synchronously without a flash.
               queryClient.setQueryData(
                 queryKey,
                 (prev: ClientResponse | undefined) => ({
@@ -787,6 +844,12 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
                 })
               );
               setExistingPartyData(response);
+
+              // Then invalidate to refresh client-level fields (e.g.
+              // outstanding.questionIds) that the party response can't
+              // carry. The background refetch returns identical party
+              // data, so there's no visible flash.
+              queryClient.invalidateQueries({ queryKey });
               handleNext();
             },
             onError: (error) => {
