@@ -158,6 +158,25 @@ describe('openapi-transforms', () => {
       expect(indirectResult.status).toBe('PENDING_HIERARCHY');
     });
 
+    test('keeps indirect owner pending when parent points to client with no intermediary steps', () => {
+      const indirectViaClientOnly = {
+        ...mockIndirectOwnerParty,
+        parentPartyId: 'party-client',
+        individualDetails: {
+          ...mockIndirectOwnerParty.individualDetails,
+          natureOfOwnership: 'Indirect' as const,
+        },
+      };
+
+      const result = transformPartyToBeneficialOwner(indirectViaClientOnly, [
+        mockClientParty,
+      ]);
+
+      expect(result.ownershipType).toBe('INDIRECT');
+      expect(result.ownershipHierarchy?.steps).toHaveLength(0);
+      expect(result.status).toBe('PENDING_HIERARCHY');
+    });
+
     test('handles organization parties', () => {
       const orgParty: PartyResponse = {
         id: 'party-org',
@@ -176,6 +195,51 @@ describe('openapi-transforms', () => {
 
       expect(result.partyType).toBe('ORGANIZATION');
       expect(result.organizationDetails?.organizationName).toBe('Test Corp');
+    });
+
+    test('classifies organization as indirect when organization natureOfOwnership is Indirect', () => {
+      const orgIndirectParty: PartyResponse = {
+        id: 'party-org-indirect',
+        partyType: 'ORGANIZATION',
+        roles: ['INTERMEDIARY_OWNER' as any],
+        profileStatus: 'APPROVED',
+        active: true,
+        createdAt: '2024-01-01T00:00:00Z',
+        parentPartyId: 'party-client',
+        organizationDetails: {
+          organizationType: 'LIMITED_LIABILITY_COMPANY',
+          organizationName: 'Intermediary Holdings LLC',
+          natureOfOwnership: 'Indirect',
+        },
+      };
+
+      const result = transformPartyToBeneficialOwner(orgIndirectParty, [
+        mockClientParty,
+      ]);
+
+      expect(result.ownershipType).toBe('INDIRECT');
+      expect(result.status).toBe('PENDING_HIERARCHY');
+    });
+
+    test('marks intermediary-only business entities as complete without extra hierarchy', () => {
+      const intermediaryEntity: PartyResponse = {
+        id: 'party-intermediary-only',
+        partyType: 'ORGANIZATION',
+        roles: ['INTERMEDIARY_OWNER' as any],
+        profileStatus: 'APPROVED',
+        active: true,
+        createdAt: '2024-01-01T00:00:00Z',
+        organizationDetails: {
+          organizationType: 'LIMITED_LIABILITY_COMPANY',
+          organizationName: 'Known Chain Node LLC',
+          natureOfOwnership: 'Indirect',
+        },
+      };
+
+      const result = transformPartyToBeneficialOwner(intermediaryEntity, []);
+
+      expect(result.ownershipType).toBe('INDIRECT');
+      expect(result.status).toBe('COMPLETE');
     });
 
     test('handles missing individual details gracefully', () => {

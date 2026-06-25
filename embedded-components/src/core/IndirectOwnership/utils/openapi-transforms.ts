@@ -17,16 +17,19 @@ export function transformPartyToBeneficialOwner(
   existingHierarchy?: any
 ): BeneficialOwner {
   // Determine ownership type from multiple signals:
-  // 1. natureOfOwnership field (explicit API classification)
+  // 1. natureOfOwnership field on individual or organization (explicit API classification)
   // 2. parentPartyId pointing to a non-CLIENT party (structural chain)
   // 3. parentPartyId pointing to CLIENT = direct (just links party to client)
-  const natureOfOwnership = party.individualDetails?.natureOfOwnership;
+  const natureOfOwnership =
+    party.individualDetails?.natureOfOwnership ||
+    party.organizationDetails?.natureOfOwnership;
   const parentIsClient = party.parentPartyId
-    ? allParties.find((p) => p.id === party.parentPartyId)?.roles?.includes('CLIENT')
+    ? allParties
+        .find((p) => p.id === party.parentPartyId)
+        ?.roles?.includes('CLIENT')
     : false;
   const ownershipType =
-    natureOfOwnership === 'Indirect' ||
-    (party.parentPartyId && !parentIsClient)
+    natureOfOwnership === 'Indirect' || (party.parentPartyId && !parentIsClient)
       ? 'INDIRECT'
       : 'DIRECT';
 
@@ -38,7 +41,7 @@ export function transformPartyToBeneficialOwner(
       : undefined);
 
   // Determine status based ONLY on hierarchy completion (not KYC status)
-  const status = determineOwnerStatus(ownershipType, !!ownershipHierarchy);
+  const status = determineOwnerStatus(party, ownershipType, ownershipHierarchy);
 
   // Calculate if meets 25% threshold based on hierarchy metadata
   const meets25PercentThreshold = calculateMeets25PercentThreshold(
@@ -90,8 +93,11 @@ function buildOwnershipHierarchy(
       break;
     }
 
-    const isDirectOwner = !currentParty.parentPartyId ||
-      allParties.find((p) => p.id === currentParty!.parentPartyId)?.roles?.includes('CLIENT');
+    const isDirectOwner =
+      !currentParty.parentPartyId ||
+      allParties
+        .find((p) => p.id === currentParty!.parentPartyId)
+        ?.roles?.includes('CLIENT');
 
     steps.push({
       id: `step-${currentParty.id}`,
@@ -187,9 +193,20 @@ function getOwnershipPercentage(
  * This component focuses on ownership structure completion, not KYC status
  */
 function determineOwnerStatus(
+  party: PartyResponse,
   ownershipType?: 'DIRECT' | 'INDIRECT',
-  hasHierarchy?: boolean
+  hierarchy?: { steps?: unknown[] }
 ): BeneficialOwnerStatus {
+  const isIntermediaryOnly =
+    !!party.roles?.includes('INTERMEDIARY_OWNER' as any) &&
+    !party.roles?.includes('BENEFICIAL_OWNER');
+
+  // Intermediary entities are chain nodes, not beneficial owners.
+  // They should not be required to build another hierarchy.
+  if (isIntermediaryOnly) {
+    return 'COMPLETE';
+  }
+
   // For direct owners, they're always complete (no hierarchy needed)
   if (ownershipType === 'DIRECT') {
     return 'COMPLETE';
@@ -197,7 +214,8 @@ function determineOwnerStatus(
 
   // For indirect owners, status depends only on whether hierarchy is built
   if (ownershipType === 'INDIRECT') {
-    return hasHierarchy ? 'COMPLETE' : 'PENDING_HIERARCHY';
+    const hasAtLeastOneChainStep = (hierarchy?.steps?.length ?? 0) > 0;
+    return hasAtLeastOneChainStep ? 'COMPLETE' : 'PENDING_HIERARCHY';
   }
 
   // Fallback - assume complete if we can't determine
