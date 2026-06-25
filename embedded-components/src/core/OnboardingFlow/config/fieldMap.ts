@@ -979,9 +979,7 @@ export const partyFieldMap: PartyFieldMap = {
         condition: {
           screenId: ['owner-stepper'],
         },
-        rule: {
-          contentTokenOverrideKey: 'owner',
-        },
+        rule: { display: 'hidden' },
       },
     ],
   },
@@ -1001,9 +999,7 @@ export const partyFieldMap: PartyFieldMap = {
         condition: {
           screenId: ['owner-stepper'],
         },
-        rule: {
-          contentTokenOverrideKey: 'owner',
-        },
+        rule: { display: 'hidden' },
       },
     ],
   },
