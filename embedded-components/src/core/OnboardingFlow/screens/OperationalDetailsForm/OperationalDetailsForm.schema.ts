@@ -3,6 +3,119 @@ import { z } from 'zod';
 
 import { QuestionResponse } from '@/api/generated/smbdo.schemas';
 
+const normalizeComparableValue = (value: unknown): string =>
+  String(value).trim().toLowerCase();
+
+const hasAnyValuesMatch = (
+  parentResponse: unknown,
+  anyValuesMatch: unknown
+): boolean => {
+  if (anyValuesMatch == null || parentResponse == null) return false;
+
+  const parentValues = Array.isArray(parentResponse)
+    ? parentResponse
+    : [parentResponse];
+  const matchValues = Array.isArray(anyValuesMatch)
+    ? anyValuesMatch
+    : [anyValuesMatch];
+
+  const normalizedMatches = matchValues
+    .filter((value) => value != null)
+    .map((value) => normalizeComparableValue(value));
+
+  if (normalizedMatches.length === 0) return false;
+
+  return parentValues.some((value) => {
+    if (value == null) return false;
+    return normalizedMatches.includes(normalizeComparableValue(value));
+  });
+};
+
+const normalizeQuestionId = (id: unknown): string =>
+  id == null ? '' : String(id);
+
+// Helper to check if a question's parent is visible (recursive for nested hierarchies)
+const isParentVisible = (
+  question: QuestionResponse,
+  questionsData: QuestionResponse[],
+  values: Record<string, unknown>
+): boolean => {
+  const questionId = normalizeQuestionId(question.id);
+  const parentQuestion = question.parentQuestionId
+    ? questionsData.find(
+        (q) =>
+          normalizeQuestionId(q.id) ===
+          normalizeQuestionId(question.parentQuestionId)
+      )
+    : questionsData.find((q) =>
+        q.subQuestions?.some((sq) =>
+          sq.questionIds?.some((id) => normalizeQuestionId(id) === questionId)
+        )
+      );
+
+  if (!parentQuestion) return true;
+
+  // Parent must be visible too (recursive for deeply nested questions)
+  if (!isParentVisible(parentQuestion, questionsData, values)) return false;
+
+  const parentQuestionId = normalizeQuestionId(parentQuestion.id);
+  const parentValue = values?.[`question_${parentQuestionId}`];
+
+  if (!parentValue) return false;
+
+  const subQuestion = parentQuestion.subQuestions?.find((sq) =>
+    sq.questionIds?.some((id) => normalizeQuestionId(id) === questionId)
+  );
+
+  if (subQuestion?.anyValuesMatch == null) return false;
+
+  return hasAnyValuesMatch(parentValue, subQuestion.anyValuesMatch);
+};
+
+// Check if a question ID is referenced anywhere in the subquestion tree (recursive)
+const isReferencedInSubQuestions = (
+  questionId: string,
+  questionsData: QuestionResponse[]
+): boolean => {
+  const questionsMap = new Map(
+    questionsData.map((q) => [normalizeQuestionId(q.id), q])
+  );
+
+  const checkReferenced = (
+    q: QuestionResponse,
+    visited: Set<string>
+  ): boolean => {
+    const qId = normalizeQuestionId(q.id);
+    if (visited.has(qId)) return false;
+    visited.add(qId);
+
+    // Check if this question references our target ID
+    const directMatch = q.subQuestions?.some((sq) =>
+      sq.questionIds?.some((id) => normalizeQuestionId(id) === questionId)
+    );
+
+    if (directMatch) return true;
+
+    // Recursively check nested subquestions
+    let nestedMatch = false;
+    q.subQuestions?.forEach((sq) => {
+      sq.questionIds?.forEach((id) => {
+        const referencedQuestion = questionsMap.get(normalizeQuestionId(id));
+        if (
+          referencedQuestion &&
+          checkReferenced(referencedQuestion, visited)
+        ) {
+          nestedMatch = true;
+        }
+      });
+    });
+
+    return nestedMatch;
+  };
+
+  return questionsData.some((q) => checkReferenced(q, new Set<string>()));
+};
+
 // Define question IDs that should use a datepicker
 export const DATE_QUESTION_IDS = ['30071', '30073']; // Add more IDs as needed
 export const MONEY_INPUT_QUESTION_IDS = ['30005']; // Add more IDs as needed
@@ -14,7 +127,12 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
     const itemType = question?.responseSchema?.items?.type ?? 'string';
     const itemEnum = question?.responseSchema?.items?.enum;
     const itemPattern = question?.responseSchema?.items?.pattern;
-    const isOptional = !!question.parentQuestionId;
+    const questionId = normalizeQuestionId(question.id);
+    const hasParentReference = isReferencedInSubQuestions(
+      questionId,
+      questionsData
+    );
+    const isOptional = !!question.parentQuestionId || hasParentReference;
 
     let valueSchema: z.ZodTypeAny;
 
@@ -55,7 +173,14 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
                 message: i18n.t('validation:common.invalidOption'),
               });
             } else {
-              valueSchema = z.string();
+              valueSchema = z
+                .string()
+                .min(
+                  1,
+                  i18n.t(
+                    'onboarding-overview:additionalQuestions.validation.required'
+                  )
+                );
             }
           } else {
             valueSchema = z
@@ -93,7 +218,14 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
             );
           break;
         default:
-          valueSchema = z.string();
+          valueSchema = z
+            .string()
+            .min(
+              1,
+              i18n.t(
+                'onboarding-overview:additionalQuestions.validation.required'
+              )
+            );
       }
     } else {
       // Unknown question type
@@ -103,7 +235,13 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
     // If the question allows multiple values, wrap it in an array
     if (question?.responseSchema?.type === 'array') {
       const childSchema = valueSchema;
-      valueSchema = z.array(childSchema);
+      const requiredMsg = i18n.t(
+        'onboarding-overview:additionalQuestions.validation.required'
+      );
+      valueSchema = z.array(childSchema, {
+        required_error: requiredMsg,
+        invalid_type_error: requiredMsg,
+      });
 
       if (!isOptional) {
         valueSchema = (valueSchema as z.ZodArray<z.ZodTypeAny>)
@@ -119,18 +257,21 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
               'onboarding-overview:additionalQuestions.validation.maxItems',
               { maxItems: question?.responseSchema?.maxItems }
             )
-          )
-          // Extract error from child schema
-          .superRefine((values, context) => {
-            values.forEach((value: any) => {
-              const result = childSchema.safeParse(value);
-              if (result.error) {
-                context.addIssue(result.error.issues[0]);
-              }
-            });
-            return true;
-          });
+          );
       }
+
+      // Surface child-element validation errors at the field level
+      // so FormMessage can display them (zod nests them at path [0] otherwise).
+      valueSchema = (valueSchema as z.ZodArray<z.ZodTypeAny>).superRefine(
+        (values, context) => {
+          values.forEach((value: any) => {
+            const result = childSchema.safeParse(value);
+            if (result.error) {
+              context.addIssue(result.error.issues[0]);
+            }
+          });
+        }
+      );
     }
 
     // Sub-questions are validated conditionally in the superRefine below,
@@ -143,67 +284,59 @@ export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
 
   return z.object(schemaFields).superRefine((values, context) => {
     questionsData.forEach((question) => {
-      if (question.parentQuestionId) {
-        const parentQuestionValue =
-          values?.[`question_${question.parentQuestionId}`];
-        const parentQuestion = questionsData.find(
-          (q) => q.id === question.parentQuestionId
-        );
-        if (parentQuestion?.subQuestions) {
-          const subQuestion = parentQuestion.subQuestions.find((sq) =>
-            sq.questionIds?.includes(question.id ?? '')
-          );
-          if (subQuestion) {
-            if (
-              (typeof subQuestion?.anyValuesMatch === 'string' &&
-                parentQuestionValue.includes(subQuestion.anyValuesMatch)) ||
-              (Array.isArray(subQuestion?.anyValuesMatch) &&
-                parentQuestionValue.some((value: any) =>
-                  subQuestion.anyValuesMatch?.includes(value)
-                ))
-            ) {
-              if (question?.responseSchema?.type === 'array') {
-                if (question?.responseSchema?.minItems) {
-                  if (
-                    !values?.[`question_${question.id}`] ||
-                    values?.[`question_${question.id}`].length <
-                      question?.responseSchema?.minItems
-                  ) {
-                    context.addIssue({
-                      code: z.ZodIssueCode.custom,
-                      message: i18n.t(
-                        'onboarding-overview:additionalQuestions.validation.required'
-                      ),
-                      path: [`question_${question.id}`],
-                    });
+      const questionId = normalizeQuestionId(question.id);
+
+      // Only apply conditional validation to questions that are children
+      // (have a parent reference or are referenced in subQuestions).
+      // Top-level questions are already validated by their field-level schema.
+      const hasParent = !!question.parentQuestionId;
+      const isChild =
+        hasParent || isReferencedInSubQuestions(questionId, questionsData);
+
+      if (!isChild) return;
+
+      // Check if this child question should be validated (is visible based on parent conditionals)
+      if (isParentVisible(question, questionsData, values)) {
+        const fieldValue = values?.[`question_${questionId}`];
+        if (question?.responseSchema?.type === 'array') {
+          const minItems = question?.responseSchema?.minItems ?? 1;
+          if (
+            !fieldValue ||
+            !Array.isArray(fieldValue) ||
+            fieldValue.length < minItems
+          ) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: i18n.t(
+                'onboarding-overview:additionalQuestions.validation.required'
+              ),
+              path: [`question_${questionId}`],
+            });
+          } else if (question?.responseSchema?.maxItems) {
+            if (fieldValue.length > question.responseSchema.maxItems) {
+              context.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: i18n.t(
+                  'onboarding-overview:additionalQuestions.validation.maxItems',
+                  {
+                    maxItems: question?.responseSchema?.maxItems,
                   }
-                }
-                if (question?.responseSchema?.maxItems) {
-                  if (
-                    values?.[`question_${question.id}`].length >
-                    question?.responseSchema?.maxItems
-                  ) {
-                    context.addIssue({
-                      code: z.ZodIssueCode.custom,
-                      message: i18n.t(
-                        'onboarding-overview:additionalQuestions.validation.maxItems',
-                        { maxItems: question?.responseSchema?.maxItems }
-                      ),
-                      path: [`question_${question.id}`],
-                    });
-                  }
-                }
-              } else if (!values?.[`question_${question.id}`]) {
-                context.addIssue({
-                  code: z.ZodIssueCode.custom,
-                  message: i18n.t(
-                    'onboarding-overview:additionalQuestions.validation.required'
-                  ),
-                  path: [`question_${question.id}`],
-                });
-              }
+                ),
+                path: [`question_${questionId}`],
+              });
             }
           }
+        } else if (
+          !fieldValue ||
+          (Array.isArray(fieldValue) && fieldValue.length === 0)
+        ) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: i18n.t(
+              'onboarding-overview:additionalQuestions.validation.required'
+            ),
+            path: [`question_${questionId}`],
+          });
         }
       }
     });

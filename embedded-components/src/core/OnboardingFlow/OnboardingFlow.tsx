@@ -6,10 +6,7 @@ import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
-import {
-  useClientId,
-  useInterceptorStatus,
-} from '@/core/EBComponentsProvider/EBComponentsProvider';
+import { useClientId } from '@/core/EBComponentsProvider/EBComponentsProvider';
 import {
   getOrganizationParty,
   getPartyByAssociatedPartyFilters,
@@ -56,15 +53,13 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   // Force sidebar hidden in docUploadOnlyMode
   const effectiveHideSidebar = hideSidebar || !!props.docUploadOnlyMode;
 
-  const { interceptorReady } = useInterceptorStatus();
-
   const {
     data: clientData,
     status: clientGetStatus,
     error: clientGetError,
   } = useSmbdoGetClient(clientId, {
     query: {
-      enabled: !!clientId && interceptorReady, // Only fetch if clientId is defined AND interceptor is ready
+      enabled: !!clientId,
       refetchOnWindowFocus: true,
       refetchInterval: 60000, // Refetch every 60 seconds
     },
@@ -90,18 +85,29 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const canUseFlowEntry =
     !!flowEntry && !props.docUploadOnlyMode && !!organizationType;
 
+  // When PTC is enabled but unanswered, route back to gateway so user can
+  // confirm publicly-traded status before proceeding to overview.
+  // Only applies to existing clients (loaded via providerClientId), not
+  // freshly-created ones that just went through gateway in this session.
+  const ptcAnswered = !!existingOrgParty?.organizationDetails?.publiclyTraded;
+  const needsPTCGateway =
+    !!props.enablePubliclyTradedCompanies &&
+    !!providerClientId &&
+    !!organizationType &&
+    !ptcAnswered;
+
   const flowProviderInitialScreenId = props.docUploadOnlyMode
     ? 'upload-documents-section'
     : canUseFlowEntry
       ? flowEntry.screenId
-      : organizationType
+      : organizationType && !needsPTCGateway
         ? 'overview'
         : 'gateway';
 
   const flowProviderSeedStepperStepId =
     canUseFlowEntry && flowEntry.stepperStepId ? flowEntry.stepperStepId : null;
 
-  const { t } = useTranslationWithTokens(['onboarding-overview']);
+  const { t, tString } = useTranslationWithTokens(['onboarding-overview']);
 
   // #region User Events
   // Set up automatic event tracking for data-user-event attributes
@@ -127,8 +133,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         userEventsLifecycle,
       }}
     >
-      <div
+      <main
         id="embedded-component-layout"
+        aria-label={tString('onboarding-overview:mainLandmarkLabel')}
         className={cn(
           'eb-component eb-mx-auto eb-flex eb-max-w-screen-sm eb-flex-1 eb-flex-col eb-bg-background eb-p-4 eb-pb-6 eb-font-sans eb-text-foreground eb-antialiased sm:eb-p-10 sm:eb-pb-12',
           {
@@ -157,7 +164,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
           </FlowProvider>
         )}
         <DisclosureFooter />
-      </div>
+      </main>
     </OnboardingContext.Provider>
   );
 };
@@ -165,6 +172,12 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 // Memoize the FlowRenderer component to ensure consistent hook order
 const FlowRenderer: React.FC = React.memo(() => {
   const { t } = useTranslationWithTokens(['onboarding-overview']);
+
+  // Resolve step title through content tokens at render time using titleKey.
+  const resolveStepTitle = (step: { id: string; titleKey: string }) => {
+    return t(step.titleKey as any) as string;
+  };
+
   const {
     clientData,
     organizationType,
@@ -173,6 +186,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     showLinkAccountStep,
     linkAccountEnabledStatuses,
     linkAccountStepOptions,
+    enablePubliclyTradedCompanies,
     userEventsHandler,
   } = useOnboardingContext();
   const {
@@ -197,9 +211,18 @@ const FlowRenderer: React.FC = React.memo(() => {
   // should not inherit the previous section.
   const isSubScreen =
     currentScreenId === 'owner-stepper' ||
-    currentScreenId === 'document-upload-form' ||
-    currentScreenId === 'indirect-owner-details' ||
-    currentScreenId === 'intermediary-stepper';
+    currentScreenId === 'document-upload-form';
+
+  // PTC unanswered: lock sidebar sections so user must answer PTC first.
+  const orgParty = getOrganizationParty(clientData);
+  const ptcAnsweredInSession = !!sessionData.isPTCQuestionAnswered;
+  const needsPTCGateway =
+    !!enablePubliclyTradedCompanies &&
+    !!clientData?.id &&
+    !!organizationType &&
+    !orgParty?.organizationDetails?.publiclyTraded &&
+    !ptcAnsweredInSession;
+
   const sidebarSectionId = sections.some((s) => s.id === currentScreenId)
     ? currentScreenId
     : isSubScreen
@@ -262,8 +285,6 @@ const FlowRenderer: React.FC = React.memo(() => {
     currentScreenId
   );
 
-  const { interceptorReady } = useInterceptorStatus();
-
   const linkAccountEnabled = getLinkAccountEnabled(
     clientData,
     linkAccountEnabledStatuses
@@ -274,7 +295,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     { type: 'LINKED_ACCOUNT', clientId: clientData?.id },
     {
       query: {
-        enabled: interceptorReady && !!showLinkAccountStep && !!clientData?.id,
+        enabled: !!showLinkAccountStep && !!clientData?.id,
       },
     }
   );
@@ -385,7 +406,7 @@ const FlowRenderer: React.FC = React.memo(() => {
       status:
         organizationType && clientData?.status !== 'NEW'
           ? 'completed_disabled'
-          : organizationType
+          : organizationType && !needsPTCGateway
             ? 'completed'
             : 'not_started',
       steps: [],
@@ -410,9 +431,13 @@ const FlowRenderer: React.FC = React.memo(() => {
       if (section.id === 'owners-section') {
         return {
           ...section,
-          status: sectionStatuses[section.id] || 'not_started',
-          title:
-            section.sectionConfig.shortLabel ?? section.sectionConfig.label,
+          status: needsPTCGateway
+            ? 'on_hold'
+            : sectionStatuses[section.id] || 'not_started',
+          title: t(
+            (section.sectionConfig.shortLabelKey ??
+              section.sectionConfig.labelKey) as any
+          ),
           steps: [
             ...activeOwners.map((owner) => {
               const isEditingThisOwner =
@@ -435,7 +460,7 @@ const FlowRenderer: React.FC = React.memo(() => {
                   ownerStepValidation
                     ? ownerStepperConfig.steps.map((step, stepIndex) => ({
                         id: step.id,
-                        title: step.title,
+                        title: resolveStepTitle(step),
                         status:
                           stepIndex > 0 && !editingOwnerParty?.id
                             ? ('on_hold' as const)
@@ -461,7 +486,7 @@ const FlowRenderer: React.FC = React.memo(() => {
                     subSteps: ownerStepperConfig.steps.map(
                       (step, stepIndex) => ({
                         id: step.id,
-                        title: step.title,
+                        title: resolveStepTitle(step),
                         status:
                           stepIndex > 0
                             ? ('on_hold' as const)
@@ -482,8 +507,13 @@ const FlowRenderer: React.FC = React.memo(() => {
 
       return {
         ...section,
-        status: sectionStatuses[section.id] || 'not_started',
-        title: section.sectionConfig.shortLabel ?? section.sectionConfig.label,
+        status: needsPTCGateway
+          ? 'on_hold'
+          : sectionStatuses[section.id] || 'not_started',
+        title: t(
+          (section.sectionConfig.shortLabelKey ??
+            section.sectionConfig.labelKey) as any
+        ),
         steps: (section.stepperConfig?.steps ?? []).map((step, stepIndex) => {
           // Check if this static step was explicitly
           // completed and recorded in session data.
@@ -493,6 +523,7 @@ const FlowRenderer: React.FC = React.memo(() => {
 
           return {
             ...step,
+            title: resolveStepTitle(step),
             status:
               stepIndex > 0 && partyRequiredButMissing
                 ? 'on_hold'

@@ -5,6 +5,7 @@
  * Create, track, and manage payments, such as ACH, wire, and real-time transfers, while easily filtering and retrieving transaction details by type, status, account, or date. This lets you automate fund movement and gain real-time visibility into your payment activity, all through a secure and flexible interface.
  * OpenAPI spec version: 2.0.47
  */
+import { useCallback } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import type {
   DataTag,
@@ -21,8 +22,8 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query';
 
-import { ebInstance } from '../axios-instance';
-import type { BodyType, ErrorType } from '../axios-instance';
+import { useEbInstance } from '../use-axios-instance';
+import type { BodyType, ErrorType } from '../use-axios-instance';
 import type {
   ListTransactionsSearchResponseV2,
   ListTransactionsV2Params,
@@ -43,14 +44,21 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
  * Lists transactions for a specific client, which can be filtered using optional parameters.
  * @summary List transactions
  */
-export const listTransactionsV2 = (
-  params?: ListTransactionsV2Params,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
-) => {
-  return ebInstance<ListTransactionsSearchResponseV2>(
-    { url: `/transactions`, method: 'GET', params, signal },
-    options
+export const useListTransactionsV2Hook = () => {
+  const listTransactionsV2 = useEbInstance<ListTransactionsSearchResponseV2>();
+
+  return useCallback(
+    (
+      params?: ListTransactionsV2Params,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return listTransactionsV2(
+        { url: `/transactions`, method: 'GET', params, signal },
+        options
+      );
+    },
+    [listTransactionsV2]
   );
 };
 
@@ -60,8 +68,8 @@ export const getListTransactionsV2QueryKey = (
   return [`/transactions`, ...(params ? [params] : [])] as const;
 };
 
-export const getListTransactionsV2QueryOptions = <
-  TData = Awaited<ReturnType<typeof listTransactionsV2>>,
+export const useListTransactionsV2QueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useListTransactionsV2Hook>>>,
   TError = ErrorType<
     | N400v2Response
     | N401v2Response
@@ -75,12 +83,12 @@ export const getListTransactionsV2QueryOptions = <
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof listTransactionsV2>>,
+        Awaited<ReturnType<ReturnType<typeof useListTransactionsV2Hook>>>,
         TError,
         TData
       >
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   }
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -88,19 +96,21 @@ export const getListTransactionsV2QueryOptions = <
   const queryKey =
     queryOptions?.queryKey ?? getListTransactionsV2QueryKey(params);
 
+  const listTransactionsV2 = useListTransactionsV2Hook();
+
   const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof listTransactionsV2>>
+    Awaited<ReturnType<ReturnType<typeof useListTransactionsV2Hook>>>
   > = ({ signal }) => listTransactionsV2(params, requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof listTransactionsV2>>,
+    Awaited<ReturnType<ReturnType<typeof useListTransactionsV2Hook>>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
 export type ListTransactionsV2QueryResult = NonNullable<
-  Awaited<ReturnType<typeof listTransactionsV2>>
+  Awaited<ReturnType<ReturnType<typeof useListTransactionsV2Hook>>>
 >;
 export type ListTransactionsV2QueryError = ErrorType<
   | N400v2Response
@@ -112,7 +122,7 @@ export type ListTransactionsV2QueryError = ErrorType<
 >;
 
 export function useListTransactionsV2<
-  TData = Awaited<ReturnType<typeof listTransactionsV2>>,
+  TData = Awaited<ReturnType<ReturnType<typeof useListTransactionsV2Hook>>>,
   TError = ErrorType<
     | N400v2Response
     | N401v2Response
@@ -126,27 +136,27 @@ export function useListTransactionsV2<
   options: {
     query: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof listTransactionsV2>>,
+        Awaited<ReturnType<ReturnType<typeof useListTransactionsV2Hook>>>,
         TError,
         TData
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listTransactionsV2>>,
+          Awaited<ReturnType<ReturnType<typeof useListTransactionsV2Hook>>>,
           TError,
-          Awaited<ReturnType<typeof listTransactionsV2>>
+          Awaited<ReturnType<ReturnType<typeof useListTransactionsV2Hook>>>
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 export function useListTransactionsV2<
-  TData = Awaited<ReturnType<typeof listTransactionsV2>>,
+  TData = Awaited<ReturnType<ReturnType<typeof useListTransactionsV2Hook>>>,
   TError = ErrorType<
     | N400v2Response
     | N401v2Response
@@ -160,27 +170,27 @@ export function useListTransactionsV2<
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof listTransactionsV2>>,
+        Awaited<ReturnType<ReturnType<typeof useListTransactionsV2Hook>>>,
         TError,
         TData
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listTransactionsV2>>,
+          Awaited<ReturnType<ReturnType<typeof useListTransactionsV2Hook>>>,
           TError,
-          Awaited<ReturnType<typeof listTransactionsV2>>
+          Awaited<ReturnType<ReturnType<typeof useListTransactionsV2Hook>>>
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 export function useListTransactionsV2<
-  TData = Awaited<ReturnType<typeof listTransactionsV2>>,
+  TData = Awaited<ReturnType<ReturnType<typeof useListTransactionsV2Hook>>>,
   TError = ErrorType<
     | N400v2Response
     | N401v2Response
@@ -194,12 +204,12 @@ export function useListTransactionsV2<
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof listTransactionsV2>>,
+        Awaited<ReturnType<ReturnType<typeof useListTransactionsV2Hook>>>,
         TError,
         TData
       >
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -210,7 +220,7 @@ export function useListTransactionsV2<
  */
 
 export function useListTransactionsV2<
-  TData = Awaited<ReturnType<typeof listTransactionsV2>>,
+  TData = Awaited<ReturnType<ReturnType<typeof useListTransactionsV2Hook>>>,
   TError = ErrorType<
     | N400v2Response
     | N401v2Response
@@ -224,18 +234,18 @@ export function useListTransactionsV2<
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof listTransactionsV2>>,
+        Awaited<ReturnType<ReturnType<typeof useListTransactionsV2Hook>>>,
         TError,
         TData
       >
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getListTransactionsV2QueryOptions(params, options);
+  const queryOptions = useListTransactionsV2QueryOptions(params, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,
@@ -249,24 +259,31 @@ export function useListTransactionsV2<
  * Creates a new transaction, such as a payment via ACH, Wire or Real Time Payments (RTP).
  * @summary Create transaction
  */
-export const createTransactionV2 = (
-  postTransactionRequestV2: BodyType<PostTransactionRequestV2>,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
-) => {
-  return ebInstance<TransactionResponseV2>(
-    {
-      url: `/transactions`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: postTransactionRequestV2,
-      signal,
+export const useCreateTransactionV2Hook = () => {
+  const createTransactionV2 = useEbInstance<TransactionResponseV2>();
+
+  return useCallback(
+    (
+      postTransactionRequestV2: BodyType<PostTransactionRequestV2>,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return createTransactionV2(
+        {
+          url: `/transactions`,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          data: postTransactionRequestV2,
+          signal,
+        },
+        options
+      );
     },
-    options
+    [createTransactionV2]
   );
 };
 
-export const getCreateTransactionV2MutationOptions = <
+export const useCreateTransactionV2MutationOptions = <
   TError = ErrorType<
     | N400v2Response
     | N401v2Response
@@ -278,14 +295,14 @@ export const getCreateTransactionV2MutationOptions = <
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof createTransactionV2>>,
+    Awaited<ReturnType<ReturnType<typeof useCreateTransactionV2Hook>>>,
     TError,
     { data: BodyType<PostTransactionRequestV2> },
     TContext
   >;
-  request?: SecondParameter<typeof ebInstance>;
+  request?: SecondParameter<ReturnType<typeof useEbInstance>>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof createTransactionV2>>,
+  Awaited<ReturnType<ReturnType<typeof useCreateTransactionV2Hook>>>,
   TError,
   { data: BodyType<PostTransactionRequestV2> },
   TContext
@@ -299,8 +316,10 @@ export const getCreateTransactionV2MutationOptions = <
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
 
+  const createTransactionV2 = useCreateTransactionV2Hook();
+
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof createTransactionV2>>,
+    Awaited<ReturnType<ReturnType<typeof useCreateTransactionV2Hook>>>,
     { data: BodyType<PostTransactionRequestV2> }
   > = (props) => {
     const { data } = props ?? {};
@@ -312,7 +331,7 @@ export const getCreateTransactionV2MutationOptions = <
 };
 
 export type CreateTransactionV2MutationResult = NonNullable<
-  Awaited<ReturnType<typeof createTransactionV2>>
+  Awaited<ReturnType<ReturnType<typeof useCreateTransactionV2Hook>>>
 >;
 export type CreateTransactionV2MutationBody =
   BodyType<PostTransactionRequestV2>;
@@ -341,22 +360,22 @@ export const useCreateTransactionV2 = <
 >(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof createTransactionV2>>,
+      Awaited<ReturnType<ReturnType<typeof useCreateTransactionV2Hook>>>,
       TError,
       { data: BodyType<PostTransactionRequestV2> },
       TContext
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
-  Awaited<ReturnType<typeof createTransactionV2>>,
+  Awaited<ReturnType<ReturnType<typeof useCreateTransactionV2Hook>>>,
   TError,
   { data: BodyType<PostTransactionRequestV2> },
   TContext
 > => {
   return useMutation(
-    getCreateTransactionV2MutationOptions(options),
+    useCreateTransactionV2MutationOptions(options),
     queryClient
   );
 };
@@ -365,14 +384,21 @@ export const useCreateTransactionV2 = <
  * Returns details for a specific transaction using its unique identifier.
  * @summary Get transaction
  */
-export const getTransactionV2 = (
-  id: string,
-  options?: SecondParameter<typeof ebInstance>,
-  signal?: AbortSignal
-) => {
-  return ebInstance<TransactionGetResponseV2>(
-    { url: `/transactions/${id}`, method: 'GET', signal },
-    options
+export const useGetTransactionV2Hook = () => {
+  const getTransactionV2 = useEbInstance<TransactionGetResponseV2>();
+
+  return useCallback(
+    (
+      id: string,
+      options?: SecondParameter<ReturnType<typeof useEbInstance>>,
+      signal?: AbortSignal
+    ) => {
+      return getTransactionV2(
+        { url: `/transactions/${id}`, method: 'GET', signal },
+        options
+      );
+    },
+    [getTransactionV2]
   );
 };
 
@@ -380,8 +406,8 @@ export const getGetTransactionV2QueryKey = (id: string) => {
   return [`/transactions/${id}`] as const;
 };
 
-export const getGetTransactionV2QueryOptions = <
-  TData = Awaited<ReturnType<typeof getTransactionV2>>,
+export const useGetTransactionV2QueryOptions = <
+  TData = Awaited<ReturnType<ReturnType<typeof useGetTransactionV2Hook>>>,
   TError = ErrorType<
     | N400v2Response
     | N401v2Response
@@ -395,20 +421,22 @@ export const getGetTransactionV2QueryOptions = <
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getTransactionV2>>,
+        Awaited<ReturnType<ReturnType<typeof useGetTransactionV2Hook>>>,
         TError,
         TData
       >
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   }
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetTransactionV2QueryKey(id);
 
+  const getTransactionV2 = useGetTransactionV2Hook();
+
   const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof getTransactionV2>>
+    Awaited<ReturnType<ReturnType<typeof useGetTransactionV2Hook>>>
   > = ({ signal }) => getTransactionV2(id, requestOptions, signal);
 
   return {
@@ -417,14 +445,14 @@ export const getGetTransactionV2QueryOptions = <
     enabled: !!id,
     ...queryOptions,
   } as UseQueryOptions<
-    Awaited<ReturnType<typeof getTransactionV2>>,
+    Awaited<ReturnType<ReturnType<typeof useGetTransactionV2Hook>>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
 export type GetTransactionV2QueryResult = NonNullable<
-  Awaited<ReturnType<typeof getTransactionV2>>
+  Awaited<ReturnType<ReturnType<typeof useGetTransactionV2Hook>>>
 >;
 export type GetTransactionV2QueryError = ErrorType<
   | N400v2Response
@@ -436,7 +464,7 @@ export type GetTransactionV2QueryError = ErrorType<
 >;
 
 export function useGetTransactionV2<
-  TData = Awaited<ReturnType<typeof getTransactionV2>>,
+  TData = Awaited<ReturnType<ReturnType<typeof useGetTransactionV2Hook>>>,
   TError = ErrorType<
     | N400v2Response
     | N401v2Response
@@ -450,27 +478,27 @@ export function useGetTransactionV2<
   options: {
     query: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getTransactionV2>>,
+        Awaited<ReturnType<ReturnType<typeof useGetTransactionV2Hook>>>,
         TError,
         TData
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getTransactionV2>>,
+          Awaited<ReturnType<ReturnType<typeof useGetTransactionV2Hook>>>,
           TError,
-          Awaited<ReturnType<typeof getTransactionV2>>
+          Awaited<ReturnType<ReturnType<typeof useGetTransactionV2Hook>>>
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 export function useGetTransactionV2<
-  TData = Awaited<ReturnType<typeof getTransactionV2>>,
+  TData = Awaited<ReturnType<ReturnType<typeof useGetTransactionV2Hook>>>,
   TError = ErrorType<
     | N400v2Response
     | N401v2Response
@@ -484,27 +512,27 @@ export function useGetTransactionV2<
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getTransactionV2>>,
+        Awaited<ReturnType<ReturnType<typeof useGetTransactionV2Hook>>>,
         TError,
         TData
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getTransactionV2>>,
+          Awaited<ReturnType<ReturnType<typeof useGetTransactionV2Hook>>>,
           TError,
-          Awaited<ReturnType<typeof getTransactionV2>>
+          Awaited<ReturnType<ReturnType<typeof useGetTransactionV2Hook>>>
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 export function useGetTransactionV2<
-  TData = Awaited<ReturnType<typeof getTransactionV2>>,
+  TData = Awaited<ReturnType<ReturnType<typeof useGetTransactionV2Hook>>>,
   TError = ErrorType<
     | N400v2Response
     | N401v2Response
@@ -518,12 +546,12 @@ export function useGetTransactionV2<
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getTransactionV2>>,
+        Awaited<ReturnType<ReturnType<typeof useGetTransactionV2Hook>>>,
         TError,
         TData
       >
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -534,7 +562,7 @@ export function useGetTransactionV2<
  */
 
 export function useGetTransactionV2<
-  TData = Awaited<ReturnType<typeof getTransactionV2>>,
+  TData = Awaited<ReturnType<ReturnType<typeof useGetTransactionV2Hook>>>,
   TError = ErrorType<
     | N400v2Response
     | N401v2Response
@@ -548,18 +576,18 @@ export function useGetTransactionV2<
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getTransactionV2>>,
+        Awaited<ReturnType<ReturnType<typeof useGetTransactionV2Hook>>>,
         TError,
         TData
       >
     >;
-    request?: SecondParameter<typeof ebInstance>;
+    request?: SecondParameter<ReturnType<typeof useEbInstance>>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getGetTransactionV2QueryOptions(id, options);
+  const queryOptions = useGetTransactionV2QueryOptions(id, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,

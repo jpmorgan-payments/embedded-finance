@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import {
@@ -20,6 +20,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
   FormControl,
   FormDescription,
   FormField,
@@ -106,6 +107,8 @@ interface SelectOrRadioGroupProps<
     searchValue?: string;
     description?: React.ReactNode;
     disabled?: boolean;
+    group?: string;
+    alwaysVisible?: boolean;
   }>;
 }
 interface OtherFieldProps<
@@ -153,7 +156,6 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   const { priorityIndustryCodes } = useOnboardingContext();
 
   const { t, tString } = useTranslationWithTokens([
-    'onboarding-old',
     'onboarding-overview',
     'common',
   ]);
@@ -198,7 +200,6 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
 
   const getContentToken = (id: FieldContentTokenKey) => {
     const key = `fields.${tName}.${id}`;
-    const oldContentTokenKey = `onboarding-old:${key}`;
     const contentTokenOverride = fieldRule.contentTokenOverrides?.[id];
     return (
       contentTokenOverride ??
@@ -207,7 +208,6 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
           `onboarding-overview:${key}.${fieldRule.contentTokenOverrideKey}`,
           `onboarding-overview:${key}.default`,
           `onboarding-overview:${key}`,
-          oldContentTokenKey, // TO REMOVE
           'common:noTokenFallback',
         ] as unknown as TemplateStringsArray,
         {
@@ -221,7 +221,6 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   // String version for HTML attributes like placeholder that require string type
   const getContentTokenString = (id: FieldContentTokenKey) => {
     const key = `fields.${tName}.${id}`;
-    const oldContentTokenKey = `onboarding-old:${key}`;
     const contentTokenOverride = fieldRule.contentTokenOverrides?.[id];
     if (typeof contentTokenOverride === 'string') {
       return contentTokenOverride;
@@ -231,7 +230,6 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
         `onboarding-overview:${key}.${fieldRule.contentTokenOverrideKey}`,
         `onboarding-overview:${key}.default`,
         `onboarding-overview:${key}`,
-        oldContentTokenKey, // TO REMOVE
         'common:noTokenFallback',
       ] as unknown as TemplateStringsArray,
       {
@@ -431,45 +429,127 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                                 ? `${matchedOption.searchValue ?? String(matchedOption.label)} ${matchedOption.value}`
                                 : undefined
                             }
+                            filter={(value, search) => {
+                              const alwaysVisibleValues = options
+                                ?.filter((opt) => opt.alwaysVisible)
+                                .map(
+                                  (opt) =>
+                                    `${opt.searchValue ?? opt.label} ${opt.value}`
+                                );
+                              if (
+                                alwaysVisibleValues?.some(
+                                  (v) =>
+                                    String(v).toLowerCase() ===
+                                    value.toLowerCase()
+                                )
+                              ) {
+                                return 1;
+                              }
+                              return value
+                                .toLowerCase()
+                                .includes(search.toLowerCase())
+                                ? 1
+                                : 0;
+                            }}
                           >
                             <CommandInput placeholder={fieldPlaceholder} />
                             <CommandList>
                               <CommandEmpty>
                                 {t('common:noOptionFound')}
                               </CommandEmpty>
-                              <CommandGroup>
-                                {options?.map((option) => {
-                                  const isSelected =
-                                    field.value === option.value;
-                                  return (
-                                    <CommandItem
-                                      key={`combobox-option-${option.value}`}
-                                      value={`${option.searchValue ?? option.label} ${option.value}`}
-                                      onSelect={() => {
-                                        onChangeProp?.(option.value);
-                                        field.onChange(
-                                          option.value === field.value
-                                            ? ''
-                                            : option.value
-                                        );
-                                        onBlur();
-                                        setOpen(false);
-                                      }}
-                                      className="eb-cursor-pointer"
-                                    >
-                                      <Check
-                                        className={cn(
-                                          'eb-mr-2 eb-h-4 eb-w-4',
-                                          isSelected
-                                            ? 'eb-opacity-100'
-                                            : 'eb-opacity-0'
-                                        )}
-                                      />
-                                      {option.label}
-                                    </CommandItem>
+                              {(() => {
+                                const hasGroups = options?.some(
+                                  (opt) => opt.group
+                                );
+                                if (hasGroups && options) {
+                                  const groups = new Map<
+                                    string,
+                                    typeof options
+                                  >();
+                                  for (const opt of options) {
+                                    const key = opt.group ?? '';
+                                    if (!groups.has(key)) groups.set(key, []);
+                                    groups.get(key)!.push(opt);
+                                  }
+                                  return Array.from(groups.entries()).map(
+                                    ([groupLabel, groupOptions], idx) => (
+                                      <React.Fragment key={groupLabel}>
+                                        {idx > 0 && <CommandSeparator />}
+                                        <CommandGroup
+                                          heading={groupLabel || undefined}
+                                        >
+                                          {groupOptions.map((option) => {
+                                            const isSelected =
+                                              field.value === option.value;
+                                            return (
+                                              <CommandItem
+                                                key={`combobox-option-${option.value}`}
+                                                value={`${option.searchValue ?? option.label} ${option.value}`}
+                                                onSelect={() => {
+                                                  onChangeProp?.(option.value);
+                                                  field.onChange(
+                                                    option.value === field.value
+                                                      ? ''
+                                                      : option.value
+                                                  );
+                                                  onBlur();
+                                                  setOpen(false);
+                                                }}
+                                                className="eb-cursor-pointer"
+                                              >
+                                                <Check
+                                                  className={cn(
+                                                    'eb-mr-2 eb-h-4 eb-w-4',
+                                                    isSelected
+                                                      ? 'eb-opacity-100'
+                                                      : 'eb-opacity-0'
+                                                  )}
+                                                />
+                                                {option.label}
+                                              </CommandItem>
+                                            );
+                                          })}
+                                        </CommandGroup>
+                                      </React.Fragment>
+                                    )
                                   );
-                                })}
-                              </CommandGroup>
+                                }
+                                return (
+                                  <CommandGroup>
+                                    {options?.map((option) => {
+                                      const isSelected =
+                                        field.value === option.value;
+                                      return (
+                                        <CommandItem
+                                          key={`combobox-option-${option.value}`}
+                                          value={`${option.searchValue ?? option.label} ${option.value}`}
+                                          onSelect={() => {
+                                            onChangeProp?.(option.value);
+                                            field.onChange(
+                                              option.value === field.value
+                                                ? ''
+                                                : option.value
+                                            );
+                                            onBlur();
+                                            setOpen(false);
+                                          }}
+                                          className="eb-cursor-pointer"
+                                        >
+                                          <Check
+                                            className={cn(
+                                              'eb-mr-2 eb-h-4 eb-w-4',
+                                              isSelected
+                                                ? 'eb-opacity-100'
+                                                : 'eb-opacity-0'
+                                            )}
+                                          />
+                                          {option.label}
+                                        </CommandItem>
+                                      );
+                                    })}
+                                  </CommandGroup>
+                                );
+                              })()}
                             </CommandList>
                           </Command>
                         </PopoverContent>
@@ -528,7 +608,9 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                                   disabled={option.disabled}
                                 />
                               </FormControl>
-                              <FormLabel className="eb-font-normal eb-text-foreground">
+                              <FormLabel
+                                className={`eb-font-normal eb-text-foreground ${option.disabled ? 'eb-cursor-not-allowed eb-opacity-50' : ''}`}
+                              >
                                 {option.label}
                               </FormLabel>
                             </FormItem>
@@ -554,7 +636,7 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                             <FormItem
                               key={`radio-group-option-${option.value}`}
                             >
-                              <FormLabel className="eb-flex eb-cursor-pointer eb-select-none eb-items-start eb-gap-3 eb-rounded-input eb-border eb-bg-input eb-p-6 eb-text-sm eb-font-medium eb-leading-none eb-shadow-md hover:eb-bg-accent/50 peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-50 has-[[data-state=checked]]:eb-border-primary has-[[data-state=checked]]:eb-bg-primary/5">
+                              <FormLabel className="eb-flex eb-cursor-pointer eb-select-none eb-items-start eb-gap-3 eb-rounded-input eb-border eb-bg-input eb-p-6 eb-text-sm eb-font-medium eb-leading-none eb-shadow-md hover:eb-bg-accent/50 peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-50 has-[[disabled]]:eb-cursor-not-allowed has-[[data-state=checked]]:eb-border-primary has-[[data-state=checked]]:eb-bg-primary/5 has-[[disabled]]:eb-opacity-50 has-[[disabled]]:eb-shadow-none has-[[disabled]]:hover:eb-bg-input">
                                 <FormControl>
                                   <RadioGroupItem
                                     value={option.value}
@@ -647,14 +729,15 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                         <FormControl>
                           <PatternInput
                             {...field}
-                            {...inputProps}
+                            {...(inputProps as Omit<
+                              typeof inputProps,
+                              'defaultValue'
+                            >)}
                             format={maskFormat ?? ''}
                             mask={maskChar}
                             obfuscateWhenUnfocused={obfuscateWhenUnfocused}
                             type={type}
-                            defaultValue={field.value}
                             value={valueOverride ?? field.value}
-                            placeholder={fieldPlaceholder}
                             onChange={(e) => {
                               onChangeProp?.(e.target.value);
                               field.onChange(e);

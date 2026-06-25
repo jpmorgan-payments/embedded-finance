@@ -40,6 +40,7 @@
     "copyRouting": "Copiar número de enrutamiento",
     "copyAchRouting": "Copiar número de enrutamiento ACH",
     "copyRoutingLabel": "Copiar número de enrutamiento {{type}}",
+    "balancesError": "No se pudieron cargar los saldos",
     "noBalanceData": "Información de saldo no disponible",
     "dataAsOf": "Al {{date}}",
     "balanceTypeInfoAriaLabel": "Más información sobre {{type}}"

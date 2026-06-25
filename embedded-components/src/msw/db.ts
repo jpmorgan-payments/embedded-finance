@@ -1,14 +1,14 @@
 // @ts-nocheck
-import { factory, primaryKey } from '@mswjs/data';
-import merge from 'lodash/merge';
-
-import { ClientResponse } from '@/api/generated/smbdo.schemas';
 import {
   LLCExistingClient,
   LLCExistingClientOutstandingDocuments,
   SoleProprietorExistingClient,
-} from '@/core/OnboardingWizardBasic/OnboardingOverviewFlow/.storybook/mocks/clientDetails.mock';
-import { efDocumentRequestDetailsList } from '@/core/OnboardingWizardBasic/OnboardingOverviewFlow/.storybook/mocks/documentRequestDetailsList.mock';
+} from '@/mocks/efClientDetailsLegacy.mock';
+import { efDocumentRequestDetailsList } from '@/mocks/efDocumentRequestDetailsList.mock';
+import { factory, primaryKey } from '@mswjs/data';
+import merge from 'lodash/merge';
+
+import { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 // Configure logging behavior
 export const ENABLE_LOGS = process.env.NODE_ENV !== 'test';

@@ -12,7 +12,6 @@ These are the main components that provide core embedded banking functionality:
 - **`RecipientWidgets/`** - Payment recipient and linked account management
   - **`LinkedAccountWidget/`** - External bank account linking with microdeposit verification
   - **`RecipientsWidget/`** - Payment recipient management (without microdeposits)
-- **`MakePayment/`** - Payment processing and forms
 - **`TransactionsDisplay/`** - Transaction history and display
 - **`OnboardingFlow/`** - Customer onboarding process
 
@@ -27,7 +26,6 @@ These provide supporting functionality and infrastructure:
 
 These are older components maintained for reference:
 
-- **`OnboardingWizardBasic/`** - Legacy onboarding wizard (deprecated)
 - **`Recipients/`** - Legacy recipient management (deprecated, use `RecipientWidgets/RecipientsWidget/` instead)
 - **`RecipientListWidget/`** - Legacy recipient list widget (deprecated)
 
@@ -61,7 +59,6 @@ These are older components maintained for reference:
 Core/Accounts
 Core/RecipientWidgets/LinkedAccountWidget
 Core/RecipientWidgets/RecipientsWidget
-Core/MakePayment
 Core/TransactionsDisplay
 Core/OnboardingFlow
 ```
@@ -69,12 +66,6 @@ Core/OnboardingFlow
 ### **Legacy Component Stories**
 
 ```
-Legacy/OnboardingWizardBasic
-Legacy/OnboardingWizardBasic/Steps
-Legacy/OnboardingWizardBasic/ErrorStates
-Legacy/OnboardingWizardBasic/ContentTokens
-Legacy/OnboardingWizardBasic/ClientVariants
-Legacy/OnboardingWizardBasic/ApiStates
 Legacy/Recipients
 Legacy/Recipients/Validation
 Legacy/Recipients/Configuration

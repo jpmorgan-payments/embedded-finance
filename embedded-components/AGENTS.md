@@ -24,9 +24,27 @@ All commands run from this directory (`embedded-components/`):
 - Linting: `yarn lint`
 - Format code: `yarn format`
 
-**After any `.ts` / `.tsx` edit:** run **`yarn format`** at the end of the update (before commit).
+**After any `.ts` / `.tsx` edit:** format **only the files you touched** using `node_modules/.bin/prettier --write <file1> <file2> ...`. Do NOT run `yarn format` without arguments — it reformats the **entire repo** and creates hundreds of unintended changes.
 
 **Always run `yarn build`** before you consider the task done—not only for large refactors. Test files (`*.test.tsx`, mocks, Vitest stubs) are included in compilation; **`yarn build` catches strict typing errors that Vitest alone may not surface** (for example mismatched mock return types).
+
+**Before every push**, run this checklist in order:
+
+1. `node_modules/.bin/prettier --write <your-changed-files>` (targeted format)
+2. `yarn typecheck` (catches missing required fields in generated types)
+3. `yarn lint` (catches unused imports, boolean prop values, promise patterns)
+4. `yarn vitest run <your-test-files>` (verify tests pass)
+
+## Writing Tests — Key Conventions
+
+These rules prevent CI failures caught by `yarn lint` and `yarn typecheck`:
+
+1. **Generated schema mocks** — Use `as unknown as Type` for partial mocks of generated API schemas (e.g., `Recipient`, `AccountResponse`). Don't try to fill every required field:
+   ```typescript
+   const mock = { id: 'x', status: 'ACTIVE' } as unknown as Recipient;
+   ```
+2. **Generated schemas require all fields** — If you do use a typed annotation (`: Recipient`), you must include ALL required fields from `src/api/generated/*.schemas.ts` (e.g., `routingCodeType`, `countryCode`, `createdAt`).
+3. **`PaymentMethodType[]` not `readonly`** — When creating inline arrays for mock `Payee` objects, cast as `['ACH'] as PaymentMethodType[]`, not `as const` (readonly arrays can't assign to mutable types).
 
 Then run **`yarn test`** (full pipeline) or a narrower **`yarn vitest run …`** while iterating.
 
@@ -39,11 +57,11 @@ Running full `yarn test` also enforces formatting — it runs `format:check` bef
 Only for `embedded-components`. Generate stories as:
 
 ```typescript
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react';
 
 const meta: Meta<typeof ComponentName> = {
   component: ComponentName,
-  tags: ["autodocs"],
+  tags: ['autodocs'],
 };
 
 export default meta;

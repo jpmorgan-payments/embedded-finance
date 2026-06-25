@@ -1,7 +1,7 @@
 import { ReactNode, useMemo } from 'react';
 
-import { ErrorType } from '@/api/axios-instance';
 import { ApiError } from '@/api/generated/smbdo.schemas';
+import type { ErrorType } from '@/api/use-axios-instance';
 
 const defaultErrorMessages: Record<string, string> = {
   '400': 'Please check the information you entered and try again.',

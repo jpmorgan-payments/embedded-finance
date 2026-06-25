@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 
 import { useListTransactionsV2 } from '@/api/generated/ep-transactions';
 
-import { useInterceptorStatus } from '../../EBComponentsProvider/EBComponentsProvider';
 import { modifyTransactionsData, type ModifiedTransaction } from '../utils';
 
 /**
@@ -64,8 +63,6 @@ export interface UseTransactionsDataReturn {
 export function useTransactionsData({
   accountIds,
 }: UseTransactionsDataOptions = {}): UseTransactionsDataReturn {
-  const { interceptorReady } = useInterceptorStatus();
-
   const {
     data,
     status,
@@ -76,14 +73,7 @@ export function useTransactionsData({
     isError,
     error,
     isSuccess,
-  } = useListTransactionsV2(
-    {},
-    {
-      query: {
-        enabled: interceptorReady,
-      },
-    }
-  );
+  } = useListTransactionsV2({});
 
   const transactions = useMemo(() => {
     if (!data?.items) {

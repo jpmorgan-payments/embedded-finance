@@ -84,7 +84,6 @@ export const RecipientDetailsDialog: React.FC<RecipientDetailsDialogProps> = ({
     const parts = [
       address.addressLine1,
       address.addressLine2,
-      address.addressLine3,
       [address.city, address.state, address.postalCode]
         .filter(Boolean)
         .join(', '),

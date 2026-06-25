@@ -2,7 +2,7 @@
 
 ⚠️ DRAFT - BASED ON CODE ANALYSIS ⚠️
 
-This document describes the implementation and design decisions behind the `OnboardingFlow.tsx` component, which provides a flexible, section-based approach to digital onboarding, distinct from the linear stepper of `OnboardingWizardBasic.tsx`.
+This document describes the implementation and design decisions behind the `OnboardingFlow.tsx` component, which provides a flexible, section-based approach to digital onboarding.
 
 <!-- toc -->
 
@@ -43,7 +43,7 @@ This document describes the implementation and design decisions behind the `Onbo
 
 ## Introduction
 
-The `OnboardingFlow.tsx` component offers an alternative user experience for digital onboarding compared to the step-by-step `OnboardingWizardBasic.tsx`. Instead of a purely linear progression, it presents onboarding as a series of distinct sections or tasks, often displayed on an overview or checklist screen. This allows users more flexibility in navigating and completing sections, potentially out of order, although dependencies might exist.
+The `OnboardingFlow.tsx` component is the primary onboarding experience. Instead of a purely linear progression, it presents onboarding as a series of distinct sections or tasks, displayed on an overview or checklist screen. This allows users more flexibility in navigating and completing sections, potentially out of order, although dependencies might exist.
 
 This approach uses a configuration-driven system (`flowConfig.ts`) to define the available screens and sections, their content (React components or nested steppers), and associated logic (like status resolution).
 
@@ -149,14 +149,20 @@ The `flowConfig.ts` defines the following screens, grouped by static/section:
 These are typically single-purpose screens used for navigation or specific tasks outside the main section flow.
 
 - **`gateway` (`GatewayScreen`)**:
-  - **Purpose**: Initial entry point when `organizationType` is unknown. Likely allows the user to select their business type, potentially triggering client creation.
-  - **Rationale**: Handles the scenario where the onboarding context (specifically business type) isn't yet established.
+  - **Purpose**: Initial entry point when `organizationType` is unknown. Allows the user to select their business type and, when the `enablePubliclyTradedCompanies` flag is enabled, answer PTC (Publicly Traded Company) questions and provide trading information.
+  - **Rationale**: Handles the scenario where the onboarding context (specifically business type) isn't yet established. Also serves as the single point of entry for PTC data collection.
+  - **PTC Feature Flag** (`enablePubliclyTradedCompanies`):
+    - When enabled, shows a radio asking if the organization is publicly traded or a subsidiary of a PTC (options are dynamic based on org type eligibility).
+    - If "Yes" is selected, inline trading fields appear (ticker symbol, stock exchange combobox).
+    - **PTC Lock**: Once PTC data has been submitted to the API, the "No" option and incompatible org types (e.g., Sole Proprietorship) are disabled. This is because the SMBDO API cannot remove the `publiclyTraded` block once set. An alert banner informs the user.
+  - **API Limitation**: The API does not support clearing `publiclyTraded` from a party or deactivating client parties, so PTC→non-PTC transitions are prevented at the UI level.
 - **`checklist` (`ChecklistScreen`)**:
   - **Purpose**: Potentially an alternative overview screen, possibly showing a simpler task list format. (Its exact usage depends on how it's navigated to).
   - **Rationale**: Offers a different presentation style for the onboarding tasks.
 - **`overview` (`OverviewScreen`)**:
   - **Purpose**: The main hub displaying the different onboarding sections (`sectionScreens`) with their current statuses. Allows users to navigate into each section.
   - **Rationale**: Provides a central dashboard for the user to track progress and choose which part of the application to work on next.
+  - **PTC Display**: Within the business type card, shows PTC details (label, ticker, exchange) when the party has `publiclyTraded` data. For eligible org types without PTC data, displays a hint prompting the user to add it via the Edit button.
 - **`owner-stepper` (`StepperRenderer` with `ownerSteps`)**:
   - **Purpose**: A dedicated multi-step form (using `StepperRenderer`) specifically for adding/editing Beneficial Owner details. This is likely navigated to from the `owners-section`.
   - **Rationale**: Encapsulates the owner data collection into a reusable stepper, separate from the main overview structure.
@@ -224,7 +230,7 @@ These represent the core data collection areas, displayed on the `OverviewScreen
 ## Error Handling
 
 - API errors during the initial `useSmbdoGetClient` fetch are caught and displayed using `ServerErrorAlert` in `OnboardingFlow.tsx`.
-- Error handling within individual forms or steppers would be managed by those specific components (similar to the pattern described in `DIGITAL_ONBOARDING_RECIPE.md` for `OnboardingWizardBasic`).
+- Error handling within individual forms or steppers would be managed by those specific components.
 
 ## Configuration and Customization
 
@@ -234,3 +240,5 @@ These represent the core data collection areas, displayed on the `OverviewScreen
 - **Localization**: Leverages `react-i18next` and content tokens (`onboardingContentTokens`) for internationalization.
 - **Styling**: Uses Tailwind CSS with `eb-` prefixes.
 - **Behavior**: Controlled via props like `initialClientId`, `alertOnExit`, `userEventsHandler`.
+- **Feature Flags**:
+  - `enablePubliclyTradedCompanies` (boolean, default `false`): When enabled, the Gateway screen shows PTC questions and trading fields. Affects visibility of `owners-section` and `identity-document` step for US-exchange PTCs. Once PTC data is saved to the API, it cannot be removed — the UI enforces this via a lock mechanism (disabled options + alert banner on the Gateway screen). See `/docs/ptc-feature-plan.md` for full details.

@@ -129,7 +129,9 @@ export function getAllCSSVariableNames(): EBCSSVariable[] {
 
   specialVars.forEach((v) => varNames.add(v));
 
-  return Array.from(varNames).sort() as EBCSSVariable[];
+  return Array.from(varNames).sort((a, b) =>
+    a.localeCompare(b)
+  ) as EBCSSVariable[];
 }
 
 /**

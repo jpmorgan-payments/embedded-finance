@@ -108,7 +108,7 @@ export const IndustryTypeSelect = ({
   onChange,
   priorityCodes,
 }: IndustryTypeSelectProps) => {
-  const { tString } = useTranslationWithTokens(['onboarding-old']);
+  const { tString } = useTranslationWithTokens(['onboarding-overview']);
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { onBlur: _onBlur, ...fieldWithoutBlur } = field;

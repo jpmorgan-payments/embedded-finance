@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { InfoIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -22,11 +23,14 @@ export const InfoPopover = ({
   popoutTooltip,
   className,
 }: InfoPopoverProps) => {
+  const { tString } = useTranslationWithTokens('common');
+
   const button = (
     <Button
       variant="ghost"
       size="icon"
       type="button"
+      aria-label={tString('aria.moreInformation')}
       className={cn('eb-text-gray-400 hover:eb-text-gray-600', className)}
     >
       <InfoIcon />

@@ -5,6 +5,7 @@ import {
   ClientResponse,
   PartyResponse,
 } from '@/api/generated/smbdo.schemas';
+import { isNyseNasdaq } from '@/core/OnboardingFlow/consts/stockExchanges';
 import { AssociatedPartyFilters } from '@/core/OnboardingFlow/types/flow.types';
 import { ClientContext } from '@/core/OnboardingFlow/types/form.types';
 
@@ -74,20 +75,13 @@ export const getControllerParty = (clientData?: ClientResponse) => {
 };
 
 /**
- * US exchange MIC codes — NYSE and NASDAQ.
- * Used to determine whether a PTC qualifies for reduced collection
- * requirements (no beneficial owners, no controller gov ID).
- */
-const US_EXCHANGE_CODES = new Set(['XNYS', 'XNAS']);
-
-/**
  * Returns `true` when the organization party has a `publiclyTraded` block
- * AND the stock exchange is a US exchange (XNYS or XNAS).
+ * AND the stock exchange is NYSE or NASDAQ.
  */
 export const isUSExchangePTC = (orgParty?: PartyResponse): boolean => {
   const publiclyTraded = orgParty?.organizationDetails?.publiclyTraded;
   if (!publiclyTraded?.stockExchange) return false;
-  return US_EXCHANGE_CODES.has(publiclyTraded.stockExchange);
+  return isNyseNasdaq(publiclyTraded.stockExchange);
 };
 
 /**

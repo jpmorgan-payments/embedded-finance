@@ -1,5 +1,4 @@
 import type { UserTrackingProps } from '@/lib/types/userTracking.types';
-import { ErrorType } from '@/api/axios-instance';
 import type { RoutingInformationTransactionType } from '@/api/generated/ep-recipients.schemas';
 import {
   ApiError,
@@ -11,6 +10,7 @@ import {
   PartyResponse,
   SchemasApiError,
 } from '@/api/generated/smbdo.schemas';
+import type { ErrorType } from '@/api/use-axios-instance';
 import type {
   BankAccountFormConfigOverride,
   BankAccountFormData,
@@ -183,6 +183,8 @@ export type LinkAccountStepOptions = {
 export type OnboardingDisclosureConfig = {
   /** Display name of the platform provider (replaces `[Platform Provider]`). */
   platformName: string;
+  /** Display name for the deposit product shown in FDIC disclosure. Defaults to `"Accounts"`. */
+  productName?: string;
   /** URL for the Platform Provider's Program Agreement link shown in attestation text. */
   platformAgreementUrl?: string;
   /**
@@ -325,7 +327,7 @@ export type OnboardingConfigUsedInContext = {
    *   — the two surfaces are independent and may both be active.
    *
    * The pinned-group header text is a content token
-   * (`onboarding-old:industrySelect.priorityHeader`, default
+   * (`onboarding-overview:industrySelect.priorityHeader`, default
    * "Suggested for your platform") — override it via
    * `EBComponentsProvider` `contentTokens.tokens` when you want a
    * platform-specific label like "Recommended for SellSense sellers".

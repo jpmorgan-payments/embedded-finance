@@ -1,0 +1,15 @@
+# Configuration for GitHub's automatically generated release notes.
+# The CHANGELOG (via --notes-file) provides the categorized commit-level breakdown.
+# Auto-generated notes add the Contributors section and Full Changelog link.
+# The catch-all category prevents an "Other Changes" section from appearing.
+# See: https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes
+
+changelog:
+  exclude:
+    authors:
+      - dependabot
+      - dependabot[bot]
+  categories:
+    - title: "Merged Pull Requests"
+      labels:
+        - "*"

@@ -1,18 +1,9 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
-
-import { TestScenarioPage } from '@/components/test-scenario/test-scenario-page';
-
-const queryClient = new QueryClient();
+import { createFileRoute, Outlet } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/test-scenario')({
-  component: TestScenarioRoute,
+  component: TestScenarioLayout,
 });
 
-function TestScenarioRoute() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TestScenarioPage bundleId="test-scenario" />
-    </QueryClientProvider>
-  );
+function TestScenarioLayout() {
+  return <Outlet />;
 }

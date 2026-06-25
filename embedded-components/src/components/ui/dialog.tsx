@@ -8,7 +8,55 @@ import { cn } from '@/lib/utils';
 
 const Dialog = DialogPrimitive.Root;
 
-const DialogTrigger = DialogPrimitive.Trigger;
+/**
+ * DialogTrigger wrapper that removes `aria-controls` when the dialog is closed.
+ * Radix always sets aria-controls referencing the dialog content ID, but the
+ * content is only rendered in the DOM (via Portal) when the dialog is open.
+ * This violates WCAG 4.1.2-12 (aria-valid-attr-value) because aria-controls
+ * must reference an existing element.
+ */
+const DialogTrigger = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Trigger>
+>((props, forwardedRef) => {
+  const localRef = React.useRef<HTMLElement | null>(null);
+
+  React.useEffect(() => {
+    const el = localRef.current;
+    if (!el) return undefined;
+
+    // Strip aria-controls when dialog is closed (content not in DOM)
+    const cleanup = () => {
+      if (
+        el.getAttribute('data-state') === 'closed' &&
+        el.hasAttribute('aria-controls')
+      ) {
+        el.removeAttribute('aria-controls');
+      }
+    };
+
+    cleanup();
+
+    const observer = new MutationObserver(cleanup);
+    observer.observe(el, {
+      attributes: true,
+      attributeFilter: ['data-state', 'aria-controls'],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <DialogPrimitive.Trigger
+      ref={(node) => {
+        localRef.current = node;
+        if (typeof forwardedRef === 'function') forwardedRef(node);
+        else if (forwardedRef) forwardedRef.current = node;
+      }}
+      {...props}
+    />
+  );
+});
+DialogTrigger.displayName = DialogPrimitive.Trigger.displayName;
 
 const DialogPortal = DialogPrimitive.Portal;
 

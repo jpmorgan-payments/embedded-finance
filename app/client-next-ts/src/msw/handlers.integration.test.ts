@@ -9,13 +9,22 @@ import {
   vi,
 } from 'vitest';
 
+import { TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID } from '../mocks/testScenarioFasterFulfilmentClient.mock';
+import { TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID } from '../mocks/testScenarioHealthBenefitClient.mock';
 import { TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID } from '../mocks/testScenarioMultiLinkedIllustrationClient.mock';
+import { TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID } from '../mocks/testScenarioNaicsCodesClient.mock';
 import {
   TEST_DEMO_SCENARIO_CLIENT_ID,
   TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE,
   TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID,
 } from '../mocks/testScenarioOperator80Client.mock';
-import { db, DB_SCENARIOS, getDbStatus, resetDb } from './db';
+import {
+  applyTestDemoScenario,
+  db,
+  DB_SCENARIOS,
+  getDbStatus,
+  resetDb,
+} from './db';
 import { createHandlers } from './handlers';
 
 const API = 'http://localhost';
@@ -85,15 +94,8 @@ describe('MSW handlers (integration)', () => {
   });
 
   it('POST /clients/:id merges questionResponses and prunes conditional outstanding IDs', async () => {
-    await fetch(`${API}/ef/do/v1/_reset`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        scenario: DB_SCENARIOS.EMPTY,
-        overrides: {},
-        testDemoScenario: 'happy-path',
-      }),
-    });
+    resetDb(DB_SCENARIOS.EMPTY);
+    applyTestDemoScenario('happy-path', 'test-scenario');
 
     const clientId = TEST_DEMO_SCENARIO_CLIENT_ID;
     const clientBefore = db.client.findFirst({
@@ -360,33 +362,254 @@ describe('MSW handlers (integration)', () => {
     expect(res.status).toBe(404);
   });
 
-  it.each([['multi-linked-start-3', 3]] as const)(
-    'test-scenario-2: %s seeds %i LINKED_ACCOUNT recipient(s)',
-    async (testDemoScenario, expectedCount) => {
+  it.each([
+    {
+      mode: 'happy-path' as const,
+      orgType: 'LIMITED_LIABILITY_COMPANY',
+      hasPtc: false,
+    },
+    {
+      mode: 'happy-path-ptc' as const,
+      orgType: 'C_CORPORATION',
+      hasPtc: true,
+      ticker: 'FULFL',
+      exchange: 'XNAS',
+    },
+  ] as const)(
+    'test-scenario-4: $mode seeds Faster Fulfilment org without/with PTC',
+    async ({ mode, orgType, hasPtc, ...ptc }) => {
       await fetch(`${API}/ef/do/v1/_reset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           scenario: DB_SCENARIOS.EMPTY,
           overrides: {},
-          testDemoScenario,
-          testScenarioBundle: 'test-scenario-2',
+          testDemoScenario: mode,
+          testScenarioBundle: 'test-scenario-4',
         }),
       });
 
-      const clientId = TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID;
+      const clientRes = await fetch(
+        `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID}`
+      );
+      expect(clientRes.ok).toBe(true);
+      const client = (await clientRes.json()) as {
+        parties?: Array<{
+          roles?: string[];
+          organizationDetails?: {
+            organizationType?: string;
+            publiclyTraded?: { stockExchange?: string; tickerSymbol?: string };
+          };
+        }>;
+      };
+      const orgParty = (client.parties ?? []).find((p) =>
+        (p.roles ?? []).includes('CLIENT')
+      );
+      expect(orgParty?.organizationDetails?.organizationType).toBe(orgType);
+      if (hasPtc) {
+        expect(orgParty?.organizationDetails?.publiclyTraded).toEqual({
+          stockExchange: ptc.exchange,
+          tickerSymbol: ptc.ticker,
+        });
+      } else {
+        expect(orgParty?.organizationDetails?.publiclyTraded).toBeUndefined();
+      }
+    }
+  );
+
+  it.each([
+    ['test-scenario-2', TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID],
+    ['test-scenario-4', TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID],
+  ] as const)(
+    '%s: multi-linked-start-3 seeds 3 LINKED_ACCOUNT recipient(s)',
+    async (testScenarioBundle, clientId) => {
+      await fetch(`${API}/ef/do/v1/_reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scenario: DB_SCENARIOS.EMPTY,
+          overrides: {},
+          testDemoScenario: 'multi-linked-start-3',
+          testScenarioBundle,
+        }),
+      });
+
       const clientRes = await fetch(`${API}/ef/do/v1/clients/${clientId}`);
       expect(clientRes.ok).toBe(true);
+      const client = (await clientRes.json()) as { status?: string };
+      expect(client.status).toBe('APPROVED');
 
       const recRes = await fetch(`${API}/ef/do/v1/recipients`);
       expect(recRes.ok).toBe(true);
       const data = (await recRes.json()) as {
-        recipients?: Array<{ type?: string }>;
+        recipients?: Array<{ type?: string; id?: string }>;
       };
       const linked = (data.recipients ?? []).filter(
         (r) => r.type === 'LINKED_ACCOUNT'
       );
-      expect(linked.length).toBe(expectedCount);
+      expect(linked.length).toBe(3);
+      const idPrefix =
+        testScenarioBundle === 'test-scenario-4'
+          ? 'ts-b4-linked'
+          : 'ts-b2-linked';
+      expect(linked.map((r) => r.id)).toEqual(
+        expect.arrayContaining([
+          `${idPrefix}-001`,
+          `${idPrefix}-002`,
+          `${idPrefix}-003`,
+        ])
+      );
+    }
+  );
+
+  it.each([
+    {
+      bundle: 'test-scenario',
+      clientId: TEST_DEMO_SCENARIO_CLIENT_ID,
+      orgPartyId: '2100533138',
+      expectedName: 'Operator 80 Palo Alto CA',
+    },
+    {
+      bundle: 'test-scenario-2',
+      clientId: TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID,
+      orgPartyId: '2100535100',
+      expectedName: 'Top Dog Construction, LLC',
+    },
+    {
+      bundle: 'test-scenario-3',
+      clientId: TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
+      orgPartyId: '2100535200',
+      expectedName: 'Health & Benefit Solutions, LLC',
+    },
+    {
+      bundle: 'test-scenario-4',
+      clientId: TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID,
+      orgPartyId: '2100535300',
+      expectedName: 'Faster Fulfilment Corp.',
+    },
+  ] as const)(
+    '$bundle: partyId-only linked account has org display name',
+    async ({ bundle, clientId, orgPartyId, expectedName }) => {
+      await fetch(`${API}/ef/do/v1/_reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scenario: DB_SCENARIOS.EMPTY,
+          overrides: {},
+          testDemoScenario: 'linked-account-active',
+          testScenarioBundle: bundle,
+        }),
+      });
+
+      const accountSuffix = orgPartyId.slice(-4);
+      const createRes = await fetch(`${API}/ef/do/v1/recipients`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Test-Demo-Scenario': 'linked-account-active',
+        },
+        body: JSON.stringify({
+          type: 'LINKED_ACCOUNT',
+          clientId,
+          partyId: orgPartyId,
+          account: {
+            type: 'CHECKING',
+            number: `9000${accountSuffix}`,
+            countryCode: 'US',
+            routingInformation: [
+              {
+                routingCodeType: 'USABA',
+                routingNumber: '021000021',
+                transactionType: 'ACH',
+              },
+            ],
+          },
+        }),
+      });
+      expect(createRes.status).toBe(201);
+      const created = (await createRes.json()) as {
+        partyDetails?: { businessName?: string };
+      };
+      expect(created.partyDetails?.businessName).toBe(expectedName);
+
+      const recRes = await fetch(`${API}/ef/do/v1/recipients`);
+      const data = (await recRes.json()) as {
+        recipients?: Array<{
+          partyDetails?: { businessName?: string; type?: string };
+          account?: { number?: string };
+        }>;
+      };
+      const linked = (data.recipients ?? []).find(
+        (r) => r.account?.number === `9000${accountSuffix}`
+      );
+      expect(linked?.partyDetails?.businessName).toBe(expectedName);
+      expect(linked?.partyDetails?.type).toBe('ORGANIZATION');
+    }
+  );
+
+  it.each([
+    {
+      bundle: 'test-scenario-2',
+      clientId: TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID,
+      expectedName: 'Top Dog Construction, LLC',
+    },
+    {
+      bundle: 'test-scenario-4',
+      clientId: TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID,
+      expectedName: 'Faster Fulfilment Corp.',
+    },
+  ] as const)(
+    '$bundle: stub INDIVIDUAL partyDetails without names resolves to org on GET',
+    async ({ bundle, clientId, expectedName }) => {
+      await fetch(`${API}/ef/do/v1/_reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scenario: DB_SCENARIOS.EMPTY,
+          overrides: {},
+          testDemoScenario: 'linked-account-active',
+          testScenarioBundle: bundle,
+        }),
+      });
+
+      const createRes = await fetch(`${API}/ef/do/v1/recipients`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Test-Demo-Scenario': 'linked-account-active',
+        },
+        body: JSON.stringify({
+          type: 'LINKED_ACCOUNT',
+          clientId,
+          partyDetails: { type: 'INDIVIDUAL', firstName: '', lastName: '' },
+          account: {
+            type: 'CHECKING',
+            number: '1111222333',
+            countryCode: 'US',
+            routingInformation: [
+              {
+                routingCodeType: 'USABA',
+                routingNumber: '021000021',
+                transactionType: 'ACH',
+              },
+            ],
+          },
+        }),
+      });
+      expect(createRes.status).toBe(201);
+
+      const recRes = await fetch(`${API}/ef/do/v1/recipients`);
+      const data = (await recRes.json()) as {
+        recipients?: Array<{
+          partyDetails?: { businessName?: string; type?: string };
+          account?: { number?: string };
+        }>;
+      };
+      const linked = (data.recipients ?? []).find(
+        (r) => r.account?.number === '1111222333'
+      );
+      expect(linked?.partyDetails?.businessName).toBe(expectedName);
+      expect(linked?.partyDetails?.type).toBe('ORGANIZATION');
     }
   );
 
@@ -415,4 +638,337 @@ describe('MSW handlers (integration)', () => {
       expect(linked.length).toBe(0);
     }
   );
+
+  it('test-scenario-5: naics-codes-doc-request seeds client and fund document requests', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'naics-codes-doc-request',
+        testScenarioBundle: 'test-scenario-5',
+      }),
+    });
+
+    const clientRes = await fetch(
+      `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID}?clientId=${TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID}`
+    );
+    expect(clientRes.ok).toBe(true);
+    const client = (await clientRes.json()) as {
+      status?: string;
+      outstanding?: { documentRequestIds?: string[] };
+    };
+    expect(client.status).toBe('INFORMATION_REQUESTED');
+    expect(client.outstanding?.documentRequestIds).toEqual(['ts5-doc-001']);
+
+    const drRes = await fetch(
+      `${API}/ef/do/v1/document-requests?clientId=${TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID}`
+    );
+    expect(drRes.ok).toBe(true);
+    const drEnvelope = (await drRes.json()) as {
+      documentRequests?: Array<{ id?: string }>;
+    };
+    expect(drEnvelope.documentRequests?.map((r) => r.id)).toEqual([
+      'ts5-doc-001',
+    ]);
+    expect(
+      drEnvelope.documentRequests?.some(
+        (r) => r.id === TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID
+      )
+    ).toBe(false);
+  });
+
+  it('test-scenario-5: naics-codes-dashboard seeds APPROVED client and wallet data', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'naics-codes-dashboard',
+        testScenarioBundle: 'test-scenario-5',
+      }),
+    });
+
+    const clientRes = await fetch(
+      `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID}`
+    );
+    expect(clientRes.ok).toBe(true);
+    const client = (await clientRes.json()) as { status?: string };
+    expect(client.status).toBe('APPROVED');
+
+    const accountsRes = await fetch(
+      `${API}/ef/do/v1/accounts?clientId=${TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID}`
+    );
+    const accounts = (await accountsRes.json()) as {
+      items?: Array<{
+        id?: string;
+        clientId?: string;
+        category?: string;
+        paymentRoutingInformation?: { accountNumber?: string };
+      }>;
+    };
+    expect(accounts.items ?? []).toHaveLength(1);
+    expect(accounts.items?.[0]?.category).toBe('LIMITED_DDA_PAYMENTS');
+    expect(accounts.items?.[0]?.paymentRoutingInformation?.accountNumber).toBe(
+      '445566778899'
+    );
+
+    const recipientsRes = await fetch(`${API}/ef/do/v1/recipients`);
+    const recipients = (await recipientsRes.json()) as {
+      recipients?: Array<{ type?: string }>;
+    };
+    const paymentRecipients = (recipients.recipients ?? []).filter(
+      (r) => r.type === 'RECIPIENT'
+    );
+    expect(paymentRecipients.length).toBe(3);
+  });
+
+  it('test-scenario-5: selecting NAICS code adds assessment questions to outstanding', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'naics-codes-onboarding',
+        testScenarioBundle: 'test-scenario-5',
+      }),
+    });
+
+    const clientRes = await fetch(
+      `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID}`
+    );
+    const client = (await clientRes.json()) as {
+      parties?: Array<{
+        id?: string;
+        partyType?: string;
+        email?: string;
+        organizationDetails?: {
+          organizationIds?: Array<{
+            idType?: string;
+            value?: string;
+            issuer?: string;
+          }>;
+        };
+      }>;
+    };
+    const orgParty = client.parties?.find((p) => p.partyType === 'ORGANIZATION');
+    expect(orgParty?.email).toBe('admin@leapfroginvestments.com');
+    expect(orgParty?.organizationDetails?.organizationIds).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          idType: 'EIN',
+          value: '472918365',
+          issuer: 'US',
+        }),
+      ])
+    );
+    const orgPartyId = orgParty?.id;
+    expect(orgPartyId).toBeDefined();
+
+    await fetch(`${API}/ef/do/v1/parties/${orgPartyId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        organizationDetails: {
+          industry: { codeType: 'NAICS', code: '525996' },
+        },
+      }),
+    });
+
+    const afterIndustry = await fetch(
+      `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID}`
+    );
+    const updated = (await afterIndustry.json()) as {
+      outstanding?: { questionIds?: string[] };
+    };
+    expect(updated.outstanding?.questionIds ?? []).toEqual(
+      expect.arrayContaining(['30012', '30191', '30195'])
+    );
+
+    const viaGet = await fetch(
+      `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID}`
+    );
+    const viaGetBody = (await viaGet.json()) as {
+      outstanding?: { questionIds?: string[] };
+    };
+    expect(viaGetBody.outstanding?.questionIds ?? []).toEqual(
+      expect.arrayContaining([
+        '30012',
+        '30013',
+        '30015',
+        '30032',
+        '30075',
+        '30163',
+        '30164',
+        '30165',
+        '30167',
+        '30169',
+        '30171',
+        '30173',
+        '30174',
+        '30178',
+        '30179',
+        '30181',
+        '30182',
+        '30183',
+        '30185',
+        '30187',
+        '30189',
+        '30191',
+        '30195',
+      ])
+    );
+  });
+
+  it('test-scenario-5: answering NAICS questions auto-approves client', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'naics-codes-onboarding',
+        testScenarioBundle: 'test-scenario-5',
+      }),
+    });
+
+    const naicsResponses = [
+      { questionId: '30012', values: ['Investment Activities'] },
+      { questionId: '30013', values: ['Limited Partners of funds'] },
+      { questionId: '30015', values: ['Limited partner contributions'] },
+      { questionId: '30032', values: ['United States'] },
+      { questionId: '30075', values: ['Fund administration services'] },
+      { questionId: '30163', values: ['false'] },
+      { questionId: '30164', values: ['true'] },
+      {
+        questionId: '30165',
+        values: [
+          'Special investment purposes',
+          'Finance purposes',
+          'Holding securities',
+          'Real Estate Investment',
+          'Other',
+        ],
+      },
+      {
+        questionId: '30167',
+        values: [
+          'Buy and sell property and assets',
+          'Buy and sell investments',
+          'Buy and sell businesses',
+          'Lending',
+          'Other',
+        ],
+      },
+      {
+        questionId: '30169',
+        values: [
+          'Long/Short',
+          'Convertible Arbitrage',
+          'Dedicated Short Bias',
+          'Emerging Markets',
+          'Risk Arbitrage',
+          'Equity Dividend Fund',
+          'Capital Appreciation Fund',
+          'Global Small Cap Fund',
+          'High Yield Bond Fund',
+          'Strategic Income Opportunities Fund',
+          'Balanced',
+          'Equity',
+          'Fixed Income',
+          'Cash',
+          'Alternatives',
+          'Real Estate',
+          'Other',
+        ],
+      },
+      {
+        questionId: '30171',
+        values: [
+          'Institutional Investors',
+          'High Net Worth Individuals',
+          'Fund of Funds',
+          'Pension Funds',
+        ],
+      },
+      { questionId: '30173', values: ['10000000'] },
+      { questionId: '30174', values: ['false'] },
+      { questionId: '30178', values: ['true'] },
+      { questionId: '30179', values: ['false'] },
+      { questionId: '30181', values: ['Registered'] },
+      { questionId: '30182', values: ['12 months'] },
+      {
+        questionId: '30183',
+        values: ['KPMG', 'Deloitte & Touché', 'Ernst & Young', 'PwC', 'Other'],
+      },
+      { questionId: '30185', values: ['United States'] },
+      { questionId: '30187', values: ['false'] },
+      { questionId: '30189', values: ['false'] },
+      { questionId: '30191', values: ['false'] },
+      { questionId: '30195', values: ['false'] },
+    ];
+
+    const updateRes = await fetch(
+      `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionResponses: naicsResponses }),
+      }
+    );
+    expect(updateRes.ok).toBe(true);
+    const body = (await updateRes.json()) as { status?: string };
+    expect(body.status).toBe('APPROVED');
+  });
+
+  it('SellSense link account in review: client is REVIEW_IN_PROGRESS and linked account POST uses MICRODEPOSITS_INITIATED', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scenario: DB_SCENARIOS.EMPTY, overrides: {} }),
+    });
+
+    const clientRes = await fetch(`${API}/ef/do/v1/clients/0030000134`, {
+      headers: {
+        'X-Scenario': 'Onboarding - Link account in review',
+      },
+    });
+    expect(clientRes.ok).toBe(true);
+    const client = (await clientRes.json()) as { status?: string };
+    expect(client.status).toBe('REVIEW_IN_PROGRESS');
+
+    const createRes = await fetch(`${API}/ef/do/v1/recipients`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Scenario': 'Onboarding - Link account in review',
+      },
+      body: JSON.stringify({
+        type: 'LINKED_ACCOUNT',
+        clientId: '0030000134',
+        partyDetails: {
+          type: 'ORGANIZATION',
+          businessName: 'Neverland Books',
+        },
+        account: {
+          number: '1234567890',
+          type: 'CHECKING',
+          countryCode: 'US',
+          routingInformation: [
+            {
+              routingCodeType: 'USABA',
+              routingNumber: '021000021',
+              transactionType: 'ACH',
+            },
+          ],
+        },
+      }),
+    });
+    expect(createRes.status).toBe(201);
+    const recipient = (await createRes.json()) as { status?: string };
+    expect(recipient.status).toBe('MICRODEPOSITS_INITIATED');
+  });
 });

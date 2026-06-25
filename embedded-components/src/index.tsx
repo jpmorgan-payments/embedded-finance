@@ -11,7 +11,6 @@ export * from './core/EBComponentsProvider';
 export { initEBComponentsManager } from './vanilla/EBComponentsManager';
 
 export * from './core/TransactionsDisplay';
-export * from './core/MakePayment/MakePayment';
 
 export * from './core/Accounts';
 
@@ -20,8 +19,6 @@ export type {
   PaymentFlowProps,
   PaymentFlowInlineProps,
 } from './core/PaymentFlow';
-
-export * from './core/OnboardingWizardBasic/OnboardingWizardBasic';
 
 export * from './core/OnboardingFlow';
 

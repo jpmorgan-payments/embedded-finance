@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { InfoIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
@@ -31,24 +30,6 @@ export const BusinessIdentityForm: FormStepComponent = () => {
   const form =
     useFormContext<z.input<ReturnType<typeof useBusinessIdentityFormSchema>>>();
 
-  useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === 'dbaNameNotAvailable' && value.dbaNameNotAvailable) {
-        form.clearErrors('dbaName');
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [form]);
-
-  useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === 'websiteNotAvailable' && value.websiteNotAvailable) {
-        form.clearErrors('website');
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [form]);
-
   return (
     <div className="eb-mt-6 eb-space-y-6">
       <OnboardingFormField
@@ -56,29 +37,7 @@ export const BusinessIdentityForm: FormStepComponent = () => {
         name="organizationName"
         type="text"
       />
-      <div className="eb-space-y-3">
-        <OnboardingFormField
-          control={form.control}
-          name="dbaName"
-          type="text"
-          valueOverride={
-            form.watch('dbaNameNotAvailable')
-              ? form.watch('organizationName') === 'PLACEHOLDER_ORG_NAME'
-                ? 'N/A'
-                : form.watch('organizationName')
-              : undefined
-          }
-          disabled={form.watch('dbaNameNotAvailable')}
-          required
-        />
-        <OnboardingFormField
-          control={form.control}
-          name="dbaNameNotAvailable"
-          type="checkbox-basic"
-          label={t('fields.dbaNameNotAvailable.label')}
-          noOptionalLabel
-        />
-      </div>
+      <OnboardingFormField control={form.control} name="dbaName" type="text" />
       <OnboardingFormField
         control={form.control}
         name="yearOfFormation"
@@ -143,25 +102,6 @@ export const BusinessIdentityForm: FormStepComponent = () => {
               obfuscateWhenUnfocused
             />
           )}
-          <div className="eb-space-y-3">
-            <OnboardingFormField
-              control={form.control}
-              name="website"
-              type="text"
-              valueOverride={
-                form.watch('websiteNotAvailable') ? 'N/A' : undefined
-              }
-              disabled={form.watch('websiteNotAvailable')}
-              required
-            />
-            <OnboardingFormField
-              control={form.control}
-              name="websiteNotAvailable"
-              type="checkbox-basic"
-              label={t('fields.websiteNotAvailable.label')}
-              noOptionalLabel
-            />
-          </div>
         </div>
       )}
     </div>
@@ -176,9 +116,5 @@ BusinessIdentityForm.modifyFormValuesBeforeSubmit = (values) => {
   return {
     ...rest,
     ...(solePropHasEin !== 'no' ? { organizationIdEin } : {}),
-    // When "Same as legal name" is checked, send the org name as dbaName
-    ...(rest.dbaNameNotAvailable && rest.organizationName
-      ? { dbaName: rest.organizationName }
-      : {}),
   };
 };

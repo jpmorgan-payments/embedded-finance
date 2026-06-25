@@ -114,7 +114,7 @@ describe('OnboardingFlow', () => {
     expect(screen.getByText(/Verify your business/i)).toBeInTheDocument();
     expect(screen.getByText(/Your personal details/i)).toBeInTheDocument();
     expect(screen.getByText(/Business details/i)).toBeInTheDocument();
-    expect(screen.getByText(/Owners and key roles/i)).toBeInTheDocument();
+    expect(screen.getByText(/Owners/i)).toBeInTheDocument();
     expect(screen.getByText(/Operational details/i)).toBeInTheDocument();
     expect(screen.getByText(/Review and attest/i)).toBeInTheDocument();
     expect(screen.getByText(/Supporting documents/i)).toBeInTheDocument();
@@ -219,16 +219,13 @@ describe('OnboardingFlow', () => {
       'Legal name of the company'
     );
     await user.type(businessNameInput, 'Fake Corp');
-    const sameAsLegalNameCheckbox = screen.getByLabelText(
-      /Same as legal name of the company/i
-    );
-    await user.click(sameAsLegalNameCheckbox);
+    const dbaNameInput = screen.getByLabelText(/Doing business as/i);
+    await user.type(dbaNameInput, 'Fake Corp');
     const yearOfFormationInput = screen.getByLabelText(/Year of formation/i);
     await user.type(yearOfFormationInput, '2020');
     const einInput = screen.getByLabelText(/Employer Identification Number/i);
-    await user.type(einInput, '123456789');
-    const websiteInput = screen.getByLabelText(/Business website/i);
-    await user.type(websiteInput, 'https://www.fakecorp.com');
+    await user.type(einInput, '300030003');
+    // Website field is hidden (websiteAvailable deprecated)
     // Proceed to next step
     const continueButton5 = screen.getByRole('button', { name: /continue/i });
     await user.click(continueButton5);
@@ -289,8 +286,8 @@ describe('OnboardingFlow', () => {
     // Ensure entered business data is displayed
     expect(await screen.findAllByText('Fake Corp')).toHaveLength(2);
     expect(screen.getByText('2020')).toBeInTheDocument();
-    expect(screen.getByText('12 - 3456789')).toBeInTheDocument();
-    expect(screen.getByText('https://www.fakecorp.com')).toBeInTheDocument();
+    expect(screen.getByText('30 - 0030003')).toBeInTheDocument();
+    // Website field is hidden (websiteAvailable deprecated) - no longer shown in review
     expect(screen.getByText('We sell products.')).toBeInTheDocument();
     expect(
       screen.getByText(/Pet and Pet Supplies Retailers/i)
@@ -305,7 +302,9 @@ describe('OnboardingFlow', () => {
 
     // STEP 5 OWNERS SECTION
     await waitFor(() => {
-      expect(screen.getByText(/Owners and key roles/i)).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: /^Owners$/i })
+      ).toBeInTheDocument();
     });
     // 5a. Owners Component
     const controllerIsOwnerRadio = screen.getByRole('radio', {

@@ -7,35 +7,35 @@
  *
  * ## Scenarios:
  *
- * **US Exchange (NYSE/NASDAQ):**
+ * **Primary Exchange (NYSE/NASDAQ):**
  * - Beneficial owners section: SKIPPED
  * - Controller collects name, address, job title only (no gov ID)
  * - FinCEN attestation: SKIPPED
  *
- * **Non-US Exchange (all others):**
+ * **Non-Primary Exchange (all others):**
  * - Beneficial owners section: COLLECTED (≥25% ownership)
  * - Controller collects full details INCLUDING gov ID
  * - FinCEN attestation: REQUIRED
  *
  * ## Test Data:
  *
- * **US PTC (Acme Corporation):**
+ * **Primary PTC (Acme Corporation):**
  * - Ticker: ACME, Exchange: XNYS (NYSE)
  * - Controller: Jane Smith, CFO — no gov ID
  * - No beneficial owners
  *
- * **US Subsidiary (Acme Widgets LLC):**
+ * **Primary Subsidiary (Acme Widgets LLC):**
  * - Parent Ticker: ACME, Exchange: XNAS (NASDAQ)
- * - Same collection rules as US PTC
+ * - Same collection rules as primary PTC
  *
- * **Non-US PTC (Globex Corporation):**
- * - Ticker: GLBX, Exchange: XLON (London)
- * - Controller: Hank Scorpio, CEO — with passport
- * - Beneficial Owner: Frank Grimes, VP Operations
+ * **Non-Primary PTC (Neverland Books Inc.):**
+ * - Ticker: NVLD, Exchange: XCBO (Cboe)
+ * - Controller: Peiter Pan, CEO — with SSN
+ * - Beneficial Owner: Tink Bell, VP Operations
  *
- * **Non-US Subsidiary (Globex Asia Holdings):**
- * - Parent Ticker: GLBX, Exchange: Other (Tokyo Stock Exchange)
- * - Same collection rules as non-US PTC
+ * **Non-Primary Subsidiary (Neverland Comics LLC):**
+ * - Parent Ticker: NVLD, Exchange: Other (OTC Markets)
+ * - Same collection rules as non-primary PTC
  */
 
 import {
@@ -45,6 +45,8 @@ import {
   efClientCorpPTC_US_Subsidiary_Mock,
 } from '@/mocks/efClientCorpPTC.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+
+import { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 import type { BaseStoryArgs } from '../../../../.storybook/preview';
 import type { OnboardingFlowProps } from '../types/onboarding.types';
@@ -92,22 +94,74 @@ export default meta;
 type Story = StoryObj<OnboardingFlowStoryArgs>;
 
 // =============================================================================
-// US EXCHANGE — PTC
+// FRESH CLIENT — ORG TYPE + NAME ONLY
 // =============================================================================
 
 /**
- * **US PTC — NYSE (XNYS)**
+ * **Fresh Client (Org Type + Name Only)**
  *
- * A C Corporation publicly traded on the New York Stock Exchange.
+ * An existing client with only organization type and business name populated.
+ * PTC feature flag is enabled. Demonstrates the gateway redirect for clients
+ * that haven't yet answered the PTC question.
+ */
+const freshClientMock: ClientResponse = {
+  id: '0030000130',
+  partyId: '2000000111',
+  parties: [
+    {
+      id: '2000000111',
+      partyType: 'ORGANIZATION',
+      roles: ['CLIENT'],
+      profileStatus: 'NEW',
+      active: true,
+      createdAt: '2024-06-21T18:12:21.005Z',
+      organizationDetails: {
+        organizationType: 'C_CORPORATION',
+        organizationName: 'Neverland Books',
+        countryOfFormation: 'US',
+      },
+    },
+  ],
+  products: ['EMBEDDED_PAYMENTS'],
+  outstanding: {
+    attestationDocumentIds: [],
+    documentRequestIds: [],
+    partyIds: [],
+    partyRoles: [],
+    questionIds: ['30005'],
+  },
+  questionResponses: [],
+  status: 'NEW',
+};
+
+export const FreshClient: Story = {
+  name: 'Fresh Client (Org Type + Name Only)',
+  loaders: [() => resetAndSeedClient(freshClientMock, '0030000130')],
+  args: {
+    ...commonArgs,
+    clientId: '0030000130',
+    enablePubliclyTradedCompanies: true,
+  },
+};
+
+// =============================================================================
+// PRIMARY EXCHANGE — PTC
+// =============================================================================
+
+/**
+ * **Primary PTC — NYSE (XNYS)**
+ *
+ * A C Corporation publicly traded on a primary exchange (NYSE).
+ * Primary exchanges are NYSE (XNYS) and NASDAQ (XNAS).
  *
  * Key behaviors:
- * - `publiclyTraded.stockExchange: "XNYS"` → US exchange rules apply
+ * - `publiclyTraded.stockExchange: "XNYS"` → primary exchange rules apply
  * - Beneficial owners section is **skipped**
  * - Controller collects **name, address, job title only** (no gov ID)
  * - FinCEN digital attestation is **skipped**
  */
-export const US_PTC_NYSE: Story = {
-  name: 'US PTC — NYSE',
+export const Primary_PTC_NYSE: Story = {
+  name: 'Primary PTC — NYSE',
   loaders: [() => resetAndSeedClient(efClientCorpPTC_US_Mock, '0030000150')],
   args: {
     ...commonArgs,
@@ -117,21 +171,21 @@ export const US_PTC_NYSE: Story = {
 };
 
 // =============================================================================
-// US EXCHANGE — SUBSIDIARY
+// PRIMARY EXCHANGE — SUBSIDIARY
 // =============================================================================
 
 /**
- * **US Subsidiary — NASDAQ (XNAS)**
+ * **Primary Subsidiary — NASDAQ (XNAS)**
  *
- * An LLC that is a subsidiary of a US PTC (Acme Corp) traded on NASDAQ.
+ * An LLC that is a subsidiary of a PTC traded on a primary exchange (NASDAQ).
  *
  * Key behaviors:
  * - `isSubsidiary: true` — ticker/exchange refer to parent PTC
- * - Same collection rules as US PTC (no beneficial owners, no controller gov ID)
+ * - Same collection rules as primary PTC (no beneficial owners, no controller gov ID)
  * - `publiclyTraded.tickerSymbol` = parent company's ticker
  */
-export const US_Subsidiary_NASDAQ: Story = {
-  name: 'US Subsidiary — NASDAQ',
+export const Primary_Subsidiary_NASDAQ: Story = {
+  name: 'Primary Subsidiary — NASDAQ',
   loaders: [
     () => resetAndSeedClient(efClientCorpPTC_US_Subsidiary_Mock, '0030000151'),
   ],
@@ -143,22 +197,23 @@ export const US_Subsidiary_NASDAQ: Story = {
 };
 
 // =============================================================================
-// NON-US EXCHANGE — PTC
+// NON-PRIMARY EXCHANGE — PTC
 // =============================================================================
 
 /**
- * **Non-US PTC — London Stock Exchange (XLON)**
+ * **Non-Primary PTC — Cboe (XCBO)**
  *
- * A corporation traded on a non-US exchange (LSE).
+ * A corporation traded on a non-primary US exchange (Cboe). Primary exchanges
+ * are NYSE (XNYS) and NASDAQ (XNAS) only.
  *
  * Key behaviors:
- * - `publiclyTraded.stockExchange: "XLON"` → non-US exchange rules apply
+ * - `publiclyTraded.stockExchange: "XCBO"` → non-primary exchange rules apply
  * - Beneficial owners section is **collected** (≥25% ownership)
- * - Controller collects **full details including gov ID** (passport)
+ * - Controller collects **full details including gov ID**
  * - FinCEN digital attestation is **required**
  */
-export const NonUS_PTC_London: Story = {
-  name: 'Non-US PTC — London',
+export const NonPrimary_PTC_Cboe: Story = {
+  name: 'Non-Primary PTC — Cboe',
   loaders: [() => resetAndSeedClient(efClientCorpPTC_NonUS_Mock, '0030000152')],
   args: {
     ...commonArgs,
@@ -168,22 +223,22 @@ export const NonUS_PTC_London: Story = {
 };
 
 // =============================================================================
-// NON-US EXCHANGE — SUBSIDIARY (with "Other" exchange)
+// NON-PRIMARY EXCHANGE — SUBSIDIARY (with "Other" exchange)
 // =============================================================================
 
 /**
- * **Non-US Subsidiary — Other Exchange (Tokyo Stock Exchange)**
+ * **Non-Primary Subsidiary — Other Exchange (OTC Markets)**
  *
- * A subsidiary of a non-US PTC, using `stockExchange: "Other"` with a
- * custom `stockExchangeName`.
+ * A subsidiary of a non-primary PTC, using `stockExchange: "Other"` with a
+ * custom `stockExchangeName`. Primary exchanges are NYSE and NASDAQ only.
  *
  * Key behaviors:
- * - `isSubsidiary: true` + `stockExchange: "Other"` + `stockExchangeName: "Tokyo Stock Exchange"`
- * - Same collection rules as non-US PTC (collect everything)
+ * - `isSubsidiary: true` + `stockExchange: "Other"` + `stockExchangeName: "OTC Markets"`
+ * - Same collection rules as non-primary PTC (collect everything)
  * - Demonstrates the "Other" exchange conditional field
  */
-export const NonUS_Subsidiary_Other: Story = {
-  name: 'Non-US Subsidiary — Other Exchange',
+export const NonPrimary_Subsidiary_Other: Story = {
+  name: 'Non-Primary Subsidiary — Other Exchange',
   loaders: [
     () =>
       resetAndSeedClient(efClientCorpPTC_NonUS_Subsidiary_Mock, '0030000153'),
@@ -192,25 +247,6 @@ export const NonUS_Subsidiary_Other: Story = {
     ...commonArgs,
     clientId: '0030000153',
     enablePubliclyTradedCompanies: true,
-  },
-};
-
-// =============================================================================
-// FEATURE FLAG DISABLED
-// =============================================================================
-
-/**
- * **Feature Flag Disabled (Default)**
- *
- * When `enablePubliclyTradedCompanies` is `false` (default), the PTC
- * question should never appear, even if the entity type supports it.
- * This is the current production behavior.
- */
-export const FeatureFlagDisabled: Story = {
-  name: 'Feature Flag Disabled (Default)',
-  args: {
-    ...commonArgs,
-    enablePubliclyTradedCompanies: false,
   },
 };
 
@@ -224,12 +260,39 @@ export const FeatureFlagDisabled: Story = {
  * Even when `enablePubliclyTradedCompanies` is `true`, sole proprietorships
  * should NEVER see the PTC question. Per spec: "Any entity type except for
  * Sole Prop will be allowed to send in 'publiclyTraded' block."
+ *
+ * Uses a partial client with only the organization type pre-selected.
  */
 export const SoleProprietorship_NoPTC: Story = {
   name: 'Sole Proprietorship — No PTC',
+  loaders: [
+    () =>
+      resetAndSeedClient(
+        {
+          id: '0030000154',
+          partyId: '2000000154',
+          products: ['EMBEDDED_PAYMENTS'],
+          outstanding: {},
+          status: 'NEW',
+          parties: [
+            {
+              id: '2000000154',
+              partyType: 'ORGANIZATION',
+              roles: ['CLIENT'],
+              profileStatus: 'NEW',
+              active: true,
+              organizationDetails: {
+                organizationType: 'SOLE_PROPRIETORSHIP',
+              },
+            },
+          ],
+        },
+        '0030000154'
+      ),
+  ],
   args: {
     ...commonArgs,
-    availableOrganizationTypes: ['SOLE_PROPRIETORSHIP'],
+    clientId: '0030000154',
     enablePubliclyTradedCompanies: true,
   },
 };

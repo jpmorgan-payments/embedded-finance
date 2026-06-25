@@ -20,7 +20,6 @@ export const linkedAccountListMock: ListRecipientsResponse = {
         address: {
           addressLine1: '451 Rose Garden',
           addressLine2: '11249312',
-          addressLine3: 'Rose House',
           city: 'New York City',
           countryCode: CountryCode.US,
           state: 'NY',
@@ -63,7 +62,6 @@ export const linkedAccountListMock: ListRecipientsResponse = {
         address: {
           addressLine1: '123 Business Plaza',
           addressLine2: 'Suite 200',
-          addressLine3: '',
           city: 'Los Angeles',
           countryCode: CountryCode.US,
           state: 'CA',
@@ -110,7 +108,6 @@ export const linkedAccountListMock: ListRecipientsResponse = {
         address: {
           addressLine1: '789 Personal Lane',
           addressLine2: 'Apt 5B',
-          addressLine3: '',
           city: 'Chicago',
           countryCode: CountryCode.US,
           state: 'IL',
@@ -149,7 +146,6 @@ export const linkedAccountListMock: ListRecipientsResponse = {
         address: {
           addressLine1: '456 Elm Street',
           addressLine2: '',
-          addressLine3: '',
           city: 'Boston',
           countryCode: CountryCode.US,
           state: 'MA',
@@ -198,7 +194,6 @@ export const linkedAccountMicrodepositListMock: ListRecipientsResponse = {
         address: {
           addressLine1: '451 Rose Garden',
           addressLine2: '11249312',
-          addressLine3: 'Rose House',
           city: 'New York City',
           countryCode: CountryCode.US,
           state: 'NY',
@@ -251,7 +246,6 @@ export const linkedAccountReadyForValidationMock: ListRecipientsResponse = {
         address: {
           addressLine1: '451 Rose Garden',
           addressLine2: '11249312',
-          addressLine3: 'Rose House',
           city: 'New York City',
           countryCode: CountryCode.US,
           state: 'NY',
@@ -306,7 +300,6 @@ export const linkedAccountRejectedMock: ListRecipientsResponse = {
         address: {
           addressLine1: '451 Rose Garden',
           addressLine2: '11249312',
-          addressLine3: 'Rose House',
           city: 'New York City',
           countryCode: CountryCode.US,
           state: 'NY',
@@ -361,7 +354,6 @@ export const linkedAccountBusinessMock: ListRecipientsResponse = {
         address: {
           addressLine1: '456 Corporate Drive',
           addressLine2: 'Floor 10',
-          addressLine3: '',
           city: 'San Francisco',
           countryCode: CountryCode.US,
           state: 'CA',
@@ -407,7 +399,6 @@ export const linkedAccountBusinessMock: ListRecipientsResponse = {
         address: {
           addressLine1: '789 Startup Street',
           addressLine2: 'Unit 3',
-          addressLine3: '',
           city: 'Austin',
           countryCode: CountryCode.US,
           state: 'TX',
@@ -460,7 +451,6 @@ export const linkedAccountActiveMock: ListRecipientsResponse = {
         address: {
           addressLine1: '451 Rose Garden',
           addressLine2: '11249312',
-          addressLine3: 'Rose House',
           city: 'New York City',
           countryCode: CountryCode.US,
           state: 'NY',
@@ -514,7 +504,6 @@ export const linkedAccountInactiveMock: ListRecipientsResponse = {
         address: {
           addressLine1: '321 Old Account Ave',
           addressLine2: '',
-          addressLine3: '',
           city: 'Miami',
           countryCode: CountryCode.US,
           state: 'FL',

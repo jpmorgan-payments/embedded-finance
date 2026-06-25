@@ -1,4 +1,3 @@
-import { i18n } from '@/i18n/config';
 import {
   BuildingIcon,
   FileIcon,
@@ -44,6 +43,7 @@ import {
   clientHasOutstandingDocRequests,
   getActiveOwners,
   getOrganizationParty,
+  isUSExchangePTC,
 } from '@/core/OnboardingFlow/utils/dataUtils';
 import { getStepperValidation } from '@/core/OnboardingFlow/utils/flowUtils';
 
@@ -51,43 +51,29 @@ const ownerSteps: StepConfig[] = [
   {
     id: 'personal-details',
     stepType: 'form',
-    title: i18n.t(
-      'onboarding-overview:screens.ownerSteps.personalDetails.title'
-    ),
-    description: i18n.t(
-      'onboarding-overview:screens.ownerSteps.personalDetails.description'
-    ),
+    titleKey: 'screens.ownerSteps.personalDetails.title',
+    descriptionKey: 'screens.ownerSteps.personalDetails.description',
     Component: PersonalDetailsForm,
   },
   {
     id: 'identity-document',
     stepType: 'form',
-    title: i18n.t(
-      'onboarding-overview:screens.ownerSteps.identityDocument.title'
-    ),
-    description: i18n.t(
-      'onboarding-overview:screens.ownerSteps.identityDocument.description'
-    ),
+    titleKey: 'screens.ownerSteps.identityDocument.title',
+    descriptionKey: 'screens.ownerSteps.identityDocument.description',
     Component: IndividualIdentityForm,
   },
   {
     id: 'contact-details',
     stepType: 'form',
-    title: i18n.t(
-      'onboarding-overview:screens.ownerSteps.contactDetails.title'
-    ),
-    description: i18n.t(
-      'onboarding-overview:screens.ownerSteps.contactDetails.description'
-    ),
+    titleKey: 'screens.ownerSteps.contactDetails.title',
+    descriptionKey: 'screens.ownerSteps.contactDetails.description',
     Component: ContactDetailsForm,
   },
   {
     id: 'check-answers',
     stepType: 'check-answers',
-    title: i18n.t('onboarding-overview:screens.ownerSteps.checkAnswers.title'),
-    description: i18n.t(
-      'onboarding-overview:screens.ownerSteps.checkAnswers.description'
-    ),
+    titleKey: 'screens.ownerSteps.checkAnswers.title',
+    descriptionKey: 'screens.ownerSteps.checkAnswers.description',
   },
 ];
 const staticScreens: StaticScreenConfig[] = [
@@ -184,21 +170,13 @@ const sectionScreens: SectionScreenConfig[] = [
     isSection: true,
     type: 'stepper',
     sectionConfig: {
-      label: i18n.t('onboarding-overview:screens.personalSection.label'),
-      shortLabel: i18n.t(
-        'onboarding-overview:screens.personalSection.shortLabel'
-      ),
+      labelKey: 'screens.personalSection.label',
+      shortLabelKey: 'screens.personalSection.shortLabel',
       icon: UserIcon,
-      requirementsList: [
-        i18n.t(
-          'onboarding-overview:screens.personalSection.requirementsList.0'
-        ),
-        i18n.t(
-          'onboarding-overview:screens.personalSection.requirementsList.1'
-        ),
-        i18n.t(
-          'onboarding-overview:screens.personalSection.requirementsList.2'
-        ),
+      requirementsListKeys: [
+        'screens.personalSection.requirementsList.0',
+        'screens.personalSection.requirementsList.1',
+        'screens.personalSection.requirementsList.2',
       ],
       statusResolver: (
         _sessionData,
@@ -254,46 +232,41 @@ const sectionScreens: SectionScreenConfig[] = [
       steps: [
         {
           id: 'personal-details',
-          title: i18n.t(
-            'onboarding-overview:screens.personalSection.steps.personalDetails.title'
-          ),
+          titleKey: 'screens.personalSection.steps.personalDetails.title',
           stepType: 'form',
-          description: i18n.t(
-            'onboarding-overview:screens.personalSection.steps.personalDetails.description'
-          ),
+          descriptionKey:
+            'screens.personalSection.steps.personalDetails.description',
+          requirementSummaryKey:
+            'screens.personalSection.steps.personalDetails.requirementSummary',
           Component: PersonalDetailsForm,
         },
         {
           id: 'identity-document',
-          title: i18n.t(
-            'onboarding-overview:screens.personalSection.steps.identityDocument.title'
-          ),
+          titleKey: 'screens.personalSection.steps.identityDocument.title',
           stepType: 'form',
-          description: i18n.t(
-            'onboarding-overview:screens.personalSection.steps.identityDocument.description'
-          ),
+          descriptionKey:
+            'screens.personalSection.steps.identityDocument.description',
+          requirementSummaryKey:
+            'screens.personalSection.steps.identityDocument.requirementSummary',
           Component: IndividualIdentityForm,
+          isVisible: (ctx) => !isUSExchangePTC(ctx.orgParty),
         },
         {
           id: 'contact-details',
-          title: i18n.t(
-            'onboarding-overview:screens.personalSection.steps.contactDetails.title'
-          ),
+          titleKey: 'screens.personalSection.steps.contactDetails.title',
           stepType: 'form',
-          description: i18n.t(
-            'onboarding-overview:screens.personalSection.steps.contactDetails.description'
-          ),
+          descriptionKey:
+            'screens.personalSection.steps.contactDetails.description',
+          requirementSummaryKey:
+            'screens.personalSection.steps.contactDetails.requirementSummary',
           Component: ContactDetailsForm,
         },
         {
           id: 'check-answers',
-          title: i18n.t(
-            'onboarding-overview:screens.personalSection.steps.checkAnswers.title'
-          ),
+          titleKey: 'screens.personalSection.steps.checkAnswers.title',
           stepType: 'check-answers',
-          description: i18n.t(
-            'onboarding-overview:screens.personalSection.steps.checkAnswers.description'
-          ),
+          descriptionKey:
+            'screens.personalSection.steps.checkAnswers.description',
         },
       ],
     },
@@ -303,18 +276,12 @@ const sectionScreens: SectionScreenConfig[] = [
     isSection: true,
     type: 'stepper',
     sectionConfig: {
-      label: i18n.t('onboarding-overview:screens.businessSection.label'),
+      labelKey: 'screens.businessSection.label',
       icon: BuildingIcon,
-      requirementsList: [
-        i18n.t(
-          'onboarding-overview:screens.businessSection.requirementsList.0'
-        ),
-        i18n.t(
-          'onboarding-overview:screens.businessSection.requirementsList.1'
-        ),
-        i18n.t(
-          'onboarding-overview:screens.businessSection.requirementsList.2'
-        ),
+      requirementsListKeys: [
+        'screens.businessSection.requirementsList.0',
+        'screens.businessSection.requirementsList.1',
+        'screens.businessSection.requirementsList.2',
       ],
       statusResolver: (
         _sessionData,
@@ -365,12 +332,9 @@ const sectionScreens: SectionScreenConfig[] = [
         {
           id: 'business-identity',
           stepType: 'form',
-          title: i18n.t(
-            'onboarding-overview:screens.businessSection.steps.businessIdentity.title'
-          ),
-          description: i18n.t(
-            'onboarding-overview:screens.businessSection.steps.businessIdentity.description'
-          ),
+          titleKey: 'screens.businessSection.steps.businessIdentity.title',
+          descriptionKey:
+            'screens.businessSection.steps.businessIdentity.description',
           Component: BusinessIdentityForm,
         },
         {
@@ -387,34 +351,24 @@ const sectionScreens: SectionScreenConfig[] = [
         {
           id: 'industry',
           stepType: 'form',
-          title: i18n.t(
-            'onboarding-overview:screens.businessSection.steps.industry.title'
-          ),
-          description: i18n.t(
-            'onboarding-overview:screens.businessSection.steps.industry.description'
-          ),
+          titleKey: 'screens.businessSection.steps.industry.title',
+          descriptionKey: 'screens.businessSection.steps.industry.description',
           Component: IndustryForm,
         },
         {
           id: 'contact-info',
           stepType: 'form',
-          title: i18n.t(
-            'onboarding-overview:screens.businessSection.steps.contactInfo.title'
-          ),
-          description: i18n.t(
-            'onboarding-overview:screens.businessSection.steps.contactInfo.description'
-          ),
+          titleKey: 'screens.businessSection.steps.contactInfo.title',
+          descriptionKey:
+            'screens.businessSection.steps.contactInfo.description',
           Component: BusinessContactInfoForm,
         },
         {
           id: 'check-answers',
           stepType: 'check-answers',
-          title: i18n.t(
-            'onboarding-overview:screens.businessSection.steps.checkAnswers.title'
-          ),
-          description: i18n.t(
-            'onboarding-overview:screens.businessSection.steps.checkAnswers.description'
-          ),
+          titleKey: 'screens.businessSection.steps.checkAnswers.title',
+          descriptionKey:
+            'screens.businessSection.steps.checkAnswers.description',
         },
       ],
     },
@@ -424,16 +378,18 @@ const sectionScreens: SectionScreenConfig[] = [
     isSection: true,
     type: 'component',
     sectionConfig: {
-      excludedForOrgTypes: ['SOLE_PROPRIETORSHIP'],
-      label: i18n.t('onboarding-overview:screens.ownersSection.label'),
-      shortLabel: i18n.t(
-        'onboarding-overview:screens.ownersSection.shortLabel'
-      ),
+      isVisible: (ctx) =>
+        !!ctx.orgParty?.organizationDetails?.organizationType &&
+        ctx.orgParty.organizationDetails.organizationType !==
+          'SOLE_PROPRIETORSHIP' &&
+        !isUSExchangePTC(ctx.orgParty),
+      labelKey: 'screens.ownersSection.label',
+      shortLabelKey: 'screens.ownersSection.shortLabel',
       icon: Users2Icon,
-      requirementsList: [
-        i18n.t('onboarding-overview:screens.ownersSection.requirementsList.0'),
-        i18n.t('onboarding-overview:screens.ownersSection.requirementsList.1'),
-        i18n.t('onboarding-overview:screens.ownersSection.requirementsList.2'),
+      requirementsListKeys: [
+        'screens.ownersSection.requirementsList.0',
+        'screens.ownersSection.requirementsList.1',
+        'screens.ownersSection.requirementsList.2',
       ],
       statusResolver: (
         sessionData,
@@ -488,17 +444,11 @@ const sectionScreens: SectionScreenConfig[] = [
     isSection: true,
     type: 'component',
     sectionConfig: {
-      label: i18n.t(
-        'onboarding-overview:screens.additionalQuestionsSection.label'
-      ),
+      labelKey: 'screens.additionalQuestionsSection.label',
       icon: TagIcon,
-      requirementsList: [
-        i18n.t(
-          'onboarding-overview:screens.additionalQuestionsSection.requirementsList.0'
-        ),
-        i18n.t(
-          'onboarding-overview:screens.additionalQuestionsSection.requirementsList.1'
-        ),
+      requirementsListKeys: [
+        'screens.additionalQuestionsSection.requirementsList.0',
+        'screens.additionalQuestionsSection.requirementsList.1',
       ],
       statusResolver: (_sessionData, clientData) => {
         const sectionCompleted =
@@ -531,7 +481,7 @@ const sectionScreens: SectionScreenConfig[] = [
     isSection: true,
     type: 'stepper',
     sectionConfig: {
-      label: i18n.t('onboarding-overview:screens.reviewAttestSection.label'),
+      labelKey: 'screens.reviewAttestSection.label',
       icon: FileIcon,
       statusResolver: (_sessionData, clientData) => {
         if (
@@ -556,24 +506,18 @@ const sectionScreens: SectionScreenConfig[] = [
       steps: [
         {
           id: 'review',
-          title: i18n.t(
-            'onboarding-overview:screens.reviewAttestSection.steps.review.title'
-          ),
+          titleKey: 'screens.reviewAttestSection.steps.review.title',
           stepType: 'static',
-          description: i18n.t(
-            'onboarding-overview:screens.reviewAttestSection.steps.review.description'
-          ),
+          descriptionKey:
+            'screens.reviewAttestSection.steps.review.description',
           Component: ReviewForm,
         },
         {
           id: 'documents',
-          title: i18n.t(
-            'onboarding-overview:screens.reviewAttestSection.steps.documents.title'
-          ),
+          titleKey: 'screens.reviewAttestSection.steps.documents.title',
           stepType: 'static',
-          description: i18n.t(
-            'onboarding-overview:screens.reviewAttestSection.steps.documents.description'
-          ),
+          descriptionKey:
+            'screens.reviewAttestSection.steps.documents.description',
           Component: TermsAndConditionsForm,
         },
       ],
@@ -584,11 +528,9 @@ const sectionScreens: SectionScreenConfig[] = [
     isSection: true,
     type: 'component',
     sectionConfig: {
-      label: i18n.t('onboarding-overview:screens.uploadDocumentsSection.label'),
+      labelKey: 'screens.uploadDocumentsSection.label',
       icon: UploadIcon,
-      onHoldText: i18n.t(
-        'onboarding-overview:screens.uploadDocumentsSection.onHoldText'
-      ),
+      onHoldTextKey: 'screens.uploadDocumentsSection.onHoldText',
       statusResolver: (_sessionData, clientData) => {
         const hasOutstandingDocRequests =
           clientHasOutstandingDocRequests(clientData);

@@ -90,10 +90,6 @@
       "label": "Address Line 2",
       "placeholder": "Apt, suite, unit, etc. (optional)"
     },
-    "addressLine3": {
-      "label": "Address Line 3",
-      "placeholder": "Additional info (optional)"
-    },
     "city": {
       "label": "City",
       "placeholder": "Enter city"
@@ -203,5 +199,9 @@
       "accountHolderType": "Recipient Type",
       "accountHolderInfo": "Recipient Information"
     }
+  },
+  "prefillValidation": {
+    "title": "Invalid prefilled account data",
+    "footnote": "If this information is incorrect, please contact your company administrator."
   }
 }

@@ -2,6 +2,287 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.16.4] - 2026-06-24
+
+### Changes
+
+#### Bug Fixes
+
+- **onboarding:** enable token highlighting for Operational Details screen
+- **recipients:** remove deprecated Address Line 3 field from bank account forms
+- **onboarding:** prevent visual flicker when entering "Check Answers" screen by implementing an existing party cache
+- **onboarding:** invalidate the client on party update in order to properly fetch the latest outstanding questions block
+
+## [0.16.3] - 2026-06-22
+
+### Changes
+
+#### Features
+
+- **onboarding:** remove dba name field's associated checkbox and change it to optional
+
+## [0.16.2] - 2026-06-18
+
+### Changes
+
+#### Features
+
+- **onboarding, i18n:** add a content token for invalid prefilled linked account scenario
+
+#### Bug Fixes
+
+- **a11y:** strip aria-controls from SelectTrigger when closed
+- **a11y:** wrap OnboardingFlow content in main landmark
+- **a11y:** add aria-label to icon-only InfoPopover dialog trigger
+- **onboarding, i18n:** restore missing content tokens
+- **onboarding:** fix issue where nested subquestions were not rendering and some issues with validation messages
+- **onboarding:** prevent display of select field if enum array is empty
+- **i18n:** add FieldKey type utility for nested validation field paths
+- **i18n:** restructure literal-dot keys into nested objects for correct resolution
+- **i18n:** restore contentTokenOverrideKey support in BusinessContactInfoForm; remove deprecated onboarding-old fallback
+- **a11y:** only set aria-describedby for mounted form elements
+- **a11y:** add aria-labelledby to FormControl for non-native elements
+- **a11y:** wrap OnboardingTimeline in nav landmark
+- **a11y:** replace h5 with div in AlertTitle to fix heading order
+- **a11y:** strip aria-controls from dialog triggers when closed
+- **a11y:** add missing aria-labels to buttons
+
+#### Breaking Changes
+
+- **i18n:** remove onboarding-old namespace entirely
+
+## [0.16.1] - 2026-06-17
+
+### Changes
+
+#### Bug Fixes
+
+- **OperationalDetailsForm:** avoid rendering a select input when enum options are empty
+
+## [0.16.0] - 2026-06-16
+
+### Changes
+
+#### Breaking Changes
+
+- **i18n:** restore contentTokenOverrideKey support in BusinessContactInfoForm; remove deprecated onboarding-old fallback
+
+#### Features
+
+- **onboarding:** add a content token for server error footnote
+
+#### Bug Fixes
+
+- **i18n:** add FieldKey type utility for nested validation field paths
+- **i18n:** restructure literal-dot keys into nested objects for correct resolution
+- **a11y:** only set aria-describedby for mounted form elements
+- **a11y:** add aria-labelledby to FormControl for non-native elements
+- **a11y:** wrap OnboardingTimeline in nav landmark
+- **a11y:** replace h5 with div in AlertTitle to fix heading order
+- **a11y:** strip aria-controls from dialog triggers when closed
+- **a11y:** add missing aria-labels to buttons
+
+## [0.15.1] - 2026-06-15
+
+### Changes
+
+#### Features
+
+- **onboarding:** add a content token for server error footnote
+- **onboarding:** allow passing empty string for custom tooltip content token to hide tooltip
+- **storybook:** add stories for Linked Account API error scenarios
+
+#### Refactors
+
+- **onboarding:** use i18n keys instead of using i18n directly in flowConfig to allow custom content tokens
+- **onboarding:** enhance step title and description resolution using i18n keys; remove unused titleKey and descriptionKey properties
+- **onboarding:** enhance getFieldContentToken to support annotated ReactNode for improved localization
+- **onboarding:** simplify title rendering logic in StepsReviewCards component
+- remove unnecessary assertions
+
+#### Tests
+
+- add unit tests for PaymentFlow, ReviewPanel, BankAccountFormWrapper, and EnablePaymentMethodWrapper components
+- add unit tests for ownership validation, hierarchy utilities, and existing entities
+- add integration tests for PaymentFlowInline user journey
+- add test cases for utility functions and recipient helpers
+
+## [0.15.0] - 2026-06-11
+
+### ⚠ Breaking Changes
+
+- removed legacy `MakePayment` component (use `PaymentFlow` instead)
+- removed `OnboardingWizardBasic` component (use `OnboardingFlow` instead)
+
+### Changes
+
+#### Features
+
+- **onboarding:** hide website field from onboarding form
+
+#### Bug Fixes
+
+- **onboarding:** omit placeholder for PatternInput to prevent mask conflicts
+- **onboarding:** update incorrect step description for contact details step ("We need your address and contact information.")
+
+## [0.14.9] - 2026-06-10
+
+### Changes
+
+#### Features
+
+- Update Test Scenario 5 for Fund Management Platform
+
+#### Bug Fixes
+
+- **attestation:** update JPMC branding to J.P. Morgan in multiple languages
+
+## [0.14.8] - 2026-06-10
+
+### Changes
+
+#### Features
+
+- **onboarding:** update the label and options of the PTC question to clarify 51% ownership for subsidiaries
+
+#### Bug Fixes
+
+- **onboarding:** fix validation issues with questions on operational details page
+
+#### Tests
+
+- **onboarding:** update test to match the new subsidiary option
+
+## [0.14.7] - 2026-06-04
+
+### Changes
+
+#### Features
+
+- **disclosure:** add product name to FDIC disclosure for clarity
+
+## [0.14.6] - 2026-06-03
+
+### Changes
+
+#### Features
+
+- **i18n:** update descriptions for owners section and info alert for clarity
+
+#### Refactors
+
+- simplify Owners section text in integration tests for clarity
+
+#### Tests
+
+- **OnboardingFlow:** update Owners section test to use role-based query for improved accessibility
+
+## [0.14.5] - 2026-06-03
+
+### Changes
+
+#### Features
+
+- **disclosure:** enhance footer and FDIC information across multiple languages
+
+#### Bug Fixes
+
+- **disclosure:** correct punctuation in footer text
+- **disclosure:** correct placeholder in FDIC information text
+
+## [0.14.4] - 2026-06-02
+
+Adds PTC (Publicly Traded Companies) gateway redirect logic so existing clients must answer the PTC question before proceeding, with sidebar sections locked until answered. Also includes various accessibility and React strict-mode fixes across components.
+
+### Changes
+
+#### Features
+
+- **onboarding:** when ptc flag is enabled, redirect user to gateway screen to ensure they answer ptc question
+- **storybook:** refine PTC stories to have better scenarios and mocks
+- **onboarding:** hide Owners section by default
+
+#### Bug Fixes
+
+- **storybook:** update incorrect naics code in ptc mock
+- **onboarding:** remove uncontrolled prop defaultValue from PatternInput
+- **onboarding:** assign keys for each item in OnboardingArrayField
+- **dropzone:** convert dropzone component to use forwardRef so Radix Slot can properly forward a ref to it
+- **transactions:** add missing description property for transaction dialog
+- **onboarding:** remove redundant h2 tag
+
+## [0.14.3] - 2026-06-01
+
+### Changes
+
+#### Bug Fixes
+
+- **onboarding:** fix display of ptc text in review section
+
+## [0.14.2] - 2026-06-01
+
+### Changes
+
+#### Bug Fixes
+
+- **onboarding:** fix scenarios where skipped steps will still be displayed
+
+#### Tests
+
+- **onboarding:** update e2e test to check for correct EIN
+- **onboarding:** update e2e test to use valid EIN
+
+## [0.14.1] - 2026-05-29
+
+### Changes
+
+#### Refactors
+
+- **onboarding:** remove prefix validation for EIN
+
+## [0.14.0] - 2026-05-29
+
+### Summary
+
+Publicly Traded Companies (PTC) feature: full end-to-end support for capturing ticker symbol and stock exchange during onboarding, with gateway-screen integration, overview hints, review display, and comprehensive e2e tests. Also includes EIN validation hardening (updated IRS prefix list + blocklist of obviously invalid values), step counter fix for the review section, and several onboarding data-handling improvements.
+
+### Changes
+
+#### Features
+
+- **onboarding (PTC):** add Publicly Traded Companies feature with gateway-screen integration, stock exchange priority grouping, overview hints, and review display
+- **onboarding (PTC):** filter PTC step from sections when feature flag is off or org type is sole prop
+- **onboarding (PTC):** clear stale PTC selection when option is no longer available
+- **onboarding (PTC):** add temporary restrictions for removing PTC status (API limitation)
+- **onboarding:** improve visibility configurability for sections/steps (dynamic requirement summaries based on step visibility)
+- **onboarding:** include dbaName when same as organization name
+- **onboarding:** disable autoComplete for obfuscated fields
+- **client-details:** add questions grouping and conditional visibility
+- **account-card:** add balance error state
+
+#### Bug Fixes
+
+- **onboarding:** fix step counter showing "Step X of 0" in review section
+- **onboarding:** fix incorrect party reference for countryOfResidence
+- **onboarding:** fix bug with missing argument in flow navigation
+- **onboarding:** remove unnecessary error throwing
+- **onboarding:** skip review cards where all fields are hidden
+- **onboarding:** add disableFieldRuleMapping to PubliclyTradedForm fields
+
+#### Refactors
+
+- replace global Axios singleton with per-provider scoped instances
+
+#### Documentation
+
+- update feature plan and onboarding recipe with latest PTC implementation details
+
+#### Tests
+
+- **onboarding:** add PTC end-to-end integration test (12 scenarios)
+- **onboarding:** add PTC matrix test cases
+- update GatewayScreen integration tests to resolve selector conflicts
+
 ## [0.13.14] - 2026-05-19
 
 ### Summary

@@ -39,9 +39,29 @@ import {
 import { mockLinkedAccounts } from '../mocks/linkedAccounts.mock';
 import { mockRecipientsResponse } from '../mocks/recipients.mock';
 import {
+  testScenario5DashboardAccount,
+  testScenario5DashboardBalance,
+  testScenario5DashboardRecipients,
+  testScenario5DashboardTransactions,
+} from '../mocks/testScenario5Dashboard.mock';
+import {
+  TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID,
+  testScenarioFasterFulfilmentClient,
+} from '../mocks/testScenarioFasterFulfilmentClient.mock';
+import { testScenarioFasterFulfilmentClientNoPtc } from '../mocks/testScenarioFasterFulfilmentClientNoPtc.mock';
+import {
+  TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
+  testScenarioHealthBenefitClient,
+} from '../mocks/testScenarioHealthBenefitClient.mock';
+import {
   TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID,
   testScenarioMultiLinkedIllustrationClient,
 } from '../mocks/testScenarioMultiLinkedIllustrationClient.mock';
+import {
+  TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID,
+  testScenarioNaicsCodesClient,
+} from '../mocks/testScenarioNaicsCodesClient.mock';
+import { testScenario5FundDocumentRequests } from '../mocks/testScenario5FundDocumentRequests.mock';
 import {
   TEST_DEMO_SCENARIO_CLIENT_ID,
   TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE,
@@ -49,10 +69,18 @@ import {
   testScenarioOperator80Client,
 } from '../mocks/testScenarioOperator80Client.mock';
 import { mockTransactionsResponse } from '../mocks/transactions.mock';
+import {
+  areAllNaicsCodeQuestionsAnswered,
+  isTestScenario5NaicsCode,
+  TEST_SCENARIO_5_DASHBOARD_ACCOUNT_ID,
+  TEST_SCENARIO_5_QUESTION_IDS,
+} from './test-scenario-5';
 
 type SeedPredefinedClientOptions = {
   /** Stable ids (`61800`, `61801+`) for Operator 80–shaped demo clients (doc-request flows). */
   useTestDemoFixedDocumentRequestIds?: boolean;
+  /** Scenario 5 fund doc-request: client is INFORMATION_REQUESTED but fund docs are seeded separately. */
+  skipInformationRequestedDocumentRequests?: boolean;
 };
 
 // --- Entity types (OAS-aligned) ---
@@ -567,6 +595,11 @@ const predefinedClients: Record<string, PredefinedClientShape> = {
 export type TestDemoScenarioMode =
   | 'happy-path'
   /**
+   * `/test-scenario-4` only: same MSW behavior as `happy-path`, but seeds C-corp + Nasdaq PTC
+   * party data (`testScenarioFasterFulfilmentClient`).
+   */
+  | 'happy-path-ptc'
+  /**
    * Same Operator 80 shape as `happy-path`, but client is **APPROVED** immediately (no NEW →
    * delayed approval). Linked LINKED_ACCOUNT creates use **ACTIVE** like `happy-path`.
    */
@@ -576,9 +609,22 @@ export type TestDemoScenarioMode =
   /** APPROVED client + link step; new linked recipient is ACTIVE (no microdeposits). */
   | 'linked-account-active'
   /**
-   * `/test-scenario-2` only: APPROVED client; MSW seeds **three** pre-existing LINKED_ACCOUNT recipients.
+   * Bundles with multi-link demos (`test-scenario-2`, `test-scenario-4`): APPROVED client;
+   * MSW seeds **three** pre-existing LINKED_ACCOUNT recipients.
    */
-  | 'multi-linked-start-3';
+  | 'multi-linked-start-3'
+  /**
+   * `/test-scenario-5`: NEW client → select NAICS code → answer assessment questions → APPROVED.
+   */
+  | 'naics-codes-onboarding'
+  /**
+   * `/test-scenario-5`: APPROVED client with wallet dashboard data pre-seeded.
+   */
+  | 'naics-codes-dashboard'
+  /**
+   * `/test-scenario-5`: INFORMATION_REQUESTED client with fund-specific document requests.
+   */
+  | 'naics-codes-doc-request';
 
 /**
  * `/test-scenario*` demo **bundle**: maps a route to client seed + optional recipient seeding in MSW.
@@ -587,7 +633,9 @@ export type TestDemoScenarioMode =
 export type TestScenarioBundleId =
   | 'test-scenario'
   | 'test-scenario-2'
-  | 'test-scenario-3';
+  | 'test-scenario-3'
+  | 'test-scenario-4'
+  | 'test-scenario-5';
 
 export const DEFAULT_TEST_SCENARIO_BUNDLE_ID: TestScenarioBundleId =
   'test-scenario';
@@ -596,7 +644,15 @@ const TEST_SCENARIO_BUNDLE_IDS = [
   'test-scenario',
   'test-scenario-2',
   'test-scenario-3',
+  'test-scenario-4',
+  'test-scenario-5',
 ] as const satisfies readonly TestScenarioBundleId[];
+
+/** Bundles that expose `3-linked@demo.test` / `multi-linked-start-3` recipient pre-seeding. */
+const TEST_SCENARIO_BUNDLES_WITH_MULTI_LINK: readonly TestScenarioBundleId[] = [
+  'test-scenario-2',
+  'test-scenario-4',
+];
 
 export function parseTestScenarioBundleId(
   value: unknown
@@ -615,7 +671,14 @@ export function getTestScenarioClientIds(): string[] {
   return [
     TEST_DEMO_SCENARIO_CLIENT_ID,
     TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID,
+    TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
+    TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID,
+    TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID,
   ];
+}
+
+export function isTestScenario5ClientId(clientId: string): boolean {
+  return clientId === TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID;
 }
 
 function seedPredefinedClientFromShape(
@@ -708,7 +771,10 @@ function seedPredefinedClientFromShape(
 
   db.client.create(newClient as Partial<DbClient> & { id: string });
 
-  if (clientData.status === 'INFORMATION_REQUESTED') {
+  if (
+    clientData.status === 'INFORMATION_REQUESTED' &&
+    seedOptions?.skipInformationRequestedDocumentRequests !== true
+  ) {
     const individualParties = parties.filter(
       (p) => (p as { partyType?: string }).partyType === 'INDIVIDUAL'
     );
@@ -870,19 +936,355 @@ function promoteTestDemoClientPartiesToApproved(clientId: string): void {
 function removeAllTestScenarioSeedClients(): void {
   removePredefinedClient(TEST_DEMO_SCENARIO_CLIENT_ID);
   removePredefinedClient(TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID);
+  removePredefinedClient(TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID);
+  removePredefinedClient(TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID);
+  removePredefinedClient(TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID);
 }
 
-/** Illustration: N ACTIVE linked-bank recipients for GET `/recipients` (`/test-scenario-2`). */
-function seedTestScenarioMultiLinkedRecipients(
-  clientId: string,
-  count: 0 | 1 | 3
-): void {
-  if (count === 0) return;
+function removeTestScenario5DashboardRows(): void {
+  const recipientIds = testScenario5DashboardRecipients.map((r) => r.id);
+  db.recipient.deleteMany({
+    where: { id: { in: recipientIds } },
+  });
+  db.accountBalance.deleteMany({
+    where: { id: { equals: testScenario5DashboardBalance.id } },
+  });
+  db.account.deleteMany({
+    where: { id: { equals: TEST_SCENARIO_5_DASHBOARD_ACCOUNT_ID } },
+  });
+  db.transaction.deleteMany({
+    where: {
+      id: {
+        in: testScenario5DashboardTransactions.map((txn) => txn.id),
+      },
+    },
+  });
+}
 
+/** Seeds fund-specific document requests for scenario 5 doc-request mode. */
+function seedTestScenario5FundDocumentRequests(clientId: string): void {
+  const timestamp = new Date().toISOString();
+  const docRequestIds: string[] = [];
+
+  for (const docReq of testScenario5FundDocumentRequests) {
+    try {
+      upsertDocumentRequest(docReq.id, {
+        ...docReq,
+        clientId,
+        createdAt: docReq.createdAt ?? timestamp,
+      } as Partial<DbDocumentRequest>);
+      docRequestIds.push(docReq.id);
+    } catch (error) {
+      console.error('Error creating scenario 5 fund document request:', error);
+    }
+  }
+
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+  if (!client) return;
+
+  const prevOutstanding = (client.outstanding ||
+    {}) as ClientResponseOutstanding;
+  db.client.update({
+    where: { id: { equals: clientId } },
+    data: {
+      ...client,
+      outstanding: {
+        ...prevOutstanding,
+        documentRequestIds: [
+          ...((prevOutstanding.documentRequestIds as string[]) ?? []),
+          ...docRequestIds,
+        ],
+      },
+    },
+  });
+}
+
+/** Seeds accounts, linked accounts, recipients, and transactions for scenario 5 dashboard. */
+export function seedTestScenario5DashboardData(): void {
+  removeTestScenario5DashboardRows();
+  const timestamp = new Date().toISOString();
+
+  try {
+    db.account.create({
+      ...testScenario5DashboardAccount,
+      createdAt: testScenario5DashboardAccount.createdAt ?? timestamp,
+      updatedAt: timestamp,
+    } as Partial<DbAccount> & { id: string });
+  } catch (error) {
+    console.error('Error creating scenario 5 dashboard account:', error);
+  }
+
+  try {
+    db.accountBalance.create(
+      testScenario5DashboardBalance as Partial<DbAccountBalance> & {
+        id: string;
+      }
+    );
+  } catch (error) {
+    console.error('Error creating scenario 5 dashboard balance:', error);
+  }
+
+  for (const recipient of testScenario5DashboardRecipients) {
+    try {
+      db.recipient.create({
+        ...recipient,
+        createdAt: recipient.createdAt ?? timestamp,
+        updatedAt: recipient.updatedAt ?? timestamp,
+      } as Partial<DbRecipient> & { id: string });
+    } catch (error) {
+      console.error('Error creating scenario 5 dashboard recipient:', error);
+    }
+  }
+
+  for (const transaction of testScenario5DashboardTransactions) {
+    try {
+      db.transaction.create({
+        ...transaction,
+        createdAt: timestamp,
+      } as Partial<DbTransaction> & { id: string });
+    } catch (error) {
+      console.error('Error creating scenario 5 dashboard transaction:', error);
+    }
+  }
+}
+
+export function promoteTestScenario5ClientToApproved(clientId: string): void {
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+  if (!client) return;
+
+  db.client.update({
+    where: { id: { equals: clientId } },
+    data: {
+      ...client,
+      status: 'APPROVED',
+      results: {
+        ...((client.results as Record<string, unknown>) || {}),
+        customerIdentityStatus: 'APPROVED',
+      },
+    },
+  });
+
+  promoteTestDemoClientPartiesToApproved(clientId);
+  seedTestScenario5DashboardData();
+  logDbState('Test scenario 5 NAICS approval');
+}
+
+function getOrgPartyIndustryCodeForClient(
+  clientId: string
+): string | undefined {
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+  if (!client) return undefined;
+
+  const partyIds = (client.parties as string[]) ?? [];
+  for (const partyId of partyIds) {
+    const party = db.party.findFirst({
+      where: { id: { equals: partyId } },
+    });
+    if (!party) continue;
+    const partyRec = party as Record<string, unknown>;
+    if (partyRec.partyType !== 'ORGANIZATION') continue;
+    const org = partyRec.organizationDetails as
+      | { industry?: { code?: string } }
+      | undefined;
+    const code = org?.industry?.code;
+    if (typeof code === 'string' && code.length > 0) {
+      return code;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Scenario 5 conditional logic: when the org party has a recommended NAICS
+ * code, ensure all fund assessment questions are on `outstanding.questionIds`.
+ */
+export function syncTestScenario5NaicsCodeQuestionsFromIndustry(
+  clientId: string
+): void {
+  if (!isTestScenario5ClientId(clientId)) return;
+  const industryCode = getOrgPartyIndustryCodeForClient(clientId);
+  if (isTestScenario5NaicsCode(industryCode)) {
+    addNaicsCodeQuestionsForTestScenario5Client(clientId);
+  }
+}
+
+export function addNaicsCodeQuestionsForTestScenario5Client(
+  clientId: string
+): void {
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+  if (!client) return;
+
+  const outstanding = (client.outstanding || {}) as {
+    questionIds?: string[];
+    documentRequestIds?: string[];
+    attestationDocumentIds?: string[];
+    partyIds?: string[];
+    partyRoles?: string[];
+  };
+
+  const mergedIds = [
+    ...new Set([
+      ...(outstanding.questionIds ?? []),
+      ...TEST_SCENARIO_5_QUESTION_IDS,
+    ]),
+  ];
+
+  db.client.update({
+    where: { id: { equals: clientId } },
+    data: {
+      ...client,
+      outstanding: {
+        documentRequestIds: outstanding.documentRequestIds ?? [],
+        attestationDocumentIds: outstanding.attestationDocumentIds ?? [],
+        partyIds: outstanding.partyIds ?? [],
+        partyRoles: outstanding.partyRoles ?? [],
+        questionIds: mergedIds,
+      },
+    },
+  });
+}
+
+export function maybeApproveTestScenario5AfterQuestions(
+  clientId: string,
+  questionResponses: Array<{ questionId?: string }> | undefined,
+  outstandingQuestionIds: string[] | undefined
+): void {
+  if (!isTestScenario5ClientId(clientId)) return;
+  if (
+    !areAllNaicsCodeQuestionsAnswered(questionResponses, outstandingQuestionIds)
+  ) {
+    return;
+  }
+  promoteTestScenario5ClientToApproved(clientId);
+}
+
+/** Illustration: N ACTIVE linked-bank recipients for GET `/recipients` (multi-link demo bundles). */
+function getTestScenarioMultiLinkedRecipientRows(
+  clientId: string,
+  bundleId: TestScenarioBundleId
+): Recipient[] {
   const ts = new Date().toISOString();
-  const allRows: Recipient[] = [
+  const idPrefix =
+    bundleId === 'test-scenario-4' ? 'ts-b4-linked' : 'ts-b2-linked';
+
+  if (bundleId === 'test-scenario-4') {
+    return [
+      {
+        id: `${idPrefix}-001`,
+        type: 'LINKED_ACCOUNT',
+        status: 'ACTIVE',
+        clientId,
+        partyDetails: {
+          type: 'ORGANIZATION',
+          businessName: 'RapidRoute Logistics LLC',
+          address: {
+            addressLine1: '1200 Distribution Way',
+            city: 'Memphis',
+            state: 'TN',
+            postalCode: '38103',
+            countryCode: 'US',
+          },
+          contacts: [
+            { contactType: 'EMAIL', value: 'treasury@rapidroute-ff.test' },
+          ],
+        },
+        account: {
+          number: '4433221100',
+          type: 'CHECKING',
+          countryCode: 'US',
+          routingInformation: [
+            {
+              routingCodeType: 'USABA',
+              routingNumber: '084000026',
+              transactionType: 'ACH',
+            },
+          ],
+        },
+        createdAt: ts,
+        updatedAt: ts,
+      },
+      {
+        id: `${idPrefix}-002`,
+        type: 'LINKED_ACCOUNT',
+        status: 'ACTIVE',
+        clientId,
+        partyDetails: {
+          type: 'ORGANIZATION',
+          businessName: 'Midwest Freight Partners',
+          address: {
+            addressLine1: '4100 Industrial Pkwy',
+            city: 'Indianapolis',
+            state: 'IN',
+            postalCode: '46241',
+            countryCode: 'US',
+          },
+          contacts: [
+            { contactType: 'EMAIL', value: 'ap@midwest-freight-ff.test' },
+          ],
+        },
+        account: {
+          number: '5566778899',
+          type: 'CHECKING',
+          countryCode: 'US',
+          routingInformation: [
+            {
+              routingCodeType: 'USABA',
+              routingNumber: '074000078',
+              transactionType: 'ACH',
+            },
+          ],
+        },
+        createdAt: ts,
+        updatedAt: ts,
+      },
+      {
+        id: `${idPrefix}-003`,
+        type: 'LINKED_ACCOUNT',
+        status: 'ACTIVE',
+        clientId,
+        partyDetails: {
+          type: 'ORGANIZATION',
+          businessName: 'Coastal Distribution Co',
+          address: {
+            addressLine1: '88 Harbor Loop',
+            city: 'Jacksonville',
+            state: 'FL',
+            postalCode: '32202',
+            countryCode: 'US',
+          },
+          contacts: [
+            { contactType: 'EMAIL', value: 'ops@coastal-dist-ff.test' },
+          ],
+        },
+        account: {
+          number: '9988776655',
+          type: 'CHECKING',
+          countryCode: 'US',
+          routingInformation: [
+            {
+              routingCodeType: 'USABA',
+              routingNumber: '063000047',
+              transactionType: 'ACH',
+            },
+          ],
+        },
+        createdAt: ts,
+        updatedAt: ts,
+      },
+    ];
+  }
+
+  return [
     {
-      id: 'ts-b2-linked-001',
+      id: `${idPrefix}-001`,
       type: 'LINKED_ACCOUNT',
       status: 'ACTIVE',
       clientId,
@@ -914,7 +1316,7 @@ function seedTestScenarioMultiLinkedRecipients(
       updatedAt: ts,
     },
     {
-      id: 'ts-b2-linked-002',
+      id: `${idPrefix}-002`,
       type: 'LINKED_ACCOUNT',
       status: 'ACTIVE',
       clientId,
@@ -946,7 +1348,7 @@ function seedTestScenarioMultiLinkedRecipients(
       updatedAt: ts,
     },
     {
-      id: 'ts-b2-linked-003',
+      id: `${idPrefix}-003`,
       type: 'LINKED_ACCOUNT',
       status: 'ACTIVE',
       clientId,
@@ -978,8 +1380,19 @@ function seedTestScenarioMultiLinkedRecipients(
       updatedAt: ts,
     },
   ];
+}
 
-  const rows = allRows.slice(0, count);
+function seedTestScenarioMultiLinkedRecipients(
+  clientId: string,
+  bundleId: TestScenarioBundleId,
+  count: 0 | 1 | 3
+): void {
+  if (count === 0) return;
+
+  const rows = getTestScenarioMultiLinkedRecipientRows(
+    clientId,
+    bundleId
+  ).slice(0, count);
 
   for (const r of rows) {
     try {
@@ -998,25 +1411,45 @@ export function applyTestDemoScenario(
   mode: TestDemoScenarioMode,
   bundleId: TestScenarioBundleId = DEFAULT_TEST_SCENARIO_BUNDLE_ID
 ): void {
-  const useMultiLinked = bundleId === 'test-scenario-2';
-  const clientId = useMultiLinked
-    ? TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID
-    : TEST_DEMO_SCENARIO_CLIENT_ID;
+  const clientId =
+    bundleId === 'test-scenario-2'
+      ? TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID
+      : bundleId === 'test-scenario-3'
+        ? TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID
+        : bundleId === 'test-scenario-4'
+          ? TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID
+          : bundleId === 'test-scenario-5'
+            ? TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID
+            : TEST_DEMO_SCENARIO_CLIENT_ID;
+  const fasterFulfilmentBase =
+    mode === 'happy-path-ptc'
+      ? testScenarioFasterFulfilmentClient
+      : testScenarioFasterFulfilmentClientNoPtc;
   const base = (
-    useMultiLinked
+    bundleId === 'test-scenario-2'
       ? testScenarioMultiLinkedIllustrationClient
-      : testScenarioOperator80Client
+      : bundleId === 'test-scenario-3'
+        ? testScenarioHealthBenefitClient
+        : bundleId === 'test-scenario-4'
+          ? fasterFulfilmentBase
+          : bundleId === 'test-scenario-5'
+            ? testScenarioNaicsCodesClient
+            : testScenarioOperator80Client
   ) as PredefinedClientShape;
+  const useMultiLinked = (
+    TEST_SCENARIO_BUNDLES_WITH_MULTI_LINK as readonly string[]
+  ).includes(bundleId);
 
   removeAllTestScenarioSeedClients();
 
   let shape: PredefinedClientShape;
-  if (mode === 'doc-request') {
+  if (mode === 'doc-request' || mode === 'naics-codes-doc-request') {
     shape = { ...base, status: 'INFORMATION_REQUESTED' };
   } else if (
     mode === 'linked-account-approved' ||
     mode === 'linked-account-active' ||
     mode === 'happy-path-approved' ||
+    mode === 'naics-codes-dashboard' ||
     (useMultiLinked && mode === 'multi-linked-start-3')
   ) {
     shape = {
@@ -1033,29 +1466,126 @@ export function applyTestDemoScenario(
 
   seedPredefinedClientFromShape(clientId, shape, {
     useTestDemoFixedDocumentRequestIds: mode === 'doc-request',
+    skipInformationRequestedDocumentRequests: mode === 'naics-codes-doc-request',
   });
   if (mode === 'doc-request') {
     syncTestDemoClientOutstandingDocumentIds(clientId);
+  }
+  if (mode === 'naics-codes-doc-request' && bundleId === 'test-scenario-5') {
+    seedTestScenario5FundDocumentRequests(clientId);
   }
   if (
     mode === 'linked-account-approved' ||
     mode === 'linked-account-active' ||
     mode === 'happy-path-approved' ||
+    mode === 'naics-codes-dashboard' ||
     (useMultiLinked && mode === 'multi-linked-start-3')
   ) {
     promoteTestDemoClientPartiesToApproved(clientId);
   }
+  if (mode === 'naics-codes-dashboard' && bundleId === 'test-scenario-5') {
+    seedTestScenario5DashboardData();
+  }
   if (useMultiLinked) {
     if (mode === 'multi-linked-start-3') {
-      seedTestScenarioMultiLinkedRecipients(clientId, 3);
-    } else if (
-      shape.status === 'APPROVED' &&
-      mode === 'happy-path-approved'
-    ) {
-      seedTestScenarioMultiLinkedRecipients(clientId, 3);
+      seedTestScenarioMultiLinkedRecipients(clientId, bundleId, 3);
+    } else if (shape.status === 'APPROVED' && mode === 'happy-path-approved') {
+      seedTestScenarioMultiLinkedRecipients(clientId, bundleId, 3);
     }
   }
   logDbState(`Test demo scenario: ${mode} (bundle: ${bundleId})`);
+}
+
+function deepMergeClientPatch<T extends Record<string, unknown>>(
+  base: T,
+  patch: Record<string, unknown>
+): T {
+  const merged = { ...base } as Record<string, unknown>;
+  for (const [key, value] of Object.entries(patch)) {
+    const existing = merged[key];
+    if (
+      value &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      existing &&
+      typeof existing === 'object' &&
+      !Array.isArray(existing)
+    ) {
+      merged[key] = deepMergeClientPatch(
+        existing as Record<string, unknown>,
+        value as Record<string, unknown>
+      );
+    } else {
+      merged[key] = value;
+    }
+  }
+  return merged as T;
+}
+
+/** Sync shell header org name into the seeded CLIENT organization party. */
+export function applyTestScenarioOrganizationDisplayName(
+  clientId: string,
+  organizationName: string
+): void {
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+  if (!client?.parties?.length) return;
+
+  for (const partyRef of client.parties) {
+    const partyId =
+      typeof partyRef === 'string'
+        ? partyRef
+        : (partyRef as { id?: string }).id;
+    if (!partyId) continue;
+
+    const party = db.party.findFirst({
+      where: { id: { equals: partyId } },
+    });
+    if (!party) continue;
+
+    const partyRec = party as {
+      partyType?: string;
+      roles?: string[];
+      organizationDetails?: Record<string, unknown>;
+    };
+    if (partyRec.partyType !== 'ORGANIZATION') continue;
+    if (!partyRec.roles?.includes('CLIENT')) continue;
+
+    const organizationDetails = {
+      ...(partyRec.organizationDetails ?? {}),
+      organizationName,
+      dbaName: organizationName,
+    };
+
+    db.party.delete({ where: { id: { equals: partyId } } });
+    db.party.create({
+      ...(party as Record<string, unknown>),
+      organizationDetails,
+    } as Partial<DbParty> & { id: string });
+    return;
+  }
+}
+
+/** Shallow/deep patch for universal test-scenario constructor client tweaks. */
+export function applyTestScenarioClientPatch(
+  clientId: string,
+  patch: Record<string, unknown>
+): void {
+  const existing = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  });
+  if (!existing) return;
+
+  const merged = deepMergeClientPatch(
+    existing as unknown as Record<string, unknown>,
+    patch
+  );
+  const { parties: _parties, ...clientData } = merged;
+  db.client.update({
+    where: { id: { equals: clientId } },
+    data: clientData as Partial<DbClient>,
+  });
 }
 
 // --- Initialize ---

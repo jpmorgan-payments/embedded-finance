@@ -1,3 +1,4 @@
+import { act } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
@@ -942,7 +943,9 @@ describe('LinkAccountScreen', () => {
 
       await screen.findByRole('heading', { name: /Link a bank account/i });
 
-      triggerSuccess();
+      act(() => {
+        triggerSuccess();
+      });
 
       // Does not navigate to overview
       expect(mockGoTo).not.toHaveBeenCalled();
@@ -1081,7 +1084,9 @@ describe('LinkAccountScreen', () => {
 
       await screen.findByRole('heading', { name: /Link a bank account/i });
 
-      triggerSuccess();
+      act(() => {
+        triggerSuccess();
+      });
 
       await waitFor(() => {
         expect(mockUpdateSessionData).toHaveBeenCalledWith({

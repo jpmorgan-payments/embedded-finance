@@ -5,6 +5,14 @@ import { Footer } from '../components/landing/footer';
 import { LandingHeader } from '../components/landing/landing-header';
 import { DemoNotice } from '../components/ui/demo-notice';
 
+function isTestScenarioPath(pathname: string): boolean {
+  return (
+    pathname === '/test-scenario' ||
+    pathname.startsWith('/test-scenario/') ||
+    /^\/test-scenario-\d+$/.test(pathname)
+  );
+}
+
 export const Route = createRootRoute({
   component: RootComponent,
 });
@@ -13,10 +21,7 @@ function RootComponent() {
   const location = useLocation();
   const isSellsenseDemo = location.pathname === '/sellsense-demo';
   const isYearInReview = location.pathname === '/year-in-review';
-  const isTestScenario =
-    location.pathname === '/test-scenario' ||
-    location.pathname === '/test-scenario-2' ||
-    location.pathname === '/test-scenario-3';
+  const isTestScenario = isTestScenarioPath(location.pathname);
 
   if (isSellsenseDemo || isTestScenario) {
     return (

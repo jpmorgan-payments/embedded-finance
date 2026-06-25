@@ -1,105 +1,116 @@
 # PTC (Publicly Traded Companies) Feature Plan
 
-**Source:** [Handling of Publicly Traded Companies (PTCs)](https://confluence.prod.aws.jpmchase.net/confluence/spaces/SMBDO/pages/4255687417/Handling+of+Publicly+Traded+Companies+PTCs)  
-**Date:** 2026-04-21
+**Date:** 2026-04-21  
+**Last Updated:** 2026-05-28
 
 ---
 
 ## Background
 
-A PTC is an organization publicly traded through an exchange. A **subsidiary of a PTC** is an organization where ≥50% of ownership is held by a PTC. The feature is gated behind a configuration flag so platforms can opt in based on their participant population.
+A PTC is an organization publicly traded through an exchange. A **subsidiary of a PTC** is an organization where ≥50% of ownership is held by a PTC. The feature is gated behind `enablePubliclyTradedCompanies` so platforms can opt in based on their participant population.
 
 ---
 
-## 1. Feature Flag — New Prop on `<OnboardingWizardBasic>`
+## 1. Feature Flag — Prop on `<OnboardingFlow>`
 
-**File:** `OnboardingWizardBasic` props type + context  
-**Change:** Add `enablePubliclyTradedCompanies?: boolean` (default `false`) alongside existing props like `showLinkedAccountPanel`, `allowAdditionalDocumentUpload`, etc.  
-**Propagation:** Thread through the onboarding context so all child components can read it.
+**File:** `OnboardingFlow` props type + context  
+**Change:** `enablePubliclyTradedCompanies?: boolean` (default `false`).  
+**Propagation:** Threaded through `FlowContext` so all child components can read it.
 
 ---
 
-## 2. New UI: PTC Entry Questions (Two-Step)
+## 2. PTC Entry Questions — Gateway Screen
 
-**Where:** After entity type selection in the **Organization Type / Gateway screen**  
+**Where:** On the **GatewayScreen**, shown inline after organization type selection.  
 **Behavior (when flag is `true`):**
 
-**Step A — Gate question:**
+**Radio: "Is your organization publicly traded, or a subsidiary of a publicly traded company?"**
 
-- _"Is your organization publicly traded, or a subsidiary of a publicly traded company?"_ → Yes / No
+- Options rendered dynamically based on org type (`PTC_ELIGIBLE_ORG_TYPES` vs `PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES`):
+  - Org types that can be PTCs directly → "Yes, publicly traded" / "Yes, subsidiary of a PTC" / "No"
+  - Org types that can only be subsidiaries → "Yes, subsidiary of a PTC" / "No"
 - If **No** or flag is `false`, flow continues as-is (current behavior)
-- **Hidden for Sole Proprietorships** (per spec: all entity types except Sole Prop)
+- **Hidden for Sole Proprietorships**
 
-**Step B — PTC vs. Subsidiary (shown only if Step A = Yes):**
+**When "Yes" (either variant) is selected**, the Trading Information fields appear inline (see §3).
 
-- _"Is your organization itself publicly traded, or is it a subsidiary of a publicly traded company?"_ → **Publicly Traded** / **Subsidiary**
-- Maps directly to `subsidiaryOfPubliclyTraded: true | false` in the API payload
-- If **Subsidiary**, the ticker symbol and exchange collected in §3 refer to the **parent PTC**, not the subsidiary itself
+Maps to:
 
-After Step B, show the **Trading Information sub-form** (see §3).
-
----
-
-## 3. New Sub-Form: Trading Information (`publiclyTraded` block)
-
-New form fields to collect (shown after the §2 gate questions):
-
-| Field               | Type            | Required    | Notes                                                                                                       |
-| ------------------- | --------------- | ----------- | ----------------------------------------------------------------------------------------------------------- |
-| `tickerSymbol`      | Text input      | Yes         | Regex `^[A-Z0-9]*$`, max 10 chars. If subsidiary, this is the **parent PTC's** ticker.                      |
-| `stockExchange`     | Select dropdown | Yes         | Options: `XNYS` (NYSE), `XNAS` (NASDAQ), + all exchanges from the Publicly Traded Companies list, + `Other` |
-| `stockExchangeName` | Text input      | Conditional | Required only when `stockExchange === "Other"`                                                              |
-
-> **Note:** The subsidiary question (`subsidiaryOfPubliclyTraded`) is collected in §2 Step B, not here.
-
-**API types already exist:** `PubliclyTraded` interface + `subsidiaryOfPubliclyTraded` field in `OrganizationDetails` (in `smbdo.schemas.ts`).
+- `organizationDetails.publiclyTraded` block in the API
+- `organizationDetails.subsidiaryOfPubliclyTraded: true | false`
 
 ---
 
-## 4. Field Map Updates (Smart Form Rules)
+## 3. Trading Information Fields (inline on Gateway)
 
-**File:** Central field-map configuration
+Shown conditionally after the PTC radio when any "Yes" option is selected:
 
-### A. New fields to add to the field map
+| Field               | Type             | Required    | Notes                                                                                       |
+| ------------------- | ---------------- | ----------- | ------------------------------------------------------------------------------------------- |
+| `tickerSymbol`      | Text input       | Yes         | Uppercase, max 10 chars. If subsidiary, this is the **parent PTC's** ticker.                |
+| `stockExchange`     | Grouped combobox | Yes         | Grouped by priority: "US Exchanges" (NYSE/NASDAQ first) → "Other Major Exchanges" → "Other" |
+| `stockExchangeName` | Text input       | Conditional | Required only when `stockExchange === "OTHER"`                                              |
 
-- `organizationDetails.publiclyTraded.tickerSymbol`
-- `organizationDetails.publiclyTraded.stockExchange`
-- `organizationDetails.publiclyTraded.stockExchangeName`
-- `organizationDetails.subsidiaryOfPubliclyTraded`
+Labels and descriptions change dynamically based on whether "Publicly Traded" or "Subsidiary" is selected (e.g., "Parent company's ticker symbol").
 
-### B. Conditional rules based on PTC status
-
-The key UI dimension is **US exchange vs. non-US exchange** — PTC vs. subsidiary doesn't change what we collect (the subsidiary boolean is for backend processing only).
-
-| Scenario                                      | Beneficial Owners (≥25%) | Controller                                              | Controller Gov ID | FinCEN Attestation |
-| --------------------------------------------- | ------------------------ | ------------------------------------------------------- | ----------------- | ------------------ |
-| **US exchange** (XNYS / XNAS) — PTC or sub    | **Skip**                 | Collect (Name, Address, Job Title only — **no Gov ID**) | **Hidden**        | **Skip**           |
-| **Non-US exchange** (all others) — PTC or sub | **Collect**              | Collect (**with Gov ID**)                               | **Show**          | **Collect**        |
-| **Not a PTC** (non-PTC / flag off)            | **Collect**              | Collect (**with Gov ID**)                               | **Show**          | **Collect**        |
-
-Conditional rules key off: `isPTC && isUSExchange` where `isUSExchange = stockExchange ∈ {"XNYS", "XNAS"}`.
+**Validation:** `GatewayScreenFormSchema` with `refineGatewaySchema` superimposition for conditional requirements.
 
 ---
 
-## 5. Section Visibility Logic Updates
+## 4. Field Map & Review
 
-**File:** `sectionStatusResolver` / `excludeSections` logic  
-**Changes:**
+**File:** `config/fieldMap.ts`
 
-- When PTC + **US exchange** (XNYS/XNAS) → exclude `owners-section` (beneficial owners)
-- When PTC + **non-US exchange** → keep `owners-section` visible
-- The `publiclyTraded` sub-form section should be **hidden entirely** when the feature flag is `false`
+### Fields in the map
+
+- `isPTCOrSubsidiary` — virtual field for the radio (maps to `publiclyTraded` + `subsidiaryOfPubliclyTraded`)
+- `tickerSymbol` — `organizationDetails.publiclyTraded.tickerSymbol`
+- `stockExchange` — `organizationDetails.publiclyTraded.stockExchange`
+- `stockExchangeName` — `organizationDetails.publiclyTraded.stockExchangeName`
+
+### Review
+
+PTC info is shown in a dedicated **GatewayReviewCard** at the top of the ReviewForm, with a "Change" button that navigates back to the Gateway screen.
 
 ---
 
-## 6. Controller Form Adjustments
+## 5. Configurable Section/Step Visibility (`isVisible` predicates)
 
-**File:** Personal details forms for controllers  
-**Changes:**
+**Files:** `types/flow.types.ts`, `config/flowConfig.ts`, `contexts/FlowContext/FlowContext.tsx`
 
-- For PTC + **US exchange**: Controller form collects only **Name, Address, Job Title** — government ID fields become `hidden`
-- For PTC + **non-US exchange**: Full controller form including government ID
-- Conditional rules key off `isPTC && isUSExchange` (same dimension as §4B)
+Sections and steps use an `isVisible?: VisibilityPredicate` function in their config. FlowContext constructs a `VisibilityContext` (containing `orgParty`) and passes it through — no hard-coded conditionals.
+
+```ts
+export interface VisibilityContext {
+  orgParty: PartyResponse | undefined;
+}
+export type VisibilityPredicate = (ctx: VisibilityContext) => boolean;
+```
+
+### Current visibility rules (in `flowConfig.ts`):
+
+| Target                              | `isVisible` predicate                                             |
+| ----------------------------------- | ----------------------------------------------------------------- |
+| `owners-section`                    | `orgType !== 'SOLE_PROPRIETORSHIP' && !isUSExchangePTC(orgParty)` |
+| `identity-document` step (personal) | `!isUSExchangePTC(orgParty)`                                      |
+
+**Effect for US-exchange PTCs (XNYS / XNAS):**
+
+- Entire `owners-section` is excluded (beneficial owners not required)
+- Entire `identity-document` step is excluded (birthday, SSN, gov IDs not required)
+- Controller still collects Name, Address, Job Title via `personal-details` and `contact-details` steps
+
+---
+
+## 6. Gateway Submit Logic
+
+**File:** `GatewayScreen.tsx`
+
+The Gateway submit handler:
+
+- Compares current selections against existing party data (`ptcUnchanged` check including `isSubsidiary`) to skip unnecessary API calls when nothing changed
+- Updates org type + PTC data in a single party update request
+- When "No" is selected, empty strings are sent for PTC fields (the API does not support null-clearing of `publiclyTraded`)
 
 ---
 
@@ -108,44 +119,96 @@ Conditional rules key off: `isPTC && isUSExchange` where `isUSExchange = stockEx
 **File:** Party creation/update utilities  
 **Changes:**
 
-- When PTC data is collected, include `publiclyTraded: { tickerSymbol, stockExchange, stockExchangeName? }` and `subsidiaryOfPubliclyTraded: true|false` in the `organizationDetails` payload
-- NAICS gating still applies (per spec: "PTC/Subsidiary of PTC will get through NAICS gating")
-- Customer type sent to CORE as `NBFI` when NAICS classifies as such (spec: "NAICS-based evaluated customer type overrides user declared PTC")
+- When PTC data is collected, includes `publiclyTraded: { tickerSymbol, stockExchange, stockExchangeName? }` and `subsidiaryOfPubliclyTraded: true|false` in the `organizationDetails` payload
+- NAICS gating still applies (PTC/Subsidiary will pass through NAICS gating)
 
 ---
 
 ## 8. i18n / Content Tokens
 
-Add translation keys for all new UI strings:
+**Files:** `en-US/onboarding-overview.json`, `fr-CA/onboarding-overview.json`, `es-US/onboarding-overview.json`
 
-- PTC question label, help text
-- Ticker symbol label/placeholder/validation
-- Stock exchange label/options
-- Subsidiary question label
-- Any updated section descriptions when PTC mode is active
+Translation keys added for:
 
-Estimated: ~15–20 new translation keys.
+- `isPTCOrSubsidiary` — label, description, `labelSubsidiaryOnly` variant
+- `tickerSymbol` — label, placeholder, description, `labelSubsidiary`/`descriptionSubsidiary` variants
+- `stockExchange` — label, description, `labelSubsidiary`/`descriptionSubsidiary` variants
+- `stockExchangeName` — label, description
+- `reviewAndAttest.businessType` — for the review card
 
 ---
 
-## 9. Tests & Mocks
+## 9. Constants & Helpers
 
-- **MSW mocks**: Add mock responses for PTC organization creation/updates
+**File:** `consts/stockExchanges.ts`
+
+- `MAJOR_STOCK_EXCHANGES` — full list of exchange options (MIC codes + labels)
+- `NYSE_NASDAQ_CODES = ['XNYS', 'XNAS']`
+- `PTC_ELIGIBLE_ORG_TYPES` — org types that can be PTCs directly
+- `PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES` — org types that can only be subsidiaries
+- `isNyseNasdaq(code)` / `isMajorExchange(code)` / `getStockExchangeOptions()`
+
+**File:** `utils/dataUtils.ts`
+
+- `isUSExchangePTC(orgParty)` — returns true when party has publiclyTraded + NYSE/NASDAQ
+- `isPTC(orgParty)` — returns true when party has any publiclyTraded data
+
+---
+
+## 10. Tests & Mocks
+
+- **MSW mocks**: Mock responses for PTC organization creation/updates
 - **Unit tests**: PTC sub-form rendering, conditional field visibility, payload assembly
 - **Integration tests**: Full onboarding flow with PTC enabled vs disabled
-- **Edge cases**: Sole Prop should never see PTC option; exchange "Other" conditional field
+- **Edge cases**: Sole Prop never sees PTC option; "Other" exchange conditional field; clearing when toggling
+
+---
+
+## 11. API Limitations & PTC Lock Behavior
+
+### Known API Constraints
+
+The SMBDO API has two limitations that affect PTC handling:
+
+1. **`publiclyTraded` cannot be removed via PATCH** — Once a party's `organizationDetails.publiclyTraded` block is set, there is no supported way to null it out or remove it. Sending empty strings or `null` is rejected.
+2. **Client parties cannot be deactivated** — Setting `active: false` on a client party is rejected by the API. This rules out a deactivate-and-recreate approach to clear PTC data.
+
+### UI-Level Prevention (PTC Lock)
+
+Because the API cannot undo PTC status, we prevent the transition at the UI level:
+
+**Implementation (`GatewayScreen.tsx`):**
+
+- `isPTCLocked` flag: Derived from `!!existingOrgParty?.organizationDetails?.publiclyTraded`. When `true`, the user has already submitted PTC data to the API and it cannot be undone.
+- **"No" radio option disabled**: The "No" option for the PTC radio is disabled when locked, preventing the user from switching away from PTC/subsidiary.
+- **SOLE_PROPRIETORSHIP disabled**: Since sole proprietorships cannot be PTC, the org type block is also disabled when locked (changing to sole prop would be incompatible with existing PTC data).
+- **Alert banner**: An informational alert is displayed at the top of the Gateway screen when PTC is locked, explaining that the publicly traded status cannot be changed.
+- **Stale-clear guards**: `useEffect` hooks that clear stale form values when selections change are guarded by `!isPTCLocked` to avoid wiping locked data.
+
+**Disabled styling (`OnboardingFormField.tsx`):**
+
+- `radio-group-blocks`: `has-[[disabled]]:eb-cursor-not-allowed has-[[disabled]]:eb-opacity-50 has-[[disabled]]:eb-shadow-none has-[[disabled]]:hover:eb-bg-input`
+- `radio-group` labels: Conditional `eb-cursor-not-allowed eb-opacity-50` when `option.disabled` is true.
+
+### Overview & Review Display
+
+- **Overview screen**: Shows PTC details (label, ticker, exchange) when `publiclyTraded` exists. For eligible org types without PTC data, a hint prompt is shown: _"If your company is publicly traded or a subsidiary of one, select Edit to add that information."_
+- **Review screen (`GatewayReviewCard`)**: Shows "Publicly traded status" with dot-separated details when PTC, or simply "No" when non-PTC (for eligible org types only).
 
 ---
 
 ## Summary of Touched Areas
 
-| Area                | Scope                                            |
-| ------------------- | ------------------------------------------------ |
-| **Props / Config**  | 1 new boolean prop                               |
-| **New UI**          | 2 gate questions + 1 sub-form (3 fields)         |
-| **Field map**       | 4 new field entries + conditional rules          |
-| **Section logic**   | Beneficial owners section conditionally excluded |
-| **Controller form** | Gov ID conditionally hidden for US PTC           |
-| **API payload**     | Include `publiclyTraded` block                   |
-| **i18n**            | ~15–20 new translation keys                      |
-| **Tests**           | Unit + integration coverage                      |
+| Area                   | Scope                                                              |
+| ---------------------- | ------------------------------------------------------------------ |
+| **Props / Config**     | 1 boolean prop (`enablePubliclyTradedCompanies`)                   |
+| **Gateway Screen**     | PTC radio (dynamic options) + inline ticker/exchange fields + lock |
+| **Visibility system**  | `isVisible` predicates on sections and steps in `flowConfig`       |
+| **Field map / Review** | 4 field entries + GatewayReviewCard                                |
+| **Section logic**      | `owners-section` + `identity-document` step conditionally excluded |
+| **Gateway submit**     | `ptcUnchanged` skip + org type update in single request            |
+| **API payload**        | `publiclyTraded` block + `subsidiaryOfPubliclyTraded`              |
+| **PTC Lock**           | UI prevents PTC→non-PTC transition (API cannot undo)               |
+| **i18n**               | 3 locales (en-US, fr-CA, es-US), ~20 keys                          |
+| **Constants/helpers**  | Stock exchange list, PTC-eligible org types, utility predicates    |
+| **Tests**              | Unit + integration coverage                                        |

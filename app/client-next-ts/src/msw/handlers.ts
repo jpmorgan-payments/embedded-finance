@@ -25,20 +25,26 @@ import type {
 import merge from 'lodash/merge';
 import { http, HttpResponse, type RequestHandler } from 'msw';
 
-import { getClientStatusOverrideForScenario } from '../components/sellsense/scenarios-config';
+import { getClientStatusOverrideForScenario, usesMicrodepositLinkedAccountMock } from '../components/sellsense/scenarios-config';
 import { efClientQuestionsMock, efDocumentClientDetail } from '../mocks';
+import { testScenarioNaicsCodesQuestionsMock } from '../mocks/testScenarioNaicsCodesQuestions.mock';
 import {
   applyOverridesToDb,
   applyTestDemoScenario,
+  applyTestScenarioClientPatch,
+  applyTestScenarioOrganizationDisplayName,
   createTransactionWithBalanceUpdate,
   db,
   DEFAULT_SCENARIO,
   getDbStatus,
   getTestScenarioClientIds,
   handleMagicValues,
+  isTestScenario5ClientId,
   logDbState,
+  maybeApproveTestScenario5AfterQuestions,
   parseTestScenarioBundleId,
   resetDb,
+  syncTestScenario5NaicsCodeQuestionsFromIndustry,
   type TestDemoScenarioMode,
 } from './db';
 import { getEmbeddedSampleTermsPdfBytes } from './terms-pdf-fallback.ts';
@@ -48,12 +54,20 @@ import { getTermsPdfMockBytes } from './terms-pdf-mock.ts';
  * `/test-scenario` only (via `X-Test-Demo-Scenario`): happy-path, doc-request, and
  * linked-account-active create linked recipients as ACTIVE; linked-account-approved
  * uses READY_FOR_VALIDATION (microdeposits). happy-path-approved is APPROVED client + ACTIVE link.
+ *
+ * SellSense `Onboarding - Link account in review` (via `X-Scenario`) uses MICRODEPOSITS_INITIATED
+ * after POST /recipients to mirror embedded-components onboarding link behavior.
  */
 function initialLinkedAccountRecipientStatus(
-  testDemoScenarioHeader: string | null
-): 'ACTIVE' | 'READY_FOR_VALIDATION' {
+  testDemoScenarioHeader: string | null,
+  scenarioDisplayName: string | null
+): 'ACTIVE' | 'READY_FOR_VALIDATION' | 'MICRODEPOSITS_INITIATED' {
+  if (usesMicrodepositLinkedAccountMock(scenarioDisplayName)) {
+    return 'MICRODEPOSITS_INITIATED';
+  }
   if (
     testDemoScenarioHeader === 'happy-path' ||
+    testDemoScenarioHeader === 'happy-path-ptc' ||
     testDemoScenarioHeader === 'happy-path-approved' ||
     testDemoScenarioHeader === 'doc-request' ||
     testDemoScenarioHeader === 'linked-account-active' ||
@@ -62,6 +76,143 @@ function initialLinkedAccountRecipientStatus(
     return 'ACTIVE';
   }
   return 'READY_FOR_VALIDATION';
+}
+
+type DbPartyRecord = Record<string, unknown>;
+
+function buildRecipientPartyDetailsFromDbParty(
+  party: DbPartyRecord
+): Recipient['partyDetails'] | undefined {
+  if (party.partyType === 'INDIVIDUAL') {
+    const ind = party.individualDetails as
+      | { firstName?: string; lastName?: string }
+      | undefined;
+    if (!ind) return undefined;
+    return {
+      type: 'INDIVIDUAL',
+      firstName: ind.firstName ?? '',
+      lastName: ind.lastName ?? '',
+    };
+  }
+  if (party.partyType === 'ORGANIZATION') {
+    const org = party.organizationDetails as
+      | { organizationName?: string; dbaName?: string }
+      | undefined;
+    if (!org) return undefined;
+    const businessName = org.organizationName || org.dbaName || '';
+    return {
+      type: 'ORGANIZATION',
+      businessName,
+    };
+  }
+  return undefined;
+}
+
+function hasRecipientDisplayName(
+  partyDetails: Recipient['partyDetails'] | undefined
+): boolean {
+  if (!partyDetails) return false;
+  if (partyDetails.type === 'INDIVIDUAL') {
+    return !!(partyDetails.firstName?.trim() || partyDetails.lastName?.trim());
+  }
+  return !!partyDetails.businessName?.trim();
+}
+
+function getDbPartyById(partyId: string): DbPartyRecord | null {
+  return db.party.findFirst({
+    where: { id: { equals: partyId } },
+  }) as DbPartyRecord | null;
+}
+
+/** CLIENT org party for a test-demo / onboarding client seed. */
+function getClientOrganizationPartyDetails(
+  clientId: string
+): Recipient['partyDetails'] | undefined {
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  }) as { parties?: string[] } | null;
+  for (const pid of client?.parties ?? []) {
+    const party = getDbPartyById(pid);
+    const roles = party?.roles as string[] | undefined;
+    if (!party || !roles?.includes('CLIENT')) continue;
+    const fromOrg = buildRecipientPartyDetailsFromDbParty(party);
+    if (fromOrg && hasRecipientDisplayName(fromOrg)) {
+      return fromOrg;
+    }
+  }
+  return undefined;
+}
+
+function mergePartyDetailsExtras(
+  base: Recipient['partyDetails'],
+  extras: Recipient['partyDetails'] | undefined
+): Recipient['partyDetails'] {
+  if (!extras) return base;
+  return {
+    ...base,
+    ...(extras.address ? { address: extras.address } : {}),
+    ...(extras.contacts ? { contacts: extras.contacts } : {}),
+  };
+}
+
+/**
+ * Onboarding link flow often POSTs `partyId` only (no `partyDetails`) when
+ * `prefillFromClient` links the org party. Stub `partyDetails` with
+ * `type: INDIVIDUAL` and empty names must not override resolved SMBDO party data.
+ */
+function resolveLinkedAccountPartyDetails(
+  clientId: string,
+  partyId: string | undefined,
+  incoming: Recipient['partyDetails'] | undefined
+): Recipient['partyDetails'] | undefined {
+  const incomingExtras =
+    incoming?.address || incoming?.contacts
+      ? ({
+          ...(incoming.address ? { address: incoming.address } : {}),
+          ...(incoming.contacts ? { contacts: incoming.contacts } : {}),
+        } as Recipient['partyDetails'])
+      : undefined;
+
+  const partyRecord = partyId ? getDbPartyById(partyId) : null;
+  const fromPartyId = partyRecord
+    ? buildRecipientPartyDetailsFromDbParty(partyRecord)
+    : undefined;
+  const fromClientOrg = getClientOrganizationPartyDetails(clientId);
+  const incomingNamed =
+    incoming && hasRecipientDisplayName(incoming) ? { ...incoming } : undefined;
+
+  if (fromPartyId && hasRecipientDisplayName(fromPartyId)) {
+    return mergePartyDetailsExtras(fromPartyId, incomingExtras);
+  }
+  if (incomingNamed) {
+    return incomingNamed;
+  }
+  if (fromClientOrg) {
+    return mergePartyDetailsExtras(fromClientOrg, incomingExtras);
+  }
+  if (fromPartyId) {
+    return mergePartyDetailsExtras(fromPartyId, incomingExtras);
+  }
+  return incomingNamed ?? incomingExtras;
+}
+
+function enrichLinkedAccountRecipientForDisplay(
+  recipient: Recipient
+): Recipient {
+  if (recipient.type !== 'LINKED_ACCOUNT') return recipient;
+  const partyDetails = resolveLinkedAccountPartyDetails(
+    recipient.clientId ?? '',
+    (recipient as Recipient & { partyId?: string }).partyId,
+    recipient.partyDetails
+  );
+  if (
+    !partyDetails ||
+    !hasRecipientDisplayName(partyDetails) ||
+    partyDetails === recipient.partyDetails
+  ) {
+    return recipient;
+  }
+  return { ...recipient, partyDetails };
 }
 
 /** Path params for routes with :clientId */
@@ -290,6 +441,9 @@ async function handlePostDocumentRequestSubmit(
 export const createHandlers = (apiUrl: string): RequestHandler[] => [
   http.get(`${apiUrl}/ef/do/v1/clients/:clientId`, (req) => {
     const { clientId } = req.params as ClientIdParams;
+
+    syncTestScenario5NaicsCodeQuestionsFromIndustry(clientId);
+
     const client = db.client.findFirst({
       where: { id: { equals: clientId } },
     });
@@ -523,6 +677,22 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
           updatedClient.outstanding,
           updatedClient.questionResponses as QuestionResponseEntry[]
         );
+
+        maybeApproveTestScenario5AfterQuestions(
+          clientId,
+          updatedClient.questionResponses as Array<{ questionId?: string }>,
+          updatedClient.outstanding.questionIds
+        );
+
+        const refreshedAfterApproval = db.client.findFirst({
+          where: { id: { equals: clientId } },
+        });
+        if (refreshedAfterApproval) {
+          updatedClient.status = refreshedAfterApproval.status as string;
+          updatedClient.results = refreshedAfterApproval.results;
+          updatedClient.outstanding = (refreshedAfterApproval.outstanding ||
+            updatedClient.outstanding) as ClientOutstanding;
+        }
       }
 
       // Handle adding new attestations if present
@@ -645,6 +815,20 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
         id: partyId, // Ensure we keep the same ID
       } as Record<string, unknown>);
 
+      const owningClient = db.client
+        .getAll()
+        .find((client) =>
+          ((client.parties as string[]) || []).includes(partyId as string)
+        );
+      if (
+        owningClient?.id &&
+        isTestScenario5ClientId(owningClient.id as string)
+      ) {
+        syncTestScenario5NaicsCodeQuestionsFromIndustry(
+          owningClient.id as string
+        );
+      }
+
       logDbState('Party Update');
       return HttpResponse.json(updatedParty);
     }
@@ -653,11 +837,17 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
   http.get(`${apiUrl}/ef/do/v1/questions`, (req) => {
     const url = new URL(req.request.url);
     const questionIds = url.searchParams.get('questionIds');
+    const allQuestions = [
+      ...efClientQuestionsMock.questions,
+      ...testScenarioNaicsCodesQuestionsMock.questions,
+    ];
+    const filtered = allQuestions.filter((q) => questionIds?.includes(q.id));
     return HttpResponse.json({
-      metadata: efClientQuestionsMock.metadata,
-      questions: efClientQuestionsMock?.questions.filter((q) =>
-        questionIds?.includes(q.id)
-      ),
+      metadata: {
+        page: 0,
+        total: filtered.length,
+      },
+      questions: filtered,
     });
   }),
 
@@ -756,25 +946,48 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
         /** Only `/test-scenario`; omit for SellSense (no DB shape change). */
         testDemoScenario?: TestDemoScenarioMode;
         testScenarioBundle?: string;
+        testScenarioClientPatch?: Record<string, unknown>;
+        testScenarioClientId?: string;
+        testScenarioOrgDisplayName?: string;
       } | null;
       const scenario = body?.scenario ?? DEFAULT_SCENARIO;
       const result = resetDb(scenario);
-      if (body?.overrides && Object.keys(body.overrides).length > 0) {
-        applyOverridesToDb(body.overrides);
-      }
+      let testScenarioClientId: string | undefined;
       if (
         body?.testDemoScenario === 'happy-path' ||
+        body?.testDemoScenario === 'happy-path-ptc' ||
         body?.testDemoScenario === 'happy-path-approved' ||
         body?.testDemoScenario === 'doc-request' ||
         body?.testDemoScenario === 'linked-account-approved' ||
         body?.testDemoScenario === 'linked-account-active' ||
-        body?.testDemoScenario === 'multi-linked-start-3'
+        body?.testDemoScenario === 'multi-linked-start-3' ||
+        body?.testDemoScenario === 'naics-codes-onboarding' ||
+        body?.testDemoScenario === 'naics-codes-dashboard' ||
+        body?.testDemoScenario === 'naics-codes-doc-request'
       ) {
         // Isolated from SellSense: those apps never send `testDemoScenario`.
-        applyTestDemoScenario(
-          body.testDemoScenario,
-          parseTestScenarioBundleId(body.testScenarioBundle)
+        const bundleId = parseTestScenarioBundleId(body.testScenarioBundle);
+        applyTestDemoScenario(body.testDemoScenario, bundleId);
+        testScenarioClientId = body.testScenarioClientId;
+      }
+      if (
+        body?.testScenarioClientPatch &&
+        Object.keys(body.testScenarioClientPatch).length > 0 &&
+        testScenarioClientId
+      ) {
+        applyTestScenarioClientPatch(
+          testScenarioClientId,
+          body.testScenarioClientPatch
         );
+      }
+      if (body?.testScenarioOrgDisplayName && testScenarioClientId) {
+        applyTestScenarioOrganizationDisplayName(
+          testScenarioClientId,
+          body.testScenarioOrgDisplayName
+        );
+      }
+      if (body?.overrides && Object.keys(body.overrides).length > 0) {
+        applyOverridesToDb(body.overrides);
       }
       return HttpResponse.json(result);
     } catch (error) {
@@ -850,7 +1063,8 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
 
       // Delayed APPROVED only for `/test-scenario` happy path (header not sent by SellSense).
       if (
-        testDemoScenario === 'happy-path' &&
+        (testDemoScenario === 'happy-path' ||
+          testDemoScenario === 'happy-path-ptc') &&
         getTestScenarioClientIds().includes(clientId)
       ) {
         const delayMs = 3000;
@@ -940,6 +1154,7 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     console.log('Creating EF recipient:', data);
 
     const testDemoScenario = request.headers.get('X-Test-Demo-Scenario');
+    const scenarioDisplayName = request.headers.get('X-Scenario');
 
     // Generate a unique recipient ID
     const recipientId =
@@ -952,19 +1167,34 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     let initialStatus =
       (data as unknown as { status?: string })?.status ?? 'ACTIVE';
     if (recipientType === 'LINKED_ACCOUNT') {
-      initialStatus = initialLinkedAccountRecipientStatus(testDemoScenario);
+      initialStatus = initialLinkedAccountRecipientStatus(
+        testDemoScenario,
+        scenarioDisplayName
+      );
     }
+
+    const clientId = data?.clientId ?? 'client-001';
+    const partyId = (data as RecipientRequest & { partyId?: string })?.partyId;
+    const partyDetails =
+      recipientType === 'LINKED_ACCOUNT'
+        ? resolveLinkedAccountPartyDetails(
+            clientId,
+            partyId,
+            data?.partyDetails
+          )
+        : data?.partyDetails;
 
     // Create the recipient in the database (DB shape extends API shape)
     const newRecipient = {
       id: recipientId,
       type: recipientType,
       status: initialStatus,
-      clientId: data?.clientId ?? 'client-001',
-      partyDetails: data?.partyDetails,
+      clientId,
+      partyDetails,
       account: data?.account,
       createdAt: timestamp,
       updatedAt: timestamp,
+      ...(partyId ? { partyId } : {}),
     };
 
     try {
@@ -973,12 +1203,17 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
 
       logDbState('EF Recipient Creation');
 
-      return HttpResponse.json(createdRecipient, {
-        status: 201,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      return HttpResponse.json(
+        enrichLinkedAccountRecipientForDisplay(
+          createdRecipient as unknown as Recipient
+        ),
+        {
+          status: 201,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
     } catch (error) {
       console.error('Error creating EF recipient:', error);
       return HttpResponse.json(
@@ -1082,11 +1317,14 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     }
 
     console.log('Found recipient:', recipient);
-    return HttpResponse.json(recipient as unknown as Recipient, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    return HttpResponse.json(
+      enrichLinkedAccountRecipientForDisplay(recipient as unknown as Recipient),
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
   }),
 
   // --- Embedded Components Handlers ---
@@ -1257,7 +1495,9 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     });
 
     // Get all recipients from database
-    let filteredRecipients = db.recipient.getAll() as unknown as Recipient[];
+    let filteredRecipients = (
+      db.recipient.getAll() as unknown as Recipient[]
+    ).map(enrichLinkedAccountRecipientForDisplay);
 
     // Filter by type if specified
     if (type) {
@@ -1318,8 +1558,23 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
   }),
 
   // MakePayment Component Handlers - Updated to use database
-  http.get(`${apiUrl}/ef/do/v1/accounts`, () => {
-    const accounts = db.account.getAll() as unknown as AccountResponse[];
+  http.get(`${apiUrl}/ef/do/v1/accounts`, (req) => {
+    const url = new URL(req.request.url);
+    const clientId = url.searchParams.get('clientId');
+
+    let accounts = db.account.getAll() as unknown as AccountResponse[];
+
+    if (clientId) {
+      accounts = accounts.filter((account) => account.clientId === clientId);
+    }
+
+    // Scenario 5 dashboard: single Limited DDA Payments account (...8899) for Make Payment
+    if (clientId && isTestScenario5ClientId(clientId)) {
+      accounts = accounts.filter(
+        (account) => account.category === 'LIMITED_DDA_PAYMENTS'
+      );
+    }
+
     console.log('Retrieved accounts from database:', accounts.length);
 
     const response: ListAccountsResponse = {

@@ -30,20 +30,31 @@ export type FormStepComponent<TSchema extends DefaultSchema = DefaultSchema> =
     };
   };
 
+export interface VisibilityContext {
+  orgParty: PartyResponse | undefined;
+}
+
+export type VisibilityPredicate = (ctx: VisibilityContext) => boolean;
+
+interface StepBase {
+  id: string;
+  /** i18n key for resolving title through content tokens at render time. */
+  titleKey: string;
+  /** i18n key for resolving description through content tokens at render time. */
+  descriptionKey?: string;
+  /** i18n key for the short summary shown in the overview requirements list. */
+  requirementSummaryKey?: string;
+  isVisible?: VisibilityPredicate;
+}
+
 export type StepConfig = BaseStep | FormStep;
 
-export interface BaseStep {
-  id: string;
-  title: string;
-  description?: string;
-  stepType: 'static' | 'check-answers'; // add future step types here
+export interface BaseStep extends StepBase {
+  stepType: 'static' | 'check-answers';
   Component?: React.ComponentType<StepperStepProps>;
 }
 
-export interface FormStep {
-  id: string;
-  title: string;
-  description?: string;
+export interface FormStep extends StepBase {
   stepType: 'form';
   Component: FormStepComponent;
 }
@@ -81,12 +92,17 @@ export type SectionScreenConfig = BaseScreenConfig & {
   isSection: true;
   sectionConfig: {
     icon: LucideIcon;
-    label: string;
-    shortLabel?: string;
-    helpText?: string;
-    onHoldText?: string;
-    requirementsList?: string[];
-    excludedForOrgTypes?: string[];
+    /** i18n key for the section label. */
+    labelKey: string;
+    /** i18n key for a short label (used in breadcrumbs). */
+    shortLabelKey?: string;
+    /** i18n key for help text. */
+    helpTextKey?: string;
+    /** i18n key for the on-hold message. */
+    onHoldTextKey?: string;
+    /** i18n keys for the requirements bullet list. */
+    requirementsListKeys?: string[];
+    isVisible?: VisibilityPredicate;
     statusResolver?: (
       sessionData: FlowSessionData,
       clientData: ClientResponse | undefined,
@@ -166,6 +182,8 @@ export type FlowSessionData = {
   completedStaticStepIds?: string[];
   /** Transient flag set after successfully creating a linked account; cleared when overview dismisses the banner. */
   linkAccountJustCreated?: boolean;
+  /** Set when the user answers the PTC question on the gateway screen. */
+  isPTCQuestionAnswered?: boolean;
 };
 
 export type StepperStepProps = {

@@ -36,13 +36,19 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui';
-import { useInterceptorStatus } from '@/core/EBComponentsProvider/EBComponentsProvider';
 import { StepLayout } from '@/core/OnboardingFlow/components';
+import {
+  MAJOR_STOCK_EXCHANGES,
+  PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES,
+} from '@/core/OnboardingFlow/consts/stockExchanges';
 import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
-import { getPartyByAssociatedPartyFilters } from '@/core/OnboardingFlow/utils/dataUtils';
+import {
+  getOrganizationParty,
+  getPartyByAssociatedPartyFilters,
+} from '@/core/OnboardingFlow/utils/dataUtils';
 import { getLinkAccountEnabled } from '@/core/OnboardingFlow/utils/getLinkAccountEnabled';
 import { RecipientAccountDisplayCard } from '@/core/RecipientWidgets/components/RecipientAccountDisplayCard/RecipientAccountDisplayCard';
 import { RecipientDetailsDialog } from '@/core/RecipientWidgets/components/RecipientDetailsDialog/RecipientDetailsDialog';
@@ -65,6 +71,7 @@ export const OverviewScreen = () => {
     linkAccountStepOptions,
     showDownloadChecklist,
     hideLinkedAccountRemoval,
+    enablePubliclyTradedCompanies,
   } = useOnboardingContext();
   const {
     currentScreenId,
@@ -89,14 +96,29 @@ export const OverviewScreen = () => {
     'linked-accounts',
   ]);
 
-  const { interceptorReady } = useInterceptorStatus();
-
   const linkAccountEnabled = getLinkAccountEnabled(
     clientData,
     linkAccountEnabledStatuses
   );
 
   const organizationTypeText = t(`organizationTypes.${organizationType!}`);
+
+  // PTC info for display in the business type section
+  const orgParty = getOrganizationParty(clientData);
+  const publiclyTraded = enablePubliclyTradedCompanies
+    ? orgParty?.organizationDetails?.publiclyTraded
+    : undefined;
+  const isSubsidiary = orgParty?.organizationDetails?.isSubsidiary;
+  const stockExchangeDisplayName = useMemo(() => {
+    if (!publiclyTraded?.stockExchange) return undefined;
+    if (publiclyTraded.stockExchange === 'Other') {
+      return publiclyTraded.stockExchangeName ?? 'Other';
+    }
+    const match = MAJOR_STOCK_EXCHANGES.find(
+      ([code]) => code === publiclyTraded.stockExchange
+    );
+    return match ? `${match[1]} (${match[0]})` : publiclyTraded.stockExchange;
+  }, [publiclyTraded?.stockExchange, publiclyTraded?.stockExchangeName]);
 
   // Fetch document requests to check for outstanding requests
   const { data: documentRequestListResponse } = useSmbdoListDocumentRequests(
@@ -107,7 +129,7 @@ export const OverviewScreen = () => {
     },
     {
       query: {
-        enabled: interceptorReady && !!clientData?.id,
+        enabled: !!clientData?.id,
       },
     }
   );
@@ -149,8 +171,7 @@ export const OverviewScreen = () => {
       { type: 'LINKED_ACCOUNT', clientId: clientData?.id },
       {
         query: {
-          enabled:
-            interceptorReady && !!showLinkAccountStep && !!clientData?.id,
+          enabled: !!showLinkAccountStep && !!clientData?.id,
         },
       }
     );
@@ -202,10 +223,8 @@ export const OverviewScreen = () => {
       <div className="eb-flex-auto eb-space-y-6">
         <Card className="eb-mt-6 eb-rounded-md eb-border-none eb-bg-card">
           <CardHeader className="eb-p-3">
-            <CardTitle>
-              <h2 className="eb-font-header eb-text-2xl eb-font-medium">
-                {t(verifyBusinessSectionTitleKey)}
-              </h2>
+            <CardTitle className="eb-font-header eb-text-2xl eb-font-medium">
+              {t(verifyBusinessSectionTitleKey)}
             </CardTitle>
           </CardHeader>
           <CardContent className="eb-p-3 eb-pt-0">
@@ -325,6 +344,43 @@ export const OverviewScreen = () => {
                       </Button>
                     </span>
 
+                    {publiclyTraded ? (
+                      <div className="eb-mt-2 eb-space-y-1 eb-text-xs eb-text-muted-foreground">
+                        <p className="eb-font-medium">
+                          {isSubsidiary
+                            ? t(
+                                'screens.overview.verifyBusinessSection.ptcSubsidiaryLabel'
+                              )
+                            : t(
+                                'screens.overview.verifyBusinessSection.ptcLabel'
+                              )}
+                        </p>
+                        <p>
+                          {t(
+                            'screens.overview.verifyBusinessSection.ptcTicker',
+                            { ticker: publiclyTraded.tickerSymbol }
+                          )}
+                        </p>
+                        {stockExchangeDisplayName && (
+                          <p>
+                            {t(
+                              'screens.overview.verifyBusinessSection.ptcExchange',
+                              { exchange: stockExchangeDisplayName }
+                            )}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      enablePubliclyTradedCompanies &&
+                      PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES.includes(
+                        organizationType as any
+                      ) && (
+                        <p className="eb-mt-2 eb-text-xs eb-text-muted-foreground">
+                          {t('screens.overview.verifyBusinessSection.ptcHint')}
+                        </p>
+                      )
+                    )}
+
                     <p className="eb-mt-3 eb-flex eb-gap-2 eb-text-xs eb-italic eb-text-muted-foreground">
                       <span className="eb-sr-only">{t('common:warning')}:</span>
                       <AlertTriangleIcon
@@ -372,7 +428,7 @@ export const OverviewScreen = () => {
                 return (
                   <div key={section.id}>
                     {sectionStatus === 'on_hold' &&
-                      section.sectionConfig.onHoldText && (
+                      section.sectionConfig.onHoldTextKey && (
                         <p
                           className={cn(
                             'eb-mb-3 eb-mt-7 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium',
@@ -382,7 +438,7 @@ export const OverviewScreen = () => {
                           )}
                         >
                           <LockIcon className="eb-size-4" />
-                          {section.sectionConfig.onHoldText}
+                          {t(section.sectionConfig.onHoldTextKey as any)}
                         </p>
                       )}
                     <Card
@@ -410,7 +466,7 @@ export const OverviewScreen = () => {
                               }
                             )}
                           >
-                            {section.sectionConfig.label}
+                            {t(section.sectionConfig.labelKey as any)}
                           </h3>
                         </div>
 
@@ -447,15 +503,33 @@ export const OverviewScreen = () => {
                     /> */}
                         </div>
                       </div>
-                      {section.sectionConfig.requirementsList && (
-                        <ul className="eb-mt-1.5 eb-w-full eb-list-disc eb-whitespace-break-spaces eb-pl-8 eb-text-start eb-font-sans eb-text-sm eb-font-normal">
-                          {section.sectionConfig.requirementsList.map(
-                            (item, index) => (
-                              <li key={index}>{item}</li>
+                      {(() => {
+                        // Derive requirements from visible steps' requirementSummaryKey,
+                        // falling back to static requirementsListKeys if no steps have summaries
+                        const stepSummaries =
+                          section.stepperConfig?.steps
+                            .map((step) =>
+                              step.requirementSummaryKey
+                                ? (t(
+                                    step.requirementSummaryKey as any
+                                  ) as string)
+                                : undefined
                             )
-                          )}
-                        </ul>
-                      )}
+                            .filter(Boolean) ?? [];
+                        const items =
+                          stepSummaries.length > 0
+                            ? stepSummaries
+                            : section.sectionConfig.requirementsListKeys?.map(
+                                (key) => t(key as any) as string
+                              );
+                        return items && items.length > 0 ? (
+                          <ul className="eb-mt-1.5 eb-w-full eb-list-disc eb-whitespace-break-spaces eb-pl-8 eb-text-start eb-font-sans eb-text-sm eb-font-normal">
+                            {items.map((item, index) => (
+                              <li key={index}>{item}</li>
+                            ))}
+                          </ul>
+                        ) : null;
+                      })()}
                       <div className="eb-flex eb-justify-end">
                         <Button
                           variant={
@@ -469,10 +543,10 @@ export const OverviewScreen = () => {
                           data-testid={`${section.id}-button`}
                           aria-label={
                             ['on_hold', 'not_started'].includes(sectionStatus)
-                              ? `${t('common:start')} ${section.sectionConfig.label}`
+                              ? `${t('common:start')} ${t(section.sectionConfig.labelKey as any)}`
                               : sectionStatus === 'completed'
-                                ? `${t('common:edit')} ${section.sectionConfig.label}`
-                                : `${t('common:continue')} ${section.sectionConfig.label}`
+                                ? `${t('common:edit')} ${t(section.sectionConfig.labelKey as any)}`
+                                : `${t('common:continue')} ${t(section.sectionConfig.labelKey as any)}`
                           }
                           onClick={() => {
                             goTo(section.id, {
@@ -517,10 +591,8 @@ export const OverviewScreen = () => {
         {showLinkAccountStep && (
           <Card className="eb-mt-6 eb-rounded-md eb-border-none eb-bg-card">
             <CardHeader className="eb-p-3">
-              <CardTitle>
-                <h2 className="eb-font-header eb-text-2xl eb-font-medium">
-                  {t('screens.overview.bankAccountSection.title')}
-                </h2>
+              <CardTitle className="eb-font-header eb-text-2xl eb-font-medium">
+                {t('screens.overview.bankAccountSection.title')}
               </CardTitle>
             </CardHeader>
             <CardContent className="eb-p-3 eb-pt-0">

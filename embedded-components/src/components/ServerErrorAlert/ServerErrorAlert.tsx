@@ -8,8 +8,8 @@ import {
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { ErrorType } from '@/api/axios-instance';
 import { ApiError } from '@/api/generated/smbdo.schemas';
+import type { ErrorType } from '@/api/use-axios-instance';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 
@@ -127,7 +127,7 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
   tryAgainAction,
   showDetails = true,
 }) => {
-  const { t } = useTranslationWithTokens(['common']);
+  const { t, tString } = useTranslationWithTokens(['common']);
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
   if (!error) {
@@ -216,6 +216,12 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
         {customTitle ?? error?.response?.data?.title ?? error?.message}
       </AlertTitle>
       <AlertDescription>{getErrorMessage()}</AlertDescription>
+
+      {tString('errors.footnote') && (
+        <AlertDescription className="eb-mt-2 eb-text-xs eb-text-red-800">
+          {t('errors.footnote')}
+        </AlertDescription>
+      )}
 
       {showDetails && error?.response?.data && (
         <AlertDescription className="eb-mt-3">

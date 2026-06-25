@@ -159,7 +159,7 @@ const { mutate: createClient } = useCreateClient();
 
 ### Code Reference
 
-[InitialStepForm.tsx (link)](./../src/core/OnboardingWizardBasic/InitialStepForm/InitialStepForm.tsx)
+See `src/core/OnboardingFlow/` for the current implementation of these patterns.
 
 In the case that a client ID is not provided, the above form will make a `POST /clients` call to create a new client with the minimum required fields.
 
@@ -531,7 +531,7 @@ const renderQuestions = () => {
 
 ### API Operations
 
-1. Use the `GET /clients/:id` API to render core attributes of the parties (reference `embedded-components\src\core\OnboardingWizardBasic\ReviewAndAttestStepForm\partyFields.ts`) and retrieve the `attestationDocumentIds` from the `outstanding` block.
+1. Use the `GET /clients/:id` API to render core attributes of the parties (reference the field mapping in `src/core/OnboardingFlow/config/partyFieldMap.ts`) and retrieve the `attestationDocumentIds` from the `outstanding` block.
 2. Using the IDs obtained from step #1, make a request to `GET /documents/${id}` to fetch a list of the documents and their document types. Concatenate the document list for multiple possible `attestationDocumentIds`.
 3. Filter the list to include only document types that are either `TERMS_CONDITIONS` or `DISCLOSURE_AND_CONSENT`.
 4. Display the URLs to the documents. As the document is in binary format, you will need to fetch the content using `GET /documents/${id}/file` and convert it to a BLOB.

@@ -17,7 +17,6 @@ import { z } from 'zod';
 import { cn } from '@/lib/utils';
 import {
   getSmbdoGetClientQueryKey,
-  useSmbdoListQuestions,
   useSmbdoUpdateClientLegacy,
 } from '@/api/generated/smbdo';
 import { QuestionResponse } from '@/api/generated/smbdo.schemas';
@@ -53,6 +52,7 @@ import {
   DATE_QUESTION_IDS,
   MONEY_INPUT_QUESTION_IDS,
 } from './OperationalDetailsForm.schema';
+import { useQuestionTree } from './useQuestionTree';
 
 /**
  * Extract question ID from API error message.
@@ -82,6 +82,49 @@ const formatErrorMessage = (message: string): string => {
   return message;
 };
 
+const normalizeComparableValue = (value: unknown): string =>
+  String(value).trim().toLowerCase();
+
+const hasAnyValuesMatch = (
+  parentResponse: unknown,
+  anyValuesMatch: unknown
+): boolean => {
+  if (anyValuesMatch == null || parentResponse == null) return false;
+
+  const parentValues = Array.isArray(parentResponse)
+    ? parentResponse
+    : [parentResponse];
+  const matchValues = Array.isArray(anyValuesMatch)
+    ? anyValuesMatch
+    : [anyValuesMatch];
+
+  const normalizedMatches = matchValues
+    .filter((value) => value != null)
+    .map((value) => normalizeComparableValue(value));
+
+  if (normalizedMatches.length === 0) return false;
+
+  return parentValues.some((value) => {
+    if (value == null) return false;
+    return normalizedMatches.includes(normalizeComparableValue(value));
+  });
+};
+
+const normalizeQuestionId = (id: unknown): string =>
+  id == null ? '' : String(id);
+
+const uniqueQuestionsById = (
+  questions: QuestionResponse[]
+): QuestionResponse[] => {
+  const seen = new Set<string>();
+  return questions.filter((question) => {
+    const id = normalizeQuestionId(question.id);
+    if (!id || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+};
+
 export const OperationalDetailsForm = () => {
   const { t, tString } = useTranslationWithTokens([
     'onboarding-overview',
@@ -99,91 +142,15 @@ export const OperationalDetailsForm = () => {
   const outstandingQuestionIds = clientData?.outstanding?.questionIds ?? [];
   const existingQuestionResponses = clientData?.questionResponses ?? [];
 
-  // Merge outstanding and existing question IDs
-  const allQuestionIds = useMemo(() => {
-    const existingIds = existingQuestionResponses.map(
-      (response) => response.questionId ?? 'undefined'
-    );
-    return [...new Set([...outstandingQuestionIds, ...existingIds])].sort();
-  }, [outstandingQuestionIds, existingQuestionResponses]);
-
-  // Fetch all questions
+  // Fetch the full question tree (handles arbitrary nesting depth)
   const {
-    data: questionsData,
-    status: questionsFetchStatus,
+    allQuestions,
+    allFormQuestionIds,
+    isLoading: isQuestionsLoading,
     error: questionsFetchError,
-  } = useSmbdoListQuestions({
-    questionIds: allQuestionIds.join(','),
-  });
+  } = useQuestionTree({ outstandingQuestionIds, existingQuestionResponses });
 
-  // Extract sub-question IDs that were not included in the initial fetch
-  const missingSubQuestionIds = useMemo(() => {
-    const fetchedQuestions = questionsData?.questions ?? [];
-    const fetchedIds = new Set(fetchedQuestions.map((q) => q.id));
-    const subIds = new Set<string>();
-
-    fetchedQuestions.forEach((q) => {
-      q.subQuestions?.forEach((sq) => {
-        sq.questionIds?.forEach((id) => {
-          if (!fetchedIds.has(id)) {
-            subIds.add(id);
-          }
-        });
-      });
-    });
-
-    return [...subIds].sort();
-  }, [questionsData]);
-
-  // Extract parent question IDs that were not included in the initial fetch
-  const missingParentQuestionIds = useMemo(() => {
-    const fetchedQuestions = questionsData?.questions ?? [];
-    const fetchedIds = new Set(allQuestionIds);
-    const parentIds = fetchedQuestions
-      .map((q) => q.parentQuestionId)
-      .filter((id): id is string => !!id && !fetchedIds.has(id));
-    return [...new Set(parentIds)].sort();
-  }, [questionsData, allQuestionIds]);
-
-  // Fetch any sub-questions or parent questions that were missing from the initial response
-  const missingQuestionIds = useMemo(() => {
-    return [
-      ...new Set([...missingSubQuestionIds, ...missingParentQuestionIds]),
-    ].sort();
-  }, [missingSubQuestionIds, missingParentQuestionIds]);
-
-  const {
-    data: supplementaryQuestionsData,
-    status: supplementaryQuestionsFetchStatus,
-  } = useSmbdoListQuestions(
-    { questionIds: missingQuestionIds.join(',') },
-    { query: { enabled: missingQuestionIds.length > 0 } }
-  );
-
-  // Merge parent and sub-question data into a single list
-  const allQuestions = useMemo(() => {
-    const primary = questionsData?.questions ?? [];
-    const secondary = supplementaryQuestionsData?.questions ?? [];
-    if (secondary.length === 0) return primary;
-
-    const existingIds = new Set(primary.map((q) => q.id));
-    return [...primary, ...secondary.filter((q) => !existingIds.has(q.id))];
-  }, [questionsData, supplementaryQuestionsData]);
-
-  // Overall loading: still pending if primary fetch is loading, or if we
-  // know there are missing questions and that fetch hasn't finished yet.
-  const isQuestionsLoading =
-    questionsFetchStatus === 'pending' ||
-    (missingQuestionIds.length > 0 &&
-      supplementaryQuestionsFetchStatus === 'pending');
-
-  // Prepare default values for the form (include sub-question IDs so they get form fields)
-  const allFormQuestionIds = useMemo(() => {
-    const ids = new Set(allQuestionIds);
-    missingSubQuestionIds.forEach((id) => ids.add(id));
-    return [...ids].sort();
-  }, [allQuestionIds, missingSubQuestionIds]);
-
+  // Build default form values from existing responses
   const defaultValues = useMemo(
     () =>
       allFormQuestionIds.reduce(
@@ -378,7 +345,7 @@ export const OperationalDetailsForm = () => {
         );
 
       case 'string':
-        if (itemEnum) {
+        if (itemEnum && itemEnum.length > 0) {
           if (
             question?.responseSchema?.maxItems &&
             question?.responseSchema?.maxItems > 1
@@ -537,6 +504,7 @@ export const OperationalDetailsForm = () => {
   const form = useForm({
     resolver: zodResolver(dynamicSchema),
     defaultValues,
+    mode: 'onBlur',
   });
 
   const { isDirty } = useFormState({ control: form.control });
@@ -601,37 +569,60 @@ export const OperationalDetailsForm = () => {
     }
   }, [updateClientError, updateClientStatus, setFieldErrorsFromApiError, form]);
 
-  const isQuestionVisible = (question: QuestionResponse) => {
-    if (!question.parentQuestionId) return true;
+  const isQuestionVisible = (question: QuestionResponse): boolean => {
+    const questionId = normalizeQuestionId(question.id);
+    const parentQuestion = question.parentQuestionId
+      ? allQuestions.find(
+          (q) =>
+            normalizeQuestionId(q.id) ===
+            normalizeQuestionId(question.parentQuestionId)
+        )
+      : allQuestions.find((q) =>
+          q.subQuestions?.some((sq) =>
+            sq.questionIds?.some((id) => normalizeQuestionId(id) === questionId)
+          )
+        );
 
-    const parentQuestion = allQuestions.find(
-      (q) => q.id === question.parentQuestionId
+    // If no parent found, show the question
+    if (!parentQuestion) return true;
+
+    // For nested questions, the parent must also be visible
+    if (!isQuestionVisible(parentQuestion)) return false;
+
+    const parentResponse = form.watch(
+      `question_${normalizeQuestionId(parentQuestion.id)}`
     );
-    if (!parentQuestion) return false;
-
-    const parentResponse = form.watch(`question_${parentQuestion.id}`);
 
     if (!parentResponse) return false;
 
     const subQuestion = parentQuestion?.subQuestions?.find((sq) =>
-      sq.questionIds?.includes(question.id ?? '')
+      sq.questionIds?.some((id) => normalizeQuestionId(id) === questionId)
     );
 
-    if (typeof subQuestion?.anyValuesMatch === 'string') {
-      return parentResponse.includes(subQuestion.anyValuesMatch);
-    }
-
-    if (Array.isArray(subQuestion?.anyValuesMatch)) {
-      return parentResponse.some((value: any) => {
-        return subQuestion.anyValuesMatch?.includes(value);
-      });
+    if (subQuestion?.anyValuesMatch != null) {
+      return hasAnyValuesMatch(parentResponse, subQuestion.anyValuesMatch);
     }
 
     return false;
   };
 
   const isQuestionParent = (question: QuestionResponse) => {
-    return !question.parentQuestionId;
+    if (!question.parentQuestionId) {
+      const questionId = normalizeQuestionId(question.id);
+      const isReferencedAsChild = allQuestions.some((q) =>
+        q.subQuestions?.some((sq) =>
+          sq.questionIds?.some((id) => normalizeQuestionId(id) === questionId)
+        )
+      );
+      return !isReferencedAsChild;
+    }
+    // Treat as top-level if parent isn't in our question list
+    const parentExists = allQuestions.some(
+      (q) =>
+        normalizeQuestionId(q.id) ===
+        normalizeQuestionId(question.parentQuestionId)
+    );
+    return !parentExists;
   };
 
   const onSubmit = (values: any) => {
@@ -676,20 +667,41 @@ export const OperationalDetailsForm = () => {
       parentId: string | undefined
     ): React.ReactNode => {
       if (!parentId) return null;
-      return allQuestions
-        .filter((q) => q.parentQuestionId === parentId)
-        .filter(isQuestionVisible)
-        .map((subQuestion) => (
-          <Fragment
-            key={
-              subQuestion.id ??
-              `subquestion-${parentId}-${subQuestion.parentQuestionId}`
-            }
-          >
-            <div className="eb-mb-6">{renderQuestionInput(subQuestion)}</div>
-            {renderSubQuestions(subQuestion.id)}
-          </Fragment>
-        ));
+      const normalizedParentId = normalizeQuestionId(parentId);
+      const parentQuestion = allQuestions.find(
+        (q) => normalizeQuestionId(q.id) === normalizedParentId
+      );
+
+      const childQuestionsByParentId = allQuestions.filter(
+        (q) => normalizeQuestionId(q.parentQuestionId) === normalizedParentId
+      );
+
+      const childQuestionsBySubQuestionIds =
+        parentQuestion?.subQuestions
+          ?.flatMap((sq) => sq.questionIds ?? [])
+          .map((childId) =>
+            allQuestions.find(
+              (q) => normalizeQuestionId(q.id) === normalizeQuestionId(childId)
+            )
+          )
+          .filter((q): q is QuestionResponse => !!q) ?? [];
+
+      const childQuestions = uniqueQuestionsById([
+        ...childQuestionsByParentId,
+        ...childQuestionsBySubQuestionIds,
+      ]);
+
+      return childQuestions.filter(isQuestionVisible).map((subQuestion) => (
+        <Fragment
+          key={
+            subQuestion.id ??
+            `subquestion-${parentId}-${subQuestion.parentQuestionId}`
+          }
+        >
+          <div className="eb-mb-6">{renderQuestionInput(subQuestion)}</div>
+          {renderSubQuestions(subQuestion.id)}
+        </Fragment>
+      ));
     };
 
     return allQuestions
@@ -725,10 +737,7 @@ export const OperationalDetailsForm = () => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="eb-space-y-6">
         <StepLayout
-          title={tString(
-            'screens.operationalDetails.title',
-            'Operational details'
-          )}
+          title={t('screens.operationalDetails.title', 'Operational details')}
           subTitle={
             <Button
               type="button"
@@ -740,7 +749,7 @@ export const OperationalDetailsForm = () => {
               {t('common:overview', 'Overview')}
             </Button>
           }
-          description={tString(
+          description={t(
             'screens.operationalDetails.description',
             'Please answer these additional questions to help us understand your business operations.'
           )}

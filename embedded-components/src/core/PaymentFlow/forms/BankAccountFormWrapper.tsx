@@ -9,10 +9,7 @@ import type { TransactionRecipientDetailsV2 } from '@/api/generated/ep-transacti
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { Button } from '@/components/ui/button';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
-import {
-  useClientId,
-  useInterceptorStatus,
-} from '@/core/EBComponentsProvider/EBComponentsProvider';
+import { useClientId } from '@/core/EBComponentsProvider/EBComponentsProvider';
 import {
   BankAccountForm,
   useLinkedAccountConfig,
@@ -178,10 +175,9 @@ export function BankAccountFormWrapper({
 
   // Fetch client data for linked accounts (needed for individual selector prefill)
   const clientId = useClientId();
-  const { interceptorReady } = useInterceptorStatus();
   const { data: clientData } = useSmbdoGetClient(clientId ?? '', {
     query: {
-      enabled: interceptorReady && formType === 'linked-account' && !!clientId,
+      enabled: formType === 'linked-account' && !!clientId,
     },
   });
 
@@ -316,7 +312,6 @@ export function BankAccountFormWrapper({
           address: {
             addressLine1: data.address.addressLine1,
             addressLine2: data.address.addressLine2,
-            addressLine3: data.address.addressLine3,
             city: data.address.city,
             state: data.address.state,
             postalCode: data.address.postalCode,

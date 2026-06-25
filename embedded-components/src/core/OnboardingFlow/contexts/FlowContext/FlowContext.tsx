@@ -20,6 +20,7 @@ import {
   SectionScreenId,
   StaticScreenConfig,
   StepConfig,
+  VisibilityContext,
 } from '@/core/OnboardingFlow/types/flow.types';
 import {
   getOrganizationParty,
@@ -82,20 +83,20 @@ const FlowContext = createContext<{
   currentScreenId: 'overview',
   originScreenId: null,
   goTo: () => {
-    throw new Error('goTo() must be used within FlowProvider');
+    // no-op: context not yet provided (e.g. during HMR)
   },
   goBack: () => {
-    throw new Error('goBack() must be used within FlowProvider');
+    // no-op: context not yet provided (e.g. during HMR)
   },
   editingPartyIds: {},
   updateEditingPartyId: () => {
-    throw new Error('updateEditingPartyId() must be used within FlowProvider');
+    // no-op: context not yet provided (e.g. during HMR)
   },
   staticScreens: [],
   sections: [],
   sessionData: {},
   updateSessionData: () => {
-    throw new Error('setSessionData() must be used within FlowProvider');
+    // no-op: context not yet provided (e.g. during HMR)
   },
   previouslyCompleted: false,
   reviewScreenOpenedSectionId: null,
@@ -103,28 +104,26 @@ const FlowContext = createContext<{
   isPTCWithUSExchange: false,
   currentStepperStepId: undefined,
   setCurrentStepperStepIdFallback: () => {
-    throw new Error(
-      'setCurrentStepperStepIdFallback() must be used within FlowProvider'
-    );
+    // no-op: context not yet provided (e.g. during HMR)
   },
   currentStepperGoTo: () => {
-    throw new Error('currentStepperGoTo() must be used within FlowProvider');
+    // no-op: context not yet provided (e.g. during HMR)
   },
   setCurrentStepper: () => {
-    throw new Error('setCurrentStepper() must be used within FlowProvider');
+    // no-op: context not yet provided (e.g. during HMR)
   },
   shortLabelOverride: null,
   savedFormValues: {},
   saveFormValue: () => {
-    throw new Error('saveFormValue() must be used within FlowProvider');
+    // no-op: context not yet provided (e.g. during HMR)
   },
   isFormSubmitting: false,
   setIsFormSubmitting: () => {
-    throw new Error('setIsFormSubmitting() must be used within FlowProvider');
+    // no-op: context not yet provided (e.g. during HMR)
   },
   unsavedChangesRef: { current: false },
   setFlowUnsavedChanges: () => {
-    throw new Error('setFlowUnsavedChanges() must be used within FlowProvider');
+    // no-op: context not yet provided (e.g. during HMR)
   },
 });
 
@@ -211,33 +210,21 @@ export const FlowProvider: React.FC<{
   const isPTCWithUSExchange =
     enablePubliclyTradedCompanies && isUSExchangePTC(orgParty);
 
+  const visibilityCtx: VisibilityContext = { orgParty };
+
   const sections = flowConfig.screens
     .filter((s) => s.isSection)
-    .filter(
-      (s) =>
-        !s.sectionConfig.excludedForOrgTypes?.includes(organizationType ?? '')
-    )
-    .filter((s) => {
-      // US-exchange PTCs skip the owners section (beneficial owners not required)
-      if (isPTCWithUSExchange && s.id === 'owners-section') {
-        return false;
-      }
-      return true;
-    })
+    .filter((s) => s.sectionConfig.isVisible?.(visibilityCtx) ?? true)
     .map((s) => {
-      // Remove the publicly-traded step when feature flag is off or org is sole proprietorship
-      if (
-        (!enablePubliclyTradedCompanies ||
-          organizationType === 'SOLE_PROPRIETORSHIP') &&
-        s.stepperConfig?.steps
-      ) {
+      if (s.stepperConfig?.steps) {
+        const filteredSteps = s.stepperConfig.steps.filter(
+          (step) => step.isVisible?.(visibilityCtx) ?? true
+        );
         return {
           ...s,
           stepperConfig: {
             ...s.stepperConfig,
-            steps: s.stepperConfig.steps.filter(
-              (step) => step.id !== 'publicly-traded'
-            ),
+            steps: filteredSteps,
           },
         };
       }

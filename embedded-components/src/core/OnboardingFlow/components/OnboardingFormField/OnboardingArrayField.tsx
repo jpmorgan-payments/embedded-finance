@@ -1,3 +1,4 @@
+import React from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import {
@@ -98,7 +99,10 @@ export function OnboardingArrayField<
     currentScreenId
   );
 
-  const { t, tString } = useTranslationWithTokens(['onboarding-old', 'common']);
+  const { t, tString } = useTranslationWithTokens([
+    'onboarding-overview',
+    'common',
+  ]);
 
   let fieldRule: OptionalDefaults<ArrayFieldRule<FieldValue<TFieldValues>>> =
     {};
@@ -255,7 +259,11 @@ export function OnboardingArrayField<
               renderRemoveButton(index, buttonProps),
           };
 
-          return renderContent(renderItemProps);
+          return (
+            <React.Fragment key={field.id}>
+              {renderContent(renderItemProps)}
+            </React.Fragment>
+          );
         })
       )}
       {renderFooter?.(baseRenderProps)}

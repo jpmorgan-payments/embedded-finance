@@ -182,6 +182,31 @@ export const createErrorHandlers = (
   ),
 ];
 
+/**
+ * Creates MSW handlers where accounts load successfully but balance endpoint fails.
+ * Useful for testing the balance error state in AccountCard.
+ */
+export const createBalanceErrorHandlers = (
+  options?: Pick<AccountsHandlerOptions, 'accounts' | 'delayMs'>
+) => {
+  const delay = options?.delayMs ?? 300;
+  const accounts = options?.accounts ?? mockAccounts;
+
+  return [
+    http.get('/accounts', async () => {
+      await sleep(delay);
+      return HttpResponse.json({ items: accounts });
+    }),
+    http.get('/accounts/:id/balances', async () => {
+      await sleep(delay);
+      return HttpResponse.json(
+        { error: 'Internal Server Error' },
+        { status: 500 }
+      );
+    }),
+  ];
+};
+
 // ============================================================================
 // Utility Functions
 // ============================================================================

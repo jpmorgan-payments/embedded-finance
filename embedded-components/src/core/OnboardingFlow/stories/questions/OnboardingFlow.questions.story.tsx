@@ -322,7 +322,6 @@ type Story = StoryObj<OnboardingFlowStoryArgs>;
  * and enum multi-select.
  */
 export const AllFieldTypes: Story = {
-  name: 'All Field Types',
   loaders: [
     seedQuestionsClient([
       'Q_BOOL_1',
@@ -403,7 +402,6 @@ export const CurrencyInput: Story = {
  * to render a date-formatted text field (YYYY-MM-DD).
  */
 export const DateInput: Story = {
-  name: 'Date Input',
   loaders: [seedQuestionsClient(['30071'])],
   parameters: {
     msw: {

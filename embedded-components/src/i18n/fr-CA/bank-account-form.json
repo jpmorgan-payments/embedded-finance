@@ -90,10 +90,6 @@
       "label": "Ligne d'adresse 2",
       "placeholder": "App., suite, unité, etc. (facultatif)"
     },
-    "addressLine3": {
-      "label": "Ligne d'adresse 3",
-      "placeholder": "Informations supplémentaires (facultatif)"
-    },
     "city": {
       "label": "Ville",
       "placeholder": "Entrer la ville"
@@ -203,5 +199,9 @@
       "accountHolderType": "Type de destinataire",
       "accountHolderInfo": "Informations sur le destinataire"
     }
+  },
+  "prefillValidation": {
+    "title": "Données de compte préremplies invalides",
+    "footnote": "Si ces informations sont incorrectes, veuillez contacter l'administrateur de votre entreprise."
   }
 }

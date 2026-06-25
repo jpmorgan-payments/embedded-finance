@@ -74,6 +74,9 @@ export function TransactionsTableToolbar<TData>({
           <SelectTrigger
             data-user-event="transactions_filter_changed"
             className="eb-h-8 eb-w-[140px]"
+            aria-label={tString('filters.status.label', {
+              defaultValue: 'Filter by status',
+            })}
           >
             <SelectValue
               placeholder={t('filters.status.placeholder', {
@@ -107,6 +110,9 @@ export function TransactionsTableToolbar<TData>({
           <SelectTrigger
             data-user-event="transactions_filter_changed"
             className="eb-h-8 eb-w-[140px]"
+            aria-label={tString('filters.type.label', {
+              defaultValue: 'Filter by type',
+            })}
           >
             <SelectValue
               placeholder={t('filters.type.placeholder', {

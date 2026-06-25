@@ -68,41 +68,41 @@ This matrix tracks the implementation status of UI/UX patterns across all embedd
 
 ### Implementation Status Matrix
 
-| Pattern                     | OnboardingFlow | Accounts | LinkedAccountWidget | MakePayment | TransactionsDisplay | RecipientsWidget |
-| --------------------------- | -------------- | -------- | ------------------- | ----------- | ------------------- | ----------- |
+| Pattern                     | OnboardingFlow | Accounts | LinkedAccountWidget | TransactionsDisplay | RecipientsWidget |
+| --------------------------- | -------------- | -------- | ------------------- | ------------------- | ---------------- |
 | **Data Display & Security** |
-| Sensitive Data Masking      | -              | ✅       | -                   | -           | ⚠️ Needs            | ⚠️ Partial  |
-| Status Badges               | -              | ✅       | ✅                  | -           | ✅                  | ✅          |
-| Compact Details             | -              | ⚠️ Needs | ⚠️ Needs            | -           | ✅                  | ✅          |
-| Field Toggle                | -              | ✅       | -                   | -           | ✅                  | ⚠️ Needs    |
-| Detail Navigation           | -              | ⚠️ Needs | ⚠️ Needs            | -           | ✅ (Dialog)         | ✅ (Dialog) |
+| Sensitive Data Masking      | -              | ✅       | -                   | ⚠️ Needs            | ⚠️ Partial       |
+| Status Badges               | -              | ✅       | ✅                  | ✅                  | ✅               |
+| Compact Details             | -              | ⚠️ Needs | ⚠️ Needs            | ✅                  | ✅               |
+| Field Toggle                | -              | ✅       | -                   | ✅                  | ⚠️ Needs         |
+| Detail Navigation           | -              | ⚠️ Needs | ⚠️ Needs            | ✅ (Dialog)         | ✅ (Dialog)      |
 | **Forms & Validation**      |
-| Progressive Validation      | ⚠️ Partial     | -        | -                   | ✅          | -                   | ✅          |
-| Dialog Forms                | ⚠️ Partial     | -        | ✅                  | ✅          | -                   | ✅          |
-| Multi-Mode Forms            | -              | -        | ⚠️ Needs            | ✅          | -                   | ⚠️ Low Prio |
-| Config-Driven Forms         | ⚠️ Partial     | -        | -                   | ⚠️ Needs    | -                   | ✅          |
-| Wizard/Stepper              | ✅             | -        | ⚠️ Needs            | ⚠️ Needs    | -                   | -           |
-| Review Panel                | ⚠️ Needs       | -        | -                   | ✅          | -                   | ⚠️ Low Prio |
+| Progressive Validation      | ⚠️ Partial     | -        | -                   | -                   | ✅               |
+| Dialog Forms                | ⚠️ Partial     | -        | ✅                  | -                   | ✅               |
+| Multi-Mode Forms            | -              | -        | ⚠️ Needs            | -                   | ⚠️ Low Prio      |
+| Config-Driven Forms         | ⚠️ Partial     | -        | -                   | -                   | ✅               |
+| Wizard/Stepper              | ✅             | -        | ⚠️ Needs            | -                   | -                |
+| Review Panel                | ⚠️ Needs       | -        | -                   | -                   | ⚠️ Low Prio      |
 | **Data Tables & Lists**     |
-| Responsive Table/Cards      | -              | ✅       | -                   | -           | ✅                  | ✅          |
-| Enhanced Data Grid          | -              | -        | -                   | -           | ✅                  | ⚠️ Needs    |
-| Filter & Search             | -              | -        | -                   | -           | ✅                  | ✅          |
-| Pagination                  | -              | -        | -                   | -           | ✅                  | ✅          |
+| Responsive Table/Cards      | -              | ✅       | -                   | ✅                  | ✅               |
+| Enhanced Data Grid          | -              | -        | -                   | ✅                  | ⚠️ Needs         |
+| Filter & Search             | -              | -        | -                   | ✅                  | ✅               |
+| Pagination                  | -              | -        | -                   | ✅                  | ✅               |
 | **User Feedback & States**  |
-| Loading Skeletons           | ⚠️ Partial     | ✅       | ✅                  | -           | ⚠️ Needs            | ✅          |
-| Error with Retry            | ✅             | ✅       | ✅                  | -           | ✅                  | ✅          |
-| Empty States                | -              | ✅       | ✅                  | -           | ⚠️ Basic            | ✅          |
-| Success States              | -              | -        | ⚠️ Needs            | ✅          | -                   | ⚠️ Needs    |
+| Loading Skeletons           | ⚠️ Partial     | ✅       | ✅                  | ⚠️ Needs            | ✅               |
+| Error with Retry            | ✅             | ✅       | ✅                  | ✅                  | ✅               |
+| Empty States                | -              | ✅       | ✅                  | ⚠️ Basic            | ✅               |
+| Success States              | -              | -        | ⚠️ Needs            | -                   | ⚠️ Needs         |
 | **Navigation & Flow**       |
-| Timeline/Progress           | ✅             | -        | ⚠️ Needs            | ⚠️ Needs    | -                   | -           |
-| Container Queries           | -              | ✅       | ✅                  | -           | -                   | ✅          |
+| Timeline/Progress           | ✅             | -        | ⚠️ Needs            | -                   | -                |
+| Container Queries           | -              | ✅       | ✅                  | -                   | ✅               |
 | **Component Control**       |
-| Ref Control                 | -              | ✅       | ⚠️ Needs            | -           | ✅                  | ⚠️ Needs    |
-| Clipboard Copy              | -              | ✅       | -                   | -           | ✅                  | ⚠️ Needs    |
-| Confirmation Dialog         | -              | -        | ✅                  | -           | -                   | ✅          |
-| Staggered Animation         | -              | ✅       | ✅                  | -           | ⚠️ Needs            | ⚠️ Needs    |
+| Ref Control                 | -              | ✅       | ⚠️ Needs            | ✅                  | ⚠️ Needs         |
+| Clipboard Copy              | -              | ✅       | -                   | ✅                  | ⚠️ Needs         |
+| Confirmation Dialog         | -              | -        | ✅                  | -                   | ✅               |
+| Staggered Animation         | -              | ✅       | ✅                  | ⚠️ Needs            | ⚠️ Needs         |
 | **Technical Patterns**      |
-| i18n Integration            | ✅             | ✅       | ✅                  | ✅          | ⚠️ Needs            | ⚠️ Needs    |
+| i18n Integration            | ✅             | ✅       | ✅                  | ⚠️ Needs            | ⚠️ Needs         |
 
 **Legend**:
 
@@ -243,7 +243,7 @@ const StatusBadge: React.FC<{ status: RecipientStatus }> = ({ status }) => {
 
 **Implementation**:
 
-- **Primary**: `MakePayment/hooks/usePaymentForm.ts`
+- **Primary**: `PaymentFlow/forms/`
 - **Secondary**: `Recipients/components/RecipientForm/RecipientForm.tsx`
 - **Advanced**: `OnboardingFlow/utils/formUtils.ts`
 - **Status**: ✅ Well-implemented with Zod schemas
@@ -276,7 +276,6 @@ reValidateMode: 'onChange', // Re-validate on change after first submit
 **Refinement Needed**:
 
 - ⚠️ **OnboardingFlow**: Some forms could benefit from more granular validation feedback
-- ⚠️ **MakePayment**: Manual recipient mode validation could be more progressive
 
 **Usability Alignment**:
 
@@ -786,8 +785,7 @@ ComponentTable/
 **Implementation**:
 
 - **Primary**: `RecipientWidgets/components/RecipientFormDialog/`
-- **Secondary**: `MakePayment/MakePayment.tsx` (lines 271-476)
-- **Tertiary**: `LinkedAccountWidget/components/LinkedAccountFormDialog/`
+- **Secondary**: `LinkedAccountWidget/components/LinkedAccountFormDialog/`
 - **Status**: ✅ Well-implemented with scrollable dialogs
 
 **Pattern Details**:
@@ -817,7 +815,6 @@ ComponentTable/
 
 **Refinement Needed**:
 
-- ⚠️ **MakePayment**: Dialog could better handle very long forms
 - ⚠️ **OnboardingFlow**: Some dialogs could use better mobile optimization
 
 **Usability Alignment**:
@@ -1456,7 +1453,7 @@ const filteredRecipients = useMemo(() => {
 
 **Implementation**:
 
-- **Primary**: `MakePayment/components/ReviewPanel/`
+- **Primary**: `PaymentFlow/ReviewPanel/`
 - **Status**: ✅ Well-implemented with real-time updates
 
 **Pattern Details**:
@@ -1544,7 +1541,6 @@ const { sectionStatuses, stepValidations } = getFlowProgress(
 
 **Refinement Needed**:
 
-- ⚠️ **MakePayment**: Could use stepper pattern for complex payment flows
 - ⚠️ **LinkedAccountWidget**: Microdeposit verification could be a stepper
 
 **Usability Alignment**:
@@ -1603,7 +1599,6 @@ const { sectionStatuses, stepValidations } = getFlowProgress(
 
 **Refinement Needed**:
 
-- ⚠️ **MakePayment**: Could show payment flow progress
 - ⚠️ **LinkedAccountWidget**: Could show account linking progress
 
 **Usability Alignment**:
@@ -1765,7 +1760,6 @@ const requiredContactTypes = getRequiredContactTypes(
 
 **Refinement Needed**:
 
-- ⚠️ **MakePayment**: Could benefit from more configuration options
 - ⚠️ **OnboardingFlow**: Some forms could be more configuration-driven
 
 **Usability Alignment**:
@@ -1783,7 +1777,7 @@ const requiredContactTypes = getRequiredContactTypes(
 
 **Implementation**:
 
-- **Primary**: `MakePayment/MakePayment.tsx` (lines 336-376)
+- **Primary**: `PaymentFlow/PaymentFlow.tsx`
 - **Status**: ✅ Well-implemented with mode toggle
 
 **Pattern Details**:

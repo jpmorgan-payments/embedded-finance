@@ -16,7 +16,10 @@ import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
 import { useSmbdoListQuestions } from '@/api/generated/smbdo';
-import { QuestionResponse } from '@/api/generated/smbdo.schemas';
+import {
+  ClientResponse,
+  QuestionResponse,
+} from '@/api/generated/smbdo.schemas';
 import {
   Accordion,
   AccordionContent,
@@ -38,6 +41,8 @@ import {
   FormMessage,
 } from '@/components/ui';
 import { StepsReviewCards } from '@/core/OnboardingFlow/components';
+import { partyFieldMap } from '@/core/OnboardingFlow/config/fieldMap';
+import { PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES } from '@/core/OnboardingFlow/consts/stockExchanges';
 import {
   useFlowContext,
   useOnboardingContext,
@@ -50,6 +55,7 @@ import {
 import {
   asPlainString,
   formatQuestionResponse,
+  getOrganizationParty,
   getPartyName,
 } from '@/core/OnboardingFlow/utils/dataUtils';
 import {
@@ -278,6 +284,10 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
               </AlertDescription>
             </Alert>
           )}
+          <GatewayReviewCard
+            clientData={clientData}
+            onChangeClick={() => goTo('gateway')}
+          />
           <div>
             <Accordion
               type="single"
@@ -558,7 +568,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                       >
                         <ChevronDownIcon className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-transition-transform eb-duration-200" />
                         <div className="eb-ml-2 eb-text-sm">
-                          {section.sectionConfig.label}
+                          {t(section.sectionConfig.labelKey as any)}
                         </div>
                         <div className="eb-ml-auto eb-mr-2 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-normal eb-text-muted-foreground">
                           {isSectionCompleted ? (
@@ -692,5 +702,107 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
         </div>
       </form>
     </Form>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Gateway Review Card
+// ---------------------------------------------------------------------------
+
+const GatewayReviewCard: React.FC<{
+  clientData: ClientResponse | undefined;
+  onChangeClick: () => void;
+}> = ({ clientData, onChangeClick }) => {
+  const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
+  const { enablePubliclyTradedCompanies } = useOnboardingContext();
+  const orgParty = getOrganizationParty(clientData);
+  const orgType = orgParty?.organizationDetails?.organizationType;
+  const publiclyTraded = orgParty?.organizationDetails?.publiclyTraded;
+  const isSubsidiary = orgParty?.organizationDetails?.isSubsidiary;
+
+  if (!orgType) return null;
+
+  // Get PTC display value using the fieldMap's toStringFn
+  const ptcValue = !publiclyTraded
+    ? 'none'
+    : isSubsidiary
+      ? 'subsidiary'
+      : 'ptc';
+  const ptcDisplayValue = partyFieldMap.isPTCOrSubsidiary?.toStringFn?.(
+    ptcValue,
+    {} as any
+  );
+
+  return (
+    <Card className="eb-rounded-lg eb-border eb-p-4">
+      <div className="eb-flex eb-items-start eb-justify-between">
+        <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
+          {t('reviewAndAttest.businessType', 'Business type')}
+        </h2>
+        <Button
+          variant="ghost"
+          type="button"
+          size="sm"
+          className="eb-h-8 eb-p-2 eb-text-sm"
+          onClick={onChangeClick}
+        >
+          <PencilIcon />
+          {t('common:change', 'Change')}
+        </Button>
+      </div>
+
+      <div className="eb-mt-3 eb-space-y-2">
+        <div className="eb-space-y-0.5">
+          <p className="eb-text-label eb-font-label eb-text-label-foreground">
+            {t('fields.organizationTypeHierarchy.label', 'Organization type')}
+          </p>
+          <p className="eb-text-sm">
+            {t(`organizationTypes.${orgType}`, orgType)}
+          </p>
+        </div>
+
+        {ptcValue !== 'none' && publiclyTraded && (
+          <div className="eb-space-y-0.5">
+            <p className="eb-text-label eb-font-label eb-text-label-foreground">
+              {t('fields.isPTCOrSubsidiary.label', 'Publicly traded status')}
+            </p>
+            <p className="eb-text-sm">
+              {ptcDisplayValue}
+              {publiclyTraded.tickerSymbol && (
+                <>
+                  {' · '}
+                  {t('fields.tickerSymbol.label', 'Ticker symbol')}
+                  {': '}
+                  {publiclyTraded.tickerSymbol}
+                </>
+              )}
+              {(publiclyTraded.stockExchangeName ||
+                publiclyTraded.stockExchange) && (
+                <>
+                  {' · '}
+                  {t('fields.stockExchange.label', 'Stock exchange')}
+                  {': '}
+                  {publiclyTraded.stockExchangeName ||
+                    publiclyTraded.stockExchange}
+                </>
+              )}
+            </p>
+          </div>
+        )}
+
+        {ptcValue === 'none' &&
+          enablePubliclyTradedCompanies &&
+          PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES.includes(orgType as any) && (
+            <div className="eb-space-y-0.5">
+              <p className="eb-text-label eb-font-label eb-text-label-foreground">
+                {t('fields.isPTCOrSubsidiary.label', 'Publicly traded status')}
+              </p>
+              <p className="eb-text-sm">
+                {t('fields.isPTCOrSubsidiary.options.none', 'No')}
+              </p>
+            </div>
+          )}
+      </div>
+    </Card>
   );
 };

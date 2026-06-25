@@ -1,6 +1,6 @@
 # Embedded Finance Components Architecture Overview
 
-Below is a mermaid diagram representing the key components and file structure related to the Embedded Finance Components project, with special focus on the OnboardingWizardBasic and EBComponentsProvider components.
+Below is a mermaid diagram representing the key components and file structure related to the Embedded Finance Components project, with focus on the OnboardingFlow and EBComponentsProvider components.
 
 ```mermaid
 graph LR;
@@ -10,29 +10,31 @@ graph LR;
     A --> G[.storybook/]
     A --> J[.demo/]
     A --> M[components.json]
-    A --> N[orval.config.cjs]
+    A --> N[orval.config.mjs]
     A --> O[package.json]
     A --> P[docs/]
 
     %% Core Components
     C --> CORE[src/core/]
 
-    %% OnboardingWizardBasic Structure
-    CORE --> OWB[OnboardingWizardBasic/]
-    OWB --> OWB1[OnboardingContextProvider/]
-    OWB --> OWB2[InitialStepForm/]
-    OWB --> OWB3[IndividualStepForm/]
-    OWB --> OWB4[BeneficialOwnerStepForm/]
-    OWB --> OWB5[DecisionMakerStepForm/]
-    OWB --> OWB6[DocumentUploadStepForm/]
-    OWB --> OWB7[FormActions.tsx]
-    OWB --> OWB8[index.ts]
+    %% OnboardingFlow Structure
+    CORE --> OF[OnboardingFlow/]
+    OF --> OF1[screens/]
+    OF --> OF2[forms/]
+    OF --> OF3[config/]
+    OF --> OF4[hooks/]
+    OF --> OF5[utils/]
+    OF --> OF6[OnboardingFlow.tsx]
 
-    %% Step Form Internal Structure Example
-    OWB2 --> SF1[InitialStepForm.tsx]
-    OWB2 --> SF2[InitialStepForm.schema.ts]
-    OWB2 --> SF3[InitialStepForm.test.tsx]
-    OWB2 --> SF4[InitialStepForm.story.tsx]
+    %% Screen Structure
+    OF1 --> SCR1[GatewayScreen/]
+    OF1 --> SCR2[OverviewScreen/]
+    OF1 --> SCR3[DocumentUploadScreen/]
+    OF1 --> SCR4[OperationalDetailsForm/]
+
+    %% Forms Structure
+    OF2 --> FRM1[organization-section-forms/]
+    OF2 --> FRM2[personal-section-forms/]
 
     %% EBComponentsProvider Structure
     CORE --> ECP[EBComponentsProvider/]
@@ -43,13 +45,19 @@ graph LR;
     ECP --> ECP5[EBComponentsProvider.tsx]
     ECP --> ECP6[index.ts]
 
+    %% Other Core Components
+    CORE --> ACC[Accounts/]
+    CORE --> RW[RecipientWidgets/]
+    CORE --> TD[TransactionsDisplay/]
+    CORE --> CD[ClientDetails/]
+
     %% API Layer
     C --> D[api/]
     D --> E[generated/]
     D --> F[axios-instance.ts]
 
     %% Documentation
-    P --> DOC1[Digital Onboarding Recipe]
+    P --> DOC1[Digital Onboarding Flow Recipe]
     P --> DOC2[Linked Accounts Recipe]
     P --> DOC3[API Implementation Guide]
 
@@ -57,26 +65,31 @@ graph LR;
 
 ## Component Architecture Explanation
 
-### 1. OnboardingWizardBasic
+### 1. OnboardingFlow
 
-Key component for handling digital onboarding flows with the following structure:
+Modern onboarding component with screen-based navigation and enhanced state management:
 
-- **OnboardingContextProvider/**
-  - Manages global onboarding state
-  - Handles client configuration (clientId, partyId, jurisdictions, etc.)
-  - Provides context for step management
+- **screens/**
+  - `GatewayScreen/` — Organization type selection and PTC (Publicly Traded Company) flow
+  - `OverviewScreen/` — Onboarding progress overview with section status
+  - `DocumentUploadScreen/` — Document upload with drag-and-drop and preview
+  - `OperationalDetailsForm/` — Operational and business details
 
-- **Individual Step Components/**
-  Each step component (InitialStepForm, IndividualStepForm, etc.) follows a consistent structure:
-  - `StepName.tsx`: Main component implementation
-  - `StepName.schema.ts`: Zod validation schema
-  - `StepName.test.tsx`: Component tests
-  - `StepName.story.tsx`: Storybook documentation
+- **forms/**
+  Each form follows a consistent structure:
+  - `FormName.tsx`: Main component implementation
+  - `FormName.schema.ts`: Zod validation schema
+  - `FormName.test.tsx`: Component tests
 
-- **FormActions.tsx**
-  - Controls step navigation
-  - Handles form submission
-  - Manages loading and disabled states
+- **config/**
+  - Field mapping configuration
+  - Party field definitions
+  - Flow routing logic
+
+- **hooks/**
+  - Flow state management
+  - Navigation control
+  - API interaction hooks
 
 ### 2. EBComponentsProvider
 
@@ -98,6 +111,15 @@ Core provider component that configures the application environment:
   - Global error handling
   - Fallback UI components
   - Error logging and reporting
+
+### 3. Other Core Components
+
+- **Accounts/** — Account management and display
+- **RecipientWidgets/** — Payment recipient and linked account management
+  - `LinkedAccountWidget/` — External bank account linking with microdeposit verification
+  - `RecipientsWidget/` — Payment recipient management
+- **TransactionsDisplay/** — Transaction history and display
+- **ClientDetails/** — Detailed client information display
 
 - **ContentTokensProvider.tsx**
   - Internationalization support

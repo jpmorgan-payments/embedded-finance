@@ -15,7 +15,6 @@ import enUS_common from './en-US/common.json';
 import enUS_linkedAccounts from './en-US/linked-accounts.json';
 import enUS_makePayment from './en-US/make-payment.json';
 import enUS_onboardingOverview from './en-US/onboarding-overview.json';
-import enUS_onboarding from './en-US/onboarding.json';
 import enUS_recipients from './en-US/recipients.json';
 import enUS_transactions from './en-US/transactions.json';
 import enUS_validation from './en-US/validation.json';
@@ -26,7 +25,6 @@ import esUS_common from './es-US/common.json';
 import esUS_linkedAccounts from './es-US/linked-accounts.json';
 import esUS_makePayment from './es-US/make-payment.json';
 import esUS_onboardingOverview from './es-US/onboarding-overview.json';
-import esUS_onboarding from './es-US/onboarding.json';
 import esUS_recipients from './es-US/recipients.json';
 import esUS_transactions from './es-US/transactions.json';
 import esUS_validation from './es-US/validation.json';
@@ -37,7 +35,6 @@ import frCA_common from './fr-CA/common.json';
 import frCA_linkedAccounts from './fr-CA/linked-accounts.json';
 import frCA_makePayment from './fr-CA/make-payment.json';
 import frCA_onboardingOverview from './fr-CA/onboarding-overview.json';
-import frCA_onboarding from './fr-CA/onboarding.json';
 import frCA_recipients from './fr-CA/recipients.json';
 import frCA_transactions from './fr-CA/transactions.json';
 import frCA_validation from './fr-CA/validation.json';
@@ -47,7 +44,6 @@ export const defaultResources = {
     locale: 'en-US',
     common: enUS_common,
     validation: enUS_validation,
-    'onboarding-old': enUS_onboarding,
     'onboarding-overview': enUS_onboardingOverview,
     'make-payment': enUS_makePayment,
     'linked-accounts': enUS_linkedAccounts,
@@ -62,7 +58,6 @@ export const defaultResources = {
     locale: 'fr-CA',
     common: frCA_common,
     validation: frCA_validation,
-    'onboarding-old': frCA_onboarding,
     'onboarding-overview': frCA_onboardingOverview,
     'make-payment': frCA_makePayment,
     'linked-accounts': frCA_linkedAccounts,
@@ -77,7 +72,6 @@ export const defaultResources = {
     locale: 'es-US',
     common: esUS_common,
     validation: esUS_validation,
-    'onboarding-old': esUS_onboarding,
     'onboarding-overview': esUS_onboardingOverview,
     'make-payment': esUS_makePayment,
     'linked-accounts': esUS_linkedAccounts,
@@ -129,7 +123,6 @@ i18n.use(initReactI18next).init({
   fallbackLng: 'enUS',
   ns: [
     'common',
-    'onboarding-old',
     'onboarding-overview',
     'make-payment',
     'linked-accounts',
@@ -190,7 +183,6 @@ export const createI18nInstance = (
     ns: [
       'common',
       'validation',
-      'onboarding-old',
       'onboarding-overview',
       'make-payment',
       'linked-accounts',

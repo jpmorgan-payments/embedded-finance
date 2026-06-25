@@ -1,10 +1,16 @@
 import type {
+  EBThemeVariables,
   LinkAccountStepOptions,
   OnboardingFlowProps,
 } from '@jpmorgan-payments/embedded-finance-components';
 
 import type { ThemeOption } from '@/components/sellsense/use-sellsense-themes';
+import { TEST_SCENARIO_2_THEME_VARIABLES } from '@/components/test-scenario/test-scenario-2-theme';
+import { TEST_SCENARIO_5_NAICS_CODES } from '@/components/test-scenario/test-scenario-naics-codes';
+import { TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID } from '@/mocks/testScenarioFasterFulfilmentClient.mock';
+import { TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID } from '@/mocks/testScenarioHealthBenefitClient.mock';
 import { TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID } from '@/mocks/testScenarioMultiLinkedIllustrationClient.mock';
+import { TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID } from '@/mocks/testScenarioNaicsCodesClient.mock';
 import { TEST_DEMO_SCENARIO_CLIENT_ID } from '@/mocks/testScenarioOperator80Client.mock';
 import type { TestDemoScenarioMode, TestScenarioBundleId } from '@/msw/db';
 
@@ -13,6 +19,8 @@ export const TEST_SCENARIO_ROUTE_BY_BUNDLE = {
   'test-scenario': '/test-scenario',
   'test-scenario-2': '/test-scenario-2',
   'test-scenario-3': '/test-scenario-3',
+  'test-scenario-4': '/test-scenario-4',
+  'test-scenario-5': '/test-scenario-5',
 } as const satisfies Record<TestScenarioBundleId, string>;
 
 export type TestScenarioLoginProfile = {
@@ -21,12 +29,19 @@ export type TestScenarioLoginProfile = {
   scenario: TestDemoScenarioMode;
   /** Override bundle `linkAccountStepOptions` only when a login needs an exceptional shape. */
   linkAccountStepOptions?: LinkAccountStepOptions;
+  /** Per-login `OnboardingFlow` props (e.g. scenario 4 PTC vs LLC happy paths). */
+  onboardingFlow?: Pick<
+    OnboardingFlowProps,
+    'availableOrganizationTypes' | 'enablePubliclyTradedCompanies'
+  >;
 };
 
 export type TestScenarioBundleConfig = {
   id: TestScenarioBundleId;
   headerOrgDisplayName: string;
   theme: ThemeOption;
+  /** When set, passed to `EBComponentsProvider` via the Custom theme path (test-scenario routes only). */
+  themeVariables?: EBThemeVariables;
   contentTokens: {
     name: 'enUS';
     showTokenIds: boolean;
@@ -47,7 +62,9 @@ export type TestScenarioBundleConfig = {
     | 'availableJurisdictions'
     | 'availableOrganizationTypes'
     | 'disclosureConfig'
+    | 'enablePubliclyTradedCompanies'
     | 'hideLinkedAccountRemoval'
+    | 'priorityIndustryCodes'
   >;
   loginProfiles: TestScenarioLoginProfile[];
 };
@@ -122,8 +139,8 @@ function buildContentTokens(fieldLabels: {
 }
 
 /**
- * `/test-scenario-2` only: optional login that seeds three LINKED_ACCOUNT rows (see `applyTestDemoScenario`).
- * Other bundle logins (`linked-microdeposit`, `linked-active`) start with zero linked recipients.
+ * Multi-link demo bundles (`test-scenario-2`, `test-scenario-4`): optional login that seeds three
+ * LINKED_ACCOUNT rows (see `applyTestDemoScenario`). Other logins start with zero linked recipients.
  */
 const MULTI_LINK_START_PROFILES: TestScenarioLoginProfile[] = [
   {
@@ -157,23 +174,57 @@ const OPERATOR_PROFILES: TestScenarioLoginProfile[] = [
   },
 ];
 
-/** `/test-scenario-2`: same onboarding logins as `/test-scenario`, plus MSW-only linked-account count variants. */
+/** Multi-link bundles: same onboarding logins as `/test-scenario`, plus MSW-only linked-account count variants. */
 const MULTI_LINK_DEMO_PROFILES: TestScenarioLoginProfile[] = [
   ...OPERATOR_PROFILES,
   ...MULTI_LINK_START_PROFILES,
 ];
 
-const NO_LINK_PROFILES: TestScenarioLoginProfile[] = [
+/** `/test-scenario-4`: PTC happy path first, then LLC happy path without PTC, then other operator logins. */
+/** `/test-scenario-5`: Fund Management Platform — NAICS onboarding and pre-approved dashboard path. */
+const SCENARIO_5_PROFILES: TestScenarioLoginProfile[] = [
   {
-    email: 'happy-path@demo.test',
-    label: 'Happy path \u2013 no document request, no micro deposits',
-    scenario: 'happy-path',
+    email: 'naics-codes-onboarding@demo.test',
+    label:
+      'New client — select a recommended NAICS code (fund management), answer fund assessment questions, auto-approve to dashboard',
+    scenario: 'naics-codes-onboarding',
   },
   {
     email: 'docs-requested@demo.test',
-    label: 'Unhappy path \u2013 straight to document request',
-    scenario: 'doc-request',
+    label:
+      'Unhappy path — straight to fund document request (evidence of registration, organizational structure, offering memorandum, etc.)',
+    scenario: 'naics-codes-doc-request',
   },
+  {
+    email: 'dashboard-approved@demo.test',
+    label:
+      'Approved client — skip onboarding and open payments account dashboard (accounts, recipients, transactions)',
+    scenario: 'naics-codes-dashboard',
+  },
+];
+
+const SCENARIO_4_PROFILES: TestScenarioLoginProfile[] = [
+  {
+    email: 'happy-path-ptc@demo.test',
+    label: 'Happy path \u2013 PTC (Nasdaq seed, enablePubliclyTradedCompanies)',
+    scenario: 'happy-path-ptc',
+    onboardingFlow: {
+      enablePubliclyTradedCompanies: true,
+      availableOrganizationTypes: ['C_CORPORATION'],
+    },
+  },
+  {
+    email: 'happy-path@demo.test',
+    label:
+      'Happy path \u2013 LLC, no PTC in mock or component (same fulfilment data)',
+    scenario: 'happy-path',
+    onboardingFlow: {
+      enablePubliclyTradedCompanies: false,
+      availableOrganizationTypes: ['LIMITED_LIABILITY_COMPANY'],
+    },
+  },
+  ...OPERATOR_PROFILES.filter((p) => p.email !== 'happy-path@demo.test'),
+  ...MULTI_LINK_START_PROFILES,
 ];
 
 const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
@@ -192,62 +243,211 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
   },
   'test-scenario-2': {
     id: 'test-scenario-2',
-    headerOrgDisplayName: 'Riverbend Cafe Collective',
-    theme: 'SellSense',
+    headerOrgDisplayName: 'Top Dog Construction, LLC',
+    theme: 'Custom',
+    themeVariables: TEST_SCENARIO_2_THEME_VARIABLES,
     contentTokens: buildContentTokens({
       controllerJobTitle: 'Role',
       controllerJobTitleDescription: 'Role details',
     }),
     showLinkAccountStep: true,
     clientId: TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID,
-    /**
-     * Same `linkAccountStepOptions` as Storybook `ExistingAccountsWithAddMore`.
-     * @see https://storybook.embedded-finance-dev.com/?path=/story/core-onboardingflow-linked-account-multi-account--existing-accounts-with-add-more
-     */
     linkAccountStepOptions: {
-      completionMode: 'reviewOnly',
+      completionMode: 'editable',
       allowMultipleAccounts: true,
       existingAccountsDisplay: 'compact',
-      initialValues: {
-        accountType: 'INDIVIDUAL',
-        firstName: 'Taylor',
-        lastName: 'Morgan',
-        businessName: '',
-        routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
-        useSameRoutingNumber: true,
-        accountNumber: '44556677889900112',
-        bankAccountType: 'CHECKING',
-        paymentTypes: ['ACH'],
-        certify: true,
+      initialValues: {},
+      bankFormConfigOverride: {
+        paymentMethods: {
+          available: ['ACH', 'WIRE', 'RTP'],
+          allowMultiple: true,
+          defaultSelected: ['ACH'],
+        },
       },
     },
     onboardingFlow: {
       availableProducts: ['EMBEDDED_PAYMENTS'],
       availableJurisdictions: ['US'],
-      availableOrganizationTypes: [
-        'SOLE_PROPRIETORSHIP',
-        'LIMITED_LIABILITY_COMPANY',
-        'LIMITED_LIABILITY_PARTNERSHIP',
-        'GENERAL_PARTNERSHIP',
-        'LIMITED_PARTNERSHIP',
-        'C_CORPORATION',
-      ],
+      availableOrganizationTypes: ['LIMITED_LIABILITY_COMPANY'],
       disclosureConfig: { platformName: 'Platform, Inc.' },
-      hideLinkedAccountRemoval: true,
+      hideLinkedAccountRemoval: false,
+      priorityIndustryCodes: [
+        '236115',
+        '236116',
+        '236117',
+        '236118',
+        '236210',
+        '236220',
+        '237110',
+        '237120',
+        '237130',
+        '237210',
+        '237310',
+        '237990',
+        '238110',
+        '238120',
+        '238130',
+        '238140',
+        '238150',
+        '238160',
+        '238170',
+        '238190',
+        '238210',
+        '238220',
+        '238290',
+        '238310',
+        '238320',
+        '238330',
+        '238340',
+        '238350',
+        '238390',
+        '238910',
+        '238990',
+      ],
     },
     loginProfiles: MULTI_LINK_DEMO_PROFILES,
   },
   'test-scenario-3': {
     id: 'test-scenario-3',
-    headerOrgDisplayName: 'Operator 80 Palo Alto CA',
-    theme: 'PayFicient',
+    headerOrgDisplayName: 'Health & Benefit Solutions, LLC',
+    theme: 'Empty',
     contentTokens: buildContentTokens({
-      controllerJobTitle: 'Position',
-      controllerJobTitleDescription: 'Position summary',
+      controllerJobTitle: 'Role',
+      controllerJobTitleDescription: 'Role details',
+    }),
+    showLinkAccountStep: true,
+    clientId: TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
+    linkAccountStepOptions: {
+      completionMode: 'editable',
+      initialValues: {},
+      bankFormConfigOverride: {
+        paymentMethods: {
+          available: ['ACH', 'WIRE', 'RTP'],
+          allowMultiple: true,
+          defaultSelected: ['ACH'],
+        },
+      },
+    },
+    onboardingFlow: {
+      availableProducts: ['EMBEDDED_PAYMENTS'],
+      availableJurisdictions: ['US'],
+      availableOrganizationTypes: ['LIMITED_LIABILITY_COMPANY'],
+      disclosureConfig: { platformName: 'Platform, Inc.' },
+      hideLinkedAccountRemoval: false,
+      priorityIndustryCodes: [
+        '524113',
+        '524114',
+        '524126',
+        '524127',
+        '524128',
+        '524130',
+        '524210',
+        '524291',
+        '524292',
+        '524298',
+        '621111',
+        '621112',
+        '621210',
+        '621310',
+        '621320',
+        '621330',
+        '621340',
+        '621391',
+        '621399',
+        '621410',
+        '621420',
+        '621491',
+        '621492',
+        '621493',
+        '621498',
+        '621511',
+        '621512',
+        '621610',
+        '621910',
+        '621991',
+        '621999',
+        '622110',
+        '622210',
+        '622310',
+        '623110',
+        '623210',
+        '623220',
+        '623311',
+        '623312',
+        '623990',
+        '624110',
+        '624120',
+        '624190',
+        '624210',
+        '624221',
+        '624229',
+        '624230',
+        '624310',
+        '624410',
+      ],
+    },
+    loginProfiles: OPERATOR_PROFILES,
+  },
+  'test-scenario-4': {
+    id: 'test-scenario-4',
+    headerOrgDisplayName: 'Faster Fulfilment Corp.',
+    theme: 'Empty',
+    contentTokens: buildContentTokens({
+      controllerJobTitle: 'Role',
+      controllerJobTitleDescription: 'Role details',
+    }),
+    showLinkAccountStep: true,
+    clientId: TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID,
+    linkAccountStepOptions: {
+      completionMode: 'editable',
+      allowMultipleAccounts: true,
+      existingAccountsDisplay: 'compact',
+      initialValues: {},
+      bankFormConfigOverride: {
+        paymentMethods: {
+          available: ['ACH', 'WIRE', 'RTP'],
+          allowMultiple: true,
+          defaultSelected: ['ACH'],
+        },
+      },
+    },
+    onboardingFlow: {
+      availableProducts: ['EMBEDDED_PAYMENTS'],
+      availableJurisdictions: ['US'],
+      availableOrganizationTypes: ['LIMITED_LIABILITY_COMPANY'],
+      enablePubliclyTradedCompanies: false,
+      disclosureConfig: { platformName: 'Platform, Inc.' },
+      hideLinkedAccountRemoval: false,
+      priorityIndustryCodes: [
+        '492110',
+        '492210',
+        '493110',
+        '493120',
+        '493130',
+        '493190',
+      ],
+    },
+    loginProfiles: SCENARIO_4_PROFILES,
+  },
+  'test-scenario-5': {
+    id: 'test-scenario-5',
+    headerOrgDisplayName: 'Leap Frog Investments, LP',
+    theme: 'Empty',
+    contentTokens: buildContentTokens({
+      controllerJobTitle: 'Role',
+      controllerJobTitleDescription: 'Role details',
     }),
     showLinkAccountStep: false,
-    clientId: TEST_DEMO_SCENARIO_CLIENT_ID,
-    loginProfiles: NO_LINK_PROFILES,
+    clientId: TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID,
+    onboardingFlow: {
+      availableProducts: ['EMBEDDED_PAYMENTS'],
+      availableJurisdictions: ['US'],
+      availableOrganizationTypes: ['LIMITED_LIABILITY_PARTNERSHIP'],
+      disclosureConfig: { platformName: 'Platform, Inc.' },
+      hideLinkedAccountRemoval: true,
+      priorityIndustryCodes: [...TEST_SCENARIO_5_NAICS_CODES],
+    },
+    loginProfiles: SCENARIO_5_PROFILES,
   },
 };
 

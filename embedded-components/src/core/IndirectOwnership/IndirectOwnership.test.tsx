@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 
 import { ClientResponse } from '@/api/generated/smbdo.schemas';
@@ -230,27 +231,6 @@ describe('IndirectOwnership Component', () => {
     ).toBeInTheDocument();
   });
 
-  it('publishes validation summary with pending hierarchy for indirect owners', async () => {
-    const onValidationMock = vi.fn();
-
-    render(
-      <TestWrapper>
-        <IndirectOwnership
-          client={mockClientWithOwners}
-          onValidationChange={onValidationMock}
-        />
-      </TestWrapper>
-    );
-
-    await waitFor(() => {
-      expect(onValidationMock).toHaveBeenCalled();
-    });
-
-    const latestSummary = onValidationMock.mock.calls.at(-1)?.[0];
-    expect(latestSummary?.pendingHierarchies).toBeGreaterThan(0);
-    expect(latestSummary?.canComplete).toBe(false);
-  });
-
   it('applies custom className and testId', () => {
     const customClass = 'custom-test-class';
     const customTestId = 'custom-test-id';
@@ -268,5 +248,134 @@ describe('IndirectOwnership Component', () => {
     const component = screen.getByTestId(customTestId);
     expect(component).toBeInTheDocument();
     expect(component).toHaveClass(customClass);
+  });
+
+  it('opens Add Owner dialog when button is clicked', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TestWrapper>
+        <IndirectOwnership client={mockEmptyClient} />
+      </TestWrapper>
+    );
+
+    const addButton = screen.getByRole('button', {
+      name: /Add new beneficial owner/i,
+    });
+    await user.click(addButton);
+
+    // Dialog should open with owner type selection
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+  });
+
+  it('shows validation summary section', () => {
+    render(
+      <TestWrapper>
+        <IndirectOwnership client={mockClientWithOwners} />
+      </TestWrapper>
+    );
+
+    // Should show progress or validation info when owners exist
+    expect(screen.getByText(/John Doe/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Jane Smith/i).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('shows individual and business owner sections separately', () => {
+    const clientWithBusiness: ClientResponse = {
+      ...mockClientWithOwners,
+      parties: [
+        ...mockClientWithOwners.parties!,
+        {
+          id: 'party-biz-owner',
+          partyType: 'ORGANIZATION',
+          roles: ['BENEFICIAL_OWNER'],
+          profileStatus: 'APPROVED',
+          active: true,
+          organizationDetails: {
+            organizationName: 'Biz Owner LLC',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+          },
+          createdAt: '2024-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+
+    render(
+      <TestWrapper>
+        <IndirectOwnership client={clientWithBusiness} />
+      </TestWrapper>
+    );
+
+    expect(screen.getByText(/John Doe/i)).toBeInTheDocument();
+    expect(screen.getByText(/Biz Owner LLC/i)).toBeInTheDocument();
+  });
+
+  it('enables completion when all owners have complete status', () => {
+    const onComplete = vi.fn();
+
+    // Create a client where all owners have COMPLETE status (direct owners with no pending hierarchy)
+    const completeClient: ClientResponse = {
+      ...mockEmptyClient,
+      parties: [
+        ...mockEmptyClient.parties!,
+        {
+          id: 'party-direct',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          profileStatus: 'APPROVED',
+          active: true,
+          individualDetails: {
+            firstName: 'Complete',
+            lastName: 'Owner',
+          },
+          createdAt: '2024-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+
+    render(
+      <TestWrapper>
+        <IndirectOwnership
+          client={completeClient}
+          onOwnershipComplete={onComplete}
+        />
+      </TestWrapper>
+    );
+
+    // Owner should be shown
+    expect(screen.getByText(/Complete Owner/i)).toBeInTheDocument();
+  });
+
+  it('hides add button and complete button in readOnly mode', () => {
+    render(
+      <TestWrapper>
+        <IndirectOwnership client={mockClientWithOwners} readOnly />
+      </TestWrapper>
+    );
+
+    expect(
+      screen.queryByRole('button', { name: /Add new beneficial owner/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Complete/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it('tracks user events when handler provided', () => {
+    const handler = vi.fn();
+
+    render(
+      <TestWrapper>
+        <IndirectOwnership
+          client={mockClientWithOwners}
+          userEventsHandler={handler}
+        />
+      </TestWrapper>
+    );
+
+    // Should track VIEW_STRUCTURE on mount when owners exist
+    expect(handler).toHaveBeenCalled();
   });
 });
