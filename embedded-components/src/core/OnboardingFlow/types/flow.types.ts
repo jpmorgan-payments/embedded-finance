@@ -159,6 +159,7 @@ export type FlowProgress = {
 export type FlowSessionData = {
   isControllerOwnerQuestionAnswered?: boolean;
   isOwnersSectionDone?: boolean;
+  indirectOwnershipGatingAnswer?: 'direct-only' | 'has-indirect';
   mockedVerifyingSectionId?: ScreenId;
   hideGatewayInfoAlert?: boolean;
   hideOverviewInfoAlert?: boolean;

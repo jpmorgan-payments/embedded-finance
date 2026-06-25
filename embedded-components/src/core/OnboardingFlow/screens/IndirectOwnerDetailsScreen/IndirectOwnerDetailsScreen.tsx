@@ -50,9 +50,7 @@ function getBeneficialOwnerIndividuals(
  * Per API spec, these are the business entities through which indirect BOs
  * hold ownership of the root client.
  */
-function getIntermediaryEntities(
-  clientData?: ClientResponse
-): PartyResponse[] {
+function getIntermediaryEntities(clientData?: ClientResponse): PartyResponse[] {
   if (!clientData?.parties) return [];
   return clientData.parties.filter(
     (party) =>
@@ -129,7 +127,7 @@ const statusConfig: Record<
 
 export const IndirectOwnerDetailsScreen = () => {
   const { clientData } = useOnboardingContext();
-  const { goTo, goBack } = useFlowContext();
+  const { goTo } = useFlowContext();
   const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
 
   const individualParties = getBeneficialOwnerIndividuals(clientData);
@@ -164,7 +162,11 @@ export const IndirectOwnerDetailsScreen = () => {
       subTitle={
         <Button
           variant="link"
-          onClick={() => goBack()}
+          onClick={() =>
+            goTo('owners-section', {
+              resetHistory: true,
+            })
+          }
           className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
         >
           <ArrowLeftIcon className="eb-size-3.5" />

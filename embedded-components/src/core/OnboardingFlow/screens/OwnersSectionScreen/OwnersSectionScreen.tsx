@@ -36,6 +36,7 @@ import { LearnMorePopoverTrigger } from '@/components/LearnMorePopover';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { AlertDialog, Badge, Card, CardTitle } from '@/components/ui';
 import { IndirectOwnership } from '@/core/IndirectOwnership';
+import type { ValidationSummary } from '@/core/IndirectOwnership/IndirectOwnership.types';
 import {
   OnboardingFormField,
   StepLayout,
@@ -59,6 +60,8 @@ export const OwnersSectionScreen = () => {
   const [indirectGatingAnswer, setIndirectGatingAnswer] = useState<
     'direct-only' | 'has-indirect' | null
   >(null);
+  const [indirectValidationSummary, setIndirectValidationSummary] =
+    useState<ValidationSummary | null>(null);
 
   const {
     clientData,
@@ -90,6 +93,34 @@ export const OwnersSectionScreen = () => {
     updateSessionData,
     savedFormValues,
   } = useFlowContext();
+
+  const hasPreloadedOwnershipStructure = !!clientData?.parties?.some(
+    (party) =>
+      party.active &&
+      (party.roles?.includes('BENEFICIAL_OWNER') ||
+        party.roles?.includes('INTERMEDIARY_OWNER' as any))
+  );
+
+  useEffect(() => {
+    if (indirectGatingAnswer !== null) {
+      return;
+    }
+
+    if (sessionData.indirectOwnershipGatingAnswer) {
+      setIndirectGatingAnswer(sessionData.indirectOwnershipGatingAnswer);
+      return;
+    }
+
+    if (hasPreloadedOwnershipStructure) {
+      setIndirectGatingAnswer('has-indirect');
+      updateSessionData({ indirectOwnershipGatingAnswer: 'has-indirect' });
+    }
+  }, [
+    indirectGatingAnswer,
+    sessionData.indirectOwnershipGatingAnswer,
+    hasPreloadedOwnershipStructure,
+    updateSessionData,
+  ]);
 
   const { sectionStatuses } = getFlowProgress(
     sections,
@@ -431,6 +462,19 @@ export const OwnersSectionScreen = () => {
     partyActiveUpdateStatus === 'pending' ||
     clientUpdateStatus === 'pending';
 
+  const isIndirectOwnershipReadyToContinue =
+    !enableIndirectOwnership ||
+    indirectGatingAnswer === 'direct-only' ||
+    (indirectGatingAnswer === 'has-indirect' &&
+      !!indirectValidationSummary?.canComplete);
+
+  const handleIndirectGatingAnswer = (
+    answer: 'direct-only' | 'has-indirect'
+  ) => {
+    setIndirectGatingAnswer(answer);
+    updateSessionData({ indirectOwnershipGatingAnswer: answer });
+  };
+
   // TODO: get completed status from global stepper,
   // send completed status to global stepper
 
@@ -550,10 +594,12 @@ export const OwnersSectionScreen = () => {
 
         {enableIndirectOwnership && indirectGatingAnswer !== 'direct-only' ? (
           <IndirectOwnership
+            key={`indirect-ownership-${indirectGatingAnswer ?? 'undecided'}`}
             client={clientData}
             className="eb-mt-4"
-            showGatingQuestion
-            onGatingAnswer={setIndirectGatingAnswer}
+            showGatingQuestion={indirectGatingAnswer === null}
+            onGatingAnswer={handleIndirectGatingAnswer}
+            onValidationChange={setIndirectValidationSummary}
             onAddOwner={handleAddIndirectOwner}
             onRemoveOwner={handleRemoveIndirectOwner}
             onSaveHierarchy={handleSaveHierarchy}
@@ -719,6 +765,10 @@ export const OwnersSectionScreen = () => {
               const controllerQuestionAnswered =
                 form.getValues('controllerIsAnOwner') !== undefined;
 
+              if (!isIndirectOwnershipReadyToContinue) {
+                return;
+              }
+
               if (controllerQuestionAnswered) {
                 updateSessionData({
                   isOwnersSectionDone: true,
@@ -739,7 +789,7 @@ export const OwnersSectionScreen = () => {
                 goTo('additional-questions-section');
               }
             }}
-            disabled={isFormDisabled}
+            disabled={isFormDisabled || !isIndirectOwnershipReadyToContinue}
           >
             {reviewMode
               ? t('screens.owners.saveAndReturnToReviewButton')
