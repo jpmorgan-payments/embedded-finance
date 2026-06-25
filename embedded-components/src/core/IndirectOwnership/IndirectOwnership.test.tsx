@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 
 import { ClientResponse } from '@/api/generated/smbdo.schemas';
@@ -228,6 +228,27 @@ describe('IndirectOwnership Component', () => {
     expect(
       screen.getByText(/Who are your beneficial owners?/i)
     ).toBeInTheDocument();
+  });
+
+  it('publishes validation summary with pending hierarchy for indirect owners', async () => {
+    const onValidationMock = vi.fn();
+
+    render(
+      <TestWrapper>
+        <IndirectOwnership
+          client={mockClientWithOwners}
+          onValidationChange={onValidationMock}
+        />
+      </TestWrapper>
+    );
+
+    await waitFor(() => {
+      expect(onValidationMock).toHaveBeenCalled();
+    });
+
+    const latestSummary = onValidationMock.mock.calls.at(-1)?.[0];
+    expect(latestSummary?.pendingHierarchies).toBeGreaterThan(0);
+    expect(latestSummary?.canComplete).toBe(false);
   });
 
   it('applies custom className and testId', () => {

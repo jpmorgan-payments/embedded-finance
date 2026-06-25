@@ -64,6 +64,7 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
   userEventsLifecycle,
   client,
   onOwnershipComplete,
+  onValidationChange,
   showGatingQuestion = false,
   onGatingAnswer,
   onAddOwner,
@@ -91,8 +92,9 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
   const initialParties =
     client?.parties?.filter(
       (party) =>
-        party.roles?.includes('BENEFICIAL_OWNER') ||
-        party.roles?.includes('INTERMEDIARY_OWNER' as any)
+        party.active &&
+        (party.roles?.includes('BENEFICIAL_OWNER') ||
+          party.roles?.includes('INTERMEDIARY_OWNER' as any))
     ) || [];
 
   // In integrated mode (onAddOwner provided), derive parties directly from
@@ -248,6 +250,19 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
               100
           ),
   };
+
+  React.useEffect(() => {
+    onValidationChange?.(validationSummary);
+  }, [
+    onValidationChange,
+    validationSummary.totalOwners,
+    validationSummary.completeOwners,
+    validationSummary.pendingHierarchies,
+    validationSummary.ownersWithErrors,
+    validationSummary.hasErrors,
+    validationSummary.canComplete,
+    validationSummary.completionPercentage,
+  ]);
 
   // Handlers
   const handleAddOwner = useCallback(() => {
@@ -1053,8 +1068,6 @@ const OwnerCard: React.FC<OwnerCardProps> = ({
             </div>
           </div>
         )}
-
-
       </div>
     </div>
   );
@@ -1284,47 +1297,47 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
               {/* Ownership type only applies to individuals — business entities
                   are always intermediaries per API spec */}
               {entityType === 'INDIVIDUAL' && (
-              <div className="eb-space-y-3">
-                <Label>Ownership Type</Label>
-                <RadioGroup
-                  value={ownershipType}
-                  onValueChange={(value: 'DIRECT' | 'INDIRECT') =>
-                    setOwnershipType(value)
-                  }
-                  className="eb-space-y-3"
-                >
-                  <div className="eb-flex eb-cursor-pointer eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-p-3 hover:eb-bg-accent">
-                    <RadioGroupItem
-                      value="DIRECT"
-                      id="direct"
-                      className="eb-mt-0.5"
-                    />
-                    <div className="eb-flex-1 eb-space-y-1">
-                      <Label htmlFor="direct" className="eb-cursor-pointer">
-                        Direct Owner
-                      </Label>
-                      <p className="eb-text-sm eb-text-muted-foreground">
-                        Has 25% or more ownership directly
-                      </p>
+                <div className="eb-space-y-3">
+                  <Label>Ownership Type</Label>
+                  <RadioGroup
+                    value={ownershipType}
+                    onValueChange={(value: 'DIRECT' | 'INDIRECT') =>
+                      setOwnershipType(value)
+                    }
+                    className="eb-space-y-3"
+                  >
+                    <div className="eb-flex eb-cursor-pointer eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-p-3 hover:eb-bg-accent">
+                      <RadioGroupItem
+                        value="DIRECT"
+                        id="direct"
+                        className="eb-mt-0.5"
+                      />
+                      <div className="eb-flex-1 eb-space-y-1">
+                        <Label htmlFor="direct" className="eb-cursor-pointer">
+                          Direct Owner
+                        </Label>
+                        <p className="eb-text-sm eb-text-muted-foreground">
+                          Has 25% or more ownership directly
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="eb-flex eb-cursor-pointer eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-p-3 hover:eb-bg-accent">
-                    <RadioGroupItem
-                      value="INDIRECT"
-                      id="indirect"
-                      className="eb-mt-0.5"
-                    />
-                    <div className="eb-flex-1 eb-space-y-1">
-                      <Label htmlFor="indirect" className="eb-cursor-pointer">
-                        Indirect Owner
-                      </Label>
-                      <p className="eb-text-sm eb-text-muted-foreground">
-                        Has 25% or more ownership through other companies
-                      </p>
+                    <div className="eb-flex eb-cursor-pointer eb-items-start eb-space-x-3 eb-rounded-lg eb-border eb-p-3 hover:eb-bg-accent">
+                      <RadioGroupItem
+                        value="INDIRECT"
+                        id="indirect"
+                        className="eb-mt-0.5"
+                      />
+                      <div className="eb-flex-1 eb-space-y-1">
+                        <Label htmlFor="indirect" className="eb-cursor-pointer">
+                          Indirect Owner
+                        </Label>
+                        <p className="eb-text-sm eb-text-muted-foreground">
+                          Has 25% or more ownership through other companies
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </RadioGroup>
-              </div>
+                  </RadioGroup>
+                </div>
               )}
             </form>
           </div>
