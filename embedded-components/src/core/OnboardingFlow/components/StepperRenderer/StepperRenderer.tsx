@@ -229,6 +229,8 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     } else if (currentStepNumber < steps.length) {
       stepperNext();
       setCurrentStepperStepIdFallback(steps[currentStepNumber].id);
+    } else if (originScreenId === 'owners-section') {
+      goTo('owners-section');
     } else if (
       currentStep.stepType === 'check-answers' &&
       previouslyCompleted
@@ -237,8 +239,6 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       updateSessionData({
         mockedVerifyingSectionId: currentScreenId,
       });
-    } else if (originScreenId === 'owners-section') {
-      goTo('owners-section');
     } else if (
       currentScreenId === 'review-attest-section' &&
       currentStep.id === 'documents'

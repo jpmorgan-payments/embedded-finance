@@ -2,6 +2,7 @@ import type { BeneficialOwner } from '../IndirectOwnership.types';
 import {
   categorizeEntitiesForHierarchy,
   extractOwnershipRelationships,
+  getRelationshipConflictError,
   type HierarchyBuildingContext,
 } from './hierarchyIntegrity';
 
@@ -218,5 +219,96 @@ describe('categorizeEntitiesForHierarchy - Single Company Hierarchy Prevention',
       reason:
         "Cannot be used as intermediary - already established as direct owner in Test Owner's hierarchy",
     });
+  });
+});
+
+describe('categorizeEntitiesForHierarchy - Relationship Direction', () => {
+  const rootCompanyName = 'Root Business Inc';
+
+  test('recommends known owned entity for current step owner', () => {
+    const owners: BeneficialOwner[] = [
+      createMockOwner('owner1', 'Alice', 'Smith', [
+        { entityName: 'Parent Co', ownsRootBusinessDirectly: false },
+        { entityName: 'Child Co', ownsRootBusinessDirectly: true },
+      ]),
+    ];
+
+    const relationships = extractOwnershipRelationships(owners);
+    const context: HierarchyBuildingContext = {
+      currentOwnerId: 'new-owner',
+      currentHierarchySteps: [
+        {
+          id: 'step-1',
+          entityName: 'Parent Co',
+          entityType: 'COMPANY',
+          hasOwnership: true,
+          ownsRootBusinessDirectly: false,
+          level: 1,
+        },
+      ],
+      rootCompanyName,
+      ownerName: 'Bob Wilson',
+    };
+
+    const result = categorizeEntitiesForHierarchy(
+      ['Parent Co', 'Child Co', 'Other Co'],
+      relationships,
+      context,
+      owners
+    );
+
+    expect(result.recommended.some((r) => r.name === 'Child Co')).toBe(true);
+    expect(result.problematic).toContainEqual({
+      name: 'Other Co',
+      reason: 'Would conflict with known relationship: Parent Co owns Child Co',
+      relationship: expect.objectContaining({
+        owner: 'Parent Co',
+        owned: 'Child Co',
+      }),
+    });
+  });
+});
+
+describe('getRelationshipConflictError', () => {
+  test('blocks reverse relationships that contradict existing paths', () => {
+    const relationships = [
+      {
+        owner: 'Parent Co',
+        owned: 'Child Co',
+        source: {
+          ownerName: 'Alice Smith',
+          hierarchyId: 'hierarchy-1',
+        },
+      },
+    ];
+
+    const conflict = getRelationshipConflictError(
+      'Child Co',
+      'Parent Co',
+      relationships
+    );
+
+    expect(conflict).toContain('existing relationship already defines');
+  });
+
+  test('allows relationship that matches known ownership mapping', () => {
+    const relationships = [
+      {
+        owner: 'Parent Co',
+        owned: 'Child Co',
+        source: {
+          ownerName: 'Alice Smith',
+          hierarchyId: 'hierarchy-1',
+        },
+      },
+    ];
+
+    const conflict = getRelationshipConflictError(
+      'Parent Co',
+      'Child Co',
+      relationships
+    );
+
+    expect(conflict).toBeNull();
   });
 });

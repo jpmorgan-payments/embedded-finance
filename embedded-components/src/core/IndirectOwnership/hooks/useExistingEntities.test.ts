@@ -84,6 +84,32 @@ describe('useExistingEntities', () => {
     expect(result.current).toEqual(['Microsoft Corporation']);
   });
 
+  test('includes organization owner names even without hierarchy steps', () => {
+    const mockOwners: BeneficialOwner[] = [
+      {
+        id: 'org-owner',
+        partyType: 'ORGANIZATION',
+        ownershipType: 'DIRECT',
+        status: 'COMPLETE',
+        organizationDetails: {
+          organizationName: 'Atlas Holdings LLC',
+        } as BeneficialOwner['organizationDetails'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      createMockOwner('indirect-owner', [
+        { entityName: 'Microsoft Corporation' },
+      ]),
+    ];
+
+    const { result } = renderHook(() => useExistingEntities(mockOwners));
+
+    expect(result.current).toEqual([
+      'Atlas Holdings LLC',
+      'Microsoft Corporation',
+    ]);
+  });
+
   test('trims whitespace from entity names', () => {
     const mockOwners: BeneficialOwner[] = [
       createMockOwner('owner1', [

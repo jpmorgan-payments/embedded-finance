@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n/config';
 import {
   BuildingIcon,
   FileIcon,
@@ -8,16 +9,15 @@ import {
 } from 'lucide-react';
 
 import {
-  IntermediaryAddressForm,
-  IntermediaryOrgDetailsForm,
-} from '@/core/OnboardingFlow/forms/intermediary-section-forms';
-
-import {
   BusinessContactInfoForm,
   BusinessIdentityForm,
   IndustryForm,
   PubliclyTradedForm,
 } from '@/core/OnboardingFlow/forms/business-section-forms';
+import {
+  IntermediaryAddressForm,
+  IntermediaryOrgDetailsForm,
+} from '@/core/OnboardingFlow/forms/intermediary-section-forms';
 import {
   ContactDetailsForm,
   IndividualIdentityForm,

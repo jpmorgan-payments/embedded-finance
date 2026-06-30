@@ -21,10 +21,18 @@ export function useExistingEntities(
   hierarchyContext?: HierarchyBuildingContext
 ): string[] | CategorizedEntities {
   const result = useMemo(() => {
-    // Extract all unique entity names from ownership hierarchies
+    // Extract all unique entity names from ownership hierarchies and
+    // already-identified business owners so they can be reused in chains.
     const entityNames = new Set<string>();
 
     beneficialOwners.forEach((owner) => {
+      if (
+        owner.partyType === 'ORGANIZATION' &&
+        owner.organizationDetails?.organizationName?.trim()
+      ) {
+        entityNames.add(owner.organizationDetails.organizationName.trim());
+      }
+
       if (owner.ownershipHierarchy?.steps) {
         owner.ownershipHierarchy.steps.forEach((step) => {
           if (step.entityName?.trim()) {

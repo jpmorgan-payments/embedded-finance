@@ -41,7 +41,11 @@ import type {
   IndirectOwnershipProps,
   ValidationSummary,
 } from './IndirectOwnership.types';
-import { getEntityOwnershipInfo } from './utils/hierarchyIntegrity';
+import {
+  extractOwnershipRelationships,
+  getEntityOwnershipInfo,
+  getRelationshipConflictError,
+} from './utils/hierarchyIntegrity';
 import {
   getBeneficialOwnerFullName,
   getRootCompanyName,
@@ -539,8 +543,9 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
                   id="ownership-description"
                   className="eb-text-sm eb-text-muted-foreground"
                 >
-                  A beneficial owner is an individual who owns 25% or more of
-                  your business, either directly or through other companies.
+                  A beneficial owner can be an individual or business entity
+                  that owns 25% or more of your business, either directly or
+                  through other companies.
                 </p>
                 <OwnershipCalculationsTooltip />
               </div>
@@ -869,6 +874,13 @@ const OwnerCard: React.FC<OwnerCardProps> = ({
     owner.partyType === 'INDIVIDUAL'
       ? getBeneficialOwnerFullName(owner)
       : owner.organizationDetails?.organizationName || 'Unknown Business';
+  const isIntermediaryEntity = owner.partyType === 'ORGANIZATION';
+  const ownershipTypeAriaLabel =
+    owner.ownershipType === 'DIRECT'
+      ? 'Direct owner'
+      : isIntermediaryEntity
+        ? 'Intermediary owner'
+        : 'Indirect owner';
 
   const ownerIcon =
     owner.partyType === 'INDIVIDUAL' ? (
@@ -918,12 +930,17 @@ const OwnerCard: React.FC<OwnerCardProps> = ({
                 owner.ownershipType === 'DIRECT' ? 'success' : 'secondary'
               }
               className="eb-inline-flex eb-items-center eb-gap-1 eb-text-xs"
-              aria-label={`Ownership type: ${owner.ownershipType === 'DIRECT' ? 'Direct owner' : 'Indirect owner'}`}
+              aria-label={`Ownership type: ${ownershipTypeAriaLabel}`}
             >
               {owner.ownershipType === 'DIRECT' ? (
                 <>
                   <UserCheck className="eb-h-3.5 eb-w-3.5" aria-hidden="true" />
                   Direct Owner
+                </>
+              ) : isIntermediaryEntity ? (
+                <>
+                  <Building className="eb-h-3.5 eb-w-3.5" aria-hidden="true" />
+                  Intermediary Owner
                 </>
               ) : (
                 <>
@@ -1413,6 +1430,25 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
   }, [allExistingEntities, hierarchySteps, rootCompanyName]);
   const [currentCompanyName, setCurrentCompanyName] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
+  const knownRelationships = React.useMemo(
+    () => extractOwnershipRelationships(beneficialOwners),
+    [beneficialOwners]
+  );
+
+  const relationshipConflictHint = React.useMemo(() => {
+    const normalizedCompanyName = currentCompanyName.trim();
+
+    if (!normalizedCompanyName || hierarchySteps.length === 0) {
+      return null;
+    }
+
+    const previousStep = hierarchySteps[hierarchySteps.length - 1];
+    return getRelationshipConflictError(
+      previousStep.entityName,
+      normalizedCompanyName,
+      knownRelationships
+    );
+  }, [currentCompanyName, hierarchySteps, knownRelationships]);
 
   // Check if current company is known to directly own the root business
   const currentEntityInfo = React.useMemo(() => {
@@ -1439,6 +1475,8 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
       return;
     }
 
+    const normalizedCompanyName = currentCompanyName.trim();
+
     // Max 10 intermediaries per beneficial owner (spec rule)
     if (hierarchySteps.length >= 10) {
       setErrors([
@@ -1450,13 +1488,26 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
     // Check for duplicates in current chain
     const isDuplicateInChain = hierarchySteps.some(
       (step) =>
-        step.entityName.toLowerCase() ===
-        currentCompanyName.trim().toLowerCase()
+        step.entityName.toLowerCase() === normalizedCompanyName.toLowerCase()
     );
 
     if (isDuplicateInChain) {
       setErrors(['This company is already in the ownership chain']);
       return;
+    }
+
+    if (hierarchySteps.length > 0) {
+      const previousStep = hierarchySteps[hierarchySteps.length - 1];
+      const conflictError = getRelationshipConflictError(
+        previousStep.entityName,
+        normalizedCompanyName,
+        knownRelationships
+      );
+
+      if (conflictError) {
+        setErrors([conflictError]);
+        return;
+      }
     }
 
     // Check if entity is known to be a direct owner OR has a known complete path
@@ -1507,7 +1558,7 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
     // Regular flow for direct owners or when continuing the chain
     const newStep = {
       id: `step-${Date.now()}`,
-      entityName: currentCompanyName.trim(),
+      entityName: normalizedCompanyName,
       hasOwnership: true,
       ownsRootBusinessDirectly: shouldComplete,
       level: hierarchySteps.length + 1,
@@ -1733,6 +1784,18 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
                 placeholder="Enter company name"
                 className="eb-h-10"
               />
+              {hierarchySteps.length > 0 && (
+                <p className="eb-text-xs eb-text-muted-foreground">
+                  Existing ownership paths are enforced to prevent impossible
+                  chain structures.
+                </p>
+              )}
+              {relationshipConflictHint && (
+                <div className="eb-flex eb-items-start eb-gap-2 eb-rounded-md eb-border eb-border-warning eb-bg-warning-accent eb-p-2 eb-text-xs eb-text-warning-foreground">
+                  <AlertTriangle className="eb-mt-0.5 eb-h-3 eb-w-3 eb-shrink-0" />
+                  <span>{relationshipConflictHint}</span>
+                </div>
+              )}
             </div>
 
             {currentEntityInfo?.isKnownDirectOwner ? (
@@ -1759,7 +1822,9 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
 
                 <Button
                   onClick={() => handleAddCompany()}
-                  disabled={!currentCompanyName.trim()}
+                  disabled={
+                    !currentCompanyName.trim() || !!relationshipConflictHint
+                  }
                   className="eb-h-10 eb-w-full eb-bg-success eb-font-medium eb-text-white hover:eb-bg-success/90"
                 >
                   Complete Chain
@@ -1803,7 +1868,9 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
 
                 <Button
                   onClick={() => handleAddCompany()}
-                  disabled={!currentCompanyName.trim()}
+                  disabled={
+                    !currentCompanyName.trim() || !!relationshipConflictHint
+                  }
                   className="eb-h-10 eb-w-full eb-bg-success eb-font-medium eb-text-white hover:eb-bg-success/90"
                 >
                   Complete Chain with Full Path
@@ -1827,14 +1894,18 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
                 <div className="eb-flex eb-gap-3">
                   <Button
                     onClick={() => handleAddCompany(true)}
-                    disabled={!currentCompanyName.trim()}
+                    disabled={
+                      !currentCompanyName.trim() || !!relationshipConflictHint
+                    }
                     className="eb-h-10 eb-flex-1 eb-bg-success eb-font-medium eb-text-white hover:eb-bg-success/90"
                   >
                     Yes - Complete Chain
                   </Button>
                   <Button
                     onClick={() => handleAddCompany(false)}
-                    disabled={!currentCompanyName.trim()}
+                    disabled={
+                      !currentCompanyName.trim() || !!relationshipConflictHint
+                    }
                     variant="outline"
                     className="eb-h-10 eb-flex-1 eb-border-primary eb-font-medium eb-text-primary hover:eb-bg-primary/5"
                   >

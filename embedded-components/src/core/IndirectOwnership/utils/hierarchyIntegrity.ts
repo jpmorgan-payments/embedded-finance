@@ -110,13 +110,51 @@ export function extractOwnershipRelationships(
 /**
  * Find what entity should own the given target entity based on known relationships
  */
-function findKnownOwnerOf(
-  target: string,
+function findKnownOwnedBy(
+  owner: string,
   relationships: OwnershipRelationship[]
 ): OwnershipRelationship | undefined {
   return relationships.find(
-    (rel) => rel.owned.toLowerCase() === target.toLowerCase()
+    (rel) => rel.owner.toLowerCase() === owner.toLowerCase()
   );
+}
+
+/**
+ * Validate whether adding a proposed owner->owned relationship would
+ * conflict with already-established ownership paths.
+ */
+export function getRelationshipConflictError(
+  ownerEntityName: string,
+  proposedOwnedEntityName: string,
+  relationships: OwnershipRelationship[]
+): string | null {
+  const normalizedOwner = ownerEntityName.trim().toLowerCase();
+  const normalizedProposedOwned = proposedOwnedEntityName.trim().toLowerCase();
+
+  const reverseRelationship = relationships.find(
+    (rel) =>
+      rel.owner.toLowerCase() === normalizedProposedOwned &&
+      rel.owned.toLowerCase() === normalizedOwner
+  );
+
+  if (reverseRelationship) {
+    return `Cannot add ${ownerEntityName} -> ${proposedOwnedEntityName}: existing relationship already defines ${proposedOwnedEntityName} -> ${ownerEntityName}`;
+  }
+
+  const knownOwnedByOwner = relationships.filter(
+    (rel) => rel.owner.toLowerCase() === normalizedOwner
+  );
+
+  if (
+    knownOwnedByOwner.length > 0 &&
+    !knownOwnedByOwner.some(
+      (rel) => rel.owned.toLowerCase() === normalizedProposedOwned
+    )
+  ) {
+    return `${ownerEntityName} is already mapped to own ${knownOwnedByOwner[0].owned} in an existing hierarchy and cannot also own ${proposedOwnedEntityName}`;
+  }
+
+  return null;
 }
 
 /**
@@ -344,13 +382,13 @@ export function categorizeEntitiesForHierarchy(
 
   // If we have a target entity, find its known owner
   if (targetEntity) {
-    const knownOwner = findKnownOwnerOf(targetEntity, relationships);
+    const knownOwned = findKnownOwnedBy(targetEntity, relationships);
 
-    if (knownOwner) {
+    if (knownOwned) {
       result.recommended.push({
-        name: knownOwner.owner,
-        reason: `Already known to own ${targetEntity} (from ${knownOwner.source.ownerName}'s hierarchy)`,
-        relationship: knownOwner,
+        name: knownOwned.owned,
+        reason: `${targetEntity} is already known to own ${knownOwned.owned} (from ${knownOwned.source.ownerName}'s hierarchy)`,
+        relationship: knownOwned,
       });
     }
   }
@@ -392,12 +430,12 @@ export function categorizeEntitiesForHierarchy(
 
     // Check if using this entity would contradict known relationships
     if (targetEntity) {
-      const existingOwner = findKnownOwnerOf(targetEntity, relationships);
-      if (existingOwner && existingOwner.owner.toLowerCase() !== lowerName) {
+      const existingOwned = findKnownOwnedBy(targetEntity, relationships);
+      if (existingOwned && existingOwned.owned.toLowerCase() !== lowerName) {
         result.problematic.push({
           name: entityName,
-          reason: `Would conflict with known relationship: ${existingOwner.owner} owns ${targetEntity}`,
-          relationship: existingOwner,
+          reason: `Would conflict with known relationship: ${targetEntity} owns ${existingOwned.owned}`,
+          relationship: existingOwned,
         });
         return;
       }
