@@ -409,6 +409,88 @@ describe('GatewayScreen (integration)', () => {
     expect(gwCtx.updateClientMutate).not.toHaveBeenCalled();
   });
 
+  test('changing an existing org to sole-prop with no controller party still forces countryOfFormation US', async () => {
+    gwCtx.updatePartyMutate.mockImplementationOnce((_vars, opts) => {
+      opts?.onSuccess?.({
+        id: 'party-org',
+        roles: ['CLIENT'],
+        partyType: 'ORGANIZATION',
+        organizationDetails: {
+          organizationName: 'Acme LLC',
+          organizationType: 'SOLE_PROPRIETORSHIP',
+          countryOfFormation: 'US',
+          jurisdiction: 'US',
+        },
+        status: 'ACTIVE',
+        validationResponse: [],
+      });
+    });
+
+    // Existing organization party but NO controller (individual) party present,
+    // so getControllerParty() resolves to undefined during submit.
+    const orgClientNoController: ClientResponse = {
+      id: 'client-soleprop-no-controller',
+      status: 'NEW',
+      partyId: 'party-org',
+      parties: [
+        {
+          id: 'party-org',
+          active: true,
+          roles: ['CLIENT'],
+          partyType: 'ORGANIZATION',
+          organizationDetails: {
+            organizationName: 'Acme LLC',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            countryOfFormation: 'US',
+            jurisdiction: 'US',
+          },
+          status: 'ACTIVE',
+          validationResponse: [],
+        },
+      ],
+      products: ['EMBEDDED_PAYMENTS'],
+      outstanding: {
+        partyIds: [],
+        partyRoles: [],
+        questionIds: [],
+        documentRequestIds: [],
+        attestationDocumentIds: [],
+      },
+    };
+
+    renderGateway({
+      clientData: orgClientNoController,
+      organizationType: 'LIMITED_LIABILITY_COMPANY',
+    });
+
+    await screen.findByRole('heading', {
+      name: /let's help you get started/i,
+    });
+
+    // Switch from the registered business (LLC) to sole proprietorship
+    await user.click(
+      screen.getByRole('radio', { name: /i'm the sole owner/i })
+    );
+
+    const submitBtn = screen.getByRole('button', { name: /get started/i });
+    await waitFor(() => expect(submitBtn).not.toBeDisabled());
+    await user.click(submitBtn);
+
+    await waitFor(() => {
+      expect(gwCtx.updatePartyMutate).toHaveBeenCalled();
+    });
+
+    // Regression guard: sole-prop must force US formation country even when no
+    // controller party is found (previously skipped by an early return).
+    const [firstCallArg] = gwCtx.updatePartyMutate.mock.calls[0];
+    expect(firstCallArg.data.organizationDetails.organizationType).toBe(
+      'SOLE_PROPRIETORSHIP'
+    );
+    expect(firstCallArg.data.organizationDetails.countryOfFormation).toBe('US');
+
+    expect(gwCtx.postMutate).not.toHaveBeenCalled();
+  });
+
   // =========================================================================
   // PTC Feature Flag Enabled
   // =========================================================================

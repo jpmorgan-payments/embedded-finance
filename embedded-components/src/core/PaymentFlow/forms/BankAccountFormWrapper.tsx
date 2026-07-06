@@ -53,6 +53,207 @@ export interface BankAccountFormWrapperProps {
 }
 
 /**
+ * Confirmation step shown after a recipient form is validated, letting the user
+ * choose to save the recipient or use it once without saving.
+ */
+interface SaveRecipientConfirmationProps {
+  recipientName: string;
+  status: string;
+  formError: unknown;
+  initialError: Error | null;
+  onSaveAndAdd: () => void;
+  onUseWithoutSaving: () => void;
+  onBackToForm: () => void;
+}
+
+function SaveRecipientConfirmation({
+  recipientName,
+  status,
+  formError,
+  initialError,
+  onSaveAndAdd,
+  onUseWithoutSaving,
+  onBackToForm,
+}: SaveRecipientConfirmationProps) {
+  const { t } = useTranslationWithTokens(['make-payment']);
+
+  return (
+    <div className="eb-flex eb-flex-col eb-gap-4">
+      {/* Header */}
+      <div className="eb-px-1">
+        <h2 className="eb-text-lg eb-font-semibold">
+          {t('bankAccountForm.saveRecipientTitle', 'Save Recipient?')}
+        </h2>
+        <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
+          {t(
+            'bankAccountForm.saveRecipientDescription',
+            'Would you like to save {{recipientName}} for future payments?',
+            { recipientName }
+          )}
+        </p>
+      </div>
+
+      {/* Error alert */}
+      {(formError || initialError) && (
+        <ServerErrorAlert
+          error={(formError || initialError) as any}
+          customTitle="Failed to add recipient"
+          customErrorMessage={{
+            '400': 'Please check the information you entered and try again.',
+            '401': 'Your session has expired. Please log in and try again.',
+            '409': 'This recipient may already exist.',
+            '422':
+              'The recipient information is invalid. Please verify and try again.',
+            '500': 'An unexpected error occurred. Please try again later.',
+            default: 'An unexpected error occurred. Please try again.',
+          }}
+          showDetails={false}
+        />
+      )}
+
+      {/* Action buttons */}
+      <div className="eb-flex eb-flex-col eb-gap-3">
+        <Button
+          onClick={onSaveAndAdd}
+          disabled={status === 'pending'}
+          className="eb-w-full eb-justify-start eb-gap-3 eb-px-4 eb-py-6"
+          variant="outline"
+        >
+          {status === 'pending' ? (
+            <Loader2 className="eb-h-5 eb-w-5 eb-animate-spin eb-text-primary" />
+          ) : (
+            <Save className="eb-h-5 eb-w-5 eb-text-primary" />
+          )}
+          <div className="eb-text-left">
+            <div className="eb-font-medium">
+              {t('bankAccountForm.saveAndContinue', 'Save & Continue')}
+            </div>
+            <div className="eb-text-xs eb-font-normal eb-text-muted-foreground">
+              {t(
+                'bankAccountForm.saveDescription',
+                'Add to your recipients for easy access'
+              )}
+            </div>
+          </div>
+        </Button>
+
+        <Button
+          onClick={onUseWithoutSaving}
+          disabled={status === 'pending'}
+          variant="outline"
+          className="eb-w-full eb-justify-start eb-gap-3 eb-px-4 eb-py-6"
+        >
+          <UserX className="eb-h-5 eb-w-5 eb-text-muted-foreground" />
+          <div className="eb-text-left">
+            <div className="eb-font-medium">
+              {t('bankAccountForm.useOnce', 'Use Once')}
+            </div>
+            <div className="eb-text-xs eb-font-normal eb-text-muted-foreground">
+              {t('bankAccountForm.useOnceDescription', 'For this payment only')}
+            </div>
+          </div>
+        </Button>
+      </div>
+
+      {/* Back link */}
+      <button
+        type="button"
+        onClick={onBackToForm}
+        disabled={status === 'pending'}
+        className="eb-flex eb-items-center eb-gap-1 eb-text-sm eb-text-primary hover:eb-underline disabled:eb-opacity-50"
+      >
+        <ArrowLeft className="eb-h-3.5 eb-w-3.5" />
+        {t('bankAccountForm.editRecipientDetails', 'Edit recipient details')}
+      </button>
+    </div>
+  );
+}
+
+/**
+ * Header for the bank account form: title, description, and the option to switch
+ * between linking an account and adding a recipient.
+ */
+interface BankAccountFormHeaderProps {
+  formType: BankAccountFormType;
+  isEditing: boolean;
+  onSwitchToRecipient?: () => void;
+  onSwitchToLinkedAccount?: () => void;
+}
+
+function BankAccountFormHeader({
+  formType,
+  isEditing,
+  onSwitchToRecipient,
+  onSwitchToLinkedAccount,
+}: BankAccountFormHeaderProps) {
+  const { t } = useTranslationWithTokens(['make-payment']);
+  const isLinkedAccount = formType === 'linked-account';
+
+  const getTitle = () => {
+    if (isLinkedAccount) {
+      return t('bankAccountForm.linkMyAccountTitle', 'Link My Account');
+    }
+    if (isEditing) {
+      return t('bankAccountForm.editRecipientTitle', 'Edit Recipient');
+    }
+    return t('bankAccountForm.addRecipientTitle', 'Add Recipient');
+  };
+
+  const getDescription = () => {
+    if (isLinkedAccount) {
+      return t(
+        'bankAccountForm.linkMyAccountDescription',
+        'Connect your account from another bank for transfers.'
+      );
+    }
+    if (isEditing) {
+      return t(
+        'bankAccountForm.editRecipientDescription',
+        'Update the recipient details below.'
+      );
+    }
+    return t(
+      'bankAccountForm.addRecipientDescription',
+      'Add a new person or business to send payments to.'
+    );
+  };
+
+  return (
+    <div className="eb-px-1">
+      <h2 className="eb-text-lg eb-font-semibold">{getTitle()}</h2>
+      <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
+        {getDescription()}
+      </p>
+      {/* Switch option link */}
+      {isLinkedAccount && onSwitchToRecipient && (
+        <button
+          type="button"
+          onClick={onSwitchToRecipient}
+          className="eb-mt-2 eb-text-sm eb-text-primary eb-underline-offset-4 hover:eb-underline"
+        >
+          {t(
+            'bankAccountForm.switchToRecipient',
+            'Or add an external recipient instead'
+          )}
+        </button>
+      )}
+      {!isLinkedAccount && onSwitchToLinkedAccount && !isEditing && (
+        <button
+          type="button"
+          onClick={onSwitchToLinkedAccount}
+          className="eb-mt-2 eb-text-sm eb-text-primary eb-underline-offset-4 hover:eb-underline"
+        >
+          {t(
+            'bankAccountForm.switchToLinkedAccount',
+            'Or link my account instead'
+          )}
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
  * BankAccountFormWrapper
  *
  * Wraps the shared BankAccountForm component for use in PaymentFlow.
@@ -74,23 +275,19 @@ export function BankAccountFormWrapper({
   isEditing = false,
   initialError = null,
 }: BankAccountFormWrapperProps) {
-  // For recipients with one-time option, show confirmation step after form
-  // If there's an initial error with originalFormData, start at confirmation step to show the error
+  // If there's an initial error with originalFormData, seed both the confirmation
+  // and restore state so the form re-opens at step 2 showing the error.
+  const initialFormData =
+    initialError && initialData?.originalFormData
+      ? initialData.originalFormData
+      : null;
+
   const [pendingFormData, setPendingFormData] =
-    useState<BankAccountFormData | null>(
-      initialError && initialData?.originalFormData
-        ? initialData.originalFormData
-        : null
-    );
+    useState<BankAccountFormData | null>(initialFormData);
 
   // Track form data to restore when returning from confirmation
-  // If there's an initial error with originalFormData, use it to pre-fill the form at step 2
   const [formDataToRestore, setFormDataToRestore] =
-    useState<BankAccountFormData | null>(
-      initialError && initialData?.originalFormData
-        ? initialData.originalFormData
-        : null
-    );
+    useState<BankAccountFormData | null>(initialFormData);
 
   // Key to force form remount when returning from confirmation
   const [formKey, setFormKey] = useState(0);
@@ -212,7 +409,7 @@ export function BankAccountFormWrapper({
   });
 
   // Build customized config
-  const { t, tString } = useTranslationWithTokens(['make-payment']);
+  const { tString } = useTranslationWithTokens(['make-payment']);
   const config: BankAccountFormConfig = useMemo(() => {
     const baseConfig =
       formType === 'linked-account' ? linkedAccountConfig : recipientConfig;
@@ -402,154 +599,27 @@ export function BankAccountFormWrapper({
   // Confirmation step view
   if (showConfirmation) {
     return (
-      <div className="eb-flex eb-flex-col eb-gap-4">
-        {/* Header */}
-        <div className="eb-px-1">
-          <h2 className="eb-text-lg eb-font-semibold">
-            {t('bankAccountForm.saveRecipientTitle', 'Save Recipient?')}
-          </h2>
-          <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
-            {t(
-              'bankAccountForm.saveRecipientDescription',
-              'Would you like to save {{recipientName}} for future payments?',
-              { recipientName: getPendingDisplayName() }
-            )}
-          </p>
-        </div>
-
-        {/* Error alert */}
-        {(formError || initialError) && (
-          <ServerErrorAlert
-            error={(formError || initialError) as any}
-            customTitle="Failed to add recipient"
-            customErrorMessage={{
-              '400': 'Please check the information you entered and try again.',
-              '401': 'Your session has expired. Please log in and try again.',
-              '409': 'This recipient may already exist.',
-              '422':
-                'The recipient information is invalid. Please verify and try again.',
-              '500': 'An unexpected error occurred. Please try again later.',
-              default: 'An unexpected error occurred. Please try again.',
-            }}
-            showDetails={false}
-          />
-        )}
-
-        {/* Action buttons */}
-        <div className="eb-flex eb-flex-col eb-gap-3">
-          <Button
-            onClick={handleSaveAndAdd}
-            disabled={status === 'pending'}
-            className="eb-w-full eb-justify-start eb-gap-3 eb-px-4 eb-py-6"
-            variant="outline"
-          >
-            {status === 'pending' ? (
-              <Loader2 className="eb-h-5 eb-w-5 eb-animate-spin eb-text-primary" />
-            ) : (
-              <Save className="eb-h-5 eb-w-5 eb-text-primary" />
-            )}
-            <div className="eb-text-left">
-              <div className="eb-font-medium">
-                {t('bankAccountForm.saveAndContinue', 'Save & Continue')}
-              </div>
-              <div className="eb-text-xs eb-font-normal eb-text-muted-foreground">
-                {t(
-                  'bankAccountForm.saveDescription',
-                  'Add to your recipients for easy access'
-                )}
-              </div>
-            </div>
-          </Button>
-
-          <Button
-            onClick={handleUseWithoutSaving}
-            disabled={status === 'pending'}
-            variant="outline"
-            className="eb-w-full eb-justify-start eb-gap-3 eb-px-4 eb-py-6"
-          >
-            <UserX className="eb-h-5 eb-w-5 eb-text-muted-foreground" />
-            <div className="eb-text-left">
-              <div className="eb-font-medium">
-                {t('bankAccountForm.useOnce', 'Use Once')}
-              </div>
-              <div className="eb-text-xs eb-font-normal eb-text-muted-foreground">
-                {t(
-                  'bankAccountForm.useOnceDescription',
-                  'For this payment only'
-                )}
-              </div>
-            </div>
-          </Button>
-        </div>
-
-        {/* Back link */}
-        <button
-          type="button"
-          onClick={handleBackToForm}
-          disabled={status === 'pending'}
-          className="eb-flex eb-items-center eb-gap-1 eb-text-sm eb-text-primary hover:eb-underline disabled:eb-opacity-50"
-        >
-          <ArrowLeft className="eb-h-3.5 eb-w-3.5" />
-          {t('bankAccountForm.editRecipientDetails', 'Edit recipient details')}
-        </button>
-      </div>
+      <SaveRecipientConfirmation
+        recipientName={getPendingDisplayName()}
+        status={status}
+        formError={formError}
+        initialError={initialError}
+        onSaveAndAdd={handleSaveAndAdd}
+        onUseWithoutSaving={handleUseWithoutSaving}
+        onBackToForm={handleBackToForm}
+      />
     );
   }
 
   // Main form view
   return (
     <div className="eb-flex eb-flex-col eb-gap-3">
-      {/* Header */}
-      <div className="eb-px-1">
-        <h2 className="eb-text-lg eb-font-semibold">
-          {formType === 'linked-account'
-            ? t('bankAccountForm.linkMyAccountTitle', 'Link My Account')
-            : isEditing
-              ? t('bankAccountForm.editRecipientTitle', 'Edit Recipient')
-              : t('bankAccountForm.addRecipientTitle', 'Add Recipient')}
-        </h2>
-        <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
-          {formType === 'linked-account'
-            ? t(
-                'bankAccountForm.linkMyAccountDescription',
-                'Connect your account from another bank for transfers.'
-              )
-            : isEditing
-              ? t(
-                  'bankAccountForm.editRecipientDescription',
-                  'Update the recipient details below.'
-                )
-              : t(
-                  'bankAccountForm.addRecipientDescription',
-                  'Add a new person or business to send payments to.'
-                )}
-        </p>
-        {/* Switch option link */}
-        {formType === 'linked-account' && onSwitchToRecipient && (
-          <button
-            type="button"
-            onClick={onSwitchToRecipient}
-            className="eb-mt-2 eb-text-sm eb-text-primary eb-underline-offset-4 hover:eb-underline"
-          >
-            {t(
-              'bankAccountForm.switchToRecipient',
-              'Or add an external recipient instead'
-            )}
-          </button>
-        )}
-        {formType === 'recipient' && onSwitchToLinkedAccount && !isEditing && (
-          <button
-            type="button"
-            onClick={onSwitchToLinkedAccount}
-            className="eb-mt-2 eb-text-sm eb-text-primary eb-underline-offset-4 hover:eb-underline"
-          >
-            {t(
-              'bankAccountForm.switchToLinkedAccount',
-              'Or link my account instead'
-            )}
-          </button>
-        )}
-      </div>
+      <BankAccountFormHeader
+        formType={formType}
+        isEditing={isEditing}
+        onSwitchToRecipient={onSwitchToRecipient}
+        onSwitchToLinkedAccount={onSwitchToLinkedAccount}
+      />
 
       {/* Form - embedded in a bordered card for visual separation */}
       <div className="eb-rounded-lg eb-border eb-bg-card">

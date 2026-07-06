@@ -6,8 +6,6 @@ import { useQueries } from '@tanstack/react-query';
 import {
   AlertCircle,
   Check,
-  ChevronDown,
-  ChevronUp,
   Copy,
   Loader2,
   Pencil,
@@ -61,6 +59,8 @@ import type {
 } from './PaymentFlow.types';
 import { PaymentMethodSelector } from './PaymentMethodSelector';
 import { ReviewPanel } from './ReviewPanel';
+import { StepSection } from './StepSection';
+import { formatCurrency } from './utils/formatCurrency';
 
 /**
  * Error context item from API response
@@ -196,228 +196,6 @@ function parseTransactionError(
 }
 
 /**
- * StepSection component
- * A clean stepper-style section with smooth animations
- * Based on checkout flow patterns (Stripe, Apple Pay style)
- */
-interface StepSectionProps {
-  stepNumber: number;
-  title: string;
-  isComplete: boolean;
-  isActive: boolean;
-  summary?: React.ReactNode;
-  children: React.ReactNode;
-  onHeaderClick?: () => void;
-  onCollapse?: () => void;
-  isLast?: boolean;
-  disabledReason?: string;
-  isLoading?: boolean;
-  /** Show error state on this section */
-  hasError?: boolean;
-  /** Disable section interactions (e.g., while form is submitting) */
-  disabled?: boolean;
-  /** Ref to the section container for scrolling */
-  sectionRef?: React.RefObject<HTMLDivElement>;
-}
-
-function StepSection({
-  stepNumber,
-  title,
-  isComplete,
-  isActive,
-  summary,
-  children,
-  onHeaderClick,
-  onCollapse,
-  isLast = false,
-  disabledReason,
-  isLoading = false,
-  hasError = false,
-  disabled = false,
-  sectionRef,
-}: StepSectionProps) {
-  const isDisabled = !!disabledReason || disabled;
-  // Can click to expand if not active, not disabled, and not loading
-  // Can click to collapse if active (and not loading)
-  const canClick = isLoading ? false : isActive || !isDisabled;
-
-  // Ref to set inert attribute imperatively (React doesn't handle it well as a prop)
-  const contentRef = React.useRef<HTMLDivElement>(null);
-  React.useEffect(() => {
-    if (contentRef.current) {
-      if (!isActive) {
-        contentRef.current.setAttribute('inert', '');
-      } else {
-        contentRef.current.removeAttribute('inert');
-      }
-    }
-  }, [isActive]);
-
-  const handleClick = () => {
-    if (isLoading) {
-      return; // Don't allow any clicks while loading
-    }
-    if (isActive && onCollapse) {
-      onCollapse();
-    } else if (!isActive && !isDisabled && onHeaderClick) {
-      onHeaderClick();
-    }
-  };
-
-  // Determine the action label and chevron direction
-  const getActionLabel = (): {
-    text: string;
-    chevron: 'up' | 'down' | null;
-  } => {
-    if (isActive) {
-      return { text: 'Cancel', chevron: 'up' };
-    }
-    if (isLoading) {
-      return { text: 'Loading...', chevron: null };
-    }
-    // When disabled, show the disabled reason (no chevron since not clickable)
-    if (isDisabled) {
-      return { text: disabledReason ?? '', chevron: null };
-    }
-    // Clickable states - show down chevron
-    if (isComplete) {
-      return { text: 'Change', chevron: 'down' };
-    }
-    return { text: 'Select', chevron: 'down' };
-  };
-
-  const actionLabel = getActionLabel();
-
-  return (
-    <div ref={sectionRef} className="eb-relative">
-      {/* Connecting line (except for last item) */}
-      {!isLast && (
-        <div
-          className={cn(
-            'eb-absolute eb-left-[15px] eb-top-[40px] eb-h-[calc(100%-28px)] eb-w-[2px]',
-            isComplete ? 'eb-bg-primary/30' : 'eb-bg-border'
-          )}
-        />
-      )}
-
-      {/* Header */}
-      <button
-        type="button"
-        onClick={canClick ? handleClick : undefined}
-        disabled={!canClick}
-        className={cn(
-          'eb-relative eb-flex eb-w-full eb-items-center eb-gap-3 eb-py-2 eb-text-left eb-transition-all eb-duration-200',
-          canClick && !isDisabled && 'eb-cursor-pointer hover:eb-opacity-80',
-          (!canClick || isDisabled) && 'eb-cursor-default'
-        )}
-      >
-        {/* Step indicator */}
-        <div
-          className={cn(
-            'eb-relative eb-z-10 eb-flex eb-h-8 eb-w-8 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-text-sm eb-font-medium eb-transition-all eb-duration-300',
-            isLoading &&
-              'eb-border-2 eb-border-primary/50 eb-bg-background eb-text-primary',
-            // Error state takes precedence over other states (except loading)
-            hasError &&
-              !isLoading &&
-              'eb-border-2 eb-border-destructive eb-bg-destructive/10 eb-text-destructive',
-            isComplete &&
-              !isLoading &&
-              !hasError &&
-              'eb-bg-primary eb-text-primary-foreground',
-            isActive &&
-              !isComplete &&
-              !isLoading &&
-              !hasError &&
-              'eb-border-2 eb-border-primary eb-bg-background eb-text-primary',
-            !isComplete &&
-              !isLoading &&
-              !isActive &&
-              !hasError &&
-              'eb-border-2 eb-border-muted-foreground/30 eb-bg-background eb-text-muted-foreground'
-          )}
-        >
-          {isLoading ? (
-            <Loader2 className="eb-h-4 eb-w-4 eb-animate-spin" />
-          ) : isComplete && !hasError ? (
-            <Check className="eb-h-4 eb-w-4" strokeWidth={3} />
-          ) : hasError ? (
-            <AlertCircle className="eb-h-4 eb-w-4" />
-          ) : (
-            <span>{stepNumber}</span>
-          )}
-        </div>
-
-        {/* Title and summary */}
-        <div className="eb-flex eb-flex-1 eb-items-center eb-justify-between">
-          <div className="eb-flex eb-items-center eb-gap-2">
-            <span
-              className={cn(
-                'eb-font-medium eb-transition-colors eb-duration-200',
-                hasError && 'eb-text-destructive',
-                isActive && !hasError && 'eb-text-foreground',
-                isComplete && !isActive && !hasError && 'eb-text-foreground',
-                !isComplete &&
-                  !isActive &&
-                  !hasError &&
-                  'eb-text-muted-foreground'
-              )}
-            >
-              {title}
-            </span>
-            {hasError && !isActive && (
-              <span className="eb-text-xs eb-font-medium eb-text-destructive">
-                (Required)
-              </span>
-            )}
-            {isComplete && !isActive && !hasError && summary && (
-              <span className="eb-text-sm eb-text-muted-foreground">
-                — {summary}
-              </span>
-            )}
-          </div>
-
-          {/* Action label */}
-          <span
-            className={cn(
-              'eb-flex eb-items-center eb-gap-0.5 eb-text-xs eb-font-medium',
-              // When disabled, always use muted styling
-              (isDisabled || isLoading) && 'eb-text-muted-foreground/60',
-              // Active (expanded) state
-              isActive && 'eb-text-muted-foreground',
-              // Clickable states - use primary color
-              !isActive && !isDisabled && !isLoading && 'eb-text-primary'
-            )}
-          >
-            {actionLabel.text}
-            {actionLabel.chevron === 'down' && (
-              <ChevronDown className="eb-h-3.5 eb-w-3.5" />
-            )}
-            {actionLabel.chevron === 'up' && (
-              <ChevronUp className="eb-h-3.5 eb-w-3.5" />
-            )}
-          </span>
-        </div>
-      </button>
-
-      {/* Content with animation */}
-      <div
-        ref={contentRef}
-        className={cn(
-          'eb-ml-11 eb-overflow-hidden eb-transition-all eb-duration-300 eb-ease-in-out',
-          isActive
-            ? 'eb-max-h-[1000px] eb-opacity-100'
-            : 'eb-max-h-0 eb-opacity-0'
-        )}
-        aria-hidden={!isActive}
-      >
-        <div className="eb-pt-1">{children}</div>
-      </div>
-    </div>
-  );
-}
-
-/**
  * MainTransferView component
  * The main view with all form sections
  */
@@ -464,6 +242,133 @@ interface MainTransferViewProps {
   isSavingUnsavedRecipient?: boolean;
   // Error from saving unsaved recipient (for non-400 errors shown inline)
   saveUnsavedRecipientError?: Error | null;
+}
+
+function AmountMemoSection({
+  amount,
+  memo,
+  exceedsBalance,
+  availableBalance,
+  hasAmountError,
+  onAmountChange,
+  onMemoChange,
+  isSubmitting,
+  amountInputRef,
+  amountSectionRef,
+}: {
+  amount: string;
+  memo?: string;
+  exceedsBalance: boolean;
+  availableBalance?: number;
+  hasAmountError: boolean;
+  onAmountChange: (amount: string) => void;
+  onMemoChange: (memo: string) => void;
+  isSubmitting: boolean;
+  amountInputRef: React.RefObject<HTMLInputElement>;
+  amountSectionRef: React.RefObject<HTMLDivElement>;
+}) {
+  const { t, tString } = useTranslationWithTokens(['make-payment']);
+
+  return (
+    <div ref={amountSectionRef} className="eb-space-y-4">
+      <div>
+        <label
+          htmlFor="amount"
+          className={cn(
+            'eb-mb-1.5 eb-block eb-text-sm eb-font-medium',
+            hasAmountError && 'eb-text-destructive'
+          )}
+        >
+          {t('amountSection.amountLabel', 'Amount')}
+          {hasAmountError && (
+            <span className="eb-ml-1 eb-text-xs eb-font-normal">
+              {t('amountSection.required', '(Required)')}
+            </span>
+          )}
+        </label>
+        <div className="eb-relative eb-flex eb-items-center">
+          <span
+            className={cn(
+              'eb-absolute eb-left-3',
+              exceedsBalance || hasAmountError
+                ? 'eb-text-destructive'
+                : 'eb-text-muted-foreground'
+            )}
+          >
+            $
+          </span>
+          <Input
+            ref={amountInputRef}
+            id="amount"
+            type="text"
+            inputMode="decimal"
+            placeholder="0.00"
+            value={amount}
+            onChange={(e) => onAmountChange(e.target.value)}
+            onKeyDown={(e) => {
+              // Allow: backspace, delete, tab, escape, enter, decimal point
+              if (
+                ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', '.'].includes(
+                  e.key
+                ) ||
+                // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                (e.ctrlKey &&
+                  ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) ||
+                // Allow: home, end, left, right
+                ['Home', 'End', 'ArrowLeft', 'ArrowRight'].includes(e.key)
+              ) {
+                return;
+              }
+              // Block if not a number
+              if (!/[0-9]/.test(e.key)) {
+                e.preventDefault();
+              }
+            }}
+            className={cn(
+              'eb-w-full eb-pl-7',
+              (exceedsBalance || hasAmountError) &&
+                'eb-border-destructive eb-text-destructive focus-visible:eb-ring-destructive'
+            )}
+            autoComplete="off"
+            disabled={isSubmitting}
+          />
+        </div>
+        {exceedsBalance && availableBalance !== undefined && (
+          <p className="eb-mt-1.5 eb-text-sm eb-text-destructive">
+            Amount exceeds available balance ($
+            {availableBalance.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+            )
+          </p>
+        )}
+      </div>
+
+      <div>
+        <label
+          htmlFor="memo"
+          className="eb-mb-1.5 eb-block eb-text-sm eb-font-medium"
+        >
+          {t('amountSection.memoLabel', 'Memo')}{' '}
+          <span className="eb-font-normal eb-text-muted-foreground">
+            {t('amountSection.optional', '(optional)')}
+          </span>
+        </label>
+        <Textarea
+          id="memo"
+          placeholder={tString(
+            'amountSection.memoPlaceholder',
+            'Add a note...'
+          )}
+          value={memo ?? ''}
+          onChange={(e) => onMemoChange(e.target.value)}
+          rows={2}
+          disabled={isSubmitting}
+        />
+      </div>
+    </div>
+  );
 }
 
 function MainTransferView({
@@ -1187,121 +1092,20 @@ function MainTransferView({
       <Separator className="!eb-my-4" />
 
       {/* AMOUNT & MEMO Section - Always visible */}
-      <div ref={amountSectionRef} className="eb-space-y-4">
-        <div>
-          <label
-            htmlFor="amount"
-            className={cn(
-              'eb-mb-1.5 eb-block eb-text-sm eb-font-medium',
-              hasPanelError(PANEL_IDS.AMOUNT) && 'eb-text-destructive'
-            )}
-          >
-            {t('amountSection.amountLabel', 'Amount')}
-            {hasPanelError(PANEL_IDS.AMOUNT) && (
-              <span className="eb-ml-1 eb-text-xs eb-font-normal">
-                {t('amountSection.required', '(Required)')}
-              </span>
-            )}
-          </label>
-          <div className="eb-relative eb-flex eb-items-center">
-            <span
-              className={cn(
-                'eb-absolute eb-left-3',
-                exceedsBalance || hasPanelError(PANEL_IDS.AMOUNT)
-                  ? 'eb-text-destructive'
-                  : 'eb-text-muted-foreground'
-              )}
-            >
-              $
-            </span>
-            <Input
-              ref={amountInputRef}
-              id="amount"
-              type="text"
-              inputMode="decimal"
-              placeholder="0.00"
-              value={formData.amount}
-              onChange={(e) => onAmountChange(e.target.value)}
-              onKeyDown={(e) => {
-                // Allow: backspace, delete, tab, escape, enter, decimal point
-                if (
-                  [
-                    'Backspace',
-                    'Delete',
-                    'Tab',
-                    'Escape',
-                    'Enter',
-                    '.',
-                  ].includes(e.key) ||
-                  // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-                  (e.ctrlKey &&
-                    ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) ||
-                  // Allow: home, end, left, right
-                  ['Home', 'End', 'ArrowLeft', 'ArrowRight'].includes(e.key)
-                ) {
-                  return;
-                }
-                // Block if not a number
-                if (!/[0-9]/.test(e.key)) {
-                  e.preventDefault();
-                }
-              }}
-              className={cn(
-                'eb-w-full eb-pl-7',
-                (exceedsBalance || hasPanelError(PANEL_IDS.AMOUNT)) &&
-                  'eb-border-destructive eb-text-destructive focus-visible:eb-ring-destructive'
-              )}
-              autoComplete="off"
-              disabled={isSubmitting}
-            />
-          </div>
-          {exceedsBalance && availableBalance !== undefined && (
-            <p className="eb-mt-1.5 eb-text-sm eb-text-destructive">
-              Amount exceeds available balance ($
-              {availableBalance.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-              )
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label
-            htmlFor="memo"
-            className="eb-mb-1.5 eb-block eb-text-sm eb-font-medium"
-          >
-            {t('amountSection.memoLabel', 'Memo')}{' '}
-            <span className="eb-font-normal eb-text-muted-foreground">
-              {t('amountSection.optional', '(optional)')}
-            </span>
-          </label>
-          <Textarea
-            id="memo"
-            placeholder={tString(
-              'amountSection.memoPlaceholder',
-              'Add a note...'
-            )}
-            value={formData.memo ?? ''}
-            onChange={(e) => onMemoChange(e.target.value)}
-            rows={2}
-            disabled={isSubmitting}
-          />
-        </div>
-      </div>
+      <AmountMemoSection
+        amount={formData.amount}
+        memo={formData.memo}
+        exceedsBalance={exceedsBalance}
+        availableBalance={availableBalance}
+        hasAmountError={hasPanelError(PANEL_IDS.AMOUNT)}
+        onAmountChange={onAmountChange}
+        onMemoChange={onMemoChange}
+        isSubmitting={isSubmitting}
+        amountInputRef={amountInputRef}
+        amountSectionRef={amountSectionRef}
+      />
     </div>
   );
-}
-
-/**
- * Format currency value
- */
-function formatCurrency(value: number, currency = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-  }).format(value);
 }
 
 /**
@@ -3221,9 +3025,14 @@ export function PaymentFlowInline({
     linkedAccountsData?.pages?.[0]?.total_items ??
     0;
 
-  // Extract accounts from response
+  // Extract usable accounts from response. Closed accounts cannot be used as a
+  // payment source, so exclude them from the "From" selector (SMBDO-11730).
   const accounts: AccountResponse[] = useMemo(
-    () => accountsData?.items ?? [],
+    () =>
+      accountsData?.items?.filter(
+        (account) =>
+          account.state === 'OPEN' || account.state === 'PENDING_CLOSE'
+      ) ?? [],
     [accountsData]
   );
 

@@ -231,51 +231,73 @@ const FlowRenderer: React.FC = React.memo(() => {
 
   // Owner sidebar data — supports the list view (each owner by name)
   // and the edit view (current owner's form steps).
-  const isInOwnerStepper = currentScreenId === 'owner-stepper';
-  const ownerStepperConfig = staticScreens.find(
-    (s) => s.id === 'owner-stepper'
-  )?.stepperConfig;
+  const deriveOwnerData = () => {
+    const isInOwnerStepper = currentScreenId === 'owner-stepper';
+    const ownerStepperConfig = staticScreens.find(
+      (s) => s.id === 'owner-stepper'
+    )?.stepperConfig;
 
-  const activeOwners = ownerStepperConfig
-    ? (clientData?.parties?.filter(
-        (p) =>
-          p.active &&
-          p.partyType === 'INDIVIDUAL' &&
-          p.roles?.includes('BENEFICIAL_OWNER')
-      ) ?? [])
-    : [];
+    const activeOwners = ownerStepperConfig
+      ? (clientData?.parties?.filter(
+          (p) =>
+            p.active &&
+            p.partyType === 'INDIVIDUAL' &&
+            p.roles?.includes('BENEFICIAL_OWNER')
+        ) ?? [])
+      : [];
 
-  const ownerValidations = ownerStepperConfig
-    ? getStepperValidations(
-        ownerStepperConfig.steps,
-        activeOwners,
-        clientData,
-        savedFormValues,
-        'owner-stepper'
-      )
-    : {};
-
-  const editingOwnerParty = isInOwnerStepper
-    ? clientData?.parties?.find(
-        (p) => p.id === editingPartyIds['owner-stepper']
-      )
-    : undefined;
-  const ownerStepValidation =
-    isInOwnerStepper && ownerStepperConfig
-      ? getStepperValidation(
+    const ownerValidations = ownerStepperConfig
+      ? getStepperValidations(
           ownerStepperConfig.steps,
-          editingOwnerParty ?? {},
+          activeOwners,
           clientData,
           savedFormValues,
           'owner-stepper'
         )
-      : undefined;
+      : {};
 
-  // True when the owner stepper is open but no saved party exists yet
-  // (e.g. the user just pressed "Add owner").
-  const isAddingNewOwner =
-    isInOwnerStepper &&
-    !activeOwners.some((o) => o.id === editingPartyIds['owner-stepper']);
+    const editingOwnerParty = isInOwnerStepper
+      ? clientData?.parties?.find(
+          (p) => p.id === editingPartyIds['owner-stepper']
+        )
+      : undefined;
+    const ownerStepValidation =
+      isInOwnerStepper && ownerStepperConfig
+        ? getStepperValidation(
+            ownerStepperConfig.steps,
+            editingOwnerParty ?? {},
+            clientData,
+            savedFormValues,
+            'owner-stepper'
+          )
+        : undefined;
+
+    // True when the owner stepper is open but no saved party exists yet
+    // (e.g. the user just pressed "Add owner").
+    const isAddingNewOwner =
+      isInOwnerStepper &&
+      !activeOwners.some((o) => o.id === editingPartyIds['owner-stepper']);
+
+    return {
+      isInOwnerStepper,
+      ownerStepperConfig,
+      activeOwners,
+      ownerValidations,
+      editingOwnerParty,
+      ownerStepValidation,
+      isAddingNewOwner,
+    };
+  };
+
+  const {
+    isInOwnerStepper,
+    ownerStepperConfig,
+    activeOwners,
+    ownerValidations,
+    editingOwnerParty,
+    ownerStepValidation,
+    isAddingNewOwner,
+  } = deriveOwnerData();
 
   const { sectionStatuses, stepValidations } = getFlowProgress(
     sections,
@@ -399,7 +421,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     ? currentStepperStepId
     : undefined;
 
-  const timelineSections: TimelineSection[] = [
+  const buildTimelineSections = (): TimelineSection[] => [
     {
       id: 'gateway',
       title: t('onboarding-overview:flowRenderer.businessType'),
@@ -562,6 +584,8 @@ const FlowRenderer: React.FC = React.memo(() => {
         ] satisfies TimelineSection[])
       : []),
   ];
+
+  const timelineSections = buildTimelineSections();
 
   const frozenSidebarRef = useRef({
     sectionId: sidebarSectionId,

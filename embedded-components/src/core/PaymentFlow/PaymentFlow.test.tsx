@@ -353,6 +353,41 @@ describe('PaymentFlowInline', () => {
     expect(screen.getByText('Limited Account')).toBeInTheDocument();
   });
 
+  it('excludes CLOSED accounts from the From selector', async () => {
+    server.use(
+      http.get('*/accounts', () =>
+        HttpResponse.json({
+          metadata: { page: 0, limit: 25, total_items: 3 },
+          items: [
+            ...mockAccounts.items,
+            {
+              id: 'acct-003',
+              label: 'Closed Account',
+              state: 'CLOSED',
+              category: 'LIMITED_DDA',
+              paymentRoutingInformation: {
+                accountNumber: '555000913',
+                routingNumber: '021000021',
+              },
+            },
+          ],
+        })
+      )
+    );
+
+    render(<PaymentFlowInline />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Operating Account')).toBeInTheDocument();
+    });
+
+    // OPEN accounts remain selectable.
+    expect(screen.getByText('Limited Account')).toBeInTheDocument();
+
+    // The CLOSED account must not appear as a payment source.
+    expect(screen.queryByText('Closed Account')).not.toBeInTheDocument();
+  });
+
   it('shows amount input', async () => {
     render(<PaymentFlowInline />);
 

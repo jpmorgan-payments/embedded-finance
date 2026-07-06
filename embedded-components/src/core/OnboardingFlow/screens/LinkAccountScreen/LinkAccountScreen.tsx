@@ -25,6 +25,7 @@ import { useLinkAccountAcknowledgements } from './hooks/useLinkAccountAcknowledg
 import { useLinkAccountFormConfig } from './hooks/useLinkAccountFormConfig';
 import { useLinkAccountPreset } from './hooks/useLinkAccountPreset';
 import { LinkAccountPrefillSummaryView } from './LinkAccountPrefillSummaryView';
+import { enrichInitialValuesWithPartyName } from './utils/enrichInitialValues';
 
 /**
  * LinkAccountScreen
@@ -95,28 +96,7 @@ export const LinkAccountScreen = () => {
     ).find((p) => p.id === effectivePartyId);
     if (!party) return rawEffectiveInitialValues;
 
-    const enriched = { ...rawEffectiveInitialValues };
-
-    if (party.partyType === 'INDIVIDUAL') {
-      const details = party.individualDetails as
-        | { firstName?: string; lastName?: string }
-        | undefined;
-      if (details) {
-        if (!enriched.firstName) enriched.firstName = details.firstName ?? '';
-        if (!enriched.lastName) enriched.lastName = details.lastName ?? '';
-      }
-      if (!enriched.accountType) enriched.accountType = 'INDIVIDUAL';
-    } else if (party.partyType === 'ORGANIZATION') {
-      const details = party.organizationDetails as
-        | { organizationName?: string }
-        | undefined;
-      if (details && !enriched.businessName) {
-        enriched.businessName = details.organizationName ?? '';
-      }
-      if (!enriched.accountType) enriched.accountType = 'ORGANIZATION';
-    }
-
-    return enriched;
+    return enrichInitialValuesWithPartyName(rawEffectiveInitialValues, party);
   }, [rawEffectiveInitialValues, effectivePartyId, clientResponseData]);
 
   // ─── Acknowledgements state ─────────────────────────────────────────────────

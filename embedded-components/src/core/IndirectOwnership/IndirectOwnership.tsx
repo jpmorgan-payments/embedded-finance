@@ -59,6 +59,33 @@ import {
  * - Enhanced error handling with boundaries and safe transforms
  * - Retry mechanisms for failed operations
  */
+
+function computeValidationSummary(
+  beneficialOwners: BeneficialOwner[]
+): ValidationSummary {
+  const totalOwners = beneficialOwners.length;
+  const completeOwners = beneficialOwners.filter(
+    (owner) => owner.status === 'COMPLETE'
+  ).length;
+
+  return {
+    totalOwners,
+    completeOwners,
+    pendingHierarchies: beneficialOwners.filter(
+      (owner) => owner.status === 'PENDING_HIERARCHY'
+    ).length,
+    ownersWithErrors: beneficialOwners.filter(
+      (owner) => owner.status === 'ERROR'
+    ).length,
+    hasErrors: beneficialOwners.some((owner) => owner.status === 'ERROR'),
+    errors: beneficialOwners.flatMap((owner) => owner.validationErrors || []),
+    warnings: [],
+    canComplete: totalOwners > 0 && completeOwners === totalOwners,
+    completionPercentage:
+      totalOwners === 0 ? 0 : Math.round((completeOwners / totalOwners) * 100),
+  };
+}
+
 const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
   userEventsHandler,
   userEventsLifecycle,
@@ -199,33 +226,8 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
   >();
 
   // Calculate validation summary
-  const validationSummary: ValidationSummary = {
-    totalOwners: beneficialOwners.length,
-    completeOwners: beneficialOwners.filter(
-      (owner) => owner.status === 'COMPLETE'
-    ).length,
-    pendingHierarchies: beneficialOwners.filter(
-      (owner) => owner.status === 'PENDING_HIERARCHY'
-    ).length,
-    ownersWithErrors: beneficialOwners.filter(
-      (owner) => owner.status === 'ERROR'
-    ).length,
-    hasErrors: beneficialOwners.some((owner) => owner.status === 'ERROR'),
-    errors: beneficialOwners.flatMap((owner) => owner.validationErrors || []),
-    warnings: [],
-    canComplete:
-      beneficialOwners.length > 0 &&
-      beneficialOwners.every((owner) => owner.status === 'COMPLETE'),
-    completionPercentage:
-      beneficialOwners.length === 0
-        ? 0
-        : Math.round(
-            (beneficialOwners.filter((owner) => owner.status === 'COMPLETE')
-              .length /
-              beneficialOwners.length) *
-              100
-          ),
-  };
+  const validationSummary: ValidationSummary =
+    computeValidationSummary(beneficialOwners);
 
   // Handlers
   const handleAddOwner = useCallback(() => {
@@ -953,6 +955,59 @@ const OwnerCard: React.FC<OwnerCardProps> = ({
 };
 
 /**
+ * Validate a new owner form submission, returning any error messages.
+ */
+function validateNewOwner({
+  entityType,
+  firstName,
+  lastName,
+  businessName,
+  existingOwners,
+  allExistingBusinessNames,
+}: {
+  entityType: 'INDIVIDUAL' | 'BUSINESS';
+  firstName: string;
+  lastName: string;
+  businessName: string;
+  existingOwners: BeneficialOwner[];
+  allExistingBusinessNames: Set<string>;
+}): string[] {
+  if (entityType === 'BUSINESS') {
+    const errors: string[] = [];
+    if (!businessName.trim()) {
+      errors.push('Business name is required');
+    }
+    // Check for duplicates against ALL business names (owners + hierarchies)
+    if (allExistingBusinessNames.has(businessName.trim().toLowerCase())) {
+      errors.push(
+        'Business entity with this name already exists in the ownership structure'
+      );
+    }
+    return errors;
+  }
+
+  const errors: string[] = [];
+  if (!firstName.trim()) {
+    errors.push('First name is required');
+  }
+  if (!lastName.trim()) {
+    errors.push('Last name is required');
+  }
+
+  // Check for duplicates among individuals
+  const fullName = `${firstName.trim()} ${lastName.trim()}`.toLowerCase();
+  const isDuplicate = existingOwners.some(
+    (owner) =>
+      owner.partyType === 'INDIVIDUAL' &&
+      getBeneficialOwnerFullName(owner).toLowerCase() === fullName
+  );
+  if (isDuplicate) {
+    errors.push('Owner with this name already exists');
+  }
+  return errors;
+}
+
+/**
  * Simple Add Owner Dialog Component
  */
 interface AddOwnerDialogProps {
@@ -991,46 +1046,14 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
     e.preventDefault();
 
     // Validation
-    const newErrors: string[] = [];
-
-    if (entityType === 'INDIVIDUAL') {
-      if (!firstName.trim()) {
-        newErrors.push('First name is required');
-      }
-
-      if (!lastName.trim()) {
-        newErrors.push('Last name is required');
-      }
-
-      // Check for duplicates among individuals
-      const fullName = `${firstName.trim()} ${lastName.trim()}`;
-      const isDuplicate = existingOwners.some(
-        (owner) =>
-          owner.partyType === 'INDIVIDUAL' &&
-          getBeneficialOwnerFullName(owner).toLowerCase() ===
-            fullName.toLowerCase()
-      );
-
-      if (isDuplicate) {
-        newErrors.push('Owner with this name already exists');
-      }
-    } else {
-      // Business entity validation
-      if (!businessName.trim()) {
-        newErrors.push('Business name is required');
-      }
-
-      // Check for duplicates against ALL business names (owners + hierarchies)
-      const isDuplicate = allExistingBusinessNames.has(
-        businessName.trim().toLowerCase()
-      );
-
-      if (isDuplicate) {
-        newErrors.push(
-          'Business entity with this name already exists in the ownership structure'
-        );
-      }
-    }
+    const newErrors = validateNewOwner({
+      entityType,
+      firstName,
+      lastName,
+      businessName,
+      existingOwners,
+      allExistingBusinessNames,
+    });
 
     if (newErrors.length > 0) {
       setErrors(newErrors);

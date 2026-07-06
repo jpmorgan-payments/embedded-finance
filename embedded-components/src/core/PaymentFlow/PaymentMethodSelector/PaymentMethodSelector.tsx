@@ -13,6 +13,7 @@ import type {
   PaymentMethodSelectorProps,
   PaymentMethodType,
 } from '../PaymentFlow.types';
+import { formatCurrency } from '../utils/formatCurrency';
 
 /**
  * Get icon for payment method
@@ -28,16 +29,6 @@ function getPaymentMethodIcon(methodId: PaymentMethodType) {
     default:
       return Banknote;
   }
-}
-
-/**
- * Format currency value
- */
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(value);
 }
 
 interface PaymentMethodOptionProps {

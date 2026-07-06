@@ -2,6 +2,14 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.16.5] - 2026-07-06
+
+### Changes
+
+#### Bug Fixes
+
+- **onboarding:** filter out closed accounts in PaymentInline component
+
 ## [0.16.4] - 2026-06-24
 
 ### Changes

@@ -24,16 +24,500 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
 import { useFlowContext } from '../FlowContainer/FlowContext';
-import type { ReviewPanelProps } from '../PaymentFlow.types';
+import type {
+  AccountResponse,
+  PaymentMethod,
+  ReviewPanelProps,
+} from '../PaymentFlow.types';
+import { formatCurrency } from '../utils/formatCurrency';
 
-/**
- * Format currency value
- */
-function formatCurrency(value: number, currency = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-  }).format(value);
+/** Display info for the "From" account row. */
+interface AccountInfo {
+  displayName: string;
+  lastFour: string;
+}
+
+/** Display info for the "To" recipient row (built from form data / selected payee). */
+interface ToInfo {
+  name: string;
+  lastFour?: string | null;
+  isPlaceholder: boolean;
+  isBusiness?: boolean;
+  isLinkedAccount?: boolean;
+  isUnsaved?: boolean;
+  isNew?: boolean;
+  isLoading?: boolean;
+}
+
+/** Resolve the translation key + fallback for a recipient's type label. */
+function getRecipientTypeLabel(toInfo: ToInfo): {
+  key: string;
+  fallback: string;
+} {
+  if (toInfo.isLinkedAccount) {
+    return toInfo.isBusiness
+      ? {
+          key: 'reviewPanel.linkedBusinessAccount',
+          fallback: 'Linked business account',
+        }
+      : {
+          key: 'reviewPanel.linkedIndividualAccount',
+          fallback: 'Linked individual account',
+        };
+  }
+  return toInfo.isBusiness
+    ? { key: 'reviewPanel.businessRecipient', fallback: 'Business recipient' }
+    : {
+        key: 'reviewPanel.individualRecipient',
+        fallback: 'Individual recipient',
+      };
+}
+
+/** "From" account row: account name, masked number, and balance state. */
+function FromAccountRow({
+  isLoading,
+  fromAccountId,
+  accountInfo,
+  isBalanceLoading,
+  hasBalanceError,
+  currentBalance,
+}: {
+  isLoading: boolean;
+  fromAccountId?: string;
+  accountInfo: AccountInfo | null;
+  isBalanceLoading: boolean;
+  hasBalanceError: boolean;
+  currentBalance?: number;
+}) {
+  const { t } = useTranslationWithTokens(['make-payment']);
+
+  const renderBody = () => {
+    if (isLoading && fromAccountId) {
+      // Show skeleton when loading with initial account data
+      return (
+        <div className="eb-space-y-1">
+          <Skeleton className="eb-h-4 eb-w-32 eb-bg-muted-foreground/20" />
+          <Skeleton className="eb-h-3 eb-w-24 eb-bg-muted-foreground/20" />
+        </div>
+      );
+    }
+    if (accountInfo) {
+      return (
+        <>
+          <div className="eb-font-medium">
+            {accountInfo.displayName}
+            {accountInfo.lastFour && (
+              <span className="eb-font-normal eb-text-muted-foreground">
+                {' '}
+                (...{accountInfo.lastFour})
+              </span>
+            )}
+          </div>
+          <FromAccountBalance
+            isBalanceLoading={isBalanceLoading}
+            hasBalanceError={hasBalanceError}
+            currentBalance={currentBalance}
+          />
+        </>
+      );
+    }
+    return (
+      <div className="eb-text-muted-foreground">
+        {t('reviewPanel.selectAccount', 'Select account')}
+      </div>
+    );
+  };
+
+  return (
+    <div className="eb-flex eb-items-start eb-gap-3 eb-p-3">
+      <div className="eb-flex eb-h-9 eb-w-9 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary/10 eb-shadow-sm">
+        <Wallet className="eb-h-4 eb-w-4 eb-text-primary" />
+      </div>
+      <div className="eb-min-w-0 eb-flex-1">
+        <div className="eb-text-xs eb-text-muted-foreground">
+          {t('reviewPanel.fromLabel', 'From')}
+        </div>
+        {renderBody()}
+      </div>
+    </div>
+  );
+}
+
+/** Balance line under the "From" account (loading / error / available). */
+function FromAccountBalance({
+  isBalanceLoading,
+  hasBalanceError,
+  currentBalance,
+}: {
+  isBalanceLoading: boolean;
+  hasBalanceError: boolean;
+  currentBalance?: number;
+}) {
+  const { t } = useTranslationWithTokens(['make-payment']);
+
+  if (isBalanceLoading) {
+    return (
+      <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
+        {t('reviewPanel.loadingBalance', 'Loading balance...')}
+      </div>
+    );
+  }
+  if (hasBalanceError) {
+    return (
+      <div className="eb-mt-0.5 eb-text-xs eb-text-destructive">
+        {t('reviewPanel.balanceUnavailable', 'Balance unavailable')}
+      </div>
+    );
+  }
+  if (currentBalance !== undefined) {
+    return (
+      <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
+        {formatCurrency(currentBalance)}{' '}
+        {t('reviewPanel.available', 'available')}
+      </div>
+    );
+  }
+  return null;
+}
+
+/** "To" recipient row: recipient name, masked number, and type label. */
+function ToRecipientRow({
+  isLoading,
+  payeeId,
+  toInfo,
+}: {
+  isLoading: boolean;
+  payeeId?: string;
+  toInfo: ToInfo;
+}) {
+  const { t } = useTranslationWithTokens(['make-payment']);
+  const RecipientIcon = toInfo.isBusiness ? Building2 : User;
+
+  const renderRecipientBody = () => {
+    // Show skeleton while loading with an initial payee, or while payees resolve
+    if ((isLoading && payeeId) || toInfo.isLoading) {
+      return (
+        <div className="eb-space-y-1">
+          <Skeleton className="eb-h-4 eb-w-28 eb-bg-muted-foreground/20" />
+          <Skeleton className="eb-h-3 eb-w-20 eb-bg-muted-foreground/20" />
+        </div>
+      );
+    }
+    if (toInfo.isPlaceholder) {
+      return <div className="eb-text-muted-foreground">{toInfo.name}</div>;
+    }
+
+    const typeLabel = getRecipientTypeLabel(toInfo);
+    return (
+      <>
+        <div
+          className={cn('eb-font-medium', toInfo.isNew && 'eb-text-primary')}
+        >
+          {toInfo.name}
+          {toInfo.lastFour && (
+            <span className="eb-font-normal eb-text-muted-foreground">
+              {' '}
+              (...{toInfo.lastFour})
+            </span>
+          )}
+        </div>
+        {!toInfo.isNew && (
+          <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
+            {t(typeLabel.key, typeLabel.fallback)}
+          </div>
+        )}
+      </>
+    );
+  };
+
+  return (
+    <div className="eb-flex eb-items-start eb-gap-3 eb-p-3">
+      <div className="eb-flex eb-h-9 eb-w-9 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary/10 eb-shadow-sm">
+        <RecipientIcon className="eb-h-4 eb-w-4 eb-text-primary" />
+      </div>
+      <div className="eb-min-w-0 eb-flex-1">
+        <div className="eb-text-xs eb-text-muted-foreground">
+          {t('reviewPanel.toLabel', 'To')}
+        </div>
+        {renderRecipientBody()}
+      </div>
+    </div>
+  );
+}
+
+/** Transfer flow visual: From account → To recipient, with a connecting arrow. */
+function TransferFlowVisual({
+  isLoading,
+  fromAccountId,
+  payeeId,
+  accountInfo,
+  toInfo,
+  isBalanceLoading,
+  hasBalanceError,
+  currentBalance,
+}: {
+  isLoading: boolean;
+  fromAccountId?: string;
+  payeeId?: string;
+  accountInfo: AccountInfo | null;
+  toInfo: ToInfo;
+  isBalanceLoading: boolean;
+  hasBalanceError: boolean;
+  currentBalance?: number;
+}) {
+  return (
+    <div className="eb-rounded-lg eb-border eb-border-border eb-bg-muted/20">
+      <FromAccountRow
+        isLoading={isLoading}
+        fromAccountId={fromAccountId}
+        accountInfo={accountInfo}
+        isBalanceLoading={isBalanceLoading}
+        hasBalanceError={hasBalanceError}
+        currentBalance={currentBalance}
+      />
+
+      {/* Divider with Arrow */}
+      <div className="eb-relative eb-border-t eb-border-border">
+        <div className="eb-absolute eb-left-[21px] eb-top-1/2 eb-flex eb-h-5 eb-w-5 eb--translate-y-1/2 eb-items-center eb-justify-center eb-rounded-full eb-border eb-border-border eb-bg-background">
+          <ArrowRight className="eb-h-3 eb-w-3 eb-rotate-90 eb-text-muted-foreground" />
+        </div>
+      </div>
+
+      <ToRecipientRow isLoading={isLoading} payeeId={payeeId} toInfo={toInfo} />
+    </div>
+  );
+}
+
+/** Amount / method / fee / memo detail rows. */
+function PaymentDetailsSection({
+  showFees,
+  amount,
+  selectedMethod,
+  fee,
+  memo,
+}: {
+  showFees: boolean;
+  amount: number;
+  selectedMethod?: PaymentMethod;
+  fee: number;
+  memo?: string;
+}) {
+  const { t } = useTranslationWithTokens(['make-payment']);
+
+  return (
+    <div className="eb-space-y-2.5">
+      {/* Amount - only show breakdown row when fees are displayed */}
+      {showFees && (
+        <div className="eb-flex eb-items-center eb-justify-between">
+          <span className="eb-text-sm eb-text-muted-foreground">
+            {t('reviewPanel.amountLabel', 'Amount')}
+          </span>
+          <div className="eb-text-right">
+            {amount > 0 ? (
+              <span className="eb-font-medium">{formatCurrency(amount)}</span>
+            ) : (
+              <span className="eb-text-sm eb-text-muted-foreground">—</span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Payment Method */}
+      <div className="eb-flex eb-items-center eb-justify-between">
+        <span className="eb-text-sm eb-text-muted-foreground">
+          {t('reviewPanel.methodLabel', 'Method')}
+        </span>
+        <div className="eb-text-right eb-text-sm">
+          {selectedMethod ? (
+            <span className="eb-font-medium">{selectedMethod.name}</span>
+          ) : (
+            <span className="eb-text-muted-foreground">—</span>
+          )}
+        </div>
+      </div>
+
+      {/* Fee - only shown when showFees is enabled */}
+      {showFees && (
+        <div className="eb-flex eb-items-center eb-justify-between eb-text-sm">
+          <span className="eb-text-muted-foreground">
+            {t('reviewPanel.feeLabel', 'Fee')}
+          </span>
+          <span>{selectedMethod ? formatCurrency(fee) : '—'}</span>
+        </div>
+      )}
+
+      {/* Memo */}
+      {memo && (
+        <div className="eb-flex eb-items-start eb-justify-between eb-gap-4">
+          <span className="eb-shrink-0 eb-text-sm eb-text-muted-foreground">
+            {t('reviewPanel.memoLabel', 'Memo')}
+          </span>
+          <span className="eb-text-right eb-text-sm eb-text-muted-foreground">
+            {memo}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Total (or amount) plus remaining-balance-after-payment line. */
+function TotalBalanceSection({
+  showFees,
+  amount,
+  total,
+  selectedAccount,
+  isBalanceLoading,
+  balanceAfterPayment,
+}: {
+  showFees: boolean;
+  amount: number;
+  total: number;
+  selectedAccount?: AccountResponse;
+  isBalanceLoading: boolean;
+  balanceAfterPayment?: number;
+}) {
+  const { t } = useTranslationWithTokens(['make-payment']);
+
+  const renderRemainingBalance = () => {
+    if (amount > 0 && selectedAccount && isBalanceLoading) {
+      return (
+        <div className="eb-flex eb-items-center eb-justify-between eb-rounded-md eb-bg-muted/50 eb-px-3 eb-py-2">
+          <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
+            <TrendingDown className="eb-h-4 eb-w-4" />
+            <span>
+              {t('reviewPanel.remainingBalance', 'Remaining balance')}
+            </span>
+          </div>
+          <Skeleton className="eb-h-4 eb-w-16 eb-bg-muted-foreground/20" />
+        </div>
+      );
+    }
+    if (amount > 0 && balanceAfterPayment !== undefined) {
+      return (
+        <div className="eb-flex eb-items-center eb-justify-between eb-rounded-md eb-bg-muted/50 eb-px-3 eb-py-2">
+          <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
+            <TrendingDown className="eb-h-4 eb-w-4" />
+            <span>
+              {t('reviewPanel.remainingBalance', 'Remaining balance')}
+            </span>
+          </div>
+          <span
+            className={cn(
+              'eb-text-sm eb-font-medium',
+              balanceAfterPayment < 0 && 'eb-text-destructive'
+            )}
+          >
+            {formatCurrency(balanceAfterPayment)}
+          </span>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <div className="eb-space-y-2 eb-border-t eb-border-border eb-pt-4">
+      {/* Total (or Amount when no fees are shown) */}
+      <div className="eb-flex eb-items-center eb-justify-between">
+        <span className="eb-font-medium">
+          {showFees
+            ? t('reviewPanel.totalLabel', 'Total')
+            : t('reviewPanel.amountLabel', 'Amount')}
+        </span>
+        <span
+          className={cn(
+            'eb-text-lg eb-font-semibold',
+            amount <= 0 && 'eb-text-muted-foreground'
+          )}
+        >
+          {amount > 0 ? formatCurrency(total) : '—'}
+        </span>
+      </div>
+
+      {/* Balance After Payment - only show when amount > 0 */}
+      {renderRemainingBalance()}
+    </div>
+  );
+}
+
+/** Transaction error, validation message, and the confirm-payment button. */
+function SubmitSection({
+  transactionError,
+  onDismissError,
+  errorAlertRef,
+  hasAttemptedSubmit,
+  validationMessage,
+  onSubmitClick,
+  isSubmitting,
+  isLoading,
+  currentView,
+}: {
+  transactionError?: { title: string; message: string } | null;
+  onDismissError?: () => void;
+  errorAlertRef: React.RefObject<HTMLDivElement>;
+  hasAttemptedSubmit: boolean;
+  validationMessage: string | null;
+  onSubmitClick: () => void;
+  isSubmitting: boolean;
+  isLoading: boolean;
+  currentView: string;
+}) {
+  const { t, tString } = useTranslationWithTokens(['make-payment']);
+
+  return (
+    <div className="eb-mt-6 eb-space-y-3">
+      {/* Transaction error from API */}
+      {transactionError && (
+        <div
+          ref={errorAlertRef}
+          className="eb-flex eb-items-start eb-gap-2 eb-rounded-lg eb-border eb-border-destructive/30 eb-bg-destructive/5 eb-p-3"
+        >
+          <AlertCircle className="eb-mt-0.5 eb-h-4 eb-w-4 eb-shrink-0 eb-text-destructive" />
+          <div className="eb-flex-1 eb-space-y-0.5">
+            <div className="eb-text-sm eb-font-medium eb-text-destructive">
+              {transactionError.title}
+            </div>
+            <div className="eb-text-xs eb-text-muted-foreground">
+              {transactionError.message}
+            </div>
+          </div>
+          {onDismissError && (
+            <button
+              type="button"
+              onClick={onDismissError}
+              className="eb-shrink-0 eb-rounded eb-p-0.5 eb-text-muted-foreground eb-transition-colors hover:eb-bg-muted hover:eb-text-foreground"
+              aria-label={tString('reviewPanel.dismissError', 'Dismiss error')}
+            >
+              <X className="eb-h-3.5 eb-w-3.5" />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Validation message when form is incomplete */}
+      {hasAttemptedSubmit && validationMessage && (
+        <div className="eb-text-center eb-text-sm eb-text-destructive">
+          {validationMessage}
+        </div>
+      )}
+      <Button
+        onClick={onSubmitClick}
+        disabled={isSubmitting || isLoading || currentView !== 'main'}
+        className="eb-w-full"
+        size="lg"
+      >
+        {isSubmitting ? (
+          <>
+            <Loader2 className="eb-mr-2 eb-h-4 eb-w-4 eb-animate-spin" />
+            {t('reviewPanel.processing', 'Processing...')}
+          </>
+        ) : (
+          t('reviewPanel.confirmPayment', 'Confirm payment')
+        )}
+      </Button>
+    </div>
+  );
 }
 
 /**
@@ -311,11 +795,6 @@ export function ReviewPanel({
 
   const toInfo = getToDisplay();
 
-  // Determine icon for recipient:
-  // - Building2 for business (whether linked account or recipient)
-  // - User for individual (whether linked account or recipient)
-  const RecipientIcon = toInfo.isBusiness ? Building2 : User;
-
   return (
     <div className="eb-flex eb-h-full eb-flex-col">
       {/* Header */}
@@ -326,301 +805,51 @@ export function ReviewPanel({
       <div className="eb-flex eb-flex-1 eb-flex-col eb-justify-between">
         <div className="eb-space-y-5">
           {/* Transfer Flow Visual - Vertical Layout */}
-          <div className="eb-rounded-lg eb-border eb-border-border eb-bg-muted/20">
-            {/* From Account */}
-            <div className="eb-flex eb-items-start eb-gap-3 eb-p-3">
-              <div className="eb-flex eb-h-9 eb-w-9 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary/10 eb-shadow-sm">
-                <Wallet className="eb-h-4 eb-w-4 eb-text-primary" />
-              </div>
-              <div className="eb-min-w-0 eb-flex-1">
-                <div className="eb-text-xs eb-text-muted-foreground">
-                  {t('reviewPanel.fromLabel', 'From')}
-                </div>
-                {isLoading && formData.fromAccountId ? (
-                  // Show skeleton when loading with initial account data
-                  <div className="eb-space-y-1">
-                    <Skeleton className="eb-h-4 eb-w-32 eb-bg-muted-foreground/20" />
-                    <Skeleton className="eb-h-3 eb-w-24 eb-bg-muted-foreground/20" />
-                  </div>
-                ) : accountInfo ? (
-                  <>
-                    <div className="eb-font-medium">
-                      {accountInfo.displayName}
-                      {accountInfo.lastFour && (
-                        <span className="eb-font-normal eb-text-muted-foreground">
-                          {' '}
-                          (...{accountInfo.lastFour})
-                        </span>
-                      )}
-                    </div>
-                    {isBalanceLoading ? (
-                      <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
-                        {t('reviewPanel.loadingBalance', 'Loading balance...')}
-                      </div>
-                    ) : hasBalanceError ? (
-                      <div className="eb-mt-0.5 eb-text-xs eb-text-destructive">
-                        {t(
-                          'reviewPanel.balanceUnavailable',
-                          'Balance unavailable'
-                        )}
-                      </div>
-                    ) : currentBalance !== undefined ? (
-                      <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
-                        {formatCurrency(currentBalance)}{' '}
-                        {t('reviewPanel.available', 'available')}
-                      </div>
-                    ) : null}
-                  </>
-                ) : (
-                  <div className="eb-text-muted-foreground">
-                    {t('reviewPanel.selectAccount', 'Select account')}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Divider with Arrow */}
-            <div className="eb-relative eb-border-t eb-border-border">
-              <div className="eb-absolute eb-left-[21px] eb-top-1/2 eb-flex eb-h-5 eb-w-5 eb--translate-y-1/2 eb-items-center eb-justify-center eb-rounded-full eb-border eb-border-border eb-bg-background">
-                <ArrowRight className="eb-h-3 eb-w-3 eb-rotate-90 eb-text-muted-foreground" />
-              </div>
-            </div>
-
-            {/* To Recipient */}
-            <div className="eb-flex eb-items-start eb-gap-3 eb-p-3">
-              <div className="eb-flex eb-h-9 eb-w-9 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary/10 eb-shadow-sm">
-                <RecipientIcon className="eb-h-4 eb-w-4 eb-text-primary" />
-              </div>
-              <div className="eb-min-w-0 eb-flex-1">
-                <div className="eb-text-xs eb-text-muted-foreground">
-                  {t('reviewPanel.toLabel', 'To')}
-                </div>
-                {isLoading && formData.payeeId ? (
-                  // Show skeleton when loading with initial payee data
-                  <div className="eb-space-y-1">
-                    <Skeleton className="eb-h-4 eb-w-28 eb-bg-muted-foreground/20" />
-                    <Skeleton className="eb-h-3 eb-w-20 eb-bg-muted-foreground/20" />
-                  </div>
-                ) : toInfo.isLoading ? (
-                  // Show skeleton when payees are still loading but we have a payeeId
-                  <div className="eb-space-y-1">
-                    <Skeleton className="eb-h-4 eb-w-28 eb-bg-muted-foreground/20" />
-                    <Skeleton className="eb-h-3 eb-w-20 eb-bg-muted-foreground/20" />
-                  </div>
-                ) : toInfo.isPlaceholder ? (
-                  <div className="eb-text-muted-foreground">{toInfo.name}</div>
-                ) : (
-                  <>
-                    <div
-                      className={cn(
-                        'eb-font-medium',
-                        toInfo.isNew && 'eb-text-primary'
-                      )}
-                    >
-                      {toInfo.name}
-                      {toInfo.lastFour && (
-                        <span className="eb-font-normal eb-text-muted-foreground">
-                          {' '}
-                          (...{toInfo.lastFour})
-                        </span>
-                      )}
-                    </div>
-                    {!toInfo.isNew && (
-                      <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
-                        {toInfo.isLinkedAccount
-                          ? toInfo.isBusiness
-                            ? t(
-                                'reviewPanel.linkedBusinessAccount',
-                                'Linked business account'
-                              )
-                            : t(
-                                'reviewPanel.linkedIndividualAccount',
-                                'Linked individual account'
-                              )
-                          : toInfo.isBusiness
-                            ? t(
-                                'reviewPanel.businessRecipient',
-                                'Business recipient'
-                              )
-                            : t(
-                                'reviewPanel.individualRecipient',
-                                'Individual recipient'
-                              )}
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
+          <TransferFlowVisual
+            isLoading={isLoading}
+            fromAccountId={formData.fromAccountId}
+            payeeId={formData.payeeId}
+            accountInfo={accountInfo}
+            toInfo={toInfo}
+            isBalanceLoading={isBalanceLoading}
+            hasBalanceError={hasBalanceError}
+            currentBalance={currentBalance}
+          />
 
           {/* Payment Details Section */}
-          <div className="eb-space-y-2.5">
-            {/* Amount - only show breakdown row when fees are displayed */}
-            {showFees && (
-              <div className="eb-flex eb-items-center eb-justify-between">
-                <span className="eb-text-sm eb-text-muted-foreground">
-                  {t('reviewPanel.amountLabel', 'Amount')}
-                </span>
-                <div className="eb-text-right">
-                  {amount > 0 ? (
-                    <span className="eb-font-medium">
-                      {formatCurrency(amount)}
-                    </span>
-                  ) : (
-                    <span className="eb-text-sm eb-text-muted-foreground">
-                      —
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Payment Method */}
-            <div className="eb-flex eb-items-center eb-justify-between">
-              <span className="eb-text-sm eb-text-muted-foreground">
-                {t('reviewPanel.methodLabel', 'Method')}
-              </span>
-              <div className="eb-text-right eb-text-sm">
-                {selectedMethod ? (
-                  <span className="eb-font-medium">{selectedMethod.name}</span>
-                ) : (
-                  <span className="eb-text-muted-foreground">—</span>
-                )}
-              </div>
-            </div>
-
-            {/* Fee - only shown when showFees is enabled */}
-            {showFees && (
-              <div className="eb-flex eb-items-center eb-justify-between eb-text-sm">
-                <span className="eb-text-muted-foreground">
-                  {t('reviewPanel.feeLabel', 'Fee')}
-                </span>
-                <span>{selectedMethod ? formatCurrency(fee) : '—'}</span>
-              </div>
-            )}
-
-            {/* Memo */}
-            {formData.memo && (
-              <div className="eb-flex eb-items-start eb-justify-between eb-gap-4">
-                <span className="eb-shrink-0 eb-text-sm eb-text-muted-foreground">
-                  {t('reviewPanel.memoLabel', 'Memo')}
-                </span>
-                <span className="eb-text-right eb-text-sm eb-text-muted-foreground">
-                  {formData.memo}
-                </span>
-              </div>
-            )}
-          </div>
+          <PaymentDetailsSection
+            showFees={showFees}
+            amount={amount}
+            selectedMethod={selectedMethod}
+            fee={fee}
+            memo={formData.memo}
+          />
 
           {/* Total & Balance Section - always show when no fees, or when amount > 0 with fees */}
           {(amount > 0 || !showFees) && (
-            <div className="eb-space-y-2 eb-border-t eb-border-border eb-pt-4">
-              {/* Total (or Amount when no fees are shown) */}
-              <div className="eb-flex eb-items-center eb-justify-between">
-                <span className="eb-font-medium">
-                  {showFees
-                    ? t('reviewPanel.totalLabel', 'Total')
-                    : t('reviewPanel.amountLabel', 'Amount')}
-                </span>
-                <span
-                  className={cn(
-                    'eb-text-lg eb-font-semibold',
-                    amount <= 0 && 'eb-text-muted-foreground'
-                  )}
-                >
-                  {amount > 0 ? formatCurrency(total) : '—'}
-                </span>
-              </div>
-
-              {/* Balance After Payment - only show when amount > 0 */}
-              {amount > 0 && selectedAccount && isBalanceLoading ? (
-                <div className="eb-flex eb-items-center eb-justify-between eb-rounded-md eb-bg-muted/50 eb-px-3 eb-py-2">
-                  <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
-                    <TrendingDown className="eb-h-4 eb-w-4" />
-                    <span>
-                      {t('reviewPanel.remainingBalance', 'Remaining balance')}
-                    </span>
-                  </div>
-                  <Skeleton className="eb-h-4 eb-w-16 eb-bg-muted-foreground/20" />
-                </div>
-              ) : amount > 0 && balanceAfterPayment !== undefined ? (
-                <div className="eb-flex eb-items-center eb-justify-between eb-rounded-md eb-bg-muted/50 eb-px-3 eb-py-2">
-                  <div className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
-                    <TrendingDown className="eb-h-4 eb-w-4" />
-                    <span>
-                      {t('reviewPanel.remainingBalance', 'Remaining balance')}
-                    </span>
-                  </div>
-                  <span
-                    className={cn(
-                      'eb-text-sm eb-font-medium',
-                      balanceAfterPayment < 0 && 'eb-text-destructive'
-                    )}
-                  >
-                    {formatCurrency(balanceAfterPayment)}
-                  </span>
-                </div>
-              ) : null}
-            </div>
+            <TotalBalanceSection
+              showFees={showFees}
+              amount={amount}
+              total={total}
+              selectedAccount={selectedAccount}
+              isBalanceLoading={isBalanceLoading}
+              balanceAfterPayment={balanceAfterPayment}
+            />
           )}
         </div>
 
         {/* Submit Button */}
-        <div className="eb-mt-6 eb-space-y-3">
-          {/* Transaction error from API */}
-          {transactionError && (
-            <div
-              ref={errorAlertRef}
-              className="eb-flex eb-items-start eb-gap-2 eb-rounded-lg eb-border eb-border-destructive/30 eb-bg-destructive/5 eb-p-3"
-            >
-              <AlertCircle className="eb-mt-0.5 eb-h-4 eb-w-4 eb-shrink-0 eb-text-destructive" />
-              <div className="eb-flex-1 eb-space-y-0.5">
-                <div className="eb-text-sm eb-font-medium eb-text-destructive">
-                  {transactionError.title}
-                </div>
-                <div className="eb-text-xs eb-text-muted-foreground">
-                  {transactionError.message}
-                </div>
-              </div>
-              {onDismissError && (
-                <button
-                  type="button"
-                  onClick={onDismissError}
-                  className="eb-shrink-0 eb-rounded eb-p-0.5 eb-text-muted-foreground eb-transition-colors hover:eb-bg-muted hover:eb-text-foreground"
-                  aria-label={tString(
-                    'reviewPanel.dismissError',
-                    'Dismiss error'
-                  )}
-                >
-                  <X className="eb-h-3.5 eb-w-3.5" />
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Validation message when form is incomplete */}
-          {hasAttemptedSubmit && validationMessage && (
-            <div className="eb-text-center eb-text-sm eb-text-destructive">
-              {validationMessage}
-            </div>
-          )}
-          <Button
-            onClick={handleSubmitClick}
-            disabled={isSubmitting || isLoading || currentView !== 'main'}
-            className="eb-w-full"
-            size="lg"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="eb-mr-2 eb-h-4 eb-w-4 eb-animate-spin" />
-                {t('reviewPanel.processing', 'Processing...')}
-              </>
-            ) : (
-              t('reviewPanel.confirmPayment', 'Confirm payment')
-            )}
-          </Button>
-        </div>
+        <SubmitSection
+          transactionError={transactionError}
+          onDismissError={onDismissError}
+          errorAlertRef={errorAlertRef}
+          hasAttemptedSubmit={hasAttemptedSubmit}
+          validationMessage={validationMessage}
+          onSubmitClick={handleSubmitClick}
+          isSubmitting={isSubmitting}
+          isLoading={isLoading}
+          currentView={currentView}
+        />
       </div>
     </div>
   );

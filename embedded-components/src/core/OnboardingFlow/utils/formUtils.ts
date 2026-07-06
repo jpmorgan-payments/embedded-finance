@@ -131,54 +131,101 @@ export function mapClientApiErrorsToFormErrors(
  * @param errors - Array of API error reasons
  * @returns Array of FormError objects with mapped field names and messages
  */
+type MatchedFieldEntry = {
+  key: keyof typeof partyFieldMap;
+  remainingPath: string;
+  modifyErrorField?: AnyFieldConfiguration['modifyErrorField'];
+};
+
+/**
+ * Collects all partyFieldMap entries whose API path matches the given error
+ * field. Multiple entries can share the same API path, so all matches are
+ * returned to let form.setError() attach to whichever field is registered.
+ */
+function collectMatchedPartyEntries(
+  errorFieldInDotNotation: string | undefined
+): MatchedFieldEntry[] {
+  const matchedEntries: MatchedFieldEntry[] = [];
+  if (!errorFieldInDotNotation) return matchedEntries;
+
+  for (const key of objectKeys(partyFieldMap)) {
+    const path = partyFieldMap[key]?.path;
+    if (path) {
+      // Prefer the direct `$.path` match, then the `$.party.path` variant.
+      const prefixes = [`$.${path}`, `$.party.${path}`];
+      for (const prefix of prefixes) {
+        if (errorFieldInDotNotation.startsWith(prefix)) {
+          matchedEntries.push({
+            key,
+            remainingPath: errorFieldInDotNotation.substring(prefix.length),
+            modifyErrorField: partyFieldMap[key]?.modifyErrorField,
+          });
+          break;
+        }
+      }
+    }
+  }
+
+  return matchedEntries;
+}
+
+/**
+ * Pushes the form error(s) for a single matched entry onto the accumulator.
+ */
+function pushMatchedPartyEntryErrors(
+  acc: FormError[],
+  entry: MatchedFieldEntry,
+  error: ApiErrorReasonV2
+): void {
+  let { remainingPath } = entry;
+
+  if (!remainingPath) {
+    acc.push({
+      field: entry.key as FormError['field'],
+      message: error.message,
+      path: error.field,
+    });
+    return;
+  }
+
+  // Server error path sometimes does not include the index for array fields,
+  // so we assume it's the first index (0) and add it manually.
+  if (entry.modifyErrorField) {
+    remainingPath = entry.modifyErrorField(remainingPath);
+  }
+
+  if (remainingPath) {
+    acc.push({
+      field: `${entry.key}${remainingPath}` as FormError['field'],
+      message: error.message,
+      path: error.field,
+    });
+    // TODO: remove this when the server returns the correct path
+    acc.push({
+      field: `${entry.key}.0.${remainingPath}` as FormError['field'],
+      message: error.message,
+      path: error.field,
+    });
+  } else {
+    // modifyErrorField collapsed the path (e.g. solePropSsn)
+    acc.push({
+      field: entry.key as FormError['field'],
+      message: error.message,
+      path: error.field,
+    });
+  }
+}
+
 export function mapPartyApiErrorsToFormErrors(
   errors: ApiErrorReasonV2[]
 ): FormError[] {
-  const fieldMapKeys = objectKeys(partyFieldMap);
   return errors.reduce((acc, error) => {
     const errorFieldInDotNotation = error.field?.replace(/\[(\w+)\]/g, '.$1');
+    const matchedEntries = collectMatchedPartyEntries(errorFieldInDotNotation);
+    const inFieldMap = Boolean(error.field && error.field in partyFieldMap);
 
-    // Collect ALL matching fieldMap keys for this error path.
-    // Multiple fieldMap entries can share the same API path
-    // (e.g. solePropSsn and controllerIds both map to
-    // individualDetails.individualIds). Emitting errors for all
-    // matches lets form.setError() attach to whichever field is
-    // actually registered in the current form.
-    const matchedEntries: {
-      key: keyof typeof partyFieldMap;
-      remainingPath: string;
-      modifyErrorField?: AnyFieldConfiguration['modifyErrorField'];
-    }[] = [];
-
-    fieldMapKeys.forEach((key) => {
-      const path = partyFieldMap[key]?.path;
-      if (path && errorFieldInDotNotation) {
-        if (errorFieldInDotNotation.startsWith(`$.${path}`)) {
-          matchedEntries.push({
-            key,
-            remainingPath: errorFieldInDotNotation.substring(
-              `$.${path}`.length
-            ),
-            modifyErrorField: partyFieldMap[key]?.modifyErrorField,
-          });
-        } else if (errorFieldInDotNotation.startsWith(`$.party.${path}`)) {
-          matchedEntries.push({
-            key,
-            remainingPath: errorFieldInDotNotation.substring(
-              `$.party.${path}`.length
-            ),
-            modifyErrorField: partyFieldMap[key]?.modifyErrorField,
-          });
-        }
-      }
-    });
-
-    // Handle edge case where the error field is in the field map but not matched
-    if (
-      matchedEntries.length === 0 &&
-      error.field &&
-      error.field in partyFieldMap
-    ) {
+    // Edge case: the error field is in the field map but was not matched.
+    if (matchedEntries.length === 0 && inFieldMap) {
       acc.push({
         field: error.field as keyof typeof partyFieldMap,
         message: error.message,
@@ -187,48 +234,11 @@ export function mapPartyApiErrorsToFormErrors(
     }
 
     for (const entry of matchedEntries) {
-      let { remainingPath } = entry;
-
-      // Server error path sometimes does not include the index for array fields,
-      // so we assume it's the first index (0) and add it manually.
-      if (remainingPath) {
-        if (entry.modifyErrorField) {
-          remainingPath = entry.modifyErrorField(remainingPath);
-        }
-        if (remainingPath) {
-          acc.push({
-            field: `${entry.key}${remainingPath}` as FormError['field'],
-            message: error.message,
-            path: error.field,
-          });
-          // TODO: remove this when the server returns the correct path
-          acc.push({
-            field: `${entry.key}.0.${remainingPath}` as FormError['field'],
-            message: error.message,
-            path: error.field,
-          });
-        } else {
-          // modifyErrorField collapsed the path (e.g. solePropSsn)
-          acc.push({
-            field: entry.key as FormError['field'],
-            message: error.message,
-            path: error.field,
-          });
-        }
-      } else {
-        acc.push({
-          field: entry.key as FormError['field'],
-          message: error.message,
-          path: error.field,
-        });
-      }
+      pushMatchedPartyEntryErrors(acc, entry, error);
     }
 
-    // No matches at all — emit as unhandled
-    if (
-      matchedEntries.length === 0 &&
-      !(error.field && error.field in partyFieldMap)
-    ) {
+    // No matches at all — emit as unhandled.
+    if (matchedEntries.length === 0 && !inFieldMap) {
       acc.push({
         field: undefined,
         message: error.message,
@@ -626,6 +636,117 @@ export function useFormUtilsWithClientContext(
   };
 }
 
+type EvaluatedFieldRule = ReturnType<typeof evaluateFieldRules>;
+
+/**
+ * Resolves a single field-path segment while drilling into an array field
+ * configuration. Returns the next config/rule pair, or `null` to signal that
+ * drilling should stop (the current config is not an array configuration).
+ */
+function applyFieldRuleSegment(
+  currentConfig: AnyFieldConfiguration,
+  currentFieldRule: EvaluatedFieldRule,
+  segment: string,
+  clientContext: ClientContext,
+  currentScreenId: ScreenId,
+  fieldNameParts: string[],
+  segmentIndex: number
+): { config: AnyFieldConfiguration; fieldRule: EvaluatedFieldRule } | null {
+  if (
+    isArrayFieldConfiguration(currentConfig) &&
+    isArrayFieldRule(currentFieldRule)
+  ) {
+    // If it's a numeric index (e.g. "0", "1"), skip it and keep current state
+    if (/^\d+$/.test(segment)) {
+      return { config: currentConfig, fieldRule: currentFieldRule };
+    }
+
+    // Otherwise, it's a subfield name
+    const subFieldName =
+      segment as keyof OnboardingFormValuesSubmit[OnboardingTopLevelArrayFieldNames][number];
+    // @ts-ignore -- TS can't infer this properly
+    const subFieldConfig = currentConfig.subFields?.[subFieldName];
+    if (!subFieldConfig) {
+      throw new Error(
+        `Subfield "${subFieldName}" is not defined under "${fieldNameParts
+          .slice(0, segmentIndex)
+          .join('.')}" in fieldMap.`
+      );
+    }
+
+    const subFieldRule = evaluateFieldRules(
+      subFieldConfig,
+      clientContext,
+      currentScreenId
+    );
+
+    return {
+      config: subFieldConfig,
+      fieldRule: {
+        display: currentFieldRule.display,
+        interaction: currentFieldRule.interaction,
+        defaultValue: currentFieldRule.defaultAppendValue?.[subFieldName],
+        ...subFieldRule,
+        // Inherit parent's contentTokenOverrideKey when the sub-field
+        // doesn't define its own, so owner/soleProp overrides propagate.
+        contentTokenOverrideKey:
+          subFieldRule.contentTokenOverrideKey ??
+          currentFieldRule.contentTokenOverrideKey,
+      },
+    };
+  }
+
+  // We don't expect more segments if it's not an array config
+  return null;
+}
+
+/**
+ * Builds the `defaultAppendValue` for an array field rule, letting each
+ * subfield's own `defaultValue` override the array's base append value.
+ * Non-array configs/rules are returned unchanged.
+ */
+function buildArrayDefaultAppendValue(
+  currentConfig: AnyFieldConfiguration,
+  currentFieldRule: EvaluatedFieldRule,
+  clientContext: ClientContext,
+  currentScreenId: ScreenId
+): EvaluatedFieldRule {
+  if (
+    !isArrayFieldConfiguration(currentConfig) ||
+    !isArrayFieldRule(currentFieldRule)
+  ) {
+    return currentFieldRule;
+  }
+
+  let newAppendValue: Record<string, unknown> = {};
+  // Start with the array config's own defaultAppendValue as a base object
+  if (
+    typeof currentFieldRule.defaultAppendValue === 'object' &&
+    currentFieldRule.defaultAppendValue !== null
+  ) {
+    newAppendValue = { ...currentFieldRule.defaultAppendValue };
+  }
+
+  // Merge each subfield's default, letting subfields override
+  for (const subFieldName of objectKeys(currentConfig.subFields)) {
+    const subFieldConfig = currentConfig.subFields[subFieldName];
+    const subFieldRule = evaluateFieldRules(
+      subFieldConfig,
+      clientContext,
+      currentScreenId
+    );
+
+    if (subFieldRule.defaultValue !== undefined) {
+      newAppendValue[subFieldName] = subFieldRule.defaultValue;
+    }
+  }
+
+  return {
+    ...currentFieldRule,
+    defaultAppendValue: newAppendValue,
+  };
+}
+
 /**
  * Retrieves field rules for a specific field based on client context
  * @param fieldName - Name of the form field
@@ -644,7 +765,7 @@ export function getFieldRuleByClientContext(
   const fieldNameParts = fieldName.split('.');
   const baseFieldName = fieldNameParts[0] as keyof OnboardingFormValuesSubmit;
 
-  let currentConfig = getPartyFieldConfig(baseFieldName);
+  let currentConfig: AnyFieldConfiguration = getPartyFieldConfig(baseFieldName);
   let currentFieldRule = evaluateFieldRules(
     currentConfig,
     clientContext,
@@ -653,89 +774,28 @@ export function getFieldRuleByClientContext(
 
   // Drill down into subfields for the remaining segments
   for (let i = 1; i < fieldNameParts.length; i += 1) {
-    const segment = fieldNameParts[i];
-
-    if (
-      isArrayFieldConfiguration(currentConfig) &&
-      isArrayFieldRule(currentFieldRule)
-    ) {
-      // If it's a numeric index (e.g. "0", "1"), skip it
-      if (/^\d+$/.test(segment)) {
-        // eslint-disable-next-line no-continue
-        continue;
-      }
-
-      // Otherwise, it's a subfield name
-      const subFieldName =
-        segment as keyof OnboardingFormValuesSubmit[OnboardingTopLevelArrayFieldNames][number];
-      // @ts-ignore -- TS can't infer this properly
-      const subFieldConfig = currentConfig.subFields?.[subFieldName];
-      if (!subFieldConfig) {
-        throw new Error(
-          `Subfield "${subFieldName}" is not defined under "${fieldNameParts
-            .slice(0, i)
-            .join('.')}" in fieldMap.`
-        );
-      }
-
-      const subFieldRule = evaluateFieldRules(
-        subFieldConfig,
-        clientContext,
-        currentScreenId
-      );
-
-      currentConfig = subFieldConfig;
-      currentFieldRule = {
-        display: currentFieldRule.display,
-        interaction: currentFieldRule.interaction,
-        defaultValue: currentFieldRule.defaultAppendValue?.[subFieldName],
-        ...subFieldRule,
-        // Inherit parent's contentTokenOverrideKey when the sub-field
-        // doesn't define its own, so owner/soleProp overrides propagate.
-        contentTokenOverrideKey:
-          subFieldRule.contentTokenOverrideKey ??
-          currentFieldRule.contentTokenOverrideKey,
-      };
-    } else {
-      // We don't expect more segments if it's not an array config
-      break;
-    }
+    const next = applyFieldRuleSegment(
+      currentConfig,
+      currentFieldRule,
+      fieldNameParts[i],
+      clientContext,
+      currentScreenId,
+      fieldNameParts,
+      i
+    );
+    if (!next) break;
+    currentConfig = next.config;
+    currentFieldRule = next.fieldRule;
   }
 
   // Build the defaultAppendValue for the given array field configuration,
-  // letting subfields' defaultValue (if defined) override the values in defaultAppendValue
-  if (
-    isArrayFieldConfiguration(currentConfig) &&
-    isArrayFieldRule(currentFieldRule)
-  ) {
-    let newAppendValue: Record<string, unknown> = {};
-    // Start with the array config's own defaultAppendValue as a base object
-    if (
-      typeof currentFieldRule.defaultAppendValue === 'object' &&
-      currentFieldRule.defaultAppendValue !== null
-    ) {
-      newAppendValue = { ...currentFieldRule.defaultAppendValue };
-    }
-
-    // Merge each subfield's default, letting subfields override
-    for (const subFieldName of objectKeys(currentConfig.subFields)) {
-      const subFieldConfig = currentConfig.subFields[subFieldName];
-      const subFieldRule = evaluateFieldRules(
-        subFieldConfig,
-        clientContext,
-        currentScreenId
-      );
-
-      // If the subfield has a default, override the parent's property
-      if (subFieldRule.defaultValue !== undefined) {
-        newAppendValue[subFieldName] = subFieldRule.defaultValue;
-      }
-    }
-    currentFieldRule = {
-      ...currentFieldRule,
-      defaultAppendValue: newAppendValue,
-    };
-  }
+  // letting subfields' defaultValue (if defined) override the base values
+  currentFieldRule = buildArrayDefaultAppendValue(
+    currentConfig,
+    currentFieldRule,
+    clientContext,
+    currentScreenId
+  );
 
   if (isArrayFieldRule(currentFieldRule)) {
     return {
@@ -747,6 +807,124 @@ export function getFieldRuleByClientContext(
     fieldRule: currentFieldRule,
     ruleType: 'single',
   };
+}
+
+/**
+ * For an array element schema, recursively applies client-context rules when
+ * the element is an object; otherwise returns it unchanged.
+ */
+function resolveArrayElementSchema(
+  elementSchema: z.ZodType<any>,
+  fullKey: string,
+  clientContext: ClientContext,
+  currentScreenId: ScreenId
+): z.ZodType<any> {
+  if (elementSchema instanceof z.ZodObject) {
+    // For array elements, we add a placeholder index (0) to the key
+    return modifySchemaByClientContext(
+      elementSchema,
+      clientContext,
+      currentScreenId,
+      undefined,
+      `${fullKey}.0`
+    );
+  }
+  return elementSchema;
+}
+
+/**
+ * Applies min/max item validation (and recursive element modification) to an
+ * array field schema, handling both direct `ZodArray` and `ZodEffects`-wrapped
+ * arrays.
+ */
+function modifyArrayFieldSchema(
+  modifiedSchema: z.ZodType<any>,
+  fieldRule: OptionalDefaults<ArrayFieldRule>,
+  fullKey: string,
+  key: string,
+  clientContext: ClientContext,
+  currentScreenId: ScreenId
+): z.ZodType<any> {
+  const min = fieldRule.requiredItems ?? fieldRule.minItems ?? 0;
+  const max = fieldRule.maxItems ?? Infinity;
+  const tName = fullKey
+    .split('.')
+    .filter((part) => Number.isNaN(Number(part)))
+    .join('.');
+
+  const minMessage = i18n.t(
+    [
+      `onboarding-overview:fields.${tName}.validation.minItems`,
+      'common:validation.minItems',
+    ],
+    { count: min }
+  );
+  const maxMessage = i18n.t(
+    [
+      `onboarding-overview:fields.${tName}.validation.maxItems`,
+      'common:validation.maxItems',
+    ],
+    { count: max }
+  );
+
+  // Handle arrays wrapped in ZodEffects
+  if (modifiedSchema instanceof z.ZodEffects) {
+    const inner = modifiedSchema._def.schema;
+    if (inner instanceof z.ZodArray) {
+      const newElementSchema = resolveArrayElementSchema(
+        inner._def.type,
+        fullKey,
+        clientContext,
+        currentScreenId
+      );
+      const modifiedInner: z.ZodType<any> = z
+        .array(newElementSchema)
+        .min(min, minMessage)
+        .max(max, maxMessage);
+
+      // Rebuild the ZodEffects with the modified inner schema
+      return new z.ZodEffects({
+        schema: modifiedInner,
+        effect: modifiedSchema._def.effect,
+        typeName: modifiedSchema._def.typeName,
+      });
+    }
+    // ZodEffects whose inner schema is not an array — leave unchanged
+    return modifiedSchema;
+  }
+
+  // Handle direct ZodArray
+  if (modifiedSchema instanceof z.ZodArray) {
+    const newElementSchema = resolveArrayElementSchema(
+      modifiedSchema._def.type,
+      fullKey,
+      clientContext,
+      currentScreenId
+    );
+    return z.array(newElementSchema).min(min, minMessage).max(max, maxMessage);
+  }
+
+  // Unexpected schema type
+  throw new Error(
+    `Unexpected schema type for array field "${key}": ${modifiedSchema}`
+  );
+}
+
+/**
+ * Relaxes a non-required single field schema so it also accepts empty string
+ * and undefined. Object schemas are relaxed field-by-field.
+ */
+function relaxOptionalFieldSchema(schema: z.ZodType<any>): z.ZodType<any> {
+  if (schema instanceof z.ZodObject) {
+    const relaxedShape: Record<string, z.ZodType<any>> = {};
+    for (const [k, v] of Object.entries(
+      schema.shape as Record<string, z.ZodType<any>>
+    )) {
+      relaxedShape[k] = v.or(z.literal('')).or(z.undefined());
+    }
+    return z.object(relaxedShape).or(z.literal('')).or(z.undefined());
+  }
+  return schema.or(z.literal('')).or(z.undefined());
 }
 
 /**
@@ -785,111 +963,21 @@ export function modifySchemaByClientContext(
     }
 
     // Modify the field schema based on the field rule
-    let modifiedSchema = value;
+    let modifiedSchema: z.ZodType<any> = value;
 
     if (ruleType === 'array') {
-      const min = fieldRule.requiredItems ?? fieldRule.minItems ?? 0;
-      const max = fieldRule.maxItems ?? Infinity;
-      const nameParts = fullKey.split('.');
-      const tName = nameParts
-        .filter((part) => Number.isNaN(Number(part)))
-        .join('.');
-
-      const minMessage = i18n.t(
-        [
-          `onboarding-overview:fields.${tName}.validation.minItems`,
-          'common:validation.minItems',
-        ],
-        {
-          count: min,
-        }
+      modifiedSchema = modifyArrayFieldSchema(
+        value,
+        fieldRule,
+        fullKey,
+        key,
+        clientContext,
+        currentScreenId
       );
-
-      const maxMessage = i18n.t(
-        [
-          `onboarding-overview:fields.${tName}.validation.maxItems`,
-          'common:validation.maxItems',
-        ],
-        {
-          count: max,
-        }
-      );
-
-      // Handle arrays wrapped in ZodEffects
-      if (modifiedSchema instanceof z.ZodEffects) {
-        const inner = modifiedSchema._def.schema;
-        if (inner instanceof z.ZodArray) {
-          const elementSchema = inner._def.type;
-          let newElementSchema = elementSchema;
-          // If the element is an object, recursively modify it.
-          if (elementSchema instanceof z.ZodObject) {
-            // For array elements, we add a placeholder index (0) to the key
-            newElementSchema = modifySchemaByClientContext(
-              elementSchema,
-              clientContext,
-              currentScreenId,
-              undefined,
-              `${fullKey}.0`
-            );
-          }
-          // Apply min and max to the underlying array
-          const modifiedInner: z.ZodType<any> = z
-            .array(newElementSchema)
-            .min(min, minMessage)
-            .max(max, maxMessage);
-
-          // Rebuild the ZodEffects with the modified inner schema
-          modifiedSchema = new z.ZodEffects({
-            schema: modifiedInner,
-            effect: modifiedSchema._def.effect,
-            typeName: modifiedSchema._def.typeName,
-          });
-        }
-      }
-      // Handle direct ZodArray
-      else if (modifiedSchema instanceof z.ZodArray) {
-        const elementSchema = modifiedSchema._def.type;
-        let newElementSchema = elementSchema;
-        // If the element is an object, recursively modify it.
-        if (elementSchema instanceof z.ZodObject) {
-          // For array elements, we add a placeholder index (0) to the key
-          newElementSchema = modifySchemaByClientContext(
-            elementSchema,
-            clientContext,
-            currentScreenId,
-            undefined,
-            `${fullKey}.0`
-          );
-        }
-        modifiedSchema = z
-          .array(newElementSchema)
-          .min(min, minMessage)
-          .max(max, maxMessage);
-      } else {
-        // Unexpected schema type
-        throw new Error(
-          `Unexpected schema type for array field "${key}": ${modifiedSchema}`
-        );
-      }
-    } else if (ruleType === 'single') {
-      if (!fieldRule.required) {
-        if (modifiedSchema instanceof z.ZodObject) {
-          // For non-required object fields, relax inner schemas to accept empty/undefined
-          const relaxedShape: Record<string, z.ZodType<any>> = {};
-          for (const [k, v] of Object.entries(
-            modifiedSchema.shape as Record<string, z.ZodType<any>>
-          )) {
-            relaxedShape[k] = v.or(z.literal('')).or(z.undefined());
-          }
-          modifiedSchema = z
-            .object(relaxedShape)
-            .or(z.literal(''))
-            .or(z.undefined());
-        } else {
-          modifiedSchema = value.or(z.literal('')).or(z.undefined());
-        }
-      }
+    } else if (ruleType === 'single' && !fieldRule.required) {
+      modifiedSchema = relaxOptionalFieldSchema(value);
     }
+
     filteredSchema[key] = modifiedSchema;
   });
 
