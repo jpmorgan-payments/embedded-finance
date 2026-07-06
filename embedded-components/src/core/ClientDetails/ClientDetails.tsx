@@ -13,7 +13,10 @@ import {
 } from '@/lib/types/headingLevel.types';
 import { cn } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
-import { useServerError } from '@/components/ServerErrorAlert';
+import {
+  useServerError,
+  type ServerErrorInfo,
+} from '@/components/ServerErrorAlert';
 import { Button } from '@/components/ui';
 
 import { CLIENT_DETAILS_DEFAULT_VIEW_MODE } from './ClientDetails.constants';
@@ -29,6 +32,86 @@ import {
   getControllerParty,
   getOrganizationParty,
 } from './utils/partyGrouping';
+
+/** KYC identity status → section status indicator (defaults to 'pending'). */
+const KYC_STATUS_TO_SECTION_STATUS: Record<string, SectionInfo['status']> = {
+  APPROVED: 'complete',
+  INFORMATION_REQUESTED: 'warning',
+};
+
+/**
+ * Expandable panel that renders the detailed reasons/context of a server
+ * error. Shared by the summary and accordion/cards error states.
+ */
+const ClientErrorDetails: React.FC<{
+  errorInfo: ServerErrorInfo | null;
+  showDetails: boolean;
+  onToggle: () => void;
+}> = ({ errorInfo, showDetails, onToggle }) => {
+  const { t } = useTranslationWithTokens('client-details');
+
+  if (!errorInfo?.hasDetails) return null;
+
+  return (
+    <div className="eb-mt-4 eb-w-full eb-max-w-sm">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onToggle}
+        className="eb-text-xs eb-text-muted-foreground"
+      >
+        {showDetails ? (
+          <ChevronUp className="eb-mr-1 eb-h-3 eb-w-3" />
+        ) : (
+          <ChevronDown className="eb-mr-1 eb-h-3 eb-w-3" />
+        )}
+        {showDetails ? t('errors.hideDetails') : t('errors.showDetails')}
+      </Button>
+
+      {showDetails && (
+        <div className="eb-mt-2 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-3 eb-text-left eb-text-xs">
+          {errorInfo.httpStatus && (
+            <div className="eb-mb-2">
+              <span className="eb-font-medium">Status:</span>{' '}
+              {errorInfo.httpStatus}
+              {errorInfo.title && ` - ${errorInfo.title}`}
+            </div>
+          )}
+          {errorInfo.reasons.length > 0 && (
+            <div className="eb-mb-2">
+              <span className="eb-font-medium">Reasons:</span>
+              <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
+                {errorInfo.reasons.map((reason: any) => (
+                  <li key={`${reason.field ?? ''}-${reason.message ?? reason}`}>
+                    {reason.field && (
+                      <span className="eb-font-medium">{reason.field}: </span>
+                    )}
+                    {reason.message || reason}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {errorInfo.context.length > 0 && (
+            <div>
+              <span className="eb-font-medium">Context:</span>
+              <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
+                {errorInfo.context.map((ctx: any) => (
+                  <li key={`${ctx.field ?? ''}-${ctx.message ?? ''}`}>
+                    {ctx.field && (
+                      <span className="eb-font-medium">{ctx.field}: </span>
+                    )}
+                    {ctx.message}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export function ClientDetails({
   clientId,
@@ -86,12 +169,7 @@ export function ClientDetails({
         id: 'verification',
         icon: getSectionIcon('verification'),
         description: kycStatus.replace(/_/g, ' ').toLowerCase(),
-        status:
-          kycStatus === 'APPROVED'
-            ? 'complete'
-            : kycStatus === 'INFORMATION_REQUESTED'
-              ? 'warning'
-              : 'pending',
+        status: KYC_STATUS_TO_SECTION_STATUS[kycStatus] ?? 'pending',
       });
     }
 
@@ -195,71 +273,11 @@ export function ClientDetails({
             </Button>
 
             {/* Expandable details */}
-            {errorInfo?.hasDetails && (
-              <div className="eb-mt-4 eb-w-full eb-max-w-sm">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowErrorDetails(!showErrorDetails)}
-                  className="eb-text-xs eb-text-muted-foreground"
-                >
-                  {showErrorDetails ? (
-                    <ChevronUp className="eb-mr-1 eb-h-3 eb-w-3" />
-                  ) : (
-                    <ChevronDown className="eb-mr-1 eb-h-3 eb-w-3" />
-                  )}
-                  {showErrorDetails
-                    ? t('errors.hideDetails')
-                    : t('errors.showDetails')}
-                </Button>
-
-                {showErrorDetails && (
-                  <div className="eb-mt-2 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-3 eb-text-left eb-text-xs">
-                    {errorInfo.httpStatus && (
-                      <div className="eb-mb-2">
-                        <span className="eb-font-medium">Status:</span>{' '}
-                        {errorInfo.httpStatus}
-                        {errorInfo.title && ` - ${errorInfo.title}`}
-                      </div>
-                    )}
-                    {errorInfo.reasons.length > 0 && (
-                      <div className="eb-mb-2">
-                        <span className="eb-font-medium">Reasons:</span>
-                        <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
-                          {errorInfo.reasons.map((reason: any, i: number) => (
-                            <li key={i}>
-                              {reason.field && (
-                                <span className="eb-font-medium">
-                                  {reason.field}:{' '}
-                                </span>
-                              )}
-                              {reason.message || reason}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {errorInfo.context.length > 0 && (
-                      <div>
-                        <span className="eb-font-medium">Context:</span>
-                        <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
-                          {errorInfo.context.map((ctx: any, i: number) => (
-                            <li key={i}>
-                              {ctx.field && (
-                                <span className="eb-font-medium">
-                                  {ctx.field}:{' '}
-                                </span>
-                              )}
-                              {ctx.message}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+            <ClientErrorDetails
+              errorInfo={errorInfo}
+              showDetails={showErrorDetails}
+              onToggle={() => setShowErrorDetails(!showErrorDetails)}
+            />
           </div>
         </div>
       );
@@ -299,71 +317,11 @@ export function ClientDetails({
           </Button>
 
           {/* Expandable details */}
-          {errorInfo?.hasDetails && (
-            <div className="eb-mt-4 eb-w-full eb-max-w-sm">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowErrorDetails(!showErrorDetails)}
-                className="eb-text-xs eb-text-muted-foreground"
-              >
-                {showErrorDetails ? (
-                  <ChevronUp className="eb-mr-1 eb-h-3 eb-w-3" />
-                ) : (
-                  <ChevronDown className="eb-mr-1 eb-h-3 eb-w-3" />
-                )}
-                {showErrorDetails
-                  ? t('errors.hideDetails')
-                  : t('errors.showDetails')}
-              </Button>
-
-              {showErrorDetails && (
-                <div className="eb-mt-2 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-3 eb-text-left eb-text-xs">
-                  {errorInfo.httpStatus && (
-                    <div className="eb-mb-2">
-                      <span className="eb-font-medium">Status:</span>{' '}
-                      {errorInfo.httpStatus}
-                      {errorInfo.title && ` - ${errorInfo.title}`}
-                    </div>
-                  )}
-                  {errorInfo.reasons.length > 0 && (
-                    <div className="eb-mb-2">
-                      <span className="eb-font-medium">Reasons:</span>
-                      <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
-                        {errorInfo.reasons.map((reason: any, i: number) => (
-                          <li key={i}>
-                            {reason.field && (
-                              <span className="eb-font-medium">
-                                {reason.field}:{' '}
-                              </span>
-                            )}
-                            {reason.message || reason}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {errorInfo.context.length > 0 && (
-                    <div>
-                      <span className="eb-font-medium">Context:</span>
-                      <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
-                        {errorInfo.context.map((ctx: any, i: number) => (
-                          <li key={i}>
-                            {ctx.field && (
-                              <span className="eb-font-medium">
-                                {ctx.field}:{' '}
-                              </span>
-                            )}
-                            {ctx.message}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+          <ClientErrorDetails
+            errorInfo={errorInfo}
+            showDetails={showErrorDetails}
+            onToggle={() => setShowErrorDetails(!showErrorDetails)}
+          />
         </div>
       </div>
     );

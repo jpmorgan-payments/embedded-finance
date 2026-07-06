@@ -271,6 +271,211 @@ export function verifyMicrodeposit(recipientId: string, amounts: number[]) {
   };
 }
 
+// Create or update a single predefined party, tolerating shared-party duplicates
+function seedParty(party, timestamp) {
+  if (!party.id) return;
+
+  // Check if the party already exists
+  const existingParty = db.party.findFirst({
+    where: { id: { equals: party.id } },
+  });
+
+  const newParty = {
+    ...party,
+    status: party?.status || 'ACTIVE',
+    active: party.active !== undefined ? party.active : true,
+    createdAt: party.createdAt || timestamp,
+    preferences: party.preferences || { defaultLanguage: 'en-US' },
+    profileStatus: party.profileStatus || 'COMPLETE',
+    access: party.access || [],
+    validationResponse: party.validationResponse || [],
+  };
+  dbLogger(`\nParty ${party.id}:`, JSON.stringify(newParty, null, 2));
+
+  try {
+    if (existingParty) {
+      // Party already exists - update it instead of creating
+      db.party.update({
+        where: { id: { equals: party.id } },
+        data: newParty,
+      });
+    } else {
+      // Party doesn't exist - create it
+      db.party.create(newParty);
+    }
+  } catch (error) {
+    // Silently handle duplicate key errors (parties can be shared between clients)
+    if (error instanceof Error && error.message.includes('already exists')) {
+      // Try to update instead
+      try {
+        db.party.update({
+          where: { id: { equals: party.id } },
+          data: newParty,
+        });
+      } catch (updateError) {
+        dbLogger('Error updating party:', updateError);
+        // Ignore update errors for shared parties
+      }
+    } else {
+      dbLogger('Error creating party:', error);
+    }
+  }
+}
+
+// Build the client record with all defaulted fields populated
+function buildPredefinedClientRecord(clientId, clientData, parties, timestamp) {
+  return {
+    ...clientData,
+    id: clientId,
+    createdAt: clientData.createdAt || timestamp,
+    partyId: clientData.partyId || parties[0]?.id,
+    outstanding: {
+      documentRequestIds: clientData.outstanding?.documentRequestIds || [],
+      questionIds: clientData.outstanding?.questionIds || [],
+      attestationDocumentIds:
+        clientData.outstanding?.attestationDocumentIds || [],
+      partyIds: clientData.outstanding?.partyIds || [],
+      partyRoles: clientData.outstanding?.partyRoles || [],
+    },
+    questionResponses: clientData.questionResponses || [],
+    attestations: clientData.attestations || [],
+    parties: parties.map((p) => p.id) || [],
+    products: clientData.products || [],
+    results: clientData.results || {
+      customerIdentityStatus: 'NOT_STARTED',
+    },
+  };
+}
+
+// Create document requests for a client flagged INFORMATION_REQUESTED
+function seedInformationRequestedDocuments(
+  clientId,
+  clientData,
+  parties,
+  timestamp,
+  newClient
+) {
+  if (clientData.status !== 'INFORMATION_REQUESTED') return;
+
+  // Create document requests for individual parties
+  const individualParties = parties.filter((p) => p.partyType === 'INDIVIDUAL');
+
+  for (const indParty of individualParties) {
+    const indDocRequest = efDocumentRequestDetailsList.find(
+      (req) => req.id === '68430'
+    );
+    const generatedDocRequestId = Math.floor(
+      10000 + Math.random() * 90000
+    ).toString(); // 5 digit number
+    try {
+      upsertDocumentRequest(generatedDocRequestId, {
+        ...indDocRequest,
+        id: generatedDocRequestId,
+        clientId,
+        partyId: indParty.id,
+        createdAt: timestamp,
+      });
+
+      // Update party with validation response
+      const updatedParty = {
+        ...indParty,
+        validationResponse: [
+          ...(indParty.validationResponse || []),
+          {
+            validationStatus: 'NEEDS_INFO',
+            validationType: 'ENTITY_VALIDATION',
+            documentRequestIds: [generatedDocRequestId],
+          },
+        ],
+      };
+
+      // Update the party
+      db.party.delete({
+        where: { id: { equals: indParty.id } },
+      });
+      db.party.create(updatedParty);
+    } catch (error) {
+      dbLogger('Error creating document request:', error);
+    }
+  }
+
+  // Create document request for organization if exists
+  const orgParty = parties.find((p) => p.partyType === 'ORGANIZATION');
+  if (orgParty) {
+    const orgDocRequest = efDocumentRequestDetailsList.find(
+      (req) => req.id === '68803'
+    );
+    const generatedDocRequestId = Math.floor(
+      10000 + Math.random() * 90000
+    ).toString(); // 5 digit number
+    try {
+      upsertDocumentRequest(generatedDocRequestId, {
+        ...orgDocRequest,
+        id: generatedDocRequestId,
+        clientId,
+        partyId: orgParty.id,
+        createdAt: timestamp,
+      });
+
+      // Add the generated ID to client's outstanding block
+      newClient.outstanding.documentRequestIds.push(generatedDocRequestId);
+    } catch (error) {
+      dbLogger('Error creating document request:', error);
+    }
+  }
+}
+
+// Initialize a single predefined client: its parties, record, and doc requests
+function seedPredefinedClient(clientId, clientData) {
+  try {
+    dbLogger(
+      `\nInitializing Client ${clientId}:`,
+      JSON.stringify(clientData, null, 2)
+    );
+
+    // First create all parties from the client data
+    const parties = clientData.parties || [];
+    const timestamp = new Date().toISOString();
+
+    dbLogger('\nCreating Parties:');
+    parties.forEach((party) => seedParty(party, timestamp));
+
+    // Check if the client already exists
+    const existingClient = db.client.findFirst({
+      where: { id: { equals: clientId } },
+    });
+
+    // If it exists, delete it first to avoid any issues
+    if (existingClient) {
+      dbLogger(`Client ${clientId} already exists, deleting it first`);
+      db.client.delete({
+        where: { id: { equals: clientId } },
+      });
+    }
+
+    // Then create the client with proper schema
+    const newClient = buildPredefinedClientRecord(
+      clientId,
+      clientData,
+      parties,
+      timestamp
+    );
+    dbLogger(`\nCreating Client:`, JSON.stringify(newClient, null, 2));
+    db.client.create(newClient);
+
+    // If client status is INFORMATION_REQUESTED, create document requests
+    seedInformationRequestedDocuments(
+      clientId,
+      clientData,
+      parties,
+      timestamp,
+      newClient
+    );
+  } catch (e) {
+    dbLogger('Error creating client:', e);
+  }
+}
+
 // Initialize with predefined mocks
 export function initializeDb(force = false) {
   try {
@@ -304,191 +509,7 @@ export function initializeDb(force = false) {
 
       // Add predefined clients and their parties
       Object.entries(predefinedClients).forEach(([clientId, clientData]) => {
-        try {
-          dbLogger(
-            `\nInitializing Client ${clientId}:`,
-            JSON.stringify(clientData, null, 2)
-          );
-
-          // First create all parties from the client data
-          const parties = clientData.parties || [];
-          const timestamp = new Date().toISOString();
-
-          dbLogger('\nCreating Parties:');
-          parties.forEach((party) => {
-            if (party.id) {
-              // Check if the party already exists
-              const existingParty = db.party.findFirst({
-                where: { id: { equals: party.id } },
-              });
-
-              const newParty = {
-                ...party,
-                status: party?.status || 'ACTIVE',
-                active: party.active !== undefined ? party.active : true,
-                createdAt: party.createdAt || timestamp,
-                preferences: party.preferences || { defaultLanguage: 'en-US' },
-                profileStatus: party.profileStatus || 'COMPLETE',
-                access: party.access || [],
-                validationResponse: party.validationResponse || [],
-              };
-              dbLogger(
-                `\nParty ${party.id}:`,
-                JSON.stringify(newParty, null, 2)
-              );
-
-              try {
-                if (existingParty) {
-                  // Party already exists - update it instead of creating
-                  db.party.update({
-                    where: { id: { equals: party.id } },
-                    data: newParty,
-                  });
-                } else {
-                  // Party doesn't exist - create it
-                  db.party.create(newParty);
-                }
-              } catch (error) {
-                // Silently handle duplicate key errors (parties can be shared between clients)
-                if (
-                  error instanceof Error &&
-                  error.message.includes('already exists')
-                ) {
-                  // Try to update instead
-                  try {
-                    db.party.update({
-                      where: { id: { equals: party.id } },
-                      data: newParty,
-                    });
-                  } catch (updateError) {
-                    dbLogger('Error updating party:', updateError);
-                    // Ignore update errors for shared parties
-                  }
-                } else {
-                  dbLogger('Error creating party:', error);
-                }
-              }
-            }
-          });
-
-          // Check if the client already exists
-          const existingClient = db.client.findFirst({
-            where: { id: { equals: clientId } },
-          });
-
-          // If it exists, delete it first to avoid any issues
-          if (existingClient) {
-            dbLogger(`Client ${clientId} already exists, deleting it first`);
-            db.client.delete({
-              where: { id: { equals: clientId } },
-            });
-          }
-
-          // Then create the client with proper schema
-          const newClient = {
-            ...clientData,
-            id: clientId,
-            createdAt: clientData.createdAt || timestamp,
-            partyId: clientData.partyId || parties[0]?.id,
-            outstanding: {
-              documentRequestIds:
-                clientData.outstanding?.documentRequestIds || [],
-              questionIds: clientData.outstanding?.questionIds || [],
-              attestationDocumentIds:
-                clientData.outstanding?.attestationDocumentIds || [],
-              partyIds: clientData.outstanding?.partyIds || [],
-              partyRoles: clientData.outstanding?.partyRoles || [],
-            },
-            questionResponses: clientData.questionResponses || [],
-            attestations: clientData.attestations || [],
-            parties: parties.map((p) => p.id) || [],
-            products: clientData.products || [],
-            results: clientData.results || {
-              customerIdentityStatus: 'NOT_STARTED',
-            },
-          };
-          dbLogger(`\nCreating Client:`, JSON.stringify(newClient, null, 2));
-          db.client.create(newClient);
-
-          // If client status is INFORMATION_REQUESTED, create document requests
-          if (clientData.status === 'INFORMATION_REQUESTED') {
-            // Find individual parties
-            const individualParties = parties.filter(
-              (p) => p.partyType === 'INDIVIDUAL'
-            );
-
-            // Create document requests for individual parties
-            for (const indParty of individualParties) {
-              const indDocRequest = efDocumentRequestDetailsList.find(
-                (req) => req.id === '68430'
-              );
-              const generatedDocRequestId = Math.floor(
-                10000 + Math.random() * 90000
-              ).toString(); // 5 digit number
-              try {
-                upsertDocumentRequest(generatedDocRequestId, {
-                  ...indDocRequest,
-                  id: generatedDocRequestId,
-                  clientId,
-                  partyId: indParty.id,
-                  createdAt: timestamp,
-                });
-
-                // Update party with validation response
-                const updatedParty = {
-                  ...indParty,
-                  validationResponse: [
-                    ...(indParty.validationResponse || []),
-                    {
-                      validationStatus: 'NEEDS_INFO',
-                      validationType: 'ENTITY_VALIDATION',
-                      documentRequestIds: [generatedDocRequestId],
-                    },
-                  ],
-                };
-
-                // Update the party
-                db.party.delete({
-                  where: { id: { equals: indParty.id } },
-                });
-                db.party.create(updatedParty);
-              } catch (error) {
-                dbLogger('Error creating document request:', error);
-              }
-            }
-
-            // Create document request for organization if exists
-            const orgParty = parties.find(
-              (p) => p.partyType === 'ORGANIZATION'
-            );
-            if (orgParty) {
-              const orgDocRequest = efDocumentRequestDetailsList.find(
-                (req) => req.id === '68803'
-              );
-              const generatedDocRequestId = Math.floor(
-                10000 + Math.random() * 90000
-              ).toString(); // 5 digit number
-              try {
-                upsertDocumentRequest(generatedDocRequestId, {
-                  ...orgDocRequest,
-                  id: generatedDocRequestId,
-                  clientId,
-                  partyId: orgParty.id,
-                  createdAt: timestamp,
-                });
-
-                // Add the generated ID to client's outstanding block
-                newClient.outstanding.documentRequestIds.push(
-                  generatedDocRequestId
-                );
-              } catch (error) {
-                dbLogger('Error creating document request:', error);
-              }
-            }
-          }
-        } catch (e) {
-          dbLogger('Error creating client:', e);
-        }
+        seedPredefinedClient(clientId, clientData);
       });
 
       dbLogger('\n=== Final Database State ===');

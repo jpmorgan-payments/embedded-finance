@@ -254,201 +254,45 @@ export function PayeeSelector({
     linkedAccounts.length >= SHOW_SEARCH_THRESHOLD;
 
   const recipientsContent = (
-    <>
-      {recipientsError ? (
-        <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-gap-3 eb-px-4 eb-py-6 eb-text-center">
-          <div className="eb-flex eb-h-10 eb-w-10 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
-            <AlertCircle className="eb-h-5 eb-w-5 eb-text-destructive" />
-          </div>
-          <div className="eb-space-y-1">
-            <p className="eb-text-sm eb-font-medium eb-text-foreground">
-              {t(
-                'payeeSelector.unableToLoadRecipients',
-                'Unable to load recipients'
-              )}
-            </p>
-            <p className="eb-text-xs eb-text-muted-foreground">
-              {t(
-                'payeeSelector.loadRecipientsError',
-                "We couldn't load your recipients. Please try again."
-              )}
-            </p>
-          </div>
-          {onRetryRecipients && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onRetryRecipients}
-              className="eb-mt-1"
-            >
-              <RefreshCw className="eb-mr-2 eb-h-3 eb-w-3" />
-              {t('payeeSelector.retryButton', 'Retry')}
-            </Button>
-          )}
-        </div>
-      ) : isLoading ? (
-        <div className="eb-flex eb-items-center eb-justify-center eb-py-6">
-          <Loader2 className="eb-h-5 eb-w-5 eb-animate-spin eb-text-muted-foreground" />
-        </div>
-      ) : filteredRecipients.length === 0 && !isSearchingRecipients ? (
-        <EmptyState
-          type="recipients"
-          hasSearch={!!searchQuery.trim()}
-          searchQuery={searchQuery}
-          t={t}
-        />
-      ) : (
-        <ScrollArea
-          className={showRecipientsSearch ? 'eb-h-[200px]' : undefined}
-        >
-          <div
-            className={cn(
-              'eb-divide-y eb-divide-border',
-              showRecipientsSearch && 'eb-border-b eb-border-border'
-            )}
-          >
-            {filteredRecipients.map((payee) => (
-              <PayeeListItem
-                key={payee.id}
-                payee={payee}
-                isSelected={payee.id === selectedPayeeId}
-                onSelect={onSelect}
-              />
-            ))}
-
-            {/* Show searching indicator when loading more for search */}
-            {isSearchingRecipients && (
-              <div className="eb-flex eb-items-center eb-justify-center eb-py-3">
-                <span className="eb-flex eb-items-center eb-gap-1.5 eb-text-xs eb-text-muted-foreground">
-                  <Loader2 className="eb-h-3 eb-w-3 eb-animate-spin" />
-                  {t('payeeSelector.searchingStatus', 'Searching...')}
-                </span>
-              </div>
-            )}
-
-            {/* Infinite scroll sentinel (only when not searching) */}
-            {hasMoreRecipients && !searchQuery.trim() && (
-              <div
-                ref={recipientsLoadMoreRef}
-                className="eb-flex eb-items-center eb-justify-center eb-py-3"
-              >
-                {isLoadingMoreRecipients && (
-                  <span className="eb-flex eb-items-center eb-gap-1.5 eb-text-xs eb-text-muted-foreground">
-                    <Loader2 className="eb-h-3 eb-w-3 eb-animate-spin" />
-                    {t('payeeSelector.loadingMoreStatus', 'Loading more...')}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-      )}
-
-      {/* Add New - footer button */}
-      <AddNewPayeeButton
-        label={tString('payeeSelector.addNewRecipient', 'Add New Recipient')}
-        onClick={handleAddRecipient}
-      />
-    </>
+    <PayeeTabContent
+      type="recipients"
+      hasError={recipientsError}
+      isLoading={isLoading}
+      filteredPayees={filteredRecipients}
+      isSearching={isSearchingRecipients}
+      searchQuery={searchQuery}
+      showFixedHeight={showRecipientsSearch}
+      selectedPayeeId={selectedPayeeId}
+      onSelect={onSelect}
+      hasMore={hasMoreRecipients}
+      isLoadingMore={isLoadingMoreRecipients}
+      loadMoreRef={recipientsLoadMoreRef}
+      onRetry={onRetryRecipients}
+      addLabel={tString('payeeSelector.addNewRecipient', 'Add New Recipient')}
+      onAdd={handleAddRecipient}
+      t={t}
+    />
   );
 
   const linkedAccountsContent = (
-    <>
-      {linkedAccountsError ? (
-        <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-gap-3 eb-px-4 eb-py-6 eb-text-center">
-          <div className="eb-flex eb-h-10 eb-w-10 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
-            <AlertCircle className="eb-h-5 eb-w-5 eb-text-destructive" />
-          </div>
-          <div className="eb-space-y-1">
-            <p className="eb-text-sm eb-font-medium eb-text-foreground">
-              {t(
-                'payeeSelector.unableToLoadLinkedAccounts',
-                'Unable to load linked accounts'
-              )}
-            </p>
-            <p className="eb-text-xs eb-text-muted-foreground">
-              {t(
-                'payeeSelector.loadLinkedAccountsError',
-                "We couldn't load your linked accounts. Please try again."
-              )}
-            </p>
-          </div>
-          {onRetryLinkedAccounts && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onRetryLinkedAccounts}
-              className="eb-mt-1"
-            >
-              <RefreshCw className="eb-mr-2 eb-h-3 eb-w-3" />
-              {t('payeeSelector.retryButton', 'Retry')}
-            </Button>
-          )}
-        </div>
-      ) : isLoading ? (
-        <div className="eb-flex eb-items-center eb-justify-center eb-py-6">
-          <Loader2 className="eb-h-5 eb-w-5 eb-animate-spin eb-text-muted-foreground" />
-        </div>
-      ) : filteredLinkedAccounts.length === 0 && !isSearchingLinkedAccounts ? (
-        <EmptyState
-          type="linked-accounts"
-          hasSearch={!!searchQuery.trim()}
-          searchQuery={searchQuery}
-          t={t}
-        />
-      ) : (
-        <ScrollArea
-          className={showLinkedAccountsSearch ? 'eb-h-[200px]' : undefined}
-        >
-          <div
-            className={cn(
-              'eb-divide-y eb-divide-border',
-              showLinkedAccountsSearch && 'eb-border-b eb-border-border'
-            )}
-          >
-            {filteredLinkedAccounts.map((payee) => (
-              <PayeeListItem
-                key={payee.id}
-                payee={payee}
-                isSelected={payee.id === selectedPayeeId}
-                onSelect={onSelect}
-              />
-            ))}
-
-            {/* Show searching indicator when loading more for search */}
-            {isSearchingLinkedAccounts && (
-              <div className="eb-flex eb-items-center eb-justify-center eb-py-3">
-                <span className="eb-flex eb-items-center eb-gap-1.5 eb-text-xs eb-text-muted-foreground">
-                  <Loader2 className="eb-h-3 eb-w-3 eb-animate-spin" />
-                  {t('payeeSelector.searchingStatus', 'Searching...')}
-                </span>
-              </div>
-            )}
-
-            {/* Infinite scroll sentinel (only when not searching) */}
-            {hasMoreLinkedAccounts && !searchQuery.trim() && (
-              <div
-                ref={linkedAccountsLoadMoreRef}
-                className="eb-flex eb-items-center eb-justify-center eb-py-3"
-              >
-                {isLoadingMoreLinkedAccounts && (
-                  <span className="eb-flex eb-items-center eb-gap-1.5 eb-text-xs eb-text-muted-foreground">
-                    <Loader2 className="eb-h-3 eb-w-3 eb-animate-spin" />
-                    {t('payeeSelector.loadingMoreStatus', 'Loading more...')}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-      )}
-
-      {/* Add New - footer button */}
-      <AddNewPayeeButton
-        label={tString('payeeSelector.linkNewAccount', 'Link New Account')}
-        onClick={handleLinkAccount}
-      />
-    </>
+    <PayeeTabContent
+      type="linked-accounts"
+      hasError={linkedAccountsError}
+      isLoading={isLoading}
+      filteredPayees={filteredLinkedAccounts}
+      isSearching={isSearchingLinkedAccounts}
+      searchQuery={searchQuery}
+      showFixedHeight={showLinkedAccountsSearch}
+      selectedPayeeId={selectedPayeeId}
+      onSelect={onSelect}
+      hasMore={hasMoreLinkedAccounts}
+      isLoadingMore={isLoadingMoreLinkedAccounts}
+      loadMoreRef={linkedAccountsLoadMoreRef}
+      onRetry={onRetryLinkedAccounts}
+      addLabel={tString('payeeSelector.linkNewAccount', 'Link New Account')}
+      onAdd={handleLinkAccount}
+      t={t}
+    />
   );
 
   return (
@@ -686,5 +530,173 @@ function EmptyState({ type, hasSearch, searchQuery, t }: EmptyStateProps) {
             )}
       </div>
     </div>
+  );
+}
+
+interface PayeeTabErrorProps {
+  type: 'recipients' | 'linked-accounts';
+  onRetry?: () => void;
+  t: TranslationFn;
+}
+
+function PayeeTabError({ type, onRetry, t }: PayeeTabErrorProps) {
+  const isRecipients = type === 'recipients';
+  return (
+    <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-gap-3 eb-px-4 eb-py-6 eb-text-center">
+      <div className="eb-flex eb-h-10 eb-w-10 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
+        <AlertCircle className="eb-h-5 eb-w-5 eb-text-destructive" />
+      </div>
+      <div className="eb-space-y-1">
+        <p className="eb-text-sm eb-font-medium eb-text-foreground">
+          {isRecipients
+            ? t(
+                'payeeSelector.unableToLoadRecipients',
+                'Unable to load recipients'
+              )
+            : t(
+                'payeeSelector.unableToLoadLinkedAccounts',
+                'Unable to load linked accounts'
+              )}
+        </p>
+        <p className="eb-text-xs eb-text-muted-foreground">
+          {isRecipients
+            ? t(
+                'payeeSelector.loadRecipientsError',
+                "We couldn't load your recipients. Please try again."
+              )
+            : t(
+                'payeeSelector.loadLinkedAccountsError',
+                "We couldn't load your linked accounts. Please try again."
+              )}
+        </p>
+      </div>
+      {onRetry && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onRetry}
+          className="eb-mt-1"
+        >
+          <RefreshCw className="eb-mr-2 eb-h-3 eb-w-3" />
+          {t('payeeSelector.retryButton', 'Retry')}
+        </Button>
+      )}
+    </div>
+  );
+}
+
+interface PayeeTabContentProps {
+  type: 'recipients' | 'linked-accounts';
+  hasError: boolean;
+  isLoading: boolean;
+  filteredPayees: Payee[];
+  isSearching: boolean;
+  searchQuery: string;
+  showFixedHeight: boolean;
+  selectedPayeeId?: string;
+  onSelect: (payee: Payee) => void;
+  hasMore: boolean;
+  isLoadingMore: boolean;
+  loadMoreRef: React.RefObject<HTMLDivElement>;
+  onRetry?: () => void;
+  addLabel: string;
+  onAdd: () => void;
+  t: TranslationFn;
+}
+
+function PayeeTabContent({
+  type,
+  hasError,
+  isLoading,
+  filteredPayees,
+  isSearching,
+  searchQuery,
+  showFixedHeight,
+  selectedPayeeId,
+  onSelect,
+  hasMore,
+  isLoadingMore,
+  loadMoreRef,
+  onRetry,
+  addLabel,
+  onAdd,
+  t,
+}: PayeeTabContentProps) {
+  const isEmpty = filteredPayees.length === 0 && !isSearching;
+
+  const renderContent = () => {
+    if (hasError) {
+      return <PayeeTabError type={type} onRetry={onRetry} t={t} />;
+    }
+    if (isLoading) {
+      return (
+        <div className="eb-flex eb-items-center eb-justify-center eb-py-6">
+          <Loader2 className="eb-h-5 eb-w-5 eb-animate-spin eb-text-muted-foreground" />
+        </div>
+      );
+    }
+    if (isEmpty) {
+      return (
+        <EmptyState
+          type={type}
+          hasSearch={!!searchQuery.trim()}
+          searchQuery={searchQuery}
+          t={t}
+        />
+      );
+    }
+    return (
+      <ScrollArea className={showFixedHeight ? 'eb-h-[200px]' : undefined}>
+        <div
+          className={cn(
+            'eb-divide-y eb-divide-border',
+            showFixedHeight && 'eb-border-b eb-border-border'
+          )}
+        >
+          {filteredPayees.map((payee) => (
+            <PayeeListItem
+              key={payee.id}
+              payee={payee}
+              isSelected={payee.id === selectedPayeeId}
+              onSelect={onSelect}
+            />
+          ))}
+
+          {/* Show searching indicator when loading more for search */}
+          {isSearching && (
+            <div className="eb-flex eb-items-center eb-justify-center eb-py-3">
+              <span className="eb-flex eb-items-center eb-gap-1.5 eb-text-xs eb-text-muted-foreground">
+                <Loader2 className="eb-h-3 eb-w-3 eb-animate-spin" />
+                {t('payeeSelector.searchingStatus', 'Searching...')}
+              </span>
+            </div>
+          )}
+
+          {/* Infinite scroll sentinel (only when not searching) */}
+          {hasMore && !searchQuery.trim() && (
+            <div
+              ref={loadMoreRef}
+              className="eb-flex eb-items-center eb-justify-center eb-py-3"
+            >
+              {isLoadingMore && (
+                <span className="eb-flex eb-items-center eb-gap-1.5 eb-text-xs eb-text-muted-foreground">
+                  <Loader2 className="eb-h-3 eb-w-3 eb-animate-spin" />
+                  {t('payeeSelector.loadingMoreStatus', 'Loading more...')}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      </ScrollArea>
+    );
+  };
+
+  return (
+    <>
+      {renderContent()}
+
+      {/* Add New - footer button */}
+      <AddNewPayeeButton label={addLabel} onClick={onAdd} />
+    </>
   );
 }

@@ -355,12 +355,15 @@ describe('IndirectOwnership Component', () => {
       </TestWrapper>
     );
 
-    expect(
-      screen.queryByRole('button', { name: /Add new beneficial owner/i })
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: /Complete/i })
-    ).not.toBeInTheDocument();
+    const addButton = screen.queryByRole('button', {
+      name: /Add new beneficial owner/i,
+    });
+    const completeButton = screen.queryByRole('button', {
+      name: /Complete/i,
+    });
+
+    expect(addButton).toBeNull();
+    expect(completeButton).toBeNull();
   });
 
   it('tracks user events when handler provided', () => {

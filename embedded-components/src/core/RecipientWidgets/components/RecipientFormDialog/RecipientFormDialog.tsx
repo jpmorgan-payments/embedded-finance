@@ -82,6 +82,27 @@ export interface RecipientFormDialogProps {
 }
 
 /**
+ * Select the appropriate bank account form config for the given recipient type and mode.
+ */
+function selectBankAccountConfig(
+  recipientType: SupportedRecipientType,
+  mode: RecipientFormMode,
+  configs: {
+    recipientCreate: BankAccountFormConfig;
+    recipientEdit: BankAccountFormConfig;
+    linkedAccountCreate: BankAccountFormConfig;
+    linkedAccountEdit: BankAccountFormConfig;
+  }
+): BankAccountFormConfig {
+  if (recipientType === 'RECIPIENT') {
+    return mode === 'create' ? configs.recipientCreate : configs.recipientEdit;
+  }
+  return mode === 'create'
+    ? configs.linkedAccountCreate
+    : configs.linkedAccountEdit;
+}
+
+/**
  * RecipientFormDialog - Dialog component for creating and editing recipients
  *
  * This component consolidates the common logic between creating and editing recipients,
@@ -157,14 +178,12 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
   const recipientEditConfig = useRecipientEditConfig();
 
   // Select config based on recipientType and mode
-  const config =
-    recipientType === 'RECIPIENT'
-      ? mode === 'create'
-        ? recipientCreateConfig
-        : recipientEditConfig
-      : mode === 'create'
-        ? linkedAccountCreateConfig
-        : linkedAccountEditConfig;
+  const config = selectBankAccountConfig(recipientType, mode, {
+    recipientCreate: recipientCreateConfig,
+    recipientEdit: recipientEditConfig,
+    linkedAccountCreate: linkedAccountCreateConfig,
+    linkedAccountEdit: linkedAccountEditConfig,
+  });
 
   // Use the recipient form hook
   const {
@@ -201,6 +220,13 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
 
   // Get translation keys based on mode
   const translationKey = mode === 'create' ? 'linkAccount' : 'editAccount';
+
+  // Link-account acknowledgements only apply when creating a linked account
+  const isCreatingLinkedAccount =
+    mode === 'create' && recipientType === 'LINKED_ACCOUNT';
+  const hasLinkAccountAcknowledgements = Boolean(
+    linkAccountReviewAcknowledgements?.length
+  );
 
   // Get title based on status
   const getTitle = (): TranslationResult => {
@@ -266,16 +292,13 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
               ) : undefined
             }
             reviewAcknowledgements={
-              mode === 'create' &&
-              recipientType === 'LINKED_ACCOUNT' &&
-              linkAccountReviewAcknowledgements
+              isCreatingLinkedAccount && linkAccountReviewAcknowledgements
                 ? linkAccountReviewAcknowledgements
                 : undefined
             }
             acknowledgementsIntro={
-              mode === 'create' &&
-              recipientType === 'LINKED_ACCOUNT' &&
-              linkAccountReviewAcknowledgements?.length &&
+              isCreatingLinkedAccount &&
+              hasLinkAccountAcknowledgements &&
               showLinkAccountAcknowledgementsIntro
                 ? tOnboardingOverview(
                     'screens.linkAccount.prefillSummary.acknowledgementsIntro',
@@ -284,9 +307,7 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
                 : undefined
             }
             reviewAcknowledgementsGroupAriaLabel={
-              mode === 'create' &&
-              recipientType === 'LINKED_ACCOUNT' &&
-              linkAccountReviewAcknowledgements?.length
+              isCreatingLinkedAccount && hasLinkAccountAcknowledgements
                 ? tOnboardingOverviewString(
                     'screens.linkAccount.review.acknowledgementsGroupLabel',
                     'Agreements required to link this account'

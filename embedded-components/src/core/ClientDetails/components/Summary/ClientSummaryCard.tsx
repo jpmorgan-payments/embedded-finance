@@ -4,11 +4,6 @@
  * Design philosophy: Context-aware display
  * 1. APPROVED clients see: Business identity + People listing + Business details
  * 2. ONBOARDING clients see: Same + grouped Onboarding Progress section
- *
- * Real-world inspiration:
- * - LinkedIn company pages: Clean header, prominent team/people section
- * - Stripe dashboard: Business card with team members
- * - Business registries: Clear listing of directors/owners
  */
 
 import { useMemo } from 'react';

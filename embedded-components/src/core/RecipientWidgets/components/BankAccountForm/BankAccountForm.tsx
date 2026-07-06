@@ -16,11 +16,13 @@ import {
   ZapIcon,
 } from 'lucide-react';
 import { useForm, useFormState } from 'react-hook-form';
+import type { UseFormReturn } from 'react-hook-form';
 
 import {
   RecipientContactContactType,
   RoutingInformationTransactionType,
 } from '@/api/generated/ep-recipients.schemas';
+import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -54,6 +56,7 @@ import { useBankAccountFormSchema } from './BankAccountForm.schema';
 import type {
   BankAccountFormData,
   BankAccountFormProps,
+  LinkAccountReviewAcknowledgement,
 } from './BankAccountForm.types';
 import { mergeBankAccountDefaultValues } from './BankAccountForm.utils';
 import { LinkAccountAcknowledgementsGroup } from './linkAccountAcknowledgements';
@@ -643,6 +646,561 @@ const ContactFields: FC<ContactFieldsProps> = ({
   );
 };
 
+interface BankAccountFormStep1Props {
+  form: UseFormReturn<BankAccountFormData>;
+  config: BankAccountFormProps['config'];
+  effectiveConfig: BankAccountFormProps['config'];
+}
+
+const BankAccountFormStep1: FC<BankAccountFormStep1Props> = ({
+  form,
+  config,
+  effectiveConfig,
+}) => {
+  const { t } = useTranslationWithTokens('bank-account-form');
+
+  return (
+    <div className="eb-space-y-6">
+      {/* Account Holder Type */}
+      {effectiveConfig.accountHolder.allowIndividual &&
+        effectiveConfig.accountHolder.allowOrganization && (
+          <FormField
+            control={form.control}
+            name="accountType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('accountHolder.selectType')}</FormLabel>
+                {config.readonlyFields?.accountType ? (
+                  <div className="eb-rounded-md eb-border eb-bg-muted eb-px-3 eb-py-2 eb-text-sm eb-font-medium">
+                    <div className="eb-flex eb-items-center eb-gap-2">
+                      {field.value === 'INDIVIDUAL' ? (
+                        <>
+                          <UserIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
+                          <span>{t('accountHolder.individual')}</span>
+                        </>
+                      ) : (
+                        <>
+                          <BuildingIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
+                          <span>{t('accountHolder.organization')}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="eb-h-12">
+                        <SelectValue
+                          placeholder={t('accountHolder.choosePlaceholder')}
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {config.accountHolder.allowIndividual && (
+                        <SelectItem value="INDIVIDUAL">
+                          <div className="eb-flex eb-items-center eb-gap-2">
+                            <UserIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
+                            <span>{t('accountHolder.individual')}</span>
+                          </div>
+                        </SelectItem>
+                      )}
+                      {config.accountHolder.allowOrganization && (
+                        <SelectItem value="ORGANIZATION">
+                          <div className="eb-flex eb-items-center eb-gap-2">
+                            <BuildingIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
+                            <span>{t('accountHolder.organization')}</span>
+                          </div>
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+      {/* Payment Methods Selection */}
+      <FormField
+        control={form.control}
+        name="paymentTypes"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>{t('paymentMethods.selectAtLeastOne')}</FormLabel>
+            <PaymentMethodSelector
+              selectedTypes={field.value}
+              onChange={field.onChange}
+              availableTypes={effectiveConfig.paymentMethods.available}
+              configs={effectiveConfig.paymentMethods.configs}
+              allowMultiple={effectiveConfig.paymentMethods.allowMultiple}
+            />
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+  );
+};
+
+interface BankAccountFormStep2Props {
+  form: UseFormReturn<BankAccountFormData>;
+  effectiveConfig: BankAccountFormProps['config'];
+  accountType: BankAccountFormData['accountType'];
+  individualParties: IndividualSelectorProps['individuals'];
+  recipient?: Recipient;
+  organizationName?: string;
+  isLoading: boolean;
+  paymentTypes: RoutingInformationTransactionType[];
+  useSameRoutingNumber?: boolean;
+  showAddressFields: boolean;
+  useStateTextField: boolean;
+  requiredContactTypes: Set<RecipientContactContactType>;
+  reviewAcknowledgements?: readonly LinkAccountReviewAcknowledgement[];
+  acknowledgementChecked: Record<string, boolean>;
+  onAcknowledgementChange: (id: string, value: boolean) => void;
+  reviewAckGroupAriaLabel: string;
+  acknowledgementsIntro?: ReactNode;
+}
+
+const BankAccountFormStep2: FC<BankAccountFormStep2Props> = ({
+  form,
+  effectiveConfig,
+  accountType,
+  individualParties,
+  recipient,
+  organizationName,
+  isLoading,
+  paymentTypes,
+  useSameRoutingNumber,
+  showAddressFields,
+  useStateTextField,
+  requiredContactTypes,
+  reviewAcknowledgements,
+  acknowledgementChecked,
+  onAcknowledgementChange,
+  reviewAckGroupAriaLabel,
+  acknowledgementsIntro,
+}) => {
+  const { t, tString } = useTranslationWithTokens('bank-account-form');
+  const formatRequiredMessage = useFormatRequiredMessage(
+    effectiveConfig.paymentMethods.configs
+  );
+
+  return (
+    <div className="eb-space-y-4">
+      {/* Account Holder Details */}
+      {accountType === 'INDIVIDUAL' ? (
+        <>
+          {effectiveConfig.accountHolder.prefillFromClient &&
+          individualParties.length > 0 &&
+          !recipient ? (
+            <>
+              <Alert noTitle variant="informative">
+                <InfoIcon className="eb-h-4 eb-w-4" />
+                <AlertDescription>
+                  {individualParties.length === 1
+                    ? t('alerts.individualOnlyAccountsSingle')
+                    : t('alerts.individualOnlyAccountsMultiple')}
+                </AlertDescription>
+              </Alert>
+              <IndividualSelector
+                control={form.control}
+                individuals={individualParties}
+                selectedFirstName={form.watch('firstName')}
+                selectedLastName={form.watch('lastName')}
+                onSelect={(individual) => {
+                  form.setValue('firstName', individual.firstName, {
+                    shouldValidate: true,
+                  });
+                  form.setValue('lastName', individual.lastName, {
+                    shouldValidate: true,
+                  });
+                  form.setValue('selectedPartyId', individual.id);
+                }}
+              />
+            </>
+          ) : (
+            <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
+              <StandardFormField
+                control={form.control}
+                name="firstName"
+                type="text"
+                label={
+                  effectiveConfig.content.fieldLabels?.firstName ||
+                  t('fields.firstName.label')
+                }
+                placeholder={tString('fields.firstName.placeholder')}
+                required
+                readonly={effectiveConfig.readonlyFields?.firstName}
+                disabled={isLoading}
+                inputProps={{ autoFocus: true }}
+              />
+              <StandardFormField
+                control={form.control}
+                name="lastName"
+                type="text"
+                label={
+                  effectiveConfig.content.fieldLabels?.lastName ||
+                  t('fields.lastName.label')
+                }
+                placeholder={tString('fields.lastName.placeholder')}
+                required
+                readonly={effectiveConfig.readonlyFields?.lastName}
+                disabled={isLoading}
+              />
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          {effectiveConfig.accountHolder.prefillFromClient &&
+            organizationName &&
+            !recipient && (
+              <Alert noTitle variant="informative">
+                <InfoIcon className="eb-h-4 eb-w-4" />
+                <AlertDescription>
+                  {t('alerts.organizationOnlyAccounts')}
+                </AlertDescription>
+              </Alert>
+            )}
+          <StandardFormField
+            control={form.control}
+            name="businessName"
+            type="text"
+            label={
+              effectiveConfig.content.fieldLabels?.businessName ||
+              t('fields.businessName.label')
+            }
+            placeholder={tString('fields.businessName.placeholder')}
+            required
+            readonly={effectiveConfig.readonlyFields?.businessName}
+            disabled={isLoading}
+            inputProps={{ autoFocus: true }}
+          />
+        </>
+      )}
+
+      {/* Bank Account Details */}
+      <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
+        <StandardFormField
+          control={form.control}
+          name="accountNumber"
+          type="text"
+          label={
+            effectiveConfig.content.fieldLabels?.accountNumber ||
+            t('fields.accountNumber.label')
+          }
+          placeholder={tString('fields.accountNumber.placeholder')}
+          required
+          readonly={effectiveConfig.readonlyFields?.accountNumber}
+          disabled={isLoading}
+        />
+        <StandardFormField
+          control={form.control}
+          name="bankAccountType"
+          type="select"
+          label={
+            effectiveConfig.content.fieldLabels?.bankAccountType ||
+            t('fields.accountType.label')
+          }
+          placeholder={tString('fields.accountType.placeholder')}
+          required
+          readonly={effectiveConfig.readonlyFields?.bankAccountType}
+          disabled={isLoading}
+          options={[
+            { value: 'CHECKING', label: t('accountTypes.checking') },
+            { value: 'SAVINGS', label: t('accountTypes.savings') },
+          ]}
+        />
+      </div>
+
+      {/* Routing Numbers */}
+      <RoutingNumberFields
+        control={form.control}
+        paymentMethods={paymentTypes}
+        useSameForAll={useSameRoutingNumber ?? true}
+        onUseSameForAllChange={(value) => {
+          form.setValue('useSameRoutingNumber', value);
+
+          if (value) {
+            // When switching to "same for all", use the first method's routing number
+            // and apply it to all other payment methods
+            const currentRoutingNumbers =
+              form.getValues('routingNumbers') || [];
+            const sourceRoutingNumber =
+              currentRoutingNumbers[0]?.routingNumber || '';
+
+            if (sourceRoutingNumber) {
+              const updatedRoutingNumbers = paymentTypes.map((method) => ({
+                paymentType: method,
+                routingNumber: sourceRoutingNumber,
+              }));
+              form.setValue('routingNumbers', updatedRoutingNumbers);
+            }
+          }
+        }}
+        configs={effectiveConfig.paymentMethods.configs}
+        disabled={isLoading}
+      />
+
+      {/* Address Fields */}
+      {showAddressFields &&
+        (() => {
+          const addressMethods = getRequiredPaymentMethods(
+            'address',
+            paymentTypes,
+            effectiveConfig.paymentMethods.configs
+          );
+          const addressReason = formatRequiredMessage(addressMethods);
+          return (
+            <fieldset className="eb-space-y-3 eb-rounded-lg eb-border eb-p-4 eb-pt-1">
+              <legend className="eb-flex eb-items-center eb-gap-2 eb-px-2 eb-text-sm eb-font-semibold">
+                {t('address.legend')}
+                {addressReason && (
+                  <span className="eb-inline-flex eb-items-center eb-gap-1 eb-rounded-full eb-bg-informative-accent eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-informative">
+                    <InfoIcon className="eb-h-3 eb-w-3" />
+                    {addressReason}
+                  </span>
+                )}
+              </legend>
+              <div className="eb-grid eb-gap-3">
+                <StandardFormField
+                  control={form.control}
+                  name="address.addressLine1"
+                  type="text"
+                  label={
+                    effectiveConfig.content.fieldLabels?.primaryAddressLine ||
+                    t('address.streetAddress.label')
+                  }
+                  placeholder={tString('address.streetAddress.placeholder')}
+                  required
+                  disabled={isLoading}
+                />
+                <StandardFormField
+                  control={form.control}
+                  name="address.addressLine2"
+                  type="text"
+                  label={
+                    effectiveConfig.content.fieldLabels?.secondaryAddressLine ||
+                    t('address.addressLine2.label')
+                  }
+                  placeholder={tString('address.addressLine2.placeholder')}
+                  disabled={isLoading}
+                />
+                <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-3">
+                  <StandardFormField
+                    control={form.control}
+                    name="address.city"
+                    type="text"
+                    label={t('address.city.label')}
+                    placeholder={tString('address.city.placeholder')}
+                    required
+                    className="md:eb-col-span-1"
+                    disabled={isLoading}
+                  />
+                  <StandardFormField
+                    control={form.control}
+                    name="address.state"
+                    type={useStateTextField ? 'text' : 'us-state'}
+                    label={t('address.state.label')}
+                    placeholder={tString('address.state.placeholder')}
+                    required
+                    inputProps={
+                      useStateTextField ? { maxLength: 34 } : undefined
+                    }
+                    disabled={isLoading}
+                  />
+                  <StandardFormField
+                    control={form.control}
+                    name="address.postalCode"
+                    type="text"
+                    label={t('address.postalCode.label')}
+                    placeholder={tString('address.postalCode.placeholder')}
+                    required
+                    inputProps={{ maxLength: 10 }}
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+            </fieldset>
+          );
+        })()}
+
+      {/* Contact Information - Only show if required */}
+      {requiredContactTypes.size > 0 && (
+        <FormField
+          control={form.control}
+          name="contacts"
+          render={({ field }) => (
+            <FormItem>
+              <ContactFields
+                value={field.value}
+                onChange={field.onChange}
+                requiredTypes={requiredContactTypes}
+                paymentTypes={paymentTypes}
+                configs={effectiveConfig.paymentMethods.configs}
+                disabled={isLoading}
+              />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
+
+      {reviewAcknowledgements && reviewAcknowledgements.length > 0 && (
+        <>
+          <Separator />
+          <LinkAccountAcknowledgementsGroup
+            items={reviewAcknowledgements}
+            checked={acknowledgementChecked}
+            onCheckedChange={onAcknowledgementChange}
+            disabled={isLoading}
+            groupAriaLabel={reviewAckGroupAriaLabel}
+            intro={acknowledgementsIntro}
+          />
+        </>
+      )}
+
+      {/* Certification */}
+      {effectiveConfig.requiredFields.certification && (
+        <>
+          <Separator />
+          <FormField
+            control={form.control}
+            name="certify"
+            render={({ field }) => (
+              <FormItem>
+                <div className="eb-flex eb-items-start eb-space-x-2">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      className="eb-mt-0.5"
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormLabel className="eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
+                    {effectiveConfig.content.certificationText}
+                  </FormLabel>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </>
+      )}
+    </div>
+  );
+};
+
+interface BankAccountFormFooterProps {
+  embedded: boolean;
+  currentStep: 1 | 2;
+  content: BankAccountFormProps['config']['content'];
+  onCancel?: () => void;
+  isLoading: boolean;
+  skipStepOne: boolean;
+  reviewAcknowledgementsComplete: boolean;
+  onStep1Continue: () => void;
+  onStep2Back: () => void;
+}
+const BankAccountFormFooter: FC<BankAccountFormFooterProps> = ({
+  embedded,
+  currentStep,
+  content,
+  onCancel,
+  isLoading,
+  skipStepOne,
+  reviewAcknowledgementsComplete,
+  onStep1Continue,
+  onStep2Back,
+}) => {
+  const { t } = useTranslationWithTokens('bank-account-form');
+
+  const cancelButton = onCancel ? (
+    <Button
+      variant="outline"
+      type="button"
+      onClick={onCancel}
+      className="eb-w-full sm:eb-w-auto"
+    >
+      {content.cancelButtonText || t('navigation.cancel')}
+    </Button>
+  ) : null;
+
+  const continueButton = (
+    <Button
+      type="button"
+      onClick={onStep1Continue}
+      className="eb-w-full sm:eb-w-auto sm:eb-min-w-[200px]"
+    >
+      {t('navigation.continueToAccountDetails')} <ArrowRightIcon />
+    </Button>
+  );
+
+  // Embedded step 2 back can short-circuit to cancel when step one is skipped
+  const backOnClick =
+    embedded && skipStepOne && onCancel ? onCancel : onStep2Back;
+  const backLabel =
+    embedded && skipStepOne ? t('navigation.cancel') : t('navigation.back');
+
+  const step2Buttons = (
+    <>
+      <Button
+        variant="outline"
+        type="button"
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={backOnClick}
+        disabled={isLoading}
+        className="eb-w-full sm:eb-w-auto"
+      >
+        <ArrowLeftIcon /> {backLabel}
+      </Button>
+      <Button
+        type="submit"
+        disabled={isLoading || !reviewAcknowledgementsComplete}
+        className="eb-w-full sm:eb-w-auto sm:eb-min-w-[120px]"
+      >
+        {isLoading && (
+          <Loader2Icon className="eb-mr-2 eb-h-4 eb-w-4 eb-animate-spin" />
+        )}
+        {isLoading ? content.loadingMessage : content.submitButtonText}
+      </Button>
+    </>
+  );
+
+  const step1Content =
+    currentStep === 1 ? (
+      <>
+        {embedded ? (
+          cancelButton
+        ) : (
+          <DialogClose asChild>{cancelButton}</DialogClose>
+        )}
+        {continueButton}
+      </>
+    ) : null;
+
+  const step2Content = currentStep === 2 ? step2Buttons : null;
+
+  if (embedded) {
+    return (
+      <div className="eb-flex eb-shrink-0 eb-flex-col-reverse eb-gap-3 eb-p-4 sm:eb-flex-row sm:eb-justify-end">
+        {step1Content}
+        {step2Content}
+      </div>
+    );
+  }
+
+  return (
+    <DialogFooter className="eb-shrink-0 eb-gap-3 eb-border-t eb-bg-muted/10 eb-p-6 eb-py-4">
+      {step1Content}
+      {step2Content}
+    </DialogFooter>
+  );
+};
+
 /**
  * BankAccountForm - Core form component (2-step wizard)
  */
@@ -664,10 +1222,6 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   acknowledgementsIntro,
   reviewAcknowledgementsGroupAriaLabel,
 }) => {
-  const { t, tString } = useTranslationWithTokens('bank-account-form');
-  const formatRequiredMessage = useFormatRequiredMessage(
-    config.paymentMethods.configs
-  );
   const effectiveReviewAckGroupAriaLabel =
     reviewAcknowledgementsGroupAriaLabel ??
     'Agreements required to link this account';
@@ -1285,6 +1839,13 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     setCurrentStep(1);
   };
 
+  const handleAcknowledgementChange = (id: string, value: boolean) => {
+    setAcknowledgementChecked((prev) => ({
+      ...prev,
+      [id]: value,
+    }));
+  };
+
   return (
     <Form {...form}>
       <form
@@ -1298,548 +1859,50 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
             {alert}
             {/* Step 1: Account Type & Payment Method Selection */}
             {currentStep === 1 && (
-              <div className="eb-space-y-6">
-                {/* Account Holder Type */}
-                {effectiveConfig.accountHolder.allowIndividual &&
-                  effectiveConfig.accountHolder.allowOrganization && (
-                    <FormField
-                      control={form.control}
-                      name="accountType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('accountHolder.selectType')}</FormLabel>
-                          {config.readonlyFields?.accountType ? (
-                            <div className="eb-rounded-md eb-border eb-bg-muted eb-px-3 eb-py-2 eb-text-sm eb-font-medium">
-                              <div className="eb-flex eb-items-center eb-gap-2">
-                                {field.value === 'INDIVIDUAL' ? (
-                                  <>
-                                    <UserIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
-                                    <span>{t('accountHolder.individual')}</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <BuildingIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
-                                    <span>
-                                      {t('accountHolder.organization')}
-                                    </span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          ) : (
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger className="eb-h-12">
-                                  <SelectValue
-                                    placeholder={t(
-                                      'accountHolder.choosePlaceholder'
-                                    )}
-                                  />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {config.accountHolder.allowIndividual && (
-                                  <SelectItem value="INDIVIDUAL">
-                                    <div className="eb-flex eb-items-center eb-gap-2">
-                                      <UserIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
-                                      <span>
-                                        {t('accountHolder.individual')}
-                                      </span>
-                                    </div>
-                                  </SelectItem>
-                                )}
-                                {config.accountHolder.allowOrganization && (
-                                  <SelectItem value="ORGANIZATION">
-                                    <div className="eb-flex eb-items-center eb-gap-2">
-                                      <BuildingIcon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
-                                      <span>
-                                        {t('accountHolder.organization')}
-                                      </span>
-                                    </div>
-                                  </SelectItem>
-                                )}
-                              </SelectContent>
-                            </Select>
-                          )}
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-
-                {/* Payment Methods Selection */}
-                <FormField
-                  control={form.control}
-                  name="paymentTypes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {t('paymentMethods.selectAtLeastOne')}
-                      </FormLabel>
-                      <PaymentMethodSelector
-                        selectedTypes={field.value}
-                        onChange={field.onChange}
-                        availableTypes={
-                          effectiveConfig.paymentMethods.available
-                        }
-                        configs={effectiveConfig.paymentMethods.configs}
-                        allowMultiple={
-                          effectiveConfig.paymentMethods.allowMultiple
-                        }
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <BankAccountFormStep1
+                form={form}
+                config={config}
+                effectiveConfig={effectiveConfig}
+              />
             )}
 
             {/* Step 2: Detailed Form */}
             {currentStep === 2 && (
-              <div className="eb-space-y-4">
-                {/* Account Holder Details */}
-                {accountType === 'INDIVIDUAL' ? (
-                  <>
-                    {effectiveConfig.accountHolder.prefillFromClient &&
-                    individualParties.length > 0 &&
-                    !recipient ? (
-                      <>
-                        <Alert noTitle variant="informative">
-                          <InfoIcon className="eb-h-4 eb-w-4" />
-                          <AlertDescription>
-                            {individualParties.length === 1
-                              ? t('alerts.individualOnlyAccountsSingle')
-                              : t('alerts.individualOnlyAccountsMultiple')}
-                          </AlertDescription>
-                        </Alert>
-                        <IndividualSelector
-                          control={form.control}
-                          individuals={individualParties}
-                          selectedFirstName={form.watch('firstName')}
-                          selectedLastName={form.watch('lastName')}
-                          onSelect={(individual) => {
-                            form.setValue('firstName', individual.firstName, {
-                              shouldValidate: true,
-                            });
-                            form.setValue('lastName', individual.lastName, {
-                              shouldValidate: true,
-                            });
-                            form.setValue('selectedPartyId', individual.id);
-                          }}
-                        />
-                      </>
-                    ) : (
-                      <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
-                        <StandardFormField
-                          control={form.control}
-                          name="firstName"
-                          type="text"
-                          label={
-                            effectiveConfig.content.fieldLabels?.firstName ||
-                            t('fields.firstName.label')
-                          }
-                          placeholder={tString('fields.firstName.placeholder')}
-                          required
-                          readonly={effectiveConfig.readonlyFields?.firstName}
-                          disabled={isLoading}
-                          inputProps={{ autoFocus: true }}
-                        />
-                        <StandardFormField
-                          control={form.control}
-                          name="lastName"
-                          type="text"
-                          label={
-                            effectiveConfig.content.fieldLabels?.lastName ||
-                            t('fields.lastName.label')
-                          }
-                          placeholder={tString('fields.lastName.placeholder')}
-                          required
-                          readonly={effectiveConfig.readonlyFields?.lastName}
-                          disabled={isLoading}
-                        />
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    {effectiveConfig.accountHolder.prefillFromClient &&
-                      organizationName &&
-                      !recipient && (
-                        <Alert noTitle variant="informative">
-                          <InfoIcon className="eb-h-4 eb-w-4" />
-                          <AlertDescription>
-                            {t('alerts.organizationOnlyAccounts')}
-                          </AlertDescription>
-                        </Alert>
-                      )}
-                    <StandardFormField
-                      control={form.control}
-                      name="businessName"
-                      type="text"
-                      label={
-                        effectiveConfig.content.fieldLabels?.businessName ||
-                        t('fields.businessName.label')
-                      }
-                      placeholder={tString('fields.businessName.placeholder')}
-                      required
-                      readonly={effectiveConfig.readonlyFields?.businessName}
-                      disabled={isLoading}
-                      inputProps={{ autoFocus: true }}
-                    />
-                  </>
-                )}
-
-                {/* Bank Account Details */}
-                <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
-                  <StandardFormField
-                    control={form.control}
-                    name="accountNumber"
-                    type="text"
-                    label={
-                      effectiveConfig.content.fieldLabels?.accountNumber ||
-                      t('fields.accountNumber.label')
-                    }
-                    placeholder={tString('fields.accountNumber.placeholder')}
-                    required
-                    readonly={effectiveConfig.readonlyFields?.accountNumber}
-                    disabled={isLoading}
-                  />
-                  <StandardFormField
-                    control={form.control}
-                    name="bankAccountType"
-                    type="select"
-                    label={
-                      effectiveConfig.content.fieldLabels?.bankAccountType ||
-                      t('fields.accountType.label')
-                    }
-                    placeholder={tString('fields.accountType.placeholder')}
-                    required
-                    readonly={effectiveConfig.readonlyFields?.bankAccountType}
-                    disabled={isLoading}
-                    options={[
-                      { value: 'CHECKING', label: t('accountTypes.checking') },
-                      { value: 'SAVINGS', label: t('accountTypes.savings') },
-                    ]}
-                  />
-                </div>
-
-                {/* Routing Numbers */}
-                <RoutingNumberFields
-                  control={form.control}
-                  paymentMethods={paymentTypes}
-                  useSameForAll={useSameRoutingNumber ?? true}
-                  onUseSameForAllChange={(value) => {
-                    form.setValue('useSameRoutingNumber', value);
-
-                    if (value) {
-                      // When switching to "same for all", use the first method's routing number
-                      // and apply it to all other payment methods
-                      const currentRoutingNumbers =
-                        form.getValues('routingNumbers') || [];
-                      const sourceRoutingNumber =
-                        currentRoutingNumbers[0]?.routingNumber || '';
-
-                      if (sourceRoutingNumber) {
-                        const updatedRoutingNumbers = paymentTypes.map(
-                          (method) => ({
-                            paymentType: method,
-                            routingNumber: sourceRoutingNumber,
-                          })
-                        );
-                        form.setValue('routingNumbers', updatedRoutingNumbers);
-                      }
-                    }
-                  }}
-                  configs={effectiveConfig.paymentMethods.configs}
-                  disabled={isLoading}
-                />
-
-                {/* Address Fields */}
-                {showAddressFields &&
-                  (() => {
-                    const addressMethods = getRequiredPaymentMethods(
-                      'address',
-                      paymentTypes,
-                      effectiveConfig.paymentMethods.configs
-                    );
-                    const addressReason = formatRequiredMessage(addressMethods);
-                    return (
-                      <fieldset className="eb-space-y-3 eb-rounded-lg eb-border eb-p-4 eb-pt-1">
-                        <legend className="eb-flex eb-items-center eb-gap-2 eb-px-2 eb-text-sm eb-font-semibold">
-                          {t('address.legend')}
-                          {addressReason && (
-                            <span className="eb-inline-flex eb-items-center eb-gap-1 eb-rounded-full eb-bg-informative-accent eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-informative">
-                              <InfoIcon className="eb-h-3 eb-w-3" />
-                              {addressReason}
-                            </span>
-                          )}
-                        </legend>
-                        <div className="eb-grid eb-gap-3">
-                          <StandardFormField
-                            control={form.control}
-                            name="address.addressLine1"
-                            type="text"
-                            label={
-                              effectiveConfig.content.fieldLabels
-                                ?.primaryAddressLine ||
-                              t('address.streetAddress.label')
-                            }
-                            placeholder={tString(
-                              'address.streetAddress.placeholder'
-                            )}
-                            required
-                            disabled={isLoading}
-                          />
-                          <StandardFormField
-                            control={form.control}
-                            name="address.addressLine2"
-                            type="text"
-                            label={
-                              effectiveConfig.content.fieldLabels
-                                ?.secondaryAddressLine ||
-                              t('address.addressLine2.label')
-                            }
-                            placeholder={tString(
-                              'address.addressLine2.placeholder'
-                            )}
-                            disabled={isLoading}
-                          />
-                          <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-3">
-                            <StandardFormField
-                              control={form.control}
-                              name="address.city"
-                              type="text"
-                              label={t('address.city.label')}
-                              placeholder={tString('address.city.placeholder')}
-                              required
-                              className="md:eb-col-span-1"
-                              disabled={isLoading}
-                            />
-                            <StandardFormField
-                              control={form.control}
-                              name="address.state"
-                              type={useStateTextField ? 'text' : 'us-state'}
-                              label={t('address.state.label')}
-                              placeholder={tString('address.state.placeholder')}
-                              required
-                              inputProps={
-                                useStateTextField
-                                  ? { maxLength: 34 }
-                                  : undefined
-                              }
-                              disabled={isLoading}
-                            />
-                            <StandardFormField
-                              control={form.control}
-                              name="address.postalCode"
-                              type="text"
-                              label={t('address.postalCode.label')}
-                              placeholder={tString(
-                                'address.postalCode.placeholder'
-                              )}
-                              required
-                              inputProps={{ maxLength: 10 }}
-                              disabled={isLoading}
-                            />
-                          </div>
-                        </div>
-                      </fieldset>
-                    );
-                  })()}
-
-                {/* Contact Information - Only show if required */}
-                {requiredContactTypes.size > 0 && (
-                  <FormField
-                    control={form.control}
-                    name="contacts"
-                    render={({ field }) => (
-                      <FormItem>
-                        <ContactFields
-                          value={field.value}
-                          onChange={field.onChange}
-                          requiredTypes={requiredContactTypes}
-                          paymentTypes={paymentTypes}
-                          configs={effectiveConfig.paymentMethods.configs}
-                          disabled={isLoading}
-                        />
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-                {currentStep === 2 &&
-                  reviewAcknowledgements &&
-                  reviewAcknowledgements.length > 0 && (
-                    <>
-                      <Separator />
-                      <LinkAccountAcknowledgementsGroup
-                        items={reviewAcknowledgements}
-                        checked={acknowledgementChecked}
-                        onCheckedChange={(id, value) =>
-                          setAcknowledgementChecked((prev) => ({
-                            ...prev,
-                            [id]: value,
-                          }))
-                        }
-                        disabled={isLoading}
-                        groupAriaLabel={effectiveReviewAckGroupAriaLabel}
-                        intro={acknowledgementsIntro}
-                      />
-                    </>
-                  )}
-
-                {/* Certification */}
-                {effectiveConfig.requiredFields.certification && (
-                  <>
-                    <Separator />
-                    <FormField
-                      control={form.control}
-                      name="certify"
-                      render={({ field }) => (
-                        <FormItem>
-                          <div className="eb-flex eb-items-start eb-space-x-2">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                                className="eb-mt-0.5"
-                                disabled={isLoading}
-                              />
-                            </FormControl>
-                            <FormLabel className="eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
-                              {effectiveConfig.content.certificationText}
-                            </FormLabel>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </>
-                )}
-              </div>
+              <BankAccountFormStep2
+                form={form}
+                effectiveConfig={effectiveConfig}
+                accountType={accountType}
+                individualParties={individualParties}
+                recipient={recipient}
+                organizationName={organizationName}
+                isLoading={isLoading}
+                paymentTypes={paymentTypes}
+                useSameRoutingNumber={useSameRoutingNumber}
+                showAddressFields={showAddressFields}
+                useStateTextField={useStateTextField}
+                requiredContactTypes={requiredContactTypes}
+                reviewAcknowledgements={reviewAcknowledgements}
+                acknowledgementChecked={acknowledgementChecked}
+                onAcknowledgementChange={handleAcknowledgementChange}
+                reviewAckGroupAriaLabel={effectiveReviewAckGroupAriaLabel}
+                acknowledgementsIntro={acknowledgementsIntro}
+              />
             )}
           </div>
         </div>
 
         {/* Footer - Use plain div when embedded, DialogFooter when in dialog context */}
-        {embedded ? (
-          <div className="eb-flex eb-shrink-0 eb-flex-col-reverse eb-gap-3 eb-p-4 sm:eb-flex-row sm:eb-justify-end">
-            {currentStep === 1 && (
-              <>
-                {onCancel && (
-                  <Button
-                    variant="outline"
-                    type="button"
-                    onClick={onCancel}
-                    className="eb-w-full sm:eb-w-auto"
-                  >
-                    {effectiveConfig.content.cancelButtonText ||
-                      t('navigation.cancel')}
-                  </Button>
-                )}
-                <Button
-                  type="button"
-                  onClick={handleStep1Continue}
-                  className="eb-w-full sm:eb-w-auto sm:eb-min-w-[200px]"
-                >
-                  {t('navigation.continueToAccountDetails')} <ArrowRightIcon />
-                </Button>
-              </>
-            )}
-
-            {currentStep === 2 && (
-              <>
-                <Button
-                  variant="outline"
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={skipStepOne && onCancel ? onCancel : handleStep2Back}
-                  disabled={isLoading}
-                  className="eb-w-full sm:eb-w-auto"
-                >
-                  <ArrowLeftIcon />{' '}
-                  {skipStepOne ? t('navigation.cancel') : t('navigation.back')}
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={
-                    isLoading ||
-                    (currentStep === 2 && !reviewAcknowledgementsComplete)
-                  }
-                  className="eb-w-full sm:eb-w-auto sm:eb-min-w-[120px]"
-                >
-                  {isLoading && (
-                    <Loader2Icon className="eb-mr-2 eb-h-4 eb-w-4 eb-animate-spin" />
-                  )}
-                  {isLoading
-                    ? effectiveConfig.content.loadingMessage
-                    : effectiveConfig.content.submitButtonText}
-                </Button>
-              </>
-            )}
-          </div>
-        ) : (
-          <DialogFooter className="eb-shrink-0 eb-gap-3 eb-border-t eb-bg-muted/10 eb-p-6 eb-py-4">
-            {currentStep === 1 && (
-              <>
-                {onCancel && (
-                  <DialogClose asChild>
-                    <Button
-                      variant="outline"
-                      type="button"
-                      onClick={onCancel}
-                      className="eb-w-full sm:eb-w-auto"
-                    >
-                      {effectiveConfig.content.cancelButtonText ||
-                        t('navigation.cancel')}
-                    </Button>
-                  </DialogClose>
-                )}
-                <Button
-                  type="button"
-                  onClick={handleStep1Continue}
-                  className="eb-w-full sm:eb-w-auto sm:eb-min-w-[200px]"
-                >
-                  {t('navigation.continueToAccountDetails')} <ArrowRightIcon />
-                </Button>
-              </>
-            )}
-
-            {currentStep === 2 && (
-              <>
-                <Button
-                  variant="outline"
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={handleStep2Back}
-                  disabled={isLoading}
-                  className="eb-w-full sm:eb-w-auto"
-                >
-                  <ArrowLeftIcon /> {t('navigation.back')}
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={
-                    isLoading ||
-                    (currentStep === 2 && !reviewAcknowledgementsComplete)
-                  }
-                  className="eb-w-full sm:eb-w-auto sm:eb-min-w-[120px]"
-                >
-                  {isLoading && (
-                    <Loader2Icon className="eb-mr-2 eb-h-4 eb-w-4 eb-animate-spin" />
-                  )}
-                  {isLoading
-                    ? effectiveConfig.content.loadingMessage
-                    : effectiveConfig.content.submitButtonText}
-                </Button>
-              </>
-            )}
-          </DialogFooter>
-        )}
+        <BankAccountFormFooter
+          embedded={embedded}
+          currentStep={currentStep}
+          content={effectiveConfig.content}
+          onCancel={onCancel}
+          isLoading={isLoading}
+          skipStepOne={skipStepOne}
+          reviewAcknowledgementsComplete={reviewAcknowledgementsComplete}
+          onStep1Continue={handleStep1Continue}
+          onStep2Back={handleStep2Back}
+        />
       </form>
     </Form>
   );

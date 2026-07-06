@@ -2,7 +2,11 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { useQueryClient } from '@tanstack/react-query';
 import { PaginationState } from '@tanstack/react-table';
-import { useVirtualizer, VirtualItem } from '@tanstack/react-virtual';
+import {
+  useVirtualizer,
+  VirtualItem,
+  Virtualizer,
+} from '@tanstack/react-virtual';
 import {
   AlertCircle,
   ChevronDown,
@@ -53,6 +57,7 @@ import { useRecipients, useRecipientsTable } from '../../hooks';
 import {
   getRecipientTypeConfig,
   getUserJourneys,
+  RecipientI18nNamespace,
   SupportedRecipientType,
 } from '../../types';
 import {
@@ -219,6 +224,565 @@ export interface BaseRecipientsWidgetProps
    */
   hideRemoveRecipient?: boolean;
 }
+
+type ServerErrorInfo = NonNullable<ReturnType<typeof useServerError>>;
+
+interface RecipientsErrorStateProps {
+  errorInfo: ServerErrorInfo | null;
+  errorMessage?: React.ReactNode;
+  showErrorDetails: boolean;
+  onToggleErrorDetails: () => void;
+  onRetry: () => void;
+  i18nNamespace: RecipientI18nNamespace;
+}
+
+/** Error state block with an expandable details panel. */
+const RecipientsErrorState: React.FC<RecipientsErrorStateProps> = ({
+  errorInfo,
+  errorMessage,
+  showErrorDetails,
+  onToggleErrorDetails,
+  onRetry,
+  i18nNamespace,
+}) => {
+  const { t } = useTranslationWithTokens(i18nNamespace);
+
+  return (
+    <div className="eb-p-2.5 eb-py-6 @md:eb-p-3 @lg:eb-p-4">
+      <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-2 eb-text-center">
+        <div className="eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
+          <AlertCircle className="eb-h-6 eb-w-6 eb-text-destructive" />
+        </div>
+        <div className="eb-space-y-1">
+          <h3 className="eb-text-sm eb-font-semibold eb-text-foreground">
+            {t('errors.loading.title')}
+          </h3>
+          <p className="eb-max-w-xs eb-text-xs eb-text-muted-foreground">
+            {errorMessage}
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onRetry}
+          className="eb-mt-2"
+        >
+          <RefreshCw className="eb-mr-2 eb-h-4 eb-w-4" />
+          {t('errors.tryAgain', { defaultValue: 'Try again' })}
+        </Button>
+
+        {/* Expandable details */}
+        {errorInfo?.hasDetails && (
+          <div className="eb-mt-2 eb-w-full eb-max-w-sm">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onToggleErrorDetails}
+              className="eb-text-xs eb-text-muted-foreground"
+            >
+              {showErrorDetails ? (
+                <ChevronUp className="eb-mr-1 eb-h-3 eb-w-3" />
+              ) : (
+                <ChevronDown className="eb-mr-1 eb-h-3 eb-w-3" />
+              )}
+              {showErrorDetails
+                ? t('errors.hideDetails', { defaultValue: 'Hide details' })
+                : t('errors.showDetails', { defaultValue: 'Show details' })}
+            </Button>
+
+            {showErrorDetails && (
+              <div className="eb-mt-2 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-3 eb-text-left eb-text-xs">
+                {errorInfo.httpStatus && (
+                  <div className="eb-mb-2">
+                    <span className="eb-font-medium">Status:</span>{' '}
+                    {errorInfo.httpStatus}
+                    {errorInfo.title && ` - ${errorInfo.title}`}
+                  </div>
+                )}
+                {errorInfo.reasons.length > 0 && (
+                  <div className="eb-mb-2">
+                    <span className="eb-font-medium">Reasons:</span>
+                    <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
+                      {errorInfo.reasons.map((reason: any) => (
+                        <li
+                          key={`${reason.field ?? ''}-${reason.message ?? reason}`}
+                        >
+                          {reason.field && (
+                            <span className="eb-font-medium">
+                              {reason.field}:{' '}
+                            </span>
+                          )}
+                          {reason.message || reason}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {errorInfo.context.length > 0 && (
+                  <div>
+                    <span className="eb-font-medium">Context:</span>
+                    <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
+                      {errorInfo.context.map((ctx: any) => (
+                        <li key={`${ctx.field ?? ''}-${ctx.message ?? ''}`}>
+                          {ctx.field && (
+                            <span className="eb-font-medium">
+                              {ctx.field}:{' '}
+                            </span>
+                          )}
+                          {ctx.message}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+interface RejectedAccountsSectionProps {
+  recentRejectedAccounts: Recipient[];
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
+  locale: string;
+  i18nNamespace: RecipientI18nNamespace;
+}
+
+/** Collapsible section listing accounts rejected in the last 30 days. */
+const RejectedAccountsSection: React.FC<RejectedAccountsSectionProps> = ({
+  recentRejectedAccounts,
+  collapsed,
+  onToggleCollapsed,
+  locale,
+  i18nNamespace,
+}) => {
+  const { t, tString } = useTranslationWithTokens(i18nNamespace);
+
+  const formatDate = (updatedAt?: string) =>
+    updatedAt
+      ? new Date(updatedAt).toLocaleDateString(locale, {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        })
+      : '';
+
+  return (
+    <div
+      className="eb-overflow-hidden eb-border-b eb-border-destructive/20 eb-bg-destructive/5"
+      role="region"
+      aria-label={tString('rejectedAccounts.sectionTitle', {
+        defaultValue: 'Recently Rejected Accounts',
+      })}
+    >
+      {/* Disclosure toggle */}
+      <button
+        type="button"
+        className="eb-group eb-flex eb-w-full eb-cursor-pointer eb-items-center eb-gap-2.5 eb-px-4 eb-py-3 eb-text-left eb-transition-colors hover:eb-bg-destructive/10 focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-ring focus-visible:eb-ring-offset-1"
+        onClick={onToggleCollapsed}
+        aria-expanded={!collapsed}
+      >
+        <XCircleIcon className="eb-h-4 eb-w-4 eb-shrink-0 eb-text-destructive" />
+        <div className="eb-min-w-0 eb-flex-1">
+          <div className="eb-flex eb-items-center eb-gap-1.5">
+            <span className="eb-text-xs eb-font-semibold eb-text-destructive">
+              {t('rejectedAccounts.sectionTitle', {
+                defaultValue: 'Recently Rejected Accounts',
+              })}
+            </span>
+            <Badge
+              variant="destructive"
+              className="eb-px-1.5 eb-py-0 eb-text-[0.65rem] eb-leading-4"
+            >
+              {recentRejectedAccounts.length}
+            </Badge>
+          </div>
+          {/* Collapsed inline summary — most recent rejection */}
+          {collapsed && (
+            <p className="eb-mt-0.5 eb-truncate eb-text-[0.7rem] eb-text-muted-foreground">
+              {t('rejectedAccounts.collapsedSummary', {
+                defaultValue: 'Most recent: {{name}} — {{date}}',
+                name: getRecipientDisplayName(recentRejectedAccounts[0]),
+                date: formatDate(recentRejectedAccounts[0].updatedAt),
+              })}
+            </p>
+          )}
+        </div>
+        <ChevronDown
+          className={cn(
+            'eb-h-4 eb-w-4 eb-shrink-0 eb-text-destructive/60 eb-transition-transform eb-duration-200',
+            !collapsed && 'eb-rotate-180'
+          )}
+        />
+      </button>
+
+      {/* Expanded content */}
+      {!collapsed && (
+        <div className="eb-animate-fade-in">
+          <Separator className="eb-bg-destructive/15" />
+          <p className="eb-px-4 eb-py-2 eb-text-[0.7rem] eb-text-muted-foreground">
+            {t('rejectedAccounts.sectionDescription', {
+              defaultValue:
+                'The following account(s) were rejected in the last 30 days.',
+            })}
+          </p>
+          <ul className="eb-divide-y eb-divide-destructive/10">
+            {recentRejectedAccounts.map((rejected) => {
+              const name = getRecipientDisplayName(rejected);
+              const rejectedDate = rejected.updatedAt
+                ? formatDate(rejected.updatedAt)
+                : null;
+
+              return (
+                <li key={rejected.id} className="eb-px-4 eb-py-2.5">
+                  <div className="eb-flex eb-items-start eb-justify-between eb-gap-3">
+                    <div className="eb-min-w-0">
+                      <p className="eb-truncate eb-text-sm eb-font-medium">
+                        {name}
+                      </p>
+                    </div>
+                    <div className="eb-flex eb-shrink-0 eb-items-center eb-gap-2">
+                      {rejectedDate && (
+                        <span className="eb-text-xs eb-text-muted-foreground">
+                          {rejectedDate}
+                        </span>
+                      )}
+                      <Badge variant="destructive" className="eb-text-xs">
+                        {t('status.labels.REJECTED', {
+                          defaultValue: 'Rejected',
+                        })}
+                      </Badge>
+                    </div>
+                  </div>
+                  <p className="eb-mt-1.5 eb-flex eb-items-start eb-gap-1.5 eb-text-xs eb-text-destructive">
+                    <AlertCircle className="eb-mt-0.5 eb-h-3 eb-w-3 eb-shrink-0" />
+                    <span>
+                      {t('rejectedAccounts.rejectionMessage', {
+                        defaultValue:
+                          'There was an issue linking this account. Please check the account details or contact support.',
+                      })}
+                    </span>
+                  </p>
+                  <div className="eb-mt-2">
+                    <RecipientDetailsDialog recipient={rejected}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="eb-h-7 eb-text-xs"
+                      >
+                        {t('rejectedAccounts.viewDetails', {
+                          defaultValue: 'View account details',
+                        })}
+                      </Button>
+                    </RecipientDetailsDialog>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
+
+interface RecipientCardHandlers {
+  onEditRecipient: (recipient: Recipient) => void;
+  onRecipientSettled?: (recipient?: Recipient, error?: any) => void;
+  onMicrodepositVerifySettled: (
+    response: MicrodepositVerificationResponse,
+    recipient?: Recipient
+  ) => void;
+  onRemoveSuccess: (recipient: Recipient) => void;
+}
+
+/** "Show more" load control shown below the non-virtualized grid. */
+const LoadMoreControls: React.FC<{
+  isCompact: boolean;
+  isLoadingMore: boolean;
+  nextLoadCount: number;
+  onLoadMore: () => void;
+  i18nNamespace: RecipientI18nNamespace;
+}> = ({
+  isCompact,
+  isLoadingMore,
+  nextLoadCount,
+  onLoadMore,
+  i18nNamespace,
+}) => {
+  const { t, tString } = useTranslationWithTokens(i18nNamespace);
+  const showMoreLabel = t('showMoreWithCount', {
+    defaultValue: 'Show {{count}} more account_other',
+    count: nextLoadCount,
+  });
+
+  if (isCompact) {
+    return (
+      <div className="eb-border-t">
+        <button
+          type="button"
+          onClick={onLoadMore}
+          disabled={isLoadingMore}
+          className="eb-group eb-w-full eb-bg-muted eb-py-2 eb-text-center eb-transition-colors hover:eb-bg-muted/60 disabled:eb-opacity-50"
+          aria-label={tString('showMoreWithCount', {
+            defaultValue: 'Show {{count}} more account_other',
+            count: nextLoadCount,
+          })}
+        >
+          <div className="eb-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-muted-foreground group-hover:eb-text-foreground">
+            {isLoadingMore ? (
+              <>
+                <div className="eb-h-4 eb-w-4 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
+                <span>{t('loadingMore')}</span>
+              </>
+            ) : (
+              <>
+                <ChevronDownIcon className="eb-h-4 eb-w-4" />
+                <span>{showMoreLabel}</span>
+              </>
+            )}
+          </div>
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="eb-flex eb-justify-center eb-gap-2 eb-pt-2">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onLoadMore}
+        disabled={isLoadingMore}
+        className="eb-h-8 eb-text-xs eb-text-muted-foreground hover:eb-text-foreground"
+      >
+        {isLoadingMore ? (
+          <>
+            <div className="eb-mr-1.5 eb-h-3.5 eb-w-3.5 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
+            {t('loadingMore')}
+          </>
+        ) : (
+          <>
+            <ChevronDownIcon className="eb-mr-1.5 eb-h-3.5 eb-w-3.5" />
+            {showMoreLabel}
+          </>
+        )}
+      </Button>
+    </div>
+  );
+};
+
+interface RecipientsListContentProps {
+  recipients: Recipient[];
+  viewMode: 'cards' | 'compact-cards' | 'table';
+  isCompact: boolean;
+  scrollable: boolean;
+  scrollableMaxHeight: number | string;
+  recipientType: SupportedRecipientType;
+  i18nNamespace: RecipientI18nNamespace;
+  childHeadingLevel: HeadingLevelProps['headingLevel'];
+  hideRemoveRecipient: boolean;
+  effectiveRenderPaymentAction: (recipient: Recipient) => React.ReactNode;
+  cardHandlers: RecipientCardHandlers;
+  // Table pagination
+  pagination: PaginationState;
+  onPaginationChange: React.Dispatch<React.SetStateAction<PaginationState>>;
+  totalCount: number;
+  pageCount: number;
+  isLoading: boolean;
+  // Scroll virtualization
+  scrollContainerRef: React.RefObject<HTMLDivElement>;
+  rowVirtualizer: Virtualizer<HTMLDivElement, Element>;
+  isLoadingMore: boolean;
+  // Load-more pagination
+  usePagesPagination: boolean;
+  hasMore: boolean;
+  loadMore: () => void;
+  nextLoadCount: number;
+}
+
+/** Renders recipients in table, virtualized-scroll, or grid layout with pagination. */
+const RecipientsListContent: React.FC<RecipientsListContentProps> = ({
+  recipients,
+  viewMode,
+  isCompact,
+  scrollable,
+  scrollableMaxHeight,
+  recipientType,
+  i18nNamespace,
+  childHeadingLevel,
+  hideRemoveRecipient,
+  effectiveRenderPaymentAction,
+  cardHandlers,
+  pagination,
+  onPaginationChange,
+  totalCount,
+  pageCount,
+  isLoading,
+  scrollContainerRef,
+  rowVirtualizer,
+  isLoadingMore,
+  usePagesPagination,
+  hasMore,
+  loadMore,
+  nextLoadCount,
+}) => {
+  const renderCard = (recipient: Recipient, isLast: boolean) => (
+    <RecipientCard
+      recipient={recipient}
+      makePaymentComponent={effectiveRenderPaymentAction?.(recipient)}
+      onEditRecipient={cardHandlers.onEditRecipient}
+      onRecipientSettled={cardHandlers.onRecipientSettled}
+      onMicrodepositVerifySettled={cardHandlers.onMicrodepositVerifySettled}
+      onRemoveSuccess={cardHandlers.onRemoveSuccess}
+      compact={isCompact}
+      i18nNamespace={i18nNamespace}
+      recipientType={recipientType}
+      headingLevel={childHeadingLevel}
+      hideRemoveRecipient={hideRemoveRecipient}
+      className={cn({ 'eb-border-b-0': isCompact && isLast })}
+    />
+  );
+
+  if (viewMode === 'table') {
+    return (
+      <div className="eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
+        <RecipientsTableView
+          data={recipients}
+          paginationState={{
+            pagination,
+            onPaginationChange,
+            totalCount,
+            pageCount,
+            isLoading,
+          }}
+          recipientType={recipientType}
+          renderPaymentAction={effectiveRenderPaymentAction}
+          onEditRecipient={cardHandlers.onEditRecipient}
+          onRecipientSettled={cardHandlers.onRecipientSettled}
+          onMicrodepositVerifySettled={cardHandlers.onMicrodepositVerifySettled}
+          onRemoveSuccess={cardHandlers.onRemoveSuccess}
+          hideRemoveRecipient={hideRemoveRecipient}
+        />
+      </div>
+    );
+  }
+
+  if (scrollable) {
+    return (
+      <div
+        ref={scrollContainerRef}
+        style={{ maxHeight: scrollableMaxHeight, overflow: 'auto' }}
+        className={cn('eb-relative', {
+          'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': !isCompact,
+        })}
+      >
+        <div
+          style={{
+            height: `${rowVirtualizer.getTotalSize()}px`,
+            width: '100%',
+            position: 'relative',
+          }}
+        >
+          {rowVirtualizer.getVirtualItems().map((virtualRow: VirtualItem) => {
+            const recipient = recipients[virtualRow.index];
+            return (
+              <div
+                key={recipient.id}
+                data-index={virtualRow.index}
+                ref={rowVirtualizer.measureElement}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
+              >
+                {renderCard(
+                  recipient,
+                  virtualRow.index === recipients.length - 1
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Loading indicator at bottom when fetching more */}
+        {isLoadingMore && (
+          <div className="eb-flex eb-justify-center eb-py-4">
+            <div className="eb-h-6 eb-w-6 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Non-virtualized grid layout (default)
+  return (
+    <>
+      <div
+        className={cn('eb-grid eb-grid-cols-1 eb-items-start', {
+          'eb-gap-0': isCompact,
+          'eb-gap-3 eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': !isCompact,
+          '@4xl:eb-grid-cols-2': !isCompact && recipients.length > 1,
+        })}
+      >
+        {recipients.map((recipient, index) => (
+          <div
+            key={recipient.id}
+            className="eb-animate-fade-in"
+            style={{
+              animationDelay: `${index * 50}ms`,
+              animationFillMode: 'backwards',
+            }}
+          >
+            {renderCard(recipient, index === recipients.length - 1)}
+          </div>
+        ))}
+      </div>
+
+      {/* Pagination Controls */}
+      {usePagesPagination && totalCount > 5 && (
+        <div
+          className={cn({
+            'eb-border-t eb-bg-muted/30': isCompact,
+            'eb-pt-2': !isCompact,
+          })}
+        >
+          <Pagination
+            pageIndex={pagination.pageIndex}
+            pageSize={pagination.pageSize}
+            totalCount={totalCount}
+            pageCount={pageCount}
+            canPreviousPage={pagination.pageIndex > 0}
+            canNextPage={pagination.pageIndex < pageCount - 1}
+            onPageChange={(pageIndex) =>
+              onPaginationChange((prev) => ({ ...prev, pageIndex }))
+            }
+            onPageSizeChange={(newPageSize) =>
+              onPaginationChange({ pageIndex: 0, pageSize: newPageSize })
+            }
+            variant={isCompact ? 'compact' : 'default'}
+          />
+        </div>
+      )}
+      {!usePagesPagination && hasMore && (
+        <LoadMoreControls
+          isCompact={isCompact}
+          isLoadingMore={isLoadingMore}
+          nextLoadCount={nextLoadCount}
+          onLoadMore={loadMore}
+          i18nNamespace={i18nNamespace}
+        />
+      )}
+    </>
+  );
+};
 
 /**
  * BaseRecipientsWidget - Internal base component for managing recipients (linked accounts and payment recipients)
@@ -784,103 +1348,14 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
 
           {/* Error state */}
           {isError && (
-            <div className="eb-p-2.5 eb-py-6 @md:eb-p-3 @lg:eb-p-4">
-              <div className="eb-flex eb-flex-col eb-items-center eb-justify-center eb-space-y-2 eb-text-center">
-                <div className="eb-flex eb-h-12 eb-w-12 eb-items-center eb-justify-center eb-rounded-full eb-bg-destructive/10">
-                  <AlertCircle className="eb-h-6 eb-w-6 eb-text-destructive" />
-                </div>
-                <div className="eb-space-y-1">
-                  <h3 className="eb-text-sm eb-font-semibold eb-text-foreground">
-                    {t('errors.loading.title')}
-                  </h3>
-                  <p className="eb-max-w-xs eb-text-xs eb-text-muted-foreground">
-                    {errorMessage}
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => refetch()}
-                  className="eb-mt-2"
-                >
-                  <RefreshCw className="eb-mr-2 eb-h-4 eb-w-4" />
-                  {t('errors.tryAgain', { defaultValue: 'Try again' })}
-                </Button>
-
-                {/* Expandable details */}
-                {errorInfo?.hasDetails && (
-                  <div className="eb-mt-2 eb-w-full eb-max-w-sm">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowErrorDetails(!showErrorDetails)}
-                      className="eb-text-xs eb-text-muted-foreground"
-                    >
-                      {showErrorDetails ? (
-                        <ChevronUp className="eb-mr-1 eb-h-3 eb-w-3" />
-                      ) : (
-                        <ChevronDown className="eb-mr-1 eb-h-3 eb-w-3" />
-                      )}
-                      {showErrorDetails
-                        ? t('errors.hideDetails', {
-                            defaultValue: 'Hide details',
-                          })
-                        : t('errors.showDetails', {
-                            defaultValue: 'Show details',
-                          })}
-                    </Button>
-
-                    {showErrorDetails && (
-                      <div className="eb-mt-2 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-3 eb-text-left eb-text-xs">
-                        {errorInfo.httpStatus && (
-                          <div className="eb-mb-2">
-                            <span className="eb-font-medium">Status:</span>{' '}
-                            {errorInfo.httpStatus}
-                            {errorInfo.title && ` - ${errorInfo.title}`}
-                          </div>
-                        )}
-                        {errorInfo.reasons.length > 0 && (
-                          <div className="eb-mb-2">
-                            <span className="eb-font-medium">Reasons:</span>
-                            <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
-                              {errorInfo.reasons.map(
-                                (reason: any, i: number) => (
-                                  <li key={i}>
-                                    {reason.field && (
-                                      <span className="eb-font-medium">
-                                        {reason.field}:{' '}
-                                      </span>
-                                    )}
-                                    {reason.message || reason}
-                                  </li>
-                                )
-                              )}
-                            </ul>
-                          </div>
-                        )}
-                        {errorInfo.context.length > 0 && (
-                          <div>
-                            <span className="eb-font-medium">Context:</span>
-                            <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
-                              {errorInfo.context.map((ctx: any, i: number) => (
-                                <li key={i}>
-                                  {ctx.field && (
-                                    <span className="eb-font-medium">
-                                      {ctx.field}:{' '}
-                                    </span>
-                                  )}
-                                  {ctx.message}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
+            <RecipientsErrorState
+              errorInfo={errorInfo}
+              errorMessage={errorMessage}
+              showErrorDetails={showErrorDetails}
+              onToggleErrorDetails={() => setShowErrorDetails((v) => !v)}
+              onRetry={() => refetch()}
+              i18nNamespace={config.i18nNamespace}
+            />
           )}
 
           {/* Empty state */}
@@ -912,385 +1387,47 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
 
           {/* Rejected accounts section (last 30 days) — collapsible */}
           {isSuccess && recentRejectedAccounts.length > 0 && (
-            <div
-              className="eb-overflow-hidden eb-border-b eb-border-destructive/20 eb-bg-destructive/5"
-              role="region"
-              aria-label={tString('rejectedAccounts.sectionTitle', {
-                defaultValue: 'Recently Rejected Accounts',
-              })}
-            >
-              {/* Disclosure toggle */}
-              <button
-                type="button"
-                className="eb-group eb-flex eb-w-full eb-cursor-pointer eb-items-center eb-gap-2.5 eb-px-4 eb-py-3 eb-text-left eb-transition-colors hover:eb-bg-destructive/10 focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-ring focus-visible:eb-ring-offset-1"
-                onClick={() => setRejectedCollapsed((c) => !c)}
-                aria-expanded={!rejectedCollapsed}
-              >
-                <XCircleIcon className="eb-h-4 eb-w-4 eb-shrink-0 eb-text-destructive" />
-                <div className="eb-min-w-0 eb-flex-1">
-                  <div className="eb-flex eb-items-center eb-gap-1.5">
-                    <span className="eb-text-xs eb-font-semibold eb-text-destructive">
-                      {t('rejectedAccounts.sectionTitle', {
-                        defaultValue: 'Recently Rejected Accounts',
-                      })}
-                    </span>
-                    <Badge
-                      variant="destructive"
-                      className="eb-px-1.5 eb-py-0 eb-text-[0.65rem] eb-leading-4"
-                    >
-                      {recentRejectedAccounts.length}
-                    </Badge>
-                  </div>
-                  {/* Collapsed inline summary — most recent rejection */}
-                  {rejectedCollapsed && (
-                    <p className="eb-mt-0.5 eb-truncate eb-text-[0.7rem] eb-text-muted-foreground">
-                      {t('rejectedAccounts.collapsedSummary', {
-                        defaultValue: 'Most recent: {{name}} — {{date}}',
-                        name: getRecipientDisplayName(
-                          recentRejectedAccounts[0]
-                        ),
-                        date: recentRejectedAccounts[0].updatedAt
-                          ? new Date(
-                              recentRejectedAccounts[0].updatedAt
-                            ).toLocaleDateString(locale, {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                            })
-                          : '',
-                      })}
-                    </p>
-                  )}
-                </div>
-                <ChevronDown
-                  className={cn(
-                    'eb-h-4 eb-w-4 eb-shrink-0 eb-text-destructive/60 eb-transition-transform eb-duration-200',
-                    !rejectedCollapsed && 'eb-rotate-180'
-                  )}
-                />
-              </button>
-
-              {/* Expanded content */}
-              {!rejectedCollapsed && (
-                <div className="eb-animate-fade-in">
-                  <Separator className="eb-bg-destructive/15" />
-                  <p className="eb-px-4 eb-py-2 eb-text-[0.7rem] eb-text-muted-foreground">
-                    {t('rejectedAccounts.sectionDescription', {
-                      defaultValue:
-                        'The following account(s) were rejected in the last 30 days.',
-                    })}
-                  </p>
-                  <ul className="eb-divide-y eb-divide-destructive/10">
-                    {recentRejectedAccounts.map((rejected) => {
-                      const name = getRecipientDisplayName(rejected);
-                      const rejectedDate = rejected.updatedAt
-                        ? new Date(rejected.updatedAt).toLocaleDateString(
-                            locale,
-                            {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                            }
-                          )
-                        : null;
-
-                      return (
-                        <li key={rejected.id} className="eb-px-4 eb-py-2.5">
-                          <div className="eb-flex eb-items-start eb-justify-between eb-gap-3">
-                            <div className="eb-min-w-0">
-                              <p className="eb-truncate eb-text-sm eb-font-medium">
-                                {name}
-                              </p>
-                            </div>
-                            <div className="eb-flex eb-shrink-0 eb-items-center eb-gap-2">
-                              {rejectedDate && (
-                                <span className="eb-text-xs eb-text-muted-foreground">
-                                  {rejectedDate}
-                                </span>
-                              )}
-                              <Badge
-                                variant="destructive"
-                                className="eb-text-xs"
-                              >
-                                {t('status.labels.REJECTED', {
-                                  defaultValue: 'Rejected',
-                                })}
-                              </Badge>
-                            </div>
-                          </div>
-                          <p className="eb-mt-1.5 eb-flex eb-items-start eb-gap-1.5 eb-text-xs eb-text-destructive">
-                            <AlertCircle className="eb-mt-0.5 eb-h-3 eb-w-3 eb-shrink-0" />
-                            <span>
-                              {t('rejectedAccounts.rejectionMessage', {
-                                defaultValue:
-                                  'There was an issue linking this account. Please check the account details or contact support.',
-                              })}
-                            </span>
-                          </p>
-                          <div className="eb-mt-2">
-                            <RecipientDetailsDialog recipient={rejected}>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="eb-h-7 eb-text-xs"
-                              >
-                                {t('rejectedAccounts.viewDetails', {
-                                  defaultValue: 'View account details',
-                                })}
-                              </Button>
-                            </RecipientDetailsDialog>
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              )}
-            </div>
+            <RejectedAccountsSection
+              recentRejectedAccounts={recentRejectedAccounts}
+              collapsed={rejectedCollapsed}
+              onToggleCollapsed={() => setRejectedCollapsed((c) => !c)}
+              locale={locale}
+              i18nNamespace={config.i18nNamespace}
+            />
           )}
 
           {/* Recipients list */}
           {isSuccess && recipients.length > 0 && (
-            <>
-              {viewMode === 'table' ? (
-                // Table view with server-side pagination
-                <div className="eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
-                  <RecipientsTableView
-                    data={recipients}
-                    paginationState={{
-                      pagination,
-                      onPaginationChange: setPagination,
-                      totalCount,
-                      pageCount: pagesData.pageCount,
-                      isLoading,
-                    }}
-                    recipientType={recipientType}
-                    renderPaymentAction={effectiveRenderPaymentAction}
-                    onEditRecipient={handleEditRecipient}
-                    onRecipientSettled={onAccountSettled}
-                    onMicrodepositVerifySettled={
-                      handleMicrodepositVerifySettled
-                    }
-                    onRemoveSuccess={handleRemoveSuccess}
-                    hideRemoveRecipient={hideRemoveRecipient}
-                  />
-                </div>
-              ) : scrollable ? (
-                // Virtualized scrollable list
-                <div
-                  ref={scrollContainerRef}
-                  style={{
-                    maxHeight: scrollableMaxHeight,
-                    overflow: 'auto',
-                  }}
-                  className={cn('eb-relative', {
-                    'eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': !isCompact,
-                  })}
-                >
-                  <div
-                    style={{
-                      height: `${rowVirtualizer.getTotalSize()}px`,
-                      width: '100%',
-                      position: 'relative',
-                    }}
-                  >
-                    {rowVirtualizer
-                      .getVirtualItems()
-                      .map((virtualRow: VirtualItem) => {
-                        const recipient = recipients[virtualRow.index];
-                        return (
-                          <div
-                            key={recipient.id}
-                            data-index={virtualRow.index}
-                            ref={rowVirtualizer.measureElement}
-                            style={{
-                              position: 'absolute',
-                              top: 0,
-                              left: 0,
-                              width: '100%',
-                              transform: `translateY(${virtualRow.start}px)`,
-                            }}
-                          >
-                            <RecipientCard
-                              recipient={recipient}
-                              makePaymentComponent={effectiveRenderPaymentAction?.(
-                                recipient
-                              )}
-                              onEditRecipient={handleEditRecipient}
-                              onRecipientSettled={onAccountSettled}
-                              onMicrodepositVerifySettled={
-                                handleMicrodepositVerifySettled
-                              }
-                              onRemoveSuccess={handleRemoveSuccess}
-                              compact={isCompact}
-                              i18nNamespace={config.i18nNamespace}
-                              recipientType={recipientType}
-                              headingLevel={childHeadingLevel}
-                              hideRemoveRecipient={hideRemoveRecipient}
-                              className={cn({
-                                'eb-border-b-0':
-                                  isCompact &&
-                                  virtualRow.index === recipients.length - 1,
-                              })}
-                            />
-                          </div>
-                        );
-                      })}
-                  </div>
-
-                  {/* Loading indicator at bottom when fetching more */}
-                  {isLoadingMore && (
-                    <div className="eb-flex eb-justify-center eb-py-4">
-                      <div className="eb-h-6 eb-w-6 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
-                    </div>
-                  )}
-                </div>
-              ) : (
-                // Non-virtualized grid layout (default)
-                <>
-                  <div
-                    className={cn('eb-grid eb-grid-cols-1 eb-items-start', {
-                      'eb-gap-0': isCompact,
-                      'eb-gap-3 eb-p-2.5 @md:eb-p-3 @lg:eb-p-4': !isCompact,
-                      '@4xl:eb-grid-cols-2':
-                        !isCompact && recipients.length > 1,
-                    })}
-                  >
-                    {recipients.map((recipient, index) => (
-                      <div
-                        key={recipient.id}
-                        className="eb-animate-fade-in"
-                        style={{
-                          animationDelay: `${index * 50}ms`,
-                          animationFillMode: 'backwards',
-                        }}
-                      >
-                        <RecipientCard
-                          recipient={recipient}
-                          makePaymentComponent={effectiveRenderPaymentAction?.(
-                            recipient
-                          )}
-                          onEditRecipient={handleEditRecipient}
-                          onRecipientSettled={onAccountSettled}
-                          onMicrodepositVerifySettled={
-                            handleMicrodepositVerifySettled
-                          }
-                          onRemoveSuccess={handleRemoveSuccess}
-                          compact={isCompact}
-                          i18nNamespace={config.i18nNamespace}
-                          recipientType={recipientType}
-                          headingLevel={childHeadingLevel}
-                          hideRemoveRecipient={hideRemoveRecipient}
-                          className={cn({
-                            'eb-border-b-0':
-                              isCompact && index === recipients.length - 1,
-                          })}
-                        />
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Pagination Controls */}
-                  {usePagesPagination
-                    ? // PAGES PAGINATION - Navigation controls like table view
-                      // Only hide pagination if there are 5 or fewer items
-                      totalCount > 5 && (
-                        <div
-                          className={cn({
-                            'eb-border-t eb-bg-muted/30': isCompact,
-                            'eb-pt-2': !isCompact,
-                          })}
-                        >
-                          <Pagination
-                            pageIndex={pagination.pageIndex}
-                            pageSize={pagination.pageSize}
-                            totalCount={totalCount}
-                            pageCount={pagesData.pageCount}
-                            canPreviousPage={pagination.pageIndex > 0}
-                            canNextPage={
-                              pagination.pageIndex < pagesData.pageCount - 1
-                            }
-                            onPageChange={(pageIndex) =>
-                              setPagination((prev) => ({ ...prev, pageIndex }))
-                            }
-                            onPageSizeChange={(newPageSize) =>
-                              setPagination({
-                                pageIndex: 0,
-                                pageSize: newPageSize,
-                              })
-                            }
-                            variant={isCompact ? 'compact' : 'default'}
-                          />
-                        </div>
-                      )
-                    : isCompact
-                      ? // COMPACT MODE - Full width clickable area
-                        hasMore && (
-                          <div className="eb-border-t">
-                            <button
-                              type="button"
-                              onClick={loadMore}
-                              disabled={isLoadingMore}
-                              className="eb-group eb-w-full eb-bg-muted eb-py-2 eb-text-center eb-transition-colors hover:eb-bg-muted/60 disabled:eb-opacity-50"
-                              aria-label={tString('showMoreWithCount', {
-                                defaultValue:
-                                  'Show {{count}} more account_other',
-                                count: nextLoadCount,
-                              })}
-                            >
-                              <div className="eb-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-muted-foreground group-hover:eb-text-foreground">
-                                {isLoadingMore ? (
-                                  <>
-                                    <div className="eb-h-4 eb-w-4 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
-                                    <span>{t('loadingMore')}</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <ChevronDownIcon className="eb-h-4 eb-w-4" />
-                                    <span>
-                                      {t('showMoreWithCount', {
-                                        defaultValue:
-                                          'Show {{count}} more account_other',
-                                        count: nextLoadCount,
-                                      })}
-                                    </span>
-                                  </>
-                                )}
-                              </div>
-                            </button>
-                          </div>
-                        )
-                      : // NON-COMPACT MODE - Small button
-                        hasMore && (
-                          <div className="eb-flex eb-justify-center eb-gap-2 eb-pt-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={loadMore}
-                              disabled={isLoadingMore}
-                              className="eb-h-8 eb-text-xs eb-text-muted-foreground hover:eb-text-foreground"
-                            >
-                              {isLoadingMore ? (
-                                <>
-                                  <div className="eb-mr-1.5 eb-h-3.5 eb-w-3.5 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
-                                  {t('loadingMore')}
-                                </>
-                              ) : (
-                                <>
-                                  <ChevronDownIcon className="eb-mr-1.5 eb-h-3.5 eb-w-3.5" />
-                                  {t('showMoreWithCount', {
-                                    defaultValue:
-                                      'Show {{count}} more account_other',
-                                    count: nextLoadCount,
-                                  })}
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        )}
-                </>
-              )}
-            </>
+            <RecipientsListContent
+              recipients={recipients}
+              viewMode={viewMode}
+              isCompact={isCompact}
+              scrollable={scrollable}
+              scrollableMaxHeight={scrollableMaxHeight}
+              recipientType={recipientType}
+              i18nNamespace={config.i18nNamespace}
+              childHeadingLevel={childHeadingLevel}
+              hideRemoveRecipient={hideRemoveRecipient}
+              effectiveRenderPaymentAction={effectiveRenderPaymentAction}
+              cardHandlers={{
+                onEditRecipient: handleEditRecipient,
+                onRecipientSettled: onAccountSettled,
+                onMicrodepositVerifySettled: handleMicrodepositVerifySettled,
+                onRemoveSuccess: handleRemoveSuccess,
+              }}
+              pagination={pagination}
+              onPaginationChange={setPagination}
+              totalCount={totalCount}
+              pageCount={pagesData.pageCount}
+              isLoading={isLoading}
+              scrollContainerRef={scrollContainerRef}
+              rowVirtualizer={rowVirtualizer}
+              isLoadingMore={isLoadingMore}
+              usePagesPagination={usePagesPagination}
+              hasMore={hasMore}
+              loadMore={loadMore}
+              nextLoadCount={nextLoadCount}
+            />
           )}
         </CardContent>
       </Card>

@@ -83,6 +83,86 @@ function processTokenMapping(
 }
 
 /**
+ * Hover-color fallbacks: when an explicit hover color is not set but a base
+ * background color exists, derive the hover color at 90% opacity.
+ */
+const HOVER_FALLBACKS: Array<{
+  cssVar: EBCSSVariable;
+  newBg: keyof EBThemeVariables;
+  legacyBg: keyof EBThemeVariables;
+  newHover: keyof EBThemeVariables;
+  legacyHover: keyof EBThemeVariables;
+}> = [
+  {
+    cssVar: '--eb-primary-hover',
+    newBg: 'actionableAccentedBoldBackground',
+    legacyBg: 'primaryColor',
+    newHover: 'actionableAccentedBoldBackgroundHover',
+    legacyHover: 'primaryHoverColor',
+  },
+  {
+    cssVar: '--eb-secondary-hover',
+    newBg: 'actionableSubtleBackground',
+    legacyBg: 'secondaryColor',
+    newHover: 'actionableSubtleBackgroundHover',
+    legacyHover: 'secondaryHoverColor',
+  },
+  {
+    cssVar: '--eb-destructive-hover',
+    newBg: 'actionableNegativeBoldBackground',
+    legacyBg: 'destructiveColor',
+    newHover: 'actionableNegativeBoldBackgroundHover',
+    legacyHover: 'destructiveHoverColor',
+  },
+];
+
+const applyHoverFallbacks = (
+  cssVariables: CSSVariables,
+  variables: EBThemeVariables
+): void => {
+  for (const f of HOVER_FALLBACKS) {
+    const bg = resolve(variables[f.newBg], variables[f.legacyBg]);
+    const hover = resolve(variables[f.newHover], variables[f.legacyHover]);
+    if (!hover && bg) {
+      cssVariables[f.cssVar] = colorToHsl(String(bg), 0.9);
+    }
+  }
+};
+
+/**
+ * Radius and font-weight fallbacks: apply a shared value only when the
+ * specific CSS variable has not already been set by a token mapping.
+ */
+const applyRadiusAndFontFallbacks = (
+  cssVariables: CSSVariables,
+  variables: EBThemeVariables
+): void => {
+  const setIfAbsent = (
+    cssVar: EBCSSVariable,
+    value: string | number | boolean | undefined
+  ): void => {
+    if (!cssVariables[cssVar] && value) {
+      cssVariables[cssVar] = String(value);
+    }
+  };
+
+  const separableBorderRadius = resolve(
+    variables.separableBorderRadius,
+    variables.borderRadius
+  );
+  setIfAbsent('--eb-button-radius', separableBorderRadius);
+  setIfAbsent('--eb-input-radius', separableBorderRadius);
+
+  const baseFontWeight = resolve(
+    variables.actionableFontWeight,
+    variables.buttonFontWeight
+  );
+  setIfAbsent('--eb-button-primary-font-weight', baseFontWeight);
+  setIfAbsent('--eb-button-secondary-font-weight', baseFontWeight);
+  setIfAbsent('--eb-button-destructive-font-weight', baseFontWeight);
+};
+
+/**
  * Converts theme variables to CSS custom properties using configuration-driven approach.
  * This reduces ~300 lines of repetitive code to a single loop over token mappings.
  */
@@ -99,77 +179,9 @@ const convertThemeVariablesToCssVariables = (
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // Special Cases - Computed or Conditional Values
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  // Primary hover fallback (90% opacity if not explicitly set)
-  const primaryBg = resolve(
-    variables.actionableAccentedBoldBackground,
-    variables.primaryColor
-  );
-  const primaryHover = resolve(
-    variables.actionableAccentedBoldBackgroundHover,
-    variables.primaryHoverColor
-  );
-  if (!primaryHover && primaryBg) {
-    cssVariables['--eb-primary-hover'] = colorToHsl(primaryBg, 0.9);
-  }
-
-  // Secondary hover fallback (90% opacity if not explicitly set)
-  const secondaryBg = resolve(
-    variables.actionableSubtleBackground,
-    variables.secondaryColor
-  );
-  const secondaryHover = resolve(
-    variables.actionableSubtleBackgroundHover,
-    variables.secondaryHoverColor
-  );
-  if (!secondaryHover && secondaryBg) {
-    cssVariables['--eb-secondary-hover'] = colorToHsl(secondaryBg, 0.9);
-  }
-
-  // Destructive hover fallback (90% opacity if not explicitly set)
-  const destructiveBg = resolve(
-    variables.actionableNegativeBoldBackground,
-    variables.destructiveColor
-  );
-  const destructiveHover = resolve(
-    variables.actionableNegativeBoldBackgroundHover,
-    variables.destructiveHoverColor
-  );
-  if (!destructiveHover && destructiveBg) {
-    cssVariables['--eb-destructive-hover'] = colorToHsl(destructiveBg, 0.9);
-  }
-
-  // Button radius fallback to general border radius
-  const separableBorderRadius = resolve(
-    variables.separableBorderRadius,
-    variables.borderRadius
-  );
-  if (!cssVariables['--eb-button-radius'] && separableBorderRadius) {
-    cssVariables['--eb-button-radius'] = separableBorderRadius;
-  }
-
-  // Input radius fallback to general border radius
-  if (!cssVariables['--eb-input-radius'] && separableBorderRadius) {
-    cssVariables['--eb-input-radius'] = separableBorderRadius;
-  }
-
-  // Font weight fallbacks for button variants
-  const baseFontWeight = resolve(
-    variables.actionableFontWeight,
-    variables.buttonFontWeight
-  );
-  if (!cssVariables['--eb-button-primary-font-weight'] && baseFontWeight) {
-    cssVariables['--eb-button-primary-font-weight'] = baseFontWeight;
-  }
-  if (!cssVariables['--eb-button-secondary-font-weight'] && baseFontWeight) {
-    cssVariables['--eb-button-secondary-font-weight'] = baseFontWeight;
-  }
-  if (!cssVariables['--eb-button-destructive-font-weight'] && baseFontWeight) {
-    cssVariables['--eb-button-destructive-font-weight'] = baseFontWeight;
-  }
+  // Special cases - computed or conditional fallback values
+  applyHoverFallbacks(cssVariables, variables);
+  applyRadiusAndFontFallbacks(cssVariables, variables);
 
   return cssVariables;
 };

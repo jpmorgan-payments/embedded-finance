@@ -615,6 +615,308 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
 
   useFlowUnsavedChangesSync(isDirty);
 
+  // Optionally update a second party (e.g. the org) alongside the current one.
+  const submitAnotherPartyUpdate = (
+    modifiedValues: Partial<OnboardingFormValuesSubmit>
+  ) => {
+    if (
+      !Component.updateAnotherPartyOnSubmit ||
+      !clientData ||
+      (Component.updateAnotherPartyOnSubmit.getCondition &&
+        !Component.updateAnotherPartyOnSubmit.getCondition(clientData))
+    ) {
+      return;
+    }
+
+    const targetParty = getPartyByAssociatedPartyFilters(
+      clientData,
+      Component.updateAnotherPartyOnSubmit.partyFilters
+    );
+    if (!targetParty?.id) {
+      return;
+    }
+
+    const updatedValues =
+      Component.updateAnotherPartyOnSubmit.getValues(modifiedValues);
+    updateParty(
+      {
+        partyId: targetParty.id,
+        data: generatePartyRequestBody(updatedValues, {}),
+      },
+      {
+        onSettled: (data, error) => {
+          onPostPartySettled?.(data, error?.response?.data);
+        },
+        onSuccess: () => {
+          // Refresh the client so client-level fields (e.g.
+          // outstanding.questionIds) reflect this party change. The
+          // party response can't carry client-level state.
+          queryClient.invalidateQueries({
+            queryKey: getSmbdoGetClientQueryKey(clientData.id),
+          });
+        },
+      }
+    );
+  };
+
+  // Country-of-residence change → deactivate + recreate party.
+  // The API requires a fresh party when countryOfResidence changes
+  // because identity documents are country-specific.  We:
+  //   1. PATCH the old party with { active: false }
+  //   2. POST addParties with the old party's data minus IDs
+  //   3. Update editingPartyId to point to the new party
+  const recreatePartyForCountryChange = (
+    modifiedValues: Partial<OnboardingFormValuesSubmit>
+  ) => {
+    if (!clientData || !existingPartyData?.id) {
+      return;
+    }
+
+    // Step 1: deactivate the old party
+    updateParty(
+      {
+        partyId: existingPartyData.id,
+        data: { active: false },
+      },
+      {
+        onSettled: (_data, error) => {
+          onPostPartySettled?.(_data, error?.response?.data);
+        },
+        onSuccess: () => {
+          // Step 2: build a new party from the *entire* existing party,
+          // overlaid with the current form submission (which carries the
+          // new countryOfResidence), but excluding identity documents
+          // (the user must re-enter them for the new country).
+          const fullPartyFormValues =
+            convertPartyResponseToFormValues(existingPartyData);
+
+          // Merge: existing party data as base, current form on top
+          const merged = {
+            ...fullPartyFormValues,
+            ...modifiedValues,
+          };
+
+          // Strip identity-related fields — they're country-specific
+          // (birthDate is kept because it isn't country-specific)
+          const {
+            controllerIds: _ids,
+            solePropSsn: _ssn,
+            ...valuesWithoutIds
+          } = merged;
+
+          const clientRequestBody = generateClientRequestBody(
+            valuesWithoutIds as Partial<OnboardingFormValuesSubmit>,
+            0,
+            'addParties',
+            {
+              // Carry over the existing party's top-level fields
+              // (roles, partyType, email) so the recreated party
+              // preserves them. generateClientRequestBody only maps
+              // form fields into individualDetails/orgDetails, so
+              // these must be set explicitly on the base object.
+              addParties: [
+                {
+                  partyType: existingPartyData.partyType,
+                  roles: existingPartyData.roles,
+                  ...(existingPartyData.email && {
+                    email: existingPartyData.email,
+                  }),
+                },
+              ] as AddPartyItem[],
+            }
+          );
+
+          updateClient(
+            {
+              id: clientData.id,
+              data: clientRequestBody,
+            },
+            {
+              onSettled: (data, err) => {
+                onPostClientSettled?.(data, err?.response?.data);
+              },
+              onSuccess: async (response) => {
+                // Find the newly-created party
+                const oldPartyIds = clientData.parties?.map((p) => p.id);
+                const newParty = response.parties?.find(
+                  (p) => !oldPartyIds?.includes(p.id)
+                );
+
+                // Clear saved form values so the identity step
+                // re-derives defaults from the new party.
+                saveFormValue(
+                  'controllerIds' as keyof OnboardingFormValuesSubmit,
+                  undefined
+                );
+
+                // Update the cache BEFORE updating the editing party ID
+                // so that when the sidebar re-renders with the new ID,
+                // the party already exists in clientData (preventing a
+                // brief "New owner" flash).
+                const queryKey = getSmbdoGetClientQueryKey(clientData.id);
+                queryClient.setQueryData(queryKey, response);
+
+                if (newParty) {
+                  setExistingPartyData(newParty);
+                }
+
+                await queryClient.invalidateQueries({ queryKey });
+                handleNext();
+              },
+              onError: (err) => {
+                setIsFormSubmitting(false);
+                if (err.response?.data.context) {
+                  const apiFormErrors = mapClientApiErrorsToFormErrors(
+                    err.response.data.context,
+                    0,
+                    'addParties'
+                  );
+                  setApiFormErrors(form, apiFormErrors);
+                }
+              },
+            }
+          );
+        },
+        onError: (error) => {
+          setIsFormSubmitting(false);
+          if (error.response?.data.context) {
+            const apiFormErrors = mapPartyApiErrorsToFormErrors(
+              error.response.data.context
+            );
+            setApiFormErrors(form, apiFormErrors);
+          }
+        },
+      }
+    );
+  };
+
+  // Updating an existing party (no country change).
+  const updateExistingParty = (
+    modifiedValues: Partial<OnboardingFormValuesSubmit>
+  ) => {
+    if (!clientData || !existingPartyData?.id) {
+      return;
+    }
+
+    const partyRequestBody = generatePartyRequestBody(modifiedValues, {});
+
+    // Check if the form is dirty - if not, skip the update
+    if (!isDirty) {
+      handleNext();
+      return;
+    }
+
+    updateParty(
+      {
+        partyId: existingPartyData.id,
+        data: partyRequestBody,
+      },
+      {
+        onSettled: (data, error) => {
+          onPostPartySettled?.(data, error?.response?.data);
+        },
+        onSuccess: (response) => {
+          const queryKey = getSmbdoGetClientQueryKey(clientData.id);
+
+          // Optimistically merge the updated party so the UI updates
+          // synchronously without a flash.
+          queryClient.setQueryData(
+            queryKey,
+            (prev: ClientResponse | undefined) => ({
+              ...prev,
+              parties: prev?.parties?.map((party) => {
+                if (party.id === response.id) {
+                  return response;
+                }
+                return party;
+              }),
+            })
+          );
+          setExistingPartyData(response);
+
+          // Then invalidate to refresh client-level fields (e.g.
+          // outstanding.questionIds) that the party response can't
+          // carry. The background refetch returns identical party
+          // data, so there's no visible flash.
+          queryClient.invalidateQueries({ queryKey });
+          handleNext();
+        },
+        onError: (error) => {
+          setIsFormSubmitting(false);
+          if (error.response?.data.context) {
+            const apiFormErrors = mapPartyApiErrorsToFormErrors(
+              error.response.data.context
+            );
+            setApiFormErrors(form, apiFormErrors);
+          }
+        },
+      }
+    );
+  };
+
+  // No existing party - create a new party on the client.
+  const createNewParty = (
+    modifiedValues: Partial<OnboardingFormValuesSubmit>
+  ) => {
+    if (!clientData) {
+      return;
+    }
+
+    const clientRequestBody = generateClientRequestBody(
+      modifiedValues,
+      0,
+      'addParties',
+      {
+        addParties: [defaultPartyRequestBody ?? {}],
+      }
+    );
+    updateClient(
+      {
+        id: clientData.id,
+        data: clientRequestBody,
+      },
+      {
+        onSettled: (data, error) => {
+          onPostClientSettled?.(data, error?.response?.data);
+        },
+        async onSuccess(response) {
+          // Find the newly-created party
+          const oldPartyIds = clientData.parties?.map((party) => party.id);
+          const newParty = response.parties?.find(
+            (party) => !oldPartyIds?.includes(party.id)
+          );
+
+          // Update the cache BEFORE updating the editing party ID
+          // so that when the sidebar re-renders with the new ID,
+          // the party already exists in clientData.
+          const queryKey = getSmbdoGetClientQueryKey(clientData.id);
+          queryClient.setQueryData(queryKey, response);
+
+          if (newParty) {
+            setExistingPartyData(newParty);
+          }
+
+          await queryClient.invalidateQueries({
+            queryKey,
+          });
+
+          handleNext();
+        },
+        onError: (error) => {
+          setIsFormSubmitting(false);
+          if (error.response?.data.context) {
+            const apiFormErrors = mapClientApiErrorsToFormErrors(
+              error.response.data.context,
+              0,
+              'addParties'
+            );
+            setApiFormErrors(form, apiFormErrors);
+          }
+        },
+      }
+    );
+  };
+
   const onSubmit = form.handleSubmit((values) => {
     Object.entries(values).forEach(([key, value]) => {
       const fieldKey = key as keyof OnboardingFormValuesSubmit;
@@ -630,297 +932,34 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
       : values;
 
     // Update another party if needed
-    if (
-      Component.updateAnotherPartyOnSubmit &&
-      clientData &&
-      !(
-        Component.updateAnotherPartyOnSubmit.getCondition &&
-        !Component.updateAnotherPartyOnSubmit.getCondition(clientData)
-      )
-    ) {
-      const targetParty = getPartyByAssociatedPartyFilters(
-        clientData,
-        Component.updateAnotherPartyOnSubmit.partyFilters
-      );
-      if (targetParty && targetParty.id) {
-        const updatedValues =
-          Component.updateAnotherPartyOnSubmit.getValues(modifiedValues);
-        updateParty(
-          {
-            partyId: targetParty.id,
-            data: generatePartyRequestBody(updatedValues, {}),
-          },
-          {
-            onSettled: (data, error) => {
-              onPostPartySettled?.(data, error?.response?.data);
-            },
-            onSuccess: () => {
-              // Refresh the client so client-level fields (e.g.
-              // outstanding.questionIds) reflect this party change. The
-              // party response can't carry client-level state.
-              queryClient.invalidateQueries({
-                queryKey: getSmbdoGetClientQueryKey(clientData.id),
-              });
-            },
-          }
-        );
-      }
+    submitAnotherPartyUpdate(modifiedValues);
+
+    // Without client data there's nothing to add or update
+    if (!clientData) {
+      return;
     }
 
-    // Client data exists - therefore we are adding or updating a party
-    if (clientData) {
-      // ---------------------------------------------------------------
-      // Country-of-residence change → deactivate + recreate party
-      // ---------------------------------------------------------------
-      // The API requires a fresh party when countryOfResidence changes
-      // because identity documents are country-specific.  We:
-      //   1. PATCH the old party with { active: false }
-      //   2. POST addParties with the old party's data minus IDs
-      //   3. Update editingPartyId to point to the new party
-      const submittedCountry = modifiedValues.countryOfResidence as
-        | string
-        | undefined;
-      const previousCountry =
-        existingPartyData?.individualDetails?.countryOfResidence;
-      const countryChanged =
-        !!submittedCountry &&
-        !!previousCountry &&
-        submittedCountry !== previousCountry;
+    const submittedCountry = modifiedValues.countryOfResidence as
+      | string
+      | undefined;
+    const previousCountry =
+      existingPartyData?.individualDetails?.countryOfResidence;
+    const countryChanged =
+      !!submittedCountry &&
+      !!previousCountry &&
+      submittedCountry !== previousCountry;
 
-      if (existingPartyData?.id && countryChanged) {
-        // Step 1: deactivate the old party
-        updateParty(
-          {
-            partyId: existingPartyData.id,
-            data: { active: false },
-          },
-          {
-            onSettled: (_data, error) => {
-              onPostPartySettled?.(_data, error?.response?.data);
-            },
-            onSuccess: () => {
-              // Step 2: build a new party from the *entire* existing party,
-              // overlaid with the current form submission (which carries the
-              // new countryOfResidence), but excluding identity documents
-              // (the user must re-enter them for the new country).
-              const fullPartyFormValues =
-                convertPartyResponseToFormValues(existingPartyData);
-
-              // Merge: existing party data as base, current form on top
-              const merged = {
-                ...fullPartyFormValues,
-                ...modifiedValues,
-              };
-
-              // Strip identity-related fields — they're country-specific
-              // (birthDate is kept because it isn't country-specific)
-              const {
-                controllerIds: _ids,
-                solePropSsn: _ssn,
-                ...valuesWithoutIds
-              } = merged;
-
-              const clientRequestBody = generateClientRequestBody(
-                valuesWithoutIds as Partial<OnboardingFormValuesSubmit>,
-                0,
-                'addParties',
-                {
-                  // Carry over the existing party's top-level fields
-                  // (roles, partyType, email) so the recreated party
-                  // preserves them. generateClientRequestBody only maps
-                  // form fields into individualDetails/orgDetails, so
-                  // these must be set explicitly on the base object.
-                  addParties: [
-                    {
-                      partyType: existingPartyData.partyType,
-                      roles: existingPartyData.roles,
-                      ...(existingPartyData.email && {
-                        email: existingPartyData.email,
-                      }),
-                    },
-                  ] as AddPartyItem[],
-                }
-              );
-
-              updateClient(
-                {
-                  id: clientData.id,
-                  data: clientRequestBody,
-                },
-                {
-                  onSettled: (data, err) => {
-                    onPostClientSettled?.(data, err?.response?.data);
-                  },
-                  onSuccess: async (response) => {
-                    // Find the newly-created party
-                    const oldPartyIds = clientData.parties?.map((p) => p.id);
-                    const newParty = response.parties?.find(
-                      (p) => !oldPartyIds?.includes(p.id)
-                    );
-
-                    // Clear saved form values so the identity step
-                    // re-derives defaults from the new party.
-                    saveFormValue(
-                      'controllerIds' as keyof OnboardingFormValuesSubmit,
-                      undefined
-                    );
-
-                    // Update the cache BEFORE updating the editing party ID
-                    // so that when the sidebar re-renders with the new ID,
-                    // the party already exists in clientData (preventing a
-                    // brief "New owner" flash).
-                    const queryKey = getSmbdoGetClientQueryKey(clientData.id);
-                    queryClient.setQueryData(queryKey, response);
-
-                    if (newParty) {
-                      setExistingPartyData(newParty);
-                    }
-
-                    await queryClient.invalidateQueries({ queryKey });
-                    handleNext();
-                  },
-                  onError: (err) => {
-                    setIsFormSubmitting(false);
-                    if (err.response?.data.context) {
-                      const apiFormErrors = mapClientApiErrorsToFormErrors(
-                        err.response.data.context,
-                        0,
-                        'addParties'
-                      );
-                      setApiFormErrors(form, apiFormErrors);
-                    }
-                  },
-                }
-              );
-            },
-            onError: (error) => {
-              setIsFormSubmitting(false);
-              if (error.response?.data.context) {
-                const apiFormErrors = mapPartyApiErrorsToFormErrors(
-                  error.response.data.context
-                );
-                setApiFormErrors(form, apiFormErrors);
-              }
-            },
-          }
-        );
-        return; // Exit early — the nested callbacks handle navigation
-      }
-
-      // Updating an existing party (no country change)
-      if (existingPartyData && existingPartyData.id) {
-        const partyRequestBody = generatePartyRequestBody(modifiedValues, {});
-
-        // Check if the form is dirty - if not, skip the update
-        if (!isDirty) {
-          handleNext();
-          return;
-        }
-
-        updateParty(
-          {
-            partyId: existingPartyData.id,
-            data: partyRequestBody,
-          },
-          {
-            onSettled: (data, error) => {
-              onPostPartySettled?.(data, error?.response?.data);
-            },
-            onSuccess: (response) => {
-              const queryKey = getSmbdoGetClientQueryKey(clientData.id);
-
-              // Optimistically merge the updated party so the UI updates
-              // synchronously without a flash.
-              queryClient.setQueryData(
-                queryKey,
-                (prev: ClientResponse | undefined) => ({
-                  ...prev,
-                  parties: prev?.parties?.map((party) => {
-                    if (party.id === response.id) {
-                      return response;
-                    }
-                    return party;
-                  }),
-                })
-              );
-              setExistingPartyData(response);
-
-              // Then invalidate to refresh client-level fields (e.g.
-              // outstanding.questionIds) that the party response can't
-              // carry. The background refetch returns identical party
-              // data, so there's no visible flash.
-              queryClient.invalidateQueries({ queryKey });
-              handleNext();
-            },
-            onError: (error) => {
-              setIsFormSubmitting(false);
-              if (error.response?.data.context) {
-                const apiFormErrors = mapPartyApiErrorsToFormErrors(
-                  error.response.data.context
-                );
-                setApiFormErrors(form, apiFormErrors);
-              }
-            },
-          }
-        );
-      }
-      // No existing party - Create a new party
-      else {
-        const clientRequestBody = generateClientRequestBody(
-          modifiedValues,
-          0,
-          'addParties',
-          {
-            addParties: [defaultPartyRequestBody ?? {}],
-          }
-        );
-        updateClient(
-          {
-            id: clientData.id,
-            data: clientRequestBody,
-          },
-          {
-            onSettled: (data, error) => {
-              onPostClientSettled?.(data, error?.response?.data);
-            },
-            async onSuccess(response) {
-              // Find the newly-created party
-              const oldPartyIds = clientData.parties?.map((party) => party.id);
-              const newParty = response.parties?.find(
-                (party) => !oldPartyIds?.includes(party.id)
-              );
-
-              // Update the cache BEFORE updating the editing party ID
-              // so that when the sidebar re-renders with the new ID,
-              // the party already exists in clientData.
-              const queryKey = getSmbdoGetClientQueryKey(clientData.id);
-              queryClient.setQueryData(queryKey, response);
-
-              if (newParty) {
-                setExistingPartyData(newParty);
-              }
-
-              await queryClient.invalidateQueries({
-                queryKey,
-              });
-
-              handleNext();
-            },
-            onError: (error) => {
-              setIsFormSubmitting(false);
-              if (error.response?.data.context) {
-                const apiFormErrors = mapClientApiErrorsToFormErrors(
-                  error.response.data.context,
-                  0,
-                  'addParties'
-                );
-                setApiFormErrors(form, apiFormErrors);
-              }
-            },
-          }
-        );
-      }
+    if (existingPartyData?.id && countryChanged) {
+      recreatePartyForCountryChange(modifiedValues);
+      return; // Exit early — the nested callbacks handle navigation
     }
+
+    if (existingPartyData?.id) {
+      updateExistingParty(modifiedValues);
+      return;
+    }
+
+    createNewParty(modifiedValues);
   });
 
   return (

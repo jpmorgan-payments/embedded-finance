@@ -27,6 +27,209 @@ import { getPartyName } from '@/core/OnboardingFlow/utils/dataUtils';
 import { DocumentRequestCard } from './DocumentRequestCard';
 import { UploadedDocument } from './documentUploadUtils';
 
+type DocumentRequirements = NonNullable<
+  DocumentRequestResponse['requirements']
+>;
+
+interface AddUploadedDocArgs {
+  id: string;
+  fieldName: string;
+  value: unknown;
+  requirementValues: Record<string, any>;
+  errors: Record<string, unknown>;
+  uploadedDocs: Record<string, UploadedDocument[]>;
+  satisfiedDocTypes: DocumentTypeSmbdo[];
+  requirementDocTypes: Record<string, Record<number, DocumentTypeSmbdo[]>>;
+}
+
+/**
+ * Records a single uploaded document (identified by its `_docType` field) into
+ * the running accumulators, skipping fields with validation errors.
+ */
+function addUploadedDocForField({
+  id,
+  fieldName,
+  value,
+  requirementValues,
+  errors,
+  uploadedDocs,
+  satisfiedDocTypes,
+  requirementDocTypes,
+}: AddUploadedDocArgs) {
+  if (!fieldName.includes('_docType') || !value) {
+    return;
+  }
+
+  const reqIndex = parseInt(fieldName.split('_')[1], 10);
+  const fieldSuffix = fieldName.replace(`requirement_${reqIndex}_docType`, '');
+  const filesFieldName = `requirement_${reqIndex}_files${fieldSuffix}`;
+  const files = requirementValues[filesFieldName];
+  if (!files || files.length === 0) {
+    return;
+  }
+
+  // Only consider documents as satisfied if there are no validation errors.
+  const docRequestErrors = errors[id] as Record<string, unknown> | undefined;
+  if (docRequestErrors?.[fieldName] || docRequestErrors?.[filesFieldName]) {
+    return;
+  }
+
+  const docType = value as DocumentTypeSmbdo;
+  uploadedDocs[id].push({ documentType: docType, files });
+
+  if (!satisfiedDocTypes.includes(docType)) {
+    satisfiedDocTypes.push(docType);
+  }
+
+  if (!requirementDocTypes[id][reqIndex]) {
+    requirementDocTypes[id][reqIndex] = [];
+  }
+  if (!requirementDocTypes[id][reqIndex].includes(docType)) {
+    requirementDocTypes[id][reqIndex].push(docType);
+  }
+}
+
+/**
+ * Walks all form values and derives which documents have been uploaded, which
+ * document types are satisfied, and the per-requirement document types.
+ */
+function evaluateUploadedDocuments(
+  formValues: Record<string, unknown>,
+  errors: Record<string, unknown>
+): {
+  uploadedDocs: Record<string, UploadedDocument[]>;
+  satisfiedDocTypes: DocumentTypeSmbdo[];
+  requirementDocTypes: Record<string, Record<number, DocumentTypeSmbdo[]>>;
+} {
+  const uploadedDocs: Record<string, UploadedDocument[]> = {};
+  const satisfiedDocTypes: DocumentTypeSmbdo[] = [];
+  const requirementDocTypes: Record<
+    string,
+    Record<number, DocumentTypeSmbdo[]>
+  > = {};
+
+  Object.entries(formValues).forEach(([id, requirementValues]) => {
+    uploadedDocs[id] = [];
+    requirementDocTypes[id] = {};
+
+    Object.entries(requirementValues as Record<string, any>).forEach(
+      ([fieldName, value]) => {
+        addUploadedDocForField({
+          id,
+          fieldName,
+          value,
+          requirementValues: requirementValues as Record<string, any>,
+          errors,
+          uploadedDocs,
+          satisfiedDocTypes,
+          requirementDocTypes,
+        });
+      }
+    );
+  });
+
+  return { uploadedDocs, satisfiedDocTypes, requirementDocTypes };
+}
+
+/** Returns the indexes of requirements that have enough uploaded documents. */
+function getSatisfiedSteps(
+  requirements: DocumentRequirements,
+  uploadedDocsForId: UploadedDocument[] | undefined
+): number[] {
+  const satisfiedSteps: number[] = [];
+  requirements.forEach((requirement, reqIndex) => {
+    const uploadedDocsOfRequiredTypes =
+      uploadedDocsForId?.filter((doc: UploadedDocument) =>
+        requirement.documentTypes.includes(doc.documentType)
+      ).length || 0;
+
+    if (uploadedDocsOfRequiredTypes >= (requirement.minRequired || 1)) {
+      satisfiedSteps.push(reqIndex);
+    }
+  });
+  return satisfiedSteps;
+}
+
+/**
+ * Finds the first unsatisfied step whose predecessors are all satisfied, or
+ * null when every step is satisfied.
+ */
+function findFirstActivatableStep(
+  requirements: DocumentRequirements,
+  satisfiedSteps: number[]
+): number | null {
+  for (let reqIndex = 0; reqIndex < requirements.length; reqIndex += 1) {
+    if (!satisfiedSteps.includes(reqIndex)) {
+      const allPreviousSatisfied =
+        reqIndex === 0 ||
+        requirements
+          .slice(0, reqIndex)
+          .every((_, idx) => satisfiedSteps.includes(idx));
+
+      if (allPreviousSatisfied) {
+        return reqIndex;
+      }
+    }
+  }
+  return null;
+}
+
+/** Updates the active-requirement map for a single document request in place. */
+function updateActiveRequirementForRequest(
+  docRequest: DocumentRequestResponse,
+  uploadedDocs: Record<string, UploadedDocument[]>,
+  newActiveReqs: Record<string, number[]>
+) {
+  if (!docRequest?.id) {
+    return;
+  }
+
+  const docId = docRequest.id;
+
+  // Always keep the first requirement active if nothing is satisfied yet
+  if (!newActiveReqs[docId]) {
+    newActiveReqs[docId] = [0];
+  }
+
+  if (!docRequest.requirements) {
+    return;
+  }
+
+  const satisfiedSteps = getSatisfiedSteps(
+    docRequest.requirements,
+    uploadedDocs[docId]
+  );
+
+  const firstActivatable = findFirstActivatableStep(
+    docRequest.requirements,
+    satisfiedSteps
+  );
+  if (firstActivatable !== null) {
+    newActiveReqs[docId] = [firstActivatable];
+    return;
+  }
+
+  // All steps are satisfied: clear the active list; otherwise fall back to the
+  // first step if the logic above produced no active step.
+  if (docRequest.requirements.length > 0) {
+    newActiveReqs[docId] =
+      satisfiedSteps.length === docRequest.requirements.length ? [] : [0];
+  }
+}
+
+/** Computes the active-requirement map across all document requests. */
+function computeActiveRequirements(
+  activeDocumentRequests: DocumentRequestResponse[],
+  uploadedDocs: Record<string, UploadedDocument[]>,
+  previousActiveReqs: Record<string, number[]>
+): Record<string, number[]> {
+  const newActiveReqs = { ...previousActiveReqs };
+  activeDocumentRequests.forEach((docRequest) => {
+    updateActiveRequirementForRequest(docRequest, uploadedDocs, newActiveReqs);
+  });
+  return newActiveReqs;
+}
+
 /**
  * Component for uploading documents for a specific party
  */
@@ -149,142 +352,24 @@ export const DocumentUploadForm = () => {
   useEffect(() => {
     if (!formValues) return;
 
-    const newUploadedDocs: Record<string, UploadedDocument[]> = {};
-    const newSatisfiedDocTypes: DocumentTypeSmbdo[] = [];
-    const newRequirementDocTypes: Record<
-      string,
-      Record<number, DocumentTypeSmbdo[]>
-    > = {};
-
-    // Process form values to extract uploaded documents
-    Object.entries(formValues).forEach(([id, requirementValues]) => {
-      newUploadedDocs[id] = [];
-      // Initialize the object for this document request
-      newRequirementDocTypes[id] = {};
-
-      Object.entries(requirementValues as Record<string, any>).forEach(
-        ([fieldName, value]) => {
-          if (fieldName.includes('_docType') && value) {
-            // Extract requirement index and suffix from field name
-            const reqParts = fieldName.split('_');
-            const reqIndex = parseInt(reqParts[1], 10);
-
-            // Determine if this is a suffixed field
-            const fieldBase = `requirement_${reqIndex}_files`;
-            const fieldSuffix = fieldName.replace(
-              `requirement_${reqIndex}_docType`,
-              ''
-            );
-            const filesFieldName = `${fieldBase}${fieldSuffix}`;
-
-            const files = (requirementValues as any)[filesFieldName];
-
-            if (files && files.length > 0) {
-              // Check for validation errors on both document type and files fields
-
-              const docRequestErrors = form.formState.errors?.[id] as
-                | Record<string, any>
-                | undefined;
-              const hasDocTypeError = !!docRequestErrors?.[fieldName];
-              const hasFilesError = !!docRequestErrors?.[filesFieldName];
-
-              // Only consider documents as satisfied if there are no validation errors
-              if (!hasDocTypeError && !hasFilesError) {
-                const docType = value as DocumentTypeSmbdo;
-                newUploadedDocs[id].push({
-                  documentType: docType,
-                  files,
-                });
-
-                // Add to satisfied document types
-                if (!newSatisfiedDocTypes.includes(docType)) {
-                  newSatisfiedDocTypes.push(docType);
-                }
-
-                // Track which document types were uploaded for each requirement
-                if (!newRequirementDocTypes[id][reqIndex]) {
-                  newRequirementDocTypes[id][reqIndex] = [];
-                }
-                if (!newRequirementDocTypes[id][reqIndex].includes(docType)) {
-                  newRequirementDocTypes[id][reqIndex].push(docType);
-                }
-              }
-            }
-          }
-        }
-      );
-    });
+    const {
+      uploadedDocs,
+      satisfiedDocTypes: newSatisfiedDocTypes,
+      requirementDocTypes: newRequirementDocTypes,
+    } = evaluateUploadedDocuments(
+      formValues as Record<string, unknown>,
+      form.formState.errors as Record<string, unknown>
+    );
 
     setSatisfiedDocTypes(newSatisfiedDocTypes);
     setRequirementDocTypes(newRequirementDocTypes);
 
     // Evaluate which requirements should be active
-    const newActiveReqs = { ...activeRequirements };
-
-    activeDocumentRequests?.forEach((docRequest) => {
-      if (!docRequest?.id) return;
-
-      const docId = docRequest.id;
-
-      // Always keep the first requirement active if nothing is satisfied yet
-      if (!newActiveReqs[docId]) {
-        newActiveReqs[docId] = [0];
-      }
-
-      // Check each requirement to find the first unsatisfied one
-      if (docRequest.requirements) {
-        let foundActiveStep = false;
-
-        // First pass: determine if any steps are fully satisfied
-        const satisfiedSteps: number[] = [];
-        docRequest.requirements.forEach((requirement, reqIndex) => {
-          // Count how many documents of the required types have been uploaded
-          const uploadedDocsOfRequiredTypes =
-            newUploadedDocs[docId]?.filter((doc: UploadedDocument) =>
-              requirement.documentTypes.includes(doc.documentType)
-            ).length || 0;
-
-          // If this step is satisfied, mark it
-          if (uploadedDocsOfRequiredTypes >= (requirement.minRequired || 1)) {
-            satisfiedSteps.push(reqIndex);
-          }
-        });
-
-        // Second pass: find the first unsatisfied step to make active
-        for (
-          let reqIndex = 0;
-          reqIndex < docRequest.requirements.length;
-          reqIndex += 1
-        ) {
-          // If this step is not satisfied, make it the active one
-          if (!satisfiedSteps.includes(reqIndex)) {
-            // Only make this step active if all previous steps are satisfied
-            const allPreviousSatisfied =
-              reqIndex === 0 ||
-              docRequest.requirements
-                .slice(0, reqIndex)
-                .every((_, idx) => satisfiedSteps.includes(idx));
-
-            if (allPreviousSatisfied) {
-              newActiveReqs[docId] = [reqIndex];
-              foundActiveStep = true;
-              break;
-            }
-          }
-        }
-
-        // If all steps are satisfied, keep the last one active
-        if (!foundActiveStep && docRequest.requirements.length > 0) {
-          if (satisfiedSteps.length === docRequest.requirements.length) {
-            // All steps are satisfied, don't keep any active to show them all as completed
-            newActiveReqs[docId] = [];
-          } else {
-            // Default to the first step if something went wrong with our logic
-            newActiveReqs[docId] = [0];
-          }
-        }
-      }
-    });
+    const newActiveReqs = computeActiveRequirements(
+      activeDocumentRequests,
+      uploadedDocs,
+      activeRequirements
+    );
 
     setActiveRequirements(newActiveReqs);
   }, [

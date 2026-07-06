@@ -101,6 +101,12 @@ const createBaseSchema = (
 };
 
 /**
+ * The parsed shape produced by the base schema (before superRefine).
+ * Fields such as `routingNumbers` are optional here, unlike BankAccountFormData.
+ */
+type BankAccountSuperRefineData = z.infer<ReturnType<typeof createBaseSchema>>;
+
+/**
  * Helper to determine if address is required for selected payment methods
  */
 function isAddressRequired(
@@ -143,6 +149,329 @@ function getRequiredContactTypes(
 }
 
 /**
+ * Validate account holder identity fields (always required)
+ */
+function validateAccountHolder(
+  data: BankAccountSuperRefineData,
+  v: ValidationGetter,
+  ctx: z.RefinementCtx
+): void {
+  if (data.accountType === 'INDIVIDUAL') {
+    if (!data.firstName || data.firstName.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: v('fields.firstName.validation.required'),
+        path: ['firstName'],
+      });
+    }
+    if (!data.lastName || data.lastName.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: v('fields.lastName.validation.required'),
+        path: ['lastName'],
+      });
+    }
+  } else if (data.accountType === 'ORGANIZATION') {
+    if (!data.businessName || data.businessName.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: v('fields.businessName.validation.required'),
+        path: ['businessName'],
+      });
+    }
+  }
+}
+
+/**
+ * Validate bank account number and type (always required)
+ */
+function validateBankAccountDetails(
+  data: BankAccountSuperRefineData,
+  v: ValidationGetter,
+  ctx: z.RefinementCtx
+): void {
+  if (!data.accountNumber || data.accountNumber.trim().length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: v('fields.accountNumber.validation.required'),
+      path: ['accountNumber'],
+    });
+  } else if (!/^\d+$/.test(data.accountNumber)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: v('fields.accountNumber.validation.digitsOnly'),
+      path: ['accountNumber'],
+    });
+  }
+
+  if (!data.bankAccountType) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: v('fields.accountType.validation.required'),
+      path: ['bankAccountType'],
+    });
+  }
+}
+
+/**
+ * Validate the routing number for a single selected payment method
+ */
+function validateRoutingNumberForMethod(
+  method: RoutingInformationTransactionType,
+  methodIndex: number,
+  data: BankAccountSuperRefineData,
+  config: BankAccountFormConfig,
+  v: ValidationGetter,
+  ctx: z.RefinementCtx
+): void {
+  const methodConfig = config.paymentMethods.configs[method];
+  if (!methodConfig?.enabled || !methodConfig.requiredFields.routingNumber) {
+    return;
+  }
+
+  const routingEntryIndex =
+    data.routingNumbers?.findIndex((r) => r.paymentType === method) ?? -1;
+  const routingEntry =
+    routingEntryIndex >= 0
+      ? data.routingNumbers?.[routingEntryIndex]
+      : undefined;
+
+  if (!routingEntry || !routingEntry.routingNumber.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: v('routingNumbers.validation.required', {
+        method: methodConfig.labelString,
+      }),
+      path:
+        routingEntryIndex >= 0
+          ? ['routingNumbers', routingEntryIndex, 'routingNumber']
+          : ['routingNumbers', methodIndex, 'routingNumber'],
+    });
+    return;
+  }
+
+  // Validate routing number format (always 9 digits)
+  if (!/^\d{9}$/.test(routingEntry.routingNumber)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: v('routingNumbers.validation.digits'),
+      path: ['routingNumbers', routingEntryIndex, 'routingNumber'],
+    });
+  }
+
+  // Additional payment-method-specific validation if configured
+  if (methodConfig.routingValidation) {
+    const { pattern, errorMessage } = methodConfig.routingValidation;
+    if (!pattern.test(routingEntry.routingNumber)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: errorMessage,
+        path: ['routingNumbers', routingEntryIndex, 'routingNumber'],
+      });
+    }
+  }
+}
+
+/**
+ * Validate routing numbers across all selected payment methods
+ */
+function validateRoutingNumbers(
+  data: BankAccountSuperRefineData,
+  config: BankAccountFormConfig,
+  v: ValidationGetter,
+  ctx: z.RefinementCtx,
+  selectedMethods: RoutingInformationTransactionType[]
+): void {
+  selectedMethods.forEach((method, methodIndex) => {
+    validateRoutingNumberForMethod(method, methodIndex, data, config, v, ctx);
+  });
+}
+
+/**
+ * Validate the individual fields of a required address
+ */
+function validateAddressFields(
+  address: NonNullable<BankAccountSuperRefineData['address']>,
+  v: ValidationGetter,
+  ctx: z.RefinementCtx
+): void {
+  if (!address.addressLine1 || address.addressLine1.trim().length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: v('address.validation.streetAddressRequired'),
+      path: ['address', 'addressLine1'],
+    });
+  }
+
+  if (!address.city || address.city.trim().length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: v('address.validation.cityRequired'),
+      path: ['address', 'city'],
+    });
+  }
+
+  if (!address.state || address.state.trim().length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: v('address.validation.stateRequired'),
+      path: ['address', 'state'],
+    });
+  }
+
+  if (!address.postalCode || address.postalCode.trim().length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: v('address.validation.postalCodeRequired'),
+      path: ['address', 'postalCode'],
+    });
+  } else if (!/^\d{5}(-\d{4})?$/.test(address.postalCode)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: v('address.validation.postalCodeFormat'),
+      path: ['address', 'postalCode'],
+    });
+  }
+}
+
+/**
+ * Validate address presence and contents when required by payment methods
+ */
+function validateAddress(
+  data: BankAccountSuperRefineData,
+  config: BankAccountFormConfig,
+  v: ValidationGetter,
+  ctx: z.RefinementCtx,
+  selectedMethods: RoutingInformationTransactionType[]
+): void {
+  if (!isAddressRequired(config, selectedMethods)) return;
+
+  if (!data.address) {
+    const methodsRequiringAddress = selectedMethods.filter(
+      (method) => config.paymentMethods.configs[method]?.requiredFields.address
+    );
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: v('address.validation.required', {
+        methods: methodsRequiringAddress
+          .map((m) => config.paymentMethods.configs[m].label)
+          .join(', '),
+      }),
+      path: ['address'],
+    });
+    return;
+  }
+
+  validateAddressFields(data.address, v, ctx);
+}
+
+/**
+ * Validate contact fields required by the selected payment methods
+ */
+function validateContacts(
+  data: BankAccountSuperRefineData,
+  config: BankAccountFormConfig,
+  v: ValidationGetter,
+  ctx: z.RefinementCtx,
+  selectedMethods: RoutingInformationTransactionType[]
+): void {
+  const requiredContactTypes = getRequiredContactTypes(config, selectedMethods);
+
+  requiredContactTypes.forEach((contactType) => {
+    const contact = data.contacts?.find((c) => c.contactType === contactType);
+    if (contact && contact.value.trim()) return;
+
+    const methodsRequiringContact = selectedMethods.filter((method) =>
+      config.paymentMethods.configs[method]?.requiredFields.contacts?.includes(
+        contactType
+      )
+    );
+
+    const methodLabels = methodsRequiringContact
+      .map((m) => config.paymentMethods.configs[m].label)
+      .join(', ');
+
+    const formattedContactType =
+      contactType.charAt(0) + contactType.slice(1).toLowerCase();
+
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: methodLabels
+        ? v('contacts.validation.requiredForMethod', {
+            contactType: formattedContactType,
+            method: methodLabels,
+          })
+        : v('contacts.validation.required', {
+            contactType: formattedContactType,
+          }),
+      path: ['contacts'],
+    });
+  });
+}
+
+/**
+ * Validate that locked payment methods remain selected (for linked accounts)
+ */
+function validateLockedPaymentMethods(
+  config: BankAccountFormConfig,
+  v: ValidationGetter,
+  ctx: z.RefinementCtx,
+  selectedMethods: RoutingInformationTransactionType[]
+): void {
+  selectedMethods.forEach((method) => {
+    const methodConfig = config.paymentMethods.configs[method];
+    if (methodConfig?.locked && !selectedMethods.includes(method)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: v('paymentMethods.validation.lockedRequired', {
+          method: methodConfig.labelString,
+        }),
+        path: ['paymentTypes'],
+      });
+    }
+  });
+}
+
+/**
+ * Validate the account against existing accounts (duplicate detection)
+ */
+function validateDuplicateAccounts(
+  data: BankAccountSuperRefineData,
+  config: BankAccountFormConfig,
+  v: ValidationGetter,
+  ctx: z.RefinementCtx
+): void {
+  if (
+    !config.existingAccounts?.length ||
+    !data.accountNumber?.trim() ||
+    !data.routingNumbers?.length
+  ) {
+    return;
+  }
+
+  const isDuplicate = config.existingAccounts.some((existing) => {
+    if (existing.account?.number !== data.accountNumber) return false;
+    // Match if any routing number in the form matches any routing number
+    // on the existing account (same transaction type + routing number).
+    return data.routingNumbers!.some((formRouting) =>
+      existing.account?.routingInformation?.some(
+        (existingRouting) =>
+          existingRouting.routingNumber === formRouting.routingNumber &&
+          existingRouting.transactionType === formRouting.paymentType
+      )
+    );
+  });
+
+  if (isDuplicate) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: v('fields.accountNumber.validation.duplicate'),
+      path: ['accountNumber'],
+    });
+  }
+}
+
+/**
  * Create dynamic schema with configuration-based validation
  * @param config - Form configuration
  * @param v - Validation message getter function from i18n
@@ -154,253 +483,29 @@ export function createBankAccountFormSchema(
   const baseSchema = createBaseSchema(config, v);
 
   return baseSchema.superRefine((data, ctx) => {
-    const { accountType, paymentTypes = [] } = data;
-
-    // 1. Validate account holder information based on type
-    // These fields are ALWAYS required regardless of payment methods
-    if (accountType === 'INDIVIDUAL') {
-      if (!data.firstName || data.firstName.trim().length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: v('fields.firstName.validation.required'),
-          path: ['firstName'],
-        });
-      }
-      if (!data.lastName || data.lastName.trim().length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: v('fields.lastName.validation.required'),
-          path: ['lastName'],
-        });
-      }
-    } else if (accountType === 'ORGANIZATION') {
-      if (!data.businessName || data.businessName.trim().length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: v('fields.businessName.validation.required'),
-          path: ['businessName'],
-        });
-      }
-    }
-
-    // 2. Validate bank account details
-    // Account number is ALWAYS required for bank accounts
-    if (!data.accountNumber || data.accountNumber.trim().length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: v('fields.accountNumber.validation.required'),
-        path: ['accountNumber'],
-      });
-    } else if (!/^\d+$/.test(data.accountNumber)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: v('fields.accountNumber.validation.digitsOnly'),
-        path: ['accountNumber'],
-      });
-    }
-
-    // Bank account type is ALWAYS required
-    if (!data.bankAccountType) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: v('fields.accountType.validation.required'),
-        path: ['bankAccountType'],
-      });
-    }
-
-    // 3. Validate routing numbers for each selected payment method
+    const { paymentTypes = [] } = data;
     const selectedMethods = paymentTypes as RoutingInformationTransactionType[];
 
-    selectedMethods.forEach((method, methodIndex) => {
-      const methodConfig = config.paymentMethods.configs[method];
+    // 1. Account holder information (always required)
+    validateAccountHolder(data, v, ctx);
 
-      if (methodConfig?.enabled && methodConfig.requiredFields.routingNumber) {
-        const routingEntryIndex =
-          data.routingNumbers?.findIndex((r) => r.paymentType === method) ?? -1;
-        const routingEntry =
-          routingEntryIndex >= 0
-            ? data.routingNumbers?.[routingEntryIndex]
-            : undefined;
+    // 2. Bank account details (always required)
+    validateBankAccountDetails(data, v, ctx);
 
-        if (!routingEntry || !routingEntry.routingNumber.trim()) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: v('routingNumbers.validation.required', {
-              method: methodConfig.labelString,
-            }),
-            path:
-              routingEntryIndex >= 0
-                ? ['routingNumbers', routingEntryIndex, 'routingNumber']
-                : ['routingNumbers', methodIndex, 'routingNumber'],
-          });
-        } else {
-          // Validate routing number format (always 9 digits)
-          if (!/^\d{9}$/.test(routingEntry.routingNumber)) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: v('routingNumbers.validation.digits'),
-              path: ['routingNumbers', routingEntryIndex, 'routingNumber'],
-            });
-          }
+    // 3. Routing numbers for each selected payment method
+    validateRoutingNumbers(data, config, v, ctx, selectedMethods);
 
-          // Additional payment-method-specific validation if configured
-          if (methodConfig.routingValidation) {
-            const { pattern, errorMessage } = methodConfig.routingValidation;
-            if (!pattern.test(routingEntry.routingNumber)) {
-              ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: errorMessage,
-                path: ['routingNumbers', routingEntryIndex, 'routingNumber'],
-              });
-            }
-          }
-        }
-      }
-    });
+    // 4. Address (conditional on payment methods)
+    validateAddress(data, config, v, ctx, selectedMethods);
 
-    // 4. Validate address if required
-    if (isAddressRequired(config, selectedMethods)) {
-      if (!data.address) {
-        const methodsRequiringAddress = selectedMethods.filter(
-          (method) =>
-            config.paymentMethods.configs[method]?.requiredFields.address
-        );
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: v('address.validation.required', {
-            methods: methodsRequiringAddress
-              .map((m) => config.paymentMethods.configs[m].label)
-              .join(', '),
-          }),
-          path: ['address'],
-        });
-      } else {
-        // Validate address fields
-        if (
-          !data.address.addressLine1 ||
-          data.address.addressLine1.trim().length === 0
-        ) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: v('address.validation.streetAddressRequired'),
-            path: ['address', 'addressLine1'],
-          });
-        }
+    // 5. Contact fields (conditional on payment methods)
+    validateContacts(data, config, v, ctx, selectedMethods);
 
-        if (!data.address.city || data.address.city.trim().length === 0) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: v('address.validation.cityRequired'),
-            path: ['address', 'city'],
-          });
-        }
+    // 6. Locked payment methods (for linked accounts)
+    validateLockedPaymentMethods(config, v, ctx, selectedMethods);
 
-        if (!data.address.state || data.address.state.trim().length === 0) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: v('address.validation.stateRequired'),
-            path: ['address', 'state'],
-          });
-        }
-
-        if (
-          !data.address.postalCode ||
-          data.address.postalCode.trim().length === 0
-        ) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: v('address.validation.postalCodeRequired'),
-            path: ['address', 'postalCode'],
-          });
-        } else if (!/^\d{5}(-\d{4})?$/.test(data.address.postalCode)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: v('address.validation.postalCodeFormat'),
-            path: ['address', 'postalCode'],
-          });
-        }
-      }
-    }
-
-    // 5. Validate contact fields if required
-    const requiredContactTypes = getRequiredContactTypes(
-      config,
-      selectedMethods
-    );
-
-    requiredContactTypes.forEach((contactType) => {
-      const contact = data.contacts?.find((c) => c.contactType === contactType);
-
-      if (!contact || !contact.value.trim()) {
-        const methodsRequiringContact = selectedMethods.filter((method) =>
-          config.paymentMethods.configs[
-            method
-          ]?.requiredFields.contacts?.includes(contactType)
-        );
-
-        const methodLabels = methodsRequiringContact
-          .map((m) => config.paymentMethods.configs[m].label)
-          .join(', ');
-
-        const formattedContactType =
-          contactType.charAt(0) + contactType.slice(1).toLowerCase();
-
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: methodLabels
-            ? v('contacts.validation.requiredForMethod', {
-                contactType: formattedContactType,
-                method: methodLabels,
-              })
-            : v('contacts.validation.required', {
-                contactType: formattedContactType,
-              }),
-          path: ['contacts'],
-        });
-      }
-    });
-
-    // 6. Validate locked payment methods (for linked accounts)
-    selectedMethods.forEach((method) => {
-      const methodConfig = config.paymentMethods.configs[method];
-      if (methodConfig?.locked && !paymentTypes.includes(method)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: v('paymentMethods.validation.lockedRequired', {
-            method: methodConfig.labelString,
-          }),
-          path: ['paymentTypes'],
-        });
-      }
-    });
-
-    // 7. Validate against existing accounts (duplicate detection)
-    if (
-      config.existingAccounts?.length &&
-      data.accountNumber?.trim() &&
-      data.routingNumbers?.length
-    ) {
-      const isDuplicate = config.existingAccounts.some((existing) => {
-        if (existing.account?.number !== data.accountNumber) return false;
-        // Match if any routing number in the form matches any routing number
-        // on the existing account (same transaction type + routing number).
-        return data.routingNumbers!.some((formRouting) =>
-          existing.account?.routingInformation?.some(
-            (existingRouting) =>
-              existingRouting.routingNumber === formRouting.routingNumber &&
-              existingRouting.transactionType === formRouting.paymentType
-          )
-        );
-      });
-
-      if (isDuplicate) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: v('fields.accountNumber.validation.duplicate'),
-          path: ['accountNumber'],
-        });
-      }
-    }
+    // 7. Duplicate detection against existing accounts
+    validateDuplicateAccounts(data, config, v, ctx);
   }) as z.ZodType<BankAccountFormData>;
 }
 

@@ -80,6 +80,43 @@ const ORG_TYPE_MAPPING: Record<GeneralOrganizationType, OrganizationType[]> = {
   ],
 };
 
+type GatewaySubmittableValues = ReturnType<
+  typeof GatewayScreenFormSchema.parse
+>;
+type GatewayOrganizationParty = NonNullable<
+  ReturnType<typeof getOrganizationParty>
+>;
+
+/** Derives the `isSubsidiary` request value from the PTC selection. */
+function deriveIsSubsidiary(hasPTC: boolean, ptcStatus: string): string {
+  if (!hasPTC) {
+    return '';
+  }
+  return ptcStatus === 'subsidiary' ? 'true' : 'false';
+}
+
+/**
+ * Returns true when the organization's publicly-traded details already match
+ * what was submitted, so no party update is required.
+ */
+function isPtcUnchanged(
+  hasPTC: boolean,
+  submittableValues: GatewaySubmittableValues,
+  existingOrgParty: GatewayOrganizationParty
+): boolean {
+  const existingPTC = existingOrgParty.organizationDetails?.publiclyTraded;
+  if (!hasPTC) {
+    return !existingPTC;
+  }
+  const existingIsSubsidiary =
+    existingOrgParty.organizationDetails?.isSubsidiary;
+  return (
+    existingPTC?.tickerSymbol === submittableValues.tickerSymbol &&
+    existingPTC?.stockExchange === submittableValues.stockExchange &&
+    String(existingIsSubsidiary ?? false) === submittableValues.isSubsidiary
+  );
+}
+
 export const GatewayScreen = () => {
   const queryClient = useQueryClient();
   const {
@@ -165,6 +202,216 @@ export const GatewayScreen = () => {
     status: partyUpdateStatus,
   } = useSmbdoUpdateParty();
 
+  // Create a brand-new client with the organization party.
+  const createClient = (
+    submittableValues: GatewaySubmittableValues,
+    defaultPartyData: CreatePartyRequestInlineRequired
+  ) => {
+    const requestBody = generateClientRequestBody(
+      submittableValues,
+      0,
+      'parties',
+      {
+        parties: [defaultPartyData],
+      }
+    );
+
+    postClient(
+      {
+        data: {
+          products: ['EMBEDDED_PAYMENTS'],
+          ...requestBody,
+        },
+      },
+      {
+        onSettled: (data, error) => {
+          onPostClientSettled?.(data, error?.response?.data);
+        },
+        onSuccess: (response) => {
+          setClientId(response.id);
+          // Update the query cache with the new client data
+          queryClient.setQueryData(
+            getSmbdoGetClientQueryKey(response.id),
+            response
+          );
+          handleNext();
+        },
+        onError: (error) => {
+          if (error.response?.data?.context) {
+            const { context } = error.response.data;
+            const apiFormErrors = mapClientApiErrorsToFormErrors(
+              context,
+              0,
+              'parties'
+            );
+            setApiFormErrors(form, apiFormErrors);
+          }
+        },
+      }
+    );
+  };
+
+  // Special handling for SOLE_PROPRIETORSHIP org type changes: mirror the
+  // controller's name, ensure US formation, and grant the beneficial-owner role.
+  const applySolePropAdjustments = (
+    partyRequestBody: ReturnType<typeof generatePartyRequestBody>
+  ) => {
+    if (
+      !clientData ||
+      partyRequestBody.organizationDetails?.organizationType !==
+        'SOLE_PROPRIETORSHIP'
+    ) {
+      return;
+    }
+
+    // Ensure country of formation is set to US for sole proprietorship.
+    // Set unconditionally, regardless of whether a controller party exists.
+    partyRequestBody.organizationDetails.countryOfFormation = 'US';
+
+    const controllerParty = getControllerParty(clientData);
+    if (!controllerParty) {
+      return;
+    }
+
+    // Set organization name to controller's name for sole proprietorship
+    partyRequestBody.organizationDetails.organizationName =
+      getPartyName(controllerParty);
+
+    // Update controller party to include beneficial owner role if needed
+    if (
+      !controllerParty.roles?.includes('BENEFICIAL_OWNER') &&
+      controllerParty.id
+    ) {
+      updateParty(
+        {
+          partyId: controllerParty.id,
+          data: {
+            roles: [...(controllerParty.roles || []), 'BENEFICIAL_OWNER'],
+          },
+        },
+        {
+          onSuccess: () => {
+            // Refresh the client so client-level fields (e.g.
+            // outstanding.questionIds) reflect the role change.
+            queryClient.invalidateQueries({
+              queryKey: getSmbdoGetClientQueryKey(clientData.id),
+            });
+          },
+          onError: (error) => {
+            console.error('Failed to update controller roles:', error);
+          },
+        }
+      );
+    }
+  };
+
+  // Update the existing organization party (skipping when nothing changed).
+  const updateOrganizationParty = (
+    submittableValues: GatewaySubmittableValues,
+    hasPTC: boolean
+  ) => {
+    if (!clientData || !existingOrgParty?.id) {
+      return;
+    }
+
+    // If org type and PTC data are both unchanged, move to the next step
+    const orgTypeUnchanged =
+      submittableValues.organizationTypeHierarchy.specificOrganizationType ===
+      existingOrgParty.organizationDetails?.organizationType;
+
+    if (
+      orgTypeUnchanged &&
+      isPtcUnchanged(hasPTC, submittableValues, existingOrgParty)
+    ) {
+      handleNext();
+      return;
+    }
+
+    // Else update the party
+    const partyRequestBody = generatePartyRequestBody(submittableValues, {});
+    applySolePropAdjustments(partyRequestBody);
+
+    updateParty(
+      { partyId: existingOrgParty.id, data: partyRequestBody },
+      {
+        onSettled: (data, error) => {
+          onPostPartySettled?.(data, error?.response?.data);
+        },
+        onSuccess: (response) => {
+          const queryKey = getSmbdoGetClientQueryKey(clientData.id);
+          // Update the client data in the cache while it fetches the new data
+          queryClient.setQueryData(
+            queryKey,
+            (oldClientData: ClientResponse | undefined) => ({
+              ...oldClientData,
+              parties: oldClientData?.parties?.map((party) => {
+                if (party.id === response.id) {
+                  return {
+                    ...party,
+                    ...response,
+                  };
+                }
+                return party;
+              }),
+            })
+          );
+          // Invalidate to refresh client-level fields (e.g.
+          // outstanding.questionIds) that the party response can't carry.
+          queryClient.invalidateQueries({ queryKey });
+          handleNext();
+        },
+        onError: (error) => {
+          if (error.response?.data?.context) {
+            const { context } = error.response.data;
+            const apiFormErrors = mapPartyApiErrorsToFormErrors(context);
+            setApiFormErrors(form, apiFormErrors);
+          }
+        },
+      }
+    );
+  };
+
+  // Client exists but the organization party does not — create it.
+  const createOrganizationParty = (
+    submittableValues: GatewaySubmittableValues,
+    defaultPartyData: CreatePartyRequestInlineRequired
+  ) => {
+    if (!clientData) {
+      return;
+    }
+
+    const clientRequestBody = generateClientRequestBody(
+      submittableValues,
+      0,
+      'addParties',
+      {
+        addParties: [defaultPartyData],
+      }
+    );
+    updateClient(
+      { id: clientData.id, data: clientRequestBody },
+      {
+        onSettled: (data, error) => {
+          onPostClientSettled?.(data, error?.response?.data);
+        },
+        onSuccess: () => {
+          handleNext();
+        },
+        onError: (error) => {
+          if (error.response?.data?.context) {
+            const { context } = error.response.data;
+            const apiFormErrors = mapClientApiErrorsToFormErrors(
+              context,
+              0,
+              'addParties'
+            );
+            setApiFormErrors(form, apiFormErrors);
+          }
+        },
+      }
+    );
+  };
+
   const onSubmit = form.handleSubmit((values) => {
     // Mark PTC question as answered so sidebar unlocks after gateway
     if (enablePubliclyTradedCompanies && values.isPTCOrSubsidiary) {
@@ -176,13 +423,9 @@ export const GatewayScreen = () => {
     const hasPTC = ptcStatus === 'ptc' || ptcStatus === 'subsidiary';
 
     // Prepare values with derived isSubsidiary and without PTC fields if not applicable
-    const submittableValues = {
+    const submittableValues: GatewaySubmittableValues = {
       ...values,
-      isSubsidiary: hasPTC
-        ? ptcStatus === 'subsidiary'
-          ? 'true'
-          : 'false'
-        : '',
+      isSubsidiary: deriveIsSubsidiary(hasPTC, ptcStatus),
       tickerSymbol: hasPTC ? values.tickerSymbol : '',
       stockExchange: hasPTC ? values.stockExchange : '',
       stockExchangeName: hasPTC ? values.stockExchangeName : '',
@@ -201,192 +444,18 @@ export const GatewayScreen = () => {
 
     // Create client if it doesn't exist
     if (!clientData) {
-      const requestBody = generateClientRequestBody(
-        submittableValues,
-        0,
-        'parties',
-        {
-          parties: [defaultPartyData],
-        }
-      );
-
-      postClient(
-        {
-          data: {
-            products: ['EMBEDDED_PAYMENTS'],
-            ...requestBody,
-          },
-        },
-        {
-          onSettled: (data, error) => {
-            onPostClientSettled?.(data, error?.response?.data);
-          },
-          onSuccess: (response) => {
-            setClientId(response.id);
-            // Update the query cache with the new client data
-            queryClient.setQueryData(
-              getSmbdoGetClientQueryKey(response.id),
-              response
-            );
-            handleNext();
-          },
-          onError: (error) => {
-            if (error.response?.data?.context) {
-              const { context } = error.response.data;
-              const apiFormErrors = mapClientApiErrorsToFormErrors(
-                context,
-                0,
-                'parties'
-              );
-              setApiFormErrors(form, apiFormErrors);
-            }
-          },
-        }
-      );
+      createClient(submittableValues, defaultPartyData);
+      return;
     }
 
     // Update the organization party if it exists
-    else if (clientData && existingOrgParty?.id) {
-      // If org type and PTC data are both unchanged, move to the next step
-      const orgTypeUnchanged =
-        submittableValues.organizationTypeHierarchy.specificOrganizationType ===
-        existingOrgParty.organizationDetails?.organizationType;
-      const existingPTC = existingOrgParty.organizationDetails?.publiclyTraded;
-      const existingIsSubsidiary =
-        existingOrgParty.organizationDetails?.isSubsidiary;
-      const ptcUnchanged =
-        (!hasPTC && !existingPTC) ||
-        (hasPTC &&
-          existingPTC?.tickerSymbol === submittableValues.tickerSymbol &&
-          existingPTC?.stockExchange === submittableValues.stockExchange &&
-          String(existingIsSubsidiary ?? false) ===
-            submittableValues.isSubsidiary);
-
-      if (orgTypeUnchanged && ptcUnchanged) {
-        handleNext();
-        return;
-      }
-
-      // Else update the party
-      const partyRequestBody = generatePartyRequestBody(submittableValues, {});
-
-      // HANDLE ORG TYPE CHANGES - Special handling for SOLE_PROPRIETORSHIP
-      if (
-        partyRequestBody.organizationDetails?.organizationType ===
-        'SOLE_PROPRIETORSHIP'
-      ) {
-        const controllerParty = getControllerParty(clientData);
-        // Set organization name to controller's name for sole proprietorship
-        if (controllerParty) {
-          partyRequestBody.organizationDetails.organizationName =
-            getPartyName(controllerParty);
-
-          // Update controller party to include beneficial owner role if needed
-          if (
-            controllerParty &&
-            !controllerParty.roles?.includes('BENEFICIAL_OWNER') &&
-            controllerParty.id
-          ) {
-            updateParty(
-              {
-                partyId: controllerParty.id,
-                data: {
-                  roles: [...(controllerParty.roles || []), 'BENEFICIAL_OWNER'],
-                },
-              },
-              {
-                onSuccess: () => {
-                  // Refresh the client so client-level fields (e.g.
-                  // outstanding.questionIds) reflect the role change.
-                  queryClient.invalidateQueries({
-                    queryKey: getSmbdoGetClientQueryKey(clientData.id),
-                  });
-                },
-                onError: (error) => {
-                  console.error('Failed to update controller roles:', error);
-                },
-              }
-            );
-          }
-        }
-
-        // Ensure country of formation is set to US for sole proprietorship
-        partyRequestBody.organizationDetails.countryOfFormation = 'US';
-      }
-
-      updateParty(
-        { partyId: existingOrgParty.id, data: partyRequestBody },
-        {
-          onSettled: (data, error) => {
-            onPostPartySettled?.(data, error?.response?.data);
-          },
-          onSuccess: (response) => {
-            const queryKey = getSmbdoGetClientQueryKey(clientData.id);
-            // Update the client data in the cache while it fetches the new data
-            queryClient.setQueryData(
-              queryKey,
-              (oldClientData: ClientResponse | undefined) => ({
-                ...oldClientData,
-                parties: oldClientData?.parties?.map((party) => {
-                  if (party.id === response.id) {
-                    return {
-                      ...party,
-                      ...response,
-                    };
-                  }
-                  return party;
-                }),
-              })
-            );
-            // Invalidate to refresh client-level fields (e.g.
-            // outstanding.questionIds) that the party response can't carry.
-            queryClient.invalidateQueries({ queryKey });
-            handleNext();
-          },
-          onError: (error) => {
-            if (error.response?.data?.context) {
-              const { context } = error.response.data;
-              const apiFormErrors = mapPartyApiErrorsToFormErrors(context);
-              setApiFormErrors(form, apiFormErrors);
-            }
-          },
-        }
-      );
+    if (existingOrgParty?.id) {
+      updateOrganizationParty(submittableValues, hasPTC);
+      return;
     }
 
     // If client exists but organization party does not exist, create it
-    else {
-      const clientRequestBody = generateClientRequestBody(
-        submittableValues,
-        0,
-        'addParties',
-        {
-          addParties: [defaultPartyData],
-        }
-      );
-      updateClient(
-        { id: clientData.id, data: clientRequestBody },
-        {
-          onSettled: (data, error) => {
-            onPostClientSettled?.(data, error?.response?.data);
-          },
-          onSuccess: () => {
-            handleNext();
-          },
-          onError: (error) => {
-            if (error.response?.data?.context) {
-              const { context } = error.response.data;
-              const apiFormErrors = mapClientApiErrorsToFormErrors(
-                context,
-                0,
-                'addParties'
-              );
-              setApiFormErrors(form, apiFormErrors);
-            }
-          },
-        }
-      );
-    }
+    createOrganizationParty(submittableValues, defaultPartyData);
   });
 
   // Calculate available general organization types based on available specific types
