@@ -1,0 +1,2745 @@
+openapi: 3.0.1
+info:
+  title: Transactions API
+  version: 3.0.55
+  description: Create, track, and manage payments, such as ACH, wire, and real-time transfers, while easily filtering and retrieving transaction details by type, status, account, or date. This lets you automate fund movement and gain real-time visibility into your payment activity, all through a secure and flexible interface.
+  contact:
+    name: JPMC Technical Services Support
+servers:
+  - url: https://api.payments.jpmorgan.com/embedded/v3
+    description: PRODUCTION - MTLS
+  - url: https://api-mock.payments.jpmorgan.com/embedded/v3
+    description: MOCK
+  - url: https://api-sandbox.payments.jpmorgan.com/embedded/v3
+    description: CLIENT TESTING - MTLS
+tags:
+  - name: Transactions
+    description: Initiate and track the movement of funds, including payments.
+paths:
+  /transactions:
+    post:
+      summary: Create transaction
+      description: Creates a new transaction, such as a payment via ACH, Wire or Real Time Payments (RTP).
+      operationId: createTransactionV3
+      tags:
+        - Transactions
+      parameters:
+        - $ref: '#/components/parameters/configurationIdInHeaderOptional'
+        - $ref: '#/components/parameters/requestIdInHeader'
+      requestBody:
+        required: true
+        description: Contains the required information to create a payment transaction.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostTransactionRequestBaseV3'
+            examples:
+              Post a payment to a registered recipient using ACH:
+                $ref: '#/components/examples/CreateTransactionPayoutACHReq'
+              Post a payment to a registered recipient using RTP:
+                $ref: '#/components/examples/CreateTransactionPayoutRTPReq'
+              Post a payment to a registered recipient using WIRE:
+                $ref: '#/components/examples/CreateTransactionPayoutWIRERReq'
+              Post a payment to a registered recipient using ACH payInto collection:
+                $ref: '#/components/examples/CreateTransactionPayIntoCollectionACHReq'
+              Post a payment to an unregistered recipient using ACH:
+                $ref: '#/components/examples/CreateTransactionV3ACHPayoutUnregisteredReq'
+              Post a payment to an unregistered recipient using ACH IBAN:
+                $ref: '#/components/examples/CreateTransactionV3ACHPayoutUnregisteredReqIBAN'
+              Post a payment to an unregistered recipient using RTP:
+                $ref: '#/components/examples/CreateTransactionPayoutUnregisteredRtpReq'
+              Post a payment to an unregistered recipient using WIRE:
+                $ref: '#/components/examples/CreateTransactionPayoutUnregisteredWireReq'
+              Post a payment to an unregistered recipient using ACH payInto collection:
+                $ref: '#/components/examples/CreateTransactionPayIntoCollectionUnregisteredAchReq'
+              Post a payment to  on behalf of an unregistered recipient using ACH:
+                $ref: '#/components/examples/CreateTransactionPayoutOnBehalfOfUnregisteredAchReq'
+              Post a payment to  on behalf of an unregistered recipient using RTP:
+                $ref: '#/components/examples/CreateTransactionPayoutOnBehalfOfUnregisteredRtpReq'
+              Post a payment to  on behalf of an unregistered recipient using WIRE:
+                $ref: '#/components/examples/CreateTransactionPayoutOnBehalfOfUnregisteredWireReq'
+              Post a payment to  on behalf of an unregistered recipient using ACH payInto collection:
+                $ref: '#/components/examples/CreateTransactionPayIntoCollectionOnBehalfOfUnregisteredAchReq'
+              Transfer funds from one account to another:
+                $ref: '#/components/examples/CreateTransactionV2VReq'
+              Post a payment to a domestic US account on behalf of an international seller using ACH IAT:
+                $ref: '#/components/examples/CreateTransactionPayoutInternationalIATAchReq'
+      responses:
+        '202':
+          description: Accepted
+          headers:
+            request-id:
+              $ref: '#/components/headers/requestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponseV3'
+              examples:
+                CreateTransactionRes:
+                  $ref: '#/components/examples/CreateTransactionPayoutACHRes'
+                CreateTransactionPayoutWIRERes:
+                  $ref: '#/components/examples/CreateTransactionPayoutRTPRes'
+                CreateTransactionPayoutRTPRes:
+                  $ref: '#/components/examples/CreateTransactionPayoutWIRERes'
+                CreateTransactionPayIntoCollectionACHRes:
+                  $ref: '#/components/examples/CreateTransactionPayIntoCollectionACHRes'
+                CreateTransactionV3ACHPayoutUnregisteredRes:
+                  $ref: '#/components/examples/CreateTransactionV3ACHPayoutUnregisteredRes'
+                CreateTransactionPayoutUnregisteredRtpRes:
+                  $ref: '#/components/examples/CreateTransactionPayoutUnregisteredRtpRes'
+                CreateTransactionPayoutUnregisteredWireRes:
+                  $ref: '#/components/examples/CreateTransactionPayoutUnregisteredWireRes'
+                CreateTransactionPayIntoCollectionUnregisteredAchRes:
+                  $ref: '#/components/examples/CreateTransactionPayIntoCollectionUnregisteredAchRes'
+                CreateTransactionPayoutOnBehalfOfUnregisteredAchRes:
+                  $ref: '#/components/examples/CreateTransactionPayoutOnBehalfOfUnregisteredAchRes'
+                CreateTransactionPayoutOnBehalfOfUnregisteredRtpRes:
+                  $ref: '#/components/examples/CreateTransactionPayoutOnBehalfOfUnregisteredRtpRes'
+                CreateTransactionPayoutOnBehalfOfUnregisteredWireRes:
+                  $ref: '#/components/examples/CreateTransactionPayoutOnBehalfOfUnregisteredWireRes'
+                CreateTransactionPayIntoCollectionOnBehalfOfUnregisteredAchRes:
+                  $ref: '#/components/examples/CreateTransactionPayIntoCollectionOnBehalfOfUnregisteredAchRes'
+                CreateTransactionTransferRes:
+                  $ref: '#/components/examples/CreateTransactionV2VRes'
+                CreateTransactionPayoutInternationalIATAchRes:
+                  $ref: '#/components/examples/CreateTransactionPayoutInternationalIATAchRes'
+        '400':
+          $ref: '#/components/responses/400V2'
+        '401':
+          $ref: '#/components/responses/401V2'
+        '403':
+          $ref: '#/components/responses/403V2'
+        '404':
+          $ref: '#/components/responses/404V2'
+        '500':
+          $ref: '#/components/responses/500V2'
+        '503':
+          $ref: '#/components/responses/503V2'
+    get:
+      summary: List transactions
+      description: Lists transactions for a specific client, which can be filtered using optional parameters.
+      operationId: listTransactionsV3
+      tags:
+        - Transactions
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/RequestTransactionType'
+            minItems: 0
+          description: Filters for types of transaction. Use a comma separated list to send the transaction types you require.
+          required: false
+          examples:
+            completed:
+              summary: ACH type
+              value:
+                - ACH
+            completedAndPending:
+              summary: ACH and TRANSFER type
+              value:
+                - ACH
+                - TRANSFER
+        - in: query
+          name: status
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/RequestTransactionStatus'
+            minItems: 0
+          description: Filters by comma separated list of statuses for transactions.
+          required: false
+          examples:
+            completed:
+              summary: Completed status
+              value:
+                - COMPLETED
+            completedAndPending:
+              summary: Completed and Pending statuses
+              value:
+                - COMPLETED
+                - PENDING
+        - in: query
+          name: accountId
+          example: ae86b765e14741c5a44acc570af517ab
+          schema:
+            type: string
+          description: Filters by the Embedded Finance account id connected to the transaction.
+          required: false
+        - in: query
+          name: amountEquals
+          example: '100'
+          schema:
+            type: string
+          description: Filters by an exact amount.
+          required: false
+        - in: query
+          name: amountGreaterThan
+          example: '100'
+          schema:
+            type: string
+          description: Filters by amounts greater than a specified value.
+          required: false
+        - in: query
+          name: amountLessThan
+          example: '100'
+          schema:
+            type: string
+          description: Filters by amounts less than a specified value.
+          required: false
+        - in: query
+          name: dateEquals
+          example: '2022-01-01'
+          schema:
+            type: string
+          description: Filters transactions by an exact date.
+          required: false
+        - in: query
+          name: dateGreaterThan
+          example: '2022-01-01'
+          schema:
+            type: string
+          description: Filters for transactions made after this payment date.
+          required: false
+        - in: query
+          name: dateLessThan
+          example: '2022-01-01'
+          schema:
+            type: string
+          description: Filters for transactions made before this payment date.
+          required: false
+        - in: query
+          name: dateTimeGreaterThan
+          example: '2022-01-01T00:00:00.000Z'
+          schema:
+            type: string
+            format: date-time
+          description: Filters for transactions created after this date and time.
+          required: false
+        - in: query
+          name: dateTimeLessThan
+          example: '2022-01-01T00:00:00.000Z'
+          schema:
+            type: string
+            format: date-time
+          description: Filters for transactions created before this date and time.
+          required: false
+        - in: query
+          name: recipientId
+          example: 616d93a1-ce53-4c71-b03b-02a11396db28
+          schema:
+            type: string
+          description: Filters for transactions from/to this recipientId.
+          required: false
+        - in: query
+          name: transactionReferenceId
+          example: inv-pay-1234
+          schema:
+            type: string
+          description: Filters for a transaction that matches a specific transaction reference ID provided by the client.
+          required: false
+      responses:
+        '200':
+          description: Ok.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTransactionsSearchResponseV3'
+              examples:
+                List Transactions:
+                  $ref: '#/components/examples/ListTransactionsV3'
+        '400':
+          $ref: '#/components/responses/400V2'
+        '401':
+          $ref: '#/components/responses/401V2'
+        '403':
+          $ref: '#/components/responses/403V2'
+        '404':
+          $ref: '#/components/responses/404V2'
+        '500':
+          $ref: '#/components/responses/500V2'
+        '503':
+          $ref: '#/components/responses/503V2'
+  /transactions/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: Unique identifier for a transaction.
+        required: true
+        example: m6p8kqkk5hjne3
+        schema:
+          type: string
+    get:
+      summary: Get transaction
+      description: Retrieve details for a specific transaction using its unique identifier.
+      operationId: getTransactionV3
+      tags:
+        - Transactions
+      parameters:
+        - $ref: '#/components/parameters/configurationIdInHeaderOptional'
+        - $ref: '#/components/parameters/requestIdInHeader'
+      responses:
+        '200':
+          description: Ok.
+          headers:
+            request-id:
+              $ref: '#/components/headers/requestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionGetResponseV3'
+              examples:
+                Comprehensive transaction with all fields:
+                  $ref: '#/components/examples/GetTransactionByIdComprehensive'
+                Card account transaction:
+                  $ref: '#/components/examples/GetTransactionByIdWithCardAccount'
+                Rejected transaction with error:
+                  $ref: '#/components/examples/GetTransactionByIdWithError'
+                ACH payout on a transaction account:
+                  $ref: '#/components/examples/GetTransactionByIdPAYOUT'
+                ACH payout on a limited account:
+                  $ref: '#/components/examples/GetTransactionByIdPAYOUTLIMITEDDDA'
+                ACH Direct debit transaction into a transaction account:
+                  $ref: '#/components/examples/GetTransactionByIdAchDirectDebitIntoTransaction'
+                ACH Direct debit transaction into a limited account:
+                  $ref: '#/components/examples/GetTransactionByIdAchDirectDebitIntoLimitedDDA'
+                Transfer:
+                  $ref: '#/components/examples/GetTransactionByIdV2V'
+                Returns:
+                  $ref: '#/components/examples/GetTransactionByIdRETURNDEBIT'
+                Incoming Credit:
+                  $ref: '#/components/examples/GetTransactionByIdPAYINTORECEIPT'
+                ACH Direct debit transaction out of a limited account:
+                  $ref: '#/components/examples/GetTransactionByIdPAYOUTCOLLECTION'
+                Misc Credit:
+                  $ref: '#/components/examples/GetTransactionByIdMISCELLANEOUSCREDIT'
+                Misc Debit:
+                  $ref: '#/components/examples/GetTransactionByIdMISCELLANEOUSDEBIT'
+        '400':
+          $ref: '#/components/responses/400V2'
+        '401':
+          $ref: '#/components/responses/401V2'
+        '403':
+          $ref: '#/components/responses/403V2'
+        '404':
+          $ref: '#/components/responses/404V2'
+        '500':
+          $ref: '#/components/responses/500V2'
+        '503':
+          $ref: '#/components/responses/503V2'
+components:
+  parameters:
+    configurationIdInHeaderOptional:
+      name: configuration-id
+      in: header
+      description: Unique identifier for the program configuration used for the request.
+      required: false
+      example: 549ccb74-708d-4f6b-ab21-64054abd828d
+      schema:
+        type: string
+        format: uuid
+        minLength: 1
+        maxLength: 36
+    requestIdInHeader:
+      name: request-id
+      in: header
+      description: Unique identifier for the request. This identifier is specific to this particular request. If the same payload is sent in a new request, a new identifier needs to be provided
+      required: false
+      example: efeacff8-fd2c-4f54-a12e-2a8f90d4d325
+      schema:
+        type: string
+        maxLength: 36
+        minLength: 1
+  schemas:
+    RequestTransactionType:
+      description: |
+        The types of transaction that the client is allowed to search by. Valid values are:
+
+        | Value | Description |
+        |-------|-------------|
+        | `RTP` | Realtime Transactions |
+        | `ACH` | ACH Transactions |
+        | `WIRE` | Wire Transactions |
+        | `TRANSFER` | Transactions internal to JPMorgan |
+        | `REVERSAL` | Transaction reversals |
+        | `RETURN` | Transaction returns |
+        | `OTHER` | Other transaction types |
+        | `CARD` | Push to Card Transactions |
+        | `FEE` | Fee transactions |
+      type: string
+      enum:
+        - RTP
+        - WIRE
+        - ACH
+        - TRANSFER
+        - REVERSAL
+        - RETURN
+        - OTHER
+        - CARD
+        - FEE
+      example: ACH
+    RequestTransactionStatus:
+      description: The statuses of the transaction that the client is allowed to search by.
+      type: string
+      enum:
+        - PENDING
+        - CANCELED
+        - COMPLETED
+        - COMPLETED_WITH_EXCEPTIONS
+        - REJECTED
+        - RETURNED
+        - PARTIALLY_COMPLETED
+        - UNDEFINED
+      example: PENDING
+    TargetCurrencyV3:
+      type: string
+      minLength: 3
+      maxLength: 3
+      description: "The creditor account / recipient currency for a foreign exchange transaction. This field is used in V3 APIs.\nSupported values \n| Code | Currency |\n|------|----------|\n| AED | United Arab Emirates Dirham |\n| AUD | Australian Dollar |\n| BGN | Bulgarian Lev |\n| BRL | Brazilian Real |\n| CAD | Canadian Dollar |\n| CHF | Swiss Franc |\n| CNY | Chinese Yuan |\n| CZK | Czech Koruna |\n| DKK | Danish Krone |\n| EUR | Euro |\n| GBP | British Pound Sterling |\n| HKD | Hong Kong Dollar |\n| HUF | Hungarian Forint |\n| ILS | Israeli New Shekel |\n| INR | Indian Rupee |\n| ISK | Icelandic Króna |\n| JPY | Japanese Yen |\n| KES | Kenyan Shilling |\n| KRW | South Korean Won |\n| MXN | Mexican Peso |\n| MYR | Malaysian Ringgit |\n| NOK | Norwegian Krone |\n| NZD | New Zealand Dollar |\n| PEN | Peruvian Sol |\n| PHP | Philippine Peso |\n| PLN | Polish Zloty |\n| RON | Romanian Leu |\n| SEK | Swedish Krona |\n| SGD | Singapore Dollar |\n| TWD | New Taiwan Dollar |\n| USD | United States Dollar |\n| VND | Vietnamese Dong |\n| ZAR | South African Rand |\n"
+      example: CAD
+    PageMetaData:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 0
+          format: int32
+          example: 1
+          description: |
+            Page Number.
+        limit:
+          type: integer
+          minimum: 0
+          format: int32
+          example: 30
+          description: |
+            Number of records per page.
+        total_items:
+          type: integer
+          minimum: 0
+          format: int32
+          example: 1
+          description: |
+            Total number of items.
+    TransactionStatus:
+      description: "The current status of the transaction as it is processed:\n * `PENDING` - The transaction is still being processed.\n * `CANCELED` - The transaction has been canceled.\n * `COMPLETED` - The transaction has been completed.\n * `COMPLETED_WITH_EXCEPTIONS` - The transaction has completed, but not all of the requested criteria has been fulfilled.\n * `REJECTED` - The transaction has been rejected and will not be completed.\n * `RETURNED` - The payment rail failed to deliver funds to the recipient, so the payment was returned to the originator. \n * `UNDEFINED` - The status of this transaction cannot be found.\n"
+      type: string
+      enum:
+        - PENDING
+        - CANCELED
+        - COMPLETED
+        - COMPLETED_WITH_EXCEPTIONS
+        - COMPLETED_NOT_IN_TARGET_WALLET
+        - REJECTED
+        - RETURNED
+        - PARTIALLY_COMPLETED
+        - UNDEFINED
+      example: PENDING
+    PaymentTypeResponseV3:
+      description: The transaction type indicates the nature of the transaction. Certain types cannot be initiated through the API and, as a result, are excluded from the transaction request type field. API and, as a result, are excluded from the transaction request type field.
+      type: string
+      nullable: false
+      enum:
+        - RTP
+        - WIRE
+        - ACH
+        - TRANSFER
+        - REVERSAL
+        - RETURN
+        - OTHER
+        - CARD
+        - FEE
+        - MISCELLANEOUS_CREDIT
+        - MISCELLANEOUS_DEBIT
+      example: ACH
+    OriginatingTransactionV3:
+      type: object
+      description: Details of the originating transaction for fees, returns, or linked transactions.
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the originating transaction.
+          example: ff1b61523ea74c59b4ae606c6497cd52
+        type:
+          $ref: '#/components/schemas/PaymentTypeResponseV3'
+    TransactionPaymentPurposeV3:
+      description: Underlying reason for the payment transaction
+      type: object
+      properties:
+        code:
+          description: Purpose of the payment in coded form. Must be between 1 and 4 characters.
+          type: string
+          maxLength: 4
+          example: CASH
+        customCode:
+          description: Purpose of the payment in proprietary form. Must be between 1 and 35 characters.
+          type: string
+          maxLength: 35
+          example: CASH INFLOW
+    TransactionFxInformation:
+      description: Foreign exchange information for cross-border transactions.
+      type: object
+      properties:
+        rateId:
+          type: string
+          description: Unique identifier for the foreign exchange rate
+          example: R1C8E57DF6964F981D6DDB5EEf78D8
+          minLength: 1
+        clientSpread:
+          type: string
+          description: The rate at which you charge for an FX transfer. You must express this as a decimal figure. For example, if you take a commission of 10%, the spread is expressed as 0.1
+          example: '0.5'
+          minLength: 1
+    GetTransactionFxInformationV3:
+      description: Foreign exchange information for cross-border transactions.
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/TransactionFxInformation'
+      properties:
+        contractId:
+          type: string
+          description: Unique identifier for the foreign exchange contract
+          example: '917490357'
+        exchangeRate:
+          type: string
+          description: The exchange rate applied to the transaction
+          example: '1.44'
+    TransactionCounterPartyAddressDetailsV3:
+      description: The address details of the counterparty.
+      type: object
+      required:
+        - city
+        - country
+      properties:
+        type:
+          description: The type of the counterparty address.
+          type: string
+          example: RESIDENTIAL_ADDRESS
+        buildingNumber:
+          description: Building name or number.
+          type: string
+          example: Apt 2E
+        streetName:
+          description: The street name of the counterparty address.
+          type: string
+          example: 90 Bedford Street
+        city:
+          description: Address city.
+          type: string
+          example: Springfield
+        country:
+          type: string
+          description: Two letter country code based on ISO 3166 standard, includes SEPA regions
+          example: US
+        countrySubDivision:
+          description: State or province code.
+          type: string
+          example: ND
+        postalCode:
+          description: Postal/ZIP code.
+          type: string
+          example: '58008'
+    TransactionCounterPartyIdentityDetailsV3:
+      description: Identity details for the counterparty.
+      type: object
+      properties:
+        idType:
+          type: string
+          enum:
+            - USCC
+            - ORGANIZATION_ID
+            - NATIONAL_ID
+            - TAX_ID
+            - SSN
+          description: Type of identification.
+          minLength: 1
+          example: TAX_ID
+        idValue:
+          type: string
+          description: Identification value.
+          example: '12345678901'
+    TransactionCounterPartyContactDetailsV3:
+      description: Contact details of the counterparty.
+      type: object
+      properties:
+        alternateName:
+          description: The alternate name of the counterparty.
+          type: string
+          example: Monica Downey
+        phoneNumber:
+          description: The phone number of the counterparty.
+          type: string
+          example: '+1234567890'
+        emailAddress:
+          description: The email address of the counterparty.
+          type: string
+          example: example@email.com
+        website:
+          description: The website of the counterparty.
+          type: string
+          example: https://www.example.com
+    TransactionCounterPartyDetailsV3:
+      description: The party details of the counterparty.
+      type: object
+      properties:
+        type:
+          description: The type of the counterparty.
+          type: string
+          example: INDIVIDUAL
+        name:
+          description: The name of the counterparty (individual or organization).
+          type: string
+          example: John Doe
+        address:
+          $ref: '#/components/schemas/TransactionCounterPartyAddressDetailsV3'
+        identities:
+          type: array
+          description: The Identity details for the counterparty.
+          items:
+            $ref: '#/components/schemas/TransactionCounterPartyIdentityDetailsV3'
+          minItems: 0
+        contacts:
+          $ref: '#/components/schemas/TransactionCounterPartyContactDetailsV3'
+    RoutingInformationTransactionType:
+      type: string
+      nullable: false
+      enum:
+        - ACH
+        - RTP
+        - WIRE
+      description: Type of transaction.
+      example: RTP
+    RoutingCodeType:
+      type: string
+      nullable: false
+      enum:
+        - USABA
+      description: Type of routing code.
+      example: USABA
+    RoutingInformationV3:
+      description: Routing information for the account.
+      type: object
+      properties:
+        routingNumber:
+          description: Routing number corresponding to the routing code type.
+          type: string
+          example: '541798298'
+        transactionType:
+          $ref: '#/components/schemas/RoutingInformationTransactionType'
+        routingCodeType:
+          $ref: '#/components/schemas/RoutingCodeType'
+    TransactionCounterPartyExternalAccountDetailsV3:
+      description: The external account details of the counterparty.
+      type: object
+      properties:
+        number:
+          description: The number of the counterparty account.
+          type: string
+          minLength: 1
+          example: '021009052'
+        bankName:
+          description: The bank name of the counterparty external account.
+          type: string
+          minLength: 1
+          example: Bank of America
+        branchCode:
+          description: The branch code of the counterparty external account.
+          type: string
+          minLength: 1
+          example: '123456789'
+        routingInformation:
+          type: array
+          description: Routing information details of the counterparty external account.
+          items:
+            $ref: '#/components/schemas/RoutingInformationV3'
+          minItems: 0
+        currency:
+          description: The currency of the counterparty external account in ISO 4217 Alpha-3 Currency Code format.
+          type: string
+          minLength: 1
+          maxLength: 3
+          example: USD
+        country:
+          description: The country of the counterparty external account. Two letter country code based on ISO 3166 standard
+          type: string
+          minLength: 1
+          example: US
+    TransactionCounterPartyExternalAccountV3:
+      title: External Account
+      description: The external account of the counterparty
+      type: object
+      required:
+        - type
+        - externalAccount
+      properties:
+        type:
+          description: The type of the counterparty account
+          type: string
+        externalAccount:
+          $ref: '#/components/schemas/TransactionCounterPartyExternalAccountDetailsV3'
+    TransactionCounterPartyRegisteredAccountDetailsV3:
+      description: The registered account details of the counterparty.
+      type: object
+      properties:
+        id:
+          description: The id of the counterparty account.
+          type: string
+          example: d3371713f14e423f82065c9486ebe15b
+        name:
+          description: The display name of the registered account.
+          type: string
+          example: Primary Checking
+        number:
+          description: Masked registered account number.
+          type: string
+          example: '...4567'
+        ledgerBalance:
+          description: Ledger balance of the registered account after this transaction.
+          type: string
+          example: '1000'
+        postingVersion:
+          description: Posting version of the registered account at the time of this transaction.
+          type: integer
+          example: 1
+    TransactionCounterPartyRegisteredAccountV3:
+      title: Registered Account
+      description: The registered account of the counterparty
+      type: object
+      required:
+        - type
+        - registeredAccount
+      properties:
+        type:
+          description: The type of the counterparty account
+          type: string
+          default: REGISTERED_ACCOUNT
+        registeredAccount:
+          $ref: '#/components/schemas/TransactionCounterPartyRegisteredAccountDetailsV3'
+    TransactionCounterPartyCardAccountDetailsV3:
+      description: The card details of the counterparty account.
+      type: object
+      properties:
+        name:
+          description: The name of the counterparty card holder.
+          type: string
+          example: M GELLAR
+        number:
+          description: The number of the counterparty card holder.
+          type: string
+          example: '4137110019999999'
+        expiryDate:
+          description: The expiry date of the counterparty card holder.
+          type: string
+          example: '2207'
+    TransactionCounterPartyCardAccountV3:
+      title: Card Account
+      description: The card account of the counterparty
+      type: object
+      required:
+        - type
+        - card
+      properties:
+        type:
+          description: The type of the counterparty account
+          type: string
+          default: CARD
+        card:
+          $ref: '#/components/schemas/TransactionCounterPartyCardAccountDetailsV3'
+    TransactionCounterPartyAccountV3:
+      description: The account details of the counterparty.
+      oneOf:
+        - $ref: '#/components/schemas/TransactionCounterPartyExternalAccountV3'
+        - $ref: '#/components/schemas/TransactionCounterPartyRegisteredAccountV3'
+        - $ref: '#/components/schemas/TransactionCounterPartyCardAccountV3'
+      discriminator:
+        propertyName: type
+        mapping:
+          CHECKING: '#/components/schemas/TransactionCounterPartyExternalAccountV3'
+          SAVINGS: '#/components/schemas/TransactionCounterPartyExternalAccountV3'
+          IBAN: '#/components/schemas/TransactionCounterPartyExternalAccountV3'
+          REGISTERED_ACCOUNT: '#/components/schemas/TransactionCounterPartyRegisteredAccountV3'
+          CARD: '#/components/schemas/TransactionCounterPartyCardAccountV3'
+          NOT_APPLICABLE: '#/components/schemas/TransactionCounterPartyExternalAccountV3'
+    GetTransactionCounterPartyV3:
+      type: object
+      properties:
+        id:
+          description: The id of the counterparty.
+          type: string
+          example: 8f4e2b3c-1d5a-4c3b-9f0a-123456789abc
+        clientId:
+          description: The client identifier associated with the counterparty.
+          type: string
+          example: '0030000131'
+        type:
+          description: The type of the counterparty.
+          type: string
+          example: RECIPIENT
+        partyDetails:
+          $ref: '#/components/schemas/TransactionCounterPartyDetailsV3'
+        account:
+          $ref: '#/components/schemas/TransactionCounterPartyAccountV3'
+    ApiErrorReasonV2:
+      type: object
+      description: Schema representing detailed reasons for an API error, including code, location, and message.
+      required:
+        - message
+      properties:
+        code:
+          type: string
+          example: '11000'
+          description: Short code that identifies the error - publicly cataloged and documented
+          minLength: 0
+          maxLength: 5
+          nullable: true
+        location:
+          type: string
+          enum:
+            - BODY
+            - QUERY
+            - PATH
+            - HEADER
+          example: BODY
+          description: Part of the request which is responsible for the reason
+          nullable: true
+        field:
+          type: string
+          description: The location of the property or parameter in error
+          minLength: 0
+          maxLength: 512
+          nullable: true
+        message:
+          type: string
+          example: Client with ID 0031234567 does not exist.
+          description: Message describing the reason. This message can typically be displayed to your platform's users, except in cases specified otherwise
+          minLength: 0
+          maxLength: 2048
+    ApiErrorV2:
+      type: object
+      description: Schema representing a version 2 API error, including title, HTTP status, and additional context.
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          description: Short humanly-readable title of the error
+          example: BAD_REQUEST
+          minLength: 1
+          maxLength: 512
+        httpStatus:
+          type: integer
+          description: HTTP status code
+          minimum: 100
+          maximum: 599
+          format: int32
+          example: 400
+        traceId:
+          type: string
+          description: Internal assigned traced identifier
+          minLength: 0
+          maxLength: 512
+        requestId:
+          type: string
+          description: Client provided request identifier
+          minLength: 0
+          maxLength: 512
+        context:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiErrorReasonV2'
+          description: Provides additional context and detail on the validation errors
+          minItems: 0
+          maxItems: 100
+    TransactionGetResponseV3:
+      type: object
+      required:
+        - id
+        - currency
+        - status
+        - type
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the transaction.
+          example: ff1b61523ea74c59b4ae606c6497cd52
+        transactionReferenceId:
+          description: Transaction reference id provided by client.
+          type: string
+          example: PAYOUTACH160901
+        status:
+          $ref: '#/components/schemas/TransactionStatus'
+        type:
+          $ref: '#/components/schemas/PaymentTypeResponseV3'
+        requestedExecutionDate:
+          description: The date the client requested for execution.
+          type: string
+          format: date
+          minLength: 1
+          example: '2025-09-16'
+        valueDate:
+          description: The date funds are considered available to the creditor.
+          type: string
+          format: date
+          example: '2025-09-16'
+        localInstrumentCode:
+          description: The code that was used when creating the transaction.
+          type: string
+          example: PPD
+        memo:
+          description: Transaction information that states its purpose for easier tracking.
+          type: string
+          example: Memo for Transaction for 160901
+        amount:
+          description: The value of the transaction.
+          type: string
+          example: '250000'
+        currency:
+          description: The currency of the transaction in ISO 4217 Alpha-3 Currency Code format.
+          type: string
+          example: HKD
+        targetAmount:
+          description: Transaction value in the target currency credited to the creditor.
+          type: string
+          maxLength: 40
+          pattern: ^\d+(\.\d+)?$
+          example: '42.00'
+        targetCurrency:
+          description: Currency of the creditor account.
+          type: string
+          maxLength: 3
+          pattern: ^[A-Z]{3}$
+          example: USD
+        originatingTransaction:
+          $ref: '#/components/schemas/OriginatingTransactionV3'
+        paymentPurpose:
+          $ref: '#/components/schemas/TransactionPaymentPurposeV3'
+        fxInformation:
+          $ref: '#/components/schemas/GetTransactionFxInformationV3'
+        debtor:
+          $ref: '#/components/schemas/GetTransactionCounterPartyV3'
+        creditor:
+          $ref: '#/components/schemas/GetTransactionCounterPartyV3'
+        error:
+          $ref: '#/components/schemas/ApiErrorV2'
+    TransactionsSearchResponseV3:
+      allOf:
+        - $ref: '#/components/schemas/TransactionGetResponseV3'
+    ListTransactionsSearchResponseV3:
+      type: object
+      required:
+        - metadata
+        - items
+      properties:
+        metadata:
+          $ref: '#/components/schemas/PageMetaData'
+        items:
+          type: array
+          nullable: false
+          description: List of transactions meeting the request criteria
+          items:
+            $ref: '#/components/schemas/TransactionsSearchResponseV3'
+          minItems: 0
+    PaymentType:
+      description: |
+        The type of transaction being initiated. Valid values are:
+
+        | Value | Description |
+        |-------|-------------|
+        | `RTP` | Realtime Transactions |
+        | `ACH` | ACH Transactions |
+        | `WIRE` | Wire Transactions |
+        | `TRANSFER` | Transactions internal to JPMorgan |
+        | `CARD` | Push to Card Transactions |
+      type: string
+      nullable: false
+      enum:
+        - RTP
+        - WIRE
+        - ACH
+        - TRANSFER
+        - CARD
+      example: ACH
+    buildingNumber:
+      type: string
+      minLength: 0
+      maxLength: 16
+      description: Building name or number if address is in a building
+    city:
+      type: string
+      minLength: 1
+      maxLength: 34
+      pattern: ^(.|\s)*\S(.|\s)*$
+      example: New York
+      description: Address city.
+    state:
+      type: string
+      maxLength: 30
+      example: NY
+      description: State code in alpha-2 format. State is mandatory for countries like United States.
+    postalCode:
+      type: string
+      maxLength: 10
+      example: '10014'
+      description: Postal/ZIP code.
+    TransactionCounterPartyAddressDetails:
+      description: The address details of the counterparty
+      type: object
+      required:
+        - streetName
+        - city
+        - country
+      properties:
+        type:
+          description: |
+            The type of the counterparty address. Valid values are:
+            | type | Description |
+            |-----------------|-------------|
+            | `RESIDENTIAL_ADDRESS` | Residential addresses |
+            | `BUSINESS_ADDRESS` | Business addresses |
+          type: string
+          example: RESIDENTIAL_ADDRESS
+          minLength: 1
+        buildingNumber:
+          $ref: '#/components/schemas/buildingNumber'
+        streetName:
+          description: The street name of the counterparty address
+          type: string
+          example: Main Street
+          minLength: 1
+          maxLength: 70
+        city:
+          $ref: '#/components/schemas/city'
+        country:
+          type: string
+          description: Two letter country code based on ISO 3166 standard, includes SEPA regions
+          example: US
+        countrySubDivision:
+          $ref: '#/components/schemas/state'
+        postalCode:
+          $ref: '#/components/schemas/postalCode'
+    TransactionCounterPartyIdentityDetails:
+      type: object
+      required:
+        - idType
+        - idValue
+      properties:
+        idType:
+          type: string
+          nullable: false
+          description: Type of identification
+          minLength: 1
+          example: USCC
+        idValue:
+          minLength: 1
+          maxLength: 255
+          type: string
+          description: Identification value
+          example: 91310000717860841G
+    TransactionCounterPartyContactDetails:
+      description: contact details of the counterparty
+      type: object
+      properties:
+        alternateName:
+          type: string
+          description: The alternate name of the counterparty
+          minLength: 1
+        phoneNumber:
+          description: The phone number of the counterparty
+          type: string
+          example: '+1234567890'
+          minLength: 1
+          maxLength: 30
+        emailAddress:
+          description: The email address of the counterparty
+          type: string
+          example: example@email.com
+          minLength: 1
+          maxLength: 256
+        website:
+          description: The website of the counterparty
+          type: string
+          minLength: 1
+          example: https://www.example.com
+    TransactionCounterPartyDetails:
+      description: The party details of the counterparty
+      type: object
+      properties:
+        type:
+          description: |
+            The type of party this counterparty represents.
+            | Value | Description |
+            |-------|-------------|
+            | `INDIVIDUAL` | For individual party types |
+            | `ORGANIZATION` | For organization party types |
+          type: string
+          minLength: 1
+          example: INDIVIDUAL
+        firstName:
+          description: The first name of the counterparty
+          type: string
+          example: John
+          minLength: 1
+          maxLength: 70
+          pattern: ^(.|\s)*\S(.|\s)*$
+        lastName:
+          description: The last name of the counterparty
+          type: string
+          example: Doe
+          minLength: 1
+          maxLength: 70
+          pattern: ^(.|\s)*\S(.|\s)*$
+        businessName:
+          description: The organization name of the counterparty
+          type: string
+          example: XYZ Corp
+          minLength: 1
+          maxLength: 140
+          pattern: ^(.|\s)*\S(.|\s)*$
+        address:
+          $ref: '#/components/schemas/TransactionCounterPartyAddressDetails'
+        identities:
+          type: array
+          description: The Identity details for the counterparty
+          items:
+            $ref: '#/components/schemas/TransactionCounterPartyIdentityDetails'
+          minItems: 0
+        contacts:
+          $ref: '#/components/schemas/TransactionCounterPartyContactDetails'
+    RoutingNumber:
+      type: string
+      nullable: false
+      minLength: 1
+      maxLength: 13
+      pattern: ^[A-Za-z0-9]([A-Za-z0-9\-]{0,11})[A-Za-z0-9]$
+      description: Routing number corresponding to the routing code type
+      example: '021000021'
+    TransactionCounterPartyAccountRoutingInformation:
+      type: object
+      required:
+        - routingNumber
+        - transactionType
+        - routingCodeType
+      properties:
+        routingNumber:
+          $ref: '#/components/schemas/RoutingNumber'
+        transactionType:
+          $ref: '#/components/schemas/RoutingInformationTransactionType'
+        routingCodeType:
+          type: string
+          nullable: false
+          description: Type of routing code.
+          minLength: 1
+          example: USABA
+    TransactionCounterPartyExternalAccountDetails:
+      description: The external account details of the counterparty
+      type: object
+      properties:
+        number:
+          description: The number of the counterparty account
+          type: string
+          minLength: 1
+          example: '021009052'
+        bankName:
+          description: The bank name of the counterparty external account
+          type: string
+          minLength: 1
+          example: Bank of America
+        branchCode:
+          description: The branch code of the counterparty external account
+          type: string
+          minLength: 1
+          example: '123456789'
+        routingInformation:
+          type: array
+          description: routing information details of the counterparty external account
+          items:
+            $ref: '#/components/schemas/TransactionCounterPartyAccountRoutingInformation'
+          minItems: 0
+        currency:
+          description: The currency of the counterparty external account
+          type: string
+          minLength: 1
+          example: USD
+        country:
+          description: The country of the counterparty external account
+          type: string
+          minLength: 1
+          example: US
+    TransactionCounterPartyExternalAccount:
+      title: External Account
+      description: The external account of the counterparty
+      type: object
+      required:
+        - type
+        - externalAccount
+      properties:
+        type:
+          description: |
+            The type of the counterparty account. Can be
+
+            | type | Description |
+            |-----------------|-------------|
+            | `CHECKING` | For checking accounts |
+            | `SAVINGS` | For savings accounts |
+            | `IBAN` | For IBANs |
+            | `NOT_APPLICABLE` | For when account type is not available |
+          type: string
+          minLength: 1
+        externalAccount:
+          $ref: '#/components/schemas/TransactionCounterPartyExternalAccountDetails'
+    TransactionCounterPartyRegisteredAccountDetails:
+      description: The registered account details of the counterparty
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          description: The id of the counterparty account
+          type: string
+          minLength: 1
+          maxLength: 35
+          pattern: ^(.|\s)*\S(.|\s)*$
+          example: dc2eda9084bf40b7a1d8baa8c5e0ea0ax
+    TransactionCounterPartyRegisteredAccount:
+      title: Registered Account
+      description: The registered account of the counterparty
+      type: object
+      required:
+        - type
+        - registeredAccount
+      properties:
+        type:
+          description: The type of the counterparty account. Should be `REGISTERED_ACCOUNT` for accounts that are registered on JPMorgan's system and can be looked up via the /accounts API.
+          type: string
+          minLength: 1
+          default: REGISTERED_ACCOUNT
+        registeredAccount:
+          $ref: '#/components/schemas/TransactionCounterPartyRegisteredAccountDetails'
+    TransactionCounterPartyCardAccountDetails:
+      description: The routing information of the counterparty account
+      type: object
+      required:
+        - name
+        - number
+        - expiryDate
+      properties:
+        name:
+          description: The name of the counterparty card holder
+          type: string
+          maxLength: 140
+          minLength: 1
+          example: M GELLAR
+        number:
+          description: The number of the counterparty card holder
+          type: string
+          example: '4137110019999999'
+          minLength: 1
+          maxLength: 35
+        expiryDate:
+          description: The expiry date of the counterparty card holder in YYMM format
+          type: string
+          example: '2205'
+          minLength: 1
+          maxLength: 4
+          pattern: ^(?:[0-9]{2})(0[1-9]|1[0-2])$
+    TransactionCounterPartyCardAccount:
+      title: Card Account
+      description: The card account of the counterparty
+      type: object
+      required:
+        - type
+        - card
+      properties:
+        type:
+          description: The type of the counterparty account. Should be `CARD` for card accounts that can be used for push to card transactions.
+          type: string
+          minLength: 1
+          default: CARD
+        card:
+          $ref: '#/components/schemas/TransactionCounterPartyCardAccountDetails'
+    TransactionCounterPartyAccount:
+      description: The account details of the counterparty
+      oneOf:
+        - $ref: '#/components/schemas/TransactionCounterPartyExternalAccount'
+        - $ref: '#/components/schemas/TransactionCounterPartyRegisteredAccount'
+        - $ref: '#/components/schemas/TransactionCounterPartyCardAccount'
+      discriminator:
+        propertyName: type
+        mapping:
+          CHECKING: '#/components/schemas/TransactionCounterPartyExternalAccount'
+          SAVINGS: '#/components/schemas/TransactionCounterPartyExternalAccount'
+          IBAN: '#/components/schemas/TransactionCounterPartyExternalAccount'
+          REGISTERED_ACCOUNT: '#/components/schemas/TransactionCounterPartyRegisteredAccount'
+          CARD: '#/components/schemas/TransactionCounterPartyCardAccount'
+    TransactionCounterParty:
+      type: object
+      properties:
+        id:
+          description: The id of the counterparty
+          type: string
+          example: 8f4e2b3c-1d5a-4c3b-9f0a-123456789abc
+          minLength: 1
+          maxLength: 36
+        type:
+          description: |
+            The type of the counterparty
+            | Value | Description |
+            |-------|-------------|
+            | `ON_BEHALF_OF` | When performing TP3 (Third Party) Flows this field needs to be set |
+          type: string
+          example: ON_BEHALF_OF
+          minLength: 1
+        partyDetails:
+          $ref: '#/components/schemas/TransactionCounterPartyDetails'
+        account:
+          $ref: '#/components/schemas/TransactionCounterPartyAccount'
+    TransactionPaymentPurpose:
+      description: The purpose of the payment
+      type: object
+      properties:
+        code:
+          description: Purpose of the payment in coded form. Must be between 1 and 4 characters.
+          type: string
+          minLength: 1
+          maxLength: 4
+          example: CASH
+        customCode:
+          description: Purpose of the payment in proprietary form. Must be between 1 and 35 characters.
+          type: string
+          minLength: 1
+          maxLength: 35
+          example: CASH INFLOW
+    PostTransactionRequestBaseV3:
+      type: object
+      required:
+        - currency
+        - transactionReferenceId
+        - type
+      properties:
+        transactionReferenceId:
+          description: A unique reference ID that you must generate and provide for each transaction.
+          type: string
+          pattern: '[_0-9A-Za-z]+'
+          minLength: 1
+          maxLength: 35
+          example: Inv-Pay-1234
+        type:
+          $ref: '#/components/schemas/PaymentType'
+        amount:
+          description: The amount that is moved out or into your account in the currency specified
+          type: string
+          minLength: 1
+          maxLength: 40
+          pattern: ^\d+(\.\d+)?$
+          example: '42.00'
+        currency:
+          description: "This denotes the currency of the payment in ISO 4217 Alpha-3 Currency Code format\nSupported values \n| Code | Currency |\n|------|----------|\n| USD | United States Dollar |\n"
+          type: string
+          minLength: 3
+          maxLength: 3
+          nullable: false
+          example: USD
+        targetCurrency:
+          $ref: '#/components/schemas/TargetCurrencyV3'
+        localInstrumentCode:
+          description: |
+            Each ACH payment uses a Standard Entry class code (SEC) to indicate account type and authorization method used. <br>
+            Defaults to PPD for consumer, `CCD` for business, and `WEB` for direct debits ACH if no mandate method is specified. <br>
+            See documentation for further details <br>
+
+            | LocalInstrumentCode | Meaning                                                                |
+            |---------------------|------------------------------------------------------------------------|
+            | * `CCD`                 | Urgent Payment Net Settlement Corporate Credit or Debit (CCD)          |
+            | * `PPD`                  | Pre-arranged Payments or Deposit Transfer(PPD)                         |
+            | * `TEL`                  | TELEPHONE Initiated Entry - Used for authorizing payment via telephone |
+            | * `WEB`                  | WEB Initiated Entry - Used for authorizing payment over the internet   |
+          type: string
+          example: PPD
+          minLength: 1
+          maxLength: 35
+        memo:
+          description: Transaction information that states its purpose for easier tracking
+          type: string
+          pattern: ^(.|\s)*\S(.|\s)*$
+          minLength: 1
+          maxLength: 140
+          example: Invoice 1234
+        fxInformation:
+          $ref: '#/components/schemas/TransactionFxInformation'
+        debtor:
+          $ref: '#/components/schemas/TransactionCounterParty'
+        creditor:
+          $ref: '#/components/schemas/TransactionCounterParty'
+        paymentPurpose:
+          $ref: '#/components/schemas/TransactionPaymentPurpose'
+    TransactionResponseV3:
+      type: object
+      required:
+        - transactionReferenceId
+      properties:
+        id:
+          description: The resource Id of your transaction to use when looking up details of this transaction.
+          type: string
+          minLength: 1
+          example: '123434534'
+        transactionReferenceId:
+          description: Transaction reference ID provided by client
+          minLength: 1
+          nullable: false
+          type: string
+          example: inv-pay-1234
+        requestedExecutionDate:
+          description: ISO date format - yyyy-MM-dd
+          minLength: 1
+          type: string
+          format: date
+          example: '1970-01-01'
+  examples:
+    ListTransactionsV3:
+      summary: List Transactions
+      description: List Transactions response
+      value:
+        metadata:
+          page: 0
+          limit: 10
+          total_items: 2
+        items:
+          - id: qLbozp9AOrcLXRv
+            transactionReferenceId: CONVPAYOUTACH16090132
+            status: COMPLETED
+            requestedExecutionDate: '2025-11-24'
+            valueDate: '2025-11-24'
+            type: ACH
+            localInstrumentCode: CCD
+            memo: Memo for ACH TNX for Platform 6001003248
+            amount: '1.5'
+            currency: USD
+            targetAmount: '1.45'
+            targetCurrency: EUR
+            originatingTransaction:
+              id: origTxn123456
+              type: ACH
+            fxInformation:
+              rateId: R1C8E57DF6964F981D6DDB5EEf78D8
+              exchangeRate: '0.97'
+              clientSpread: '0.5'
+              contractId: '917490357'
+            paymentPurpose:
+              category:
+                code: SALA
+                customCode: Salary
+              purpose:
+                code: OTHR
+                customCode: Monthly
+            debtor:
+              id: 87274f6d-3c1d-472d-9b9b-87242db325ef
+              clientId: '6001003248'
+              type: ON_BEHALF_OF
+              partyDetails:
+                type: ORGANIZATION
+                name: J.P. Morgan Chase Bank
+                address:
+                  type: BUSINESS_ADDRESS
+                  streetName: 383 Madison Avenue
+                  buildingNumber: Floor 10
+                  city: New York
+                  countrySubDivision: NY
+                  country: US
+                  postalCode: '10179'
+                identities:
+                  - idType: TAX_ID
+                    idValue: '123456789'
+                contacts:
+                  alternateName: JPM Treasury
+                  phoneNumber: '+12125551234'
+                  emailAddress: treasury@jpmorgan.com
+                  website: https://www.jpmorgan.com
+              account:
+                type: REGISTERED_ACCOUNT
+                registeredAccount:
+                  id: 87274f6d3c1d472d9b9b87242db325ef
+                  number: '...4321'
+                  ledgerBalance: '414.84'
+                  postingVersion: 6
+            creditor:
+              id: 924f75bf-41f5-40a9-8401-c37b7fcd50d5
+              clientId: '0030000131'
+              type: RECIPIENT
+              partyDetails:
+                type: INDIVIDUAL
+                name: CAROLYN BROWN
+                address:
+                  type: RESIDENTIAL_ADDRESS
+                  streetName: 123 Main Street
+                  buildingNumber: Apt 4B
+                  city: Springfield
+                  countrySubDivision: IL
+                  country: US
+                  postalCode: '62701'
+                identities:
+                  - idType: SSN
+                    idValue: '987654321'
+                contacts:
+                  phoneNumber: '+12175559876'
+                  emailAddress: carolyn.brown@email.com
+              account:
+                type: CHECKING
+                externalAccount:
+                  number: '...0021'
+                  bankName: First National Bank
+                  branchCode: '123456'
+                  routingInformation:
+                    - routingNumber: '021000021'
+                      transactionType: ACH
+                      routingCodeType: USABA
+                  currency: USD
+                  country: US
+          - id: UwVuCRy09qMeuUET
+            transactionReferenceId: LLD2LDDAP201101
+            status: COMPLETED
+            requestedExecutionDate: '2025-11-20'
+            valueDate: '2025-11-20'
+            type: TRANSFER
+            memo: Internal transfer
+            amount: '0.01'
+            currency: USD
+            debtor:
+              id: b371a701-9e30-4313-81f8-6aa23def56dd
+              clientId: '5009740938'
+              type: ON_BEHALF_OF
+              partyDetails:
+                type: ORGANIZATION
+                name: Test EP - woxBuy
+              account:
+                type: REGISTERED_ACCOUNT
+                registeredAccount:
+                  id: b371a7019e30431381f86aa23def56dd
+                  number: '...8854'
+                  ledgerBalance: '-0.03'
+                  postingVersion: 2
+            creditor:
+              id: 924f75bf-41f5-40a9-8401-c37b7fcd50d5
+              clientId: '5009740938'
+              type: LINKED_ACCOUNT
+              partyDetails:
+                type: ORGANIZATION
+                name: Test EP - woxBuy
+              account:
+                type: REGISTERED_ACCOUNT
+                registeredAccount:
+                  id: 924f75bf41f540a98401c37b7fcd50d5
+                  number: '...8855'
+                  ledgerBalance: '0.03'
+                  postingVersion: 2
+    CreateTransactionPayoutACHReq:
+      summary: Create Transaction - Post a payout to a registered recipient using ACH
+      description: Create Transaction - Post a payout to a registered recipient using ACH
+      value:
+        transactionReferenceId: hisSuUVnakPD9qSA
+        amount: '3100'
+        currency: USD
+        type: ACH
+        memo: Memo for Transaction for 1000010400
+        localInstrumentCode: PPD
+        creditor:
+          id: 1c5cda4a-16eb-4e9d-b384-6b8299893c27
+        debtor:
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: 6a6199fd6f234bbca77de6533271a35b
+    CreateTransactionPayoutRTPReq:
+      summary: Create Transaction - Post a payout to a registered recipient using ACH
+      description: Create Transaction - Post a payout to a registered recipient using ACH
+      value:
+        transactionReferenceId: hisSuUVnakPD9qSA
+        amount: '3100'
+        currency: USD
+        type: RTP
+        memo: Memo for Transaction for 1000010400
+        localInstrumentCode: PPD
+        creditor:
+          id: 1c5cda4a-16eb-4e9d-b384-6b8299893c27
+        debtor:
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: 6a6199fd6f234bbca77de6533271a35b
+    CreateTransactionPayoutWIRERReq:
+      summary: Create Transaction - Post a payout to a registered recipient using WIRE
+      description: Create Transaction - Post a payout to a registered recipient using WIRE
+      value:
+        transactionReferenceId: hisSuUVnakPD9qSA
+        amount: '3100'
+        currency: USD
+        type: ACH
+        memo: Memo for Transaction for 1000010400
+        localInstrumentCode: PPD
+        creditor:
+          id: 1c5cda4a-16eb-4e9d-b384-6b8299893c27
+        debtor:
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: 6a6199fd6f234bbca77de6533271a35b
+    CreateTransactionPayIntoCollectionACHReq:
+      summary: Create Transaction - payment to a registered recipient using ACH payInto collection
+      description: Create Transaction - payment to a registered recipient using ACH payInto collection
+      value:
+        transactionReferenceId: hisSuUVnakPD9qSA
+        amount: '3100'
+        currency: USD
+        type: ACH
+        memo: Memo for Transaction for 1000010400
+        localInstrumentCode: PPD
+        debtor:
+          id: 1c5cda4a-16eb-4e9d-b384-6b8299893c27
+        creditor:
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: 6a6199fd6f234bbca77de6533271a35b
+    CreateTransactionV3ACHPayoutUnregisteredReq:
+      summary: Create Transaction V3 - Post a payout to unregistered recipient using ACH
+      description: Create Transaction V3 - Post a payout to unregistered recipient using ACH
+      value:
+        transactionReferenceId: uilRuUUkakPD9qGF
+        amount: '3100'
+        currency: USD
+        type: ACH
+        memo: Memo for Transaction for 1000010400
+        creditor:
+          partyDetails:
+            type: INDIVIDUAL
+            firstName: Jon
+            lastName: Smith
+            businessName: Widget Co.
+            address:
+              type: RESIDENTIAL_ADDRESS
+              streetName: Wouda St
+              buildingNumber: '345'
+              city: Springfield
+              country: US
+              countrySubDivision: ND
+              postalCode: '58008'
+            contacts:
+              phoneNumber: '+16316215110'
+          account:
+            type: CHECKING
+            externalAccount:
+              number: '021000021'
+              bankName: JPMORGAN CHASE BANK, N.A.
+              branchCode: '123456789'
+              routingInformation:
+                - routingCodeType: USABA
+                  routingNumber: '021000021'
+                  transactionType: ACH
+              currency: USD
+              country: US
+        debtor:
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: d3371713f14e423f82065c9486ebe15b
+    CreateTransactionV3ACHPayoutUnregisteredReqIBAN:
+      summary: Create Transaction V3 - Post a payout to unregistered recipient using ACH
+      description: Create Transaction V3 - Post a payout to unregistered recipient using ACH
+      value:
+        transactionReferenceId: uilRuUUkakPD9qGF
+        amount: '3100'
+        currency: USD
+        type: ACH
+        memo: Memo for Transaction for 1000010400
+        creditor:
+          partyDetails:
+            type: INDIVIDUAL
+            firstName: Jon
+            lastName: Smith
+            businessName: Widget Co.
+            address:
+              type: RESIDENTIAL_ADDRESS
+              streetName: Wouda St
+              buildingNumber: '345'
+              city: Springfield
+              country: US
+              countrySubDivision: ND
+              postalCode: '58008'
+            contacts:
+              phoneNumber: '+16316215110'
+          account:
+            type: IBAN
+            externalAccount:
+              number: '021000021'
+              bankName: JPMORGAN CHASE BANK, N.A.
+              branchCode: '123456789'
+              routingInformation:
+                - routingCodeType: USABA
+                  routingNumber: '021000021'
+                  transactionType: ACH
+              currency: USD
+              country: US
+        debtor:
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: d3371713f14e423f82065c9486ebe15b
+    CreateTransactionPayoutUnregisteredRtpReq:
+      summary: Create Transaction - Post a payout to unregistered recipient using RTP
+      description: Create Transaction - Post a payout to unregistered recipient using RTP
+      value:
+        transactionReferenceId: uilRuUUkakPD9qGF
+        amount: '3100'
+        currency: USD
+        type: RTP
+        memo: Memo for Transaction for 1000010400
+        creditor:
+          type: RECIPIENT
+          partyDetails:
+            type: INDIVIDUAL
+            firstName: Jon
+            lastName: Smith
+            businessName: Widget Co.
+            address:
+              type: RESIDENTIAL_ADDRESS
+              streetName: Wouda St
+              buildingNumber: '345'
+              city: Springfield
+              country: US
+              countrySubDivision: ND
+              postalCode: '58008'
+            contacts:
+              phoneNumber: '+16316215110'
+          account:
+            type: CHECKING
+            externalAccount:
+              number: '021000021'
+              routingInformation:
+                - routingCodeType: USABA
+                  routingNumber: '021000021'
+                  transactionType: RTP
+              country: US
+        debtor:
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: d3371713f14e423f82065c9486ebe15b
+    CreateTransactionPayoutUnregisteredWireReq:
+      summary: Create Transaction - Post a payout to unregistered recipient using WIRE
+      description: Create Transaction - Post a payout to unregistered recipient using WIRE
+      value:
+        transactionReferenceId: uilRuUUkakPD9qGF
+        amount: '3100'
+        currency: USD
+        type: WIRE
+        memo: Memo for Transaction for 1000010400
+        creditor:
+          type: RECIPIENT
+          partyDetails:
+            type: INDIVIDUAL
+            firstName: Jon
+            lastName: Smith
+            businessName: Widget Co.
+            address:
+              type: RESIDENTIAL_ADDRESS
+              streetName: Wouda St
+              buildingNumber: '345'
+              city: Springfield
+              country: US
+              countrySubDivision: ND
+              postalCode: '58008'
+            contacts:
+              phoneNumber: '+16316215110'
+          account:
+            type: CHECKING
+            externalAccount:
+              number: '021000021'
+              routingInformation:
+                - routingCodeType: USABA
+                  routingNumber: '021000021'
+                  transactionType: WIRE
+              country: US
+        debtor:
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: d3371713f14e423f82065c9486ebe15b
+    CreateTransactionPayIntoCollectionUnregisteredAchReq:
+      summary: Create Transaction - payment to an unregistered recipient using ACH payInto collection
+      description: Create Transaction - payment to an unregistered recipient using ACH payInto collection
+      value:
+        transactionReferenceId: hisSuUVnakPD9qSA
+        amount: '3100'
+        currency: USD
+        type: ACH
+        memo: Memo for Transaction for 1000010400
+        localInstrumentCode: PPD
+        debtor:
+          partyDetails:
+            type: ORGANIZATION
+            businessName: CAROLYN BROWN
+            address:
+              type: BUSINESS_ADDRESS
+              streetName: Rose Garden
+              buildingNumber: '491'
+              city: California
+              country: US
+              countrySubDivision: CA
+              postalCode: '10005'
+            contacts:
+              emailAddress: rob4568.smith@gmail.com
+              phoneNumber: '+15343245789'
+            identities:
+              - idType: USCC
+                idValue: 91310000717860841G
+          account:
+            type: CHECKING
+            externalAccount:
+              number: '021000021'
+              bankName: Bank of America
+              branchCode: '123456789'
+              routingInformation:
+                - routingCodeType: AUBSB
+                  transactionType: ACH
+                  routingNumber: '021000021'
+              currency: USD
+              country: US
+        creditor:
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: 6a6199fd6f234bbca77de6533271a35b
+    CreateTransactionPayoutOnBehalfOfUnregisteredAchReq:
+      summary: Create Transaction - Post a payment on behalf of an unregistered recipient using ACH
+      description: Create Transaction - Post a payment on behalf of an unregistered recipient using ACH
+      value:
+        transactionReferenceId: uilRuUUkakPD9qGF
+        amount: '3100'
+        currency: USD
+        type: ACH
+        memo: Memo for Transaction for 1000010400
+        debtor:
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: d3371713f14e423f82065c9486ebe15b
+        creditor:
+          type: ON_BEHALF_OF
+          partyDetails:
+            type: INDIVIDUAL
+            firstName: Jon
+            lastName: Smith
+            businessName: Widget Co.
+            address:
+              type: RESIDENTIAL_ADDRESS
+              streetName: Wouda St
+              buildingNumber: '345'
+              city: Springfield
+              country: US
+              countrySubDivision: ND
+              postalCode: '58008'
+            contacts:
+              phoneNumber: '+16316215110'
+          account:
+            type: CHECKING
+            externalAccount:
+              number: '021000021'
+              routingInformation:
+                - routingCodeType: USABA
+                  routingNumber: '021000021'
+                  transactionType: ACH
+              country: US
+    CreateTransactionPayoutOnBehalfOfUnregisteredRtpReq:
+      summary: Create Transaction - Post a payment on behalf of an unregistered recipient using RTP
+      description: Create Transaction - Post a payment on behalf of an unregistered recipient using RTP
+      value:
+        transactionReferenceId: uilRuUUkakPD9qGF
+        amount: '3100'
+        currency: USD
+        type: RTP
+        memo: Memo for Transaction for 1000010400
+        debtor:
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: d3371713f14e423f82065c9486ebe15b
+        creditor:
+          type: ON_BEHALF_OF
+          partyDetails:
+            type: INDIVIDUAL
+            firstName: Jon
+            lastName: Smith
+            businessName: Widget Co.
+            address:
+              type: RESIDENTIAL_ADDRESS
+              streetName: Wouda St
+              buildingNumber: '345'
+              city: Springfield
+              country: US
+              countrySubDivision: ND
+              postalCode: '58008'
+            contacts:
+              phoneNumber: '+16316215110'
+          account:
+            type: CHECKING
+            externalAccount:
+              number: '021000021'
+              routingInformation:
+                - routingCodeType: USABA
+                  routingNumber: '021000021'
+                  transactionType: RTP
+              country: US
+    CreateTransactionPayoutOnBehalfOfUnregisteredWireReq:
+      summary: Create Transaction - Post a payment on behalf of an unregistered recipient using WIRE
+      description: Create Transaction - Post a payment on behalf of an unregistered recipient using WIRE
+      value:
+        transactionReferenceId: uilRuUUkakPD9qGF
+        amount: '3100'
+        currency: USD
+        type: WIRE
+        memo: Memo for Transaction for 1000010400
+        debtor:
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: d3371713f14e423f82065c9486ebe15b
+        creditor:
+          type: ON_BEHALF_OF
+          partyDetails:
+            type: INDIVIDUAL
+            firstName: Jon
+            lastName: Smith
+            businessName: Widget Co.
+            address:
+              type: RESIDENTIAL_ADDRESS
+              streetName: Wouda St
+              buildingNumber: '345'
+              city: Springfield
+              country: US
+              countrySubDivision: ND
+              postalCode: '58008'
+            contacts:
+              phoneNumber: '+16316215110'
+          account:
+            type: CHECKING
+            externalAccount:
+              number: '021000021'
+              routingInformation:
+                - routingCodeType: USABA
+                  routingNumber: '021000021'
+                  transactionType: WIRE
+              country: US
+    CreateTransactionPayIntoCollectionOnBehalfOfUnregisteredAchReq:
+      summary: Create Transaction - payment to  on behalf of an unregistered recipient using ACH payInto collection
+      description: Create Transaction - payment to  on behalf of an unregistered recipient using ACH payInto collection
+      value:
+        transactionReferenceId: hisSuUVnakPD9qSA
+        amount: '3100'
+        currency: USD
+        type: ACH
+        memo: Memo for Transaction for 1000010400
+        localInstrumentCode: PPD
+        debtor:
+          id: 1c5cda4a-16eb-4e9d-b384-6b8299893c27
+          type: ON_BEHALF_OF
+          partyDetails:
+            type: ORGANIZATION
+            businessName: CAROLYN BROWN
+            address:
+              type: BUSINESS_ADDRESS
+              streetName: Rose Garden
+              buildingNumber: '491'
+              city: California
+              country: US
+              countrySubDivision: CA
+              postalCode: '10005'
+            contacts:
+              emailAddress: rob4568.smith@gmail.com
+              phoneNumber: '+15343245789'
+          account:
+            type: CHECKING
+            externalAccount:
+              number: '021000021'
+              bankName: Bank of America
+              branchCode: '123456789'
+              routingInformation:
+                - routingCodeType: AUBSB
+                  transactionType: ACH
+                  routingNumber: '021000021'
+              currency: USD
+              country: US
+        creditor:
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: 6a6199fd6f234bbca77de6533271a35b
+    CreateTransactionV2VReq:
+      summary: Create Transaction - Transfer funds from one account to another
+      description: Create Transaction - Transfer funds from one account to another
+      value:
+        transactionReferenceId: 39d222165fb1488c896b940321550f77
+        amount: '3100'
+        type: TRANSFER
+        currency: USD
+        creditor:
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: 616d4c7102a11396db39hjfsd88980
+        debtor:
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: d3371713f14e423f82065c9486ebe15b
+    CreateTransactionPayoutInternationalIATAchReq:
+      summary: Create Transaction - Post a payment to  International party IAT using ACH
+      description: Create Transaction - Post a payment to  International party IAT using ACH
+      value:
+        transactionReferenceId: TP3PAYOUTACH1609013
+        type: ACH
+        amount: '1.5'
+        currency: USD
+        localInstrumentCode: IAT
+        memo: Memo for TP3 ACH TNX for Platform 0001012170
+        debtor:
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: 87274f6d3c1d472d9b9b87242db325ef
+        creditor:
+          type: ON_BEHALF_OF
+          partyDetails:
+            type: ORGANIZATION
+            businessName: CAROLYN BROWN
+            address:
+              type: BUSINESS_ADDRESS
+              streetName: Rose Garden
+              buildingNumber: '491'
+              city: California
+              country: US
+              countrySubDivision: CA
+              postalCode: '10005'
+            contacts:
+              emailAddress: rob4568.smith@gmail.com
+              phoneNumber: '+15343245789'
+            account:
+              type: CHECKING
+              externalAccount:
+                number: '021000021'
+                routingInformation:
+                  - routingCodeType: USABA
+                    routingNumber: '021000021'
+                    transactionType: ACH
+                country: US
+    CreateTransactionPayoutACHRes:
+      summary: Create Transaction - Post a payout to a registered recipient using ACH
+      description: Create Transaction - Post a payout to a registered recipient using ACH
+      value:
+        id: m6p8kqkk5hjne4
+        transactionReferenceId: hisSuUVnakPD9qSA
+        requestedExecutionDate: '2023-10-31'
+    CreateTransactionPayoutRTPRes:
+      summary: Create Transaction - Post a payout to a registered recipient using RTP
+      description: Create Transaction - Post a payout to a registered recipient using RTP
+      value:
+        id: m6p8kqkk5hjne4
+        transactionReferenceId: 5wQN9wSJl4rugac4
+        requestedExecutionDate: '2023-10-31'
+    CreateTransactionPayoutWIRERes:
+      summary: Create Transaction - Post a payout to a registered recipient using WIRE
+      description: Create Transaction - Post a payout to a registered recipient using WIRE
+      value:
+        id: m6p8kqkk5hjne4
+        transactionReferenceId: iIbqZdlNuuogLaBo
+        requestedExecutionDate: '2023-10-31'
+    CreateTransactionPayIntoCollectionACHRes:
+      summary: Create Transaction - payment to a registered recipient using ACH payInto collection
+      description: Create Transaction - payment to a registered recipient using ACH payInto collection
+      value:
+        id: colACHres1
+        transactionReferenceId: iIbqZdlNuuogLqat
+        requestedExecutionDate: '2023-10-31'
+    CreateTransactionV3ACHPayoutUnregisteredRes:
+      summary: Create Transaction V3 - Post a payout to unregistered recipient using ACH
+      description: Create Transaction V3 - Post a payout to unregistered recipient using ACH
+      value:
+        id: m6p8kqkk5hjne3
+        transactionReferenceId: uilRuUUkakPD9qGF
+        requestedExecutionDate: '2023-10-31'
+    CreateTransactionPayoutUnregisteredRtpRes:
+      summary: Create Transaction - Post a payout to unregistered recipient using RTP
+      description: Create Transaction - Post a payout to unregistered recipient using RTP
+      value:
+        id: m6p8kqkk5hjne1
+        transactionReferenceId: uilRuUUkakPD9qGF
+        requestedExecutionDate: '2023-10-31'
+    CreateTransactionPayoutUnregisteredWireRes:
+      summary: Create Transaction - Post a payout to unregistered recipient using WIRE
+      description: Create Transaction - Post a payout to unregistered recipient using WIRE
+      value:
+        id: m6p8kqkk5hjne2
+        transactionReferenceId: uilRuUUkakPD9qGF
+        requestedExecutionDate: '2023-10-31'
+    CreateTransactionPayIntoCollectionUnregisteredAchRes:
+      summary: Create Transaction - payment to an unregistered recipient using ACH payInto collection
+      description: Create Transaction - payment to an unregistered recipient using ACH payInto collection
+      value:
+        id: colACHres2
+        transactionReferenceId: '51234'
+        requestedExecutionDate: '2023-10-31'
+    CreateTransactionPayoutOnBehalfOfUnregisteredAchRes:
+      summary: Create Transaction - Post a payment on behalf of an unregistered recipient using ACH
+      description: Create Transaction - Post a payment on behalf of an unregistered recipient using ACH
+      value:
+        id: xI4uhyNIdM9BOe1L
+        transactionReferenceId: uilRuUUkakPD9qGF
+        requestedExecutionDate: '2023-10-31'
+    CreateTransactionPayoutOnBehalfOfUnregisteredRtpRes:
+      summary: Create Transaction - Post a payment on behalf of an unregistered recipient using RTP
+      description: Create Transaction - Post a payment on behalf of an unregistered recipient using RTP
+      value:
+        id: xI4uhyNIdM9BOe2L
+        transactionReferenceId: uilRuUUkakPD9qGF
+        requestedExecutionDate: '2023-10-31'
+    CreateTransactionPayoutOnBehalfOfUnregisteredWireRes:
+      summary: Create Transaction V3 - Post a payment on behalf of an unregistered recipient using WIRE
+      description: Create Transaction V3 - Post a payment on behalf of an unregistered recipient using WIRE
+      value:
+        id: xI4uhyNIdM9BOe3L
+        transactionReferenceId: uilRuUUkakPD9qGF
+        requestedExecutionDate: '2023-10-31'
+    CreateTransactionPayIntoCollectionOnBehalfOfUnregisteredAchRes:
+      summary: Create Transaction - payment to  on behalf of an unregistered recipient using ACH payInto collection
+      description: Create Transaction - payment to  on behalf of an unregistered recipient using ACH payInto collection
+      value:
+        id: colACH456m
+        transactionReferenceId: '81234'
+        requestedExecutionDate: '2023-10-31'
+    CreateTransactionV2VRes:
+      summary: Create Transaction - Transfer funds from one account to another
+      description: Create Transaction - Transfer funds from one account to another
+      value:
+        id: m6p8kqkk5hjne3
+        transactionReferenceId: 39d222165fb1488c896b940321550f77
+        requestedExecutionDate: '2023-10-31'
+    CreateTransactionPayoutInternationalIATAchRes:
+      summary: Create Transaction - Post a payment to  International party IAT using ACH
+      description: Response for Create Transaction - Post a payment to  International party IAT using ACH
+      value:
+        id: xI4uhyNIdM9BOe3L
+        transactionReferenceId: TP3PAYOUTACH1609013
+        requestedExecutionDate: '2023-10-31'
+    GetTransactionByIdComprehensive:
+      summary: Get a comprehensive transaction with all fields
+      description: Get a comprehensive transaction demonstrating all available fields
+      value:
+        id: ff1b61523ea74c59b4ae606c6497cd52
+        transactionReferenceId: PAYOUTACH160901
+        status: COMPLETED
+        requestedExecutionDate: '2025-09-16'
+        valueDate: '2025-09-16'
+        type: ACH
+        localInstrumentCode: PPD
+        memo: Memo for Transaction for 160901
+        amount: '250000'
+        currency: HKD
+        targetAmount: '3100'
+        targetCurrency: USD
+        originatingTransaction:
+          id: ff1b61523ea74c59b4ae606c6497cd52
+          type: ACH
+        fxInformation:
+          rateId: R1C8E57DF6964F981D6DDB5EEf78D8
+          exchangeRate: '1.44'
+          clientSpread: '0.5'
+          contractId: '917490357'
+        paymentPurpose:
+          category:
+            code: SALA
+            customCode: Custom
+          purpose:
+            code: OTHR
+            customCode: Custom
+        debtor:
+          id: 8f4e2b3c-1d5a-4c3b-9f0a-123456789abc
+          clientId: '0030000131'
+          type: ON_BEHALF_OF
+          partyDetails:
+            type: INDIVIDUAL
+            name: Jon Smith
+            address:
+              type: RESIDENTIAL_ADDRESS
+              streetName: 90 Bedford Street
+              buildingNumber: Apt 2E
+              city: Springfield
+              countrySubDivision: ND
+              country: US
+              postalCode: '58008'
+            identities:
+              - idType: TAX_ID
+                idValue: '12345678901'
+            contacts:
+              alternateName: Monica Geller
+              phoneNumber: '+1234567890'
+              emailAddress: example@email.com
+              website: https://www.example.com
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: d3371713f14e423f82065c9486ebe15b
+              number: '...6044'
+              ledgerBalance: '1000'
+              postingVersion: 1
+        creditor:
+          id: 8f4e2b3c-1d5a-4c3b-9f0a-123456789abc
+          clientId: '0030000131'
+          type: RECIPIENT
+          partyDetails:
+            type: ORGANIZATION
+            name: Central Park Getaways
+            address:
+              type: BUSINESS_ADDRESS
+              streetName: 90 Bedford Street
+              buildingNumber: Apt 2E
+              city: Springfield
+              countrySubDivision: ND
+              country: US
+              postalCode: '58008'
+            identities:
+              - idType: TAX_ID
+                idValue: '12345678901'
+            contacts:
+              alternateName: Monica Geller
+              phoneNumber: '+1234567890'
+              emailAddress: example@email.com
+              website: https://www.example.com
+          account:
+            type: CHECKING
+            externalAccount:
+              number: '...6044'
+              bankName: Bank of America
+              branchCode: '123456789'
+              routingInformation:
+                - routingNumber: '541798298'
+                  transactionType: ACH
+                  routingCodeType: USABA
+              currency: USD
+              country: US
+    GetTransactionByIdWithCardAccount:
+      summary: Get a transaction with card account
+      description: Get a transaction demonstrating card account details
+      value:
+        id: card123456789
+        transactionReferenceId: CARDPAYOUT001
+        status: COMPLETED
+        requestedExecutionDate: '2025-09-16'
+        valueDate: '2025-09-16'
+        type: CARD
+        memo: Card payment
+        amount: '100'
+        currency: USD
+        debtor:
+          id: 87274f6d-3c1d-472d-9b9b-87242db325ef
+          type: ON_BEHALF_OF
+          partyDetails:
+            type: ORGANIZATION
+            name: J.P. Morgan Chase Bank
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: 87274f6d3c1d472d9b9b87242db325ef
+              number: '...4321'
+              ledgerBalance: '414.84'
+              postingVersion: 6
+        creditor:
+          id: 924f75bf-41f5-40a9-8401-c37b7fcd50d5
+          type: RECIPIENT
+          partyDetails:
+            type: INDIVIDUAL
+            name: M GELLAR
+          account:
+            type: CARD
+            card:
+              name: M GELLAR
+              number: '4137110019999999'
+              expiryDate: '2207'
+    GetTransactionByIdWithError:
+      summary: Get a rejected transaction with error details
+      description: Get a rejected transaction demonstrating error details
+      value:
+        id: err123456789
+        transactionReferenceId: ERRPAYOUT001
+        status: REJECTED
+        requestedExecutionDate: '2025-09-16'
+        type: ACH
+        memo: Failed payment
+        amount: '100'
+        currency: USD
+        debtor:
+          id: 87274f6d-3c1d-472d-9b9b-87242db325ef
+          type: ON_BEHALF_OF
+          partyDetails:
+            type: ORGANIZATION
+            name: J.P. Morgan Chase Bank
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: 87274f6d3c1d472d9b9b87242db325ef
+              number: '...4321'
+        creditor:
+          id: 924f75bf-41f5-40a9-8401-c37b7fcd50d5
+          type: RECIPIENT
+          partyDetails:
+            type: INDIVIDUAL
+            name: Monica Geller
+          account:
+            type: CHECKING
+            externalAccount:
+              number: '...6044'
+        error:
+          title: BAD_REQUEST
+          httpStatus: 400
+          traceId: 68d2887756a7198e0c8c23b9471c377c
+          requestId: 623f5f22-79c5-49ed-a51d-f1021281810e
+          context:
+            - code: '11000'
+              location: BODY
+              field: clientId
+              message: Client with ID 0031234567 does not exist.
+    GetTransactionByIdPAYOUT:
+      summary: Get an ACH payout on a transaction account
+      description: Get an ACH payout on a transaction account
+      value:
+        id: qLbozp9AOrcLXRv
+        transactionReferenceId: CONVPAYOUTACH16090132
+        status: COMPLETED
+        requestedExecutionDate: '2025-11-24'
+        valueDate: '2025-11-24'
+        type: ACH
+        localInstrumentCode: CCD
+        memo: Memo for ACH TNX for Platform 6001003248
+        amount: '1.5'
+        currency: USD
+        debtor:
+          id: 87274f6d-3c1d-472d-9b9b-87242db325ef
+          type: ON_BEHALF_OF
+          partyDetails:
+            type: ORGANIZATION
+            name: J.P. Morgan Chase Bank
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: 87274f6d3c1d472d9b9b87242db325ef
+              number: '...4321'
+              ledgerBalance: '414.84'
+              postingVersion: 6
+        creditor:
+          id: 924f75bf-41f5-40a9-8401-c37b7fcd50d5
+          type: RECIPIENT
+          partyDetails:
+            type: INDIVIDUAL
+            name: CAROLYN BROWN
+          account:
+            type: CHECKING
+            externalAccount:
+              number: '...0021'
+    GetTransactionByIdPAYOUTLIMITEDDDA:
+      summary: Get an ACH payout on a limited DDA account
+      description: Get an ACH payout on a limited DDA account
+      value:
+        id: DCXGr4zmmUnAadP
+        transactionReferenceId: mwTGD8WUpIwynya
+        status: COMPLETED
+        requestedExecutionDate: '2025-11-26'
+        valueDate: '2025-11-26'
+        type: ACH
+        localInstrumentCode: PPD
+        memo: test-auto-memo
+        amount: '0.04'
+        currency: USD
+        debtor:
+          id: acbd907c-a11d-451d-ad5b-5cbd46ea542a
+          clientId: '1000020694'
+          type: ON_BEHALF_OF
+          partyDetails:
+            type: ORGANIZATION
+            name: JP Morgan Chase
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: acbd907ca11d451dad5b5cbd46ea542a
+              number: '...0040'
+              ledgerBalance: '1065827.01'
+              postingVersion: 2
+        creditor:
+          id: ada8d92c-2b07-4cb9-9b34-36ba26a2c000
+          type: RECIPIENT
+          partyDetails:
+            type: INDIVIDUAL
+            name: Monica Gellar
+          account:
+            type: CHECKING
+            externalAccount:
+              number: '...2596'
+    GetTransactionByIdAchDirectDebitIntoTransaction:
+      summary: Get an ACH Direct debit transaction into a transaction account
+      description: Get an ACH Direct debit transaction into a transaction account
+      value:
+        id: kqamOsXeMAQJTIH
+        transactionReferenceId: UD12438914
+        status: COMPLETED
+        requestedExecutionDate: '2025-11-12'
+        valueDate: '2025-11-12'
+        type: ACH
+        localInstrumentCode: WEB
+        memo: ORIG CO NAME
+        amount: '1'
+        currency: USD
+        debtor:
+          id: 8f4e2b3c-1d5a-4c3b-9f0a-123456789abc
+          type: LINKED_ACCOUNT
+          partyDetails:
+            type: ORGANIZATION
+            name: Central Park Getaways
+          account:
+            type: CHECKING
+            externalAccount:
+              number: '...0021'
+        creditor:
+          id: 87274f6d-3c1d-472d-9b9b-87242db325ef
+          type: SETTLEMENT_ACCOUNT
+          partyDetails:
+            type: ORGANIZATION
+            name: J.P. Morgan Chase Bank
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: 87274f6d3c1d472d9b9b87242db325ef
+              number: '...4321'
+              ledgerBalance: '451.03'
+              postingVersion: 4
+    GetTransactionByIdAchDirectDebitIntoLimitedDDA:
+      summary: Get an ACH Direct debit transaction into a limited DDA account
+      description: Get an ACH Direct debit transaction into a limited DDA account
+      value:
+        id: nvebWHLMkPlMUEr
+        transactionReferenceId: TutSLO4lA6jTSdpk
+        status: COMPLETED
+        requestedExecutionDate: '2025-11-03'
+        valueDate: '2025-11-03'
+        type: ACH
+        localInstrumentCode: WEB
+        memo: ORIG CO NAME
+        amount: '1.39'
+        currency: USD
+        debtor:
+          id: 8f4e2b3c-1d5a-4c3b-9f0a-123456789abc
+          type: LINKED_ACCOUNT
+          partyDetails:
+            type: INDIVIDUAL
+            name: Bec Taylor
+          account:
+            type: CHECKING
+            externalAccount:
+              number: '...2173'
+        creditor:
+          id: 4fba356f-927a-4164-bf7f-0a53355deb20
+          clientId: '0001007621'
+          type: SETTLEMENT_ACCOUNT
+          partyDetails:
+            type: ORGANIZATION
+            name: CAMELBACK BUSINESS PRO
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: 6e74e9c453b1406f8ea68c6f89ea9ba2
+              number: '...3842'
+              ledgerBalance: '104.38'
+              postingVersion: 18
+    GetTransactionByIdV2V:
+      summary: Get a Transfer
+      description: Get a Transfer
+      value:
+        id: UwVuCRy09qMeuUET
+        transactionReferenceId: LLD2LDDAP201101
+        status: COMPLETED
+        requestedExecutionDate: '2025-11-20'
+        valueDate: '2025-11-20'
+        type: TRANSFER
+        amount: '0.01'
+        currency: USD
+        debtor:
+          id: b371a701-9e30-4313-81f8-6aa23def56dd
+          clientId: '5009740938'
+          type: ON_BEHALF_OF
+          partyDetails:
+            type: ORGANIZATION
+            name: Test EP - woxBuy
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: b371a7019e30431381f86aa23def56dd
+              number: '...8854'
+              ledgerBalance: '-0.03'
+              postingVersion: 2
+        creditor:
+          id: 924f75bf-41f5-40a9-8401-c37b7fcd50d5
+          clientId: '5009740938'
+          type: LINKED_ACCOUNT
+          partyDetails:
+            type: ORGANIZATION
+            name: Test EP - woxBuy
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: 924f75bf41f540a98401c37b7fcd50d5
+              number: '...8855'
+              ledgerBalance: '0.03'
+              postingVersion: 2
+    GetTransactionByIdRETURNDEBIT:
+      summary: Get Returns
+      description: Get Returns
+      value:
+        id: ytmVupkggg
+        transactionReferenceId: Ky2tcabhIG
+        status: COMPLETED
+        requestedExecutionDate: '2025-11-10'
+        valueDate: '2025-11-10'
+        type: RETURN
+        memo: ORIG CO NAME:AMAZON.CBROYT0DM ORIG ID:3215240102
+        amount: '0.13'
+        currency: USD
+        originatingTransaction:
+          id: kjFXgg4HsU
+          type: ACH
+        debtor:
+          id: 87274f6d-3c1d-472d-9b9b-87242db325ef
+          type: ON_BEHALF_OF
+          partyDetails:
+            type: ORGANIZATION
+            name: J.P. Morgan Chase Bank
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: 87274f6d3c1d472d9b9b87242db325ef
+              number: '...4321'
+              ledgerBalance: '-0.04'
+              postingVersion: 6
+        creditor:
+          id: 8f4e2b3c-1d5a-4c3b-9f0a-123456789abc
+          type: RECIPIENT
+          partyDetails:
+            type: ORGANIZATION
+            name: EWALLET ORIGINATOR
+          account:
+            type: CHECKING
+            externalAccount:
+              number: '...0573'
+    GetTransactionByIdPAYINTORECEIPT:
+      summary: Get Payinto receipts
+      description: Get Payinto receipts
+      value:
+        id: u67e213b237f44d5
+        transactionReferenceId: 583422u67e213b237f44d5
+        status: COMPLETED
+        requestedExecutionDate: '2025-11-12'
+        valueDate: '2025-11-12'
+        type: ACH
+        memo: '/VXR/20000059615287/BOOK TRANSFER CREDIT B/O: PUBLIC BANK BERHAD 50450 KUALA'
+        amount: '0.1'
+        currency: USD
+        debtor:
+          id: 8f4e2b3c-1d5a-4c3b-9f0a-123456789abc
+          type: LINKED_ACCOUNT
+          partyDetails:
+            type: ORGANIZATION
+            name: UNAVAILABLE
+          account:
+            type: CHECKING
+            externalAccount:
+              number: '...0000'
+        creditor:
+          id: d1f5c8e2-3b6a-4c9e-8f7a-7001002325
+          clientId: '7001002325'
+          type: SETTLEMENT_ACCOUNT
+          partyDetails:
+            type: ORGANIZATION
+            name: EP Convergence C1
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: 900e4868bc364926957d0882bc51a882
+              number: '...5287'
+              ledgerBalance: '10000012.06'
+              postingVersion: 12
+    GetTransactionByIdPAYOUTCOLLECTION:
+      summary: Get Payoutcollection
+      description: Get Payoutcollection
+      value:
+        id: hgB2cJxDtx
+        transactionReferenceId: 19428hgB2cJxDtx
+        status: COMPLETED
+        requestedExecutionDate: '2025-11-19'
+        valueDate: '2025-11-19'
+        type: ACH
+        memo: ORIG CO NAME
+        amount: '0.14'
+        currency: USD
+        originatingTransaction:
+          id: '9876543210'
+          type: ACH
+        debtor:
+          id: 5ea1ae3b-a0fb-4972-9bee-8b3585d25cd2
+          clientId: '6001003248'
+          type: ON_BEHALF_OF
+          partyDetails:
+            type: ORGANIZATION
+            name: Bank
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: 5ea1ae3ba0fb49729bee8b3585d25cd2
+              number: '...0040'
+              ledgerBalance: '8609.85'
+              postingVersion: 1
+        creditor:
+          id: 8f4e2b3c-1d5a-4c3b-9f0a-123456789abc
+          type: RECIPIENT
+          partyDetails:
+            type: INDIVIDUAL
+            name: Monica Gellar
+    GetTransactionByIdMISCELLANEOUSCREDIT:
+      summary: Get Misc Credit
+      description: Get Misc Credit
+      value:
+        id: 412tfnGTGQCZVOrm
+        status: COMPLETED
+        requestedExecutionDate: '2025-11-03'
+        valueDate: '2025-11-03'
+        type: MISCELLANEOUS_CREDIT
+        memo: EWALLET PAYIN ~~~
+        amount: '0.01'
+        currency: USD
+        creditor:
+          id: DEFAULT
+          type: SETTLEMENT_ACCOUNT
+          partyDetails:
+            type: ORGANIZATION
+            name: Settlement Account
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: DEFAULT
+              number: '...0000'
+              ledgerBalance: '-53.55'
+              postingVersion: 1
+    GetTransactionByIdMISCELLANEOUSDEBIT:
+      summary: Get Misc Debit
+      description: Get Misc Debit
+      value:
+        id: OG7bhlBRQNjk6CBR
+        status: COMPLETED
+        requestedExecutionDate: '2025-11-03'
+        valueDate: '2025-11-03'
+        type: MISCELLANEOUS_DEBIT
+        memo: memo test MISCELLANEOUS DEBIT
+        amount: '0.01'
+        currency: USD
+        debtor:
+          id: DEFAULT
+          type: ON_BEHALF_OF
+          partyDetails:
+            type: ORGANIZATION
+            name: Default Debtor
+          account:
+            type: REGISTERED_ACCOUNT
+            registeredAccount:
+              id: DEFAULT
+              number: '...0000'
+              ledgerBalance: '-53.56'
+              postingVersion: 2
+  headers:
+    requestId:
+      description: Unique identifier for the request. This identifier is specific to this particular request. If the same payload is sent in a new request, a new identifier needs to be provided
+      schema:
+        type: string
+      example: efeacff8-fd2c-4f54-a12e-2a8f90d4d325
+  responses:
+    400V2:
+      description: Bad Request
+      headers:
+        request-id:
+          $ref: '#/components/headers/requestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorV2'
+          example:
+            title: Bad Request
+            httpStatus: 400
+    401V2:
+      description: Unauthorized
+      headers:
+        request-id:
+          $ref: '#/components/headers/requestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorV2'
+          example:
+            title: Unauthorized Request
+            httpStatus: 401
+    403V2:
+      description: Forbidden
+      headers:
+        request-id:
+          $ref: '#/components/headers/requestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorV2'
+          example:
+            title: Forbidden
+            httpStatus: 403
+    404V2:
+      description: Not Found
+      headers:
+        request-id:
+          $ref: '#/components/headers/requestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorV2'
+          example:
+            title: Not Found
+            httpStatus: 404
+    500V2:
+      description: Internal Server Error
+      headers:
+        request-id:
+          $ref: '#/components/headers/requestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorV2'
+          example:
+            title: Internal Server Error
+            httpStatus: 500
+    503V2:
+      description: Service Unavailable
+      headers:
+        request-id:
+          $ref: '#/components/headers/requestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorV2'
+          example:
+            title: Service Unavailable
+            httpStatus: 503
+x-jpmc-securityDefinitions:
+  MutualTLS:
+    type: x509
+    description: Mutual TLS authentication using client and server certificates.
+x-jpmc-security:
+  - MutualTLS
