@@ -345,7 +345,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     }
     if (canNavigateToPrevSection) {
       return t('stepperRenderer.buttons.backToSection', {
-        sectionLabel: t(prevSection?.sectionConfig.labelKey as any),
+        sectionLabel: tString(prevSection?.sectionConfig.labelKey as any),
       });
     }
     return t('stepperRenderer.buttons.previous');

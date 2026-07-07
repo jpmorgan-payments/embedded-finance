@@ -559,6 +559,7 @@
       "required": "Requis",
       "invalidFormat": "Format invalide",
       "numberFormat": "Doit être un nombre",
+      "wholeNumber": "Saisissez un montant en dollars entiers (sans cents)",
       "maxItems": "Ne peut pas dépasser {{maxItems}} éléments"
     }
   },

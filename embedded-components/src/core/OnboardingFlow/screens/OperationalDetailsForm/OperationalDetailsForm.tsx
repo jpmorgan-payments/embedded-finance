@@ -10,7 +10,12 @@ import { useTranslationWithTokens } from '@/i18n';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeftIcon, InfoIcon, Loader2Icon } from 'lucide-react';
+import {
+  ArrowLeftIcon,
+  DollarSignIcon,
+  InfoIcon,
+  Loader2Icon,
+} from 'lucide-react';
 import { useForm, useFormState } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -46,6 +51,11 @@ import {
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
 import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
+import {
+  isQuestionVisible as computeQuestionVisibility,
+  getChildQuestions,
+  isTopLevelQuestion,
+} from '@/core/OnboardingFlow/utils/questionTree';
 
 import {
   createDynamicZodSchema,
@@ -80,49 +90,6 @@ const formatErrorMessage = (message: string): string => {
   }
 
   return message;
-};
-
-const normalizeComparableValue = (value: unknown): string =>
-  String(value).trim().toLowerCase();
-
-const hasAnyValuesMatch = (
-  parentResponse: unknown,
-  anyValuesMatch: unknown
-): boolean => {
-  if (anyValuesMatch == null || parentResponse == null) return false;
-
-  const parentValues = Array.isArray(parentResponse)
-    ? parentResponse
-    : [parentResponse];
-  const matchValues = Array.isArray(anyValuesMatch)
-    ? anyValuesMatch
-    : [anyValuesMatch];
-
-  const normalizedMatches = matchValues
-    .filter((value) => value != null)
-    .map((value) => normalizeComparableValue(value));
-
-  if (normalizedMatches.length === 0) return false;
-
-  return parentValues.some((value) => {
-    if (value == null) return false;
-    return normalizedMatches.includes(normalizeComparableValue(value));
-  });
-};
-
-const normalizeQuestionId = (id: unknown): string =>
-  id == null ? '' : String(id);
-
-const uniqueQuestionsById = (
-  questions: QuestionResponse[]
-): QuestionResponse[] => {
-  const seen = new Set<string>();
-  return questions.filter((question) => {
-    const id = normalizeQuestionId(question.id);
-    if (!id || seen.has(id)) return false;
-    seen.add(id);
-    return true;
-  });
 };
 
 export const OperationalDetailsForm = () => {
@@ -251,6 +218,7 @@ export const OperationalDetailsForm = () => {
                 <Input
                   {...field}
                   type="date"
+                  className="eb-w-fit"
                   value={field.value?.[0] ?? ''}
                   onChange={(e) => field.onChange([e.target.value])}
                 />
@@ -271,30 +239,36 @@ export const OperationalDetailsForm = () => {
             <FormItem>
               {questionLabel}
               <div className="eb-relative">
-                <span className="eb-absolute eb-left-3 eb-translate-y-2 eb-text-gray-500">
-                  $
-                </span>
+                <DollarSignIcon
+                  aria-hidden="true"
+                  className="eb-pointer-events-none eb-absolute eb-inset-y-0 eb-left-3 eb-my-auto eb-size-4 eb-text-gray-500"
+                />
                 <FormControl>
                   <Input
                     {...field}
                     type="number"
                     min={0}
                     max={10000000000}
-                    step={0.01}
-                    placeholder="0.00"
-                    className="eb-pl-7"
+                    step={1}
+                    inputMode="decimal"
+                    placeholder="0"
+                    className="eb-pl-9"
                     value={field.value?.[0] ?? ''}
                     onChange={(e) => {
-                      const value = parseFloat(e.target.value);
-                      if (value >= 0 && value <= 10000000000) {
-                        field.onChange([e.target.value]);
+                      // Let the user type freely — including a decimal — so the
+                      // whole-number validation can explain why cents aren't
+                      // accepted, rather than silently swallowing keystrokes.
+                      // Only guard the overall range here.
+                      const raw = e.target.value;
+                      const numeric = parseFloat(raw);
+                      if (
+                        raw === '' ||
+                        (numeric >= 0 && numeric <= 10000000000)
+                      ) {
+                        field.onChange([raw]);
                       }
                     }}
-                    onBlur={(e) => {
-                      const value = parseFloat(e.target.value);
-                      if (value < 0) field.onChange(['0']);
-                      if (value > 10000000000) field.onChange(['10000000000']);
-                    }}
+                    onBlur={field.onBlur}
                   />
                 </FormControl>
               </div>
@@ -372,10 +346,18 @@ export const OperationalDetailsForm = () => {
                                 <Checkbox
                                   checked={field.value?.includes(option)}
                                   onCheckedChange={(checked) => {
+                                    const currentValues = Array.isArray(
+                                      field.value
+                                    )
+                                      ? field.value
+                                      : [];
                                     return checked
-                                      ? field.onChange([...field.value, option])
+                                      ? field.onChange([
+                                          ...currentValues,
+                                          option,
+                                        ])
                                       : field.onChange(
-                                          field.value?.filter(
+                                          currentValues.filter(
                                             (value: string) => value !== option
                                           )
                                         );
@@ -569,61 +551,17 @@ export const OperationalDetailsForm = () => {
     }
   }, [updateClientError, updateClientStatus, setFieldErrorsFromApiError, form]);
 
-  const isQuestionVisible = (question: QuestionResponse): boolean => {
-    const questionId = normalizeQuestionId(question.id);
-    const parentQuestion = question.parentQuestionId
-      ? allQuestions.find(
-          (q) =>
-            normalizeQuestionId(q.id) ===
-            normalizeQuestionId(question.parentQuestionId)
-        )
-      : allQuestions.find((q) =>
-          q.subQuestions?.some((sq) =>
-            sq.questionIds?.some((id) => normalizeQuestionId(id) === questionId)
-          )
-        );
+  // Visibility and top-level checks are delegated to the shared question-tree
+  // helpers so this form and the ReviewForm behave identically. The only
+  // difference is the response source: here it is live form state.
+  const getResponseValues = (questionId: string) =>
+    form.watch(`question_${questionId}`);
 
-    // If no parent found, show the question
-    if (!parentQuestion) return true;
+  const isQuestionVisible = (question: QuestionResponse): boolean =>
+    computeQuestionVisibility(question, allQuestions, getResponseValues);
 
-    // For nested questions, the parent must also be visible
-    if (!isQuestionVisible(parentQuestion)) return false;
-
-    const parentResponse = form.watch(
-      `question_${normalizeQuestionId(parentQuestion.id)}`
-    );
-
-    if (!parentResponse) return false;
-
-    const subQuestion = parentQuestion?.subQuestions?.find((sq) =>
-      sq.questionIds?.some((id) => normalizeQuestionId(id) === questionId)
-    );
-
-    if (subQuestion?.anyValuesMatch != null) {
-      return hasAnyValuesMatch(parentResponse, subQuestion.anyValuesMatch);
-    }
-
-    return false;
-  };
-
-  const isQuestionParent = (question: QuestionResponse) => {
-    if (!question.parentQuestionId) {
-      const questionId = normalizeQuestionId(question.id);
-      const isReferencedAsChild = allQuestions.some((q) =>
-        q.subQuestions?.some((sq) =>
-          sq.questionIds?.some((id) => normalizeQuestionId(id) === questionId)
-        )
-      );
-      return !isReferencedAsChild;
-    }
-    // Treat as top-level if parent isn't in our question list
-    const parentExists = allQuestions.some(
-      (q) =>
-        normalizeQuestionId(q.id) ===
-        normalizeQuestionId(question.parentQuestionId)
-    );
-    return !parentExists;
-  };
+  const isQuestionParent = (question: QuestionResponse): boolean =>
+    isTopLevelQuestion(question, allQuestions);
 
   const onSubmit = (values: any) => {
     if (clientData?.id) {
@@ -667,29 +605,11 @@ export const OperationalDetailsForm = () => {
       parentId: string | undefined
     ): React.ReactNode => {
       if (!parentId) return null;
-      const normalizedParentId = normalizeQuestionId(parentId);
-      const parentQuestion = allQuestions.find(
-        (q) => normalizeQuestionId(q.id) === normalizedParentId
-      );
 
-      const childQuestionsByParentId = allQuestions.filter(
-        (q) => normalizeQuestionId(q.parentQuestionId) === normalizedParentId
-      );
-
-      const childQuestionsBySubQuestionIds =
-        parentQuestion?.subQuestions
-          ?.flatMap((sq) => sq.questionIds ?? [])
-          .map((childId) =>
-            allQuestions.find(
-              (q) => normalizeQuestionId(q.id) === normalizeQuestionId(childId)
-            )
-          )
-          .filter((q): q is QuestionResponse => !!q) ?? [];
-
-      const childQuestions = uniqueQuestionsById([
-        ...childQuestionsByParentId,
-        ...childQuestionsBySubQuestionIds,
-      ]);
+      // Only render questions whose single effective parent is this parent, so
+      // each question appears exactly once regardless of whether the
+      // relationship is expressed via parentQuestionId or subQuestions.
+      const childQuestions = getChildQuestions(parentId, allQuestions);
 
       return childQuestions.filter(isQuestionVisible).map((subQuestion) => (
         <Fragment

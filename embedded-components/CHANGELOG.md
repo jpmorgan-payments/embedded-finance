@@ -2,6 +2,15 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.16.6] - 2026-07-07
+
+### Changes
+
+#### Bug Fixes
+
+- **onboarding:** add validation for currency input and update styling for currency and date inputs
+- **onboarding:** fix issues on OperationalDetailsForm
+
 ## [0.16.5] - 2026-07-06
 
 ### Changes
