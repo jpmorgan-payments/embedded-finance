@@ -25,7 +25,7 @@ describe('createDynamicZodSchema', () => {
     expect(bad.success).toBe(false);
   });
 
-  test('MONEY_INPUT_QUESTION_IDS allow up to two decimal places', () => {
+  test('MONEY_INPUT_QUESTION_IDS require whole numbers (no decimals)', () => {
     const questions: QuestionResponse[] = [
       {
         id: '30005',
@@ -38,10 +38,8 @@ describe('createDynamicZodSchema', () => {
       },
     ];
     const schema = createDynamicZodSchema(questions);
-    expect(schema.safeParse({ question_30005: ['50000.99'] }).success).toBe(
-      true
-    );
-    const bad = schema.safeParse({ question_30005: ['50000.999'] });
+    expect(schema.safeParse({ question_30005: ['50000'] }).success).toBe(true);
+    const bad = schema.safeParse({ question_30005: ['50000.99'] });
     expect(bad.success).toBe(false);
   });
 

@@ -166,15 +166,14 @@ const buildScalarValueSchema = (
   }
 
   if (question.id && MONEY_INPUT_QUESTION_IDS.includes(question.id)) {
-    // Money/currency inputs should allow decimals
+    // Money/currency inputs must be whole numbers — the server only accepts
+    // integers, so reject any decimal input.
     return z
       .string()
       .min(1, requiredMsg)
       .refine(
-        (val) => /^\d+(\.\d{1,2})?$/.test(val),
-        i18n.t(
-          'onboarding-overview:additionalQuestions.validation.numberFormat'
-        )
+        (val) => /^\d+$/.test(val),
+        i18n.t('onboarding-overview:additionalQuestions.validation.wholeNumber')
       );
   }
 

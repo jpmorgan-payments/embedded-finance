@@ -619,6 +619,7 @@
       "required": "Required",
       "invalidFormat": "Invalid format",
       "numberFormat": "Must be a number",
+      "wholeNumber": "Enter a whole dollar amount (no cents)",
       "maxItems": "Cannot exceed {{maxItems}} items"
     }
   },

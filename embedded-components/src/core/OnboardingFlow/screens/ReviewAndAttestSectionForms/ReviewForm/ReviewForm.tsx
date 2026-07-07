@@ -1,4 +1,4 @@
-import React, { Fragment, useMemo, useState } from 'react';
+import React, { Fragment, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -15,7 +15,6 @@ import { useForm, useFormState } from 'react-hook-form';
 import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
-import { useSmbdoListQuestions } from '@/api/generated/smbdo';
 import {
   ClientResponse,
   QuestionResponse,
@@ -48,6 +47,7 @@ import {
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
 import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
+import { useQuestionTree } from '@/core/OnboardingFlow/screens/OperationalDetailsForm/useQuestionTree';
 import {
   SectionScreenId,
   StepperStepProps,
@@ -62,6 +62,12 @@ import {
   getFlowProgress,
   getStepperValidations,
 } from '@/core/OnboardingFlow/utils/flowUtils';
+import {
+  isQuestionVisible as computeQuestionVisibility,
+  getChildQuestions,
+  isTopLevelQuestion,
+  normalizeQuestionId,
+} from '@/core/OnboardingFlow/utils/questionTree';
 
 export const ReviewForm: React.FC<StepperStepProps> = ({
   handlePrev,
@@ -135,74 +141,24 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   const outstandingQuestionIds = clientData?.outstanding?.questionIds ?? [];
   const existingQuestionResponses = clientData?.questionResponses ?? [];
 
-  // Merge outstanding and existing question IDs
-  const allQuestionIds = useMemo(() => {
-    const existingIds = existingQuestionResponses.map(
-      (response) => response.questionId ?? 'undefined'
-    );
-    return [...new Set([...outstandingQuestionIds, ...existingIds])];
-  }, [outstandingQuestionIds, existingQuestionResponses]);
-
-  const { data: questionsDetails } = useSmbdoListQuestions({
-    questionIds: allQuestionIds.join(','),
+  // Use the same question-tree hook as the OperationalDetailsForm so both
+  // screens always render the exact same set of questions (including deeply
+  // nested sub-questions), in the same order.
+  const { allQuestions } = useQuestionTree({
+    outstandingQuestionIds,
+    existingQuestionResponses,
   });
 
-  // Some questions reference a parentQuestionId that isn't in the original list.
-  // Fetch those missing parents so isQuestionVisible can resolve them.
-  const missingParentIds = useMemo(() => {
-    if (!questionsDetails?.questions) return [];
-    const fetchedIds = new Set(allQuestionIds);
-    const parentIds = questionsDetails.questions
-      .map((q) => q.parentQuestionId)
-      .filter((id): id is string => !!id && !fetchedIds.has(id));
-    return [...new Set(parentIds)];
-  }, [questionsDetails, allQuestionIds]);
-
-  const { data: parentQuestionsDetails } = useSmbdoListQuestions(
-    { questionIds: missingParentIds.join(',') },
-    { query: { enabled: missingParentIds.length > 0 } }
-  );
-
-  // Merge fetched questions with their missing parents into a single list
-  const allQuestionsDetails = useMemo(() => {
-    const base = questionsDetails?.questions ?? [];
-    const parents = parentQuestionsDetails?.questions ?? [];
-    if (parents.length === 0) return questionsDetails;
-    const existingIds = new Set(base.map((q) => q.id));
-    const merged = [...base, ...parents.filter((p) => !existingIds.has(p.id))];
-    return { ...questionsDetails, questions: merged };
-  }, [questionsDetails, parentQuestionsDetails]);
-
-  const isQuestionVisible = (question: QuestionResponse) => {
-    if (!question.parentQuestionId) return true;
-
-    const parentQuestion = allQuestionsDetails?.questions?.find(
-      (q) => q.id === question.parentQuestionId
-    );
-    if (!parentQuestion) return false;
-
-    const parentResponse = existingQuestionResponses.find(
-      (r) => r.questionId === parentQuestion.id
+  // Visibility is delegated to the shared question-tree helper; here the
+  // response source is the saved responses rather than live form state.
+  const getResponseValues = (questionId: string) =>
+    existingQuestionResponses.find(
+      (r) =>
+        normalizeQuestionId(r.questionId) === normalizeQuestionId(questionId)
     )?.values;
 
-    if (!parentResponse) return false;
-
-    const subQuestion = parentQuestion?.subQuestions?.find((sq) =>
-      sq.questionIds?.includes(question.id ?? '')
-    );
-
-    if (typeof subQuestion?.anyValuesMatch === 'string') {
-      return parentResponse.includes(subQuestion.anyValuesMatch);
-    }
-
-    if (Array.isArray(subQuestion?.anyValuesMatch)) {
-      return parentResponse.some((value: any) => {
-        return subQuestion.anyValuesMatch?.includes(value);
-      });
-    }
-
-    return false;
-  };
+  const isQuestionVisible = (question: QuestionResponse): boolean =>
+    computeQuestionVisibility(question, allQuestions, getResponseValues);
 
   const activeOwners =
     clientData?.parties?.filter(
@@ -442,6 +398,82 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                       </Card>
                     );
                   } else if (section.id === 'additional-questions-section') {
+                    const renderQuestionReview = (q: QuestionResponse) => {
+                      const qText = q.description
+                        ?.split('\n')
+                        .map((line, idx) => (
+                          <p
+                            key={idx}
+                            className={cn({
+                              'eb-ml-4': idx > 0,
+                            })}
+                          >
+                            {line}
+                          </p>
+                        ));
+
+                      if (
+                        q.id &&
+                        clientData?.outstanding.questionIds?.includes(q.id)
+                      ) {
+                        return (
+                          <div className="eb-space-y-0.5">
+                            <div className="eb-text-sm eb-font-medium">
+                              {qText}
+                            </div>
+                            <div className="eb-flex eb-items-center eb-gap-1 eb-text-warning">
+                              <TriangleAlertIcon className="eb-size-4" />
+                              <p className="eb-italic">
+                                {t(
+                                  'reviewAndAttest.fieldIsMissing',
+                                  'This field is missing'
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      const response = existingQuestionResponses?.find(
+                        (r) => r.questionId === q.id
+                      );
+
+                      return (
+                        <div className="eb-space-y-0.5">
+                          <div className="eb-text-sm eb-font-medium">
+                            {qText}
+                          </div>
+                          <div>
+                            <b>{t('reviewAndAttest.response')}:</b>{' '}
+                            {(response && formatQuestionResponse(response)) || (
+                              <span className="eb-italic eb-text-muted-foreground">
+                                {t('common:empty')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    };
+
+                    // Recursively render visible sub-questions to arbitrary
+                    // depth, matching OperationalDetailsForm's tree rendering.
+                    const renderSubQuestionsReview = (
+                      parentId: string | undefined
+                    ): React.ReactNode => {
+                      if (!parentId) return null;
+                      const childQuestions = getChildQuestions(
+                        parentId,
+                        allQuestions
+                      ).filter(isQuestionVisible);
+
+                      return childQuestions.map((subQuestion) => (
+                        <Fragment key={subQuestion.id}>
+                          {renderQuestionReview(subQuestion)}
+                          {renderSubQuestionsReview(subQuestion.id)}
+                        </Fragment>
+                      ));
+                    };
+
                     content = (
                       <Card className="eb-mt-6 eb-space-y-3 eb-rounded-lg eb-border eb-p-4">
                         <div className="eb-flex eb-items-start eb-justify-between">
@@ -464,89 +496,17 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                             {t('common:change', 'Change')}
                           </Button>
                         </div>
-                        {allQuestionsDetails?.questions
-                          ?.filter((q) => !q.parentQuestionId)
+                        {allQuestions
+                          .filter((question) =>
+                            isTopLevelQuestion(question, allQuestions)
+                          )
                           .filter(isQuestionVisible)
-                          .map((question) => {
-                            const renderQuestionReview = (
-                              q: typeof question
-                            ) => {
-                              const qText = q.description
-                                ?.split('\n')
-                                .map((line, idx) => (
-                                  <p
-                                    key={idx}
-                                    className={cn({
-                                      'eb-ml-4': idx > 0,
-                                    })}
-                                  >
-                                    {line}
-                                  </p>
-                                ));
-
-                              if (
-                                q.id &&
-                                clientData?.outstanding.questionIds?.includes(
-                                  q.id
-                                )
-                              ) {
-                                return (
-                                  <div className="eb-space-y-0.5" key={q.id}>
-                                    <div className="eb-text-sm eb-font-medium">
-                                      {qText}
-                                    </div>
-                                    <div className="eb-flex eb-items-center eb-gap-1 eb-text-warning">
-                                      <TriangleAlertIcon className="eb-size-4" />
-                                      <p className="eb-italic">
-                                        {t(
-                                          'reviewAndAttest.fieldIsMissing',
-                                          'This field is missing'
-                                        )}
-                                      </p>
-                                    </div>
-                                  </div>
-                                );
-                              }
-
-                              const response = existingQuestionResponses?.find(
-                                (r) => r.questionId === q.id
-                              );
-
-                              return (
-                                <div className="eb-space-y-0.5" key={q.id}>
-                                  <div className="eb-text-sm eb-font-medium">
-                                    {qText}
-                                  </div>
-                                  <div>
-                                    <b>{t('reviewAndAttest.response')}:</b>{' '}
-                                    {(response &&
-                                      formatQuestionResponse(response)) || (
-                                      <span className="eb-italic eb-text-muted-foreground">
-                                        {t('common:empty')}
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            };
-
-                            // Collect visible sub-questions for this parent
-                            const subQuestions =
-                              allQuestionsDetails?.questions
-                                ?.filter(
-                                  (q) => q.parentQuestionId === question.id
-                                )
-                                .filter(isQuestionVisible) ?? [];
-
-                            return (
-                              <Fragment key={question.id}>
-                                {renderQuestionReview(question)}
-                                {subQuestions.map((sq) =>
-                                  renderQuestionReview(sq)
-                                )}
-                              </Fragment>
-                            );
-                          })}
+                          .map((question) => (
+                            <Fragment key={question.id}>
+                              {renderQuestionReview(question)}
+                              {renderSubQuestionsReview(question.id)}
+                            </Fragment>
+                          ))}
                       </Card>
                     );
                   }
