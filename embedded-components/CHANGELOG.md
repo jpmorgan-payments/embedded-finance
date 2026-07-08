@@ -2,6 +2,19 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.16.7] - 2026-07-08
+
+### Changes
+
+#### Bug Fixes
+
+- **client-details:** display job title description when jobTitle is OTHER
+- **onboarding:** add missing content token definitions for birthDate field
+- **a11y:** add tabindex to comboboxes for safari support
+- **onboarding:** display proper error message on empty last name field
+- **onboarding:** validate question on owners step before proceeding to next step
+- **onboarding:** resolve "timezone off-by-one" bug with ImportantDateSelector
+
 ## [0.16.6] - 2026-07-07
 
 ### Changes

@@ -341,6 +341,11 @@ export const IndustryTypeSelect = ({
               variant="input"
               size="input"
               role="combobox"
+              // Safari (macOS) skips native <button> elements in Tab order
+              // unless "Full Keyboard Access" is on; an explicit tabIndex is
+              // honored regardless. Disabled buttons stay unfocusable because
+              // the `disabled` attribute overrides tabIndex.
+              tabIndex={0}
               className={cn(
                 'eb-w-full eb-justify-between eb-font-normal',
                 !field.value && 'eb-text-muted-foreground'

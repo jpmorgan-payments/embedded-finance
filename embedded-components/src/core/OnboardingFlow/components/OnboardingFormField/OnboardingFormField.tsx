@@ -358,6 +358,14 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                               size="input"
                               role="combobox"
                               aria-expanded={open}
+                              // Safari (macOS) excludes native <button>
+                              // elements from Tab order unless "Full Keyboard
+                              // Access" is enabled, causing focus to skip the
+                              // combobox trigger. An explicit tabIndex is
+                              // honored by Safari regardless of that setting.
+                              // Disabled buttons remain unfocusable because the
+                              // `disabled` attribute overrides tabIndex.
+                              tabIndex={0}
                               className="eb-justify-between"
                               onKeyDown={(e) => {
                                 if (
@@ -792,8 +800,20 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                               }, 0);
                             } else if (date) {
                               form?.clearErrors(field.name);
-                              onChangeProp?.(date?.toISOString().split('T')[0]);
-                              field.onChange(date?.toISOString().split('T')[0]);
+                              // Format using the local date components rather
+                              // than toISOString(), which converts the
+                              // local-midnight Date to UTC and can shift the
+                              // stored day by one in non-UTC timezones.
+                              const localDateString = `${date.getFullYear()}-${(
+                                date.getMonth() + 1
+                              )
+                                .toString()
+                                .padStart(2, '0')}-${date
+                                .getDate()
+                                .toString()
+                                .padStart(2, '0')}`;
+                              onChangeProp?.(localDateString);
+                              field.onChange(localDateString);
                             } else {
                               onChangeProp?.('');
                               field.onChange('');

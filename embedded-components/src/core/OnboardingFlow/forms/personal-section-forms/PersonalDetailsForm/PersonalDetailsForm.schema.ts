@@ -44,6 +44,7 @@ export const usePersonalDetailsFormSchema = () => {
       ),
     controllerLastName: z
       .string()
+      .min(1, v('controllerLastName', 'required'))
       .min(2, v('controllerLastName', 'minLength'))
       .max(30, v('controllerLastName', 'maxLength'))
       .refine(

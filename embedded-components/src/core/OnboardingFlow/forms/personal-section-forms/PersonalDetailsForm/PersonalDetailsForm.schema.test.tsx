@@ -121,4 +121,19 @@ describe('PersonalDetailsForm schema (invalidOption & Other description)', () =>
     });
     expect(parsed.success).toBe(true);
   });
+
+  test('reports "required" (not "minLength") for an empty last name', () => {
+    const { result } = renderHook(() => useRefinedPersonalDetailsSchema());
+    const parsed = result.current.safeParse({
+      ...validBase(),
+      controllerLastName: '',
+    });
+    expect(parsed.success).toBe(false);
+    // zodResolver surfaces the first issue per field in the UI, so the
+    // required check must come before the min-length check.
+    const firstLastNameMessage = parsed.error?.issues.find(
+      (i) => i.path?.[0] === 'controllerLastName'
+    )?.message;
+    expect(firstLastNameMessage).toBe('controllerLastName.required');
+  });
 });

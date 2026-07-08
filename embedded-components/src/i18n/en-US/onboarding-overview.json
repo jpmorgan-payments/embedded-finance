@@ -733,6 +733,7 @@
     "birthDate": {
       "label": "Date of birth",
       "description": "",
+      "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
         "format": "$t(validation:date.format, {'format': 'MM/DD/YYYY'})",
