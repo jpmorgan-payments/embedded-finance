@@ -4,15 +4,32 @@ import { chromium } from '@playwright/test';
  * Health Check Configuration
  * Define what to check for each page/use case
  */
+/** Case-insensitive substring check (Playwright getByText is case-insensitive; includes() is not). */
+function bodyContainsText(bodyText, searchText, { caseInsensitive = false } = {}) {
+  if (!bodyText || !searchText) return false;
+  if (caseInsensitive) {
+    return bodyText.toLowerCase().includes(searchText.toLowerCase());
+  }
+  return bodyText.includes(searchText);
+}
+
 const HEALTH_CHECKS = {
   'sellsense-demo': {
-    scenario: 'Seller+with+Limited+DDA',
+    scenario: 'Seller+with+Payments+DDA',
     view: 'wallet',
     checks: [
       {
         name: 'Transaction List (MSW Verification)',
-        text: 'SellSense Marketplace',
+        // Seeded txn-001 amount — only appears after TransactionsDisplay loads (not in footer).
+        text: '$2,450.00',
         description: 'Verify MSW is providing transaction data',
+      },
+      {
+        name: 'Transaction Counterpart (MSW Verification)',
+        // Payin counterpart from transactions.mock.ts debtorName (PLATFORM_NAME).
+        text: 'SellSense Marketplace',
+        caseInsensitive: true,
+        description: 'Verify payin counterpart from platform',
       },
       {
         name: 'Demo Content (Page Load)',
@@ -113,9 +130,24 @@ async function runHealthCheck(pageConfig) {
     console.log('📱 Navigating to page...');
     await page.goto(targetUrl, { waitUntil: 'load', timeout: NAV_TIMEOUT_MS });
 
-    // Wait for primary content to appear (replaces fixed sleep; reduces flakiness)
-    const firstCheckText = pageConfig.checks[0].text;
-    console.log(`⏳ Waiting for content "${firstCheckText}" (timeout ${CONTENT_TIMEOUT_MS}ms)...`);
+    // Dismiss demo notice when present so wallet content is unobstructed
+    try {
+      const dismissNotice = page.getByRole('button', {
+        name: 'Dismiss demo notice',
+      });
+      if (await dismissNotice.isVisible({ timeout: 3000 })) {
+        await dismissNotice.click();
+      }
+    } catch {
+      // Non-fatal — continue even if banner is absent or already dismissed
+    }
+
+    // Wait for primary MSW content (use first check — must not match footer-only text)
+    const firstCheck = pageConfig.checks[0];
+    const firstCheckText = firstCheck.text;
+    console.log(
+      `⏳ Waiting for content "${firstCheckText}" (timeout ${CONTENT_TIMEOUT_MS}ms)...`,
+    );
     await page
       .getByText(firstCheckText, { exact: false })
       .waitFor({ state: 'visible', timeout: CONTENT_TIMEOUT_MS });
@@ -127,7 +159,9 @@ async function runHealthCheck(pageConfig) {
     for (const check of pageConfig.checks) {
       try {
         const textFound = await page.textContent('body');
-        const hasText = textFound && textFound.includes(check.text);
+        const hasText = bodyContainsText(textFound, check.text, {
+          caseInsensitive: check.caseInsensitive === true,
+        });
 
         if (hasText) {
           console.log(`✅ ${check.name}: Found "${check.text}"`);
@@ -287,7 +321,7 @@ Examples:
   node health-check.js --headless false                  # Test with visible browser
 
 Available Scenarios:
-  ✅ sellsense-demo          - Transaction list with SellSense Marketplace
+  ✅ sellsense-demo          - Transaction list with seeded payin amount and platform counterpart
   ✅ linked-bank-account     - Bank account setup with "Get Started with Your Bank Account"
   ✅ onboarding-docs-needed  - Onboarding flow with "Additional Documents Required"
 
