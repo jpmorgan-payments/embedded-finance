@@ -205,7 +205,36 @@ export type OnboardingConfigDefault = UserTrackingProps & {
   height?: string;
 };
 
+/**
+ * Distilled onboarding for pre-created clients with few remaining fields.
+ *
+ * When active (host-enabled and pending fields ≤ {@link maxPendingFields}):
+ * - Opens on the review step
+ * - Treats the owners section as complete
+ * - Surfaces missing fields for inline completion on review
+ * - Merges Terms & Conditions acknowledgements into the same review screen
+ *
+ * Prefer `true` / `{ enabled: true }` only when GET client already has rich data.
+ */
+export type OnboardingDeltaModeConfig = {
+  enabled: boolean;
+  /**
+   * Maximum number of pending fields (party schema issues + outstanding questions)
+   * allowed for delta mode to activate. Defaults to `5`.
+   */
+  maxPendingFields?: number;
+};
+
+/** Host prop: boolean shorthand or full config. */
+export type OnboardingDeltaModeProp = boolean | OnboardingDeltaModeConfig;
+
 export type OnboardingConfigUsedInContext = {
+  /**
+   * Enable distilled “delta” completion: review-first, owners treated complete,
+   * missing fields + terms on one screen. Activates only when pending fields
+   * are within {@link OnboardingDeltaModeConfig.maxPendingFields} (default 5).
+   */
+  deltaMode?: OnboardingDeltaModeProp;
   onGetClientSettled?: (
     clientData: ClientResponse | undefined,
     status: 'success' | 'pending' | 'error',

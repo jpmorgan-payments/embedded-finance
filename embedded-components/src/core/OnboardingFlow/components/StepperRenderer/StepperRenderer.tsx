@@ -72,24 +72,6 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   const { clientData, organizationType, alertOnPreviousStep } =
     useOnboardingContext();
   const { t, tString } = useTranslationWithTokens('onboarding-overview');
-
-  const resolveStepTitle = (step: StepConfig) => {
-    return t(step.titleKey as any);
-  };
-
-  const resolveStepDescription = (step: StepConfig) => {
-    if (step.descriptionKey) {
-      return t(step.descriptionKey as any);
-    }
-    return undefined;
-  };
-
-  // Filter out steps whose isVisible predicate returns false
-  const orgParty = getOrganizationParty(clientData);
-  const steps = rawSteps.filter(
-    (step) => step.isVisible?.({ orgParty }) ?? true
-  );
-
   const {
     currentScreenId,
     goTo,
@@ -107,7 +89,37 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     setCurrentStepperStepIdFallback,
     setIsFormSubmitting,
     unsavedChangesRef,
+    deltaModeActive,
   } = useFlowContext();
+
+  const isDeltaReviewHeader =
+    deltaModeActive && currentScreenId === 'review-attest-section';
+
+  // Filter out steps whose isVisible predicate returns false
+  const orgParty = getOrganizationParty(clientData);
+  const steps = rawSteps.filter(
+    (step) => step.isVisible?.({ orgParty }) ?? true
+  );
+
+  const resolveStepTitle = (step: StepConfig) => {
+    if (isDeltaReviewHeader && step.id === 'review') {
+      return t('reviewAndAttest.deltaHeader.title', 'Finish your application');
+    }
+    return t(step.titleKey as any);
+  };
+
+  const resolveStepDescription = (step: StepConfig) => {
+    if (isDeltaReviewHeader && step.id === 'review') {
+      return t(
+        'reviewAndAttest.deltaHeader.description',
+        'Complete any missing details, review your information, and agree to the terms.'
+      );
+    }
+    if (step.descriptionKey) {
+      return t(step.descriptionKey as any);
+    }
+    return undefined;
+  };
 
   const editingPartyId = editingPartyIds[currentScreenId];
 
@@ -424,71 +436,75 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
         title={resolveStepTitle(currentStep)}
         description={resolveStepDescription(currentStep)}
         subTitle={
-          <div className="eb-flex eb-flex-col">
-            <nav className="eb-flex eb-items-center eb-gap-1 eb-text-sm eb-text-muted-foreground">
-              <Button
-                type="button"
-                variant="link"
-                onClick={() => goTo('overview')}
-                className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
-              >
-                <ArrowLeftIcon className="eb-size-3.5" />
-                {t('stepperRenderer.buttons.overviewHeader')}
-              </Button>
-              {originScreenId === 'owners-section' && (
-                <>
-                  <ChevronRightIcon className="eb-size-3.5" />
-                  <Button
-                    type="button"
-                    variant="link"
-                    onClick={() => goBack()}
-                    className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
-                  >
-                    {ownersSectionLabel}
-                  </Button>
-                </>
-              )}
-              <ChevronRightIcon className="eb-size-3.5" />
-              <span className="eb-truncate">
-                {shortLabelOverride ?? currentSectionLabel}
-              </span>
-              {!isCheckAnswersStep && (
-                <>
-                  <ChevronRightIcon className="eb-size-3.5" />
-                  <span className="eb-shrink-0 eb-font-medium eb-text-foreground">
-                    {t('stepperRenderer.stepCounter', {
-                      currentStepNumber,
-                      totalSteps: formStepCount,
-                    })}
-                  </span>
-                </>
-              )}
-            </nav>
-            {originScreenId === 'owners-section' && (
-              <div className="eb-mt-4 eb-flex eb-items-center eb-gap-2">
-                <span className="eb-truncate eb-text-base eb-font-semibold eb-text-foreground">
-                  {getPartyName(existingPartyData) ||
-                    t('stepperRenderer.newOwnerLabel')}
+          isDeltaReviewHeader && currentStep.id === 'review' ? undefined : (
+            <div className="eb-flex eb-flex-col">
+              <nav className="eb-flex eb-items-center eb-gap-1 eb-text-sm eb-text-muted-foreground">
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={() => goTo('overview')}
+                  className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
+                >
+                  <ArrowLeftIcon className="eb-size-3.5" />
+                  {t('stepperRenderer.buttons.overviewHeader')}
+                </Button>
+                {originScreenId === 'owners-section' && (
+                  <>
+                    <ChevronRightIcon className="eb-size-3.5" />
+                    <Button
+                      type="button"
+                      variant="link"
+                      onClick={() => goBack()}
+                      className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
+                    >
+                      {ownersSectionLabel}
+                    </Button>
+                  </>
+                )}
+                <ChevronRightIcon className="eb-size-3.5" />
+                <span className="eb-truncate">
+                  {shortLabelOverride ?? currentSectionLabel}
                 </span>
-                {existingPartyData?.roles?.includes('BENEFICIAL_OWNER') && (
-                  <Badge
-                    variant="outline"
-                    className="eb-shrink-0 eb-border-transparent eb-bg-[#EDF4FF] eb-text-[#355FA1]"
-                  >
-                    {t('onboarding-overview:screens.owners.badges.owner')}
-                  </Badge>
+                {!isCheckAnswersStep && (
+                  <>
+                    <ChevronRightIcon className="eb-size-3.5" />
+                    <span className="eb-shrink-0 eb-font-medium eb-text-foreground">
+                      {t('stepperRenderer.stepCounter', {
+                        currentStepNumber,
+                        totalSteps: formStepCount,
+                      })}
+                    </span>
+                  </>
                 )}
-                {existingPartyData?.roles?.includes('CONTROLLER') && (
-                  <Badge
-                    variant="outline"
-                    className="eb-shrink-0 eb-border-transparent eb-bg-[#FFEBD9] eb-text-[#8F521F]"
-                  >
-                    {t('onboarding-overview:screens.owners.badges.controller')}
-                  </Badge>
-                )}
-              </div>
-            )}
-          </div>
+              </nav>
+              {originScreenId === 'owners-section' && (
+                <div className="eb-mt-4 eb-flex eb-items-center eb-gap-2">
+                  <span className="eb-truncate eb-text-base eb-font-semibold eb-text-foreground">
+                    {getPartyName(existingPartyData) ||
+                      t('stepperRenderer.newOwnerLabel')}
+                  </span>
+                  {existingPartyData?.roles?.includes('BENEFICIAL_OWNER') && (
+                    <Badge
+                      variant="outline"
+                      className="eb-shrink-0 eb-border-transparent eb-bg-[#EDF4FF] eb-text-[#355FA1]"
+                    >
+                      {t('onboarding-overview:screens.owners.badges.owner')}
+                    </Badge>
+                  )}
+                  {existingPartyData?.roles?.includes('CONTROLLER') && (
+                    <Badge
+                      variant="outline"
+                      className="eb-shrink-0 eb-border-transparent eb-bg-[#FFEBD9] eb-text-[#8F521F]"
+                    >
+                      {t(
+                        'onboarding-overview:screens.owners.badges.controller'
+                      )}
+                    </Badge>
+                  )}
+                </div>
+              )}
+            </div>
+          )
         }
       >
         {currentStep.stepType === 'form' && (

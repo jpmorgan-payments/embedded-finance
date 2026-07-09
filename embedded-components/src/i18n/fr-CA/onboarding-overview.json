@@ -1342,6 +1342,10 @@
   "reviewAndAttest": {
     "businessType": "Type d'entreprise",
     "notSubmittedYet": "Votre demande n'a pas encore été soumise. Vérifiez vos données et continuez pour terminer.",
+    "deltaHeader": {
+      "title": "Terminer votre demande",
+      "description": "Complétez les détails manquants, vérifiez vos informations et acceptez les conditions."
+    },
     "thereIsAProblem": "Il y a un problème",
     "provideMissingDetails": "Veuillez fournir les détails manquants avant de terminer votre demande.",
     "owners": "Propriétaires",
@@ -1356,6 +1360,11 @@
     "missingDetails": "Détails manquants",
     "dataAccuracyAttestation": "Attestation d'exactitude des données",
     "dataAccuracyCheckbox": "Les données que je fournis sont véridiques, exactes et complètes au meilleur de ma connaissance.",
+    "deltaCombinedAttestation": {
+      "groupLabel": "Attestation d'exactitude et des conditions",
+      "checkbox": "Je confirme que les informations que j'ai fournies sont véridiques, exactes et complètes au meilleur de ma connaissance, et que j'ai lu et accepte les conditions de compte J.P. Morgan.",
+      "checkboxWithPlatform": "Je confirme que les informations que j'ai fournies sont véridiques, exactes et complètes au meilleur de ma connaissance, et que j'ai lu et accepte les conditions de compte J.P. Morgan et le {{platformAgreementLabel}}."
+    },
     "termsAcknowledgements": {
       "intro": "En soumettant électroniquement cette demande, vous acceptez que :"
     },
@@ -1377,7 +1386,10 @@
       "attestations": "Attestations",
       "agreeToTermsWithPlatform": "Vous avez lu et acceptez les conditions de compte J.P. Morgan et le {{platformAgreementLabel}}.",
       "agreeToTerms": "Vous avez lu et acceptez les conditions de compte J.P. Morgan.",
-      "mustReviewDocuments": "Vous devez ouvrir et consulter tous les documents avant de cocher la case"
+      "mustReviewDocument": "Ouvrez et consultez le document ci-dessus avant de cocher la case.",
+      "mustReviewDocuments": "Ouvrez et consultez tous les documents ci-dessus avant de cocher la case.",
+      "mustReviewDocumentBelow": "Ouvrez et consultez le document ci-dessous avant de cocher la case.",
+      "mustReviewDocumentsBelow": "Ouvrez et consultez tous les documents ci-dessous avant de cocher la case."
     },
     "disclosure": {
       "footer": "Services bancaires fournis par JPMorgan Chase Bank, N.A., membre de la FDIC. {{platformName}} n'est pas une banque.",

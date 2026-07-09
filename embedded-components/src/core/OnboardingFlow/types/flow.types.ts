@@ -106,7 +106,10 @@ export type SectionScreenConfig = BaseScreenConfig & {
       clientData: ClientResponse | undefined,
       allStepsValid: boolean,
       stepValidationMap: StepValidationMap,
-      savedFormValues: Partial<OnboardingFormValuesSubmit> | undefined,
+      savedFormValues:
+        | Partial<OnboardingFormValuesSubmit>
+        | Record<string, unknown>
+        | undefined,
       screenId: ScreenId
     ) => SectionStatus;
   };

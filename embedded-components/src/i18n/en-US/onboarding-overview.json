@@ -1402,6 +1402,10 @@
   "reviewAndAttest": {
     "businessType": "Business type",
     "notSubmittedYet": "Your application is not submitted yet. Review your data and continue to finish.",
+    "deltaHeader": {
+      "title": "Finish your application",
+      "description": "Complete any missing details, review your information, and agree to the terms."
+    },
     "thereIsAProblem": "There is a problem",
     "provideMissingDetails": "Please provide missing details before finishing your application.",
     "owners": "Owners",
@@ -1416,6 +1420,11 @@
     "missingDetails": "Missing details",
     "dataAccuracyAttestation": "Data accuracy attestation",
     "dataAccuracyCheckbox": "The data I am providing is true, accurate and complete to the best of my knowledge.",
+    "deltaCombinedAttestation": {
+      "groupLabel": "Accuracy and terms attestation",
+      "checkbox": "I confirm that the information I provided is true, accurate, and complete to the best of my knowledge, and that I have read and agree to the J.P. Morgan Account Terms.",
+      "checkboxWithPlatform": "I confirm that the information I provided is true, accurate, and complete to the best of my knowledge, and that I have read and agree to the J.P. Morgan Account Terms and the {{platformAgreementLabel}}."
+    },
     "termsAcknowledgements": {
       "intro": "By electronically submitting this application, you agree that:"
     },
@@ -1437,7 +1446,10 @@
       "attestations": "Attestations",
       "agreeToTermsWithPlatform": "You have read and agree to the J.P. Morgan Account Terms and the {{platformAgreementLabel}}.",
       "agreeToTerms": "You have read and agree to the J.P. Morgan Account Terms.",
-      "mustReviewDocuments": "You must open and review all documents before selecting the checkbox"
+      "mustReviewDocument": "Open and review the document above before selecting the checkbox.",
+      "mustReviewDocuments": "Open and review all documents above before selecting the checkbox.",
+      "mustReviewDocumentBelow": "Open and review the document below before selecting the checkbox.",
+      "mustReviewDocumentsBelow": "Open and review all documents below before selecting the checkbox."
     },
     "disclosure": {
       "footer": "{{platformName}} is not a bank. Banking services provided by JPMorgan Chase Bank, N.A., Member FDIC (\"J.P. Morgan\").",

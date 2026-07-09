@@ -73,10 +73,27 @@ const FlowContext = createContext<{
   shortLabelOverride: string | null;
   savedFormValues?: Partial<OnboardingFormValuesSubmit>;
   saveFormValue: (field: keyof OnboardingFormValuesSubmit, value: any) => void;
+  /**
+   * Live delta pending-form values published by ReviewForm so the sidebar
+   * timeline can go green-as-you-type (same overlay as the review accordion).
+   */
+  liveReviewFormValues?: Record<string, unknown>;
+  setLiveReviewFormValues: (
+    values: Record<string, unknown> | undefined
+  ) => void;
   isFormSubmitting: boolean;
   setIsFormSubmitting: (isSubmitting: boolean) => void;
   unsavedChangesRef: MutableRefObject<boolean>;
-  setFlowUnsavedChanges: (dirty: boolean) => void;
+  /**
+   * Register/clear dirty state for a named source. Multiple sources OR together
+   * (needed when delta review hosts pending + terms + accuracy forms).
+   */
+  setFlowUnsavedChanges: (sourceId: string, dirty: boolean) => void;
+  /**
+   * Latched at FlowProvider mount from entry eligibility — does not flip mid-session
+   * when pending-field count changes after saves (spec §2.3).
+   */
+  deltaModeActive: boolean;
   /** Whether the current org is a publicly traded company listed on a US exchange. */
   isPTCWithUSExchange: boolean;
 }>({
@@ -117,6 +134,10 @@ const FlowContext = createContext<{
   saveFormValue: () => {
     // no-op: context not yet provided (e.g. during HMR)
   },
+  liveReviewFormValues: undefined,
+  setLiveReviewFormValues: () => {
+    // no-op: context not yet provided (e.g. during HMR)
+  },
   isFormSubmitting: false,
   setIsFormSubmitting: () => {
     // no-op: context not yet provided (e.g. during HMR)
@@ -125,6 +146,7 @@ const FlowContext = createContext<{
   setFlowUnsavedChanges: () => {
     // no-op: context not yet provided (e.g. during HMR)
   },
+  deltaModeActive: false,
 });
 
 export const FlowProvider: React.FC<{
@@ -133,7 +155,18 @@ export const FlowProvider: React.FC<{
   flowConfig: FlowConfig;
   /** Seed the active step when landing directly on a stepper section (see {@link OnboardingFlowEntry}). */
   seedInitialStepperStepId?: string | null;
-}> = ({ children, initialScreenId, flowConfig, seedInitialStepperStepId }) => {
+  /**
+   * Latched delta-mode eligibility from entry (OnboardingFlow). When true, hide
+   * Terms step and treat owners as complete for the session.
+   */
+  deltaModeActive?: boolean;
+}> = ({
+  children,
+  initialScreenId,
+  flowConfig,
+  seedInitialStepperStepId,
+  deltaModeActive: deltaModeActiveProp = false,
+}) => {
   const [history, setHistory] = useState<ScreenId[]>([initialScreenId]);
   const [editingPartyIds, setEditingPartyIds] = useState<EditingPartyIds>({});
   const [previouslyCompleted, setPreviouslyCompleted] = useState(false);
@@ -152,13 +185,26 @@ export const FlowProvider: React.FC<{
   const [savedFormValues, setSavedFormValues] = useState<
     Partial<OnboardingFormValuesSubmit>
   >({});
+  const [liveReviewFormValues, setLiveReviewFormValues] = useState<
+    Record<string, unknown> | undefined
+  >(undefined);
   const [isFormSubmitting, setIsFormSubmitting] = useState<boolean>(false);
 
   const unsavedChangesRef = useRef(false);
+  const dirtySourcesRef = useRef(new Set<string>());
   // Ref only (no React state): dirty tracking must not re-render FlowProvider or consumers.
-  const setFlowUnsavedChanges = useCallback((dirty: boolean) => {
-    unsavedChangesRef.current = dirty;
-  }, []);
+  // Multiple sources OR together so delta review (pending + terms + accuracy) cannot clobber.
+  const setFlowUnsavedChanges = useCallback(
+    (sourceId: string, dirty: boolean) => {
+      if (dirty) {
+        dirtySourcesRef.current.add(sourceId);
+      } else {
+        dirtySourcesRef.current.delete(sourceId);
+      }
+      unsavedChangesRef.current = dirtySourcesRef.current.size > 0;
+    },
+    []
+  );
 
   const {
     organizationType,
@@ -168,6 +214,20 @@ export const FlowProvider: React.FC<{
     enablePubliclyTradedCompanies,
   } = useOnboardingContext();
   const { tString, i18n } = useTranslationWithTokens('onboarding-overview');
+
+  // Latch at FlowProvider mount (after client fetch settles). Do not flip
+  // mid-session when pending-field count changes after saves (spec §2.3).
+  const [deltaModeActive] = useState(deltaModeActiveProp);
+
+  // Delta mode: treat owners as done and hide the separate Terms step.
+  useEffect(() => {
+    if (!deltaModeActive) {
+      return;
+    }
+    setSessionData((prev) =>
+      prev.isOwnersSectionDone ? prev : { ...prev, isOwnersSectionDone: true }
+    );
+  }, [deltaModeActive]);
 
   // Reset saved form values when organization type changes
   useEffect(() => {
@@ -217,9 +277,17 @@ export const FlowProvider: React.FC<{
     .filter((s) => s.sectionConfig.isVisible?.(visibilityCtx) ?? true)
     .map((s) => {
       if (s.stepperConfig?.steps) {
-        const filteredSteps = s.stepperConfig.steps.filter(
-          (step) => step.isVisible?.(visibilityCtx) ?? true
-        );
+        const filteredSteps = s.stepperConfig.steps
+          .filter((step) => step.isVisible?.(visibilityCtx) ?? true)
+          // Delta mode merges Terms into Review — hide the documents step.
+          .filter(
+            (step) =>
+              !(
+                deltaModeActive &&
+                s.id === 'review-attest-section' &&
+                step.id === 'documents'
+              )
+          );
         return {
           ...s,
           stepperConfig: {
@@ -366,10 +434,13 @@ export const FlowProvider: React.FC<{
         shortLabelOverride,
         savedFormValues,
         saveFormValue,
+        liveReviewFormValues,
+        setLiveReviewFormValues,
         isFormSubmitting,
         setIsFormSubmitting,
         unsavedChangesRef,
         setFlowUnsavedChanges,
+        deltaModeActive,
         isPTCWithUSExchange: isPTCWithUSExchange ?? false,
       }}
     >

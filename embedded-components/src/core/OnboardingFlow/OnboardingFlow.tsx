@@ -29,6 +29,7 @@ import {
 } from './contexts/OnboardingContext';
 import { ONBOARDING_FLOW_USER_JOURNEYS } from './OnboardingFlow.constants';
 import { OnboardingFlowProps } from './types/onboarding.types';
+import { isDeltaModeActive } from './utils/deltaMode';
 import {
   getFlowProgress,
   getStepperValidation,
@@ -96,16 +97,27 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     !!organizationType &&
     !ptcAnswered;
 
+  const deltaModeEligible =
+    !props.docUploadOnlyMode &&
+    !!organizationType &&
+    !needsPTCGateway &&
+    isDeltaModeActive(props.deltaMode, clientData);
+
   const flowProviderInitialScreenId = props.docUploadOnlyMode
     ? 'upload-documents-section'
-    : canUseFlowEntry
-      ? flowEntry.screenId
-      : organizationType && !needsPTCGateway
-        ? 'overview'
-        : 'gateway';
+    : deltaModeEligible
+      ? 'review-attest-section'
+      : canUseFlowEntry
+        ? flowEntry.screenId
+        : organizationType && !needsPTCGateway
+          ? 'overview'
+          : 'gateway';
 
-  const flowProviderSeedStepperStepId =
-    canUseFlowEntry && flowEntry.stepperStepId ? flowEntry.stepperStepId : null;
+  const flowProviderSeedStepperStepId = deltaModeEligible
+    ? 'review'
+    : canUseFlowEntry && flowEntry.stepperStepId
+      ? flowEntry.stepperStepId
+      : null;
 
   const { t, tString } = useTranslationWithTokens(['onboarding-overview']);
 
@@ -159,6 +171,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             initialScreenId={flowProviderInitialScreenId}
             flowConfig={flowConfig}
             seedInitialStepperStepId={flowProviderSeedStepperStepId}
+            deltaModeActive={deltaModeEligible}
           >
             <FlowRenderer />
           </FlowProvider>
@@ -199,6 +212,8 @@ const FlowRenderer: React.FC = React.memo(() => {
     staticScreens,
     editingPartyIds,
     savedFormValues,
+    liveReviewFormValues,
+    deltaModeActive,
     currentStepperStepId,
     currentStepperGoTo,
     setCurrentStepperStepIdFallback,
@@ -231,6 +246,26 @@ const FlowRenderer: React.FC = React.memo(() => {
 
   // Owner sidebar data — supports the list view (each owner by name)
   // and the edit view (current owner's form steps).
+  // Delta review publishes live pending values so sidebar matches accordion.
+  const progressFormValues =
+    deltaModeActive && liveReviewFormValues
+      ? liveReviewFormValues
+      : savedFormValues;
+
+  const isLiveQuestionAnswered = (questionId: string): boolean => {
+    if (!deltaModeActive || !liveReviewFormValues) {
+      return false;
+    }
+    const live = liveReviewFormValues[`question_${questionId}`];
+    if (Array.isArray(live)) {
+      return live.some((v) => String(v).trim() !== '');
+    }
+    if (live == null) {
+      return false;
+    }
+    return String(live).trim() !== '';
+  };
+
   const deriveOwnerData = () => {
     const isInOwnerStepper = currentScreenId === 'owner-stepper';
     const ownerStepperConfig = staticScreens.find(
@@ -251,7 +286,7 @@ const FlowRenderer: React.FC = React.memo(() => {
           ownerStepperConfig.steps,
           activeOwners,
           clientData,
-          savedFormValues,
+          progressFormValues,
           'owner-stepper'
         )
       : {};
@@ -267,7 +302,7 @@ const FlowRenderer: React.FC = React.memo(() => {
             ownerStepperConfig.steps,
             editingOwnerParty ?? {},
             clientData,
-            savedFormValues,
+            progressFormValues,
             'owner-stepper'
           )
         : undefined;
@@ -303,9 +338,29 @@ const FlowRenderer: React.FC = React.memo(() => {
     sections,
     sessionData,
     clientData,
-    savedFormValues,
+    progressFormValues,
     currentScreenId
   );
+
+  if (deltaModeActive) {
+    sectionStatuses['owners-section'] = 'completed';
+
+    // Operational statusResolver is client.outstanding-only; mirror ReviewForm
+    // live override so the sidebar goes green when questions are answered.
+    const operationalStatus = sectionStatuses['additional-questions-section'];
+    if (
+      operationalStatus !== 'completed_disabled' &&
+      operationalStatus !== 'on_hold'
+    ) {
+      const outstandingQuestionIds =
+        clientData?.outstanding?.questionIds ?? [];
+      const remaining = outstandingQuestionIds.filter(
+        (questionId) => !isLiveQuestionAnswered(questionId)
+      );
+      sectionStatuses['additional-questions-section'] =
+        remaining.length === 0 ? 'completed' : 'not_started';
+    }
+  }
 
   const linkAccountEnabled = getLinkAccountEnabled(
     clientData,

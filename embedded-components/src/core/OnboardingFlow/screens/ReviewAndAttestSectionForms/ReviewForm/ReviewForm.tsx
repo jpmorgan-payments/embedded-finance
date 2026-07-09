@@ -1,20 +1,27 @@
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useEffect, useMemo, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   AlertTriangle,
   AlertTriangleIcon,
   CheckIcon,
   ChevronDownIcon,
   InfoIcon,
+  Loader2Icon,
   PencilIcon,
   TriangleAlertIcon,
   UsersIcon,
 } from 'lucide-react';
-import { useForm, useFormState } from 'react-hook-form';
+import { useForm, useFormState, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
+import {
+  getSmbdoGetClientQueryKey,
+  useSmbdoUpdateClientLegacy,
+  useUpdatePartyLegacy,
+} from '@/api/generated/smbdo';
 import {
   ClientResponse,
   QuestionResponse,
@@ -26,6 +33,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import {
   Badge,
   Button,
@@ -48,6 +56,7 @@ import {
 } from '@/core/OnboardingFlow/contexts';
 import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
 import { useQuestionTree } from '@/core/OnboardingFlow/screens/OperationalDetailsForm/useQuestionTree';
+import { useTermsAndConditions } from '@/core/OnboardingFlow/screens/ReviewAndAttestSectionForms/TermsAndConditionsForm/useTermsAndConditions';
 import {
   SectionScreenId,
   StepperStepProps,
@@ -56,12 +65,14 @@ import {
   asPlainString,
   formatQuestionResponse,
   getOrganizationParty,
+  getPartyByAssociatedPartyFilters,
   getPartyName,
 } from '@/core/OnboardingFlow/utils/dataUtils';
 import {
   getFlowProgress,
   getStepperValidations,
 } from '@/core/OnboardingFlow/utils/flowUtils';
+import { generatePartyRequestBody } from '@/core/OnboardingFlow/utils/formUtils';
 import {
   isQuestionVisible as computeQuestionVisibility,
   getChildQuestions,
@@ -69,17 +80,32 @@ import {
   normalizeQuestionId,
 } from '@/core/OnboardingFlow/utils/questionTree';
 
+import {
+  areDeltaPendingFieldsComplete,
+  buildDeltaPendingSubmitPayload,
+  collectBaselineDeltaPendingGroups,
+  DeltaPendingFieldsPanel,
+  isDeltaQuestionAnswered,
+  useDeltaPendingFieldsForm,
+} from './DeltaPendingFieldsPanel';
+
 export const ReviewForm: React.FC<StepperStepProps> = ({
   handlePrev,
   handleNext,
   getPrevButtonLabel,
   getNextButtonLabel,
 }) => {
-  const { clientData, disclosureConfig } = useOnboardingContext();
+  const {
+    clientData,
+    disclosureConfig,
+    onPostPartySettled,
+    onPostClientSettled,
+  } = useOnboardingContext();
   const { t, tString } = useTranslationWithTokens([
     'onboarding-overview',
     'common',
   ]);
+  const queryClient = useQueryClient();
 
   const hasDisclosureConfig = !!disclosureConfig?.platformName;
 
@@ -91,7 +117,28 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
     reviewScreenOpenedSectionId,
     currentScreenId,
     savedFormValues,
+    setIsFormSubmitting,
+    deltaModeActive,
+    staticScreens,
+    setLiveReviewFormValues,
   } = useFlowContext();
+
+  const { form: deltaPendingForm, allQuestions: deltaAllQuestions } =
+    useDeltaPendingFieldsForm(sections);
+
+  const terms = useTermsAndConditions({
+    enabled: deltaModeActive,
+    combineAccuracyAttestation: deltaModeActive,
+    onAfterKycSuccess: () => {
+      goTo('overview', { resetHistory: true });
+    },
+  });
+
+  const { mutateAsync: updatePartyAsync, error: partyUpdateError } =
+    useUpdatePartyLegacy();
+  const { mutateAsync: updateClientAsync, error: clientUpdateError } =
+    useSmbdoUpdateClientLegacy();
+  const [deltaSaveError, setDeltaSaveError] = useState(false);
 
   const booleanRequired = z.boolean().refine((value) => value === true, {
     message: tString(
@@ -127,13 +174,42 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   });
 
   const { isDirty } = useFormState({ control: form.control });
-  useFlowUnsavedChangesSync(isDirty);
+  useFlowUnsavedChangesSync(isDirty, 'review-accuracy');
 
-  const { sectionStatuses } = getFlowProgress(
+  // Live delta pending values so accordion / field warnings flip green as the
+  // user fills fields — before submit / client refetch.
+  const liveDeltaValues = useWatch({
+    control: deltaPendingForm.control,
+  }) as Record<string, unknown> | undefined;
+
+  const reviewFormValues = useMemo((): Record<string, unknown> | undefined => {
+    if (!deltaModeActive) {
+      return savedFormValues as Record<string, unknown> | undefined;
+    }
+    return {
+      ...(savedFormValues as Record<string, unknown> | undefined),
+      ...(liveDeltaValues ?? {}),
+    };
+  }, [deltaModeActive, savedFormValues, liveDeltaValues]);
+
+  // Publish live overlays so FlowRenderer sidebar timeline matches accordion.
+  useEffect(() => {
+    if (!deltaModeActive) {
+      setLiveReviewFormValues(undefined);
+      return;
+    }
+    setLiveReviewFormValues(reviewFormValues);
+    return () => {
+      setLiveReviewFormValues(undefined);
+    };
+  }, [deltaModeActive, reviewFormValues, setLiveReviewFormValues]);
+
+  const { sectionStatuses: baseSectionStatuses } = getFlowProgress(
     sections,
     sessionData,
     clientData,
-    savedFormValues,
+    // Live overlays (nested owners / question_*) are delta-only.
+    deltaModeActive ? reviewFormValues : savedFormValues,
     currentScreenId
   );
 
@@ -149,13 +225,51 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
     existingQuestionResponses,
   });
 
-  // Visibility is delegated to the shared question-tree helper; here the
-  // response source is the saved responses rather than live form state.
-  const getResponseValues = (questionId: string) =>
-    existingQuestionResponses.find(
+  const isLiveQuestionAnswered = (questionId: string): boolean => {
+    if (!deltaModeActive) {
+      return false;
+    }
+    return isDeltaQuestionAnswered(reviewFormValues, questionId);
+  };
+
+  // Delta-only: operational section statusResolver is client-data-only; override
+  // from live question answers so the accordion can go green before submit.
+  const sectionStatuses = useMemo(() => {
+    if (!deltaModeActive) {
+      return baseSectionStatuses;
+    }
+    const next = { ...baseSectionStatuses };
+    const current = next['additional-questions-section'];
+    if (current === 'completed_disabled' || current === 'on_hold') {
+      return next;
+    }
+    const remaining = outstandingQuestionIds.filter(
+      (questionId) => !isDeltaQuestionAnswered(reviewFormValues, questionId)
+    );
+    next['additional-questions-section'] =
+      remaining.length === 0 ? 'completed' : 'not_started';
+    return next;
+  }, [
+    deltaModeActive,
+    baseSectionStatuses,
+    outstandingQuestionIds,
+    reviewFormValues,
+  ]);
+
+  // Visibility is delegated to the shared question-tree helper. Live delta
+  // answers are only preferred when delta mode is active.
+  const getResponseValues = (questionId: string) => {
+    if (deltaModeActive) {
+      const live = reviewFormValues?.[`question_${questionId}`];
+      if (Array.isArray(live) && live.length > 0) {
+        return live as string[];
+      }
+    }
+    return existingQuestionResponses.find(
       (r) =>
         normalizeQuestionId(r.questionId) === normalizeQuestionId(questionId)
     )?.values;
+  };
 
   const isQuestionVisible = (question: QuestionResponse): boolean =>
     computeQuestionVisibility(question, allQuestions, getResponseValues);
@@ -169,14 +283,16 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
     ) || [];
 
   const ownerSteps =
+    staticScreens.find((s) => s.id === 'owner-stepper')?.stepperConfig?.steps ||
     sections.find((section) => section.id === 'owners-section')?.stepperConfig
-      ?.steps || [];
+      ?.steps ||
+    [];
 
   const ownersValidation = getStepperValidations(
     ownerSteps,
     activeOwners,
     clientData,
-    savedFormValues,
+    deltaModeActive ? reviewFormValues : savedFormValues,
     currentScreenId
   );
 
@@ -189,16 +305,185 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
 
   const isMissingDetails = sectionIdsToReview
     .filter((id) => sections.some((section) => section.id === id))
+    // Delta mode: owners are completed via session + live panel; do not block
+    // the non-delta missing-details gate path (delta uses its own submit).
+    .filter((id) => !(deltaModeActive && id === 'owners-section'))
     .some((sectionId) => {
       return sectionStatuses[sectionId] !== 'completed';
     });
 
   const [shouldDisplayAlert, setShouldDisplayAlert] = useState(false);
 
+  const saveDeltaPendingFields = async (
+    values: Record<string, unknown>
+  ): Promise<boolean> => {
+    if (!clientData?.id) {
+      return false;
+    }
+
+    const questionIdsOutstanding = clientData.outstanding?.questionIds ?? [];
+    const payload = buildDeltaPendingSubmitPayload(
+      values,
+      deltaAllQuestions,
+      questionIdsOutstanding,
+      deltaPendingForm.formState.dirtyFields as Record<string, unknown>
+    );
+
+    setIsFormSubmitting(true);
+    setDeltaSaveError(false);
+
+    try {
+      const orgParty = getOrganizationParty(clientData);
+      if (
+        Object.keys(payload.organizationPartyValues).length > 0 &&
+        orgParty?.id
+      ) {
+        await updatePartyAsync(
+          {
+            partyId: orgParty.id,
+            data: generatePartyRequestBody(payload.organizationPartyValues, {}),
+          },
+          {
+            onSettled: (data, error) => {
+              onPostPartySettled?.(data, error?.response?.data);
+            },
+          }
+        );
+      }
+
+      const controllerParty = getPartyByAssociatedPartyFilters(clientData, {
+        partyType: 'INDIVIDUAL',
+        roles: ['CONTROLLER'],
+      });
+      if (
+        Object.keys(payload.controllerPartyValues).length > 0 &&
+        controllerParty?.id
+      ) {
+        await updatePartyAsync(
+          {
+            partyId: controllerParty.id,
+            data: generatePartyRequestBody(payload.controllerPartyValues, {}),
+          },
+          {
+            onSettled: (data, error) => {
+              onPostPartySettled?.(data, error?.response?.data);
+            },
+          }
+        );
+      }
+
+      for (const ownerUpdate of payload.ownerUpdates) {
+        if (Object.keys(ownerUpdate.values).length > 0) {
+          await updatePartyAsync(
+            {
+              partyId: ownerUpdate.partyId,
+              data: generatePartyRequestBody(ownerUpdate.values, {}),
+            },
+            {
+              onSettled: (data, error) => {
+                onPostPartySettled?.(data, error?.response?.data);
+              },
+            }
+          );
+        }
+      }
+
+      if (payload.questionResponses.length > 0) {
+        await updateClientAsync(
+          {
+            id: clientData.id,
+            data: { questionResponses: payload.questionResponses },
+          },
+          {
+            onSettled: (data, error) => {
+              onPostClientSettled?.(data, error?.response?.data);
+            },
+          }
+        );
+      }
+
+      await queryClient.invalidateQueries({
+        queryKey: getSmbdoGetClientQueryKey(clientData.id),
+      });
+      return true;
+    } catch {
+      setDeltaSaveError(true);
+      setIsFormSubmitting(false);
+      return false;
+    }
+  };
+
+  const handleDeltaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const pendingValues = deltaPendingForm.getValues() as Record<
+      string,
+      unknown
+    >;
+    const liveOverlay = {
+      ...(savedFormValues as Record<string, unknown> | undefined),
+      ...pendingValues,
+    };
+    const baselinePendingGroups = collectBaselineDeltaPendingGroups({
+      sections,
+      clientData,
+      savedFormValues,
+      currentScreenId,
+      ownerSteps,
+    });
+
+    // Question Zod + party group completeness (SSN/EIN/birthdate etc.).
+    // trigger() alone is question-only and would let empty party fields through.
+    const pendingValid = await deltaPendingForm.trigger();
+    const partiesAndQuestionsComplete = areDeltaPendingFieldsComplete({
+      baselinePendingGroups,
+      sections,
+      clientData,
+      ownerSteps,
+      liveOverlay,
+      currentScreenId,
+      outstandingQuestionIds,
+      liveFormValues: pendingValues,
+    });
+    if (!pendingValid || !partiesAndQuestionsComplete) {
+      setShouldDisplayAlert(true);
+      return;
+    }
+
+    // Pending panel covers gaps; live reviewFormValues keep accordion status
+    // in sync while editing. Persist before KYC.
+    const saved = await saveDeltaPendingFields(pendingValues);
+    if (!saved) {
+      return;
+    }
+
+    updateSessionData({
+      completedStaticStepIds: Array.from(
+        new Set([
+          ...(sessionData.completedStaticStepIds ?? []),
+          'review',
+          'documents',
+        ])
+      ),
+      isOwnersSectionDone: true,
+    });
+
+    const submitted = await terms.trySubmit();
+    if (!submitted) {
+      setIsFormSubmitting(false);
+    }
+  };
+
   return (
     <Form {...form}>
       <form
         onSubmit={(e) => {
+          if (deltaModeActive) {
+            handleDeltaSubmit(e).catch(() => {
+              // Errors are surfaced via ServerErrorAlert / form state
+            });
+            return;
+          }
           e.preventDefault();
           if (isMissingDetails) {
             setShouldDisplayAlert(true);
@@ -217,16 +502,18 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
         className="eb-flex eb-flex-auto eb-flex-col"
       >
         <div className="eb-mt-6 eb-flex-auto eb-space-y-6">
-          <Alert variant="informative" noTitle>
-            <InfoIcon className="eb-h-4 eb-w-4" />
-            <AlertDescription>
-              {t(
-                'reviewAndAttest.notSubmittedYet',
-                'Your application is not submitted yet. Review your data and continue to finish.'
-              )}
-            </AlertDescription>
-          </Alert>
-          {isMissingDetails && shouldDisplayAlert && (
+          {!deltaModeActive && (
+            <Alert variant="informative" noTitle>
+              <InfoIcon className="eb-h-4 eb-w-4" />
+              <AlertDescription>
+                {t(
+                  'reviewAndAttest.notSubmittedYet',
+                  'Your application is not submitted yet. Review your data and continue to finish.'
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
+          {isMissingDetails && shouldDisplayAlert && !deltaModeActive && (
             <Alert variant="warning">
               <AlertTriangle className="eb-h-4 eb-w-4" />
               <AlertTitle>
@@ -240,10 +527,32 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
               </AlertDescription>
             </Alert>
           )}
-          <GatewayReviewCard
-            clientData={clientData}
-            onChangeClick={() => goTo('gateway')}
-          />
+          {deltaModeActive && shouldDisplayAlert && (
+            <Alert variant="warning">
+              <AlertTriangle className="eb-h-4 eb-w-4" />
+              <AlertTitle>
+                {t('reviewAndAttest.thereIsAProblem', 'There is a problem')}
+              </AlertTitle>
+              <AlertDescription>
+                {t(
+                  'reviewAndAttest.provideMissingDetails',
+                  'Please provide missing details before finishing your application.'
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
+          {deltaModeActive && (
+            <DeltaPendingFieldsPanel
+              sections={sections}
+              form={deltaPendingForm}
+            />
+          )}
+          {!deltaModeActive && (
+            <GatewayReviewCard
+              clientData={clientData}
+              onChangeClick={() => goTo('gateway')}
+            />
+          )}
           <div>
             <Accordion
               type="single"
@@ -280,6 +589,9 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                       <StepsReviewCards
                         steps={section.stepperConfig.steps}
                         partyData={sectionPartyData}
+                        formValuesOverride={
+                          deltaModeActive ? reviewFormValues : undefined
+                        }
                         onEditClick={(stepId) => {
                           goTo(section.id, {
                             initialStepperStepId: stepId,
@@ -414,7 +726,8 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
 
                       if (
                         q.id &&
-                        clientData?.outstanding.questionIds?.includes(q.id)
+                        clientData?.outstanding.questionIds?.includes(q.id) &&
+                        !(deltaModeActive && isLiveQuestionAnswered(q.id))
                       ) {
                         return (
                           <div className="eb-space-y-0.5">
@@ -434,9 +747,18 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                         );
                       }
 
-                      const response = existingQuestionResponses?.find(
-                        (r) => r.questionId === q.id
-                      );
+                      const liveValues =
+                        deltaModeActive && q.id
+                          ? (reviewFormValues?.[`question_${q.id}`] as
+                              | string[]
+                              | undefined)
+                          : undefined;
+                      const response =
+                        liveValues && liveValues.length > 0
+                          ? { questionId: q.id!, values: liveValues }
+                          : existingQuestionResponses?.find(
+                              (r) => r.questionId === q.id
+                            );
 
                       return (
                         <div className="eb-space-y-0.5">
@@ -557,7 +879,20 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                 })}
             </Accordion>
           </div>
-          {hasDisclosureConfig ? (
+          {deltaModeActive ? (
+            <div className="eb-space-y-6">
+              <Form {...terms.form}>
+                <div className="eb-space-y-6">{terms.termsBody}</div>
+              </Form>
+              <ServerErrorAlert
+                error={
+                  deltaSaveError
+                    ? ({ message: 'Failed to save remaining details' } as any)
+                    : partyUpdateError || clientUpdateError
+                }
+              />
+            </div>
+          ) : hasDisclosureConfig ? (
             <div className="eb-space-y-3">
               <p className="eb-text-sm eb-font-medium">
                 {t(
@@ -642,10 +977,23 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
               variant="default"
               size="lg"
               className={cn('eb-w-full eb-text-lg', {
-                'eb-hidden': getNextButtonLabel() === null,
+                'eb-hidden': getNextButtonLabel() === null && !deltaModeActive,
               })}
+              disabled={
+                deltaModeActive
+                  ? terms.isFormSubmitting || !terms.attestationComplete
+                  : false
+              }
             >
-              {getNextButtonLabel()}
+              {deltaModeActive && terms.isFormSubmitting && (
+                <Loader2Icon className="eb-animate-spin" />
+              )}
+              {deltaModeActive
+                ? tString(
+                    'stepperRenderer.buttons.agreeAndFinish',
+                    'Agree and finish'
+                  )
+                : getNextButtonLabel()}
             </Button>
             <Button
               type="button"

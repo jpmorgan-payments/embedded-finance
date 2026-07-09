@@ -1342,6 +1342,10 @@
   "reviewAndAttest": {
     "businessType": "Tipo de negocio",
     "notSubmittedYet": "Su solicitud aún no ha sido enviada. Revise sus datos y continúe para finalizar.",
+    "deltaHeader": {
+      "title": "Finalice su solicitud",
+      "description": "Complete los detalles faltantes, revise su información y acepte los términos."
+    },
     "thereIsAProblem": "Hay un problema",
     "provideMissingDetails": "Proporcione los detalles faltantes antes de finalizar su solicitud.",
     "owners": "Propietarios",
@@ -1356,6 +1360,11 @@
     "missingDetails": "Detalles faltantes",
     "dataAccuracyAttestation": "Atestación de exactitud de datos",
     "dataAccuracyCheckbox": "Los datos que proporciono son verdaderos, precisos y completos según mi leal saber y entender.",
+    "deltaCombinedAttestation": {
+      "groupLabel": "Atestación de exactitud y términos",
+      "checkbox": "Confirmo que la información que proporcioné es verdadera, precisa y completa según mi leal saber y entender, y que he leído y acepto los Términos de cuenta de J.P. Morgan.",
+      "checkboxWithPlatform": "Confirmo que la información que proporcioné es verdadera, precisa y completa según mi leal saber y entender, y que he leído y acepto los Términos de cuenta de J.P. Morgan y el {{platformAgreementLabel}}."
+    },
     "termsAcknowledgements": {
       "intro": "Al enviar electrónicamente esta solicitud, usted acepta que:"
     },
@@ -1377,7 +1386,10 @@
       "attestations": "Atestaciones",
       "agreeToTermsWithPlatform": "Ha leído y acepta los Términos de cuenta de J.P. Morgan y el {{platformAgreementLabel}}.",
       "agreeToTerms": "Ha leído y acepta los Términos de cuenta de J.P. Morgan.",
-      "mustReviewDocuments": "Debe abrir y revisar todos los documentos antes de seleccionar la casilla"
+      "mustReviewDocument": "Abra y revise el documento de arriba antes de seleccionar la casilla.",
+      "mustReviewDocuments": "Abra y revise todos los documentos de arriba antes de seleccionar la casilla.",
+      "mustReviewDocumentBelow": "Abra y revise el documento de abajo antes de seleccionar la casilla.",
+      "mustReviewDocumentsBelow": "Abra y revise todos los documentos de abajo antes de seleccionar la casilla."
     },
     "disclosure": {
       "footer": "Servicios bancarios proporcionados por JPMorgan Chase Bank, N.A., Miembro FDIC. {{platformName}} no es un banco.",

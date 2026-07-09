@@ -12,7 +12,10 @@ import {
 import { StepConfig } from '@/core/OnboardingFlow/types/flow.types';
 import { OnboardingFormValuesInitial } from '@/core/OnboardingFlow/types/form.types';
 import { getOrganizationParty } from '@/core/OnboardingFlow/utils/dataUtils';
-import { getStepperValidation } from '@/core/OnboardingFlow/utils/flowUtils';
+import {
+  getStepperValidation,
+  resolvePartyFormOverlay,
+} from '@/core/OnboardingFlow/utils/flowUtils';
 import {
   convertPartyResponseToFormValues,
   useFormUtilsWithClientContext,
@@ -22,17 +25,29 @@ type StepsReviewCardsProps = {
   steps: StepConfig[];
   partyData: PartyResponse | undefined;
   onEditClick: (stepId: string) => void;
+  /**
+   * Optional overlay merged over FlowContext `savedFormValues` (e.g. live
+   * delta-mode pending form values) so review cards update before submit.
+   * May include nested `owners.{partyId}` and `question_*` keys.
+   */
+  formValuesOverride?: Record<string, unknown>;
 };
 
 export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
   steps,
   partyData,
   onEditClick,
+  formValuesOverride,
 }) => {
   const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
 
   const { clientData } = useOnboardingContext();
   const { currentScreenId, savedFormValues } = useFlowContext();
+
+  const effectiveSavedFormValues = {
+    ...savedFormValues,
+    ...formValuesOverride,
+  } as Partial<OnboardingFormValuesInitial> & Record<string, unknown>;
 
   const orgParty = getOrganizationParty(clientData);
   const visibleSteps = steps.filter(
@@ -41,15 +56,19 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
       (step.isVisible?.({ orgParty }) ?? true)
   );
 
+  const partyOverlay = resolvePartyFormOverlay(
+    partyData,
+    effectiveSavedFormValues
+  );
   const formValues = {
     ...convertPartyResponseToFormValues(partyData ?? {}),
-    ...savedFormValues,
+    ...partyOverlay,
   };
   const { stepValidationMap } = getStepperValidation(
     steps,
     partyData,
     clientData,
-    savedFormValues,
+    effectiveSavedFormValues,
     currentScreenId
   );
 
