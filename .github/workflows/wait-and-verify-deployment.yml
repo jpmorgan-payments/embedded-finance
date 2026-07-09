@@ -111,7 +111,7 @@ jobs:
             echo "- MSW is functioning properly" >> $GITHUB_STEP_SUMMARY
             echo "- No critical errors detected" >> $GITHUB_STEP_SUMMARY
             echo "- All 3 scenarios verified successfully:" >> $GITHUB_STEP_SUMMARY
-            echo "  • Transaction list (Acme Supplies)" >> $GITHUB_STEP_SUMMARY
+            echo "  • Transaction list (seeded payin amount + SellSense Marketplace counterpart)" >> $GITHUB_STEP_SUMMARY
             echo "  • Bank account setup (Get Started with Your Bank Account)" >> $GITHUB_STEP_SUMMARY
             echo "  • Onboarding flow (Additional Documents Required)" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
