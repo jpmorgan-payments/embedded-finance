@@ -18,22 +18,23 @@ export const mockLinkedAccounts: {
       clientId: 'client-001',
       partyDetails: {
         type: 'ORGANIZATION',
-        businessName: 'Acme Corporation',
+        // Linked account is held in the same name as the onboarded entity
+        businessName: 'Neverland Books',
         address: {
-          addressLine1: '789 Business Blvd',
-          city: 'Chicago',
-          state: 'IL',
-          postalCode: '60601',
+          addressLine1: '2029 Century Park E',
+          city: 'Los Angeles',
+          state: 'CA',
+          postalCode: '90067',
           countryCode: 'US',
         },
         contacts: [
           {
             contactType: 'EMAIL',
-            value: 'payments@acme.com',
+            value: 'payments@neverlandbooks.com',
           },
           {
             contactType: 'PHONE',
-            value: '5559876543',
+            value: '7606810558',
             countryCode: '+1',
           },
         ],

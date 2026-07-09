@@ -11,7 +11,7 @@ const HEALTH_CHECKS = {
     checks: [
       {
         name: 'Transaction List (MSW Verification)',
-        text: 'Acme Supplies',
+        text: 'SellSense Marketplace',
         description: 'Verify MSW is providing transaction data',
       },
       {
@@ -287,7 +287,7 @@ Examples:
   node health-check.js --headless false                  # Test with visible browser
 
 Available Scenarios:
-  ✅ sellsense-demo          - Transaction list with Acme Supplies
+  ✅ sellsense-demo          - Transaction list with SellSense Marketplace
   ✅ linked-bank-account     - Bank account setup with "Get Started with Your Bank Account"
   ✅ onboarding-docs-needed  - Onboarding flow with "Additional Documents Required"
 
