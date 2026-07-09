@@ -196,7 +196,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   useEffect(() => {
     if (!deltaModeActive) {
       setLiveReviewFormValues(undefined);
-      return;
+      return undefined;
     }
     setLiveReviewFormValues(reviewFormValues);
     return () => {
