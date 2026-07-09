@@ -88,7 +88,7 @@ export function formatQuestionResponseValue(
 }
 
 /**
- * Job title for display: "Other" shows as "Other - {jobTitleDescription}"; otherwise title-cased label.
+ * Job title for display: "Other" shows only the {jobTitleDescription}; otherwise title-cased label.
  */
 export function formatJobTitleDisplay(
   individualDetails:
@@ -100,8 +100,8 @@ export function formatJobTitleDisplay(
 ): string | undefined {
   if (!individualDetails?.jobTitle) return undefined;
   const { jobTitle, jobTitleDescription } = individualDetails;
-  if (jobTitle === 'Other' && jobTitleDescription) {
-    return `Other – ${jobTitleDescription}`;
+  if (jobTitle === 'Other') {
+    return jobTitleDescription || undefined;
   }
   return jobTitle.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }

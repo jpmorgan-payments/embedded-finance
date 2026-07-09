@@ -114,7 +114,7 @@ describe('formatClientFacing', () => {
           jobTitle: 'Other',
           jobTitleDescription: 'Chief Fun Officer',
         })
-      ).toBe('Other – Chief Fun Officer');
+      ).toBe('Chief Fun Officer');
     });
 
     it('title-cases regular job titles', () => {

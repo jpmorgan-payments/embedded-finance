@@ -94,6 +94,11 @@ export function EntityCombobox({
           role="combobox"
           aria-expanded={open}
           aria-haspopup="listbox"
+          // Safari (macOS) skips native <button> elements in Tab order unless
+          // "Full Keyboard Access" is on; an explicit tabIndex is honored
+          // regardless. Disabled buttons stay unfocusable because the
+          // `disabled` attribute overrides tabIndex.
+          tabIndex={0}
           className={cn(
             'eb-h-10 eb-w-full eb-justify-between eb-bg-card',
             !value && 'eb-text-muted-foreground',

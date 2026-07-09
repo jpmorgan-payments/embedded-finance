@@ -189,7 +189,13 @@ export const OwnersSectionScreen = () => {
       ]);
     }
 
-    if (!sessionData.isControllerOwnerQuestionAnswered) {
+    // Only mark the question as answered once the user has actually chosen
+    // an option. Marking it on mount (while the value is still undefined)
+    // caused "No" to be silently auto-selected when returning to this step.
+    if (
+      form.watch('controllerIsAnOwner') !== undefined &&
+      !sessionData.isControllerOwnerQuestionAnswered
+    ) {
       updateSessionData({
         isControllerOwnerQuestionAnswered: true,
       });
@@ -365,6 +371,7 @@ export const OwnersSectionScreen = () => {
               label={t('screens.owners.controllerIsOwnerQuestion')}
               description=""
               tooltip=""
+              onChange={() => form.clearErrors('controllerIsAnOwner')}
               options={[
                 { value: 'yes', label: t('common:yes') },
                 { value: 'no', label: t('common:no') },
@@ -566,12 +573,20 @@ export const OwnersSectionScreen = () => {
               const controllerQuestionAnswered =
                 form.getValues('controllerIsAnOwner') !== undefined;
 
-              if (controllerQuestionAnswered) {
-                updateSessionData({
-                  isOwnersSectionDone: true,
-                  mockedVerifyingSectionId: 'owners-section',
+              // Block advancing until the required 25% ownership question is
+              // answered, showing a required-field validation error.
+              if (!controllerQuestionAnswered) {
+                form.setError('controllerIsAnOwner', {
+                  type: 'required',
+                  message: tString('additionalQuestions.validation.required'),
                 });
+                return;
               }
+
+              updateSessionData({
+                isOwnersSectionDone: true,
+                mockedVerifyingSectionId: 'owners-section',
+              });
 
               if (reviewMode) {
                 goTo('review-attest-section', {

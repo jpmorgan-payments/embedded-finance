@@ -22,7 +22,10 @@ import type {
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
-import { formatSSN } from '../../utils/formatClientFacing';
+import {
+  formatJobTitleDisplay,
+  formatSSN,
+} from '../../utils/formatClientFacing';
 import {
   getBeneficialOwnerParties,
   getControllerParty,
@@ -167,7 +170,10 @@ function PersonDetails({ party, roleLabel }: PersonDetailsProps) {
 
         {/* Basic Information */}
         {individual?.jobTitle && (
-          <DetailRow labelId="jobTitle" value={individual.jobTitle} />
+          <DetailRow
+            labelId="jobTitle"
+            value={formatJobTitleDisplay(individual)}
+          />
         )}
         {individual?.birthDate && (
           <DetailRow labelId="birthDate" value={individual.birthDate} />
