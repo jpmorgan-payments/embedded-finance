@@ -44,6 +44,7 @@ import {
   ONBOARDING_PROP_FIELDS,
   parseOnboardingFlowConfigImport,
   PROP_FIELD_GROUPS,
+  pruneBaselineEqualProps,
   SELLSENSE_ONBOARDING_BASELINE,
   setConfigProp,
   type OnboardingFlowConfigKey,
@@ -1196,7 +1197,9 @@ export function ComponentPropsDrawer({
 
   const handlePropChange = useCallback(
     (key: OnboardingFlowConfigKey, value: unknown) => {
-      onOverridesChange(setConfigProp(overrides, key, value));
+      onOverridesChange(
+        pruneBaselineEqualProps(setConfigProp(overrides, key, value))
+      );
     },
     [onOverridesChange, overrides]
   );
@@ -1229,7 +1232,7 @@ export function ComponentPropsDrawer({
         setImportError(result.error);
         return;
       }
-      onOverridesChange(result.config);
+      onOverridesChange(pruneBaselineEqualProps(result.config));
       setShowImportDialog(false);
       setImportText('');
       setImportError(null);
@@ -1353,7 +1356,11 @@ export function ComponentPropsDrawer({
             variant="ghost"
             size="sm"
             className="h-8 text-xs text-gray-600"
-            onClick={() => onOverridesChange({ ...HOSTED_PLATFORM_SAMPLE })}
+            onClick={() =>
+              onOverridesChange(
+                pruneBaselineEqualProps({ ...HOSTED_PLATFORM_SAMPLE })
+              )
+            }
             title="Load a generic hosted-platform sample config"
           >
             Load sample

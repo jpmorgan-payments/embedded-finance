@@ -43,6 +43,7 @@ import { LoadingSkeleton } from './loading-skeleton';
 import { MockApiEditorDrawer } from './mock-api-editor-drawer';
 import {
   countConfiguredProps,
+  pruneBaselineEqualProps,
   type OnboardingFlowConfigProps,
 } from './onboarding-flow-props-config';
 import { PayoutSettings } from './payout-settings';
@@ -139,7 +140,9 @@ export function DashboardLayout() {
     activeCustomizationDrawer === 'componentProps';
   const [onboardingFlowPropOverrides, setOnboardingFlowPropOverrides] =
     useState<OnboardingFlowConfigProps>(() => {
-      return getDemoCustomization().onboardingFlowPropOverrides ?? {};
+      return pruneBaselineEqualProps(
+        getDemoCustomization().onboardingFlowPropOverrides ?? {}
+      );
     });
   const [isMockApiEditorOpen, setIsMockApiEditorOpen] = useState(false);
   const [mockOverrideCount, setMockOverrideCount] = useState(0);
@@ -444,9 +447,10 @@ export function DashboardLayout() {
   }, [contentTokens, selectedLanguage]);
 
   useEffect(() => {
-    if (Object.keys(onboardingFlowPropOverrides).length > 0) {
+    const pruned = pruneBaselineEqualProps(onboardingFlowPropOverrides);
+    if (Object.keys(pruned).length > 0) {
       setDemoCustomization({
-        onboardingFlowPropOverrides,
+        onboardingFlowPropOverrides: pruned,
       });
     } else {
       clearOnboardingFlowPropCustomization();

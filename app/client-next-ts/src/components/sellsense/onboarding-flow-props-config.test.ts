@@ -112,6 +112,17 @@ describe('onboarding-flow-props-config', () => {
       expect(countConfiguredProps(overrides)).toBe(1);
       expect(overrides).toEqual({ hideLinkedAccountRemoval: true });
     });
+
+    it('does not count values that match the demo baseline', () => {
+      let overrides = setConfigProp({}, 'showLinkAccountStep', true);
+      expect(overrides).toEqual({});
+      expect(countConfiguredProps(overrides)).toBe(0);
+
+      overrides = setConfigProp({}, 'hideLinkedAccountRemoval', true);
+      overrides = setConfigProp(overrides, 'hideLinkedAccountRemoval', false);
+      expect(overrides).toEqual({});
+      expect(countConfiguredProps(overrides)).toBe(0);
+    });
   });
 
   describe('HOSTED_PLATFORM_SAMPLE', () => {

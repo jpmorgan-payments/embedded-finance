@@ -367,10 +367,79 @@ export function buildOnboardingFlowConfigExport(
   return { onboardingFlowConfig: pickOnboardingFlowConfig(config) };
 }
 
+/** Component defaults for keys omitted from the SellSense baseline. */
+const ONBOARDING_COMPONENT_DEFAULTS: OnboardingFlowConfigProps = {
+  showLinkAccountStep: false,
+  hideLinkedAccountRemoval: false,
+  showReviewAttestTermsAcknowledgementsIntro: false,
+  enablePubliclyTradedCompanies: false,
+  showDisclosureFooter: false,
+  showDownloadChecklist: false,
+  hideSidebar: false,
+  docUploadOnlyMode: false,
+  alertOnExit: false,
+  alertOnPreviousStep: false,
+};
+
+/** Effective demo defaults (component defaults + SellSense baseline). */
+export function getDemoOnboardingBaseline(): OnboardingFlowConfigProps {
+  return {
+    ...ONBOARDING_COMPONENT_DEFAULTS,
+    ...SELLSENSE_ONBOARDING_BASELINE,
+  };
+}
+
+export function deepEqual(a: unknown, b: unknown): boolean {
+  if (Object.is(a, b)) return true;
+  if (typeof a !== typeof b) return false;
+  if (a === null || b === null) return a === b;
+  if (Array.isArray(a) && Array.isArray(b)) {
+    if (a.length !== b.length) return false;
+    return a.every((item, index) => deepEqual(item, b[index]));
+  }
+  if (typeof a === 'object' && typeof b === 'object') {
+    const aObj = a as Record<string, unknown>;
+    const bObj = b as Record<string, unknown>;
+    const aKeys = Object.keys(aObj);
+    const bKeys = Object.keys(bObj);
+    if (aKeys.length !== bKeys.length) return false;
+    return aKeys.every((key) => deepEqual(aObj[key], bObj[key]));
+  }
+  return false;
+}
+
+export function isMeaningfulPropOverride(
+  key: OnboardingFlowConfigKey,
+  value: unknown,
+  baseline: OnboardingFlowConfigProps = getDemoOnboardingBaseline()
+): boolean {
+  if (value === undefined) return false;
+  const baselineValue = (baseline as Record<string, unknown>)[key];
+  return !deepEqual(value, baselineValue);
+}
+
+/** Drop override keys whose values match the demo baseline. */
+export function pruneBaselineEqualProps(
+  overrides: OnboardingFlowConfigProps,
+  baseline: OnboardingFlowConfigProps = getDemoOnboardingBaseline()
+): OnboardingFlowConfigProps {
+  const picked = pickOnboardingFlowConfig(overrides);
+  const pruned: OnboardingFlowConfigProps = {};
+  for (const key of ONBOARDING_FLOW_CONFIG_KEYS) {
+    if (!Object.prototype.hasOwnProperty.call(picked, key)) continue;
+    const value = (picked as Record<string, unknown>)[key];
+    if (isMeaningfulPropOverride(key, value, baseline)) {
+      (pruned as Record<string, unknown>)[key] = value;
+    }
+  }
+  return pruned;
+}
+
 export function countConfiguredProps(
-  overrides: OnboardingFlowConfigProps
+  overrides: OnboardingFlowConfigProps,
+  baseline: OnboardingFlowConfigProps = getDemoOnboardingBaseline()
 ): number {
-  return Object.keys(pickOnboardingFlowConfig(overrides)).length;
+  return Object.keys(pruneBaselineEqualProps(overrides, baseline)).length;
 }
 
 /** Deep-ish merge for nested objects used in overrides. */
@@ -408,10 +477,11 @@ export function mergeOnboardingFlowConfig(
 export function setConfigProp(
   overrides: OnboardingFlowConfigProps,
   key: OnboardingFlowConfigKey,
-  value: unknown
+  value: unknown,
+  baseline: OnboardingFlowConfigProps = getDemoOnboardingBaseline()
 ): OnboardingFlowConfigProps {
   const next = { ...overrides };
-  if (value === undefined) {
+  if (value === undefined || !isMeaningfulPropOverride(key, value, baseline)) {
     delete (next as Record<string, unknown>)[key];
     return next;
   }
@@ -430,7 +500,13 @@ export function clearConfigProp(
 
 export function isPropConfigured(
   overrides: OnboardingFlowConfigProps,
-  key: OnboardingFlowConfigKey
+  key: OnboardingFlowConfigKey,
+  baseline: OnboardingFlowConfigProps = getDemoOnboardingBaseline()
 ): boolean {
-  return Object.prototype.hasOwnProperty.call(overrides, key);
+  if (!Object.prototype.hasOwnProperty.call(overrides, key)) return false;
+  return isMeaningfulPropOverride(
+    key,
+    (overrides as Record<string, unknown>)[key],
+    baseline
+  );
 }

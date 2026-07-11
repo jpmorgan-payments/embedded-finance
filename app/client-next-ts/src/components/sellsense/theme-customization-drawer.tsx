@@ -1049,14 +1049,21 @@ export function ThemeCustomizationDrawer({
     setCustomTheme(updatedTheme);
 
     // Check if this change makes the theme different from base
-    const hasChanges = Object.keys(updatedTheme).some((key) => {
+    const changedOnly: Record<string, string | number | boolean> = {};
+    Object.keys(updatedTheme).forEach((key) => {
       const typedKey = key as keyof EBThemeVariables;
-      return updatedTheme[typedKey] !== baseVariables[typedKey];
+      const customValue = updatedTheme[typedKey];
+      const baseValue = baseVariables[typedKey];
+      if (customValue !== baseValue && customValue !== undefined) {
+        changedOnly[key] = customValue as string | number | boolean;
+      }
     });
+    const hasChanges = Object.keys(changedOnly).length > 0;
 
     if (hasChanges) {
       const customThemeData: CustomThemeData = {
         baseTheme: currentBaseTheme,
+        // Keep full merged variables for rendering Custom theme correctly
         variables: updatedTheme,
       };
       onThemeChange('Custom', customThemeData as any);
