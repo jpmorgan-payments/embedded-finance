@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState, type ComponentProps } from 'react';
 import {
   EBComponentsProvider,
   OnboardingFlow,
@@ -13,6 +13,11 @@ import type {
 import { useSearch } from '@tanstack/react-router';
 
 import type { ClientScenario } from './dashboard-layout';
+import {
+  mergeOnboardingFlowConfig,
+  SELLSENSE_ONBOARDING_BASELINE,
+  type OnboardingFlowConfigProps,
+} from './onboarding-flow-props-config';
 import {
   getHeaderDescriptionForScenario,
   getHeaderTitleForScenario,
@@ -29,11 +34,28 @@ import { useThemeStyles } from './theme-utils';
 import type { ThemeOption } from './use-sellsense-themes';
 import { useSellSenseThemes } from './use-sellsense-themes';
 
+/** Scenario-only OnboardingFlow props (not part of hosted onboardingFlowConfig). */
+export function getOnboardingScenarioExtras(
+  clientScenario: ClientScenario
+): OnboardingFlowConfigProps {
+  if (isOnboardingLinkAccountInReviewScenario(clientScenario)) {
+    return {
+      linkAccountStepOptions: {
+        completionMode: 'editable',
+        initialValues: {},
+      },
+    };
+  }
+  return {};
+}
+
 interface KycOnboardingProps {
   clientScenario: ClientScenario;
   theme?: ThemeOption;
   customThemeVariables?: EBThemeVariables;
   contentTokens?: EBConfig['contentTokens'];
+  /** Host-config overrides from the Component Props drawer. */
+  onboardingFlowPropOverrides?: OnboardingFlowConfigProps;
 }
 
 export function KycOnboarding({
@@ -41,6 +63,7 @@ export function KycOnboarding({
   theme,
   customThemeVariables = {},
   contentTokens,
+  onboardingFlowPropOverrides,
 }: KycOnboardingProps) {
   const { mapThemeOption } = useSellSenseThemes();
   const searchParams = useSearch({ from: '/sellsense-demo' });
@@ -118,24 +141,20 @@ export function KycOnboarding({
   };
 
   const isDocsNeededScenario = isOnboardingDocsNeededScenario(clientScenario);
-  const isLinkAccountInReviewScenario =
-    isOnboardingLinkAccountInReviewScenario(clientScenario);
+  const scenarioExtras = useMemo(
+    () => getOnboardingScenarioExtras(clientScenario),
+    [clientScenario]
+  );
 
-  const onboardingFlowProps = {
-    ...(isDocsNeededScenario
-      ? {
-          flowEntry: { screenId: 'upload-documents-section' as const },
-        }
-      : {}),
-    ...(isLinkAccountInReviewScenario
-      ? {
-          linkAccountStepOptions: {
-            completionMode: 'editable' as const,
-            initialValues: {},
-          },
-        }
-      : {}),
-  };
+  const hostConfigProps = useMemo(
+    () =>
+      mergeOnboardingFlowConfig(
+        SELLSENSE_ONBOARDING_BASELINE,
+        scenarioExtras,
+        onboardingFlowPropOverrides
+      ),
+    [scenarioExtras, onboardingFlowPropOverrides]
+  );
 
   // Render the core component
   const renderOnboardingComponent = () => (
@@ -153,19 +172,13 @@ export function KycOnboarding({
         onPostClientSettled={handlePostClientResponse}
         onPostPartySettled={handlePostPartyResponse}
         onPostClientVerificationsSettled={handlePostClientVerificationsResponse}
-        availableProducts={['EMBEDDED_PAYMENTS']}
-        availableJurisdictions={['US']}
-        availableOrganizationTypes={[
-          'SOLE_PROPRIETORSHIP',
-          'LIMITED_LIABILITY_COMPANY',
-          'LIMITED_LIABILITY_PARTNERSHIP',
-          'GENERAL_PARTNERSHIP',
-          'LIMITED_PARTNERSHIP',
-          'C_CORPORATION',
-        ]}
         userEventsHandler={handleUserEvents}
-        showLinkAccountStep
-        {...onboardingFlowProps}
+        {...(hostConfigProps as ComponentProps<typeof OnboardingFlow>)}
+        {...(isDocsNeededScenario
+          ? {
+              flowEntry: { screenId: 'upload-documents-section' as const },
+            }
+          : {})}
       />
     </EBComponentsProvider>
   );

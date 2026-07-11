@@ -28,6 +28,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select';
+import { flattenContentTokenOverrides } from '@/lib/demo-customization-storage';
 
 // Available language options
 const LANGUAGE_OPTIONS = [
@@ -39,6 +40,8 @@ const LANGUAGE_OPTIONS = [
 interface ContentTokenEditorDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Current provider content tokens (used to hydrate edited state / localStorage restores). */
+  contentTokens?: EBConfig['contentTokens'];
   onContentTokensChange: (tokens: EBConfig['contentTokens']) => void;
   selectedLanguage?: string;
   onLanguageChange?: (language: string) => void;
@@ -338,6 +341,7 @@ function buildNestedTokens(
 export function ContentTokenEditorDrawer({
   isOpen,
   onClose,
+  contentTokens,
   onContentTokensChange,
   selectedLanguage: propSelectedLanguage = 'enUS',
   onLanguageChange,
@@ -348,7 +352,11 @@ export function ContentTokenEditorDrawer({
     Map<string, FlattenedToken>
   >(new Map());
   const [_annotations, setAnnotations] = useState<Annotation[]>([]);
-  const [editedTokens, setEditedTokens] = useState<Record<string, string>>({});
+  const [editedTokens, setEditedTokens] = useState<Record<string, string>>(() =>
+    flattenContentTokenOverrides(
+      contentTokens?.tokens as Record<string, unknown> | undefined
+    )
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [copied, setCopied] = useState(false);
   const [focusedTokenKey, setFocusedTokenKey] = useState<string | null>(null);
@@ -373,6 +381,20 @@ export function ContentTokenEditorDrawer({
   useEffect(() => {
     setInternalLanguage(propSelectedLanguage);
   }, [propSelectedLanguage]);
+
+  // Hydrate edited tokens from provider/localStorage when the drawer opens.
+  // Do not re-hydrate on contentTokens changes while open — that would clobber in-progress edits.
+  const wasOpenRef = useRef(false);
+  useEffect(() => {
+    if (isOpen && !wasOpenRef.current) {
+      setEditedTokens(
+        flattenContentTokenOverrides(
+          contentTokens?.tokens as Record<string, unknown> | undefined
+        )
+      );
+    }
+    wasOpenRef.current = isOpen;
+  }, [isOpen, contentTokens]);
 
   // Handle language change
   const handleLanguageChange = useCallback(
@@ -919,7 +941,6 @@ export function ContentTokenEditorDrawer({
     if (!isOpen) {
       setAnnotations([]);
       setMatchedTokens(new Map());
-      setEditedTokens({});
       setSearchQuery('');
       setIsEditMode(true); // Reset to edit mode for next open
     }

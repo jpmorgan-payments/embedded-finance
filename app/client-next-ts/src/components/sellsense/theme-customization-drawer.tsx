@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { createPortal } from 'react-dom';
 import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 import {
   Brush,
@@ -68,6 +69,8 @@ interface ThemeCustomizationDrawerProps {
     customVariables?: EBThemeVariables
   ) => void;
   customThemeData?: any; // Full custom theme data with baseTheme
+  /** CSS top offset so the drawer sits below the header (and MSW banner). */
+  topOffset?: string;
 }
 
 interface CustomThemeData {
@@ -796,6 +799,7 @@ export function ThemeCustomizationDrawer({
   currentTheme,
   onThemeChange,
   customThemeData = {},
+  topOffset = '4rem',
 }: ThemeCustomizationDrawerProps) {
   const { getThemeVariables } = useSellSenseThemes();
 
@@ -1231,33 +1235,14 @@ export function ThemeCustomizationDrawer({
     onThemeChange(getCurrentBaseTheme(), {});
   };
 
-  // Handle backdrop click to close drawer
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    // Only close if clicking the backdrop itself, not its children
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
-  // Handle escape key to close drawer
+  // Escape closes the drawer; do not lock body scroll or block main content.
   React.useEffect(() => {
+    if (!isOpen) return;
     const handleEscapeKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
+      if (e.key === 'Escape') onClose();
     };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscapeKey);
-      // Prevent body scroll when drawer is open
-      document.body.style.overflow = 'hidden';
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscapeKey);
-      // Restore body scroll when drawer closes
-      document.body.style.overflow = 'unset';
-    };
+    document.addEventListener('keydown', handleEscapeKey);
+    return () => document.removeEventListener('keydown', handleEscapeKey);
   }, [isOpen, onClose]);
 
   const isColorToken = (token: string) => {
@@ -1505,23 +1490,21 @@ export function ThemeCustomizationDrawer({
 
   if (!isOpen) return null;
 
-  return (
+  const drawerContent = (
     <>
-      {/* Backdrop overlay */}
+      {/* Drawer sits below header (topOffset), same inline pattern as Content Tokens */}
       <div
-        className="fixed inset-0 z-40 bg-black bg-opacity-50"
-        onClick={handleBackdropClick}
-        aria-hidden="true"
-      />
-
-      {/* Drawer */}
-      <div
-        className={`fixed inset-y-0 right-0 z-50 flex w-[32rem] transform flex-col border-l border-gray-200 bg-white shadow-xl transition-transform duration-300 ease-in-out ${
+        data-theme-customization-drawer=""
+        className={`fixed right-0 z-[60] flex w-[600px] flex-col border-l border-gray-200 bg-white shadow-2xl transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
+        style={{
+          top: topOffset,
+          bottom: 0,
+        }}
       >
         {/* Header */}
-        <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-200 p-4">
+        <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3">
           <div className="flex items-center gap-2">
             <Brush className="h-4 w-4 text-gray-600" />
             <h2 className="text-base font-semibold text-gray-900">
@@ -1929,4 +1912,6 @@ export function ThemeCustomizationDrawer({
       </Dialog>
     </>
   );
+
+  return createPortal(drawerContent, document.body);
 }
