@@ -1343,8 +1343,8 @@
     "businessType": "Type d'entreprise",
     "notSubmittedYet": "Votre demande n'a pas encore été soumise. Vérifiez vos données et continuez pour terminer.",
     "deltaHeader": {
-      "title": "Terminer votre demande",
-      "description": "Complétez les détails manquants, vérifiez vos informations et acceptez les conditions."
+      "title": "Vérifiez et terminez votre demande",
+      "description": "Vérifiez vos informations, ajoutez les détails manquants surlignés ci-dessous, puis acceptez les conditions."
     },
     "thereIsAProblem": "Il y a un problème",
     "provideMissingDetails": "Veuillez fournir les détails manquants avant de terminer votre demande.",

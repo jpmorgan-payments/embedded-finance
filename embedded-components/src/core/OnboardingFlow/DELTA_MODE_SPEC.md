@@ -71,7 +71,7 @@ Owners who are also the controller are counted via the controller rules above (n
 | Initial screen          | `review-attest-section`                                                                                                             |
 | Initial stepper step    | `review`                                                                                                                            |
 | Terms / documents step  | **Hidden** while delta mode is active (acknowledgement is merged into review)                                                       |
-| Review header (delta)   | Compact: no Overview breadcrumb / “Step X of Y”. Title **Finish your application**; short description of complete → review → agree. |
+| Review header (delta)   | Compact: no Overview breadcrumb / “Step X of Y”. Title **Review and finish your application**; short description of review → add missing → agree. |
 | Sidebar                 | Unchanged structurally; section statuses reflect delta rules (see §4)                                                               |
 | Priority vs `flowEntry` | When delta mode is eligible, it takes precedence over `flowEntry` for initial screen (same pattern as `docUploadOnlyMode`)          |
 

@@ -1403,8 +1403,8 @@
     "businessType": "Business type",
     "notSubmittedYet": "Your application is not submitted yet. Review your data and continue to finish.",
     "deltaHeader": {
-      "title": "Finish your application",
-      "description": "Complete any missing details, review your information, and agree to the terms."
+      "title": "Review and finish your application",
+      "description": "Review your information, add any missing details highlighted below, and agree to the terms."
     },
     "thereIsAProblem": "There is a problem",
     "provideMissingDetails": "Please provide missing details before finishing your application.",

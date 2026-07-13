@@ -103,7 +103,10 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
 
   const resolveStepTitle = (step: StepConfig) => {
     if (isDeltaReviewHeader && step.id === 'review') {
-      return t('reviewAndAttest.deltaHeader.title', 'Finish your application');
+      return t(
+        'reviewAndAttest.deltaHeader.title',
+        'Review and finish your application'
+      );
     }
     return t(step.titleKey as any);
   };
@@ -112,7 +115,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     if (isDeltaReviewHeader && step.id === 'review') {
       return t(
         'reviewAndAttest.deltaHeader.description',
-        'Complete any missing details, review your information, and agree to the terms.'
+        'Review your information, add any missing details highlighted below, and agree to the terms.'
       );
     }
     if (step.descriptionKey) {

@@ -1343,8 +1343,8 @@
     "businessType": "Tipo de negocio",
     "notSubmittedYet": "Su solicitud aún no ha sido enviada. Revise sus datos y continúe para finalizar.",
     "deltaHeader": {
-      "title": "Finalice su solicitud",
-      "description": "Complete los detalles faltantes, revise su información y acepte los términos."
+      "title": "Revise y finalice su solicitud",
+      "description": "Revise su información, agregue los detalles faltantes resaltados a continuación y acepte los términos."
     },
     "thereIsAProblem": "Hay un problema",
     "provideMissingDetails": "Proporcione los detalles faltantes antes de finalizar su solicitud.",
