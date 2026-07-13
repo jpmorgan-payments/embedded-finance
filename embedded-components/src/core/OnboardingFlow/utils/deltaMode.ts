@@ -13,6 +13,9 @@ import {
 /** Default max pending fields allowed for delta mode (host-overridable). */
 export const DEFAULT_DELTA_MODE_MAX_PENDING_FIELDS = 5;
 
+/** Default review UX when delta mode is enabled without an explicit variant. */
+export const DEFAULT_DELTA_MODE_VARIANT = 'panel' as const;
+
 /**
  * Normalize the public `deltaMode` prop into a config object, or `null` when off.
  */
@@ -23,6 +26,7 @@ export function resolveDeltaModeConfig(
     return {
       enabled: true,
       maxPendingFields: DEFAULT_DELTA_MODE_MAX_PENDING_FIELDS,
+      variant: DEFAULT_DELTA_MODE_VARIANT,
     };
   }
   if (deltaMode === false || deltaMode == null) {
@@ -35,6 +39,7 @@ export function resolveDeltaModeConfig(
     enabled: true,
     maxPendingFields:
       deltaMode.maxPendingFields ?? DEFAULT_DELTA_MODE_MAX_PENDING_FIELDS,
+    variant: deltaMode.variant ?? DEFAULT_DELTA_MODE_VARIANT,
   };
 }
 

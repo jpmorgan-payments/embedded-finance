@@ -23,16 +23,17 @@ Delta mode is intended **only** when client data from GET client is already rich
 
 ### 2.1 Public prop
 
-| Prop        | Type                                                           | Description                                               |
-| ----------- | -------------------------------------------------------------- | --------------------------------------------------------- |
-| `deltaMode` | `boolean` \| `{ enabled: boolean; maxPendingFields?: number }` | Host opt-in. `true` is shorthand for `{ enabled: true }`. |
+| Prop        | Type                                                                                                      | Description                                                                         |
+| ----------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `deltaMode` | `boolean` \| `{ enabled: boolean; maxPendingFields?: number; variant?: 'panel' \| 'inline' }` | Host opt-in. `true` is shorthand for `{ enabled: true, variant: 'panel' }`. |
 
 ### 2.2 Defaults
 
-| Setting            | Default | Notes                                                                                     |
-| ------------------ | ------- | ----------------------------------------------------------------------------------------- |
-| `enabled`          | —       | Must be explicitly enabled by the host.                                                   |
-| `maxPendingFields` | `5`     | Configurable. Delta mode activates only when the pending-field count is **≤** this value. |
+| Setting            | Default   | Notes                                                                                     |
+| ------------------ | --------- | ----------------------------------------------------------------------------------------- |
+| `enabled`          | —         | Must be explicitly enabled by the host.                                                   |
+| `maxPendingFields` | `5`       | Configurable. Delta mode activates only when the pending-field count is **≤** this value. |
+| `variant`          | `'panel'` | `'panel'` = top pending-fields panel + accordion. `'inline'` = always-expanded compact review with in-place missing editors. Boolean `true` implies `'panel'`. |
 
 ### 2.3 Activation gate
 
@@ -47,7 +48,7 @@ Delta mode is **active** only when all of the following hold:
 
 If the host enables the flag but the client has too many pending fields, the flow behaves as the normal (non-delta) path.
 
-**Latching:** Eligibility is evaluated once when `FlowProvider` mounts (after the initial client fetch settles) and is passed into context as `deltaModeActive`. It must **not** flip mid-session if the pending-field count later crosses the threshold after saves — otherwise the Terms step would vanish and review would morph into delta while the user is already in the normal flow.
+**Latching:** Eligibility is evaluated once when `FlowProvider` mounts (after the initial client fetch settles) and is passed into context as `deltaModeActive` + `deltaModeVariant`. It must **not** flip mid-session if the pending-field count later crosses the threshold after saves — otherwise the Terms step would vanish and review would morph into delta while the user is already in the normal flow.
 
 ### 2.4 Pending-field counting (eligibility)
 
@@ -93,9 +94,22 @@ Personal, business, and operational sections continue to use existing validation
 
 ## 5. Review screen — pending fields
 
-### 5.1 Placement
+### 5.0 Variant: `panel` vs `inline`
+
+| Variant   | Review UX |
+| --------- | --------- |
+| `panel` (default) | Top pending-field group cards + collapsible accordion of full data. Accordion remains read-only (Change/Add pencils navigate). |
+| `inline` | **No** top pending panel. Always-expanded **compact section cards** (Personal / Business / Owners / Operational). Missing rows render **in-place editors**; filled values look like normal review rows. No modals / popups / navigate-away for missing fields. |
+
+Shared across both variants: eligibility, entry, owners override, combined attestation, dirty-only save, finish gate, live sidebar status.
+
+### 5.1 Placement (`panel`)
 
 At the **top** of the review content (above the full-data accordion), show pending-field group cards directly (no extra panel heading — the page header already explains the task). The gateway **Business type** card is hidden in delta mode (org type is already known).
+
+### 5.1b Placement (`inline`)
+
+Show always-expanded compact section cards for all review sections. Missing field rows use warning accent + the same field controls as the panel editors. Once valid, rows settle to plain label + value (no separate input chrome).
 
 ### 5.2 Detection (GET client → Zod)
 
@@ -205,6 +219,7 @@ Secondary: previous / back behaviour consistent with review (e.g. return to over
 
 - Replacing full onboarding for empty or sparse clients
 - Changing non-delta review or Terms step UX (except shared document helper copy improvements that apply when reused)
+- Changing panel-delta top pending panel UX (except shared field-renderer extraction used by `inline`)
 - Auto-enabling delta mode without the host prop
 - Forcing delta mode when pending fields exceed `maxPendingFields`
 
@@ -212,7 +227,7 @@ Secondary: previous / back behaviour consistent with review (e.g. return to over
 
 ## 8. Storybook scenarios
 
-Under **Core → OnboardingFlow → Delta mode** (pre-created LLC, rich GET client):
+Under **Core → OnboardingFlow → Delta mode** (panel variant) and **Core → OnboardingFlow → Inline delta mode** (`variant: 'inline'`), same three LLC seeds:
 
 | Story                               | Pending fields                                                                                            |
 | ----------------------------------- | --------------------------------------------------------------------------------------------------------- |
@@ -220,7 +235,7 @@ Under **Core → OnboardingFlow → Delta mode** (pre-created LLC, rich GET clie
 | Operational details + tax IDs       | `30005` + business EIN + controller SSN                                                                   |
 | Controller birthdate + 2 owner SSNs | `30005` + controller birthdate + SSN for each of two non-controller beneficial owners (four fields total) |
 
-Helpers used to seed clients must **not** be named CSF exports (Storybook would treat them as stories).
+Helpers used to seed clients live in `stories/deltaModeStorySeeds.ts` and must **not** be named CSF exports from story files.
 
 ---
 

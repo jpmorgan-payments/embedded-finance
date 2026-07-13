@@ -211,11 +211,13 @@ export type OnboardingConfigDefault = UserTrackingProps & {
  * When active (host-enabled and pending fields ≤ {@link maxPendingFields}):
  * - Opens on the review step
  * - Treats the owners section as complete
- * - Surfaces missing fields for inline completion on review
+ * - Surfaces missing fields for completion on review (`panel` or `inline` variant)
  * - Merges Terms & Conditions acknowledgements into the same review screen
  *
  * Prefer `true` / `{ enabled: true }` only when GET client already has rich data.
  */
+export type OnboardingDeltaModeVariant = 'panel' | 'inline';
+
 export type OnboardingDeltaModeConfig = {
   enabled: boolean;
   /**
@@ -223,6 +225,11 @@ export type OnboardingDeltaModeConfig = {
    * allowed for delta mode to activate. Defaults to `5`.
    */
   maxPendingFields?: number;
+  /**
+   * Review UX variant. Defaults to `'panel'` (top pending-fields panel + accordion).
+   * `'inline'` uses always-expanded compact review with in-place missing editors.
+   */
+  variant?: OnboardingDeltaModeVariant;
 };
 
 /** Host prop: boolean shorthand or full config. */

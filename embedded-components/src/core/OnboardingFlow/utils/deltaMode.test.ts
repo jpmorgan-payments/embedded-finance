@@ -86,12 +86,24 @@ describe('resolveDeltaModeConfig', () => {
     expect(resolveDeltaModeConfig(true)).toEqual({
       enabled: true,
       maxPendingFields: DEFAULT_DELTA_MODE_MAX_PENDING_FIELDS,
+      variant: 'panel',
     });
     expect(
       resolveDeltaModeConfig({ enabled: true, maxPendingFields: 3 })
     ).toEqual({
       enabled: true,
       maxPendingFields: 3,
+      variant: 'panel',
+    });
+  });
+
+  it('preserves variant inline when provided', () => {
+    expect(
+      resolveDeltaModeConfig({ enabled: true, variant: 'inline' })
+    ).toEqual({
+      enabled: true,
+      maxPendingFields: DEFAULT_DELTA_MODE_MAX_PENDING_FIELDS,
+      variant: 'inline',
     });
   });
 });

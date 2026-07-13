@@ -88,8 +88,17 @@ import {
   isDeltaQuestionAnswered,
   useDeltaPendingFieldsForm,
 } from './DeltaPendingFieldsPanel';
+import { InlineDeltaReviewForm } from './InlineDeltaReviewForm';
 
-export const ReviewForm: React.FC<StepperStepProps> = ({
+export const ReviewForm: React.FC<StepperStepProps> = (props) => {
+  const { deltaModeActive, deltaModeVariant } = useFlowContext();
+  if (deltaModeActive && deltaModeVariant === 'inline') {
+    return <InlineDeltaReviewForm {...props} />;
+  }
+  return <PanelReviewForm {...props} />;
+};
+
+const PanelReviewForm: React.FC<StepperStepProps> = ({
   handlePrev,
   handleNext,
   getPrevButtonLabel,

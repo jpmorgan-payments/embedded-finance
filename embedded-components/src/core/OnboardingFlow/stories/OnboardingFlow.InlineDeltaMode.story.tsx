@@ -1,9 +1,8 @@
 /**
- * OnboardingFlow — Delta mode
+ * OnboardingFlow — Inline delta mode
  *
- * Distilled completion for pre-created LLC clients with few remaining fields.
- * Opens on review, treats owners as complete, shows missing fields inline,
- * and merges Terms & Conditions into the same screen.
+ * Same eligibility / entry / attestation as panel delta, but review is an
+ * always-expanded compact view with missing fields edited in place (no top panel).
  */
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -28,7 +27,7 @@ import {
 type OnboardingFlowStoryArgs = OnboardingFlowProps & BaseStoryArgs;
 
 const meta: Meta<OnboardingFlowStoryArgs> = {
-  title: 'Core/OnboardingFlow/Delta mode',
+  title: 'Core/OnboardingFlow/Inline delta mode',
   component: OnboardingFlowTemplate,
   tags: ['@core', '@onboarding'],
   parameters: {
@@ -39,15 +38,15 @@ const meta: Meta<OnboardingFlowStoryArgs> = {
   },
   args: {
     ...commonArgsWithCallbacks,
-    deltaMode: true,
+    deltaMode: { enabled: true, variant: 'inline' },
     clientId: DEFAULT_CLIENT_ID,
   },
   argTypes: {
     ...commonArgTypes,
     deltaMode: {
-      control: { type: 'boolean' as const },
+      control: { type: 'object' as const },
       description:
-        'Enable distilled delta completion (review-first, owners complete, terms merged). Activates only when pending fields ≤ maxPendingFields (default 5). Default variant is panel.',
+        'Enable distilled delta completion with variant "inline" (always-expanded compact review, in-place missing editors).',
       table: { category: 'Configuration' },
     },
   },
@@ -58,11 +57,10 @@ export default meta;
 type Story = StoryObj<OnboardingFlowStoryArgs>;
 
 /**
- * **Operational details only**
+ * **Operational details only (inline)**
  *
- * Pre-created LLC with rich GET client data. Only Total Annual Revenue (30005)
- * is outstanding. Delta mode opens on review with that field editable at the top,
- * owners marked complete, and Terms combined on the same screen.
+ * Same seed as panel delta. Review shows all sections expanded; Total Annual
+ * Revenue appears as an inline editor in Operational details (no top panel).
  */
 export const OperationalDetailsOnly: Story = {
   name: 'Operational details only',
@@ -76,16 +74,15 @@ export const OperationalDetailsOnly: Story = {
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
-    deltaMode: { enabled: true, maxPendingFields: 5 },
+    deltaMode: { enabled: true, maxPendingFields: 5, variant: 'inline' },
   },
 };
 
 /**
- * **Operational details + tax IDs**
+ * **Operational details + tax IDs (inline)**
  *
- * Pre-created LLC missing Total Annual Revenue plus business EIN and controller
- * SSN. Delta review shows those three fields for inline completion, then
- * acknowledgements, with a single Agree and finish action.
+ * EIN / SSN / revenue missing rows edit in place inside Personal / Business /
+ * Operational compact section cards.
  */
 export const OperationalDetailsAndTaxIds: Story = {
   name: 'Operational details + tax IDs (business & controller)',
@@ -99,16 +96,15 @@ export const OperationalDetailsAndTaxIds: Story = {
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
-    deltaMode: { enabled: true, maxPendingFields: 5 },
+    deltaMode: { enabled: true, maxPendingFields: 5, variant: 'inline' },
   },
 };
 
 /**
- * **Controller birthdate + owner SSNs**
+ * **Controller birthdate + owner SSNs (inline)**
  *
- * Four pending fields: Total Annual Revenue, controller birthdate, and SSN for
- * each of two beneficial owners (Tinker + Wendy). Grouped under their steps on
- * the delta review screen.
+ * Birthdate and owner SSNs edit under their owner / identity cards; filled
+ * values settle to normal read-only rows.
  */
 export const BirthdateAndOwnerSsns: Story = {
   name: 'Controller birthdate + 2 owner SSNs',
@@ -122,6 +118,6 @@ export const BirthdateAndOwnerSsns: Story = {
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
-    deltaMode: { enabled: true, maxPendingFields: 5 },
+    deltaMode: { enabled: true, maxPendingFields: 5, variant: 'inline' },
   },
 };

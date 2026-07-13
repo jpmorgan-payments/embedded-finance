@@ -22,10 +22,12 @@ import {
   StepConfig,
   VisibilityContext,
 } from '@/core/OnboardingFlow/types/flow.types';
+import type { OnboardingDeltaModeVariant } from '@/core/OnboardingFlow/types/onboarding.types';
 import {
   getOrganizationParty,
   isUSExchangePTC,
 } from '@/core/OnboardingFlow/utils/dataUtils';
+import { DEFAULT_DELTA_MODE_VARIANT } from '@/core/OnboardingFlow/utils/deltaMode';
 import { shouldSuppressOnboardingLeaveWarnings } from '@/core/OnboardingFlow/utils/flowLeaveWarnings';
 
 type EditingPartyIds = {
@@ -94,6 +96,11 @@ const FlowContext = createContext<{
    * when pending-field count changes after saves (spec §2.3).
    */
   deltaModeActive: boolean;
+  /**
+   * Latched with deltaModeActive. `'panel'` = top pending panel + accordion;
+   * `'inline'` = always-expanded compact review with in-place editors.
+   */
+  deltaModeVariant: OnboardingDeltaModeVariant;
   /** Whether the current org is a publicly traded company listed on a US exchange. */
   isPTCWithUSExchange: boolean;
 }>({
@@ -147,6 +154,7 @@ const FlowContext = createContext<{
     // no-op: context not yet provided (e.g. during HMR)
   },
   deltaModeActive: false,
+  deltaModeVariant: DEFAULT_DELTA_MODE_VARIANT,
 });
 
 export const FlowProvider: React.FC<{
@@ -160,12 +168,15 @@ export const FlowProvider: React.FC<{
    * Terms step and treat owners as complete for the session.
    */
   deltaModeActive?: boolean;
+  /** Latched review UX variant when delta mode is active. Defaults to `'panel'`. */
+  deltaModeVariant?: OnboardingDeltaModeVariant;
 }> = ({
   children,
   initialScreenId,
   flowConfig,
   seedInitialStepperStepId,
   deltaModeActive: deltaModeActiveProp = false,
+  deltaModeVariant: deltaModeVariantProp = DEFAULT_DELTA_MODE_VARIANT,
 }) => {
   const [history, setHistory] = useState<ScreenId[]>([initialScreenId]);
   const [editingPartyIds, setEditingPartyIds] = useState<EditingPartyIds>({});
@@ -218,6 +229,7 @@ export const FlowProvider: React.FC<{
   // Latch at FlowProvider mount (after client fetch settles). Do not flip
   // mid-session when pending-field count changes after saves (spec §2.3).
   const [deltaModeActive] = useState(deltaModeActiveProp);
+  const [deltaModeVariant] = useState(deltaModeVariantProp);
 
   // Delta mode: treat owners as done and hide the separate Terms step.
   useEffect(() => {
@@ -441,6 +453,7 @@ export const FlowProvider: React.FC<{
         unsavedChangesRef,
         setFlowUnsavedChanges,
         deltaModeActive,
+        deltaModeVariant,
         isPTCWithUSExchange: isPTCWithUSExchange ?? false,
       }}
     >

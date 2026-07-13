@@ -29,7 +29,7 @@ import {
 } from './contexts/OnboardingContext';
 import { ONBOARDING_FLOW_USER_JOURNEYS } from './OnboardingFlow.constants';
 import { OnboardingFlowProps } from './types/onboarding.types';
-import { isDeltaModeActive } from './utils/deltaMode';
+import { isDeltaModeActive, resolveDeltaModeConfig } from './utils/deltaMode';
 import {
   getFlowProgress,
   getStepperValidation,
@@ -103,6 +103,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     !needsPTCGateway &&
     isDeltaModeActive(props.deltaMode, clientData);
 
+  const deltaModeVariant =
+    resolveDeltaModeConfig(props.deltaMode)?.variant ?? 'panel';
+
   const flowProviderInitialScreenId = props.docUploadOnlyMode
     ? 'upload-documents-section'
     : deltaModeEligible
@@ -172,6 +175,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             flowConfig={flowConfig}
             seedInitialStepperStepId={flowProviderSeedStepperStepId}
             deltaModeActive={deltaModeEligible}
+            deltaModeVariant={deltaModeEligible ? deltaModeVariant : 'panel'}
           >
             <FlowRenderer />
           </FlowProvider>
@@ -352,8 +356,7 @@ const FlowRenderer: React.FC = React.memo(() => {
       operationalStatus !== 'completed_disabled' &&
       operationalStatus !== 'on_hold'
     ) {
-      const outstandingQuestionIds =
-        clientData?.outstanding?.questionIds ?? [];
+      const outstandingQuestionIds = clientData?.outstanding?.questionIds ?? [];
       const remaining = outstandingQuestionIds.filter(
         (questionId) => !isLiveQuestionAnswered(questionId)
       );
