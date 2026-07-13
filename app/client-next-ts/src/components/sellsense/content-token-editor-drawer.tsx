@@ -28,6 +28,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select';
+import { flattenContentTokenOverrides } from '@/lib/demo-customization-storage';
 
 // Available language options
 const LANGUAGE_OPTIONS = [
@@ -39,6 +40,8 @@ const LANGUAGE_OPTIONS = [
 interface ContentTokenEditorDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Current provider content tokens (used to hydrate edited state / localStorage restores). */
+  contentTokens?: EBConfig['contentTokens'];
   onContentTokensChange: (tokens: EBConfig['contentTokens']) => void;
   selectedLanguage?: string;
   onLanguageChange?: (language: string) => void;
@@ -338,6 +341,7 @@ function buildNestedTokens(
 export function ContentTokenEditorDrawer({
   isOpen,
   onClose,
+  contentTokens,
   onContentTokensChange,
   selectedLanguage: propSelectedLanguage = 'enUS',
   onLanguageChange,
@@ -348,7 +352,11 @@ export function ContentTokenEditorDrawer({
     Map<string, FlattenedToken>
   >(new Map());
   const [_annotations, setAnnotations] = useState<Annotation[]>([]);
-  const [editedTokens, setEditedTokens] = useState<Record<string, string>>({});
+  const [editedTokens, setEditedTokens] = useState<Record<string, string>>(() =>
+    flattenContentTokenOverrides(
+      contentTokens?.tokens as Record<string, unknown> | undefined
+    )
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [copied, setCopied] = useState(false);
   const [focusedTokenKey, setFocusedTokenKey] = useState<string | null>(null);
@@ -373,6 +381,29 @@ export function ContentTokenEditorDrawer({
   useEffect(() => {
     setInternalLanguage(propSelectedLanguage);
   }, [propSelectedLanguage]);
+
+  // Hydrate edited tokens from provider/localStorage when the drawer opens.
+  // Prune any stored values that already match language defaults.
+  const wasOpenRef = useRef(false);
+  useEffect(() => {
+    if (isOpen && !wasOpenRef.current) {
+      const flat = flattenContentTokenOverrides(
+        contentTokens?.tokens as Record<string, unknown> | undefined
+      );
+      const pruned: Record<string, string> = {};
+      for (const [key, value] of Object.entries(flat)) {
+        const defaultValue = getDefaultTokenValue(key, selectedLanguage).value;
+        if (defaultValue === undefined || value !== defaultValue) {
+          pruned[key] = value;
+        }
+      }
+      setEditedTokens(pruned);
+      if (Object.keys(pruned).length !== Object.keys(flat).length) {
+        onContentTokensChange(buildNestedTokens(pruned));
+      }
+    }
+    wasOpenRef.current = isOpen;
+  }, [isOpen, contentTokens, selectedLanguage, onContentTokensChange]);
 
   // Handle language change
   const handleLanguageChange = useCallback(
@@ -437,17 +468,38 @@ export function ContentTokenEditorDrawer({
         }
       }
 
-      const tokenCount = Object.keys(flattened).length;
+      // Drop imports that already match language defaults
+      const meaningful: Record<string, string> = {};
+      for (const [key, value] of Object.entries(flattened)) {
+        const defaultValue = getDefaultTokenValue(key, selectedLanguage).value;
+        if (defaultValue === undefined || value !== defaultValue) {
+          meaningful[key] = value;
+        }
+      }
+
+      const tokenCount = Object.keys(meaningful).length;
       if (tokenCount === 0) {
-        setImportError('No valid tokens found in JSON.');
+        setImportError(
+          'No valid token overrides found (values already match defaults).'
+        );
         return;
       }
 
-      setEditedTokens((prev) => ({ ...prev, ...flattened }));
-
-      // Update the page with the imported tokens
-      const nestedTokens = buildNestedTokens({ ...editedTokens, ...flattened });
-      onContentTokensChange(nestedTokens);
+      setEditedTokens((prev) => {
+        const merged = { ...prev, ...meaningful };
+        const pruned: Record<string, string> = {};
+        for (const [key, value] of Object.entries(merged)) {
+          const defaultValue = getDefaultTokenValue(
+            key,
+            selectedLanguage
+          ).value;
+          if (defaultValue === undefined || value !== defaultValue) {
+            pruned[key] = value;
+          }
+        }
+        onContentTokensChange(buildNestedTokens(pruned));
+        return pruned;
+      });
 
       // Close dialog on success
       setShowImportDialog(false);
@@ -457,7 +509,7 @@ export function ContentTokenEditorDrawer({
       console.error('Failed to import tokens:', error);
       setImportError('Invalid JSON. Please check the format and try again.');
     }
-  }, [importText, editedTokens, onContentTokensChange]);
+  }, [importText, onContentTokensChange, selectedLanguage]);
 
   // Add/remove body class for CSS hover effects when in edit mode
   useEffect(() => {
@@ -871,17 +923,24 @@ export function ContentTokenEditorDrawer({
     };
   }, []);
 
-  // Handle token edit - update local state immediately, debounce page update
+  // Handle token edit - update local state immediately, debounce page update.
+  // Values that match the language default are pruned (not counted as overrides).
   const handleTokenEdit = useCallback(
     (key: string, newValue: string) => {
-      const updated = { ...editedTokens, [key]: newValue };
+      const defaultValue = getDefaultTokenValue(key, selectedLanguage).value;
+      const updated = { ...editedTokens };
+      if (defaultValue !== undefined && newValue === defaultValue) {
+        delete updated[key];
+      } else {
+        updated[key] = newValue;
+      }
       setEditedTokens(updated);
 
       // Build nested tokens structure and debounce the page update
       const nestedTokens = buildNestedTokens(updated);
       debouncedContentTokensChange(nestedTokens);
     },
-    [editedTokens, debouncedContentTokensChange]
+    [editedTokens, debouncedContentTokensChange, selectedLanguage]
   );
 
   // Export changed tokens
@@ -919,7 +978,6 @@ export function ContentTokenEditorDrawer({
     if (!isOpen) {
       setAnnotations([]);
       setMatchedTokens(new Map());
-      setEditedTokens({});
       setSearchQuery('');
       setIsEditMode(true); // Reset to edit mode for next open
     }

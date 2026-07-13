@@ -19,17 +19,33 @@ import { useNavigate, useSearch } from '@tanstack/react-router';
 
 import { usePingService } from '@/hooks/use-ping-service';
 import { DatabaseResetUtils } from '@/lib/database-reset-utils';
+import {
+  clearContentTokenCustomization,
+  clearDemoCustomization,
+  clearOnboardingFlowPropCustomization,
+  clearThemeCustomization,
+  countContentTokenOverrides,
+  countThemeVariableOverrides,
+  getDemoCustomization,
+  setDemoCustomization,
+} from '@/lib/demo-customization-storage';
 import { getOverrideKeys } from '@/lib/mock-overrides-storage';
 
 import { Button } from '../ui/button';
+import { ComponentPropsDrawer } from './component-props-drawer';
 import { ContentTokenEditorDrawer } from './content-token-editor-drawer';
 import { DashboardOverview } from './dashboard-overview';
 import { Footer } from './footer';
-import { Header } from './header';
+import { Header, type DemoCustomizationDrawer } from './header';
 import { InfoModal } from './info-modal';
-import { KycOnboarding } from './kyc-onboarding';
+import { getOnboardingScenarioExtras, KycOnboarding } from './kyc-onboarding';
 import { LoadingSkeleton } from './loading-skeleton';
 import { MockApiEditorDrawer } from './mock-api-editor-drawer';
+import {
+  countConfiguredProps,
+  pruneBaselineEqualProps,
+  type OnboardingFlowConfigProps,
+} from './onboarding-flow-props-config';
 import { PayoutSettings } from './payout-settings';
 import {
   getClientIdForScenario,
@@ -41,6 +57,7 @@ import {
 } from './scenarios-config';
 import { SettingsDrawer } from './settings-drawer';
 import { Sidebar } from './sidebar';
+import { ThemeCustomizationDrawer } from './theme-customization-drawer';
 import { useThemeStyles } from './theme-utils';
 import { TransactionHistory } from './transaction-history';
 import { useSellSenseThemes, type ThemeOption } from './use-sellsense-themes';
@@ -114,16 +131,38 @@ export function DashboardLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
-  const [isContentTokenEditorOpen, setIsContentTokenEditorOpen] =
-    useState(false);
+  const [activeCustomizationDrawer, setActiveCustomizationDrawer] =
+    useState<DemoCustomizationDrawer>(null);
+  const isThemeDrawerOpen = activeCustomizationDrawer === 'theme';
+  const isContentTokenEditorOpen =
+    activeCustomizationDrawer === 'contentTokens';
+  const isComponentPropsDrawerOpen =
+    activeCustomizationDrawer === 'componentProps';
+  const [onboardingFlowPropOverrides, setOnboardingFlowPropOverrides] =
+    useState<OnboardingFlowConfigProps>(() => {
+      return pruneBaselineEqualProps(
+        getDemoCustomization().onboardingFlowPropOverrides ?? {}
+      );
+    });
   const [isMockApiEditorOpen, setIsMockApiEditorOpen] = useState(false);
   const [mockOverrideCount, setMockOverrideCount] = useState(0);
   const [selectedLanguage, setSelectedLanguage] = useState<
     'enUS' | 'frCA' | 'esUS'
-  >('enUS');
+  >(() => {
+    const name = getDemoCustomization().contentTokens?.name;
+    if (name === 'frCA' || name === 'esUS' || name === 'enUS') return name;
+    return 'enUS';
+  });
   const [contentTokens, setContentTokens] = useState<EBConfig['contentTokens']>(
-    {
-      name: 'enUS',
+    () => {
+      const stored = getDemoCustomization().contentTokens;
+      if (stored) {
+        return {
+          name: (stored.name as 'enUS' | 'frCA' | 'esUS') || 'enUS',
+          ...(stored.tokens ? { tokens: stored.tokens } : {}),
+        };
+      }
+      return { name: 'enUS' };
     }
   );
   const [hasProcessedInitialLoad, setHasProcessedInitialLoad] = useState(false);
@@ -143,7 +182,7 @@ export function DashboardLayout() {
     scrollLeft: number;
   } | null>(null);
 
-  // Initialize customThemeVariables from URL if present
+  // Initialize customThemeVariables from URL, then localStorage
   const getInitialCustomThemeVariables = (): EBThemeVariables => {
     if (searchParams.theme === 'Custom' && searchParams.customTheme) {
       try {
@@ -162,6 +201,10 @@ export function DashboardLayout() {
         return {};
       }
     }
+    const stored = getDemoCustomization().theme;
+    if (stored?.variables && Object.keys(stored.variables).length > 0) {
+      return stored.variables;
+    }
     return {};
   };
 
@@ -175,6 +218,13 @@ export function DashboardLayout() {
         console.error('Failed to parse custom theme from URL:', error);
         return {};
       }
+    }
+    const stored = getDemoCustomization().theme;
+    if (stored?.variables && Object.keys(stored.variables).length > 0) {
+      return {
+        baseTheme: stored.baseTheme || 'SellSense',
+        variables: stored.variables,
+      };
     }
     return {};
   };
@@ -191,9 +241,14 @@ export function DashboardLayout() {
   const [clientScenario, setClientScenario] = useState<ClientScenario>(
     (searchParams.scenario as ClientScenario) || 'New Seller - Onboarding'
   );
-  const [theme, setTheme] = useState<ThemeOption>(
-    searchParams.theme || 'SellSense'
-  );
+  const [theme, setTheme] = useState<ThemeOption>(() => {
+    if (searchParams.theme) return searchParams.theme;
+    const stored = getDemoCustomization().theme;
+    if (stored?.variables && Object.keys(stored.variables).length > 0) {
+      return 'Custom';
+    }
+    return 'SellSense';
+  });
   // When theme is Custom, use baseTheme for portal styling (logo, colors) so e.g. Empty stays Empty
   const themeForDisplay: ThemeOption =
     theme === 'Custom' && customThemeData?.baseTheme
@@ -202,7 +257,14 @@ export function DashboardLayout() {
         ? 'SellSense'
         : theme;
   const themeStyles = useThemeStyles(themeForDisplay);
-  const { mapThemeOption } = useSellSenseThemes();
+  const { mapThemeOption, getThemeVariables } = useSellSenseThemes();
+  const themeOverrideCount = countThemeVariableOverrides(
+    customThemeVariables,
+    getThemeVariables(
+      (customThemeData?.baseTheme as ThemeOption) ||
+        (theme === 'Custom' ? 'SellSense' : theme)
+    )
+  );
   const [contentTone, setContentTone] = useState<ContentTone>(
     searchParams.contentTone || 'Standard'
   );
@@ -264,6 +326,12 @@ export function DashboardLayout() {
         // This is a CustomThemeData structure
         setCustomThemeVariables(customVariables.variables);
         setCustomThemeData(customVariables); // Store the full structure
+        setDemoCustomization({
+          theme: {
+            baseTheme: customVariables.baseTheme,
+            variables: customVariables.variables,
+          },
+        });
         // Store the base theme information in the URL
         const customThemeData = {
           baseTheme: customVariables.baseTheme,
@@ -279,6 +347,12 @@ export function DashboardLayout() {
         // This is just variables (legacy structure)
         setCustomThemeVariables(customVariables);
         setCustomThemeData({ variables: customVariables }); // Legacy structure
+        setDemoCustomization({
+          theme: {
+            baseTheme: newTheme === 'Custom' ? 'SellSense' : newTheme,
+            variables: customVariables,
+          },
+        });
       }
     }
 
@@ -286,6 +360,7 @@ export function DashboardLayout() {
     if (!customVariables || Object.keys(customVariables || {}).length === 0) {
       setCustomThemeVariables({});
       setCustomThemeData({});
+      clearThemeCustomization();
     }
 
     // Update URL with theme and custom variables if present
@@ -334,6 +409,53 @@ export function DashboardLayout() {
     setIsMobileMenuOpen(false); // Close mobile menu when changing views
     updateSearchParams({ view: newView });
   };
+
+  const handleToggleCustomizationDrawer = (
+    drawer: Exclude<DemoCustomizationDrawer, null>
+  ) => {
+    setActiveCustomizationDrawer((prev) => (prev === drawer ? null : drawer));
+  };
+
+  const handleResetAllCustomizations = () => {
+    clearDemoCustomization();
+    setContentTokens({ name: 'enUS' });
+    setSelectedLanguage('enUS');
+    setOnboardingFlowPropOverrides({});
+    const baseTheme =
+      (customThemeData?.baseTheme as ThemeOption | undefined) ||
+      (theme === 'Custom' ? 'SellSense' : theme) ||
+      'SellSense';
+    handleThemeChange(baseTheme, {});
+  };
+
+  // Persist content tokens & component props overrides to localStorage
+  useEffect(() => {
+    const tokens = contentTokens?.tokens as Record<string, unknown> | undefined;
+    const hasTokenOverrides = tokens && Object.keys(tokens).length > 0;
+    const language = contentTokens?.name || selectedLanguage;
+
+    if (hasTokenOverrides || (language && language !== 'enUS')) {
+      setDemoCustomization({
+        contentTokens: {
+          name: language,
+          ...(hasTokenOverrides ? { tokens } : {}),
+        },
+      });
+    } else {
+      clearContentTokenCustomization();
+    }
+  }, [contentTokens, selectedLanguage]);
+
+  useEffect(() => {
+    const pruned = pruneBaselineEqualProps(onboardingFlowPropOverrides);
+    if (Object.keys(pruned).length > 0) {
+      setDemoCustomization({
+        onboardingFlowPropOverrides: pruned,
+      });
+    } else {
+      clearOnboardingFlowPropCustomization();
+    }
+  }, [onboardingFlowPropOverrides]);
 
   // Helper function to update search params
   const updateSearchParams = (
@@ -474,6 +596,7 @@ export function DashboardLayout() {
           theme={theme}
           customThemeVariables={customThemeVariables}
           contentTokens={contentTokens}
+          onboardingFlowPropOverrides={onboardingFlowPropOverrides}
         />
       );
     }
@@ -533,6 +656,7 @@ export function DashboardLayout() {
           <KycOnboarding
             clientScenario={clientScenario}
             theme={fullscreenTheme}
+            onboardingFlowPropOverrides={onboardingFlowPropOverrides}
           />
         );
       case 'recipients':
@@ -782,27 +906,32 @@ export function DashboardLayout() {
         setClientScenario={handleScenarioChange}
         theme={theme}
         themeForDisplay={themeForDisplay}
-        setTheme={handleThemeChange}
         contentTone={contentTone}
-        setContentTone={handleContentToneChange}
         isMobileMenuOpen={isMobileMenuOpen}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
         isSettingsOpen={isSettingsOpen}
         setIsSettingsOpen={setIsSettingsOpen}
         isInfoModalOpen={isInfoModalOpen}
         setIsInfoModalOpen={setIsInfoModalOpen}
-        customThemeData={customThemeData}
-        isContentTokenEditorOpen={isContentTokenEditorOpen}
-        setIsContentTokenEditorOpen={setIsContentTokenEditorOpen}
+        activeCustomizationDrawer={activeCustomizationDrawer}
+        onToggleCustomizationDrawer={handleToggleCustomizationDrawer}
+        contentTokenOverrideCount={countContentTokenOverrides(
+          contentTokens?.tokens as Record<string, unknown> | undefined
+        )}
+        componentPropsOverrideCount={countConfiguredProps(
+          onboardingFlowPropOverrides
+        )}
+        themeOverrideCount={themeOverrideCount}
         isMockApiEditorOpen={isMockApiEditorOpen}
         setIsMockApiEditorOpen={setIsMockApiEditorOpen}
         mockOverrideCount={mockOverrideCount}
+        onResetAllCustomizations={handleResetAllCustomizations}
       />
 
       {/* Mobile-first responsive layout */}
       <div
         className={`flex ${showMswAlert ? 'h-[calc(100vh-4rem-9rem)]' : 'h-[calc(100vh-4rem)]'} relative ${themeStyles.getContentAreaStyles()} ${
-          isContentTokenEditorOpen ? 'pr-[600px]' : ''
+          activeCustomizationDrawer ? 'pr-[600px]' : ''
         } transition-all duration-300`}
       >
         {/* Sidebar - responsive implementation */}
@@ -853,10 +982,21 @@ export function DashboardLayout() {
         theme={theme}
       />
 
+      {/* Theme Customization Drawer */}
+      <ThemeCustomizationDrawer
+        isOpen={isThemeDrawerOpen}
+        onClose={() => setActiveCustomizationDrawer(null)}
+        currentTheme={theme}
+        onThemeChange={handleThemeChange}
+        customThemeData={customThemeData}
+        topOffset={showMswAlert ? 'calc(4rem + 9.5rem)' : '4rem'}
+      />
+
       {/* Content Token Editor Drawer */}
       <ContentTokenEditorDrawer
         isOpen={isContentTokenEditorOpen}
-        onClose={() => setIsContentTokenEditorOpen(false)}
+        onClose={() => setActiveCustomizationDrawer(null)}
+        contentTokens={contentTokens}
         onContentTokensChange={(tokens) => {
           setContentTokens(tokens);
         }}
@@ -870,6 +1010,20 @@ export function DashboardLayout() {
             name: typedLang,
           }));
         }}
+        topOffset={showMswAlert ? 'calc(4rem + 9.5rem)' : '4rem'}
+      />
+
+      {/* Component Props Drawer */}
+      <ComponentPropsDrawer
+        isOpen={isComponentPropsDrawerOpen}
+        onClose={() => setActiveCustomizationDrawer(null)}
+        overrides={onboardingFlowPropOverrides}
+        onOverridesChange={setOnboardingFlowPropOverrides}
+        scenarioExtras={getOnboardingScenarioExtras(clientScenario)}
+        isOnboardingView={
+          ViewUtils.isOnboardingScenario(clientScenario) &&
+          activeView === 'onboarding'
+        }
         topOffset={showMswAlert ? 'calc(4rem + 9.5rem)' : '4rem'}
       />
 

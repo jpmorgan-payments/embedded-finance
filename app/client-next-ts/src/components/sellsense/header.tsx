@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import type { EBThemeVariables } from '@jpmorgan-payments/embedded-finance-components';
 import {
   Brush,
   ChevronDown,
@@ -9,14 +8,23 @@ import {
   Info,
   Languages,
   Menu,
-  Settings,
+  RotateCcw,
   SkipBack,
   SkipForward,
+  SlidersHorizontal,
   X,
 } from 'lucide-react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 import type { ClientScenario, ContentTone } from './dashboard-layout';
 import {
@@ -25,7 +33,6 @@ import {
   getScenarioKeyByDisplayName,
   SCENARIO_ORDER,
 } from './scenarios-config';
-import { ThemeCustomizationDrawer } from './theme-customization-drawer';
 import { useThemeStyles } from './theme-utils';
 import type { ThemeOption } from './use-sellsense-themes';
 
@@ -37,27 +44,49 @@ const getCompanyInfo = () => {
   };
 };
 
+/** Side drawers that share accordion open behavior (one at a time). */
+export type DemoCustomizationDrawer =
+  | 'theme'
+  | 'contentTokens'
+  | 'componentProps'
+  | null;
+
 interface HeaderProps {
   clientScenario: ClientScenario;
   setClientScenario: (scenario: ClientScenario) => void;
   theme: ThemeOption;
   /** When theme is Custom, use this for logo/portal styling (e.g. Empty stays Empty) */
   themeForDisplay: ThemeOption;
-  setTheme: (theme: ThemeOption, customVariables?: EBThemeVariables) => void;
   contentTone: ContentTone;
-  setContentTone: (tone: ContentTone) => void;
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: (open: boolean) => void;
   isSettingsOpen: boolean;
   setIsSettingsOpen: (open: boolean) => void;
   isInfoModalOpen: boolean;
   setIsInfoModalOpen: (open: boolean) => void;
-  customThemeData?: any; // Full custom theme data with baseTheme
-  isContentTokenEditorOpen: boolean;
-  setIsContentTokenEditorOpen: (open: boolean) => void;
+  activeCustomizationDrawer: DemoCustomizationDrawer;
+  onToggleCustomizationDrawer: (
+    drawer: Exclude<DemoCustomizationDrawer, null>
+  ) => void;
+  contentTokenOverrideCount: number;
+  componentPropsOverrideCount: number;
+  themeOverrideCount: number;
   isMockApiEditorOpen: boolean;
   setIsMockApiEditorOpen: (open: boolean) => void;
   mockOverrideCount: number;
+  onResetAllCustomizations: () => void;
+}
+
+function OverrideBadge({ count, label }: { count: number; label: string }) {
+  if (count <= 0) return null;
+  return (
+    <span
+      className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-medium text-white"
+      aria-label={`${count} ${label}`}
+    >
+      {count > 9 ? '9+' : count}
+    </span>
+  );
 }
 
 export function Header({
@@ -65,7 +94,6 @@ export function Header({
   setClientScenario,
   theme,
   themeForDisplay,
-  setTheme,
   contentTone,
   isMobileMenuOpen,
   setIsMobileMenuOpen,
@@ -73,15 +101,23 @@ export function Header({
   setIsSettingsOpen,
   isInfoModalOpen,
   setIsInfoModalOpen,
-  customThemeData = {},
-  isContentTokenEditorOpen,
-  setIsContentTokenEditorOpen,
+  activeCustomizationDrawer,
+  onToggleCustomizationDrawer,
+  contentTokenOverrideCount,
+  componentPropsOverrideCount,
+  themeOverrideCount,
   isMockApiEditorOpen,
   setIsMockApiEditorOpen,
   mockOverrideCount,
+  onResetAllCustomizations,
 }: HeaderProps) {
   const themeStyles = useThemeStyles(themeForDisplay);
-  const [isThemeDrawerOpen, setIsThemeDrawerOpen] = useState(false);
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+
+  const totalCustomizationOverrides =
+    themeOverrideCount +
+    contentTokenOverrideCount +
+    componentPropsOverrideCount;
 
   // Get current scenario key and next/previous scenarios
   const currentScenarioKey = getScenarioKeyByDisplayName(clientScenario);
@@ -263,26 +299,54 @@ export function Header({
           <Button
             variant="ghost"
             size="icon"
-            className={`h-8 w-8 rounded-full p-1 ${themeStyles.getHeaderButtonStyles()}`}
-            onClick={() => setIsThemeDrawerOpen(true)}
+            className={`relative h-8 w-8 rounded-full p-1 ${
+              activeCustomizationDrawer === 'theme'
+                ? 'bg-gray-100 bg-opacity-20'
+                : ''
+            } ${themeStyles.getHeaderButtonStyles()}`}
+            onClick={() => onToggleCustomizationDrawer('theme')}
             title="Customize theme"
           >
             <Brush className="h-4 w-4 lg:h-5 lg:w-5" />
+            <OverrideBadge count={themeOverrideCount} label="theme overrides" />
           </Button>
 
           {/* Content Token Editor button */}
           <Button
             variant="ghost"
             size="icon"
-            className={`h-8 w-8 rounded-full p-1 ${
-              isContentTokenEditorOpen ? 'bg-gray-100 bg-opacity-20' : ''
+            className={`relative h-8 w-8 rounded-full p-1 ${
+              activeCustomizationDrawer === 'contentTokens'
+                ? 'bg-gray-100 bg-opacity-20'
+                : ''
             } ${themeStyles.getHeaderButtonStyles()}`}
-            onClick={() =>
-              setIsContentTokenEditorOpen(!isContentTokenEditorOpen)
-            }
+            onClick={() => onToggleCustomizationDrawer('contentTokens')}
             title="Edit content tokens"
           >
             <Languages className="h-4 w-4 lg:h-5 lg:w-5" />
+            <OverrideBadge
+              count={contentTokenOverrideCount}
+              label="token overrides"
+            />
+          </Button>
+
+          {/* Component Props Editor button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`relative h-8 w-8 rounded-full p-1 ${
+              activeCustomizationDrawer === 'componentProps'
+                ? 'bg-gray-100 bg-opacity-20'
+                : ''
+            } ${themeStyles.getHeaderButtonStyles()}`}
+            onClick={() => onToggleCustomizationDrawer('componentProps')}
+            title="Edit component props"
+          >
+            <SlidersHorizontal className="h-4 w-4 lg:h-5 lg:w-5" />
+            <OverrideBadge
+              count={componentPropsOverrideCount}
+              label="prop overrides"
+            />
           </Button>
 
           {/* Mock API Editor button */}
@@ -296,26 +360,23 @@ export function Header({
             title="Edit mock API responses"
           >
             <Database className="h-4 w-4 lg:h-5 lg:w-5" />
-            {mockOverrideCount > 0 && (
-              <span
-                className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-medium text-white"
-                aria-label={`${mockOverrideCount} overrides`}
-              >
-                {mockOverrideCount > 9 ? '9+' : mockOverrideCount}
-              </span>
-            )}
+            <OverrideBadge count={mockOverrideCount} label="overrides" />
           </Button>
 
-          {/* Settings button */}
+          {/* Reset all customizations */}
           <Button
             variant="ghost"
             size="icon"
-            className={`h-8 w-8 rounded-full p-1 ${
-              isSettingsOpen ? 'bg-gray-100 bg-opacity-20' : ''
-            } ${themeStyles.getHeaderButtonStyles()}`}
-            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+            className={`relative h-8 w-8 rounded-full p-1 ${themeStyles.getHeaderButtonStyles()}`}
+            disabled={totalCustomizationOverrides === 0}
+            onClick={() => setIsResetConfirmOpen(true)}
+            title="Reset all theme, content token, and component prop overrides"
           >
-            <Settings className="h-4 w-4 lg:h-5 lg:w-5" />
+            <RotateCcw className="h-4 w-4 lg:h-5 lg:w-5" />
+            <OverrideBadge
+              count={totalCustomizationOverrides}
+              label="total overrides"
+            />
           </Button>
 
           <div className="flex items-center space-x-2">
@@ -341,14 +402,35 @@ export function Header({
         </div>
       </header>
 
-      {/* Theme Customization Drawer */}
-      <ThemeCustomizationDrawer
-        isOpen={isThemeDrawerOpen}
-        onClose={() => setIsThemeDrawerOpen(false)}
-        currentTheme={theme}
-        onThemeChange={setTheme}
-        customThemeData={customThemeData}
-      />
+      <Dialog open={isResetConfirmOpen} onOpenChange={setIsResetConfirmOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reset all overrides?</DialogTitle>
+            <DialogDescription>
+              This clears saved theme, content token, and component prop
+              overrides from this browser and restores SellSense defaults. Mock
+              API overrides are not affected.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setIsResetConfirmOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                onResetAllCustomizations();
+                setIsResetConfirmOpen(false);
+              }}
+            >
+              Reset all
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
