@@ -52,6 +52,7 @@ export const InlineDeltaReviewForm: React.FC<StepperStepProps> = ({
     deltaSaveError,
     partyUpdateError,
     clientUpdateError,
+    pendingFieldsComplete,
   } = useDeltaReviewSubmit({
     deltaPendingForm,
     deltaAllQuestions,
@@ -129,7 +130,11 @@ export const InlineDeltaReviewForm: React.FC<StepperStepProps> = ({
             variant="default"
             size="lg"
             className="eb-w-full eb-text-lg"
-            disabled={terms.isFormSubmitting || !terms.attestationComplete}
+            disabled={
+              terms.isFormSubmitting ||
+              !terms.attestationComplete ||
+              !pendingFieldsComplete
+            }
           >
             {terms.isFormSubmitting && (
               <Loader2Icon className="eb-animate-spin" />

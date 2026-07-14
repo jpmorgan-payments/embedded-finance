@@ -1428,6 +1428,12 @@
     "termsAcknowledgements": {
       "intro": "By electronically submitting this application, you agree that:"
     },
+    "deltaAcknowledgements": {
+      "jpEmbeddedPaymentsTerms": "I have read and agreed to the <jpTermsLink>J.P. Morgan Embedded Payments Terms and Conditions</jpTermsLink>.",
+      "receiveFundsOnly": "I understand that the Embedded Payments account may only be used to receive funds through {{platformName}} pursuant to my commerce terms with the platform.",
+      "nonDiscretionaryAgent": "I understand I am appointing the platform provider as a non-discretionary agent for the account. This means that only the platform provider will give instructions on the payment of funds from my Embedded Payments account on a day-to-day basis in accordance with my commerce terms.",
+      "dataAccuracy": "The data I am providing is true, accurate, current, and complete to the best of my knowledge."
+    },
     "attestation": {
       "heading": "By electronically submitting this Application, you agree that:",
       "accurateInfo": "All information you have provided is complete and accurate, and you are opening this account solely for business purposes and not for consumer purposes.",

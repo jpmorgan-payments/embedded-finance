@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import type { UseFormReturn } from 'react-hook-form';
+import { useWatch, type UseFormReturn } from 'react-hook-form';
 
 import {
   getSmbdoGetClientQueryKey,
@@ -62,6 +62,48 @@ export function useDeltaReviewSubmit(args: {
     [];
 
   const outstandingQuestionIds = clientData?.outstanding?.questionIds ?? [];
+
+  const liveFormValues = useWatch({
+    control: deltaPendingForm.control,
+  }) as Record<string, unknown> | undefined;
+
+  const baselinePendingGroups = useMemo(
+    () =>
+      collectBaselineDeltaPendingGroups({
+        sections,
+        clientData,
+        savedFormValues,
+        currentScreenId,
+        ownerSteps,
+      }),
+    [sections, clientData, savedFormValues, currentScreenId, ownerSteps]
+  );
+
+  const pendingFieldsComplete = useMemo(() => {
+    const liveOverlay = {
+      ...(savedFormValues as Record<string, unknown> | undefined),
+      ...(liveFormValues ?? {}),
+    };
+    return areDeltaPendingFieldsComplete({
+      baselinePendingGroups,
+      sections,
+      clientData,
+      ownerSteps,
+      liveOverlay,
+      currentScreenId,
+      outstandingQuestionIds,
+      liveFormValues,
+    });
+  }, [
+    baselinePendingGroups,
+    sections,
+    clientData,
+    ownerSteps,
+    savedFormValues,
+    currentScreenId,
+    outstandingQuestionIds,
+    liveFormValues,
+  ]);
 
   const saveDeltaPendingFields = async (
     values: Record<string, unknown>
@@ -172,13 +214,6 @@ export function useDeltaReviewSubmit(args: {
       ...(savedFormValues as Record<string, unknown> | undefined),
       ...pendingValues,
     };
-    const baselinePendingGroups = collectBaselineDeltaPendingGroups({
-      sections,
-      clientData,
-      savedFormValues,
-      currentScreenId,
-      ownerSteps,
-    });
 
     const pendingValid = await deltaPendingForm.trigger();
     const partiesAndQuestionsComplete = areDeltaPendingFieldsComplete({
@@ -220,6 +255,7 @@ export function useDeltaReviewSubmit(args: {
 
   return {
     handleDeltaSubmit,
+    pendingFieldsComplete,
     shouldDisplayAlert,
     setShouldDisplayAlert,
     deltaSaveError,

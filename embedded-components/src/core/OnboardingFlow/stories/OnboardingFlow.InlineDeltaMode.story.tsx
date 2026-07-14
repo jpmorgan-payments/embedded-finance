@@ -13,6 +13,7 @@ import {
   createDeltaModeBirthdateAndOwnerSsnsClient,
   createDeltaModeOperationalAndTaxIdsClient,
   createDeltaModeOperationalOnlyClient,
+  deltaModeTermsStoryArgs,
 } from './deltaModeStorySeeds';
 import {
   commonArgs,
@@ -38,6 +39,7 @@ const meta: Meta<OnboardingFlowStoryArgs> = {
   },
   args: {
     ...commonArgsWithCallbacks,
+    ...deltaModeTermsStoryArgs,
     deltaMode: { enabled: true, variant: 'inline' },
     clientId: DEFAULT_CLIENT_ID,
   },
@@ -57,13 +59,13 @@ export default meta;
 type Story = StoryObj<OnboardingFlowStoryArgs>;
 
 /**
- * **Operational details only (inline)**
+ * **Operational details + sanctions (inline)**
  *
- * Same seed as panel delta. Review shows all sections expanded; Total Annual
- * Revenue appears as an inline editor in Operational details (no top panel).
+ * Outstanding Total Annual Revenue (30005) and sanctions (30026). Review shows
+ * both as highlighted inline editors under Operational details.
  */
 export const OperationalDetailsOnly: Story = {
-  name: 'Operational details only',
+  name: 'Operational details + sanctions',
   loaders: [
     () =>
       resetAndSeedClient(
@@ -73,19 +75,20 @@ export const OperationalDetailsOnly: Story = {
   ],
   args: {
     ...commonArgs,
+    ...deltaModeTermsStoryArgs,
     clientId: DEFAULT_CLIENT_ID,
     deltaMode: { enabled: true, maxPendingFields: 5, variant: 'inline' },
   },
 };
 
 /**
- * **Operational details + tax IDs (inline)**
+ * **Operational + sanctions + tax IDs (inline)**
  *
- * EIN / SSN / revenue missing rows edit in place inside Personal / Business /
- * Operational compact section cards.
+ * EIN / SSN / revenue / sanctions missing rows edit in place inside Personal /
+ * Business / Operational compact section cards.
  */
 export const OperationalDetailsAndTaxIds: Story = {
-  name: 'Operational details + tax IDs (business & controller)',
+  name: 'Operational + sanctions + tax IDs',
   loaders: [
     () =>
       resetAndSeedClient(
@@ -95,6 +98,7 @@ export const OperationalDetailsAndTaxIds: Story = {
   ],
   args: {
     ...commonArgs,
+    ...deltaModeTermsStoryArgs,
     clientId: DEFAULT_CLIENT_ID,
     deltaMode: { enabled: true, maxPendingFields: 5, variant: 'inline' },
   },
@@ -104,7 +108,7 @@ export const OperationalDetailsAndTaxIds: Story = {
  * **Controller birthdate + owner SSNs (inline)**
  *
  * Birthdate and owner SSNs edit under their owner / identity cards; filled
- * values settle to normal read-only rows.
+ * values settle to normal read-only rows. Includes outstanding sanctions.
  */
 export const BirthdateAndOwnerSsns: Story = {
   name: 'Controller birthdate + 2 owner SSNs',
@@ -117,6 +121,7 @@ export const BirthdateAndOwnerSsns: Story = {
   ],
   args: {
     ...commonArgs,
+    ...deltaModeTermsStoryArgs,
     clientId: DEFAULT_CLIENT_ID,
     deltaMode: { enabled: true, maxPendingFields: 5, variant: 'inline' },
   },

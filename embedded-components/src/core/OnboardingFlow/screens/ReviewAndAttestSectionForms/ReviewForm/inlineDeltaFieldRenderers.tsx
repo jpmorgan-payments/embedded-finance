@@ -202,18 +202,21 @@ export function renderDeltaPartyField(args: {
 
 /**
  * Render an inline editor for an outstanding operational question (panel + inline).
+ * @param hideQuestionLabel - When true, skip the long question description (caller
+ *   already shows a compact label). Option labels (Yes/No) still render.
  */
 export function renderDeltaQuestionInput(args: {
   form: UseFormReturn<Record<string, unknown>>;
   question: QuestionResponse;
   t: TranslateFn;
+  hideQuestionLabel?: boolean;
 }): ReactNode {
-  const { form, question, t } = args;
+  const { form, question, t, hideQuestionLabel = false } = args;
   const fieldName = `question_${question.id ?? 'undefined'}`;
   const itemType = question?.responseSchema?.items?.type ?? 'string';
   const itemEnum = question?.responseSchema?.items?.enum;
 
-  const questionLabel = (
+  const questionLabel = hideQuestionLabel ? null : (
     <div>
       {question.description?.split('\n')?.map((line, index) => (
         <div key={`${question.id}-label-${index}`}>
@@ -288,21 +291,27 @@ export function renderDeltaQuestionInput(args: {
                 <RadioGroup
                   onValueChange={(value) => field.onChange([value])}
                   value={(field.value as string[] | undefined)?.[0] ?? ''}
-                  className="eb-flex eb-flex-col eb-space-y-1"
+                  className="eb-flex eb-flex-col eb-space-y-2"
                 >
                   <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
                     <FormControl>
-                      <RadioGroupItem value="true" />
+                      <RadioGroupItem value="true" id={`${fieldName}-yes`} />
                     </FormControl>
-                    <FormLabel className="eb-font-normal">
+                    <FormLabel
+                      htmlFor={`${fieldName}-yes`}
+                      className="eb-cursor-pointer eb-font-normal"
+                    >
                       {t('common:yes', 'Yes')}
                     </FormLabel>
                   </FormItem>
                   <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
                     <FormControl>
-                      <RadioGroupItem value="false" />
+                      <RadioGroupItem value="false" id={`${fieldName}-no`} />
                     </FormControl>
-                    <FormLabel className="eb-font-normal">
+                    <FormLabel
+                      htmlFor={`${fieldName}-no`}
+                      className="eb-cursor-pointer eb-font-normal"
+                    >
                       {t('common:no', 'No')}
                     </FormLabel>
                   </FormItem>

@@ -14,6 +14,7 @@ import {
   createDeltaModeBirthdateAndOwnerSsnsClient,
   createDeltaModeOperationalAndTaxIdsClient,
   createDeltaModeOperationalOnlyClient,
+  deltaModeTermsStoryArgs,
 } from './deltaModeStorySeeds';
 import {
   commonArgs,
@@ -39,6 +40,7 @@ const meta: Meta<OnboardingFlowStoryArgs> = {
   },
   args: {
     ...commonArgsWithCallbacks,
+    ...deltaModeTermsStoryArgs,
     deltaMode: true,
     clientId: DEFAULT_CLIENT_ID,
   },
@@ -58,14 +60,14 @@ export default meta;
 type Story = StoryObj<OnboardingFlowStoryArgs>;
 
 /**
- * **Operational details only**
+ * **Operational details + sanctions**
  *
- * Pre-created LLC with rich GET client data. Only Total Annual Revenue (30005)
- * is outstanding. Delta mode opens on review with that field editable at the top,
- * owners marked complete, and Terms combined on the same screen.
+ * Pre-created LLC with rich GET client data. Total Annual Revenue (30005) and
+ * sanctions (30026) outstanding. Delta mode opens on review with those fields
+ * editable, owners marked complete, and Terms combined on the same screen.
  */
 export const OperationalDetailsOnly: Story = {
-  name: 'Operational details only',
+  name: 'Operational details + sanctions',
   loaders: [
     () =>
       resetAndSeedClient(
@@ -75,20 +77,21 @@ export const OperationalDetailsOnly: Story = {
   ],
   args: {
     ...commonArgs,
+    ...deltaModeTermsStoryArgs,
     clientId: DEFAULT_CLIENT_ID,
     deltaMode: { enabled: true, maxPendingFields: 5 },
   },
 };
 
 /**
- * **Operational details + tax IDs**
+ * **Operational + sanctions + tax IDs**
  *
- * Pre-created LLC missing Total Annual Revenue plus business EIN and controller
- * SSN. Delta review shows those three fields for inline completion, then
+ * Pre-created LLC missing Total Annual Revenue, sanctions, business EIN, and
+ * controller SSN. Delta review shows those fields for inline completion, then
  * acknowledgements, with a single Agree and finish action.
  */
 export const OperationalDetailsAndTaxIds: Story = {
-  name: 'Operational details + tax IDs (business & controller)',
+  name: 'Operational + sanctions + tax IDs',
   loaders: [
     () =>
       resetAndSeedClient(
@@ -98,6 +101,7 @@ export const OperationalDetailsAndTaxIds: Story = {
   ],
   args: {
     ...commonArgs,
+    ...deltaModeTermsStoryArgs,
     clientId: DEFAULT_CLIENT_ID,
     deltaMode: { enabled: true, maxPendingFields: 5 },
   },
@@ -106,9 +110,8 @@ export const OperationalDetailsAndTaxIds: Story = {
 /**
  * **Controller birthdate + owner SSNs**
  *
- * Four pending fields: Total Annual Revenue, controller birthdate, and SSN for
- * each of two beneficial owners (Tinker + Wendy). Grouped under their steps on
- * the delta review screen.
+ * Five pending fields: Total Annual Revenue, sanctions, controller birthdate,
+ * and SSN for each of two beneficial owners (Tinker + Wendy).
  */
 export const BirthdateAndOwnerSsns: Story = {
   name: 'Controller birthdate + 2 owner SSNs',
@@ -121,6 +124,7 @@ export const BirthdateAndOwnerSsns: Story = {
   ],
   args: {
     ...commonArgs,
+    ...deltaModeTermsStoryArgs,
     clientId: DEFAULT_CLIENT_ID,
     deltaMode: { enabled: true, maxPendingFields: 5 },
   },

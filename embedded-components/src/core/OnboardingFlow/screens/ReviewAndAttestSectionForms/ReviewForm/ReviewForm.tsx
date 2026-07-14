@@ -305,6 +305,56 @@ const PanelReviewForm: React.FC<StepperStepProps> = ({
     currentScreenId
   );
 
+  const outstandingQuestionIdsForGate =
+    clientData?.outstanding?.questionIds ?? [];
+
+  const baselinePendingGroupsForGate = useMemo(
+    () =>
+      deltaModeActive
+        ? collectBaselineDeltaPendingGroups({
+            sections,
+            clientData,
+            savedFormValues,
+            currentScreenId,
+            ownerSteps,
+          })
+        : [],
+    [
+      deltaModeActive,
+      sections,
+      clientData,
+      savedFormValues,
+      currentScreenId,
+      ownerSteps,
+    ]
+  );
+
+  const pendingFieldsComplete = useMemo(() => {
+    if (!deltaModeActive) {
+      return true;
+    }
+    return areDeltaPendingFieldsComplete({
+      baselinePendingGroups: baselinePendingGroupsForGate,
+      sections,
+      clientData,
+      ownerSteps,
+      liveOverlay: reviewFormValues,
+      currentScreenId,
+      outstandingQuestionIds: outstandingQuestionIdsForGate,
+      liveFormValues: liveDeltaValues,
+    });
+  }, [
+    deltaModeActive,
+    baselinePendingGroupsForGate,
+    sections,
+    clientData,
+    ownerSteps,
+    reviewFormValues,
+    currentScreenId,
+    outstandingQuestionIdsForGate,
+    liveDeltaValues,
+  ]);
+
   const sectionIdsToReview: SectionScreenId[] = [
     'personal-section',
     'business-section',
@@ -990,7 +1040,9 @@ const PanelReviewForm: React.FC<StepperStepProps> = ({
               })}
               disabled={
                 deltaModeActive
-                  ? terms.isFormSubmitting || !terms.attestationComplete
+                  ? terms.isFormSubmitting ||
+                    !terms.attestationComplete ||
+                    !pendingFieldsComplete
                   : false
               }
             >

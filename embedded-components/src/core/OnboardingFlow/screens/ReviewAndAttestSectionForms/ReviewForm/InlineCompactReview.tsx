@@ -442,7 +442,10 @@ function QuestionsBlock({
           question.description?.split('\n')[0] ?? question.id ?? 'Question';
         const values = getResponseValues(qid);
         const displayAnswer = formatInlineAnswer(values, question.id, tString);
-        const showInput = !answered || isEditingProvided;
+        // Outstanding questions stay editable while typing (don't flip to
+        // read-only after the first digit). Provided answers stay read-only
+        // until block-level Change.
+        const showInput = isOutstanding || isEditingProvided;
 
         return (
           <Fragment key={qid}>
@@ -450,7 +453,8 @@ function QuestionsBlock({
               <div
                 className={cn(
                   'eb-space-y-1',
-                  !answered &&
+                  isOutstanding &&
+                    !answered &&
                     'eb-rounded-md eb-border eb-border-warning/40 eb-bg-warning-accent eb-p-2.5'
                 )}
               >
@@ -462,9 +466,12 @@ function QuestionsBlock({
                 >
                   {label}
                 </p>
-                <div className="[&_label]:eb-sr-only">
-                  {renderDeltaQuestionInput({ form, question, t })}
-                </div>
+                {renderDeltaQuestionInput({
+                  form,
+                  question,
+                  t,
+                  hideQuestionLabel: true,
+                })}
               </div>
             ) : (
               <div className="eb-space-y-0.5">
@@ -488,14 +495,18 @@ function QuestionsBlock({
                 child.id,
                 tString
               );
-              const showChildInput = !childAnswered || isEditingProvided;
+              // Visible follow-ups stay editable while the parent block is
+              // in missing/edit flow (parent outstanding or Change active).
+              const showChildInput =
+                childOutstanding || isOutstanding || isEditingProvided;
 
               return showChildInput ? (
                 <div
                   key={childId}
                   className={cn(
                     'eb-space-y-1',
-                    !childAnswered &&
+                    (childOutstanding || isOutstanding) &&
+                      !childAnswered &&
                       'eb-rounded-md eb-border eb-border-warning/40 eb-bg-warning-accent eb-p-2.5'
                   )}
                 >
@@ -509,13 +520,12 @@ function QuestionsBlock({
                   >
                     {childLabel}
                   </p>
-                  <div className="[&_label]:eb-sr-only">
-                    {renderDeltaQuestionInput({
-                      form,
-                      question: child,
-                      t,
-                    })}
-                  </div>
+                  {renderDeltaQuestionInput({
+                    form,
+                    question: child,
+                    t,
+                    hideQuestionLabel: true,
+                  })}
                 </div>
               ) : (
                 <div key={childId} className="eb-space-y-0.5">

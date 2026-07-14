@@ -28,7 +28,10 @@ import {
   useSmbdoPostClientVerifications,
   useSmbdoUpdateClientLegacy,
 } from '@/api/generated/smbdo';
-import { UpdateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
+import {
+  DocumentTypeSmbdo,
+  UpdateClientRequestSmbdo,
+} from '@/api/generated/smbdo.schemas';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import {
@@ -40,6 +43,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui';
+import { DOCUMENT_TYPE_MAPPING } from '@/core/OnboardingFlow/config/documentTypeMapping';
 import {
   useFlowContext,
   useOnboardingContext,
@@ -47,6 +51,18 @@ import {
 import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
 
 import { TermsAttestationAcknowledgementsGroup } from './TermsAttestationAcknowledgementsGroup';
+
+function documentTypeDisplayLabel(
+  documentType: string | undefined,
+  fallback: string
+): string {
+  if (!documentType) {
+    return fallback;
+  }
+  const mapped =
+    DOCUMENT_TYPE_MAPPING[documentType as DocumentTypeSmbdo]?.label;
+  return mapped || documentType.replace(/_/g, ' ');
+}
 
 const generateSessionId = () => {
   const sessionId = uuidv4();
@@ -278,9 +294,12 @@ export function useTermsAndConditions(options?: {
   const hasPlatformAgreement = !!disclosureConfig?.platformAgreementUrl;
   const [platformAgreementOpened, setPlatformAgreementOpened] = useState(false);
 
-  const allLinksOpened =
-    documentIds.every((id) => termsDocumentsOpened[id]) &&
-    (!hasPlatformAgreement || platformAgreementOpened);
+  // Delta / partially hosted: docs are optional links — do not gate checkboxes.
+  const requireDocumentsOpened = !combineAccuracyAttestation;
+  const allLinksOpened = requireDocumentsOpened
+    ? documentIds.every((id) => termsDocumentsOpened[id]) &&
+      (!hasPlatformAgreement || platformAgreementOpened)
+    : true;
 
   const handlePlatformAgreementOpen = () => {
     if (disclosureConfig?.platformAgreementUrl) {
@@ -486,13 +505,102 @@ export function useTermsAndConditions(options?: {
     return valid;
   };
 
-  const documentLinkClassName = cn(
-    combineAccuracyAttestation
-      ? 'eb-flex eb-h-10 eb-w-full eb-justify-between eb-rounded-md eb-border eb-bg-card eb-px-3 eb-py-2 eb-font-sans eb-text-sm eb-font-normal'
-      : 'eb-flex eb-h-14 eb-w-full eb-justify-between eb-rounded-md eb-border eb-bg-card eb-px-4 eb-py-2 eb-font-sans eb-text-sm eb-font-normal eb-shadow-md'
-  );
+  // Full terms step: bordered card buttons. Delta: one-line comma-separated links.
+  const documentLinkClassName =
+    'eb-flex eb-h-14 eb-w-full eb-justify-between eb-rounded-md eb-border eb-bg-card eb-px-4 eb-py-2 eb-font-sans eb-text-sm eb-font-normal eb-shadow-md';
 
-  const documentLinks = (
+  const resolveDocumentLabel = (id: string) => {
+    const query = documentQueries.find((q) => q.data?.id === id);
+    if (query?.isFetching || loadingDocuments[id] || !query?.data) {
+      return tString('common:loading', 'Loading...');
+    }
+    return documentTypeDisplayLabel(
+      query.data.documentType,
+      tString(
+        'reviewAndAttest.termsAndConditions.defaultDocumentLabel',
+        'Terms and Conditions'
+      )
+    );
+  };
+
+  const platformAgreementLabel =
+    disclosureConfig?.platformAgreementLabel ??
+    `${disclosureConfig?.platformName}'s Program Agreement`;
+
+  const documentLinks = combineAccuracyAttestation ? (
+    <div className="eb-space-y-1">
+      <p className="eb-flex eb-flex-wrap eb-items-baseline eb-gap-x-1 eb-text-sm eb-leading-relaxed">
+        {documentIds.map((id, index) => {
+          const query = documentQueries.find((q) => q.data?.id === id);
+          return (
+            <span key={id} className="eb-inline-flex eb-items-baseline">
+              {index > 0 ? (
+                <span className="eb-text-muted-foreground">,&nbsp;</span>
+              ) : null}
+              <button
+                type="button"
+                onClick={handleDocumentOpen(id)}
+                disabled={query?.isFetching || loadingDocuments[id]}
+                className="eb-inline eb-bg-transparent eb-p-0 eb-font-sans eb-text-sm eb-text-[#12647E] eb-underline eb-underline-offset-2 hover:eb-opacity-80 disabled:eb-cursor-not-allowed disabled:eb-opacity-60"
+              >
+                {resolveDocumentLabel(id)}
+              </button>
+            </span>
+          );
+        })}
+        {hasPlatformAgreement ? (
+          <span className="eb-inline-flex eb-items-baseline">
+            {documentIds.length > 0 ? (
+              <span className="eb-text-muted-foreground">,&nbsp;</span>
+            ) : null}
+            <button
+              type="button"
+              onClick={handlePlatformAgreementOpen}
+              className="eb-inline eb-bg-transparent eb-p-0 eb-font-sans eb-text-sm eb-text-[#12647E] eb-underline eb-underline-offset-2 hover:eb-opacity-80"
+            >
+              {platformAgreementLabel}
+            </button>
+          </span>
+        ) : null}
+      </p>
+      {documentIds.map((id) => {
+        const query = documentQueries.find((q) => q.data?.id === id);
+        if (!documentErrors[id]) {
+          return null;
+        }
+        return (
+          <div key={`err-${id}`} className="eb-flex eb-flex-col eb-gap-1">
+            <div className="eb-flex eb-items-start eb-gap-1.5 eb-text-sm eb-text-destructive">
+              <AlertCircleIcon className="eb-mt-0.5 eb-h-4 eb-w-4 eb-shrink-0" />
+              <span>
+                {t(
+                  'reviewAndAttest.termsAndConditions.failedToDownload',
+                  'Failed to download document:'
+                )}{' '}
+                {documentErrors[id]}
+              </span>
+            </div>
+            {query?.data?.id ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleDocumentSave(id)}
+                disabled={loadingDocuments[id]}
+                className="eb-w-fit eb-gap-1"
+              >
+                <DownloadIcon className="eb-h-4 eb-w-4" />
+                {t(
+                  'reviewAndAttest.termsAndConditions.saveDocument',
+                  'Save document'
+                )}
+              </Button>
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
+  ) : (
     <div className="eb-flex eb-flex-col eb-gap-2">
       {documentIds.map((id) => {
         const query = documentQueries.find((q) => q.data?.id === id);
@@ -510,25 +618,11 @@ export function useTermsAndConditions(options?: {
               disabled={query?.isFetching || loadingDocuments[id]}
             >
               <span className="eb-flex eb-min-w-0 eb-items-center eb-gap-2">
-                <FileIcon
-                  className={
-                    combineAccuracyAttestation
-                      ? 'eb-size-4 eb-shrink-0'
-                      : 'eb-shrink-0'
-                  }
-                />
+                <FileIcon className="eb-shrink-0" />
                 <p className="eb-truncate eb-text-[#12647E] eb-underline">
-                  {query?.isFetching || loadingDocuments[id] || !query?.data
-                    ? t('common:loading', 'Loading...')
-                    : query?.data?.documentType}
+                  {resolveDocumentLabel(id)}
                 </p>
-                <ExternalLinkIcon
-                  className={
-                    combineAccuracyAttestation
-                      ? 'eb-size-3.5 eb-shrink-0 eb-text-[#12647E]'
-                      : 'eb-shrink-0 eb-text-[#12647E]'
-                  }
-                />
+                <ExternalLinkIcon className="eb-shrink-0 eb-text-[#12647E]" />
               </span>
               <span className="eb-shrink-0">
                 {termsDocumentsOpened[id] && (
@@ -593,24 +687,11 @@ export function useTermsAndConditions(options?: {
             })}
           >
             <span className="eb-flex eb-min-w-0 eb-items-center eb-gap-2">
-              <FileIcon
-                className={
-                  combineAccuracyAttestation
-                    ? 'eb-size-4 eb-shrink-0'
-                    : 'eb-shrink-0'
-                }
-              />
+              <FileIcon className="eb-shrink-0" />
               <p className="eb-truncate eb-text-[#12647E] eb-underline">
-                {disclosureConfig?.platformAgreementLabel ??
-                  `${disclosureConfig?.platformName}'s Program Agreement`}
+                {platformAgreementLabel}
               </p>
-              <ExternalLinkIcon
-                className={
-                  combineAccuracyAttestation
-                    ? 'eb-size-3.5 eb-shrink-0 eb-text-[#12647E]'
-                    : 'eb-shrink-0 eb-text-[#12647E]'
-                }
-              />
+              <ExternalLinkIcon className="eb-shrink-0 eb-text-[#12647E]" />
             </span>
             <span className="eb-shrink-0">
               {platformAgreementOpened && (
@@ -660,35 +741,12 @@ export function useTermsAndConditions(options?: {
           'Open and review all documents above before selecting the checkbox.'
         );
 
-  // Delta compact card: helper sits above the doc link, so use "below".
-  const deltaReviewHelperText =
-    documentIds.length === 1
-      ? t(
-          'reviewAndAttest.termsAndConditions.mustReviewDocumentBelow',
-          'Open and review the document below before selecting the checkbox.'
-        )
-      : t(
-          'reviewAndAttest.termsAndConditions.mustReviewDocumentsBelow',
-          'Open and review all documents below before selecting the checkbox.'
-        );
-
   // Render as JSX (not a nested component) so parent re-renders from
   // useWatch(attested) do not remount the checkbox tree and wipe the click.
-  // Delta combined attestation: one compact card (docs + checkbox + helper).
+  // Delta combined attestation: one compact card (docs + checkbox).
   const termsBody: ReactNode =
     combineAccuracyAttestation && !useHostAckList ? (
       <div className="eb-space-y-3">
-        {!allLinksOpened && shouldDisplayAlert && (
-          <Alert variant="destructive" noTitle>
-            <AlertCircleIcon className="eb-h-4 eb-w-4" />
-            <AlertDescription>
-              {t(
-                'reviewAndAttest.termsAndConditions.openDocumentsAlert',
-                'Please open the document links and confirm that you have read and agree to all documents.'
-              )}
-            </AlertDescription>
-          </Alert>
-        )}
         <div
           className="eb-space-y-3 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-3"
           role="group"
@@ -697,16 +755,10 @@ export function useTermsAndConditions(options?: {
             'Accuracy and terms attestation'
           )}
         >
-          {!allLinksOpened && (
-            <p className="eb-text-xs eb-text-muted-foreground">
-              {deltaReviewHelperText}
-            </p>
-          )}
           {documentLinks}
           <FormField
             control={form.control}
             name="attested"
-            disabled={!allLinksOpened}
             render={({ field }) => (
               <FormItem>
                 <div className="eb-flex eb-items-start eb-gap-2">
@@ -771,7 +823,7 @@ export function useTermsAndConditions(options?: {
             </AlertDescription>
           </Alert>
         )}
-        {allLinksOpened && useHostAckList && shouldDisplayHostAckAlert && (
+        {useHostAckList && shouldDisplayHostAckAlert && (
           <Alert variant="destructive" noTitle>
             <AlertCircleIcon className="eb-h-4 eb-w-4" />
             <AlertDescription>
